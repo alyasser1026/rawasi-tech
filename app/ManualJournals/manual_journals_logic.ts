@@ -33,6 +33,7 @@ export function useManualJournalsLogic() {
                     partner:partners(name),
                     project:projects(Property)
                 `)
+                .order('entry_date', { ascending: false })
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
@@ -151,6 +152,7 @@ export function useManualJournalsLogic() {
             // تحويل النصوص الفارغة إلى null لتجنب خطأ UUID في قاعدة البيانات
             if (!payload.partner_id) payload.partner_id = null;
             if (!payload.project_id) payload.project_id = null;
+            if (!payload.job_order_id) payload.job_order_id = null;
 
             if (payload.id) {
                 const { error } = await supabase.from('manual_journals').update(payload).eq('id', payload.id);

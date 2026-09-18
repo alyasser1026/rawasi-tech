@@ -65,6 +65,7 @@ export function usePaymentVouchersLogic() {
                     credit_account:accounts!credit_account_id(name),
                     debit_account:accounts!debit_account_id(name)
                 `)
+                .order('date', { ascending: false })
                 .order('created_at', { ascending: false });
 
             const allData = await fetchPaginatedData(buildQuery, 'id');
@@ -164,6 +165,12 @@ export function usePaymentVouchersLogic() {
             delete payload.debit_account;
             delete payload.manual_debit; 
             delete payload.manual_credit;
+            delete payload.job_order_number;
+            delete payload.job_order;
+            delete payload.project_id;
+
+            // تحويل المعرف الفارغ إلى null لتفادي خطأ الـ UUID في قاعدة البيانات
+            if (!payload.job_order_id) payload.job_order_id = null;
 
             if (!payload.voucher_number) {
                 const timePart = Date.now().toString().slice(-4);
@@ -270,7 +277,8 @@ export function usePaymentVouchersLogic() {
                     payment_method: 'نقدي', 
                     amount: '', // 🎯 اعتماد مبلغ واحد فقط
                     debit_account_id: null, debit_account_name: '', credit_account_id: null, credit_account_name: '',
-                    payee_id: '', payee_name: '', is_posted: false, status: 'مسودة'
+                    payee_id: '', payee_name: '', is_posted: false, status: 'مسودة',
+                    job_order_id: null, job_order_number: ''
                 });
                 setIsEditModalOpen(true);
             },
@@ -283,7 +291,9 @@ export function usePaymentVouchersLogic() {
                         ...selected,
                         payee_name: selected.payee?.name || '',
                         debit_account_name: selected.debit_account?.name || '',
-                        credit_account_name: selected.credit_account?.name || ''
+                        credit_account_name: selected.credit_account?.name || '',
+                        job_order_id: selected.job_order_id || null,
+                        job_order_number: selected.job_order?.order_number || ''
                     };
                     setCurrentVoucher(voucherForEdit);
                     setIsEditModalOpen(true);

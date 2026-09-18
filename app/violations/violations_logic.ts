@@ -38,6 +38,7 @@ export function useViolationsLogic() {
                     debit_acc:accounts!violations_debit_account_id_fkey(name),
                     credit_acc:accounts!violations_credit_account_id_fkey(name)
                 `)
+                .order('date', { ascending: false })
                 .order('created_at', { ascending: false });
             return await fetchPaginatedData(buildQuery, 'id');
         }
@@ -67,10 +68,14 @@ export function useViolationsLogic() {
             const previousData = queryClient.getQueryData(['violations']);
             updateRowsInCache(idsToPost, { is_posted: true });
 
-            const { error } = await supabase.rpc('post_violations_bulk_journal', { violation_ids: idsToPost });
-            if (error) {
-                queryClient.setQueryData(['violations'], previousData); 
-                throw error;
+            const chunkSize = 30;
+            for (let i = 0; i < idsToPost.length; i += chunkSize) {
+                const chunk = idsToPost.slice(i, i + chunkSize);
+                const { error } = await supabase.rpc('post_violations_bulk_journal', { violation_ids: chunk });
+                if (error) {
+                    queryClient.setQueryData(['violations'], previousData); 
+                    throw error;
+                }
             }
         },
         onSuccess: (data, ids) => {
@@ -87,10 +92,14 @@ export function useViolationsLogic() {
             const previousData = queryClient.getQueryData(['violations']);
             updateRowsInCache(idsToSuspend, { is_posted: false });
 
-            const { error } = await supabase.rpc('unpost_violations_bulk_journal', { violation_ids: idsToSuspend });
-            if (error) {
-                queryClient.setQueryData(['violations'], previousData); 
-                throw error;
+            const chunkSize = 30;
+            for (let i = 0; i < idsToSuspend.length; i += chunkSize) {
+                const chunk = idsToSuspend.slice(i, i + chunkSize);
+                const { error } = await supabase.rpc('unpost_violations_bulk_journal', { violation_ids: chunk });
+                if (error) {
+                    queryClient.setQueryData(['violations'], previousData); 
+                    throw error;
+                }
             }
         },
         onSuccess: () => {
@@ -109,8 +118,13 @@ export function useViolationsLogic() {
                     throw new Error("لا يمكن حذف مخالفة مرحلة. يرجى فك الترحيل أولاً.");
                 }
             }
-            const { error } = await supabase.rpc('delete_violations_bulk', { p_ids: ids });
-            if (error) throw error;
+            
+            const chunkSize = 50;
+            for (let i = 0; i < ids.length; i += chunkSize) {
+                const chunk = ids.slice(i, i + chunkSize);
+                const { error } = await supabase.rpc('delete_violations_bulk', { p_ids: chunk });
+                if (error) throw error;
+            }
             return ids; 
         },
         onSuccess: () => {

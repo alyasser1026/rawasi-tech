@@ -365,7 +365,7 @@ function AccountNode({ node, expandedIds, toggleExpand, selectedIds, toggleSelec
           {node.transactions?.map((t: any, idx: number) => (
             <div key={idx} className="entry-line">
               <div style={{ fontWeight: 800, color: THEME.goldAccent }}>{t.date}</div>
-              <div style={{ color: THEME.primary, fontWeight: 700 }}>{t.description}</div>
+              <div style={{ color: THEME.primary, fontWeight: 700 }}>{t.notes || t.description || 'بدون بيان'}</div>
               <div style={{ textAlign: 'center', color: THEME.success, fontWeight: 800, fontFamily: 'monospace' }}>{t.debit ? formatCurrency(t.debit) : '-'}</div>
               <div style={{ textAlign: 'center', color: THEME.danger, fontWeight: 800, fontFamily: 'monospace' }}>{t.credit ? formatCurrency(t.credit) : '-'}</div>
             </div>

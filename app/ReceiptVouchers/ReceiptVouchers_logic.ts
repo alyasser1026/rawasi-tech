@@ -47,6 +47,7 @@ export function useReceiptVouchersLogic() {
             const buildQuery = () => supabase
                 .from('receipt_vouchers')
                 .select(`*, partners(name), invoices(invoice_number)`)
+                .order('date', { ascending: false })
                 .order('created_at', { ascending: false });
 
             const rec = await fetchPaginatedData(buildQuery, 'id');

@@ -54,16 +54,28 @@ export default function RawasiSmartTable({
     title, data, columns, fileName = 'Rawasi_Report', 
     selectable, selectedIds = [], onSelectionChange, onRowClick, emptyMessage,
     
-    enablePagination = false,
-    currentPage = 1,
-    totalItems = 0,
-    rowsPerPage = 50,
+    enablePagination = true,
+    currentPage: externalPage,
+    totalItems: externalTotal,
+    rowsPerPage: externalRowsPerPage,
     onPageChange,
     onRowsChange
 }: RawasiSmartTableProps) {
     
-    // 🧮 حساب عدد الصفحات الديناميكي
-    const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
+    // 🧮 Internal state for pagination if not provided by parent
+    const [internalPage, setInternalPage] = useState(1);
+    const [internalRowsPerPage, setInternalRowsPerPage] = useState(50);
+
+    const handlePageChange = (p: number) => {
+        setInternalPage(p);
+        if (onPageChange) onPageChange(p);
+    };
+
+    const handleRowsChange = (r: number) => {
+        setInternalRowsPerPage(r);
+        setInternalPage(1);
+        if (onRowsChange) onRowsChange(r);
+    };
 
     // 🚀 محرك الفرز (Sorting Engine)
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
@@ -105,12 +117,18 @@ export default function RawasiSmartTable({
         return sortableItems;
     }, [data, sortConfig]);
 
+    // 🧮 حساب عدد الصفحات الديناميكي
+    const activePage = externalPage !== undefined ? externalPage : internalPage;
+    const activeRows = externalRowsPerPage !== undefined ? externalRowsPerPage : internalRowsPerPage;
+    const activeTotal = externalTotal || sortedData.length;
+    const totalPages = Math.ceil(activeTotal / activeRows) || 1;
+
     // 🚀 محرك القص (Pagination Engine): لضمان عدم تهنيج المتصفح عند إرسال آلاف السجلات
     const paginatedData = useMemo(() => {
         if (!enablePagination) return sortedData;
-        const startIndex = (currentPage - 1) * rowsPerPage;
-        return sortedData.slice(startIndex, startIndex + rowsPerPage);
-    }, [sortedData, enablePagination, currentPage, rowsPerPage]);
+        const startIndex = (activePage - 1) * activeRows;
+        return sortedData.slice(startIndex, startIndex + activeRows);
+    }, [sortedData, enablePagination, activePage, activeRows]);
 
     const exportToExcel = () => {
         if (!data || data.length === 0) return toast.error('عفواً، لا توجد بيانات للتصدير ❌');
@@ -277,7 +295,7 @@ export default function RawasiSmartTable({
                 </table>
             </div>
 
-            {enablePagination && totalItems > 0 && (
+            {enablePagination && activeTotal > 0 && (
                 <div className="hide-on-print" style={{ 
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
                     padding: '15px 20px', marginTop: '15px', borderTop: '1px solid rgba(0,0,0,0.05)',
@@ -286,35 +304,32 @@ export default function RawasiSmartTable({
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '12px', fontWeight: 900, color: '#64748b' }}>عرض:</span>
                         <select 
-                            value={rowsPerPage} 
-                            onChange={(e) => {
-                                if (onRowsChange) onRowsChange(Number(e.target.value));
-                                if (onPageChange) onPageChange(1);
-                            }}
+                            value={activeRows} 
+                            onChange={(e) => handleRowsChange(Number(e.target.value))}
                             style={{ padding: '8px 15px', borderRadius: '12px', border: '1px solid #cbd5e1', outline: 'none', fontWeight: 800, cursor: 'pointer', background: 'white', color: '#0f172a' }}
                         >
                             <option value="50">50 سجل</option>
                             <option value="100">100 سجل</option>
                             <option value="500">500 سجل</option>
                         </select>
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8' }}>من إجمالي {totalItems}</span>
+                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8' }}>من إجمالي {activeTotal}</span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <button 
-                            disabled={currentPage === 1} 
-                            onClick={(e) => { e.stopPropagation(); if(onPageChange) onPageChange(currentPage - 1); }} 
-                            style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1, color: '#0f172a', transition: '0.2s' }}
+                            disabled={activePage === 1} 
+                            onClick={(e) => { e.stopPropagation(); handlePageChange(activePage - 1); }} 
+                            style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: activePage === 1 ? 'not-allowed' : 'pointer', opacity: activePage === 1 ? 0.5 : 1, color: '#0f172a', transition: '0.2s' }}
                         >
                             السابق
                         </button>
                         <div style={{ background: THEME.goldAccent, color: 'white', padding: '8px 20px', borderRadius: '12px', fontWeight: 900, fontSize: '13px', boxShadow: `0 4px 10px ${THEME.goldAccent}40` }}>
-                            صفحة {currentPage} من {totalPages}
+                            صفحة {activePage} من {totalPages}
                         </div>
                         <button 
-                            disabled={currentPage >= totalPages} 
-                            onClick={(e) => { e.stopPropagation(); if(onPageChange) onPageChange(currentPage + 1); }} 
-                            style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', opacity: currentPage >= totalPages ? 0.5 : 1, color: '#0f172a', transition: '0.2s' }}
+                            disabled={activePage >= totalPages} 
+                            onClick={(e) => { e.stopPropagation(); handlePageChange(activePage + 1); }} 
+                            style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: activePage >= totalPages ? 'not-allowed' : 'pointer', opacity: activePage >= totalPages ? 0.5 : 1, color: '#0f172a', transition: '0.2s' }}
                         >
                             التالي
                         </button>

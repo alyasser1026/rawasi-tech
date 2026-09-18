@@ -102,11 +102,12 @@ export default function JobOrdersPage() {
         customFilters={
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '5px' }}>
                 <SmartCombo 
-                    label="تصفية بالمشروع"
+                    label="تصفية بالمشروع (العقار)"
                     icon="🏢"
                     table="projects"
-                    displayCol="project_name"
-                    placeholder="ابحث عن مشروع..."
+                    displayCol="Property"
+                    searchCols="Property,project_name,project_code"
+                    placeholder="ابحث عن عقار..."
                     enableClear={true}
                     onSelect={(item:any) => logic.setProjectFilter(item?.id || '')}
                 />
@@ -124,7 +125,7 @@ export default function JobOrdersPage() {
                 <SmartCombo 
                     label="تصفية بالبند (العمل)"
                     icon="🛠️"
-                    table="boq_budget"
+                    table="boq_budget_distinct"
                     displayCol="work_item"
                     placeholder="ابحث عن بند..."
                     enableClear={true}

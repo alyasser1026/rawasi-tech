@@ -43,3 +43,9 @@ next-env.d.ts
 pgsql17-2/
 
 pgsql17/
+
+# scratch & temp scripts
+scratch/
+check_*.js
+run_*.js
+my-accounting-app.code-workspace

@@ -88,7 +88,7 @@ export function useMaterialIssuesLogic() {
                 subcontractor_id: line.issue?.subcontractor_id,
                 subcontractor_name: line.issue?.subcontractor?.name,
                 contractor_text_name: line.issue?.contractor_text_name 
-            }));
+            })).sort((a: any, b: any) => new Date(b.issue_date || 0).getTime() - new Date(a.issue_date || 0).getTime());
         }
     });
 

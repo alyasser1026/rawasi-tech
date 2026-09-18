@@ -204,7 +204,7 @@ export default function PaymentVoucherModal({
                     </div>
                 </div>
 
-                {/* 📝 المشروع، طريقة الدفع، والبيان */}
+                {/* 📝 المشروع، أمر الشغل، وطريقة الدفع */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div style={{ zIndex: 30, position: 'relative' }}>
                         <SmartCombo 
@@ -213,6 +213,23 @@ export default function PaymentVoucherModal({
                             displayCol="Property" 
                             initialDisplay={record.site_ref || ''} 
                             onSelect={(val:any) => setRecord({...record, site_ref: val?.Property || ''})} 
+                        />
+                    </div>
+                    <div style={{ zIndex: 25, position: 'relative' }}>
+                        <SmartCombo 
+                            label="🛠️ أمر الشغل (اختياري)" 
+                            table="job_orders" 
+                            displayCol="order_number" 
+                            searchCols="order_number,notes"
+                            initialDisplay={record.job_order_number || ''} 
+                            customQuery={(q: any) => q.select('*, boq_budget:boq_budget_id(work_item), projects:project_id(Property)')}
+                            displayFormat={(item: any) => `${item.order_number} (${item.projects?.Property || 'مشروع'} - ${item.boq_budget?.work_item || 'بدون بند'})`}
+                            onSelect={(val:any) => setRecord({
+                                ...record, 
+                                job_order_id: val?.id || null,
+                                job_order_number: val?.order_number || '',
+                                site_ref: record.site_ref || val?.projects?.Property || ''
+                            })} 
                         />
                     </div>
                     <div>

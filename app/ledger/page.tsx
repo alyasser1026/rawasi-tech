@@ -21,9 +21,9 @@ export default function AccountLedger() {
       header: 'البيان / المشروع', 
       render: (row: any) => row ? (
         <div>
-          <div style={{ fontWeight: 900, color: THEME.primary }}>{row.item_name}</div>
+          <div style={{ fontWeight: 900, color: THEME.primary }}>{row.notes || row.journal_headers?.description || row.item_name || 'بدون بيان'}</div>
           <div style={{ fontSize: '11px', opacity: 0.7, color: '#64748b' }}>
-            {row.projects?.name || 'مصاريف إدارية'} | {row.partners?.name || 'عام'}
+            {row.projects?.name || row.projects?.Property || 'مصاريف إدارية'} | {row.partners?.name || 'عام'}
           </div>
         </div>
       ) : null

@@ -1,3 +1,5 @@
+import { supabase } from '@/lib/supabase';
+
 export const tafqeet = (value: number | string | null | undefined): string => {
   if (!value || isNaN(Number(value)) || Number(value) === 0) return "صفر ريال سعودي";
 

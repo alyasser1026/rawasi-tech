@@ -195,8 +195,8 @@ export function useLaborLogsLogic() {
     const deleteMutation = useMutation({
         mutationFn: async (ids: string[]) => {
             for (const logId of ids) {
-                const { data: existing } = await supabase.from('labor_logs').select('is_posted, status').eq('id', logId).single();
-                if (existing && (existing.is_posted || existing.status === 'مرحل' || existing.status === 'معتمد')) {
+                const { data: existing } = await supabase.from('labor_daily_logs').select('is_posted').eq('id', logId).single();
+                if (existing && existing.is_posted) {
                     throw new Error("لا يمكن حذف سجلات مرحلة. يرجى فك الترحيل أولاً.");
                 }
             }

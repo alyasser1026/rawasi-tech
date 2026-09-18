@@ -68,7 +68,7 @@ export function useSubClaimsLogic() {
                 .select('*, projects:project_id(Property)')
                 .eq('contractor_id', selectedContractor.id);
                 
-            const data = await fetchPaginatedData(buildQuery, 'id');
+            const data = await fetchPaginatedData(buildQuery, 'assignment_id');
             
             return (data || []).map((item: any) => ({
                 ...item,
@@ -94,6 +94,7 @@ export function useSubClaimsLogic() {
             const buildQuery = () => supabase.from('sub_claims')
                 .select('*, projects(Property)')
                 .eq('contractor_id', selectedContractor.id)
+                .order('date', { ascending: false })
                 .order('created_at', { ascending: false });
             
             const data = await fetchPaginatedData(buildQuery, 'id');

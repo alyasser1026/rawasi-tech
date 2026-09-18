@@ -19,6 +19,10 @@ export default function AuditLogs() {
     const [filterAction, setFilterAction] = useState<string>('');
     const [filterDate, setFilterDate] = useState<string>('');
 
+    // Pagination state
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage, setRowsPerPage] = useState(50);
+
     const processedLogs = useMemo(() => {
         return logs.map(log => {
             let effectiveAction = log.action;
@@ -58,13 +62,17 @@ export default function AuditLogs() {
     // ==========================================
     useEffect(() => {
         const checkAccess = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return router.push('/login');
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error || !session?.user) return router.push('/login');
 
-            const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-            if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin' && !profile.permissions?.audit_logs?.view)) {
-                alert("⛔ ليس لديك صلاحية لمشاهدة سجل المراقبة.");
-                router.push('/');
+                const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
+                if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin' && !profile.permissions?.audit_logs?.view)) {
+                    alert("⛔ ليس لديك صلاحية لمشاهدة سجل المراقبة.");
+                    router.push('/');
+                }
+            } catch (err) {
+                console.warn("Check access error:", err);
             }
         };
         checkAccess();
@@ -80,7 +88,7 @@ export default function AuditLogs() {
                 .from('audit_logs')
                 .select('*, profiles(full_name, role)')
                 .order('created_at', { ascending: false })
-                .limit(500); // إحضار آخر 500 حركة كحد أقصى للأداء
+                .limit(5000); // إحضار آخر 5000 حركة كحد أقصى للأداء
             
             if (error) throw error;
             setLogs(data || []);
@@ -93,7 +101,11 @@ export default function AuditLogs() {
     };
 
     useEffect(() => { 
-        fetchLogs(); 
+        // 🛠️ تأخير طفيف لتجنب تداخل الـ Locks مع getSession
+        const timer = setTimeout(() => {
+            fetchLogs();
+        }, 300);
+        return () => clearTimeout(timer);
     }, []);
 
     // ==========================================
@@ -304,6 +316,12 @@ export default function AuditLogs() {
                             columns={columns} 
                             searchPlaceholder="ابحث في السجل..."
                             isLoading={isLoading}
+                            enablePagination={true}
+                            currentPage={currentPage}
+                            totalItems={filteredLogs.length}
+                            rowsPerPage={rowsPerPage}
+                            onPageChange={setCurrentPage}
+                            onRowsChange={setRowsPerPage}
                         />
                     </div>
                 </>

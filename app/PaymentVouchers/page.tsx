@@ -130,7 +130,20 @@ export default function PaymentVouchersPage() {
         </span>
       ) : null 
     },
-    { header: 'البيان', accessor: 'description', render: (row: any) => row ? <span style={{ fontSize:'12px', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block' }}>{row.description}</span> : null },
+    { 
+      header: 'البيان', 
+      accessor: 'description', 
+      render: (row: any) => row ? (
+        <div>
+          <span style={{ fontSize:'12px', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block' }}>{row.description}</span>
+          {(row.job_order?.order_number || row.job_order_number) && (
+            <div style={{ fontSize: '10px', color: THEME.goldAccent, fontWeight: 800 }}>
+              🛠️ #{row.job_order?.order_number || row.job_order_number}
+            </div>
+          )}
+        </div>
+      ) : null 
+    },
     { header: 'المبلغ', accessor: 'amount', render: (row: any) => row ? <span style={{ color: THEME.danger, fontWeight: 900, fontSize: '15px' }}>{formatCurrency(row.amount)}</span> : null },
     {
       header: 'الحالة',

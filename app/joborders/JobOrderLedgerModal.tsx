@@ -13,6 +13,7 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
     const [ledgerData, setLedgerData] = useState<any[]>([]);
     const [assignmentData, setAssignmentData] = useState<any[]>([]);
     const [claimsData, setClaimsData] = useState<any[]>([]);
+    const [directPaymentsData, setDirectPaymentsData] = useState<any[]>([]);
 
     useEffect(() => {
         if (!isOpen || !(jobOrder?.id || jobOrder?.job_order_id)) return;
@@ -68,6 +69,22 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                     sub_claims ( id, claim_number, date, total_amount, net_amount, paid_amount, materials_deduction, other_deductions, advance_payment, retention_amount, status )
                 `)
                 .eq('job_order_id', targetId);
+
+            // 5. جلب دفعات الصرف المباشرة لأمر الشغل (إن وجدت)
+            try {
+                const { data: directPVs, error: pvErr } = await supabase
+                    .from('payment_vouchers')
+                    .select('id, voucher_number, date, amount, description')
+                    .eq('job_order_id', targetId)
+                    .is('sub_claim_id', null);
+                if (!pvErr && directPVs) {
+                    setDirectPaymentsData(directPVs);
+                } else {
+                    setDirectPaymentsData([]);
+                }
+            } catch (_) {
+                setDirectPaymentsData([]);
+            }
 
             setLedgerData(allLedger);
             
@@ -165,6 +182,10 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
         };
     });
     
+    // 🚀 إضافة سندات الصرف المباشرة لأمر الشغل (بدون مستخلص) إلى إجمالي المدفوع
+    const directPaymentsTotal = directPaymentsData.reduce((sum, p) => sum + Number(p.amount || 0), 0);
+    paymentsTotal += directPaymentsTotal;
+    
     // 5. المتبقي الفعلي والصافي للاستحقاق الآن
     const remainingBalance = estimatedNet - paymentsTotal - advanceTotal - retentionTotal;
 
@@ -181,6 +202,16 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
             if (c.allocRet > 0) {
                  tableRows.push({ trans_date: c.date, trans_desc: `محتجز ضمان أعمال من مستخلص #${c.claim_number}`, qty: '-', amount: c.allocRet });
             }
+        });
+
+        // إدراج سندات الصرف المباشرة المسجلة على أمر الشغل
+        directPaymentsData.forEach(p => {
+            tableRows.push({
+                trans_date: p.date,
+                trans_desc: `سند صرف مباشر #${p.voucher_number} | ${p.description || 'دفعة نقدية مسجلة مباشرة'}`,
+                qty: '-',
+                amount: Number(p.amount || 0)
+            });
         });
     } else {
         tableRows = ledgerData.filter(d => d.trans_type === activeTab);
