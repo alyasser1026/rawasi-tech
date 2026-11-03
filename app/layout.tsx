@@ -3,6 +3,7 @@ import LayoutClient from '../components/layout/LayoutClient';
 import "./globals.css";
 import "./workspace.css";
 import "./brand.css";
+import "./enterprise.css";
 import AutoLogoutWrapper from '../components/AutoLogoutWrapper';
 import Providers from './providers';
 import NextTopLoader from 'nextjs-toploader';

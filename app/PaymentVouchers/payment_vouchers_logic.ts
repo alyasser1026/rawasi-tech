@@ -267,7 +267,7 @@ export function usePaymentVouchersLogic() {
             isBulkFixModalOpen, bulkFixAccounts
         },
         actions: {
-            setGlobalSearch, setFilterStatus, setSelectedIds, setCurrentPage, setRowsPerPage,
+            setGlobalSearch, setFilterStatus, setDateRange, setSelectedIds, setCurrentPage, setRowsPerPage,
             setIsEditModalOpen, setCurrentVoucher, setIsBulkFixModalOpen, setBulkFixAccounts,
             handleAddNew: () => {
                 setCurrentVoucher({ 
@@ -298,7 +298,7 @@ export function usePaymentVouchersLogic() {
                 }
             },
             handleDeleteSelected: () => {
-                if (confirm('تأكيد الحذف النهائي للسندات المحددة؟')) deleteMutation.mutate();
+                deleteMutation.mutate();
             },
             handleSaveVoucher: async (dataFromOutside?: any) => {
                 const dataToSave = (dataFromOutside && Object.keys(dataFromOutside).length > 0) ? dataFromOutside : currentVoucher;

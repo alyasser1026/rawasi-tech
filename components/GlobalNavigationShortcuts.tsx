@@ -6,6 +6,7 @@ import { usePermissions } from '@/lib/PermissionsContext';
 import { NAVIGATION_SHORTCUTS, searchWorkspacePages, workspacePages } from '@/lib/workspace-navigation';
 import { usePerformancePreferences } from './PerformancePreferences';
 import WorkspaceDialog from './WorkspaceDialog';
+import { Search, Zap, Keyboard } from 'lucide-react';
 
 export default function GlobalNavigationShortcuts() {
   const router = useRouter();
@@ -63,13 +64,13 @@ export default function GlobalNavigationShortcuts() {
   return <>
     <div className="workspace-tools no-print" aria-label="أدوات مساحة العمل">
       <button type="button" className="workspace-button workspace-search-trigger" onClick={openSearch} disabled={loading}>
-        <span>⌕ البحث في الشاشات</span><kbd dir="ltr">Ctrl K</kbd>
+        <span><Search size={15} aria-hidden="true"/>البحث في الشاشات</span><kbd dir="ltr">Ctrl K</kbd>
       </button>
       <div className="workspace-tool-actions">
         <button type="button" className="workspace-button" onClick={toggle} disabled={!ready} aria-pressed={fastMode} title="تقليل الحركات والظلال والتغبيش على هذا الجهاز">
-          ⚡ {fastMode ? 'الأداء السريع مفعّل' : 'وضع الأداء السريع'}
+          <Zap size={15} aria-hidden="true"/>{fastMode ? 'الأداء السريع مفعّل' : 'وضع الأداء السريع'}
         </button>
-        <button type="button" className="workspace-button" onClick={() => setDialog('help')}>الاختصارات <kbd>F1</kbd></button>
+        <button type="button" className="workspace-button" onClick={() => setDialog('help')}><Keyboard size={15} aria-hidden="true"/>الاختصارات <kbd>F1</kbd></button>
       </div>
     </div>
     {online === false && <div className="workspace-offline no-print" role="status">الاتصال بالإنترنت غير متاح. قد تكون البيانات المعروضة قديمة؛ تأكد من نجاح الحفظ بعد عودة الاتصال.</div>}

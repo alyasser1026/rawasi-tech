@@ -402,6 +402,7 @@ export default function SmartCombo({
             
             <div style={{ position: 'relative', display: 'flex', alignItems: isTextArea ? 'flex-start' : 'center' }}>
                 <InputElement 
+                    aria-label={label || placeholder || 'اختيار قيمة'}
                     disabled={disabled}
                     placeholder={placeholder || (isLoading ? '⏳ جاري البحث...' : '🔍 ابحث هنا...')}
                     value={search ?? ''} 

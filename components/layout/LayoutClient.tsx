@@ -11,6 +11,7 @@ import { usePermissions } from '@/lib/PermissionsContext';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { usePresence } from '@/hooks/usePresence';
 import LoadingScreen from '@/components/LoadingScreen';
+import EnterpriseShell from '@/components/EnterpriseShell';
 
 export default function LayoutClient({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -95,6 +96,8 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   }
 
   const currentPageTitle = menuGroups.flatMap(g => g.items).find(i => i.path === pathname)?.title || "إدارة النظام";
+
+  if (pathname === '/Dashboard' || pathname === '/PaymentVouchers') return <EnterpriseShell>{children}</EnterpriseShell>;
 
   return (
     <div style={{ display: 'block', minHeight: '100vh', direction: 'rtl' }} suppressHydrationWarning>

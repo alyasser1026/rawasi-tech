@@ -1,6 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
+import { LayoutDashboard, RefreshCw, Landmark, Wallet, Building2, CircleCheck, CirclePause, Clock3, ChartColumn, ChartPie, Banknote, FileText, Users, ShieldCheck, CircleAlert } from 'lucide-react';
 import MasterPage from '@/components/MasterPage';
 import LoadingScreen from '@/components/LoadingScreen';
 import { THEME } from '@/lib/theme';
@@ -16,6 +18,7 @@ export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
   const logic = useDashboardLogic();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   useEffect(() => { setMounted(true); }, []);
 
@@ -34,7 +37,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <MasterPage title="لوحة القيادة المركزية" subtitle="مراقبة الأداء التشغيلي والمالي - فاي تك">
+    <MasterPage enterprise icon={<LayoutDashboard/>} title="لوحة القيادة" subtitle="نظرة شاملة على المركز المالي والمشاريع وحركة المستندات" headerContent={<button type="button" className="ent-button" onClick={() => void queryClient.invalidateQueries({ queryKey: ['dashboard_stats_comprehensive'] })} disabled={logic.isLoading}><RefreshCw size={16}/>تحديث البيانات</button>}>
       
       {logic.isLoading ? (
         <LoadingScreen message="جاري معالجة البيانات المالية..." subMessage="نقوم الآن بتجميع وتحليل البيانات من جميع الأقسام..." fullScreen={false} />
@@ -44,13 +47,13 @@ export default function DashboardPage() {
           {/* 🏛️ القسم الأول: المركز المالي */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
-              <h3 className="section-title">🏛️ الموقف المالي للمؤسسة</h3>
-              <span style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', background: '#f1f5f9', padding: '6px 15px', borderRadius: '20px' }}>تحديث لحظي 🟢</span>
+              <h3 className="section-title"><Landmark size={18}/> المركز المالي</h3>
+              <span style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', background: '#f1f5f9', padding: '6px 15px', borderRadius: '20px' }}>من السجلات الحالية</span>
             </div>
             <div className="premium-grid-3">
               <div className="premium-card financial-stat assets">
                 <div className="card-header-flex">
-                  <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #10b98120, #05966920)', color: '#10b981' }}>🏦</div>
+                  <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #10b98120, #05966920)', color: '#10b981' }}><Landmark size={23}/></div>
                   <span className="trend-badge positive">أصول وممتلكات</span>
                 </div>
                 <p className="card-subtitle">إجمالي الأصول</p>
@@ -59,7 +62,7 @@ export default function DashboardPage() {
 
               <div className="premium-card financial-stat liabilities">
                 <div className="card-header-flex">
-                  <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #ef444420, #dc262620)', color: '#ef4444' }}>⚖️</div>
+                  <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #ef444420, #dc262620)', color: '#ef4444' }}><Landmark size={23}/></div>
                   <span className="trend-badge negative">خصوم متداولة</span>
                 </div>
                 <p className="card-subtitle">إجمالي الالتزامات</p>
@@ -68,7 +71,7 @@ export default function DashboardPage() {
 
               <div className="premium-card financial-stat equity">
                 <div className="card-header-flex">
-                  <div className="icon-wrapper" style={{ background: `linear-gradient(135deg, ${THEME.goldAccent}20, #b4530920)`, color: THEME.goldAccent }}>💼</div>
+                  <div className="icon-wrapper" style={{ background: `linear-gradient(135deg, ${THEME.goldAccent}20, #b4530920)`, color: THEME.goldAccent }}><Wallet size={23}/></div>
                   <span className="trend-badge neutral">رأس المال العامل</span>
                 </div>
                 <p className="card-subtitle">صافي القيمة التقديرية</p>
@@ -79,15 +82,15 @@ export default function DashboardPage() {
 
           {/* 🚀 القسم الجديد: حالة المشاريع والعقارات (الفلل) */}
           <div>
-            <h3 className="section-title">🏢 حالة المشاريع والعقارات</h3>
+            <h3 className="section-title"><Building2 size={18}/> حالة المشاريع والعقارات</h3>
             <div className="premium-grid-4">
               {logic.stats?.projectsStatusData?.map((statusObj: any, index: number) => {
                 // تحديد لون الأيقونة والاسم ديناميكياً حسب الحالة
                 let colorClass = 'blue';
-                let icon = '🏗️';
-                if (statusObj.name.includes('مكتمل')) { colorClass = 'green'; icon = '✅'; }
-                else if (statusObj.name.includes('متوقف')) { colorClass = 'red'; icon = '🛑'; }
-                else if (statusObj.name.includes('دراسة') || statusObj.name.includes('تجهيز')) { colorClass = 'orange'; icon = '⏳'; }
+                let icon = <Building2 size={21}/>;
+                if (statusObj.name.includes('مكتمل')) { colorClass = 'green'; icon = <CircleCheck size={21}/>; }
+                else if (statusObj.name.includes('متوقف')) { colorClass = 'red'; icon = <CirclePause size={21}/>; }
+                else if (statusObj.name.includes('دراسة') || statusObj.name.includes('تجهيز')) { colorClass = 'orange'; icon = <Clock3 size={21}/>; }
 
                 return (
                   <div key={index} className="mini-stat-card">
@@ -107,7 +110,7 @@ export default function DashboardPage() {
             
             {/* 1. التدفق النقدي */}
             <div className="premium-card">
-              <h3 className="section-title" style={{ fontSize: '18px' }}>📉 التدفق النقدي والسيولة (التراكمي)</h3>
+              <h3 className="section-title" style={{ fontSize: '18px' }}><ChartColumn size={18}/> التدفق النقدي والسيولة</h3>
               <div style={{ height: '320px', width: '100%', marginTop: '20px' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={logic.stats?.cashFlowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -135,7 +138,7 @@ export default function DashboardPage() {
 
             {/* 2. تحليل التكاليف */}
             <div className="premium-card">
-              <h3 className="section-title" style={{ fontSize: '18px' }}>🍩 هيكل التكاليف (مقاولين، خامات، مصروفات)</h3>
+              <h3 className="section-title" style={{ fontSize: '18px' }}><ChartPie size={18}/> توزيع التكاليف</h3>
               <div style={{ height: '320px', width: '100%', display: 'flex', alignItems: 'center', marginTop: '20px' }}>
                 {!logic.stats?.expensesByCategory || logic.stats.expensesByCategory.length === 0 ? (
                     <div style={{width:'100%', textAlign:'center', color:'#94a3b8', fontWeight:900}}>لا توجد تكاليف مسجلة بعد</div>
@@ -169,7 +172,7 @@ export default function DashboardPage() {
           {/* 🚀 القسم الجديد: أداء أوامر الشغل */}
           <div style={{ marginTop: '30px', marginBottom: '30px' }}>
             <div className="premium-card" style={{ width: '100%' }}>
-              <h3 className="section-title">📊 أداء أوامر الشغل (الميزانية مقابل التكلفة الفعلية)</h3>
+              <h3 className="section-title"><ChartColumn size={18}/> الميزانية والتكلفة الفعلية لأوامر الشغل</h3>
               <div style={{ height: '350px', width: '100%', marginTop: '20px' }}>
                 {!logic.stats?.jobOrdersPerformance || logic.stats.jobOrdersPerformance.length === 0 ? (
                     <div style={{width:'100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color:'#94a3b8', fontWeight:900}}>لا توجد بيانات لأوامر الشغل أو لم يتم تسجيل تكاليف عليها بعد</div>
@@ -181,7 +184,7 @@ export default function DashboardPage() {
                         <YAxis tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
                         <Tooltip 
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 900, direction: 'rtl' }}
-                            formatter={(value, name) => [typeof value === 'string' || typeof value === 'number' ? logic.formatCurrency(value) : (value || []).map(item => logic.formatCurrency(item)).join(' – '), name === 'budget' ? 'الميزانية المعتمدة' : 'التكلفة الفعلية']}
+                            formatter={(value, name) => [typeof value === 'string' || typeof value === 'number' ? logic.formatCurrency(value) : (value || []).map(item => logic.formatCurrency(item)).join(' – '), name]}
                         />
                         <Legend wrapperStyle={{ fontWeight: 900, fontSize: '14px', paddingTop: '20px' }} />
                         <Bar dataKey="budget" name="الميزانية المعتمدة" fill="#2563eb" radius={[6, 6, 0, 0]} barSize={30} />
@@ -195,31 +198,31 @@ export default function DashboardPage() {
 
           {/* 🚀 القسم الثالث: مؤشرات الأداء السريعة (ماليات) */}
           <div>
-            <h3 className="section-title">📊 الأداء التشغيلي (شامل كافة التكاليف)</h3>
+            <h3 className="section-title"><Wallet size={18}/> الأداء التشغيلي</h3>
             <div className="premium-grid-4">
               <div className="mini-stat-card">
-                <div className="mini-icon blue">🏗️</div>
+                <div className="mini-icon blue"><Building2 size={22}/></div>
                 <div>
                   <p>مشاريع نشطة (جاري العمل بها)</p>
                   <h3>{logic.stats?.totals?.activeProjects || 0}</h3>
                 </div>
               </div>
               <div className="mini-stat-card">
-                <div className="mini-icon red">💸</div>
+                <div className="mini-icon red"><Banknote size={22}/></div>
                 <div>
                   <p>تكاليف ومصروفات إجمالية</p>
                   <h3>{logic.formatCurrency(logic.stats?.totals?.totalExpenses || 0)}</h3>
                 </div>
               </div>
               <div className="mini-stat-card">
-                <div className="mini-icon green">🧾</div>
+                <div className="mini-icon green"><FileText size={22}/></div>
                 <div>
                   <p>مستخلصات وإيرادات معتمدة</p>
                   <h3>{logic.formatCurrency(logic.stats?.totals?.totalInvoices || 0)}</h3>
                 </div>
               </div>
               <div className="mini-stat-card">
-                <div className="mini-icon orange">👷</div>
+                <div className="mini-icon orange"><Users size={22}/></div>
                 <div>
                   <p>أجور عمالة مباشرة</p>
                   <h3>{logic.formatCurrency(logic.stats?.totals?.totalWages || 0)}</h3>
@@ -230,7 +233,7 @@ export default function DashboardPage() {
 
           {/* ⚖️ القسم الرابع: الرادار الأمني */}
           <div>
-            <h3 className="section-title">🛡️ الرادار المالي (معدلات الترحيل والاعتماد)</h3>
+            <h3 className="section-title"><ShieldCheck size={18}/> متابعة اعتماد المستندات</h3>
             <div className="health-rings-grid">
               {Object.entries(logic.stats?.postingCharts || {}).map(([key, chartData]: [string, any]) => {
                 const total = chartData[0].value + chartData[1].value;
@@ -273,7 +276,7 @@ export default function DashboardPage() {
           {/* 🚨 القسم الخامس: المهام العاجلة */}
           <div className="premium-card alerts-container" style={{ border: '1px solid #fecaca' }}>
             <div className="alerts-header">
-              <h3 className="section-title" style={{ margin: 0, color: '#b91c1c' }}>⚠️ صندوق المهام العاجلة (يحتاج اعتماد)</h3>
+              <h3 className="section-title" style={{ margin: 0, color: '#b91c1c' }}><CircleAlert size={18}/> مستندات تحتاج اعتمادًا</h3>
               <span className="alerts-badge">
                 {logic.stats?.alerts?.length || 0} مهام
               </span>
@@ -282,7 +285,7 @@ export default function DashboardPage() {
             <div className="alerts-list">
               {!logic.stats?.alerts || logic.stats.alerts.length === 0 ? (
                   <div className="empty-alerts">
-                      🎉 أحسنت! كافة المستندات والقيود معتمدة ومطابقة للمعايير المالية.
+                      لا توجد مستندات معلقة ضمن البيانات المعروضة.
                   </div>
               ) : (
                   logic.stats.alerts.map((task: any, idx: number) => (

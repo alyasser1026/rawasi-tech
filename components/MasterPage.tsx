@@ -8,8 +8,9 @@ import NotificationsModal from './NotificationsModal';
 import Link from 'next/link';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { useRouter, usePathname } from 'next/navigation';
+import { ChevronLeft, Bell } from 'lucide-react';
 
-export default function MasterPage({ title, subtitle, children, headerContent, icon }: any) {
+export default function MasterPage({ title, subtitle, children, headerContent, icon, enterprise = false }: any) {
   const router = useRouter();
   const pathname = usePathname();
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -58,6 +59,16 @@ export default function MasterPage({ title, subtitle, children, headerContent, i
     await supabase.auth.signOut();
     router.push('/login');
   };
+
+  if (enterprise) return <section className="enterprise-page">
+    <div className="ent-breadcrumb no-print"><Link href="/">مساحة العمل</Link><ChevronLeft size={14}/><span>{title}</span></div>
+    <header className="ent-page-heading">
+      <div><div className="ent-title-line">{icon}<h1>{title}</h1></div><p>{subtitle}</p></div>
+      <div className="ent-heading-actions no-print">{headerContent}<button type="button" className="ent-icon-button" onClick={() => setIsNotificationsOpen(true)} aria-label={`الإشعارات${unread_notifications ? `: ${unread_notifications} غير مقروءة` : ''}`}><Bell size={19}/>{unread_notifications > 0 && <span className="ent-notification-dot"/>}</button></div>
+    </header>
+    {children}
+    <NotificationsModal isOpen={isNotificationsOpen} onClose={() => setIsNotificationsOpen(false)}/>
+  </section>;
 
   return (
     <div className="clean-page">

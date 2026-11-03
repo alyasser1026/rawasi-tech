@@ -14,6 +14,7 @@
   outline: 3px solid #c2410c; outline-offset: 3px;
 }
 .workspace-search-trigger { min-width: 260px; justify-content: space-between; }
+.workspace-search-trigger > span { display:inline-flex; align-items:center; gap:8px; }
 .workspace-tools kbd, .workspace-dialog kbd {
   font: 12px ui-monospace, monospace; border: 1px solid #e4e4e7; border-radius: 5px;
   background: #f4f4f5; padding: 3px 6px; color: #52525b; white-space: nowrap;
