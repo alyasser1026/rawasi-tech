@@ -475,10 +475,10 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                     </div>
 
                     <div className="header-center">
-                        <h1 style={{ fontSize: '18px', fontWeight: 900, color: THEME.primary, margin: '0 0 4px 0' }}>مؤسسة طفله عبد الله السبيعي للمقاولات</h1>
-                        <h2 style={{ fontSize: '15px', fontWeight: 900, color: THEME.primary, margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Tifla Abdullah Al-Subaie Est. for Contracting</h2>
+                        <h1 style={{ fontSize: '18px', fontWeight: 900, color: THEME.primary, margin: '0 0 4px 0' }}>شركة رواسي اليسر للمقاولات</h1>
+                        <h2 style={{ fontSize: '15px', fontWeight: 900, color: THEME.primary, margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Rawasi Al Yusr Contracting Company</h2>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', fontFamily: 'Arial, sans-serif' }}>الرقم الضريبي (VAT No): 312487477800003</div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginTop: '2px', fontFamily: 'Arial, sans-serif' }}>الرقم الموحد (Unified No): 7051013519</div>
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginTop: '2px', fontFamily: 'Arial, sans-serif' }}>الرقم الموحد (Unified No): 7051013319</div>
                     </div>
 
                     <div className="header-logo">

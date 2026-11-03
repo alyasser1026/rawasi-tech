@@ -1,7 +1,0 @@
-const { Client } = require('pg');
-const connectionString = 'postgres://postgres:Mooya12345!@aws-0-eu-central-1.pooler.supabase.com:6543/postgres?options=-c%20statement_timeout=10000';
-// Let's use the actual URL from env instead of the hardcoded one, since we don't have the password!
-// Wait! We DO have the SUPABASE_SERVICE_ROLE_KEY. We can use the Supabase JS client to query `pg_views`?
-// No, Supabase JS client queries the postgrest API which doesn't expose pg_views.
-// I will query `pg_views` using the REST API if it's exposed, but it's probably not.
-// BUT I can query `supabase_schema.sql` which I already have!

@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -13,16 +11,19 @@
 # testing
 /coverage
 
-# next.js
+# next.js & builds
 /.next/
 /out/
-
-# production
 /build
+/dist
+mobile-app/node_modules/
+mobile-app/dist/
+mobile-app/.expo/
 
 # misc
 .DS_Store
 *.pem
+my-accounting-app.code-workspace
 
 # debug
 npm-debug.log*
@@ -30,7 +31,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files (NEVER commit secrets)
 .env*
 
 # vercel
@@ -40,12 +41,38 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# local databases & extra templates
 pgsql17-2/
-
 pgsql17/
-
-# scratch & temp scripts
 scratch/
+data0/
+starter-for-nextjs/
+
+# temporary maintenance scripts & batch files
+*.bat
+*.ps1
+fix_*.js
+fix_*.sql
 check_*.js
+test_*.js
+wrap_*.js
+inject_*.js
+revert_*.js
+clean_layout.js
+enhance_icons.js
+find_tables.js
+get_func.js
+list_views.js
+move_icons.js
+patch_posted_records.js
+query.js
+replace_loading*.js
 run_*.js
-my-accounting-app.code-workspace
+scratch_*.js
+schema.txt
+backup_schema.sql
+create_manual_journals.sql
+protect_journals.sql
+remove_protect_journals.sql
+setup_financial_statements.sql
+update_audit_trigger.sql
