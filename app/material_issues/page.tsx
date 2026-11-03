@@ -237,7 +237,7 @@ export default function MaterialIssuesPage() {
                         type="checkbox" 
                         checked={paginatedData.length > 0 && paginatedData.every(r => r._selected)}
                         onChange={logic.handleSelectAll}
-                        style={{ transform: 'scale(1.4)', cursor: 'pointer', accentColor: THEME.goldAccent || '#ca8a04' }}
+                        style={{ transform: 'scale(1.4)', cursor: 'pointer', accentColor: THEME.goldAccent || '#c2410c' }}
                     />
                 </div>
             ),
@@ -247,7 +247,7 @@ export default function MaterialIssuesPage() {
                         type="checkbox" 
                         checked={row._selected}
                         onChange={() => logic.handleSelectRow(row.id)}
-                        style={{ transform: 'scale(1.4)', cursor: 'pointer', accentColor: THEME.goldAccent || '#ca8a04' }}
+                        style={{ transform: 'scale(1.4)', cursor: 'pointer', accentColor: THEME.goldAccent || '#c2410c' }}
                     />
                 </div>
             ) : null
@@ -290,7 +290,7 @@ export default function MaterialIssuesPage() {
             render: (row: any) => (
                 <div style={{ minWidth: '150px' }}>
                     <div style={{ fontWeight: 800, color: THEME.coffeeDark || '#2d1a11', fontSize: '13px' }}>🏢 {row.project_name || '---'}</div>
-                    {row.boq_item && <div style={{ fontSize: '11px', color: THEME.goldAccent || '#ca8a04', marginTop: '2px', fontWeight: 700 }}>📋 {row.boq_item}</div>}
+                    {row.boq_item && <div style={{ fontSize: '11px', color: THEME.goldAccent || '#c2410c', marginTop: '2px', fontWeight: 700 }}>📋 {row.boq_item}</div>}
                     {(row.subcontractor_name || row.contractor_text_name) && (
                         <div style={{ fontSize: '11px', color: '#be123c', marginTop: '2px', fontWeight: 700 }}>
                             👷 {row.subcontractor_name || row.contractor_text_name}
@@ -335,7 +335,7 @@ export default function MaterialIssuesPage() {
                                 </>
                             ) : (
                                 <>
-                                    <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center', color: THEME.goldAccent || '#ca8a04', fontWeight: 900, fontSize: '12px', border: `1px solid ${THEME.goldAccent || '#ca8a04'}50` }}>
+                                    <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center', color: THEME.goldAccent || '#c2410c', fontWeight: 900, fontSize: '12px', border: `1px solid ${THEME.goldAccent || '#c2410c'}50` }}>
                                         ✓ تم تحديد ({logic.selectedIds.length}) أسطر خامات
                                     </div>
                                     
@@ -417,7 +417,7 @@ export default function MaterialIssuesPage() {
                     .btn-action-glass:disabled { opacity: 0.5; cursor: not-allowed; }
                     .btn-action-glass:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.2); }
                     
-                    .btn-action-glass.edit { background: linear-gradient(135deg, ${THEME.goldAccent || '#ca8a04'}, #b48a2e); color: white; box-shadow: 0 4px 15px rgba(202, 138, 4, 0.3); }
+                    .btn-action-glass.edit { background: linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}, #b48a2e); color: white; box-shadow: 0 4px 15px rgba(202, 138, 4, 0.3); }
                     .btn-action-glass.post { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
                     .btn-action-glass.unpost { background: rgba(245, 158, 11, 0.2); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.5); }
                     .btn-action-glass.delete { background: rgba(239, 68, 68, 0.2); color: #b91c1c; border: 1px dashed rgba(239, 68, 68, 0.5); }

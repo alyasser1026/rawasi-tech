@@ -78,7 +78,7 @@ export default function FieldOperationsPage() {
                                 <div style={{ marginBottom: '15px' }}>
                                     <div style={{ fontSize: '11px', fontWeight: 900, marginBottom: '8px', color: '#475569' }}>🔨 أعمال جارية الآن:</div>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                                        {site.activeTasks.length > 0 ? site.activeTasks.map(t => (
+                                        {site.activeTasks.length > 0 ? site.activeTasks.map((t: string) => (
                                             <span key={t} className="task-pill">{t}</span>
                                         )) : <span style={{ fontSize: '10px', color: '#94a3b8' }}>لم تُسجل مهام بعد</span>}
                                     </div>

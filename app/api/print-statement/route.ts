@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
-import puppeteer from 'puppeteer';
+import puppeteer, { type Browser } from 'puppeteer';
 
 export async function POST(request: Request) {
+    let browser: Browser | undefined;
     try {
         const { htmlContent } = await request.json();
 
         // 🚀 تشغيل متصفح سيرفر مخفي
-        const browser = await puppeteer.launch({ 
+        browser = await puppeteer.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox'] 
         });
@@ -14,7 +15,8 @@ export async function POST(request: Request) {
         const page = await browser.newPage();
         
         // 🚀 حقن كود الـ HTML
-        await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+        await page.setContent(htmlContent, { waitUntil: 'load' });
+        await page.waitForNetworkIdle();
         
         // 🚀 إصدار ملف الـ PDF
         const pdfBuffer = await page.pdf({
@@ -23,10 +25,8 @@ export async function POST(request: Request) {
             margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }
         });
 
-        await browser.close();
-
         // 🚀 إرسال الملف
-        return new NextResponse(pdfBuffer, {
+        return new NextResponse(new Uint8Array(pdfBuffer), {
             status: 200,
             headers: {
                 'Content-Type': 'application/pdf',
@@ -40,5 +40,7 @@ export async function POST(request: Request) {
         
         // 🔥 إرسال الخطأ الحقيقي للـ Frontend
         return NextResponse.json({ error: error.message || "Unknown Server Error" }, { status: 500 });
+    } finally {
+        await browser?.close();
     }
 }

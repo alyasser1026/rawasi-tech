@@ -58,9 +58,8 @@ export default function PartnerBalancesPage() {
 
                 // 🚀 ترتيب حتمي صارم يمنع تداخل الصفحات في الداتابيز
                 query = query.order('transaction_date', { ascending: true })
-                             .order('debit', { ascending: true })
-                             .order('credit', { ascending: true })
-                             .order('main_description', { ascending: true })
+                             .order('created_at', { ascending: true })
+                             .order('line_id', { ascending: true })
                              .range(fromRow, fromRow + step);
 
                 const { data: ledgerData, error } = await query;
@@ -102,16 +101,14 @@ export default function PartnerBalancesPage() {
 
                 while (hasMore) {
                     // 🚀 نسحب التاريخ لنتمكن من فصل الرصيد السابق عن رصيد الفترة
-                    let query = supabase.from('partner_statement_ledger').select('partner_id, debit, credit, transaction_date');
+                    let query = supabase.from('partner_statement_ledger').select('line_id, partner_id, debit, credit, transaction_date, created_at');
                     // إذا كان هناك تاريخ بداية، نسحب كل الحركات السابقة له أيضاً لحساب الرصيد السابق
                     if (dateTo) query = query.lte('transaction_date', `${dateTo}T23:59:59.999Z`);
                     
                     // 🚀 الترتيب الحتمي لضمان سحب الآلاف من السطور بدون ضياع أو تكرار أي سجل
                     query = query.order('transaction_date', { ascending: true })
-                                 .order('partner_id', { ascending: true })
-                                 .order('debit', { ascending: true })
-                                 .order('credit', { ascending: true })
-                                 .order('main_description', { ascending: true })
+                                 .order('created_at', { ascending: true })
+                                 .order('line_id', { ascending: true })
                                  .range(fromRow, fromRow + step);
                     
                     const { data: ledgerData, error: ledgerError } = await query;

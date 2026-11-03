@@ -138,7 +138,7 @@ export default function FinancialStatementsPage() {
         `}</style>
 
         <div className="print-header">
-           <h1>شركة رواسي اليسر للمقاولات</h1>
+           <h1>شركة فاي تك للمقاولات</h1>
            <h2>القوائم المالية (قائمة الدخل والمركز المالي)</h2>
            <p>تاريخ الطباعة: {new Date().toLocaleDateString('ar-EG')} - الوقت: {new Date().toLocaleTimeString('ar-EG')}</p>
         </div>

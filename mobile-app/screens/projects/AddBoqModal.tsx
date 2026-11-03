@@ -119,7 +119,7 @@ export default function AddBoqModal({ visible, onClose, projectId, onSuccess }: 
               onPress={handleSave}
               disabled={loading}
             >
-              <LinearGradient colors={['#ca8a04', '#a16207']} style={styles.saveBtnGradient}>
+              <LinearGradient colors={['#c2410c', '#a16207']} style={styles.saveBtnGradient}>
                 {loading ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
@@ -149,12 +149,12 @@ const styles = StyleSheet.create({
   input: { backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, padding: 15, fontSize: 16, fontWeight: '700', color: '#1e293b', marginBottom: 20 },
   typeSelector: { flexDirection: 'row-reverse', gap: 10, marginBottom: 20 },
   typeBtn: { flex: 1, padding: 12, borderRadius: 12, backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', alignItems: 'center' },
-  typeBtnActive: { backgroundColor: 'rgba(202, 138, 4, 0.1)', borderColor: '#ca8a04' },
+  typeBtnActive: { backgroundColor: 'rgba(202, 138, 4, 0.1)', borderColor: '#c2410c' },
   typeBtnText: { fontSize: 14, fontWeight: '800', color: '#64748b' },
-  typeBtnTextActive: { color: '#ca8a04' },
+  typeBtnTextActive: { color: '#c2410c' },
   amountContainer: { flexDirection: 'row-reverse', alignItems: 'center', backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, marginBottom: 30, paddingHorizontal: 15 },
   currency: { fontSize: 16, fontWeight: '900', color: '#94a3b8' },
-  saveBtn: { borderRadius: 16, overflow: 'hidden', shadowColor: '#ca8a04', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+  saveBtn: { borderRadius: 16, overflow: 'hidden', shadowColor: '#c2410c', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
   saveBtnGradient: { padding: 18, flexDirection: 'row-reverse', justifyContent: 'center', alignItems: 'center' },
   saveBtnText: { fontSize: 18, fontWeight: '900', color: '#ffffff' }
 });

@@ -307,7 +307,7 @@ export default function CashFlowsPage() {
                     .summary-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 5px; }
                     .summary-card.inflow::after { background: linear-gradient(90deg, #10b981, #34d399); }
                     .summary-card.outflow::after { background: linear-gradient(90deg, #ef4444, #f87171); }
-                    .summary-card.net::after { background: linear-gradient(90deg, #C5A059, #fcd34d); }
+                    .summary-card.net::after { background: linear-gradient(90deg, #c2410c, #fcd34d); }
                     
                     .summary-label { font-size: 14px; font-weight: 900; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
                     .summary-val { font-size: 32px; font-weight: 900; color: #0f172a; text-shadow: 0 2px 10px rgba(0,0,0,0.02); }
@@ -318,7 +318,7 @@ export default function CashFlowsPage() {
                     .source-breakdown-val { font-size: 20px; font-weight: 900; }
                     
                     .filter-input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; font-weight: 800; color: #334155; transition: 0.2s; height: 50px; background: rgba(255,255,255,0.9); }
-                    .filter-input:focus { border-color: #C5A059; box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.1); }
+                    .filter-input:focus { border-color: #c2410c; box-shadow: 0 0 0 3px rgba(194,65,12, 0.1); }
 
                     .tree-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: center; background: transparent; }
                     .tree-thead { background: ${THEME.gradients.primary}; color: ${THEME.white}; border-radius: 16px 16px 0 0; }
@@ -332,17 +332,17 @@ export default function CashFlowsPage() {
 
                     .child-tree-container { background: rgba(248, 250, 252, 0.9); padding: 20px 40px; border-bottom: 2px solid ${THEME.border}; backdrop-filter: blur(5px); }
                     .child-table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 14px; border: 1px solid ${THEME.border}; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.03); }
-                    .child-table th { background: linear-gradient(135deg, #fdfbf7, #f3eedf); color: ${THEME.brand.coffee}; padding: 15px; font-size: 13px; font-weight: 900; border-bottom: 2px solid ${THEME.brand.goldLight}; }
+                    .child-table th { background: linear-gradient(135deg, #fafafa, #f3eedf); color: ${THEME.brand.coffee}; padding: 15px; font-size: 13px; font-weight: 900; border-bottom: 2px solid ${THEME.brand.goldLight}; }
                     .child-table td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; font-weight: 800; color: #334155; transition: 0.2s; }
-                    .child-table tr:hover td { background: rgba(197, 160, 89, 0.02); }
+                    .child-table tr:hover td { background: rgba(194,65,12, 0.02); }
                     
-                    .arrow-icon { display: inline-block; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 12px; color: #C5A059; font-size: 16px; background: rgba(197, 160, 89, 0.1); width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; }
-                    .arrow-expanded { transform: rotate(90deg); background: #C5A059; color: white; }
+                    .arrow-icon { display: inline-block; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 12px; color: #c2410c; font-size: 16px; background: rgba(194,65,12, 0.1); width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; }
+                    .arrow-expanded { transform: rotate(90deg); background: #c2410c; color: white; }
 
                     .view-toggle-btn { flex: 1; padding: 12px; font-size: 14px; font-weight: 900; border: none; cursor: pointer; transition: 0.3s; }
-                    .view-toggle-btn.active { background: #C5A059; color: white; }
+                    .view-toggle-btn.active { background: #c2410c; color: white; }
                     .view-toggle-btn:not(.active) { background: transparent; color: #64748b; }
-                    .view-toggle-btn:not(.active):hover { background: rgba(197, 160, 89, 0.05); color: #1e293b; }
+                    .view-toggle-btn:not(.active):hover { background: rgba(194,65,12, 0.05); color: #1e293b; }
                 `}</style>
 
                 {/* 📊 بطاقات الملخص الرئيسية */}
@@ -558,7 +558,7 @@ export default function CashFlowsPage() {
                                                                                 {item.description && <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>📝 {item.description}</div>}
                                                                             </td>
                                                                             <td>
-                                                                                <span style={{ fontSize: '12px', fontWeight: 900, color: '#C5A059' }}>
+                                                                                <span style={{ fontSize: '12px', fontWeight: 900, color: '#c2410c' }}>
                                                                                     🏦 {item.account?.name || 'حساب عام'}
                                                                                 </span>
                                                                             </td>
@@ -576,7 +576,7 @@ export default function CashFlowsPage() {
                             })}
                             
                             {treeGroupedData.length > 0 && (
-                                <tr style={{ background: 'rgba(197, 160, 89, 0.1)', backdropFilter: 'blur(5px)' }}>
+                                <tr style={{ background: 'rgba(194,65,12, 0.1)', backdropFilter: 'blur(5px)' }}>
                                     <td style={{ padding: '25px', fontWeight: 900, color: '#1e293b', textAlign: 'left' }}>الإجمالي الكلي للصفحة والفلتر:</td>
                                     <td style={{ fontWeight: 900, color: '#059669', fontSize: '18px' }}>{formatCurrency(summaryStats.totalIn)}</td>
                                     <td style={{ fontWeight: 900, color: '#dc2626', fontSize: '18px' }}>{formatCurrency(summaryStats.totalOut)}</td>
@@ -598,7 +598,7 @@ export default function CashFlowsPage() {
                 {!logic.isLoading && treeGroupedData.length > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '20px', background: 'rgba(255,255,255,0.8)', borderRadius: '16px', border: `1px solid rgba(255,255,255,0.9)`, backdropFilter: 'blur(10px)', boxShadow: '0 5px 20px rgba(0,0,0,0.02)' }}>
                         <div style={{ fontSize: '14px', color: '#334155', fontWeight: 900 }}>
-                            إجمالي الـ {groupBy === 'partner' ? 'الشركاء' : 'أيام الحركة'}: <b style={{ color: '#C5A059', fontSize: '18px' }}>{treeGroupedData.length}</b>
+                            إجمالي الـ {groupBy === 'partner' ? 'الشركاء' : 'أيام الحركة'}: <b style={{ color: '#c2410c', fontSize: '18px' }}>{treeGroupedData.length}</b>
                         </div>
                         
                         <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>

@@ -2,12 +2,12 @@
 import React from 'react';
 import { useLoginLogic } from './login_logic'; // 👈 استدعاء العقل المدبر
 
-// 🎨 تطبيق ألوان هوية "رواسي اليسر" الدافئة
+// 🎨 تطبيق ألوان هوية "فاي تك" الدافئة
 const THEME = {
-  coffeeDark: '#43342E',
-  coffeeMedium: '#5E4A40',
-  goldAccent: '#C5A059',
-  sandLight: '#F4F1EE',
+  coffeeDark: '#27272a',
+  coffeeMedium: '#3f3f46',
+  goldAccent: '#c2410c',
+  sandLight: '#f7f7f8',
   white: '#ffffff',
   slate: '#94a3b8'
 };
@@ -40,7 +40,7 @@ export default function LoginPage() {
           direction: rtl;
           font-family: 'Cairo', sans-serif;
           /* 🌅 خلفية دافئة مدمجة مع الصورة */
-          background-image: linear-gradient(rgba(67, 52, 46, 0.85), rgba(94, 74, 64, 0.95)), url('/ryc_login.jpeg');
+          background-image: linear-gradient(rgba(39,39,42, 0.85), rgba(63,63,70, 0.95)), url('/ryc_login.jpeg');
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
@@ -53,10 +53,10 @@ export default function LoginPage() {
           background: rgba(244, 241, 238, 0.15); 
           backdrop-filter: blur(25px);
           -webkit-backdrop-filter: blur(25px);
-          border: 1px solid rgba(197, 160, 89, 0.4); /* حواف ذهبية */
+          border: 1px solid rgba(194,65,12, 0.4); /* حواف ذهبية */
           border-radius: 24px;
           padding: 50px 40px;
-          box-shadow: 0 25px 50px -12px rgba(67, 52, 46, 0.7), 0 0 40px rgba(197, 160, 89, 0.15); 
+          box-shadow: 0 25px 50px -12px rgba(39,39,42, 0.7), 0 0 40px rgba(194,65,12, 0.15);
           animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           margin: 20px;
         }
@@ -73,7 +73,7 @@ export default function LoginPage() {
 
         .logo-container img {
           height: 110px;
-          filter: drop-shadow(0px 10px 15px rgba(67,52,46,0.6));
+          filter: drop-shadow(0px 10px 15px rgba(39,39,42,0.6));
           transition: transform 0.3s ease;
         }
         
@@ -118,13 +118,13 @@ export default function LoginPage() {
         .cinematic-input:focus { 
             border-color: ${THEME.goldAccent}; 
             background: rgba(255, 255, 255, 0.15) !important; 
-            box-shadow: 0 0 15px rgba(197, 160, 89, 0.2);
+            box-shadow: 0 0 15px rgba(194,65,12, 0.2);
         }
 
         .cinematic-input:-webkit-autofill {
           animation-name: onAutoFillStart;
           -webkit-text-fill-color: #ffffff !important;
-          -webkit-box-shadow: 0 0 0px 1000px rgba(94, 74, 64, 1) inset !important;
+          -webkit-box-shadow: 0 0 0px 1000px rgba(63,63,70, 1) inset !important;
           transition: background-color 5000s ease-in-out 0s;
         }
 
@@ -162,7 +162,7 @@ export default function LoginPage() {
           width: 100%;
           padding: 18px;
           margin-top: 10px;
-          background: linear-gradient(135deg, ${THEME.goldAccent}, #D4AF37);
+          background: linear-gradient(135deg, ${THEME.goldAccent}, #ea580c);
           color: ${THEME.coffeeDark};
           border: none;
           border-radius: 14px;
@@ -170,7 +170,7 @@ export default function LoginPage() {
           font-weight: 900;
           cursor: pointer;
           transition: all 0.3s ease;
-          box-shadow: 0 10px 20px rgba(197, 160, 89, 0.3);
+          box-shadow: 0 10px 20px rgba(194,65,12, 0.3);
           display: flex;
           justify-content: center;
           align-items: center;
@@ -178,8 +178,8 @@ export default function LoginPage() {
 
         .submit-btn:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 15px 25px rgba(197, 160, 89, 0.5);
-          background: linear-gradient(135deg, #D4AF37, ${THEME.goldAccent});
+          box-shadow: 0 15px 25px rgba(194,65,12, 0.5);
+          background: linear-gradient(135deg, #ea580c, ${THEME.goldAccent});
         }
         .submit-btn:disabled {
           opacity: 0.7;
@@ -211,10 +211,10 @@ export default function LoginPage() {
 
       <div className="glass-card">
         <div className="logo-container">
-          <img src="/RYC_Logo.png" alt="شعار شركة رواسي اليسر" />
+          <img src="/company-logo.svg" alt="شعار شركة فاي تك" />
         </div>
         
-        <h1 className="cinematic-title">رواسي اليسر</h1>
+        <h1 className="cinematic-title">فاي تك</h1>
         <p className="cinematic-subtitle">{isSignUp ? 'إنشاء حساب جديد' : 'النظام المالي المتكامل'}</p>
 
         <form onSubmit={handleSubmit}>
@@ -276,7 +276,7 @@ export default function LoginPage() {
 
         <div style={{ textAlign: 'center', marginTop: '25px' }}>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', fontWeight: 600 }}>
-            جميع الحقوق محفوظة © {new Date().getFullYear()} <br/> إدارة تقنية المعلومات - رواسي اليسر
+            جميع الحقوق محفوظة © {new Date().getFullYear()} <br/> إدارة تقنية المعلومات - فاي تك
           </p>
         </div>
       </div>

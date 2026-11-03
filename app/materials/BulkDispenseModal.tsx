@@ -69,7 +69,7 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
             <style>{`
                 .warm-portal-overlay-fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: radial-gradient(circle at center, rgba(40, 24, 10, 0.4) 0%, rgba(15, 7, 0, 0.9) 100%) !important; backdrop-filter: blur(20px) !important; display: flex !important; align-items: center !important; justify-content: center !important; z-index: 999999999 !important; }
                 .glass-input-field { width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; transition: 0.2s; font-weight: 700; color: #1e293b; }
-                .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#ca8a04'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
+                .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#c2410c'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
                 .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); width: 100%; }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
             `}</style>
@@ -79,7 +79,7 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
                 backdropFilter: 'blur(30px)', borderRadius: '35px', padding: '40px', 
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'25px', borderBottom:`2px solid ${THEME.goldAccent || '#ca8a04'}50`, paddingBottom:'15px'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'25px', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'15px'}}>
                     <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '24px' }}>📦 صرف مجمع للخامات ({formData.items.length} أصناف)</h2>
                     <div style={{ textAlign: 'left' }}>
                         <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 900 }}>الإجمالي الكلي للصرف</div>

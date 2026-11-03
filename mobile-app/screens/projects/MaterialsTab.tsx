@@ -20,7 +20,7 @@ export default function MaterialsTab({ logic }: any) {
         <View key={item.id || index} style={styles.card}>
           <View style={styles.headerRow}>
             <View style={styles.iconContainer}>
-              <Ionicons name="cube-outline" size={20} color="#ca8a04" />
+              <Ionicons name="cube-outline" size={20} color="#c2410c" />
             </View>
             <View style={styles.titleContainer}>
               <Text style={styles.itemName}>{item.material?.name || 'خامة غير معروفة'}</Text>
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
   unit: { fontSize: 10, fontWeight: '800', color: '#64748b' },
   footerRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' },
   footerText: { fontSize: 12, color: '#475569', fontWeight: '700' },
-  costText: { fontSize: 12, color: '#ca8a04', fontWeight: '800' },
+  costText: { fontSize: 12, color: '#c2410c', fontWeight: '800' },
   fab: {
     position: 'absolute',
     bottom: 20,
@@ -80,10 +80,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#ca8a04',
+    backgroundColor: '#c2410c',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ca8a04',
+    shadowColor: '#c2410c',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

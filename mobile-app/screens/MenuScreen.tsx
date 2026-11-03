@@ -28,7 +28,7 @@ const MENU_CATEGORIES = [
     items: [
       { name: "المالية", icon: "calculator", color: "#ea580c", route: "FinanceDashboard" },
       { name: "المصروفات", icon: "cash-outline", color: "#b91c1c", route: "Expenses" }, // 👈 ده السطر الجديد
-      { name: "شجرة الحسابات", icon: "wallet", color: "#ca8a04" },
+      { name: "شجرة الحسابات", icon: "wallet", color: "#c2410c" },
       { name: "القيود اليومية", icon: "people-circle", color: "#d97706" },
       { name: "دفتر الأستاذ", icon: "list-circle", color: "#b45309" },
       { name: "سندات القبض", icon: "arrow-down-circle", color: "#16a34a", route: "Vouchers" },
@@ -38,7 +38,7 @@ const MENU_CATEGORIES = [
   {
     title: "العملاء والمبيعات",
     items: [
-      { name: "أرصدة الشركاء", icon: "wallet", color: "#ca8a04" },
+      { name: "أرصدة الشركاء", icon: "wallet", color: "#c2410c" },
       { name: "العملاء والشركاء", icon: "people-circle", color: "#d97706" },
       { name: "كشف حساب", icon: "list-circle", color: "#b45309" },
       { name: "الفواتير", icon: "calculator", color: "#ea580c" },
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     height: 100,
     justifyContent: 'center',
-    shadowColor: '#d4af37', // Gold cinematic shadow
+    shadowColor: '#ea580c', // Gold cinematic shadow
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 6,

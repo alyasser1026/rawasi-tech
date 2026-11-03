@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { Toaster } from 'react-hot-toast'; // 🚀 استدعاء التوستر للإشعارات اللحظية
 
 export default function Providers({ children }: { children: React.ReactNode }) {
-    // إنشاء نسخة من الـ Query Client مع إعدادات رواسي
+    // إنشاء نسخة من الـ Query Client مع إعدادات فاي تك
     const [queryClient] = useState(() => new QueryClient({
         defaultOptions: {
             queries: {
@@ -21,18 +21,18 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         <QueryClientProvider client={queryClient}>
             {children}
             
-            {/* 🎨 إعدادات التنبيهات بستايل رواسي الفخم */}
+            {/* 🎨 إعدادات التنبيهات بستايل فاي تك الفخم */}
             <Toaster 
                 position="top-center"
                 toastOptions={{
                     duration: 4000, // مدة ظهور الرسالة
                     style: {
-                        background: '#43342E', // لون القهوة الداكن
+                        background: '#27272a', // لون القهوة الداكن
                         color: '#fff',
                         borderRadius: '15px',
                         fontFamily: "'Cairo', sans-serif",
                         fontWeight: 700,
-                        border: '1px solid #C5A059', // إطار ذهبي أنيق
+                        border: '1px solid #c2410c', // إطار ذهبي أنيق
                         boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
                     },
                     success: {
@@ -42,7 +42,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
                         iconTheme: { primary: '#be123c', secondary: '#fff' }, // لون الخطأ الأحمر
                     },
                     loading: {
-                        iconTheme: { primary: '#C5A059', secondary: '#fff' }, // لون التحميل الذهبي
+                        iconTheme: { primary: '#c2410c', secondary: '#fff' }, // لون التحميل الذهبي
                     }
                 }}
             />

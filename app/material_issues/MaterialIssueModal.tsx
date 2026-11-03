@@ -36,7 +36,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                     border: 1px solid rgba(255, 255, 255, 0.8);
                     outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
                 }
-                .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#ca8a04'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
+                .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#c2410c'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
                 
                 .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
@@ -57,13 +57,13 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
                 
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.goldAccent || '#ca8a04'}50`, paddingBottom:'15px'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'15px'}}>
                     <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '26px' }}>
                         {logic.editingIssueId ? '✏️ تعديل إذن صرف خامات' : '📤 إصدار إذن صرف خامات'}
                     </h2>
                     <div style={{ textAlign: 'left' }}>
                         <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 900 }}>الصافي النهائي للصرف</div>
-                        <div style={{ color: THEME.goldAccent || '#ca8a04', fontWeight: 900, fontSize: '28px' }}>{formatCurrency(grandTotal)}</div>
+                        <div style={{ color: THEME.goldAccent || '#c2410c', fontWeight: 900, fontSize: '28px' }}>{formatCurrency(grandTotal)}</div>
                     </div>
                 </div>
 
@@ -121,10 +121,10 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                     />
                 </div>
                 
-                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '20px', marginBottom: '25px', border: `1px dashed ${THEME.goldAccent || '#ca8a04'}` }}>
+                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '20px', marginBottom: '25px', border: `1px dashed ${THEME.goldAccent || '#c2410c'}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                         <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11' }}>📦 الخامات المنصرفة وربطها بالبنود</h3>
-                        <button onClick={logic.addItem} style={{ background: 'white', color: THEME.coffeeDark || '#2d1a11', border: `1px solid ${THEME.goldAccent || '#ca8a04'}`, padding: '8px 15px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
+                        <button onClick={logic.addItem} style={{ background: 'white', color: THEME.coffeeDark || '#2d1a11', border: `1px solid ${THEME.goldAccent || '#c2410c'}`, padding: '8px 15px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
                             ➕ إضافة صنف آخر
                         </button>
                     </div>
@@ -235,7 +235,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                         <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 800 }}>إجمالي الكميات</div>
                         <div style={{ fontSize: '24px', fontWeight: 900 }}>{totalQuantity}</div>
                     </div>
-                    <div style={{ background: `linear-gradient(135deg, ${THEME.goldAccent || '#ca8a04'}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.goldAccent || '#ca8a04'}80`, boxShadow: `0 0 20px ${THEME.goldAccent || '#ca8a04'}20` }}>
+                    <div style={{ background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.goldAccent || '#c2410c'}80`, boxShadow: `0 0 20px ${THEME.goldAccent || '#c2410c'}20` }}>
                         <div style={{ fontSize: '13px', fontWeight: 900, color: '#fcd34d' }}>إجمالي التكلفة / الخصم</div>
                         <div style={{ fontSize: '28px', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(grandTotal)}</div>
                     </div>

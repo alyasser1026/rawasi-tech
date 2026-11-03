@@ -2,6 +2,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 
+type ClaimCostGroup = { name: string; gross: number; deduction: number; net: number; claims: Record<string, unknown>[] };
+type ProjectCostGroup = { name: string; gross: number; deduction: number; net: number; itemsMap: Map<string, ClaimCostGroup> };
+
 export function useSubcontractorCostsLogic() {
   const [data, setData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,7 +87,7 @@ export function useSubcontractorCostsLogic() {
 
   // 🚀 الهيكل الهرمي لحساب (الإجمالي - الخصومات = الصافي)
   const hierarchy = useMemo(() => {
-    const projectMap = new Map();
+    const projectMap = new Map<string, ProjectCostGroup>();
     
     // إجماليات لوحة المؤشرات العلوية
     let grandGross = 0;
@@ -114,7 +117,7 @@ export function useSubcontractorCostsLogic() {
             itemsMap: new Map() 
         });
       }
-      const projNode = projectMap.get(projName);
+      const projNode = projectMap.get(projName)!;
       projNode.gross += gross;
       projNode.deduction += deduction;
       projNode.net += net;
@@ -129,7 +132,7 @@ export function useSubcontractorCostsLogic() {
             claims: [] 
         });
       }
-      const itemNode = projNode.itemsMap.get(itemName);
+      const itemNode = projNode.itemsMap.get(itemName)!;
       itemNode.gross += gross;
       itemNode.deduction += deduction;
       itemNode.net += net;

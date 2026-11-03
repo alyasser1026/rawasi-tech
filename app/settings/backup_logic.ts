@@ -96,7 +96,7 @@ export const useBackupLogic = () => {
                 }
             }
             
-            XLSX.writeFile(workbook, `Rawasi_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.writeFile(workbook, `Phi_Tech_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
             showToast('✅ تم تصدير نسخة الإكسل بنجاح', 'success');
             return { success: true };
         } catch (error: any) {
@@ -121,7 +121,7 @@ export const useBackupLogic = () => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Rawasi_Snapshot_${new Date().toISOString().split('T')[0]}.json`;
+            link.download = `Phi_Tech_Snapshot_${new Date().toISOString().split('T')[0]}.json`;
             link.click();
             URL.revokeObjectURL(url);
             

@@ -204,7 +204,7 @@ export default function AdvancedExpenseAllocation() {
       {/* 🖨️ جزء الطباعة المخفي */}
       <div className="print-only-header" style={{ display: 'none' }}>
         <div style={{ textAlign: 'center', padding: '20px', borderBottom: '2px solid #334155', marginBottom: '30px' }}>
-          <h1 style={{ margin: '0 0 10px 0', color: '#1e293b', fontWeight: 900 }}>شركة الرواسي للمقاولات والاستثمار العقاري</h1>
+          <h1 style={{ margin: '0 0 10px 0', color: '#1e293b', fontWeight: 900 }}>شركة فاي تك للمقاولات والاستثمار العقاري</h1>
           <h2 style={{ margin: 0, color: '#475569', fontSize: '18px' }}>تقرير توزيع وتحميل المصروفات العامة غير المباشرة على الفلل والمشاريع</h2>
           <small style={{ color: '#94a3b8', display: 'block', marginTop: '10px' }}>تاريخ استخراج التقرير: {new Date().toLocaleDateString('ar-EG')}</small>
         </div>
@@ -243,12 +243,12 @@ export default function AdvancedExpenseAllocation() {
           </div>
         </div>
 
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '24px', borderBottom: `5px solid #ca8a04`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '24px', borderBottom: `5px solid #c2410c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
           <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>🛠️ تحميل شهري (بالتساوي)</span>
-          <strong style={{ fontSize: '20px', color: '#ca8a04', fontWeight: 900 }}>{formatCurrency(stats.monthlyEqualTotal)}</strong>
-          <div style={{ fontSize: '11px', color: '#ca8a04', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.monthlyEqualPct}%</div>
+          <strong style={{ fontSize: '20px', color: '#c2410c', fontWeight: 900 }}>{formatCurrency(stats.monthlyEqualTotal)}</strong>
+          <div style={{ fontSize: '11px', color: '#c2410c', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.monthlyEqualPct}%</div>
           <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
-            <div style={{ width: `${stats.monthlyEqualPct}%`, height: '100%', backgroundColor: '#ca8a04', borderRadius: '2px' }} />
+            <div style={{ width: `${stats.monthlyEqualPct}%`, height: '100%', backgroundColor: '#c2410c', borderRadius: '2px' }} />
           </div>
         </div>
 

@@ -7,7 +7,7 @@ import 'jspdf-autotable';
 import { toast } from 'react-hot-toast';
 
 const THEME = {
-    coffeeDark: '#43342E', goldAccent: '#C5A059', sandLight: '#F4F1EE', sandDark: '#E6D5C3', success: '#166534', danger: '#be123c', border: '#eef2f6'
+    coffeeDark: '#27272a', goldAccent: '#c2410c', sandLight: '#f7f7f8', sandDark: '#e4e4e7', success: '#166534', danger: '#be123c', border: '#eef2f6'
 };
 
 // 🟢 التعديل الأهم: تغيير النوع ليقبل React.ReactNode (مثل الـ Checkbox) بالإضافة للنصوص
@@ -30,6 +30,7 @@ interface RawasiSmartTableProps {
     fileName?: string;
     selectable?: boolean;
     selectedIds?: any[];
+    rowKey?: string;
     onSelectionChange?: (ids: any[]) => void;
     onRowClick?: (row: any) => void;
     emptyMessage?: string;
@@ -51,8 +52,8 @@ interface RawasiSmartTableProps {
 }
 
 export default function RawasiSmartTable({ 
-    title, data, columns, fileName = 'Rawasi_Report', 
-    selectable, selectedIds = [], onSelectionChange, onRowClick, emptyMessage,
+    title, data, columns, fileName = 'Phi_Tech_Report',
+    selectable, selectedIds = [], rowKey = 'id', onSelectionChange, onRowClick, emptyMessage,
     
     enablePagination = true,
     currentPage: externalPage,
@@ -257,7 +258,7 @@ export default function RawasiSmartTable({
                             // 🚀 رسم البيانات المقطوعة فقط لمنع تهنيج المتصفح
                             paginatedData.map((row, rowIndex) => (
                                 <motion.tr 
-                                    key={row._unique_key || row.id || rowIndex} 
+                                    key={row._unique_key || row[rowKey] || rowIndex}
                                     variants={itemVariants} 
                                     onClick={() => onRowClick?.(row)} 
                                     style={{ 
@@ -267,16 +268,17 @@ export default function RawasiSmartTable({
                                         transition: '0.2s'
                                     }}
                                     className="table-row-hover"
+                                    data-selected={selectable && selectedIds.includes(row[rowKey]) ? 'true' : undefined}
                                 >
                                     {selectable && (
                                         <td className="hide-on-print" style={{ padding: '12px 15px' }} onClick={(e) => e.stopPropagation()}>
                                             <input 
                                                 type="checkbox" 
-                                                checked={selectedIds.includes(row.id)}
+                                                checked={selectedIds.includes(row[rowKey])}
                                                 onChange={() => {
-                                                    const newSelection = selectedIds.includes(row.id) 
-                                                        ? selectedIds.filter(id => id !== row.id) 
-                                                        : [...selectedIds, row.id];
+                                                    const newSelection = selectedIds.includes(row[rowKey])
+                                                        ? selectedIds.filter(id => id !== row[rowKey])
+                                                        : [...selectedIds, row[rowKey]];
                                                     onSelectionChange?.(newSelection);
                                                 }}
                                                 style={{ accentColor: THEME.goldAccent, width: '16px', height: '16px', cursor: 'pointer' }}

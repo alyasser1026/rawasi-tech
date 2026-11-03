@@ -7,6 +7,7 @@ import { useJournalErrorsLogic } from './JournalErrors_logic';
 
 // 🛡️ معايير الأمان
 import AuthGuard from '@/components/authGuard'; 
+import MasterPage from '@/components/MasterPage';
 import SecureAction from '@/components/SecureAction'; 
 
 // 🎨 معايير الواجهة 
@@ -71,7 +72,7 @@ export default function JournalMaintenancePage() {
                 watchDeps={[logic.isLoading, logic.selectedIds.length]} 
             />
 
-            <div className="sovereign-glass-wrapper clean-page" style={{ padding: '15px', md: { padding: '30px' }, direction: 'rtl', fontFamily: 'Cairo, sans-serif', minHeight: '100vh', position: 'relative' }}>
+            <div className="sovereign-glass-wrapper clean-page" style={{ padding: 'clamp(15px, 3vw, 30px)', direction: 'rtl', fontFamily: 'Cairo, sans-serif', minHeight: '100vh', position: 'relative' }}>
                 
                 {/* 📱 نافيجيشن الموبايل (اليوزر كارد أقصى اليسار) */}
 
@@ -155,7 +156,7 @@ export default function JournalMaintenancePage() {
 // ==========================================================
 // 🍏 مكون القسم الذكي (نسخة محمية ضد الـ Undefined)
 // ==========================================================
-// 🍏 مكون القسم الذكي (AuditSection) - ميثاق رواسي الماسي V11
+// 🍏 مكون القسم الذكي (AuditSection) - ميثاق فاي تك الماسي V11
 // ==========================================================
 function AuditSection({ logic, data, title, color, icon, actionText, onAction, secondaryAction, secondaryActionText }: any) {
     // 🛡️ حارس رندر إلزامي: منع معالجة المصفوفات الفارغة أو غير المعرفة

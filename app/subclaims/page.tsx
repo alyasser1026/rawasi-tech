@@ -351,7 +351,7 @@ export default function SubContractorClaimsPage() {
                         ) : (
                             <button 
                                 disabled={logic.actionMutation.isPending}
-                                onClick={() => { if(confirm('متأكد من فك الترحيل؟ سيتم مسح أي سندات صرف تمت وتصفير السداد.')) logic.actionMutation.mutate({ action: 'unpost', id: row.id, claimNumber: row.claim_number }) }} 
+                                onClick={() => { if(confirm('تأكيد فك ترحيل المستخلص؟ سيتم الاحتفاظ بسندات الصرف والأعمال المرتبطة. يلزم فك ترحيل سنداته أولاً.')) logic.actionMutation.mutate({ action: 'unpost', id: row.id }) }}
                                 style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
                             >
                                 {isActionPending && logic.actionMutation.variables?.action === 'unpost' ? 'جاري... ⏳' : 'فك الترحيل 🔓'}
@@ -360,7 +360,7 @@ export default function SubContractorClaimsPage() {
 
                         <button 
                             disabled={logic.actionMutation.isPending}
-                            onClick={() => { if(confirm('متأكد من مسح المستخلص نهائياً وإرجاع الأعمال لجاري التنفيذ؟ (سيتم إلغاء القيود المتعلقة به)')) logic.actionMutation.mutate({ action: 'delete', id: row.id }) }} 
+                            onClick={() => { if(confirm('تأكيد حذف مستخلص المسودة وإرجاع الأعمال لجاري التنفيذ؟ يجب فك ترحيله ومعالجة سندات الصرف المرتبطة أولاً.')) logic.actionMutation.mutate({ action: 'delete', id: row.id }) }}
                             style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
                         >
                             {isActionPending && logic.actionMutation.variables?.action === 'delete' ? 'جاري... ⏳' : 'مسح 🗑️'}

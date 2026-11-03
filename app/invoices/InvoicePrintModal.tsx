@@ -87,13 +87,13 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
         let pIds: string[] = [];
         try {
             if (Array.isArray(record.project_ids)) {
-                pIds = record.project_ids.map(id => typeof id === 'object' ? String((id as any).id || id) : String(id));
+                pIds = record.project_ids.map((id: unknown) => typeof id === 'object' && id !== null && 'id' in id ? String(id.id) : String(id));
             } else if (typeof record.project_ids === 'string') {
                 const cleanStr = record.project_ids.trim();
                 if (cleanStr.startsWith('[')) {
                     pIds = JSON.parse(cleanStr).map(String);
                 } else {
-                    pIds = cleanStr.replace(/[{}[\]"']/g, '').split(',').map(id => id.trim());
+                    pIds = String(cleanStr).replace(/[{}[\]"']/g, '').split(',').map(id => id.trim());
                 }
             }
         } catch (error) {
@@ -475,14 +475,14 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                     </div>
 
                     <div className="header-center">
-                        <h1 style={{ fontSize: '18px', fontWeight: 900, color: THEME.primary, margin: '0 0 4px 0' }}>شركة رواسي اليسر للمقاولات</h1>
-                        <h2 style={{ fontSize: '15px', fontWeight: 900, color: THEME.primary, margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Rawasi Al Yusr Contracting Company</h2>
+                        <h1 style={{ fontSize: '18px', fontWeight: 900, color: THEME.primary, margin: '0 0 4px 0' }}>شركة فاي تك للمقاولات</h1>
+                        <h2 style={{ fontSize: '15px', fontWeight: 900, color: THEME.primary, margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Phi Tech Contracting Company</h2>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', fontFamily: 'Arial, sans-serif' }}>الرقم الضريبي (VAT No): 312487477800003</div>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginTop: '2px', fontFamily: 'Arial, sans-serif' }}>الرقم الموحد (Unified No): 7051013319</div>
                     </div>
 
                     <div className="header-logo">
-                        <img src="/in-Logo.png" alt="شعار الشركة" />
+                        <img src="/company-logo.svg" alt="شعار الشركة" />
                     </div>
                 </div>
 

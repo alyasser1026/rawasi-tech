@@ -244,7 +244,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
                    logic.setIsBoqModalOpen(true);
                  }}
                  style={{
-                   backgroundColor: '#eab308', color: 'white', padding: '10px 20px', borderRadius: '10px',
+                   backgroundColor: '#fb923c', color: 'white', padding: '10px 20px', borderRadius: '10px',
                    border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)', transition: 'all 0.3s'
                  }}
@@ -292,7 +292,6 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
           onClose={() => setIsReportOpen(false)} 
           logic={logic} 
           boqStats={boqStats} 
-          flatBoqData={flatBoqData} 
           flatBoqData={flatBoqData} 
         />
       </div>

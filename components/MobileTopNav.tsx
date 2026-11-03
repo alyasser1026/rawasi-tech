@@ -9,7 +9,7 @@ interface MobileTopNavProps {
 
 export default function MobileTopNav({ title, subtitle }: MobileTopNavProps) {
     const handleToggleSidebar = () => {
-        // 🚀 الكود ده بيضيف كلاس للـ body عشان السايد بار يفتح (حسب مكتبة رواسي)
+        // 🚀 الكود ده بيضيف كلاس للـ body عشان السايد بار يفتح (حسب مكتبة فاي تك)
         document.body.classList.toggle('mobile-sidebar-active');
     };
 

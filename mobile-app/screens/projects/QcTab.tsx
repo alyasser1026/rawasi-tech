@@ -9,7 +9,7 @@ export default function QcTab({ logic }: any) {
   return (
     <View style={styles.emptyContainer}>
       <View style={styles.iconContainer}>
-        <Ionicons name="camera-outline" size={40} color="#ca8a04" />
+        <Ionicons name="camera-outline" size={40} color="#c2410c" />
       </View>
       <Text style={styles.emptyText}>لم يتم رفع تقارير جودة أو صور للموقع حتى الآن</Text>
       <Text style={styles.subText}>سيتم إضافة ميزة رفع الصور قريباً</Text>
@@ -38,10 +38,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#ca8a04',
+    backgroundColor: '#c2410c',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ca8a04',
+    shadowColor: '#c2410c',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

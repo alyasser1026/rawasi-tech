@@ -78,8 +78,8 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
     // 🚨 لا تعرض شاشة سوداء طالما الصلاحيات موجودة مسبقاً
     if (loading && !permissions) {
         return (
-            <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#F4F1EE" }}>
-                <div className="loader" style={{ fontWeight: 900, color: "#C5A059" }}>⏳ جاري إعداد مركز القيادة...</div>
+            <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f7f7f8" }}>
+                <div className="loader" style={{ fontWeight: 900, color: "#c2410c" }}>⏳ جاري إعداد مركز القيادة...</div>
             </div>
         );
     }

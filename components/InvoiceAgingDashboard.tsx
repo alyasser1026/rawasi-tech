@@ -24,7 +24,7 @@ export default function InvoiceAgingDashboard({ aging }: { aging: AgingStats }) 
   // 🎨 الألوان المطلوبة للفئات
   const colors = {
     current: '#10b981',    // أخضر
-    days_1_30: '#eab308',  // أصفر
+    days_1_30: '#fb923c',  // أصفر
     days_31_60: '#f59e0b', // برتقالي
     days_61_90: '#ef4444', // أحمر
     over_90: '#9f1239',    // أحمر داكن (عنابي)

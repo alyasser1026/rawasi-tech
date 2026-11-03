@@ -55,7 +55,7 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
   '/profile': 'profile',
 };
 
-export default function AuthGuard({ children }: { children: React.ReactNode }) {
+export default function AuthGuard({ children, requiredRoles }: { children: React.ReactNode; requiredRoles?: readonly string[] }) {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -126,6 +126,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const isAuthorized = useMemo(() => {
     if (loading || !user || !profile) return true; // Don't block while loading
     if (pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname.startsWith('/api')) return true;
+    if (requiredRoles?.length && !profile.is_admin && !requiredRoles.includes(profile.role)) return false;
     
     // 🛡️ السماح دائماً للملف الشخصي لأي مستخدم مسجل
     if (pathname === '/profile') return true;
@@ -134,11 +135,11 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!requiredModule) return true; // If route not mapped, let it pass (or you could strictly block it)
 
     return can(requiredModule, 'view');
-  }, [pathname, profile, loading, user]);
+  }, [pathname, profile, loading, user, requiredRoles]);
 
   if (loading && !user) {
     if (pathname === '/login' || pathname === '/signup') return <>{children}</>;
-    return <LoadingScreen message="جاري تأمين الاتصال..." subMessage="نتحقق من صلاحيات الدخول الآمن لنظام رواسي" fullScreen={true} />;
+    return <LoadingScreen message="جاري تأمين الاتصال..." subMessage="نتحقق من صلاحيات الدخول الآمن لنظام فاي تك" fullScreen={true} />;
   }
 
   if (!isAuthorized) {

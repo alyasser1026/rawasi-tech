@@ -168,7 +168,7 @@ export default function FinancialCenter() {
           .mesh-gradient-aura {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: 
-              radial-gradient(at 0% 0%, rgba(197, 160, 89, 0.08) 0, transparent 50%),
+              radial-gradient(at 0% 0%, rgba(194,65,12, 0.08) 0, transparent 50%),
               radial-gradient(at 100% 0%, rgba(210, 210, 215, 0.4) 0, transparent 60%),
               radial-gradient(at 50% 100%, rgba(255, 255, 255, 0.9) 0, transparent 70%);
             z-index: -1; pointer-events: none;

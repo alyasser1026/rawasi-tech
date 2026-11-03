@@ -4,7 +4,7 @@ import { QRCodeSVG } from 'qrcode.react';
 
 // تم إضافة الثيم عشان الكود ميضربش لو مش متعرف في الملف ده
 const THEME = {
-  primary: '#0f172a', accent: '#ca8a04', success: '#059669', slate: '#f8fafc', text: '#111827', border: '#cbd5e1', ruby: '#e11d48'
+  primary: '#0f172a', accent: '#c2410c', success: '#059669', slate: '#f8fafc', text: '#111827', border: '#cbd5e1', ruby: '#e11d48'
 };
 
 export default function ZatcaQRCode({ record }: { record: any }) {
@@ -13,7 +13,7 @@ export default function ZatcaQRCode({ record }: { record: any }) {
   if (record.is_internal || record.skip_zatca) {
      return (
         <div style={{ padding: '4px', border: `2px solid ${THEME.ruby}`, borderRadius: '8px', background: 'white', display: 'inline-block' }}>
-           <QRCodeSVG value={`INTERNAL-INV-${record.invoice_number}`} size={90} level="H" imageSettings={{ src: "/RYC_Logo.png", height: 20, width: 20, excavate: true }} />
+           <QRCodeSVG value={`INTERNAL-INV-${record.invoice_number}`} size={90} level="H" imageSettings={{ src: "/phitech-symbol.svg", height: 20, width: 20, excavate: true }} />
         </div>
      );
   }
@@ -37,10 +37,10 @@ export default function ZatcaQRCode({ record }: { record: any }) {
   return (
     <div style={{ padding: '4px', border: `2px solid ${THEME.primary}`, borderRadius: '8px', background: 'white', display: 'inline-block' }}>
       <QRCodeSVG 
-        value={generateQR("شركة رواسي اليسر", "312487477800003", timestamp, invoiceTotal, taxTotal)} 
+        value={generateQR("شركة فاي تك", "312487477800003", timestamp, invoiceTotal, taxTotal)}
         size={90} 
         level="H" 
-        imageSettings={{ src: "/RYC_Logo.png", height: 20, width: 20, excavate: true }} 
+        imageSettings={{ src: "/phitech-symbol.svg", height: 20, width: 20, excavate: true }}
       />
     </div>
   );

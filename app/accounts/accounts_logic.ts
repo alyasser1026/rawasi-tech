@@ -134,7 +134,7 @@ export function useHierarchicalAccountsLogic() {
     }
 
     // تجهيز البيانات المطهرة
-    const excelData = accountsReport.map((acc: any) => {
+    const excelData = (accountsReport as Record<string, unknown>[]).map(acc => {
         const bal = Math.round(Number(acc.balance || 0) * 100) / 100;
         return {
             "كود الحساب": acc.code || '',

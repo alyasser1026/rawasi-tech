@@ -21,26 +21,26 @@ export default function ReceiptVouchersPage() {
   // 🚀 اختصار الحفظ (Ctrl + Enter)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (logic.isModalOpen && e.ctrlKey && e.key === 'Enter') {
+      if (logic.isEditModalOpen && e.ctrlKey && e.key === 'Enter') {
         e.preventDefault();
-        if (!logic.isSaving) logic.handleSaveVoucher();
+        if (!logic.isSaving) document.getElementById('receipt-save-button')?.click();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [logic.isModalOpen, logic.isSaving]);
+  }, [logic.isEditModalOpen, logic.isSaving]);
 
   // 🚀 اختصار إضافة جديد (Alt + N)
   useEffect(() => {
     const handleAddShortcut = (e: KeyboardEvent) => {
-      if (!logic.isModalOpen && e.altKey && (e.code === 'KeyN' || e.key.toLowerCase() === 'n' || e.key === 'ى')) {
+      if (!logic.isEditModalOpen && e.altKey && (e.code === 'KeyN' || e.key.toLowerCase() === 'n' || e.key === 'ى')) {
         e.preventDefault();
-        logic.handleAddVoucher();
+        logic.handleAddNew();
       }
     };
     window.addEventListener('keydown', handleAddShortcut);
     return () => window.removeEventListener('keydown', handleAddShortcut);
-  }, [logic.isModalOpen]);
+  }, [logic.isEditModalOpen, logic.handleAddNew]);
  
     const { setSidebarContent } = useSidebar();
     

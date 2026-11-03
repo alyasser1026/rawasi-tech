@@ -79,7 +79,7 @@ export default function AddLaborLogModal({
           {/* 🌟 Header */}
           <View style={styles.header}>
             <View style={styles.titleContainer}>
-              <Ionicons name={logData.id ? "create" : "add-circle"} size={28} color="#ca8a04" />
+              <Ionicons name={logData.id ? "create" : "add-circle"} size={28} color="#c2410c" />
               <Text style={styles.title}>{logData.id ? 'تعديل بيانات اليومية' : 'إضافة يومية جديدة'}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -282,13 +282,13 @@ export default function AddLaborLogModal({
                 />
 
                 <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={loading}>
-                  <LinearGradient colors={['#43342e', '#2c221e']} style={styles.saveBtnGradient}>
+                  <LinearGradient colors={['#27272a', '#2c221e']} style={styles.saveBtnGradient}>
                     {loading ? (
-                      <ActivityIndicator color="#ca8a04" size="large" />
+                      <ActivityIndicator color="#c2410c" size="large" />
                     ) : (
                       <>
                         <Text style={styles.saveBtnText}>حفظ واعتماد</Text>
-                        <Ionicons name="checkmark-done-circle" size={24} color="#ca8a04" style={{ marginLeft: 8 }} />
+                        <Ionicons name="checkmark-done-circle" size={24} color="#c2410c" style={{ marginLeft: 8 }} />
                       </>
                     )}
                   </LinearGradient>
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
   successInput: { color: '#059669', borderColor: '#a7f3d0', backgroundColor: '#ecfdf5', fontSize: 18 },
   row: { flexDirection: 'row-reverse', justifyContent: 'space-between' },
   half: { width: '48%' },
-  saveBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 15, shadowColor: '#43342e', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 5 },
+  saveBtn: { borderRadius: 16, overflow: 'hidden', marginTop: 15, shadowColor: '#27272a', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 5 },
   saveBtnGradient: { padding: 18, flexDirection: 'row-reverse', justifyContent: 'center', alignItems: 'center' },
   saveBtnText: { fontSize: 18, fontWeight: '900', color: '#ffffff' },
   suggestions: { position: 'absolute', top: 58, left: 0, right: 0, backgroundColor: '#ffffff', borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 8, elevation: 6, overflow: 'hidden', zIndex: 100 },

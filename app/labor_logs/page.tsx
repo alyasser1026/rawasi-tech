@@ -263,7 +263,7 @@ export default function LaborLogsDirectory() {
 
         <div className="no-print">
           {logic.isLoading ? (
-            <LoadingScreen message="جاري المزامنة مع رواسي..." fullScreen={false} />
+            <LoadingScreen message="جاري المزامنة مع فاي تك..." fullScreen={false} />
           ) : (
             <RawasiSmartTable 
               columns={columns} 
@@ -280,7 +280,7 @@ export default function LaborLogsDirectory() {
       </MasterPage>
 
       {mounted && logic.isAddModalOpen && createPortal(
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(67, 52, 46, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '5vh', paddingBottom: '5vh', overflowY: 'auto' }} onClick={() => logic.setIsAddModalOpen(false)}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(39,39,42, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '5vh', paddingBottom: '5vh', overflowY: 'auto' }} onClick={() => logic.setIsAddModalOpen(false)}>
           <div className="cinematic-scroll" onClick={(e) => e.stopPropagation()} style={{ background: 'white', padding: '35px', borderRadius: '24px', width: '100%', maxWidth: '900px', direction: 'rtl', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', margin: 'auto' }}>
             <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px', fontSize: '24px', borderBottom: `2px dashed ${THEME.goldAccent}`, paddingBottom: '15px' }}>
               {logic.editingId ? '✏️ تعديل بيانات اليومية' : '➕ إضافة يومية جديدة'}

@@ -20,7 +20,7 @@ export default function ExpensesTab({ logic }: any) {
         <View key={item.id || index} style={styles.card}>
           <View style={styles.headerRow}>
             <View style={styles.iconContainer}>
-              <Ionicons name="cash-outline" size={20} color="#ca8a04" />
+              <Ionicons name="cash-outline" size={20} color="#c2410c" />
             </View>
             <View style={styles.titleContainer}>
               <Text style={styles.description}>{item.description || 'بدون وصف'}</Text>
@@ -81,10 +81,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#ca8a04',
+    backgroundColor: '#c2410c',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ca8a04',
+    shadowColor: '#c2410c',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

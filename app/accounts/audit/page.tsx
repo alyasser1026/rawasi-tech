@@ -49,7 +49,7 @@ export default function DetailedAuditPage() {
                 brokenEntries.map((e, i) => (
                     <div key={i} style={{ background: 'white', padding: '20px', borderRadius: '15px', marginBottom: '25px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #f3f4f6', paddingBottom: '10px', marginBottom: '15px' }}>
-                            <span style={{ fontWeight: 900, color: '#43342E' }}>📅 التاريخ: {e.entry_date} | {e.description}</span>
+                            <span style={{ fontWeight: 900, color: '#27272a' }}>📅 التاريخ: {e.entry_date} | {e.description}</span>
                             <span style={{ color: '#991B1B', fontWeight: 900 }}>قيمة العجز: {e.diff.toLocaleString()}</span>
                         </div>
                         

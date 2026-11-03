@@ -15,6 +15,8 @@ interface SmartComboProps {
     multi?: boolean;         // الاختيار المتعدد
     selectedValues?: any[];  // القيم المختارة مسبقاً (للمتعدد)
     initialDisplay?: string; // القيمة اللي هتظهر أول ما يفتح
+    value?: string | number | null;
+    customFilter?: string;
     displayFormat?: (item: any) => string; // 🚀 عرض مخصص للخيارات (مثال: دمج عمودين)
     customQuery?: (queryBuilder: any) => any; // فلترة متقدمة
     icon?: string;           // أيقونة للعنوان
@@ -48,7 +50,7 @@ interface SmartComboProps {
 export default function SmartCombo({ 
     label, table, options, onSelect, placeholder, 
     searchCols = 'name,code', displayCol = 'name', 
-    multi = false, selectedValues = [], initialDisplay = '',
+    multi = false, selectedValues = [], initialDisplay = '', value, customFilter,
     displayFormat, customQuery, icon,
     strict = false, isTextArea = false, disabled = false, freeText = false,
     allowAddNew = false, requiredPermission, onAddNew, isSensitive = false, showRecent = false, 
@@ -140,6 +142,27 @@ export default function SmartCombo({
         else if (!multi && !freeText) setSearch('');
     }, [initialDisplay, multi, freeText]);
 
+    useEffect(() => {
+        if (value === null || value === '') setSearch('');
+    }, [value]);
+
+    useEffect(() => {
+        if (value === undefined || value === null || value === '' || initialDisplay || !hasFieldAccess) return;
+        let cancelled = false;
+        const showValue = (item: any) => {
+            if (!item || cancelled) return;
+            setSearch(typeof item === 'object' ? (displayFormat ? displayFormat(item) : String(item[displayCol] || item.name || item.Property || '')) : String(item));
+        };
+        const selected = options?.find(item => typeof item === 'object' ? String(item.id) === String(value) : String(item) === String(value));
+        if (selected) showValue(selected);
+        else if (table) {
+            void supabase.from(table).select('*').eq('id', value).maybeSingle().then(({ data, error }) => {
+                if (!error) showValue(data);
+            });
+        }
+        return () => { cancelled = true; };
+    }, [value, initialDisplay, options, table, displayCol, displayFormat, hasFieldAccess]);
+
     // 📡 دالة البحث الذكية (مع دعم الفلاتر المتسلسلة 🚀)
     const loadData = async (query = '') => {
         if (!hasFieldAccess) return; 
@@ -169,6 +192,11 @@ export default function SmartCombo({
             }
 
             if (customQuery) q = customQuery(q);
+            if (customFilter) {
+                const match = /^([^=]+)=([a-z]+)\.(.*)$/.exec(customFilter);
+                if (!match) throw new Error('Invalid SmartCombo filter');
+                q = q.filter(match[1], match[2], match[3]);
+            }
 
             if (query) {
                 const orQuery = searchCols.split(',').map((col: string) => `${col}.ilike.%${query}%`).join(',');
@@ -196,7 +224,7 @@ export default function SmartCombo({
         
         return () => clearTimeout(timer);
         // 🚀 تم إضافة ومراقبة filterColumn و filterValue لإعادة السحب فوراً عند تغيير الفيلا
-    }, [search, table, options, show, hasFieldAccess, filter, filterColumn, filterValue]); 
+    }, [search, table, options, show, hasFieldAccess, filter, filterColumn, filterValue, customFilter]);
 
     // 🖱️ Scroll
     useEffect(() => {
@@ -251,6 +279,7 @@ export default function SmartCombo({
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (e.ctrlKey || e.metaKey) return;
         if (!hasFieldAccess) return;
         if (!show && e.key !== 'Tab') {
             if (e.key === 'ArrowDown') { setShow(true); loadData(search || ''); }

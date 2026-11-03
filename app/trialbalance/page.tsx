@@ -8,7 +8,7 @@ import { formatCurrency } from '@/lib/helpers';
 
 const THEME = {
   primary: '#0f172a',    
-  accent: '#ca8a04',     
+  accent: '#c2410c',
   success: '#059669',    // اللون الأخضر للمدين
   ruby: '#e11d48',       // اللون الأحمر للدائن
   slate: '#f8fafc',
@@ -183,10 +183,10 @@ export default function TrialBalancePage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '15px', marginBottom: '20px' }}>
             <div>
                 
-                <p style={{ margin: '8px 0 0 0', fontWeight: 700, fontSize: '14px', color: '#000000' }}>شركة رواسي اليسر للمقاولات</p>
+                <p style={{ margin: '8px 0 0 0', fontWeight: 700, fontSize: '14px', color: '#000000' }}>شركة فاي تك للمقاولات</p>
                 <p style={{ margin: '4px 0 0 0', fontWeight: 900, fontSize: '13px', color: '#000000' }}>عن الفترة من {logic.startDate} إلى {logic.endDate}</p>
             </div>
-            <img src="/RYC_Logo.png" alt="Company Logo" style={{ height: '50px', objectFit: 'contain' }} />
+            <img src="/company-logo.svg" alt="Company Logo" style={{ height: '50px', objectFit: 'contain' }} />
           </div>
 
           <table className="print-table">

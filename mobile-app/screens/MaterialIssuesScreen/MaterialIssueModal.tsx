@@ -159,7 +159,7 @@ export default function MaterialIssueModal({ visible, onClose, record: editingRe
         <View style={styles.modalContainer}>
           <View style={styles.header}>
             <View style={styles.titleContainer}>
-              <Ionicons name={record.id ? "create" : "push"} size={28} color="#ca8a04" />
+              <Ionicons name={record.id ? "create" : "push"} size={28} color="#c2410c" />
               <Text style={styles.title}>{record.id ? 'تعديل إذن صرف' : 'إصدار إذن صرف خامات'}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -349,13 +349,13 @@ const styles = StyleSheet.create({
   removeLineBtn: { padding: 5 },
   lineTotalBox: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f8fafc', padding: 10, borderRadius: 8, marginTop: 10 },
   lineTotalLabel: { fontSize: 13, fontWeight: 'bold', color: '#64748b' },
-  lineTotalValue: { fontSize: 15, fontWeight: '900', color: '#ca8a04' },
+  lineTotalValue: { fontSize: 15, fontWeight: '900', color: '#c2410c' },
   footer: { flexDirection: 'row-reverse', alignItems: 'center', justifyContent: 'space-between', padding: 20, backgroundColor: '#fff', borderTopWidth: 1, borderTopColor: '#e2e8f0' },
   footerTotals: { flexDirection: 'row-reverse', gap: 20 },
   totalItem: { alignItems: 'flex-end' },
   totalLabel: { fontSize: 12, color: '#64748b', fontWeight: 'bold', marginBottom: 2 },
   totalVal: { fontSize: 16, color: '#1e293b', fontWeight: '900' },
-  totalValFinal: { fontSize: 18, color: '#ca8a04', fontWeight: '900' },
+  totalValFinal: { fontSize: 18, color: '#c2410c', fontWeight: '900' },
   saveBtn: { flexDirection: 'row-reverse', alignItems: 'center', backgroundColor: '#10b981', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, gap: 8 },
   saveBtnText: { color: '#fff', fontWeight: '900', fontSize: 16 },
 

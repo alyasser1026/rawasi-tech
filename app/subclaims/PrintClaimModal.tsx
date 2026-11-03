@@ -229,10 +229,10 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                         </div>
                         <div className="company-brand">
                             <div style={{ textAlign: 'left' }}>
-                                <h1 className="company-logo-text">RAWASI <span style={{ color: '#1e3a8a' }}>AL-YUSR</span></h1>
+                                <h1 className="company-logo-text">فاي <span style={{ color: '#1e3a8a' }}>تك</span></h1>
                                 <p className="company-subtext">إدارة المشاريع الهندسية والمقاولات</p>
                             </div>
-                            <img src="/logo.png" alt="Logo" className="company-logo-img" onError={(e: any) => e.target.style.display = 'none'} />
+                            <img src="/company-logo.svg" alt="Logo" className="company-logo-img" onError={(e: any) => e.target.style.display = 'none'} />
                         </div>
                     </div>
 

@@ -134,6 +134,7 @@ export function useSubClaimsLogic() {
         const totalExpDed = selectedObjects.reduce((sum, a) => sum + Number(a.expenses_deduction || 0), 0);
 
         setCurrentClaim({
+            request_id: crypto.randomUUID(),
             date: new Date().toISOString().split('T')[0],
             retention_percent: 5,
             tax_percent: 15,
@@ -154,61 +155,28 @@ export function useSubClaimsLogic() {
 
     const saveClaimMutation = useMutation({
         mutationFn: async (claimData: any) => {
-            if (claimData.id) {
-                const { data: existing } = await supabase.from('sub_claims').select('status, is_posted').eq('id', claimData.id).single();
-                if (existing && (existing.status === 'مرحل' || existing.status === 'معتمد' || existing.is_posted)) {
-                    throw new Error("لا يمكن تعديل مستخلص معتمد. يرجى فك الترحيل أولاً.");
-                }
-            }
+            if (claimData.id) throw new Error('هذه العملية لإنشاء مستخلص جديد؛ عالج المستخلص الحالي من سجل المستخلصات.');
             if (!selectedContractor) throw new Error("اختر مقاول الباطن أولاً!");
             if (!claimData.project_ids || claimData.project_ids.length === 0) {
                 throw new Error("يرجى تحديد العقار / المشروع أولاً.");
             }
 
-            const { data: claim, error } = await supabase.from('sub_claims').insert([{
-                claim_number: `CLM-${Date.now().toString().slice(-6)}`,
-                contractor_id: selectedContractor.id,
-                project_id: claimData.project_ids[0],             
-                project_ids: claimData.project_ids,               
-                project_names_text: claimData.project_names_text, 
-                date: claimData.date,
-                payment_period_days: claimData.payment_period_days || 14,
-                total_amount: claimData.total_amount, 
-                retention_amount: claimData.retention_amount,
-                advance_payment: claimData.advance_payment || 0,
-                materials_deduction: claimData.materials_deduction || 0,
-                other_deductions: claimData.other_deductions || 0,
-                net_amount: claimData.net_amount,
-                is_posted: false,
-                status: 'مسودة',
-                paid_amount: 0 
-            }]).select().single();
-
+            const { data, error } = await supabase.rpc('create_and_post_sub_claim', {
+                p_request_id: claimData.request_id,
+                p_claim: {
+                    contractor_id: selectedContractor.id, project_ids: claimData.project_ids,
+                    project_names_text: claimData.project_names_text, date: claimData.date,
+                    total_amount: claimData.total_amount, retention_amount: claimData.retention_amount,
+                    advance_payment: claimData.advance_payment || 0, materials_deduction: claimData.materials_deduction || 0,
+                    other_deductions: claimData.other_deductions || 0, net_amount: claimData.net_amount,
+                    payment_period_days: claimData.payment_period_days || 14
+                },
+                p_assignment_ids: claimData.assignments_data?.map((a: any) => a.assignment_id || a.id) || [],
+                p_material_ids: claimData.material_ids || [],
+                p_expense_ids: claimData.expense_ids || []
+            });
             if (error) throw new Error(error.message);
-
-            const assignmentIds = claimData.assignments_data?.map((a:any) => a.assignment_id || a.id) || [];
-            if (assignmentIds.length > 0) {
-                await supabase.from('contractor_assignments')
-                    .update({ status: 'مفوتر', claim_id: claim.id })
-                    .in('id', assignmentIds);
-            }
-
-            if (claimData.material_ids && claimData.material_ids.length > 0) {
-                await supabase.from('material_issue_lines')
-                    .update({ claim_id: claim.id })
-                    .in('id', claimData.material_ids);
-            }
-
-            if (claimData.expense_ids && claimData.expense_ids.length > 0) {
-                await supabase.from('expenses')
-                    .update({ claim_id: claim.id, is_deducted_in_claim: true })
-                    .in('id', claimData.expense_ids);
-            }
-
-            const { error: rpcError } = await supabase.rpc('post_sub_claim', { p_id: claim.id });
-            if (rpcError) throw new Error(rpcError.message);
-
-            return claim;
+            return { id: data };
         },
         onSuccess: () => {
             showToast("تم اعتماد المستخلص وترحيله بنجاح 🚀", "success");
@@ -287,10 +255,10 @@ export function useSubClaimsLogic() {
     };
 
     const actionMutation = useMutation({
-        mutationFn: async ({ action, id, claimNumber }: { action: string, id: string, claimNumber?: string }) => {
+        mutationFn: async ({ action, id }: { action: string, id: string }) => {
             if (action === 'delete') {
                 const { data: existing } = await supabase.from('sub_claims').select('status, is_posted').eq('id', id).single();
-                if (existing && (existing.status === 'مرحل' || existing.status === 'معتمد' || existing.is_posted)) {
+                if (existing && (['posted', 'مرحل', 'معتمد'].includes(existing.status) || existing.is_posted)) {
                     throw new Error("لا يمكن حذف مستخلص معتمد. يرجى فك الترحيل أولاً.");
                 }
             }
@@ -298,53 +266,21 @@ export function useSubClaimsLogic() {
             if (action === 'post') rpcName = 'post_sub_claim';
             if (action === 'unpost') rpcName = 'rpc_unpost_claim';
             if (action === 'delete') rpcName = 'rpc_delete_claim';
-
-            if (action === 'unpost' || action === 'delete') {
-                if (action === 'unpost') {
-                    const { error: updateError } = await supabase.from('sub_claims')
-                        .update({ paid_amount: 0, status: 'مسودة', is_posted: false })
-                        .eq('id', id);
-                    if (updateError) throw new Error(updateError.message);
-                }
-
-                if (claimNumber) {
-                    const { data: vouchers } = await supabase.from('payment_vouchers')
-                        .select('id')
-                        .ilike('description', `%${claimNumber}%`);
-                        
-                    if (vouchers && vouchers.length > 0) {
-                        const vIds = vouchers.map(v => v.id);
-                        await supabase.rpc('unpost_payment_vouchers_bulk', { p_ids: vIds });
-                        await supabase.from('payment_vouchers').delete().in('id', vIds);
-                    }
-                }
-
-                await supabase.from('contractor_assignments')
-                    .update({ status: 'جاري التنفيذ', claim_id: null })
-                    .eq('claim_id', id);
-
-                await supabase.from('material_issue_lines')
-                    .update({ claim_id: null })
-                    .eq('claim_id', id);
-
-                await supabase.from('expenses')
-                    .update({ claim_id: null, is_deducted_in_claim: false })
-                    .eq('claim_id', id);
-            }
+            if (!rpcName) throw new Error('إجراء المستخلص غير معروف.');
 
             const { error } = await supabase.rpc(rpcName, { p_id: id });
             if (error) throw new Error(error.message);
         },
         onSuccess: (_, variables) => {
             let msg = "تم الترحيل بنجاح 🚀";
-            if (variables.action === 'unpost') msg = "تم فك الترحيل ومسح سندات الصرف بنجاح 🔓";
+            if (variables.action === 'unpost') msg = "تم فك الترحيل مع الاحتفاظ بسندات الصرف والأعمال المرتبطة 🔓";
             if (variables.action === 'delete') msg = "تم حذف المستخلص وارجاع الأعمال بنجاح 🗑️";
             showToast(msg, "success");
             
             queryClient.invalidateQueries({ queryKey: ['contractor_claims_history'] });
             queryClient.invalidateQueries({ queryKey: ['contractor_tasks', selectedContractor?.id] });
             
-            if (variables.action === 'delete' || variables.action === 'unpost') {
+            if (variables.action === 'delete') {
                 setActiveTab('assignments'); 
             }
         },
@@ -388,16 +324,22 @@ export function useSubClaimsLogic() {
         setPartnerBalance(remainingAmount > 0 ? remainingAmount : 0); 
         
         const allProjectIds = claimRow.project_ids || (claimRow.project_id ? [claimRow.project_id] : []);
+        const { data: accountRows, error: accountsError } = await supabase.from('accounts').select('id,code,name').in('code', ['212', '1291']);
+        if (accountsError) { setIsBalanceLoading(false); showToast(accountsError.message, 'error'); return; }
+        const debitAccount = accountRows?.find(a => a.code === '212');
+        const creditAccount = accountRows?.find(a => a.code === '1291');
+        if (!debitAccount || !creditAccount) { setIsBalanceLoading(false); showToast('راجع حساب التزام المقاولين وحساب الصرف في الدليل.', 'error'); return; }
 
         setPaymentRecord({
+            request_id: crypto.randomUUID(),
             date: new Date().toISOString().split('T')[0],
             amount: remainingAmount > 0 ? remainingAmount : 0,
             payee_id: selectedContractor?.id,
             payee_name: selectedContractor?.name,
-            debit_account_id: '27f37adf-c0ec-4b40-80d0-2b36b853fd4b', 
-            debit_account_name: 'التزام مقاولي الباطن',
-            credit_account_id: '21b8a1db-bc9f-4cf8-b741-1efeded0963c', 
-            credit_account_name: 'الخزينة الرئيسية',
+            debit_account_id: debitAccount.id,
+            debit_account_name: debitAccount.name,
+            credit_account_id: creditAccount.id,
+            credit_account_name: creditAccount.name,
             
             project_ids: allProjectIds,
             
@@ -413,54 +355,18 @@ export function useSubClaimsLogic() {
 
     const paymentMutation = useMutation({
         mutationFn: async (record: any) => {
-            const voucherPayload = {
-                voucher_number: `PV-${Date.now().toString().slice(-6)}`, 
-                date: record.date,
-                amount: record.amount,
-                partner_id: record.payee_id, 
-                payment_method: record.payment_method,
-                project_ids: record.project_ids,
-                site_ref: record.site_ref,
-                description: record.description,
-                status: 'مسودة',
-                debit_account_id: record.debit_account_id,
-                credit_account_id: record.credit_account_id,
-                notes: `حساب المدين: ${record.debit_account_name} | حساب الدائن: ${record.credit_account_name}`,
-                sub_claim_id: record.linked_claim_id 
-            };
-
-            const { data: voucher, error: voucherError } = await supabase
-                .from('payment_vouchers')
-                .insert([voucherPayload])
-                .select('id')
-                .single();
-
-            if (voucherError) throw new Error(voucherError.message);
-
-            const { error: postError } = await supabase.rpc('post_payment_vouchers_bulk', { p_ids: [voucher.id] });
-            if (postError) throw new Error(`تم الحفظ ولكن فشل الترحيل المحاسبي: ${postError.message}`);
-
-            if (record.linked_claim_id) {
-                const { data: currentClaim, error: fetchError } = await supabase
-                    .from('sub_claims')
-                    .select('paid_amount, net_amount')
-                    .eq('id', record.linked_claim_id)
-                    .single();
-
-                if (fetchError) throw new Error(fetchError.message);
-
-                const newPaidTotal = Number(currentClaim?.paid_amount || 0) + Number(record.amount);
-                const isFullyPaid = newPaidTotal >= Number(currentClaim?.net_amount || 0);
-
-                const { error: claimError } = await supabase.from('sub_claims')
-                    .update({ 
-                        paid_amount: newPaidTotal,
-                        status: isFullyPaid ? 'مدفوع' : 'مسدد جزئي' 
-                    })
-                    .eq('id', record.linked_claim_id);
-
-                if (claimError) throw new Error(claimError.message);
-            }
+            const { error } = await supabase.rpc('pay_sub_claim', {
+                p_request_id: record.request_id,
+                p_claim_id: record.linked_claim_id,
+                p_payment: {
+                    date: record.date, amount: record.amount, partner_id: record.payee_id,
+                    payment_method: record.payment_method, site_ref: record.site_ref,
+                    description: record.description, debit_account_id: record.debit_account_id,
+                    credit_account_id: record.credit_account_id,
+                    notes: record.notes || ''
+                }
+            });
+            if (error) throw new Error(error.message);
         },
         onSuccess: () => {
             showToast("تم إنشاء السند وترحيله بنجاح ✅", "success");

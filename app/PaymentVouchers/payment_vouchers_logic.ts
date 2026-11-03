@@ -74,7 +74,7 @@ export function usePaymentVouchersLogic() {
         }
     });
 
-    const { data: partnerBalance = 0, isLoading: isBalanceLoading } = useQuery({
+    const { data: partnerBalance = 0, isFetching: isBalanceLoading } = useQuery({
         queryKey: ['partner_balance', currentVoucher.payee_id],
         queryFn: async () => {
             if (!currentVoucher.payee_id) return 0;
@@ -82,7 +82,9 @@ export function usePaymentVouchersLogic() {
             if (error) return 0;
             return data || 0;
         },
-        enabled: !!currentVoucher.payee_id 
+        enabled: isEditModalOpen && !!currentVoucher.payee_id,
+        staleTime: 0,
+        refetchOnMount: 'always'
     });
 
     const { data: serverTotals } = useQuery({
@@ -207,15 +209,11 @@ export function usePaymentVouchersLogic() {
 
     const deleteMutation = useMutation({
         mutationFn: async () => {
-            const postedVouchers = vouchers.filter(v => selectedIds.includes(v.id) && v.is_posted);
+            const postedVouchers = vouchers.filter(v => selectedIds.includes(v.id) && (v.is_posted || ['posted', 'مرحل', 'معتمد'].includes(v.status)));
             if (postedVouchers.length > 0) throw new Error('لا يمكن حذف سندات معتمدة. قم بفك الترحيل أولاً.');
 
-            const CHUNK_SIZE = 20;
-            for (let i = 0; i < selectedIds.length; i += CHUNK_SIZE) {
-                const chunk = selectedIds.slice(i, i + CHUNK_SIZE);
-                const { error } = await supabase.from('payment_vouchers').delete().in('id', chunk);
-                if (error) throw error;
-            }
+            const { error } = await supabase.rpc('delete_payment_vouchers_bulk', { p_ids: selectedIds });
+            if (error) throw error;
         },
         onSuccess: () => {
             showToast('تم الحذف بنجاح 🗑️', 'success');

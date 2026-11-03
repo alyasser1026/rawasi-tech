@@ -156,7 +156,7 @@ export default function SettingsPage() {
           summary = (
               <div className="sidebar-summary-glass info">
                   <div className="icon-pulse">🛡️</div>
-                  <p className="summary-title" style={{color: '#3b82f6'}}>النظام محمي</p>
+                  <p className="summary-title" style={{color: '#3b82f6'}}>إعدادات النظام</p>
               </div>
           );
       }
@@ -183,7 +183,7 @@ export default function SettingsPage() {
             💾 إدارة البيانات والنماذج
           </button>
           <button className={`tab-btn ${activeTab === 'health' ? 'active' : ''}`} onClick={() => setActiveTab('health')}>
-            🛡️ سلامة النظام (الرادار)
+            🩺 فحص الاتصال والتخزين
           </button>
           <button className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => setActiveTab('audit')}>
             🕵️‍♂️ سجل المراقبة

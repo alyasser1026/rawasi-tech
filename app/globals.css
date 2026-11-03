@@ -4,8 +4,8 @@
   /* 🎨 ألوان الهوية (Apple-like Color Palette) */
   --primary: #1d1d1f; 
   --primary-light: #434344;
-  --accent: #ca8a04;
-  --accent-light: #eab308;
+  --accent: #c2410c;
+  --accent-light: #fb923c;
   --white: #ffffff;
   --bg-main: #f5f5f7; 
   
@@ -62,7 +62,7 @@ body {
   background-color: var(--bg-main);
   background-image: 
     linear-gradient(rgba(245, 245, 247, 0.85), rgba(255, 255, 255, 0.95)), 
-    url('/logo.png'), 
+    url('/company-logo.svg'),
     url('/ryc_login.jpeg');
   
   background-position: center, center, center;
@@ -94,13 +94,13 @@ body {
 
 /* زرار بريميوم ذهبي */
 .btn-gold-pro {
-    background: linear-gradient(135deg, #c5a059 0%, #977332 100%);
+    background: linear-gradient(135deg, #c2410c 0%, #c2410c 100%);
     color: white;
     border-radius: 14px;
     padding: 12px 24px;
     font-weight: 800;
     border: none;
-    box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3);
+    box-shadow: 0 4px 15px rgba(194,65,12, 0.3);
     cursor: pointer;
     transition: 0.3s;
 }
@@ -122,8 +122,8 @@ body {
 
 .glass-input:focus {
     background: white;
-    border-color: #c5a059;
-    box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.1);
+    border-color: #c2410c;
+    box-shadow: 0 0 0 4px rgba(194,65,12, 0.1);
 }
 /* 🏗️ اللوجو العائم */
 .app-branding {
@@ -474,7 +474,7 @@ td {
 }
 
 /* التدرجات اللونية (Gradients) */
-.btn-main-glass.gold { background: linear-gradient(135deg, rgba(197, 160, 89, 0.9), rgba(151, 115, 50, 1)); color: white; box-shadow: 0 8px 25px rgba(197, 160, 89, 0.3); }
+.btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; box-shadow: 0 8px 25px rgba(194,65,12, 0.3); }
 .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; box-shadow: 0 5px 20px rgba(14, 165, 233, 0.3); }
 .btn-main-glass.yellow { background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.9)); color: white; box-shadow: 0 5px 20px rgba(245, 158, 11, 0.3); }
 .btn-main-glass.white { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); }

@@ -44,6 +44,7 @@ const SmartCombo = ({ label, table, onSelect, placeholder, searchCols = 'name,co
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.ctrlKey || e.metaKey) return;
         if (!show && e.key === 'ArrowDown') { setShow(true); loadInitialData(search); return; }
         switch (e.key) {
             case 'ArrowDown':
@@ -371,7 +372,7 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                     </div>
 
                     <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '15px', marginTop: '10px' }}>
-                        <button type="submit" tabIndex={13} className="btn-save" style={{ flex: 2 }}>💾 حفظ وإصدار السند</button>
+                        <button id="receipt-save-button" type="submit" tabIndex={13} className="btn-save" style={{ flex: 2 }}>💾 حفظ وإصدار السند</button>
                         <button type="button" tabIndex={14} onClick={onClose} className="btn-cancel" style={{ flex: 1 }}>❌ إغلاق النافذة</button>
                     </div>
                 </form>

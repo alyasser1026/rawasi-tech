@@ -85,7 +85,7 @@ export function useProfileLogic() {
             // 🚀 تجهيز البيانات للواجهة: سحب البيانات الأساسية من جدول الشركاء كأولوية
             const enhancedProfile = {
                 ...profile,
-                display_name: partner?.name || profile.nickname || 'موظف رواسي',
+                display_name: partner?.name || profile.nickname || 'موظف فاي تك',
                 username: partner?.phone || profile.username || '---', // 📱 الجوال هو اليوزر نيم
                 profession: partner?.job_role || partner?.role || 'موظف',               // 👔 المهنة
                 avatar: profile.avatar_url || partner?.identity_image_url // 📸 الصورة
@@ -99,7 +99,7 @@ export function useProfileLogic() {
                 supabase.from('user_requests').select('*').eq('user_id', targetUserId).order('created_at', { ascending: false })
             ]);
 
-            let advData = [], dedData = [], logsData = [], payrollData = null;
+            let advData: Record<string, any>[] = [], dedData: Record<string, any>[] = [], logsData: Record<string, any>[] = [], payrollData = null;
 
             // جلب البيانات المالية لو الموظف مربوط بـ linked_partner_id
             const searchPartnerId = profile?.linked_partner_id || partnerId;
@@ -361,6 +361,17 @@ export function useProfileLogic() {
     const updateProfileInfo = async (data: any) => profileMutation.mutateAsync(data);
     const markAllNotificationsAsRead = async () => notificationMutation.mutateAsync();
     const refreshProfile = () => { toast.success('تم تحديث البيانات 🔄'); invalidateAndRefresh(); };
+    const updatePassword = async (password: string) => {
+        try {
+            const { data: { user }, error: userError } = await supabase.auth.getUser();
+            if (userError) throw userError;
+            if (!user || user.id !== userProfile?.id) throw new Error('يمكنك تغيير كلمة مرور حسابك فقط من الملف الشخصي.');
+            const { error } = await supabase.auth.updateUser({ password });
+            if (error) throw error;
+            toast.success('تم تحديث كلمة المرور.');
+            return true;
+        } catch (error) { toast.error(parseDbError(error)); return false; }
+    };
 
     // דالة رفع الصورة الشخصية
     const uploadAvatar = async (file: File) => {
@@ -389,6 +400,6 @@ export function useProfileLogic() {
         filteredData, rangeKPIs, taskGroups, monthlyKPIs, userRequests,
         setSearchFilters, setActiveTab, refreshProfile,
         updateProfileInfo, uploadAvatar, markAllNotificationsAsRead,
-        submitTaskUpdate, createRequest
+        submitTaskUpdate, createRequest, updatePassword, isKpiOnly
     };
 }

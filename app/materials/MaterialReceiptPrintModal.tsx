@@ -74,15 +74,15 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
             <div className="print-page" style={{ position: 'relative', width: '95%', maxWidth: '800px', minHeight: 'fit-content', background: 'white', padding: '45px', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', color: 'black', overflow: 'hidden' }}>
                 
                 {/* 🌟 علامة مائية (Watermark) */}
-                <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/logo.png)', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: '50%', opacity: 0.03, pointerEvents: 'none', zIndex: 0 }}></div>
+                <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/company-logo.svg)', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: '50%', opacity: 0.03, pointerEvents: 'none', zIndex: 0 }}></div>
 
                 <div style={{ position: 'relative', zIndex: 1 }}>
                     {/* هيدر الشركة */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #f1f5f9', paddingBottom: '20px', marginBottom: '30px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <img src="/logo.png" alt="Rawasi Logo" style={{ height: '70px', objectFit: 'contain' }} onError={(e: any) => e.target.style.display = 'none'} />
+                            <img src="/company-logo.svg" alt="شعار فاي تك" style={{ height: '70px', objectFit: 'contain' }} onError={(e: any) => e.target.style.display = 'none'} />
                             <div>
-                                <h1 style={{ margin: 0, color: '#0f172a', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.5px' }}>RAWASI <span style={{ color: THEME.goldAccent || '#d97706' }}>AL-YUSR</span></h1>
+                                <h1 style={{ margin: 0, color: '#0f172a', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.5px' }}>فاي <span style={{ color: THEME.goldAccent || '#d97706' }}>تك</span></h1>
                                 <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '14px', fontWeight: 800 }}>إدارة المشتريات والمخازن</p>
                             </div>
                         </div>
@@ -141,7 +141,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
                             <strong style={{ color: '#0f172a', display: 'block', marginBottom: '8px', fontSize: '15px' }}>📝 إقرار استلام مخزني:</strong>
                             أقر أنا أمين المخزن / مهندس الموقع الموقع أدناه، باستلام كافة المواد والخامات المذكورة أعلاه بحالة جيدة ومطابقة للمواصفات، وقد تم إيداعها بعهدة المشروع المذكور وتوريدها للموقع الفعلي.
                         </div>
-                        <div style={{ flex: '1 1 250px', background: `linear-gradient(135deg, ${THEME.goldAccent || '#ca8a04'}15, transparent)`, padding: '20px', borderRadius: '16px', border: `2px solid ${THEME.goldAccent || '#ca8a04'}`, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                        <div style={{ flex: '1 1 250px', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}15, transparent)`, padding: '20px', borderRadius: '16px', border: `2px solid ${THEME.goldAccent || '#c2410c'}`, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                             <span style={{ fontSize: '14px', fontWeight: 900, color: '#b45309' }}>إجمالي قيمة الإذن</span>
                             <div style={{ fontSize: '32px', fontWeight: 900, color: '#0f172a', margin: '5px 0' }}>{formatCurrency(totalAmount)}</div>
                         </div>

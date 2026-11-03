@@ -24,9 +24,9 @@ export default function RawasiFilterSidebar({
   extraFilters,
   extraActions,
   summarySlot,
-  accentColor = '#C5A059',
-  textColor = '#FFFFFF',
-  logoPath = '/RYC_Logo.png',
+  accentColor = '#c2410c',
+  textColor = '#27272a',
+  logoPath = '/company-logo.svg',
   isOpenStatus,
   setIsOpenStatus
 }: RawasiSidebarProps) {
@@ -47,7 +47,7 @@ export default function RawasiFilterSidebar({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const { summary, actions, customFilters } = useSidebar();
+  const { summary, actions, customFilters, searchPlaceholder } = useSidebar();
 
   // 🚀 إبلاغ الـ Layout بحالة السايد بار عشان يزق المحتوى
   useEffect(() => {
@@ -137,7 +137,7 @@ export default function RawasiFilterSidebar({
           border-radius: 10px; padding: 10px; color: white; margin-bottom: 15px; outline: none;
           font-size: 13px; transition: 0.3s;
         }
-        .filter-input:focus { border-color: ${accentColor}; background: rgba(255,255,255,0.15); box-shadow: 0 0 15px rgba(197, 160, 89, 0.2); }
+        .filter-input:focus { border-color: ${accentColor}; background: rgba(255,255,255,0.15); box-shadow: 0 0 15px rgba(194,65,12, 0.2); }
 
         .pin-btn-sidebar {
           position: absolute; left: 15px; top: 15px; background: ${isPinned ? accentColor : 'rgba(255,255,255,0.1)'};
@@ -214,7 +214,7 @@ export default function RawasiFilterSidebar({
             <input 
               type="text" 
               className="filter-input" 
-              placeholder="ابحث هنا..." 
+              placeholder={searchPlaceholder || 'ابحث هنا...'}
               onChange={(e) => handleSearch(e.target.value)} 
             />
 
@@ -255,7 +255,7 @@ export default function RawasiFilterSidebar({
             )}
           </div>
           <div style={{ textAlign: 'center', opacity: 0.4, fontSize: '10px', marginTop: '20px', paddingBottom: '20px' }}>
-            نظام رواسي الموحد v2.0
+            نظام فاي تك الموحد v2.0
           </div>
         </div>
       </aside>

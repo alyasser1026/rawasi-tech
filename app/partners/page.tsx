@@ -9,11 +9,11 @@ import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 
 const THEME = {
-  sandLight: '#F4F1EE',
-  sandDark: '#E6D5C3',
-  coffeeMain: '#8C6A5D',
-  coffeeDark: '#43342E',
-  goldAccent: '#C5A059',
+  sandLight: '#f7f7f8',
+  sandDark: '#e4e4e7',
+  coffeeMain: '#52525b',
+  coffeeDark: '#27272a',
+  goldAccent: '#c2410c',
   primary: '#0f172a',
   success: '#10b981',
   danger: '#ef4444'
@@ -138,7 +138,7 @@ export default function PartnersDirectory() {
 
   return (
     <div className="clean-page">
-      <MasterPage title="دليل الشركاء" subtitle="إدارة الموردين، المقاولين، العملاء، والعمالة برواسي اليسر (V11)">
+      <MasterPage title="دليل الشركاء" subtitle="إدارة الموردين، المقاولين، العملاء، والعمالة بفاي تك (V11)">
         
         <RawasiSidebarManager 
             summary={summaryStats}
@@ -183,8 +183,8 @@ export default function PartnersDirectory() {
 
           /* نافذة المودال */
           .glass-input-field { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; transition: 0.2s; font-weight: 700; color: #1e293b; }
-          .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.15); }
-          .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(197, 160, 89, 0.4); }
+          .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 4px rgba(194,65,12, 0.15); }
+          .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(194,65,12, 0.4); }
           .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
           .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 16px; border-radius: 16px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; }
           .btn-glass-cancel:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
@@ -254,9 +254,9 @@ export default function PartnersDirectory() {
            <div className="print-header">
              <div style={{ textAlign: 'right' }}>
                <h1 style={{ margin: 0, fontSize: '26pt', color: THEME.coffeeDark, fontWeight: 900 }}>دليل الشركاء</h1>
-               <p style={{ margin: 0, fontSize: '14pt', color: THEME.coffeeMain, fontWeight: 700 }}>شركة رواسي اليسر للمقاولات العامة</p>
+               <p style={{ margin: 0, fontSize: '14pt', color: THEME.coffeeMain, fontWeight: 700 }}>شركة فاي تك للمقاولات العامة</p>
              </div>
-             <img src="/RYC_Logo.png" style={{ width: '180px' }} alt="Logo" />
+             <img src="/company-logo.svg" style={{ width: '180px' }} alt="Logo" />
            </div>
           <table className="print-table">
             <thead>
@@ -276,7 +276,7 @@ export default function PartnersDirectory() {
             </tbody>
           </table>
           <div style={{ height: '50px' }}></div>
-          <div className="print-footer"><span className="page-num"></span><span style={{ marginRight: '40px' }}>تقرير رسمي - رواسي اليسر للمقاولات - {new Date().toLocaleDateString('ar-SA')}</span></div>
+          <div className="print-footer"><span className="page-num"></span><span style={{ marginRight: '40px' }}>تقرير رسمي - فاي تك للمقاولات - {new Date().toLocaleDateString('ar-SA')}</span></div>
         </div>
 
       </MasterPage>

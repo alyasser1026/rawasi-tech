@@ -86,7 +86,7 @@ function PartnerStatementContent() {
                 if (!row) return null; 
                 return (
                     <div style={{
-                        background: 'rgba(197, 160, 89, 0.1)', border: '1px solid rgba(197, 160, 89, 0.2)',
+                        background: 'rgba(194,65,12, 0.1)', border: '1px solid rgba(194,65,12, 0.2)',
                         padding: '5px 10px', borderRadius: '8px', fontWeight: 900, textAlign: 'center',
                         color: row.balance >= 0 ? THEME.success : THEME.danger
                     }}>
@@ -120,7 +120,7 @@ function PartnerStatementContent() {
                 </button>
             </SecureAction>
 
-            <hr style={{ borderColor: 'rgba(197, 160, 89, 0.2)', margin: '5px 0' }} />
+            <hr style={{ borderColor: 'rgba(194,65,12, 0.2)', margin: '5px 0' }} />
 
             {/* 🚀 تم التحديث للدالة الجديدة downloadIndividualWorkerPDFs اللي بتضغط في ملف ZIP */}
             <SecureAction module="statements" action="export">
@@ -141,7 +141,7 @@ function PartnerStatementContent() {
 
     return (
         <div className="clean-page">
-            <MasterPage icon="📑" title="كشف حساب الشركاء" subtitle="تحليل مالي ملكي بنظام رواسي اليسر الماسي">
+            <MasterPage icon="📑" title="كشف حساب الشركاء" subtitle="تحليل مالي ملكي بنظام فاي تك الماسي">
                 
                 <RawasiSidebarManager actions={sidebarActions} watchDeps={[logic.partnerId, logic.isExportingAll]} />
 
@@ -173,7 +173,7 @@ function PartnerStatementContent() {
                                         {formatCurrency(Math.abs(logic.periodNet))}<small style={{fontSize: '14px', marginLeft: '5px'}}>{logic.periodNet >= 0 ? '(له)' : '(عليه)'}</small>
                                     </span>
                                     {isPeriodSelected && (
-                                        <div style={{ marginTop: '8px', fontSize: '12px', color: '#d4c4a8', fontWeight: 800, borderTop: '1px dashed rgba(197, 160, 89, 0.2)', paddingTop: '8px' }}>
+                                        <div style={{ marginTop: '8px', fontSize: '12px', color: '#d4c4a8', fontWeight: 800, borderTop: '1px dashed rgba(194,65,12, 0.2)', paddingTop: '8px' }}>
                                             الرصيد التراكمي (النهائي): {formatCurrency(Math.abs(logic.currentBalance))} <span style={{fontSize: '10px'}}>{logic.currentBalance >= 0 ? '(له)' : '(عليه)'}</span>
                                         </div>
                                     )}
@@ -210,41 +210,41 @@ function PartnerStatementContent() {
 
             <style>{`
                 .main-content-flow { display: flex; flex-direction: column; gap: 20px; width: 100%; }
-                .glass-panel { background: linear-gradient(135deg, rgba(74, 59, 50, 0.85) 0%, rgba(44, 34, 27, 0.95) 100%); backdrop-filter: blur(15px); border: 1px solid rgba(197, 160, 89, 0.15); border-top: 1px solid rgba(197, 160, 89, 0.3); border-radius: 20px; padding: 25px; color: #f3e5d8; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-                .glass-divider { border: 0; height: 1px; background: rgba(197, 160, 89, 0.1); margin: 20px 0; }
+                .glass-panel { background: linear-gradient(135deg, rgba(74, 59, 50, 0.85) 0%, rgba(44, 34, 27, 0.95) 100%); backdrop-filter: blur(15px); border: 1px solid rgba(194,65,12, 0.15); border-top: 1px solid rgba(194,65,12, 0.3); border-radius: 20px; padding: 25px; color: #f3e5d8; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+                .glass-divider { border: 0; height: 1px; background: rgba(194,65,12, 0.1); margin: 20px 0; }
                 .balances-grid { display: grid; gap: 15px; }
                 .grid-box { padding: 20px; border-radius: 16px; text-align: center; background: rgba(212, 196, 168, 0.05); border: 1px solid rgba(212, 196, 168, 0.1); display: flex; flex-direction: column; justify-content: center; }
                 .grid-box.green { border-bottom: 3px solid #22c55e; }
                 .grid-box.red { border-bottom: 3px solid #ef4444; }
                 .grid-box.blue { border-bottom: 3px solid #3b82f6; } 
-                .grid-box.gold { border-bottom: 3px solid ${THEME.goldAccent}; background: rgba(197, 160, 89, 0.05); }
+                .grid-box.gold { border-bottom: 3px solid ${THEME.goldAccent}; background: rgba(194,65,12, 0.05); }
                 .grid-box small { font-size: 12px; color: #d4c4a8; font-weight: 900; margin-bottom: 8px; }
                 .grid-box span { font-size: 22px; font-weight: 900; }
                 .final-balance span { font-size: 30px; }
                 .dashboard-stats-grid { display: grid; gap: 15px; }
-                .stat-box { padding: 15px; border-radius: 12px; text-align: center; background: rgba(20, 15, 12, 0.4); border: 1px dashed rgba(197, 160, 89, 0.2); display: flex; flex-direction: column; justify-content: center; }
+                .stat-box { padding: 15px; border-radius: 12px; text-align: center; background: rgba(20, 15, 12, 0.4); border: 1px dashed rgba(194,65,12, 0.2); display: flex; flex-direction: column; justify-content: center; }
                 .stat-box.cyan-outline { border-bottom: 3px solid #06b6d4; background: rgba(6, 182, 212, 0.05); }
                 .stat-box.dark-red { border-bottom: 3px solid #b91c1c; background: rgba(185, 28, 28, 0.1); }
                 .stat-box small { font-size: 13px; color: #bba58f; display: block; margin-bottom: 8px; font-weight: 900; }
                 .stat-box span { font-size: 18px; font-weight: 900; color: white; }
-                .filter-dashboard-glass { background: linear-gradient(135deg, rgba(62, 49, 40, 0.85) 0%, rgba(44, 34, 27, 0.95) 100%); backdrop-filter: blur(15px); border: 1px solid rgba(197, 160, 89, 0.2); border-top: 1px solid rgba(197, 160, 89, 0.4); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); padding: 20px 25px; border-radius: 20px; }
+                .filter-dashboard-glass { background: linear-gradient(135deg, rgba(62, 49, 40, 0.85) 0%, rgba(44, 34, 27, 0.95) 100%); backdrop-filter: blur(15px); border: 1px solid rgba(194,65,12, 0.2); border-top: 1px solid rgba(194,65,12, 0.4); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); padding: 20px 25px; border-radius: 20px; }
                 .filter-title { font-size: 14px; font-weight: 900; color: ${THEME.goldAccent}; text-transform: uppercase; }
                 .filters-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 20px; align-items: end; }
                 .filter-col label { font-size: 12px; font-weight: 900; color: #d4c4a8; margin-bottom: 8px; display: block; }
-                .glass-input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(197, 160, 89, 0.2); background: rgba(20, 15, 12, 0.5); color: #f3e5d8; outline: none; transition: 0.3s; font-size: 13px; font-weight: 800; }
+                .glass-input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(194,65,12, 0.2); background: rgba(20, 15, 12, 0.5); color: #f3e5d8; outline: none; transition: 0.3s; font-size: 13px; font-weight: 800; }
                 .glass-input:focus { border-color: ${THEME.goldAccent}; background: rgba(44, 34, 27, 0.8); }
                 .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; display: inline-block; }
                 .badge-glass.red { background: #fef2f2; color: #ef4444; }
                 .badge-glass.green { background: #f0fdf4; color: #16a34a; }
                 .badge-glass.blue { background: #eff6ff; color: #3b82f6; }
                 .badge-glass.sand { background: #fdfaf6; color: #8a7a6b; border: 1px solid #eaddcf; }
-                .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(197, 160, 89, 0.3); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-                .btn-main-glass.gold { background: linear-gradient(135deg, rgba(197, 160, 89, 0.9), rgba(151, 115, 50, 1)); color: white; }
+                .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(194,65,12, 0.3); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+                .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
                 .btn-main-glass.white { background: rgba(243, 229, 216, 0.9); color: #2c221b; }
                 .btn-main-glass:disabled { opacity: 0.5; cursor: not-allowed; }
-                .welcome-placeholder { text-align: center; padding: 100px; color: #bba58f; background: rgba(44, 34, 27, 0.4); border-radius: 20px; border: 1px dashed rgba(197, 160, 89, 0.3); }
+                .welcome-placeholder { text-align: center; padding: 100px; color: #bba58f; background: rgba(44, 34, 27, 0.4); border-radius: 20px; border: 1px dashed rgba(194,65,12, 0.3); }
                 .welcome-placeholder .icon { font-size: 64px; margin-bottom: 20px; color: ${THEME.goldAccent}; }
-                .table-wrapper-glass { background: rgba(255, 255, 255, 0.95); border-radius: 20px; overflow: hidden; padding: 10px; border: 1px solid rgba(197, 160, 89, 0.2); box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+                .table-wrapper-glass { background: rgba(255, 255, 255, 0.95); border-radius: 20px; overflow: hidden; padding: 10px; border: 1px solid rgba(194,65,12, 0.2); box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
             `}</style>
         </div>
     );

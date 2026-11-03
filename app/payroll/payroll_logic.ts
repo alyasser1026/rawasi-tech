@@ -2,7 +2,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import * as XLSX from 'xlsx-js-style';
-import { fetchAllSupabaseData } from '@/lib/helpers';
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
+import { decimalSum, decimalSubtract, savePayrollDrafts, postPayroll, unpostPayroll } from '@/lib/payroll-workflow';
 
 export function usePayrollLogic() {
     const [employees, setEmployees] = useState<any[]>([]);
@@ -22,25 +23,20 @@ export function usePayrollLogic() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [currentRecord, setCurrentRecord] = useState<any>(null);
 
-    const isFetchingRef = useRef(false);
+    const fetchVersionRef = useRef(0);
+    const loadedSheetRef = useRef('');
 
     // 🚀 الكاميرا الحية: عشان نمنع الأزرار الجانبية من إرسال الأصفار القديمة (Stale Closures)
-    const latestRecordsRef = useRef(payrollRecords);
     const latestFilteredRef = useRef<any[]>([]);
-
-    useEffect(() => {
-        latestRecordsRef.current = payrollRecords;
-    }, [payrollRecords]);
 
     // 1. جلب البيانات (محصنة ضد تغير الرصيد السابق)
     const fetchPayrollData = async () => {
-        if (isFetchingRef.current) return; 
-        isFetchingRef.current = true;
+        const requestVersion = ++fetchVersionRef.current;
         setIsLoading(true);
         
         const targetMonthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
         try {
-            const empData = await fetchAllSupabaseData(supabase, 'partners', 'id, name, partner_type, job_role, identity_number', 'name');
+            const empData = await fetchPaginatedData(() => supabase.from('partners').select('id, name, partner_type, job_role, identity_number').order('name').order('id'));
             // We need to filter empData in memory since fetchAllSupabaseData currently doesn't accept complex filters
             const filteredEmpData = empData.filter((p: any) => ['موظف', 'عامل', 'عامل يومية'].includes(p.partner_type));
 
@@ -54,7 +50,8 @@ export function usePayrollLogic() {
             });
             if (syncError) throw syncError;
 
-            const savedSlips = await fetchAllSupabaseData(supabase, 'payroll_slips');
+            const savedSlips = await fetchPaginatedData(() => supabase.from('payroll_slips').select('*').eq('month', targetMonthStr).order('id'));
+            if (requestVersion !== fetchVersionRef.current) return;
             const targetMonthSlips = savedSlips.filter((s: any) => s.month === targetMonthStr);
 
             setEmployees(filteredEmpData || []);
@@ -62,7 +59,7 @@ export function usePayrollLogic() {
             const initialPayroll = (filteredEmpData || []).map(emp => {
                 const balanceObj = (balData || []).find((b: any) => b.partner_id === emp.id);
                 // الرصيد الحي من قاعدة البيانات
-                const livePrevUnpaid = balanceObj ? Number(balanceObj.previous_unpaid_balance) : 0;
+                const livePrevUnpaid = balanceObj?.previous_unpaid_balance || 0;
 
                 const moduleData = (syncData || []).find((d: any) => d.partner_id === emp.id);
                 const savedSlipObj = (targetMonthSlips || []).find((s: any) => s.emp_id === emp.id);
@@ -76,32 +73,31 @@ export function usePayrollLogic() {
                 let status = 'غير مدفوع';
                 let prevUnpaid = 0;
 
-                if (savedSlipObj) {
+                if (savedSlipObj && emp.partner_type === 'موظف') {
                     // 🛡️ لو المسير محفوظ قبل كده، نقرأ البيانات المحفوظة بالكامل عشان الرصيد ما يضربش
-                    baseRate = Number(savedSlipObj.basic_salary || 0);
-                    allowances = Number(savedSlipObj.allowances || 0);
-                    deductions = Number(savedSlipObj.total_deductions || 0);
-                    extendedAdvances = Number(savedSlipObj.total_advances || 0);
-                    amountToPay = Number(savedSlipObj.amount_to_pay || 0);
+                    baseRate = savedSlipObj.basic_salary || 0;
+                    allowances = savedSlipObj.allowances || 0;
+                    amountToPay = savedSlipObj.amount_to_pay || 0;
                     status = savedSlipObj.status || 'غير مدفوع';
                     
-                    // 💡 المعادلة العكسية: استنتاج الرصيد السابق اللي كان محفوظ وقتها 
-                    const savedCurrentNet = baseRate + allowances - deductions - extendedAdvances;
-                    prevUnpaid = Number(savedSlipObj.net_salary || 0) - savedCurrentNet;
+                    // Opening balances come from the same posted partner ledger.
+                    prevUnpaid = livePrevUnpaid;
                 } else {
                     // 🔄 لو مسير جديد، نجلب البيانات الحية (Live)
-                    if (emp.partner_type === 'عامل يومية') {
-                        baseRate = moduleData ? Number(moduleData.total_earned_wage || 0) : 0;
+                    if (emp.partner_type !== 'موظف') {
+                        baseRate = moduleData?.total_earned_wage || 0;
                     } else {
                         baseRate = 0; 
                     }
-                    deductions = moduleData ? Number(moduleData.total_violations || 0) : 0;
-                    extendedAdvances = moduleData ? Number(moduleData.total_payments || 0) : 0;
                     prevUnpaid = livePrevUnpaid; // الرصيد الحي
                 }
 
-                const currentNet = baseRate + allowances - deductions - extendedAdvances;
-                const finalNet = currentNet + prevUnpaid;
+                // Source modules own their postings; the sheet only displays them.
+                if (emp.partner_type !== 'موظف') baseRate = moduleData?.total_earned_wage || 0;
+                deductions = moduleData?.total_violations || 0;
+                extendedAdvances = moduleData?.total_payments || 0;
+                const currentNet = decimalSubtract(decimalSum(baseRate, allowances), deductions, extendedAdvances);
+                const finalNet = decimalSum(currentNet, prevUnpaid);
 
                 return {
                     id: emp.id, 
@@ -121,36 +117,50 @@ export function usePayrollLogic() {
                     net_salary: finalNet, 
                     amount_to_pay: amountToPay, 
                     status: status,             
+                    is_posted: emp.partner_type === 'موظف' && !!savedSlipObj?.is_posted,
                     notes: ''
                 };
             });
             setPayrollRecords(initialPayroll);
+            loadedSheetRef.current = `${targetMonthStr}|${cutoffDate}`;
         } catch (error: any) {
-            console.error("Error fetching payroll data:", error.message);
+            if (requestVersion === fetchVersionRef.current) {
+                setPayrollRecords([]);
+                loadedSheetRef.current = '';
+                alert('تعذر تحميل المسير: ' + error.message);
+            }
         } finally {
-            setIsLoading(false);
-            isFetchingRef.current = false;
+            if (requestVersion === fetchVersionRef.current) {
+                setIsLoading(false);
+            }
         }
     };
 
-    useEffect(() => { fetchPayrollData(); }, [selectedMonth, selectedYear, cutoffDate]);
+    useEffect(() => {
+        const period = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+        if (!cutoffDate.startsWith(period + '-')) {
+            const lastDay = new Date(selectedYear, selectedMonth, 0).getDate();
+            setCutoffDate(`${period}-${lastDay}`);
+            return;
+        }
+        fetchPayrollData();
+    }, [selectedMonth, selectedYear, cutoffDate]);
 
     // 2. تحديث الخانات
     const updateRecord = (id: string, field: string, value: string | number) => {
         setPayrollRecords(prev => prev.map(rec => {
             if (rec.id === id) {
-                const numericValue = value === '' ? '' : Number(value);
+                if (rec.type !== 'موظف' || rec.is_posted || !['base_rate', 'allowances', 'amount_to_pay', 'status'].includes(field)) return rec;
+                const numericValue = field === 'status' ? String(value) : value;
                 const updated = { ...rec, [field]: numericValue };
                 
                 if (field !== 'amount_to_pay') {
-                    const actualBase = Number(updated.base_rate) || 0;
-                    updated.current_month_net = actualBase 
-                                              + (Number(updated.allowances) || 0) 
-                                              - (Number(updated.deductions) || 0) 
-                                              - (Number(updated.advances) || 0)
-                                              - (Number(updated.extended_advances) || 0); 
-                    
-                    updated.net_salary = updated.current_month_net + (Number(updated.previous_balance) || 0);
+                    try {
+                        updated.current_month_net = decimalSubtract(decimalSum(updated.base_rate, updated.allowances), updated.deductions, updated.advances, updated.extended_advances);
+                        updated.net_salary = decimalSum(updated.current_month_net, updated.previous_balance);
+                    } catch {
+                        return rec;
+                    }
                 }
                 return updated;
             }
@@ -176,16 +186,10 @@ export function usePayrollLogic() {
     }, [payrollRecords, globalSearch, selectedEmployeeIds, filterActiveOnly]);
 
     const totals = useMemo(() => {
-        return filteredRecords.reduce((acc, curr) => ({
-            allowances: acc.allowances + (Number(curr.allowances) || 0),
-            deductions: acc.deductions + (Number(curr.deductions) || 0),
-            advances: acc.advances + (Number(curr.advances) || 0),
-            extended_advances: acc.extended_advances + (Number(curr.extended_advances) || 0), 
-            previous_balances: acc.previous_balances + (Number(curr.previous_balance) || 0),  
-            current_net: acc.current_net + (Number(curr.current_month_net) || 0),             
-            net: acc.net + (Number(curr.net_salary) || 0),
-            amount_to_pay: acc.amount_to_pay + (Number(curr.amount_to_pay) || 0),
-        }), { allowances: 0, deductions: 0, advances: 0, extended_advances: 0, previous_balances: 0, current_net: 0, net: 0, amount_to_pay: 0 });
+        const sum = (key: string) => Number(decimalSum(...filteredRecords.map(row => row[key] || 0)));
+        return { allowances: sum('allowances'), deductions: sum('deductions'), advances: sum('advances'),
+            extended_advances: sum('extended_advances'), previous_balances: sum('previous_balance'),
+            current_net: sum('current_month_net'), net: sum('net_salary'), amount_to_pay: sum('amount_to_pay') };
     }, [filteredRecords]);
 
     const exportToExcel = () => {
@@ -200,7 +204,7 @@ export function usePayrollLogic() {
         const monthNameArabic = arabicMonths[selectedMonth - 1] || `شهر ${selectedMonth}`;
 
         // 2. تجهيز سطور البيانات
-        const dataToExport = liveData.map((r, i) => {
+        const dataToExport: Record<string, string | number>[] = liveData.map((r, i) => {
             return {
                 "م": i + 1,
                 "الاسم": r.name || "غير محدد",
@@ -229,7 +233,8 @@ export function usePayrollLogic() {
         });
 
         // 4. تحويل البيانات لشيت (البيانات تبدأ من الصف الثالث A3)
-        const ws = XLSX.utils.json_to_sheet(dataToExport, { origin: 'A3' });
+        const ws = XLSX.utils.aoa_to_sheet([]);
+        XLSX.utils.sheet_add_json(ws, dataToExport, { origin: 'A3' });
 
         // 5. دمج خلايا العنوان الرئيسي (من أول عمود لآخر عمود)
         if (!ws['!merges']) ws['!merges'] = [];
@@ -344,7 +349,9 @@ export function usePayrollLogic() {
     };
 
     const savePayrollToDB = async () => {
-        const liveRecords = latestRecordsRef.current;
+        if (isLoading || isSaving) return;
+        if (!sheetIsCurrent()) return;
+        const liveRecords = latestFilteredRef.current;
         
         if (liveRecords.length === 0) return;
         const confirmSave = confirm(`هل أنت متأكد من حفظ رواتب ومبالغ صرف شهر ${selectedMonth}/${selectedYear}؟`);
@@ -354,50 +361,10 @@ export function usePayrollLogic() {
         const targetMonthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
         
         try {
-            const recordsToSave = liveRecords.map(r => {
-                const bSalary = Number(r.base_rate) || 0;
-                const tAdvances = (Number(r.advances) || 0) + (Number(r.extended_advances) || 0);
-                const tDeductions = Number(r.deductions) || 0;
-                const allowancesNum = Number(r.allowances) || 0;
-                const amtToPay = Number(r.amount_to_pay) || 0;
-                
-                let nSalary = Number(r.net_salary) || 0;
-                if (isNaN(nSalary) || nSalary === 0) {
-                    nSalary = bSalary + allowancesNum - tDeductions - tAdvances + Number(r.previous_balance || 0);
-                }
-
-                return {
-                    emp_id: r.id,
-                    month: targetMonthStr,
-                    basic_salary: bSalary,
-                    total_advances: tAdvances,
-                    total_deductions: tDeductions,
-                    net_salary: nSalary, 
-                    allowances: allowancesNum,       
-                    amount_to_pay: amtToPay, 
-                    status: r.status || 'غير مدفوع',                            
-                    is_posted: false
-                };
-            });
-
-            const empIds = liveRecords.map(r => r.id);
-            const { error: deleteError } = await supabase
-                .from('payroll_slips')
-                .delete()
-                .eq('month', targetMonthStr)
-                .in('emp_id', empIds);
-
-            if (deleteError) throw deleteError;
-
-            const { error: insertError } = await supabase
-                .from('payroll_slips')
-                .insert(recordsToSave);
-
-            if (insertError) throw insertError;
+            await savePayrollDrafts(supabase, targetMonthStr, cutoffDate, liveRecords);
             
             alert("✅ تم إثبات وحفظ مبالغ الصرف والتعديلات بنجاح تام!");
             
-            isFetchingRef.current = false;
             await fetchPayrollData();
 
         } catch (err: any) {
@@ -409,45 +376,44 @@ export function usePayrollLogic() {
     };
 
     const postToJournal = async () => {
-        const confirmPost = confirm("⚠️ سيتم إنشاء قيد محاسبي باستحقاق الرواتب. هل تريد الاستمرار؟");
+        if (isLoading || isSaving) return;
+        if (!sheetIsCurrent()) return;
+        const confirmPost = confirm('تأكيد حفظ وترحيل رواتب الموظفين الشهرية ضمن الاختيار؟ اليوميات والسلف والجزاءات تظل من شاشاتها.');
         if (!confirmPost) return;
 
         setIsSaving(true);
         try {
-            const { data: header, error: headerError } = await supabase.from('journal_headers').insert({
-                entry_date: cutoffDate, 
-                description: `إثبات مسير رواتب وأجور شهر ${selectedMonth}/${selectedYear}`,
-                v_type: 'مسير رواتب',
-                status: 'posted'
-            }).select().single();
-
-            if (headerError) throw headerError;
-
-            const SALARIES_EXPENSE_ACC = '23623b40-72f8-460b-92f6-984457003a34'; 
-            const ADVANCES_ACC = '39f878cd-dc58-4a2a-a199-50f6fca983d4'; 
-            const ACCRUED_SALARIES_ACC = '70d181ba-6385-4c1e-b0fc-d5b1f800dd2c'; 
-
-            const totalAllAdvances = totals.advances + totals.extended_advances;
-
-            const lines = [
-                { header_id: header.id, account_id: SALARIES_EXPENSE_ACC, debit: totals.current_net + totals.deductions + totalAllAdvances, credit: 0, notes: 'إجمالي استحقاق الرواتب للشهر' },
-                { header_id: header.id, account_id: ADVANCES_ACC, debit: 0, credit: totalAllAdvances, notes: 'استقطاع المسحوبات من المسير' },
-                { header_id: header.id, account_id: ACCRUED_SALARIES_ACC, debit: 0, credit: totals.current_net + totals.deductions, notes: 'الصافي المستحق الدفع والخصومات' }
-            ];
-
-            const { error: linesError } = await supabase.from('journal_lines').insert(lines);
-            if (linesError) throw linesError;
-
             const targetMonthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-            await supabase.from('payroll_slips').update({ is_posted: true }).eq('month', targetMonthStr);
+            await postPayroll(supabase, targetMonthStr, cutoffDate, latestFilteredRef.current);
 
             alert("✅ تم ترحيل القيد المحاسبي بنجاح!");
+            await fetchPayrollData();
         } catch (err: any) {
             alert(`❌ فشل الترحيل: ${err.message}`);
         } finally {
             setIsSaving(false);
         }
     };
+
+    const unpostFromJournal = async () => {
+        if (isLoading || isSaving || !sheetIsCurrent() || !confirm('تأكيد فك ترحيل الرواتب الشهرية ضمن الاختيار؟ ستبقى سندات الصرف واليوميات والجزاءات كما هي.')) return;
+        setIsSaving(true);
+        try {
+            const period = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+            await unpostPayroll(supabase, period, latestFilteredRef.current);
+            alert('تم فك ترحيل الرواتب الشهرية المختارة.');
+            await fetchPayrollData();
+        } catch (err: any) {
+            alert('تعذر فك الترحيل: ' + err.message);
+        } finally { setIsSaving(false); }
+    };
+
+    function sheetIsCurrent() {
+        const period = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+        if (loadedSheetRef.current === `${period}|${cutoffDate}`) return true;
+        alert('انتظر اكتمال تحميل الشهر وتاريخ القطع قبل الحفظ أو الترحيل.');
+        return false;
+    }
 
     return {
         isLoading, filteredRecords, globalSearch, setGlobalSearch,
@@ -457,6 +423,6 @@ export function usePayrollLogic() {
         filterActiveOnly, setFilterActiveOnly,
         updateRecord, totals, exportToExcel,
         isEditModalOpen, setIsEditModalOpen, currentRecord, setCurrentRecord, 
-        importLaborLogs, savePayrollToDB, postToJournal, isSaving
+        importLaborLogs, savePayrollToDB, postToJournal, unpostFromJournal, isSaving
     };
 }

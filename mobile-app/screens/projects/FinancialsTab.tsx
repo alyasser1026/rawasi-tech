@@ -30,7 +30,7 @@ export default function FinancialsTab({ logic }: any) {
           <View key={item.id || index} style={styles.card}>
             <View style={styles.headerRow}>
               <View style={[styles.iconContainer, isSubClaim ? { backgroundColor: 'rgba(71, 85, 105, 0.1)' } : {}]}>
-                <Ionicons name={isSubClaim ? "people-outline" : "wallet-outline"} size={20} color={isSubClaim ? "#475569" : "#ca8a04"} />
+                <Ionicons name={isSubClaim ? "people-outline" : "wallet-outline"} size={20} color={isSubClaim ? "#475569" : "#c2410c"} />
               </View>
               <View style={styles.titleContainer}>
                 <Text style={styles.invoiceNumber}>مستخلص رقم: {item.display_number}</Text>
@@ -95,10 +95,10 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: '#ca8a04',
+    backgroundColor: '#c2410c',
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ca8a04',
+    shadowColor: '#c2410c',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,

@@ -20,26 +20,26 @@ export default function MaterialCatalogPage() {
   // 🚀 اختصار الحفظ (Ctrl + Enter)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (logic.isAddModalOpen && e.ctrlKey && e.key === 'Enter') {
+      if (logic.isModalOpen && e.ctrlKey && e.key === 'Enter') {
         e.preventDefault();
         if (!logic.isSaving) logic.handleSave();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [logic.isAddModalOpen, logic.isSaving]);
+  }, [logic.isModalOpen, logic.isSaving, logic.handleSave]);
 
   // 🚀 اختصار إضافة جديد (Alt + N)
   useEffect(() => {
     const handleAddShortcut = (e: KeyboardEvent) => {
-      if (!logic.isAddModalOpen && e.altKey && (e.code === 'KeyN' || e.key.toLowerCase() === 'n' || e.key === 'ى')) {
+      if (!logic.isModalOpen && e.altKey && (e.code === 'KeyN' || e.key.toLowerCase() === 'n' || e.key === 'ى')) {
         e.preventDefault();
-        logic.setEditingId(null); logic.setCurrentRecord({}); logic.setIsAddModalOpen(true);
+        logic.setCurrentRecord({}); logic.setIsModalOpen(true);
       }
     };
     window.addEventListener('keydown', handleAddShortcut);
     return () => window.removeEventListener('keydown', handleAddShortcut);
-  }, [logic.isAddModalOpen]);
+  }, [logic.isModalOpen, logic.setCurrentRecord, logic.setIsModalOpen]);
 
   if (!mounted) return null;
 
@@ -109,7 +109,7 @@ export default function MaterialCatalogPage() {
         <style>{`
           .glass-input-field { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; font-weight: 700; color: #1e293b; }
           .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; font-weight: 900; cursor: pointer; transition: 0.2s; border: none; }
-          .btn-main-glass.gold { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; box-shadow: 0 4px 15px rgba(197,160,89,0.3); }
+          .btn-main-glass.gold { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; box-shadow: 0 4px 15px rgba(194,65,12,0.3); }
           .btn-main-glass.gold:hover { transform: translateY(-2px); }
           .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); }
         `}</style>

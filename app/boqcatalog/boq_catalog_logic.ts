@@ -175,7 +175,7 @@ export function useBoqCatalogLogic() {
     return {
         treeData, catalogItems, isLoading, 
         globalSearch, setGlobalSearch,
-        expandedNodes, toggleNode,
+        expandedNodes, setExpandedNodes, toggleNode,
         isModalOpen, setIsModalOpen, currentRecord, setCurrentRecord,
         handleSaveItem: (data: any) => saveItemMutation.mutate(data),
         handleDeleteItem: (id: string) => { if(confirm("تأكيد الحذف النهائي؟")) deleteItemMutation.mutate(id); },

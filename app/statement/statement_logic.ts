@@ -60,12 +60,10 @@ export function useStatementLogic() {
             const buildQuery = () => supabase.from('partner_statement_ledger') 
                 .select('*').eq('partner_id', partnerId)
                 .order('transaction_date', { ascending: true })
-                .order('debit', { ascending: true })
-                .order('credit', { ascending: true })
-                .order('main_description', { ascending: true });
+                .order('created_at', { ascending: true })
+                .order('line_id', { ascending: true });
             
-            // استخدمنا دالة توليد ID لعدم وجود Primary Key في الـ View
-            return await fetchPaginatedData(buildQuery, (row, index) => `${row.transaction_date}-${row.debit}-${row.credit}-${row.main_description}-${index}`);
+            return await fetchPaginatedData(buildQuery, 'line_id');
         },
         enabled: !!partnerId, staleTime: 1000 * 60 * 5, 
     });
@@ -169,7 +167,11 @@ export function useStatementLogic() {
 
             while (hasMore) {
                 const { data, error } = await supabase.from('partner_statement_ledger').select('*')
-                    .in('partner_id', workerIds).order('transaction_date', { ascending: true }).range(from, from + step - 1);
+                    .in('partner_id', workerIds)
+                    .order('transaction_date', { ascending: true })
+                    .order('created_at', { ascending: true })
+                    .order('line_id', { ascending: true })
+                    .range(from, from + step - 1);
                 if (error) throw error;
                 if (data && data.length > 0) { allLines.push(...data); from += step; if (data.length < step) hasMore = false; } else hasMore = false;
             }
@@ -253,36 +255,36 @@ export function useStatementLogic() {
                         <body>
                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px;">
                                 <div style="text-align: right;">
-                                    <h1 style="margin: 0 0 5px 0; font-size: 22px; font-weight: bold; color: #2c221b;">شركة رواسي اليسر للمقاولات</h1>
+                                    <h1 style="margin: 0 0 5px 0; font-size: 22px; font-weight: bold; color: #2c221b;">شركة فاي تك للمقاولات</h1>
                                     <p style="margin: 0; color: #8a7a6b; font-size: 14px; font-weight: bold;">إدارة الحسابات العامة - تقرير أداء مالي</p>
                                 </div>
                                 <div style="text-align: left;">
-                                    <h2 style="margin: 0 0 5px 0; font-size: 26px; color: #c5a059; font-weight: bold; border-bottom: 3px solid #c5a059; padding-bottom: 5px;">كشف حساب تفصيلي</h2>
+                                    <h2 style="margin: 0 0 5px 0; font-size: 26px; color: #c2410c; font-weight: bold; border-bottom: 3px solid #c2410c; padding-bottom: 5px;">كشف حساب تفصيلي</h2>
                                     <span style="font-size: 12px; color: #8a7a6b; font-weight: bold;">تاريخ الإصدار: ${new Date().toLocaleDateString('ar-SA')}</span>
                                 </div>
                             </div>
-                            <div style="height: 4px; background: #c5a059; margin-bottom: 25px; border-radius: 4px;"></div>
+                            <div style="height: 4px; background: #c2410c; margin-bottom: 25px; border-radius: 4px;"></div>
                             <div style="background: #fdfaf6; border: 1px solid #eaddcf; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between;">
                                 <div style="display: flex; flex-direction: column; gap: 5px;"><strong>الموظف / المقاول:</strong><span style="font-weight: bold; font-size: 16px;">${pName}</span></div>
                                 <div style="display: flex; flex-direction: column; gap: 5px; text-align: left;"><strong>الفترة المحددة:</strong><span style="font-weight: bold; font-size: 15px;">${dateFrom ? `من ${dateFrom} ` : 'من بداية التعامل '} ${dateTo ? `إلى ${dateTo}` : 'حتى تاريخه'}</span></div>
                             </div>
                             
                             <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 15px;">
-                                <div class="summary-box" style="background: rgba(197, 160, 89, 0.05);"><small>أيام الحضور</small><b>${workerAttendance} يوم</b></div>
-                                <div class="summary-box" style="background: rgba(197, 160, 89, 0.05);"><small>إجمالي يوميات العمالة</small><b>${workerLaborAmount.toLocaleString()}</b></div>
+                                <div class="summary-box" style="background: rgba(194,65,12, 0.05);"><small>أيام الحضور</small><b>${workerAttendance} يوم</b></div>
+                                <div class="summary-box" style="background: rgba(194,65,12, 0.05);"><small>إجمالي يوميات العمالة</small><b>${workerLaborAmount.toLocaleString()}</b></div>
                                 <div class="summary-box" style="background: rgba(239, 68, 68, 0.05); border-color: #fca5a5;"><small>استقطاعات / غرامات</small><b style="color: #ef4444;">${workerViolations.toLocaleString()}</b></div>
-                                <div class="summary-box" style="background: rgba(197, 160, 89, 0.05);"><small>المسحوبات / المنصرف</small><b style="color: #c5a059;">${workerPayments.toLocaleString()}</b></div>
+                                <div class="summary-box" style="background: rgba(194,65,12, 0.05);"><small>المسحوبات / المنصرف</small><b style="color: #c2410c;">${workerPayments.toLocaleString()}</b></div>
                             </div>
 
                             <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 30px;">
                                 <div class="summary-box"><small>رصيد افتتاحي</small><b>${Math.abs(openingBalance).toLocaleString()} ${openingBalance >= 0 ? '(له)' : '(عليه)'}</b></div>
                                 <div class="summary-box"><small>إجمالي دائن (له)</small><b style="color: #16a34a;">${periodCredit.toLocaleString()}</b></div>
                                 <div class="summary-box"><small>إجمالي مدين (عليه)</small><b style="color: #ef4444;">${periodDebit.toLocaleString()}</b></div>
-                                <div class="summary-box" style="border-color: #c5a059; background: #fdfaf6;"><small>الرصيد الصافي (النهائي)</small><b>${Math.abs(balance).toLocaleString()} ${balance >= 0 ? '(له)' : '(عليه)'}</b></div>
+                                <div class="summary-box" style="border-color: #c2410c; background: #fdfaf6;"><small>الرصيد الصافي (النهائي)</small><b>${Math.abs(balance).toLocaleString()} ${balance >= 0 ? '(له)' : '(عليه)'}</b></div>
                             </div>
                             <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: center;">
                                 <thead>
-                                    <tr style="background: #fdfaf6; border-top: 1px solid #2c221b; border-bottom: 2px solid #c5a059;">
+                                    <tr style="background: #fdfaf6; border-top: 1px solid #2c221b; border-bottom: 2px solid #c2410c;">
                                         <th>التاريخ</th><th>النوع</th><th style="text-align: right;">البيان</th><th>مدين</th><th>دائن</th><th>الرصيد</th>
                                     </tr>
                                 </thead>
@@ -315,7 +317,7 @@ export function useStatementLogic() {
 
             setExportProgress("📦 جاري ضغط التقارير وتجهيز ملف الـ ZIP المجمع...");
             const content = await zip.generateAsync({ type: 'blob' });
-            saveAs(content, `كشوفات_العمالة_رواسي_اليسر_${new Date().toISOString().split('T')[0]}.zip`);
+            saveAs(content, `كشوفات_العمالة_فاي_تك_${new Date().toISOString().split('T')[0]}.zip`);
 
             showToast("✅ تم تنزيل الملف المضغوط المحمي بنجاح!", "success");
 

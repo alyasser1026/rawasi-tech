@@ -65,7 +65,7 @@ export default function StatementPrintModal({
                     
                     <div className="print-header">
                         <div className="company-info">
-                            <h1 style={{ color: '#2c221b' }}>شركة رواسي اليسر للمقاولات</h1>
+                            <h1 style={{ color: '#2c221b' }}>شركة فاي تك للمقاولات</h1>
                             <p>إدارة الحسابات العامة - تقرير أداء مالي</p>
                         </div>
                         <div className="report-title">
@@ -194,10 +194,10 @@ export default function StatementPrintModal({
                 
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-                .controls-bar { display: flex; justify-content: space-between; margin-bottom: 20px; background: white; border: 1px solid rgba(197, 160, 89, 0.3); padding: 15px 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: sticky; top: 10px; z-index: 10; }
-                .btn-print { background: linear-gradient(135deg, #c5a059 0%, #a48141 100%); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(197, 160, 89, 0.3); }
+                .controls-bar { display: flex; justify-content: space-between; margin-bottom: 20px; background: white; border: 1px solid rgba(194,65,12, 0.3); padding: 15px 25px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); position: sticky; top: 10px; z-index: 10; }
+                .btn-print { background: linear-gradient(135deg, #c2410c 0%, #a48141 100%); color: white; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 15px rgba(194,65,12, 0.3); }
                 .btn-print:hover { transform: translateY(-2px); filter: brightness(1.1); }
-                .btn-close { background: #fdfaf6; color: #4a3b32; border: 1px solid #c5a059; padding: 12px 24px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; }
+                .btn-close { background: #fdfaf6; color: #4a3b32; border: 1px solid #c2410c; padding: 12px 24px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; }
                 .btn-close:hover { background: #eaddcf; }
 
                 /* 🚀 جعل الورقة تتمدد كـ Flex Column لدفع التواقيع للأسفل */
@@ -226,7 +226,7 @@ export default function StatementPrintModal({
                 .summary-box { background: white; border: 2px solid #eaddcf; padding: 15px; border-radius: 12px; text-align: center; }
                 
                 /* تمييز الملخص التشغيلي بلون خفيف */
-                .operational-grid .summary-box { background: rgba(197, 160, 89, 0.05); border-color: rgba(197, 160, 89, 0.2); }
+                .operational-grid .summary-box { background: rgba(194,65,12, 0.05); border-color: rgba(194,65,12, 0.2); }
                 
                 .summary-box.final-balance { border-color: ${THEME.goldAccent}; background: #fdfaf6; }
                 .summary-box small { display: block; color: #8a7a6b; font-weight: 900; font-size: 11px; margin-bottom: 5px; }
@@ -236,7 +236,7 @@ export default function StatementPrintModal({
                 .print-table th { background: #fdfaf6; color: #2c221b; font-weight: 900; padding: 14px 10px; border: none; border-bottom: 2px solid ${THEME.goldAccent}; text-align: center; }
                 .print-table td { padding: 12px 10px; border: none; text-align: center; font-weight: 700; color: #2c221b; }
                 
-                .print-table tbody tr:nth-child(even) td { background-color: rgba(197, 160, 89, 0.06); }
+                .print-table tbody tr:nth-child(even) td { background-color: rgba(194,65,12, 0.06); }
                 .print-table .opening-row td { background-color: transparent; font-weight: 900; color: #2c221b; border-bottom: 1px dashed rgba(0,0,0,0.1); }
                 
                 .print-table .desc-cell { text-align: right; font-weight: 800; }
@@ -252,7 +252,7 @@ export default function StatementPrintModal({
                 }
                 .sig-box { text-align: center; width: 22%; }
                 .sig-box p { font-size: 14px; font-weight: 900; color: #8a7a6b; margin-bottom: 60px; }
-                .sig-line { border-bottom: 1px dashed #c5a059; width: 100%; }
+                .sig-line { border-bottom: 1px dashed #c2410c; width: 100%; }
 
                 @media print {
                     html, body { 

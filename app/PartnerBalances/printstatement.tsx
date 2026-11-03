@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/helpers';
+import LoadingScreen from '@/components/LoadingScreen';
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
 
 export default function PrintStatement() {
     const searchParams = useSearchParams();
@@ -28,13 +30,14 @@ export default function PrintStatement() {
             if (pError) throw pError;
             setPartner(pData);
 
-            const { data: lData, error: lError } = await supabase
+            const buildQuery = () => supabase
                 .from('partner_statement_ledger')
                 .select('*')
                 .eq('partner_id', partnerId)
-                .order('transaction_date', { ascending: true });
-            if (lError) throw lError;
-            setLedger(lData || []);
+                .order('transaction_date', { ascending: true })
+                .order('created_at', { ascending: true })
+                .order('line_id', { ascending: true });
+            setLedger(await fetchPaginatedData(buildQuery, 'line_id'));
 
         } catch (error) {
             console.error("Error fetching data:", error);
@@ -66,7 +69,6 @@ export default function PrintStatement() {
         <div className="print-wrapper">
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;900&display=swap');
-import LoadingScreen from '@/components/LoadingScreen';
                 
                 body { background: white !important; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; direction: rtl; }
                 .print-wrapper { max-width: 900px; margin: 0 auto; padding: 40px; color: #000; background: white; }

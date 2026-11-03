@@ -32,7 +32,7 @@ export default function SmartActionModal({ isOpen, onClose, siteData }: SmartAct
         {/* 📑 شريط التبويبات (Tabs) */}
         <div style={styles.tabsContainer}>
           <button 
-            style={{...styles.tab, borderBottom: activeTab === 'financial' ? '3px solid #c5a059' : 'none', color: activeTab === 'financial' ? '#c5a059' : '#888'}}
+            style={{...styles.tab, borderBottom: activeTab === 'financial' ? '3px solid #c2410c' : 'none', color: activeTab === 'financial' ? '#c2410c' : '#888'}}
             onClick={() => setActiveTab('financial')}
           >
             💰 الخامات والماليات
@@ -91,7 +91,7 @@ export default function SmartActionModal({ isOpen, onClose, siteData }: SmartAct
                   </div>
                   <div style={styles.totalBox}>
                     <span style={{fontSize: '11px', color: '#666'}}>الإجمالي التلقائي</span>
-                    <strong style={{fontSize: '18px', color: '#c5a059'}}>{(qty * unitPrice).toLocaleString()} ج.م</strong>
+                    <strong style={{fontSize: '18px', color: '#c2410c'}}>{(qty * unitPrice).toLocaleString()} ج.م</strong>
                   </div>
                 </div>
               </div>
@@ -190,7 +190,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   label: { fontSize: '13px', color: '#555', fontWeight: 'bold' },
   input: { padding: '12px 15px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none', backgroundColor: '#fcfaf7', fontSize: '14px' },
   
-  totalBox: { flex: 1, minWidth: '150px', backgroundColor: '#fdfbf7', border: '1px dashed #c5a059', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' },
+  totalBox: { flex: 1, minWidth: '150px', backgroundColor: '#fafafa', border: '1px dashed #c2410c', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' },
   
   divider: { height: '1px', backgroundColor: '#eee', margin: '20px 0' },
   
@@ -203,5 +203,5 @@ const styles: { [key: string]: React.CSSProperties } = {
   textarea: { width: '100%', height: '100px', padding: '15px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none', resize: 'none', boxSizing: 'border-box', backgroundColor: '#fcfaf7' },
   
   footer: { padding: '20px 25px', backgroundColor: '#fff', borderTop: '1px solid #eee' },
-  saveBtn: { width: '100%', padding: '16px', backgroundColor: '#4a3e35', color: '#c5a059', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: '0.3s' }
+  saveBtn: { width: '100%', padding: '16px', backgroundColor: '#4a3e35', color: '#c2410c', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: '16px', transition: '0.3s' }
 };

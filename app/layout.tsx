@@ -1,6 +1,8 @@
 import { Cairo } from "next/font/google";
 import LayoutClient from '../components/layout/LayoutClient';
 import "./globals.css";
+import "./workspace.css";
+import "./brand.css";
 import AutoLogoutWrapper from '../components/AutoLogoutWrapper';
 import Providers from './providers';
 import NextTopLoader from 'nextjs-toploader';
@@ -19,6 +21,7 @@ import { ConfirmProvider } from '../components/ConfirmContext';
 
 // 🚀 3. اختصارات التنقل العامة
 import GlobalNavigationShortcuts from '../components/GlobalNavigationShortcuts';
+import { PerformancePreferences } from '@/components/PerformancePreferences';
 
 const cairo = Cairo({ 
   subsets: ["arabic"],
@@ -29,7 +32,7 @@ const cairo = Cairo({
 
 // 📱 التعديل هنا: منع الـ Zoom وتغطية الشاشة بالكامل للموبايل
 export const viewport = {
-  themeColor: THEME.coffeeDark,
+  themeColor: THEME.sandLight,
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -38,7 +41,7 @@ export const viewport = {
 };
 
 export const metadata = {
-  title: "رواسي - نظام الإدارة الموحد",
+  title: "فاي تك | PHI TECH — نظام الإدارة الموحد",
   description: "نظام إدارة العمالة والمشاريع والمصروفات",
   manifest: "/manifest.json",
 };
@@ -50,7 +53,7 @@ export default function RootLayout({
 }) {
   return (
     // 🛡️ suppressHydrationWarning يمنع رسائل الخطأ المزعجة في الكونسول
-    <html lang="ar" dir="rtl" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className="phi-brand" suppressHydrationWarning>
       <body 
         className={`${cairo.className} ${cairo.variable}`} 
         style={{ 
@@ -85,7 +88,7 @@ export default function RootLayout({
               135deg, 
               rgba(244, 241, 238, 0.8) 0%, 
               rgba(255, 255, 255, 0.85) 50%,
-              rgba(197, 160, 89, 0.1) 100% 
+              rgba(194,65,12, 0.1) 100%
             );
             backdrop-filter: blur(10px);
           }
@@ -96,13 +99,6 @@ export default function RootLayout({
           }
           @media print { .no-print { display: none !important; } }
         `}} />
-
-        <div className="bg-master-container no-print">
-            <div className="bg-image-base"></div>
-            <div className="bg-glass-tint"></div>
-        </div>
-
-        <img src="/RYC_Logo.png" alt="watermark" className="watermark-bg no-print" />
 
         <NextTopLoader 
             color={THEME.goldAccent} 
@@ -117,6 +113,7 @@ export default function RootLayout({
                 <Providers>
                     <ToastProvider>
                         {/* 🚀 تغليف السيستم بخدمة التأكيد الذكية */}
+                        <PerformancePreferences>
                         <ConfirmProvider>
                             <AutoLogoutWrapper>
                                 <AuthGuard> 
@@ -134,6 +131,7 @@ export default function RootLayout({
                                 </AuthGuard>
                             </AutoLogoutWrapper>
                         </ConfirmProvider>
+                        </PerformancePreferences>
                     </ToastProvider>
                 </Providers>
             </QueryProvider>

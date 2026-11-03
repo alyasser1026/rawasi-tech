@@ -188,7 +188,7 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
                         <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>الرقم الضريبي: ٣١٢٤٨٧٤٧٧٨٠٠٠٠٣</div>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginTop: '2px' }}>الرقم الموحد: ٧٠٥١٠١٣٥١٩</div>
                     </div>
-                    <div className="header-logo"><img src="/in-Logo.png" alt="شعار الشركة" /></div>
+                    <div className="header-logo"><img src="/company-logo.svg" alt="شعار الشركة" /></div>
                 </div>
 
                 <div className="inv-title-box">

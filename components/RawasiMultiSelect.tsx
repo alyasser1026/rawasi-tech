@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const THEME = {
-  primary: '#0f172a', accent: '#ca8a04', success: '#059669', 
+  primary: '#0f172a', accent: '#c2410c', success: '#059669',
   slate: '#f8fafc', border: '#e2e8f0', textMain: '#334155', textMuted: '#64748b'
 };
 

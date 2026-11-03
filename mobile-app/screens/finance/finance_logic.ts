@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 
+type FinanceVoucher = {
+  id: string; amount: number | string; date: string; status: string; partner_id: string | null;
+  receipt_number?: string | null; voucher_number?: string | null;
+  partners: { name: string } | null;
+};
+
 export function useFinanceLogic() {
-  const [dashboardData, setDashboardData] = useState({
+  const [dashboardData, setDashboardData] = useState<{ totalReceipts: number; totalPayments: number; recentReceipts: FinanceVoucher[]; recentPayments: FinanceVoucher[] }>({
     totalReceipts: 0,
     totalPayments: 0,
     recentReceipts: [],
@@ -35,8 +41,8 @@ export function useFinanceLogic() {
       setDashboardData({
         totalReceipts,
         totalPayments,
-        recentReceipts: receipts.slice(0, 5),
-        recentPayments: payments.slice(0, 5)
+        recentReceipts: receipts.slice(0, 5).map(r => ({ ...r, partners: Array.isArray(r.partners) ? r.partners[0] || null : r.partners })),
+        recentPayments: payments.slice(0, 5).map(r => ({ ...r, partners: Array.isArray(r.partners) ? r.partners[0] || null : r.partners }))
       });
     } catch (error) {
       console.error('Error fetching finance data:', error);

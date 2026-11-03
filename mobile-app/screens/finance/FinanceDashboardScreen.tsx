@@ -45,12 +45,12 @@ export default function FinanceDashboardScreen({ navigation }: any) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ca8a04" />
+          <ActivityIndicator size="large" color="#c2410c" />
         </View>
       ) : (
         <ScrollView 
           contentContainerStyle={{ padding: 20, paddingTop: insets.top + 60, paddingBottom: 100 }}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ca8a04" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#c2410c" />}
         >
           {/* Main KPI */}
           <View style={styles.kpiWrapper}>
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   kpiCurrency: { fontSize: 12, fontWeight: '700', color: '#94a3b8' },
   sectionHeader: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   sectionTitle: { fontSize: 18, fontWeight: '900', color: '#1e293b' },
-  seeAll: { fontSize: 13, fontWeight: '800', color: '#ca8a04' },
+  seeAll: { fontSize: 13, fontWeight: '800', color: '#c2410c' },
   card: { backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 16, padding: 16, marginBottom: 12 },
   headerRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12 },
   iconContainer: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },

@@ -85,7 +85,7 @@ export default function UnifiedImportHub() {
             wsVouchers['!cols'] = [{wch:15}, {wch:15}, {wch:30}, {wch:20}, {wch:40}, {wch:15}, {wch:30}];
             XLSX.utils.book_append_sheet(workbook, wsVouchers, 'سندات الصرف');
 
-            XLSX.writeFile(workbook, `Rawasi_Master_Template_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.writeFile(workbook, `Phi_Tech_Master_Template_${new Date().toISOString().split('T')[0]}.xlsx`);
             showToast("تم تحميل القالب الشامل بنجاح", "success");
         } catch (e: any) {
             showToast("فشل تحميل القالب: " + e.message, "error");

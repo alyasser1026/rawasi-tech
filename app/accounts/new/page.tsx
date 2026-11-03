@@ -5,8 +5,8 @@ import { supabase } from '@/lib/supabase';
 
 const THEME = {
   primary: '#0f172a',
-  accent: '#ca8a04',
-  accentLight: '#eab308',
+  accent: '#c2410c',
+  accentLight: '#fb923c',
   white: '#ffffff',
   slate: '#94a3b8'
 };
@@ -55,7 +55,7 @@ export default function AddAccountPage() {
   };
 
   return (
-    <div className="page-wrapper">
+    <div className="page-wrapper phi-light-form">
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         .page-wrapper {
@@ -94,7 +94,7 @@ export default function AddAccountPage() {
       `}</style>
       <div className="glass-card">
         <div className="header">
-          <img src="/RYC_Logo.png" alt="Logo" />
+          <img src="/company-logo.svg" alt="Logo" />
           <h1 style={{color:'white', fontSize:'22px'}}>إضافة حساب جديد</h1>
         </div>
         <form onSubmit={handleSubmit}>

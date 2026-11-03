@@ -220,7 +220,7 @@ export const calculateProgress = (executed: number, total: number) => {
   let color = '#ef4444'; // أحمر (خطر / بداية)
   if (percentage >= 100) color = '#22c55e'; // أخضر (مكتمل)
   else if (percentage >= 75) color = '#3b82f6'; // أزرق (قرب يخلص)
-  else if (percentage >= 40) color = '#eab308'; // أصفر (شغال)
+  else if (percentage >= 40) color = '#fb923c'; // أصفر (شغال)
 
   return {
     percentage: Number(percentage.toFixed(2)),
@@ -338,7 +338,7 @@ export const calculatePettyCash = (
   if (balance === 0) {
     return { text: 'العهدة مسواة بالكامل', amount: 0, color: '#059669' };
   } else if (balance > 0) {
-    return { text: 'متبقي على الموظف', amount: balance, color: '#ca8a04' }; // لازم يرجع فلوس
+    return { text: 'متبقي على الموظف', amount: balance, color: '#c2410c' }; // لازم يرجع فلوس
   } else {
     return { text: 'مستحق للموظف (صرف من جيبه)', amount: Math.abs(balance), color: '#dc2626' }; // الشركه مدينة للموظف
   }
@@ -357,7 +357,7 @@ export const getInvoiceAging = (invoiceDate: string, isPaid: boolean) => {
   if (daysOverdue <= 30) {
     return { text: 'متأخرات (أقل من شهر)', daysOverdue, color: '#3b82f6', badge: '⏳' };
   } else if (daysOverdue <= 90) {
-    return { text: 'متأخرات (1 - 3 شهور)', daysOverdue, color: '#ca8a04', badge: '⚠️' };
+    return { text: 'متأخرات (1 - 3 شهور)', daysOverdue, color: '#c2410c', badge: '⚠️' };
   } else {
     return { text: 'ديون معدومة أو حرجة (+3 شهور)', daysOverdue, color: '#dc2626', badge: '🚨' };
   }
@@ -428,7 +428,7 @@ export const getSingleInvoiceStatus = (invoiceDate: string, isPaid: boolean) => 
   const diffTime = today.getTime() - invDate.getTime();
   const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
   if (days <= 0) return { text: 'جاري', color: '#10b981', badge: '🟢' };
-  return { text: `متأخر ${days} يوم`, color: days > 90 ? '#dc2626' : '#ca8a04', badge: '⚠️' };
+  return { text: `متأخر ${days} يوم`, color: days > 90 ? '#dc2626' : '#c2410c', badge: '⚠️' };
 };
 
 // =========================================================================

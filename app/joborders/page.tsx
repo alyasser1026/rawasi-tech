@@ -133,13 +133,13 @@ export default function JobOrdersPage() {
                 />
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#43342e', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         📊 حالة الأمر
                     </label>
                     <select 
                         value={logic.statusFilter}
                         onChange={(e) => logic.setStatusFilter(e.target.value)}
-                        style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(197, 160, 89, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
                     >
                         <option value="">جميع الحالات</option>
                         <option value="مسودة">📝 مسودة</option>
@@ -153,13 +153,13 @@ export default function JobOrdersPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#43342e', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         👷‍♂️ جهة التنفيذ
                     </label>
                     <select 
                         value={logic.executorFilter}
                         onChange={(e) => logic.setExecutorFilter(e.target.value)}
-                        style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(197, 160, 89, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
                     >
                         <option value="">جميع الجهات</option>
                         <option value="مقاول باطن">🤝 مقاول باطن</option>
@@ -168,13 +168,13 @@ export default function JobOrdersPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#43342e', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         💰 الحالة المالية
                     </label>
                     <select 
                         value={logic.financialFilter}
                         onChange={(e) => logic.setFinancialFilter(e.target.value)}
-                        style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(197, 160, 89, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
+                        style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
                     >
                         <option value="">جميع الحالات</option>
                         <option value="رابح">📈 رابح</option>
@@ -193,7 +193,7 @@ export default function JobOrdersPage() {
       <style>{`
         .custom-checkbox { width: 20px; height: 20px; accent-color: ${THEME.goldAccent || '#d97706'}; cursor: pointer; transition: 0.1s; border-radius: 4px; }
         .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .btn-main-glass.gold { background: linear-gradient(135deg, rgba(197, 160, 89, 0.9), rgba(151, 115, 50, 1)); color: white; }
+        .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
         .btn-main-glass.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(5, 150, 105, 0.9)); color: white; }
         .btn-main-glass.yellow { background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.9)); color: white; }
         .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
@@ -242,7 +242,7 @@ export default function JobOrdersPage() {
               if (row.status === 'جاري التنفيذ') badgeStyle = { bg: '#dbeafe', color: '#2563eb', dot: '#3b82f6', icon: '⏳' };
               if (row.status === 'مكتمل') badgeStyle = { bg: '#dcfce3', color: '#10b981', dot: '#22c55e', icon: '✅' };
               if (row.status === 'موقوف') badgeStyle = { bg: '#fee2e2', color: '#dc2626', dot: '#ef4444', icon: '⏸️' };
-              if (row.status === 'جاري التسليم') badgeStyle = { bg: '#fef08a', color: '#a16207', dot: '#eab308', icon: '🚚' };
+              if (row.status === 'جاري التسليم') badgeStyle = { bg: '#fef08a', color: '#a16207', dot: '#fb923c', icon: '🚚' };
               if (row.status === 'مفوتر') badgeStyle = { bg: '#e0e7ff', color: '#4338ca', dot: '#6366f1', icon: '🧾' };
               if (row.status === 'تم التحصيل') badgeStyle = { bg: '#d1fae5', color: '#047857', dot: '#10b981', icon: '💰' };
 
@@ -296,7 +296,7 @@ export default function JobOrdersPage() {
                     </div>
                   </div>
 
-                  <div className="jo-project-name" style={{ fontSize: '18px', fontWeight: 900, color: '#43342e', background: 'linear-gradient(90deg, rgba(197, 160, 89, 0.15) 0%, transparent 100%)', padding: '8px 12px', borderRight: '4px solid #C5A059', borderRadius: '4px' }}>
+                  <div className="jo-project-name" style={{ fontSize: '18px', fontWeight: 900, color: '#27272a', background: 'linear-gradient(90deg, rgba(194,65,12, 0.15) 0%, transparent 100%)', padding: '8px 12px', borderRight: '4px solid #c2410c', borderRadius: '4px' }}>
                         {row.projects?.Property || row.projects?.project_name || 'العقار غير محدد'}
                   </div>
                   

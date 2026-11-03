@@ -2,6 +2,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 
+type CostGroup = { name: string; total: number; items: Record<string, unknown>[] };
+type ProjectGroup = { name: string; total: number; types: Map<string, CostGroup> };
+
 export function useLedgerLogic() {
   const [ledgerData, setLedgerData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,7 +87,7 @@ export function useLedgerLogic() {
     let totalOverhead = 0;
     let totalMaterials = 0; // 👈 إجمالي الخامات
     let totalSubcontractors = 0; // 👈 إجمالي المقاولين
-    const projectMap = new Map();
+    const projectMap = new Map<string, ProjectGroup>();
 
     filteredLedger.forEach((row: any) => {
       const projName = row['اسم المشروع'] || 'مشروع عام / غير محدد';
@@ -104,17 +107,19 @@ export function useLedgerLogic() {
       }
 
       // 2. تجميع على مستوى المشروع
-      if (!projectMap.has(projName)) {
-        projectMap.set(projName, { name: projName, total: 0, types: new Map() });
+      let projNode = projectMap.get(projName);
+      if (!projNode) {
+        projNode = { name: projName, total: 0, types: new Map() };
+        projectMap.set(projName, projNode);
       }
-      const projNode = projectMap.get(projName);
       projNode.total += amount;
 
       // 3. تجميع على مستوى نوع التكلفة
-      if (!projNode.types.has(costType)) {
-        projNode.types.set(costType, { name: costType, total: 0, items: [] });
+      let typeNode = projNode.types.get(costType);
+      if (!typeNode) {
+        typeNode = { name: costType, total: 0, items: [] };
+        projNode.types.set(costType, typeNode);
       }
-      const typeNode = projNode.types.get(costType);
       typeNode.total += amount;
       
       // 4. التفاصيل

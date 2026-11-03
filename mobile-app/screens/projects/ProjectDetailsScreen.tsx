@@ -42,7 +42,7 @@ export default function ProjectDetailsScreen({ route, navigation }: any) {
       style={[styles.tabButton, activeTab === tabKey && styles.activeTabButton]} 
       onPress={() => setActiveTab(tabKey)}
     >
-      <Ionicons name={icon} size={18} color={activeTab === tabKey ? '#ca8a04' : '#475569'} />
+      <Ionicons name={icon} size={18} color={activeTab === tabKey ? '#c2410c' : '#475569'} />
       <Text style={[styles.tabText, activeTab === tabKey && styles.activeTabText]}>{title}</Text>
     </TouchableOpacity>
   );
@@ -115,9 +115,9 @@ const styles = StyleSheet.create({
   headerTop: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
   backBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'transparent', justifyContent: 'center', alignItems: 'center' },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 12, backgroundColor: 'rgba(202, 138, 4, 0.1)' }, // Light gold bg
-  statusText: { fontSize: 12, fontWeight: '800', color: '#ca8a04' },
+  statusText: { fontSize: 12, fontWeight: '800', color: '#c2410c' },
   projectTitle: { fontSize: 28, fontWeight: '900', color: '#1e293b', textAlign: 'right', marginBottom: 4 }, // Dark Slate
-  projectSubtitle: { fontSize: 16, fontWeight: '800', color: '#ca8a04', textAlign: 'right' },
+  projectSubtitle: { fontSize: 16, fontWeight: '800', color: '#c2410c', textAlign: 'right' },
   engineerRow: { flexDirection: 'row-reverse', alignItems: 'center', marginTop: 15, gap: 15 },
   engineerText: { fontSize: 13, fontWeight: '700', color: '#475569' },
   tabsContainer: { paddingVertical: 10 },
@@ -135,6 +135,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(202, 138, 4, 0.1)', 
   },
   tabText: { fontSize: 15, fontWeight: '800', color: '#475569' },
-  activeTabText: { color: '#ca8a04' },
+  activeTabText: { color: '#c2410c' },
   tabContentContainer: { flex: 1 }
 });

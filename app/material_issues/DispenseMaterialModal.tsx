@@ -23,6 +23,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
     const [formData, setFormData] = useState({
         issue_date: new Date().toISOString().split('T')[0],
         project_id: '',
+        job_order_id: '',
         project_name: '',
         issue_type: 'استهلاك مباشر', 
         subcontractor_id: '',
@@ -137,7 +138,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8);
                     outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
                 }
-                .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#ca8a04'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
+                .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#c2410c'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
                 .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); width: 100%; }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
             `}</style>
@@ -147,7 +148,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                 backdropFilter: 'blur(30px)', borderRadius: '35px', padding: '40px', 
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'25px', borderBottom:`2px solid ${THEME.goldAccent || '#ca8a04'}50`, paddingBottom:'15px'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'25px', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'15px'}}>
                     <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '24px' }}>📤 صرف مباشر للموقع</h2>
                 </div>
 
@@ -295,9 +296,9 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `linear-gradient(135deg, ${THEME.goldAccent || '#ca8a04'}20, transparent)`, padding: '15px 20px', borderRadius: '16px', border: `1px dashed ${THEME.goldAccent || '#ca8a04'}`, marginBottom: '25px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}20, transparent)`, padding: '15px 20px', borderRadius: '16px', border: `1px dashed ${THEME.goldAccent || '#c2410c'}`, marginBottom: '25px' }}>
                     <div style={{ fontSize: '14px', fontWeight: 900, color: THEME.coffeeDark }}>إجمالي قيمة الصرف:</div>
-                    <div style={{ fontSize: '24px', fontWeight: 900, color: THEME.goldAccent || '#ca8a04' }}>{formatCurrency(totalPrice)}</div>
+                    <div style={{ fontSize: '24px', fontWeight: 900, color: THEME.goldAccent || '#c2410c' }}>{formatCurrency(totalPrice)}</div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '15px' }}>

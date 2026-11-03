@@ -6,12 +6,12 @@ import LoadingScreen from '@/components/LoadingScreen';
 
 const THEME = {
   primary: '#0f172a',
-  accent: '#ca8a04',
-  accentLight: '#eab308',
+  accent: '#c2410c',
+  accentLight: '#fb923c',
   white: '#ffffff',
   slate: '#94a3b8',
-  danger: '#ef4444',
-  success: '#22c55e'
+  danger: '#be123c',
+  success: '#15803d'
 };
 
 export default function EditJournalEntryPage() {
@@ -114,6 +114,16 @@ export default function EditJournalEntryPage() {
 
   // 💾 حفظ التعديلات
   const handleSave = async () => {
+    if (['posted', 'مرحل', 'معتمد'].includes(header.status)) {
+      return alert('يجب فك ترحيل القيد قبل تعديله.');
+    }
+    const hasInvalidAmounts = lines.some(line => {
+      const debit = Number(line.debit || 0);
+      const credit = Number(line.credit || 0);
+      return !Number.isFinite(debit) || !Number.isFinite(credit) || debit < 0 || credit < 0 || (debit > 0 && credit > 0);
+    });
+    if (hasInvalidAmounts) return alert('المبالغ يجب أن تكون غير سالبة، وفي طرف واحد فقط لكل سطر.');
+    if (!header.entry_date || !header.description.trim()) return alert('تاريخ القيد وبيانه مطلوبان.');
     if (totals.diff !== 0) return alert("❌ لا يمكن حفظ القيد وهو غير متزن!");
     
     // التأكد من اختيار حسابات لكل الأسطر
@@ -122,16 +132,8 @@ export default function EditJournalEntryPage() {
 
     setIsSaving(true);
     try {
-      // 1. تحديث الرأس
-      await supabase.from('journal_headers').update({
-        entry_date: header.entry_date,
-        description: header.description
-      }).eq('id', id);
-
-      // 2. مسح الأسطر القديمة وإدخال الأسطر الجديدة بالكامل لضمان التحديث النظيف
-      await supabase.from('journal_lines').delete().eq('header_id', id);
-      
       const newLinesToInsert = lines.map(line => ({
+        ...line,
         header_id: id,
         account_id: line.account_id,
         debit: Number(line.debit) || 0,
@@ -139,20 +141,27 @@ export default function EditJournalEntryPage() {
         item_name: line.item_name || header.description
       }));
 
-      await supabase.from('journal_lines').insert(newLinesToInsert);
+      const { error } = await supabase.rpc('save_journal_draft', {
+        p_header_id: id,
+        p_entry_date: header.entry_date,
+        p_description: header.description,
+        p_lines: newLinesToInsert
+      });
+      if (error) throw error;
 
       alert("✅ تم تعديل واتزان القيد بنجاح!");
       router.push('/journal-errors'); // الرجوع لشاشة الأخطاء
     } catch (err: any) {
       alert("❌ خطأ أثناء الحفظ: " + err.message);
+    } finally {
+      setIsSaving(false);
     }
-    setIsSaving(false);
   };
 
   if (isLoading) return <LoadingScreen message="جاري تحميل القيد..." fullScreen={false} />;
 
   return (
-    <div className="page-wrapper">
+    <div className="page-wrapper phi-light-form">
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         .page-wrapper {
@@ -203,7 +212,7 @@ export default function EditJournalEntryPage() {
             <h1 style={{ fontSize: '26px', fontWeight: 900, color: THEME.accentLight }}>🛠️ معالجة قيد يومية #{id}</h1>
             <p style={{ color: THEME.slate, fontSize: '14px' }}>تعديل الأطراف والمبالغ لضبط ميزان المراجعة</p>
           </div>
-          <button className="btn-action" style={{ background: 'transparent', border: '1px solid white', color: 'white' }} onClick={() => router.back()}>
+          <button className="btn-action phi-back-button" style={{ background: 'transparent', border: '1px solid white', color: 'white' }} onClick={() => router.back()}>
             🔙 تراجع
           </button>
         </div>
@@ -265,7 +274,7 @@ export default function EditJournalEntryPage() {
         <div className="summary-box">
           <div className="summary-item">
             <div style={{ color: THEME.slate, fontSize: '14px' }}>إجمالي المدين</div>
-            <div className="summary-value" style={{ color: '#4ade80' }}>{totals.debit.toLocaleString()}</div>
+            <div className="summary-value" style={{ color: '#15803d' }}>{totals.debit.toLocaleString()}</div>
           </div>
           
           <div className="summary-item">
@@ -277,7 +286,7 @@ export default function EditJournalEntryPage() {
 
           <div className="summary-item">
             <div style={{ color: THEME.slate, fontSize: '14px' }}>إجمالي الدائن</div>
-            <div className="summary-value" style={{ color: '#f87171' }}>{totals.credit.toLocaleString()}</div>
+            <div className="summary-value" style={{ color: '#be123c' }}>{totals.credit.toLocaleString()}</div>
           </div>
 
           <div>

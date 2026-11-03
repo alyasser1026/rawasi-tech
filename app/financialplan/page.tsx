@@ -8,7 +8,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 
 const THEME = {
   primary: '#0f172a',    
-  accent: '#ca8a04',     
+  accent: '#c2410c',
   success: '#059669',    
   ruby: '#e11d48',       
   slate: '#f8fafc',
@@ -406,9 +406,9 @@ export default function FinancialPlanPage() {
          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '12px', marginBottom: '25px' }}>
             <div>
                
-               <p style={{ margin: '6px 0 0 0', fontWeight: 800, fontSize: '14px', color: THEME.textMain }}>شركة رواسي اليسر للمقاولات | كشف تفصيلي لشهر: ({monthNameArabic} / {logic.selectedYear})</p>
+               <p style={{ margin: '6px 0 0 0', fontWeight: 800, fontSize: '14px', color: THEME.textMain }}>شركة فاي تك للمقاولات | كشف تفصيلي لشهر: ({monthNameArabic} / {logic.selectedYear})</p>
             </div>
-            <img src="/RYC_Logo.png" alt=" RY Logo" style={{ height: '55px', objectFit: 'contain' }} />
+            <img src="/company-logo.svg" alt=" RY Logo" style={{ height: '55px', objectFit: 'contain' }} />
          </div>
 
          {/* جدول الإيرادات الورقي */}
@@ -439,9 +439,9 @@ export default function FinancialPlanPage() {
                  );
                })}
                <tr style={{ background: '#e2e8f0', fontWeight: 900 }}>
-                  <td style={{ textMain: THEME.primary, paddingRight: '12px' }}>إجمالي قسم الإيرادات الكلي:</td>
-                  <td style={{ textMain: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalRevPlanned)}</td>
-                  <td style={{ textMain: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalRevActual)}</td>
+                  <td style={{ color: THEME.primary, paddingRight: '12px' }}>إجمالي قسم الإيرادات الكلي:</td>
+                  <td style={{ color: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalRevPlanned)}</td>
+                  <td style={{ color: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalRevActual)}</td>
                   <td style={{ direction: 'ltr', textAlign: 'center', color: (logic.totals.totalRevActual - logic.totals.totalRevPlanned) >= 0 ? THEME.success : THEME.ruby }}>
                     {formatCurrency(logic.totals.totalRevActual - logic.totals.totalRevPlanned)}
                   </td>
@@ -477,9 +477,9 @@ export default function FinancialPlanPage() {
                  );
                })}
                <tr style={{ background: '#e2e8f0', fontWeight: 900 }}>
-                  <td style={{ textMain: THEME.primary, paddingRight: '12px' }}>إجمالي قسم المصروفات الكلي:</td>
-                  <td style={{ textMain: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalExpPlanned)}</td>
-                  <td style={{ textMain: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalExpActual)}</td>
+                  <td style={{ color: THEME.primary, paddingRight: '12px' }}>إجمالي قسم المصروفات الكلي:</td>
+                  <td style={{ color: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalExpPlanned)}</td>
+                  <td style={{ color: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalExpActual)}</td>
                   <td style={{ direction: 'ltr', textAlign: 'center', color: (logic.totals.totalExpActual - logic.totals.totalExpPlanned) <= 0 ? THEME.success : THEME.ruby }}>
                     {formatCurrency(logic.totals.totalExpActual - logic.totals.totalExpPlanned)}
                   </td>

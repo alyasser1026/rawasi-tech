@@ -7,13 +7,14 @@ import SecureAction from '@/components/SecureAction';
 import LoadingScreen from '@/components/LoadingScreen';
 import MasterPage from '@/components/MasterPage';
 import { menuGroups } from '@/lib/menuData';
+import { getSectionStyle } from '@/lib/section-colors';
 
 const MOTIVATIONAL_MESSAGES = [
     "يوم جديد لنجاحات مبهرة، توكل على الله وانطلق! 🚀",
     "النجاح يبدأ بخطوة، وأنت الآن في المسار الصحيح! 🌟",
     "الأرقام لا تكذب، اجعل أرقام اليوم أفضل من الأمس! 📊",
     "كل مجهود صغير يتراكم ليصنع إنجازاً عظيماً! 💪",
-    "رواسي اليسر تكبر بجهودكم، شكراً لعملكم الرائع! 🏗️",
+    "فاي تك تكبر بجهودكم، شكراً لعملكم الرائع! 🏗️",
     "الدقة في العمل هي أساس الثقة، حافظ على تميزك! 💎",
     "اجعل هدفك اليوم هو التميز، لا مجرد الإنجاز! ✨",
     "لا حدود لما يمكنك تحقيقه اليوم، انطلق بثقة! 🎯",
@@ -86,10 +87,13 @@ export default function WelcomeHomePage() {
         return can(item.id, 'view');
     });
 
-    const favItems = favorites.map(id => allowedItems.find(i => i.id === id)).filter(Boolean);
+    const favItems = favorites.flatMap(id => {
+        const item = allowedItems.find(i => i.id === id);
+        return item ? [item] : [];
+    });
 
     return (
-        <MasterPage title="الصفحة الرئيسية" subtitle="بوابة الإدارة المركزية لرواسي اليسر" icon="🏠">
+        <MasterPage title="الصفحة الرئيسية" subtitle="بوابة الإدارة المركزية لفاي تك" icon="🏠">
         <div className="welcome-page-wrapper">
             <style>{`
                 .welcome-page-wrapper {
@@ -99,8 +103,8 @@ export default function WelcomeHomePage() {
                     display: flex;
                     flex-direction: column;
                     gap: 30px;
-                    background: radial-gradient(circle at top right, rgba(197, 160, 89, 0.05), transparent 400px),
-                                radial-gradient(circle at bottom left, rgba(67, 52, 46, 0.03), transparent 400px);
+                    background: radial-gradient(circle at top right, rgba(194,65,12, 0.05), transparent 400px),
+                                radial-gradient(circle at bottom left, rgba(39,39,42, 0.03), transparent 400px);
                 }
 
                 @keyframes fadeUp {
@@ -169,12 +173,12 @@ export default function WelcomeHomePage() {
                 }
                 .module-card::after {
                     content: ''; position: absolute; inset: 0;
-                    background: linear-gradient(135deg, rgba(197, 160, 89, 0.1), transparent);
+                    background: linear-gradient(135deg, rgba(194,65,12, 0.1), transparent);
                     opacity: 0; transition: 0.3s;
                 }
                 .module-card:hover {
                     transform: translateY(-10px) scale(1.02);
-                    box-shadow: 0 20px 40px rgba(197, 160, 89, 0.1);
+                    box-shadow: 0 20px 40px rgba(194,65,12, 0.1);
                     border-color: ${THEME.goldAccent};
                 }
                 .module-card:hover::after { opacity: 1; }
@@ -204,7 +208,7 @@ export default function WelcomeHomePage() {
                 }
                 .add-fav-card:hover {
                     border-color: ${THEME.goldAccent};
-                    background: rgba(197, 160, 89, 0.05);
+                    background: rgba(194,65,12, 0.05);
                     transform: translateY(-5px);
                 }
                 .add-fav-icon { font-size: 30px; color: #cbd5e1; transition: 0.3s; }
@@ -245,7 +249,7 @@ export default function WelcomeHomePage() {
                     border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: 0.2s;
                 }
                 .fav-item-check:hover { background: #f8fafc; border-color: #cbd5e1; }
-                .fav-item-check.selected { border-color: ${THEME.goldAccent}; background: rgba(197, 160, 89, 0.05); }
+                .fav-item-check.selected { border-color: ${THEME.goldAccent}; background: rgba(194,65,12, 0.05); }
 
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
@@ -275,16 +279,16 @@ export default function WelcomeHomePage() {
 
                 <div className="modules-grid">
                     {favItems.map((item, idx) => (
-                        <Link key={idx} href={item.path} className="module-card">
+                        <Link key={idx} href={item.path} className="module-card" style={getSectionStyle(item.path)}>
                             <div className="module-icon">{item.icon}</div>
                             <h3 className="module-title">{item.title}</h3>
                         </Link>
                     ))}
 
-                    <div className="add-fav-card" onClick={openFavModal}>
+                    <button type="button" className="add-fav-card" onClick={openFavModal}>
                         <div className="add-fav-icon">➕</div>
                         <div className="add-fav-title">تخصيص المفضلة</div>
-                    </div>
+                    </button>
                 </div>
             </div>
 
@@ -335,7 +339,7 @@ export default function WelcomeHomePage() {
 
             {/* Footer */}
             <div style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 700, fontSize: '13px', paddingBottom: '10px' }}>
-                تم تأمين الجلسة الخاصة بك 🔒 | رواسي اليسر © {new Date().getFullYear()}
+                تم تأمين الجلسة الخاصة بك 🔒 | فاي تك © {new Date().getFullYear()}
             </div>
         </div>
         </MasterPage>

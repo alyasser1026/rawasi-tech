@@ -6,14 +6,17 @@ interface SidebarContextType {
   actions: ReactNode;
   summary: ReactNode;
   customFilters?: ReactNode; // 👈 ضفنا دي كقيمة اختيارية
-  setSidebarContent: (content: { actions: ReactNode; summary: ReactNode; customFilters?: ReactNode }) => void;
+  searchPlaceholder?: string;
+  setSidebarContent: (content: SidebarContent) => void;
 }
+
+type SidebarContent = { actions: ReactNode; summary: ReactNode; customFilters?: ReactNode; searchPlaceholder?: string };
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   // 🚀 2. تحديث الحالة المبدئية عشان تشمل الفلاتر
-  const [content, setContent] = useState<{ actions: ReactNode; summary: ReactNode; customFilters?: ReactNode }>({
+  const [content, setContent] = useState<SidebarContent>({
     actions: null,
     summary: null,
     customFilters: null, // 👈 القيمة المبدئية فاضية
@@ -21,7 +24,7 @@ export function SidebarProvider({ children }: { children: ReactNode }) {
 
   // 🚀 3. الحل السحري: useCallback بتثبت الدالة في الذاكرة عشان متتغيرش مع كل Render
   // وتم تحديثها عشان تستقبل الفلاتر
-  const setSidebarContent = useCallback((newContent: { actions: ReactNode; summary: ReactNode; customFilters?: ReactNode }) => {
+  const setSidebarContent = useCallback((newContent: SidebarContent) => {
     setContent(newContent);
   }, []); // مصفوفة فارغة تعني إن الدالة دي هتتخلق مرة واحدة بس في حياة السيستم
 

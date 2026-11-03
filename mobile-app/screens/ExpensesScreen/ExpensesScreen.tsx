@@ -129,7 +129,7 @@ export default function ExpensesScreen({ navigation }: any) {
         <View style={styles.cardHeader}>
           <View style={{flexDirection: 'row-reverse', alignItems: 'center', gap: 10, flex: 1}}>
             <TouchableOpacity onPress={() => toggleSelection(item.id)}>
-              <Ionicons name={isSelected ? "checkbox" : "square-outline"} size={26} color={isSelected ? "#ca8a04" : "#cbd5e1"} />
+              <Ionicons name={isSelected ? "checkbox" : "square-outline"} size={26} color={isSelected ? "#c2410c" : "#cbd5e1"} />
             </TouchableOpacity>
             <Text style={styles.payeeName} numberOfLines={1}>{item.sub_contractor || item.payee_name || 'بدون مستفيد'}</Text>
           </View>
@@ -171,7 +171,7 @@ export default function ExpensesScreen({ navigation }: any) {
           <Ionicons name="chevron-forward" size={24} color="#1e293b" />
         </TouchableOpacity>
         <Text style={styles.title}>سجل المصروفات 💸</Text>
-        <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={[styles.backBtn, showFilters && {backgroundColor: '#ca8a04', borderColor: '#ca8a04'}]}>
+        <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={[styles.backBtn, showFilters && {backgroundColor: '#c2410c', borderColor: '#c2410c'}]}>
           <Ionicons name="options-outline" size={22} color={showFilters ? "#fff" : "#1e293b"} />
         </TouchableOpacity>
       </View>
@@ -240,7 +240,7 @@ export default function ExpensesScreen({ navigation }: any) {
       {/* 🌟 شريط الإجماليات و تحديد الكل */}
       <View style={styles.summaryContainer}>
         <TouchableOpacity style={styles.selectAllBtn} onPress={toggleSelectAll}>
-          <Ionicons name={selectedIds.length > 0 && selectedIds.length === filteredExpenses.length ? "checkbox" : "square-outline"} size={24} color="#ca8a04" />
+          <Ionicons name={selectedIds.length > 0 && selectedIds.length === filteredExpenses.length ? "checkbox" : "square-outline"} size={24} color="#c2410c" />
           <Text style={styles.selectAllText}>تحديد الكل</Text>
         </TouchableOpacity>
         <View style={styles.summarySeparator} />
@@ -273,7 +273,7 @@ export default function ExpensesScreen({ navigation }: any) {
         keyExtractor={(item) => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ca8a04" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#c2410c" />}
         ListEmptyComponent={
           !loading ? (
             <View style={{ alignItems: 'center', marginTop: 50 }}>
@@ -297,7 +297,7 @@ export default function ExpensesScreen({ navigation }: any) {
       />
 
       <TouchableOpacity style={styles.fab} onPress={handleAdd}>
-        <LinearGradient colors={['#ca8a04', '#854d0e']} style={styles.fabGradient}>
+        <LinearGradient colors={['#c2410c', '#854d0e']} style={styles.fabGradient}>
           <Ionicons name="add" size={32} color="#ffffff" />
         </LinearGradient>
       </TouchableOpacity>
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, paddingVertical: 10, fontSize: 13, fontWeight: '700', color: '#1e293b' },
   filterLabel: { fontSize: 13, fontWeight: '800', color: '#64748b', textAlign: 'right', marginBottom: 5 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
-  chipActive: { backgroundColor: '#ca8a04', borderColor: '#ca8a04' },
+  chipActive: { backgroundColor: '#c2410c', borderColor: '#c2410c' },
   chipText: { fontSize: 11, fontWeight: '800', color: '#475569' },
   chipTextActive: { color: '#ffffff' },
   clearFiltersBtn: { alignSelf: 'flex-start', padding: 5 },
@@ -339,10 +339,10 @@ const styles = StyleSheet.create({
   
   listContent: { padding: 15, paddingBottom: 120 },
   card: { backgroundColor: '#ffffff', borderRadius: 16, padding: 18, marginBottom: 15, borderWidth: 1, borderColor: '#e2e8f0', borderRightWidth: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, position: 'relative' },
-  cardSelected: { borderColor: '#ca8a04', backgroundColor: '#fefce8' },
+  cardSelected: { borderColor: '#c2410c', backgroundColor: '#fefce8' },
   selectedOverlay: { position: 'absolute', top: -10, left: -10, backgroundColor: '#fff', borderRadius: 15, padding: 2, zIndex: 10, elevation: 5 },
   cardHeader: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  payeeName: { fontSize: 16, fontWeight: '900', color: '#43342e', flex: 1, textAlign: 'right' },
+  payeeName: { fontSize: 16, fontWeight: '900', color: '#27272a', flex: 1, textAlign: 'right' },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8, marginLeft: 10 },
   statusText: { fontSize: 10, fontWeight: '900' },
   cardBody: { marginBottom: 15, gap: 8 },
@@ -356,6 +356,6 @@ const styles = StyleSheet.create({
   footerVal: { fontSize: 15, fontWeight: '900', color: '#1e293b' },
   footerValTotal: { fontSize: 16, fontWeight: '900', color: '#059669' },
   
-  fab: { position: 'absolute', bottom: 30, right: 30, borderRadius: 30, overflow: 'hidden', shadowColor: '#ca8a04', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 8 },
+  fab: { position: 'absolute', bottom: 30, right: 30, borderRadius: 30, overflow: 'hidden', shadowColor: '#c2410c', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 8 },
   fabGradient: { width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }
 });

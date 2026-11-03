@@ -11,7 +11,6 @@ import LoadingScreen from '@/components/LoadingScreen';
 
 export default function HierarchicalLedgerPage() {
   const { 
-    accounts, 
     paginatedTree, totalPages, currentPage, setCurrentPage,
     isLoading, isDeleting, searchTerm, setSearchTerm, expandedIds, toggleExpand, expandAll, collapseAll, 
     selectedIds, toggleSelection, handleDelete, handleAdd, handleEdit,
@@ -167,7 +166,7 @@ export default function HierarchicalLedgerPage() {
   );
 
   return (
-    <MasterPage title="شجرة الحسابات والميزان" subtitle="إدارة المركز المالي ودليل الحسابات - رواسي اليسر">
+    <MasterPage title="شجرة الحسابات والميزان" subtitle="إدارة المركز المالي ودليل الحسابات - فاي تك">
       
       <div className="floating-stack-layout">
         <div className="warm-depth-glow" />
@@ -248,7 +247,7 @@ export default function HierarchicalLedgerPage() {
 
       <style>{`
         .floating-stack-layout { position: relative; width: 100%; padding: 0 20px 20px 20px; z-index: 5; direction: rtl; }
-        .warm-depth-glow { position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(197, 160, 89, 0.15) 0%, transparent 70%); z-index: -1; pointer-events: none; }
+        .warm-depth-glow { position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(194,65,12, 0.15) 0%, transparent 70%); z-index: -1; pointer-events: none; }
         .content-container { max-width: 1600px; margin: 0 auto; }
 
         .glass-master-card {
@@ -263,8 +262,8 @@ export default function HierarchicalLedgerPage() {
         .glass-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-weight: 800; outline: none; transition: 0.3s; color-scheme: dark;}
         .glass-input:focus { background: rgba(255,255,255,0.2); border-color: ${THEME.goldAccent}; }
 
-        .btn-premium-gold { width: 100%; padding: 16px; border-radius: 16px; background: linear-gradient(135deg, #c5a059, #977332); color: white; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(197, 160, 89, 0.3); transition: 0.3s; }
-        .btn-premium-gold:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(197, 160, 89, 0.4); filter: brightness(1.1); }
+        .btn-premium-gold { width: 100%; padding: 16px; border-radius: 16px; background: linear-gradient(135deg, #c2410c, #c2410c); color: white; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(194,65,12, 0.3); transition: 0.3s; }
+        .btn-premium-gold:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(194,65,12, 0.4); filter: brightness(1.1); }
 
         .btn-main-glass { width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 13px; }
         .btn-main-glass.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
@@ -295,8 +294,8 @@ export default function HierarchicalLedgerPage() {
           background: white;
         }
 
-        .acc-row:hover { border-color: ${THEME.goldAccent}; transform: translateY(-1px); box-shadow: 0 5px 15px rgba(197, 160, 89, 0.1); }
-        .acc-row.selected { background: rgba(197, 160, 89, 0.05); border-color: ${THEME.goldAccent}; }
+        .acc-row:hover { border-color: ${THEME.goldAccent}; transform: translateY(-1px); box-shadow: 0 5px 15px rgba(194,65,12, 0.1); }
+        .acc-row.selected { background: rgba(194,65,12, 0.05); border-color: ${THEME.goldAccent}; }
 
         .entry-line { 
           background: #f8fafc; margin: 4px 20px 8px 60px; padding: 12px 20px; 

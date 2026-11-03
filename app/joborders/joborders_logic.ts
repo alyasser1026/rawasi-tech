@@ -351,7 +351,7 @@ export function useJobOrdersLogic() {
         handleCompleteSelected: () => changeStatusMutation.mutate('مكتمل'), 
         handleSuspendSelected: () => changeStatusMutation.mutate('موقوف'), 
         handleDeleteSelected: () => {
-            const completed = orders.filter((o:any) => selectedIds.includes(String(o.id)) && o.status === 'مكتمل');
+            const completed = baseJobOrders.filter((o:any) => selectedIds.includes(String(o.id)) && o.status === 'مكتمل');
             if (completed.length > 0) {
                 return showToast("⚠️ لا يمكن حذف أوامر تشغيل مكتملة.", "error");
             }

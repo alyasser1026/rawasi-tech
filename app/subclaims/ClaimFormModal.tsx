@@ -87,15 +87,18 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
 
                 // 4. دمج البيانات وعرضها
                 const mapped = assignments.map((a: any) => {
-                    const real = (realAssignments || []).find(r => r.id === (a.assignment_id || a.id)) || {};
-                    const qty = Number(a.executed_qty || real.assigned_qty || a.assigned_qty || 0);
-                    const price = Number(a.contract_unit_price || real.unit_price || a.unit_price || 0);
+                    const real = (realAssignments || []).find(r => r.id === (a.assignment_id || a.id));
+                    const project = Array.isArray(real?.projects) ? real.projects[0] : real?.projects;
+                    const budget = Array.isArray(real?.boq_budget) ? real.boq_budget[0] : real?.boq_budget;
+                    const order = Array.isArray(real?.job_orders) ? real.job_orders[0] : real?.job_orders;
+                    const qty = Number(a.executed_qty || real?.assigned_qty || a.assigned_qty || 0);
+                    const price = Number(a.contract_unit_price || real?.unit_price || a.unit_price || 0);
                     return {
                         ...a,
                         calc_gross: qty * price,
-                        real_project_name: real.projects?.Property || a.projects?.Property || 'عقار غير محدد',
-                        real_item_name: real.boq_budget?.work_item || a.boq_item_name || 'بند غير محدد',
-                        real_order_number: real.job_orders?.order_number || a.order_number || 'JO-XXX'
+                        real_project_name: project?.Property || a.projects?.Property || 'عقار غير محدد',
+                        real_item_name: budget?.work_item || a.boq_item_name || 'بند غير محدد',
+                        real_order_number: order?.order_number || a.order_number || 'JO-XXX'
                     };
                 });
 
@@ -161,8 +164,8 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
             <style>{`
                 .warm-portal-overlay-fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: radial-gradient(circle at center, rgba(40, 24, 10, 0.4) 0%, rgba(15, 7, 0, 0.9) 100%) !important; backdrop-filter: blur(20px) !important; display: flex !important; align-items: center !important; justify-content: center !important; z-index: 999999999 !important; }
                 .glass-input-field { width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; transition: 0.2s; font-weight: 700; color: #1e293b; text-align: center; }
-                .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#d4af37'}; box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15); }
-                .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent || '#d4af37'}, ${THEME.coffeeDark || '#2d1a11'}); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3); }
+                .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#ea580c'}; box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15); }
+                .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent || '#ea580c'}, ${THEME.coffeeDark || '#2d1a11'}); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3); }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
                 .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; }
             `}</style>
@@ -175,14 +178,14 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                     </div>
                 )}
 
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.goldAccent || '#d4af37'}50`, paddingBottom:'15px'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.goldAccent || '#ea580c'}50`, paddingBottom:'15px'}}>
                     <div>
                         <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '26px' }}>🧾 إصدار مستخلص مقاول باطن</h2>
                         <div style={{ fontSize: '13px', color: '#64748b', marginTop: '5px', fontWeight: 800 }}>المقاول: {logic.selectedContractor?.name}</div>
                     </div>
                     <div style={{ textAlign: 'left' }}>
                         <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 900 }}>الصافي النهائي للصرف</div>
-                        <div style={{ color: THEME.goldAccent || '#d4af37', fontWeight: 900, fontSize: '28px' }}>{formatCurrency(netAmount)}</div>
+                        <div style={{ color: THEME.goldAccent || '#ea580c', fontWeight: 900, fontSize: '28px' }}>{formatCurrency(netAmount)}</div>
                     </div>
                 </div>
 
@@ -285,8 +288,8 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                         <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>إجمالي الاستقطاعات والخصومات</div>
                         <div style={{ fontSize: '20px', fontWeight: 900, color: '#fca5a5' }}>{formatCurrency(totalDeductions)}</div>
                     </div>
-                    <div style={{ background: `linear-gradient(135deg, ${THEME.goldAccent || '#d4af37'}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.goldAccent || '#d4af37'}80`, boxShadow: `0 0 20px ${THEME.goldAccent || '#d4af37'}20` }}>
-                        <div style={{ fontSize: '12px', fontWeight: 900, color: THEME.goldAccent || '#d4af37' }}>الصافي المستحق للصرف</div>
+                    <div style={{ background: `linear-gradient(135deg, ${THEME.goldAccent || '#ea580c'}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.goldAccent || '#ea580c'}80`, boxShadow: `0 0 20px ${THEME.goldAccent || '#ea580c'}20` }}>
+                        <div style={{ fontSize: '12px', fontWeight: 900, color: THEME.goldAccent || '#ea580c' }}>الصافي المستحق للصرف</div>
                         <div style={{ fontSize: '24px', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(netAmount)}</div>
                     </div>
                 </div>

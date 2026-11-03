@@ -192,7 +192,7 @@ export default function AddExpenseModal({ visible, onClose, initialData, onSave,
         <View style={styles.modalContainer}>
           <View style={styles.header}>
             <View style={styles.titleContainer}>
-              <Ionicons name={record.id ? "create" : "add-circle"} size={28} color="#ca8a04" />
+              <Ionicons name={record.id ? "create" : "add-circle"} size={28} color="#c2410c" />
               <Text style={styles.title}>{record.id ? 'تعديل المصروف' : 'إنشاء مصروف جديد'}</Text>
             </View>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
@@ -285,7 +285,7 @@ export default function AddExpenseModal({ visible, onClose, initialData, onSave,
                   <Image source={{ uri: record.invoice_image }} style={styles.previewImage} />
                 ) : (
                   <View style={{alignItems: 'center'}}>
-                    <Ionicons name="camera-outline" size={32} color="#ca8a04" />
+                    <Ionicons name="camera-outline" size={32} color="#c2410c" />
                     <Text style={styles.imagePickerText}>انقر لالتقاط صورة للفاتورة أو إرفاقها</Text>
                   </View>
                 )}
@@ -424,7 +424,7 @@ const styles = StyleSheet.create({
   selectorBtn: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#ffffff', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 14 },
   selectorText: { fontSize: 13, fontWeight: '700', color: '#1e293b', flex: 1, textAlign: 'right' },
   
-  imagePickerBtn: { backgroundColor: '#fefce8', borderWidth: 1, borderColor: '#ca8a04', borderStyle: 'dashed', borderRadius: 16, height: 120, justifyContent: 'center', alignItems: 'center', marginVertical: 10, overflow: 'hidden' },
+  imagePickerBtn: { backgroundColor: '#fefce8', borderWidth: 1, borderColor: '#c2410c', borderStyle: 'dashed', borderRadius: 16, height: 120, justifyContent: 'center', alignItems: 'center', marginVertical: 10, overflow: 'hidden' },
   imagePickerText: { marginTop: 10, fontSize: 13, fontWeight: '800', color: '#854d0e' },
   previewImage: { width: '100%', height: '100%', resizeMode: 'cover' },
   removeImgBtn: { alignSelf: 'center', marginBottom: 10 },
@@ -445,10 +445,10 @@ const styles = StyleSheet.create({
   totalRowFinal: { alignItems: 'center', borderRightWidth: 1, borderRightColor: '#cbd5e1', paddingRight: 15 },
   totalLbl: { fontSize: 11, fontWeight: '800', color: '#64748b', marginTop: 4 },
   totalVal: { fontSize: 14, fontWeight: '900', color: '#1e293b' },
-  finalLbl: { fontSize: 12, fontWeight: '900', color: '#ca8a04', marginTop: 4 },
-  finalVal: { fontSize: 18, fontWeight: '900', color: '#ca8a04' },
+  finalLbl: { fontSize: 12, fontWeight: '900', color: '#c2410c', marginTop: 4 },
+  finalVal: { fontSize: 18, fontWeight: '900', color: '#c2410c' },
   
-  saveBtn: { backgroundColor: '#ca8a04', paddingVertical: 16, borderRadius: 16, alignItems: 'center', shadowColor: '#ca8a04', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
+  saveBtn: { backgroundColor: '#c2410c', paddingVertical: 16, borderRadius: 16, alignItems: 'center', shadowColor: '#c2410c', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 5 },
   saveBtnText: { color: '#ffffff', fontSize: 18, fontWeight: '900' },
 
   selectorOverlay: { flex: 1, backgroundColor: '#f8fafc' },

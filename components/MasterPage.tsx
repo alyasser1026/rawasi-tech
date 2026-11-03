@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom'; 
 import { THEME } from '@/lib/theme';
+import { getSectionStyle } from '@/lib/section-colors';
 import { supabase } from '@/lib/supabase';
 import NotificationsModal from './NotificationsModal';
 import Link from 'next/link';
@@ -94,19 +95,19 @@ export default function MasterPage({ title, subtitle, children, headerContent, i
             display: flex; align-items: center; gap: 15px; 
             padding: 10px 18px; border-radius: 22px; 
             background: rgba(255, 255, 255, 0.6); cursor: pointer; transition: 0.3s; 
-            border: 1px solid rgba(197, 160, 89, 0.2); 
+            border: 1px solid rgba(194,65,12, 0.2);
             box-shadow: 0 5px 15px rgba(0,0,0,0.02);
         }
         .imperial-trigger:hover { 
             background: white; 
             transform: translateY(-3px) scale(1.02); 
-            border-color: #C5A059; 
-            box-shadow: 0 15px 40px rgba(197, 160, 89, 0.18); 
+            border-color: #c2410c;
+            box-shadow: 0 15px 40px rgba(194,65,12, 0.18);
         }
 
         .u-info-text { display: flex; flex-direction: column; text-align: right; margin-right: 5px; }
         .u-name { font-size: 19px; font-weight: 900; color: #1e293b; letter-spacing: -0.3px; line-height: 1.2; }
-        .u-role { font-size: 13px; font-weight: 800; color: #C5A059; margin-top: 4px; }
+        .u-role { font-size: 13px; font-weight: 800; color: #c2410c; margin-top: 4px; }
 
         .avatar-frame { position: relative; width: 85px; height: 85px; }
         .avatar-frame img { width: 100%; height: 100%; border-radius: 50%; border: 4px solid white; object-fit: cover; box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
@@ -122,7 +123,7 @@ export default function MasterPage({ title, subtitle, children, headerContent, i
         @keyframes supremeShow { from { opacity: 0; transform: translateY(-10px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
         .drop-item { display: flex; align-items: center; gap: 10px; padding: 10px 15px; border-radius: 12px; font-size: 13px; font-weight: 800; color: #475569; cursor: pointer; transition: 0.2s; direction: rtl; }
-        .drop-item:hover { background: #f8fafc; color: #C5A059; }
+        .drop-item:hover { background: #f8fafc; color: #c2410c; }
         .drop-item.logout { color: #ef4444; border-top: 1px solid #f1f5f9; margin-top: 5px; border-radius: 0 0 12px 12px; }
         .drop-item.logout:hover { background: #fef2f2; }
 
@@ -186,6 +187,7 @@ export default function MasterPage({ title, subtitle, children, headerContent, i
       `}</style>
 
       <header className="master-header" style={{
+            ...getSectionStyle(pathname),
             padding: '20px 25px', 
             background: 'linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 100%)',
             backdropFilter: 'blur(20px)',
@@ -210,7 +212,7 @@ export default function MasterPage({ title, subtitle, children, headerContent, i
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
               <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 900, color: '#1e293b', letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{title}</h1>
-              <p style={{ margin: 0, fontSize: '15px', color: '#64748b', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subtitle || 'نظام رواسي لإدارة الموارد المؤسسية'}</p>
+              <p style={{ margin: 0, fontSize: '15px', color: '#64748b', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{subtitle || 'نظام فاي تك لإدارة الموارد المؤسسية'}</p>
           </div>
         </div>
 
@@ -252,7 +254,7 @@ export default function MasterPage({ title, subtitle, children, headerContent, i
               </span>
             </div>
             <div className="avatar-frame">
-              <img src={userProfile?.avatar_url || `https://ui-avatars.com/api/?name=${userProfile?.full_name || 'U'}&background=C5A059&color=fff&bold=true`} alt="Avatar" />
+              <img src={userProfile?.avatar_url || `https://ui-avatars.com/api/?name=${userProfile?.full_name || 'U'}&background=f4f4f5&color=27272a&bold=true`} alt="Avatar" />
               <div className="active-dot"></div>
             </div>
           </div>

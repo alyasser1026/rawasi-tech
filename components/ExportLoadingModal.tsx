@@ -32,7 +32,7 @@ export default function ExportLoadingModal({ isOpen, progressText }: ExportLoadi
             
             <div className="live-preview-header">
                 <div className="pulse-icon">🖨️</div>
-                <h2>نظام رواسي اليسر الماسي</h2>
+                <h2>نظام فاي تك الماسي</h2>
                 <p className="progress-text">{progressText || 'جاري تهيئة محرك الطباعة...'}</p>
                 
                 <div className="progress-bar-container">
@@ -60,18 +60,18 @@ export default function ExportLoadingModal({ isOpen, progressText }: ExportLoadi
                 .pulse-icon { font-size: 50px; animation: pulse 1.5s infinite; margin-bottom: 10px; }
                 @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
                 
-                .live-preview-header h2 { color: #c5a059; margin: 0 0 10px 0; font-size: 24px; font-weight: 900; }
+                .live-preview-header h2 { color: #c2410c; margin: 0 0 10px 0; font-size: 24px; font-weight: 900; }
                 .progress-text { color: #0ea5e9; font-size: 16px; font-weight: bold; background: rgba(14, 165, 233, 0.1); padding: 10px 20px; border-radius: 8px; border: 1px dashed rgba(14, 165, 233, 0.3); display: inline-block; margin: 0; }
                 
                 .progress-bar-container { width: 100%; height: 10px; background: rgba(255,255,255,0.1); border-radius: 10px; margin: 15px 0; overflow: hidden; }
-                .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #c5a059, #fde08b); transition: width 0.3s ease; }
+                .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #c2410c, #fde08b); transition: width 0.3s ease; }
                 
                 .warning { color: #8a7a6b; font-size: 13px; font-weight: bold; }
 
                 /* مساحة العمل التي سيرسم فيها الكشف (محاكاة شكل البرنامج) */
                 .live-preview-workspace {
                     background: #eaddcf; padding: 20px; border-radius: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);
-                    width: 840px; max-width: 100%; overflow-x: auto; border: 2px solid rgba(197, 160, 89, 0.3);
+                    width: 840px; max-width: 100%; overflow-x: auto; border: 2px solid rgba(194,65,12, 0.3);
                 }
                 .a4-render-area {
                     width: 800px; min-height: 1123px; background: white; margin: 0 auto; box-shadow: 0 5px 15px rgba(0,0,0,0.2);

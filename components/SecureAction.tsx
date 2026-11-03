@@ -29,13 +29,13 @@ export default function SecureAction({ module, action, children, fallback = null
         return (
             <>
                 {React.Children.map(content, child => {
-                    if (React.isValidElement(child)) {
-                        return React.cloneElement(child as any, {
+                    if (React.isValidElement<{ onClick?: React.MouseEventHandler }>(child)) {
+                        return React.cloneElement(child, {
                             onClick: (e: any) => {
                                 e.preventDefault();
                                 e.stopPropagation();
                                 // نحفظ الدالة الأصلية والحدث لنمررهم لاحقاً
-                                setOriginalOnClick(() => child.props.onClick);
+                                setOriginalOnClick(() => child.props.onClick || null);
                                 setPendingEvent(e);
                                 setShowDeleteConfirm(true);
                             }

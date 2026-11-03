@@ -7,6 +7,7 @@ interface SidebarProps {
     actions?: React.ReactNode;
     customFilters?: React.ReactNode; 
     onSearch?: (term: string) => void;
+    placeholder?: string;
     onDateFilter?: (start: string, end: string) => void;
     watchDeps?: any[]; 
 }
@@ -16,6 +17,7 @@ export default function RawasiSidebarManager({
     actions, 
     customFilters, 
     onSearch, 
+    placeholder,
     onDateFilter, 
     watchDeps = [] 
 }: SidebarProps) {
@@ -33,9 +35,9 @@ export default function RawasiSidebarManager({
     }
 
     useEffect(() => {
-        setSidebarContent({ summary, actions, customFilters });
+        setSidebarContent({ summary, actions, customFilters, searchPlaceholder: placeholder });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [trigger.current, setSidebarContent]); 
+    }, [trigger.current, setSidebarContent, placeholder]);
 
     useEffect(() => {
         return () => {

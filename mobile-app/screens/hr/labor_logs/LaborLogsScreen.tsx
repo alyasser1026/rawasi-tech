@@ -65,7 +65,7 @@ export default function LaborLogsScreen({ navigation }: any) {
     return (
       <TouchableOpacity style={{ flex: 1 }} onPress={() => setFilterStatus(label)}>
         <LinearGradient 
-          colors={isActive ? ['#ca8a04', '#a16207'] : ['#f1f5f9', '#f1f5f9']} 
+          colors={isActive ? ['#c2410c', '#a16207'] : ['#f1f5f9', '#f1f5f9']}
           style={styles.filterBtn}
         >
           <Text style={[styles.filterBtnText, isActive && styles.filterBtnTextActive]}>{label}</Text>
@@ -110,7 +110,7 @@ export default function LaborLogsScreen({ navigation }: any) {
       >
         {isSelected && (
           <View style={styles.selectedOverlay}>
-            <Ionicons name="checkmark-circle" size={24} color="#ca8a04" />
+            <Ionicons name="checkmark-circle" size={24} color="#c2410c" />
           </View>
         )}
 
@@ -281,7 +281,7 @@ export default function LaborLogsScreen({ navigation }: any) {
         keyExtractor={(item) => item.id!}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ca8a04" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#c2410c" />}
         ListEmptyComponent={
           !loading ? (
             <View style={{ alignItems: 'center', marginTop: 50 }}>
@@ -306,7 +306,7 @@ export default function LaborLogsScreen({ navigation }: any) {
       />
 
       <TouchableOpacity style={styles.fab} onPress={handleAdd}>
-        <LinearGradient colors={['#ca8a04', '#854d0e']} style={styles.fabGradient}>
+        <LinearGradient colors={['#c2410c', '#854d0e']} style={styles.fabGradient}>
           <Ionicons name="add" size={32} color="#ffffff" />
         </LinearGradient>
       </TouchableOpacity>
@@ -326,7 +326,7 @@ const styles = StyleSheet.create({
   
   /* 🌟 Advanced Filters Styles */
   filterToggleBtn: { padding: 10, paddingHorizontal: 12, borderRadius: 12, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center' },
-  filterToggleBtnActive: { backgroundColor: '#ca8a04' },
+  filterToggleBtnActive: { backgroundColor: '#c2410c' },
   advancedFilters: { backgroundColor: '#ffffff', padding: 15, paddingTop: 5, borderBottomWidth: 1, borderBottomColor: '#f1f5f9' },
   searchRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', gap: 10, marginBottom: 10 },
   searchInputWrapper: { flex: 1, flexDirection: 'row-reverse', alignItems: 'center', backgroundColor: '#f8fafc', borderWidth: 1, borderColor: '#e2e8f0', borderRadius: 10, paddingHorizontal: 10 },
@@ -348,10 +348,10 @@ const styles = StyleSheet.create({
   bulkBtn: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   listContent: { padding: 15, paddingBottom: 120 },
   card: { backgroundColor: '#ffffff', borderRadius: 16, padding: 18, marginBottom: 15, borderWidth: 1, borderColor: '#e2e8f0', borderRightWidth: 5, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2, position: 'relative' },
-  cardSelected: { borderColor: '#ca8a04', backgroundColor: '#fefce8' },
+  cardSelected: { borderColor: '#c2410c', backgroundColor: '#fefce8' },
   selectedOverlay: { position: 'absolute', top: -10, left: -10, backgroundColor: '#fff', borderRadius: 15, padding: 2, zIndex: 10, elevation: 5 },
   cardHeader: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-  workerName: { fontSize: 17, fontWeight: '900', color: '#43342e', flex: 1, textAlign: 'right' },
+  workerName: { fontSize: 17, fontWeight: '900', color: '#27272a', flex: 1, textAlign: 'right' },
   badgeContainer: { flexDirection: 'row-reverse', alignItems: 'center', gap: 8 },
   statusBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   statusText: { fontSize: 11, fontWeight: '900' },
@@ -367,6 +367,6 @@ const styles = StyleSheet.create({
   footerLabel: { fontSize: 12, fontWeight: '800', color: '#94a3b8', marginBottom: 4 },
   footerVal: { fontSize: 16, fontWeight: '900', color: '#1e293b' },
   footerValWage: { fontSize: 16, fontWeight: '900', color: '#059669' },
-  fab: { position: 'absolute', bottom: 30, right: 30, borderRadius: 30, overflow: 'hidden', shadowColor: '#ca8a04', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 8 },
+  fab: { position: 'absolute', bottom: 30, right: 30, borderRadius: 30, overflow: 'hidden', shadowColor: '#c2410c', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.4, shadowRadius: 10, elevation: 8 },
   fabGradient: { width: 64, height: 64, justifyContent: 'center', alignItems: 'center' }
 });

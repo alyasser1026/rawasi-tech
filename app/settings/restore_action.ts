@@ -439,7 +439,7 @@ export async function processExcelInBackend(formData: FormData) {
         }
 
         return { data: finalRow, excelRow: excelRowNumber, rawData: row };
-      }).filter(Boolean);
+      }).filter((item): item is NonNullable<typeof item> => item !== null);
 
       for (let i = 0; i < cleanDataWithRows.length; i += CHUNK_SIZE) {
           const chunkWrapper = cleanDataWithRows.slice(i, i + CHUNK_SIZE);

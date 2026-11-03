@@ -104,7 +104,7 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
                         <h1 style={{ fontSize: '18px', fontWeight: 900, color: THEME.primary, margin: '0 0 4px 0' }}>مؤسسة طفله عبد الله السبيعي للمقاولات</h1>
                         <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>الرقم الضريبي: ٣١٢٤٨٧٤٧٧٨٠٠٠٠٣</div>
                     </div>
-                    <div className="header-logo"><img src="/in-Logo.png" alt="شعار الشركة" /></div>
+                    <div className="header-logo"><img src="/company-logo.svg" alt="شعار الشركة" /></div>
                 </div>
 
                 <div className="inv-title-box">

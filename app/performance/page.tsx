@@ -46,7 +46,7 @@ export default function PerformancePage() {
                         </div>
 
                         {/* 📦 الإنتاجية المنجزة vs المطلوبة */}
-                        <div style={{ background: 'rgba(197, 160, 89, 0.05)', padding: '30px', borderRadius: '25px', textAlign: 'center', border: `2px solid ${THEME.goldAccent}50` }}>
+                        <div style={{ background: 'rgba(194,65,12, 0.05)', padding: '30px', borderRadius: '25px', textAlign: 'center', border: `2px solid ${THEME.goldAccent}50` }}>
                             <div style={{ fontSize: '50px', marginBottom: '15px' }}>🏗️</div>
                             <p style={{ margin: 0, fontSize: '18px', color: THEME.goldAccent, fontWeight: 900 }}>الإنتاجية (المنجزة / المطلوبة)</p>
                             <div style={{ fontSize: '45px', fontWeight: 900, color: THEME.brand.coffee, direction: 'ltr', marginTop: '15px' }}>
@@ -73,7 +73,7 @@ export default function PerformancePage() {
                             <h4 style={{ color: THEME.accent, margin: '0 0 20px 0', fontSize: '18px', fontWeight: 900 }}>📋 تفصيل التقييم حسب البند</h4>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                 {(monthlyKPIs?.itemBreakdown || []).map((b: any, idx: number) => (
-                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '15px 20px', borderRadius: '15px', border: '1px solid rgba(197, 160, 89, 0.2)' }}>
+                                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '15px 20px', borderRadius: '15px', border: '1px solid rgba(194,65,12, 0.2)' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                             <div style={{ background: `rgba(${b.percentage >= 100 ? '16, 185, 129' : b.percentage >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.1)`, color: b.percentage >= 100 ? THEME.success : b.percentage >= 80 ? '#f59e0b' : THEME.danger, width: '50px', height: '50px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 900, fontSize: '16px' }}>
                                                 {b.percentage}%

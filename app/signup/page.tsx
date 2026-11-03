@@ -104,7 +104,7 @@ export default function SignUpPage() {
     };
 
     return (
-        <div style={{ 
+        <div className="phi-signup" style={{
             minHeight: '100vh', width: '100vw', display: 'grid', placeItems: 'center',
             background: THEME.brand.coffee, // ☕ تغيير الخلفية للون القهوة الرسمي
             fontFamily: "'Cairo', sans-serif", direction: 'rtl', 
@@ -173,8 +173,8 @@ export default function SignUpPage() {
                 <div style={{ textAlign: 'center', marginBottom: '40px' }}>
                     <div style={{ position: 'relative', width: '100px', height: '100px', margin: '0 auto 20px' }}>
                         <Image 
-                            src={THEME.logo} 
-                            alt="Rawasi Logo" fill 
+                            src="/phitech-symbol.svg"
+                            alt="شعار فاي تك" fill
                             style={{ objectFit: 'contain', filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.4))' }} 
                         />
                     </div>

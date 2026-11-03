@@ -403,7 +403,7 @@ export default function MaterialsPage() {
                     .child-table th { background: #475569; color: white; padding: 10px; font-size: 11px; font-weight: 900; }
                     .child-table td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; font-size: 12px; font-weight: 700; color: #334155; }
                     
-                    .arrow-icon { display: inline-block; transition: transform 0.2s; margin-left: 8px; color: ${THEME.goldAccent || '#ca8a04'}; font-size: 14px; }
+                    .arrow-icon { display: inline-block; transition: transform 0.2s; margin-left: 8px; color: ${THEME.goldAccent || '#c2410c'}; font-size: 14px; }
                     .arrow-expanded { transform: rotate(90deg); }
 
                     /* 🖨️ تنسيقات الطباعة */

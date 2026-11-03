@@ -40,7 +40,7 @@ export default function CostAllocationPage() {
                         <span style={{ fontWeight: 900, color: '#1e293b', fontSize: '12px' }}>
                             🏢 {row["اسم الفيلا المحمل عليها"] || 'عام/غير موزع'}
                         </span>
-                        <span style={{ fontSize: '10.5px', color: '#ca8a04', fontWeight: 800 }}>
+                        <span style={{ fontSize: '10.5px', color: '#c2410c', fontWeight: 800 }}>
                             📋 بند: {row["البند المحمل عليه"] || 'مصروف عام (لم يوجه لبند)'}
                         </span>
                     </div>

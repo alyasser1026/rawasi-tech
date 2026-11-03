@@ -197,7 +197,7 @@ export default function ManualJournalsPage() {
             </MasterPage>
 
             {mounted && isModalOpen && createPortal(
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(67, 52, 46, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', overflowY: 'auto' }} onClick={() => setIsModalOpen(false)}>
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(39,39,42, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', overflowY: 'auto' }} onClick={() => setIsModalOpen(false)}>
                     <div className="cinematic-scroll" onClick={e => e.stopPropagation()} style={{ background: '#ffffff', padding: '30px', borderRadius: '24px', width: '100%', maxWidth: '900px', direction: 'rtl', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', margin: 'auto' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '2px dashed #e2e8f0', paddingBottom: '15px' }}>
                             <h2 style={{ fontWeight: 900, fontSize: '22px', color: '#1e293b', margin: 0 }}>{editingVoucher ? 'تعديل سند التسوية ✏️' : 'سند تسوية جديد ➕'}</h2>
@@ -256,7 +256,7 @@ export default function ManualJournalsPage() {
                                     <SmartCombo 
                                         options={logic.state.projects || []}
                                         displayCol="Property"
-                                        initialDisplay={(logic.state.projects || []).find((p:any) => p.id === formData.project_id)?.Property || ''}
+                                        initialDisplay={(logic.state.projects || []).find(p => p.id === formData.project_id)?.name || ''}
                                         onSelect={(val: any) => setFormData({...formData, project_id: val?.id || ''})}
                                         placeholder="بدون مشروع"
                                     />

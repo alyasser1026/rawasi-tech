@@ -72,14 +72,14 @@ export default function VouchersScreen({ navigation }: any) {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#ca8a04" />
+          <ActivityIndicator size="large" color="#c2410c" />
         </View>
       ) : (
         <FlatList
           data={vouchers}
           keyExtractor={(item, index) => item.id || index.toString()}
           renderItem={renderItem}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ca8a04" />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#c2410c" />}
           contentContainerStyle={{ padding: 20, paddingBottom: 100 }}
           ListEmptyComponent={<Text style={styles.emptyText}>لا توجد سندات مسجلة</Text>}
         />
@@ -117,9 +117,9 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 24, fontWeight: '900', color: '#1e293b' },
   filtersContainer: { flexDirection: 'row-reverse', paddingHorizontal: 20, gap: 10, marginBottom: 10 },
   filterBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.7)', borderWidth: 1, borderColor: '#e2e8f0' },
-  filterBtnActive: { backgroundColor: 'rgba(202, 138, 4, 0.1)', borderColor: '#ca8a04' },
+  filterBtnActive: { backgroundColor: 'rgba(202, 138, 4, 0.1)', borderColor: '#c2410c' },
   filterText: { fontSize: 13, fontWeight: '800', color: '#64748b' },
-  filterTextActive: { color: '#ca8a04' },
+  filterTextActive: { color: '#c2410c' },
   card: { backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 16, padding: 16, marginBottom: 12 },
   headerRow: { flexDirection: 'row-reverse', alignItems: 'center', gap: 12 },
   iconContainer: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
   emptyText: { textAlign: 'center', color: '#94a3b8', marginTop: 50, fontSize: 14, fontWeight: '800' },
   fab: {
     position: 'absolute', bottom: 25, right: 25, width: 60, height: 60, borderRadius: 30,
-    backgroundColor: '#ca8a04', justifyContent: 'center', alignItems: 'center',
-    shadowColor: '#ca8a04', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8
+    backgroundColor: '#c2410c', justifyContent: 'center', alignItems: 'center',
+    shadowColor: '#c2410c', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8
   }
 });

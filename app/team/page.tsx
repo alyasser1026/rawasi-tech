@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { adminUsersRequest } from '@/lib/admin-api';
 import { THEME } from '@/lib/theme';
 import { useSidebar } from '@/lib/SidebarContext'; 
 import MasterPage from '@/components/MasterPage'; 
@@ -119,11 +120,7 @@ export default function TeamPage() {
 
         setIsLoading(true);
         try {
-            const res = await fetch('/api/admin/users', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action })
-            });
+            const res = await adminUsersRequest('PATCH', { action });
             const result = await res.json();
             if (!res.ok) throw new Error(result.error);
             alert(result.message);

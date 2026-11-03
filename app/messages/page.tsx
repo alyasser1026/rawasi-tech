@@ -85,7 +85,7 @@ export default function MessagesPage() {
                 {/* Chat Area */}
                 <div style={{ flex: 1, background: 'white', borderRadius: '20px', border: `1px solid ${THEME.border}`, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', overflow: 'hidden', position: 'relative' }}>
                     {/* Background Pattern */}
-                    <div style={{ position: 'absolute', inset: 0, opacity: 0.03, pointerEvents: 'none', backgroundImage: 'radial-gradient(#43342e 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+                    <div style={{ position: 'absolute', inset: 0, opacity: 0.03, pointerEvents: 'none', backgroundImage: 'radial-gradient(#27272a 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                     
                     {activeUserId ? (
                         <>

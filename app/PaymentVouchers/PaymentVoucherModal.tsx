@@ -276,6 +276,7 @@ export default function PaymentVoucherModal({
                         إلغاء
                     </button>
                     <button 
+                        id="payment-save-button"
                         onClick={() => onSave(record)} 
                         disabled={isSaving || amountToPay <= 0} 
                         style={{ 

@@ -10,7 +10,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 
 const THEME = {
   primary: '#0f172a',    
-  accent: '#ca8a04',     
+  accent: '#c2410c',
   success: '#059669',    
   ruby: '#e11d48',       
   slate: '#f8fafc',
@@ -26,7 +26,7 @@ export default function PayrollPage() {
     <button 
       key="sync_labor"
       onClick={logic.importLaborLogs} 
-      disabled={logic.isSaving}
+      disabled={logic.isSaving || logic.isLoading}
       style={{ padding: '12px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', fontWeight: '900', cursor: logic.isSaving ? 'not-allowed' : 'pointer', width: '100%', opacity: logic.isSaving ? 0.7 : 1, marginBottom: '8px', boxShadow: '0 4px 6px rgba(37,99,235,0.2)' }}
     >
       🔄 مزامنة (يوميات، غرامات، مسحوبات)
@@ -51,7 +51,7 @@ export default function PayrollPage() {
     <button 
       key="save_db"
       onClick={logic.savePayrollToDB} 
-      disabled={logic.isSaving}
+      disabled={logic.isSaving || logic.isLoading}
       style={{ padding: '12px', borderRadius: '8px', border: 'none', background: THEME.success, color: 'white', fontWeight: 'bold', cursor: logic.isSaving ? 'not-allowed' : 'pointer', width: '100%', opacity: logic.isSaving ? 0.7 : 1, marginBottom: '8px' }}
     >
       {logic.isSaving ? '⏳ جاري الحفظ...' : '💾 حفظ المسير بالسجلات'}
@@ -60,12 +60,16 @@ export default function PayrollPage() {
     <button 
       key="post_journal"
       onClick={logic.postToJournal} 
-      disabled={logic.isSaving}
+      disabled={logic.isSaving || logic.isLoading}
       style={{ padding: '12px', borderRadius: '8px', border: 'none', background: THEME.accent, color: 'white', fontWeight: 'bold', cursor: logic.isSaving ? 'not-allowed' : 'pointer', width: '100%', opacity: logic.isSaving ? 0.7 : 1 }}
     >
-      📝 ترحيل لليومية العامة
+      📝 ترحيل الرواتب الشهرية المختارة
+    </button>,
+    <button key="unpost_payroll" onClick={logic.unpostFromJournal} disabled={logic.isSaving || logic.isLoading}
+      style={{ padding: '12px', borderRadius: '8px', border: '1px solid #f59e0b', background: 'white', color: '#92400e', fontWeight: 'bold', width: '100%', marginTop: '8px', cursor: 'pointer' }}>
+      ↩️ فك ترحيل الرواتب الشهرية المختارة
     </button>
-  ], [logic.isSaving, logic.importLaborLogs, logic.exportToExcel, logic.savePayrollToDB, logic.postToJournal]);
+  ], [logic.isSaving, logic.isLoading, logic.importLaborLogs, logic.exportToExcel, logic.savePayrollToDB, logic.postToJournal, logic.unpostFromJournal]);
 
   const columns = useMemo(() => [
     {
@@ -92,6 +96,7 @@ export default function PayrollPage() {
           <input 
             type="number" 
             value={row.base_rate === 0 ? '' : row.base_rate} 
+            disabled={row.type !== 'موظف' || row.is_posted}
             onChange={e => logic.updateRecord(row.id, 'base_rate', e.target.value)}
             style={{ width: '70px', textAlign: 'center', border: `1px solid ${THEME.border}`, borderRadius: '6px', padding: '4px', fontWeight: 'bold' }}
           />
@@ -106,7 +111,7 @@ export default function PayrollPage() {
         return (
           <input 
             type="number" 
-            disabled={row.type !== 'عامل يومية'}
+            readOnly
             value={row.days_worked === 0 ? '' : row.days_worked} 
             onChange={e => logic.updateRecord(row.id, 'days_worked', e.target.value)}
             style={{ width: '60px', textAlign: 'center', border: `1px solid ${THEME.border}`, borderRadius: '6px', padding: '4px', fontWeight: 'bold', opacity: row.type !== 'عامل يومية' ? 0.4 : 1 }}
@@ -123,6 +128,7 @@ export default function PayrollPage() {
           <input 
             type="number" 
             value={row.allowances === 0 ? '' : row.allowances} 
+            disabled={row.type !== 'موظف' || row.is_posted}
             onChange={e => logic.updateRecord(row.id, 'allowances', e.target.value)}
             style={{ width: '70px', textAlign: 'center', color: THEME.success, border: `1px solid ${THEME.border}`, borderRadius: '6px', padding: '4px', fontWeight: 'bold' }}
           />
@@ -138,6 +144,8 @@ export default function PayrollPage() {
           <input 
             type="number" 
             value={row.deductions === 0 ? '' : row.deductions} 
+            readOnly
+            title="الجزاءات المرحلة من شاشة الجزاءات"
             onChange={e => logic.updateRecord(row.id, 'deductions', e.target.value)}
             style={{ width: '70px', textAlign: 'center', color: THEME.ruby, border: `1px solid ${THEME.border}`, borderRadius: '6px', padding: '4px', fontWeight: 'bold' }}
           />
@@ -190,6 +198,7 @@ export default function PayrollPage() {
             type="number" 
             placeholder="0"
             value={row.amount_to_pay === 0 ? '' : row.amount_to_pay} 
+            disabled={row.type !== 'موظف' || row.is_posted}
             onChange={e => logic.updateRecord(row.id, 'amount_to_pay', e.target.value)}
             style={{ width: '85px', textAlign: 'center', color: THEME.success, border: `2px solid ${THEME.success}`, borderRadius: '6px', padding: '4px', fontWeight: '900', background: '#ecfdf5' }}
           />
@@ -217,6 +226,7 @@ export default function PayrollPage() {
         return (
           <select 
              value={row.status || 'غير مدفوع'} 
+             disabled={row.type !== 'موظف' || row.is_posted}
              onChange={e => logic.updateRecord(row.id, 'status', e.target.value)}
              style={{ border: `1px solid ${THEME.border}`, borderRadius: '6px', padding: '4px', fontWeight: 'bold', color: row.status === 'مدفوع' ? THEME.success : THEME.textMuted }}
           >
@@ -241,6 +251,9 @@ export default function PayrollPage() {
       title="مسير الرواتب والأجور"
       description={`إدارة ومراجعة رواتب ويوميات الكوادر واعتمادها المالي - شهر (${logic.selectedMonth} / ${logic.selectedYear})`}
     >
+      <p className="no-print" style={{ color: THEME.textMuted, marginBottom: '12px', lineHeight: 1.8 }}>
+        الحفظ والترحيل للموظفين الشهريين ضمن الصفوف المعروضة فقط. اليوميات والسلف والجزاءات تُرحّل من شاشاتها وتظهر هنا للمراجعة.
+      </p>
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -318,15 +331,17 @@ export default function PayrollPage() {
             </div>
           </div>
 
+          <input type="search" placeholder="ابحث باسم الموظف أو المهنة..." value={logic.globalSearch}
+            onChange={e => logic.setGlobalSearch(e.target.value)} aria-label="البحث في المسير"
+            style={{ padding: '10px', width: '100%', marginBottom: '12px', border: `1px solid ${THEME.border}`, borderRadius: '8px' }} />
           <RawasiSmartTable 
             data={logic.filteredRecords} 
             columns={columns} 
-            searchPlaceholder="ابحث باسم الموظف أو المهنة..."
-            onSearch={(term: string) => logic.setGlobalSearch(term)}
           />
         </div>
 
-        <RawasiSidebarManager actions={sidebarActions} />
+        <RawasiSidebarManager actions={sidebarActions}
+          watchDeps={[logic.isSaving, logic.isLoading, logic.selectedMonth, logic.selectedYear, logic.cutoffDate, logic.filteredRecords]} />
         
       </div>
 
@@ -334,10 +349,10 @@ export default function PayrollPage() {
          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '20px', marginBottom: '25px' }}>
             <div>
                
-               <p style={{ margin: '8px 0 0 0', fontWeight: 700, fontSize: '14px', color: THEME.textMuted }}>شركة رواسي اليسر للمقاولات | عن شهر ({logic.selectedMonth} / {logic.selectedYear})</p>
+               <p style={{ margin: '8px 0 0 0', fontWeight: 700, fontSize: '14px', color: THEME.textMuted }}>شركة فاي تك للمقاولات | عن شهر ({logic.selectedMonth} / {logic.selectedYear})</p>
                <p style={{ margin: '4px 0 0 0', fontWeight: 600, fontSize: '12px', color: THEME.ruby }}>تاريخ القطع للمسحوبات: {logic.cutoffDate}</p>
             </div>
-            <img src="/RYC_Logo.png" alt="Company Logo" style={{ height: '60px', objectFit: 'contain' }} />
+            <img src="/company-logo.svg" alt="Company Logo" style={{ height: '60px', objectFit: 'contain' }} />
          </div>
 
          <table className="print-table">

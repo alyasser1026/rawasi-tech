@@ -114,7 +114,7 @@ export function usePartnersLogic() {
 
   // 🗑️ دالة الحذف
   const handleDelete = async (id: string) => {
-    if (confirm('هل أنت متأكد من حذف هذا الكيان نهائياً من سجلات رواسي اليسر؟')) {
+    if (confirm('هل أنت متأكد من حذف هذا الكيان نهائياً من سجلات فاي تك؟')) {
       const { error } = await supabase.from('partners').delete().eq('id', id);
       if (error) alert('خطأ في الحذف: ' + error.message);
       else fetchPartners();
@@ -217,7 +217,7 @@ export function usePartnersLogic() {
 
   return {
     isLoading, searchTerm, setSearchTerm, filterType, setFilterType,
-    isAddModalOpen, setIsAddModalOpen: closeModal, handleEdit, openAddModal: () => setIsAddModalOpen(true), // 🚀 إضافة دالة الفتح المطلوبة للواجهة
+    isAddModalOpen, setIsAddModalOpen: (open: boolean) => open ? setIsAddModalOpen(true) : closeModal(), handleEdit, openAddModal: () => setIsAddModalOpen(true),
     newPartner, setNewPartner, isSaving, handleSavePartner,
     filteredPartners, stats, getTypeStyle, handleDelete, exportToExcel, handlePrint,
     selectedIds, setSelectedIds, editingId,

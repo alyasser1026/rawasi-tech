@@ -109,7 +109,7 @@ export function useManualJournalsLogic() {
             };
         }
         return {
-            amount: serverTotals?.totalAmount || 0
+            amount: serverTotals?.total || 0
         };
     }, [displayedJournals, serverTotals, globalSearch, dateFrom, dateTo, filterStatus, filterDebitAccount, filterCreditAccount]);
 

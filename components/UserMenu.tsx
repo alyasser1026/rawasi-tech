@@ -121,12 +121,12 @@ export default function UserCard() {
                     cursor: pointer; 
                     transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
                     box-shadow: 0 20px 50px rgba(0,0,0,0.1), 
-                                0 0 30px rgba(197, 160, 89, 0.15);
+                                0 0 30px rgba(194,65,12, 0.15);
                 }
                 .imperial-trigger:hover, .imperial-trigger.active { 
                     transform: scale(1.05); 
                     border-color: ${THEME.goldAccent};
-                    box-shadow: 0 30px 80px rgba(197, 160, 89, 0.25);
+                    box-shadow: 0 30px 80px rgba(194,65,12, 0.25);
                 }
                 
                 /* 👤 3. النصوص الملكية */
@@ -142,11 +142,11 @@ export default function UserCard() {
                 .u-badge-grand { 
                     font-size: 13px; font-weight: 900; 
                     color: white; 
-                    background: linear-gradient(135deg, #C5A059 0%, #8C6A5D 100%);
+                    background: linear-gradient(135deg, #c2410c 0%, #52525b 100%);
                     padding: 6px 15px; border-radius: 15px; 
                     margin-top: 6px; display: flex; align-items: center; gap: 8px;
                     width: fit-content; align-self: flex-end;
-                    box-shadow: 0 10px 20px rgba(140, 106, 93, 0.3);
+                    box-shadow: 0 10px 20px rgba(82,82,91, 0.3);
                 }
 
                 /* 📸 4. صورة الصقر */
@@ -185,7 +185,7 @@ export default function UserCard() {
                     backdrop-filter: blur(30px);
                     border-radius: 40px; padding: 25px;
                     box-shadow: 0 40px 100px rgba(0,0,0,0.3);
-                    border: 2px solid rgba(197, 160, 89, 0.2);
+                    border: 2px solid rgba(194,65,12, 0.2);
                     z-index: 100000; 
                     transform-origin: top left;
                     animation: supremeShow 0.6s cubic-bezier(0.68, -0.6, 0.32, 1.6);

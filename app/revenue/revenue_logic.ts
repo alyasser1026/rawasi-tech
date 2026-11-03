@@ -68,7 +68,7 @@ export function useRevenueLogic() {
             const guarantee = Number(curr.guarantee_amount) || 0;   // ضمان الأعمال المحتجز
             const netAmount = Number(curr.total_amount) || 0;       // الصافي المحقق (الكاش)
 
-            // حساب الربح الإجمالي (قبل محتجز الضمان) حسب معادلة رواسي
+            // حساب الربح الإجمالي (قبل محتجز الضمان) حسب معادلة فاي تك
             const currentGrossProfit = lineTotal - materialsDisc - taxAmount;
 
             return {

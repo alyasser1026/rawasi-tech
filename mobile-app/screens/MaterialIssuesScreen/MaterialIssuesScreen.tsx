@@ -101,7 +101,7 @@ export default function MaterialIssuesScreen({ navigation }: any) {
         <View style={styles.cardHeader}>
           <View style={{flexDirection: 'row-reverse', alignItems: 'center', gap: 10, flex: 1}}>
             <TouchableOpacity onPress={() => toggleSelection(item.id)}>
-              <Ionicons name={isSelected ? "checkbox" : "square-outline"} size={26} color={isSelected ? "#ca8a04" : "#cbd5e1"} />
+              <Ionicons name={isSelected ? "checkbox" : "square-outline"} size={26} color={isSelected ? "#c2410c" : "#cbd5e1"} />
             </TouchableOpacity>
             <Text style={styles.payeeName} numberOfLines={1}>{subName}</Text>
           </View>
@@ -143,7 +143,7 @@ export default function MaterialIssuesScreen({ navigation }: any) {
           <Ionicons name="chevron-forward" size={24} color="#1e293b" />
         </TouchableOpacity>
         <Text style={styles.title}>صرف المواد 📦</Text>
-        <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={[styles.backBtn, showFilters && {backgroundColor: '#ca8a04', borderColor: '#ca8a04'}]}>
+        <TouchableOpacity onPress={() => setShowFilters(!showFilters)} style={[styles.backBtn, showFilters && {backgroundColor: '#c2410c', borderColor: '#c2410c'}]}>
           <Ionicons name="options-outline" size={22} color={showFilters ? "#fff" : "#1e293b"} />
         </TouchableOpacity>
       </View>
@@ -190,7 +190,7 @@ export default function MaterialIssuesScreen({ navigation }: any) {
 
       <View style={styles.summaryContainer}>
         <TouchableOpacity style={styles.selectAllBtn} onPress={toggleSelectAll}>
-          <Ionicons name={selectedIds.length > 0 && selectedIds.length === filteredIssues.length ? "checkbox" : "square-outline"} size={24} color="#ca8a04" />
+          <Ionicons name={selectedIds.length > 0 && selectedIds.length === filteredIssues.length ? "checkbox" : "square-outline"} size={24} color="#c2410c" />
           <Text style={styles.selectAllText}>تحديد الكل</Text>
         </TouchableOpacity>
         <View style={styles.summarySeparator} />
@@ -217,7 +217,7 @@ export default function MaterialIssuesScreen({ navigation }: any) {
       )}
 
       {loading ? (
-        <ActivityIndicator size="large" color="#ca8a04" style={{ marginTop: 50 }} />
+        <ActivityIndicator size="large" color="#c2410c" style={{ marginTop: 50 }} />
       ) : (
         <FlatList
           data={filteredIssues}
@@ -266,9 +266,9 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, fontSize: 13, color: '#1e293b', textAlign: 'right' },
   filterLabel: { fontSize: 13, fontWeight: 'bold', color: '#475569', marginBottom: 6, textAlign: 'right' },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
-  chipActive: { backgroundColor: '#fef3c7', borderColor: '#ca8a04' },
+  chipActive: { backgroundColor: '#fef3c7', borderColor: '#c2410c' },
   chipText: { fontSize: 12, color: '#64748b', fontWeight: 'bold' },
-  chipTextActive: { color: '#ca8a04' },
+  chipTextActive: { color: '#c2410c' },
   clearFiltersBtn: { alignSelf: 'center', marginTop: 10, paddingVertical: 5 },
   clearFiltersText: { color: '#ef4444', fontSize: 13, fontWeight: 'bold' },
 
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
   summaryItem: { flex: 1, alignItems: 'center' },
   summarySeparator: { width: 1, height: '100%', backgroundColor: '#e2e8f0' },
   summaryLabel: { fontSize: 12, fontWeight: '800', color: '#64748b', marginBottom: 4 },
-  summaryValueWage: { fontSize: 16, fontWeight: '900', color: '#ca8a04' },
+  summaryValueWage: { fontSize: 16, fontWeight: '900', color: '#c2410c' },
   summaryValueCount: { fontSize: 16, fontWeight: '900', color: '#3b82f6' },
 
   bulkActions: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'center', padding: 15, backgroundColor: '#1e293b', marginHorizontal: 15, marginTop: 15, borderRadius: 16, elevation: 5 },
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
 
   listContainer: { padding: 15, paddingBottom: 100 },
   card: { backgroundColor: '#fff', borderRadius: 16, padding: 15, marginBottom: 15, borderWidth: 1, borderColor: '#e2e8f0', borderRightWidth: 4, shadowColor: '#000', shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 3 },
-  cardSelected: { backgroundColor: '#fefce8', borderColor: '#ca8a04' },
+  cardSelected: { backgroundColor: '#fefce8', borderColor: '#c2410c' },
   cardHeader: { flexDirection: 'row-reverse', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 },
   payeeName: { fontSize: 16, fontWeight: '900', color: '#1e293b', flex: 1 },
   statusBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8 },
@@ -301,8 +301,8 @@ const styles = StyleSheet.create({
   footerSeparator: { width: 1, height: 24, backgroundColor: '#e2e8f0' },
   footerLabel: { fontSize: 11, color: '#94a3b8', fontWeight: 'bold', marginBottom: 2 },
   footerVal: { fontSize: 13, color: '#334155', fontWeight: '800' },
-  footerValTotal: { fontSize: 14, color: '#ca8a04', fontWeight: '900' },
+  footerValTotal: { fontSize: 14, color: '#c2410c', fontWeight: '900' },
 
   emptyText: { textAlign: 'center', color: '#94a3b8', marginTop: 40, fontSize: 14 },
-  fab: { position: 'absolute', bottom: 25, left: 25, width: 60, height: 60, borderRadius: 30, backgroundColor: '#ca8a04', alignItems: 'center', justifyContent: 'center', shadowColor: '#ca8a04', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }
+  fab: { position: 'absolute', bottom: 25, left: 25, width: 60, height: 60, borderRadius: 30, backgroundColor: '#c2410c', alignItems: 'center', justifyContent: 'center', shadowColor: '#c2410c', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 8 }
 });

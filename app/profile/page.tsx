@@ -71,7 +71,7 @@ export default function EmployeeProfilePage() {
 
             case 'requests':
                 summary = (
-                    <div style={{ background: 'rgba(197, 160, 89, 0.1)', padding: '20px', borderRadius: '20px', textAlign: 'center', ...getBorderStyles('rgba(197, 160, 89, 0.3)') }}>
+                    <div style={{ background: 'rgba(194,65,12, 0.1)', padding: '20px', borderRadius: '20px', textAlign: 'center', ...getBorderStyles('rgba(194,65,12, 0.3)') }}>
                         <div style={{ fontSize: '30px', marginBottom: '10px' }}>📨</div>
                         <p style={{ margin: 0, fontSize: '13px', color: THEME.goldAccent, fontWeight: 900 }}>الطلبات المعلقة</p>
                         <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '28px', color: 'white' }}>{pReqs} <small style={{fontSize:'12px'}}>طلب</small></h3>
@@ -108,7 +108,7 @@ export default function EmployeeProfilePage() {
                                 <div style={{ margin: '5px 0 0 0', color: 'white', fontSize: '13px', fontWeight: 900 }}>{formatCurrency(totalDeductions)}</div>
                             </div>
                         </div>
-                        <div style={{ background: 'rgba(197, 160, 89, 0.2)', padding: '15px', borderRadius: '15px', textAlign: 'center', ...getBorderStyles(THEME.goldAccent) }}>
+                        <div style={{ background: 'rgba(194,65,12, 0.2)', padding: '15px', borderRadius: '15px', textAlign: 'center', ...getBorderStyles(THEME.goldAccent) }}>
                             <p style={{ margin: 0, fontSize: '11px', color: THEME.goldAccent, fontWeight: 900 }}>الصافي</p>
                             <h3 style={{ margin: '5px 0 0 0', color: 'white', fontSize: '22px' }}>{formatCurrency(nBal)}</h3>
                         </div>
@@ -126,7 +126,7 @@ export default function EmployeeProfilePage() {
                             <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '26px', color: 'white' }}>{performanceRate}%</h3>
                         </div>
                         {/* الإنتاجية */}
-                        <div style={{ background: 'rgba(197, 160, 89, 0.1)', padding: '15px', borderRadius: '15px', textAlign: 'center', ...getBorderStyles('rgba(197, 160, 89, 0.3)') }}>
+                        <div style={{ background: 'rgba(194,65,12, 0.1)', padding: '15px', borderRadius: '15px', textAlign: 'center', ...getBorderStyles('rgba(194,65,12, 0.3)') }}>
                             <p style={{ margin: 0, fontSize: '11px', color: THEME.goldAccent, fontWeight: 900 }}>إجمالي الإنتاجية المنجزة</p>
                             <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '20px', color: 'white' }}>{totalProd} <span style={{fontSize:'12px'}}>وحدة</span></h3>
                         </div>
@@ -142,7 +142,7 @@ export default function EmployeeProfilePage() {
 
             default:
                 summary = (
-                    <div style={{ background: 'rgba(197, 160, 89, 0.1)', padding: '20px', borderRadius: '20px', textAlign: 'center', ...getBorderStyles('rgba(197, 160, 89, 0.3)') }}>
+                    <div style={{ background: 'rgba(194,65,12, 0.1)', padding: '20px', borderRadius: '20px', textAlign: 'center', ...getBorderStyles('rgba(194,65,12, 0.3)') }}>
                         <div style={{ fontSize: '30px', marginBottom: '10px' }}>🏗️</div>
                         <p style={{ margin: 0, fontSize: '13px', color: THEME.goldAccent, fontWeight: 900 }}>الإنتاجية المحققة</p>
                         <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '28px', color: 'white' }}>{totalProd}</h3>
@@ -225,7 +225,7 @@ export default function EmployeeProfilePage() {
 
     if (isLoading) return <LoadingScreen message="جاري تحميل الملف الشخصي..." fullScreen={true} />;
 
-    const displayName = userProfile?.display_name || userProfile?.full_name || userProfile?.nickname || 'موظف رواسي';
+    const displayName = userProfile?.display_name || userProfile?.full_name || userProfile?.nickname || 'موظف فاي تك';
     const profession = userProfile?.profession || 'المسمى الوظيفي غير محدد';
     const usernamePhone = userProfile?.username || userProfile?.phone_number || '---';
     const avatarImg = userProfile?.avatar || userProfile?.avatar_url;
@@ -245,17 +245,17 @@ export default function EmployeeProfilePage() {
                 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(12px); display: flex; justify-content: center; align-items: center; z-index: 2000; animation: fadeIn 0.3s ease; }
                 .modal-box { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); width: 600px; padding: 40px; border-radius: 35px; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 25px 50px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
                 .sidebar-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; margin-bottom: 20px; outline: none; font-size: 13px; transition: 0.3s; }
-                .sidebar-input:focus { border-color: ${THEME.goldAccent}; background: rgba(197, 160, 89, 0.05); }
+                .sidebar-input:focus { border-color: ${THEME.goldAccent}; background: rgba(194,65,12, 0.05); }
                 .tab-btn { padding: 16px 25px; border: none; background: transparent; font-size: 14px; font-weight: 900; color: #64748b; cursor: pointer; transition: 0.3s; white-space: nowrap; border-radius: 16px; }
                 .tab-btn.active { color: white; background: ${THEME.primary}; box-shadow: 0 5px 15px rgba(15, 23, 42, 0.3); }
                 .tab-btn:hover:not(.active) { background: rgba(0,0,0,0.05); }
                 .card-base { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.8); border-radius: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 30px; }
                 .policy-paper { background: rgba(252, 250, 248, 0.85); backdrop-filter: blur(10px); padding: 45px; border-radius: 25px; border: 1px solid rgba(230, 213, 195, 0.5); line-height: 1.8; position: relative; color: ${THEME.coffeeDark}; }
-                .policy-paper::after { content: 'RYC'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 150px; color: rgba(0,0,0,0.02); pointer-events: none; }
+                .policy-paper::after { content: 'فاي تك'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 150px; color: rgba(0,0,0,0.02); pointer-events: none; }
                 .request-card { background: rgba(255,255,255,0.9); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); border-right: 6px solid ${THEME.goldAccent}; transition: 0.3s; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
                 .request-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
                 .btn-primary { background: ${THEME.goldAccent}; color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; }
-                .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(197, 160, 89, 0.3); }
+                .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(194,65,12, 0.3); }
                 .status-badge { padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 900; }
                 .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -406,7 +406,7 @@ export default function EmployeeProfilePage() {
                                     <div style={{ textAlign: 'center', padding: '30px', color: '#64748b', fontWeight: 800 }}>لا توجد حركات مالية مسجلة.</div>
                                 ) : (
                                     combinedStatement.slice(0, 5).map((line: any, i: number) => (
-                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0', borderBottom: '1px dashed rgba(197, 160, 89, 0.3)' }}>
+                                        <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0', borderBottom: '1px dashed rgba(194,65,12, 0.3)' }}>
                                             <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', flex: 1 }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                                     <span style={{ fontWeight: 900, color: THEME.brand.coffee, fontSize: '15px' }}>{line.dType}</span>
@@ -535,7 +535,7 @@ export default function EmployeeProfilePage() {
                                     </div>
 
                                     {/* 📦 الإنتاجية المنجزة vs المطلوبة */}
-                                    <div style={{ background: 'rgba(197, 160, 89, 0.05)', padding: '30px', borderRadius: '25px', textAlign: 'center', border: `2px solid ${THEME.goldAccent}50` }}>
+                                    <div style={{ background: 'rgba(194,65,12, 0.05)', padding: '30px', borderRadius: '25px', textAlign: 'center', border: `2px solid ${THEME.goldAccent}50` }}>
                                         <div style={{ fontSize: '50px', marginBottom: '15px' }}>🏗️</div>
                                         <p style={{ margin: 0, fontSize: '18px', color: THEME.goldAccent, fontWeight: 900 }}>الإنتاجية (المنجزة / المطلوبة)</p>
                                         <div style={{ fontSize: '45px', fontWeight: 900, color: THEME.brand.coffee, direction: 'ltr', marginTop: '15px' }}>
@@ -562,7 +562,7 @@ export default function EmployeeProfilePage() {
                                         <h4 style={{ color: THEME.accent, margin: '0 0 20px 0', fontSize: '18px', fontWeight: 900 }}>📋 تفصيل التقييم حسب البند</h4>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                             {(monthlyKPIs.itemBreakdown).map((b: any, idx: number) => (
-                                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '15px 20px', borderRadius: '15px', border: '1px solid rgba(197, 160, 89, 0.2)' }}>
+                                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '15px 20px', borderRadius: '15px', border: '1px solid rgba(194,65,12, 0.2)' }}>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                                         <div style={{ background: `rgba(${b.percentage >= 100 ? '16, 185, 129' : b.percentage >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.1)`, color: b.percentage >= 100 ? THEME.success : b.percentage >= 80 ? '#f59e0b' : THEME.danger, width: '50px', height: '50px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 900, fontSize: '16px' }}>
                                                             {b.percentage}%
@@ -611,7 +611,7 @@ export default function EmployeeProfilePage() {
                             <div className="policy-paper">
                                 <div style={{ textAlign: 'center', marginBottom: '40px', borderBottom: `3px double ${THEME.accent}`, paddingBottom: '25px' }}>
                                     <h2 style={{ margin: '0 0 5px 0', fontWeight: 900, fontSize: '28px', color: THEME.primary }}>لائحة تنظيم العمل والإنتاجية</h2>
-                                    <h4 style={{ margin: 0, color: THEME.accent, fontSize: '18px' }}>شركة رواسي اليسر للمقاولات العامة</h4>
+                                    <h4 style={{ margin: 0, color: THEME.accent, fontSize: '18px' }}>شركة فاي تك للمقاولات العامة</h4>
                                     <p style={{ fontSize: '13px', marginTop: '10px', color: '#94a3b8', fontWeight: 700 }}>مُصاغة وفقاً لنظام العمل السعودي</p>
                                 </div>
                                 <div style={{ display: 'grid', gap: '30px', position: 'relative', zIndex: 1 }}>
@@ -622,7 +622,7 @@ export default function EmployeeProfilePage() {
                                             <li>يُثبت الحضور حصراً عبر النظام الرقمي في الموقع الجغرافي للمشروع.</li>
                                         </ul>
                                     </section>
-                                    <section style={{ background: 'rgba(197, 160, 89, 0.05)', padding: '25px', borderRadius: '20px' }}>
+                                    <section style={{ background: 'rgba(194,65,12, 0.05)', padding: '25px', borderRadius: '20px' }}>
                                         <h4 style={{ color: THEME.accent, borderRight: `5px solid ${THEME.accent}`, paddingRight: '15px', marginBottom: '15px', fontSize: '18px' }}>👷 نظام العمالة والإنتاجية</h4>
                                         <ul style={{ paddingRight: '20px', fontSize: '15px', fontWeight: 700, color: '#475569', lineHeight: 1.8 }}>
                                             <li>لا تُعتمد اليومية كاملة إلا بتحقيق "الحد الأدنى للإنتاج" المتفق عليه.</li>
@@ -670,8 +670,7 @@ export default function EmployeeProfilePage() {
                                         <button 
                                             onClick={async () => {
                                                 if(updatePassword) {
-                                                    await updatePassword(tempPassword);
-                                                    setTempPassword(""); 
+                                                    if (await updatePassword(tempPassword)) setTempPassword("");
                                                 }
                                             }}
                                             style={{ flex: 2, padding: '14px', background: THEME.success, color: 'white', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', boxShadow: `0 8px 20px ${THEME.success}40` }}

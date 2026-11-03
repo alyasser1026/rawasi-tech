@@ -10,7 +10,7 @@ import {
   PieChart, Pie, Cell
 } from 'recharts';
 
-const COLORS = [THEME.goldAccent, THEME.primary, '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#d946ef'];
+const COLORS = [THEME.goldAccent, '#2563eb', '#059669', '#ca8a04', '#7c3aed', '#db2777', '#475569'];
 
 export default function DashboardPage() {
   const [mounted, setMounted] = useState(false);
@@ -34,12 +34,12 @@ export default function DashboardPage() {
   };
 
   return (
-    <MasterPage title="لوحة القيادة المركزية" subtitle="مراقبة الأداء التشغيلي والمالي - رواسي اليسر">
+    <MasterPage title="لوحة القيادة المركزية" subtitle="مراقبة الأداء التشغيلي والمالي - فاي تك">
       
       {logic.isLoading ? (
         <LoadingScreen message="جاري معالجة البيانات المالية..." subMessage="نقوم الآن بتجميع وتحليل البيانات من جميع الأقسام..." fullScreen={false} />
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '35px', animation: 'fadeUp 0.6s ease-out', paddingBottom: '50px' }}>
+        <div className="phi-dashboard" style={{ display: 'flex', flexDirection: 'column', gap: '35px', paddingBottom: '50px' }}>
           
           {/* 🏛️ القسم الأول: المركز المالي */}
           <div>
@@ -48,7 +48,7 @@ export default function DashboardPage() {
               <span style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', background: '#f1f5f9', padding: '6px 15px', borderRadius: '20px' }}>تحديث لحظي 🟢</span>
             </div>
             <div className="premium-grid-3">
-              <div className="premium-card" style={{ borderBottom: `4px solid #10b981` }}>
+              <div className="premium-card financial-stat assets">
                 <div className="card-header-flex">
                   <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #10b98120, #05966920)', color: '#10b981' }}>🏦</div>
                   <span className="trend-badge positive">أصول وممتلكات</span>
@@ -57,7 +57,7 @@ export default function DashboardPage() {
                 <h2 className="card-value gradient-text-green">{logic.formatCurrency(logic.stats?.totals?.totalAssets || 0)}</h2>
               </div>
 
-              <div className="premium-card" style={{ borderBottom: `4px solid #ef4444` }}>
+              <div className="premium-card financial-stat liabilities">
                 <div className="card-header-flex">
                   <div className="icon-wrapper" style={{ background: 'linear-gradient(135deg, #ef444420, #dc262620)', color: '#ef4444' }}>⚖️</div>
                   <span className="trend-badge negative">خصوم متداولة</span>
@@ -66,7 +66,7 @@ export default function DashboardPage() {
                 <h2 className="card-value gradient-text-red">{logic.formatCurrency(logic.stats?.totals?.totalLiabilities || 0)}</h2>
               </div>
 
-              <div className="premium-card" style={{ borderBottom: `4px solid ${THEME.goldAccent}`, background: `linear-gradient(135deg, #ffffff, #fdfbf7)` }}>
+              <div className="premium-card financial-stat equity">
                 <div className="card-header-flex">
                   <div className="icon-wrapper" style={{ background: `linear-gradient(135deg, ${THEME.goldAccent}20, #b4530920)`, color: THEME.goldAccent }}>💼</div>
                   <span className="trend-badge neutral">رأس المال العامل</span>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                           paddingAngle={6}
                           dataKey="value"
                           stroke="none"
-                          label={({ name, percent }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}
+                          label={({ name, percent = 0 }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}
                           labelLine={false}
                           style={{ fontWeight: 900, fontSize: '12px', fill: THEME.coffeeDark }}
                         >
@@ -181,10 +181,10 @@ export default function DashboardPage() {
                         <YAxis tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`} tick={{ fill: '#64748b', fontSize: 12 }} axisLine={false} tickLine={false} />
                         <Tooltip 
                             contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 900, direction: 'rtl' }}
-                            formatter={(value: any, name: string) => [logic.formatCurrency(value), name === 'budget' ? 'الميزانية المعتمدة' : 'التكلفة الفعلية']}
+                            formatter={(value, name) => [typeof value === 'string' || typeof value === 'number' ? logic.formatCurrency(value) : (value || []).map(item => logic.formatCurrency(item)).join(' – '), name === 'budget' ? 'الميزانية المعتمدة' : 'التكلفة الفعلية']}
                         />
                         <Legend wrapperStyle={{ fontWeight: 900, fontSize: '14px', paddingTop: '20px' }} />
-                        <Bar dataKey="budget" name="الميزانية المعتمدة" fill={THEME.primary} radius={[6, 6, 0, 0]} barSize={30} />
+                        <Bar dataKey="budget" name="الميزانية المعتمدة" fill="#2563eb" radius={[6, 6, 0, 0]} barSize={30} />
                         <Bar dataKey="actual" name="التكلفة الفعلية" fill={THEME.goldAccent} radius={[6, 6, 0, 0]} barSize={30} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -306,77 +306,135 @@ export default function DashboardPage() {
       {/* 🎨 CSS Styles */}
       <style>{`
         /* Typography & Globals */
-        .section-title { font-size: 20px; color: ${THEME.coffeeDark}; font-weight: 900; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; }
+        .phi-dashboard .section-title { font-size: 20px; color: ${THEME.coffeeDark}; font-weight: 900; margin: 0 0 20px 0; display: flex; align-items: center; gap: 10px; }
         
         /* Grids */
-        .premium-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
-        .premium-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; }
-        .premium-grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
-        .health-rings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
+        .phi-dashboard .premium-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; }
+        .phi-dashboard .premium-grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(450px, 1fr)); gap: 25px; }
+        .phi-dashboard .premium-grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .phi-dashboard .health-rings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
 
         /* Premium Cards */
-        .premium-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 1); border-radius: 28px; padding: 30px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; }
-        .premium-card:hover { transform: translateY(-5px); box-shadow: 0 30px 60px -15px rgba(0,0,0,0.08); }
+        .phi-dashboard .premium-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 1); border-radius: 28px; padding: 30px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .phi-dashboard .premium-card:hover { transform: translateY(-5px); box-shadow: 0 30px 60px -15px rgba(0,0,0,0.08); }
 
         /* Card Internals */
-        .card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .icon-wrapper { width: 50px; height: 50px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 22px; }
-        .trend-badge { font-size: 11px; font-weight: 900; padding: 6px 12px; border-radius: 20px; }
-        .trend-badge.positive { background: #f0fdf4; color: #16a34a; }
-        .trend-badge.negative { background: #fef2f2; color: #dc2626; }
-        .trend-badge.neutral { background: #f8fafc; color: #475569; }
-        .card-subtitle { margin: 0 0 5px 0; font-size: 14px; color: #64748b; font-weight: 800; }
-        .card-value { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
+        .phi-dashboard .card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .phi-dashboard .icon-wrapper { width: 50px; height: 50px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 22px; }
+        .phi-dashboard .trend-badge { font-size: 11px; font-weight: 900; padding: 6px 12px; border-radius: 20px; }
+        .phi-dashboard .trend-badge.positive { background: #f0fdf4; color: #16a34a; }
+        .phi-dashboard .trend-badge.negative { background: #fef2f2; color: #dc2626; }
+        .phi-dashboard .trend-badge.neutral { background: #f8fafc; color: #475569; }
+        .phi-dashboard .card-subtitle { margin: 0 0 5px 0; font-size: 14px; color: #64748b; font-weight: 800; }
+        .phi-dashboard .card-value { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: -0.5px; }
 
         /* Gradients */
-        .gradient-text-green { background: linear-gradient(to left, #059669, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .gradient-text-red { background: linear-gradient(to left, #dc2626, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .gradient-text-gold { background: linear-gradient(to left, #977332, #c5a059); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .phi-dashboard .gradient-text-green { background: linear-gradient(to left, #059669, #10b981); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .phi-dashboard .gradient-text-red { background: linear-gradient(to left, #dc2626, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .phi-dashboard .gradient-text-gold { background: linear-gradient(to left, #c2410c, #c2410c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         /* Mini Stat Cards */
-        .mini-stat-card { background: white; border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9; box-shadow: 0 10px 20px -10px rgba(0,0,0,0.03); transition: 0.3s; }
-        .mini-stat-card:hover { border-color: ${THEME.goldAccent}; transform: translateY(-3px); }
-        .mini-stat-card p { margin: 0; font-size: 12px; color: #64748b; font-weight: 800; }
-        .mini-stat-card h3 { margin: 5px 0 0 0; font-size: 18px; font-weight: 900; color: ${THEME.coffeeDark}; display: flex; align-items: baseline; gap: 5px;}
-        .mini-icon { width: 45px; height: 45px; border-radius: 14px; display: flex; justify-content: center; align-items: center; font-size: 20px; }
-        .mini-icon.blue { background: #eff6ff; color: #3b82f6; }
-        .mini-icon.red { background: #fef2f2; color: #ef4444; }
-        .mini-icon.green { background: #f0fdf4; color: #10b981; }
-        .mini-icon.orange { background: #fffbeb; color: #f59e0b; }
-        .currency { font-size: 11px; color: #94a3b8; font-weight: 700; }
+        .phi-dashboard .mini-stat-card { background: white; border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9; box-shadow: 0 10px 20px -10px rgba(0,0,0,0.03); transition: 0.3s; }
+        .phi-dashboard .mini-stat-card:hover { border-color: ${THEME.goldAccent}; transform: translateY(-3px); }
+        .phi-dashboard .mini-stat-card p { margin: 0; font-size: 12px; color: #64748b; font-weight: 800; }
+        .phi-dashboard .mini-stat-card h3 { margin: 5px 0 0 0; font-size: 18px; font-weight: 900; color: ${THEME.coffeeDark}; display: flex; align-items: baseline; gap: 5px;}
+        .phi-dashboard .mini-icon { width: 45px; height: 45px; border-radius: 14px; display: flex; justify-content: center; align-items: center; font-size: 20px; }
+        .phi-dashboard .mini-icon.blue { background: #eff6ff; color: #3b82f6; }
+        .phi-dashboard .mini-icon.red { background: #fef2f2; color: #ef4444; }
+        .phi-dashboard .mini-icon.green { background: #f0fdf4; color: #10b981; }
+        .phi-dashboard .mini-icon.orange { background: #fffbeb; color: #f59e0b; }
+        .phi-dashboard .currency { font-size: 11px; color: #94a3b8; font-weight: 700; }
 
         /* Health Rings */
-        .health-ring-card { background: white; padding: 15px; border-radius: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: 0.3s; }
-        .health-ring-card.warning-glow { border-color: #fde68a; background: #fffbeb; }
-        .health-ring-card:hover { transform: scale(1.02); }
-        .ring-center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 13px; font-weight: 900; color: ${THEME.coffeeDark}; }
-        .ring-info h4 { margin: 0 0 4px 0; font-size: 13px; font-weight: 900; color: ${THEME.coffeeDark}; }
-        .ring-info p { margin: 0; font-size: 11px; font-weight: 800; color: #94a3b8; }
+        .phi-dashboard .health-ring-card { background: white; padding: 15px; border-radius: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: 0.3s; }
+        .phi-dashboard .health-ring-card.warning-glow { border-color: #fde68a; background: #fffbeb; }
+        .phi-dashboard .health-ring-card:hover { transform: scale(1.02); }
+        .phi-dashboard .ring-center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 13px; font-weight: 900; color: ${THEME.coffeeDark}; }
+        .phi-dashboard .ring-info h4 { margin: 0 0 4px 0; font-size: 13px; font-weight: 900; color: ${THEME.coffeeDark}; }
+        .phi-dashboard .ring-info p { margin: 0; font-size: 11px; font-weight: 800; color: #94a3b8; }
 
         /* Alerts Inbox */
-        .alerts-container { background: #fef2f2 !important; border-radius: 28px; padding: 30px; }
-        .alerts-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .alerts-badge { font-size: 13px; background: #ef4444; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 900; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
-        .alerts-list { display: flex; flexDirection: column; gap: 12px; }
-        .alert-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 25px; background: white; border-radius: 16px; border: 1px solid #fecaca; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
-        .alert-row:hover { transform: translateX(-5px); border-color: #ef4444; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.1); }
-        .alert-content { display: flex; align-items: center; gap: 15px; font-size: 14px; font-weight: 900; color: #1e293b; }
-        .action-btn { background: white; border: 2px solid #e2e8f0; padding: 10px 20px; border-radius: 12px; font-size: 12px; font-weight: 900; color: #475569; cursor: pointer; transition: 0.2s; }
-        .action-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
-        .empty-alerts { padding: 30px; textAlign: center; background: #f0fdf4; borderRadius: 20px; color: #166534; font-weight: 900; border: 2px dashed #bbf7d0; font-size: 16px; }
+        .phi-dashboard .alerts-container { background: #fef2f2 !important; border-radius: 28px; padding: 30px; }
+        .phi-dashboard .alerts-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .phi-dashboard .alerts-badge { font-size: 13px; background: #ef4444; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 900; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+        .phi-dashboard .alerts-list { display: flex; flex-direction: column; gap: 12px; }
+        .phi-dashboard .alert-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 25px; background: white; border-radius: 16px; border: 1px solid #fecaca; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
+        .phi-dashboard .alert-row:hover { transform: translateX(-5px); border-color: #ef4444; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.1); }
+        .phi-dashboard .alert-content { display: flex; align-items: center; gap: 15px; font-size: 14px; font-weight: 900; color: #1e293b; }
+        .phi-dashboard .action-btn { background: white; border: 2px solid #e2e8f0; padding: 10px 20px; border-radius: 12px; font-size: 12px; font-weight: 900; color: #475569; cursor: pointer; transition: 0.2s; }
+        .phi-dashboard .action-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
+        .phi-dashboard .empty-alerts { padding: 30px; text-align: center; background: #f0fdf4; border-radius: 20px; color: #166534; font-weight: 900; border: 2px dashed #bbf7d0; font-size: 16px; }
 
         /* Pulse Animation */
-        .pulse-dot { width: 12px; height: 12px; border-radius: 50%; }
-        .pulse-dot.danger { background: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); animation: pulse-red 2s infinite; }
-        .pulse-dot.warning { background: #f59e0b; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); animation: pulse-orange 2s infinite; }
+        .phi-dashboard .pulse-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .phi-dashboard .pulse-dot.danger { background: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); animation: pulse-red 2s infinite; }
+        .phi-dashboard .pulse-dot.warning { background: #f59e0b; box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); animation: pulse-orange 2s infinite; }
         
         @keyframes pulse-red { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         @keyframes pulse-orange { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Loader */
-        .loader-spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid ${THEME.goldAccent}; border-radius: 50%; animation: spin 1s linear infinite; }
+        .phi-dashboard .loader-spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid ${THEME.goldAccent}; border-radius: 50%; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Scoped PHI TECH dashboard surfaces; figures and financial logic are unchanged. */
+        .phi-dashboard > div { min-width: 0; }
+        .phi-dashboard .premium-grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 20px; }
+        .phi-dashboard .premium-grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 390px), 1fr)); gap: 20px; }
+        .phi-dashboard .premium-grid-4, .phi-dashboard .health-rings-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+        .phi-dashboard .premium-card { min-width: 0; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 22px; box-shadow: 0 5px 22px #27272a08; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 26px; }
+        .phi-dashboard .premium-card:hover { transform: translateY(-2px); box-shadow: 0 9px 28px #27272a0d; }
+        .phi-dashboard .financial-stat { position: relative; overflow: hidden; border-top: 3px solid var(--stat-accent); background: radial-gradient(ellipse at 0% 0%, var(--stat-tint), transparent 70%), #ffffff; }
+        .phi-dashboard .financial-stat.assets { --stat-accent: #059669; --stat-tint: #ecfdf5; }
+        .phi-dashboard .financial-stat.liabilities { --stat-accent: #e11d48; --stat-tint: #fff1f2; }
+        .phi-dashboard .financial-stat.equity { --stat-accent: #ea580c; --stat-tint: #fff7ed; }
+        .phi-dashboard .financial-stat .icon-wrapper { width: 52px; height: 52px; border: 1px solid var(--stat-tint); border-radius: 16px; }
+        .phi-dashboard .trend-badge { font-size: 12px; font-weight: 700; }
+        .phi-dashboard .trend-badge.positive { color: #047857; background: #ecfdf5; }
+        .phi-dashboard .trend-badge.negative { color: #be123c; background: #fff1f2; }
+        .phi-dashboard .trend-badge.neutral { color: #9a3412; background: #fff7ed; }
+        .phi-dashboard .card-subtitle { color: #52525b; font-weight: 700; margin-bottom: 10px; }
+        .phi-dashboard .card-value { font-size: clamp(24px, 2.5vw, 32px); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; letter-spacing: -.7px; }
+        .phi-dashboard .gradient-text-green { background: none; color: #047857; -webkit-text-fill-color: currentColor; }
+        .phi-dashboard .gradient-text-red { background: none; color: #be123c; -webkit-text-fill-color: currentColor; }
+        .phi-dashboard .gradient-text-gold { background: none; color: #c2410c; -webkit-text-fill-color: currentColor; }
+        .phi-dashboard .mini-stat-card { min-width: 0; background: linear-gradient(145deg, #ffffff, #fafbff); border: 1px solid #e5e7eb; border-radius: 17px; box-shadow: 0 3px 15px #27272a05; }
+        .phi-dashboard .mini-stat-card:hover { border-color: #d4d4d8; transform: translateY(-2px); }
+        .phi-dashboard .mini-stat-card p { color: #52525b; font-size: 12px; line-height: 1.7; }
+        .phi-dashboard .mini-stat-card h3 { color: #27272a; flex-wrap: wrap; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+        .phi-dashboard .mini-icon { flex-shrink: 0; border: 1px solid #ffffff; box-shadow: 0 3px 8px #27272a06; }
+        .phi-dashboard .mini-icon.blue { color: #1d4ed8; background: #eff6ff; }
+        .phi-dashboard .mini-icon.green { color: #047857; background: #ecfdf5; }
+        .phi-dashboard .mini-icon.red { color: #be123c; background: #fff1f2; }
+        .phi-dashboard .mini-icon.orange { color: #c2410c; background: #fff7ed; }
+        .phi-dashboard .health-ring-card { border-color: #e5e7eb; border-radius: 17px; box-shadow: 0 3px 15px #27272a05; }
+        .phi-dashboard .health-ring-card:hover { transform: translateY(-2px); }
+        .phi-dashboard .health-ring-card.warning-glow { border-color: #fcd34d; background: #fffbeb; }
+        .phi-dashboard .ring-info p, .phi-dashboard .currency { color: #71717a; }
+        .phi-dashboard .section-title { color: #27272a; font-size: 19px; }
+        .phi-dashboard .alerts-container { border-radius: 22px; }
+        .phi-dashboard .alerts-header { flex-wrap: wrap; gap: 12px; }
+        .phi-dashboard .alert-row { gap: 12px; flex-wrap: wrap; }
+        .phi-dashboard .action-btn { min-height: 44px; }
+        .phi-dashboard .alerts-badge { background: #be123c; box-shadow: none; }
+        @media (max-width: 600px) {
+          .phi-dashboard .premium-card { padding: 20px 16px; }
+          .phi-dashboard .premium-grid-3, .phi-dashboard .premium-grid-4, .phi-dashboard .premium-grid-2, .phi-dashboard .health-rings-grid { gap: 14px; }
+          .phi-dashboard .card-value { font-size: 26px; }
+          .phi-dashboard .section-title { font-size: 17px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .phi-dashboard *, .phi-dashboard *::before, .phi-dashboard *::after { animation: none !important; transition: none !important; }
+          .phi-dashboard .premium-card:hover, .phi-dashboard .mini-stat-card:hover, .phi-dashboard .health-ring-card:hover, .phi-dashboard .alert-row:hover { transform: none; }
+        }
+        html.low-graphics-mode .phi-dashboard .premium-card, html.low-graphics-mode .phi-dashboard .mini-stat-card { background: white; }
+        html.low-graphics-mode .phi-dashboard .premium-card:hover, html.low-graphics-mode .phi-dashboard .mini-stat-card:hover, html.low-graphics-mode .phi-dashboard .health-ring-card:hover, html.low-graphics-mode .phi-dashboard .alert-row:hover { transform: none; }
+        @media print {
+          .phi-dashboard .premium-card, .phi-dashboard .mini-stat-card, .phi-dashboard .health-ring-card { background: white; box-shadow: none; break-inside: avoid; }
+          .phi-dashboard .premium-card:hover, .phi-dashboard .mini-stat-card:hover, .phi-dashboard .health-ring-card:hover { transform: none; }
+          .phi-dashboard .card-value { -webkit-text-fill-color: currentColor; }
+        }
       `}</style>
     </MasterPage>
   );

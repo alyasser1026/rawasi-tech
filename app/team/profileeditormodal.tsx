@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
 import { useToast } from '@/lib/toast-context'; 
 import SmartCombo from '@/components/SmartCombo'; 
+import { adminUsersRequest } from '@/lib/admin-api';
 
 interface ProfileEditorModalProps {
     isOpen: boolean;
@@ -164,11 +165,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
             };
 
             const method = isNewUser ? 'POST' : 'PUT';
-            const res = await fetch('/api/admin/users', {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+            const res = await adminUsersRequest(method, payload);
 
             const result = await res.json();
 

@@ -39,7 +39,7 @@ export function useExpensesLogic() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [isBulkFixModalOpen, setIsBulkFixModalOpen] = useState(false);
-    const [bulkFixAccounts, setBulkFixAccounts] = useState({ creditor_account: '', payment_account: '' });
+    const [bulkFixAccounts, setBulkFixAccounts] = useState<{ creditor_account: string; payment_account: string; creditor_account_id?: string | null; payment_account_id?: string | null }>({ creditor_account: '', payment_account: '' });
 
     const [disburseProgress, setDisburseProgress] = useState({ current: 0, total: 0, isActive: false });
 
@@ -431,7 +431,7 @@ export function useExpensesLogic() {
         isLoading: expensesQuery.isLoading || supportDataQuery.isLoading || isProcessing || deleteMutation.isPending,
         refreshData: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
         
-        filteredExpenses: finalFilteredExpenses, totalAmount, totalPages, totalResults: finalFilteredExpenses.length,
+        filteredExpenses: finalFilteredExpenses, totalAmount, totalPages, totalResults: finalFilteredExpenses.length, historicalData,
         paymentFilter, setPaymentFilter,
         disburseProgress,
         

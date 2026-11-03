@@ -152,6 +152,7 @@ export function useReceiptVouchersLogic() {
         onSuccess: () => {
             setSelectedIds([]);
             showToast("تم الاعتماد والترحيل بنجاح ✅", "success");
+            queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
         onError: (err: any) => showToast(`خطأ أثناء الترحيل: ${err.message}`, "error")
     });
@@ -171,6 +172,7 @@ export function useReceiptVouchersLogic() {
         onSuccess: () => {
             setSelectedIds([]);
             showToast("تم فك الترحيل بنجاح 🔴", "warning");
+            queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
         onError: (err: any) => showToast(`خطأ أثناء الإلغاء: ${err.message}`, "error")
     });
@@ -190,6 +192,7 @@ export function useReceiptVouchersLogic() {
         onSuccess: () => {
             setSelectedIds([]);
             showToast("تم الحذف بنجاح 🗑️", "success");
+            queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
         onError: (err: any) => showToast(`خطأ في الحذف: ${err.message}`, "error")
     });

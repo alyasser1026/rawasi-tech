@@ -6,7 +6,7 @@ import SecureAction from '@/components/SecureAction';
 
 const THEME = {
   primary: '#0f172a',
-  accent: '#ca8a04',
+  accent: '#c2410c',
   sand: '#f8fafc',
   border: '#e2e8f0',
 };
@@ -178,7 +178,7 @@ export default function BulkBudgetPage() {
           </div>
         </div>
 
-        <SecureAction action="edit_boq_budget">
+        <SecureAction module="boqbudget" action="edit">
           <button 
             className="btn-save" 
             onClick={logic.handleBulkSave}

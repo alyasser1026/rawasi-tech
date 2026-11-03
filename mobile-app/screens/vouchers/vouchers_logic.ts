@@ -15,7 +15,7 @@ export function useVouchersLogic() {
       if (filterType === 'all' || filterType === 'in') {
         const { data, error } = await supabase
           .from('receipt_vouchers')
-          .select('id, receipt_number as number, amount, date, status, partner_id, partners(name), payment_method')
+          .select('id, number:receipt_number, amount, date, status, partner_id, partners(name), payment_method')
           .order('created_at', { ascending: false });
         if (error) throw error;
         receipts = (data || []).map(v => ({ ...v, type: 'in' }));
@@ -24,7 +24,7 @@ export function useVouchersLogic() {
       if (filterType === 'all' || filterType === 'out') {
         const { data, error } = await supabase
           .from('payment_vouchers')
-          .select('id, voucher_number as number, amount, date, status, partner_id, partners(name), payment_method')
+          .select('id, number:voucher_number, amount, date, status, partner_id, partners(name), payment_method')
           .order('created_at', { ascending: false });
         if (error) throw error;
         payments = (data || []).map(v => ({ ...v, type: 'out' }));

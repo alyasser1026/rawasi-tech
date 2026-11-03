@@ -33,18 +33,23 @@ export function useUniversalPosting(queryKey: string, tableName: string, postRpc
             if (!selectedIds || selectedIds.length === 0) throw new Error("لم يتم تحديد أي سجلات لفك الترحيل.");
             
             // استدعاء الدالة المركزية في الداتابيز بخطوة واحدة
-            const { error } = await supabase.rpc('unpost_universal_bulk', { 
-                p_ids: selectedIds,
-                p_table_name: tableName 
-            });
+            const { error } = tableName === 'payment_vouchers'
+                ? await supabase.rpc('unpost_payment_vouchers_bulk', { p_ids: selectedIds })
+                : await supabase.rpc('unpost_universal_bulk', { p_ids: selectedIds, p_table_name: tableName });
             if (error) throw new Error(error.message);
 
             // 🚀 تصحيح: الدالة المركزية قد لا تحدث حالة السند النصية إلى مسودة، مما يجعله "معلقاً" عند التعديل
-            await supabase.from(tableName).update({ status: 'مسودة' }).in('id', selectedIds);
+            if (tableName !== 'payment_vouchers') {
+                const { error: statusError } = await supabase.from(tableName).update({ status: 'مسودة' }).in('id', selectedIds);
+                if (statusError) throw new Error(statusError.message);
+            }
         },
         onSuccess: () => {
             showToast('تم فك الترحيل ومسح القيود بنجاح ⏪', 'success');
             queryClient.invalidateQueries({ queryKey: [queryKey] });
+            if (tableName === 'payment_vouchers') {
+                queryClient.invalidateQueries({ queryKey: ['contractor_claims_history'] });
+            }
         },
         onError: (err: any) => showToast(`فشل فك الترحيل: ${err.message}`, 'error')
     });
@@ -76,7 +81,7 @@ export async function calculateMassiveTotals(tableName: string, amountColumn: st
             if (error) throw error;
 
             if (data && data.length > 0) {
-                total += data.reduce((sum, row) => sum + Number(row[amountColumn] || 0), 0);
+                total += (data as unknown as Record<string, unknown>[]).reduce((sum, row) => sum + Number(row[amountColumn] || 0), 0);
                 offset += limit;
                 if (data.length < limit) keepFetching = false;
             } else {

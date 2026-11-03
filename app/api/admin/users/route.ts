@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { authorizeAdminRequest } from '@/lib/admin-authorization';
 
 // تهيئة عميل Supabase بصلاحيات الإدارة (Service Role)
 const getSupabaseAdmin = () => createClient(
@@ -16,11 +17,14 @@ const getSupabaseAdmin = () => createClient(
 // 1. إضافة مستخدم جديد (POST)
 export async function POST(req: Request) {
     try {
+        const access = await authorizeAdminRequest(req, getSupabaseAdmin);
+        if (access.error) return access.error;
+        const supabaseAdmin = access.client;
         const body = await req.json();
         const { email, password, phone, full_name, role, linked_partner_id, permissions, is_active } = body;
 
         // 1️⃣ إنشاء الحساب في المصادقة (Auth)
-        const { data: authData, error: authError } = await getSupabaseAdmin().auth.admin.createUser({
+        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
             email,
             password,
             phone: phone || undefined,
@@ -39,7 +43,7 @@ export async function POST(req: Request) {
 
         // 3️⃣ تحديث بيانات الـ Profile
         const isAdminFlag = role === 'super_admin' || role === 'admin';
-        const { error: profileError } = await getSupabaseAdmin()
+        const { error: profileError } = await supabaseAdmin
             .from('profiles')
             .update({
                 full_name,
@@ -69,6 +73,9 @@ export async function POST(req: Request) {
 // 2. تعديل مستخدم حالي (PUT)
 export async function PUT(req: Request) {
     try {
+        const access = await authorizeAdminRequest(req, getSupabaseAdmin);
+        if (access.error) return access.error;
+        const supabaseAdmin = access.client;
         const body = await req.json();
         const { userId, email, password, phone, full_name, role, linked_partner_id, permissions, is_active } = body;
 
@@ -88,13 +95,13 @@ export async function PUT(req: Request) {
         }
 
         if (Object.keys(updateParams).length > 0) {
-            const { error: authError } = await getSupabaseAdmin().auth.admin.updateUserById(userId, updateParams);
+            const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, updateParams);
             if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
         }
 
         // 2️⃣ تحديث الـ Profile
         const isAdminFlag = role === 'super_admin' || role === 'admin';
-        const { error: profileError } = await getSupabaseAdmin()
+        const { error: profileError } = await supabaseAdmin
             .from('profiles')
             .update({
                 full_name,
@@ -120,10 +127,13 @@ export async function PUT(req: Request) {
 // 3. التحكم الجماعي: إيقاف أو تشغيل كل المستخدمين (PATCH)
 export async function PATCH(req: Request) {
     try {
+        const access = await authorizeAdminRequest(req, getSupabaseAdmin);
+        if (access.error) return access.error;
+        const supabaseAdmin = access.client;
         const body = await req.json();
         const { action } = body; // 'suspend_all' أو 'activate_all'
 
-        if (!action) return NextResponse.json({ error: 'الإجراء مفقود' }, { status: 400 });
+        if (!['suspend_all', 'activate_all'].includes(action)) return NextResponse.json({ error: 'الإجراء غير صحيح' }, { status: 400 });
 
         const isActivating = action === 'activate_all';
         const banDuration = isActivating ? 'none' : '876000h';
@@ -138,8 +148,10 @@ export async function PATCH(req: Request) {
 
         // 2️⃣ تطبيق التغييرات على Auth و Profiles
         const updatePromises = users.map(async (u) => {
-            await getSupabaseAdmin().auth.admin.updateUserById(u.id, { ban_duration: banDuration });
-            await getSupabaseAdmin().from('profiles').update({ is_active: isActivating }).eq('id', u.id);
+            const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(u.id, { ban_duration: banDuration });
+            if (authError) throw authError;
+            const { error: profileError } = await supabaseAdmin.from('profiles').update({ is_active: isActivating }).eq('id', u.id);
+            if (profileError) throw profileError;
         });
 
         await Promise.all(updatePromises);
