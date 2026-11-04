@@ -43,7 +43,7 @@ export default function AccountLedger() {
   ];
 
   return (
-    <MasterPage icon="📖" title="كشف حساب تفصيلي" subtitle="استعراض حركات الأستاذ العام والتحليل المالي">
+    <MasterPage title="كشف حساب تفصيلي" subtitle="استعراض حركات الأستاذ العام والتحليل المالي">
       
       <RawasiSidebarManager 
         summary={
@@ -63,12 +63,12 @@ export default function AccountLedger() {
 
       <style>{`
         .control-panel {
-          position: relative; /* 👈 السحر هنا: تفعيل التموضع النسبي */
-          z-index: 100;      /* 👈 رفع الحاوية فوق مستوى الجدول */
+          position: relative; /* السحر هنا: تفعيل التموضع النسبي */
+          z-index: 100;      /* رفع الحاوية فوق مستوى الجدول */
           background: rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(15px);
           padding: 30px;
-          border-radius: 24px;
+          border-radius: 14px;
           border: 1px solid rgba(255, 255, 255, 0.8);
           margin-bottom: 25px;
           box-shadow: 0 10px 30px rgba(0,0,0,0.03);
@@ -80,7 +80,7 @@ export default function AccountLedger() {
           background: linear-gradient(135deg, ${THEME.coffeeDark}, ${THEME.primary});
           color: white;
           padding: 20px;
-          border-radius: 20px;
+          border-radius: 14px;
           box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
       `}</style>
@@ -89,7 +89,7 @@ export default function AccountLedger() {
       <div className="control-panel">
         <div style={{ flex: 1 }}>
           <SmartCombo 
-            label="🔍 ابحث واختر الحساب المالي للمراجعة"
+            label="ابحث واختر الحساب المالي للمراجعة"
             table="accounts"
             displayCol="name"
             searchCols="name,code"
@@ -105,14 +105,14 @@ export default function AccountLedger() {
             fontWeight: 900, cursor: 'pointer', height: '52px'
           }}
         >
-          🖨️ طباعة الكشف
+          طباعة الكشف
         </button>
       </div>
 
       {/* الجدول الماسي */}
       {!logic.selectedAccountId ? (
-          <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8', background: 'white', borderRadius: '24px', fontWeight: 900 }}>
-             👆 يرجى اختيار حساب من القائمة أعلاه لعرض كشف الحساب.
+          <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8', background: 'white', borderRadius: '14px', fontWeight: 900 }}>
+             يرجى اختيار حساب من القائمة أعلاه لعرض كشف الحساب.
           </div>
       ) : (
           <RawasiSmartTable 

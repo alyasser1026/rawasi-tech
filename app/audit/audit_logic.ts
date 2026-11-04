@@ -32,7 +32,7 @@ export function useAdvancedAuditLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast("تم معالجة السجل بنجاح (تم التعليق/الحذف) 🧹", "success");
+            showToast("تم معالجة السجل بنجاح (تم التعليق/الحذف)", "success");
             queryClient.invalidateQueries({ queryKey: ['advanced_audit_errors'] });
             setSelectedIds([]);
         }
@@ -56,7 +56,7 @@ export function useAdvancedAuditLogic() {
             }
         },
         onSuccess: () => {
-            showToast(`تم معالجة ${selectedIds.length} خطأ من النظام بنجاح 🗑️`, "success");
+            showToast(`تم معالجة ${selectedIds.length} خطأ من النظام بنجاح`, "success");
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['advanced_audit_errors'] });
         }
@@ -80,7 +80,7 @@ export function useAdvancedAuditLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast("تم موازنة القيد وإصلاح الخلل ⚖️", "success");
+            showToast("تم موازنة القيد وإصلاح الخلل", "success");
             queryClient.invalidateQueries({ queryKey: ['advanced_audit_errors'] });
         },
         onError: (err: any) => {
@@ -96,7 +96,7 @@ export function useAdvancedAuditLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast("تم تطهير النظام من القيود الصفرية والعمياء بنجاح ✨", "success");
+            showToast("تم تطهير النظام من القيود الصفرية والعمياء بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['advanced_audit_errors'] });
             setSelectedIds([]); // تصفير التحديد
         },

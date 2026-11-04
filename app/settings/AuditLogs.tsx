@@ -6,6 +6,8 @@ import RawasiSmartTable from '@/components/rawasismarttable';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/helpers';
 import { createPortal } from 'react-dom';
+import { RefreshCw, ShieldCheck } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 export default function AuditLogs() {
     const router = useRouter();
@@ -68,7 +70,7 @@ export default function AuditLogs() {
 
                 const { data: profile } = await supabase.from('profiles').select('*').eq('id', session.user.id).single();
                 if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin' && !profile.permissions?.audit_logs?.view)) {
-                    alert("⛔ ليس لديك صلاحية لمشاهدة سجل المراقبة.");
+                    notify("ليس لديك صلاحية لمشاهدة سجل المراقبة.");
                     router.push('/');
                 }
             } catch (err) {
@@ -94,7 +96,7 @@ export default function AuditLogs() {
             setLogs(data || []);
         } catch (error: any) {
             console.error("Fetch Error:", error);
-            alert("خطأ في جلب السجلات: " + error.message);
+            notify("خطأ في جلب السجلات: " + error.message);
         } finally {
             setIsLoading(false);
         }
@@ -136,7 +138,7 @@ export default function AuditLogs() {
             render: (row: any) => {
                 let actionType = row.action;
                 const colors: any = { 'INSERT': '#22c55e', 'UPDATE': '#f59e0b', 'DELETE': '#ef4444', 'LOGIN': '#3b82f6', 'FAILED_POST': '#dc2626', 'FAILED_UNPOST': '#dc2626' };
-                const labels: any = { 'INSERT': '➕ إضافة', 'UPDATE': '📝 تعديل', 'DELETE': '🗑️ حذف', 'LOGIN': '🔑 تسجيل دخول', 'FAILED_POST': '⛔ محاولة ترحيل مرفوضة', 'FAILED_UNPOST': '⛔ محاولة فك ترحيل مرفوضة' };
+                const labels: any = { 'INSERT': 'إضافة', 'UPDATE': 'تعديل', 'DELETE': 'حذف', 'LOGIN': 'تسجيل دخول', 'FAILED_POST': 'محاولة ترحيل مرفوضة', 'FAILED_UNPOST': 'محاولة فك ترحيل مرفوضة' };
                 
                 let displayColor = colors[actionType] || '#64748b';
                 let displayLabel = labels[actionType] || actionType;
@@ -146,11 +148,11 @@ export default function AuditLogs() {
                     const n = row.new_data;
                     if ((o.is_posted === false && n.is_posted === true) || (o.status === 'مسودة' && (n.status === 'مرحل' || n.status === 'معتمد'))) {
                         displayColor = '#10b981'; 
-                        displayLabel = '✅ ترحيل';
+                        displayLabel = 'ترحيل';
                         actionType = 'POST'; // for unique tracking if needed
                     } else if ((o.is_posted === true && n.is_posted === false) || ((o.status === 'مرحل' || o.status === 'معتمد') && n.status === 'مسودة')) {
                         displayColor = '#8b5cf6';
-                        displayLabel = '⏪ فك ترحيل';
+                        displayLabel = 'فك ترحيل';
                         actionType = 'UNPOST';
                     }
                 }
@@ -178,7 +180,7 @@ export default function AuditLogs() {
                     onMouseOver={(e) => e.currentTarget.style.borderColor = THEME.primary}
                     onMouseOut={(e) => e.currentTarget.style.borderColor = '#cbd5e1'}
                 >
-                    🔍 عرض السجل
+                    عرض السجل
                 </button>
             )
         }
@@ -202,7 +204,7 @@ export default function AuditLogs() {
                                 const isChanged = JSON.stringify(o[key] ?? 'null') !== JSON.stringify(n[key] ?? 'null');
                                 return (
                                     <th key={key} style={{ padding: '10px', fontWeight: 800, color: isChanged ? '#f59e0b' : '#475569', borderRight: '1px solid #e2e8f0' }}>
-                                        {key} {isChanged && '🔄'}
+                                        {key} {isChanged && <RefreshCw size={16} aria-hidden="true" />}
                                     </th>
                                 );
                             })}
@@ -245,7 +247,7 @@ export default function AuditLogs() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeUp 0.5s ease-out' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <div>
-                    <h2 style={{ fontSize: '18px', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>🕵️‍♂️ سجل المراقبة والنشاطات</h2>
+                    <h2 style={{ fontSize: '18px', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>سجل المراقبة والنشاطات</h2>
                     <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: 700 }}>تتبع دقيق لجميع التعديلات والعمليات في النظام (Audit Logs)</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -254,13 +256,13 @@ export default function AuditLogs() {
                         <span style={{fontSize:'18px', fontWeight:900, color: THEME.brand.gold}}>{filteredLogs.length}</span>
                     </div>
                     <button onClick={fetchLogs} style={{ background: THEME.primary, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 900 }}>
-                        🔄 تحديث السجل
+                        تحديث السجل
                     </button>
                 </div>
             </div>
             {logs.length === 0 && !isLoading && (
-                <div style={{ textAlign: 'center', padding: '60px', background: 'white', borderRadius: '24px', border: `1px solid ${THEME.brand.gold}40` }}>
-                    <div style={{ fontSize: '50px' }}>🛡️</div>
+                <div style={{ textAlign: 'center', padding: '60px', background: 'white', borderRadius: '14px', border: `1px solid ${THEME.brand.gold}40` }}>
+                    <div style={{ fontSize: '50px' }}><ShieldCheck size={40} aria-hidden="true" /></div>
                     <h3 style={{ color: THEME.brand.coffee, fontWeight: 900 }}>لم يتم تسجيل أي نشاط بعد أو أن المحرك غير مفعل</h3>
                     <p style={{ color: '#64748b' }}>يرجى التأكد من تشغيل سكريبت (SQL) الخاص بسجل المراقبة في قاعدة البيانات لتفعيل الرصد التلقائي.</p>
                 </div>
@@ -310,7 +312,7 @@ export default function AuditLogs() {
                         )}
                     </div>
 
-                    <div style={{ background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '30px', boxShadow: '0 20px 40px rgba(0,0,0,0.05)', border: '1px solid white' }}>
+                    <div style={{ background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '14px', boxShadow: '0 20px 40px rgba(0,0,0,0.05)', border: '1px solid white' }}>
                         <RawasiSmartTable 
                             data={filteredLogs} 
                             columns={columns} 
@@ -332,10 +334,10 @@ export default function AuditLogs() {
                 <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(10px)' }} onClick={() => setSelectedLog(null)} />
                     
-                    <div style={{ background: 'white', width: '900px', maxWidth: '95vw', maxHeight: '90vh', borderRadius: '24px', zIndex: 10, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
+                    <div style={{ background: 'white', width: '900px', maxWidth: '95vw', maxHeight: '90vh', borderRadius: '14px', zIndex: 10, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
                         <div style={{ padding: '25px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <h3 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: '20px' }}>تفاصيل العملية 🕵️‍♂️</h3>
+                                <h3 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: '20px' }}>تفاصيل العملية</h3>
                                 <p style={{ margin: '5px 0 0', fontSize: '13px', color: '#64748b' }}>معرف السجل: {selectedLog.id}</p>
                             </div>
                             <button onClick={() => setSelectedLog(null)} style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: '50%', width: '35px', height: '35px', cursor: 'pointer', fontWeight: 900 }}>✕</button>

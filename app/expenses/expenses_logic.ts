@@ -8,6 +8,7 @@ import { fetchPaginatedData } from '@/lib/supabase-pagination';
 import { useUniversalPosting } from '@/lib/accounting_engine'; 
 import { useToast } from '@/lib/toast-context'; 
 import { checkAdminApprovalPrivilege } from '@/lib/helpers';
+import { notify } from '@/lib/notify';
 
 export function useExpensesLogic() {
     const queryClient = useQueryClient();
@@ -214,7 +215,7 @@ export function useExpensesLogic() {
             return { type: editingId ? 'update' : 'insert', data: updatedRecord };
         },
         onSuccess: (res) => {
-            showToast('تم حفظ القيد بنجاح 💾', 'success');
+            showToast('تم حفظ القيد بنجاح', 'success');
             setIsEditModalOpen(false);
             setEditingId(null);
             setCurrentExpense(defaultExp);
@@ -252,7 +253,7 @@ export function useExpensesLogic() {
             return selectedIds; 
         },
         onSuccess: (deletedIds) => {
-            showToast('تم المسح التسلسلي بنجاح 🗑️✅', 'success');
+            showToast('تم المسح التسلسلي بنجاح', 'success');
             const stringDeletedIds = deletedIds.map(String);
             queryClient.setQueryData(['expenses'], (oldData: any[]) => {
                 if (!oldData) return [];
@@ -328,7 +329,7 @@ export function useExpensesLogic() {
                     String(exp.id) === String(targetId) ? { ...exp, paid_amount: newPaidAmount } : exp
                 );
             });
-            showToast('تم الصرف بنجاح ✅', 'success');
+            showToast('تم الصرف بنجاح', 'success');
             queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
         },
         onError: (err: any) => {
@@ -359,7 +360,7 @@ export function useExpensesLogic() {
             setIsBulkFixModalOpen(false); 
             setBulkFixAccounts({ creditor_account: '', payment_account: '' });
             setSelectedIds([]); 
-            showToast(`✅ تم التصحيح المجمع بنجاح!`, 'success');
+            showToast(`تم التصحيح المجمع بنجاح!`, 'success');
         } catch (error: any) {
             queryClient.setQueryData(['expenses'], previousData); 
             showToast("خطأ أثناء التحديث: " + error.message, 'error');
@@ -401,7 +402,7 @@ export function useExpensesLogic() {
         },
         onSuccess: (res) => {
             if (res.processed_count > 0) {
-                showToast(`تم إنشاء ${res.processed_count} سند صرف بإجمالي ${Number(res.total_amount).toLocaleString()} ريال 💰✅`, 'success');
+                showToast(`تم إنشاء ${res.processed_count} سند صرف بإجمالي ${Number(res.total_amount).toLocaleString()} ريال`, 'success');
             } else {
                 showToast("لم يتم إنشاء أي سندات، قد تكون السجلات مسددة بالفعل!", 'warning');
             }
@@ -444,20 +445,20 @@ export function useExpensesLogic() {
         
         handleSaveExpense: (data: any) => {
             if (!data) return showToast("لم يتم استلام البيانات!", "error");
-            if (data.is_posted) return showToast("⚠️ لا يمكن تعديل سجل مرحل. يرجى فك الترحيل أولاً.", "error");
+            if (data.is_posted) return showToast("لا يمكن تعديل سجل مرحل. يرجى فك الترحيل أولاً.", "error");
             saveMutation.mutate(data);
         },
         handleSavePayment: (data: any) => paymentMutation.mutate(data), // 👈 استخدام الـ Mutation
         handleAddNew: () => { setCurrentExpense(defaultExp); setEditingId(null); setIsEditModalOpen(true); }, 
         handleEditSelected: () => {
-            if (selectedIds.length !== 1) return alert("اختر سجلاً واحداً للتعديل");
+            if (selectedIds.length !== 1) return notify("اختر سجلاً واحداً للتعديل");
             const exp = expenses.find(e => e.id === selectedIds[0]);
             setCurrentExpense({...exp}); setEditingId(exp.id); setIsEditModalOpen(true);
         }, 
         exportToExcel: () => {},
         handleDeleteSelected: () => {
             const posted = expenses.filter((e:any) => selectedIds.includes(e.id) && e.is_posted);
-            if (posted.length > 0) return showToast("⚠️ لا يمكن حذف سجلات مرحلة. يرجى فك الترحيل أولاً.", "error");
+            if (posted.length > 0) return showToast("لا يمكن حذف سجلات مرحلة. يرجى فك الترحيل أولاً.", "error");
             deleteMutation.mutate();
         },
         
@@ -472,7 +473,7 @@ export function useExpensesLogic() {
             try {
                 const { error } = await supabase.rpc('post_expenses_bulk', { p_ids: idsToProcess });
                 if (error) throw error;
-                showToast('تم الترحيل بنجاح ✅', 'success');
+                showToast('تم الترحيل بنجاح', 'success');
             } catch (error: any) {
                 queryClient.setQueryData(['expenses'], previousData);
                 import('@/lib/audit').then(({ logCustomAuditEvent }) => logCustomAuditEvent('expenses', 'FAILED_POST', idsToProcess[0], null, { error: error.message }));
@@ -491,7 +492,7 @@ export function useExpensesLogic() {
             try {
                 const { error } = await supabase.rpc('unpost_expenses_bulk', { record_ids: idsToProcess });
                 if (error) throw error;
-                showToast('تم فك الترحيل بنجاح ↩️', 'success');
+                showToast('تم فك الترحيل بنجاح', 'success');
                 queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
             } catch (error: any) {
                 queryClient.setQueryData(['expenses'], previousData);
@@ -510,7 +511,7 @@ export function useExpensesLogic() {
             try {
                 const { error } = await supabase.rpc('post_expenses_bulk', { p_ids: idsToProcess });
                 if (error) throw error;
-                showToast('تم الترحيل بالكامل ✅', 'success');
+                showToast('تم الترحيل بالكامل', 'success');
                 setSelectedIds([]);
             } catch (error: any) {
                 queryClient.setQueryData(['expenses'], previousData);

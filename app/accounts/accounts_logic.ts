@@ -119,7 +119,7 @@ export function useHierarchicalAccountsLogic() {
     },
     onSuccess: () => {
         setSelectedIds([]);
-        showToast('تم حذف الحسابات بنجاح 🗑️', 'success');
+        showToast('تم حذف الحسابات بنجاح', 'success');
     },
     onSettled: () => {
         queryClient.invalidateQueries({ queryKey: ['accounts_report_with_lines'] });
@@ -181,7 +181,7 @@ export function useHierarchicalAccountsLogic() {
     const fileName = `ميزان_المراجعة_${new Date().toISOString().split('T')[0]}.xlsx`;
     XLSX.writeFile(workbook, fileName);
     
-    showToast("تم تصدير ميزان المراجعة بنجاح 📊", "success");
+    showToast("تم تصدير ميزان المراجعة بنجاح", "success");
   };
 
   return { 

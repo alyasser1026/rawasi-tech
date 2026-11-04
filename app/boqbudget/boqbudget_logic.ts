@@ -137,10 +137,10 @@ export function useBOQLogic() {
         },
         onSuccess: () => {
             setIsEditModalOpen(false);
-            showToast("تم حفظ البند وتحديث الانحرافات بنجاح 💾", "success");
+            showToast("تم حفظ البند وتحديث الانحرافات بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['boq_budget'] });
         },
-        onError: (err: any) => showToast(`حدث خطأ أثناء الحفظ! ❌ ${err.message}`, "error")
+        onError: (err: any) => showToast(`حدث خطأ أثناء الحفظ!${err.message}`, "error")
     });
 
     const deleteMutation = useMutation({
@@ -150,7 +150,7 @@ export function useBOQLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast("تم حذف البنود المحددة بنجاح 🗑️", "success");
+            showToast("تم حذف البنود المحددة بنجاح", "success");
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['boq_budget'] });
         },

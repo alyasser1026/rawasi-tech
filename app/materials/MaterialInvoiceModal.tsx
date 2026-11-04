@@ -7,6 +7,8 @@ import SmartCombo from '@/components/SmartCombo';
 import ProjectBoqCombo from '@/components/ProjectBoqCombo'; 
 import { formatCurrency } from '@/lib/helpers';
 import { useToast } from '@/lib/toast-context'; 
+import { Trash2 } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
     const { showToast } = useToast();
@@ -32,7 +34,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             if (videoRef.current) videoRef.current.srcObject = stream;
         } catch (err) { 
-            alert("خطأ في تشغيل الكاميرا"); 
+            notify("خطأ في تشغيل الكاميرا"); 
             setIsCameraOpen(false); 
         }
     };
@@ -99,13 +101,13 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
                 width: '1100px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
-                backdropFilter: 'blur(30px)', borderRadius: '35px', padding: '40px', 
+                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', 
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
                 
                 {/* 📝 الهيدر */}
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'15px'}}>
-                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '26px' }}>🛒 إصدار فاتورة توريد خامات</h2>
+                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '26px' }}>إصدار فاتورة توريد خامات</h2>
                     <div style={{ textAlign: 'left' }}>
                         <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
                         <div style={{ color: THEME.accent, fontWeight: 900, fontSize: '28px' }}>{formatCurrency(logic.grandTotal)}</div>
@@ -116,7 +118,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                 <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '25px', marginBottom: '25px' }}>
                     <div style={{ zIndex: 100, position: 'relative' }}>
                         <SmartCombo 
-                            label="🏢 المشروع المستفيد (مركز التكلفة) *" 
+                            label="المشروع المستفيد (مركز التكلفة) *" 
                             icon="🏢" 
                             table="projects" 
                             displayCol="Property" 
@@ -131,26 +133,26 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                         />
                     </div>
                     <div style={{ zIndex: 90, position: 'relative' }}>
-                        <SmartCombo label="👤 المورد / التاجر *" icon="👤" table="partners" displayCol="name" searchCols="name" customFilter="partner_type=eq.مورد" value={logic.invoiceData.payee_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, payee_id: v?.id })} />
+                        <SmartCombo label="المورد / التاجر *" icon="👤" table="partners" displayCol="name" searchCols="name" customFilter="partner_type=eq.مورد" value={logic.invoiceData.payee_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, payee_id: v?.id })} />
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '25px', background: '#f8fafc', padding: '25px', borderRadius: '20px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '25px', background: '#f8fafc', padding: '25px', borderRadius: '14px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
                     <div style={{ zIndex: 80, position: 'relative' }}>
-                        <SmartCombo label="📒 حساب التوجيه المالي (مثال: خامات العملاء) *" icon="💳" table="accounts" displayCol="name" searchCols="name,code" value={logic.invoiceData.account_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, account_id: v?.id })} />
+                        <SmartCombo label="حساب التوجيه المالي (مثال: خامات العملاء) *" icon="💳" table="accounts" displayCol="name" searchCols="name,code" value={logic.invoiceData.account_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, account_id: v?.id })} />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>📅 تاريخ الفاتورة *</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ الفاتورة *</label>
                         <input type="date" className="glass-input-field" value={logic.invoiceData.exp_date} onChange={e => logic.setInvoiceData({...logic.invoiceData, exp_date: e.target.value})} />
                     </div>
                 </div>
                 
                 {/* 🚀 قسم إدخال الأصناف (متعدد الأصناف مع الـ BOQ والكتالوج الموحد) */}
-                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '20px', marginBottom: '25px', border: `1px dashed ${THEME.accent}` }}>
+                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '14px', marginBottom: '25px', border: `1px dashed ${THEME.accent}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: THEME.brand?.coffee || THEME.coffeeDark }}>📦 أصناف الفاتورة (الخامات) وربطها بالبنود</h3>
+                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: THEME.brand?.coffee || THEME.coffeeDark }}>أصناف الفاتورة (الخامات) وربطها بالبنود</h3>
                         <button onClick={logic.handleAddItem} style={{ background: 'white', color: THEME.primary, border: `1px solid ${THEME.accent}`, padding: '8px 15px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
-                            ➕ إضافة صنف آخر
+                            إضافة صنف آخر
                         </button>
                     </div>
                     
@@ -221,7 +223,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                                         </td>
                                         <td style={{ padding: '10px' }}>
                                             {idx > 0 ? (
-                                                <button onClick={() => logic.handleRemoveItem(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby || '#ef4444', cursor: 'pointer', fontSize: '18px' }} title="حذف الصنف">🗑️</button>
+                                                <button onClick={() => logic.handleRemoveItem(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby || '#ef4444', cursor: 'pointer', fontSize: '18px' }} title="حذف الصنف"><Trash2 size={15} aria-hidden="true" /></button>
                                             ) : <div style={{width: '24px'}}></div>}
                                         </td>
                                     </tr>
@@ -234,10 +236,10 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                 {/* 📂 المرفقات والكاميرا */}
                 <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
                     <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '18px', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', color: '#475569', transition: '0.2s' }}>
-                        📁 إرفاق مستند (صورة الفاتورة / إذن الاستلام)
+                        إرفاق مستند (صورة الفاتورة / إذن الاستلام)
                     </button>
                     <button onClick={isCameraOpen ? takePhoto : startCamera} style={{ flex: 1, padding: '18px', background: '#1e293b', color: 'white', borderRadius: '16px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
-                        {isCameraOpen ? '📸 التقاط الفاتورة' : '📷 مسح بالكاميرا'}
+                        {isCameraOpen ? 'التقاط الفاتورة' : 'مسح بالكاميرا'}
                     </button>
                 </div>
                 
@@ -248,12 +250,12 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                     </div>
                 )}
                 
-                {isCameraOpen && <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '20px', marginBottom: '20px', border: `4px solid ${THEME.accent}` }} />}
+                {isCameraOpen && <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '14px', marginBottom: '20px', border: `4px solid ${THEME.accent}` }} />}
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 <input type="file" ref={fileInputRef} hidden accept="image/*,.pdf" onChange={(e) => { const file = e.target.files?.[0]; if(file) { const r = new FileReader(); r.onload = () => { setImagePreview(r.result as string); logic.setInvoiceData({ ...logic.invoiceData, attachments: [r.result] }); }; r.readAsDataURL(file); } }} />
 
                 {/* 🚀 الملخص المالي السفلي */}
-                <div className="responsive-summary-grid" style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '24px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                <div className="responsive-summary-grid" style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 800 }}>عدد الأصناف المُسجلة</div>
                         <div style={{ fontSize: '24px', fontWeight: 900 }}>{logic.invoiceData.items.length}</div>
@@ -271,7 +273,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                 {/* أزرار الحفظ والإغلاق */}
                 <div className="responsive-actions" style={{ display: 'flex', gap: '20px', marginTop: '35px' }}>
                     <button onClick={logic.handleSave} className="btn-glass-save" style={{ flex: 2 }}>
-                        ✅ حفظ وترحيل الخامات للمشروع
+                        حفظ وترحيل الخامات للمشروع
                     </button>
                     <button onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>
                         إغلاق وإلغاء

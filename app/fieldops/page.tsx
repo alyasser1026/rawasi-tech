@@ -12,7 +12,7 @@ export default function FieldOperationsPage() {
 
     const sidebarContent = (
         <div className="summary-glass-card">
-            <h4 style={{ color: 'white', margin: '0 0 15px 0', fontSize: '14px' }}>📊 نبض الميدان - اليوم</h4>
+            <h4 style={{ color: THEME.coffeeDark, margin: '0 0 15px 0', fontSize: '14px' }}>نبض الميدان - اليوم</h4>
             <div style={styles.sideStat}>
                 <span>إجمالي العمالة بالمواقع</span>
                 <strong>{logic.companyTotals.totalWorkers} عامل</strong>
@@ -38,11 +38,11 @@ export default function FieldOperationsPage() {
 
                 <style>{`
                     .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 10px; }
-                    .site-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 28px; padding: 25px; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; position: relative; overflow: hidden; }
+                    .site-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 14px; padding: 25px; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; position: relative; overflow: hidden; }
                     .site-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
                     .stat-badge { background: #f1f5f9; padding: 10px 15px; borderRadius: 16px; textAlign: center; }
                     .task-pill { background: ${THEME.coffeeDark}; color: white; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; }
-                    .summary-glass-card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); }
+                    .summary-glass-card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); }
                 `}</style>
 
                 {logic.isLoading ? (
@@ -54,11 +54,11 @@ export default function FieldOperationsPage() {
                                 {/* الهيدر */}
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                                     <div>
-                                        <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900 }}>🏢 {site.Property}</h3>
+                                        <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900 }}>{site.Property}</h3>
                                         <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>العميل: {site.client?.name || '---'}</span>
                                     </div>
                                     <div style={{ background: THEME.success + '20', color: THEME.success, padding: '5px 12px', borderRadius: '10px', fontSize: '11px', fontWeight: 900, height: 'fit-content' }}>
-                                        بث مباشر 🔴
+                                        بث مباشر
                                     </div>
                                 </div>
 
@@ -76,7 +76,7 @@ export default function FieldOperationsPage() {
 
                                 {/* المهام الجارية */}
                                 <div style={{ marginBottom: '15px' }}>
-                                    <div style={{ fontSize: '11px', fontWeight: 900, marginBottom: '8px', color: '#475569' }}>🔨 أعمال جارية الآن:</div>
+                                    <div style={{ fontSize: '11px', fontWeight: 900, marginBottom: '8px', color: '#475569' }}>أعمال جارية الآن:</div>
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                                         {site.activeTasks.length > 0 ? site.activeTasks.map((t: string) => (
                                             <span key={t} className="task-pill">{t}</span>
@@ -97,7 +97,7 @@ export default function FieldOperationsPage() {
                                 
                                 {/* زر الدخول السريع للمشروع */}
                                 <button style={{ width: '100%', marginTop: '20px', padding: '12px', border: 'none', borderRadius: '12px', background: THEME.coffeeDark, color: THEME.goldAccent, fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
-                                    فتح غرفة عمليات المشروع ⬅️
+                                    فتح غرفة عمليات المشروع
                                 </button>
                             </div>
                         ))}
@@ -109,5 +109,5 @@ export default function FieldOperationsPage() {
 }
 
 const styles = {
-    sideStat: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.05)', padding: '12px', borderRadius: '12px', marginBottom: '10px', fontSize: '12px', color: 'white', fontWeight: 700 }
+    sideStat: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f3f5f8', padding: '12px', borderRadius: '12px', marginBottom: '10px', fontSize: '12px', color: THEME.coffeeDark, fontWeight: 700 }
 };

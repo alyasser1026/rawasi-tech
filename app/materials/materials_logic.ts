@@ -57,7 +57,7 @@ export function useMaterialsLogic() {
     const bulkDispenseMutation = useMutation({
         mutationFn: async (payload: any) => {
             const safeProjectId = cleanId(payload.project_id);
-            if (!safeProjectId) throw new Error("⚠️ المشروع الإلزامي غير محدد للصرف.");
+            if (!safeProjectId) throw new Error("المشروع الإلزامي غير محدد للصرف.");
 
             const issuePayload = {
                 issue_number: `ISS-${Date.now().toString().slice(-6)}`,
@@ -93,7 +93,7 @@ export function useMaterialsLogic() {
             if (lineError) throw new Error(`خطأ في سطور الصرف: ${lineError.message}`);
         },
         onSuccess: () => {
-            showToast("تم حفظ إذن الصرف المجمع كمسودة بنجاح 📦", "success");
+            showToast("تم حفظ إذن الصرف المجمع كمسودة بنجاح", "success");
             setIsBulkDispenseModalOpen(false);
             setSelectedLineItems([]); 
             queryClient.invalidateQueries({ queryKey: ['materials_logs'] });
@@ -301,11 +301,11 @@ export function useMaterialsLogic() {
             const safeAccountId = cleanId(invoiceData.account_id);
 
             if (!safeProjectId || !safePayeeId || !safeAccountId) {
-                throw new Error("⚠️ يرجى التأكد من اختيار المشروع، المورد، والحساب المالي بشكل صحيح.");
+                throw new Error("يرجى التأكد من اختيار المشروع، المورد، والحساب المالي بشكل صحيح.");
             }
 
             if (!invoiceData.items || invoiceData.items.length === 0) {
-                throw new Error("⚠️ لا يمكن حفظ فاتورة بدون أصناف.");
+                throw new Error("لا يمكن حفظ فاتورة بدون أصناف.");
             }
 
             let receiptId = invoiceData.id;
@@ -375,7 +375,7 @@ export function useMaterialsLogic() {
             setIsModalOpen(false);
             setInvoiceData(initialInvoiceState);
             setSelectedIds([]); 
-            showToast("تم حفظ الفاتورة بنجاح (معلقة في انتظار الترحيل) ⏳", "success");
+            showToast("تم حفظ الفاتورة بنجاح (معلقة في انتظار الترحيل)", "success");
             fetchInventoryBalances(); 
         },
         onError: (err: any) => showToast(err.message, "error") 
@@ -398,7 +398,7 @@ export function useMaterialsLogic() {
             if (error) throw error;
         },
         onSuccess: (_, variables) => {
-            const msg = variables.action === 'delete' ? "تم حذف الإذن والقيود المربوطة 🗑️" : "تمت العملية بنجاح ✅";
+            const msg = variables.action === 'delete' ? "تم حذف الإذن والقيود المربوطة" : "تمت العملية بنجاح";
             showToast(msg, "success");
             queryClient.invalidateQueries({ queryKey: ['materials_logs'] });
             fetchInventoryBalances(); 
@@ -409,7 +409,7 @@ export function useMaterialsLogic() {
     const dispenseMaterialMutation = useMutation({
         mutationFn: async (data: any) => {
             const safeProjectId = cleanId(data.project_id);
-            if (!safeProjectId) throw new Error("⚠️ المشروع الإلزامي غير محدد للصرف.");
+            if (!safeProjectId) throw new Error("المشروع الإلزامي غير محدد للصرف.");
 
             const issuePayload = {
                 issue_number: `ISS-${Date.now().toString().slice(-6)}`,
@@ -445,7 +445,7 @@ export function useMaterialsLogic() {
             if (lineError) throw new Error(`خطأ في حفظ سطر الصرف: ${lineError.message}`);
         },
         onSuccess: () => {
-            showToast("تم حفظ إذن الصرف كمسودة بنجاح 📝 (في انتظار الترحيل)", "success");
+            showToast("تم حفظ إذن الصرف كمسودة بنجاح (في انتظار الترحيل)", "success");
             setIsDispenseModalOpen(false);
             queryClient.invalidateQueries({ queryKey: ['materials_logs'] });
             fetchInventoryBalances(); 
@@ -547,7 +547,7 @@ export function useMaterialsLogic() {
                     if (error) throw error;
                 }
 
-                showToast("تم تنفيذ العملية بنجاح على الفواتير المحددة ✅", "success");
+                showToast("تم تنفيذ العملية بنجاح على الفواتير المحددة", "success");
                 setSelectedIds([]); 
                 queryClient.invalidateQueries({ queryKey: ['materials_logs'] });
                 fetchInventoryBalances(); 

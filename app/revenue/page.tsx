@@ -45,7 +45,7 @@ export default function RevenuePage() {
     ];
 
     return (
-        <MasterPage icon="📈" title="سجل الإيرادات الصافية" subtitle="تحليل التدفقات النقدية المحققة والاستقطاعات الفنية">
+        <MasterPage title="سجل الإيرادات الصافية" subtitle="تحليل التدفقات النقدية المحققة والاستقطاعات الفنية">
             
             <RawasiSidebarManager 
                 summary={
@@ -75,7 +75,7 @@ export default function RevenuePage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <input 
                             type="text" 
-                            placeholder="🔍 بحث سريع..." 
+                            placeholder="بحث سريع..." 
                             className="glass-input" 
                             value={logic.globalSearch} 
                             onChange={(e) => logic.setGlobalSearch(e.target.value)} 

@@ -199,16 +199,16 @@ export const parseDbError = (error: any): string => {
   const msg = error.message || error.details || "";
   
   if (msg.includes("duplicate key") || error.code === '23505') {
-    return "❌ هذا السجل (أو رقم المستند) موجود بالفعل ولا يمكن تكراره.";
+    return "هذا السجل (أو رقم المستند) موجود بالفعل ولا يمكن تكراره.";
   }
   if (msg.includes("violates foreign key") || error.code === '23503') {
-    return "❌ لا يمكن حذف هذا السجل لارتباطه ببيانات أخرى في النظام (مثل قيود أو فواتير).";
+    return "لا يمكن حذف هذا السجل لارتباطه ببيانات أخرى في النظام (مثل قيود أو فواتير).";
   }
   if (msg.includes("not null violation") || error.code === '23502') {
-    return "❌ يرجى التأكد من تعبئة جميع الحقول الإجبارية.";
+    return "يرجى التأكد من تعبئة جميع الحقول الإجبارية.";
   }
   
-  return `❌ فشل الإجراء: ${msg}`;
+  return `فشل الإجراء: ${msg}`;
 };
 
 export const calculateProgress = (executed: number, total: number) => {
@@ -239,7 +239,7 @@ export const checkBudgetVariance = (budget: number, actualCost: number) => {
     isOverBudget,
     varianceAmount: Math.abs(variance), // قيمة الانحراف
     variancePercentage: numBudget > 0 ? ((Math.abs(variance) / numBudget) * 100).toFixed(1) : 0,
-    statusText: isOverBudget ? '⚠️ تجاوز الميزانية' : '✅ ضمن الميزانية',
+    statusText: isOverBudget ? 'تجاوز الميزانية' : 'ضمن الميزانية',
     color: isOverBudget ? '#dc2626' : '#059669' // أحمر لو تخطى، أخضر لو في السليم
   };
 };

@@ -56,17 +56,17 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
 
     // 🚀 3. الحساسية القصوى (التحقق من الحقول الإلزامية ومنطقية الأرقام)
     const handleValidateAndSave = () => {
-        if (!record.project_id) return showToast("يرجى اختيار المشروع أولاً ⚠️", "warning");
-        if (!record.boq_budget_id) return showToast("يرجى اختيار بند المقايسة ⚠️", "warning");
+        if (!record.project_id) return showToast("يرجى اختيار المشروع أولاً", "warning");
+        if (!record.boq_budget_id) return showToast("يرجى اختيار بند المقايسة", "warning");
         
         const qty = Number(record.assigned_qty);
         const price = Number(record.unit_price);
 
         // منع القيم الصفرية أو السالبة
-        if (isNaN(qty) || qty <= 0) return showToast("⚠️ الكمية المسندة يجب أن تكون أكبر من صفر", "warning");
-        if (isNaN(price) || price < 0) return showToast("⚠️ سعر الوحدة لا يمكن أن يكون سالباً", "warning");
+        if (isNaN(qty) || qty <= 0) return showToast("الكمية المسندة يجب أن تكون أكبر من صفر", "warning");
+        if (isNaN(price) || price < 0) return showToast("سعر الوحدة لا يمكن أن يكون سالباً", "warning");
 
-        if (record.executor_type === 'مقاول باطن' && !record.contractor_id) return showToast("يرجى اختيار مقاول الباطن ⚠️", "warning");
+        if (record.executor_type === 'مقاول باطن' && !record.contractor_id) return showToast("يرجى اختيار مقاول الباطن", "warning");
         
         onSave(record);
     };
@@ -108,14 +108,14 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
                 width: '950px', maxHeight: '92vh', background: 'rgba(248, 250, 252, 0.85)', 
-                backdropFilter: 'blur(25px)', borderRadius: '30px', padding: '40px', 
+                backdropFilter: 'blur(25px)', borderRadius: '14px', padding: '40px', 
                 boxShadow: '0 30px 60px rgba(0,0,0,0.25)', overflowY: 'auto', direction: 'rtl',
                 border: '1px solid rgba(255,255,255,0.7)', animation: 'modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
             }}>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: `2px solid ${THEME.accent}50`, paddingBottom: '15px' }}>
                     <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '26px' }}>
-                        🏗️ {record.id ? 'تعديل أمر التشغيل' : 'إصدار أمر تشغيل جديد'}
+                        {record.id ? 'تعديل أمر التشغيل' : 'إصدار أمر تشغيل جديد'}
                     </h2>
                     <div style={{ fontSize: '16px', fontWeight: 900, color: '#64748b', background: 'rgba(255,255,255,0.8)', padding: '8px 16px', borderRadius: '12px' }}>
                         رقم الأمر: <span style={{ color: THEME.primary }}>{record.order_number}</span>
@@ -139,13 +139,13 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                     <div>
                         <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>حالة الأمر</label>
                         <select value={record.status ?? 'مسودة'} onChange={(e) => setRecord({...record, status: e.target.value})} className="glass-input-field" style={{ appearance: 'auto', border: `2px solid ${THEME.accent}70` }}>
-                            <option value="مسودة">📄 مسودة</option>
-                            <option value="جاري التنفيذ">⏳ جاري التنفيذ</option>
-                            <option value="موقوف">⏸️ موقوف</option>
-                            <option value="جاري التسليم">🚚 جاري التسليم</option>
-                            <option value="مفوتر">🧾 مفوتر</option>
-                            <option value="تم التحصيل">💰 تم التحصيل</option>
-                            <option value="مكتمل">✅ مكتمل</option>
+                            <option value="مسودة">مسودة</option>
+                            <option value="جاري التنفيذ">جاري التنفيذ</option>
+                            <option value="موقوف">موقوف</option>
+                            <option value="جاري التسليم">جاري التسليم</option>
+                            <option value="مفوتر">مفوتر</option>
+                            <option value="تم التحصيل">تم التحصيل</option>
+                            <option value="مكتمل">مكتمل</option>
                         </select>
                     </div>
 
@@ -186,7 +186,7 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                             style={{ appearance: 'auto', background: !record.project_id ? 'rgba(226, 232, 240, 0.6)' : 'rgba(255, 255, 255, 0.65)' }}
                             disabled={!record.project_id}
                         >
-                            <option value="">{record.project_id ? '🔍 اختر البند...' : '⚠️ يرجى اختيار العقار أولاً لعرض البنود'}</option>
+                            <option value="">{record.project_id ? 'اختر البند...' : 'يرجى اختيار العقار أولاً لعرض البنود'}</option>
                             {boqItems.map(b => <option key={b.id} value={b.id}>{b.work_item} ({b.unit})</option>)}
                         </select>
                     </div>
@@ -215,8 +215,8 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                             }} 
                             className="glass-input-field" style={{ appearance: 'auto' }}
                         >
-                            <option value="تنفيذ ذاتي">👷‍♂️ تنفيذ ذاتي (عمالة الشركة)</option>
-                            <option value="مقاول باطن">🤝 مقاول باطن</option>
+                            <option value="تنفيذ ذاتي">تنفيذ ذاتي (عمالة الشركة)</option>
+                            <option value="مقاول باطن">مقاول باطن</option>
                         </select>
                     </div>
 
@@ -248,7 +248,7 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                 </div>
 
                 {/* Summary Grid */}
-                <div style={{ marginTop: '35px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '24px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                <div style={{ marginTop: '35px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>الكمية المسندة</div>
                         <div style={{ fontSize: '20px', fontWeight: 900 }}>{Number(record.assigned_qty || 0).toLocaleString('en-US')}</div>
@@ -266,7 +266,7 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                 {/* Actions */}
                 <div style={{ display: 'flex', gap: '20px', marginTop: '35px' }}>
                     <button onClick={handleValidateAndSave} disabled={isSaving} className="btn-glass-save" style={{ flex: 2 }}>
-                        {isSaving ? '⏳ جاري الحفظ...' : '✅ حفظ وإصدار أمر التشغيل'}
+                        {isSaving ? 'جاري الحفظ...' : 'حفظ وإصدار أمر التشغيل'}
                     </button>
                     <button onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>
                         إلغاء وإغلاق

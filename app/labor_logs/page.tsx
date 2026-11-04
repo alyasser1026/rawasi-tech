@@ -140,7 +140,7 @@ export default function LaborLogsDirectory() {
         if (!row) return null;
         return (
           <span className="glass-badge" style={{ backgroundColor: row.is_posted ? '#ecfdf5' : '#fff7ed', color: row.is_posted ? '#059669' : '#d97706' }}>
-            {row.is_posted ? 'معتمد ✅' : 'معلق ⏳'}
+            {row.is_posted ? 'معتمد' : 'معلق'}
           </span>
         );
       }
@@ -160,7 +160,7 @@ export default function LaborLogsDirectory() {
                 logic.setIsAddModalOpen(true);
             }
         }}>
-            {isOneSelected ? '✏️ تعديل اليومية' : '➕ إضافة يومية جديدة'}
+            {isOneSelected ? 'تعديل اليومية' : 'إضافة يومية جديدة'}
         </button>
       </SecureAction>
       
@@ -168,29 +168,29 @@ export default function LaborLogsDirectory() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
           <p style={{fontSize:'10px', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات على ({logic.selectedIds.length})</p>
           <SecureAction module="labor_logs" action="post">
-            <button className="btn-main-glass green" onClick={logic.handlePostSelected}>🚀 اعتماد وترحيل</button>
+            <button className="btn-main-glass green" onClick={logic.handlePostSelected}>اعتماد وترحيل</button>
           </SecureAction>
           <SecureAction module="labor_logs" action="post">
-            <button className="btn-main-glass yellow" onClick={logic.handleSuspendSelected}>↩️ فك الترحيل</button>
+            <button className="btn-main-glass yellow" onClick={logic.handleSuspendSelected}>فك الترحيل</button>
           </SecureAction>
           <SecureAction module="labor_logs" action="delete">
-            <button className="btn-main-glass red" onClick={logic.handleDeleteSelected}>🗑️ حذف نهائي</button>
+            <button className="btn-main-glass red" onClick={logic.handleDeleteSelected}>حذف نهائي</button>
           </SecureAction>
         </div>
       )}
 
-      <button className="btn-main-glass white" onClick={logic.exportToExcel}>📊 تصدير إكسل</button>
-      <button className="btn-main-glass white" onClick={() => window.print()}>🖨️ طباعة الكشف</button>
+      <button className="btn-main-glass white" onClick={logic.exportToExcel}>تصدير إكسل</button>
+      <button className="btn-main-glass white" onClick={() => window.print()}>طباعة الكشف</button>
     </div>
   ), [logic.selectedIds, isOneSelected, logic]); 
   
   return (
     <>
-      <MasterPage icon="👷‍♂️" title="يوميات العمالة" subtitle="إدارة الحضور والأجور والإنتاجية الميدانية">
+      <MasterPage title="يوميات العمالة" subtitle="إدارة الحضور والأجور والإنتاجية الميدانية">
         <RawasiSidebarManager 
           summary={
             <div className="summary-glass-card">
-              <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الأجور المحسوبة 💰</span>
+              <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الأجور المحسوبة</span>
               <div className="val" style={{fontSize:'24px', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>
                 {logic.formatCurrency(logic.stats.sum)}
               </div>
@@ -280,10 +280,10 @@ export default function LaborLogsDirectory() {
       </MasterPage>
 
       {mounted && logic.isAddModalOpen && createPortal(
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(39,39,42, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '5vh', paddingBottom: '5vh', overflowY: 'auto' }} onClick={() => logic.setIsAddModalOpen(false)}>
-          <div className="cinematic-scroll" onClick={(e) => e.stopPropagation()} style={{ background: 'white', padding: '35px', borderRadius: '24px', width: '100%', maxWidth: '900px', direction: 'rtl', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', margin: 'auto' }}>
+        <div className="phi-modal-backdrop" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(39,39,42, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '5vh', paddingBottom: '5vh', overflowY: 'auto' }} onClick={() => logic.setIsAddModalOpen(false)}>
+          <div className="cinematic-scroll phi-modal-panel" onClick={(e) => e.stopPropagation()} style={{ background: 'white', padding: '35px', borderRadius: '14px', width: '100%', maxWidth: '900px', direction: 'rtl', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', margin: 'auto' }}>
             <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px', fontSize: '24px', borderBottom: `2px dashed ${THEME.goldAccent}`, paddingBottom: '15px' }}>
-              {logic.editingId ? '✏️ تعديل بيانات اليومية' : '➕ إضافة يومية جديدة'}
+              {logic.editingId ? 'تعديل بيانات اليومية' : 'إضافة يومية جديدة'}
             </h2>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -291,16 +291,16 @@ export default function LaborLogsDirectory() {
                {/* الصف الأول */}
                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', zIndex: 100 }}>
                  <div>
-                    <label className="modal-label">📅 التاريخ</label>
+                    <label className="modal-label">التاريخ</label>
                     <input type="date" value={logic.currentLog.work_date || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, work_date: e.target.value})} className="modal-input" />
                  </div>
-                 <SmartCombo label="👷 اسم العامل" table="partners" displayCol="name" freeText={true} initialDisplay={logic.currentLog.worker_name} onSelect={(v:any)=>logic.setCurrentLog({...logic.currentLog, worker_name: v?.name || v, worker_partner_id: v?.id || null})} />
+                 <SmartCombo label="اسم العامل" table="partners" displayCol="name" freeText={true} initialDisplay={logic.currentLog.worker_name} onSelect={(v:any)=>logic.setCurrentLog({...logic.currentLog, worker_name: v?.name || v, worker_partner_id: v?.id || null})} />
                </div>
 
                {/* الصف الثاني المطور 🚀 */}
                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1.5fr 1fr', gap: '20px', zIndex: 90 }}>
                  <SmartCombo 
-                     label="📍 الموقع / العمارة" 
+                     label="الموقع / العمارة" 
                      table="projects" 
                      displayCol="Property" 
                      searchCols="Property,project_name,project_code" 
@@ -320,7 +320,7 @@ export default function LaborLogsDirectory() {
 
                  <div style={{ position: 'relative' }}>
                      <SmartCombo 
-                         label="📝 أمر الشغل (ربط الميزانية) *" 
+                         label="أمر الشغل (ربط الميزانية) *" 
                          table="job_orders" 
                          displayCol="order_number" 
                          searchCols="order_number,notes" 
@@ -363,7 +363,7 @@ export default function LaborLogsDirectory() {
                  </div>
 
                  <div>
-                    <label className="modal-label">🔨 البند (من المقايسة)</label>
+                    <label className="modal-label">البند (من المقايسة)</label>
                     <input 
                         type="text" 
                         placeholder="يسحب تلقائياً من أمر الشغل" 
@@ -375,7 +375,7 @@ export default function LaborLogsDirectory() {
                  </div>
 
                  <div>
-                    <label className="modal-label">📏 الوحدة</label>
+                    <label className="modal-label">الوحدة</label>
                     <input 
                         type="text" 
                         placeholder="تسحب تلقائياً" 
@@ -390,15 +390,15 @@ export default function LaborLogsDirectory() {
                {/* الصف الثالث (حقول الإنتاج والطريحة) */}
                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '20px' }}>
                  <div>
-                    <label className="modal-label">⭐ مستوى المهارة</label>
+                    <label className="modal-label">مستوى المهارة</label>
                     <input type="text" placeholder="معلم، مساعد..." value={logic.currentLog.skill_level || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, skill_level: e.target.value})} className="modal-input" />
                  </div>
                  <div>
-                    <label className="modal-label">📝 وصف الإنتاج</label>
+                    <label className="modal-label">وصف الإنتاج</label>
                     <input type="text" placeholder="تفاصيل العمل المنجز..." value={logic.currentLog.production_desc || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, production_desc: e.target.value})} className="modal-input" />
                  </div>
                  <div>
-                    <label className="modal-label">📦 الطريحة (المستهدف)</label>
+                    <label className="modal-label">الطريحة (المستهدف)</label>
                     <input type="text" placeholder="مثال: 50" value={logic.currentLog.tareeha || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, tareeha: e.target.value})} className="modal-input" />
                  </div>
                </div>
@@ -406,15 +406,15 @@ export default function LaborLogsDirectory() {
                {/* الصف الرابع (الإنتاجية والأجور) */}
                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '15px' }}>
                  <div>
-                    <label className="modal-label">📈 الإنتاجية (المنفذ)</label>
+                    <label className="modal-label">الإنتاجية (المنفذ)</label>
                     <input type="text" placeholder="الكمية المنفذة فعلياً" value={logic.currentLog.productivity || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, productivity: e.target.value})} className="modal-input" />
                  </div>
                  <div>
-                    <label className="modal-label">📊 نسبة الإنجاز (%)</label>
+                    <label className="modal-label">نسبة الإنجاز (%)</label>
                     <input type="number" min="0" max="100" placeholder="100" value={logic.currentLog.completion_percentage || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, completion_percentage: e.target.value})} className="modal-input" />
                  </div>
                  <div>
-                    <label className="modal-label">⏱️ الحضور</label>
+                    <label className="modal-label">الحضور</label>
                     <select value={logic.currentLog.attendance_value ?? 1} onChange={e => logic.setCurrentLog({...logic.currentLog, attendance_value: Number(e.target.value)})} className="modal-input">
                       <option value={1}>يوم كامل</option>
                       <option value={0.5}>نصف يوم</option>
@@ -422,7 +422,7 @@ export default function LaborLogsDirectory() {
                     </select>
                  </div>
                  <div>
-                    <label className="modal-label">💰 اليومية</label>
+                    <label className="modal-label">اليومية</label>
                     <input type="number" value={logic.currentLog.daily_wage || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, daily_wage: e.target.value})} className="modal-input success-text" />
                  </div>
                </div>
@@ -430,7 +430,7 @@ export default function LaborLogsDirectory() {
                {/* الصف الخامس (ملاحظات ومقاول) */}
                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr', gap: '20px', zIndex: 80 }}>
                  <SmartCombo 
-                    label="🏗️ المقاول الباطن (اختياري)" 
+                    label="المقاول الباطن (اختياري)" 
                     table="partners" 
                     displayCol="name" 
                     freeText={false} 
@@ -439,7 +439,7 @@ export default function LaborLogsDirectory() {
                     onSelect={(v:any) => logic.setCurrentLog({...logic.currentLog, sub_contractor: v?.name || '', sub_contractor_id: v?.id || null})} 
                  />
                  <div>
-                    <label className="modal-label">📝 الملاحظات</label>
+                    <label className="modal-label">الملاحظات</label>
                     <input type="text" placeholder="أي ملاحظات عامة..." value={logic.currentLog.notes || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, notes: e.target.value})} className="modal-input" />
                  </div>
                </div>
@@ -447,7 +447,7 @@ export default function LaborLogsDirectory() {
                {/* أزرار الحفظ */}
                <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
                  <button onClick={logic.handleSaveLog} disabled={logic.isSaving} className="save-btn" title="يمكنك أيضاً استخدام Ctrl + Enter للحفظ">
-                   {logic.isSaving ? '⏳ جاري الحفظ...' : '💾 اعتماد السجل'}
+                   {logic.isSaving ? 'جاري الحفظ...' : 'اعتماد السجل'}
                  </button>
                  <button onClick={() => logic.setIsAddModalOpen(false)} className="cancel-btn">إلغاء</button>
                </div>

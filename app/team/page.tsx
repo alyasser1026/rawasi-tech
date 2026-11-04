@@ -7,6 +7,8 @@ import { useSidebar } from '@/lib/SidebarContext';
 import MasterPage from '@/components/MasterPage'; 
 import ProfileEditorModal from './profileeditormodal';
 import { useRouter } from 'next/navigation'; // 👈 استدعاء الراوتر للطرد
+import { Hourglass, Sparkles } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 export default function TeamPage() {
     // ==========================================
@@ -41,7 +43,7 @@ export default function TeamPage() {
 
             // لو مش أدمن، اطرده للصفحة الرئيسية
             if (profile?.role !== 'admin' && profile?.is_admin !== true) {
-                alert("⛔ غير مصرح لك بالدخول! هذه الصفحة مخصصة لمديري النظام فقط.");
+                notify("غير مصرح لك بالدخول! هذه الصفحة مخصصة لمديري النظام فقط.");
                 router.push('/'); 
             }
         };
@@ -79,7 +81,7 @@ export default function TeamPage() {
                 console.log("✅ تم جلب البيانات الأساسية بنجاح كبديل.");
             } catch (fatalErr: any) {
                 console.error("❌ Fatal Fetch Error:", fatalErr);
-                alert("تعذر الاتصال بقاعدة البيانات. تأكد من اتصال الإنترنت.");
+                notify("تعذر الاتصال بقاعدة البيانات. تأكد من اتصال الإنترنت.");
             }
         } finally {
             setIsLoading(false);
@@ -111,7 +113,7 @@ export default function TeamPage() {
     const handleCopyInvite = () => {
         const signupLink = `${window.location.origin}/signup`;
         navigator.clipboard.writeText(signupLink);
-        alert("✅ تم نسخ رابط الدعوة الرقمية!\nأرسله الآن للموظف أو العميل للتسجيل.");
+        notify("تم نسخ رابط الدعوة الرقمية!\nأرسله الآن للموظف أو العميل للتسجيل.");
     };
 
     const handleBulkToggle = async (action: 'activate_all' | 'suspend_all') => {
@@ -123,10 +125,10 @@ export default function TeamPage() {
             const res = await adminUsersRequest('PATCH', { action });
             const result = await res.json();
             if (!res.ok) throw new Error(result.error);
-            alert(result.message);
+            notify(result.message);
             fetchProfiles();
         } catch (error: any) {
-            alert(`❌ فشل التحديث: ${error.message}`);
+            notify(`فشل التحديث: ${error.message}`);
             setIsLoading(false);
         }
     };
@@ -139,27 +141,27 @@ export default function TeamPage() {
             actions: (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
                     <button onClick={() => { setSelectedProfile(null); setIsModalOpen(true); }} className="btn-main-glass gold" style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', fontWeight: 900, padding: '15px' }}>
-                        ➕ إضافة مستخدم جديد
+                        إضافة مستخدم جديد
                     </button>
                     <button onClick={handleCopyInvite} className="btn-main-glass white">
-                        🔗 نسخ رابط دعوة للتسجيل
+                        نسخ رابط دعوة للتسجيل
                     </button>
                     <div style={{ display: 'flex', gap: '10px' }}>
                         <button onClick={() => handleBulkToggle('suspend_all')} style={{ flex: 1, padding: '10px', background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>
-                            🚫 إيقاف الكل
+                            إيقاف الكل
                         </button>
                         <button onClick={() => handleBulkToggle('activate_all')} style={{ flex: 1, padding: '10px', background: '#dcfce7', color: '#22c55e', border: '1px solid #bbf7d0', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>
-                            ✅ تنشيط الكل
+                            تنشيط الكل
                         </button>
                     </div>
                     <button onClick={fetchProfiles} className="btn-main-glass white">
-                        🔄 تحديث القائمة
+                        تحديث القائمة
                     </button>
                 </div>
             ),
             summary: (
                 <div className="summary-glass-card" style={{ borderColor: THEME.brand.gold }}>
-                    <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الفريق 👥</span>
+                    <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الفريق</span>
                     <div style={{fontSize:'28px', fontWeight:900, color: THEME.brand.gold}}>{profiles.length}</div>
                 </div>
             ),
@@ -184,7 +186,7 @@ export default function TeamPage() {
     // 6. UI Render
     // ==========================================
     return (
-        <MasterPage icon="👥" title="إدارة الفريق والشركاء" subtitle="تحديد الرتب وتوزيع صلاحيات الوصول للمنصة بأمان">
+        <MasterPage title="إدارة الفريق والشركاء" subtitle="تحديد الرتب وتوزيع صلاحيات الوصول للمنصة بأمان">
             
             {/* 🎨 Clean CSS Styles */}
             <style>{`
@@ -198,7 +200,7 @@ export default function TeamPage() {
                     background: rgba(255, 255, 255, 0.6);
                     backdrop-filter: blur(20px);
                     border: 1px solid rgba(255, 255, 255, 0.9);
-                    border-radius: 30px;
+                    border-radius: 14px;
                     padding: 35px 25px;
                     text-align: center;
                     cursor: pointer;
@@ -231,7 +233,7 @@ export default function TeamPage() {
                 }
                 .empty-state {
                     text-align: center; padding: 80px 20px;
-                    background: rgba(255,255,255,0.4); border-radius: 40px;
+                    background: rgba(255,255,255,0.4); border-radius: 14px;
                     border: 2px dashed ${THEME.brand.gold}40;
                     backdrop-filter: blur(10px);
                 }
@@ -240,18 +242,18 @@ export default function TeamPage() {
             {/* 🔄 Loading State */}
             {isLoading ? (
                 <div style={{ textAlign: 'center', padding: '100px', fontWeight: 900, color: THEME.brand.coffee, fontSize: '18px' }}>
-                    <span style={{ display: 'block', fontSize: '30px', marginBottom: '15px' }}>⏳</span>
+                    <span style={{ display: 'block', fontSize: '30px', marginBottom: '15px' }}><Hourglass size={26} aria-hidden="true" /></span>
                     جاري تحميل هويات الكوادر...
                 </div>
             
             /* 📭 Empty State */
             ) : profiles.length === 0 ? (
                 <div className="empty-state">
-                    <div style={{ fontSize: '60px', marginBottom: '20px' }}>✨</div>
+                    <div style={{ fontSize: '60px', marginBottom: '20px' }}><Sparkles size={40} aria-hidden="true" /></div>
                     <h2 style={{ fontWeight: 900, color: THEME.brand.coffee, fontSize: '26px' }}>ابدأ ببناء فريقك الرقمي</h2>
                     <p style={{ color: '#64748b', fontWeight: 600, fontSize: '15px', marginBottom: '30px' }}>لم يسجل أي مستخدم في النظام حتى الآن. شارك رابط الدعوة للبدء.</p>
-                    <button onClick={handleCopyInvite} style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '18px 40px', borderRadius: '20px', fontSize: '16px', fontWeight: 900, cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.brand.gold}30`, transition: '0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
-                        🔗 انسخ رابط الدعوة وانطلق
+                    <button onClick={handleCopyInvite} style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '18px 40px', borderRadius: '14px', fontSize: '16px', fontWeight: 900, cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.brand.gold}30`, transition: '0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                        انسخ رابط الدعوة وانطلق
                     </button>
                 </div>
             
@@ -272,7 +274,7 @@ export default function TeamPage() {
                                 background: user.role === 'admin' ? '#fef3c7' : user.role === 'staff' ? '#dcfce7' : user.role === 'contractor' ? '#e0f2fe' : '#f1f5f9',
                                 color: user.role === 'admin' ? '#d97706' : user.role === 'staff' ? '#16a34a' : user.role === 'contractor' ? '#0369a1' : '#475569'
                             }}>
-                                {user.role === 'admin' ? '👑 مدير نظام' : user.role === 'staff' ? '💼 موظف' : user.role === 'contractor' ? '👷 مقاول' : '👤 عميل'}
+                                {user.role === 'admin' ? 'مدير نظام' : user.role === 'staff' ? 'موظف' : user.role === 'contractor' ? 'مقاول' : 'عميل'}
                             </div>
 
                             {/* مؤشر حالة الحساب */}
@@ -280,13 +282,13 @@ export default function TeamPage() {
 
                             {user.partners?.name && (
                                 <div style={{ marginTop: '18px', fontSize: '11px', fontWeight: 900, color: THEME.brand.gold, background: `${THEME.brand.gold}15`, padding: '8px 12px', borderRadius: '10px' }}>
-                                    🔗 شريك: {user.partners.name}
+                                    شريك: {user.partners.name}
                                 </div>
                             )}
                         </div>
                     )) : (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '50px', color: '#94a3b8', fontWeight: 800 }}>
-                            لا توجد نتائج مطابقة لبحثك 🔍
+                            لا توجد نتائج مطابقة لبحثك
                         </div>
                     )}
                 </div>

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { THEME } from '@/lib/theme';
+import { Hourglass } from 'lucide-react';
 
 interface JobOrderSelectorProps {
     projectId: string | null;      // معرف الفيلا/المشروع
@@ -74,7 +75,7 @@ export default function JobOrderSelector({
     return (
         <div style={{ width: '100%', zIndex: 65, position: 'relative' }}>
             <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>
-                🔢 أمر التشغيل / الشغل *
+                أمر التشغيل / الشغل *
             </label>
             
             <div style={{ position: 'relative' }}>
@@ -96,11 +97,11 @@ export default function JobOrderSelector({
                 >
                     <option value="">
                         {!projectId 
-                            ? '⚠️ يرجى اختيار المشروع/الفيلا أولاً' 
+                            ? 'يرجى اختيار المشروع/الفيلا أولاً' 
                             : isLoading 
-                                ? '⏳ جاري تحميل أوامر الشغل...' 
+                                ? 'جاري تحميل أوامر الشغل...' 
                                 : jobOrders.length === 0 
-                                    ? '❌ لا توجد أوامر شغل مفتوحة هنا' 
+                                    ? 'لا توجد أوامر شغل مفتوحة هنا' 
                                     : '-- اختر أمر الشغل المناسب --'
                         }
                     </option>
@@ -125,7 +126,7 @@ export default function JobOrderSelector({
 
                 <div style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                     {isLoading ? (
-                        <span style={{ fontSize: '12px', color: THEME.accent }}>⏳</span>
+                        <span style={{ fontSize: '12px', color: THEME.accent }}><Hourglass size={14} aria-hidden="true" /></span>
                     ) : (
                         <span style={{ fontSize: '12px', color: THEME.primary }}>▼</span>
                     )}

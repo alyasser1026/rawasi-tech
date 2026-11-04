@@ -15,6 +15,8 @@ import SmartCombo from '@/components/SmartCombo';
 import JobOrderModal from './JobOrderModal';
 import JobOrderLedgerModal from './JobOrderLedgerModal'; 
 import LoadingScreen from '@/components/LoadingScreen';
+import { HardHat, Handshake } from 'lucide-react';
+import PhiIcon from '@/components/PhiIcon';
 
 export default function JobOrdersPage() {
   const logic = useJobOrdersLogic(); 
@@ -45,7 +47,7 @@ export default function JobOrdersPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <SecureAction module="job_orders" action="create">
         <button className="btn-main-glass gold" onClick={logic.handleAddNew}>
-          ➕ إصدار أمر تشغيل جديد
+          إصدار أمر تشغيل جديد
         </button>
       </SecureAction>
 
@@ -55,19 +57,19 @@ export default function JobOrdersPage() {
           
           <SecureAction module="job_orders" action="edit">
             <button className="btn-main-glass green" onClick={logic.handleCompleteSelected} disabled={logic.isSaving}>
-              {logic.isSaving ? '⏳ جاري...' : '✅ تعيين كمكتمل'}
+              {logic.isSaving ? 'جاري...' : 'تعيين كمكتمل'}
             </button>
           </SecureAction>
 
           <SecureAction module="job_orders" action="edit">
             <button className="btn-main-glass yellow" onClick={logic.handleSuspendSelected} disabled={logic.isSaving}>
-              ⏸️ إيقاف مؤقت
+              إيقاف مؤقت
             </button>
           </SecureAction>
 
           <SecureAction module="job_orders" action="delete">
             <button className="btn-main-glass red" onClick={logic.handleDeleteSelected} disabled={logic.isSaving}>
-              🗑️ حذف نهائي
+              حذف نهائي
             </button>
           </SecureAction>
         </div>
@@ -85,15 +87,15 @@ export default function JobOrdersPage() {
         summary={
           <div className="summary-glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
-                <span style={{fontSize:'14px', fontWeight:900, color:'#94a3b8'}}>جاري التنفيذ ⏳</span>
+                <span style={{fontSize:'14px', fontWeight:900, color:'#94a3b8'}}>جاري التنفيذ</span>
                 <span style={{fontSize:'15px', fontWeight:900, color: '#3b82f6'}}>{logic.kpis.running}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
-                <span style={{fontSize:'14px', fontWeight:900, color:'#94a3b8'}}>موقوف ⏸️</span>
+                <span style={{fontSize:'14px', fontWeight:900, color:'#94a3b8'}}>موقوف</span>
                 <span style={{fontSize:'15px', fontWeight:900, color: '#ef4444'}}>{logic.kpis.suspended}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{fontSize:'14px', fontWeight:900, color:'#94a3b8'}}>مكتمل ✅</span>
+                <span style={{fontSize:'14px', fontWeight:900, color:'#94a3b8'}}>مكتمل</span>
                 <span style={{fontSize:'15px', fontWeight:900, color: '#10b981'}}>{logic.kpis.completed}</span>
             </div>
           </div>
@@ -134,7 +136,7 @@ export default function JobOrdersPage() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        📊 حالة الأمر
+                        حالة الأمر
                     </label>
                     <select 
                         value={logic.statusFilter}
@@ -142,19 +144,19 @@ export default function JobOrdersPage() {
                         style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
                     >
                         <option value="">جميع الحالات</option>
-                        <option value="مسودة">📝 مسودة</option>
-                        <option value="جاري التنفيذ">⏳ جاري التنفيذ</option>
-                        <option value="مكتمل">✅ مكتمل</option>
-                        <option value="موقوف">⏸️ موقوف</option>
-                        <option value="جاري التسليم">🚚 جاري التسليم</option>
-                        <option value="مفوتر">🧾 مفوتر</option>
-                        <option value="تم التحصيل">💰 تم التحصيل</option>
+                        <option value="مسودة">مسودة</option>
+                        <option value="جاري التنفيذ">جاري التنفيذ</option>
+                        <option value="مكتمل">مكتمل</option>
+                        <option value="موقوف">موقوف</option>
+                        <option value="جاري التسليم">جاري التسليم</option>
+                        <option value="مفوتر">مفوتر</option>
+                        <option value="تم التحصيل">تم التحصيل</option>
                     </select>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        👷‍♂️ جهة التنفيذ
+                        جهة التنفيذ
                     </label>
                     <select 
                         value={logic.executorFilter}
@@ -162,14 +164,14 @@ export default function JobOrdersPage() {
                         style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
                     >
                         <option value="">جميع الجهات</option>
-                        <option value="مقاول باطن">🤝 مقاول باطن</option>
-                        <option value="تنفيذ ذاتي">👷‍♂️ تنفيذ ذاتي (عمالة الشركة)</option>
+                        <option value="مقاول باطن">مقاول باطن</option>
+                        <option value="تنفيذ ذاتي">تنفيذ ذاتي (عمالة الشركة)</option>
                     </select>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        💰 الحالة المالية
+                        الحالة المالية
                     </label>
                     <select 
                         value={logic.financialFilter}
@@ -177,10 +179,10 @@ export default function JobOrdersPage() {
                         style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
                     >
                         <option value="">جميع الحالات</option>
-                        <option value="رابح">📈 رابح</option>
-                        <option value="خاسر">📉 خاسر</option>
-                        <option value="تعادل">⚖️ تعادل</option>
-                        <option value="لم يبدأ">⏳ لم يبدأ</option>
+                        <option value="رابح">رابح</option>
+                        <option value="خاسر">خاسر</option>
+                        <option value="تعادل">تعادل</option>
+                        <option value="لم يبدأ">لم يبدأ</option>
                     </select>
                 </div>
             </div>
@@ -254,7 +256,7 @@ export default function JobOrdersPage() {
                     background: 'rgba(255, 255, 255, 0.85)', 
                     backdropFilter: 'blur(20px)', 
                     border: isSelected ? '2px solid #d97706' : '1px solid rgba(255, 255, 255, 0.4)', 
-                    borderRadius: '24px', 
+                    borderRadius: '14px', 
                     padding: '20px', 
                     cursor: 'pointer',
                     boxShadow: isSelected ? '0 10px 30px rgba(217, 119, 6, 0.15)' : '0 10px 30px rgba(0, 0, 0, 0.03)',
@@ -284,15 +286,15 @@ export default function JobOrdersPage() {
                       </div>
                       <div>
                         <b style={{ color: '#8b5cf6', fontSize: '15px', fontWeight: 900 }}>#{row.order_number}</b>
-                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>📅 {row.start_date ? new Date(row.start_date).toLocaleDateString('ar-EG') : '---'}</div>
+                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{row.start_date ? new Date(row.start_date).toLocaleDateString('ar-EG') : '---'}</div>
                       </div>
                     </div>
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: '6px',
-                      padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 800,
+                      padding: '4px 10px', borderRadius: '14px', fontSize: '11px', fontWeight: 800,
                       backgroundColor: badgeStyle.bg, color: badgeStyle.color, border: `1px solid ${badgeStyle.dot}40`
                     }}>
-                      <span>{badgeStyle.icon}</span> {row.status}
+                      <PhiIcon value={badgeStyle.icon} size={14} /> {row.status}
                     </div>
                   </div>
 
@@ -302,7 +304,7 @@ export default function JobOrdersPage() {
                   
                   {row.boq_budget?.work_item && (
                        <span style={{ fontSize: '11px', color: '#475569', background: '#f1f5f9', padding: '4px 10px', borderRadius: '8px', width: 'fit-content', border: '1px solid #e2e8f0', fontWeight: 800 }}>
-                         🛠️ {row.boq_budget.work_item}
+                         {row.boq_budget.work_item}
                        </span>
                   )}
 
@@ -313,7 +315,7 @@ export default function JobOrdersPage() {
                       color: isSelf ? '#4f46e5' : '#d97706',
                       border: `1px solid ${isSelf ? 'rgba(99, 102, 241, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
                     }}>
-                      {isSelf ? '👷‍♂️' : '🤝'} {executorName}
+                      {isSelf ? <HardHat size={14} aria-hidden="true" /> : <Handshake size={14} aria-hidden="true" />} {executorName}
                     </span>
                   </div>
 
@@ -368,19 +370,19 @@ export default function JobOrdersPage() {
                         onClick={(e) => e.stopPropagation()}
                         style={{ flex: 1, padding: '8px', background: 'rgba(255, 255, 255, 0.8)', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
                     >
-                        <option value="مسودة">📝 مسودة</option>
-                        <option value="جاري التنفيذ">⏳ جاري التنفيذ</option>
-                        <option value="مكتمل">✅ مكتمل</option>
-                        <option value="موقوف">⏸️ موقوف</option>
-                        <option value="جاري التسليم">🚚 جاري التسليم</option>
-                        <option value="مفوتر">🧾 مفوتر</option>
-                        <option value="تم التحصيل">💰 تم التحصيل</option>
+                        <option value="مسودة">مسودة</option>
+                        <option value="جاري التنفيذ">جاري التنفيذ</option>
+                        <option value="مكتمل">مكتمل</option>
+                        <option value="موقوف">موقوف</option>
+                        <option value="جاري التسليم">جاري التسليم</option>
+                        <option value="مفوتر">مفوتر</option>
+                        <option value="تم التحصيل">تم التحصيل</option>
                     </select>
                     <button onClick={(e) => { e.stopPropagation(); logic.handleEdit(row); }} className="btn-main-glass" style={{ flex: 1, padding: '8px', background: 'rgba(59, 130, 246, 0.05)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                      📝 تعديل
+                      تعديل
                     </button>
                     <button onClick={(e) => { e.stopPropagation(); logic.setLedgerRecord(row); logic.setIsLedgerOpen(true); }} className="btn-main-glass" style={{ flex: 1, padding: '8px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                      📊 الليدجر
+                      الليدجر
                     </button>
                   </div>
                 </div>

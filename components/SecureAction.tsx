@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { usePermissions } from '@/lib/PermissionsContext';
 import { THEME } from '@/lib/theme';
 import { toast } from 'react-hot-toast';
+import { TriangleAlert } from 'lucide-react';
 
 interface SecureActionProps {
     module: string;
@@ -46,9 +47,9 @@ export default function SecureAction({ module, action, children, fallback = null
 
                 {showDeleteConfirm && (
                     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(5px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                        <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '24px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', animation: 'scaleUp 0.3s ease-out', maxWidth: '400px', width: '90%', border: `2px solid ${THEME.danger || '#ef4444'}` }}>
+                        <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '14px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', animation: 'scaleUp 0.3s ease-out', maxWidth: '400px', width: '90%', border: `2px solid ${THEME.danger || '#ef4444'}` }}>
                             <div style={{ marginBottom: '20px', fontSize: '40px' }}>
-                                ⚠️
+                                <TriangleAlert size={34} aria-hidden="true" />
                             </div>
                             <h2 style={{ color: THEME.danger || '#ef4444', fontWeight: 900, marginBottom: '10px', fontSize: '24px' }}>
                                 هل أنت متأكد من الحذف؟

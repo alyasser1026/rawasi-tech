@@ -235,10 +235,10 @@ export function useJobOrdersLogic() {
             const qty = Number(record.assigned_qty) || 0;
             const price = Number(record.unit_price) || 0;
 
-            if (qty <= 0) throw new Error("عفواً، الكمية المسندة يجب أن تكون أكبر من صفر ⚠️");
-            if (price < 0) throw new Error("عفواً، سعر الوحدة لا يمكن أن يكون قيمة سالبة ⚠️");
+            if (qty <= 0) throw new Error("عفواً، الكمية المسندة يجب أن تكون أكبر من صفر");
+            if (price < 0) throw new Error("عفواً، سعر الوحدة لا يمكن أن يكون قيمة سالبة");
             if (record.executor_type === 'مقاول باطن' && !record.contractor_id) {
-                throw new Error("عفواً، يجب اختيار اسم مقاول الباطن لإتمام الأمر ⚠️");
+                throw new Error("عفواً، يجب اختيار اسم مقاول الباطن لإتمام الأمر");
             }
 
             const cleanId = (id: any) => (id && typeof id === 'string' && id.trim() !== '') ? id : null;
@@ -268,7 +268,7 @@ export function useJobOrdersLogic() {
         },
         onSuccess: () => {
             setIsEditModalOpen(false);
-            showToast("تم حفظ أمر التشغيل بنجاح 💾", "success");
+            showToast("تم حفظ أمر التشغيل بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['job_orders'] });
             queryClient.invalidateQueries({ queryKey: ['job_order_performance'] });
         },
@@ -282,7 +282,7 @@ export function useJobOrdersLogic() {
             if (error) throw error;
         },
         onSuccess: (_, newStatus) => {
-            showToast(`تم تغيير الحالة إلى ${newStatus} بنجاح ✅`, "success");
+            showToast(`تم تغيير الحالة إلى ${newStatus} بنجاح`, "success");
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['job_orders'] });
         },
@@ -294,7 +294,7 @@ export function useJobOrdersLogic() {
             if (error) throw error;
         },
         onSuccess: (_, variables) => {
-            showToast(`تم تغيير الحالة إلى ${variables.newStatus} بنجاح ✅`, "success");
+            showToast(`تم تغيير الحالة إلى ${variables.newStatus} بنجاح`, "success");
             queryClient.invalidateQueries({ queryKey: ['job_orders'] });
         },
         onError: (err: any) => showToast(`خطأ في تحديث الحالة: ${err.message}`, "error")
@@ -307,7 +307,7 @@ export function useJobOrdersLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast("تم حذف أوامر التشغيل المحددة نهائياً 🗑️", "success");
+            showToast("تم حذف أوامر التشغيل المحددة نهائياً", "success");
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['job_orders'] });
         },
@@ -343,7 +343,7 @@ export function useJobOrdersLogic() {
         handleAddNew, handleEdit, 
         handleSave: (record: any) => {
             if (record && record.status === 'مكتمل') {
-                return showToast("⚠️ لا يمكن تعديل أمر تشغيل مكتمل.", "error");
+                return showToast("لا يمكن تعديل أمر تشغيل مكتمل.", "error");
             }
             saveMutation.mutate(record);
         },
@@ -353,7 +353,7 @@ export function useJobOrdersLogic() {
         handleDeleteSelected: () => {
             const completed = baseJobOrders.filter((o:any) => selectedIds.includes(String(o.id)) && o.status === 'مكتمل');
             if (completed.length > 0) {
-                return showToast("⚠️ لا يمكن حذف أوامر تشغيل مكتملة.", "error");
+                return showToast("لا يمكن حذف أوامر تشغيل مكتملة.", "error");
             }
             if (!selectedIds.length || !confirm("هل أنت متأكد من الحذف النهائي لأوامر التشغيل المحددة؟")) return;
             deleteMutation.mutate();

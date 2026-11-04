@@ -1,13 +1,14 @@
 import React from 'react';
 import { THEME } from '@/lib/theme';
 import { StatusBadge } from './SharedUI';
+import { Camera } from 'lucide-react';
 
 export default function QcTab({ logic }: { logic: any }) {
   return (
     <div className="glass-card">
       {(!logic.projectDetails.inspections || logic.projectDetails.inspections.length === 0) ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: 900 }}>
-          <div style={{ fontSize: '40px', marginBottom: '10px' }}>📸</div>
+          <div style={{ fontSize: '40px', marginBottom: '10px' }}><Camera size={34} aria-hidden="true" /></div>
           لا توجد سجلات فحص جودة أو صور مرفوعة لهذا المشروع حتى الآن.
         </div>
       ) : (

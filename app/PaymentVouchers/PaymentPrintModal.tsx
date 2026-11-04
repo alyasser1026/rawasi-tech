@@ -62,7 +62,7 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
                 .action-btn { padding: 12px 25px; border-radius: 10px; border: none; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; }
                 .action-btn.print { background: #0f172a; color: white; }
                 .action-btn.close { background: #fee2e2; color: #dc2626; }
-                .a4-preview-box { width: 210mm !important; min-height: 297mm !important; background: white !important; color: #000; padding: 15mm !important; margin: 0 auto 40px auto !important; box-shadow: 0 20px 50px rgba(0,0,0,0.4); direction: rtl; border-radius: 24px !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; box-sizing: border-box !important; }
+                .a4-preview-box { width: 210mm !important; min-height: 297mm !important; background: white !important; color: #000; padding: 15mm !important; margin: 0 auto 40px auto !important; box-shadow: 0 20px 50px rgba(0,0,0,0.4); direction: rtl; border-radius: 14px !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; box-sizing: border-box !important; }
                 .inv-header { display: grid; grid-template-columns: 180px 1fr 180px; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 25px; width: 100%; gap: 15px; }
                 .header-center { text-align: center; }
                 .header-logo { display: flex; justify-content: flex-end; } 
@@ -71,7 +71,7 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
                 .inv-title { font-size: 22px; font-weight: 900; border: 2.5px solid #000; padding: 8px 35px; display: inline-block; background: #fef2f2; color: #b91c1c; text-transform: uppercase; letter-spacing: 1px; border-radius: 12px; }
                 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
                 .info-box { border: 1.5px solid #cbd5e1; border-radius: 16px !important; padding: 18px 15px 12px 15px; display: flex; flex-direction: column; justify-content: center; position: relative; background: #fff; min-height: 90px; }
-                .box-label { position: absolute; top: -10px; right: 20px; background: white; padding: 0 10px; font-size: 12px; font-weight: 900; color: #475569; border-radius: 20px; }
+                .box-label { position: absolute; top: -10px; right: 20px; background: white; padding: 0 10px; font-size: 12px; font-weight: 900; color: #475569; border-radius: 14px; }
                 .inner-table { width: 100%; border-collapse: collapse; }
                 .inner-table td { padding: 4px 0; font-size: 14px; vertical-align: middle; font-weight: 900; color: #1e293b;}
                 .label-cell { text-align: left; font-weight: 900; color: #64748b; width: 100px; padding-left: 10px !important; }
@@ -93,8 +93,8 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
             `}</style>
 
             <div className="print-actions-bar no-print">
-                <button onClick={handlePrint} className="action-btn print">🖨️ طباعة السند</button>
-                <button onClick={onClose} className="action-btn close">❌ إغلاق المعاينة</button>
+                <button onClick={handlePrint} className="action-btn print">طباعة السند</button>
+                <button onClick={onClose} className="action-btn close">إغلاق المعاينة</button>
             </div>
 
             <div className="a4-preview-box">

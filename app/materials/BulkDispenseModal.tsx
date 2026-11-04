@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
 import { formatCurrency } from '@/lib/helpers';
+import { notify } from '@/lib/notify';
 
 export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSave, isSaving }: any) {
     const [mounted, setMounted] = useState(false);
@@ -55,11 +56,11 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
     };
 
     const handleSubmit = () => {
-        if (!formData.project_id) return alert('⚠️ يرجى اختيار الفيلا/المشروع العقاري');
-        if (formData.issue_type === 'صرف لمقاول' && !formData.subcontractor_id) return alert('⚠️ يرجى اختيار المقاول المستلم');
+        if (!formData.project_id) return notify('يرجى اختيار الفيلا/المشروع العقاري');
+        if (formData.issue_type === 'صرف لمقاول' && !formData.subcontractor_id) return notify('يرجى اختيار المقاول المستلم');
         
         const invalidItem = formData.items.find(i => i.dispense_qty <= 0 || i.dispense_qty > i.available_qty);
-        if (invalidItem) return alert(`⚠️ كمية الصرف غير صحيحة للخامة: ${invalidItem.item_name}`);
+        if (invalidItem) return notify(`كمية الصرف غير صحيحة للخامة: ${invalidItem.item_name}`);
         
         onSave(formData);
     };
@@ -76,11 +77,11 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
                 width: '900px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
-                backdropFilter: 'blur(30px)', borderRadius: '35px', padding: '40px', 
+                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', 
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'25px', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'15px'}}>
-                    <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '24px' }}>📦 صرف مجمع للخامات ({formData.items.length} أصناف)</h2>
+                    <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '24px' }}>صرف مجمع للخامات ({formData.items.length} أصناف)</h2>
                     <div style={{ textAlign: 'left' }}>
                         <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 900 }}>الإجمالي الكلي للصرف</div>
                         <div style={{ fontWeight: 900, color: THEME.primary, fontSize: '22px' }}>{formatCurrency(grandTotal)}</div>
@@ -90,34 +91,34 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div style={{ zIndex: 100, position: 'relative' }}>
                         <SmartCombo 
-                            label="🏢 المشروع المستفيد من كل الخامات *" 
+                            label="المشروع المستفيد من كل الخامات *" 
                             icon="🏢" table="projects" displayCol="Property" searchCols="Property" 
                             value={formData.project_id} initialDisplay={formData.project_name} 
                             onSelect={(v: any) => setFormData({ ...formData, project_id: v?.id || '', project_name: v?.Property || '' })}
                         />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>📅 تاريخ الصرف المجمع</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>تاريخ الصرف المجمع</label>
                         <input type="date" className="glass-input-field" value={formData.issue_date} onChange={e => setFormData({...formData, issue_date: e.target.value})} />
                     </div>
                 </div>
 
                 <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '16px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '15px' }}>🔄 التوجيه المحاسبي العام للمجموعة *</label>
+                    <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '15px' }}>التوجيه المحاسبي العام للمجموعة *</label>
                     <div style={{ display: 'flex', gap: '20px', marginBottom: formData.issue_type === 'صرف لمقاول' ? '15px' : '0' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '13px' }}>
                             <input type="radio" checked={formData.issue_type === 'استهلاك مباشر'} onChange={() => setFormData({...formData, issue_type: 'استهلاك مباشر', subcontractor_id: ''})} style={{ accentColor: THEME.primary, transform: 'scale(1.2)' }} />
-                            🏢 استهلاك للشركة (تكلفة مشروع)
+                            استهلاك للشركة (تكلفة مشروع)
                         </label>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '13px', color: '#be123c' }}>
                             <input type="radio" checked={formData.issue_type === 'صرف لمقاول'} onChange={() => setFormData({...formData, issue_type: 'صرف لمقاول'})} style={{ accentColor: '#be123c', transform: 'scale(1.2)' }} />
-                            👷 تحميل كسلفة على مقاول
+                            تحميل كسلفة على مقاول
                         </label>
                     </div>
                     <div style={{ zIndex: 80, position: 'relative' }}>
                         {formData.issue_type === 'صرف لمقاول' && (
                             <SmartCombo 
-                                label="👤 اختر المقاول المراد تحميل جميع الخامات عليه *" 
+                                label="اختر المقاول المراد تحميل جميع الخامات عليه *" 
                                 icon="👷" table="partners" displayCol="name" searchCols="name" customFilter="partner_type=eq.مقاول" 
                                 value={formData.subcontractor_id} initialDisplay={formData.subcontractor_name} 
                                 onSelect={(v: any) => setFormData({ ...formData, subcontractor_id: v?.id || '', subcontractor_name: v?.name || '' })} 
@@ -142,7 +143,7 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
                                 <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                                     <td style={{ padding: '10px', textAlign: 'right' }}>
                                         <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '13px' }}>{item.work_item || item.item_name}</div>
-                                        <div style={{ fontSize: '10px', color: THEME.goldAccent, fontWeight: 700, marginTop:'4px' }}>📋 بند: {item.boq_item || 'بدون توجيه'}</div>
+                                        <div style={{ fontSize: '10px', color: THEME.goldAccent, fontWeight: 700, marginTop:'4px' }}>بند: {item.boq_item || 'بدون توجيه'}</div>
                                     </td>
                                     <td style={{ padding: '10px', fontWeight: 800, color: '#64748b' }}>
                                         {item.available_qty} {item.unit}
@@ -167,7 +168,7 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
 
                 <div style={{ display: 'flex', gap: '15px' }}>
                     <button onClick={handleSubmit} disabled={isSaving} className="btn-glass-save" style={{ flex: 2 }}>
-                        {isSaving ? '⏳ جاري الصرف المجمع...' : '✅ تأكيد الصرف لجميع الخامات المحددة'}
+                        {isSaving ? 'جاري الصرف المجمع...' : 'تأكيد الصرف لجميع الخامات المحددة'}
                     </button>
                     <button onClick={onClose} disabled={isSaving} style={{ flex: 1, padding: '16px', background: '#e2e8f0', color: '#475569', borderRadius: '16px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>
                         إلغاء

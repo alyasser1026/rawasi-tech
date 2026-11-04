@@ -7,6 +7,7 @@ import { fetchAllSupabaseData, formatCurrency } from '@/lib/helpers';
 import GlassContainer from '@/components/GlassContainer';
 import { THEME } from '@/lib/theme';
 import MasterPage from '@/components/MasterPage';
+import PhiIcon from '@/components/PhiIcon';
 
 export default function MasterDashboard() {
     const [loading, setLoading] = useState(true);
@@ -68,12 +69,12 @@ export default function MasterDashboard() {
     if (loading) return <LoadingScreen message="جاري استدعاء الإحصائيات المركزية..." subMessage="نقوم بتجميع بيانات الأقسام بدقة لحظية" />;
 
     return (
-        <MasterPage title="الملخص العام (Global Summary)" subtitle="نظرة شاملة وموحدة لجميع قطاعات النظام" icon="📊">
+        <MasterPage title="الملخص العام (Global Summary)" subtitle="نظرة شاملة وموحدة لجميع قطاعات النظام">
         
         <div style={{ padding: '25px', direction: 'rtl', maxWidth: '1600px', margin: '0 auto' }}>
             
             {/* 👑 الهيدر العلوي: شريط المعلومات السريع */}
-            <div className="summary-bar fade-in-up" style={{ borderRadius: '20px', marginBottom: '30px' }}>
+            <div className="summary-bar fade-in-up" style={{ borderRadius: '14px', marginBottom: '30px' }}>
                 <div className="summary-item">
                     <span className="summary-label">صافي السيولة</span>
                     <span className="summary-value" style={{ color: THEME.success }}>{formatCurrency(summary.finance.liquidity)}</span>
@@ -102,7 +103,7 @@ export default function MasterDashboard() {
                 {/* العمود الأيمن: تحليل المشاريع والإنتاجية */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
                     <GlassContainer>
-                        <h3 style={{ marginBottom: '20px' }}>🚧 مراقبة تنفيذ المشاريع (Budget Tracker)</h3>
+                        <h3 style={{ marginBottom: '20px' }}>مراقبة تنفيذ المشاريع (Budget Tracker)</h3>
                         <ProgressBar label="استهلاك الميزانية" percentage={summary.projects.progress} color={THEME.accent} />
                         <ProgressBar label="كفاءة توزيع العمالة" percentage={summary.labor.efficiency} color={THEME.success} />
                         <div style={{ marginTop: '20px', display: 'flex', gap: '20px' }}>
@@ -118,7 +119,7 @@ export default function MasterDashboard() {
                     </GlassContainer>
 
                     <GlassContainer>
-                        <h3 style={{ marginBottom: '20px' }}>📊 ذمم مدينة وحركة التحصيل</h3>
+                        <h3 style={{ marginBottom: '20px' }}>ذمم مدينة وحركة التحصيل</h3>
                         <p style={{ color: 'var(--text-muted)' }}>فواتير لم يتم تحصيلها وتؤثر على التدفق النقدي:</p>
                         <h2 style={{ color: THEME.accent, margin: '15px 0' }}>{formatCurrency(summary.finance.receivables)}</h2>
                         <button className="btn btn-primary">إرسال مطالبات جماعية</button>
@@ -128,7 +129,7 @@ export default function MasterDashboard() {
                 {/* العمود الأيسر: الإجراءات والرقابة */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
                     <GlassContainer style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: 'white' }}>
-                        <h3>🛡️ رادار الرقابة المالية</h3>
+                        <h3>رادار الرقابة المالية</h3>
                         <div style={{ marginTop: '20px' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #334155' }}>
                                 <span>قيود يتيمة</span>
@@ -143,7 +144,7 @@ export default function MasterDashboard() {
                     </GlassContainer>
 
                     <GlassContainer>
-                        <h3>⚡ وصول سريع</h3>
+                        <h3>وصول سريع</h3>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginTop: '15px' }}>
                             <QuickAction icon="📝" label="قيد جديد" />
                             <QuickAction icon="👷" label="تحضير عمال" />
@@ -164,7 +165,7 @@ function KPICard({ title, value, icon, color, isCurrency = true }: any) {
         <div className="kpi-card fade-in-up" style={{ borderRight: `4px solid ${color}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>{title}</span>
-                <span>{icon}</span>
+                <span style={{ display: 'inline-flex' }}><PhiIcon value={icon} size={20} /></span>
             </div>
             <h2 style={{ color: color, marginTop: '10px' }}>{isCurrency ? formatCurrency(value) : value}</h2>
         </div>
@@ -189,7 +190,7 @@ function ProgressBar({ label, percentage, color }: any) {
 function QuickAction({ icon, label }: any) {
     return (
         <div className="btn" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: THEME.primary, padding: '15px', flexDirection: 'column' }}>
-            <span style={{ fontSize: '20px' }}>{icon}</span>
+            <span style={{ display: 'inline-flex' }}><PhiIcon value={icon} size={20} /></span>
             <span style={{ fontSize: '12px' }}>{label}</span>
         </div>
                 );

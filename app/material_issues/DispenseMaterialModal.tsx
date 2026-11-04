@@ -7,6 +7,7 @@ import SmartCombo from '@/components/SmartCombo';
 import ProjectBoqCombo from '@/components/ProjectBoqCombo'; 
 import { formatCurrency } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase'; // 🚀 تأكد من مسار الاستدعاء الصحيح للـ Supabase عندك
+import { notify } from '@/lib/notify';
 
 // 🚀 الثوابت المحاسبية (الـ UUIDs الخاصة بشجرة الحسابات)
 const ACCOUNT_INVENTORY = '4f828d0d-a1f4-4762-83e3-c17dafae802d'; // حساب الخامات والمخزون (دائن)
@@ -106,12 +107,12 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
     const totalPrice = (Number(formData.quantity) || 0) * (Number(invoiceItem.unit_price) || 0);
 
     const handleSubmit = () => {
-        if (!formData.project_id) return alert('⚠️ يرجى اختيار الفيلا/المشروع العقاري');
-        if (formData.issue_type === 'صرف لمقاول' && !formData.subcontractor_id) return alert('⚠️ يرجى اختيار المقاول المستلم');
+        if (!formData.project_id) return notify('يرجى اختيار الفيلا/المشروع العقاري');
+        if (formData.issue_type === 'صرف لمقاول' && !formData.subcontractor_id) return notify('يرجى اختيار المقاول المستلم');
         
         // 🚀 الفالديشن بقى على الرصيد الفعلي المجلوب من الفيو
         if (formData.quantity <= 0 || formData.quantity > realAvailableQty) {
-            return alert(`⚠️ كمية الصرف غير صحيحة أو تتجاوز الرصيد المتاح حالياً بالمخزن (${realAvailableQty})`);
+            return notify(`كمية الصرف غير صحيحة أو تتجاوز الرصيد المتاح حالياً بالمخزن (${realAvailableQty})`);
         }
         
         const finalData = {
@@ -145,11 +146,11 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
                 width: '700px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
-                backdropFilter: 'blur(30px)', borderRadius: '35px', padding: '40px', 
+                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', 
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'25px', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'15px'}}>
-                    <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '24px' }}>📤 صرف مباشر للموقع</h2>
+                    <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '24px' }}>صرف مباشر للموقع</h2>
                 </div>
 
                 <div style={{ background: 'white', padding: '15px', borderRadius: '16px', marginBottom: '25px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -158,7 +159,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                         <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 800 }}>
                             المتاح للصرف: {' '}
                             {isFetchingQty ? (
-                                <span style={{color: '#f59e0b', animation: 'pulse 1.5s infinite'}}>⏳ جاري حساب الرصيد...</span>
+                                <span style={{color: '#f59e0b', animation: 'pulse 1.5s infinite'}}>جاري حساب الرصيد...</span>
                             ) : (
                                 <span style={{color: realAvailableQty > 0 ? THEME.success : '#ef4444'}}>{realAvailableQty} {invoiceItem?.unit}</span>
                             )}
@@ -173,7 +174,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div style={{ zIndex: 100, position: 'relative' }}>
                         <SmartCombo 
-                            label="🏢 المشروع المستفيد *" 
+                            label="المشروع المستفيد *" 
                             icon="🏢" 
                             table="projects" 
                             displayCol="Property" 
@@ -185,7 +186,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                     <div style={{ zIndex: 90, position: 'relative' }}>
                         <SmartCombo 
-                            label="📝 أمر الشغل (ربط الميزانية) *" 
+                            label="أمر الشغل (ربط الميزانية) *" 
                             table="job_orders" 
                             displayCol="order_number" 
                             searchCols="order_number,notes" 
@@ -222,7 +223,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     <div style={{ zIndex: 85, position: 'relative' }}>
                         {/* 🚀 السحب باستخدام الكمبوننت الذكي المخصص للبند */}
                         <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>
-                            📋 تحميل على بند (BOQ)
+                            تحميل على بند (BOQ)
                         </label>
                         <ProjectBoqCombo 
                             projectId={formData.project_id}
@@ -242,11 +243,11 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>📅 تاريخ الصرف</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>تاريخ الصرف</label>
                         <input type="date" className="glass-input-field" value={formData.issue_date} onChange={e => setFormData({...formData, issue_date: e.target.value})} />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>📦 الكمية المراد صرفها</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الكمية المراد صرفها</label>
                         <input 
                             type="number" 
                             max={realAvailableQty} 
@@ -261,22 +262,22 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                 </div>
 
                 <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '16px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '15px' }}>🔄 التوجيه المحاسبي (جهة التحميل) *</label>
+                    <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '15px' }}>التوجيه المحاسبي (جهة التحميل) *</label>
                     <div style={{ display: 'flex', gap: '20px', marginBottom: formData.issue_type === 'صرف لمقاول' ? '15px' : '0' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '13px' }}>
                             <input type="radio" checked={formData.issue_type === 'استهلاك مباشر'} onChange={() => setFormData({...formData, issue_type: 'استهلاك مباشر', subcontractor_id: ''})} style={{ accentColor: THEME.primary, transform: 'scale(1.2)' }} />
-                            🏢 استهلاك للشركة (تكلفة مشروع)
+                            استهلاك للشركة (تكلفة مشروع)
                         </label>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '13px', color: '#be123c' }}>
                             <input type="radio" checked={formData.issue_type === 'صرف لمقاول'} onChange={() => setFormData({...formData, issue_type: 'صرف لمقاول'})} style={{ accentColor: '#be123c', transform: 'scale(1.2)' }} />
-                            👷 تحميل كسلفة على مقاول
+                            تحميل كسلفة على مقاول
                         </label>
                     </div>
 
                     <div style={{ zIndex: 80, position: 'relative', animation: 'fadeIn 0.3s' }}>
                         {formData.issue_type === 'صرف لمقاول' ? (
                             <SmartCombo 
-                                label="👤 اختر المقاول المراد الخصم منه *" 
+                                label="اختر المقاول المراد الخصم منه *" 
                                 icon="👷" 
                                 table="partners" 
                                 displayCol="name" 
@@ -303,7 +304,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
 
                 <div style={{ display: 'flex', gap: '15px' }}>
                     <button onClick={handleSubmit} disabled={isSaving || isFetchingQty} className="btn-glass-save" style={{ flex: 2, opacity: isFetchingQty ? 0.7 : 1 }}>
-                        {isSaving ? '⏳ جاري الصرف والترحيل...' : '✅ تأكيد الصرف والترحيل'}
+                        {isSaving ? 'جاري الصرف والترحيل...' : 'تأكيد الصرف والترحيل'}
                     </button>
                     <button onClick={onClose} disabled={isSaving} style={{ flex: 1, padding: '16px', background: '#e2e8f0', color: '#475569', borderRadius: '16px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>
                         إلغاء

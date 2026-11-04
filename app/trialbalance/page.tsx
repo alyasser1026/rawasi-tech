@@ -29,7 +29,7 @@ export default function TrialBalancePage() {
       onClick={() => window.print()}
       style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.border}`, background: THEME.slate, color: THEME.textMain, fontWeight: '900', cursor: 'pointer', width: '100%', marginBottom: '8px' }}
     >
-      🖨️ طباعة الميزان الرسمي
+      طباعة الميزان الرسمي
     </button>,
 
     <button 
@@ -37,12 +37,12 @@ export default function TrialBalancePage() {
       onClick={logic.exportToExcel}
       style={{ padding: '12px', borderRadius: '8px', border: 'none', background: THEME.success, color: '#ffffff', fontWeight: '900', cursor: 'pointer', width: '100%' }}
     >
-      📊 تصدير Excel
+      تصدير Excel
     </button>
   ], [logic.exportToExcel]);
 
   return (
-    <MasterPage icon="⚖️" 
+    <MasterPage 
       title="ميزان المراجعة (Trial Balance)" 
       description="عرض الأرصدة الافتتاحية، حركات الفترة، والأرصدة الختامية لجميع الحسابات"
     >
@@ -82,7 +82,7 @@ export default function TrialBalancePage() {
           
           {/* لوحة الفلاتر */}
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center', background: '#ffffff', padding: '15px 20px', borderRadius: '12px', marginBottom: '20px', border: `1px solid ${THEME.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: '15px', minWidth: '100px' }}>📅 فترة الميزان:</div>
+            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: '15px', minWidth: '100px' }}>فترة الميزان:</div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: THEME.slate, padding: '5px 15px', borderRadius: '8px' }}>
               <label style={{ fontSize: '13px', color: THEME.textMain, fontWeight: '900' }}>من:</label>
@@ -164,7 +164,7 @@ export default function TrialBalancePage() {
               <div style={{ marginTop: '15px', display: 'flex', gap: '20px' }}>
                   <div style={{ flex: 1, padding: '15px', borderRadius: '8px', background: isBalanced ? '#ecfdf5' : '#fff1f2', border: `2px solid ${isBalanced ? THEME.success : THEME.ruby}`, display: 'flex', justifyContent: 'space-between', fontWeight: '900' }}>
                     <span style={{ color: isBalanced ? THEME.success : THEME.ruby }}>
-                      {isBalanced ? '✅ الميزان متزن تماماً (لا توجد فروق)' : '❌ يوجد فرق في الميزان! يرجى مراجعة قيود اليومية.'}
+                      {isBalanced ? 'الميزان متزن تماماً (لا توجد فروق)' : 'يوجد فرق في الميزان! يرجى مراجعة قيود اليومية.'}
                     </span>
                     {!isBalanced && (
                       <span style={{ color: THEME.ruby, fontSize: '16px' }}>قيمة الفرق: {formatCurrency(Math.abs(logic.totals.end_debit - logic.totals.end_credit))}</span>

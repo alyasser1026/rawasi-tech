@@ -6,6 +6,8 @@ import { THEME } from '@/lib/theme';
 import { useCashFlowsLogic } from './cash_flows_logic';
 import * as XLSX from 'xlsx';
 import LoadingScreen from '@/components/LoadingScreen';
+import { Download, Upload, Scale, Eye } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 // =========================================================================
 // 🧩 مكون ذكي للقائمة المنسدلة متعددة الاختيارات
@@ -64,7 +66,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
                     <div style={{ padding: '10px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                         <input 
                             type="text" 
-                            placeholder="🔍 بحث سريع..." 
+                            placeholder="بحث سريع..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
@@ -233,11 +235,11 @@ export default function CashFlowsPage() {
         sortedData.forEach((row: any) => {
             let groupName = 'بدون تصنيف';
             if (groupBy === 'partner') {
-                groupName = row.partner?.name || '📦 حركات عامة (بدون شريك محدد)';
+                groupName = row.partner?.name || 'حركات عامة (بدون شريك محدد)';
             } else if (groupBy === 'date') {
                 groupName = row.transaction_date 
                     ? new Date(row.transaction_date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })
-                    : '📅 تاريخ غير محدد';
+                    : 'تاريخ غير محدد';
             }
 
             if (!groups[groupName]) {
@@ -257,7 +259,7 @@ export default function CashFlowsPage() {
     }, [filteredData, groupBy]);
 
     const handleExportExcel = () => {
-        if (!filteredData || filteredData.length === 0) return alert("لا توجد بيانات لتصديرها!");
+        if (!filteredData || filteredData.length === 0) return notify("لا توجد بيانات لتصديرها!");
 
         const excelData = filteredData.map((row: any) => {
             const direction = getFlowDirection(row);
@@ -302,7 +304,7 @@ export default function CashFlowsPage() {
             <MasterPage title="التدفقات النقدية (Cash Flows)" subtitle="مراقبة حركات السيولة، المقبوضات، والمدفوعات بشكل لحظي وتجميعي">
                 
                 <style>{`
-                    .summary-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 20px; padding: 25px; flex: 1; border: 1px solid rgba(255,255,255,0.9); position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); transition: all 0.3s ease; }
+                    .summary-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 14px; padding: 25px; flex: 1; border: 1px solid rgba(255,255,255,0.9); position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); transition: all 0.3s ease; }
                     .summary-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
                     .summary-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 5px; }
                     .summary-card.inflow::after { background: linear-gradient(90deg, #10b981, #34d399); }
@@ -348,37 +350,37 @@ export default function CashFlowsPage() {
                 {/* 📊 بطاقات الملخص الرئيسية */}
                 <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', flexWrap: 'wrap' }}>
                     <div className="summary-card inflow">
-                        <div className="summary-label"><span>📥</span> إجمالي الوارد (المقبوضات)</div>
+                        <div className="summary-label"><span><Download size={16} aria-hidden="true" /></span> إجمالي الوارد (المقبوضات)</div>
                         <div className="summary-val" style={{ color: '#059669' }}>{formatCurrency(summaryStats.totalIn)}</div>
                     </div>
                     
                     <div className="summary-card outflow">
-                        <div className="summary-label"><span>📤</span> إجمالي المنصرف (المدفوعات)</div>
+                        <div className="summary-label"><span><Upload size={16} aria-hidden="true" /></span> إجمالي المنصرف (المدفوعات)</div>
                         <div className="summary-val" style={{ color: '#e11d48' }}>{formatCurrency(summaryStats.totalOut)}</div>
                     </div>
 
                     <div className="summary-card net">
-                        <div className="summary-label"><span>⚖️</span> صافي التدفق النقدي (Net)</div>
-                        <div className="summary-val" style={{ color: summaryStats.netCash >= 0 ? '#34d399' : '#f87171' }}>
+                        <div className="summary-label"><span><Scale size={16} aria-hidden="true" /></span> صافي التدفق النقدي (Net)</div>
+                        <div className="summary-val" style={{ color: summaryStats.netCash >= 0 ? '#047857' : '#be123c' }}>
                             {summaryStats.netCash > 0 ? '+' : ''}{formatCurrency(summaryStats.netCash)}
                         </div>
                     </div>
 
                     {/* 🎛️ أزرار طرق العرض - مدمجة في صف السامري */}
                     <div className="summary-card" style={{ flex: '1.2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                        <div className="summary-label"><span>👁️</span> طريقة التجميع والعرض</div>
+                        <div className="summary-label"><span><Eye size={16} aria-hidden="true" /></span> طريقة التجميع والعرض</div>
                         <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', flex: 1 }}>
                             <button 
                                 className={`view-toggle-btn ${groupBy === 'partner' ? 'active' : ''}`} 
                                 onClick={() => {setGroupBy('partner'); setExpandedGroups([]);}}
                             >
-                                👤 تجميع بالاسم
+                                تجميع بالاسم
                             </button>
                             <button 
                                 className={`view-toggle-btn ${groupBy === 'date' ? 'active' : ''}`} 
                                 onClick={() => {setGroupBy('date'); setExpandedGroups([]);}}
                             >
-                                📅 تجميع بالتاريخ
+                                تجميع بالتاريخ
                             </button>
                         </div>
                     </div>
@@ -388,28 +390,28 @@ export default function CashFlowsPage() {
                 <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', flexWrap: 'wrap', padding: '5px' }}>
                     <div className="source-breakdown-card" style={{ borderRight: '4px solid #10b981' }}>
                         <div>
-                            <div className="source-breakdown-title">🧾 مقبوضات من (سندات القبض)</div>
+                            <div className="source-breakdown-title">مقبوضات من (سندات القبض)</div>
                             <div className="source-breakdown-val" style={{ color: '#059669' }}>{formatCurrency(summaryStats.receiptVouchersTotal)}</div>
                         </div>
                     </div>
 
                     <div className="source-breakdown-card" style={{ borderRight: '4px solid #ef4444' }}>
                         <div>
-                            <div className="source-breakdown-title">💸 مدفوعات من (سندات الصرف)</div>
+                            <div className="source-breakdown-title">مدفوعات من (سندات الصرف)</div>
                             <div className="source-breakdown-val" style={{ color: '#e11d48' }}>{formatCurrency(summaryStats.paymentVouchersTotal)}</div>
                         </div>
                     </div>
 
                     <div className="source-breakdown-card" style={{ borderRight: '4px solid #34d399' }}>
                         <div>
-                            <div className="source-breakdown-title">📥 إيداعات من (مصادر أخرى)</div>
+                            <div className="source-breakdown-title">إيداعات من (مصادر أخرى)</div>
                             <div className="source-breakdown-val" style={{ color: '#059669' }}>{formatCurrency(summaryStats.otherInflowsTotal)}</div>
                         </div>
                     </div>
 
                     <div className="source-breakdown-card" style={{ borderRight: '4px solid #fb7185' }}>
                         <div>
-                            <div className="source-breakdown-title">📤 سحوبات من (مصادر أخرى)</div>
+                            <div className="source-breakdown-title">سحوبات من (مصادر أخرى)</div>
                             <div className="source-breakdown-val" style={{ color: '#e11d48' }}>{formatCurrency(summaryStats.otherOutflowsTotal)}</div>
                         </div>
                     </div>
@@ -418,21 +420,21 @@ export default function CashFlowsPage() {
 
 
                 {/* 🔍 شريط الفلاتر */}
-                <div style={{ display: 'flex', gap: '15px', marginBottom: '30px', background: 'rgba(255,255,255,0.8)', padding: '25px', borderRadius: '20px', boxShadow: '0 5px 20px rgba(0,0,0,0.02)', border: `1px solid rgba(255,255,255,0.9)`, flexWrap: 'wrap', alignItems: 'flex-end', backdropFilter: 'blur(10px)' }}>
+                <div style={{ display: 'flex', gap: '15px', marginBottom: '30px', background: 'rgba(255,255,255,0.8)', padding: '25px', borderRadius: '14px', boxShadow: '0 5px 20px rgba(0,0,0,0.02)', border: `1px solid rgba(255,255,255,0.9)`, flexWrap: 'wrap', alignItems: 'flex-end', backdropFilter: 'blur(10px)' }}>
                     
                     <div style={{ flex: '1', minWidth: '180px' }}>
                         <label style={{ fontSize: '11px', fontWeight: 900, color: '#64748b', marginBottom: '6px', display: 'block' }}>بحث عام</label>
                         <input 
                             type="text" 
                             className="filter-input"
-                            placeholder="🔍 بحث بالبيان، المرجع..." 
+                            placeholder="بحث بالبيان، المرجع..." 
                             value={logic.searchTerm}
                             onChange={(e) => logic.setSearchTerm(e.target.value)}
                         />
                     </div>
 
                     <MultiSelectDropdown 
-                        title="🏢 التوجيه (الفيلا)"
+                        title="التوجيه (الفيلا)"
                         placeholder="كل التوجيهات"
                         options={uniqueProjects}
                         selected={selectedProjects}
@@ -441,7 +443,7 @@ export default function CashFlowsPage() {
                     />
 
                     <MultiSelectDropdown 
-                        title="👤 الشريك (عميل/مورد)"
+                        title="الشريك (عميل/مورد)"
                         placeholder="كل الشركاء"
                         options={uniquePartners}
                         selected={selectedPartners}
@@ -472,7 +474,7 @@ export default function CashFlowsPage() {
                         onClick={handleExportExcel}
                         style={{ padding: '0 15px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: 'none', borderRadius: '12px', color: '#fff', fontWeight: 900, cursor: 'pointer', transition: '0.2s', height: '50px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
                     >
-                        🖨️ Excel
+                        Excel
                     </button>
                 </div>
 
@@ -484,11 +486,11 @@ export default function CashFlowsPage() {
                         <thead className="tree-thead">
                             <tr>
                                 <th style={{ textAlign: 'right', width: '35%', paddingRight: '30px' }}>
-                                    {groupBy === 'partner' ? '👤 اسم الشريك (مقاول / مورد / عميل)' : '📅 التاريخ الزمني'}
+                                    {groupBy === 'partner' ? 'اسم الشريك (مقاول / مورد / عميل)' : 'التاريخ الزمني'}
                                 </th>
-                                <th style={{ width: '15%' }}>📥 المقبوضات</th>
-                                <th style={{ width: '15%' }}>📤 المدفوعات</th>
-                                <th style={{ width: '20%' }}>⚖️ الصافي</th>
+                                <th style={{ width: '15%' }}>المقبوضات</th>
+                                <th style={{ width: '15%' }}>المدفوعات</th>
+                                <th style={{ width: '20%' }}>الصافي</th>
                                 <th style={{ width: '15%' }}>الحركات</th>
                             </tr>
                         </thead>
@@ -510,7 +512,7 @@ export default function CashFlowsPage() {
                                                 {netGroupAmount > 0 ? '+' : ''}{formatCurrency(netGroupAmount)}
                                             </td>
                                             <td>
-                                                <span style={{ background: '#f1f5f9', padding: '6px 15px', borderRadius: '20px', fontSize: '13px', color: '#475569' }}>
+                                                <span style={{ background: '#f1f5f9', padding: '6px 15px', borderRadius: '14px', fontSize: '13px', color: '#475569' }}>
                                                     {group.items.length} حركة
                                                 </span>
                                             </td>
@@ -526,9 +528,9 @@ export default function CashFlowsPage() {
                                                                     <th style={{ width: '12%' }}>التاريخ</th>
                                                                     <th style={{ width: '15%' }}>نوع الحركة</th>
                                                                     <th style={{ width: '15%' }}>المبلغ</th>
-                                                                    <th style={{ width: '20%', textAlign: 'right' }}>🏢 المشروع / التوجيه</th>
-                                                                    <th style={{ width: '23%', textAlign: 'right' }}>📋 البيان المالي والمرجع</th>
-                                                                    <th style={{ width: '15%' }}>💳 الخزينة / الحساب البنكي</th>
+                                                                    <th style={{ width: '20%', textAlign: 'right' }}>المشروع / التوجيه</th>
+                                                                    <th style={{ width: '23%', textAlign: 'right' }}>البيان المالي والمرجع</th>
+                                                                    <th style={{ width: '15%' }}>الخزينة / الحساب البنكي</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -541,25 +543,25 @@ export default function CashFlowsPage() {
                                                                             <td>{item.transaction_date ? String(item.transaction_date).substring(0, 10) : '---'}</td>
                                                                             <td>
                                                                                 <span style={{ color: isChildInflow ? '#059669' : '#e11d48', fontSize: '11px', fontWeight: 900, background: isChildInflow ? '#ecfdf5' : '#fff1f2', padding: '4px 8px', borderRadius: '6px' }}>
-                                                                                    {isChildInflow ? '📥 إيداع / قبض' : '📤 صرف / مدفوعات'}
+                                                                                    {isChildInflow ? 'إيداع / قبض' : 'صرف / مدفوعات'}
                                                                                 </span>
                                                                             </td>
                                                                             <td style={{ fontWeight: 900, color: isChildInflow ? '#059669' : '#e11d48' }}>
                                                                                 {isChildInflow ? '+' : '-'}{formatCurrency(itemAmount)}
                                                                             </td>
                                                                             <td style={{ textAlign: 'right', fontWeight: 800, color: '#2563eb' }}>
-                                                                                {item.project?.Property ? `🏢 ${item.project.Property}` : '---'}
+                                                                                {item.project?.Property ? `${item.project.Property}` : '---'}
                                                                             </td>
                                                                             <td style={{ textAlign: 'right' }}>
                                                                                 <div style={{ fontWeight: 800, color: '#1e293b' }}>{item.sub_category}</div>
                                                                                 <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
                                                                                     {item.payment_method} {item.reference_number ? `| مرجع: ${item.reference_number}` : ''}
                                                                                 </div>
-                                                                                {item.description && <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>📝 {item.description}</div>}
+                                                                                {item.description && <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px' }}>{item.description}</div>}
                                                                             </td>
                                                                             <td>
                                                                                 <span style={{ fontSize: '12px', fontWeight: 900, color: '#c2410c' }}>
-                                                                                    🏦 {item.account?.name || 'حساب عام'}
+                                                                                    {item.account?.name || 'حساب عام'}
                                                                                 </span>
                                                                             </td>
                                                                         </tr>
@@ -587,7 +589,7 @@ export default function CashFlowsPage() {
 
                             {treeGroupedData.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} style={{ padding: '40px', color: '#94a3b8', fontWeight: 900, background: 'rgba(255,255,255,0.8)' }}>❌ لا توجد أي تدفقات نقدية مطابقة للفلاتر الحالية</td>
+                                    <td colSpan={5} style={{ padding: '40px', color: '#94a3b8', fontWeight: 900, background: 'rgba(255,255,255,0.8)' }}>لا توجد أي تدفقات نقدية مطابقة للفلاتر الحالية</td>
                                 </tr>
                             )}
                         </tbody>

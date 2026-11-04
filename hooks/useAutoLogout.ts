@@ -2,6 +2,7 @@
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 export function useAutoLogout(timeoutMinutes = 15) {
   const router = useRouter();
@@ -13,7 +14,7 @@ export function useAutoLogout(timeoutMinutes = 15) {
     // 2. تنظيف الـ LocalStorage (لو بتخزن فيها حاجة)
     localStorage.clear();
     // 3. رسالة وتوجيه لصفحة الدخول
-    alert("🔒 تم تسجيل الخروج تلقائياً لحماية بياناتك بسبب عدم وجود نشاط.");
+    notify("تم تسجيل الخروج تلقائياً لحماية بياناتك بسبب عدم وجود نشاط.");
     router.push('/login'); // غير المسار لصفحة الدخول بتاعتك
   };
 

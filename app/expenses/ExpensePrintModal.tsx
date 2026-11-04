@@ -98,7 +98,7 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
         <div className="print-modal-overlay">
             
             <style>{`
-                /* 🚀 تم استرجاع كلاس الخلفية عشان المودال يظهر فوق الشاشة وما يختفيش */
+                /* تم استرجاع كلاس الخلفية عشان المودال يظهر فوق الشاشة وما يختفيش */
                 .print-modal-overlay { 
                     position: fixed !important; inset: 0 !important; 
                     background: rgba(40, 24, 10, 0.85) !important; 
@@ -123,7 +123,7 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
                 .a4-preview-box {
                     width: 210mm !important; min-height: 297mm !important; background: white !important; color: #000;
                     padding: 15mm !important; margin: 0 auto 40px auto !important; box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-                    direction: rtl; border-radius: 24px !important; overflow: hidden !important;
+                    direction: rtl; border-radius: 14px !important; overflow: hidden !important;
                     display: flex !important; flex-direction: column !important; box-sizing: border-box !important; 
                 }
 
@@ -137,7 +137,7 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
 
                 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
                 .info-box { border: 1.5px solid #cbd5e1; border-radius: 16px !important; padding: 18px 15px 12px 15px; display: flex; flex-direction: column; justify-content: center; position: relative; background: #fff; min-height: 90px; }
-                .box-label { position: absolute; top: -10px; right: 20px; background: white; padding: 0 10px; font-size: 12px; font-weight: 900; color: #475569; border-radius: 20px; }
+                .box-label { position: absolute; top: -10px; right: 20px; background: white; padding: 0 10px; font-size: 12px; font-weight: 900; color: #475569; border-radius: 14px; }
                 .inner-table { width: 100%; border-collapse: collapse; }
                 .inner-table td { padding: 4px 0; font-size: 13px; vertical-align: middle; }
                 .label-cell { text-align: left; font-weight: 900; color: #64748b; width: 90px; padding-left: 10px !important; }
@@ -173,8 +173,8 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
             `}</style>
 
             <div className="print-actions-bar no-print">
-                <button onClick={handlePrintOrPDF} className="action-btn print">🖨️ طباعة السند</button>
-                <button onClick={onClose} className="action-btn close">❌ إغلاق المعاينة</button>
+                <button onClick={handlePrintOrPDF} className="action-btn print">طباعة السند</button>
+                <button onClick={onClose} className="action-btn close">إغلاق المعاينة</button>
             </div>
 
             <div className="a4-preview-box">

@@ -70,7 +70,7 @@ export default function ProjectBoqCombo({ projectId, value, initialDisplay, onSe
                 }}
             >
                 <span style={{ fontWeight: 800, color: displayVal ? '#1e293b' : '#94a3b8', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {isLoading ? '⏳ جاري جلب أوامر الشغل...' : (!projectId ? '⚠️ اختر العقار أولاً' : (displayVal || placeholder))}
+                    {isLoading ? 'جاري جلب أوامر الشغل...' : (!projectId ? 'اختر العقار أولاً' : (displayVal || placeholder))}
                 </span>
                 <span style={{ color: '#94a3b8', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s', fontSize: '10px' }}>▼</span>
             </div>
@@ -80,7 +80,7 @@ export default function ProjectBoqCombo({ projectId, value, initialDisplay, onSe
                     <div style={{ padding: '8px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                         <input 
                             type="text" 
-                            placeholder="🔍 بحث باسم البند أو الكود..." 
+                            placeholder="بحث باسم البند أو الكود..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
@@ -101,7 +101,7 @@ export default function ProjectBoqCombo({ projectId, value, initialDisplay, onSe
                                 onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
                                 onMouseLeave={(e) => e.currentTarget.style.background = value === (opt.boq_item_id || opt.id) ? '#eff6ff' : 'transparent'}
                             >
-                                📋 {opt.display_name || opt.work_item}
+                                {opt.display_name || opt.work_item}
                             </div>
                         )) : (
                             <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>لا توجد بنود/أوامر شغل لهذا العقار</div>

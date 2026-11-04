@@ -63,7 +63,7 @@ export default function PrintStatement() {
     const finalBalInfo = getBalanceInfo(finalBalance);
 
     if (isLoading) return <LoadingScreen message="جاري تحضير كشف الحساب..." fullScreen={false} />;
-    if (!partner) return <div style={{ textAlign: 'center', padding: '100px', color: '#dc2626' }}>❌ خطأ: لم يتم العثور على بيانات الحساب</div>;
+    if (!partner) return <div style={{ textAlign: 'center', padding: '100px', color: '#dc2626' }}>خطأ: لم يتم العثور على بيانات الحساب</div>;
 
     return (
         <div className="print-wrapper">
@@ -111,8 +111,8 @@ export default function PrintStatement() {
             `}</style>
 
             <div className="print-controls">
-                <button className="btn btn-p" onClick={() => window.print()}>🖨️ طباعة الآن</button>
-                <button className="btn btn-c" onClick={() => window.close()}>❌ إغلاق</button>
+                <button className="btn btn-p" onClick={() => window.print()}>طباعة الآن</button>
+                <button className="btn btn-c" onClick={() => window.close()}>إغلاق</button>
             </div>
 
             <div className="header">

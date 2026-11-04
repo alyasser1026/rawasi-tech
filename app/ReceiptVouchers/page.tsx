@@ -179,7 +179,7 @@ export default function ReceiptVouchersPage() {
                     {/* 🛡️ حماية الإضافة */}
                     <SecureAction module="receipt_vouchers" action="create">
                         <button onClick={logic.handleAddNew} className="btn-main-glass gold" style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '14px', fontWeight: 900 }}>
-                            ➕ سند قبض جديد
+                            سند قبض جديد
                         </button>
                     </SecureAction>
 
@@ -187,7 +187,7 @@ export default function ReceiptVouchersPage() {
                     {canEdit && (
                         <SecureAction module="receipt_vouchers" action="edit">
                             <button onClick={() => logic.handleEdit(selectedRecord)} className="btn-main-glass white" style={{ padding: '12px' }}>
-                                📝 تعديل السند
+                                تعديل السند
                             </button>
                         </SecureAction>
                     )}
@@ -198,20 +198,20 @@ export default function ReceiptVouchersPage() {
                             
                             {/* 🛡️ حماية الترحيل والإلغاء والتصحيح المجمع */}
                             <SecureAction module="receipt_vouchers" action="post">
-                                <button onClick={logic.handlePostSelected} className="btn-main-glass white" style={{ borderColor: THEME.success, color: THEME.success }}>✅ ترحيل</button>
+                                <button onClick={logic.handlePostSelected} className="btn-main-glass white" style={{ borderColor: THEME.success, color: THEME.success }}>ترحيل</button>
                             </SecureAction>
                             
                             <SecureAction module="receipt_vouchers" action="post">
-                                <button onClick={logic.handleUnpostSelected} className="btn-main-glass white" style={{ borderColor: '#f59e0b', color: '#f59e0b' }}>⏳ فك الترحيل</button>
+                                <button onClick={logic.handleUnpostSelected} className="btn-main-glass white" style={{ borderColor: '#f59e0b', color: '#f59e0b' }}>فك الترحيل</button>
                             </SecureAction>
                             
                             {/* 🛠️ زر التصحيح المجمع */}
                             <SecureAction module="receipt_vouchers" action="edit">
-                                <button onClick={() => logic.setIsBulkFixModalOpen(true)} className="btn-main-glass white" style={{ borderColor: '#8b5cf6', color: '#8b5cf6' }}>🛠️ تصحيح مجمع</button>
+                                <button onClick={() => logic.setIsBulkFixModalOpen(true)} className="btn-main-glass white" style={{ borderColor: '#8b5cf6', color: '#8b5cf6' }}>تصحيح مجمع</button>
                             </SecureAction>
                             
                             <SecureAction module="receipt_vouchers" action="delete">
-                                <button onClick={logic.handleDeleteSelected} className="btn-main-glass white" style={{ borderColor: '#ef4444', color: '#ef4444', background: '#ef444410' }}>🗑️ حذف نهائي</button>
+                                <button onClick={logic.handleDeleteSelected} className="btn-main-glass white" style={{ borderColor: '#ef4444', color: '#ef4444', background: '#ef444410' }}>حذف نهائي</button>
                             </SecureAction>
                         </div>
                     )}
@@ -220,16 +220,16 @@ export default function ReceiptVouchersPage() {
             summary: (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div className="summary-glass-card" style={{ borderColor: THEME.brand.gold, padding: '15px' }}>
-                        <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي التحصيلات 💰</span>
+                        <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي التحصيلات</span>
                         <div style={{fontSize:'22px', fontWeight:900, color: THEME.brand.gold}}>{formatCurrency(logic.kpis.totalAmount)}</div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
                         <div className="summary-glass-card" style={{ borderColor: THEME.success, padding: '10px', textAlign: 'center' }}>
-                            <span style={{fontSize:'10px', fontWeight:800, color:'#64748b'}}>مُرحّل ✅</span>
+                            <span style={{fontSize:'10px', fontWeight:800, color:'#64748b'}}>مُرحّل</span>
                             <div style={{fontSize:'16px', fontWeight:900, color: THEME.success}}>{logic.kpis.posted}</div>
                         </div>
                         <div className="summary-glass-card" style={{ borderColor: '#f59e0b', padding: '10px', textAlign: 'center' }}>
-                            <span style={{fontSize:'10px', fontWeight:800, color:'#64748b'}}>معلق ⏳</span>
+                            <span style={{fontSize:'10px', fontWeight:800, color:'#64748b'}}>معلق</span>
                             <div style={{fontSize:'16px', fontWeight:900, color: '#f59e0b'}}>{logic.kpis.pending}</div>
                         </div>
                     </div>
@@ -267,7 +267,7 @@ export default function ReceiptVouchersPage() {
     // 🎨 واجهة المستخدم (التغليف السيادي والجدول الذكي)
     // =========================================================================
     return (
-        <MasterPage icon="📥" title="سندات القبض والتحصيلات" subtitle="إدارة السندات، المراجعة، والترحيل المحاسبي">
+        <MasterPage title="سندات القبض والتحصيلات" subtitle="إدارة السندات، المراجعة، والترحيل المحاسبي">
             
             {logic.isLoading ? (
                 <LoadingScreen message="جاري تحميل السندات..." fullScreen={false} />
@@ -291,7 +291,7 @@ export default function ReceiptVouchersPage() {
 
             {/* 🛡️ مودال الإضافة والتعديل */}
             {mounted && logic.isEditModalOpen && createPortal(
-                <div style={{
+                <div className="phi-modal-backdrop" style={{
                     position: 'fixed', 
                     inset: 0, 
                     zIndex: 999999, 
@@ -311,9 +311,9 @@ export default function ReceiptVouchersPage() {
                         onClick={() => logic.setIsEditModalOpen(false)} 
                     />
 
-                    <div className="cinematic-scroll" style={{
+                    <div className="cinematic-scroll phi-modal-frame" style={{
                         background: 'rgba(255, 255, 255, 0.95)', 
-                        borderRadius: '32px', 
+                        borderRadius: '14px', 
                         width: '100%', 
                         maxWidth: '980px', 
                         position: 'relative', 
@@ -336,25 +336,25 @@ export default function ReceiptVouchersPage() {
 
             {/* 🛠️ مودال التصحيح المجمع (Bulk Fix) */}
             {mounted && logic.isBulkFixModalOpen && createPortal(
-                <div style={{
+                <div className="phi-modal-backdrop" style={{
                     position: 'fixed', inset: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', 
                     background: 'rgba(44, 34, 30, 0.5)', backdropFilter: 'blur(10px)', direction: 'rtl'
                 }}>
-                    <div className="cinematic-scroll" style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '500px', padding: '30px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', zIndex: 10 }}>
-                        <h3 style={{ margin: '0 0 10px 0', color: THEME.brand.coffee, fontWeight: 900 }}>🛠️ التصحيح المجمع للحسابات</h3>
+                    <div className="cinematic-scroll phi-modal-panel" style={{ background: 'white', borderRadius: '14px', width: '100%', maxWidth: '500px', padding: '30px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', zIndex: 10 }}>
+                        <h3 style={{ margin: '0 0 10px 0', color: THEME.brand.coffee, fontWeight: 900 }}>التصحيح المجمع للحسابات</h3>
                         <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px', fontWeight: 800 }}>
                             سيتم تطبيق التعديلات على ({logic.selectedIds.length}) سند مسودة.
                         </p>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                             <SmartCombo 
-                                label="🏦 حساب الخزينة / البنك (للتعديل)" 
+                                label="حساب الخزينة / البنك (للتعديل)" 
                                 table="accounts" 
                                 displayCol="name" 
                                 onSelect={(v:any) => logic.setBulkFixAccounts({...logic.bulkFixAccounts, safe_bank_acc_id: v?.id, safe_bank_acc_name: v?.name})} 
                             />
                             <SmartCombo 
-                                label="👥 حساب العميل / الجهة (للتعديل)" 
+                                label="حساب العميل / الجهة (للتعديل)" 
                                 table="accounts" 
                                 displayCol="name" 
                                 onSelect={(v:any) => logic.setBulkFixAccounts({...logic.bulkFixAccounts, partner_acc_id: v?.id, partner_acc_name: v?.name})} 
@@ -363,7 +363,7 @@ export default function ReceiptVouchersPage() {
 
                         <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
                             <button onClick={logic.handleBulkFixSave} disabled={logic.isSaving} style={{ flex: 2, background: THEME.brand.gold, color: 'white', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
-                                {logic.isSaving ? '⏳ جاري الحفظ...' : '💾 تطبيق التعديل'}
+                                {logic.isSaving ? 'جاري الحفظ...' : 'تطبيق التعديل'}
                             </button>
                             <button onClick={() => logic.setIsBulkFixModalOpen(false)} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
                                 إلغاء

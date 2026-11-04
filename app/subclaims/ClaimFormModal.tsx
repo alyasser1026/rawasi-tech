@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase'; 
+import { notify } from '@/lib/notify';
 
 export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
     const [mounted, setMounted] = useState(false);
@@ -140,7 +141,7 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
         const finalProjectIds = activeProjectIds.length > 0 ? activeProjectIds : logic.currentClaim.project_ids;
         
         if (!finalProjectIds || finalProjectIds.length === 0) {
-            alert("⚠️ يرجى التأكد من أن أوامر التشغيل مرتبطة بمشروع/فيلا بشكل سليم.");
+            notify("يرجى التأكد من أن أوامر التشغيل مرتبطة بمشروع/فيلا بشكل سليم.");
             return;
         }
 
@@ -170,17 +171,17 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                 .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; }
             `}</style>
 
-            <div className="cinematic-scroll" onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '1100px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.95)', backdropFilter: 'blur(30px)', borderRadius: '35px', padding: '40px', boxShadow: '0 40px 80px rgba(0,0,0,0.5)', overflowY: 'auto', direction: 'rtl' }}>
+            <div className="cinematic-scroll" onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '1100px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.95)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', boxShadow: '0 40px 80px rgba(0,0,0,0.5)', overflowY: 'auto', direction: 'rtl' }}>
                 
                 {isEnriching && (
-                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.85)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 900, color: THEME.primary, borderRadius: '35px', backdropFilter: 'blur(5px)' }}>
-                        ⏳ جاري تحليل بيانات العقارات وسحب الخصومات الدقيقة من الدفاتر...
+                    <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.85)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', fontWeight: 900, color: THEME.primary, borderRadius: '14px', backdropFilter: 'blur(5px)' }}>
+                        جاري تحليل بيانات العقارات وسحب الخصومات الدقيقة من الدفاتر...
                     </div>
                 )}
 
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.goldAccent || '#ea580c'}50`, paddingBottom:'15px'}}>
                     <div>
-                        <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '26px' }}>🧾 إصدار مستخلص مقاول باطن</h2>
+                        <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '26px' }}>إصدار مستخلص مقاول باطن</h2>
                         <div style={{ fontSize: '13px', color: '#64748b', marginTop: '5px', fontWeight: 800 }}>المقاول: {logic.selectedContractor?.name}</div>
                     </div>
                     <div style={{ textAlign: 'left' }}>
@@ -189,9 +190,9 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: '20px', marginBottom: '25px', background: 'rgba(212, 175, 55, 0.05)', padding: '20px', borderRadius: '20px', border: `1px solid rgba(212, 175, 55, 0.2)` }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: '20px', marginBottom: '25px', background: 'rgba(212, 175, 55, 0.05)', padding: '20px', borderRadius: '14px', border: `1px solid rgba(212, 175, 55, 0.2)` }}>
                     <div style={{ zIndex: 90 }}>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>🏢 المشاريع المشمولة</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>المشاريع المشمولة</label>
                         <div className="glass-input-field" style={{ background: '#f8fafc', color: THEME.coffeeDark, minHeight: '43px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5px 15px', border: `1px solid ${THEME.goldAccent}50` }}>
                             {/* 🚀 عرض أسماء كل الفلل المجمعة بوضوح */}
                             <span style={{ fontWeight: 900, fontSize: uniqueProjectNames.length > 1 ? '11px' : '13px', textAlign: 'center', lineHeight: '1.6' }}>
@@ -200,21 +201,21 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                         </div>
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>📅 تاريخ المستخلص</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>تاريخ المستخلص</label>
                         <input type="date" className="glass-input-field" value={logic.currentClaim.date} onChange={e => logic.setCurrentClaim({...logic.currentClaim, date: e.target.value})} />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>⏳ فترة السداد (يوم)</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>فترة السداد (يوم)</label>
                         <input type="number" min="0" className="glass-input-field" value={logic.currentClaim.payment_period_days || ''} onChange={e => logic.setCurrentClaim({...logic.currentClaim, payment_period_days: Number(e.target.value)})} />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>🛡️ نسبة احتجاز الضمان %</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>نسبة احتجاز الضمان %</label>
                         <input type="number" className="glass-input-field" value={logic.currentClaim.retention_percent} onChange={e => logic.setCurrentClaim({...logic.currentClaim, retention_percent: e.target.value})} />
                     </div>
                 </div>
 
                 <div style={{ marginBottom: '25px' }}>
-                    <h3 style={{ color: THEME.primary, fontWeight: 900, fontSize: '16px', marginBottom: '10px' }}>📋 أوامر التشغيل المعتمدة في هذا المستخلص</h3>
+                    <h3 style={{ color: THEME.primary, fontWeight: 900, fontSize: '16px', marginBottom: '10px' }}>أوامر التشغيل المعتمدة في هذا المستخلص</h3>
                     {enrichedAssignments.length > 0 ? (
                         <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
@@ -237,7 +238,7 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                                                 <td style={{ padding: '10px', fontSize: '12px', fontWeight: 800, color: THEME.accent }}>{a.real_order_number}</td>
                                                 <td style={{ padding: '10px', fontSize: '13px', fontWeight: 800, color: THEME.primary }}>
                                                     {a.real_item_name}
-                                                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', fontWeight: 700 }}>📍 {a.real_project_name}</div>
+                                                    <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', fontWeight: 700 }}>{a.real_project_name}</div>
                                                 </td>
                                                 <td style={{ padding: '10px', textAlign: 'center', fontWeight: 900, color: THEME.success }}>{formatCurrency(a.calc_gross)}</td>
                                                 <td style={{ padding: '10px', textAlign: 'center', fontWeight: 900, color: THEME.danger }}>{formatCurrency(mat)}</td>
@@ -256,15 +257,15 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', marginTop: '15px' }}>
                     <div style={{ background: 'rgba(255, 107, 107, 0.05)', padding: '15px', borderRadius: '12px', border: '1px dashed #fca5a5' }}>
-                        <div style={{ fontSize: '11px', color: '#ef4444', fontWeight: 800, textAlign: 'center' }}>🧱 إجمالي خصم الخامات (دقيق ومسحوب)</div>
+                        <div style={{ fontSize: '11px', color: '#ef4444', fontWeight: 800, textAlign: 'center' }}>إجمالي خصم الخامات (دقيق ومسحوب)</div>
                         <div style={{ fontSize: '20px', fontWeight: 900, color: '#dc2626', textAlign: 'center', marginTop: '10px' }}>{formatCurrency(realMatDed)}</div>
                     </div>
                     <div style={{ background: 'rgba(255, 159, 67, 0.05)', padding: '15px', borderRadius: '12px', border: '1px dashed #fcd34d' }}>
-                        <div style={{ fontSize: '11px', color: '#d97706', fontWeight: 800, textAlign: 'center' }}>💸 نقدية ومصروفات (دقيق ومسحوب)</div>
+                        <div style={{ fontSize: '11px', color: '#d97706', fontWeight: 800, textAlign: 'center' }}>نقدية ومصروفات (دقيق ومسحوب)</div>
                         <div style={{ fontSize: '20px', fontWeight: 900, color: '#b45309', textAlign: 'center', marginTop: '10px' }}>{formatCurrency(realExpDed)}</div>
                     </div>
                     <div style={{ background: 'rgba(0, 210, 211, 0.05)', padding: '15px', borderRadius: '12px', border: '1px dashed #67e8f9' }}>
-                        <div style={{ fontSize: '11px', color: '#0891b2', fontWeight: 800, textAlign: 'center' }}>💰 خصم سلفة / دفعة مقدمة (يدوي)</div>
+                        <div style={{ fontSize: '11px', color: '#0891b2', fontWeight: 800, textAlign: 'center' }}>خصم سلفة / دفعة مقدمة (يدوي)</div>
                         <input 
                             type="number" 
                             className="glass-input-field" 
@@ -275,7 +276,7 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                     </div>
                 </div>
 
-                <div style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '24px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                <div style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>إجمالي الأعمال المنجزة</div>
                         <div style={{ fontSize: '20px', fontWeight: 900, color: '#60a5fa' }}>{formatCurrency(totalWork)}</div>
@@ -296,7 +297,7 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
 
                 <div style={{ display: 'flex', gap: '20px', marginTop: '35px' }}>
                     <button onClick={handleSave} disabled={logic.isClaimSaving || isEnriching} className="btn-glass-save" style={{ flex: 2 }}>
-                        {logic.isClaimSaving ? '⏳ جاري الاعتماد والترحيل...' : '✅ اعتماد المستخلص'}
+                        {logic.isClaimSaving ? 'جاري الاعتماد والترحيل...' : 'اعتماد المستخلص'}
                     </button>
                     <button onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>إغلاق</button>
                 </div>

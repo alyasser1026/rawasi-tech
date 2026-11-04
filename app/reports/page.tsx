@@ -6,6 +6,8 @@ import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
+import { Hourglass, Users } from 'lucide-react';
+import PhiIcon from '@/components/PhiIcon';
 
 export default function ReportsPage() {
   // نقطة الاستدعاء (Single Source)
@@ -19,20 +21,20 @@ export default function ReportsPage() {
         onClick={logic.handleRefresh}
         disabled={logic.isLoading}
       >
-        {logic.isLoading ? '⏳ جاري التحديث...' : '🔄 تحديث البيانات اللحظية'}
+        {logic.isLoading ? 'جاري التحديث...' : 'تحديث البيانات اللحظية'}
       </button>
       <button 
         className="btn-main-glass white" 
         onClick={() => window.print()}
       >
-        🖨️ طباعة التقرير
+        طباعة التقرير
       </button>
     </div>
   );
 
   return (
     <div className="clean-page">
-      <MasterPage icon="📊" 
+      <MasterPage 
         title="مركز القيادة والتقارير الشاملة" 
         subtitle="نظرة مالية وإدارية حية لجميع الموديولات (معتمد / معلق)"
       >
@@ -40,7 +42,7 @@ export default function ReportsPage() {
           actions={sidebarActions}
           summary={
             <div className="summary-glass-card">
-              <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>نطاق التقرير 📅</span>
+              <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>نطاق التقرير</span>
               <div style={{fontSize:'11px', color: THEME.primary, fontWeight:900, marginTop:'5px'}}>
                 من: {logic.dateRange.start} <br/> إلى: {logic.dateRange.end}
               </div>
@@ -49,7 +51,7 @@ export default function ReportsPage() {
         />
 
         {/* 📅 شريط الفلاتر الذكي */}
-        <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', background: 'rgba(255,255,255,0.2)', backdropFilter: `blur(${THEME.glass.blur})`, padding: '20px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.3)', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '15px', marginBottom: '25px', background: 'rgba(255,255,255,0.2)', backdropFilter: `blur(${THEME.glass.blur})`, padding: '20px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.3)', alignItems: 'center' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
             <label style={{ fontSize: '12px', fontWeight: 900, color: '#475569' }}>من تاريخ:</label>
             <input 
@@ -75,17 +77,17 @@ export default function ReportsPage() {
           .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; }
           .btn-main-glass.white { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255,255,255,0.8); }
           .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); }
-          .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
+          .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
         `}</style>
 
         {logic.isLoading ? (
           <div style={{ textAlign: 'center', padding: '100px', fontWeight: 900, color: '#64748b' }}>
-            <div style={{ fontSize: '40px', marginBottom: '15px' }}>⏳</div>
+            <div style={{ fontSize: '40px', marginBottom: '15px' }}><Hourglass size={34} aria-hidden="true" /></div>
             جاري استدعاء البيانات المالية والتشغيلية...
           </div>
         ) : !logic.reportData ? (
           <div style={{ textAlign: 'center', padding: '50px', color: THEME.ruby, fontWeight: 900 }}>
-            ⚠️ لا توجد بيانات متاحة لهذا النطاق الزمني.
+            لا توجد بيانات متاحة لهذا النطاق الزمني.
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
@@ -128,9 +130,9 @@ export default function ReportsPage() {
             {/* بطاقة خاصة لشؤون الموظفين (لا تتبع نفس النمط معتمد/معلق) */}
             <div className="premium-card module-card">
               <div className="module-header">
-                <div className="module-icon purple">👥</div>
+                <div className="module-icon purple"><Users size={16} aria-hidden="true" /></div>
                 <h3 style={{ margin: 0, fontSize: '15px', color: '#1e293b', fontWeight: 900 }}>شؤون الموظفين (معتمد فقط)</h3>
-                <span style={{ fontSize: '24px' }}>👥</span>
+                <span style={{ fontSize: '24px' }}><Users size={20} aria-hidden="true" /></span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '13px', fontWeight: 800 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -160,11 +162,11 @@ function ReportCard({ title, data, icon, color }: { title: string, data: any, ic
   if (!data) return null; // حارس الرندر
 
   return (
-    <div style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: `blur(${THEME.glass.blur})`, padding: '24px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', position: 'relative', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '100px', opacity: 0.05, transform: 'rotate(15deg)' }}>{icon}</div>
+    <div style={{ background: 'rgba(255,255,255,0.6)', backdropFilter: `blur(${THEME.glass.blur})`, padding: '24px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.4)', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ position: 'absolute', top: '-10px', right: '-10px', fontSize: '100px', opacity: 0.05, transform: 'rotate(15deg)' }}><PhiIcon value={icon} size={96} /></div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 style={{ margin: 0, fontSize: '15px', color: '#1e293b', fontWeight: 900, zIndex: 2 }}>{title}</h3>
-        <span style={{ fontSize: '24px', zIndex: 2 }}>{icon}</span>
+        <span style={{ display: 'inline-flex', zIndex: 2 }}><PhiIcon value={icon} size={22} /></span>
       </div>
       <div style={{ fontSize: '28px', fontWeight: 900, color: color, margin: '20px 0', zIndex: 2, position: 'relative' }}>
         {formatCurrency(data.total)}

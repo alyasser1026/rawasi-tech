@@ -12,8 +12,8 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
     useEffect(() => { setMounted(true); }, []);
 
     const handleValidateAndSave = () => {
-        if (!record.project_id) { showToast("يرجى اختيار المشروع أولاً ⚠️", "warning"); return; }
-        if (!record.boq_item_id) { showToast("يرجى اختيار البند الرئيسي لضمان سحب اليوميات تلقائياً ⚠️", "warning"); return; }
+        if (!record.project_id) { showToast("يرجى اختيار المشروع أولاً", "warning"); return; }
+        if (!record.boq_item_id) { showToast("يرجى اختيار البند الرئيسي لضمان سحب اليوميات تلقائياً", "warning"); return; }
         onSave(record);
     };
 
@@ -47,12 +47,12 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
             `}</style>
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
-                width: '1000px', maxHeight: '92vh', background: 'rgba(248, 250, 252, 0.85)', backdropFilter: 'blur(25px)', borderRadius: '30px', 
+                width: '1000px', maxHeight: '92vh', background: 'rgba(248, 250, 252, 0.85)', backdropFilter: 'blur(25px)', borderRadius: '14px', 
                 padding: '30px 40px', boxShadow: '0 30px 60px rgba(0,0,0,0.25)', overflowY: 'auto', direction: 'rtl', border: '1px solid rgba(255,255,255,0.7)'
             }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: `2px solid ${THEME.accent}50`, paddingBottom: '15px' }}>
                     <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '24px' }}>
-                        🛠️ {record.id ? 'تعديل بيانات البند الفعلي والتقديري' : 'إضافة بند BOQ جديد'}
+                        {record.id ? 'تعديل بيانات البند الفعلي والتقديري' : 'إضافة بند BOQ جديد'}
                     </h2>
                 </div>
 
@@ -107,7 +107,7 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
                     
                     {/* 🔒 مقفل - يسحب تلقائياً من دالة التجميع في الداتابيز */}
                     <div style={{ background: '#ecfdf5', padding: '10px', borderRadius: '12px', border: '1px solid #10b981' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: '#047857', display: 'block', marginBottom: '6px' }}>الكمية المنفذة (تلقائي) 🔒</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: '#047857', display: 'block', marginBottom: '6px' }}>الكمية المنفذة (تلقائي)</label>
                         <input 
                             type="number" 
                             value={record.actual_quantity ?? ''} 
@@ -135,7 +135,7 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
                             
                             {/* 🔒 مقفل - يسحب تلقائياً من حركات صرف الخامات (material_issue_lines) */}
                             <div>
-                                <label style={{ fontSize: '11px', fontWeight: 900, color: '#15803d', display: 'block', marginBottom: '4px' }}>الخامات (فعلي) 🔒</label>
+                                <label style={{ fontSize: '11px', fontWeight: 900, color: '#15803d', display: 'block', marginBottom: '4px' }}>الخامات (فعلي)</label>
                                 <input 
                                     type="number" 
                                     value={record.actual_material_cost ?? ''} 
@@ -148,7 +148,7 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
                             
                             {/* 🔒 مقفل - يسحب تلقائياً من الأجور الفعلية داخل اليومية */}
                             <div>
-                                <label style={{ fontSize: '11px', fontWeight: 900, color: '#15803d', display: 'block', marginBottom: '4px' }}>العمالة - فعلي (تلقائي) 🔒</label>
+                                <label style={{ fontSize: '11px', fontWeight: 900, color: '#15803d', display: 'block', marginBottom: '4px' }}>العمالة - فعلي (تلقائي)</label>
                                 <input 
                                     type="number" 
                                     value={record.actual_labor_cost ?? ''} 
@@ -173,7 +173,7 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
 
                 <div style={{ display: 'flex', gap: '20px', marginTop: '35px' }}>
                     <button onClick={handleValidateAndSave} disabled={isSaving} className="btn-glass-save" style={{ flex: 2 }}>
-                        {isSaving ? '⏳ جاري الحفظ والتزامن التلقائي...' : '✅ حفظ البند'}
+                        {isSaving ? 'جاري الحفظ والتزامن التلقائي...' : 'حفظ البند'}
                     </button>
                     <button onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>
                         إلغاء وإغلاق

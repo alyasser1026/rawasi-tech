@@ -172,7 +172,7 @@ export function useInvoicesLogic() {
 
     const handleEdit = (inv: any) => {
         if (inv.is_posted || inv.status === 'معتمد' || inv.status === 'معتمد') {
-            showToast("⚠️ لا يمكن تعديل فاتورة معتمدة! لتسجيل الدفعات استخدم زر (💰) الموجود بالجدول. ولتعديل بيانات الأصناف يجب فك الترحيل أولاً.", "error");
+            showToast("لا يمكن تعديل فاتورة معتمدة! لتسجيل الدفعات استخدم زر () الموجود بالجدول. ولتعديل بيانات الأصناف يجب فك الترحيل أولاً.", "error");
             return;
         }
 
@@ -236,11 +236,11 @@ export function useInvoicesLogic() {
         },
         onSuccess: () => {
             setIsEditModalOpen(false);
-            showToast("تم حفظ الفاتورة بنجاح 💾", "success");
+            showToast("تم حفظ الفاتورة بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
         onError: (err: any) => {
-            showToast(`حدث خطأ أثناء الحفظ! ❌ ${err.message}`, "error");
+            showToast(`حدث خطأ أثناء الحفظ!${err.message}`, "error");
         }
     });
 
@@ -251,7 +251,7 @@ export function useInvoicesLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast("تم الاعتماد والترحيل بنجاح ✅", "success");
+            showToast("تم الاعتماد والترحيل بنجاح", "success");
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
@@ -265,7 +265,7 @@ export function useInvoicesLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast("تم إلغاء الترحيل وتطهير القيود ⏸️", "warning");
+            showToast("تم إلغاء الترحيل وتطهير القيود", "warning");
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
@@ -279,7 +279,7 @@ export function useInvoicesLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast("تم الحذف النهائي للفواتير المحددة 🗑️", "success");
+            showToast("تم الحذف النهائي للفواتير المحددة", "success");
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
@@ -312,13 +312,13 @@ export function useInvoicesLogic() {
 
         },
         onError: (err: any) => {
-            if (err.message === "AMOUNT_ZERO") showToast("المبلغ المُسدد يجب أن يكون أكبر من صفر ⚠️", "warning");
+            if (err.message === "AMOUNT_ZERO") showToast("المبلغ المُسدد يجب أن يكون أكبر من صفر", "warning");
             else showToast(`حدث خطأ أثناء إصدار سند السداد: ${err.message}`, "error");
         },
         onSuccess: () => {
             setIsReceiptModalOpen(false);
             setSelectedInvoiceForPay(null);
-            showToast("تم إنشاء سند القبض كمسودة بنجاح 📝", "success");
+            showToast("تم إنشاء سند القبض كمسودة بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
             queryClient.invalidateQueries({ queryKey: ['receipt_vouchers'] });
         }
@@ -354,7 +354,7 @@ export function useInvoicesLogic() {
         handleDeleteSelected: () => {
             const posted = invoices.filter((inv:any) => selectedIds.includes(String(inv.id)) && inv.status === 'معتمدة');
             if (posted.length > 0) {
-                return showToast("⚠️ لا يمكن حذف فواتير معتمدة. يرجى فك الترحيل أولاً.", "error");
+                return showToast("لا يمكن حذف فواتير معتمدة. يرجى فك الترحيل أولاً.", "error");
             }
             if (!selectedIds.length || !confirm("هل أنت متأكد من الحذف النهائي للفواتير والقيود التابعة لها؟")) return;
             deleteMutation.mutate();

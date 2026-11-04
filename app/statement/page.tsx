@@ -12,6 +12,7 @@ import StatementPrintModal from './StatementPrintModal';
 import ExportLoadingModal from '@/components/ExportLoadingModal'; 
 
 import { Suspense } from 'react';
+import { ReceiptText } from 'lucide-react';
 
 function PartnerStatementContent() {
     const logic = useStatementLogic();
@@ -102,7 +103,7 @@ function PartnerStatementContent() {
         if (!logic.partnerId || logic.isLoading) return [];
         const openingRow = { 
             id: 'opening', date: logic.dateFrom || '---', 
-            description: '🔹 رصيد افتتاحي للمبالغ السابقة (ما قبل الفترة المختارة)', v_type: 'رصيد سابق', 
+            description: 'رصيد افتتاحي للمبالغ السابقة (ما قبل الفترة المختارة)', v_type: 'رصيد سابق', 
             debit: logic.openingBalance < 0 ? Math.abs(logic.openingBalance) : 0, 
             credit: logic.openingBalance > 0 ? logic.openingBalance : 0, balance: logic.openingBalance 
         };
@@ -112,11 +113,11 @@ function PartnerStatementContent() {
     const sidebarActions = useMemo(() => (
         <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
             <button type="button" onClick={() => setIsPrintOpen(true)} className="btn-main-glass white" disabled={!logic.partnerId}>
-                🖨️ معاينة وطباعة الكشف
+                معاينة وطباعة الكشف
             </button>
             <SecureAction module="statements" action="export">
                 <button type="button" onClick={() => logic.exportToExcel(selectedPartnerName)} className="btn-main-glass gold" disabled={!logic.partnerId}>
-                    📥 تصدير Excel للشريك
+                    تصدير Excel للشريك
                 </button>
             </SecureAction>
 
@@ -131,7 +132,7 @@ function PartnerStatementContent() {
                     style={{ background: '#0284C7', color: 'white', borderColor: '#0369A1' }}
                     disabled={logic.isExportingAll}
                 >
-                    {logic.isExportingAll ? '⏳ جاري المعالجة...' : '📦 تحميل جميع الكشوفات (ملف ZIP)'}
+                    {logic.isExportingAll ? 'جاري المعالجة...' : 'تحميل جميع الكشوفات (ملف ZIP)'}
                 </button>
             </SecureAction>
         </div>
@@ -141,24 +142,24 @@ function PartnerStatementContent() {
 
     return (
         <div className="clean-page">
-            <MasterPage icon="📑" title="كشف حساب الشركاء" subtitle="تحليل مالي ملكي بنظام فاي تك الماسي">
+            <MasterPage title="كشف حساب الشركاء" subtitle="تحليل مالي ملكي بنظام فاي تك الماسي">
                 
                 <RawasiSidebarManager actions={sidebarActions} watchDeps={[logic.partnerId, logic.isExportingAll]} />
 
                 <div className="main-content-flow">
                     <div className="filter-dashboard-glass" style={{ position: 'relative', zIndex: 50 }}>
-                        <div className="filter-header"><span className="filter-title">🔍 أدوات البحث والتصفية المتقدمة</span></div>
+                        <div className="filter-header"><span className="filter-title">أدوات البحث والتصفية المتقدمة</span></div>
                         <div className="filters-grid">
                             <div className="filter-col" style={{ position: 'relative', zIndex: 100 }}>
-                                <label>👤 الشريك (عامل / مقاول / مورد)</label>
+                                <label>الشريك (عامل / مقاول / مورد)</label>
                                 <SmartCombo 
                                     label="" table="partners" displayCol="name" initialDisplay={logic.partnerName || logic.partnerId} 
                                     onSelect={(v: any) => { logic.setPartnerId(v?.id || ''); setSelectedPartnerName(v?.name || ''); }} 
                                 />
                             </div>
-                            <div className="filter-col"><label>📅 من تاريخ</label><input type="date" className="glass-input" value={logic.dateFrom} onChange={e => logic.setDateFrom(e.target.value)} /></div>
-                            <div className="filter-col"><label>📅 إلى تاريخ</label><input type="date" className="glass-input" value={logic.dateTo} onChange={e => logic.setDateTo(e.target.value)} /></div>
-                            <div className="filter-col"><label>🔎 بحث في الكشف</label><input type="text" className="glass-input search-input" placeholder="ابحث في البيان..." value={logic.globalSearch || ''} onChange={e => logic.setGlobalSearch(e.target.value)} /></div>
+                            <div className="filter-col"><label>من تاريخ</label><input type="date" className="glass-input" value={logic.dateFrom} onChange={e => logic.setDateFrom(e.target.value)} /></div>
+                            <div className="filter-col"><label>إلى تاريخ</label><input type="date" className="glass-input" value={logic.dateTo} onChange={e => logic.setDateTo(e.target.value)} /></div>
+                            <div className="filter-col"><label>بحث في الكشف</label><input type="text" className="glass-input search-input" placeholder="ابحث في البيان..." value={logic.globalSearch || ''} onChange={e => logic.setGlobalSearch(e.target.value)} /></div>
                         </div>
                     </div>
 
@@ -169,11 +170,11 @@ function PartnerStatementContent() {
                                 <div className="grid-box red"><small>كل المدين (عليه) {summarySuffix}</small><span>{formatCurrency(logic.totalDebit)}</span></div>
                                 <div className="grid-box blue final-balance">
                                     <small>{netTitle}</small>
-                                    <span style={{ color: logic.periodNet >= 0 ? '#4ade80' : '#f87171' }}>
+                                    <span style={{ color: logic.periodNet >= 0 ? '#047857' : '#be123c' }}>
                                         {formatCurrency(Math.abs(logic.periodNet))}<small style={{fontSize: '14px', marginLeft: '5px'}}>{logic.periodNet >= 0 ? '(له)' : '(عليه)'}</small>
                                     </span>
                                     {isPeriodSelected && (
-                                        <div style={{ marginTop: '8px', fontSize: '12px', color: '#d4c4a8', fontWeight: 800, borderTop: '1px dashed rgba(194,65,12, 0.2)', paddingTop: '8px' }}>
+                                        <div className="cumulative-balance">
                                             الرصيد التراكمي (النهائي): {formatCurrency(Math.abs(logic.currentBalance))} <span style={{fontSize: '10px'}}>{logic.currentBalance >= 0 ? '(له)' : '(عليه)'}</span>
                                         </div>
                                     )}
@@ -181,14 +182,14 @@ function PartnerStatementContent() {
                             </div>
                             <hr className="glass-divider" />
                             <div className="dashboard-stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-                                <div className="stat-box cyan-outline"><small>🗓️ عدد أيام الحضور</small><span style={{ fontSize: '24px' }}>{logic.attendanceCount} <small style={{fontSize:'14px', opacity:0.8}}>يوم</small></span></div>
-                                <div className="stat-box dark-red"><small>⚠️ إجمالي الغرامات (عليه)</small><span style={{ fontSize: '24px', color: '#fca5a5' }}>{formatCurrency(logic.totalViolations)}</span></div>
+                                <div className="stat-box cyan-outline"><small>عدد أيام الحضور</small><span style={{ fontSize: '24px' }}>{logic.attendanceCount} <small style={{fontSize:'14px', opacity:0.8}}>يوم</small></span></div>
+                                <div className="stat-box dark-red"><small>إجمالي الغرامات (عليه)</small><span style={{ fontSize: '24px' }}>{formatCurrency(logic.totalViolations)}</span></div>
                             </div>
                         </div>
                     )}
 
                     {!logic.partnerId ? (
-                        <div className="welcome-placeholder"><div className="icon">🧾</div><h3>يرجى اختيار شريك لعرض كشف الحساب</h3></div>
+                        <div className="welcome-placeholder"><div className="icon"><ReceiptText size={26} aria-hidden="true" /></div><h3>يرجى اختيار شريك لعرض كشف الحساب</h3></div>
                     ) : (
                         <div className="table-wrapper-glass"><RawasiSmartTable data={tableData} columns={columns} isLoading={logic.isLoading} enablePagination={false} /></div>
                     )}
@@ -210,41 +211,49 @@ function PartnerStatementContent() {
 
             <style>{`
                 .main-content-flow { display: flex; flex-direction: column; gap: 20px; width: 100%; }
-                .glass-panel { background: linear-gradient(135deg, rgba(74, 59, 50, 0.85) 0%, rgba(44, 34, 27, 0.95) 100%); backdrop-filter: blur(15px); border: 1px solid rgba(194,65,12, 0.15); border-top: 1px solid rgba(194,65,12, 0.3); border-radius: 20px; padding: 25px; color: #f3e5d8; box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-                .glass-divider { border: 0; height: 1px; background: rgba(194,65,12, 0.1); margin: 20px 0; }
-                .balances-grid { display: grid; gap: 15px; }
-                .grid-box { padding: 20px; border-radius: 16px; text-align: center; background: rgba(212, 196, 168, 0.05); border: 1px solid rgba(212, 196, 168, 0.1); display: flex; flex-direction: column; justify-content: center; }
-                .grid-box.green { border-bottom: 3px solid #22c55e; }
-                .grid-box.red { border-bottom: 3px solid #ef4444; }
-                .grid-box.blue { border-bottom: 3px solid #3b82f6; } 
-                .grid-box.gold { border-bottom: 3px solid ${THEME.goldAccent}; background: rgba(194,65,12, 0.05); }
-                .grid-box small { font-size: 12px; color: #d4c4a8; font-weight: 900; margin-bottom: 8px; }
-                .grid-box span { font-size: 22px; font-weight: 900; }
-                .final-balance span { font-size: 30px; }
-                .dashboard-stats-grid { display: grid; gap: 15px; }
-                .stat-box { padding: 15px; border-radius: 12px; text-align: center; background: rgba(20, 15, 12, 0.4); border: 1px dashed rgba(194,65,12, 0.2); display: flex; flex-direction: column; justify-content: center; }
-                .stat-box.cyan-outline { border-bottom: 3px solid #06b6d4; background: rgba(6, 182, 212, 0.05); }
-                .stat-box.dark-red { border-bottom: 3px solid #b91c1c; background: rgba(185, 28, 28, 0.1); }
-                .stat-box small { font-size: 13px; color: #bba58f; display: block; margin-bottom: 8px; font-weight: 900; }
-                .stat-box span { font-size: 18px; font-weight: 900; color: white; }
-                .filter-dashboard-glass { background: linear-gradient(135deg, rgba(62, 49, 40, 0.85) 0%, rgba(44, 34, 27, 0.95) 100%); backdrop-filter: blur(15px); border: 1px solid rgba(194,65,12, 0.2); border-top: 1px solid rgba(194,65,12, 0.4); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); padding: 20px 25px; border-radius: 20px; }
-                .filter-title { font-size: 14px; font-weight: 900; color: ${THEME.goldAccent}; text-transform: uppercase; }
-                .filters-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 20px; align-items: end; }
-                .filter-col label { font-size: 12px; font-weight: 900; color: #d4c4a8; margin-bottom: 8px; display: block; }
-                .glass-input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid rgba(194,65,12, 0.2); background: rgba(20, 15, 12, 0.5); color: #f3e5d8; outline: none; transition: 0.3s; font-size: 13px; font-weight: 800; }
-                .glass-input:focus { border-color: ${THEME.goldAccent}; background: rgba(44, 34, 27, 0.8); }
-                .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; display: inline-block; }
-                .badge-glass.red { background: #fef2f2; color: #ef4444; }
-                .badge-glass.green { background: #f0fdf4; color: #16a34a; }
-                .badge-glass.blue { background: #eff6ff; color: #3b82f6; }
-                .badge-glass.sand { background: #fdfaf6; color: #8a7a6b; border: 1px solid #eaddcf; }
-                .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(194,65,12, 0.3); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-                .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
-                .btn-main-glass.white { background: rgba(243, 229, 216, 0.9); color: #2c221b; }
-                .btn-main-glass:disabled { opacity: 0.5; cursor: not-allowed; }
-                .welcome-placeholder { text-align: center; padding: 100px; color: #bba58f; background: rgba(44, 34, 27, 0.4); border-radius: 20px; border: 1px dashed rgba(194,65,12, 0.3); }
-                .welcome-placeholder .icon { font-size: 64px; margin-bottom: 20px; color: ${THEME.goldAccent}; }
-                .table-wrapper-glass { background: rgba(255, 255, 255, 0.95); border-radius: 20px; overflow: hidden; padding: 10px; border: 1px solid rgba(194,65,12, 0.2); box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
+                .glass-panel.summary-container { padding: 22px; color: #202329; }
+                .glass-divider { border: 0; height: 1px; background: #e6e8ec; margin: 20px 0; }
+                .balances-grid { display: grid; gap: 14px; }
+                .grid-box { padding: 18px; border-radius: 12px; text-align: center; background: #fff; border: 1px solid #e3e7ed; display: flex; flex-direction: column; justify-content: center; }
+                .grid-box.green { border-bottom: 3px solid #047857; }
+                .grid-box.green span { color: #047857; }
+                .grid-box.red { border-bottom: 3px solid #be123c; }
+                .grid-box.red span { color: #be123c; }
+                .grid-box.blue { border-bottom: 3px solid #1d4ed8; }
+                .grid-box.gold { border-bottom: 3px solid ${THEME.goldAccent}; background: #fff7ed; }
+                .grid-box small { font-size: 12px; color: #687180; font-weight: 800; margin-bottom: 8px; }
+                .grid-box span { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
+                .final-balance span { font-size: 28px; }
+                .final-balance .cumulative-balance { margin-top: 8px; font-size: 12px; color: #687180; font-weight: 700; border-top: 1px dashed #dce2ea; padding-top: 8px; }
+                .dashboard-stats-grid { display: grid; gap: 14px; }
+                .stat-box { padding: 15px; border-radius: 12px; text-align: center; background: #f8fafc; border: 1px solid #e3e7ed; display: flex; flex-direction: column; justify-content: center; }
+                .stat-box.cyan-outline { border-bottom: 3px solid #0e7490; }
+                .stat-box.dark-red { border-bottom: 3px solid #be123c; }
+                .stat-box small { font-size: 12px; color: #687180; display: block; margin-bottom: 8px; font-weight: 800; }
+                .stat-box span { font-size: 18px; font-weight: 800; color: #202329; font-variant-numeric: tabular-nums; }
+                .stat-box.dark-red span { color: #be123c; }
+                .filter-dashboard-glass { background: linear-gradient(180deg, #ffffff, #f8fafc); border: 1px solid #e0e5ed; box-shadow: var(--ent-card-elevation, 0 1px 3px #25344a0a); padding: 18px 20px; border-radius: var(--phi-radius-card, 14px); }
+                .filter-header { margin-bottom: 14px; }
+                .filter-title { font-size: 14px; font-weight: 800; color: #202329; }
+                .filters-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 16px; align-items: end; }
+                .filter-col label { font-size: 12px; font-weight: 700; color: #657080; margin-bottom: 7px; display: block; }
+                .glass-input { width: 100%; min-height: 42px; padding: 10px 12px; border-radius: 8px; border: 1px solid #dce2ea; background: #fff; color: #303a48; color-scheme: light; outline: none; transition: border-color 150ms ease, box-shadow 150ms ease; font-size: 13px; font-weight: 600; }
+                .glass-input:focus { border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 3px #c2410c14; }
+                .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; display: inline-block; }
+                .badge-glass.red { background: #fff1f2; color: #be123c; }
+                .badge-glass.green { background: #ecfdf5; color: #047857; }
+                .badge-glass.blue { background: #eff6ff; color: #1d4ed8; }
+                .badge-glass.sand { background: #f8fafc; color: #4b5563; border: 1px solid #e3e7ed; }
+                .btn-main-glass:disabled { opacity: 0.55; cursor: not-allowed; }
+                .welcome-placeholder { text-align: center; padding: 72px 24px; color: #4b5563; background: #fff; border-radius: var(--phi-radius-card, 14px); border: 1px dashed #d6dce5; }
+                .welcome-placeholder .icon { display: inline-grid; place-items: center; width: 56px; height: 56px; margin-bottom: 16px; border-radius: 14px; background: #fff7ed; color: ${THEME.goldAccent}; }
+                .welcome-placeholder h3 { margin: 0; font-size: 16px; font-weight: 700; }
+                .table-wrapper-glass { background: #fff; border-radius: var(--phi-radius-card, 14px); overflow: hidden; padding: 10px; border: 1px solid #e0e5ed; box-shadow: var(--ent-card-elevation, 0 1px 3px #25344a0a); }
+                @media (max-width: 900px) {
+                    .filters-grid { grid-template-columns: 1fr 1fr; }
+                    .balances-grid { grid-template-columns: 1fr !important; }
+                }
+                @media (max-width: 560px) { .filters-grid { grid-template-columns: 1fr; } }
             `}</style>
         </div>
     );

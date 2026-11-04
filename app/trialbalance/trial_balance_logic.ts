@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import * as XLSX from 'xlsx';
+import { notify } from '@/lib/notify';
 
 export function useTrialBalanceLogic() {
     const [records, setRecords] = useState<any[]>([]);
@@ -24,7 +25,7 @@ export function useTrialBalanceLogic() {
             
         } catch (err: any) {
             console.error("Error fetching Trial Balance:", err.message);
-            alert("❌ حدث خطأ أثناء جلب ميزان المراجعة");
+            notify("حدث خطأ أثناء جلب ميزان المراجعة");
         } finally {
             setIsLoading(false);
         }

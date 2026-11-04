@@ -135,7 +135,7 @@ export const MultiSelectAutocomplete = ({ label, selectedValues = [], onChange, 
       {isOpen && (
          <div style={{ position: 'absolute', top: '100%', right: 0, left: 0, background: '#ffffff', zIndex: 10000, border: `2px solid ${THEME.accent}`, borderRadius: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.15)', maxHeight: '300px', display: 'flex', flexDirection: 'column', marginTop: '5px', overflow: 'hidden' }}>
           <div style={{ padding: '10px', borderBottom: `2px solid ${THEME.border}`, backgroundColor: '#f8fafc' }}>
-             <input autoFocus type="text" placeholder="🔍 ابحث عن اسم أو كود العقار..." value={search} onChange={(e) => setSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: `1px solid ${THEME.border}`, outline: 'none', fontWeight: 900, fontSize: '14px', color: '#000' }} />
+             <input autoFocus type="text" placeholder="ابحث عن اسم أو كود العقار..." value={search} onChange={(e) => setSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: `1px solid ${THEME.border}`, outline: 'none', fontWeight: 900, fontSize: '14px', color: '#000' }} />
           </div>
           <div style={{ overflowY: 'auto', flex: 1 }}>
               {filteredOptions.length > 0 ? filteredOptions.map((o:any, i:number) => (
@@ -144,7 +144,7 @@ export const MultiSelectAutocomplete = ({ label, selectedValues = [], onChange, 
                     <span>{o.display || o.Property}</span>
                   </div>
               )) : (
-                  <div style={{ padding: '15px', textAlign: 'center', color: '#9ca3af', fontWeight: 900, fontSize: '14px' }}>لا توجد عقارات مطابقة لبحثك 🧐</div>
+                  <div style={{ padding: '15px', textAlign: 'center', color: '#9ca3af', fontWeight: 900, fontSize: '14px' }}>لا توجد عقارات مطابقة لبحثك</div>
               )}
           </div>
         </div>

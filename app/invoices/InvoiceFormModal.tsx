@@ -108,11 +108,11 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
     const handleAddStatement = (e: React.MouseEvent) => {
         e.preventDefault();
         if (!record.description) {
-            showToast("يرجى إدخال البيان التفصيلي أولاً ⚠️", "warning");
+            showToast("يرجى إدخال البيان التفصيلي أولاً", "warning");
             return;
         }
         if (Number(record.quantity || 0) <= 0 || Number(record.unit_price || 0) <= 0) {
-            showToast("يرجى التأكد من إدخال الكمية والسعر بشكل صحيح ⚠️", "warning");
+            showToast("يرجى التأكد من إدخال الكمية والسعر بشكل صحيح", "warning");
             return;
         }
 
@@ -145,15 +145,15 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
     // 🚀 3. دالة التحقق قبل الحفظ
     const handleValidateAndSave = () => {
         if (!record.date) {
-            showToast("يرجى التأكد من إدخال تاريخ الفاتورة ⚠️", "warning");
+            showToast("يرجى التأكد من إدخال تاريخ الفاتورة", "warning");
             return;
         }
         if (!record.partner_id) {
-            showToast("يرجى اختيار العميل (البارتنر) أولاً ⚠️", "warning");
+            showToast("يرجى اختيار العميل (البارتنر) أولاً", "warning");
             return;
         }
         if (Number(record.total_amount) <= 0 && Number(record.line_total) <= 0) {
-            showToast("تنبيه: إجمالي الفاتورة 0، يرجى التأكد من السعر والكمية ⚠️", "warning");
+            showToast("تنبيه: إجمالي الفاتورة 0، يرجى التأكد من السعر والكمية", "warning");
         }
         
         onSave(record);
@@ -166,7 +166,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         <div className="warm-portal-overlay-fullscreen" onClick={onClose}>
             
             <style>{`
-                /* 🚀 البلور الدافئ اللي بيغطي الشاشة كلها */
+                /* البلور الدافئ اللي بيغطي الشاشة كلها */
                 .warm-portal-overlay-fullscreen {
                     position: fixed !important;
                     top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
@@ -175,7 +175,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                     backdrop-filter: blur(20px) !important;
                     -webkit-backdrop-filter: blur(20px) !important;
                     display: flex !important; align-items: center !important; justify-content: center !important;
-                    z-index: 999999999 !important; /* 👈 رقم ضخم يغطي السايد بار والهيدر */
+                    z-index: 999999999 !important; /* رقم ضخم يغطي السايد بار والهيدر */
                 }
 
                 .cinematic-scroll::-webkit-scrollbar { width: 6px; }
@@ -233,7 +233,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
                 width: '950px', maxHeight: '92vh', background: 'rgba(248, 250, 252, 0.85)', 
-                backdropFilter: 'blur(25px)', borderRadius: '30px', padding: '40px', 
+                backdropFilter: 'blur(25px)', borderRadius: '14px', padding: '40px', 
                 boxShadow: '0 30px 60px rgba(0,0,0,0.25)', overflowY: 'auto', direction: 'rtl',
                 border: '1px solid rgba(255,255,255,0.7)',
                 animation: 'modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
@@ -241,7 +241,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                 
                 <div className="modal-header-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: `2px solid ${THEME.accent}50`, paddingBottom: '15px' }}>
                     <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '26px' }}>
-                        📑 {record.id ? 'تعديل الفاتورة' : 'إنشاء فاتورة جديدة'}
+                        {record.id ? 'تعديل الفاتورة' : 'إنشاء فاتورة جديدة'}
                     </h2>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: record?.skip_zatca ? '#fee2e2' : '#dcfce3', padding: '10px 18px', borderRadius: '15px', cursor: 'pointer', transition: '0.3s', border: `1px solid ${record?.skip_zatca ? '#fca5a5' : '#86efac'}` }} 
@@ -252,7 +252,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                         </div>
                         
                         <span style={{ fontSize: '13px', fontWeight: 900, color: record?.skip_zatca ? '#dc2626' : THEME.success }}>
-                            {record?.skip_zatca ? '❌ غير خاضعة للضريبة (0%)' : '✅ خاضعة للضريبة (15%)'}
+                            {record?.skip_zatca ? 'غير خاضعة للضريبة (0%)' : 'خاضعة للضريبة (15%)'}
                         </span>
                     </div>
                 </div>
@@ -269,7 +269,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                     </div>
 
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>📅 فترة السداد (بالأيام)</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>فترة السداد (بالأيام)</label>
                         <input 
                             type="number" 
                             placeholder="مثلاً: 30" 
@@ -386,7 +386,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                     {/* 🚀 زر إضافة البند والجدول الخاص بالبنود المضافة */}
                     <div style={{ gridColumn: 'span 3', textAlign: 'left' }}>
                         <button type="button" onClick={handleAddStatement} style={{ background: THEME.accent, color: 'white', border: 'none', padding: '10px 25px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: '0.3s' }}>
-                            ➕ إدراج البيان في الفاتورة
+                            إدراج البيان في الفاتورة
                         </button>
                     </div>
 
@@ -461,7 +461,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                                 icon="📦"
                                 table="accounts" 
                                 searchCols="name,code" displayCol="name"
-                                placeholder={record.materials_acc_id === '85e61a6a-8c85-4219-a733-3b2180dfe043' ? '[217] مخزون خامات العميل (افتراضي)' : '🔍 اختر حساب...'}
+                                placeholder={record.materials_acc_id === '85e61a6a-8c85-4219-a733-3b2180dfe043' ? '[217] مخزون خامات العميل (افتراضي)' : 'اختر حساب...'}
                                 initialDisplay={record.materials_acc_name || record.materials_account?.name || ''}
                                 onSelect={(a: any) => setRecord({...record, materials_acc_id: a?.id || null, materials_acc_name: a?.name || ''})} 
                             />
@@ -481,7 +481,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                                 icon="🛡️"
                                 table="accounts" 
                                 searchCols="name,code" displayCol="name"
-                                placeholder={record.guarantee_acc_id === '8bf39cb1-4028-4c9e-817d-27c239873030' ? '[124] تأمينات محتجزة لدى الغير (افتراضي)' : '🔍 اختر حساب...'}
+                                placeholder={record.guarantee_acc_id === '8bf39cb1-4028-4c9e-817d-27c239873030' ? '[124] تأمينات محتجزة لدى الغير (افتراضي)' : 'اختر حساب...'}
                                 initialDisplay={record.guarantee_acc_name || record.guarantee_account?.name || ''}
                                 onSelect={(a: any) => setRecord({...record, guarantee_acc_id: a?.id || null, guarantee_acc_name: a?.name || ''})} 
                             />
@@ -490,7 +490,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
 
                 </div>
 
-                <div className="responsive-summary-grid" style={{ marginTop: '35px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '24px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                <div className="responsive-summary-grid" style={{ marginTop: '35px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>خاضع للضريبة</div>
                         <div style={{ fontSize: '20px', fontWeight: 900 }}>{formatCurrency(record.taxable_amount ?? 0)}</div>
@@ -515,7 +515,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
 
                 <div className="responsive-actions" style={{ display: 'flex', gap: '20px', marginTop: '35px' }}>
                     <button onClick={handleValidateAndSave} disabled={isSaving} className="btn-glass-save" style={{ flex: 2 }}>
-                        {isSaving ? '⏳ جاري الحفظ والترحيل...' : '✅ حفظ الفاتورة وترحيل القيود'}
+                        {isSaving ? 'جاري الحفظ والترحيل...' : 'حفظ الفاتورة وترحيل القيود'}
                     </button>
                     <button onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>
                         إلغاء وإغلاق

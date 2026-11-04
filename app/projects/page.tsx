@@ -20,6 +20,7 @@ import FinancialsTab from './FinancialsTab';
 import QcTab from './QcTab';
 import ExpensesTab from './ExpensesTab'; // 👈 استدعاء تاب المصروفات الجديد
 import LoadingScreen from '@/components/LoadingScreen';
+import { TriangleAlert } from 'lucide-react';
 
 export default function AdvancedProjectsPage() {
     const logic = useProjectsLogic();
@@ -49,7 +50,7 @@ export default function AdvancedProjectsPage() {
         {!logic.selectedProject && (
             <SecureAction module="projects" action="create">
             <button onClick={() => { logic.setCurrentProjectRecord({ project_code: '', Property: '', unit_type: '', unit_area: '', client_id: '', contract_value: '', estimated_budget: '', down_payment: '', start_date: '', end_date: '', location_address: '', project_manager: '', engineer_in_charge: '', engineer_phone: '', status: 'قيد الدراسة', current_stage: 'تجهيز الموقع', notes: '' }); logic.setIsAddProjectModalOpen(true); }} className="btn-main-glass gold">
-                ➕ إضافة مشروع جديد
+                إضافة مشروع جديد
             </button>
         </SecureAction>
         )}
@@ -58,13 +59,13 @@ export default function AdvancedProjectsPage() {
             <>
                 <SecureAction module="projects" action="edit">
                 <button onClick={() => { logic.setCurrentProjectRecord({ ...logic.selectedProject }); logic.setIsAddProjectModalOpen(true); }} className="btn-main-glass blue">
-                    ✏️ تعديل بيانات المشروع
+                    تعديل بيانات المشروع
                 </button>
             </SecureAction>
 
                 <SecureAction module="projects" action="delete">
                 <button onClick={() => { setDeleteAlert({ isOpen: true, type: 'project', id: logic.selectedProject.id, title: 'حذف المشروع نهائياً', message: `هل أنت متأكد من حذف العقار "${logic.selectedProject.Property}" بكل بياناته وحساباته ومقايساته؟ هذا الإجراء لا يمكن التراجع عنه!` }); }} className="btn-main-glass red">
-                    🗑️ حذف المشروع نهائياً
+                    حذف المشروع نهائياً
                 </button>
             </SecureAction>
 
@@ -74,13 +75,13 @@ export default function AdvancedProjectsPage() {
                         logic.setCurrentBoqRecord({ item_type: 'رئيسي', contract_quantity: 1, unit_contract_price: 0, estimated_labor_cost: 0, estimated_material_cost: 0, estimated_expenses_cost: 0, start_date: '', end_date: '' });
                         logic.setIsBoqModalOpen(true);
                     }} className="btn-main-glass gold">
-                        ➕ إضافة بند للمقايسة (WBS)
+                        إضافة بند للمقايسة (WBS)
                     </button>
                 </SecureAction>
                 )}
 
                 <button onClick={logic.runDiagnostics} className="btn-main-glass white" style={{ borderColor: 'rgba(239, 68, 68, 0.5)' }}>
-                    🔍 تشغيل فحص الداتا بيز
+                    تشغيل فحص الداتا بيز
                 </button>
 
             </>
@@ -88,7 +89,7 @@ export default function AdvancedProjectsPage() {
 
         {!logic.selectedProject && (
             <button onClick={logic.resetFilters} className="btn-main-glass white">
-                🔄 إعادة ضبط الفلاتر
+                إعادة ضبط الفلاتر
             </button>
         )}
       </div>
@@ -98,7 +99,7 @@ export default function AdvancedProjectsPage() {
       <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <input 
               type="text" 
-              placeholder="🔍 ابحث عن مشروع أو نوع النموذج..." 
+              placeholder="ابحث عن مشروع أو نوع النموذج..." 
               className="glass-input-field" 
               value={logic.searchQuery} 
               onChange={e => logic.setSearchQuery(e.target.value)} 
@@ -106,7 +107,7 @@ export default function AdvancedProjectsPage() {
           {!logic.selectedProject && (
               <>
                   <select className="glass-input-field" value={logic.filterStatus} onChange={e => logic.setFilterStatus(e.target.value)}>
-                      <option value="الكل">كل الحالات 🏢</option>
+                      <option value="الكل">كل الحالات</option>
                       <option value="قيد الدراسة">قيد الدراسة</option>
                       <option value="جاري تجهيز الموقع">جاري تجهيز الموقع</option>
                       <option value="قيد التنفيذ">قيد التنفيذ</option>
@@ -116,7 +117,7 @@ export default function AdvancedProjectsPage() {
                   </select>
                   
                   <select className="glass-input-field" value={logic.filterStage} onChange={e => logic.setFilterStage(e.target.value)}>
-                      <option value="الكل">كل المراحل الإنشائية 🛠️</option>
+                      <option value="الكل">كل المراحل الإنشائية</option>
                       <option value="قيد الدراسة">قيد الدراسة</option>
                       {logic.availableStages?.map((stage: string) => (
                           <option key={stage} value={stage}>{stage}</option>
@@ -129,12 +130,12 @@ export default function AdvancedProjectsPage() {
 
     return (
       <div className="clean-page">
-        <MasterPage icon="🏗️" title="غرفة عمليات المشاريع المتقدمة" subtitle="إدارة الميزانيات، المقايسات، والتدفقات النقدية للمشروعات">
+        <MasterPage title="غرفة عمليات المشاريع المتقدمة" subtitle="إدارة الميزانيات، المقايسات، والتدفقات النقدية للمشروعات">
           
           <RawasiSidebarManager 
               summary={
                   <div className="summary-glass-card">
-                      <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>{logic.selectedProject ? 'المشروع الحالي 📍' : 'إجمالي المشاريع النشطة 🏗️'}</span>
+                      <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>{logic.selectedProject ? 'المشروع الحالي' : 'إجمالي المشاريع النشطة'}</span>
                       <div className="val" style={{fontSize:'22px', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>
                           {logic.selectedProject ? logic.selectedProject.project_code || 'بدون كود' : logic.projects.length}
                       </div>
@@ -154,12 +155,12 @@ export default function AdvancedProjectsPage() {
             .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; }
             .btn-main-glass.white { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255,255,255,0.8); }
             .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-            .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
+            .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
             .glass-card { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); padding: 25px; borderRadius: 24px; border: 1px solid rgba(255,255,255,0.8); boxShadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 25px; }
             .labor-stat-item { display: flex; flex-direction: column; background: rgba(255,255,255,0.5); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.7); }
             
             .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-            .project-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 24px; padding: 25px; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
+            .project-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 14px; padding: 25px; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
             .project-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); border-color: ${THEME.goldAccent}; }
             .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,0.05); fontSize: 12px; font-weight: 800; color: #475569; }
             .stat-row:last-child { border-bottom: none; }
@@ -187,7 +188,7 @@ export default function AdvancedProjectsPage() {
 
                        return (
                            <div key={proj.id} className="project-card" onClick={() => logic.loadProjectDetails(proj)}>
-                               {proj.current_stage && <div className="stage-badge">⚙️ {proj.current_stage}</div>}
+                               {proj.current_stage && <div className="stage-badge">{proj.current_stage}</div>}
 
                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
                                    <span style={{ fontSize: '11px', color: THEME.white, fontWeight: 900, backgroundColor: THEME.coffeeDark, padding: '4px 10px', borderRadius: '8px' }}>
@@ -197,25 +198,25 @@ export default function AdvancedProjectsPage() {
                                </div>
                                
                                <h3 style={{ margin: '0 0 5px 0', color: THEME.coffeeDark, fontWeight: 900, fontSize: '18px', paddingLeft: '90px' }}>
-                                   🏢 {proj.Property} 
+                                   {proj.Property} 
                                    {proj.unit_type && <span style={{ fontSize: '13px', color: THEME.goldAccent, marginRight: '8px' }}>({proj.unit_type})</span>}
                                </h3>
                                <p style={{ margin: '0 0 8px 0', fontSize: '11px', color: '#64748b', fontWeight: 800 }}>العميل: {proj.client?.name || proj.client_name || '---'}</p>
                                
                                {(proj.engineer_in_charge || proj.engineer_phone) && (
                                   <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 800, color: '#334155', marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
-                                      <span>👨‍🔧 {proj.engineer_in_charge || 'غير محدد'}</span>
-                                      {proj.engineer_phone && <span>📱 {proj.engineer_phone}</span>}
+                                      <span>{proj.engineer_in_charge || 'غير محدد'}</span>
+                                      {proj.engineer_phone && <span>{proj.engineer_phone}</span>}
                                   </div>
                                )}
 
                                <div style={{ background: 'rgba(255,255,255,0.5)', padding: '15px', borderRadius: '16px', marginBottom: '20px' }}>
                                    <div className="stat-row">
-                                       <span>💰 الميزانية المعتمدة:</span>
+                                       <span>الميزانية المعتمدة:</span>
                                        <span style={{ color: THEME.primary, fontWeight: 900 }}>{formatCurrency(proj.estimated_budget || 0)}</span>
                                    </div>
                                    <div className="stat-row">
-                                       <span>🛠️ التكلفة الفعليّة (مواد+عمالة):</span>
+                                       <span>التكلفة الفعليّة (مواد+عمالة):</span>
                                        <span style={{ color: THEME.danger, fontWeight: 900 }}>{formatCurrency(totalActualCost)}</span>
                                    </div>
                                </div>
@@ -244,15 +245,15 @@ export default function AdvancedProjectsPage() {
           ) : (
               <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', background: 'rgba(255,255,255,0.4)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', background: 'rgba(255,255,255,0.4)', padding: '20px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.5)' }}>
                     <div>
                         <h2 style={{ margin: 0, fontWeight: 900, color: THEME.coffeeDark, fontSize: '24px' }}>
-                            🏢 {logic.selectedProject.Property}
+                            {logic.selectedProject.Property}
                             {logic.selectedProject.unit_type && <span style={{ fontSize: '16px', color: THEME.goldAccent, marginRight: '10px' }}>- {logic.selectedProject.unit_type}</span>}
                         </h2>
                         <div style={{ display: 'flex', gap: '20px', marginTop: '10px', fontSize: '13px', fontWeight: 800, color: '#475569' }}>
-                            {logic.selectedProject.engineer_in_charge && <span>👨‍🔧 المهندس المسئول: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_in_charge}</strong></span>}
-                            {logic.selectedProject.engineer_phone && <span>📱 جوال: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_phone}</strong></span>}
+                            {logic.selectedProject.engineer_in_charge && <span>المهندس المسئول: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_in_charge}</strong></span>}
+                            {logic.selectedProject.engineer_phone && <span>جوال: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_phone}</strong></span>}
                         </div>
                     </div>
                     
@@ -261,7 +262,7 @@ export default function AdvancedProjectsPage() {
                             onClick={() => logic.setSelectedProject(null)} 
                             style={{ padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 900, backgroundColor: '#475569', color: 'white', cursor: 'pointer', boxShadow: '0 5px 15px rgba(0,0,0,0.1)', transition: '0.3s' }}
                         >
-                            🔙 العودة لقائمة المشاريع
+                            العودة لقائمة المشاريع
                         </button>
 
                         <span style={{ fontSize: '13px', fontWeight: 900, color: '#64748b' }}>تغيير حالة المشروع:</span>
@@ -274,24 +275,24 @@ export default function AdvancedProjectsPage() {
                                 boxShadow: '0 5px 15px rgba(0,0,0,0.05)', outline: 'none', cursor: 'pointer'
                             }}
                         >
-                            <option value="قيد الدراسة">قيد الدراسة 🟡</option>
-                            <option value="جاري تجهيز الموقع">جاري تجهيز الموقع 🟠</option>
-                            <option value="قيد التنفيذ">قيد التنفيذ 🟢</option>
-                            <option value="متوقف مؤقتا">متوقف مؤقتا ⏸️</option>
-                            <option value="متوقف">متوقف نهائياً 🔴</option>
-                            <option value="منتهي">منتهي 🔵</option>
+                            <option value="قيد الدراسة">قيد الدراسة</option>
+                            <option value="جاري تجهيز الموقع">جاري تجهيز الموقع</option>
+                            <option value="قيد التنفيذ">قيد التنفيذ</option>
+                            <option value="متوقف مؤقتا">متوقف مؤقتا</option>
+                            <option value="متوقف">متوقف نهائياً</option>
+                            <option value="منتهي">منتهي</option>
                         </select>
                     </div>
                 </div>
 
                 {/* 🚀 إضافة زرار تاب المصروفات المباشرة هنا */}
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', overflowX: 'auto', paddingBottom: '10px' }}>
-                  <TabButton active={logic.activeTab === 'overview'} onClick={() => logic.setActiveTab('overview')} text="📊 النظرة العامة و KPIs" />
-                  <TabButton active={logic.activeTab === 'boq'} onClick={() => logic.setActiveTab('boq')} text="📋 المقايسات والجدول الزمني" />
-                  <TabButton active={logic.activeTab === 'expenses'} onClick={() => logic.setActiveTab('expenses')} text="💸 المصروفات المباشرة" />
-                  <TabButton active={logic.activeTab === 'materials'} onClick={() => logic.setActiveTab('materials')} text="🧱 الخامات المسحوبة" />
-                  <TabButton active={logic.activeTab === 'financials'} onClick={() => logic.setActiveTab('financials')} text="💰 المستخلصات والماليات" />
-                  <TabButton active={logic.activeTab === 'qc'} onClick={() => logic.setActiveTab('qc')} text="📸 الجودة والصور" />
+                  <TabButton active={logic.activeTab === 'overview'} onClick={() => logic.setActiveTab('overview')} text="النظرة العامة و KPIs" />
+                  <TabButton active={logic.activeTab === 'boq'} onClick={() => logic.setActiveTab('boq')} text="المقايسات والجدول الزمني" />
+                  <TabButton active={logic.activeTab === 'expenses'} onClick={() => logic.setActiveTab('expenses')} text="المصروفات المباشرة" />
+                  <TabButton active={logic.activeTab === 'materials'} onClick={() => logic.setActiveTab('materials')} text="الخامات المسحوبة" />
+                  <TabButton active={logic.activeTab === 'financials'} onClick={() => logic.setActiveTab('financials')} text="المستخلصات والماليات" />
+                  <TabButton active={logic.activeTab === 'qc'} onClick={() => logic.setActiveTab('qc')} text="الجودة والصور" />
                 </div>
 
                 {/* 🚀 استدعاء المكونات (التابات) بناءً على النشط */}
@@ -310,8 +311,8 @@ export default function AdvancedProjectsPage() {
             {/* 🚀 نافذة التأكيد الزجاجية (Custom Delete Modal) */}
             {mounted && deleteAlert.isOpen && createPortal(
                 <div style={{ position: 'fixed', inset: 0, zIndex: 99999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(10px)', direction: 'rtl' }}>
-                    <div style={{ background: 'white', padding: '35px', borderRadius: '24px', maxWidth: '450px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #fee2e2', animation: 'fadeIn 0.2s ease-out' }}>
-                        <div style={{ fontSize: '55px', marginBottom: '15px', animation: 'pulse-red 2s infinite' }}>⚠️</div>
+                    <div style={{ background: 'white', padding: '35px', borderRadius: '14px', maxWidth: '450px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #fee2e2', animation: 'fadeIn 0.2s ease-out' }}>
+                        <div style={{ fontSize: '55px', marginBottom: '15px', animation: 'pulse-red 2s infinite' }}><TriangleAlert size={40} aria-hidden="true" /></div>
                         <h3 style={{ color: THEME.danger, fontWeight: 900, fontSize: '22px', marginBottom: '15px' }}>{deleteAlert.title}</h3>
                         <p style={{ color: '#475569', fontSize: '15px', fontWeight: 800, marginBottom: '30px', lineHeight: 1.6 }}>{deleteAlert.message}</p>
                         

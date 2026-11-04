@@ -36,7 +36,7 @@ export default function LoadingScreen({
         minHeight: '300px',
         width: '100%',
         padding: '50px',
-        borderRadius: '24px',
+        borderRadius: '14px',
         backgroundColor: 'rgba(255, 255, 255, 0.4)',
         backdropFilter: 'blur(10px)',
         direction: 'rtl'

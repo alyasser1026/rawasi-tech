@@ -54,7 +54,7 @@ export function useMaterialItemsLogic() {
       }
     },
     onSuccess: () => {
-      showToast("تم حفظ الصنف بنجاح 🧱", "success");
+      showToast("تم حفظ الصنف بنجاح", "success");
       setIsModalOpen(false);
       fetchData();
     },
@@ -68,7 +68,7 @@ export function useMaterialItemsLogic() {
       if (error) throw error;
     },
     onSuccess: () => {
-      showToast("تم حذف الصنف من الدليل 🗑️", "success");
+      showToast("تم حذف الصنف من الدليل", "success");
       fetchData();
     },
     onError: (err: any) => showToast(`فشل الحذف: ${err.message}`, "error")

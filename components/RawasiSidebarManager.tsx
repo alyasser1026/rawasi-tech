@@ -35,7 +35,7 @@ export default function RawasiSidebarManager({
     }
 
     useEffect(() => {
-        setSidebarContent({ summary, actions, customFilters, searchPlaceholder: placeholder });
+        setSidebarContent({ summary, actions, customFilters, searchPlaceholder: placeholder, enableSearch: Boolean(onSearch), enableDates: Boolean(onDateFilter) });
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [trigger.current, setSidebarContent, placeholder]);
 

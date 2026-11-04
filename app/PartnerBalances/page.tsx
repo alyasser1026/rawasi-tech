@@ -7,6 +7,8 @@ import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabase'; 
 import PrintStatement from './printstatement'; 
 import LoadingScreen from '@/components/LoadingScreen';
+import { ChartColumn, CircleCheck } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 export default function PartnerBalancesPage() {
     const [data, setData] = useState<any[]>([]);
@@ -180,7 +182,7 @@ export default function PartnerBalancesPage() {
             if (error) throw error;
             setData(prev => prev.map(p => p.partner_id === partnerId ? { ...p, is_active: !currentStatus } : p));
         } catch (err) {
-            alert("حدث خطأ أثناء تغيير حالة الحساب!");
+            notify("حدث خطأ أثناء تغيير حالة الحساب!");
             console.error(err);
         }
     };
@@ -269,7 +271,7 @@ export default function PartnerBalancesPage() {
                     <h4 style="color: #64748b; margin-top: 0;">${dateFrom || dateTo ? `(حركات الفترة من ${dateFrom || 'البداية'} إلى ${dateTo || 'النهاية'})` : '(أرصدة تراكمية حتى تاريخه)'}</h4>
                 </div>
                 
-                <!-- 📊 كروت السامري العلوية -->
+                <!-- كروت السامري العلوية -->
                 <table style="width: 80%; margin: 0 auto 30px auto; border-collapse: separate; border-spacing: 15px;">
                     <tr>
                         <td style="background-color: #ecfdf5; border-radius: 12px; padding: 20px; text-align: center;">
@@ -289,7 +291,7 @@ export default function PartnerBalancesPage() {
                     </tr>
                 </table>
 
-                <!-- 📋 الجدول الرئيسي الناعم -->
+                <!-- الجدول الرئيسي الناعم -->
                 <table border="1">
                     <thead>
                         <tr>
@@ -356,7 +358,7 @@ export default function PartnerBalancesPage() {
 
     return (
         <div className="clean-page print-container">
-            <MasterPage icon="⚖️" title="أرصدة الشركاء وكشف الحساب" subtitle="اضغط على أي حساب لعرض تفاصيل حركاته (Ledger)">
+            <MasterPage title="أرصدة الشركاء وكشف الحساب" subtitle="اضغط على أي حساب لعرض تفاصيل حركاته (Ledger)">
                 
                 <style>{`
                     .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.5); border-radius: 16px; padding: 20px; box-shadow: 0 4px 25px rgba(0,0,0,0.03); margin-bottom: 20px; }
@@ -390,22 +392,22 @@ export default function PartnerBalancesPage() {
                     .btn-print-row { padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 900; background: white; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; transition: 0.2s; }
                     .btn-print-row:hover { background: #f1f5f9; transform: translateY(-1px); border-color: #94a3b8; }
 
-                    .pill-btn { padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800; cursor: pointer; border: 1px solid #cbd5e1; transition: 0.2s; background: white; color: #475569; white-space: nowrap; }
+                    .pill-btn { padding: 6px 14px; border-radius: 14px; font-size: 12px; font-weight: 800; cursor: pointer; border: 1px solid #cbd5e1; transition: 0.2s; background: white; color: #475569; white-space: nowrap; }
                     .pill-btn.active { background: ${THEME.primary || '#3b82f6'}; color: white; border-color: ${THEME.primary || '#3b82f6'}; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
                     .pill-btn:hover:not(.active) { background: #f1f5f9; }
                 `}</style>
 
                 <div className="glass-panel" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
                     <div className="stat-card credit">
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#475569' }}>إجمالي دائن (لهم) في الفترة 📉</div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#475569' }}>إجمالي دائن (لهم) في الفترة</div>
                         <div style={{ fontSize: '24px', fontWeight: 900, color: '#059669' }}>{formatCurrency(stats.totalCredit)}</div>
                     </div>
                     <div className="stat-card debit">
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#475569' }}>إجمالي مدين (عليهم) في الفترة 📈</div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#475569' }}>إجمالي مدين (عليهم) في الفترة</div>
                         <div style={{ fontSize: '24px', fontWeight: 900, color: '#d97706' }}>{formatCurrency(stats.totalDebit)}</div>
                     </div>
                     <div className="stat-card net">
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#475569' }}>الرصيد الصافي لحركات الفترة ⚖️</div>
+                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#475569' }}>الرصيد الصافي لحركات الفترة</div>
                         <div style={{ fontSize: '24px', fontWeight: 900, color: getBalanceInfo(stats.net).text }}>
                             {formatCurrency(Math.abs(stats.net))} ({getBalanceInfo(stats.net).label})
                         </div>
@@ -416,7 +418,7 @@ export default function PartnerBalancesPage() {
                     <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                         <div style={{ flex: 2, minWidth: '250px' }}>
                             <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', marginBottom: '5px', display: 'block' }}>بحث عام</label>
-                            <input type="text" className="glass-input" placeholder="🔍 ابحث بالاسم أو الكود..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
+                            <input type="text" className="glass-input" placeholder="ابحث بالاسم أو الكود..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
                         </div>
                         
                         <div style={{ flex: 1, minWidth: '150px' }}>
@@ -430,16 +432,16 @@ export default function PartnerBalancesPage() {
 
                         <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', padding: '10px 15px', borderRadius: '10px', border: '1px solid #e2e8f0', cursor: 'pointer', height: '44px' }} onClick={() => setShowInactive(!showInactive)}>
                             <input type="checkbox" checked={showInactive} readOnly style={{ transform: 'scale(1.2)', marginLeft: '10px', cursor: 'pointer' }} />
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>عرض الموقوفين 🚫</span>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>عرض الموقوفين</span>
                         </div>
 
                         <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', padding: '10px 15px', borderRadius: '10px', border: '1px solid #e2e8f0', cursor: 'pointer', height: '44px' }} onClick={() => setActiveWorkersOnly(!activeWorkersOnly)}>
                             <input type="checkbox" checked={activeWorkersOnly} readOnly style={{ transform: 'scale(1.2)', marginLeft: '10px', cursor: 'pointer' }} />
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>عمال ومقاولين بحركات نشطة 👷‍♂️</span>
+                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>عمال ومقاولين بحركات نشطة</span>
                         </div>
 
                         <button onClick={exportToExcelWithColors} style={{ padding: '0 20px', height: '44px', background: '#10b981', color: 'white', borderRadius: '10px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span>📊</span> تحميل Excel
+                            <span><ChartColumn size={16} aria-hidden="true" /></span> تحميل Excel
                         </button>
                     </div>
 
@@ -450,7 +452,7 @@ export default function PartnerBalancesPage() {
                                 className={`pill-btn ${selectedTypes.length === 0 ? 'active' : ''}`}
                                 onClick={() => setSelectedTypes([])}
                             >
-                                الكل 🌍
+                                الكل
                             </button>
                             {uniqueTypes.map(t => {
                                 const isSelected = selectedTypes.includes(t);
@@ -463,7 +465,7 @@ export default function PartnerBalancesPage() {
                                             else setSelectedTypes(prev => [...prev, t]);
                                         }}
                                     >
-                                        {isSelected ? '✅ ' : ''}{t}
+                                        {isSelected ? <CircleCheck size={16} aria-hidden="true" /> : ''}{t}
                                     </button>
                                 );
                             })}
@@ -538,7 +540,7 @@ export default function PartnerBalancesPage() {
                                                                 window.open(`/PartnerBalances?print=true&id=${row.partner_id}`, '_blank');
                                                             }}
                                                         >
-                                                            🖨️ طباعة
+                                                            طباعة
                                                         </button>
 
                                                         <button 
@@ -546,7 +548,7 @@ export default function PartnerBalancesPage() {
                                                             title={isActive ? 'إيقاف الحساب' : 'تفعيل الحساب'}
                                                             onClick={(e) => handleToggleActive(row.partner_id, isActive, e)}
                                                         >
-                                                            {isActive ? '🚫 إيقاف' : '✅ تفعيل'}
+                                                            {isActive ? 'إيقاف' : 'تفعيل'}
                                                         </button>
                                                     </div>
                                                 </td>
@@ -557,7 +559,7 @@ export default function PartnerBalancesPage() {
                                                     <td colSpan={6} style={{ padding: 0 }}>
                                                         <div className="ledger-container">
                                                             <div style={{ marginBottom: '10px', fontWeight: 900, color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
-                                                                <span>📄 تفاصيل كشف الحساب {dateFrom || dateTo ? '(حسب الفترة المحددة)' : ''}</span>
+                                                                <span>تفاصيل كشف الحساب {dateFrom || dateTo ? '(حسب الفترة المحددة)' : ''}</span>
                                                                 <span style={{ color: '#94a3b8', fontSize: '12px' }}>{pLedger.length} حركة مسجلة</span>
                                                             </div>
                                                             
@@ -641,7 +643,7 @@ export default function PartnerBalancesPage() {
                         )}
                         {filteredData.length === 0 && (
                             <div style={{ textAlign: 'center', padding: '30px', color: '#94a3b8', fontWeight: 900, background: 'white', borderRadius: '12px', marginTop: '20px' }}>
-                                ❌ لا توجد حسابات أو حركات مطابقة للبحث في الفترة المحددة
+                                لا توجد حسابات أو حركات مطابقة للبحث في الفترة المحددة
                             </div>
                         )}
                     </>

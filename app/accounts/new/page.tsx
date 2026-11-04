@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 const THEME = {
   primary: '#0f172a',
@@ -47,10 +48,10 @@ export default function AddAccountPage() {
       
       if (error) throw error;
       
-      alert('✅ تم إضافة الحساب بنجاح!');
+      notify('تم إضافة الحساب بنجاح!');
       router.push('/accounts');
     } catch (err: any) {
-      alert('❌ خطأ: ' + err.message);
+      notify('خطأ: ' + err.message);
     } finally { setIsLoading(false); }
   };
 
@@ -66,7 +67,7 @@ export default function AddAccountPage() {
         .glass-card {
           width: 100%; max-width: 500px; background: rgba(15, 23, 42, 0.8);
           backdrop-filter: blur(20px); border: 1px solid ${THEME.accent}44;
-          border-radius: 24px; padding: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+          border-radius: 14px; padding: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
         .header { text-align: left; margin-bottom: 30px; }
         .header img { height: 60px; margin-bottom: 10px; }
@@ -139,7 +140,7 @@ export default function AddAccountPage() {
             <label className="floating-label forced-float">نوع الحساب</label>
           </div>
 
-          <button type="submit" className="btn-submit" disabled={isLoading}>{isLoading ? 'جاري الحفظ...' : 'حفظ الحساب 💾'}</button>
+          <button type="submit" className="btn-submit" disabled={isLoading}>{isLoading ? 'جاري الحفظ...' : 'حفظ الحساب'}</button>
         </form>
       </div>
     </div>

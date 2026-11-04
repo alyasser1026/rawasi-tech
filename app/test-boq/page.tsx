@@ -13,7 +13,7 @@ export default function TestBoq() {
   const runDiagnostic = async () => {
     setLoading(true);
     setLogs([]);
-    addLog('info', '🚀 بدء فحص الاتصال...');
+    addLog('info', 'بدء فحص الاتصال...');
 
     // 1. اختبار استعلام بسيط للتأكد من رؤية العمود boq_item_id
     const { error: columnCheckError } = await supabase
@@ -22,21 +22,21 @@ export default function TestBoq() {
       .limit(1);
 
     if (columnCheckError) {
-      addLog('error', `❌ فشل رؤية العمود: ${columnCheckError.message}`);
+      addLog('error', `فشل رؤية العمود: ${columnCheckError.message}`);
     } else {
-      addLog('success', '✅ ممتاز! الـ API يرى عمود boq_item_id بوضوح.');
+      addLog('success', 'ممتاز! الـ API يرى عمود boq_item_id بوضوح.');
     }
 
     // 2. اختبار الحفظ
-    addLog('info', '📝 تجربة حفظ بند جديد...');
+    addLog('info', 'تجربة حفظ بند جديد...');
     const { error: insertError } = await supabase
       .from('boq_budget')
       .insert([{ work_item: 'بند اختبار احترافي', item_type: 'رئيسي' }]);
 
     if (insertError) {
-      addLog('error', `❌ فشل الحفظ: ${insertError.message}`);
+      addLog('error', `فشل الحفظ: ${insertError.message}`);
     } else {
-      addLog('success', '✅ تم الحفظ بنجاح!');
+      addLog('success', 'تم الحفظ بنجاح!');
     }
 
     setLoading(false);
@@ -44,8 +44,8 @@ export default function TestBoq() {
 
   return (
     <div style={{ padding: '40px', maxWidth: '600px', margin: 'auto', fontFamily: 'sans-serif' }}>
-      <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
-        <h1 style={{ fontSize: '20px', color: '#1e293b', marginBottom: '20px' }}>🛠️ لوحة تشخيص جدول المقايسات</h1>
+      <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+        <h1 style={{ fontSize: '20px', color: '#1e293b', marginBottom: '20px' }}>لوحة تشخيص جدول المقايسات</h1>
         
         <button 
           onClick={runDiagnostic} 

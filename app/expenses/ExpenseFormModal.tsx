@@ -6,6 +6,8 @@ import SmartCombo from '@/components/SmartCombo';
 import { formatCurrency } from '@/lib/helpers';
 import { useToast } from '@/lib/toast-context'; 
 import { supabase } from '@/lib/supabase'; 
+import { Hourglass, Plus, Trash2 } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 // 🚀 مصفوفة التصنيفات
 const EXPENSE_CATEGORIES = [
@@ -97,7 +99,7 @@ export default function ExpenseFormModal({
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             if (videoRef.current) videoRef.current.srcObject = stream;
         } catch (err) { 
-            alert("خطأ في تشغيل الكاميرا"); 
+            notify("خطأ في تشغيل الكاميرا"); 
             setIsCameraOpen(false); 
         }
     };
@@ -150,8 +152,8 @@ export default function ExpenseFormModal({
 
     const handleAddStatement = (e: React.MouseEvent) => {
         e.preventDefault();
-        if (!record.description) return showToast("يرجى إدخال اسم الصنف أو البيان أولاً ⚠️", "warning");
-        if (currentQty <= 0 || currentPrice <= 0) return showToast("الكمية والسعر يجب أن يكونا أكبر من صفر ⚠️", "warning");
+        if (!record.description) return showToast("يرجى إدخال اسم الصنف أو البيان أولاً", "warning");
+        if (currentQty <= 0 || currentPrice <= 0) return showToast("الكمية والسعر يجب أن يكونا أكبر من صفر", "warning");
 
         const newLine = {
             description: record.description,
@@ -167,7 +169,7 @@ export default function ExpenseFormModal({
             lines_data: [...safeAddedLines, newLine],
             description: '', quantity: '', unit_price: '', vat_amount: '', discount_amount: ''
         });
-        showToast("تمت إضافة الصنف للجدول بنجاح ✅", "success");
+        showToast("تمت إضافة الصنف للجدول بنجاح", "success");
     };
 
     const handleRemoveLine = (indexToRemove: number) => {
@@ -177,12 +179,12 @@ export default function ExpenseFormModal({
 
     // 🛡️ معترض الحفظ النهائي
     const handleValidateAndSave = () => {
-        if (!record.exp_date) return showToast("تاريخ المصروف مطلوب ⚠️", "warning");
-        if (!record.main_category) return showToast("يرجى اختيار التصنيف الرئيسي للمصروف ⚠️", "warning"); 
-        if (!record.creditor_account) return showToast("حساب المصروف المدين مطلوب ⚠️", "warning");
+        if (!record.exp_date) return showToast("تاريخ المصروف مطلوب", "warning");
+        if (!record.main_category) return showToast("يرجى اختيار التصنيف الرئيسي للمصروف", "warning"); 
+        if (!record.creditor_account) return showToast("حساب المصروف المدين مطلوب", "warning");
         
         if (!record.payment_account) {
-            return showToast("يرجى تحديد الحساب الدائن ⚠️", "warning");
+            return showToast("يرجى تحديد الحساب الدائن", "warning");
         }
         
         let finalLinesToSave = safeAddedLines;
@@ -198,14 +200,14 @@ export default function ExpenseFormModal({
         }
 
         if (finalLinesToSave.length === 0) {
-            return showToast("يرجى إدخال صنف أو بيان واحد على الأقل للمصروف ⚠️", "error");
+            return showToast("يرجى إدخال صنف أو بيان واحد على الأقل للمصروف", "error");
         }
 
         const isSubContractorExpense = record.creditor_account === 'التزام مقاولي الباطن' || !!record.payee_id;
 
         // Require Job Order for ALL expenses to link with the budget properly
         if (!record.job_order_id && record.project_id) {
-            return showToast("يرجى تحديد أمر التشغيل لكي يُخصم المصروف من الميزانية بشكل صحيح ⚠️", "error");
+            return showToast("يرجى تحديد أمر التشغيل لكي يُخصم المصروف من الميزانية بشكل صحيح", "error");
         }
 
         onSave({
@@ -240,10 +242,10 @@ export default function ExpenseFormModal({
                 .item-row:hover { background: rgba(255, 255, 255, 0.8); }
             `}</style>
 
-            <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ width: '1000px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', backdropFilter: 'blur(30px)', borderRadius: '35px', padding: '40px', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl' }}>
+            <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ width: '1000px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl' }}>
                 
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'15px'}}>
-                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '26px' }}>📝 {record?.id ? 'تعديل المصروف' : 'إنشاء مصروف جديد'}</h2>
+                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '26px' }}>{record?.id ? 'تعديل المصروف' : 'إنشاء مصروف جديد'}</h2>
                     <div style={{ textAlign: 'left' }}>
                         <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
                         <div style={{ color: THEME.accent, fontWeight: 900, fontSize: '28px' }}>{formatCurrency(finalTotal)}</div>
@@ -252,12 +254,12 @@ export default function ExpenseFormModal({
 
                 <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '25px', marginBottom: '25px' }}>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>📅 تاريخ المصروف *</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ المصروف *</label>
                         <input type="date" className="glass-input-field" value={record?.exp_date || ''} onChange={e => setRecord({...record, exp_date: e.target.value})} />
                     </div>
                     <div style={{ gridColumn: 'span 2', zIndex: 90, position: 'relative' }}>
                         <SmartCombo 
-                            label="🏢 المشروع / العقار" 
+                            label="المشروع / العقار" 
                             icon="🏢" 
                             options={projects || []} 
                             table="projects" 
@@ -288,7 +290,7 @@ export default function ExpenseFormModal({
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '25px', marginBottom: '25px' }}>
                     <div style={{ zIndex: 80, position: 'relative' }}>
                         <SmartCombo 
-                            label="👷 المقاول " 
+                            label="المقاول " 
                             icon="👤" 
                             table="partners" 
                             displayCol="name" 
@@ -308,11 +310,11 @@ export default function ExpenseFormModal({
                         />
                     </div>
                     <div style={{ zIndex: 70, position: 'relative' }}>
-                        <SmartCombo label="👤 المستفيد المباشر" icon="👤" table="partners" displayCol="name" initialDisplay={record?.payee_name} onSelect={(val:any) => setRecord({...record, payee_name: typeof val === 'object' && val !== null ? val.name : val})} />
+                        <SmartCombo label="المستفيد المباشر" icon="👤" table="partners" displayCol="name" initialDisplay={record?.payee_name} onSelect={(val:any) => setRecord({...record, payee_name: typeof val === 'object' && val !== null ? val.name : val})} />
                     </div>
                     
                     <div style={{ zIndex: 65, position: 'relative' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>🔢 أمر التشغيل / الشغل *</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>أمر التشغيل / الشغل *</label>
                         <select 
                             className="glass-input-field"
                             value={record?.job_order_id || ''}
@@ -354,11 +356,11 @@ export default function ExpenseFormModal({
                         >
                             <option value="">
                                 {(!record?.project_id || !record?.payee_id) 
-                                    ? '⚠️ اختر العقار والمقاول أولاً' 
+                                    ? 'اختر العقار والمقاول أولاً' 
                                     : isLoadingJobOrders 
-                                        ? '⏳ جاري التحميل...' 
+                                        ? 'جاري التحميل...' 
                                         : jobOrders.length === 0 
-                                            ? '❌ لا توجد أوامر شغل' 
+                                            ? 'لا توجد أوامر شغل' 
                                             : '-- اختر أمر الشغل --'}
                             </option>
                             
@@ -376,14 +378,14 @@ export default function ExpenseFormModal({
                             })}
                         </select>
                         <div style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                            {isLoadingJobOrders ? <span style={{ fontSize: '12px', color: THEME.accent }}>⏳</span> : <span style={{ fontSize: '12px', color: THEME.primary }}>▼</span>}
+                            {isLoadingJobOrders ? <span style={{ fontSize: '12px', color: THEME.accent }}><Hourglass size={14} aria-hidden="true" /></span> : <span style={{ fontSize: '12px', color: THEME.primary }}>▼</span>}
                         </div>
                     </div>
                 </div>
 
                 <div style={{ marginBottom: '25px', zIndex: 60, position: 'relative' }}>
                     <SmartCombo 
-                        label="📁 التصنيف الرئيسي *" 
+                        label="التصنيف الرئيسي *" 
                         icon="📁" 
                         options={EXPENSE_CATEGORIES} 
                         initialDisplay={record?.main_category} 
@@ -392,10 +394,10 @@ export default function ExpenseFormModal({
                     />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '25px', background: isSettlement ? 'rgba(16, 185, 129, 0.05)' : '#f8fafc', padding: '25px', borderRadius: '20px', marginBottom: '25px', border: isSettlement ? '1px dashed #10b981' : '1px solid #e2e8f0', transition: 'all 0.3s' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '25px', background: isSettlement ? 'rgba(16, 185, 129, 0.05)' : '#f8fafc', padding: '25px', borderRadius: '14px', marginBottom: '25px', border: isSettlement ? '1px dashed #10b981' : '1px solid #e2e8f0', transition: 'all 0.3s' }}>
                     <div style={{ zIndex: 55, position: 'relative' }}>
                         <SmartCombo 
-                            label="💳 طريقة القيد *" 
+                            label="طريقة القيد *" 
                             icon="⚙️" 
                             options={PAYMENT_METHODS} 
                             initialDisplay={record?.payment_method || 'آجل'} 
@@ -405,7 +407,7 @@ export default function ExpenseFormModal({
                     </div>
                     <div style={{ zIndex: 50, position: 'relative' }}>
                         <SmartCombo 
-                            label="🧾 حساب المصروف (المدين) *" 
+                            label="حساب المصروف (المدين) *" 
                             icon="📂" 
                             table="accounts" 
                             displayCol="name" 
@@ -416,7 +418,7 @@ export default function ExpenseFormModal({
                     </div>
                     <div style={{ zIndex: 45, position: 'relative' }}>
                         <SmartCombo 
-                            label={isSettlement ? "📈 حساب الإيراد / التسوية (الدائن) *" : "🤝 الحساب الدائن *"} 
+                            label={isSettlement ? "حساب الإيراد / التسوية (الدائن) *" : "الحساب الدائن *"} 
                             icon={isSettlement ? "📈" : "🤝"} 
                             table="accounts" 
                             displayCol="name" 
@@ -427,8 +429,8 @@ export default function ExpenseFormModal({
                     </div>
                 </div>
                 
-                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '20px', marginBottom: '25px', border: `1px dashed ${THEME.accent}` }}>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: THEME.brand.coffee, marginBottom: '15px' }}>🛒 إضافة بنود المصروف</h3>
+                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '14px', marginBottom: '25px', border: `1px dashed ${THEME.accent}` }}>
+                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: THEME.brand.coffee, marginBottom: '15px' }}>إضافة بنود المصروف</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 0.5fr', gap: '15px', alignItems: 'end' }}>
                         <div style={{ zIndex: 40 }}>
                             <SmartCombo label="البيان / الصنف *" icon="🛠️" freeText={true} initialDisplay={record.description} onSelect={(val: any) => setRecord({...record, description: typeof val === 'object' && val !== null ? val.name : val})} options={historicalData?.descriptions || []} />
@@ -449,7 +451,7 @@ export default function ExpenseFormModal({
                             <label style={{ fontSize: '11px', fontWeight: 900, color: THEME.ruby }}>الخصم (-)</label>
                             <input type="number" value={record.discount_amount || ''} onChange={e => setRecord({...record, discount_amount: e.target.value})} className="glass-input-field" style={{ border: `1px solid ${THEME.ruby}50`, color: THEME.ruby, textAlign: 'center' }}/>
                         </div>
-                        <button onClick={handleAddStatement} style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', height: '45px', borderRadius: '12px', cursor: 'pointer', fontWeight: 900, fontSize: '18px', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }}>➕</button>
+                        <button onClick={handleAddStatement} style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', height: '45px', borderRadius: '12px', cursor: 'pointer', fontWeight: 900, fontSize: '18px', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }}><Plus size={15} aria-hidden="true" /></button>
                     </div>
 
                     {safeAddedLines.length > 0 && (
@@ -475,7 +477,7 @@ export default function ExpenseFormModal({
                                             <td style={{ padding: '12px', fontWeight: 700 }}>{formatCurrency(line.vat_amount)}</td>
                                             <td style={{ padding: '12px', fontWeight: 700, color: THEME.ruby }}>{formatCurrency(line.discount_amount)}</td>
                                             <td style={{ padding: '12px', fontWeight: 900, color: THEME.primary }}>{formatCurrency(line.total_price)}</td>
-                                            <td style={{ padding: '12px' }}><button onClick={() => handleRemoveLine(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby, cursor: 'pointer', fontSize: '16px' }}>🗑️</button></td>
+                                            <td style={{ padding: '12px' }}><button onClick={() => handleRemoveLine(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby, cursor: 'pointer', fontSize: '16px' }}><Trash2 size={14} aria-hidden="true" /></button></td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -485,14 +487,14 @@ export default function ExpenseFormModal({
                 </div>
 
                 <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-                    <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '18px', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', color: '#475569', transition: '0.2s' }}>📁 إرفاق مستند (صورة / PDF)</button>
-                    <button onClick={isCameraOpen ? takePhoto : startCamera} style={{ flex: 1, padding: '18px', background: '#1e293b', color: 'white', borderRadius: '16px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>{isCameraOpen ? '📸 التقاط الفاتورة' : '📷 مسح بالكاميرا'}</button>
+                    <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '18px', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', color: '#475569', transition: '0.2s' }}>إرفاق مستند (صورة / PDF)</button>
+                    <button onClick={isCameraOpen ? takePhoto : startCamera} style={{ flex: 1, padding: '18px', background: '#1e293b', color: 'white', borderRadius: '16px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>{isCameraOpen ? 'التقاط الفاتورة' : 'مسح بالكاميرا'}</button>
                 </div>
-                {isCameraOpen && <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '20px', marginBottom: '20px', border: `4px solid ${THEME.accent}` }} />}
+                {isCameraOpen && <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '14px', marginBottom: '20px', border: `4px solid ${THEME.accent}` }} />}
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 <input type="file" ref={fileInputRef} hidden accept="image/*,.pdf" onChange={(e) => { const file = e.target.files?.[0]; if(file) { const r = new FileReader(); r.onload = () => setImagePreview(r.result as string); r.readAsDataURL(file); } }} />
 
-                <div className="responsive-summary-grid" style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '24px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                <div className="responsive-summary-grid" style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>إجمالي الأعمال</div>
                         <div style={{ fontSize: '20px', fontWeight: 900 }}>{formatCurrency(finalSubtotal)}</div>
@@ -513,7 +515,7 @@ export default function ExpenseFormModal({
 
                 <div className="responsive-actions" style={{ display: 'flex', gap: '20px', marginTop: '35px' }}>
                     <button id="expense-save-button" onClick={handleValidateAndSave} disabled={isSaving} className="btn-glass-save" style={{ flex: 2 }}>
-                        {isSaving ? '⏳ جاري الحفظ...' : '✅ حفظ واعتماد المصروف'}
+                        {isSaving ? 'جاري الحفظ...' : 'حفظ واعتماد المصروف'}
                     </button>
                     <button onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>إغلاق وإلغاء</button>
                 </div>

@@ -15,6 +15,7 @@ import { useConfirm } from '@/components/ConfirmContext';
 // 🚀 استدعاء مودال الصرف المجمع الجديد
 import BulkDispenseModal from './BulkDispenseModal'; 
 import LoadingScreen from '@/components/LoadingScreen';
+import { notify } from '@/lib/notify';
 
 // =========================================================================
 // 🧩 مكون القائمة المنسدلة متعددة الاختيارات مع بحث (Custom Dropdown)
@@ -74,7 +75,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
                     <div style={{ padding: '8px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                         <input 
                             type="text" 
-                            placeholder="🔍 بحث سريع..." 
+                            placeholder="بحث سريع..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
@@ -256,13 +257,13 @@ export default function MaterialsPage() {
 
     return (
         <div className="clean-page print-container">
-            <MasterPage icon="🧱" title="مركز توريد خامات المشاريع" subtitle="إصدار فواتير الخامات، توجيهها للمشاريع، وربطها بحسابات الموردين والعملاء للخصم التلقائي">
+            <MasterPage title="مركز توريد خامات المشاريع" subtitle="إصدار فواتير الخامات، توجيهها للمشاريع، وربطها بحسابات الموردين والعملاء للخصم التلقائي">
                 
                 <RawasiSidebarManager 
                     actions={
                         <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             <button onClick={logic.openAddModal} className="btn-main-glass gold">
-                                🛒 إصدار فاتورة توريد جديدة
+                                إصدار فاتورة توريد جديدة
                             </button>
                             
                             {/* 🚀 زر الصرف المجمع الجديد */}
@@ -272,7 +273,7 @@ export default function MaterialsPage() {
                                     className="btn-main-glass" 
                                     style={{ background: '#0284c7', color: 'white', border: '2px solid #38bdf8' }}
                                 >
-                                    📦 صرف مجمع للمحدد ({logic.selectedLineItems.length})
+                                    صرف مجمع للمحدد ({logic.selectedLineItems.length})
                                 </button>
                             )}
                             
@@ -282,7 +283,7 @@ export default function MaterialsPage() {
                                     className="btn-main-glass" 
                                     style={{ background: '#3b82f6', color: 'white' }}
                                 >
-                                    ✏️ تعديل الفاتورة المحددة
+                                    تعديل الفاتورة المحددة
                                 </button>
                             )}
 
@@ -293,14 +294,14 @@ export default function MaterialsPage() {
                                         className="btn-main-glass" 
                                         style={{ background: THEME.success, color: 'white' }}
                                     >
-                                        🚀 ترحيل المحدد ({logic.selectedIds.length})
+                                        ترحيل المحدد ({logic.selectedIds.length})
                                     </button>
                                     <button 
                                         onClick={() => logic.handleBulkAction('unpost')} 
                                         className="btn-main-glass" 
                                         style={{ background: '#f59e0b', color: 'white' }}
                                     >
-                                        🔓 فك ترحيل المحدد ({logic.selectedIds.length})
+                                        فك ترحيل المحدد ({logic.selectedIds.length})
                                     </button>
                                     
                                     <button 
@@ -315,7 +316,7 @@ export default function MaterialsPage() {
                                         className="btn-main-glass" 
                                         style={{ background: '#ef4444', color: 'white' }}
                                     >
-                                        🗑️ مسح المحدد ({logic.selectedIds.length})
+                                        مسح المحدد ({logic.selectedIds.length})
                                     </button>
                                 </>
                             )}
@@ -323,10 +324,10 @@ export default function MaterialsPage() {
                             <hr style={{ borderColor: 'rgba(255,255,255,0.2)', margin: '10px 0' }} />
                             
                             <button onClick={exportToExcel} className="btn-main-glass" style={{ background: '#10b981', color: 'white' }}>
-                                📊 تصدير الخامات (Excel)
+                                تصدير الخامات (Excel)
                             </button>
                             <button onClick={handlePrintPDF} className="btn-main-glass" style={{ background: '#6366f1', color: 'white' }}>
-                                🖨️ طباعة التقرير (PDF)
+                                طباعة التقرير (PDF)
                             </button>
                         </div>
                     }
@@ -406,7 +407,7 @@ export default function MaterialsPage() {
                     .arrow-icon { display: inline-block; transition: transform 0.2s; margin-left: 8px; color: ${THEME.goldAccent || '#c2410c'}; font-size: 14px; }
                     .arrow-expanded { transform: rotate(90deg); }
 
-                    /* 🖨️ تنسيقات الطباعة */
+                    /* تنسيقات الطباعة */
                     @media print {
                         @page { size: A4 landscape; margin: 10mm; }
                         body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -427,7 +428,7 @@ export default function MaterialsPage() {
                         <label style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>بحث عام بالنص</label>
                         <input 
                             type="text" 
-                            placeholder="🔍 ابحث بالرقم أو البيان..." 
+                            placeholder="ابحث بالرقم أو البيان..." 
                             className="glass-input-field" 
                             style={{ height: '45px' }}
                             value={logic.globalSearch} 
@@ -436,7 +437,7 @@ export default function MaterialsPage() {
                     </div>
                     
                     <MultiSelectDropdown 
-                        title="🏢 فلتر المشاريع (الفلل)"
+                        title="فلتر المشاريع (الفلل)"
                         placeholder="كل المشاريع"
                         options={uniqueProjects}
                         selected={selectedProjects}
@@ -445,7 +446,7 @@ export default function MaterialsPage() {
                     />
 
                     <MultiSelectDropdown 
-                        title="👤 فلتر الموردين"
+                        title="فلتر الموردين"
                         placeholder="كل الموردين"
                         options={uniqueSuppliers}
                         selected={selectedSuppliers}
@@ -454,7 +455,7 @@ export default function MaterialsPage() {
                     />
 
                     <MultiSelectDropdown 
-                        title="📦 فلتر الخامات الموردة"
+                        title="فلتر الخامات الموردة"
                         placeholder="كل الخامات"
                         options={uniqueItems}
                         selected={selectedItems}
@@ -465,10 +466,10 @@ export default function MaterialsPage() {
                     <div>
                         <label style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>ترتيب العرض</label>
                         <select className="glass-input-field" style={{ height: '45px' }} value={logic.sortBy} onChange={e => logic.setSortBy(e.target.value)}>
-                            <option value="newest">⏳ الأحدث إضافة</option>
-                            <option value="oldest">⌛ الأقدم</option>
-                            <option value="highest_price">💰 السعر: الأعلى أولاً</option>
-                            <option value="lowest_price">🪙 السعر: الأقل أولاً</option>
+                            <option value="newest">الأحدث إضافة</option>
+                            <option value="oldest">الأقدم</option>
+                            <option value="highest_price">السعر: الأعلى أولاً</option>
+                            <option value="lowest_price">السعر: الأقل أولاً</option>
                         </select>
                     </div>
 
@@ -541,8 +542,8 @@ export default function MaterialsPage() {
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <div style={{ fontWeight: 800, color: THEME.coffeeDark, fontSize: '13px' }}>🏢 {group.project?.Property || '---'}</div>
-                                                    <div style={{ fontSize: '11px', color: THEME.ruby, marginTop: '2px', fontWeight: 700 }}>👤 {group.supplier?.name || '---'}</div>
+                                                    <div style={{ fontWeight: 800, color: THEME.coffeeDark, fontSize: '13px' }}>{group.project?.Property || '---'}</div>
+                                                    <div style={{ fontSize: '11px', color: THEME.ruby, marginTop: '2px', fontWeight: 700 }}>{group.supplier?.name || '---'}</div>
                                                 </td>
                                                 <td>
                                                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
@@ -550,7 +551,7 @@ export default function MaterialsPage() {
                                                             {group.account?.name || '---'}
                                                         </span>
                                                         <span style={{ background: group.is_posted ? '#dcfce7' : '#fef2f2', color: group.is_posted ? '#166534' : '#dc2626', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 900 }}>
-                                                            {group.is_posted ? 'معتمد ✅' : 'مسودة ⏳'}
+                                                            {group.is_posted ? 'معتمد' : 'مسودة'}
                                                         </span>
                                                     </div>
                                                 </td>
@@ -569,7 +570,7 @@ export default function MaterialsPage() {
                                                             }} 
                                                             style={{ padding: '6px 10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, color: THEME.primary, fontSize: '11px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
                                                         >
-                                                            🖨️ طباعة الفاتورة
+                                                            طباعة الفاتورة
                                                         </button>
                                                         
                                                         {!group.is_posted ? (
@@ -586,7 +587,7 @@ export default function MaterialsPage() {
                                                                     }} 
                                                                     style={{ padding: '6px 10px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, fontSize: '11px', boxShadow: '0 2px 4px rgba(59,130,246,0.2)' }}
                                                                 >
-                                                                    ✏️ تعديل
+                                                                    تعديل
                                                                 </button>
 
                                                                 <button 
@@ -602,7 +603,7 @@ export default function MaterialsPage() {
                                                                     disabled={logic.isActionPending} 
                                                                     style={{ padding: '6px 10px', background: THEME.success, color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, fontSize: '11px', boxShadow: '0 2px 4px rgba(16,185,129,0.2)' }}
                                                                 >
-                                                                    🚀 ترحيل
+                                                                    ترحيل
                                                                 </button>
                                                             </>
                                                         ) : (
@@ -619,7 +620,7 @@ export default function MaterialsPage() {
                                                                 disabled={logic.isActionPending} 
                                                                 style={{ padding: '6px 15px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, fontSize: '11px', boxShadow: '0 2px 4px rgba(245,158,11,0.2)' }}
                                                             >
-                                                                🔓 فك
+                                                                فك
                                                             </button>
                                                         )}
                                                     </div>
@@ -651,12 +652,12 @@ export default function MaterialsPage() {
                                                                                     type="checkbox" 
                                                                                     
                                                                                     checked={!!logic.selectedLineItems?.find((i:any)=>i.id===item.id)}
-                                                                                    onChange={(e) => { if (!group.is_posted) { e.preventDefault(); alert('عفواً، الفاتورة غير مرحلة. يجب ترحيل الفاتورة أولاً لتتمكن من الصرف منها.'); return; } if (item.available_qty <= 0) { e.preventDefault(); alert('عفواً، الكمية المتاحة صفر.'); return; } logic.handleToggleLineSelection(item); }}
+                                                                                    onChange={(e) => { if (!group.is_posted) { e.preventDefault(); notify('عفواً، الفاتورة غير مرحلة. يجب ترحيل الفاتورة أولاً لتتمكن من الصرف منها.'); return; } if (item.available_qty <= 0) { e.preventDefault(); notify('عفواً، الكمية المتاحة صفر.'); return; } logic.handleToggleLineSelection(item); }}
                                                                                     style={{ transform: 'scale(1.3)', cursor: (!group.is_posted || item.available_qty <= 0) ? 'not-allowed' : 'pointer', accentColor: '#0284c7' }}
                                                                                 />
                                                                             </td>
                                                                             <td style={{ textAlign: 'right', fontWeight: 800, color: THEME.primary }}>
-                                                                                📦 {item.work_item || item.item_name}
+                                                                                {item.work_item || item.item_name}
                                                                             </td>
                                                                             <td>
                                                                                 <span style={{ color: THEME.goldAccent, fontWeight: 700, fontSize: '11px' }}>
@@ -685,7 +686,7 @@ export default function MaterialsPage() {
                                                                                         fontSize: '10px', transition: '0.2s', whiteSpace: 'nowrap'
                                                                                     }}
                                                                                 >
-                                                                                    {item.available_qty > 0 ? 'صرف 📤' : 'رصيد نفذ 🚫'}
+                                                                                    {item.available_qty > 0 ? 'صرف' : 'رصيد نفذ'}
                                                                                 </button>
                                                                             </td>
                                                                         </tr>
@@ -701,7 +702,7 @@ export default function MaterialsPage() {
                                 })}
                                 {groupedData.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} style={{ padding: '30px', color: '#94a3b8', fontWeight: 900 }}>❌ لا توجد فواتير مطابقة للبحث</td>
+                                        <td colSpan={7} style={{ padding: '30px', color: '#94a3b8', fontWeight: 900 }}>لا توجد فواتير مطابقة للبحث</td>
                                     </tr>
                                 )}
                             </tbody>

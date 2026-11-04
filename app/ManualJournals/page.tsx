@@ -11,6 +11,8 @@ import { formatCurrency } from '@/lib/helpers';
 import MasterPage from '@/components/MasterPage';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
+import { Pencil } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 export default function ManualJournalsPage() {
     const logic = useManualJournalsLogic();
@@ -39,7 +41,7 @@ export default function ManualJournalsPage() {
     const openModal = (j: any = null) => {
         if (j) {
             if (j.is_posted || j.status === 'معتمد' || j.status === 'مرحل') {
-                alert('عذراً، لا يمكن تعديل قيد تم ترحيله.');
+                notify('عذراً، لا يمكن تعديل قيد تم ترحيله.');
                 return;
             }
             setFormData({
@@ -99,7 +101,7 @@ export default function ManualJournalsPage() {
             )
         },
         { 
-            header: 'من حساب (دائن 🔴)', 
+            header: 'من حساب (دائن)', 
             accessor: 'credit_account', 
             render: (row: any) => (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -108,7 +110,7 @@ export default function ManualJournalsPage() {
             )
         },
         { 
-            header: 'إلى حساب (مدين 🟢)', 
+            header: 'إلى حساب (مدين)', 
             accessor: 'debit_account', 
             render: (row: any) => (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -126,8 +128,8 @@ export default function ManualJournalsPage() {
             accessor: 'status',
             render: (row: any) => (
                 row.is_posted || row.status === 'معتمد' || row.status === 'مرحل' ? 
-                <span className="badge-glass green">مرحل ✅</span> : 
-                <span className="badge-glass yellow">مسودة ⏳</span>
+                <span className="badge-glass green">مرحل</span> : 
+                <span className="badge-glass yellow">مسودة</span>
             )
         },
         {
@@ -136,7 +138,7 @@ export default function ManualJournalsPage() {
             render: (row: any) => (
                 <SecureAction module="manual_journals" action="edit">
                     <button className="btn-main-glass icon-only blue" onClick={() => openModal(row)} disabled={row.is_posted || row.status === 'مرحل'}>
-                        ✏️
+                        <Pencil size={16} aria-hidden="true" />
                     </button>
                 </SecureAction>
             )
@@ -147,7 +149,7 @@ export default function ManualJournalsPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <SecureAction module="manual_journals" action="add">
                 <button className="btn-main-glass green" onClick={() => openModal()} style={{ height: '50px', fontSize: '15px' }}>
-                    ➕ إضافة تسوية جديدة
+                    إضافة تسوية جديدة
                 </button>
             </SecureAction>
 
@@ -155,13 +157,13 @@ export default function ManualJournalsPage() {
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
                     <p style={{fontSize:'12px', textAlign:'center', color:'#94a3b8', fontWeight:900, margin:0}}>تم تحديد ({logic.state.selectedIds.length}) سند</p>
                     <SecureAction module="manual_journals" action="post">
-                        <button className="btn-main-glass blue" onClick={logic.actions.handlePostSelected}>🚀 ترحيل القيود المحددة</button>
+                        <button className="btn-main-glass blue" onClick={logic.actions.handlePostSelected}>ترحيل القيود المحددة</button>
                     </SecureAction>
                     <SecureAction module="manual_journals" action="unpost">
-                        <button className="btn-main-glass yellow" onClick={logic.actions.handleUnpostSelected}>⏪ فك ترحيل المحددة</button>
+                        <button className="btn-main-glass yellow" onClick={logic.actions.handleUnpostSelected}>فك ترحيل المحددة</button>
                     </SecureAction>
                     <SecureAction module="manual_journals" action="delete">
-                        <button className="btn-main-glass red" onClick={logic.actions.handleDeleteSelected}>🗑️ حذف القيود المحددة</button>
+                        <button className="btn-main-glass red" onClick={logic.actions.handleDeleteSelected}>حذف القيود المحددة</button>
                     </SecureAction>
                 </div>
             )}
@@ -172,12 +174,12 @@ export default function ManualJournalsPage() {
 
     return (
         <div className="clean-page">
-            <MasterPage icon="📝" title="القيود اليدوية (التسويات) 📝" subtitle="ترحيل مبالغ من حساب إلى حساب بشكل يدوي مباشر ومحاسبي.">
+            <MasterPage title="القيود اليدوية (التسويات)" subtitle="ترحيل مبالغ من حساب إلى حساب بشكل يدوي مباشر ومحاسبي.">
                 
                 <RawasiSidebarManager 
                     summary={
                         <div className="summary-glass-card">
-                            <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي مبالغ التسويات 📊</span>
+                            <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي مبالغ التسويات</span>
                             <div style={{fontSize:'22px', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>
                                 {formatCurrency(logic.state.totals.amount)}
                             </div>
@@ -198,28 +200,28 @@ export default function ManualJournalsPage() {
 
             {mounted && isModalOpen && createPortal(
                 <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(39,39,42, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', overflowY: 'auto' }} onClick={() => setIsModalOpen(false)}>
-                    <div className="cinematic-scroll" onClick={e => e.stopPropagation()} style={{ background: '#ffffff', padding: '30px', borderRadius: '24px', width: '100%', maxWidth: '900px', direction: 'rtl', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', margin: 'auto' }}>
+                    <div className="cinematic-scroll" onClick={e => e.stopPropagation()} style={{ background: '#ffffff', padding: '30px', borderRadius: '14px', width: '100%', maxWidth: '900px', direction: 'rtl', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', margin: 'auto' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '2px dashed #e2e8f0', paddingBottom: '15px' }}>
-                            <h2 style={{ fontWeight: 900, fontSize: '22px', color: '#1e293b', margin: 0 }}>{editingVoucher ? 'تعديل سند التسوية ✏️' : 'سند تسوية جديد ➕'}</h2>
+                            <h2 style={{ fontWeight: 900, fontSize: '22px', color: '#1e293b', margin: 0 }}>{editingVoucher ? 'تعديل سند التسوية' : 'سند تسوية جديد'}</h2>
                             <button onClick={() => setIsModalOpen(false)} style={{ background: '#f1f5f9', border: 'none', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', color: '#64748b' }}>×</button>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             <div className="glass-input-group">
-                                <label>التاريخ 📅</label>
+                                <label>التاريخ</label>
                                 <input type="date" className="glass-input" value={formData.entry_date} onChange={e => setFormData({...formData, entry_date: e.target.value})} />
                             </div>
                             <div className="glass-input-group">
-                                <label>المبلغ 💰</label>
+                                <label>المبلغ</label>
                                 <input type="number" className="glass-input" placeholder="0.00" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
                             </div>
                             <div className="glass-input-group">
-                                <label>البيان / تفاصيل التسوية 📝</label>
+                                <label>البيان / تفاصيل التسوية</label>
                                 <textarea className="glass-input" rows={2} placeholder="سبب التسوية..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                             </div>
                             
                             <div style={{ display: 'flex', gap: '15px' }}>
                                 <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>من حساب (الطرف الدائن 🔴)</label>
+                                    <label>من حساب (الطرف الدائن)</label>
                                     <SmartCombo 
                                         options={logic.state.accounts || []}
                                         displayCol="name"
@@ -229,7 +231,7 @@ export default function ManualJournalsPage() {
                                     />
                                 </div>
                                 <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>إلى حساب (الطرف المدين 🟢)</label>
+                                    <label>إلى حساب (الطرف المدين)</label>
                                     <SmartCombo 
                                         options={logic.state.accounts || []}
                                         displayCol="name"
@@ -242,7 +244,7 @@ export default function ManualJournalsPage() {
 
                             <div style={{ display: 'flex', gap: '15px' }}>
                                 <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>الشريك (اختياري) 👥</label>
+                                    <label>الشريك (اختياري)</label>
                                     <SmartCombo 
                                         options={logic.state.partners || []}
                                         displayCol="name"
@@ -252,7 +254,7 @@ export default function ManualJournalsPage() {
                                     />
                                 </div>
                                 <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>الموقع / المشروع (اختياري) 📍</label>
+                                    <label>الموقع / المشروع (اختياري)</label>
                                     <SmartCombo 
                                         options={logic.state.projects || []}
                                         displayCol="Property"
@@ -262,7 +264,7 @@ export default function ManualJournalsPage() {
                                     />
                                 </div>
                                 <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>أمر الشغل (اختياري) 📝</label>
+                                    <label>أمر الشغل (اختياري)</label>
                                     <SmartCombo 
                                         table="job_orders"
                                         displayCol="order_number"
@@ -280,9 +282,9 @@ export default function ManualJournalsPage() {
                         </div>
                         <div style={{ display: 'flex', gap: '15px', marginTop: '30px', borderTop: '2px dashed #e2e8f0', paddingTop: '20px' }}>
                             <button className="btn-main-glass green" onClick={handleSave} disabled={logic.state.isProcessing} style={{ flex: 2, padding: '15px', fontSize: '16px' }}>
-                                {editingVoucher ? 'تحديث التسوية 💾' : 'حفظ التسوية 💾'}
+                                {editingVoucher ? 'تحديث التسوية' : 'حفظ التسوية'}
                             </button>
-                            <button className="btn-main-glass red" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '15px', fontSize: '16px' }}>إلغاء ❌</button>
+                            <button className="btn-main-glass red" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '15px', fontSize: '16px' }}>إلغاء</button>
                         </div>
                     </div>
                 </div>

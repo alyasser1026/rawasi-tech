@@ -48,7 +48,7 @@ export default function DashboardPage() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '20px' }}>
               <h3 className="section-title"><Landmark size={18}/> المركز المالي</h3>
-              <span style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', background: '#f1f5f9', padding: '6px 15px', borderRadius: '20px' }}>من السجلات الحالية</span>
+              <span style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', background: '#f1f5f9', padding: '6px 15px', borderRadius: '14px' }}>من السجلات الحالية</span>
             </div>
             <div className="premium-grid-3">
               <div className="premium-card financial-stat assets">
@@ -318,13 +318,13 @@ export default function DashboardPage() {
         .phi-dashboard .health-rings-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px; }
 
         /* Premium Cards */
-        .phi-dashboard .premium-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 1); border-radius: 28px; padding: 30px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .phi-dashboard .premium-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 1); border-radius: 14px; padding: 30px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.05); transition: transform 0.3s ease, box-shadow 0.3s ease; }
         .phi-dashboard .premium-card:hover { transform: translateY(-5px); box-shadow: 0 30px 60px -15px rgba(0,0,0,0.08); }
 
         /* Card Internals */
         .phi-dashboard .card-header-flex { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         .phi-dashboard .icon-wrapper { width: 50px; height: 50px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 22px; }
-        .phi-dashboard .trend-badge { font-size: 11px; font-weight: 900; padding: 6px 12px; border-radius: 20px; }
+        .phi-dashboard .trend-badge { font-size: 11px; font-weight: 900; padding: 6px 12px; border-radius: 14px; }
         .phi-dashboard .trend-badge.positive { background: #f0fdf4; color: #16a34a; }
         .phi-dashboard .trend-badge.negative { background: #fef2f2; color: #dc2626; }
         .phi-dashboard .trend-badge.neutral { background: #f8fafc; color: #475569; }
@@ -337,7 +337,7 @@ export default function DashboardPage() {
         .phi-dashboard .gradient-text-gold { background: linear-gradient(to left, #c2410c, #c2410c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         /* Mini Stat Cards */
-        .phi-dashboard .mini-stat-card { background: white; border-radius: 20px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9; box-shadow: 0 10px 20px -10px rgba(0,0,0,0.03); transition: 0.3s; }
+        .phi-dashboard .mini-stat-card { background: white; border-radius: 14px; padding: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9; box-shadow: 0 10px 20px -10px rgba(0,0,0,0.03); transition: 0.3s; }
         .phi-dashboard .mini-stat-card:hover { border-color: ${THEME.goldAccent}; transform: translateY(-3px); }
         .phi-dashboard .mini-stat-card p { margin: 0; font-size: 12px; color: #64748b; font-weight: 800; }
         .phi-dashboard .mini-stat-card h3 { margin: 5px 0 0 0; font-size: 18px; font-weight: 900; color: ${THEME.coffeeDark}; display: flex; align-items: baseline; gap: 5px;}
@@ -349,7 +349,7 @@ export default function DashboardPage() {
         .phi-dashboard .currency { font-size: 11px; color: #94a3b8; font-weight: 700; }
 
         /* Health Rings */
-        .phi-dashboard .health-ring-card { background: white; padding: 15px; border-radius: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: 0.3s; }
+        .phi-dashboard .health-ring-card { background: white; padding: 15px; border-radius: 14px; display: flex; align-items: center; gap: 15px; border: 1px solid #f1f5f9; box-shadow: 0 4px 10px rgba(0,0,0,0.02); transition: 0.3s; }
         .phi-dashboard .health-ring-card.warning-glow { border-color: #fde68a; background: #fffbeb; }
         .phi-dashboard .health-ring-card:hover { transform: scale(1.02); }
         .phi-dashboard .ring-center-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 13px; font-weight: 900; color: ${THEME.coffeeDark}; }
@@ -357,16 +357,16 @@ export default function DashboardPage() {
         .phi-dashboard .ring-info p { margin: 0; font-size: 11px; font-weight: 800; color: #94a3b8; }
 
         /* Alerts Inbox */
-        .phi-dashboard .alerts-container { background: #fef2f2 !important; border-radius: 28px; padding: 30px; }
+        .phi-dashboard .alerts-container { background: #fef2f2 !important; border-radius: 14px; padding: 30px; }
         .phi-dashboard .alerts-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .phi-dashboard .alerts-badge { font-size: 13px; background: #ef4444; color: white; padding: 6px 16px; border-radius: 20px; font-weight: 900; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
+        .phi-dashboard .alerts-badge { font-size: 13px; background: #ef4444; color: white; padding: 6px 16px; border-radius: 14px; font-weight: 900; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3); }
         .phi-dashboard .alerts-list { display: flex; flex-direction: column; gap: 12px; }
         .phi-dashboard .alert-row { display: flex; justify-content: space-between; align-items: center; padding: 16px 25px; background: white; border-radius: 16px; border: 1px solid #fecaca; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
         .phi-dashboard .alert-row:hover { transform: translateX(-5px); border-color: #ef4444; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.1); }
         .phi-dashboard .alert-content { display: flex; align-items: center; gap: 15px; font-size: 14px; font-weight: 900; color: #1e293b; }
         .phi-dashboard .action-btn { background: white; border: 2px solid #e2e8f0; padding: 10px 20px; border-radius: 12px; font-size: 12px; font-weight: 900; color: #475569; cursor: pointer; transition: 0.2s; }
         .phi-dashboard .action-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
-        .phi-dashboard .empty-alerts { padding: 30px; text-align: center; background: #f0fdf4; border-radius: 20px; color: #166534; font-weight: 900; border: 2px dashed #bbf7d0; font-size: 16px; }
+        .phi-dashboard .empty-alerts { padding: 30px; text-align: center; background: #f0fdf4; border-radius: 14px; color: #166534; font-weight: 900; border: 2px dashed #bbf7d0; font-size: 16px; }
 
         /* Pulse Animation */
         .phi-dashboard .pulse-dot { width: 12px; height: 12px; border-radius: 50%; }
@@ -386,7 +386,7 @@ export default function DashboardPage() {
         .phi-dashboard .premium-grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 20px; }
         .phi-dashboard .premium-grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 390px), 1fr)); gap: 20px; }
         .phi-dashboard .premium-grid-4, .phi-dashboard .health-rings-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
-        .phi-dashboard .premium-card { min-width: 0; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 22px; box-shadow: 0 5px 22px #27272a08; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 26px; }
+        .phi-dashboard .premium-card { min-width: 0; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 14px; box-shadow: 0 5px 22px #27272a08; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 26px; }
         .phi-dashboard .premium-card:hover { transform: translateY(-2px); box-shadow: 0 9px 28px #27272a0d; }
         .phi-dashboard .financial-stat { position: relative; overflow: hidden; border-top: 3px solid var(--stat-accent); background: radial-gradient(ellipse at 0% 0%, var(--stat-tint), transparent 70%), #ffffff; }
         .phi-dashboard .financial-stat.assets { --stat-accent: #059669; --stat-tint: #ecfdf5; }
@@ -416,7 +416,7 @@ export default function DashboardPage() {
         .phi-dashboard .health-ring-card.warning-glow { border-color: #fcd34d; background: #fffbeb; }
         .phi-dashboard .ring-info p, .phi-dashboard .currency { color: #71717a; }
         .phi-dashboard .section-title { color: #27272a; font-size: 19px; }
-        .phi-dashboard .alerts-container { border-radius: 22px; }
+        .phi-dashboard .alerts-container { border-radius: 14px; }
         .phi-dashboard .alerts-header { flex-wrap: wrap; gap: 12px; }
         .phi-dashboard .alert-row { gap: 12px; flex-wrap: wrap; }
         .phi-dashboard .action-btn { min-height: 44px; }

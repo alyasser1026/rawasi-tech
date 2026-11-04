@@ -8,6 +8,7 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import SmartCombo from '@/components/SmartCombo'; 
 import BOQModal from './BOQModal';
 import LoadingScreen from '@/components/LoadingScreen';
+import { Pencil } from 'lucide-react';
 
 const CellWrapper = ({ row, children, justify = 'center' }: { row: any, children: React.ReactNode, justify?: string }) => (
     <div style={{ 
@@ -133,7 +134,7 @@ export default function BOQBudgetPage() {
   const sidebarActions = useMemo(() => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         <button className="btn-main-glass gold" onClick={logic.handleAddNew}>
-          ➕ إضافة بند جديد
+          إضافة بند جديد
         </button>
 
       {logic.selectedIds.length > 0 && (
@@ -142,11 +143,11 @@ export default function BOQBudgetPage() {
           
           {logic.selectedIds.length === 1 && (
               <button className="btn-main-glass white" onClick={() => logic.handleEdit(logic.allFiltered.find((i:any) => String(i.id) === logic.selectedIds[0]))}>
-                📝 تعديل البيانات
+                تعديل البيانات
               </button>
           )}
           <button className="btn-main-glass red" onClick={logic.handleDeleteSelected} disabled={logic.isSaving}>
-            🗑️ حذف البنود
+            حذف البنود
           </button>
         </div>
       )}
@@ -159,7 +160,7 @@ export default function BOQBudgetPage() {
       <RawasiSidebarManager 
         summary={
           <div className="summary-glass-card">
-            <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المشاريع / الفلل 🏢</span>
+            <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المشاريع / الفلل</span>
             <div className="val" style={{fontSize:'24px', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>{groupedProjects.length}</div>
             <div style={{fontSize:'10px', color:'#94a3b8', marginTop:'5px'}}>تضم {logic.allFiltered.length} بند أعمال</div>
           </div>
@@ -339,7 +340,7 @@ export default function BOQBudgetPage() {
                                     <td className="sticky-col-1" style={{textAlign:'center'}}>{isExpanded ? '▼' : '▶'}</td>
                                     
                                     <td className="sticky-col-2" style={{fontWeight:900, color:THEME.primary, fontSize:'14px', display: 'flex', alignItems: 'center'}}>
-                                        🏢 {group.projectName}
+                                        {group.projectName}
                                         {group.projectType && <span className="type-badge">{group.projectType}</span>}
                                     </td>
                                     
@@ -392,7 +393,7 @@ export default function BOQBudgetPage() {
                                             <td className="sticky-col-3">
                                                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
                                                     <span style={{fontWeight:800, color:'#334155'}}>{item.work_item}</span>
-                                                    <button onClick={(e) => { e.stopPropagation(); logic.handleEdit(item); }} className="row-edit-btn" title="تعديل">📝</button>
+                                                    <button onClick={(e) => { e.stopPropagation(); logic.handleEdit(item); }} className="row-edit-btn" title="تعديل"><Pencil size={16} aria-hidden="true" /></button>
                                                 </div>
                                             </td>
 
@@ -419,10 +420,10 @@ export default function BOQBudgetPage() {
                                                             '#475569'
                                                     }}
                                                 >
-                                                    <option value="لم يتم البدئ">لم يتم البدئ ⏸️</option>
-                                                    <option value="تحت التنفيذ">تحت التنفيذ 🏗️</option>
-                                                    <option value="قيد التسليم">قيد التسليم ⏳</option>
-                                                    <option value="انتهى">انتهى ✅</option>
+                                                    <option value="لم يتم البدئ">لم يتم البدئ</option>
+                                                    <option value="تحت التنفيذ">تحت التنفيذ</option>
+                                                    <option value="قيد التسليم">قيد التسليم</option>
+                                                    <option value="انتهى">انتهى</option>
                                                 </select>
                                             </td>
                                             

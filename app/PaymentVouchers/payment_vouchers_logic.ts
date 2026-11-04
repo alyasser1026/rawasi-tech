@@ -150,7 +150,7 @@ export function usePaymentVouchersLogic() {
             }
             // 🎯 تم إلغاء شروط التحقق من الحسابات (المدين والدائن) لتكون اختيارية
             if (!voucherData.amount || Number(voucherData.amount) <= 0) {
-                throw new Error("⚠️ تنبيه: يرجى إدخال المبلغ المراد صرفه.");
+                throw new Error("تنبيه: يرجى إدخال المبلغ المراد صرفه.");
             }
 
             let payload = { ...voucherData };
@@ -199,7 +199,7 @@ export function usePaymentVouchersLogic() {
             }
         },
         onSuccess: () => {
-            showToast('تم حفظ السند وهو الآن (معلق) ⏳', 'success');
+            showToast('تم حفظ السند وهو الآن (معلق)', 'success');
             setIsEditModalOpen(false);
             queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
             queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] }); 
@@ -216,7 +216,7 @@ export function usePaymentVouchersLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast('تم الحذف بنجاح 🗑️', 'success');
+            showToast('تم الحذف بنجاح', 'success');
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
             queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
@@ -235,7 +235,7 @@ export function usePaymentVouchersLogic() {
         if (bulkFixAccounts.credit_account_id) cacheUpdateFields.credit_account = { name: bulkFixAccounts.credit_account_name };
         if (bulkFixAccounts.debit_account_id) cacheUpdateFields.debit_account = { name: bulkFixAccounts.debit_account_name };
 
-        showToast(`⏳ جاري تصحيح وتوجيه ${selectedIds.length} سند...`, 'warning');
+        showToast(`جاري تصحيح وتوجيه ${selectedIds.length} سند...`, 'warning');
         
         const previousData = queryClient.getQueryData(['payment_vouchers']);
         updateRowsInCache(selectedIds, cacheUpdateFields);
@@ -250,7 +250,7 @@ export function usePaymentVouchersLogic() {
             setIsBulkFixModalOpen(false); 
             setBulkFixAccounts({ credit_account_name: '', credit_account_id: null, debit_account_name: '', debit_account_id: null });
             setSelectedIds([]); 
-            showToast(`✅ تم تصحيح الحسابات بنجاح!`, 'success');
+            showToast(`تم تصحيح الحسابات بنجاح!`, 'success');
         } catch (error: any) {
             queryClient.setQueryData(['payment_vouchers'], previousData); 
             showToast("خطأ أثناء التحديث: " + error.message, 'error');

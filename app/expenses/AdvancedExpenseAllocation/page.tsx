@@ -5,6 +5,7 @@ import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
+import { RefreshCw } from 'lucide-react';
 
 export default function AdvancedExpenseAllocation() {
   const [allocations, setAllocations] = useState<any[]>([]);
@@ -149,7 +150,7 @@ export default function AdvancedExpenseAllocation() {
       header: 'الشهر المالي',
       render: (row: any) => (
         <span style={{ fontWeight: 800, color: THEME.coffeeDark, backgroundColor: '#f5ebe0', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}>
-          🗓️ {row["شهر التحميل المالي"]}
+          {row["شهر التحميل المالي"]}
         </span>
       )
     },
@@ -157,7 +158,7 @@ export default function AdvancedExpenseAllocation() {
       header: 'الفيلا المحمل عليها',
       render: (row: any) => (
         <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '14px' }}>
-          🏡 {row["اسم الفيلا المحمل عليها"]}
+          {row["اسم الفيلا المحمل عليها"]}
         </span>
       )
     },
@@ -191,7 +192,7 @@ export default function AdvancedExpenseAllocation() {
 
         return (
           <span style={{ fontWeight: 800, color: color, backgroundColor: bg, padding: '6px 12px', borderRadius: '8px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-            ⚙️ {mech}
+            {mech}
           </span>
         );
       }
@@ -213,29 +214,29 @@ export default function AdvancedExpenseAllocation() {
       {/* 🔝 العنوان الرئيسي */}
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', flexWrap: 'wrap', gap: '15px' }}>
         <div>
-          <h2 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '22px' }}>🏢 لوحة تحكم توزيع وتحميل المصروفات غير المباشرة</h2>
+          <h2 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '22px' }}>لوحة تحكم توزيع وتحميل المصروفات غير المباشرة</h2>
           <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '13px', fontWeight: 700 }}>متابعة ذكية لتفكيك مصاريف الإدارة والتشغيل وتحميلها على الفلل بناءً على مسببات التكلفة وعمالة الموقع بالقرش.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button onClick={exportToCSV} className="btn-action-premium" style={{ backgroundColor: '#16a34a', color: 'white', padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(22,163,74,0.15)' }}>
-            📥 تصدير لـ Excel
+            تصدير لـ Excel
           </button>
           <button onClick={() => window.print()} className="btn-action-premium" style={{ backgroundColor: THEME.primary, color: 'white', padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.08)' }}>
-            🖨️ طباعة التقرير
+            طباعة التقرير
           </button>
         </div>
       </div>
 
       {/* 📊 كروت الإحصائيات الذكية */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '24px', borderBottom: `5px solid #ea580c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>💰 إجمالي التكاليف المحملة (حسب الفلترة)</span>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #ea580c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>إجمالي التكاليف المحملة (حسب الفلترة)</span>
           <strong style={{ fontSize: '24px', color: '#ea580c', fontWeight: 900 }}>{formatCurrency(stats.totalAllocated)}</strong>
           <div style={{ height: '4px', backgroundColor: '#fed7aa', borderRadius: '2px', marginTop: '15px' }} />
         </div>
 
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '24px', borderBottom: `5px solid #16a34a`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>🥩 تحميل يومي (عمالة وموقع)</span>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #16a34a`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>تحميل يومي (عمالة وموقع)</span>
           <strong style={{ fontSize: '20px', color: '#16a34a', fontWeight: 900 }}>{formatCurrency(stats.dailyLaborTotal)}</strong>
           <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.dailyLaborPct}%</div>
           <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
@@ -243,8 +244,8 @@ export default function AdvancedExpenseAllocation() {
           </div>
         </div>
 
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '24px', borderBottom: `5px solid #c2410c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>🛠️ تحميل شهري (بالتساوي)</span>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #c2410c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>تحميل شهري (بالتساوي)</span>
           <strong style={{ fontSize: '20px', color: '#c2410c', fontWeight: 900 }}>{formatCurrency(stats.monthlyEqualTotal)}</strong>
           <div style={{ fontSize: '11px', color: '#c2410c', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.monthlyEqualPct}%</div>
           <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
@@ -252,8 +253,8 @@ export default function AdvancedExpenseAllocation() {
           </div>
         </div>
 
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '24px', borderBottom: `5px solid #0284C7`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>🏢 إطفاء سنوي (إدارة ورواتب المكتب)</span>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #0284C7`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>إطفاء سنوي (إدارة ورواتب المكتب)</span>
           <strong style={{ fontSize: '20px', color: '#0284C7', fontWeight: 900 }}>{formatCurrency(stats.annualOfficeTotal)}</strong>
           <div style={{ fontSize: '11px', color: '#0284C7', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.annualOfficePct}%</div>
           <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
@@ -261,17 +262,17 @@ export default function AdvancedExpenseAllocation() {
           </div>
         </div>
 
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '24px', borderBottom: `5px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>🏘️ عدد الفلل المستفيدة</span>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>عدد الفلل المستفيدة</span>
           <strong style={{ fontSize: '24px', color: THEME.coffeeDark, fontWeight: 900 }}>{stats.villasCount} فيلا</strong>
           <div style={{ height: '4px', backgroundColor: '#ebd9c8', borderRadius: '2px', marginTop: '15px' }} />
         </div>
       </div>
 
       {/* 🔍 وحدة الفلاتر المتقدمة (تعمل Server-Side) */}
-      <div className="glass-card no-print" style={{ padding: '22px', marginBottom: '30px', display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#fff', borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
+      <div className="glass-card no-print" style={{ padding: '22px', marginBottom: '30px', display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#fff', borderRadius: '14px', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
         <div style={{ flex: '2', minWidth: '250px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>🔍 بحث نصي في الوصف</label>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>بحث نصي في الوصف</label>
           <input 
             type="text" 
             placeholder="ابحث في أسطر الجدول الحالي..." 
@@ -282,21 +283,21 @@ export default function AdvancedExpenseAllocation() {
         </div>
 
         <div style={{ flex: '1', minWidth: '140px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>📅 الشهر المالي</label>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>الشهر المالي</label>
           <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: '13px' }}>
             {monthsOptions.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
 
         <div style={{ flex: '1', minWidth: '160px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>🏡 الفيلا المستهدفة</label>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>الفيلا المستهدفة</label>
           <select value={filterVilla} onChange={(e) => setFilterVilla(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: '13px' }}>
             {villasOptions.map(v => <option key={v} value={v}>{v}</option>)}
           </select>
         </div>
 
         <div style={{ flex: '1', minWidth: '160px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>📂 تصنيف المصروف</label>
+          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>تصنيف المصروف</label>
           <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: '13px' }}>
             {categoriesOptions.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
@@ -304,23 +305,23 @@ export default function AdvancedExpenseAllocation() {
 
         <div style={{ alignSelf: 'flex-end' }}>
           <button onClick={() => { setSearchQuery(''); setFilterMonth('الكل'); setFilterVilla('الكل'); setFilterCategory('الكل'); }} style={{ padding: '12px 22px', borderRadius: '12px', border: 'none', backgroundColor: '#f1f5f9', color: '#475569', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}>
-            🔄 إعادة تعيين
+            إعادة تعيين
           </button>
         </div>
       </div>
 
       {/* 📋 جدول البيانات الرئيسي */}
-      <div className="glass-card table-premium-container" style={{ padding: '30px', backgroundColor: '#fff', borderRadius: '24px', boxShadow: '0 4px 25px rgba(0,0,0,0.02)' }}>
+      <div className="glass-card table-premium-container" style={{ padding: '30px', backgroundColor: '#fff', borderRadius: '14px', boxShadow: '0 4px 25px rgba(0,0,0,0.02)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '18px' }}>📋 السجل التفصيلي لتحميل وتكليفات الفلل بالمصروفات غير المباشرة</h3>
-          <button onClick={fetchAllocationData} className="no-print" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }} title="تحديث البيانات">🔄</button>
+          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '18px' }}>السجل التفصيلي لتحميل وتكليفات الفلل بالمصروفات غير المباشرة</h3>
+          <button onClick={fetchAllocationData} className="no-print" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }} title="تحديث البيانات"><RefreshCw size={15} aria-hidden="true" /></button>
         </div>
 
         {isLoading ? (
           <LoadingScreen message="جاري سحب وتصفية الداتا مباشرة من السيرفر وبدون تخطي الحدود..." fullScreen={false} />
         ) : filteredData.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8', fontWeight: 900 }}>
-            📭 لا توجد سجلات توزيع متطابقة مع خيارات الفلترة الحالية.
+            لا توجد سجلات توزيع متطابقة مع خيارات الفلترة الحالية.
           </div>
         ) : (
           <RawasiSmartTable data={filteredData} columns={columns} />

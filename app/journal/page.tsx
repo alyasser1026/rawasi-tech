@@ -141,7 +141,7 @@ function useJournalLogic() {
             const selectedLines = journalMaster.filter(l => selectedIds.includes(String(l.line_id)));
             const invalidStatusLines = selectedLines.filter(l => l.header_status !== 'مسودة');
             if (invalidStatusLines.length > 0) {
-                 throw new Error('مرفوض ⛔: لا يمكن مسح قيد حالته "مرحل" أو "معتمد". يجب فك الترحيل أولاً.');
+                 throw new Error('مرفوض: لا يمكن مسح قيد حالته "مرحل" أو "معتمد". يجب فك الترحيل أولاً.');
             }
 
             const headerIds = [...new Set(selectedLines.map(l => l.header_id))];
@@ -151,7 +151,7 @@ function useJournalLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast('تم حذف القيود وارتباطاتها بنجاح 🗑️', 'success');
+            showToast('تم حذف القيود وارتباطاتها بنجاح', 'success');
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['journal_master_view'] });
         },
@@ -226,7 +226,7 @@ export default function JournalPage() {
         return (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontWeight: 800, color: '#334155' }}>{row.partner_name || '---'}</span>
-            {row.project_name && <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>📍 {row.project_name}</span>}
+            {row.project_name && <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>{row.project_name}</span>}
           </div>
         );
       } 
@@ -245,12 +245,12 @@ export default function JournalPage() {
       } 
     },
     { 
-      header: 'مدين 🟢', 
+      header: 'مدين', 
       accessor: 'debit', 
       render: (row: any) => row && row.debit > 0 ? <span style={{ fontWeight: 900, color: '#059669', fontSize: '14px' }}>{formatCurrency(row.debit)}</span> : '-' 
     },
     { 
-      header: 'دائن 🔴', 
+      header: 'دائن', 
       accessor: 'credit', 
       render: (row: any) => row && row.credit > 0 ? <span style={{ fontWeight: 900, color: '#dc2626', fontSize: '14px' }}>{formatCurrency(row.credit)}</span> : '-' 
     },
@@ -260,8 +260,8 @@ export default function JournalPage() {
       render: (row: any) => {
         if (!row) return null;
         return row.header_status === 'معتمد' ? 
-          <span className="badge-glass green">معتمد ✅</span> : 
-          <span className="badge-glass yellow">مسودة ⏳</span>;
+          <span className="badge-glass green">معتمد</span> : 
+          <span className="badge-glass yellow">مسودة</span>;
       }
     }
   ], []);
@@ -272,7 +272,7 @@ export default function JournalPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
           <p style={{fontSize:'11px', textAlign:'center', color:'#94a3b8', fontWeight:900, margin:0}}>تم تحديد ({logic.selectedIds.length}) سطر من الدفتر</p>
           <SecureAction module="journal" action="delete">
-            <button className="btn-main-glass red" onClick={logic.handleDeleteHeaders}>🗑️ حذف القيود المحددة نهائياً</button>
+            <button className="btn-main-glass red" onClick={logic.handleDeleteHeaders}>حذف القيود المحددة نهائياً</button>
           </SecureAction>
         </div>
       )}
@@ -281,26 +281,26 @@ export default function JournalPage() {
 
   return (
     <div className="clean-page">
-      <MasterPage icon="📓" title="دفتر اليومية الشامل 📓" subtitle="استعلام شامل وسريع جداً مع تقسيم يدوي للصفحات لمنع التهنيج.">
+      <MasterPage title="دفتر اليومية الشامل" subtitle="استعلام شامل وسريع جداً مع تقسيم يدوي للصفحات لمنع التهنيج.">
           
           <RawasiSidebarManager 
             summary={
               <div className="summary-glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div>
-                  <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المدين 🟢</span>
+                  <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المدين</span>
                   <div style={{fontSize:'18px', fontWeight:900, color: '#059669'}}>
                     {formatCurrency(logic.totals.totalDebit)}
                   </div>
                 </div>
                 <div style={{ borderTop: '1px dashed rgba(255,255,255,0.2)', paddingTop: '10px' }}>
-                  <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الدائن 🔴</span>
+                  <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الدائن</span>
                   <div style={{fontSize:'18px', fontWeight:900, color: '#dc2626'}}>
                     {formatCurrency(logic.totals.totalCredit)}
                   </div>
                 </div>
                 <div style={{ borderTop: '1px dashed rgba(255,255,255,0.2)', paddingTop: '10px', background: logic.totals.balance !== 0 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)', padding: '10px', borderRadius: '10px' }}>
                   <span style={{fontSize:'12px', fontWeight:800, color: logic.totals.balance !== 0 ? '#d97706' : '#059669'}}>
-                     {logic.isFiltered ? 'صافي رصيد الفلترة 📊' : (logic.totals.balance === 0 ? 'متزن ⚖️' : (logic.totals.balance > 0 ? 'رصيد مدين' : 'رصيد دائن'))}
+                     {logic.isFiltered ? 'صافي رصيد الفلترة' : (logic.totals.balance === 0 ? 'متزن' : (logic.totals.balance > 0 ? 'رصيد مدين' : 'رصيد دائن'))}
                   </span>
                   <div style={{fontSize:'20px', fontWeight:900, color: logic.totals.balance !== 0 ? '#d97706' : '#059669'}}>
                     {formatCurrency(Math.abs(logic.totals.balance))}
@@ -313,7 +313,7 @@ export default function JournalPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
                 
                 <div>
-                    <label className="filter-label">⚙️ عدد الصفوف في الصفحة (للجدول)</label>
+                    <label className="filter-label">عدد الصفوف في الصفحة (للجدول)</label>
                     <select 
                         value={logic.rowsPerPage} 
                         onChange={(e) => logic.setRowsPerPage(Number(e.target.value))} 
@@ -327,11 +327,11 @@ export default function JournalPage() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div>
-                        <label className="filter-label">📅 من تاريخ</label>
+                        <label className="filter-label">من تاريخ</label>
                         <input type="date" value={logic.dateFrom} onChange={e => logic.setDateFrom(e.target.value)} className="filter-input-glass" />
                     </div>
                     <div>
-                        <label className="filter-label">📅 إلى تاريخ</label>
+                        <label className="filter-label">إلى تاريخ</label>
                         <input type="date" value={logic.dateTo} onChange={e => logic.setDateTo(e.target.value)} className="filter-input-glass" />
                     </div>
                 </div>
@@ -407,7 +407,7 @@ export default function JournalPage() {
             .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
             .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); }
             
-            .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
+            .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
             
             .filter-label { color: white; fontSize: 11px; font-weight: 900; display: block; margin-bottom: 8px; }
             .filter-input-glass { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white; outline: none; font-family: inherit; font-weight: 800; font-size: 13px; transition: 0.3s; }
@@ -434,7 +434,7 @@ export default function JournalPage() {
             <LoadingScreen message="جاري سحب البيانات (دفعات 1000 سطر)..." fullScreen={false} />
           ) : logic.isError ? (
             <div style={{ textAlign: 'center', padding: '100px', fontWeight: 900, color: '#ef4444' }}>
-              ❌ حدث خطأ في الاتصال بقاعدة البيانات.
+              حدث خطأ في الاتصال بقاعدة البيانات.
             </div>
           ) : (
             <>
@@ -455,7 +455,7 @@ export default function JournalPage() {
                         onClick={() => logic.setCurrentPage(p => Math.max(1, p - 1))} 
                         disabled={logic.currentPage === 1}
                     >\
-                        ◀️ السابق
+                        السابق
                     </button>
                     
                     <span style={{ color: '#94a3b8', fontWeight: 800, fontSize: '13px' }}>
@@ -469,7 +469,7 @@ export default function JournalPage() {
                         onClick={() => logic.setCurrentPage(p => Math.min(logic.totalPages, p + 1))} 
                         disabled={logic.currentPage === logic.totalPages}
                     >
-                        التالي ▶️
+                        التالي
                     </button>
                 </div>
               )}

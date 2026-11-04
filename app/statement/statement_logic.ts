@@ -143,7 +143,7 @@ export function useStatementLogic() {
     // 🚀🚀 المحرك الشامل المحدث لتوليد التقارير بـ HTML نقي عبر السيرفر وضغطها في ZIP 🚀🚀
     const downloadIndividualWorkerPDFs = async () => {
         setIsExportingAll(true);
-        setExportProgress("⏳ جاري سحب بيانات العمالة والمقاولين...");
+        setExportProgress("جاري سحب بيانات العمالة والمقاولين...");
         try {
             const JSZip = (await import('jszip')).default;
             const { saveAs } = (await import('file-saver'));
@@ -163,7 +163,7 @@ export function useStatementLogic() {
 
             let allLines: any[] = []; let from = 0; const step = 1000; let hasMore = true;
 
-            setExportProgress("⏳ جاري تجميع وتنسيق الحسابات...");
+            setExportProgress("جاري تجميع وتنسيق الحسابات...");
 
             while (hasMore) {
                 const { data, error } = await supabase.from('partner_statement_ledger').select('*')
@@ -188,7 +188,7 @@ export function useStatementLogic() {
             for (const [pId, lines] of Object.entries(grouped)) {
                 currentIndex++;
                 const pName = workerMap.get(pId) || 'غير معروف';
-                setExportProgress(`📥 (${currentIndex} من ${totalWorkers}) جاري بناء ملف PDF للعامل: ${pName}`);
+                setExportProgress(`(${currentIndex} من ${totalWorkers}) جاري بناء ملف PDF للعامل: ${pName}`);
 
                 let balance = 0, openingBalance = 0, periodDebit = 0, periodCredit = 0;
                 let workerAttendance = 0, workerLaborAmount = 0, workerViolations = 0, workerPayments = 0;
@@ -315,11 +315,11 @@ export function useStatementLogic() {
                 }
             }
 
-            setExportProgress("📦 جاري ضغط التقارير وتجهيز ملف الـ ZIP المجمع...");
+            setExportProgress("جاري ضغط التقارير وتجهيز ملف الـ ZIP المجمع...");
             const content = await zip.generateAsync({ type: 'blob' });
             saveAs(content, `كشوفات_العمالة_فاي_تك_${new Date().toISOString().split('T')[0]}.zip`);
 
-            showToast("✅ تم تنزيل الملف المضغوط المحمي بنجاح!", "success");
+            showToast("تم تنزيل الملف المضغوط المحمي بنجاح!", "success");
 
         } catch (e: any) {
             console.error(e);

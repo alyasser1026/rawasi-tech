@@ -1,7 +1,8 @@
 "use client";
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useId, useRef, useState, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { THEME } from '@/lib/theme';
+import { ShieldAlert, TriangleAlert } from 'lucide-react';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 
 // 1. تعريف نوع البيانات
 type ConfirmOptions = {
@@ -26,6 +27,8 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
         isOpen: false,
         options: null,
     });
+    const panel = useRef<HTMLDivElement>(null);
+    const dialogId = useId();
 
     const showConfirm = (options: ConfirmOptions) => {
         setConfirmState({ isOpen: true, options });
@@ -34,6 +37,8 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
     const closeConfirm = () => {
         setConfirmState({ isOpen: false, options: null });
     };
+
+    useDialogFocus(panel, confirmState.isOpen, closeConfirm);
 
     const handleConfirm = () => {
         if (confirmState.options?.onConfirm) {
@@ -48,40 +53,46 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
 
             {/* 🚀 نافذة التأكيد الزجاجية الفخمة تظهر هنا على مستوى السيستم */}
             {confirmState.isOpen && confirmState.options && typeof document !== 'undefined' && createPortal(
-                <div style={{ position: 'fixed', inset: 0, zIndex: 999999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(10px)', direction: 'rtl' }}>
-                    <div style={{ background: 'white', padding: '35px', borderRadius: '24px', maxWidth: '450px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #fee2e2', animation: 'fadeIn 0.2s ease-out' }}>
+                <div className="phi-modal-backdrop phi-confirm-backdrop" onKeyDownCapture={event => {
+                    // Handle Escape before an underlying form's document listener.
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        closeConfirm();
+                    }
+                }}>
+                    <div className={`phi-modal-panel phi-confirm-dialog ${confirmState.options.type === 'warning' ? 'is-warning' : 'is-danger'}`} ref={panel} role="alertdialog" aria-modal="true" aria-labelledby={`${dialogId}-title`} aria-describedby={`${dialogId}-message`}>
                         
-                        <div style={{ fontSize: '55px', marginBottom: '15px', animation: 'pulse-alert 2s infinite' }}>
-                            {confirmState.options.type === 'warning' ? '⚠️' : '🚨'}
+                        <div className="phi-confirm-icon">
+                            {confirmState.options.type === 'warning' ? <TriangleAlert size={27} /> : <ShieldAlert size={27} />}
                         </div>
                         
-                        <h3 style={{ color: confirmState.options.type === 'warning' ? '#b45309' : THEME.danger, fontWeight: 900, fontSize: '22px', marginBottom: '15px' }}>
+                        <h2 id={`${dialogId}-title`}>
                             {confirmState.options.title}
-                        </h3>
+                        </h2>
                         
-                        <p style={{ color: '#475569', fontSize: '15px', fontWeight: 800, marginBottom: '30px', lineHeight: 1.6 }}>
+                        <p id={`${dialogId}-message`}>
                             {confirmState.options.message}
                         </p>
                         
-                        <div style={{ display: 'flex', gap: '15px' }}>
+                        <div className="phi-confirm-actions">
                             <button 
                                 onClick={handleConfirm} 
-                                style={{ flex: 1, background: confirmState.options.type === 'warning' ? '#f59e0b' : THEME.danger, color: 'white', padding: '14px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: '15px', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}
+                                type="button"
+                                className="ent-button phi-confirm-submit"
                             >
                                 {confirmState.options.confirmText || 'نعم، تأكيد'}
                             </button>
                             <button 
                                 onClick={closeConfirm} 
-                                style={{ flex: 1, background: '#f1f5f9', color: '#64748b', padding: '14px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: '15px', cursor: 'pointer', transition: '0.2s' }}
+                                type="button"
+                                className="ent-button"
+                                data-autofocus
                             >
                                 {confirmState.options.cancelText || 'إلغاء والتراجع'}
                             </button>
                         </div>
                     </div>
-                    <style>{`
-                        @keyframes pulse-alert { 0% { transform: scale(0.95); } 50% { transform: scale(1.1); } 100% { transform: scale(0.95); } }
-                        @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-                    `}</style>
                 </div>,
                 document.body
             )}

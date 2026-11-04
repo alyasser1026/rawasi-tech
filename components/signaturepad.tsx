@@ -8,6 +8,7 @@ export default function SignaturePad({ userId, currentSignature, onSaved }: { us
   const sigCanvas = useRef<any>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('error');
 
   // مسح اللوحة
   const clear = () => {
@@ -18,7 +19,8 @@ export default function SignaturePad({ userId, currentSignature, onSaved }: { us
   // حفظ التوقيع ورفعه لـ Supabase
   const save = async () => {
     if (sigCanvas.current?.isEmpty()) {
-      setMessage('⚠️ الرجاء التوقيع أولاً قبل الحفظ');
+      setMessageType('error');
+      setMessage('الرجاء التوقيع أولاً قبل الحفظ');
       return;
     }
 
@@ -52,12 +54,14 @@ export default function SignaturePad({ userId, currentSignature, onSaved }: { us
 
       if (updateError) throw updateError;
 
-      setMessage('✅ تم حفظ توقيعك بنجاح!');
+      setMessageType('success');
+      setMessage('تم حفظ توقيعك بنجاح');
       if (onSaved) onSaved();
 
     } catch (error: any) {
       console.error("Signature Save Error:", error);
-      setMessage('❌ حدث خطأ أثناء الحفظ');
+      setMessageType('error');
+      setMessage('حدث خطأ أثناء الحفظ');
     } finally {
       setIsSaving(false);
     }
@@ -65,7 +69,7 @@ export default function SignaturePad({ userId, currentSignature, onSaved }: { us
 
   return (
     <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '15px', border: `1px solid ${THEME.border}`, maxWidth: '500px', margin: '0 auto', width: '100%' }}>
-      <h3 style={{ margin: '0 0 15px 0', color: THEME.primary, textAlign: 'center' }}>✍️ لوحة التوقيع الإلكتروني</h3>
+      <h3 style={{ margin: '0 0 15px 0', color: THEME.primary, textAlign: 'center' }}>لوحة التوقيع الإلكتروني</h3>
       
       {/* لو عنده توقيع قديم بنعرضهوله كمعاينة */}
       {currentSignature && (
@@ -84,14 +88,14 @@ export default function SignaturePad({ userId, currentSignature, onSaved }: { us
         />
       </div>
 
-      {message && <p style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '13px', fontWeight: 'bold', color: message.includes('✅') ? THEME.success : THEME.ruby }}>{message}</p>}
+      {message && <p style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '13px', fontWeight: 'bold', color: messageType === 'success' ? THEME.success : THEME.ruby }}>{message}</p>}
 
       <div style={{ display: 'flex', gap: '10px' }}>
         <button onClick={save} disabled={isSaving} style={{ flex: 2, background: THEME.primary, color: 'white', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
-          {isSaving ? '⏳ جاري الحفظ...' : '💾 اعتماد التوقيع'}
+          {isSaving ? 'جاري الحفظ...' : 'اعتماد التوقيع'}
         </button>
         <button onClick={clear} style={{ flex: 1, background: '#e2e8f0', color: '#475569', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
-          🧹 مسح
+          مسح
         </button>
       </div>
     </div>

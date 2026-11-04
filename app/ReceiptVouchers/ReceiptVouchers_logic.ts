@@ -131,7 +131,7 @@ export function useReceiptVouchersLogic() {
         },
         onSuccess: () => {
             setIsEditModalOpen(false);
-            showToast("تم حفظ السند بنجاح 💾", "success");
+            showToast("تم حفظ السند بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['receipt_vouchers'] });
         },
         onError: (err: any) => showToast(`خطأ أثناء الحفظ: ${err.message}`, "error")
@@ -151,7 +151,7 @@ export function useReceiptVouchersLogic() {
         },
         onSuccess: () => {
             setSelectedIds([]);
-            showToast("تم الاعتماد والترحيل بنجاح ✅", "success");
+            showToast("تم الاعتماد والترحيل بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
         onError: (err: any) => showToast(`خطأ أثناء الترحيل: ${err.message}`, "error")
@@ -171,7 +171,7 @@ export function useReceiptVouchersLogic() {
         },
         onSuccess: () => {
             setSelectedIds([]);
-            showToast("تم فك الترحيل بنجاح 🔴", "warning");
+            showToast("تم فك الترحيل بنجاح", "warning");
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
         onError: (err: any) => showToast(`خطأ أثناء الإلغاء: ${err.message}`, "error")
@@ -191,7 +191,7 @@ export function useReceiptVouchersLogic() {
         },
         onSuccess: () => {
             setSelectedIds([]);
-            showToast("تم الحذف بنجاح 🗑️", "success");
+            showToast("تم الحذف بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
         },
         onError: (err: any) => showToast(`خطأ في الحذف: ${err.message}`, "error")
@@ -220,7 +220,7 @@ export function useReceiptVouchersLogic() {
             setIsBulkFixModalOpen(false); 
             setBulkFixAccounts({ safe_bank_acc_name: '', safe_bank_acc_id: null, partner_acc_name: '', partner_acc_id: null });
             setSelectedIds([]); 
-            showToast(`✅ تم تصحيح الحسابات وتوجيه السندات بنجاح!`, 'success');
+            showToast(`تم تصحيح الحسابات وتوجيه السندات بنجاح!`, 'success');
             queryClient.invalidateQueries({ queryKey: ['receipt_vouchers'] });
         },
         onError: (err: any) => showToast(`خطأ أثناء التصحيح: ${err.message}`, 'error')
@@ -262,7 +262,7 @@ export function useReceiptVouchersLogic() {
         
         handleSave: (record: any) => {
             if (record && (record.status === 'مرحل' || record.status === 'معتمد' || record.is_posted)) {
-                return showToast("⚠️ لا يمكن تعديل سجل مرحل. يرجى فك الترحيل أولاً.", "error");
+                return showToast("لا يمكن تعديل سجل مرحل. يرجى فك الترحيل أولاً.", "error");
             }
             saveMutation.mutate(record);
         }, 
@@ -285,7 +285,7 @@ export function useReceiptVouchersLogic() {
         handleDeleteSelected: () => { 
             const posted = receipts.filter((r:any) => selectedIds.includes(String(r.id)) && (r.status === 'مرحل' || r.status === 'معتمد' || r.is_posted));
             if (posted.length > 0) {
-                return showToast("⚠️ لا يمكن حذف سجلات مرحلة. يرجى فك الترحيل أولاً.", "error");
+                return showToast("لا يمكن حذف سجلات مرحلة. يرجى فك الترحيل أولاً.", "error");
             }
             if(confirm("تأكيد الحذف النهائي؟")) deleteMutation.mutate(); 
         }, 

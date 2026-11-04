@@ -80,7 +80,7 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
             <style>{`
                 @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap');
 
-                /* 🖨️ إعدادات الطباعة للزوم التلقائي والاحتواء الكامل */
+                /* إعدادات الطباعة للزوم التلقائي والاحتواء الكامل */
                 @media print {
                     @page { size: A4 landscape; margin: 10mm; } 
                     
@@ -110,7 +110,7 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                         border: none !important; 
                         padding: 0 !important; 
                         margin: 0 !important; 
-                        /* 🚀 زوم أوت كافي لاحتواء الخلاصة المالية والتوقيعات */
+                        /* زوم أوت كافي لاحتواء الخلاصة المالية والتوقيعات */
                         zoom: 0.70 !important; 
                         -webkit-print-color-adjust: exact; 
                         print-color-adjust: exact;
@@ -138,7 +138,7 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                    --------------------------------------------------- */
                 .printable-area { 
                     background: white; 
-                    border-radius: 20px; 
+                    border-radius: 14px; 
                     width: 100%; 
                     max-width: 1150px; 
                     max-height: 95vh; 
@@ -212,9 +212,9 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                 
                 {/* 🚀 أزرار التحكم (لا تظهر في الطباعة) */}
                 <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '35px', background: '#f8fafc', padding: '15px 25px', borderRadius: '16px', alignItems: 'center' }}>
-                    <h2 style={{ margin: 0, color: '#0f172a', fontWeight: 900, fontSize: '18px' }}>📄 معاينة مستخلص (شكل فني عصري)</h2>
+                    <h2 style={{ margin: 0, color: '#0f172a', fontWeight: 900, fontSize: '18px' }}>معاينة مستخلص (شكل فني عصري)</h2>
                     <div style={{ display: 'flex', gap: '15px' }}>
-                        <button onClick={handlePrint} style={{ background: '#0f172a', color: 'white', border: 'none', padding: '12px 28px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(15,23,42,0.2)' }}>🖨️ طباعة المستخلص</button>
+                        <button onClick={handlePrint} style={{ background: '#0f172a', color: 'white', border: 'none', padding: '12px 28px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 4px 12px rgba(15,23,42,0.2)' }}>طباعة المستخلص</button>
                         <button onClick={onClose} style={{ background: '#f1f5f9', color: '#ef4444', border: 'none', padding: '12px 28px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>إغلاق</button>
                     </div>
                 </div>

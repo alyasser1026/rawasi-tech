@@ -4,6 +4,7 @@ import { useMessagesLogic } from './MessagesLogic';
 import { THEME } from '@/lib/theme';
 import LayoutClient from '@/components/layout/LayoutClient';
 import MasterPage from '@/components/MasterPage';
+import { Hand, MessageSquare } from 'lucide-react';
 
 export default function MessagesPage() {
     const { 
@@ -28,18 +29,18 @@ export default function MessagesPage() {
     });
 
     return (
-        <MasterPage title="التواصل الداخلي" subtitle="الرسائل والمحادثات بين فرق العمل" icon="💬">
+        <MasterPage title="التواصل الداخلي" subtitle="الرسائل والمحادثات بين فرق العمل">
         <div style={{ height: 'calc(100vh - 120px)', display: 'flex', gap: '20px', padding: '20px', animation: 'fadeUp 0.5s ease-out' }}>
                 
                 {/* Users Sidebar */}
-                <div style={{ width: '320px', background: 'white', borderRadius: '20px', border: `1px solid ${THEME.border}`, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', overflow: 'hidden', flexShrink: 0 }}>
+                <div style={{ width: '320px', background: 'white', borderRadius: '14px', border: `1px solid ${THEME.border}`, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', overflow: 'hidden', flexShrink: 0 }}>
                     <div style={{ padding: '20px', borderBottom: `1px solid ${THEME.border}`, background: '#f8fafc' }}>
-                        <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: '18px' }}>💬 المحادثات الداخلية</h2>
+                        <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: '18px' }}>المحادثات الداخلية</h2>
                         <p style={{ margin: '5px 0 0 0', fontSize: '12px', color: '#64748b' }}>اختر موظفاً لبدء المحادثة</p>
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto' }} className="cinematic-scroll">
                         {isLoadingUsers ? (
-                            <div style={{ textAlign: 'center', padding: '30px', color: THEME.primary }}>⏳ جاري تحميل الموظفين...</div>
+                            <div style={{ textAlign: 'center', padding: '30px', color: THEME.primary }}>جاري تحميل الموظفين...</div>
                         ) : (
                             sortedUsers.map((user) => {
                                 const online = isUserOnline(user.id);
@@ -83,7 +84,7 @@ export default function MessagesPage() {
                 </div>
 
                 {/* Chat Area */}
-                <div style={{ flex: 1, background: 'white', borderRadius: '20px', border: `1px solid ${THEME.border}`, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', overflow: 'hidden', position: 'relative' }}>
+                <div style={{ flex: 1, background: 'white', borderRadius: '14px', border: `1px solid ${THEME.border}`, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', overflow: 'hidden', position: 'relative' }}>
                     {/* Background Pattern */}
                     <div style={{ position: 'absolute', inset: 0, opacity: 0.03, pointerEvents: 'none', backgroundImage: 'radial-gradient(#27272a 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
                     
@@ -108,10 +109,10 @@ export default function MessagesPage() {
                             {/* Messages Container */}
                             <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px', zIndex: 1 }} className="cinematic-scroll">
                                 {isLoadingMessages ? (
-                                    <div style={{ textAlign: 'center', padding: '30px', color: THEME.primary }}>⏳ جاري تحميل الرسائل...</div>
+                                    <div style={{ textAlign: 'center', padding: '30px', color: THEME.primary }}>جاري تحميل الرسائل...</div>
                                 ) : messages.length === 0 ? (
                                     <div style={{ textAlign: 'center', margin: 'auto', color: '#94a3b8', fontWeight: 800 }}>
-                                        <div style={{ fontSize: '40px', marginBottom: '10px', opacity: 0.5 }}>👋</div>
+                                        <div style={{ fontSize: '40px', marginBottom: '10px', opacity: 0.5 }}><Hand size={34} aria-hidden="true" /></div>
                                         ابدأ المحادثة الآن...
                                     </div>
                                 ) : (
@@ -179,7 +180,7 @@ export default function MessagesPage() {
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder="اكتب رسالتك هنا..." 
-                                    style={{ flex: 1, padding: '15px 20px', borderRadius: '30px', border: `1px solid ${THEME.border}`, outline: 'none', background: '#f8fafc', fontSize: '14px', fontWeight: 700 }}
+                                    style={{ flex: 1, padding: '15px 20px', borderRadius: '14px', border: `1px solid ${THEME.border}`, outline: 'none', background: '#f8fafc', fontSize: '14px', fontWeight: 700 }}
                                 />
                                 <button type="submit" disabled={!newMessage.trim()} style={{ background: THEME.primary, color: 'white', border: 'none', width: '50px', height: '50px', borderRadius: '50%', cursor: newMessage.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: newMessage.trim() ? 1 : 0.5, transition: '0.2s', fontSize: '20px' }}>
                                     ➤
@@ -188,7 +189,7 @@ export default function MessagesPage() {
                         </>
                     ) : (
                         <div style={{ margin: 'auto', textAlign: 'center', color: '#94a3b8', zIndex: 1 }}>
-                            <div style={{ fontSize: '60px', marginBottom: '15px', opacity: 0.3 }}>💬</div>
+                            <div style={{ fontSize: '60px', marginBottom: '15px', opacity: 0.3 }}><MessageSquare size={40} aria-hidden="true" /></div>
                             <h3 style={{ margin: 0, fontWeight: 900 }}>الرسائل الداخلية</h3>
                             <p style={{ marginTop: '5px', fontSize: '14px' }}>قم باختيار محادثة من القائمة للبدء</p>
                         </div>

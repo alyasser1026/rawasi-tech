@@ -3,6 +3,7 @@ import React from 'react';
 import { useBulkBudgetLogic } from './bulk_budget_logic';
 import LoadingScreen from '@/components/LoadingScreen';
 import SecureAction from '@/components/SecureAction';
+import { Building, House } from 'lucide-react';
 
 const THEME = {
   primary: '#0f172a',
@@ -22,7 +23,7 @@ export default function BulkBudgetPage() {
           background: rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(15px);
           border: 1px solid rgba(255,255,255,0.8);
-          border-radius: 20px;
+          border-radius: 14px;
           padding: 20px;
           margin-bottom: 20px;
           box-shadow: 0 10px 30px rgba(0,0,0,0.05);
@@ -70,7 +71,7 @@ export default function BulkBudgetPage() {
         .table-container {
           background: rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(15px);
-          border-radius: 20px;
+          border-radius: 14px;
           border: 1px solid rgba(255,255,255,0.8);
           box-shadow: 0 10px 30px rgba(0,0,0,0.05);
           overflow: hidden;
@@ -115,7 +116,7 @@ export default function BulkBudgetPage() {
 
       <div className="glass-header">
         <h1 className="header-title">
-          <span>🏢</span> التعديل الجماعي للموازنات
+          <span><Building size={16} aria-hidden="true" /></span> التعديل الجماعي للموازنات
         </h1>
         
         <div className="filters-row">
@@ -184,7 +185,7 @@ export default function BulkBudgetPage() {
             onClick={logic.handleBulkSave}
             disabled={logic.isSaving || logic.budgets.length === 0}
           >
-            {logic.isSaving ? 'جاري الحفظ...' : '💾 حفظ التعديلات الجماعية'}
+            {logic.isSaving ? 'جاري الحفظ...' : 'حفظ التعديلات الجماعية'}
           </button>
         </SecureAction>
       </div>
@@ -209,7 +210,7 @@ export default function BulkBudgetPage() {
                 <tr key={b.id}>
                   <td>
                     <div className="villa-name">
-                      <span style={{color: THEME.accent}}>🏠</span> 
+                      <span style={{color: THEME.accent}}><House size={16} aria-hidden="true" /></span> 
                       {b.projects?.Property || 'بدون فيلا'}
                       {b.projects?.unit_type && <span style={{ fontSize: '12px', background: 'rgba(202, 138, 4, 0.1)', color: THEME.accent, padding: '2px 8px', borderRadius: '10px' }}>{b.projects.unit_type}</span>}
                       {b._isNew && <span style={{ fontSize: '10px', background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '10px' }}>غير مسجل</span>}
@@ -261,11 +262,11 @@ export default function BulkBudgetPage() {
           </table>
         </div>
       ) : logic.selectedWorkItem ? (
-        <div style={{ textAlign: 'center', padding: '50px', background: 'rgba(255,255,255,0.5)', borderRadius: '20px' }}>
+        <div style={{ textAlign: 'center', padding: '50px', background: 'rgba(255,255,255,0.5)', borderRadius: '14px' }}>
           <h3>لا توجد موازنات مسجلة لهذا البند في الفلل الحالية.</h3>
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '50px', background: 'rgba(255,255,255,0.5)', borderRadius: '20px', color: '#64748b' }}>
+        <div style={{ textAlign: 'center', padding: '50px', background: 'rgba(255,255,255,0.5)', borderRadius: '14px', color: '#64748b' }}>
           <h3>يرجى اختيار نوع البند ثم البند لعرض وتعديل موازنات الفلل</h3>
         </div>
       )}

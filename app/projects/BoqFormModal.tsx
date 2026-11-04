@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
+import { notify } from '@/lib/notify';
 
 export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSave, projectBoq = [], onImport, isSaving }: any) {
     const [mounted, setMounted] = useState(false);
@@ -24,10 +25,10 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
 
     const handleSave = () => {
         if (!record.work_item) {
-            return alert("يرجى اختيار أو كتابة اسم البند / المرحلة أولاً.");
+            return notify("يرجى اختيار أو كتابة اسم البند / المرحلة أولاً.");
         }
         if (record.start_date && record.end_date && new Date(record.start_date) > new Date(record.end_date)) {
-            return alert("تاريخ البداية لا يمكن أن يكون بعد تاريخ النهاية!");
+            return notify("تاريخ البداية لا يمكن أن يكون بعد تاريخ النهاية!");
         }
         onSave(record);
     };
@@ -35,18 +36,18 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
     return createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(40, 24, 10, 0.85)', backdropFilter: 'blur(15px)', direction: 'rtl', padding: '20px' }}>
             <div style={{ position: 'fixed', inset: 0 }} onClick={onClose} />
-            <div className="cinematic-scroll" style={{ background: 'white', borderRadius: '35px', width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto', padding: '40px', position: 'relative', zIndex: 10, boxShadow: '0 50px 100px rgba(0,0,0,0.5)' }}>
+            <div className="cinematic-scroll" style={{ background: 'white', borderRadius: '14px', width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto', padding: '40px', position: 'relative', zIndex: 10, boxShadow: '0 50px 100px rgba(0,0,0,0.5)' }}>
                 
                 <h2 style={{ margin: '0 0 25px 0', fontWeight: 900, color: THEME.primary, borderBottom: '2px dashed #e2e8f0', paddingBottom: '15px', fontSize: '20px' }}>
-                    🛠️ {record.id ? 'تعديل موازنة البند المقيد' : 'إدراج بند هندسي وربط الموازنة التقديرية (WBS)'}
+                    {record.id ? 'تعديل موازنة البند المقيد' : 'إدراج بند هندسي وربط الموازنة التقديرية (WBS)'}
                 </h2>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
                     
                     {/* 🔍 السحب الذكي الموحد من شجرة أدلة المقاييس */}
-                    <div style={{ zIndex: 90, position: 'relative', background: '#f8fafc', padding: '25px', borderRadius: '24px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ zIndex: 90, position: 'relative', background: '#f8fafc', padding: '25px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
                         <SmartCombo 
-                            label="ابحث عن اسم البند الهندسي (من دليل الشجرة الموحد) 📚" 
+                            label="ابحث عن اسم البند الهندسي (من دليل الشجرة الموحد)" 
                             table="boq_items" 
                             searchCols="item_name,item_code,main_category,sub_category"
                             displayCol="item_name" 
@@ -101,9 +102,9 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                     </div>
 
                     {/* 📅 الجدول الزمني للتنفيذ والمدد الزمنية */}
-                    <div style={{ background: '#f0fdf4', padding: '20px', borderRadius: '20px', border: '1px solid #bbf7d0', position: 'relative' }}>
+                    <div style={{ background: '#f0fdf4', padding: '20px', borderRadius: '14px', border: '1px solid #bbf7d0', position: 'relative' }}>
                         <h3 style={{ margin: '0 0 15px 0', fontSize: '14px', color: '#166534', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 900 }}>
-                            📅 النطاق والجدول الزمني للتنفيذ (Time Schedule)
+                            النطاق والجدول الزمني للتنفيذ (Time Schedule)
                         </h3>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
                             <div>
@@ -118,8 +119,8 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             </div>
                         </div>
                         {durationDays > 0 && (
-                            <div style={{ position: 'absolute', top: '15px', left: '20px', background: '#166534', color: 'white', padding: '5px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 900 }}>
-                                المدة الإجمالية: {durationDays} يوماً ⏳
+                            <div style={{ position: 'absolute', top: '15px', left: '20px', background: '#166534', color: 'white', padding: '5px 12px', borderRadius: '14px', fontSize: '12px', fontWeight: 900 }}>
+                                المدة الإجمالية: {durationDays} يوماً
                             </div>
                         )}
                     </div>
@@ -144,19 +145,19 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                     </div>
 
                     {/* 📊 هيكلة الموازنة التقديرية (WBS Baseline) */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', background: '#f8fafc', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', background: '#f8fafc', padding: '20px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
                         <div>
                             <label style={{ fontSize: '12px', fontWeight: 900, color: '#0369A1', display: 'block', marginBottom: '8px' }}>ميزانية العمالة</label>
                             <input type="number" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: `2px solid #0369A140`, outline: 'none', fontWeight: 900, textAlign: 'center', color: '#0369A1' }} 
                                    value={record.estimated_labor_cost || ''} onChange={e => setRecord({...record, estimated_labor_cost: e.target.value})} placeholder="0.00" />
                         </div>
                         <div>
-                            <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.goldAccent, display: 'block', marginBottom: '8px' }}>🧱 ميزانية المواد والخامات</label>
+                            <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.goldAccent, display: 'block', marginBottom: '8px' }}>ميزانية المواد والخامات</label>
                             <input type="number" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: `2px solid ${THEME.goldAccent}40`, outline: 'none', fontWeight: 900, textAlign: 'center', color: THEME.goldAccent }} 
                                    value={record.estimated_material_cost || ''} onChange={e => setRecord({...record, estimated_material_cost: e.target.value})} placeholder="0.00" />
                         </div>
                         <div>
-                            <label style={{ fontSize: '12px', fontWeight: 900, color: '#ea580c', display: 'block', marginBottom: '8px' }}>💸 ميزانية النثريات والمصاريف</label>
+                            <label style={{ fontSize: '12px', fontWeight: 900, color: '#ea580c', display: 'block', marginBottom: '8px' }}>ميزانية النثريات والمصاريف</label>
                             <input type="number" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: `2px solid #ea580c40`, outline: 'none', fontWeight: 900, textAlign: 'center', color: '#ea580c' }} 
                                    value={record.estimated_expenses_cost || ''} onChange={e => setRecord({...record, estimated_expenses_cost: e.target.value})} placeholder="0.00" />
                         </div>
@@ -166,7 +167,7 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                 {/* أزرار التحكم والاعتماد */}
                 <div style={{ display: 'flex', gap: '15px', marginTop: '35px' }}>
                     <button onClick={handleSave} disabled={isSaving} style={{ flex: 2, background: isSaving ? '#94a3b8' : THEME.success, color: 'white', border: 'none', padding: '16px', borderRadius: '16px', fontWeight: 900, cursor: isSaving ? 'not-allowed' : 'pointer', fontSize: '16px', boxShadow: isSaving ? 'none' : `0 10px 20px ${THEME.success}40` }}>
-                        {isSaving ? '⏳ جاري الحفظ...' : '✅ حفظ وتسكين البند في شجرة المشروع'}
+                        {isSaving ? 'جاري الحفظ...' : 'حفظ وتسكين البند في شجرة المشروع'}
                     </button>
                     <button onClick={onClose} disabled={isSaving} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '16px', borderRadius: '16px', fontWeight: 900, cursor: isSaving ? 'not-allowed' : 'pointer', fontSize: '16px' }}>إلغاء</button>
                 </div>

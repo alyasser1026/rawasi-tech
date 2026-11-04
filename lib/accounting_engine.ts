@@ -21,7 +21,7 @@ export function useUniversalPosting(queryKey: string, tableName: string, postRpc
             if (error) throw new Error(error.message);
         },
         onSuccess: () => {
-            showToast('تم الترحيل وإصدار القيود بنجاح 🚀', 'success');
+            showToast('تم الترحيل وإصدار القيود بنجاح', 'success');
             queryClient.invalidateQueries({ queryKey: [queryKey] });
         },
         onError: (err: any) => showToast(`فشل الترحيل: ${err.message}`, 'error')
@@ -45,7 +45,7 @@ export function useUniversalPosting(queryKey: string, tableName: string, postRpc
             }
         },
         onSuccess: () => {
-            showToast('تم فك الترحيل ومسح القيود بنجاح ⏪', 'success');
+            showToast('تم فك الترحيل ومسح القيود بنجاح', 'success');
             queryClient.invalidateQueries({ queryKey: [queryKey] });
             if (tableName === 'payment_vouchers') {
                 queryClient.invalidateQueries({ queryKey: ['contractor_claims_history'] });

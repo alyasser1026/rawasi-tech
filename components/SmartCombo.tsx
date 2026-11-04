@@ -3,6 +3,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { THEME } from '@/lib/theme';
 import { usePermissions } from '@/lib/PermissionsContext'; // 🛡️ استدعاء مركز قيادة الصلاحيات
+import { Clock, Hourglass, Lock } from 'lucide-react';
+import PhiIcon from './PhiIcon';
 
 interface SmartComboProps {
     label?: string;
@@ -343,7 +345,7 @@ export default function SmartCombo({
                     {isSensitive ? applyMask(displayName) : displayName}
                 </div>
                 
-                {isRecent && <span style={{ fontSize: '10px', color: '#94a3b8' }}>🕒</span>}
+                {isRecent && <span style={{ fontSize: '10px', color: '#94a3b8' }}><Clock size={14} aria-hidden="true" /></span>}
             </div>
         );
     };
@@ -351,10 +353,10 @@ export default function SmartCombo({
     // ⛔ [شاشة الرفض المقفلة]: تظهر في حالة عدم توفر الصلاحية
     if (!hasFieldAccess && !permsLoading) {
         return (
-            <div style={{ position: 'relative', flex: 1, width: '100%', opacity: 0.7 }} title="🔒 ليس لديك صلاحية للوصول لهذا الحقل">
+            <div style={{ position: 'relative', flex: 1, width: '100%', opacity: 0.7 }} title="ليس لديك صلاحية للوصول لهذا الحقل">
                 {label && (
                     <label style={{ fontSize: '13px', fontWeight: 900, color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
-                        {icon && <span>{icon}</span>} {label} 🔒
+                        {icon && <PhiIcon value={icon} size={14} />} {label} <Lock size={12} aria-hidden="true" />
                     </label>
                 )}
                 <div className="smart-combo-input disabled" style={{ 
@@ -395,7 +397,7 @@ export default function SmartCombo({
 
             {label && (
                 <label style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
-                    {icon && <span>{icon}</span>}
+                    {icon && <PhiIcon value={icon} size={14} />}
                     {label}
                 </label>
             )}
@@ -404,7 +406,7 @@ export default function SmartCombo({
                 <InputElement 
                     aria-label={label || placeholder || 'اختيار قيمة'}
                     disabled={disabled}
-                    placeholder={placeholder || (isLoading ? '⏳ جاري البحث...' : '🔍 ابحث هنا...')}
+                    placeholder={placeholder || (isLoading ? 'جاري البحث...' : 'ابحث هنا...')}
                     value={search ?? ''} 
                     onChange={(e: any) => { setSearch(e.target.value); setShow(true); setHighlightedIndex(-1); if(freeText) onSelect(e.target.value); }}
                     onFocus={() => { if (!disabled) { setShow(true); loadData(search || ''); } }}
@@ -426,7 +428,7 @@ export default function SmartCombo({
                     </span>
                 )}
                 
-                {isLoading && <div style={{ position: 'absolute', left: enableClear && search ? '65px' : '35px', top: isTextArea ? '20px' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: '12px' }}>⏳</div>}
+                {isLoading && <div style={{ position: 'absolute', left: enableClear && search ? '65px' : '35px', top: isTextArea ? '20px' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: '12px' }}><Hourglass size={14} aria-hidden="true" /></div>}
             </div>
 
             {show && !disabled && (
@@ -436,17 +438,17 @@ export default function SmartCombo({
                         {isMobile && isMobileBottomSheet && <div style={{ width: '40px', height: '5px', background: '#cbd5e1', borderRadius: '10px', margin: '0 auto 15px auto' }} />}
                         {(results?.length || 0) === 0 && (search?.length || 0) > 0 && !isLoading && (
                             <div style={{ padding: '15px', textAlign: 'center' }}>
-                                <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 800, margin: '0 0 10px 0' }}>❌ لا توجد نتائج لـ "<span style={{color: THEME.ruby}}>{search}</span>"</p>
+                                <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 800, margin: '0 0 10px 0' }}>لا توجد نتائج لـ "<span style={{color: THEME.ruby}}>{search}</span>"</p>
                                 {allowAddNew && onAddNew && hasAddPermission && (
                                     <button onMouseDown={(e) => { e.preventDefault(); onAddNew(search); setShow(false); }} style={{ background: THEME.success, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '13px', boxShadow: `0 5px 15px ${THEME.success}40`, width: '100%' }}>
-                                        ➕ إضافة "{search}" كجديد
+                                        إضافة "{search}" كجديد
                                     </button>
                                 )}
                             </div>
                         )}
                         {(results?.length || 0) === 0 && (search?.length || 0) === 0 && showRecent && (recentItems?.length || 0) > 0 && !isLoading && (
                             <div>
-                                <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 900, marginBottom: '8px', padding: '0 10px' }}>⏱️ آخر الاختيارات</div>
+                                <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 900, marginBottom: '8px', padding: '0 10px' }}>آخر الاختيارات</div>
                                 {recentItems.map((item, index) => renderListItem(item, index, true))}
                                 <div style={{ height: '1px', background: '#f1f5f9', margin: '10px 0' }} />
                             </div>

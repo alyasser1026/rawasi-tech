@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { THEME } from '@/lib/theme';
+import { Crown, Gem, ShieldCheck, LogOut } from 'lucide-react';
 
 export default function UserCard() {
     const [profile, setProfile] = useState<any>(null);
@@ -57,7 +58,7 @@ export default function UserCard() {
                 <div className="imperial-info hidden-on-mobile-text">
                     <span className="u-name-grand">{profile.full_name}</span>
                     <div className="u-badge-grand">
-                        <span className="crown">👑</span>
+                        <span className="crown"><Crown size={16} aria-hidden="true" /></span>
                         {profile.role === 'super_admin' ? 'رئيس مجلس الإدارة' : 
                          profile.role === 'admin' ? 'المدير التنفيذي' : 'المراقب العام'}
                     </div>
@@ -77,28 +78,28 @@ export default function UserCard() {
             {isOpen && (
                 <div className="imperial-dropdown">
                     <div className="dropdown-title-c">
-                        <p>لوحة تحكم القيادة العليا 🕹️</p>
+                        <p>لوحة تحكم القيادة العليا</p>
                         <small>{profile.full_name}</small>
                     </div>
                     
                     <div className="dropdown-link-g" onClick={() => { router.push('/profile'); setIsOpen(false); }}>
-                        <span className="icon">💎</span> البروفايل الملكي
+                        <span className="icon"><Gem size={16} aria-hidden="true" /></span> البروفايل الملكي
                     </div>
                     
                     <div className="dropdown-link-g" onClick={() => { router.push('/settings'); setIsOpen(false); }}>
-                        <span className="icon">🛡️</span> إعدادات المنصة السيادية
+                        <span className="icon"><ShieldCheck size={16} aria-hidden="true" /></span> إعدادات المنصة السيادية
                     </div>
 
                     <div className="imperial-divider"></div>
                     
                     <div className="dropdown-link-g logout-grand" onClick={handleLogout}>
-                        <span className="icon">🚨</span> تسجيل الخروج النهائي
+                        <span className="icon"><LogOut size={16} aria-hidden="true" /></span> تسجيل الخروج النهائي
                     </div>
                 </div>
             )}
 
             <style>{`
-                /* 🚀 1. التموضع والحركة السينمائية الأسطورية */
+                /* 1. التموضع والحركة السينمائية الأسطورية */
                 .imperial-wrapper { 
                     position: relative; 
                     z-index: 99999;
@@ -110,7 +111,7 @@ export default function UserCard() {
                     50% { transform: translateY(-5px) rotate(1deg); }
                 }
 
-                /* 🟢 2. الزرار العملاق */
+                /* 2. الزرار العملاق */
                 .imperial-trigger {
                     display: flex; align-items: center; gap: 20px;
                     background: rgba(255, 255, 255, 0.85);
@@ -129,7 +130,7 @@ export default function UserCard() {
                     box-shadow: 0 20px 50px rgba(194,65,12, 0.25);
                 }
                 
-                /* 👤 3. النصوص الملكية */
+                /* 3. النصوص الملكية */
                 .imperial-info { display: flex; flex-direction: column; text-align: right; }
                 .u-name-grand { 
                     font-size: 20px; 
@@ -149,7 +150,7 @@ export default function UserCard() {
                     box-shadow: 0 5px 15px rgba(82,82,91, 0.3);
                 }
 
-                /* 📸 4. صورة الصقر */
+                /* 4. صورة الصقر */
                 .avatar-frame-grand { position: relative; width: 65px; height: 65px; flex-shrink: 0; }
                 .avatar-frame-grand img { 
                     width: 100%; height: 100%; 
@@ -178,12 +179,12 @@ export default function UserCard() {
                     z-index: 3;
                 }
 
-                /* 🔽 5. القائمة المنسدلة (Supreme Menu) */
+                /* 5. القائمة المنسدلة (Supreme Menu) */
                 .imperial-dropdown {
                     position: absolute; top: 120%; left: 0; width: 320px;
                     background: rgba(255, 255, 255, 0.95);
                     backdrop-filter: blur(25px);
-                    border-radius: 30px; padding: 25px;
+                    border-radius: 14px; padding: 25px;
                     box-shadow: 0 30px 80px rgba(0,0,0,0.2);
                     border: 2px solid rgba(194,65,12, 0.2);
                     z-index: 100000; 
@@ -201,7 +202,7 @@ export default function UserCard() {
 
                 .dropdown-link-g {
                     display: flex; align-items: center; gap: 15px;
-                    padding: 16px 20px; border-radius: 20px;
+                    padding: 16px 20px; border-radius: 14px;
                     font-size: 16px; font-weight: 900; color: #475569;
                     cursor: pointer; transition: 0.3s; direction: rtl;
                 }
@@ -215,7 +216,7 @@ export default function UserCard() {
                 .imperial-divider { height: 2px; background: #f1f5f9; margin: 15px 0; border-radius: 10px; }
                 .skeleton-grand { width: 250px; height: 80px; background: rgba(226, 232, 240, 0.5); border-radius: 100px; animation: pulse 2s infinite; }
 
-                /* 📱 تجاوب الموبايل (إخفاء النص في الشاشات الصغيرة وترك الصورة المضيئة فقط) */
+                /* تجاوب الموبايل (إخفاء النص في الشاشات الصغيرة وترك الصورة المضيئة فقط) */
                 @media (max-width: 768px) {
                     .hidden-on-mobile-text { display: none !important; }
                     .imperial-trigger { padding: 5px; gap: 0; }

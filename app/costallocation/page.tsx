@@ -38,10 +38,10 @@ export default function CostAllocationPage() {
                 <CompactCell justify="flex-start">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
                         <span style={{ fontWeight: 900, color: '#1e293b', fontSize: '12px' }}>
-                            🏢 {row["اسم الفيلا المحمل عليها"] || 'عام/غير موزع'}
+                            {row["اسم الفيلا المحمل عليها"] || 'عام/غير موزع'}
                         </span>
                         <span style={{ fontSize: '10.5px', color: '#c2410c', fontWeight: 800 }}>
-                            📋 بند: {row["البند المحمل عليه"] || 'مصروف عام (لم يوجه لبند)'}
+                            بند: {row["البند المحمل عليه"] || 'مصروف عام (لم يوجه لبند)'}
                         </span>
                     </div>
                 </CompactCell>
@@ -83,18 +83,18 @@ export default function CostAllocationPage() {
                 summary={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div className="summary-glass-box">
-                            <span style={{fontSize:'11px', fontWeight:800, color:'#64748b'}}>إجمالي المبالغ الموزعة 💰</span>
+                            <span style={{fontSize:'11px', fontWeight:800, color:'#64748b'}}>إجمالي المبالغ الموزعة</span>
                             <div style={{fontSize:'20px', fontWeight:900, color: '#16a34a', marginTop:'4px'}}>{formatCurrency(logic.totalAllocatedAmount)}</div>
                         </div>
                         <div className="summary-glass-box">
-                            <span style={{fontSize:'11px', fontWeight:800, color:'#64748b'}}>عدد القيود المحملة 📊</span>
+                            <span style={{fontSize:'11px', fontWeight:800, color:'#64748b'}}>عدد القيود المحملة</span>
                             <div style={{fontSize:'22px', fontWeight:900, color: THEME.primary, marginTop:'4px'}}>{logic.filteredData.length} قيد</div>
                         </div>
                     </div>
                 }
                 actions={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: 'white', display: 'block' }}>📅 تصفية بحسب الشهر المالي</label>
+                        <label style={{ fontSize: '12px', fontWeight: 900, color: 'white', display: 'block' }}>تصفية بحسب الشهر المالي</label>
                         <select 
                             value={logic.selectedMonth} 
                             onChange={(e) => logic.setSelectedMonth(e.target.value)} 
@@ -111,7 +111,7 @@ export default function CostAllocationPage() {
             />
 
             <style>{`
-                /* 🚀 تنسيقات الشاشة الاحترافية المدمجة */
+                /* تنسيقات الشاشة الاحترافية المدمجة */
                 .compact-table-holder {
                     width: 100%; overflow-x: hidden !important; zoom: 0.82; background: white; border-radius: 16px;
                     box-shadow: 0 4px 20px rgba(0,0,0,0.02); padding: 8px;

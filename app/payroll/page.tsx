@@ -29,7 +29,7 @@ export default function PayrollPage() {
       disabled={logic.isSaving || logic.isLoading}
       style={{ padding: '12px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', fontWeight: '900', cursor: logic.isSaving ? 'not-allowed' : 'pointer', width: '100%', opacity: logic.isSaving ? 0.7 : 1, marginBottom: '8px', boxShadow: '0 4px 6px rgba(37,99,235,0.2)' }}
     >
-      🔄 مزامنة (يوميات، غرامات، مسحوبات)
+      مزامنة (يوميات، غرامات، مسحوبات)
     </button>,
     
     <button 
@@ -37,7 +37,7 @@ export default function PayrollPage() {
       onClick={() => window.print()}
       style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.border}`, background: THEME.slate, color: THEME.textMain, fontWeight: 'bold', cursor: 'pointer', width: '100%', marginBottom: '8px' }}
     >
-      🖨️ طباعة المسير الرسمي
+      طباعة المسير الرسمي
     </button>,
 
     <button 
@@ -45,7 +45,7 @@ export default function PayrollPage() {
       onClick={logic.exportToExcel}
       style={{ padding: '12px', borderRadius: '8px', border: `1px solid ${THEME.border}`, background: THEME.slate, color: THEME.textMain, fontWeight: 'bold', cursor: 'pointer', width: '100%', marginBottom: '15px' }}
     >
-      📊 تصدير Excel
+      تصدير Excel
     </button>,
 
     <button 
@@ -54,7 +54,7 @@ export default function PayrollPage() {
       disabled={logic.isSaving || logic.isLoading}
       style={{ padding: '12px', borderRadius: '8px', border: 'none', background: THEME.success, color: 'white', fontWeight: 'bold', cursor: logic.isSaving ? 'not-allowed' : 'pointer', width: '100%', opacity: logic.isSaving ? 0.7 : 1, marginBottom: '8px' }}
     >
-      {logic.isSaving ? '⏳ جاري الحفظ...' : '💾 حفظ المسير بالسجلات'}
+      {logic.isSaving ? 'جاري الحفظ...' : 'حفظ المسير بالسجلات'}
     </button>,
 
     <button 
@@ -63,11 +63,11 @@ export default function PayrollPage() {
       disabled={logic.isSaving || logic.isLoading}
       style={{ padding: '12px', borderRadius: '8px', border: 'none', background: THEME.accent, color: 'white', fontWeight: 'bold', cursor: logic.isSaving ? 'not-allowed' : 'pointer', width: '100%', opacity: logic.isSaving ? 0.7 : 1 }}
     >
-      📝 ترحيل الرواتب الشهرية المختارة
+      ترحيل الرواتب الشهرية المختارة
     </button>,
     <button key="unpost_payroll" onClick={logic.unpostFromJournal} disabled={logic.isSaving || logic.isLoading}
       style={{ padding: '12px', borderRadius: '8px', border: '1px solid #f59e0b', background: 'white', color: '#92400e', fontWeight: 'bold', width: '100%', marginTop: '8px', cursor: 'pointer' }}>
-      ↩️ فك ترحيل الرواتب الشهرية المختارة
+      فك ترحيل الرواتب الشهرية المختارة
     </button>
   ], [logic.isSaving, logic.isLoading, logic.importLaborLogs, logic.exportToExcel, logic.savePayrollToDB, logic.postToJournal, logic.unpostFromJournal]);
 
@@ -182,14 +182,14 @@ export default function PayrollPage() {
       render: (row: any) => {
         if (!row) return null;
         return (
-          <div style={{ fontWeight: '900', color: THEME.accent, fontSize: '14px', background: THEME.primary, padding: '4px 8px', borderRadius: '6px', textAlign: 'center' }}>
+          <div style={{ fontWeight: '900', color: 'white', fontSize: '14px', background: THEME.primary, padding: '4px 8px', borderRadius: '6px', textAlign: 'center' }}>
             {formatCurrency(row.net_salary)}
           </div>
         );
       }
     },
     {
-      header: 'المبلغ للصرف 💵 (-)', // توضيح إن دي الخصم من الرصيد
+      header: 'المبلغ للصرف (-)', // توضيح إن دي الخصم من الرصيد
       accessor: 'amount_to_pay',
       render: (row: any) => {
         if (!row) return null;
@@ -231,7 +231,7 @@ export default function PayrollPage() {
              style={{ border: `1px solid ${THEME.border}`, borderRadius: '6px', padding: '4px', fontWeight: 'bold', color: row.status === 'مدفوع' ? THEME.success : THEME.textMuted }}
           >
              <option value="غير مدفوع">غير مدفوع</option>
-             <option value="مدفوع">✅ مدفوع</option>
+             <option value="مدفوع">مدفوع</option>
           </select>
         );
       }
@@ -271,7 +271,7 @@ export default function PayrollPage() {
         <div style={{ flex: 1, overflowX: 'auto' }}>
           
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center', background: 'white', padding: '15px 20px', borderRadius: '12px', marginBottom: '20px', border: `1px solid ${THEME.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: '15px', minWidth: '130px' }}>📅 خيارات المسير:</div>
+            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: '15px', minWidth: '130px' }}>خيارات المسير:</div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: THEME.slate, padding: '5px 15px', borderRadius: '8px' }}>
               <label style={{ fontSize: '13px', color: THEME.textMuted, fontWeight: 'bold' }}>تاريخ قطع المسحوبات:</label>
@@ -299,7 +299,7 @@ export default function PayrollPage() {
                 boxShadow: logic.filterActiveOnly ? '0 2px 4px rgba(5,150,105,0.2)' : 'none'
               }}
             >
-              {logic.filterActiveOnly ? '✔️ عرض العمال النشطين فقط' : '👷 فلترة العمال النشطين (الذين عملوا)'}
+              {logic.filterActiveOnly ? 'عرض العمال النشطين فقط' : 'فلترة العمال النشطين (الذين عملوا)'}
             </button>
 
             <div style={{ flex: 1, minWidth: '300px' }}>
@@ -313,20 +313,20 @@ export default function PayrollPage() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginBottom: '25px' }}>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '12px', borderBottom: `4px solid ${THEME.primary}`, boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+            <div className="ent-summary-card" style={{ borderBottom: `4px solid ${THEME.primary}` }}>
               <div style={{ fontSize: '13px', color: THEME.textMuted, fontWeight: 'bold' }}>الكوادر المعروضة</div>
               <div style={{ fontSize: '24px', fontWeight: '900', color: THEME.primary }}>{logic.filteredRecords.length}</div>
             </div>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '12px', borderBottom: `4px solid ${THEME.primary}`, boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+            <div className="ent-summary-card" style={{ borderBottom: `4px solid ${THEME.primary}` }}>
               <div style={{ fontSize: '13px', color: THEME.textMuted, fontWeight: 'bold' }}>إجمالي الاستحقاقات (الأساسي)</div>
               <div style={{ fontSize: '24px', fontWeight: '900', color: THEME.primary }}>{formatCurrency(logic.totals.current_net + logic.totals.deductions + logic.totals.extended_advances)}</div>
             </div>
-            <div style={{ background: 'white', padding: '20px', borderRadius: '12px', borderBottom: `4px solid ${THEME.ruby}`, boxShadow: '0 4px 6px rgba(0,0,0,0.02)' }}>
+            <div className="ent-summary-card" style={{ borderBottom: `4px solid ${THEME.ruby}` }}>
               <div style={{ fontSize: '13px', color: THEME.textMuted, fontWeight: 'bold' }}>إجمالي الخصم والمسحوبات</div>
               <div style={{ fontSize: '24px', fontWeight: '900', color: THEME.ruby }}>{formatCurrency(logic.totals.deductions + logic.totals.extended_advances)}</div>
             </div>
-            <div style={{ background: THEME.success, color: 'white', padding: '20px', borderRadius: '12px', borderBottom: `4px solid ${THEME.accent}`, boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-              <div style={{ fontSize: '13px', color: '#ecfdf5', fontWeight: 'bold' }}>إجمالي المراد صرفه فعلياً 💵</div>
+            <div className="ent-summary-card ent-payroll-total" style={{ borderBottom: `4px solid ${THEME.accent}` }}>
+              <div style={{ fontSize: '13px', color: '#047857', fontWeight: 'bold' }}>إجمالي المراد صرفه فعلياً</div>
               <div style={{ fontSize: '24px', fontWeight: '900' }}>{formatCurrency(logic.totals.amount_to_pay || 0)}</div>
             </div>
           </div>

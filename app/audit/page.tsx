@@ -4,6 +4,8 @@ import MasterPage from '@/components/MasterPage';
 import { useAdvancedAuditLogic } from './audit_logic';
 import { THEME } from '@/lib/theme';
 import LoadingScreen from '@/components/LoadingScreen';
+import { Siren, Scale, Ghost, Link, PartyPopper } from 'lucide-react';
+import PhiIcon from '@/components/PhiIcon';
 
 export default function AccountingAuditPage() {
     const logic = useAdvancedAuditLogic();
@@ -56,7 +58,7 @@ export default function AccountingAuditPage() {
 
     // 🗑️ معالج الحذف الجماعي للعناصر المحددة
     const handleBulkDelete = async () => {
-        if (confirm(`⚠️ هل أنت متأكد من الحذف النهائي لـ (${selectedIds.length}) من السجلات والتشوهات المحددة؟`)) {
+        if (confirm(`هل أنت متأكد من الحذف النهائي لـ (${selectedIds.length}) من السجلات والتشوهات المحددة؟`)) {
             try {
                 await logic.bulkDelete();
                 setSelectedIds([]); 
@@ -72,11 +74,11 @@ export default function AccountingAuditPage() {
                 .audit-stat-card { background: white; border-radius: 16px; padding: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; transition: 0.3s; }
                 .audit-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.05); }
                 
-                /* 🚀 تم تعديل التقسيمة هنا لتشمل 7 أعمدة بدلاً من 6 */
+                /* تم تعديل التقسيمة هنا لتشمل 7 أعمدة بدلاً من 6 */
                 .err-row { display: grid; grid-template-columns: 40px 40px 1fr 1.6fr 1.8fr 1fr 1.2fr; gap: 15px; align-items: center; padding: 15px; border-bottom: 1px dashed #e2e8f0; transition: 0.2s; }
                 .err-row:hover { background: #f8fafc; }
                 
-                .section-container { background: white; border-radius: 20px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 30px; }
+                .section-container { background: white; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 30px; }
                 .section-header { padding: 15px 20px; color: white; display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 16px; }
                 
                 .audit-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: ${THEME.primary || '#3b82f6'}; }
@@ -90,16 +92,16 @@ export default function AccountingAuditPage() {
             {/* 📊 الإحصائيات العلوية */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '30px' }}>
                 <div className="audit-stat-card">
-                    <div><h3 style={{ margin: '0 0 5px 0', color: THEME.primary || '#3b82f6', fontSize: '26px' }}>{logic.stats.total}</h3><p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#64748b' }}>إجمالي التشوهات</p></div><div style={{ fontSize: '32px' }}>🚨</div>
+                    <div><h3 style={{ margin: '0 0 5px 0', color: THEME.primary || '#3b82f6', fontSize: '26px' }}>{logic.stats.total}</h3><p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#64748b' }}>إجمالي التشوهات</p></div><div style={{ fontSize: '32px' }}><Siren size={27} aria-hidden="true" /></div>
                 </div>
                 <div className="audit-stat-card">
-                    <div><h3 style={{ margin: '0 0 5px 0', color: '#ef4444', fontSize: '26px' }}>{logic.stats.unbalanced}</h3><p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#64748b' }}>قيود غير متزنة</p></div><div style={{ fontSize: '32px' }}>⚖️</div>
+                    <div><h3 style={{ margin: '0 0 5px 0', color: '#ef4444', fontSize: '26px' }}>{logic.stats.unbalanced}</h3><p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#64748b' }}>قيود غير متزنة</p></div><div style={{ fontSize: '32px' }}><Scale size={27} aria-hidden="true" /></div>
                 </div>
                 <div className="audit-stat-card">
-                    <div><h3 style={{ margin: '0 0 5px 0', color: '#8b5cf6', fontSize: '26px' }}>{logic.stats.ghosts}</h3><p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#64748b' }}>سجلات شبح</p></div><div style={{ fontSize: '32px' }}>👻</div>
+                    <div><h3 style={{ margin: '0 0 5px 0', color: '#8b5cf6', fontSize: '26px' }}>{logic.stats.ghosts}</h3><p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#64748b' }}>سجلات شبح</p></div><div style={{ fontSize: '32px' }}><Ghost size={27} aria-hidden="true" /></div>
                 </div>
                 <div className="audit-stat-card">
-                    <div><h3 style={{ margin: '0 0 5px 0', color: '#f59e0b', fontSize: '26px' }}>{logic.stats.brokenRef}</h3><p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#64748b' }}>بيانات مفقودة</p></div><div style={{ fontSize: '32px' }}>🔗</div>
+                    <div><h3 style={{ margin: '0 0 5px 0', color: '#f59e0b', fontSize: '26px' }}>{logic.stats.brokenRef}</h3><p style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: '#64748b' }}>بيانات مفقودة</p></div><div style={{ fontSize: '32px' }}><Link size={27} aria-hidden="true" /></div>
                 </div>
             </div>
 
@@ -107,7 +109,7 @@ export default function AccountingAuditPage() {
             <div style={{ background: 'white', padding: '15px 25px', borderRadius: '16px', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '15px' }}>
                 <input 
                     type="text" 
-                    placeholder="🔍 ابحث في تفاصيل المشكلة، التوجيه، الجهة، أو ID..." 
+                    placeholder="ابحث في تفاصيل المشكلة، التوجيه، الجهة، أو ID..." 
                     value={logic.searchQuery}
                     onChange={(e) => logic.setSearchQuery(e.target.value)}
                     style={{ padding: '12px 20px', borderRadius: '10px', border: '2px solid #f1f5f9', outline: 'none', width: '380px', fontWeight: 700, fontSize: '14px' }}
@@ -119,21 +121,21 @@ export default function AccountingAuditPage() {
                             disabled={logic.isBulkDeleting}
                             style={{ background: '#ef4444', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', animation: 'fadeIn 0.2s', display: 'flex', alignItems: 'center', gap: '8px' }}
                         >
-                            🗑️ {logic.isBulkDeleting ? 'جاري الحذف...' : `حذف المحدد (${selectedIds.length})`}
+                            {logic.isBulkDeleting ? 'جاري الحذف...' : `حذف المحدد (${selectedIds.length})`}
                         </button>
                     )}
                     
                     {/* 🚀 الزرار الجديد: تطهير القيود الصفرية */}
                     <button 
-                        onClick={() => confirm('⚠️ هل أنت متأكد من مسح كافة القيود الصفرية والعمياء من قاعدة البيانات؟') && logic.cleanZeroLines()} 
+                        onClick={() => confirm('هل أنت متأكد من مسح كافة القيود الصفرية والعمياء من قاعدة البيانات؟') && logic.cleanZeroLines()} 
                         disabled={logic.isCleaningZeroLines}
                         style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '10px', fontWeight: 900, cursor: logic.isCleaningZeroLines ? 'not-allowed' : 'pointer', opacity: logic.isCleaningZeroLines ? 0.7 : 1, transition: '0.2s' }}
                     >
-                        {logic.isCleaningZeroLines ? '⏳ جاري التنظيف...' : '🧹 تطهير القيود الصفرية'}
+                        {logic.isCleaningZeroLines ? 'جاري التنظيف...' : 'تطهير القيود الصفرية'}
                     </button>
 
-                    <button onClick={logic.exportToExcel} style={{ background: '#10b981', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer' }}>📥 تصدير التقرير</button>
-                    <button onClick={() => { logic.refetch(); setSelectedIds([]); setCurrentPage(1); }} style={{ background: THEME.primary || '#3b82f6', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer' }}>🔄 تحديث الرادار</button>
+                    <button onClick={logic.exportToExcel} style={{ background: '#10b981', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer' }}>تصدير التقرير</button>
+                    <button onClick={() => { logic.refetch(); setSelectedIds([]); setCurrentPage(1); }} style={{ background: THEME.primary || '#3b82f6', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer' }}>تحديث الرادار</button>
                 </div>
             </div>
 
@@ -141,8 +143,8 @@ export default function AccountingAuditPage() {
             {logic.isLoading ? (
                 <LoadingScreen message="جاري الفحص الشامل للدفاتر..." fullScreen={false} />
             ) : logic.errors.length === 0 ? (
-                <div style={{ padding: '60px', textAlign: 'center', background: 'white', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-                    <div style={{ fontSize: '60px', marginBottom: '15px' }}>🎉</div>
+                <div style={{ padding: '60px', textAlign: 'center', background: 'white', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
+                    <div style={{ fontSize: '60px', marginBottom: '15px' }}><PartyPopper size={40} aria-hidden="true" /></div>
                     <h2 style={{ color: '#16a34a', margin: 0, fontWeight: 900 }}>الدفاتر متزنة وقاعدة البيانات نظيفة 100%</h2>
                     <p style={{ color: '#64748b', marginTop: '10px', fontWeight: 700 }}>لم يتم اكتشاف أي تشوهات محاسبية أو مراجع مفقودة.</p>
                 </div>
@@ -160,7 +162,7 @@ export default function AccountingAuditPage() {
                             return (
                                 <div key={cat.id} className="section-container">
                                     <div className="section-header" style={{ background: cat.color }}>
-                                        <span>{cat.icon}</span> {cat.title} ({catErrors.length})
+                                        <PhiIcon value={cat.icon} size={18} /> {cat.title} ({catErrors.length})
                                     </div>
                                     {/* 🚀 تم تعديل التقسيمة هنا أيضاً لتتطابق مع الـ err-row */}
                                     <div style={{ background: '#f8fafc', padding: '12px 15px', display: 'grid', gridTemplateColumns: '40px 40px 1fr 1.6fr 1.8fr 1fr 1.2fr', gap: '15px', fontWeight: 900, color: '#475569', fontSize: '13px', borderBottom: '1px solid #e2e8f0', alignItems: 'center' }}>
@@ -203,7 +205,7 @@ export default function AccountingAuditPage() {
                                                 {/* 👤 عرض العميل / المقاول / المستفيد */}
                                                 {err.info_party && (
                                                     <div style={{ fontSize: '12px', color: '#1e293b', fontWeight: 800, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                        👤 <span style={{ color: '#64748b' }}>الجهة:</span> {err.info_party}
+                                                        <span style={{ color: '#64748b' }}>الجهة:</span> {err.info_party}
                                                     </div>
                                                 )}
 
@@ -219,7 +221,7 @@ export default function AccountingAuditPage() {
                                                 {/* 📝 عرض البيان / وصف الفاتورة أو المصروف الاصلية */}
                                                 {err.info_description && (
                                                     <div style={{ background: '#f1f5f9', padding: '6px 10px', borderRadius: '8px', fontSize: '12px', color: '#64748b', marginTop: '6px', borderRight: `3px solid ${cat.color}`, fontWeight: 600 }}>
-                                                        📝 البيان الأصلي: {err.info_description}
+                                                        البيان الأصلي: {err.info_description}
                                                     </div>
                                                 )}
                                             </div>
@@ -241,13 +243,13 @@ export default function AccountingAuditPage() {
                                                     <button 
                                                         onClick={() => logic.autoBalance(err.header_id, err.diff_amount)} 
                                                         style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 900, fontSize: '12px', cursor: 'pointer', transition: '0.2s' }}
-                                                    >موازنة ⚖️</button>
+                                                    >موازنة</button>
                                                 )}
                                                 <button 
                                                     onClick={() => confirm('هل أنت متأكد من الحذف النهائي لتنظيف السجل؟') && logic.deleteError(err.error_id, err.table_name)} 
                                                     disabled={logic.isDeleting}
                                                     style={{ background: '#ef4444', color: 'white', border: 'none', padding: '8px 14px', borderRadius: '8px', fontWeight: 900, fontSize: '12px', cursor: 'pointer', opacity: logic.isDeleting ? 0.5 : 1, transition: '0.2s' }}
-                                                >حذف 🗑️</button>
+                                                >حذف</button>
                                             </div>
                                         </div>
                                     ))}

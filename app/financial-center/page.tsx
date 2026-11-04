@@ -71,8 +71,8 @@ export default function FinancialCenter() {
     ),
     actions: (
       <div className="sidebar-action-stack">
-          <button className="btn-air-primary" onClick={refreshCore}>RE-SYNC ASSETS 🔄</button>
-          <button className="btn-air-outline" onClick={() => window.print()}>EXPORT_LEDGER 📑</button>
+          <button className="btn-air-primary" onClick={refreshCore}>RE-SYNC ASSETS</button>
+          <button className="btn-air-outline" onClick={() => window.print()}>EXPORT_LEDGER</button>
       </div>
     )
   }), [refreshCore]);
@@ -177,13 +177,13 @@ export default function FinancialCenter() {
           .theatre-layout { display: flex; gap: 40px; position: relative; z-index: 5; margin-top: 25px; }
           .main-stage { flex: 1; animation: airEnter 1s cubic-bezier(0.16, 1, 0.3, 1); }
 
-          /* 💎 Hero Vault (Air Glass Architecture) */
+          /* Hero Vault (Air Glass Architecture) */
           .hero-vault-air {
-            background: rgba(255, 255, 255, 0.02); /* 👈 شفافية شبه كاملة */
-            backdrop-filter: blur(120px) saturate(250%); /* 👈 بلور فائق مع تشبع عالٍ */
+            background: rgba(255, 255, 255, 0.02); /* شفافية شبه كاملة */
+            backdrop-filter: blur(120px) saturate(250%); /* بلور فائق مع تشبع عالٍ */
             -webkit-backdrop-filter: blur(120px) saturate(250%);
             border-radius: 50px; padding: 80px 60px;
-            border: 1px solid rgba(255, 255, 255, 0.25); /* 👈 حدود خيطية */
+            border: 1px solid rgba(255, 255, 255, 0.25); /* حدود خيطية */
             box-shadow: 0 40px 100px rgba(0,0,0,0.01);
             position: relative; overflow: hidden; margin-bottom: 40px;
           }
@@ -201,11 +201,11 @@ export default function FinancialCenter() {
 
           .matrix-layout-grid { display: grid; grid-template-columns: 1.6fr 1fr; gap: 30px; }
 
-          /* 🖥️ Command Terminal (Ghost/Smoke Glass) */
+          /* Command Terminal (Ghost/Smoke Glass) */
           .glass-terminal {
             background: rgba(255, 255, 255, 0.02);
             backdrop-filter: blur(80px);
-            border-radius: 40px; padding: 40px; border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px; padding: 40px; border: 1px solid rgba(255, 255, 255, 0.15);
           }
           .terminal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid rgba(0,0,0,0.03); padding-bottom: 15px; }
           .nav-dots span { width: 8px; height: 8px; border-radius: 50%; background: rgba(0,0,0,0.05); display: inline-block; margin-right: 5px; }
@@ -219,11 +219,11 @@ export default function FinancialCenter() {
           .line-val { margin-right: auto; font-weight: 800; color: #1d1d1f; }
           .terminal-cursor { color: #34c759; animation: appleBlink 1s infinite; }
 
-          /* 📊 Matrix Side Tiles (Liquid Transparency) */
+          /* Matrix Side Tiles (Liquid Transparency) */
           .matrix-tile { 
             background: rgba(255, 255, 255, 0.05); 
             backdrop-filter: blur(60px) saturate(180%);
-            border-radius: 35px; padding: 35px; 
+            border-radius: 14px; padding: 35px; 
             border: 1px solid rgba(255, 255, 255, 0.2);
             transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); margin-bottom: 25px;
           }
@@ -233,16 +233,16 @@ export default function FinancialCenter() {
           .num.success { color: #34c759; }
           .num.danger { color: #ff3b30; }
 
-          /* 🔘 Sovereign Buttons (High Contrast Glass) */
+          /* Sovereign Buttons (High Contrast Glass) */
           .btn-air-primary { 
             background: rgba(29, 29, 31, 0.9); 
             backdrop-filter: blur(20px);
-            color: #fff; border: none; padding: 22px; border-radius: 24px; font-weight: 900; font-size: 13px; letter-spacing: 2px; cursor: pointer; transition: 0.4s; 
+            color: #fff; border: none; padding: 22px; border-radius: 14px; font-weight: 900; font-size: 13px; letter-spacing: 2px; cursor: pointer; transition: 0.4s; 
           }
           .btn-air-primary:hover { transform: translateY(-3px); background: #000; box-shadow: 0 15px 30px rgba(0,0,0,0.2); }
-          .btn-air-outline { background: rgba(255, 255, 255, 0.1); color: #1d1d1f; border: 1px solid rgba(0,0,0,0.1); padding: 22px; border-radius: 24px; font-weight: 800; cursor: pointer; margin-top: 15px; }
+          .btn-air-outline { background: rgba(255, 255, 255, 0.1); color: #1d1d1f; border: 1px solid rgba(0,0,0,0.1); padding: 22px; border-radius: 14px; font-weight: 800; cursor: pointer; margin-top: 15px; }
 
-          .air-status-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); padding: 30px; border-radius: 30px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2); }
+          .air-status-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(20px); padding: 30px; border-radius: 14px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2); }
           .status-ping { width: 40px; height: 40px; position: relative; margin: 0 auto 15px; }
           .ping-ring { position: absolute; width: 100%; height: 100%; border: 2px solid #34c759; border-radius: 50%; animation: sovereignPing 2s infinite; }
           .ping-core { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 12px; height: 12px; background: #34c759; border-radius: 50%; box-shadow: 0 0 15px #34c759; }

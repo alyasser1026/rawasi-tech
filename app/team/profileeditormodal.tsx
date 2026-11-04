@@ -5,6 +5,8 @@ import { THEME } from '@/lib/theme';
 import { useToast } from '@/lib/toast-context'; 
 import SmartCombo from '@/components/SmartCombo'; 
 import { adminUsersRequest } from '@/lib/admin-api';
+import { Lock } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 interface ProfileEditorModalProps {
     isOpen: boolean;
@@ -146,7 +148,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
         const isNewUser = !record?.id;
 
         if (isNewUser && (!form.email || !form.password)) {
-            alert("❌ يجب إدخال البريد الإلكتروني وكلمة المرور للمستخدم الجديد.");
+            notify("يجب إدخال البريد الإلكتروني وكلمة المرور للمستخدم الجديد.");
             return;
         }
 
@@ -173,67 +175,67 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                 throw new Error(result.error || 'حدث خطأ غير معروف');
             }
             
-            showToast(`✅ تم ${isNewUser ? 'إنشاء' : 'تحديث'} بيانات "${form.full_name}" بنجاح!`, "success");
+            showToast(`تم ${isNewUser ? 'إنشاء' : 'تحديث'} بيانات "${form.full_name}" بنجاح!`, "success");
             onSave(); 
             
         } catch (error: any) {
             console.error("❌ API Error:", error);
-            alert(`❌ عذراً، تعذر الحفظ!\nالسبب: ${error.message}`);
+            notify(`عذراً، تعذر الحفظ!\nالسبب: ${error.message}`);
         } finally {
             setIsSaving(false);
         }
     };
 
     const moduleNames: any = {
-        global_summary: '📊 الملخص العام',
-        dashboard: '🖥️ لوحة القيادة',
-        financial_center: '🏦 المركز المالي',
-        financial_statements: '🏛️ القوائم المالية',
-        accounts: '🗂️ دليل الحسابات',
-        journal: '📝 قيود اليومية',
-        ledger: '📒 دفتر الأستاذ',
-        trialbalance: '⚖️ ميزان المراجعة',
-        journal_errors: '🛡️ رادار الأخطاء',
-        cashflows: '🔄 التدفقات النقدية',
-        payments: '🔴 سندات الصرف',
-        receipts: '🟢 سندات القبض',
-        revenue: '📈 الإيرادات',
-        expenses: '📉 المصروفات',
-        invoices: '🧾 الفواتير ومطالبات العملاء',
-        fieldops: '📡 العمليات الميدانية',
-        job_orders: '🛠️ أوامر الشغل',
-        projects: '🏗️ غرفة المشاريع',
-        materials: '🧱 توريد الخامات',
-        materialitems: '📦 أصناف الخامات',
-        material_issues: '🚚 صرف الخامات للمواقع',
-        subclaims: '📑 مستخلصات مقاولي الباطن',
-        subcontractor_costs: '💵 تكاليف مقاولي الباطن',
-        boqcatalog: '📚 الدليل الموحد للبنود (BOQ)',
-        partners: '🤝 دليل الشركاء',
-        partner_balances: '⚖️ أرصدة الشركاء',
-        statement: '📑 كشف حساب الشركاء',
-        project_overhead: '🦅 تحميل الأوفر هيد',
-        boqbudget: '💼 ميزانية المقايسات',
-        costallocation: '🧮 محرك توزيع التكاليف',
-        project_ledger: '📋 دفتر التكاليف',
-        employees: '👔 سجل الموظفين',
-        team: '👥 إدارة فرق العمل',
-        labor_logs: '👷 يوميات الميدان',
-        laborcost: '💰 تكاليف العمالة الميدانية',
-        payroll: '💵 مسيرات الرواتب',
-        violations: '⚠️ المخالفات والجزاءات',
-        reports: '📊 التقارير الشاملة',
-        audit_logs: '🕵️ سجل المراقبة (Audit)',
-        import: '📥 استيراد البيانات',
-        settings: '⚙️ إعدادات النظام',
-        profile: '👤 الملف الشخصي'
+        global_summary: 'الملخص العام',
+        dashboard: 'لوحة القيادة',
+        financial_center: 'المركز المالي',
+        financial_statements: 'القوائم المالية',
+        accounts: 'دليل الحسابات',
+        journal: 'قيود اليومية',
+        ledger: 'دفتر الأستاذ',
+        trialbalance: 'ميزان المراجعة',
+        journal_errors: 'رادار الأخطاء',
+        cashflows: 'التدفقات النقدية',
+        payments: 'سندات الصرف',
+        receipts: 'سندات القبض',
+        revenue: 'الإيرادات',
+        expenses: 'المصروفات',
+        invoices: 'الفواتير ومطالبات العملاء',
+        fieldops: 'العمليات الميدانية',
+        job_orders: 'أوامر الشغل',
+        projects: 'غرفة المشاريع',
+        materials: 'توريد الخامات',
+        materialitems: 'أصناف الخامات',
+        material_issues: 'صرف الخامات للمواقع',
+        subclaims: 'مستخلصات مقاولي الباطن',
+        subcontractor_costs: 'تكاليف مقاولي الباطن',
+        boqcatalog: 'الدليل الموحد للبنود (BOQ)',
+        partners: 'دليل الشركاء',
+        partner_balances: 'أرصدة الشركاء',
+        statement: 'كشف حساب الشركاء',
+        project_overhead: 'تحميل الأوفر هيد',
+        boqbudget: 'ميزانية المقايسات',
+        costallocation: 'محرك توزيع التكاليف',
+        project_ledger: 'دفتر التكاليف',
+        employees: 'سجل الموظفين',
+        team: 'إدارة فرق العمل',
+        labor_logs: 'يوميات الميدان',
+        laborcost: 'تكاليف العمالة الميدانية',
+        payroll: 'مسيرات الرواتب',
+        violations: 'المخالفات والجزاءات',
+        reports: 'التقارير الشاملة',
+        audit_logs: 'سجل المراقبة (Audit)',
+        import: 'استيراد البيانات',
+        settings: 'إعدادات النظام',
+        profile: 'الملف الشخصي'
     };
 
     const isNewUser = !record?.id;
 
     const modalContent = (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(10px)' }} onClick={onClose} />
+        <div className="phi-modal-backdrop" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="phi-modal-scrim" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(10px)' }} onClick={onClose} />
 
             <style>{`
                 @keyframes scaleUp {
@@ -241,12 +243,12 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                     100% { opacity: 1; transform: scale(1) translateY(0); }
                 }
                 .profile-modal-box {
-                    background: #ffffff; border-radius: 32px; width: 1000px; max-width: 95vw; max-height: 90vh;
+                    background: #ffffff; border-radius: 14px; width: 1000px; max-width: 95vw; max-height: 90vh;
                     display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.5);
                     direction: rtl; position: relative; z-index: 10; animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                     border: 1px solid rgba(255,255,255,0.2);
                 }
-                .module-card { background: #f8fafc; border-radius: 20px; padding: 22px; margin-bottom: 15px; border: 1px solid #e2e8f0; transition: 0.3s; }
+                .module-card { background: #f8fafc; border-radius: 14px; padding: 22px; margin-bottom: 15px; border: 1px solid #e2e8f0; transition: 0.3s; }
                 .module-card:hover { border-color: ${THEME.primary}; background: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
                 .perm-btn { padding: 10px 18px; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; border: 2px solid #e2e8f0; background: white; color: #64748b; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
                 .perm-btn:hover { border-color: #cbd5e1; color: #1e293b; }
@@ -265,7 +267,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                 <div style={{ padding: '30px 40px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', flexShrink: 0 }}>
                     <div>
                         <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: '24px', letterSpacing: '-0.5px' }}>
-                            {isNewUser ? '➕ إضافة مستخدم جديد' : '🛡️ إعدادات حساب المستخدم'}
+                            {isNewUser ? 'إضافة مستخدم جديد' : 'إعدادات حساب المستخدم'}
                         </h2>
                         <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>إدارة وصول المستخدم: <b style={{color: '#1e293b', fontSize: '14px'}}>{form.full_name || 'مستخدم جديد'}</b></p>
                     </div>
@@ -275,7 +277,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                 <div className="cinematic-scroll" style={{ overflowY: 'auto', padding: '30px 40px', flex: 1, background: '#ffffff' }}>
                     
                     {/* بيانات المصادقة والملف الشخصي */}
-                    <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0', marginBottom: '30px' }}>
+                    <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '30px' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <h3 style={{ margin: 0, fontWeight: 900, color: '#0f172a' }}>بيانات الحساب الأساسية</h3>
                             {!isNewUser && (
@@ -283,7 +285,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                                     onClick={() => setForm({...form, is_active: !form.is_active})}
                                     style={{ padding: '8px 16px', borderRadius: '12px', fontWeight: 900, border: 'none', cursor: 'pointer', background: form.is_active ? '#fee2e2' : '#dcfce7', color: form.is_active ? '#ef4444' : '#22c55e', transition: '0.3s' }}
                                 >
-                                    {form.is_active ? '🚫 إيقاف الحساب' : '✅ تنشيط الحساب'}
+                                    {form.is_active ? 'إيقاف الحساب' : 'تنشيط الحساب'}
                                 </button>
                             )}
                         </div>
@@ -313,16 +315,16 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                             <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>الرتبة (System Role)</label>
                             <select className="modal-input" style={{ cursor: 'pointer' }} value={form.role} onChange={e => setForm({...form, role: e.target.value})}>
                                 <optgroup label="الإدارة العليا">
-                                    <option value="super_admin">👑 سوبر أدمن (صلاحيات مطلقة)</option>
-                                    <option value="admin">🛡️ أدمن (إدارة المستخدمين)</option>
+                                    <option value="super_admin">سوبر أدمن (صلاحيات مطلقة)</option>
+                                    <option value="admin">أدمن (إدارة المستخدمين)</option>
                                 </optgroup>
                                 <optgroup label="التشغيل">
-                                    <option value="manager">💼 مدير نظام (عمليات مالية وإدارية)</option>
-                                    <option value="staff">👨‍💻 موظف (لوحة تحكم خاصة)</option>
+                                    <option value="manager">مدير نظام (عمليات مالية وإدارية)</option>
+                                    <option value="staff">موظف (لوحة تحكم خاصة)</option>
                                 </optgroup>
                                 <optgroup label="الخارج">
-                                    <option value="contractor">👷 مقاول (بوابة المقاولين)</option>
-                                    <option value="client">👤 عميل (بوابة العملاء)</option>
+                                    <option value="contractor">مقاول (بوابة المقاولين)</option>
+                                    <option value="client">عميل (بوابة العملاء)</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -340,7 +342,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px', borderBottom: '2px dashed #f1f5f9', paddingBottom: '15px' }}>
-                        <span style={{ fontSize: '20px' }}>🔐</span>
+                        <span style={{ fontSize: '20px' }}><Lock size={17} aria-hidden="true" /></span>
                         <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>مصفوفة الوصول المتقدمة</h3>
                     </div>
                     
@@ -354,13 +356,13 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                                     {Object.keys((form.permissions as any)[module]).map((action) => (
                                         <button key={action} onClick={() => togglePerm(module, action)} className={`perm-btn ${(form.permissions as any)[module][action] ? 'active' : ''}`}>
-                                            {action === 'view' ? '👁️ عرض' : 
-                                             action === 'create' ? '➕ إضافة' : 
-                                             action === 'edit' ? '📝 تعديل' : 
-                                             action === 'delete' ? '🗑️ حذف' : 
-                                             action === 'post' ? '🚀 ترحيل' : 
-                                             action === 'financial' ? '💰 مالي' : 
-                                             action === 'operational' ? '⚙️ تشغيلي' : action}
+                                            {action === 'view' ? 'عرض' : 
+                                             action === 'create' ? 'إضافة' : 
+                                             action === 'edit' ? 'تعديل' : 
+                                             action === 'delete' ? 'حذف' : 
+                                             action === 'post' ? 'ترحيل' : 
+                                             action === 'financial' ? 'مالي' : 
+                                             action === 'operational' ? 'تشغيلي' : action}
                                         </button>
                                     ))}
                                 </div>
@@ -372,13 +374,13 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                 <div style={{ padding: '25px 40px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '15px', background: 'white', flexShrink: 0 }}>
                     <button 
                         onClick={handleSave} disabled={isSaving}
-                        style={{ flex: 2, padding: '18px', borderRadius: '18px', border: 'none', background: THEME.primary, color: 'white', fontWeight: 900, fontSize: '16px', cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.primary}40`, transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                        style={{ flex: 2, padding: '18px', borderRadius: '14px', border: 'none', background: THEME.primary, color: 'white', fontWeight: 900, fontSize: '16px', cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.primary}40`, transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
                     >
-                        {isSaving ? '⏳ جاري الحفظ...' : '✅ اعتماد وحفظ التغييرات'}
+                        {isSaving ? 'جاري الحفظ...' : 'اعتماد وحفظ التغييرات'}
                     </button>
                     <button 
                         onClick={onClose} 
-                        style={{ flex: 1, padding: '18px', borderRadius: '18px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: '16px', transition: '0.3s' }}
+                        style={{ flex: 1, padding: '18px', borderRadius: '14px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: '16px', transition: '0.3s' }}
                     >
                         إلغاء
                     </button>

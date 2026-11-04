@@ -7,6 +7,7 @@ import { NAVIGATION_SHORTCUTS, searchWorkspacePages, workspacePages } from '@/li
 import { usePerformancePreferences } from './PerformancePreferences';
 import WorkspaceDialog from './WorkspaceDialog';
 import { Search, Zap, Keyboard } from 'lucide-react';
+import { MenuIcon } from './NavigationIcon';
 
 export default function GlobalNavigationShortcuts() {
   const router = useRouter();
@@ -90,7 +91,7 @@ export default function GlobalNavigationShortcuts() {
         {results.map((item, index) => <button type="button" className="workspace-search-result" id={`${resultId}-${index}`} key={item.id}
           role="option" aria-selected={index === activeIndex} onMouseEnter={() => setSelected(index)}
           onClick={() => { close(); router.push(item.path); }}>
-          <span className="workspace-result-icon" aria-hidden="true">{item.icon}</span>
+          <span className="workspace-result-icon" aria-hidden="true"><MenuIcon id={item.id} size={18} /></span>
           <span><strong>{item.title}</strong><small>{item.group}</small></span>
           <span aria-hidden="true">←</span>
         </button>)}

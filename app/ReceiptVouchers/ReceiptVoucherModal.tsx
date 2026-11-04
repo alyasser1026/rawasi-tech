@@ -87,7 +87,7 @@ const SmartCombo = ({ label, table, onSelect, placeholder, searchCols = 'name,co
             <input 
                 type="text" 
                 tabIndex={tabIndex}
-                placeholder={placeholder || '🔍 ابحث...'}
+                placeholder={placeholder || 'ابحث...'}
                 value={search} 
                 onChange={(e) => { setSearch(e.target.value); setShow(true); loadInitialData(e.target.value); }}
                 onFocus={() => { setShow(true); loadInitialData(search); }}
@@ -113,7 +113,7 @@ const SmartCombo = ({ label, table, onSelect, placeholder, searchCols = 'name,co
                                 );
                             })
                         ) : (
-                            <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: '#ef4444', fontWeight: 900 }}>🚫 لا توجد نتائج</div>
+                            <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: '#ef4444', fontWeight: 900 }}>لا توجد نتائج</div>
                         )}
                     </div>
                 </>
@@ -233,7 +233,7 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                     backdrop-filter: blur(25px);
                     border: 1px solid rgba(255, 255, 255, 0.8);
                     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
-                    border-radius: 28px;
+                    border-radius: 14px;
                     width: 100%;
                     max-width: 980px; 
                     padding: 40px;
@@ -280,9 +280,9 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                 .btn-cancel:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
             `}</style>
 
-            <div className="glass-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="glass-modal phi-modal-panel" onClick={(e) => e.stopPropagation()}>
                 <h2 style={{ color: THEME.primary, borderBottom: `2px solid ${THEME.accent}40`, paddingBottom: '15px', margin: '0 0 30px 0', fontWeight: 900, fontSize: '26px' }}>
-                    💰 {record.id ? 'تعديل سند قبض' : 'إصدار سند قبض جديد'}
+                    {record.id ? 'تعديل سند قبض' : 'إصدار سند قبض جديد'}
                 </h2>
                 
                 <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px' }}>
@@ -310,7 +310,7 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                     <div style={{ gridColumn: 'span 1', zIndex: 90 }}>
                         <SmartCombo 
                             tabIndex={4} 
-                            label="رقم الفاتورة (سحب آلي ⚡)" 
+                            label="رقم الفاتورة (سحب آلي)" 
                             table="invoices" 
                             searchCols="invoice_number" 
                             displayCol="invoice_number" 
@@ -323,12 +323,12 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                         <SmartCombo 
                             tabIndex={5} 
                             multi={true} 
-                            label="العقارات (متعدد ✅)" 
+                            label="العقارات (متعدد)" 
                             table="projects" 
                             searchCols="Property" 
                             displayCol="Property" 
                             selectedValues={record.selected_projects || []}
-                            placeholder={ (record.selected_projects?.length > 0) ? `تم اختيار (${record.selected_projects.length}) عقارات` : '🔍 اختر العقارات...' }
+                            placeholder={ (record.selected_projects?.length > 0) ? `تم اختيار (${record.selected_projects.length}) عقارات` : 'اختر العقارات...' }
                             onSelect={handleProjectToggle} 
                         />
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '8px' }}>
@@ -353,8 +353,8 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                     </div>
 
                     {/* --- التوجيه المحاسبي --- */}
-                    <div style={{ gridColumn: '1 / -1', background: 'rgba(255, 255, 255, 0.5)', padding: '25px', borderRadius: '20px', border: '1px solid rgba(0,0,0,0.05)', zIndex: 40 }}>
-                        <h4 style={{ color: THEME.primary, margin: '0 0 15px 0', fontSize: '14px', fontWeight: 900 }}>🏦 التوجيه المحاسبي</h4>
+                    <div style={{ gridColumn: '1 / -1', background: 'rgba(255, 255, 255, 0.5)', padding: '25px', borderRadius: '14px', border: '1px solid rgba(0,0,0,0.05)', zIndex: 40 }}>
+                        <h4 style={{ color: THEME.primary, margin: '0 0 15px 0', fontSize: '14px', fontWeight: 900 }}>التوجيه المحاسبي</h4>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
                             <div style={{ zIndex: 30 }}>
                                 <SmartCombo tabIndex={10} label="حساب الصندوق/البنك (مدين)" table="accounts" initialDisplay={record.safe_bank_acc_name} onSelect={(a: any) => setRecord({...record, safe_bank_acc_id: a.id, safe_bank_acc_name: a.name})} />
@@ -372,8 +372,8 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                     </div>
 
                     <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '15px', marginTop: '10px' }}>
-                        <button id="receipt-save-button" type="submit" tabIndex={13} className="btn-save" style={{ flex: 2 }}>💾 حفظ وإصدار السند</button>
-                        <button type="button" tabIndex={14} onClick={onClose} className="btn-cancel" style={{ flex: 1 }}>❌ إغلاق النافذة</button>
+                        <button id="receipt-save-button" type="submit" tabIndex={13} className="btn-save" style={{ flex: 2 }}>حفظ وإصدار السند</button>
+                        <button type="button" tabIndex={14} onClick={onClose} className="btn-cancel" style={{ flex: 1 }}>إغلاق النافذة</button>
                     </div>
                 </form>
             </div>

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { THEME } from '@/lib/theme';
 import { useRouter } from 'next/navigation';
+import { Hourglass, CircleCheck, X } from 'lucide-react';
 
 export default function PermissionsMatrix() {
     const [profiles, setProfiles] = useState<any[]>([]);
@@ -35,7 +36,7 @@ export default function PermissionsMatrix() {
     if (isLoading) {
         return (
             <div style={{ textAlign: 'center', padding: '50px' }}>
-                <div style={{ fontSize: '30px', animation: 'spin 1s linear infinite', marginBottom: '15px' }}>⏳</div>
+                <div style={{ fontSize: '30px', animation: 'spin 1s linear infinite', marginBottom: '15px' }}><Hourglass size={26} aria-hidden="true" /></div>
                 <div style={{ fontWeight: 800, color: THEME.primary }}>جاري استدعاء مصفوفة الصلاحيات...</div>
             </div>
         );
@@ -45,7 +46,7 @@ export default function PermissionsMatrix() {
         <div style={{ animation: 'fadeUp 0.5s ease-out' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', background: 'linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.8))', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(10px)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
                 <div>
-                    <h2 style={{ fontSize: '20px', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>🔐 مصفوفة الصلاحيات (Permissions Matrix)</h2>
+                    <h2 style={{ fontSize: '20px', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>مصفوفة الصلاحيات (Permissions Matrix)</h2>
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: 700 }}>
                         هذه المصفوفة تعرض ملخص صلاحيات المستخدمين. لتعديل الصلاحيات بالتفصيل، يُرجى الانتقال إلى إدارة الفريق.
                     </p>
@@ -56,7 +57,7 @@ export default function PermissionsMatrix() {
                     onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
                     onMouseOut={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                 >
-                    👥 الانتقال لإدارة الفريق
+                    الانتقال لإدارة الفريق
                 </button>
             </div>
 
@@ -95,7 +96,7 @@ export default function PermissionsMatrix() {
                                         const hasAccess = isSuperAdmin || perm;
                                         return (
                                             <td key={mod.key} style={{ padding: '15px', fontSize: '16px' }}>
-                                                {hasAccess ? '✅' : '❌'}
+                                                {hasAccess ? <CircleCheck size={14} aria-hidden="true" /> : <X size={14} aria-hidden="true" />}
                                             </td>
                                         );
                                     })}

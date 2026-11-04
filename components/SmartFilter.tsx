@@ -14,7 +14,7 @@ interface SmartFilterProps {
 }
 
 export default function SmartFilter({
-  searchQuery, setSearchQuery, searchPlaceholder = "🔍 بحث عام...",
+  searchQuery, setSearchQuery, searchPlaceholder = "بحث عام...",
   dateFrom, setDateFrom,
   dateTo, setDateTo,
   extraFilters

@@ -57,7 +57,7 @@ export default function StatementPrintModal({
             <div className="print-modal-content">
                 
                 <div className="no-print controls-bar">
-                    <button type="button" onClick={handlePrint} className="btn-print">🖨️ بدء الطباعة</button>
+                    <button type="button" onClick={handlePrint} className="btn-print">بدء الطباعة</button>
                     <button type="button" onClick={onClose} className="btn-close">إغلاق ✕</button>
                 </div>
 
@@ -200,7 +200,7 @@ export default function StatementPrintModal({
                 .btn-close { background: #fdfaf6; color: #4a3b32; border: 1px solid #c2410c; padding: 12px 24px; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; }
                 .btn-close:hover { background: #eaddcf; }
 
-                /* 🚀 جعل الورقة تتمدد كـ Flex Column لدفع التواقيع للأسفل */
+                /* جعل الورقة تتمدد كـ Flex Column لدفع التواقيع للأسفل */
                 .a4-paper { 
                     background: white; padding: 40px 50px; border-radius: 8px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); 
                     min-height: 297mm; color: #2c221b; margin-bottom: 40px; 
@@ -220,7 +220,7 @@ export default function StatementPrintModal({
                 .info-row strong { color: #8a7a6b; font-size: 13px; }
                 .info-row span { font-weight: 800; font-size: 15px; color: #2c221b; }
 
-                /* 🚀 تعديلات الـ Grid لتقسيم الملخصات */
+                /* تعديلات الـ Grid لتقسيم الملخصات */
                 .summary-print-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 15px; }
                 .financial-grid { margin-bottom: 30px; }
                 .summary-box { background: white; border: 2px solid #eaddcf; padding: 15px; border-radius: 12px; text-align: center; }
@@ -243,7 +243,7 @@ export default function StatementPrintModal({
                 .balance-cell { font-weight: 900 !important; }
                 .balance-dir { display: inline-block; margin-right: 4px; font-size: 11px; color: #8a7a6b; }
 
-                /* 🚀 دفع التواقيع لنهاية الحاوية (أسفل الصفحة) */
+                /* دفع التواقيع لنهاية الحاوية (أسفل الصفحة) */
                 .print-signatures { 
                     display: flex; justify-content: space-between; 
                     margin-top: auto; 

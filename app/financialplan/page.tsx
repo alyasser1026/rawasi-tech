@@ -5,6 +5,8 @@ import MasterPage from '@/components/MasterPage';
 import { formatCurrency } from '@/lib/helpers';
 import * as XLSX from 'xlsx-js-style';
 import LoadingScreen from '@/components/LoadingScreen';
+import { Trash2 } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 const THEME = {
   primary: '#0f172a',    
@@ -29,7 +31,7 @@ export default function FinancialPlanPage() {
 
   // 📥 محرك تصدير الإكسيل الاحترافي بالمعادلات الحية وصب توتال 9
   const handleExportToExcel = () => {
-    if (logic.records.length === 0) return alert("لا يوجد بيانات لتصديرها!");
+    if (logic.records.length === 0) return notify("لا يوجد بيانات لتصديرها!");
 
     const revenues = logic.records.filter(r => r.category === 'إيرادات');
     const expenses = logic.records.filter(r => r.category === 'مصروفات');
@@ -43,7 +45,7 @@ export default function FinancialPlanPage() {
 
     // --- 🟢 قسم الإيرادات المتوقعة ---
     const revTitleIdx = aoa.length;
-    aoa.push(['📈 الإيرادات المتوقعة (المستهدفة والمنفذة)']);
+    aoa.push(['الإيرادات المتوقعة (المستهدفة والمنفذة)']);
     
     const revHeaderIdx = aoa.length;
     aoa.push(['م', 'التصنيف', 'اسم البند', 'المستهدف (المخطط)', 'المنفذ (الفعلي)', 'الانحراف المالي']);
@@ -60,7 +62,7 @@ export default function FinancialPlanPage() {
 
     // --- 🔴 قسم المصروفات المقدرة ---
     const expTitleIdx = aoa.length;
-    aoa.push(['📉 المصروفات المقدرة (الموازنة والمنصرف الفعلي)']);
+    aoa.push(['المصروفات المقدرة (الموازنة والمنصرف الفعلي)']);
     
     const expHeaderIdx = aoa.length;
     aoa.push(['م', 'التصنيف', 'اسم البند', 'المقدر (المخطط)', 'المنصرف (الفعلي)', 'الانحراف المالي']);
@@ -77,7 +79,7 @@ export default function FinancialPlanPage() {
 
     // --- 📊 قسم خلاصة الأرباح النهائية ---
     const summaryTitleIdx = aoa.length;
-    aoa.push(['📊 خلاصة مقارنة الأداء وصافي الأرباح']);
+    aoa.push(['خلاصة مقارنة الأداء وصافي الأرباح']);
     
     const netPlannedIdx = aoa.length;
     aoa.push(['صافي الربح المخطط (المستهدف التقديري)', '', '', 0, '', '']); // سيتم ربطه بمعادلة طرح
@@ -244,10 +246,10 @@ export default function FinancialPlanPage() {
     const isRevenue = category === 'إيرادات';
     
     return (
-      <div style={{ background: 'white', borderRadius: '12px', border: `1px solid ${THEME.border}`, marginBottom: '30px', overflow: 'hidden' }}>
+      <div className="ent-panel" style={{ marginBottom: '30px' }}>
         <div style={{ background: isRevenue ? '#ecfdf5' : '#fff1f2', padding: '15px 20px', borderBottom: `1px solid ${THEME.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0, color: isRevenue ? THEME.success : THEME.ruby, fontSize: '18px', fontWeight: '900' }}>
-            {isRevenue ? '📈 الإيرادات المتوقعة' : '📉 المصروفات المقدرة'}
+            {isRevenue ? 'الإيرادات المتوقعة' : 'المصروفات المقدرة'}
           </h2>
           <button onClick={() => logic.addNewItem(category)} style={{ background: THEME.primary, color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
             + إضافة بند
@@ -289,7 +291,7 @@ export default function FinancialPlanPage() {
                     {variance > 0 ? '+' : ''}{formatCurrency(variance)}
                   </td>
                   <td style={{ padding: '10px 15px', textAlign: 'center' }}>
-                    <button onClick={() => logic.removeItem(r.id)} style={{ background: 'transparent', border: 'none', color: THEME.ruby, cursor: 'pointer', fontSize: '16px' }}>🗑️</button>
+                    <button onClick={() => logic.removeItem(r.id)} style={{ background: 'transparent', border: 'none', color: THEME.ruby, cursor: 'pointer', fontSize: '16px' }}><Trash2 size={14} aria-hidden="true" /></button>
                   </td>
                 </tr>
               );
@@ -336,20 +338,20 @@ export default function FinancialPlanPage() {
               onClick={handleExportToExcel}
               style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              📥 تصدير إكسيل الاحترافي
+              تصدير إكسيل الاحترافي
             </button>
             <button 
               onClick={() => window.print()}
               style={{ padding: '10px 20px', borderRadius: '8px', border: `1px solid ${THEME.border}`, background: THEME.slate, color: THEME.textMain, fontWeight: 'bold', cursor: 'pointer' }}
             >
-              🖨️ طباعة التقرير الورقي
+              طباعة التقرير الورقي
             </button>
             <button 
               onClick={logic.savePlanToDB} 
               disabled={logic.isSaving}
               style={{ padding: '10px 25px', borderRadius: '8px', border: 'none', background: THEME.primary, color: 'white', fontWeight: 'bold', cursor: logic.isSaving ? 'not-allowed' : 'pointer', opacity: logic.isSaving ? 0.7 : 1 }}
             >
-              {logic.isSaving ? '⏳ جاري الحفظ...' : '💾 حفظ خطة الموازنة'}
+              {logic.isSaving ? 'جاري الحفظ...' : 'حفظ خطة الموازنة'}
             </button>
           </div>
         </div>
@@ -357,42 +359,42 @@ export default function FinancialPlanPage() {
         {logic.isLoading ? (
           <LoadingScreen message="جاري تحميل بنود الخطة من النظام..." fullScreen={false} />
         ) : (
-          <div style={{ display: 'flex', gap: '25px', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '25px', alignItems: 'flex-start' }}>
             
             {/* الجداول الأساسية التفاعلية */}
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: '1 1 520px', minWidth: 0 }}>
               {renderTable('إيرادات')}
               {renderTable('مصروفات')}
             </div>
 
             {/* 🛡️ كارت المخلص الجانبي (مؤمن ومحمي داخل no-print فلن يظهر في الطباعة أبداً) */}
-            <div style={{ width: '320px', background: THEME.primary, borderRadius: '12px', padding: '20px', color: 'white', position: 'sticky', top: '20px', boxShadow: '0 10px 25px rgba(15,23,42,0.08)' }}>
-              <h3 style={{ margin: '0 0 20px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px', fontWeight: 900, fontSize: '15px' }}>📊 ملخص الخطة والمستهدف</h3>
+            <div className="ent-panel ent-plan-summary" style={{ width: '320px', padding: '20px', position: 'sticky', top: '20px' }}>
+              <h3 style={{ margin: '0 0 20px 0', borderBottom: '1px solid #e6e8ec', paddingBottom: '10px', fontWeight: 900, fontSize: '15px' }}>ملخص الخطة والمستهدف</h3>
               
               <div style={{ marginBottom: '15px' }}>
-                <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>إجمالي الإيرادات المتوقعة</div>
-                <div style={{ fontSize: '20px', fontWeight: '900', color: '#34d399' }}>{formatCurrency(logic.totals.totalRevPlanned)}</div>
+                <div style={{ fontSize: '12px', color: '#687180', fontWeight: 700 }}>إجمالي الإيرادات المتوقعة</div>
+                <div style={{ fontSize: '20px', fontWeight: '900', color: '#047857' }}>{formatCurrency(logic.totals.totalRevPlanned)}</div>
               </div>
               
               <div style={{ marginBottom: '15px' }}>
-                <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>إجمالي المصروفات المقدرة</div>
-                <div style={{ fontSize: '20px', fontWeight: '900', color: '#fca5a5' }}>{formatCurrency(logic.totals.totalExpPlanned)}</div>
+                <div style={{ fontSize: '12px', color: '#687180', fontWeight: 700 }}>إجمالي المصروفات المقدرة</div>
+                <div style={{ fontSize: '20px', fontWeight: '900', color: '#be123c' }}>{formatCurrency(logic.totals.totalExpPlanned)}</div>
               </div>
 
-              <div style={{ margin: '15px 0', borderTop: '1px dashed rgba(255,255,255,0.15)' }}></div>
+              <div style={{ margin: '15px 0', borderTop: '1px dashed #dce2ea' }}></div>
 
               <div style={{ marginBottom: '15px' }}>
-                <div style={{ fontSize: '13px', color: 'white', fontWeight: 'bold' }}>صافي الربح التقديري (المخطط)</div>
-                <div style={{ fontSize: '24px', fontWeight: '900', color: logic.totals.netPlanned >= 0 ? '#34d399' : '#f87171' }}>
+                <div style={{ fontSize: '13px', color: THEME.textMain, fontWeight: 'bold' }}>صافي الربح التقديري (المخطط)</div>
+                <div style={{ fontSize: '24px', fontWeight: '900', color: logic.totals.netPlanned >= 0 ? '#047857' : '#be123c' }}>
                   {formatCurrency(logic.totals.netPlanned)}
                 </div>
               </div>
 
-              <div style={{ margin: '15px 0', borderTop: '1px dashed rgba(255,255,255,0.15)' }}></div>
+              <div style={{ margin: '15px 0', borderTop: '1px dashed #dce2ea' }}></div>
 
               <div style={{ marginBottom: '5px' }}>
-                <div style={{ fontSize: '13px', color: 'white', fontWeight: 'bold' }}>صافي الربح الفعلي (المحقق الحقيقي)</div>
-                <div style={{ fontSize: '22px', fontWeight: '900', color: logic.totals.netActual >= 0 ? '#60a5fa' : '#f87171' }}>
+                <div style={{ fontSize: '13px', color: THEME.textMain, fontWeight: 'bold' }}>صافي الربح الفعلي (المحقق الحقيقي)</div>
+                <div style={{ fontSize: '22px', fontWeight: '900', color: logic.totals.netActual >= 0 ? '#1d4ed8' : '#be123c' }}>
                   {formatCurrency(logic.totals.netActual)}
                 </div>
               </div>
@@ -415,7 +417,7 @@ export default function FinancialPlanPage() {
          <table className="print-table">
             <thead>
                <tr>
-                  <th colSpan={4} className="print-header-rev">📊 قســم الإيـــــرادات العـامـة</th>
+                  <th colSpan={4} className="print-header-rev">قســم الإيـــــرادات العـامـة</th>
                </tr>
                <tr>
                   <th style={{ width: '45%' }}>اسم البند التفصيلي</th>
@@ -453,7 +455,7 @@ export default function FinancialPlanPage() {
          <table className="print-table">
             <thead>
                <tr>
-                  <th colSpan={4} className="print-header-exp">💸 قســم المصــــروفات التشغيلية والعمومية</th>
+                  <th colSpan={4} className="print-header-exp">قســم المصــــروفات التشغيلية والعمومية</th>
                </tr>
                <tr>
                   <th style={{ width: '45%' }}>اسم البند التفصيلي</th>

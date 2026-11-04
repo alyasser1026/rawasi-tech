@@ -118,7 +118,7 @@ export function useBoqCatalogLogic() {
             }
         },
         onSuccess: () => {
-            showToast("تم الحفظ بنجاح 📚✅", "success");
+            showToast("تم الحفظ بنجاح", "success");
             setIsModalOpen(false);
             queryClient.invalidateQueries({ queryKey: ['boq_items_catalog'] });
         }
@@ -130,7 +130,7 @@ export function useBoqCatalogLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast("تم المسح بنجاح 🗑️", "success");
+            showToast("تم المسح بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['boq_items_catalog'] });
         }
     });
@@ -147,7 +147,7 @@ export function useBoqCatalogLogic() {
             }
         },
         onSuccess: () => {
-            showToast("تم تحديث اسم القسم بنجاح 🔄", "success");
+            showToast("تم تحديث اسم القسم بنجاح", "success");
             setCategoryModal({ ...categoryModal, isOpen: false });
             queryClient.invalidateQueries({ queryKey: ['boq_items_catalog'] });
         }
@@ -164,7 +164,7 @@ export function useBoqCatalogLogic() {
             }
         },
         onSuccess: () => {
-            showToast("تم حذف القسم بجميع بنوده 🗑️", "success");
+            showToast("تم حذف القسم بجميع بنوده", "success");
             queryClient.invalidateQueries({ queryKey: ['boq_items_catalog'] });
         }
     });

@@ -3,6 +3,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import LoadingScreen from '@/components/LoadingScreen';
+import { Trash2 } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 const THEME = {
   primary: '#0f172a',
@@ -65,7 +67,7 @@ export default function EditJournalEntryPage() {
           ]);
         }
       } catch (err: any) {
-        alert("❌ خطأ في سحب البيانات: " + err.message);
+        notify("خطأ في سحب البيانات: " + err.message);
       }
       setIsLoading(false);
     };
@@ -107,7 +109,7 @@ export default function EditJournalEntryPage() {
 
   // 🗑️ حذف سطر
   const removeLine = (index: number) => {
-    if (lines.length <= 2) return alert("لا يمكن أن يقل القيد عن طرفين!");
+    if (lines.length <= 2) return notify("لا يمكن أن يقل القيد عن طرفين!");
     const newLines = lines.filter((_, i) => i !== index);
     setLines(newLines);
   };
@@ -115,20 +117,20 @@ export default function EditJournalEntryPage() {
   // 💾 حفظ التعديلات
   const handleSave = async () => {
     if (['posted', 'مرحل', 'معتمد'].includes(header.status)) {
-      return alert('يجب فك ترحيل القيد قبل تعديله.');
+      return notify('يجب فك ترحيل القيد قبل تعديله.');
     }
     const hasInvalidAmounts = lines.some(line => {
       const debit = Number(line.debit || 0);
       const credit = Number(line.credit || 0);
       return !Number.isFinite(debit) || !Number.isFinite(credit) || debit < 0 || credit < 0 || (debit > 0 && credit > 0);
     });
-    if (hasInvalidAmounts) return alert('المبالغ يجب أن تكون غير سالبة، وفي طرف واحد فقط لكل سطر.');
-    if (!header.entry_date || !header.description.trim()) return alert('تاريخ القيد وبيانه مطلوبان.');
-    if (totals.diff !== 0) return alert("❌ لا يمكن حفظ القيد وهو غير متزن!");
+    if (hasInvalidAmounts) return notify('المبالغ يجب أن تكون غير سالبة، وفي طرف واحد فقط لكل سطر.');
+    if (!header.entry_date || !header.description.trim()) return notify('تاريخ القيد وبيانه مطلوبان.');
+    if (totals.diff !== 0) return notify("لا يمكن حفظ القيد وهو غير متزن!");
     
     // التأكد من اختيار حسابات لكل الأسطر
     const hasEmptyAccounts = lines.some(l => !l.account_id);
-    if (hasEmptyAccounts) return alert("❌ يرجى التأكد من اختيار حساب مالي لجميع الأطراف!");
+    if (hasEmptyAccounts) return notify("يرجى التأكد من اختيار حساب مالي لجميع الأطراف!");
 
     setIsSaving(true);
     try {
@@ -149,10 +151,10 @@ export default function EditJournalEntryPage() {
       });
       if (error) throw error;
 
-      alert("✅ تم تعديل واتزان القيد بنجاح!");
+      notify("تم تعديل واتزان القيد بنجاح!");
       router.push('/journal-errors'); // الرجوع لشاشة الأخطاء
     } catch (err: any) {
-      alert("❌ خطأ أثناء الحفظ: " + err.message);
+      notify("خطأ أثناء الحفظ: " + err.message);
     } finally {
       setIsSaving(false);
     }
@@ -173,7 +175,7 @@ export default function EditJournalEntryPage() {
         .glass-container {
           max-width: 1200px; margin: 0 auto; background: rgba(15, 23, 42, 0.7);
           backdrop-filter: blur(20px); border: 1px solid ${THEME.accent}44;
-          border-radius: 20px; padding: 30px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+          border-radius: 14px; padding: 30px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
         .header-section { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 30px; }
@@ -209,11 +211,11 @@ export default function EditJournalEntryPage() {
       <div className="glass-container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <div>
-            <h1 style={{ fontSize: '26px', fontWeight: 900, color: THEME.accentLight }}>🛠️ معالجة قيد يومية #{id}</h1>
+            <h1 style={{ fontSize: '26px', fontWeight: 900, color: THEME.accentLight }}>معالجة قيد يومية #{id}</h1>
             <p style={{ color: THEME.slate, fontSize: '14px' }}>تعديل الأطراف والمبالغ لضبط ميزان المراجعة</p>
           </div>
           <button className="btn-action phi-back-button" style={{ background: 'transparent', border: '1px solid white', color: 'white' }} onClick={() => router.back()}>
-            🔙 تراجع
+            تراجع
           </button>
         </div>
 
@@ -260,7 +262,7 @@ export default function EditJournalEntryPage() {
                     <input type="number" className="standard-input" style={{ width: '100%', padding: '10px', textAlign: 'center', color: '#f87171' }} value={line.credit || ''} onChange={(e) => handleLineChange(index, 'credit', e.target.value)} min="0" />
                   </td>
                   <td style={{ textAlign: 'center' }}>
-                    {!(header.status === 'معتمد' && !isAdmin) && <button type="button" className="btn-del" onClick={() => removeLine(index)}>🗑️</button>}
+                    {!(header.status === 'معتمد' && !isAdmin) && <button type="button" className="btn-del" onClick={() => removeLine(index)}><Trash2 size={16} aria-hidden="true" /></button>}
                   </td>
                 </tr>
               ))}
@@ -268,7 +270,7 @@ export default function EditJournalEntryPage() {
           </table>
         </div>
 
-        {!(header.status === 'معتمد' && !isAdmin) && <button type="button" className="btn-action btn-add" onClick={addLine}>➕ إضافة طرف جديد للقيد</button>}
+        {!(header.status === 'معتمد' && !isAdmin) && <button type="button" className="btn-action btn-add" onClick={addLine}>إضافة طرف جديد للقيد</button>}
 
         {/* ملخص الاتزان */}
         <div className="summary-box">
@@ -280,7 +282,7 @@ export default function EditJournalEntryPage() {
           <div className="summary-item">
             <div style={{ color: THEME.slate, fontSize: '14px' }}>الفرق (عدم الاتزان)</div>
             <div className="summary-value" style={{ color: totals.diff === 0 ? THEME.success : THEME.danger }}>
-              {totals.diff === 0 ? '✔️ القيد متزن' : `⚠️ ${totals.diff.toLocaleString()}`}
+              {totals.diff === 0 ? 'القيد متزن' : `${totals.diff.toLocaleString()}`}
             </div>
           </div>
 
@@ -291,7 +293,7 @@ export default function EditJournalEntryPage() {
 
           <div>
             <button className="btn-action btn-save" onClick={handleSave} disabled={isSaving || totals.diff !== 0}>
-              {isSaving ? '⏳ جاري الحفظ...' : 'اعتماد وحفظ القيد 💾'}
+              {isSaving ? 'جاري الحفظ...' : 'اعتماد وحفظ القيد'}
             </button>
           </div>
         </div>

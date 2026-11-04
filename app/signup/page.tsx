@@ -93,7 +93,7 @@ export default function SignUpPage() {
                 if (profileError) console.log("RLS Alert:", profileError.message);
             }
 
-            setSuccessMsg('✅ تم إنشاء الحساب بصلاحيات كاملة! جاري التحويل...');
+            setSuccessMsg('تم إنشاء الحساب بصلاحيات كاملة! جاري التحويل...');
             setTimeout(() => { router.push('/login'); }, 2000);
 
         } catch (error: any) {
@@ -129,7 +129,7 @@ export default function SignUpPage() {
 
                 .signup-card {
                     width: 100%; max-width: 480px; z-index: 10;
-                    padding: 50px 40px; border-radius: 40px;
+                    padding: 50px 40px; border-radius: 14px;
                     background: rgba(255, 255, 255, 0.05);
                     backdrop-filter: blur(40px);
                     -webkit-backdrop-filter: blur(40px);
@@ -143,7 +143,7 @@ export default function SignUpPage() {
                 }
 
                 .custom-input {
-                    width: 100%; padding: 18px; border-radius: 20px;
+                    width: 100%; padding: 18px; border-radius: 14px;
                     background: rgba(0, 0, 0, 0.2); border: 1.5px solid rgba(255, 255, 255, 0.1);
                     color: white; font-weight: 700; font-size: 15px; outline: none;
                     transition: 0.3s; margin-bottom: 20px;
@@ -151,7 +151,7 @@ export default function SignUpPage() {
                 .custom-input:focus { border-color: ${THEME.brand.gold}; background: rgba(0, 0, 0, 0.4); }
 
                 .signup-btn {
-                    width: 100%; padding: 20px; border-radius: 20px;
+                    width: 100%; padding: 20px; border-radius: 14px;
                     background: linear-gradient(135deg, ${THEME.brand.gold}, ${THEME.brand.goldLight});
                     color: ${THEME.brand.coffee}; font-size: 16px; font-weight: 900;
                     border: none; cursor: pointer; transition: 0.4s;
@@ -163,7 +163,7 @@ export default function SignUpPage() {
                     background: rgba(0, 0, 0, 0.2) !important;
                     border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
                     color: white !important;
-                    border-radius: 20px !important;
+                    border-radius: 14px !important;
                     padding: 18px !important;
                 }
             `}</style>
@@ -182,8 +182,8 @@ export default function SignUpPage() {
                     <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '8px' }}>أنشئ حسابك للوصول إلى كامل صلاحيات النظام</p>
                 </div>
 
-                {errorMsg && <div style={{ background: '#7f1d1d40', color: '#fca5a5', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: '13px', textAlign: 'center', border: '1px solid #7f1d1d60' }}>⚠️ {errorMsg}</div>}
-                {successMsg && <div style={{ background: '#064e3b40', color: '#6ee7b7', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: '13px', textAlign: 'center', border: '1px solid #064e3b60' }}>✅ {successMsg}</div>}
+                {errorMsg && <div style={{ background: '#7f1d1d40', color: '#fca5a5', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: '13px', textAlign: 'center', border: '1px solid #7f1d1d60' }}>{errorMsg}</div>}
+                {successMsg && <div style={{ background: '#064e3b40', color: '#6ee7b7', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: '13px', textAlign: 'center', border: '1px solid #064e3b60' }}>{successMsg}</div>}
 
                 <form onSubmit={handleSignUp}>
                     <label className="input-label">الاسم الكامل</label>
@@ -201,8 +201,8 @@ export default function SignUpPage() {
                     <div style={{ marginBottom: '25px' }} className="dark-combo">
                         <SmartCombo 
                             label="تحديد صفة الدخول"
-                            options={['💼 موظف إداري / مهندس', '👷 مقاول باطن / مورد', '👤 عميل / صاحب مشروع']}
-                            initialDisplay="💼 موظف إداري / مهندس"
+                            options={['موظف إداري / مهندس', 'مقاول باطن / مورد', 'عميل / صاحب مشروع']}
+                            initialDisplay="موظف إداري / مهندس"
                             onSelect={(val) => {
                                 const role = val.includes('موظف') ? 'staff' : val.includes('مقاول') ? 'contractor' : 'client';
                                 setForm({...form, role});
@@ -229,7 +229,7 @@ export default function SignUpPage() {
                     </div>
 
                     <button type="submit" className="signup-btn" disabled={isLoading}>
-                        {isLoading ? '⏳ جاري إنشاء هويتك الرقمية...' : '🚀 تفعيل الحساب والصلاحيات'}
+                        {isLoading ? 'جاري إنشاء هويتك الرقمية...' : 'تفعيل الحساب والصلاحيات'}
                     </button>
                 </form>
 

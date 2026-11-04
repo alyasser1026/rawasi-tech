@@ -19,6 +19,8 @@ import RawasiSmartTable from '@/components/rawasismarttable';
 
 // 🚀 المكون السحري لنقل الأزرار للسايد بار
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
+import { ScanSearch } from 'lucide-react';
+import PhiIcon from '@/components/PhiIcon';
 
 export default function JournalMaintenancePage() {
     const logic = useJournalErrorsLogic();
@@ -43,18 +45,18 @@ export default function JournalMaintenancePage() {
                     disabled={logic.isLoading} 
                     className="sidebar-action-btn primary"
                 >
-                    {logic.isLoading ? '⏳ جاري المسح...' : '📡 إطلاق الرادار'}
+                    {logic.isLoading ? 'جاري المسح...' : 'إطلاق الرادار'}
                 </button>
             </SecureAction>
             
             <button onClick={logic.exportErrorsToExcel} className="sidebar-action-btn success">
-                📊 تصدير إكسل
+                تصدير إكسل
             </button>
 
             {logic.selectedIds.length > 0 && (
                 <SecureAction module="journal_audit" action="delete">
                     <button onClick={logic.deleteSelected} className="sidebar-action-btn danger">
-                        🗑️ مسح المحددة ({logic.selectedIds.length})
+                        مسح المحددة ({logic.selectedIds.length})
                     </button>
                 </SecureAction>
             )}
@@ -62,7 +64,7 @@ export default function JournalMaintenancePage() {
     );
 
     return (
-        <MasterPage icon="🛡️" title="رادار الأخطاء والتنبيهات" subtitle="مراقبة وتصحيح المشاكل المحاسبية والقيود المفقودة">
+        <MasterPage title="رادار الأخطاء والتنبيهات" subtitle="مراقبة وتصحيح المشاكل المحاسبية والقيود المفقودة">
         <AuthGuard requiredRoles={['super_admin', 'admin', 'auditor']}>
             
             {/* 🚀 1. استخدام مدير السايد بار لنقل الزراير أوتوماتيكياً */}
@@ -83,7 +85,7 @@ export default function JournalMaintenancePage() {
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
                                 <div>
                                     <h1 style={{ color: THEME.primary, margin: 0, fontWeight: 900, fontSize: 'clamp(20px, 4vw, 26px)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        🛡️ غرفة تدقيق وصيانة الحسابات
+                                        غرفة تدقيق وصيانة الحسابات
                                     </h1>
                                     <p style={{ color: '#64748b', marginTop: '8px', fontSize: '14px', fontWeight: 'bold' }}>
                                         فحص شامل لدفتر اليومية وضمان سلامة ميزان المراجعة.
@@ -93,7 +95,7 @@ export default function JournalMaintenancePage() {
                                 <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                                     <input 
                                         type="text" 
-                                        placeholder="🔍 ابحث في الأخطاء..." 
+                                        placeholder="ابحث في الأخطاء..." 
                                         value={logic.searchQuery}
                                         onChange={(e) => logic.setSearchQuery(e.target.value)}
                                         style={{ padding: '12px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', width: '250px', outline: 'none', fontWeight: 800, background: 'rgba(255,255,255,0.8)' }}
@@ -108,7 +110,7 @@ export default function JournalMaintenancePage() {
                             <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
                                 {kpis.map((kpi, idx) => (
                                     <div key={idx} style={{ flex: 1, minWidth: '120px', background: `${kpi.color}10`, padding: '15px', borderRadius: '16px', border: `1px solid ${kpi.color}30`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                                        <span style={{ fontSize: '24px' }}>{kpi.icon}</span>
+                                        <span style={{ display: 'inline-flex' }}><PhiIcon value={kpi.icon} size={22} /></span>
                                         <span style={{ fontSize: '20px', fontWeight: 900, color: kpi.color }}>{kpi.value}</span>
                                         <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569' }}>{kpi.title}</span>
                                     </div>
@@ -119,18 +121,18 @@ export default function JournalMaintenancePage() {
 
                     {/* 🔍 منطقة الجداول */}
                     {!logic.hasScanned ? (
-                        <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', borderRadius: '24px', border: '2px dashed #cbd5e1' }}>
-                            <div style={{ fontSize: '60px', marginBottom: '15px', animation: 'pulse 2s infinite' }}>🕵️‍♂️</div>
+                        <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', borderRadius: '14px', border: '2px dashed #cbd5e1' }}>
+                            <div style={{ fontSize: '60px', marginBottom: '15px', animation: 'pulse 2s infinite' }}><ScanSearch size={40} aria-hidden="true" /></div>
                             <h2 style={{ color: THEME.primary, fontWeight: 900 }}>النظام جاهز للفحص</h2>
                             <p style={{ fontSize: '15px' }}>استخدم زر "إطلاق الرادار" من القائمة الجانبية للبدء.</p>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                             <AuditSection logic={logic} data={logic.filteredDuplicates} title="سندات مكررة" color="#ea580c" icon="👯" actionText="مسح التكرار" onAction={logic.deleteHeader} />
-                            <AuditSection logic={logic} data={logic.filteredUnbalanced} title="قيود غير متزنة" color="#7c3aed" icon="⚖️" actionText="⚖️ موازنة آلية" onAction={(id:any, item:any) => logic.forceBalanceJournal(id, item.diffAmount)} secondaryAction={logic.deleteHeader} secondaryActionText="حذف نهائي" />
+                            <AuditSection logic={logic} data={logic.filteredUnbalanced} title="قيود غير متزنة" color="#7c3aed" icon="⚖️" actionText="موازنة آلية" onAction={(id:any, item:any) => logic.forceBalanceJournal(id, item.diffAmount)} secondaryAction={logic.deleteHeader} secondaryActionText="حذف نهائي" />
                             <AuditSection logic={logic} data={logic.filteredOrphans} title="القيود اليتيمة" color={THEME.ruby} icon="🗑️" actionText="مسح القيد" onAction={logic.deleteHeader} />
                             <AuditSection logic={logic} data={logic.filteredEmpty} title="القيود الصفرية" color="#475569" icon="🕳️" actionText="مسح القيد" onAction={logic.deleteHeader} />
-                            <AuditSection logic={logic} data={logic.filteredGhosts} title="سطور شبح" color="#0891b2" icon="👻" actionText="🛡️ تطهير السطور" onAction={(id:any) => logic.deleteHeader(id, true)} />
+                            <AuditSection logic={logic} data={logic.filteredGhosts} title="سطور شبح" color="#0891b2" icon="👻" actionText="تطهير السطور" onAction={(id:any) => logic.deleteHeader(id, true)} />
                         </div>
                     )}
                 </div>
@@ -173,7 +175,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 return (
                     <span style={{ fontWeight: 900, fontFamily: 'monospace', color: '#334155' }}>
                         {/* 🛡️ الباب التاسع: صرامة الأنواع (Strict Casting) لضمان توافق الـ UUID */}
-                        {item.isGhost ? '👻 GHOST' : `JRN-${String(item.id).slice(0,8).toUpperCase()}`}
+                        {item.isGhost ? 'GHOST' : `JRN-${String(item.id).slice(0,8).toUpperCase()}`}
                     </span>
                 );
             }
@@ -194,13 +196,13 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                         <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{item.description || 'لا يوجد بيان'}</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                             <span style={{ background: `${color}15`, color: color, padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>
-                                💰 {formatCurrency(documentAmount)}
+                                {formatCurrency(documentAmount)}
                             </span>
-                            {documentDate && <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>📅 {documentDate}</span>}
+                            {documentDate && <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>{documentDate}</span>}
                             {refId && (
                                 <span style={{ background: 'rgba(255, 247, 237, 0.8)', color: '#d97706', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', border: '1px dashed #fcd34d' }}>
                                     {/* 🛡️ الباب التاسع: إجبار المعرفات المحاسبية باستخدام String(id) */}
-                                    🔗 {String(refId).slice(0, 8)}
+                                    {String(refId).slice(0, 8)}
                                 </span>
                             )}
                         </div>
@@ -216,8 +218,8 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 if (!item) return null; 
                 return (
                     <div style={{ fontSize: '11px', lineHeight: '1.4' }}>
-                        <div style={{ color: color, fontWeight: 'bold' }}>⚠️ {item.diagnosis}</div>
-                        <div style={{ color: '#059669', marginTop: '3px' }}>💡 {item.solution}</div>
+                        <div style={{ color: color, fontWeight: 'bold' }}>{item.diagnosis}</div>
+                        <div style={{ color: '#059669', marginTop: '3px' }}>{item.solution}</div>
                     </div>
                 );
             }
@@ -268,7 +270,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 borderRight: `5px solid ${color}` 
             }}>
                 <h3 style={{ margin: 0, color: color, fontWeight: 900, fontSize: '15px' }}>
-                    {icon} {title} ({data.length})
+                    <PhiIcon value={icon} size={18} /> {title} ({data.length})
                 </h3>
             </div>
 

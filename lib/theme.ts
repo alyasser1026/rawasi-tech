@@ -11,9 +11,9 @@ export const THEME = {
   purple: '#8b5cf6',
   background: '#121215',
   logo: '/company-logo.svg',   // مسار اللوجو
-  success: '#10b981',      // الأخضر للنجاح
+  success: '#047857',      // الأخضر للنجاح
   danger: '#be123c',       // الأحمر للأخطاء
-  warning: '#f59e0b',      // الأصفر للتحذيرات
+  warning: '#b45309',      // الأصفر للتحذيرات
   ruby: '#e11d48',         // الأحمر الوردي للمهام والتنبيهات
   coffeeMain: '#27272a',   // أسماء توافق للشاشات الحالية
   coffeeDark: '#27272a',
@@ -43,9 +43,9 @@ export const THEME = {
 
   // 2️⃣ حالات النظام (Status Colors)
   status: {
-    success: '#10b981',
+    success: '#047857',
     danger: '#be123c',
-    warning: '#f59e0b',
+    warning: '#b45309',
     info: '#3b82f6',
   },
 

@@ -32,7 +32,7 @@ export default function MobileTopNav({ title, subtitle }: MobileTopNavProps) {
                         position: sticky;
                         top: 0;
                         z-index: 1000;
-                        border-radius: 0 0 24px 24px;
+                        border-radius: 0 0 14px 14px;
                         margin: -10px -10px 20px -10px; /* لتغطية الحواف */
                         box-shadow: 0 10px 30px rgba(0,0,0,0.08);
                     }

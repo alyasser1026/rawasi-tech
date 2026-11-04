@@ -1,5 +1,7 @@
 "use client";
 import { useState } from 'react';
+import { Folder } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 interface SmartActionModalProps {
   isOpen: boolean;
@@ -35,19 +37,19 @@ export default function SmartActionModal({ isOpen, onClose, siteData }: SmartAct
             style={{...styles.tab, borderBottom: activeTab === 'financial' ? '3px solid #c2410c' : 'none', color: activeTab === 'financial' ? '#c2410c' : '#888'}}
             onClick={() => setActiveTab('financial')}
           >
-            💰 الخامات والماليات
+            الخامات والماليات
           </button>
           <button 
             style={{...styles.tab, borderBottom: activeTab === 'labor' ? '3px solid #27ae60' : 'none', color: activeTab === 'labor' ? '#27ae60' : '#888'}}
             onClick={() => setActiveTab('labor')}
           >
-            👷 العمالة والإنتاجية
+            العمالة والإنتاجية
           </button>
           <button 
             style={{...styles.tab, borderBottom: activeTab === 'attachments' ? '3px solid #2980b9' : 'none', color: activeTab === 'attachments' ? '#2980b9' : '#888'}}
             onClick={() => setActiveTab('attachments')}
           >
-            📎 المرفقات والملاحظات
+            المرفقات والملاحظات
           </button>
         </div>
 
@@ -140,7 +142,7 @@ export default function SmartActionModal({ isOpen, onClose, siteData }: SmartAct
               <div style={styles.sectionBox}>
                 <h4 style={styles.secTitle}>إرفاق مستندات (فواتير/صور موقع)</h4>
                 <div style={styles.uploadArea}>
-                  <div style={{fontSize: '30px', marginBottom: '10px'}}>📁</div>
+                  <div style={{fontSize: '30px', marginBottom: '10px'}}><Folder size={26} aria-hidden="true" /></div>
                   <p style={{margin: '0 0 10px 0', fontSize: '13px', color: '#666'}}>اضغط هنا لرفع صورة الفاتورة أو المستخلص</p>
                   <input type="file" style={styles.fileInput} />
                 </div>
@@ -158,10 +160,10 @@ export default function SmartActionModal({ isOpen, onClose, siteData }: SmartAct
         {/* 💾 الفوتر وزر الحفظ */}
         <div style={styles.footer}>
           <button style={styles.saveBtn} onClick={() => {
-            alert('تم تشفير البيانات وترحيلها بنجاح!');
+            notify('تم تشفير البيانات وترحيلها بنجاح!');
             onClose();
           }}>
-            💾 حفظ واعتماد الحركة
+            حفظ واعتماد الحركة
           </button>
         </div>
 
@@ -195,7 +197,7 @@ const styles: { [key: string]: React.CSSProperties } = {
   divider: { height: '1px', backgroundColor: '#eee', margin: '20px 0' },
   
   autoField: { flex: 1, padding: '15px', background: '#f0f9f1', borderRadius: '8px', border: '1px solid #d4edda', textAlign: 'center' },
-  autoLabel: { display: 'inline-block', padding: '4px 10px', background: '#27ae60', color: '#fff', borderRadius: '20px', fontSize: '11px', marginBottom: '10px' },
+  autoLabel: { display: 'inline-block', padding: '4px 10px', background: '#27ae60', color: '#fff', borderRadius: '14px', fontSize: '11px', marginBottom: '10px' },
   autoText: { margin: 0, fontSize: '15px', color: '#333' },
   
   uploadArea: { border: '2px dashed #ccc', borderRadius: '10px', padding: '30px', textAlign: 'center', backgroundColor: '#fafafa', position: 'relative', cursor: 'pointer' },

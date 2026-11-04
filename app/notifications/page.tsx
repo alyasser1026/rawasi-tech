@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNotificationsLogic } from './NotificationsLogic';
 import { THEME } from '@/lib/theme';
+import { Hourglass, Inbox, Siren, CircleCheck, ClipboardList, Bell } from 'lucide-react';
 
 export default function NotificationsPage() {
     const { notifications, isLoading, markAsRead, markAllAsRead } = useNotificationsLogic();
@@ -10,7 +11,7 @@ export default function NotificationsPage() {
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto', animation: 'fadeUp 0.5s ease-out' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', background: 'linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(255, 255, 255, 0.8))', padding: '20px', borderRadius: '16px', border: '1px solid rgba(255, 255, 255, 0.5)', backdropFilter: 'blur(10px)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
                 <div>
-                    <h2 style={{ fontSize: '24px', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>🔔 مركز الإشعارات</h2>
+                    <h2 style={{ fontSize: '24px', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>مركز الإشعارات</h2>
                     <p style={{ margin: 0, fontSize: '13px', color: '#64748b', fontWeight: 700 }}>
                         متابعة التنبيهات والأحداث الخاصة بك في النظام
                     </p>
@@ -29,12 +30,12 @@ export default function NotificationsPage() {
 
             {isLoading ? (
                 <div style={{ textAlign: 'center', padding: '50px' }}>
-                    <div style={{ fontSize: '30px', animation: 'spin 1s linear infinite', marginBottom: '15px' }}>⏳</div>
+                    <div style={{ fontSize: '30px', animation: 'spin 1s linear infinite', marginBottom: '15px' }}><Hourglass size={26} aria-hidden="true" /></div>
                     <div style={{ fontWeight: 800, color: THEME.primary }}>جاري جلب الإشعارات...</div>
                 </div>
             ) : notifications.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '50px', background: 'rgba(255,255,255,0.5)', borderRadius: '20px', border: '2px dashed #cbd5e1' }}>
-                    <div style={{ fontSize: '50px', marginBottom: '15px', opacity: 0.5 }}>📭</div>
+                <div style={{ textAlign: 'center', padding: '50px', background: 'rgba(255,255,255,0.5)', borderRadius: '14px', border: '2px dashed #cbd5e1' }}>
+                    <div style={{ fontSize: '50px', marginBottom: '15px', opacity: 0.5 }}><Inbox size={40} aria-hidden="true" /></div>
                     <div style={{ fontWeight: 900, color: '#475569', fontSize: '18px' }}>لا توجد إشعارات حالياً</div>
                     <p style={{ color: '#94a3b8', margin: '5px 0 0 0', fontWeight: 700 }}>سيتم إعلامك هنا عند وجود أي تحديثات مهمة</p>
                 </div>
@@ -54,7 +55,7 @@ export default function NotificationsPage() {
                                  transition: 'all 0.3s ease'
                              }}>
                             <div style={{ fontSize: '24px', flexShrink: 0, marginTop: '2px' }}>
-                                {notif.type === 'alert' ? '🚨' : notif.type === 'success' ? '✅' : notif.type === 'task' ? '📋' : '🔔'}
+                                {notif.type === 'alert' ? <Siren size={20} aria-hidden="true" /> : notif.type === 'success' ? <CircleCheck size={20} aria-hidden="true" /> : notif.type === 'task' ? <ClipboardList size={20} aria-hidden="true" /> : <Bell size={20} aria-hidden="true" />}
                             </div>
                             <div style={{ flex: 1 }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>

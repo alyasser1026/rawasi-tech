@@ -11,11 +11,12 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import MasterPage from '@/components/MasterPage';
 import GlassContainer from '@/components/GlassContainer';
 import { THEME } from '@/lib/theme'; 
+import { Package, ChartColumn, Wrench, ShieldCheck, Download, RefreshCw, Settings, Files, FolderOpen, TriangleAlert } from 'lucide-react';
 
 // 🗺️ خريطة الجداول لتسهيل التحديد (تم تحديثها لتشمل كافة الجداول في الـ Schema)
 const TABLE_GROUPS = [
   {
-    name: "👥 الموارد البشرية والشركاء",
+    name: "الموارد البشرية والشركاء",
     tables: [
       { id: 'partners', name: 'دليل الشركاء والموظفين' },
       { id: 'all_emp', name: 'سجل الموظفين الشامل' },
@@ -24,7 +25,7 @@ const TABLE_GROUPS = [
     ]
   },
   {
-    name: "🏗️ المشاريع والعمليات الميدانية",
+    name: "المشاريع والعمليات الميدانية",
     tables: [
       { id: 'projects', name: 'بيانات المشاريع والمواقع' },
       { id: 'project_stages', name: 'مراحل إنجاز المشاريع' },
@@ -38,7 +39,7 @@ const TABLE_GROUPS = [
     ]
   },
   {
-    name: "🧾 المالية والمحاسبة",
+    name: "المالية والمحاسبة",
     tables: [
       { id: 'accounts', name: 'دليل شجرة الحسابات' },
       { id: 'expenses', name: 'المصروفات العامة' },
@@ -52,7 +53,7 @@ const TABLE_GROUPS = [
     ]
   },
   {
-    name: "🧱 المخازن والإمداد",
+    name: "المخازن والإمداد",
     tables: [
       { id: 'inventory', name: 'مخازن المواد والخامات' },
       { id: 'material_receipts', name: 'سندات استلام الخامات' },
@@ -62,7 +63,7 @@ const TABLE_GROUPS = [
     ]
   },
   {
-    name: "⚙️ إعدادات النظام والمستخدمين",
+    name: "إعدادات النظام والمستخدمين",
     tables: [
       { id: 'profiles', name: 'حسابات وصلاحيات المستخدمين' },
       { id: 'system_settings', name: 'إعدادات النظام العامة' },
@@ -106,15 +107,15 @@ export default function SettingsPage() {
     if (!selectedFile) return;
     
     setIsUploading(true);
-    setUploadMsg({ text: '⏳ جاري تحليل الملف وربط المعرفات الذكية...', type: 'loading' });
+    setUploadMsg({ text: 'جاري تحليل الملف وربط المعرفات الذكية...', type: 'loading' });
 
     try {
       await processExcelRestore(selectedFile);
-      setUploadMsg({ text: '✅ تم الاستيراد بنجاح! تم تطبيق الحماية ضد التكرار.', type: 'success' });
+      setUploadMsg({ text: 'تم الاستيراد بنجاح! تم تطبيق الحماية ضد التكرار.', type: 'success' });
       setSelectedFile(null); 
       setTimeout(() => setUploadMsg({ text: '', type: '' }), 5000);
     } catch (err: any) {
-      setUploadMsg({ text: `❌ فشل: ${err.message || 'تأكد من استخدام النماذج المعتمدة.'}`, type: 'error' });
+      setUploadMsg({ text: `فشل: ${err.message || 'تأكد من استخدام النماذج المعتمدة.'}`, type: 'error' });
     } finally {
       setIsUploading(false);
     }
@@ -129,7 +130,7 @@ export default function SettingsPage() {
       if (activeTab === 'backup') {
           summary = (
               <div className="sidebar-summary-glass">
-                  <div className="icon-pulse">📦</div>
+                  <div className="icon-pulse"><Package size={16} aria-hidden="true" /></div>
                   <p className="summary-title">الجداول المحددة</p>
                   <h3 className="summary-value">{selectedCount}</h3>
               </div>
@@ -141,21 +142,21 @@ export default function SettingsPage() {
                       disabled={selectedCount === 0 || isUploading}
                       className={`btn-premium-glass excel ${selectedCount === 0 ? 'disabled' : ''}`}
                   >
-                      <span className="btn-icon">📊</span> تصدير Excel
+                      <span className="btn-icon"><ChartColumn size={16} aria-hidden="true" /></span> تصدير Excel
                   </button>
                   <button 
                       onClick={() => backupToJSON(selectedTables)} 
                       disabled={selectedCount === 0 || isUploading}
                       className={`btn-premium-glass json ${selectedCount === 0 ? 'disabled' : ''}`}
                   >
-                      <span className="btn-icon">🛠️</span> تصدير JSON
+                      <span className="btn-icon"><Wrench size={16} aria-hidden="true" /></span> تصدير JSON
                   </button>
               </div>
           );
       } else {
           summary = (
               <div className="sidebar-summary-glass info">
-                  <div className="icon-pulse">🛡️</div>
+                  <div className="icon-pulse"><ShieldCheck size={16} aria-hidden="true" /></div>
                   <p className="summary-title" style={{color: '#3b82f6'}}>إعدادات النظام</p>
               </div>
           );
@@ -165,7 +166,7 @@ export default function SettingsPage() {
   }, [activeTab, selectedCount, selectedTables, backupToExcel, backupToJSON, isUploading]);
 
   return (
-    <MasterPage icon="⚙️" title="إعدادات النظام والنسخ الاحتياطي" hideTitleOnMobile={true}>
+    <MasterPage title="إعدادات النظام والنسخ الاحتياطي" hideTitleOnMobile={true}>
       
       <RawasiSidebarManager 
           summary={sidebarContent.summary}
@@ -177,16 +178,16 @@ export default function SettingsPage() {
         
         <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
           <button className={`tab-btn ${activeTab === 'permissions' ? 'active' : ''}`} onClick={() => setActiveTab('permissions')}>
-            🔐 مصفوفة الصلاحيات
+            مصفوفة الصلاحيات
           </button>
           <button className={`tab-btn ${activeTab === 'backup' ? 'active' : ''}`} onClick={() => setActiveTab('backup')}>
-            💾 إدارة البيانات والنماذج
+            إدارة البيانات والنماذج
           </button>
           <button className={`tab-btn ${activeTab === 'health' ? 'active' : ''}`} onClick={() => setActiveTab('health')}>
-            🩺 فحص الاتصال والتخزين
+            فحص الاتصال والتخزين
           </button>
           <button className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => setActiveTab('audit')}>
-            🕵️‍♂️ سجل المراقبة
+            سجل المراقبة
           </button>
         </div>
 
@@ -202,7 +203,7 @@ export default function SettingsPage() {
             <GlassContainer>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '2px solid #f1f5f9', paddingBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
-                  <h2 style={{ fontSize: '18px', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>📦 بنية النظام والجداول</h2>
+                  <h2 style={{ fontSize: '18px', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>بنية النظام والجداول</h2>
                   <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: 700 }}>حدد الجداول لتصديرها أو تحميل قوالب الإدخال.</p>
                 </div>
                 <button onClick={selectAllTables} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '8px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 900, color: THEME.primary, transition: '0.2s', fontSize: '12px' }}>
@@ -226,7 +227,7 @@ export default function SettingsPage() {
                             {table.name}
                           </label>
                           <button onClick={() => downloadTemplate(table.id, table.name)} className="template-btn" title="تحميل قالب إدخال فارغ">
-                            📥
+                            <Download size={16} aria-hidden="true" />
                           </button>
                         </div>
                       ))}
@@ -238,7 +239,7 @@ export default function SettingsPage() {
 
             <GlassContainer>
               <h3 style={{ margin: '0 0 5px 0', color: THEME.primary, fontWeight: 900, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span>🔄</span> استيراد البيانات
+                <span><RefreshCw size={16} aria-hidden="true" /></span> استيراد البيانات
               </h3>
               <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 25px 0', fontWeight: 700, lineHeight: 1.6 }}>
                 ارفع القوالب المعبأة (Excel) لإضافتها للنظام.
@@ -247,14 +248,14 @@ export default function SettingsPage() {
               <label className={`premium-dropzone ${selectedFile ? 'has-file' : ''} ${isUploading ? 'uploading' : ''}`}>
                 {isUploading ? (
                     <div style={{ width: '100%', padding: '20px 0' }}>
-                        <div className="loading-spinner">⚙️</div>
+                        <div className="loading-spinner"><Settings size={16} aria-hidden="true" /></div>
                         <div style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary, marginTop: '10px' }}>
                             جاري القراءة والمعالجة...
                         </div>
                     </div>
                 ) : (
                     <>
-                        <div style={{ fontSize: '40px' }}>{selectedFile ? '📑' : '📂'}</div>
+                        <div style={{ fontSize: '40px' }}>{selectedFile ? <Files size={34} aria-hidden="true" /> : <FolderOpen size={34} aria-hidden="true" />}</div>
                         <div>
                             <div style={{ fontSize: '14px', fontWeight: 900, color: selectedFile ? '#059669' : THEME.primary, marginBottom: '5px' }}>
                             {selectedFile ? selectedFile.name : 'اختر ملف الإكسل للرفع'}
@@ -285,13 +286,13 @@ export default function SettingsPage() {
 
               {selectedFile && !isUploading && (
                 <button onClick={handleConfirmUpload} className="btn-premium-upload">
-                  🚀 بدء الترحيل والاستيراد
+                  بدء الترحيل والاستيراد
                 </button>
               )}
 
               <div style={{ background: '#fef2f2', border: `1px dashed #fca5a5`, padding: '15px', borderRadius: '12px', marginTop: '25px' }}>
                 <div style={{ color: '#dc2626', fontWeight: 900, fontSize: '12px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                  <span>⚠️</span> تعليمات الاستيراد
+                  <span><TriangleAlert size={16} aria-hidden="true" /></span> تعليمات الاستيراد
                 </div>
                 <ul style={{ fontSize: '11px', color: '#7f1d1d', margin: '8px 0 0 0', paddingRight: '20px', lineHeight: 1.6, fontWeight: 700 }}>
                   <li>استخدم النماذج المحملة من النظام حصراً.</li>

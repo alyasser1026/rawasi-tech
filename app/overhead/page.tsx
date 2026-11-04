@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/helpers';
 import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import LoadingScreen from '@/components/LoadingScreen';
+import { FolderOpen, Folder } from 'lucide-react';
 
 // 🏗️ مكون داخلي لكارت المشروع (Accordion)
 const ProjectGroupCard = ({ group }: { group: any }) => {
@@ -16,7 +17,7 @@ const ProjectGroupCard = ({ group }: { group: any }) => {
             {/* الهيدر: اسم المشروع والإجمالي */}
             <div className="accordion-header" onClick={() => setExpanded(!expanded)}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <div className="icon-box">{expanded ? '📂' : '📁'}</div>
+                    <div className="icon-box">{expanded ? <FolderOpen size={16} aria-hidden="true" /> : <Folder size={16} aria-hidden="true" />}</div>
                     <div>
                         <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: '#1e293b' }}>
                             {group.projectName}
@@ -82,7 +83,7 @@ export default function ProjectOverheadPage() {
                 summary={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <div className="summary-glass-box border-red">
-                            <span style={{fontSize:'11px', fontWeight:800, color:'#dc2626'}}>🚨 إجمالي الأوفر هيد لجميع المشاريع</span>
+                            <span style={{fontSize:'11px', fontWeight:800, color:'#dc2626'}}>إجمالي الأوفر هيد لجميع المشاريع</span>
                             <div style={{fontSize:'19px', fontWeight:900, color: '#b91c1c', marginTop:'4px'}}>{formatCurrency(logic.totalAllocatedOverhead)}</div>
                         </div>
                         <div className="summary-glass-box">
@@ -94,14 +95,14 @@ export default function ProjectOverheadPage() {
                 actions={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div>
-                            <label style={{ fontSize: '11px', fontWeight: 900, color: 'white', display: 'block', marginBottom: '4px' }}>🏢 تصفية بحسب المشروع</label>
+                            <label style={{ fontSize: '11px', fontWeight: 900, color: 'white', display: 'block', marginBottom: '4px' }}>تصفية بحسب المشروع</label>
                             <select value={logic.selectedProject} onChange={(e) => logic.setSelectedProject(e.target.value)} className="glass-dropdown">
                                 <option value="">كل المشاريع</option>
                                 {logic.uniqueProjects.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label style={{ fontSize: '11px', fontWeight: 900, color: 'white', display: 'block', marginBottom: '4px' }}>📅 تصفية بحسب الشهر المالي</label>
+                            <label style={{ fontSize: '11px', fontWeight: 900, color: 'white', display: 'block', marginBottom: '4px' }}>تصفية بحسب الشهر المالي</label>
                             <select value={logic.selectedMonth} onChange={(e) => logic.setSelectedMonth(e.target.value)} className="glass-dropdown">
                                 <option value="">كل الشهور</option>
                                 {logic.uniqueMonths.map(m => <option key={m} value={m}>{m}</option>)}

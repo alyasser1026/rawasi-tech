@@ -12,7 +12,7 @@ export default function PermissionsPage() {
 
     return (
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', direction: 'rtl', fontWeight: 900, color: '#64748b' }}>
-            ⏳ تم نقل إدارة الصلاحيات إلى صفحة "إدارة الفريق".. جاري تحويلك...
+            تم نقل إدارة الصلاحيات إلى صفحة "إدارة الفريق".. جاري تحويلك...
         </div>
     );
 }

@@ -667,17 +667,9 @@ td {
         gap: 15px !important;
     }
 
-    /* Force all modals to be mobile-friendly and cancel any hardcoded min-width */
-    .modal-content, 
-    .supreme-modal,
-    [style*="width: 500px"], 
-    [style*="width: 600px"], 
-    [style*="width: 700px"], 
-    [style*="width: 800px"], 
-    [style*="width: 900px"],
-    [style*="width: 1000px"],
-    [style*="max-width"],
-    [style*="min-width"] {
+    /* Named dialogs resize without changing unrelated cards and table columns. */
+    .modal-content,
+    .supreme-modal {
         width: 95vw !important;
         max-width: 100vw !important;
         min-width: 0 !important;
@@ -688,31 +680,4 @@ td {
         box-sizing: border-box !important;
     }
 
-    /* Fix any rogue grids inside modals or containers */
-    div[style*="grid-template-columns: 1fr 1fr"],
-    div[style*="gridTemplateColumns: 1fr 1fr"],
-    div[style*="grid-template-columns: repeat(3"],
-    div[style*="grid-template-columns: repeat(4"] {
-    div[style*="grid-template-columns"],
-    div[style*="gridTemplateColumns"] {
-        /* If it's a multi-column grid, force to 1 column on mobile, EXCEPT if it's the master header or sidebar */
-    }
-    
-    /* We will use regex-like attribute selectors to catch common multi-column inline styles */
-    div[style*="1fr 1fr"],
-    div[style*="1fr 2fr"],
-    div[style*="2fr 1fr"],
-    div[style*="1fr 1.5fr"],
-    div[style*="1.5fr 1fr"],
-    div[style*="1fr 3fr"],
-    div[style*="3fr 1fr"],
-    div[style*="repeat(2"],
-    div[style*="repeat(3"],
-    div[style*="repeat(4"],
-    div[style*="repeat(5"] {
-        grid-template-columns: 1fr !important;
-    }
-
-        grid-template-columns: 1fr !important;
-    }
 }

@@ -307,7 +307,7 @@ export function useProfileLogic() {
                 queryClient.invalidateQueries({ queryKey: ['employeeProfileData'] });
             })
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userProfile.id}` }, () => {
-                toast.success('لديك إشعار جديد 🔔');
+                toast.success('لديك إشعار جديد');
                 queryClient.invalidateQueries({ queryKey: ['employeeProfileData'] });
             })
             .subscribe();
@@ -323,7 +323,7 @@ export function useProfileLogic() {
             const { error } = await supabase.from('user_requests').insert({ user_id: userProfile?.id, ...reqData });
             if (error) throw error;
         },
-        onSuccess: () => { toast.success('تم رفع الطلب للإدارة بنجاح 🚀'); invalidateAndRefresh(); },
+        onSuccess: () => { toast.success('تم رفع الطلب للإدارة بنجاح'); invalidateAndRefresh(); },
         onError: (error) => toast.error(parseDbError(error)) // 🛡️ استخدام المترجم
     });
 
@@ -333,8 +333,8 @@ export function useProfileLogic() {
             if (error) throw error;
         },
         onSuccess: (_, variables) => { 
-            if (variables.status === 'completed') toast.success('تم إنجاز المهمة، عاش يا بطل! ✅');
-            else toast.success('تم إرسال تقرير عدم الإنجاز ⚠️');
+            if (variables.status === 'completed') toast.success('تم إنجاز المهمة، عاش يا بطل!');
+            else toast.success('تم إرسال تقرير عدم الإنجاز');
             invalidateAndRefresh(); 
         },
         onError: (error) => toast.error(parseDbError(error)) // 🛡️ استخدام المترجم
@@ -345,7 +345,7 @@ export function useProfileLogic() {
             const { error } = await supabase.from('profiles').update(data).eq('id', userProfile?.id);
             if (error) throw error;
         },
-        onSuccess: () => { toast.success('تم حفظ بيانات البروفايل 💾'); invalidateAndRefresh(); },
+        onSuccess: () => { toast.success('تم حفظ بيانات البروفايل'); invalidateAndRefresh(); },
         onError: (error) => toast.error(parseDbError(error)) // 🛡️ استخدام المترجم
     });
 
@@ -360,7 +360,7 @@ export function useProfileLogic() {
     const submitTaskUpdate = async (taskId: string, status: string, note?: string) => taskMutation.mutateAsync({ taskId, status, note });
     const updateProfileInfo = async (data: any) => profileMutation.mutateAsync(data);
     const markAllNotificationsAsRead = async () => notificationMutation.mutateAsync();
-    const refreshProfile = () => { toast.success('تم تحديث البيانات 🔄'); invalidateAndRefresh(); };
+    const refreshProfile = () => { toast.success('تم تحديث البيانات'); invalidateAndRefresh(); };
     const updatePassword = async (password: string) => {
         try {
             const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -376,14 +376,14 @@ export function useProfileLogic() {
     // דالة رفع الصورة الشخصية
     const uploadAvatar = async (file: File) => {
         if (!userProfile?.id) return;
-        const toastId = toast.loading('جاري رفع الصورة... ⏳');
+        const toastId = toast.loading('جاري رفع الصورة...');
         try {
             const fileName = `${userProfile.id}-${Date.now()}`;
             const { error } = await supabase.storage.from('avatars').upload(fileName, file);
             if (error) throw error;
             const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(fileName);
             await profileMutation.mutateAsync({ avatar_url: publicUrl });
-            toast.success('تم تحديث الصورة الشخصية 📸', { id: toastId });
+            toast.success('تم تحديث الصورة الشخصية', { id: toastId });
         } catch (error) { 
             toast.error(parseDbError(error), { id: toastId }); // 🛡️ استخدام المترجم
             console.error(error); 

@@ -9,6 +9,7 @@ import { useConfirm } from '@/components/ConfirmContext';
 import { formatCurrency } from '@/lib/helpers';
 import { THEME } from '@/lib/theme';
 import LoadingScreen from '@/components/LoadingScreen';
+import { Pencil, Trash2 } from 'lucide-react';
 
 export default function MaterialCatalogPage() {
   const logic = useMaterialItemsLogic();
@@ -45,7 +46,7 @@ export default function MaterialCatalogPage() {
 
   const tableColumns = [
     { header: 'كود الصنف', render: (row: any) => <strong style={{ color: THEME.primary }}>{row.item_code || '---'}</strong> },
-    { header: 'اسم الخريطة / الصنف', render: (row: any) => <span style={{ fontWeight: 900 }}>📦 {row.item_name}</span> },
+    { header: 'اسم الخريطة / الصنف', render: (row: any) => <span style={{ fontWeight: 900 }}>{row.item_name}</span> },
     { header: 'التصنيف الرئيسي', render: (row: any) => <span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 800 }}>{row.main_category || 'عام'}</span> },
     { header: 'الوحدة الافتراضية', render: (row: any) => <span style={{ fontWeight: 700 }}>{row.default_unit}</span> },
     { header: 'السعر الاسترشادي', render: (row: any) => <span style={{ color: THEME.success, fontWeight: 900 }}>{formatCurrency(row.default_unit_price)}</span> },
@@ -56,7 +57,7 @@ export default function MaterialCatalogPage() {
           <button 
             onClick={() => { logic.setCurrentRecord(row); logic.setIsModalOpen(true); }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }} title="تعديل"
-          >✏️</button>
+          ><Pencil size={14} aria-hidden="true" /></button>
           <button 
             onClick={() => {
               showConfirm({
@@ -67,7 +68,7 @@ export default function MaterialCatalogPage() {
               });
             }}
             style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }} title="حذف"
-          >🗑️</button>
+          ><Trash2 size={14} aria-hidden="true" /></button>
         </div>
       )
     }
@@ -77,14 +78,14 @@ export default function MaterialCatalogPage() {
     <button className="btn-main-glass gold" onClick={() => {
       logic.setCurrentRecord({ item_code: '', item_name: '', main_category: '', default_unit: 'حبة', default_unit_price: 0, notes: '' });
       logic.setIsModalOpen(true);
-    }}>➕ إضافة صنف جديد</button>
+    }}>إضافة صنف جديد</button>
   );
 
   const sidebarFilters = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px' }}>
-      <input type="text" placeholder="🔍 ابحث بالاسم أو الكود..." className="glass-input-field" value={logic.searchQuery} onChange={e => logic.setSearchQuery(e.target.value)} />
+      <input type="text" placeholder="ابحث بالاسم أو الكود..." className="glass-input-field" value={logic.searchQuery} onChange={e => logic.setSearchQuery(e.target.value)} />
       <select className="glass-input-field" value={logic.filterCategory} onChange={e => logic.setFilterCategory(e.target.value)}>
-        <option value="الكل">كل التصنيفات 🧱</option>
+        <option value="الكل">كل التصنيفات</option>
         {logic.categories.map((cat: string) => <option key={cat} value={cat}>{cat}</option>)}
       </select>
     </div>
@@ -92,7 +93,7 @@ export default function MaterialCatalogPage() {
 
   return (
     <div className="clean-page">
-      <MasterPage icon="📦" title="دليل أصناف الخامات الموحد" subtitle="تكويد وإدارة بنود التوريدات لمنع العشوائية في الفواتير">
+      <MasterPage title="دليل أصناف الخامات الموحد" subtitle="تكويد وإدارة بنود التوريدات لمنع العشوائية في الفواتير">
         
         <RawasiSidebarManager 
           summary={
@@ -111,13 +112,13 @@ export default function MaterialCatalogPage() {
           .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; font-weight: 900; cursor: pointer; transition: 0.2s; border: none; }
           .btn-main-glass.gold { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; box-shadow: 0 4px 15px rgba(194,65,12,0.3); }
           .btn-main-glass.gold:hover { transform: translateY(-2px); }
-          .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); }
+          .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); }
         `}</style>
 
         {logic.isLoading ? (
           <LoadingScreen message="جاري تحميل الكتالوج الموحد..." fullScreen={false} />
         ) : (
-          <div className="glass-card" style={{ background: 'white', padding: '20px', borderRadius: '24px' }}>
+          <div className="glass-card" style={{ background: 'white', padding: '20px', borderRadius: '14px' }}>
             <RawasiSmartTable data={logic.items} columns={tableColumns} enablePagination={true} />
           </div>
         )}
@@ -125,8 +126,8 @@ export default function MaterialCatalogPage() {
         {/* 🧱 مودال الإضافة والتعديل المخصص للأصناف */}
         {logic.isModalOpen && createPortal(
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(40, 24, 10, 0.5)', backdropFilter: 'blur(15px)', direction: 'rtl' }}>
-            <div style={{ background: 'white', padding: '40px', borderRadius: '32px', width: '100%', maxWidth: '600px', boxShadow: '0 30px 60px rgba(0,0,0,0.3)' }}>
-              <h3 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px' }}>{logic.currentRecord.id ? '✏️ تعديل صنف خامة' : '🧱 إضافة صنف خامة جديد للدليل'}</h3>
+            <div style={{ background: 'white', padding: '40px', borderRadius: '14px', width: '100%', maxWidth: '600px', boxShadow: '0 30px 60px rgba(0,0,0,0.3)' }}>
+              <h3 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px' }}>{logic.currentRecord.id ? 'تعديل صنف خامة' : 'إضافة صنف خامة جديد للدليل'}</h3>
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '15px' }}>
@@ -144,7 +145,7 @@ export default function MaterialCatalogPage() {
               </div>
 
               <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>
-                <button onClick={logic.handleSave} disabled={logic.isSaving} className="btn-main-glass gold" style={{ flex: 2 }}>{logic.isSaving ? '⏳ جاري الحفظ...' : '✅ حفظ الصنف'}</button>
+                <button onClick={logic.handleSave} disabled={logic.isSaving} className="btn-main-glass gold" style={{ flex: 2 }}>{logic.isSaving ? 'جاري الحفظ...' : 'حفظ الصنف'}</button>
                 <button onClick={() => logic.setIsModalOpen(false)} className="btn-main-glass" style={{ flex: 1, background: '#f1f5f9', color: '#64748b' }}>إلغاء</button>
               </div>
             </div>

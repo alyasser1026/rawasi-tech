@@ -6,6 +6,8 @@ import { formatCurrency } from '@/lib/helpers';
 import { THEME } from '@/lib/theme';
 import { useLedgerLogic } from './ledger_logic';
 import LoadingScreen from '@/components/LoadingScreen';
+import { FolderOpen, Folder } from 'lucide-react';
+import PhiIcon from '@/components/PhiIcon';
 
 export default function HierarchicalLedgerPage() {
   const logic = useLedgerLogic();
@@ -32,7 +34,7 @@ export default function HierarchicalLedgerPage() {
 
   return (
     <div className="clean-page">
-      <MasterPage icon="🏛️" title="الدفتر المالي للتكاليف" subtitle="تحليل هرمي للتكاليف من الإجمالي العام حتى أدق التفاصيل">
+      <MasterPage title="الدفتر المالي للتكاليف" subtitle="تحليل هرمي للتكاليف من الإجمالي العام حتى أدق التفاصيل">
         
         {logic.isLoading ? (
            <LoadingScreen message="جاري بناء الهرم المالي..." fullScreen={false} />
@@ -41,49 +43,49 @@ export default function HierarchicalLedgerPage() {
             
             {/* 📊 لوحة المؤشرات العلوية (تم تقسيمها لعرض كل التكاليف) */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', marginBottom: '25px' }}>
-              <div style={{ backgroundColor: THEME.coffeeDark, color: 'white', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>💰 إجمالي التكاليف</span>
+              <div style={{ backgroundColor: THEME.coffeeDark, color: 'white', padding: '20px', borderRadius: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>إجمالي التكاليف</span>
                 <strong style={{ display: 'block', fontSize: '22px', fontWeight: 900, color: THEME.goldAccent }}>{formatCurrency(logic.pyramidData.grandTotal)}</strong>
               </div>
-              <div style={{ backgroundColor: '#0369a1', color: 'white', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>👷 عمالة مباشرة</span>
+              <div style={{ backgroundColor: '#0369a1', color: 'white', padding: '20px', borderRadius: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>عمالة مباشرة</span>
                 <strong style={{ display: 'block', fontSize: '22px', fontWeight: 900 }}>{formatCurrency(logic.pyramidData.totalLabor)}</strong>
               </div>
-              <div style={{ backgroundColor: '#ea580c', color: 'white', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>🧱 خامات ومواد</span>
+              <div style={{ backgroundColor: '#ea580c', color: 'white', padding: '20px', borderRadius: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>خامات ومواد</span>
                 <strong style={{ display: 'block', fontSize: '22px', fontWeight: 900 }}>{formatCurrency(logic.pyramidData.totalMaterials)}</strong>
               </div>
-              <div style={{ backgroundColor: '#be123c', color: 'white', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>🏗️ مقاولي الباطن</span>
+              <div style={{ backgroundColor: '#be123c', color: 'white', padding: '20px', borderRadius: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>مقاولي الباطن</span>
                 <strong style={{ display: 'block', fontSize: '22px', fontWeight: 900 }}>{formatCurrency(logic.pyramidData.totalSubcontractors)}</strong>
               </div>
-              <div style={{ backgroundColor: '#6b21a8', color: 'white', padding: '20px', borderRadius: '20px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
-                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>🏢 مصروفات وأوفر هيد</span>
+              <div style={{ backgroundColor: '#6b21a8', color: 'white', padding: '20px', borderRadius: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                <span style={{ fontSize: '12px', opacity: 0.8, fontWeight: 800 }}>مصروفات وأوفر هيد</span>
                 <strong style={{ display: 'block', fontSize: '22px', fontWeight: 900 }}>{formatCurrency(logic.pyramidData.totalOverhead)}</strong>
               </div>
             </div>
 
             {/* 🎛️ شريط الفلاتر */}
-            <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', padding: '20px', borderRadius: '20px', border: '1px solid rgba(255,255,255,0.8)', marginBottom: '25px', display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', padding: '20px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.8)', marginBottom: '25px', display: 'flex', gap: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
               <div style={{ flex: '1 1 250px' }}>
                 <span style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#64748b', marginBottom: '5px' }}>بحث في التفاصيل:</span>
-                <input type="text" placeholder="🔍 ابحث عن بند..." value={logic.searchQuery} onChange={(e) => logic.setSearchQuery(e.target.value)} style={{ width: '100%', padding: '12px 15px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, outline: 'none' }} />
+                <input type="text" placeholder="ابحث عن بند..." value={logic.searchQuery} onChange={(e) => logic.setSearchQuery(e.target.value)} style={{ width: '100%', padding: '12px 15px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, outline: 'none' }} />
               </div>
               <div style={{ flex: '1 1 200px' }}>
                 <span style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#64748b', marginBottom: '5px' }}>تصفية بالمشروع:</span>
                 <select value={logic.filterProject} onChange={(e) => logic.setFilterProject(e.target.value)} style={{ width: '100%', padding: '12px 15px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, outline: 'none', backgroundColor: 'white' }}>
-                  <option value="الكل">كل المشاريع 🏢</option>
+                  <option value="الكل">كل المشاريع</option>
                   {logic.uniqueProjects.map((proj: any, idx: number) => <option key={idx} value={proj}>{proj}</option>)}
                 </select>
               </div>
               <div style={{ flex: '1 1 200px' }}>
                 <span style={{ display: 'block', fontSize: '11px', fontWeight: 900, color: '#64748b', marginBottom: '5px' }}>نوع التكلفة:</span>
                 <select value={logic.filterType} onChange={(e) => logic.setFilterType(e.target.value)} style={{ width: '100%', padding: '12px 15px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, outline: 'none', backgroundColor: 'white' }}>
-                  <option value="الكل">كل التكاليف 📂</option>
-                  <option value="عمالة مباشرة">👷 عمالة مباشرة</option>
-                  <option value="خامات ومواد">🧱 خامات ومواد</option>
-                  <option value="مصروفات مقاولين">🏗️ مستخلصات مقاولين</option>
-                  <option value="مصروفات تشغيل وأوفر هيد">🏢 مصروفات وأوفر هيد</option>
+                  <option value="الكل">كل التكاليف</option>
+                  <option value="عمالة مباشرة">عمالة مباشرة</option>
+                  <option value="خامات ومواد">خامات ومواد</option>
+                  <option value="مصروفات مقاولين">مستخلصات مقاولين</option>
+                  <option value="مصروفات تشغيل وأوفر هيد">مصروفات وأوفر هيد</option>
                 </select>
               </div>
             </div>
@@ -91,7 +93,7 @@ export default function HierarchicalLedgerPage() {
             {/* 🏗️ جسم الهرم (المشاريع والتفاصيل) */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {logic.pyramidData.projects.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8', fontWeight: 900, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '20px' }}>لا توجد بيانات مطابقة للفلاتر.</div>
+                <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8', fontWeight: 900, backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: '14px' }}>لا توجد بيانات مطابقة للفلاتر.</div>
               ) : (
                 logic.pyramidData.projects.map((project: any, pIdx: number) => {
                   const isProjOpen = expandedProjects[project.name];
@@ -105,7 +107,7 @@ export default function HierarchicalLedgerPage() {
                         style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', backgroundColor: isProjOpen ? '#f8fafc' : 'white', transition: '0.2s' }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                          <span style={{ fontSize: '24px' }}>{isProjOpen ? '📂' : '📁'}</span>
+                          <span style={{ fontSize: '24px' }}>{isProjOpen ? <FolderOpen size={20} aria-hidden="true" /> : <Folder size={20} aria-hidden="true" />}</span>
                           <strong style={{ fontSize: '18px', color: THEME.coffeeDark, fontWeight: 900 }}>{project.name}</strong>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -122,10 +124,10 @@ export default function HierarchicalLedgerPage() {
                             const isTypeOpen = expandedTypes[typeKey];
                             
                             // 🎨 تحديد الألوان والأيقونات بناءً على نوع التكلفة
-                            let icon = '🏢', color = '#6b21a8', bgColor = '#faf5ff', borderColor = '#e9d5ff';
-                            if (typeNode.name === 'عمالة مباشرة') { icon = '👷'; color = '#0369a1'; bgColor = '#f0f9ff'; borderColor = '#bae6fd'; }
-                            else if (typeNode.name === 'خامات ومواد') { icon = '🧱'; color = '#ea580c'; bgColor = '#fff7ed'; borderColor = '#ffedd5'; }
-                            else if (typeNode.name === 'مصروفات مقاولين') { icon = '🏗️'; color = '#be123c'; bgColor = '#fff1f2'; borderColor = '#ffe4e6'; }
+                            let icon = '', color = '#6b21a8', bgColor = '#faf5ff', borderColor = '#e9d5ff';
+                            if (typeNode.name === 'عمالة مباشرة') { icon = ''; color = '#0369a1'; bgColor = '#f0f9ff'; borderColor = '#bae6fd'; }
+                            else if (typeNode.name === 'خامات ومواد') { icon = ''; color = '#ea580c'; bgColor = '#fff7ed'; borderColor = '#ffedd5'; }
+                            else if (typeNode.name === 'مصروفات مقاولين') { icon = ''; color = '#be123c'; bgColor = '#fff1f2'; borderColor = '#ffe4e6'; }
 
                             return (
                               <div key={tIdx} style={{ border: `1px solid ${borderColor}`, borderRadius: '12px', overflow: 'hidden', backgroundColor: 'white' }}>
@@ -136,9 +138,9 @@ export default function HierarchicalLedgerPage() {
                                   style={{ padding: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', backgroundColor: bgColor }}
                                 >
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                    <span>{icon}</span>
+                                    <PhiIcon value={icon} size={18} />
                                     <strong style={{ fontSize: '15px', color: color, fontWeight: 900 }}>{typeNode.name}</strong>
-                                    <span style={{ fontSize: '12px', backgroundColor: 'white', padding: '2px 8px', borderRadius: '20px', color: '#64748b', fontWeight: 800 }}>{typeNode.items.length} عملية</span>
+                                    <span style={{ fontSize: '12px', backgroundColor: 'white', padding: '2px 8px', borderRadius: '14px', color: '#64748b', fontWeight: 800 }}>{typeNode.items.length} عملية</span>
                                   </div>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                                     <strong style={{ fontSize: '16px', color: color, fontWeight: 900 }}>{formatCurrency(typeNode.total)}</strong>

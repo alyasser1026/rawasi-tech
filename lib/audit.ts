@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 export const logCustomAuditEvent = async (
     tableName: string,
@@ -32,10 +33,10 @@ export const logCustomAuditEvent = async (
         
         if (error) {
             console.error('Insert error:', error);
-            alert(`خطأ في التسجيل في اللوج: ${error.message}`);
+            notify(`خطأ في التسجيل في اللوج: ${error.message}`);
         }
     } catch (error: any) {
         console.error('Failed to log custom audit event:', error);
-        alert(`خطأ غير متوقع: ${error.message}`);
+        notify(`خطأ غير متوقع: ${error.message}`);
     }
 };

@@ -104,7 +104,7 @@ export function useJournalErrorsLogic() {
                 if(!h.reference_id) return {
                     ...h,
                     // 🚀 التعديل 4: عرض نوع الفاوتشر في التشخيص لو موجود
-                    diagnosis: `⚠️ قيد يتيم (أصل السند محذوف). ${h.v_type ? `[النوع: ${h.v_type}]` : ''}`,
+                    diagnosis: `قيد يتيم (أصل السند محذوف). ${h.v_type ? `[النوع: ${h.v_type}]` : ''}`,
                     solution: "يجب مسح هذا القيد لإعادة التوازن المحاسبي."
                 };
                 
@@ -113,8 +113,8 @@ export function useJournalErrorsLogic() {
                 return {
                     ...h,
                     diagnosis: isMismatched 
-                        ? `⚠️ تناقض: القيد موجود والسجل الأصلي "معلق".` 
-                        : `⚠️ قيد يتيم: المستند الأصلي (ID: ${h.reference_id}) غير موجود.`,
+                        ? `تناقض: القيد موجود والسجل الأصلي "معلق".` 
+                        : `قيد يتيم: المستند الأصلي (ID: ${h.reference_id}) غير موجود.`,
                     solution: "يجب مسح هذا القيد لإعادة التوازن المحاسبي."
                 };
             });
@@ -135,7 +135,7 @@ export function useJournalErrorsLogic() {
             setUnbalancedLogs(unbal);
 
             setHasScanned(true);
-            showToast('تم اكتمال الفحص الشامل للرادار 🕵️‍♂️', 'success');
+            showToast('تم اكتمال الفحص الشامل للرادار', 'success');
 
         } catch (err: any) {
             showToast(`خطأ أثناء الفحص: ${err.message}`, 'error');
@@ -146,7 +146,7 @@ export function useJournalErrorsLogic() {
 
     // 🛡️ 2. محرك الحذف العميق
     const deleteHeader = async (id: string, isGhost: boolean = false) => {
-        const confirmDelete = confirm("⚠️ سيتم مسح القيد وجميع السطور المرتبطة به نهائياً. هل تريد المتابعة؟");
+        const confirmDelete = confirm("سيتم مسح القيد وجميع السطور المرتبطة به نهائياً. هل تريد المتابعة؟");
         if (!confirmDelete) return;
         setIsLoading(true);
         try {
@@ -175,7 +175,7 @@ export function useJournalErrorsLogic() {
             setDuplicateLogs(prev => prev.filter(log => log.id !== id));
             setEmptyLogs(prev => prev.filter(log => log.id !== id));
             
-            showToast("تم تطهير القيد وارتباطاته بنجاح 🗑️", 'success');
+            showToast("تم تطهير القيد وارتباطاته بنجاح", 'success');
         } catch (error: any) { 
             showToast(`فشل المسح: ${error.message}`, 'error'); 
         } finally { 
@@ -186,7 +186,7 @@ export function useJournalErrorsLogic() {
     // 🛡️ 3. المسح الجماعي
     const deleteSelected = async () => {
         if (selectedIds.length === 0) return;
-        if (!confirm(`⚠️ سيتم تطهير (${selectedIds.length}) قيود تماماً. هل أنت متأكد؟`)) return;
+        if (!confirm(`سيتم تطهير (${selectedIds.length}) قيود تماماً. هل أنت متأكد؟`)) return;
         setIsLoading(true);
         try {
             const CHUNK_SIZE = 20; 
@@ -214,7 +214,7 @@ export function useJournalErrorsLogic() {
             setEmptyLogs(filterOut);
 
             setSelectedIds([]);
-            showToast("تم التطهير الجماعي بنجاح 🧹", 'success');
+            showToast("تم التطهير الجماعي بنجاح", 'success');
         } catch (error: any) { 
             showToast(`فشل المسح الجماعي: ${error.message}`, 'error'); 
         } finally { 
@@ -241,7 +241,7 @@ export function useJournalErrorsLogic() {
             const { error } = await supabase.from('journal_lines').insert([fixLine]);
             if (error) throw error;
 
-            showToast("تم وزن القيد بنجاح ⚖️", 'success');
+            showToast("تم وزن القيد بنجاح", 'success');
             scanForErrors(); 
         } catch (error: any) {
             showToast(`فشل التصحيح: ${error.message}`, 'error');
@@ -257,7 +257,7 @@ export function useJournalErrorsLogic() {
             ...unbalancedLogs.map(e => ({ 'النوع': 'غير متزن', 'ID': e.id, 'التشخيص': e.diagnosis })),
             ...ghostLogs.map(e => ({ 'النوع': 'سطور شبح', 'ID': e.id, 'التشخيص': e.diagnosis }))
         ];
-        if (allErrors.length === 0) return showToast("لا يوجد أخطاء ✨", 'info');
+        if (allErrors.length === 0) return showToast("لا يوجد أخطاء", 'info');
 
         const ws = XLSX.utils.json_to_sheet(allErrors);
         const wb = XLSX.utils.book_new();

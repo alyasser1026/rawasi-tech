@@ -76,7 +76,7 @@ export function useLoginLogic() {
 
         if (error) throw error;
         
-        showToast('✅ تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.', 'success');
+        showToast('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.', 'success');
         setIsSignUp(false); setPassword(''); setIsLoading(false);
         
       } else {
@@ -91,7 +91,7 @@ export function useLoginLogic() {
           });
         }
         
-        showToast('تم تسجيل الدخول بنجاح! 🚀', 'success');
+        showToast('تم تسجيل الدخول بنجاح!', 'success');
         router.refresh(); 
         
         // 👈 توجيه ذكي بعد الدخول بنجاح

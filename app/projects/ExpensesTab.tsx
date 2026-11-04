@@ -5,6 +5,7 @@ import { formatCurrency } from '@/lib/helpers';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import { supabase } from '@/lib/supabase'; // 👈 استدعاء قاعدة البيانات للسحب المباشر
 import LoadingScreen from '@/components/LoadingScreen';
+import { Search } from 'lucide-react';
 
 export default function ExpensesTab({ logic }: { logic: any }) {
   // 🚀 1. سحب كشف الحساب المباشر من اللوجيك
@@ -14,11 +15,11 @@ export default function ExpensesTab({ logic }: { logic: any }) {
       const date = exp.exp_date?.split('T')[0] || exp.created_at?.split('T')[0] || '---';
       const amount = Number(exp.total_price || 0) || (Number(exp.quantity || 0) * Number(exp.unit_price || 0));
       
-      let costType = '🏢 مصاريف مباشرة';
+      let costType = 'مصاريف مباشرة';
       if (exp.row_type === 'labor_direct' || exp.main_category?.includes('عمالة')) {
-        costType = '👷 عمالة مباشرة';
+        costType = 'عمالة مباشرة';
       } else if (exp.row_type === 'labor_allocated') {
-        costType = '👷 عمالة موزعة';
+        costType = 'عمالة موزعة';
       }
       
       const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
@@ -124,16 +125,16 @@ export default function ExpensesTab({ logic }: { logic: any }) {
 
           let bgColor = '#F3E8FF';
           let textColor = '#6B21A8';
-          let label = '🏢 مصاريف مباشرة';
+          let label = 'مصاريف مباشرة';
 
           if (isLabor) {
               bgColor = '#E0F2FE';
               textColor = '#0369A1';
-              label = '👷 عمالة مباشرة';
+              label = 'عمالة مباشرة';
           } else if (isAbc) {
               bgColor = '#FAE8FF';
               textColor = '#9333EA';
-              label = '🔄 موزع (ABC)';
+              label = 'موزع (ABC)';
           }
 
           return (
@@ -175,24 +176,24 @@ export default function ExpensesTab({ logic }: { logic: any }) {
       {/* 📊 كروت الإحصائيات العلوية */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px', marginBottom: '25px' }}>
         
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '20px', borderBottom: `4px solid ${THEME.danger}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>💸 إجمالي التكلفة الظاهرة</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid ${THEME.danger}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي التكلفة الظاهرة</span>
           <strong style={{ fontSize: '22px', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(summaryStats.total)}</strong>
         </div>
 
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '20px', borderBottom: `4px solid #0369A1`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>👷 أجور العمالة المباشرة</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #0369A1`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>أجور العمالة المباشرة</span>
           <strong style={{ fontSize: '22px', color: '#0369A1', fontWeight: 900 }}>{formatCurrency(summaryStats.labor)}</strong>
         </div>
 
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '20px', borderBottom: `4px solid #6B21A8`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>🏢 المصروفات المباشرة</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #6B21A8`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>المصروفات المباشرة</span>
           <strong style={{ fontSize: '22px', color: '#6B21A8', fontWeight: 900 }}>{formatCurrency(summaryStats.overhead)}</strong>
         </div>
 
         {/* 🚀 الكارت الجديد لتجميع توزيعات ABC فقط */}
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '20px', borderBottom: `4px solid #9333EA`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>🔄 التوزيعات غير المباشرة (ABC)</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #9333EA`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>التوزيعات غير المباشرة (ABC)</span>
           <strong style={{ fontSize: '22px', color: '#9333EA', fontWeight: 900 }}>{formatCurrency(summaryStats.abc)}</strong>
         </div>
 
@@ -202,14 +203,14 @@ export default function ExpensesTab({ logic }: { logic: any }) {
       <div className="glass-card" style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '20px', flexWrap: 'wrap' }}>
           <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '16px' }}>
-            📋 كشف الحساب الشامل للتكاليف
+            كشف الحساب الشامل للتكاليف
           </h3>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
             {/* فلتر البحث النصي */}
             <input 
               type="text" 
-              placeholder="🔍 ابحث في البيان أو البند..." 
+              placeholder="ابحث في البيان أو البند..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{ padding: '10px 15px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, outline: 'none', width: '220px', fontSize: '13px' }}
@@ -221,10 +222,10 @@ export default function ExpensesTab({ logic }: { logic: any }) {
               onChange={(e) => setFilterType(e.target.value)}
               style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, backgroundColor: 'white', color: '#1e293b', outline: 'none', cursor: 'pointer', fontSize: '13px' }}
             >
-              <option value="الكل">كل أنواع التكاليف 📂</option>
-              <option value="عمالة مباشرة">👷 عمالة مباشرة فقط</option>
-              <option value="تشغيل وأوفر هيد">🏢 مصاريف مباشرة فقط</option>
-              <option value="ABC">🔄 التوزيعات (ABC) فقط</option>
+              <option value="الكل">كل أنواع التكاليف</option>
+              <option value="عمالة مباشرة">عمالة مباشرة فقط</option>
+              <option value="تشغيل وأوفر هيد">مصاريف مباشرة فقط</option>
+              <option value="ABC">التوزيعات (ABC) فقط</option>
             </select>
           </div>
         </div>
@@ -233,7 +234,7 @@ export default function ExpensesTab({ logic }: { logic: any }) {
             <LoadingScreen message="جاري سحب وتجميع بيانات التوزيع الذكي (ABC)..." fullScreen={false} />
         ) : filteredLedger.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: 900 }}>
-                <div style={{ fontSize: '40px', marginBottom: '10px' }}>🔍</div>
+                <div style={{ fontSize: '40px', marginBottom: '10px' }}><Search size={34} aria-hidden="true" /></div>
                 لا توجد تكاليف مطابقة لخيارات البحث.
             </div>
         ) : (

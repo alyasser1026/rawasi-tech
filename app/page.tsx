@@ -8,18 +8,20 @@ import LoadingScreen from '@/components/LoadingScreen';
 import MasterPage from '@/components/MasterPage';
 import { menuGroups } from '@/lib/menuData';
 import { getSectionStyle } from '@/lib/section-colors';
+import { Plus } from 'lucide-react';
+import { MenuIcon } from '@/components/NavigationIcon';
 
 const MOTIVATIONAL_MESSAGES = [
-    "يوم جديد لنجاحات مبهرة، توكل على الله وانطلق! 🚀",
-    "النجاح يبدأ بخطوة، وأنت الآن في المسار الصحيح! 🌟",
-    "الأرقام لا تكذب، اجعل أرقام اليوم أفضل من الأمس! 📊",
-    "كل مجهود صغير يتراكم ليصنع إنجازاً عظيماً! 💪",
-    "فاي تك تكبر بجهودكم، شكراً لعملكم الرائع! 🏗️",
-    "الدقة في العمل هي أساس الثقة، حافظ على تميزك! 💎",
-    "اجعل هدفك اليوم هو التميز، لا مجرد الإنجاز! ✨",
-    "لا حدود لما يمكنك تحقيقه اليوم، انطلق بثقة! 🎯",
-    "من جدّ وجد، ومن زرع حصد! العمل الجاد لا يخون! 🌾",
-    "بثقتنا بالله وبجهودكم، نحن نبني المستقبل! 🏛️"
+    "يوم جديد لنجاحات مبهرة، توكل على الله وانطلق!",
+    "النجاح يبدأ بخطوة، وأنت الآن في المسار الصحيح!",
+    "الأرقام لا تكذب، اجعل أرقام اليوم أفضل من الأمس!",
+    "كل مجهود صغير يتراكم ليصنع إنجازاً عظيماً!",
+    "فاي تك تكبر بجهودكم، شكراً لعملكم الرائع!",
+    "الدقة في العمل هي أساس الثقة، حافظ على تميزك!",
+    "اجعل هدفك اليوم هو التميز، لا مجرد الإنجاز!",
+    "لا حدود لما يمكنك تحقيقه اليوم، انطلق بثقة!",
+    "من جدّ وجد، ومن زرع حصد! العمل الجاد لا يخون!",
+    "بثقتنا بالله وبجهودكم، نحن نبني المستقبل!"
 ];
 
 const DEFAULT_FAVORITES = ['global_summary', 'dashboard', 'journal', 'accounts', 'projects'];
@@ -34,9 +36,9 @@ export default function WelcomeHomePage() {
 
     useEffect(() => {
         const hour = new Date().getHours();
-        if (hour < 12) setGreeting('صباح الخير ☀️');
-        else if (hour < 18) setGreeting('طاب مساؤك 🌤️');
-        else setGreeting('مساء الخير 🌙');
+        if (hour < 12) setGreeting('صباح الخير');
+        else if (hour < 18) setGreeting('طاب مساؤك');
+        else setGreeting('مساء الخير');
 
         setQuote(MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)]);
     }, []);
@@ -75,7 +77,7 @@ export default function WelcomeHomePage() {
 
     const userName = profile?.full_name || 'زميلنا العزيز';
     const firstNameOnly = userName.split(' ')[0];
-    const roleTitle = role === 'super_admin' ? 'المدير العام 👑' : role === 'admin' ? 'مدير النظام 🛡️' : 'مستخدم النظام';
+    const roleTitle = role === 'super_admin' ? 'المدير العام' : role === 'admin' ? 'مدير النظام' : 'مستخدم النظام';
 
     // مسطح لعناصر القائمة لسهولة البحث
     const allItems = menuGroups.flatMap(g => g.items);
@@ -93,7 +95,7 @@ export default function WelcomeHomePage() {
     });
 
     return (
-        <MasterPage title="الصفحة الرئيسية" subtitle="بوابة الإدارة المركزية لفاي تك" icon="🏠">
+        <MasterPage title="الصفحة الرئيسية" subtitle="بوابة الإدارة المركزية لفاي تك">
         <div className="welcome-page-wrapper">
             <style>{`
                 .welcome-page-wrapper {
@@ -116,7 +118,7 @@ export default function WelcomeHomePage() {
                     background: rgba(255,255,255,0.7);
                     backdrop-filter: blur(25px);
                     border: 1px solid rgba(255,255,255,1);
-                    border-radius: 32px;
+                    border-radius: 14px;
                     padding: 50px 40px;
                     text-align: center;
                     box-shadow: 0 15px 50px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255,255,255,0.5);
@@ -158,7 +160,7 @@ export default function WelcomeHomePage() {
                 .module-card {
                     background: white;
                     border: 1px solid #f1f5f9;
-                    border-radius: 20px;
+                    border-radius: 14px;
                     padding: 30px 20px;
                     text-align: center;
                     text-decoration: none;
@@ -201,7 +203,7 @@ export default function WelcomeHomePage() {
                 .add-fav-card {
                     background: transparent;
                     border: 2px dashed #cbd5e1;
-                    border-radius: 20px;
+                    border-radius: 14px;
                     padding: 30px 20px;
                     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;
                     cursor: pointer; transition: 0.3s;
@@ -223,7 +225,7 @@ export default function WelcomeHomePage() {
                     animation: fadeIn 0.3s ease;
                 }
                 .fav-modal {
-                    background: white; border-radius: 24px; width: 90%; max-width: 700px; max-height: 85vh;
+                    background: white; border-radius: 14px; width: 90%; max-width: 700px; max-height: 85vh;
                     display: flex; flex-direction: column; overflow: hidden;
                     box-shadow: 0 25px 50px rgba(0,0,0,0.25);
                     animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -255,7 +257,7 @@ export default function WelcomeHomePage() {
                 @keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
                 @media (max-width: 768px) {
-                    .hero-glass-card { padding: 30px 20px; border-radius: 20px; }
+                    .hero-glass-card { padding: 30px 20px; border-radius: 14px; }
                     .welcome-title { font-size: 26px; }
                     .welcome-subtitle { font-size: 14px; }
                     .modules-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -266,27 +268,27 @@ export default function WelcomeHomePage() {
             `}</style>
 
             <div className="hero-glass-card">
-                <div style={{ display: 'inline-block', padding: '8px 20px', background: `${THEME.goldAccent}20`, color: THEME.coffeeDark, borderRadius: '20px', fontWeight: 900, fontSize: '14px', marginBottom: '20px' }}>
+                <div style={{ display: 'inline-block', padding: '8px 20px', background: `${THEME.goldAccent}20`, color: THEME.coffeeDark, borderRadius: '14px', fontWeight: 900, fontSize: '14px', marginBottom: '20px' }}>
                     {roleTitle}
                 </div>
 
                 <h1 className="welcome-title">{greeting}، {firstNameOnly}</h1>
-                <p className="welcome-subtitle">✨ {quote}</p>
+                <p className="welcome-subtitle">{quote}</p>
 
                 <div style={{ textAlign: 'right', marginBottom: '15px' }}>
-                    <h2 style={{ fontSize: '20px', fontWeight: 900, color: THEME.coffeeDark }}>⭐ الصفحات المفضلة</h2>
+                    <h2 style={{ fontSize: '20px', fontWeight: 900, color: THEME.coffeeDark }}>الصفحات المفضلة</h2>
                 </div>
 
                 <div className="modules-grid">
                     {favItems.map((item, idx) => (
                         <Link key={idx} href={item.path} className="module-card" style={getSectionStyle(item.path)}>
-                            <div className="module-icon">{item.icon}</div>
+                            <div className="module-icon"><MenuIcon id={item.id} size={24} /></div>
                             <h3 className="module-title">{item.title}</h3>
                         </Link>
                     ))}
 
                     <button type="button" className="add-fav-card" onClick={openFavModal}>
-                        <div className="add-fav-icon">➕</div>
+                        <div className="add-fav-icon"><Plus size={16} aria-hidden="true" /></div>
                         <div className="add-fav-title">تخصيص المفضلة</div>
                     </button>
                 </div>
@@ -316,7 +318,7 @@ export default function WelcomeHomePage() {
                                                         className={`fav-item-check ${isSelected ? 'selected' : ''}`}
                                                         onClick={() => toggleFav(item.id)}
                                                     >
-                                                        <div style={{ fontSize: '20px' }}>{item.icon}</div>
+                                                        <div style={{ display: 'inline-flex', color: THEME.goldAccent }}><MenuIcon id={item.id} size={20} /></div>
                                                         <div style={{ fontWeight: 800, color: '#1e293b', flex: 1 }}>{item.title}</div>
                                                         <div style={{ width: '20px', height: '20px', borderRadius: '5px', border: `2px solid ${isSelected ? THEME.goldAccent : '#cbd5e1'}`, background: isSelected ? THEME.goldAccent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                             {isSelected && <span style={{ color: 'white', fontSize: '14px' }}>✔</span>}
@@ -339,7 +341,7 @@ export default function WelcomeHomePage() {
 
             {/* Footer */}
             <div style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 700, fontSize: '13px', paddingBottom: '10px' }}>
-                تم تأمين الجلسة الخاصة بك 🔒 | فاي تك © {new Date().getFullYear()}
+                تم تأمين الجلسة الخاصة بك | فاي تك © {new Date().getFullYear()}
             </div>
         </div>
         </MasterPage>

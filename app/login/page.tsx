@@ -39,7 +39,7 @@ export default function LoginPage() {
           justify-content: center;
           direction: rtl;
           font-family: 'Cairo', sans-serif;
-          /* 🌅 خلفية دافئة مدمجة مع الصورة */
+          /* خلفية دافئة مدمجة مع الصورة */
           background-image: linear-gradient(rgba(39,39,42, 0.85), rgba(63,63,70, 0.95)), url('/ryc_login.jpeg');
           background-size: cover;
           background-position: center;
@@ -49,12 +49,12 @@ export default function LoginPage() {
         .glass-card {
           width: 100%;
           max-width: 480px;
-          /* 🪟 زجاج دافئ يميل للون الرملي */
+          /* زجاج دافئ يميل للون الرملي */
           background: rgba(244, 241, 238, 0.15); 
           backdrop-filter: blur(25px);
           -webkit-backdrop-filter: blur(25px);
           border: 1px solid rgba(194,65,12, 0.4); /* حواف ذهبية */
-          border-radius: 24px;
+          border-radius: 14px;
           padding: 50px 40px;
           box-shadow: 0 25px 50px -12px rgba(39,39,42, 0.7), 0 0 40px rgba(194,65,12, 0.15);
           animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -201,9 +201,9 @@ export default function LoginPage() {
         .toggle-btn span { color: ${THEME.goldAccent}; text-decoration: underline; }
         .toggle-btn:hover { color: ${THEME.white}; }
         
-        /* 📱 تعديل صغير للموبايل في اللوجن */
+        /* تعديل صغير للموبايل في اللوجن */
         @media (max-width: 480px) {
-            .glass-card { padding: 40px 25px; border-radius: 20px; }
+            .glass-card { padding: 40px 25px; border-radius: 14px; }
             .cinematic-title { font-size: 28px; }
             .logo-container img { height: 90px; }
         }
@@ -229,7 +229,7 @@ export default function LoginPage() {
                 onChange={(e) => setFullName(e.target.value)}
                 required={isSignUp} 
               />
-              <label className={`floating-label ${fullName ? 'forced-float' : ''}`}>👤 الاسم الكامل</label>
+              <label className={`floating-label ${fullName ? 'forced-float' : ''}`}>الاسم الكامل</label>
             </div>
           )}
 
@@ -244,7 +244,7 @@ export default function LoginPage() {
               required 
               autoComplete="email"
             />
-            <label className={`floating-label ${email ? 'forced-float' : ''}`}>✉️ البريد الإلكتروني</label>
+            <label className={`floating-label ${email ? 'forced-float' : ''}`}>البريد الإلكتروني</label>
           </div>
 
           <div className="input-group">
@@ -258,11 +258,11 @@ export default function LoginPage() {
               required 
               autoComplete={isSignUp ? "new-password" : "current-password"}
             />
-            <label className={`floating-label ${password ? 'forced-float' : ''}`}>🔒 كلمة المرور</label>
+            <label className={`floating-label ${password ? 'forced-float' : ''}`}>كلمة المرور</label>
           </div>
 
           <button type="submit" className="submit-btn" disabled={isLoading}>
-            {isLoading ? '⏳ جاري المعالجة...' : (isSignUp ? 'إنشاء الحساب 🚀' : 'دخول للنظام 🚀')}
+            {isLoading ? 'جاري المعالجة...' : (isSignUp ? 'إنشاء الحساب' : 'دخول للنظام')}
           </button>
         </form>
 

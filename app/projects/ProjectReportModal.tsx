@@ -1,6 +1,7 @@
 import React from 'react';
 import { formatCurrency } from '@/lib/helpers';
 import { THEME } from '@/lib/theme';
+import { Printer } from 'lucide-react';
 
 export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, flatBoqData }: any) {
   if (!isOpen) return null;
@@ -21,7 +22,7 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
           #printable-report, #printable-report * { visibility: visible; }
           #printable-report { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; background: white; }
           .no-print { display: none !important; }
-          @page { size: A4 landscape; margin: 15mm; } /* 🎯 خليناها بالعرض عشان الأعمدة الكتير تبان بوضوح */
+          @page { size: A4 landscape; margin: 15mm; } /* خليناها بالعرض عشان الأعمدة الكتير تبان بوضوح */
           table { page-break-inside: auto; }
           tr { page-break-inside: avoid; page-break-after: auto; }
           thead { display: table-header-group; }
@@ -34,10 +35,10 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
         
         {/* شريط التحكم (يختفي في الطباعة) */}
         <div className="no-print sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-10">
-          <h2 style={{ color: THEME.coffeeDark, fontWeight: 900, fontSize: '18px', margin: 0 }}>🖨️ معاينة التقرير المالي والتحليلي (يشمل تكاليف ABC)</h2>
+          <h2 style={{ color: THEME.coffeeDark, fontWeight: 900, fontSize: '18px', margin: 0 }}>معاينة التقرير المالي والتحليلي (يشمل تكاليف ABC)</h2>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={() => window.print()} style={{ backgroundColor: THEME.primary, color: 'white', padding: '8px 20px', borderRadius: '8px', fontWeight: 800, display: 'flex', gap: '8px', alignItems: 'center' }}>
-              <span>🖨️</span> طباعة الآن
+              <span><Printer size={16} aria-hidden="true" /></span> طباعة الآن
             </button>
             <button onClick={onClose} style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '8px 20px', borderRadius: '8px', fontWeight: 800 }}>
               إغلاق
@@ -69,7 +70,7 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
           </div>
 
           {/* ملخص التحليل المالي الكلي */}
-          <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', color: THEME.coffeeDark, fontWeight: 900 }}>📊 الملخص المالي والتكاليف الموزعة</h3>
+          <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', color: THEME.coffeeDark, fontWeight: 900 }}>الملخص المالي والتكاليف الموزعة</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px', marginBottom: '40px' }}>
             <div style={{ padding: '15px', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 800 }}>إجمالي قيمة التعاقد</div>
@@ -95,7 +96,7 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
           </div>
 
           {/* 📋 جدول المقايسة المطور (ABC) */}
-          <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', color: THEME.coffeeDark, fontWeight: 900 }}>📋 تفاصيل التكاليف والأرباح لكل بند (WBS & ABC)</h3>
+          <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', color: THEME.coffeeDark, fontWeight: 900 }}>تفاصيل التكاليف والأرباح لكل بند (WBS & ABC)</h3>
           <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '40px', fontSize: '11px' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
@@ -124,7 +125,7 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
                 return (
                   <tr key={idx} style={{ borderBottom: '1px solid #e2e8f0', backgroundColor: isMain ? '#f1f5f9' : 'transparent' }}>
                     <td style={{ padding: '10px', fontWeight: isMain ? 900 : 700, color: isMain ? THEME.coffeeDark : '#475569' }}>
-                      {isMain ? `📂 ${row.work_item}` : `↪️ ${row.work_item}`}
+                      {isMain ? `${row.work_item}` : `${row.work_item}`}
                     </td>
                     <td style={{ padding: '10px', textAlign: 'center', fontWeight: 900, color: THEME.coffeeDark }}>{formatCurrency(itemRevenue)}</td>
                     <td style={{ padding: '10px', textAlign: 'center', fontWeight: 800, color: '#0369A1' }}>{formatCurrency(actualLabor)}</td>

@@ -11,6 +11,8 @@ import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
+import { Pencil } from 'lucide-react';
+import { notify } from '@/lib/notify';
 
 export default function ViolationsPage() {
   const logic = useViolationsLogic();
@@ -85,7 +87,7 @@ export default function ViolationsPage() {
     },
     { 
       key: 'image_url',
-      header: 'المرفق 📸', 
+      header: 'المرفق', 
       render: (row: any) => {
         return row?.image_url ? (
           <img src={row.image_url} alt="مرفق" style={{width:'45px', height:'45px', borderRadius:'10px', border:'2px solid #e2e8f0', objectFit: 'cover'}} />
@@ -94,7 +96,7 @@ export default function ViolationsPage() {
     },
     { 
       key: 'amount',
-      header: 'المبلغ 💰', 
+      header: 'المبلغ', 
       render: (row: any) => <span style={{ fontWeight: 900, color: THEME.ruby, fontSize: '15px' }}>{formatCurrency(row?.amount || 0)}</span>
     },
     {
@@ -102,7 +104,7 @@ export default function ViolationsPage() {
       header: 'الحالة',
       render: (row: any) => {
         if (!row) return null;
-        return row.is_posted ? <span className="badge-glass green">معتمد ✅</span> : <span className="badge-glass yellow">معلق ⏳</span>;
+        return row.is_posted ? <span className="badge-glass green">معتمد</span> : <span className="badge-glass yellow">معلق</span>;
       }
     },
     {
@@ -112,7 +114,7 @@ export default function ViolationsPage() {
         if (!row) return null;
         return (
           can('violations', 'edit') && !row.is_posted ? (
-            <button onClick={(e) => { e.stopPropagation(); logic.actions.handleEdit(row); }} className="btn-glass-print">✏️</button>
+            <button onClick={(e) => { e.stopPropagation(); logic.actions.handleEdit(row); }} className="btn-glass-print"><Pencil size={16} aria-hidden="true" /></button>
           ) : <span style={{color:'#94a3b8', fontSize:'11px', fontWeight: 900}}>مقفل</span>
         );
       }
@@ -122,20 +124,20 @@ export default function ViolationsPage() {
   const sidebarActions = useMemo(() => (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <SecureAction module="violations" action="create">
-        <button className="btn-main-glass gold" onClick={() => logic.actions.handleEdit()}>➕ تسجيل خصم / غرامة</button>
+        <button className="btn-main-glass gold" onClick={() => logic.actions.handleEdit()}>تسجيل خصم / غرامة</button>
       </SecureAction>
       
       {logic.state.selectedIds.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
           <p style={{fontSize:'11px', textAlign:'center', color:'#94a3b8', fontWeight:900, margin:0}}>تم تحديد ({logic.state.selectedIds.length}) سجل</p>
           <SecureAction module="violations" action="post">
-            <button className="btn-main-glass green" onClick={logic.actions.handlePost}>🚀 ترحيل للرواتب</button>
+            <button className="btn-main-glass green" onClick={logic.actions.handlePost}>ترحيل للرواتب</button>
           </SecureAction>
           <SecureAction module="violations" action="post">
-            <button className="btn-main-glass yellow" onClick={logic.actions.handleUnpost}>↩️ فك الترحيل</button>
+            <button className="btn-main-glass yellow" onClick={logic.actions.handleUnpost}>فك الترحيل</button>
           </SecureAction>
           <SecureAction module="violations" action="delete">
-            <button className="btn-main-glass red" onClick={logic.actions.handleDelete}>🗑️ حذف نهائي</button>
+            <button className="btn-main-glass red" onClick={logic.actions.handleDelete}>حذف نهائي</button>
           </SecureAction>
         </div>
       )}
@@ -148,7 +150,7 @@ export default function ViolationsPage() {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
       if (videoRef.current) videoRef.current.srcObject = stream;
     } catch (err) { 
-      alert("❌ الكاميرا غير متاحة."); 
+      notify("الكاميرا غير متاحة."); 
       setIsCameraOpen(false); 
     }
   };
@@ -172,7 +174,7 @@ export default function ViolationsPage() {
   return (
     <>
       <div className="clean-page">
-        <MasterPage icon="⚠️" title="سجل الاستقطاعات والجزاءات ⚠️" subtitle="تسجيل الغرامات الإدارية، واستقطاعات الإعاشة وتوجيهها للرواتب.">
+        <MasterPage title="سجل الاستقطاعات والجزاءات" subtitle="تسجيل الغرامات الإدارية، واستقطاعات الإعاشة وتوجيهها للرواتب.">
             <RawasiSidebarManager 
               summary={
                 <div className="summary-glass-card">
@@ -206,7 +208,7 @@ export default function ViolationsPage() {
               .btn-main-glass.yellow { background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.9)); color: white; }
               .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
               .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); }
-              .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
+              .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
               .filter-btn { flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: 11px; transition: 0.3s; }
               .filter-btn.active { background: ${THEME.goldAccent}; color: #1e293b; }
               .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; display: inline-block; }
@@ -234,36 +236,36 @@ export default function ViolationsPage() {
 
       {mounted && logic.state.isEditModalOpen && logic.state.editingRecord && typeof document !== 'undefined' && createPortal(
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 999999, padding: '5vh 20px', overflowY: 'auto' }}>
-          <div style={{ background: 'white', padding: '35px', borderRadius: '24px', width: '100%', maxWidth: '650px', direction: 'rtl', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', margin: 'auto' }}>
+          <div style={{ background: 'white', padding: '35px', borderRadius: '14px', width: '100%', maxWidth: '650px', direction: 'rtl', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', margin: 'auto' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px dashed #f1f5f9' }}>
-                <h3 style={{fontWeight:900, fontSize:'20px', color: THEME.primary, margin: 0}}>📝 تسجيل حركة خصم / استقطاع</h3>
+                <h3 style={{fontWeight:900, fontSize:'20px', color: THEME.primary, margin: 0}}>تسجيل حركة خصم / استقطاع</h3>
                 <button onClick={() => { stopCamera(); logic.state.setIsEditModalOpen(false); }} style={{ background: '#f1f5f9', border: 'none', width: '35px', height: '35px', borderRadius: '50%', cursor: 'pointer', fontWeight: 900, color: '#64748b' }}>✕</button>
             </div>
             
             {/* 🎯 أزرار اختيار نوع الحركة (تم إزالة السلف) */}
             <div style={{ marginBottom: '25px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 900, color: '#334155', display: 'block', marginBottom: '8px' }}>📌 حدد طبيعة الخصم (للتوجيه المحاسبي):</label>
+                <label style={{ fontSize: '13px', fontWeight: 900, color: '#334155', display: 'block', marginBottom: '8px' }}>حدد طبيعة الخصم (للتوجيه المحاسبي):</label>
                 <div className="type-selector">
                     <label className="type-radio">
                         <input type="radio" name="v_type" checked={logic.state.editingRecord.violation_type === 'غرامة'} onChange={() => logic.state.setEditingRecord({...logic.state.editingRecord, violation_type: 'غرامة'})} />
-                        <span className="type-label penalty">🔴 غرامة / جزاء</span>
+                        <span className="type-label penalty">غرامة / جزاء</span>
                     </label>
                     <label className="type-radio">
                         <input type="radio" name="v_type" checked={logic.state.editingRecord.violation_type === 'استقطاع سكن'} onChange={() => logic.state.setEditingRecord({...logic.state.editingRecord, violation_type: 'استقطاع سكن'})} />
-                        <span className="type-label housing">🏠 استرداد سكن / إعاشة</span>
+                        <span className="type-label housing">استرداد سكن / إعاشة</span>
                     </label>
                 </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>📅 تاريخ الاستقطاع</label>
+                <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>تاريخ الاستقطاع</label>
                 <input type="date" value={logic.state.editingRecord.date || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, date: e.target.value})} style={{ padding: '14px', borderRadius: '14px', border: '2px solid #e2e8f0', width: '100%', fontWeight: 800, outline: 'none', background: '#f8fafc' }} />
               </div>
               <div style={{ zIndex: 100 }}>
                 <SmartCombo 
-                    label="👷 الموظف / العامل" 
+                    label="الموظف / العامل" 
                     table="partners"
                     displayCol="name"
                     freeText={true} 
@@ -275,12 +277,12 @@ export default function ViolationsPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>🛠️ المهنة</label>
+                <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>المهنة</label>
                 <input type="text" value={logic.state.editingRecord.profession || ''} readOnly style={{ padding: '14px', borderRadius: '14px', border: '2px solid #e2e8f0', width: '100%', fontWeight: 800, outline: 'none', background: '#f8fafc', opacity: 0.7 }} placeholder="تُسحب تلقائياً..." />
               </div>
               <div style={{ zIndex: 90 }}>
                 <SmartCombo 
-                    label="📍 الموقع (مركز التكلفة)" 
+                    label="الموقع (مركز التكلفة)" 
                     table="projects"
                     displayCol="Property"
                     initialDisplay={logic.state.editingRecord.site_name} 
@@ -290,26 +292,26 @@ export default function ViolationsPage() {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>📝 البيان الوصفي (السبب)</label>
+                <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>البيان الوصفي (السبب)</label>
                 <input type="text" placeholder="مثال: خصم إيجار سكن شهر مايو" value={logic.state.editingRecord.reason || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, reason: e.target.value})} style={{ padding: '14px', borderRadius: '14px', border: '2px solid #e2e8f0', width: '100%', fontWeight: 800, outline: 'none', background: '#f8fafc' }} />
             </div>
 
             <div style={{ marginBottom: '30px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.ruby, display: 'block', marginBottom: '8px' }}>💰 قيمة المبلغ المخصوم</label>
+                <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.ruby, display: 'block', marginBottom: '8px' }}>قيمة المبلغ المخصوم</label>
                 <input type="number" value={logic.state.editingRecord.amount || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, amount: Number(e.target.value)})} style={{ padding: '14px', borderRadius: '14px', border: `2px solid ${THEME.ruby}40`, width: '100%', fontWeight: 900, outline: 'none', background: '#fef2f2', color: THEME.ruby, fontSize: '20px' }} />
             </div>
 
-            <div style={{ background: '#f8fafc', padding: '25px', borderRadius: '20px', border: '2px dashed #cbd5e1', marginBottom: '30px', textAlign: 'center' }}>
+            <div style={{ background: '#f8fafc', padding: '25px', borderRadius: '14px', border: '2px dashed #cbd5e1', marginBottom: '30px', textAlign: 'center' }}>
                 {!isCameraOpen && !logic.state.editingRecord.image_url && (
                     <button onClick={startCamera} style={{ background: THEME.primary, color: 'white', padding: '16px 30px', borderRadius: '14px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>
-                        📷 إرفاق مستند أو صورة (اختياري)
+                        إرفاق مستند أو صورة (اختياري)
                     </button>
                 )}
                 {isCameraOpen && (
                     <div style={{ position: 'relative' }}>
                         <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '16px', border: `4px solid ${THEME.ruby}` }} />
                         <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
-                            <button onClick={takePhoto} style={{ flex: 2, background: THEME.ruby, color: 'white', padding: '16px', borderRadius: '14px', fontWeight: 900, border: 'none' }}>📸 التقاط</button>
+                            <button onClick={takePhoto} style={{ flex: 2, background: THEME.ruby, color: 'white', padding: '16px', borderRadius: '14px', fontWeight: 900, border: 'none' }}>التقاط</button>
                             <button onClick={stopCamera} style={{ flex: 1, background: '#e2e8f0', color: '#475569', padding: '16px', borderRadius: '14px', fontWeight: 900, border: 'none' }}>إلغاء</button>
                         </div>
                     </div>
@@ -317,7 +319,7 @@ export default function ViolationsPage() {
                 {logic.state.editingRecord.image_url && !isCameraOpen && (
                     <div>
                         <img src={logic.state.editingRecord.image_url} alt="مرفق" style={{ width: '100%', maxHeight: '280px', objectFit: 'contain', borderRadius: '16px', border: '3px solid #e2e8f0', marginBottom: '20px' }} />
-                        <button onClick={() => logic.state.setEditingRecord({...logic.state.editingRecord, image_url: null})} style={{ background: '#fef2f2', color: THEME.ruby, padding: '12px 24px', borderRadius: '12px', fontWeight: 900, border: `1px solid ${THEME.ruby}50` }}>🗑️ مسح وإعادة تصوير</button>
+                        <button onClick={() => logic.state.setEditingRecord({...logic.state.editingRecord, image_url: null})} style={{ background: '#fef2f2', color: THEME.ruby, padding: '12px 24px', borderRadius: '12px', fontWeight: 900, border: `1px solid ${THEME.ruby}50` }}>مسح وإعادة تصوير</button>
                     </div>
                 )}
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
@@ -325,7 +327,7 @@ export default function ViolationsPage() {
 
             <div style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
               <button onClick={logic.actions.handleSave} disabled={logic.isLoading} style={{ flex: 2, background: THEME.ruby, color: 'white', padding: '18px', borderRadius: '16px', border: 'none', fontWeight: 900, opacity: logic.isLoading ? 0.7 : 1 }}>
-                  {logic.isLoading ? '⏳ جاري التسجيل...' : '💾 اعتماد الخصم والتوجيه المحاسبي'}
+                  {logic.isLoading ? 'جاري التسجيل...' : 'اعتماد الخصم والتوجيه المحاسبي'}
               </button>
               <button onClick={() => { stopCamera(); logic.state.setIsEditModalOpen(false); }} style={{ flex: 1, background: '#f1f5f9', color: '#475569', padding: '18px', borderRadius: '16px', border: 'none', fontWeight: 900 }}>
                   إلغاء

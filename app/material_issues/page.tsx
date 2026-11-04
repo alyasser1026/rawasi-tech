@@ -10,6 +10,7 @@ import { useMaterialIssuesLogic } from './material_issues_logic';
 import MaterialIssueModal from './MaterialIssueModal';
 import { useConfirm } from '@/components/ConfirmContext';
 import * as XLSX from 'xlsx'; // 🚀 استدعاء مكتبة الإكسل
+import { notify } from '@/lib/notify';
 
 // =========================================================================
 // 🧩 مكون ذكي للقائمة المنسدلة متعددة الاختيارات مع بحث (Custom Dropdown)
@@ -69,7 +70,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
                     <div style={{ padding: '10px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                         <input 
                             type="text" 
-                            placeholder="🔍 بحث سريع..." 
+                            placeholder="بحث سريع..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
@@ -153,7 +154,7 @@ export default function MaterialIssuesPage() {
     // ==========================================
     const handleExportExcel = () => {
         if (!filteredIssues || filteredIssues.length === 0) {
-            alert("لا توجد بيانات لتصديرها!");
+            notify("لا توجد بيانات لتصديرها!");
             return;
         }
 
@@ -289,11 +290,11 @@ export default function MaterialIssuesPage() {
             header: 'التوجيه (مشروع / مقاول)', 
             render: (row: any) => (
                 <div style={{ minWidth: '150px' }}>
-                    <div style={{ fontWeight: 800, color: THEME.coffeeDark || '#2d1a11', fontSize: '13px' }}>🏢 {row.project_name || '---'}</div>
-                    {row.boq_item && <div style={{ fontSize: '11px', color: THEME.goldAccent || '#c2410c', marginTop: '2px', fontWeight: 700 }}>📋 {row.boq_item}</div>}
+                    <div style={{ fontWeight: 800, color: THEME.coffeeDark || '#2d1a11', fontSize: '13px' }}>{row.project_name || '---'}</div>
+                    {row.boq_item && <div style={{ fontSize: '11px', color: THEME.goldAccent || '#c2410c', marginTop: '2px', fontWeight: 700 }}>{row.boq_item}</div>}
                     {(row.subcontractor_name || row.contractor_text_name) && (
                         <div style={{ fontSize: '11px', color: '#be123c', marginTop: '2px', fontWeight: 700 }}>
-                            👷 {row.subcontractor_name || row.contractor_text_name}
+                            {row.subcontractor_name || row.contractor_text_name}
                         </div>
                     )}
                 </div>
@@ -307,7 +308,7 @@ export default function MaterialIssuesPage() {
             header: 'الحالة المحاسبية', 
             render: (row: any) => (
                  <span style={{ background: row.is_posted === true ? '#dcfce7' : '#fef2f2', color: row.is_posted === true ? '#166534' : '#dc2626', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 900 }}>
-                    {row.is_posted === true ? 'معتمد ✅' : 'مسودة ⏳'}
+                    {row.is_posted === true ? 'معتمد' : 'مسودة'}
                 </span>
             )
         }
@@ -315,7 +316,7 @@ export default function MaterialIssuesPage() {
 
     return (
         <div className="clean-page print-container">
-            <MasterPage icon="🚚" title="صرف الخامات للمواقع" subtitle="إدارة مسحوبات المقاولين واستهلاك المواد وتوجيه التكاليف للبنود">
+            <MasterPage title="صرف الخامات للمواقع" subtitle="إدارة مسحوبات المقاولين واستهلاك المواد وتوجيه التكاليف للبنود">
                 
                 <RawasiSidebarManager 
                     actions={
@@ -330,7 +331,7 @@ export default function MaterialIssuesPage() {
                                         }} 
                                         className="btn-main-glass"
                                     >
-                                        📤 تسجيل إذن صرف جديد
+                                        تسجيل إذن صرف جديد
                                     </button>
                                 </>
                             ) : (
@@ -340,15 +341,15 @@ export default function MaterialIssuesPage() {
                                     </div>
                                     
                                     <button onClick={logic.handleOpenEdit} className="btn-action-glass edit">
-                                        ✏️ تعديل إذن الصرف المحدد
+                                        تعديل إذن الصرف المحدد
                                     </button>
 
                                     <button onClick={() => logic.handleBatchAction('post')} disabled={logic.isActionPending} className="btn-action-glass post">
-                                        🚀 ترحيل الفواتير المحددة
+                                        ترحيل الفواتير المحددة
                                     </button>
 
                                     <button onClick={() => logic.handleBatchAction('unpost')} disabled={logic.isActionPending} className="btn-action-glass unpost">
-                                        🔓 فك ترحيل الفواتير المحددة
+                                        فك ترحيل الفواتير المحددة
                                     </button>
 
                                     <button 
@@ -363,7 +364,7 @@ export default function MaterialIssuesPage() {
                                         disabled={logic.isActionPending} 
                                         className="btn-action-glass delete"
                                     >
-                                        🗑️ مسح الفواتير المحددة
+                                        مسح الفواتير المحددة
                                     </button>
                                 </>
                             )}
@@ -371,10 +372,10 @@ export default function MaterialIssuesPage() {
                             <hr style={{ borderColor: 'rgba(255,255,255,0.2)', margin: '10px 0' }} />
                             
                             <button onClick={handleExportExcel} className="btn-action-glass print" style={{ background: '#10b981', color: 'white' }}>
-                                📊 تصدير البيانات (Excel)
+                                تصدير البيانات (Excel)
                             </button>
                             <button onClick={handlePrintPDF} className="btn-action-glass print" style={{ background: '#3b82f6', color: 'white' }}>
-                                🖨️ طباعة التقرير (PDF)
+                                طباعة التقرير (PDF)
                             </button>
                         </div>
                     }
@@ -386,21 +387,21 @@ export default function MaterialIssuesPage() {
                             </div>
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <div className="summary-card posted">
-                                    <span className="label">تم ترحيله ✅</span>
+                                    <span className="label">تم ترحيله</span>
                                     <span className="value-sm">{formatCurrency(summaryStats.posted)}</span>
                                 </div>
                                 <div className="summary-card draft">
-                                    <span className="label">قيد المراجعة ⏳</span>
+                                    <span className="label">قيد المراجعة</span>
                                     <span className="value-sm">{formatCurrency(summaryStats.draft)}</span>
                                 </div>
                             </div>
                             <div style={{ display: 'flex', gap: '10px' }}>
                                 <div className="summary-card subcontractor">
-                                    <span className="label">مسحوبات مقاولين 👷</span>
+                                    <span className="label">مسحوبات مقاولين</span>
                                     <span className="value-sm">{formatCurrency(summaryStats.subcontractor)}</span>
                                 </div>
                                 <div className="summary-card direct">
-                                    <span className="label">استهلاك مباشر 🏢</span>
+                                    <span className="label">استهلاك مباشر</span>
                                     <span className="value-sm">{formatCurrency(summaryStats.direct)}</span>
                                 </div>
                             </div>
@@ -439,7 +440,7 @@ export default function MaterialIssuesPage() {
                     .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
                     .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-                    /* 🖨️ تنسيقات الطباعة */
+                    /* تنسيقات الطباعة */
                     @media print {
                         @page { size: A4 landscape; margin: 10mm; }
                         body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -456,7 +457,7 @@ export default function MaterialIssuesPage() {
                     <div style={{ flex: '1', minWidth: '250px' }}>
                         <input 
                             type="text" 
-                            placeholder="🔍 بحث باسم الخامة، رقم الإذن، المشروع، المقاول..." 
+                            placeholder="بحث باسم الخامة، رقم الإذن، المشروع، المقاول..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{ width: '100%', padding: '10px 15px', borderRadius: '8px', border: `2px solid ${THEME.sandDark || '#e2e8f0'}`, outline: 'none', fontWeight: 700 }}
@@ -469,8 +470,8 @@ export default function MaterialIssuesPage() {
                             style={{ width: '100%', padding: '10px 15px', borderRadius: '8px', border: `2px solid ${THEME.sandDark || '#e2e8f0'}`, outline: 'none', fontWeight: 800, color: THEME.coffeeDark || '#1e293b' }}
                         >
                             <option value="all">كل الحالات المحاسبية</option>
-                            <option value="posted">معتمد ✅</option>
-                            <option value="draft">مسودة قيد المراجعة ⏳</option>
+                            <option value="posted">معتمد</option>
+                            <option value="draft">مسودة قيد المراجعة</option>
                         </select>
                     </div>
                     <div style={{ width: '200px' }}>
@@ -480,8 +481,8 @@ export default function MaterialIssuesPage() {
                             style={{ width: '100%', padding: '10px 15px', borderRadius: '8px', border: `2px solid ${THEME.sandDark || '#e2e8f0'}`, outline: 'none', fontWeight: 800, color: THEME.coffeeDark || '#1e293b' }}
                         >
                             <option value="all">كل أنواع التوجيه</option>
-                            <option value="subcontractor">مسحوبات مقاولين 👷</option>
-                            <option value="direct">استهلاك مباشر 🏢</option>
+                            <option value="subcontractor">مسحوبات مقاولين</option>
+                            <option value="direct">استهلاك مباشر</option>
                         </select>
                     </div>
                 </div>
@@ -489,7 +490,7 @@ export default function MaterialIssuesPage() {
                 {/* 🚀 الفلاتر المتقدمة الجديدة (Multi-Select Dropdowns) */}
                 <div className="no-print" style={{ display: 'flex', gap: '15px', marginBottom: '20px', flexWrap: 'wrap' }}>
                     <MultiSelectDropdown 
-                        title="🏢 فلترة بأسماء الفلل والعقارات"
+                        title="فلترة بأسماء الفلل والعقارات"
                         placeholder="اختر الفلل..."
                         options={uniqueProjects}
                         selected={selectedProjects}
@@ -498,7 +499,7 @@ export default function MaterialIssuesPage() {
                     />
                     
                     <MultiSelectDropdown 
-                        title="📋 فلترة ببنود الميزانية المربوطة"
+                        title="فلترة ببنود الميزانية المربوطة"
                         placeholder="اختر البنود..."
                         options={uniqueBoqs}
                         selected={selectedBoqs}

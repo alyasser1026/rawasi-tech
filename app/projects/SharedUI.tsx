@@ -14,7 +14,7 @@ export function StatusBadge({ status }: { status: string }) {
 
 export function KpiCard({ title, value, color, alert }: any) {
   return (
-    <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '20px', borderBottom: `4px solid ${color}`, boxShadow: '0 4px 15px rgba(0,0,0,0.03)', position: 'relative' }}>
+    <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '14px', borderBottom: `4px solid ${color}`, boxShadow: '0 4px 15px rgba(0,0,0,0.03)', position: 'relative' }}>
       <span style={{ display: 'block', fontSize: '13px', color: '#64748b', fontWeight: 800, marginBottom: '10px' }}>{title}</span>
       <strong style={{ fontSize: '26px', color: color, fontWeight: 900 }}>{Number(value || 0).toLocaleString()} <span style={{fontSize:'14px'}}>ج.م</span></strong>
       {alert && <div style={{ fontSize: '11px', color: color, marginTop: '8px', fontWeight: 800, backgroundColor: 'rgba(255,255,255,0.8)', padding: '6px', borderRadius: '8px' }}>{alert}</div>}
@@ -29,7 +29,7 @@ export function ProgressBar({ label, percentage, color }: any) {
         <span>{label}</span><span>{percentage}%</span>
       </div>
       <div style={{ height: '14px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '20px', overflow: 'hidden' }}>
-        <div style={{ width: `${Math.min(Math.max(percentage, 0), 100)}%`, height: '100%', backgroundColor: color, borderRadius: '20px', transition: 'width 1s ease-in-out' }}></div>
+        <div style={{ width: `${Math.min(Math.max(percentage, 0), 100)}%`, height: '100%', backgroundColor: color, borderRadius: '14px', transition: 'width 1s ease-in-out' }}></div>
       </div>
     </div>
   );

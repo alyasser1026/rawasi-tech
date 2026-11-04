@@ -63,7 +63,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
             {/* 🖨️ أزرار التحكم */}
             <div className="no-print" style={{ display: 'flex', gap: '15px', marginBottom: '20px', width: '100%', maxWidth: '800px' }}>
                 <button onClick={() => window.print()} style={{ flex: 1, padding: '15px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: '16px', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', transition: '0.2s' }}>
-                    🖨️ طباعة إذن التوريد
+                    طباعة إذن التوريد
                 </button>
                 <button onClick={onClose} style={{ padding: '15px 30px', background: 'white', color: '#ef4444', border: 'none', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', transition: '0.2s' }}>
                     إلغاء وإغلاق
@@ -71,7 +71,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
             </div>
 
             {/* 📄 ورقة الطباعة (Auto-fit on screen, A4 on print) */}
-            <div className="print-page" style={{ position: 'relative', width: '95%', maxWidth: '800px', minHeight: 'fit-content', background: 'white', padding: '45px', borderRadius: '24px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', color: 'black', overflow: 'hidden' }}>
+            <div className="print-page" style={{ position: 'relative', width: '95%', maxWidth: '800px', minHeight: 'fit-content', background: 'white', padding: '45px', borderRadius: '14px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', color: 'black', overflow: 'hidden' }}>
                 
                 {/* 🌟 علامة مائية (Watermark) */}
                 <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/company-logo.svg)', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: '50%', opacity: 0.03, pointerEvents: 'none', zIndex: 0 }}></div>
@@ -98,11 +98,11 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
                     {/* بيانات الفاتورة المتقدمة */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '35px' }}>
                         <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase' }}>🏢 المشروع الموجه له الخامات</p>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase' }}>المشروع الموجه له الخامات</p>
                             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#1e293b' }}>{masterData.project?.Property || '---'}</h3>
                         </div>
                         <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase' }}>👤 المورد / جهة التوريد</p>
+                            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase' }}>المورد / جهة التوريد</p>
                             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#1e293b' }}>{masterData.supplier?.name || '---'}</h3>
                         </div>
                     </div>
@@ -138,7 +138,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
                     {/* الإجمالي والإقرار */}
                     <div style={{ display: 'flex', gap: '20px', alignItems: 'stretch', marginBottom: '50px', flexWrap: 'wrap' }}>
                         <div style={{ flex: '1 1 300px', background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px dashed #cbd5e1', fontSize: '13px', color: '#475569', lineHeight: '1.8' }}>
-                            <strong style={{ color: '#0f172a', display: 'block', marginBottom: '8px', fontSize: '15px' }}>📝 إقرار استلام مخزني:</strong>
+                            <strong style={{ color: '#0f172a', display: 'block', marginBottom: '8px', fontSize: '15px' }}>إقرار استلام مخزني:</strong>
                             أقر أنا أمين المخزن / مهندس الموقع الموقع أدناه، باستلام كافة المواد والخامات المذكورة أعلاه بحالة جيدة ومطابقة للمواصفات، وقد تم إيداعها بعهدة المشروع المذكور وتوريدها للموقع الفعلي.
                         </div>
                         <div style={{ flex: '1 1 250px', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}15, transparent)`, padding: '20px', borderRadius: '16px', border: `2px solid ${THEME.goldAccent || '#c2410c'}`, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>

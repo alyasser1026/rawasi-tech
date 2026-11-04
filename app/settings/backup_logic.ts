@@ -47,7 +47,7 @@ export const useBackupLogic = () => {
     // 🟢 تصدير لإكسيل (بيانات حقيقية) مع معالجة حقول الـ JSONB
     const backupToExcel = async (selectedTables: string[]) => {
         try {
-            showToast('⏳ جاري تجميع البيانات وتحضير ملف الإكسل...', 'info');
+            showToast('جاري تجميع البيانات وتحضير ملف الإكسل...', 'info');
             const workbook = XLSX.utils.book_new();
             
             for (const table of selectedTables) {
@@ -97,11 +97,11 @@ export const useBackupLogic = () => {
             }
             
             XLSX.writeFile(workbook, `Phi_Tech_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
-            showToast('✅ تم تصدير نسخة الإكسل بنجاح', 'success');
+            showToast('تم تصدير نسخة الإكسل بنجاح', 'success');
             return { success: true };
         } catch (error: any) {
             console.error("Excel Backup Error:", error);
-            showToast(`❌ فشل تصدير الإكسل: ${error.message}`, 'error');
+            showToast(`فشل تصدير الإكسل: ${error.message}`, 'error');
             return { success: false };
         }
     };
@@ -109,7 +109,7 @@ export const useBackupLogic = () => {
     // 🔵 تصدير لـ JSON
     const backupToJSON = async (selectedTables: string[]) => {
         try {
-            showToast('⏳ جاري تحضير ملف JSON...', 'info');
+            showToast('جاري تحضير ملف JSON...', 'info');
             const fullSnapshot: any = { metadata: { date: new Date().toISOString() }, data: {} };
             
             for (const table of selectedTables) {
@@ -125,11 +125,11 @@ export const useBackupLogic = () => {
             link.click();
             URL.revokeObjectURL(url);
             
-            showToast('✅ تم تصدير نسخة JSON بنجاح', 'success');
+            showToast('تم تصدير نسخة JSON بنجاح', 'success');
             return { success: true };
         } catch (error: any) {
             console.error("JSON Backup Error:", error);
-            showToast(`❌ فشل تصدير JSON: ${error.message}`, 'error');
+            showToast(`فشل تصدير JSON: ${error.message}`, 'error');
             return { success: false };
         }
     };
@@ -137,7 +137,7 @@ export const useBackupLogic = () => {
     // 📄 تحميل نموذج فارغ (Template) - يدعم الإدخال الذكي والتطابق مع الداتابيز
     const downloadTemplate = (tableName: string, displayName: string) => {
         try {
-            showToast(`⏳ جاري تحضير قالب ${displayName}...`, 'info');
+            showToast(`جاري تحضير قالب ${displayName}...`, 'info');
             let templateData: any[] = [];
             let wscols: any[] = [];
 
@@ -281,9 +281,9 @@ else if (tableName === 'expenses') {
             XLSX.utils.book_append_sheet(workbook, worksheet, tableName); 
             XLSX.writeFile(workbook, `Template_${tableName}.xlsx`);
             
-            showToast(`✅ تم تحميل قالب ${displayName} بنجاح`, 'success');
+            showToast(`تم تحميل قالب ${displayName} بنجاح`, 'success');
         } catch (error: any) {
-            showToast(`❌ فشل تحميل القالب: ${error.message}`, 'error');
+            showToast(`فشل تحميل القالب: ${error.message}`, 'error');
         }
     };
     

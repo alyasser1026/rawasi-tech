@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import * as XLSX from 'xlsx-js-style';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
 import { decimalSum, decimalSubtract, savePayrollDrafts, postPayroll, unpostPayroll } from '@/lib/payroll-workflow';
+import { notify } from '@/lib/notify';
 
 export function usePayrollLogic() {
     const [employees, setEmployees] = useState<any[]>([]);
@@ -127,7 +128,7 @@ export function usePayrollLogic() {
             if (requestVersion === fetchVersionRef.current) {
                 setPayrollRecords([]);
                 loadedSheetRef.current = '';
-                alert('تعذر تحميل المسير: ' + error.message);
+                notify('تعذر تحميل المسير: ' + error.message);
             }
         } finally {
             if (requestVersion === fetchVersionRef.current) {
@@ -194,7 +195,7 @@ export function usePayrollLogic() {
 
     const exportToExcel = () => {
         const liveData = latestFilteredRef.current;
-        if (liveData.length === 0) return alert("لا يوجد بيانات لتصديرها!");
+        if (liveData.length === 0) return notify("لا يوجد بيانات لتصديرها!");
         
         // 1. مصفوفة أسماء الأشهر باللغة العربية ليعطى مظهر ملوكي للعنوان 📑
         const arabicMonths = [
@@ -345,7 +346,7 @@ export function usePayrollLogic() {
 
     const importLaborLogs = async () => {
         await fetchPayrollData();
-        alert("✅ تم تحديث وإعادة تصفية بيانات المسير لحظياً من قاعدة البيانات!");
+        notify("تم تحديث وإعادة تصفية بيانات المسير لحظياً من قاعدة البيانات!");
     };
 
     const savePayrollToDB = async () => {
@@ -363,12 +364,12 @@ export function usePayrollLogic() {
         try {
             await savePayrollDrafts(supabase, targetMonthStr, cutoffDate, liveRecords);
             
-            alert("✅ تم إثبات وحفظ مبالغ الصرف والتعديلات بنجاح تام!");
+            notify("تم إثبات وحفظ مبالغ الصرف والتعديلات بنجاح تام!");
             
             await fetchPayrollData();
 
         } catch (err: any) {
-            alert(`❌ خطأ في الحفظ: ${err.message}`);
+            notify(`خطأ في الحفظ: ${err.message}`);
             console.error("Full Error Details:", err);
         } finally {
             setIsSaving(false);
@@ -386,10 +387,10 @@ export function usePayrollLogic() {
             const targetMonthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
             await postPayroll(supabase, targetMonthStr, cutoffDate, latestFilteredRef.current);
 
-            alert("✅ تم ترحيل القيد المحاسبي بنجاح!");
+            notify("تم ترحيل القيد المحاسبي بنجاح!");
             await fetchPayrollData();
         } catch (err: any) {
-            alert(`❌ فشل الترحيل: ${err.message}`);
+            notify(`فشل الترحيل: ${err.message}`);
         } finally {
             setIsSaving(false);
         }
@@ -401,17 +402,17 @@ export function usePayrollLogic() {
         try {
             const period = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
             await unpostPayroll(supabase, period, latestFilteredRef.current);
-            alert('تم فك ترحيل الرواتب الشهرية المختارة.');
+            notify('تم فك ترحيل الرواتب الشهرية المختارة.');
             await fetchPayrollData();
         } catch (err: any) {
-            alert('تعذر فك الترحيل: ' + err.message);
+            notify('تعذر فك الترحيل: ' + err.message);
         } finally { setIsSaving(false); }
     };
 
     function sheetIsCurrent() {
         const period = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
         if (loadedSheetRef.current === `${period}|${cutoffDate}`) return true;
-        alert('انتظر اكتمال تحميل الشهر وتاريخ القطع قبل الحفظ أو الترحيل.');
+        notify('انتظر اكتمال تحميل الشهر وتاريخ القطع قبل الحفظ أو الترحيل.');
         return false;
     }
 

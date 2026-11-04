@@ -4,6 +4,7 @@ import MasterPage from '@/components/MasterPage';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/helpers';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
+import { TrendingUp, Scale } from 'lucide-react';
 
 export default function FinancialStatementsPage() {
   const [incomeStatement, setIncomeStatement] = useState<any>(null);
@@ -96,9 +97,9 @@ export default function FinancialStatementsPage() {
     actions: (
       <div className="sidebar-action-stack" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <button className="btn-main-glass gold" style={{ padding: '12px', fontSize: '1.1rem', fontWeight: 'bold' }} onClick={handleRefresh} disabled={refreshing}>
-            {refreshing ? 'جاري المزامنة... ⏳' : 'تحديث الأرقام 🔄'}
+            {refreshing ? 'جاري المزامنة...' : 'تحديث الأرقام'}
           </button>
-          <button className="btn-main-glass white" style={{ padding: '12px', fontSize: '1.1rem' }} onClick={() => window.print()}>طباعة القوائم 🖨️</button>
+          <button className="btn-main-glass white" style={{ padding: '12px', fontSize: '1.1rem' }} onClick={() => window.print()}>طباعة القوائم</button>
       </div>
     )
   }), [handleRefresh, refreshing, lastUpdated]);
@@ -156,7 +157,7 @@ export default function FinancialStatementsPage() {
                 {/* قائمة الدخل */}
                 <div className="glass-panel" style={{ padding: '0', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ padding: '25px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '15px', background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 0%, transparent 100%)' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>📈</div>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}><TrendingUp size={17} aria-hidden="true" /></div>
                     <h2 style={{ margin: 0, fontSize: '1.4rem' }}>قائمة الدخل (Income Statement)</h2>
                   </div>
 
@@ -172,10 +173,10 @@ export default function FinancialStatementsPage() {
                           border: incomeStatement.net_income >= 0 ? '1px solid rgba(16, 185, 129, 0.3)' : '1px solid rgba(239, 68, 68, 0.3)',
                           boxShadow: incomeStatement.net_income >= 0 ? '0 10px 30px rgba(16, 185, 129, 0.1)' : '0 10px 30px rgba(239, 68, 68, 0.1)'
                         }}>
-                          <div className="summary-title" style={{ fontSize: '1.1rem', color: incomeStatement.net_income >= 0 ? '#34d399' : '#f87171' }}>
+                          <div className="summary-title" style={{ fontSize: '1.1rem', color: incomeStatement.net_income >= 0 ? '#047857' : '#be123c' }}>
                             {incomeStatement.net_income >= 0 ? 'صافي الربح (Net Income)' : 'صافي الخسارة (Net Loss)'}
                           </div>
-                          <div className="summary-value amount-cell positive" style={{ fontSize: '2rem', color: incomeStatement.net_income >= 0 ? '#10b981' : '#ef4444' }}>
+                          <div className="summary-value amount-cell positive" style={{ fontSize: '2rem', color: incomeStatement.net_income >= 0 ? '#047857' : '#be123c' }}>
                             {formatCurrency(Math.abs(incomeStatement.net_income))}
                           </div>
                         </div>
@@ -187,7 +188,7 @@ export default function FinancialStatementsPage() {
                 {/* المركز المالي */}
                 <div className="glass-panel" style={{ padding: '0', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.05)' }}>
                   <div style={{ padding: '25px', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', gap: '15px', background: 'linear-gradient(90deg, rgba(255,255,255,0.03) 0%, transparent 100%)' }}>
-                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>⚖️</div>
+                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}><Scale size={17} aria-hidden="true" /></div>
                     <h2 style={{ margin: 0, fontSize: '1.4rem' }}>المركز المالي (Balance Sheet)</h2>
                   </div>
 
@@ -204,8 +205,8 @@ export default function FinancialStatementsPage() {
                           border: '1px solid rgba(59, 130, 246, 0.3)',
                           boxShadow: '0 10px 30px rgba(59, 130, 246, 0.1)'
                         }}>
-                          <div className="summary-title" style={{ fontSize: '1.1rem', color: '#60a5fa' }}>إجمالي الالتزامات وحقوق الملكية + الدخل</div>
-                          <div className="summary-value amount-cell positive" style={{ fontSize: '2rem', color: '#3b82f6' }}>
+                          <div className="summary-title" style={{ fontSize: '1.1rem', color: '#1d4ed8' }}>إجمالي الالتزامات وحقوق الملكية + الدخل</div>
+                          <div className="summary-value amount-cell positive" style={{ fontSize: '2rem', color: '#1d4ed8' }}>
                             {formatCurrency(balanceSheet.total_liabilities_and_equity)}
                           </div>
                         </div>

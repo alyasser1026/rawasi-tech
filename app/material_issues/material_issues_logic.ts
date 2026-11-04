@@ -176,7 +176,7 @@ export function useMaterialIssuesLogic() {
                 if (item.item_id) {
                     const totalAvailable = (Number(item.available_qty) || 0) + (Number(item.old_qty) || 0);
                     if (Number(item.quantity) > totalAvailable) {
-                        throw new Error(`⚠️ نفاذ مخزون! الكمية المطلوبة لـ "${item.item_name}" (${item.quantity}) أكبر من المتاح (${totalAvailable}).`);
+                        throw new Error(`نفاذ مخزون! الكمية المطلوبة لـ "${item.item_name}" (${item.quantity}) أكبر من المتاح (${totalAvailable}).`);
                     }
                 }
             }
@@ -231,7 +231,7 @@ export function useMaterialIssuesLogic() {
 
         },
         onSuccess: () => {
-            showToast("تم حفظ إذن الصرف بنجاح (مسودة بانتظار الترحيل) ✨", "success");
+            showToast("تم حفظ إذن الصرف بنجاح (مسودة بانتظار الترحيل)", "success");
             setIsModalOpen(false);
             setEditingIssueId(null);
             setIssueData(initialIssueState);
@@ -272,7 +272,7 @@ export function useMaterialIssuesLogic() {
             }
         },
         onSuccess: (_, variables) => {
-            const msg = variables.action === 'delete' ? "تم الحذف النهائي للفواتير المحددة 🗑️" : "تمت العملية بنجاح ✅";
+            const msg = variables.action === 'delete' ? "تم الحذف النهائي للفواتير المحددة" : "تمت العملية بنجاح";
             showToast(msg, "success");
             setSelectedIds([]); 
             queryClient.invalidateQueries({ queryKey: ['material_issues_list'] });

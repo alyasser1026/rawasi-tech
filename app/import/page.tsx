@@ -6,6 +6,7 @@ import MasterPage from '@/components/MasterPage';
 import GlassContainer from '@/components/GlassContainer';
 import { useToast } from '@/lib/toast-context';
 import { THEME } from '@/lib/theme';
+import { X, Wrench, CircleCheck, ChartColumn, Pencil } from 'lucide-react';
 
 export default function UnifiedImportHub() {
     const { showToast } = useToast();
@@ -300,7 +301,7 @@ export default function UnifiedImportHub() {
             if (violationsPayload.length > 0) { const {error} = await supabase.from('violations').insert(violationsPayload); if(error) throw error; }
             if (vouchersPayload.length > 0) { const {error} = await supabase.from('payment_vouchers').insert(vouchersPayload); if(error) throw error; }
 
-            showToast("🎉 تم ترحيل كافة البيانات بنجاح!", "success");
+            showToast("تم ترحيل كافة البيانات بنجاح!", "success");
             setParsedData({ labor: [], expenses: [], violations: [], vouchers: [] });
             setIsParsed(false);
 
@@ -331,8 +332,8 @@ export default function UnifiedImportHub() {
                             <tr key={i} style={{ background: row._errors?.length > 0 ? '#fef2f2' : (row._fixes?.length > 0 ? '#f0fdf4' : 'white'), borderBottom: '1px solid #f1f5f9' }}>
                                 <td style={{ padding: '12px' }}>
                                     {row._errors?.length > 0 
-                                        ? <span title={row._errors.join(' | ')} style={{ cursor: 'help', fontSize: '16px' }}>❌</span> 
-                                        : (row._fixes?.length > 0 ? <span title="تم التصحيح آلياً" style={{ cursor: 'help', fontSize: '16px' }}>🔧</span> : <span style={{ fontSize: '16px' }}>✅</span>)}
+                                        ? <span title={row._errors.join(' | ')} style={{ cursor: 'help', fontSize: '16px' }}><X size={14} aria-hidden="true" /></span> 
+                                        : (row._fixes?.length > 0 ? <span title="تم التصحيح آلياً" style={{ cursor: 'help', fontSize: '16px' }}><Wrench size={14} aria-hidden="true" /></span> : <span style={{ fontSize: '16px' }}><CircleCheck size={14} aria-hidden="true" /></span>)}
                                 </td>
                                 {keys.map(k => {
                                     const fix = row._fixes?.find((f:any) => f.col === k);
@@ -346,7 +347,7 @@ export default function UnifiedImportHub() {
                                         )}
                                         {fix && (
                                             <div style={{ fontSize: '10px', color: '#16a34a', fontWeight: 'bold', marginTop: '4px' }}>
-                                                ✨ {fix.msg}
+                                                {fix.msg}
                                             </div>
                                         )}
                                     </td>
@@ -360,13 +361,13 @@ export default function UnifiedImportHub() {
     };
 
     return (
-        <MasterPage title="مركز استيراد البيانات" subtitle="استيراد الإكسيل الموحد مع المراجعة الذكية" icon="📥">
+        <MasterPage title="مركز استيراد البيانات" subtitle="استيراد الإكسيل الموحد مع المراجعة الذكية">
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) minmax(300px, 3fr)', gap: '20px', padding: '20px 0' }}>
                 
                 {/* Sidebar Controls */}
                 <GlassContainer>
                     <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                        <div style={{ fontSize: '40px', marginBottom: '10px' }}>📊</div>
+                        <div style={{ fontSize: '40px', marginBottom: '10px' }}><ChartColumn size={34} aria-hidden="true" /></div>
                         <h2 style={{ margin: 0, color: THEME.primary, fontWeight: 900 }}>الاستيراد الشامل</h2>
                         <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 700, marginTop: '5px' }}>
                             حمل القالب، املأ البيانات، ارفعه هنا.
@@ -375,12 +376,12 @@ export default function UnifiedImportHub() {
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <button onClick={downloadMasterTemplate} className="btn-action primary">
-                            📥 تحميل القالب الموحد (Excel)
+                            تحميل القالب الموحد (Excel)
                         </button>
 
                         <label className={`upload-dropzone ${isLoading ? 'loading' : ''}`}>
                             <input type="file" accept=".xlsx" onChange={handleFileUpload} disabled={isLoading} style={{ display: 'none' }} />
-                            <span>{isLoading ? '⏳ جاري القراءة والفحص...' : '📂 اختر ملف الإكسيل المعبأ'}</span>
+                            <span>{isLoading ? 'جاري القراءة والفحص...' : 'اختر ملف الإكسيل المعبأ'}</span>
                         </label>
 
                         {isParsed && (
@@ -389,7 +390,7 @@ export default function UnifiedImportHub() {
                                 className={`btn-action ${hasErrors ? 'disabled' : 'success'}`}
                                 disabled={hasErrors || isLoading}
                             >
-                                {hasErrors ? '❌ صحح الأخطاء أولاً' : '🚀 ترحيل البيانات للنظام'}
+                                {hasErrors ? 'صحح الأخطاء أولاً' : 'ترحيل البيانات للنظام'}
                             </button>
                         )}
                     </div>
@@ -401,16 +402,16 @@ export default function UnifiedImportHub() {
                         <div>
                             <div style={{ display: 'flex', gap: '10px', borderBottom: '2px solid #f1f5f9', paddingBottom: '15px', marginBottom: '20px', overflowX: 'auto' }}>
                                 <button className={`tab-btn ${activeTab === 'labor' ? 'active' : ''}`} onClick={() => setActiveTab('labor')}>
-                                    👷‍♂️ يومية العمالة ({parsedData.labor.length})
+                                    يومية العمالة ({parsedData.labor.length})
                                 </button>
                                 <button className={`tab-btn ${activeTab === 'expenses' ? 'active' : ''}`} onClick={() => setActiveTab('expenses')}>
-                                    💸 المصروفات ({parsedData.expenses.length})
+                                    المصروفات ({parsedData.expenses.length})
                                 </button>
                                 <button className={`tab-btn ${activeTab === 'violations' ? 'active' : ''}`} onClick={() => setActiveTab('violations')}>
-                                    ⚠️ الخصومات ({parsedData.violations.length})
+                                    الخصومات ({parsedData.violations.length})
                                 </button>
                                 <button className={`tab-btn ${activeTab === 'vouchers' ? 'active' : ''}`} onClick={() => setActiveTab('vouchers')}>
-                                    📜 سندات الصرف ({parsedData.vouchers.length})
+                                    سندات الصرف ({parsedData.vouchers.length})
                                 </button>
                             </div>
 
@@ -427,7 +428,7 @@ export default function UnifiedImportHub() {
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', textAlign: 'center' }}>
-                            <div style={{ fontSize: '50px', marginBottom: '15px', opacity: 0.5 }}>📝</div>
+                            <div style={{ fontSize: '50px', marginBottom: '15px', opacity: 0.5 }}><Pencil size={40} aria-hidden="true" /></div>
                             <h3 style={{ margin: 0, fontWeight: 900 }}>شاشة المعاينة الذكية</h3>
                             <p style={{ fontSize: '13px', fontWeight: 700, maxWidth: '300px', marginTop: '10px' }}>
                                 قم برفع الملف لتظهر البيانات هنا ويتم مراجعتها آلياً ومطابقتها مع الداتابيز قبل الاعتماد.

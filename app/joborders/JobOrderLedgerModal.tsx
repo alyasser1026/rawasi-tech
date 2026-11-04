@@ -220,18 +220,18 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
     const tabTotal = tableRows.reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
     const tabs = [
-        { id: 'مؤشرات الأداء', label: '📊 مؤشرات الأداء' },
-        { id: 'خامات مصروفة', label: '🧱 الخامات' },
-        { id: 'مصروفات نثرية', label: '💸 مصروفات' },
-        { id: 'دفعات مقاولين', label: '🤝 المستخلصات (سداد وخصم)' },
-        { id: 'يوميات عمالة', label: '👷‍♂️ العمالة' },
+        { id: 'مؤشرات الأداء', label: 'مؤشرات الأداء' },
+        { id: 'خامات مصروفة', label: 'الخامات' },
+        { id: 'مصروفات نثرية', label: 'مصروفات' },
+        { id: 'دفعات مقاولين', label: 'المستخلصات (سداد وخصم)' },
+        { id: 'يوميات عمالة', label: 'العمالة' },
     ];
 
     const modalContent = (
         <div className="modal-overlay" onClick={onClose}>
             <style>{`
                 .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(15px); display: flex; align-items: center; justify-content: center; z-index: 999999; }
-                .modal-content { width: 95vw; max-width: 1100px; max-height: 90vh; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 30px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; animation: slideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.5); direction: rtl; }
+                .modal-content { width: 95vw; max-width: 1100px; max-height: 90vh; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 14px; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; animation: slideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); box-shadow: 0 30px 60px rgba(0,0,0,0.15), inset 0 0 0 1px rgba(255,255,255,0.5); direction: rtl; }
                 @keyframes slideUp { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
                 .tab-btn { min-width: 120px; white-space: nowrap; padding: 18px 25px; border: none; background: transparent; font-weight: 900; cursor: pointer; border-bottom: 3px solid transparent; color: #64748b; transition: all 0.3s ease; font-size: 15px; flex: 1; position: relative; }
                 .tab-btn::after { content: ''; position: absolute; bottom: -1px; left: 50%; width: 0; height: 3px; background: #c2410c; transition: all 0.3s ease; transform: translateX(-50%); }
@@ -249,14 +249,14 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '15px', position: 'relative', zIndex: 1 }}>
                         <div>
                             <h2 style={{ margin: 0, fontSize: 'clamp(18px, 4vw, 26px)', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-                                {isSubcontractor ? '🤝 كشف حساب مقاول الباطن' : '📊 دفتر أستاذ التشغيل'}
+                                {isSubcontractor ? 'كشف حساب مقاول الباطن' : 'دفتر أستاذ التشغيل'}
                                 <span style={{ fontSize: '14px', background: 'rgba(255,255,255,0.1)', padding: '6px 15px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', backdropFilter: 'blur(5px)', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
                                     أمر رقم: <span style={{ color: '#c2410c' }}>{jobOrder?.order_number}</span>
                                 </span>
                             </h2>
                             <p style={{ margin: '15px 0 0 0', color: '#cbd5e1', fontSize: '15px', fontWeight: 800 }}>
-                                📍 <span style={{ color: '#fff' }}>{jobOrder?.projects?.Property}</span> &nbsp;|&nbsp; 🛠️ <span style={{ color: '#fff' }}>{jobOrder?.boq_budget?.work_item || jobOrder?.job_order_name}</span>
-                                {isSubcontractor && <span style={{ color: '#c2410c' }}> &nbsp;|&nbsp; 👷 المقاول: {jobOrder?.partners?.name || 'غير محدد'}</span>}
+                                <span style={{ color: '#fff' }}>{jobOrder?.projects?.Property}</span> &nbsp;|&nbsp;<span style={{ color: '#fff' }}>{jobOrder?.boq_budget?.work_item || jobOrder?.job_order_name}</span>
+                                {isSubcontractor && <span style={{ color: '#c2410c' }}> &nbsp;|&nbsp; المقاول: {jobOrder?.partners?.name || 'غير محدد'}</span>}
                             </p>
                         </div>
                         <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '12px 25px', borderRadius: '14px', cursor: 'pointer', fontWeight: 900, transition: 'all 0.3s', fontSize: '15px', backdropFilter: 'blur(10px)' }} onMouseOver={e => { e.currentTarget.style.background='rgba(239, 68, 68, 0.9)'; e.currentTarget.style.borderColor='rgba(239, 68, 68, 1)'; e.currentTarget.style.boxShadow='0 5px 15px rgba(239, 68, 68, 0.4)'; }} onMouseOut={e => { e.currentTarget.style.background='rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.2)'; e.currentTarget.style.boxShadow='none'; }}>إغلاق ✖</button>
@@ -327,7 +327,7 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                 {/* Table Data */}
                 <div style={{ padding: '20px', flexShrink: 0 }}>
                     {activeTab === 'مؤشرات الأداء' ? (
-                        <div style={{ height: '450px', width: '100%', padding: '30px', background: 'rgba(255, 255, 255, 0.7)', borderRadius: '24px', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 10px 30px rgba(0,0,0,0.03)', backdropFilter: 'blur(20px)' }}>
+                        <div style={{ height: '450px', width: '100%', padding: '30px', background: 'rgba(255, 255, 255, 0.7)', borderRadius: '14px', border: '1px solid rgba(255, 255, 255, 0.8)', boxShadow: '0 10px 30px rgba(0,0,0,0.03)', backdropFilter: 'blur(20px)' }}>
                             <h3 style={{ textAlign: 'center', marginBottom: '30px', color: '#1e293b', fontWeight: 900, fontSize: '20px' }}>تحليل ميزانية أمر التشغيل</h3>
                             <ResponsiveContainer width="100%" height="100%">
                                 <BarChart data={[

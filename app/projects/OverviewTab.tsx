@@ -69,7 +69,7 @@ export default function OverviewTab({ logic }: { logic: any }) {
           title="إجمالي الصرف الفعلي (مباشر وموزع)" 
           value={projectFinancials.totalActualCost} 
           color={projectFinancials.isOverrun ? THEME.danger : THEME.warning} 
-          alert={projectFinancials.isOverrun ? '🚨 تجاوز للميزانية التقديرية' : '✅ الإنفاق آمن وضمن الخطة'} 
+          alert={projectFinancials.isOverrun ? 'تجاوز للميزانية التقديرية' : 'الإنفاق آمن وضمن الخطة'} 
         />
         <KpiCard title="المحصل (إيرادات مخصصة للفيلا)" value={projectFinancials.totalVillaRevenue} color={THEME.success} />
       </div>
@@ -79,14 +79,14 @@ export default function OverviewTab({ logic }: { logic: any }) {
           title="صافي الأرباح الحقيقية" 
           value={projectFinancials.totalNetProfit} 
           color={projectFinancials.isLoss ? THEME.danger : THEME.success}
-          alert={projectFinancials.isLoss ? '📉 المشروع يسجل خسارة حالياً' : `📈 نسبة الربح الصافي ${projectFinancials.profitMargin}%`}
+          alert={projectFinancials.isLoss ? 'المشروع يسجل خسارة حالياً' : `نسبة الربح الصافي ${projectFinancials.profitMargin}%`}
         />
 
         <KpiCard 
           title="انحراف الميزانية الكلي" 
           value={projectFinancials.totalVariance} 
           color={projectFinancials.isOverrun ? THEME.danger : '#047857'} 
-          alert={projectFinancials.isOverrun ? `⚠️ عجز بقيمة ${formatCurrency(Math.abs(projectFinancials.totalVariance))}` : `💰 وفر مالي محقق`}
+          alert={projectFinancials.isOverrun ? `عجز بقيمة ${formatCurrency(Math.abs(projectFinancials.totalVariance))}` : `وفر مالي محقق`}
         />
 
         <KpiCard title="محجوز ضمان الأعمال" value={projectFinancials.totalRetention} color="#475569" />
@@ -97,7 +97,7 @@ export default function OverviewTab({ logic }: { logic: any }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px', marginBottom: '25px' }}>
         <div className="glass-card">
-          <h3 style={{ margin: '0 0 20px 0', color: THEME.coffeeDark, fontWeight: 900 }}>👷 تقرير العمالة الميدانية</h3>
+          <h3 style={{ margin: '0 0 20px 0', color: THEME.coffeeDark, fontWeight: 900 }}>تقرير العمالة الميدانية</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
             <div className="labor-stat-item"><span style={{fontSize:'11px', color:'#64748b', fontWeight:800}}>عمالة اليوم</span><strong style={{fontSize:'18px'}}>{projectDetails.laborStats?.todayWorkers || 0}</strong></div>
             <div className="labor-stat-item"><span style={{fontSize:'11px', color:'#64748b', fontWeight:800}}>تكلفة اليوم</span><strong style={{fontSize:'18px', color: THEME.danger}}>{projectDetails.laborStats?.todayCost?.toLocaleString() || 0} ج.م</strong></div>
@@ -107,7 +107,7 @@ export default function OverviewTab({ logic }: { logic: any }) {
         </div>
 
         <div className="glass-card">
-          <h3 style={{ margin: '0 0 20px 0', color: THEME.coffeeDark, fontWeight: 900 }}>📈 مؤشر الإنجاز والزمن</h3>
+          <h3 style={{ margin: '0 0 20px 0', color: THEME.coffeeDark, fontWeight: 900 }}>مؤشر الإنجاز والزمن</h3>
           <ProgressBar label="الوقت المنقضي من مدة المشروع" percentage={kpis?.timeProgress} color={THEME.coffeeMain} />
           <div style={{height:'15px'}}/>
           <ProgressBar label="الإنجاز المالي والتحصيل الفعلي للفيلا" percentage={projectFinancials.financialProgress} color={THEME.goldAccent} />

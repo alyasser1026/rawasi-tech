@@ -11,6 +11,8 @@ import ClaimFormModal from './ClaimFormModal';
 import PrintClaimModal from './PrintClaimModal'; 
 import RawasiSidebarManager from '@/components/RawasiSidebarManager'; 
 import PaymentVoucherModal from '../PaymentVouchers/PaymentVoucherModal';
+import { Search, HardHat, ScanSearch } from 'lucide-react';
+import PhiIcon from '@/components/PhiIcon';
 
 // 🚀 قائمة منسدلة ذكية للفلاتر المتعددة
 const FilterDropdown = ({ title, options, selectedOptions, setSelectedOptions }: any) => {
@@ -163,7 +165,7 @@ export default function SubContractorClaimsPage() {
                             }} 
                             className="btn-main-glass blue"
                         >
-                            ➕ إسناد أمر تشغيل للمقاول
+                            إسناد أمر تشغيل للمقاول
                         </button>
                     </SecureAction>
 
@@ -173,7 +175,7 @@ export default function SubContractorClaimsPage() {
                             onClick={logic.handleOpenClaimModal}
                             className="btn-main-glass green"
                         >
-                            {logic.isClaimSaving ? '⏳ جاري المعالجة...' : `📑 إصدار مستخلص (${logic.selectedAssignments.length})`}
+                            {logic.isClaimSaving ? 'جاري المعالجة...' : `إصدار مستخلص (${logic.selectedAssignments.length})`}
                         </button>
                     </SecureAction>
 
@@ -186,12 +188,12 @@ export default function SubContractorClaimsPage() {
                         }} 
                         className="btn-main-glass white"
                     >
-                        🔙 رجوع لقائمة المقاولين
+                        رجوع لقائمة المقاولين
                     </button>
                 </>
             ) : (
-                <div style={{ textAlign: 'center', padding: '20px', background: 'rgba(0,0,0,0.2)', borderRadius: '16px', color: '#94a3b8', fontSize: '12px', fontWeight: 800 }}>
-                    👆 يرجى اختيار مقاول من القائمة لعرض الإجراءات وإسناد الأعمال
+                <div style={{ textAlign: 'center', padding: '16px', background: '#f6f8fb', border: '1px dashed #d6dce5', borderRadius: '12px', color: '#4b5563', fontSize: '12px', fontWeight: 700 }}>
+                    يرجى اختيار مقاول من القائمة لعرض الإجراءات وإسناد الأعمال
                 </div>
             )}
         </div>
@@ -223,7 +225,7 @@ export default function SubContractorClaimsPage() {
                 const net = Number(row.net_amount || 0);
                 const paid = Number(row.paid_amount || 0);
                 if (paid >= net && net > 0) {
-                    return <span style={{ color: '#10b981', fontWeight: 900, fontSize: '12px' }}>✔️ تمت التسوية</span>;
+                    return <span style={{ color: '#10b981', fontWeight: 900, fontSize: '12px' }}>تمت التسوية</span>;
                 }
 
                 const period = row.payment_period_days || 0;
@@ -243,26 +245,26 @@ export default function SubContractorClaimsPage() {
                 let color = '#10b981'; 
                 let bg = '#ecfdf5';
                 let text = `متبقي ${daysLeft} يوم`;
-                let icon = '🟢';
+                let icon = '';
 
                 if (daysLeft < 0) {
                     color = '#ef4444'; 
                     bg = '#fef2f2';
                     text = `متأخر ${Math.abs(daysLeft)} يوم!`;
-                    icon = '🔴';
+                    icon = '';
                 } else if (daysLeft === 0) {
                     color = '#f97316'; 
                     bg = '#fff7ed';
                     text = `يُستحق اليوم!`;
-                    icon = '🟠';
+                    icon = '';
                 } else if (daysLeft <= 3) {
                     color = '#f59e0b'; 
                     bg = '#fffbeb';
-                    icon = '🟡';
+                    icon = '';
                 } else if (daysLeft <= 7) {
                     color = '#84cc16'; 
                     bg = '#f7fee7';
-                    icon = '🟢';
+                    icon = '';
                 }
 
                 return (
@@ -276,7 +278,7 @@ export default function SubContractorClaimsPage() {
                             fontWeight: 900, color: color, background: bg, border: `1px solid ${color}40`,
                             whiteSpace: 'nowrap'
                         }}>
-                            {icon} {text}
+                            <PhiIcon value={icon} size={14} /> {text}
                         </div>
                     </div>
                 );
@@ -315,7 +317,7 @@ export default function SubContractorClaimsPage() {
             header: 'الحالة المحاسبية', 
             render: (row: any) => (
                 <span style={{ background: row.is_posted ? '#dcfce7' : '#fef3c7', color: row.is_posted ? '#166534' : '#b45309', padding: '5px 12px', borderRadius: '10px', fontSize: '11px', fontWeight: 900 }}>
-                    {row.is_posted ? 'معتمد ✅' : 'مسودة ⏳'}
+                    {row.is_posted ? 'معتمد' : 'مسودة'}
                 </span>
             ) 
         },
@@ -335,10 +337,10 @@ export default function SubContractorClaimsPage() {
                                 onClick={() => logic.handleOpenPayment(row)} 
                                 style={{ background: '#16a34a', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px', transition: '0.2s', boxShadow: '0 4px 10px rgba(22,163,74,0.3)' }}
                             >
-                                {paid > 0 ? 'صرف المتبقي 💸' : 'صرف 💸'}
+                                {paid > 0 ? 'صرف المتبقي' : 'صرف'}
                             </button>
                         )}
-                        <button onClick={() => logic.handlePreparePrint(row)} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px', transition: '0.2s' }}>طباعة 🖨️</button>
+                        <button onClick={() => logic.handlePreparePrint(row)} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px', transition: '0.2s' }}>طباعة</button>
 
                         {!row.is_posted ? (
                             <button 
@@ -346,7 +348,7 @@ export default function SubContractorClaimsPage() {
                                 onClick={() => logic.actionMutation.mutate({ action: 'post', id: row.id })} 
                                 style={{ background: THEME.success, color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
                             >
-                                {isActionPending && logic.actionMutation.variables?.action === 'post' ? 'جاري... ⏳' : 'ترحيل 🚀'}
+                                {isActionPending && logic.actionMutation.variables?.action === 'post' ? 'جاري...' : 'ترحيل'}
                             </button>
                         ) : (
                             <button 
@@ -354,7 +356,7 @@ export default function SubContractorClaimsPage() {
                                 onClick={() => { if(confirm('تأكيد فك ترحيل المستخلص؟ سيتم الاحتفاظ بسندات الصرف والأعمال المرتبطة. يلزم فك ترحيل سنداته أولاً.')) logic.actionMutation.mutate({ action: 'unpost', id: row.id }) }}
                                 style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
                             >
-                                {isActionPending && logic.actionMutation.variables?.action === 'unpost' ? 'جاري... ⏳' : 'فك الترحيل 🔓'}
+                                {isActionPending && logic.actionMutation.variables?.action === 'unpost' ? 'جاري...' : 'فك الترحيل'}
                             </button>
                         )}
 
@@ -363,7 +365,7 @@ export default function SubContractorClaimsPage() {
                             onClick={() => { if(confirm('تأكيد حذف مستخلص المسودة وإرجاع الأعمال لجاري التنفيذ؟ يجب فك ترحيله ومعالجة سندات الصرف المرتبطة أولاً.')) logic.actionMutation.mutate({ action: 'delete', id: row.id }) }}
                             style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
                         >
-                            {isActionPending && logic.actionMutation.variables?.action === 'delete' ? 'جاري... ⏳' : 'مسح 🗑️'}
+                            {isActionPending && logic.actionMutation.variables?.action === 'delete' ? 'جاري...' : 'مسح'}
                         </button>
                     </div>
                 );
@@ -373,7 +375,7 @@ export default function SubContractorClaimsPage() {
 
     return (
         <div className="clean-page">
-            <MasterPage icon="📜" title="إدارة مقاولي الباطن" subtitle="إسناد الأعمال وإصدار المستخلصات الدورية">
+            <MasterPage title="إدارة مقاولي الباطن" subtitle="إسناد الأعمال وإصدار المستخلصات الدورية">
                 
                 <RawasiSidebarManager 
                     actions={sidebarActions}
@@ -388,7 +390,7 @@ export default function SubContractorClaimsPage() {
                     .btn-main-glass:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
                     .btn-main-glass:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
                     
-                    .search-box-container { margin-bottom: 25px; background: white; padding: 10px 15px; border-radius: 20px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; position: relative; }
+                    .search-box-container { margin-bottom: 25px; background: white; padding: 10px 15px; border-radius: 14px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; position: relative; }
                     .search-input-fancy { width: 100%; padding: 10px 35px 10px 10px; border-radius: 15px; border: 2px solid transparent; outline: none; transition: 0.3s; font-weight: 700; font-size: 14px; background: #f8fafc; }
                     .search-input-fancy:focus { border-color: ${THEME.primary}80; background: #fff; }
                     .search-icon { position: absolute; right: 25px; color: #94a3b8; pointer-events: none; }
@@ -406,7 +408,7 @@ export default function SubContractorClaimsPage() {
                 {!logic.selectedContractor ? (
                     <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
                         <div className="search-box-container">
-                            <span className="search-icon">🔍</span>
+                            <span className="search-icon"><Search size={16} aria-hidden="true" /></span>
                             <input 
                                 type="text" 
                                 className="search-input-fancy" 
@@ -423,16 +425,16 @@ export default function SubContractorClaimsPage() {
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', padding: '10px' }}>
                                 {filteredContractors.map((contractor: any) => (
                                     <div key={contractor.id} onClick={() => logic.setSelectedContractor(contractor)} 
-                                         style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(15px)', borderRadius: '24px', padding: '25px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.5)', transition: '0.3s', boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}>
-                                        <div style={{ fontSize: '40px', marginBottom: '15px' }}>👷</div>
+                                         style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(15px)', borderRadius: '14px', padding: '25px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.5)', transition: '0.3s', boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}>
+                                        <div style={{ fontSize: '40px', marginBottom: '15px' }}><HardHat size={34} aria-hidden="true" /></div>
                                         <h3 style={{ margin: 0, color: THEME.primary, fontWeight: 900 }}>{contractor.name}</h3>
-                                        <div style={{ marginTop: '15px', background: THEME.accent, color: 'white', padding: '8px', borderRadius: '12px', textAlign: 'center', fontSize: '13px', fontWeight: 900 }}>فتح ملف الأعمال ⬅️</div>
+                                        <div style={{ marginTop: '15px', background: THEME.accent, color: 'white', padding: '8px', borderRadius: '12px', textAlign: 'center', fontSize: '13px', fontWeight: 900 }}>فتح ملف الأعمال</div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div style={{ textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: '24px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
-                                <div style={{ fontSize: '45px', marginBottom: '15px' }}>🕵️‍♂️</div>
+                            <div style={{ textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: '14px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
+                                <div style={{ fontSize: '45px', marginBottom: '15px' }}><ScanSearch size={38} aria-hidden="true" /></div>
                                 <h3 style={{ margin: '0 0 8px 0', color: '#0f172a', fontWeight: 900 }}>لم نتمكن من العثور على مقاول</h3>
                                 <p style={{ margin: 0, fontSize: '14px', fontWeight: 700 }}>تأكد من كتابة الاسم بشكل صحيح.</p>
                             </div>
@@ -440,10 +442,10 @@ export default function SubContractorClaimsPage() {
                     </div>
                 ) : (
                     <div style={{ animation: 'slideUp 0.5s ease-out' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', background: 'white', padding: '20px', border: '1px solid #eee', borderRadius: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', background: 'white', padding: '20px', border: '1px solid #eee', borderRadius: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
                             <div>
-                                <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary }}>📂 سجل أعمال المقاول</h2>
-                                <span style={{ fontSize: '14px', color: THEME.accent, fontWeight: 800 }}>👤 الاسم: {logic.selectedContractor.name}</span>
+                                <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary }}>سجل أعمال المقاول</h2>
+                                <span style={{ fontSize: '14px', color: THEME.accent, fontWeight: 800 }}>الاسم: {logic.selectedContractor.name}</span>
                             </div>
                         </div>
 
@@ -452,28 +454,28 @@ export default function SubContractorClaimsPage() {
                                 className={`tab-btn ${logic.activeTab === 'assignments' ? 'active' : 'inactive'}`} 
                                 onClick={() => logic.setActiveTab('assignments')}
                             >
-                                📋 الأعمال الجارية والإسنادات
+                                الأعمال الجارية والإسنادات
                             </button>
                             <button 
                                 className={`tab-btn ${logic.activeTab === 'history' ? 'active' : 'inactive'}`} 
                                 onClick={() => logic.setActiveTab('history')}
                             >
-                                📚 سجل المستخلصات (الأرشيف)
+                                سجل المستخلصات (الأرشيف)
                             </button>
                         </div>
 
                         {logic.activeTab === 'assignments' && (
                             <div style={{ animation: 'fadeIn 0.3s' }}>
-                                <div style={{ background: 'white', padding: '15px', borderRadius: '20px', marginBottom: '20px', border: '1px solid #eee', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+                                <div style={{ background: 'white', padding: '15px', borderRadius: '14px', marginBottom: '20px', border: '1px solid #eee', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
                                     <FilterDropdown 
-                                        title="🏡 تحديد الفلل" 
+                                        title="تحديد الفلل" 
                                         options={availableVillas as string[]} 
                                         selectedOptions={selectedVillas} 
                                         setSelectedOptions={setSelectedVillas} 
                                     />
                                     
                                     <FilterDropdown 
-                                        title="🛠️ تحديد البنود" 
+                                        title="تحديد البنود" 
                                         options={availableItems as string[]} 
                                         selectedOptions={selectedItems} 
                                         setSelectedOptions={setSelectedItems} 
@@ -481,14 +483,14 @@ export default function SubContractorClaimsPage() {
 
                                     {/* 🚀 فلتر الحالة الجديد */}
                                     <FilterDropdown 
-                                        title="🏷️ حالة الإسناد" 
+                                        title="حالة الإسناد" 
                                         options={availableStatuses as string[]} 
                                         selectedOptions={selectedStatuses} 
                                         setSelectedOptions={setSelectedStatuses} 
                                     />
 
                                     <div style={{ flex: 1, position: 'relative' }}>
-                                        <span className="search-icon" style={{ right: '15px', top: '12px' }}>🔍</span>
+                                        <span className="search-icon" style={{ right: '15px', top: '12px' }}><Search size={16} aria-hidden="true" /></span>
                                         <input 
                                             type="text" 
                                             className="search-input-fancy" 
@@ -520,7 +522,7 @@ export default function SubContractorClaimsPage() {
                                     </button>
                                 </div>
 
-                                <div style={{ background: 'white', borderRadius: '24px', padding: '10px', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                                <div style={{ background: 'white', borderRadius: '14px', padding: '10px', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
                                     <RawasiSmartTable 
                                         data={filteredAssignments} 
                                         isLoading={logic.isAssignLoading}
@@ -545,7 +547,7 @@ export default function SubContractorClaimsPage() {
                                                         padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 900,
                                                         whiteSpace: 'nowrap'
                                                     }}>
-                                                        {row.assignment_status === 'مفوتر' ? 'مفوتر 📑' : 'جاري التنفيذ ⏳'}
+                                                        {row.assignment_status === 'مفوتر' ? 'مفوتر' : 'جاري التنفيذ'}
                                                     </span>
                                                 ) 
                                             },
@@ -563,7 +565,7 @@ export default function SubContractorClaimsPage() {
                                                                     onClick={(e) => { e.stopPropagation(); logic.handleEditAssignment(row); }} 
                                                                     style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px' }}
                                                                 >
-                                                                    تعديل ✏️
+                                                                    تعديل
                                                                 </button>
                                                                 <button 
                                                                     onClick={(e) => { 
@@ -572,7 +574,7 @@ export default function SubContractorClaimsPage() {
                                                                     }} 
                                                                     style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: '11px' }}
                                                                 >
-                                                                    مسح 🗑️
+                                                                    مسح
                                                                 </button>
                                                             </>
                                                         )}
@@ -589,7 +591,7 @@ export default function SubContractorClaimsPage() {
                         )}
 
                         {logic.activeTab === 'history' && (
-                            <div style={{ background: 'white', borderRadius: '24px', padding: '10px', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', animation: 'fadeIn 0.3s' }}>
+                            <div style={{ background: 'white', borderRadius: '14px', padding: '10px', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', animation: 'fadeIn 0.3s' }}>
                                 <RawasiSmartTable 
                                     data={logic.claimsHistory} 
                                     isLoading={logic.isHistoryLoading} 

@@ -14,7 +14,7 @@ export function useRestoreLogic() {
       const result = await processExcelInBackend(formData);
 
       if (result.success) {
-        showToast(`تم استيراد ${result.total} سجل بنجاح ✨ عبر السيرفر`, 'success');
+        showToast(`تم استيراد ${result.total} سجل بنجاح عبر السيرفر`, 'success');
         return { success: true };
       } else {
         showToast(result.error || "فشل الاستيراد في السيرفر", 'error');

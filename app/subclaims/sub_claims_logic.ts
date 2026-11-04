@@ -122,7 +122,7 @@ export function useSubClaimsLogic() {
         );
 
         if (selectedObjects.length === 0) {
-            showToast("⚠️ يرجى تحديد أعمال (جاري التنفيذ) ولم تصدر لها مستخلصات بعد.", "error");
+            showToast("يرجى تحديد أعمال (جاري التنفيذ) ولم تصدر لها مستخلصات بعد.", "error");
             return;
         }
 
@@ -179,7 +179,7 @@ export function useSubClaimsLogic() {
             return { id: data };
         },
         onSuccess: () => {
-            showToast("تم اعتماد المستخلص وترحيله بنجاح 🚀", "success");
+            showToast("تم اعتماد المستخلص وترحيله بنجاح", "success");
             setIsClaimModalOpen(false);
             setSelectedAssignments([]);
             queryClient.invalidateQueries({ queryKey: ['contractor_tasks'] });
@@ -216,7 +216,7 @@ export function useSubClaimsLogic() {
             }
         },
         onSuccess: () => {
-            showToast("تم إسناد أمر التشغيل للمقاول بنجاح 👷✅", "success");
+            showToast("تم إسناد أمر التشغيل للمقاول بنجاح", "success");
             setIsAssignModalOpen(false);
             setAssignRecord({ assigned_qty: 1, unit_price: 0 });
             queryClient.invalidateQueries({ queryKey: ['contractor_tasks', selectedContractor?.id] });
@@ -237,7 +237,7 @@ export function useSubClaimsLogic() {
             }
         },
         onSuccess: () => {
-            showToast("تم إلغاء التكليف وإرجاع أمر التشغيل بنجاح 🗑️", "success");
+            showToast("تم إلغاء التكليف وإرجاع أمر التشغيل بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['contractor_tasks', selectedContractor?.id] });
         }
     });
@@ -272,9 +272,9 @@ export function useSubClaimsLogic() {
             if (error) throw new Error(error.message);
         },
         onSuccess: (_, variables) => {
-            let msg = "تم الترحيل بنجاح 🚀";
-            if (variables.action === 'unpost') msg = "تم فك الترحيل مع الاحتفاظ بسندات الصرف والأعمال المرتبطة 🔓";
-            if (variables.action === 'delete') msg = "تم حذف المستخلص وارجاع الأعمال بنجاح 🗑️";
+            let msg = "تم الترحيل بنجاح";
+            if (variables.action === 'unpost') msg = "تم فك الترحيل مع الاحتفاظ بسندات الصرف والأعمال المرتبطة";
+            if (variables.action === 'delete') msg = "تم حذف المستخلص وارجاع الأعمال بنجاح";
             showToast(msg, "success");
             
             queryClient.invalidateQueries({ queryKey: ['contractor_claims_history'] });
@@ -369,7 +369,7 @@ export function useSubClaimsLogic() {
             if (error) throw new Error(error.message);
         },
         onSuccess: () => {
-            showToast("تم إنشاء السند وترحيله بنجاح ✅", "success");
+            showToast("تم إنشاء السند وترحيله بنجاح", "success");
             setIsPaymentModalOpen(false);
             queryClient.invalidateQueries({ queryKey: ['contractor_claims_history'] });
         },

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { THEME } from '@/lib/theme';
+import PhiIcon from './PhiIcon';
 
 interface KPI {
   title: string;
@@ -63,7 +64,7 @@ export function OperationsCenter({
           display: 'flex', alignItems: 'center', gap: '10px'
         }}
       >
-        {isOpen ? '◀' : '⚙️ مركز العمليات'}
+        {isOpen ? '◀' : 'مركز العمليات'}
       </button>
 
       {/* الستارة الخلفية */}
@@ -82,7 +83,7 @@ export function OperationsCenter({
       }}>
         
         <div style={{ borderBottom: `2px solid ${THEME.primary}20`, paddingBottom: '15px' }}>
-            <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '20px' }}>⚙️ {title}</h2>
+            <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '20px' }}>{title}</h2>
         </div>
 
         {/* كروت المؤشرات المالية */}
@@ -93,14 +94,14 @@ export function OperationsCenter({
                       <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', marginBottom: '4px' }}>{kpi.title}</div>
                       <div style={{ fontSize: '18px', fontWeight: 900, color: kpi.color }}>{kpi.value}</div>
                   </div>
-                  <div style={{ fontSize: '24px', opacity: 0.8 }}>{kpi.icon}</div>
+                  <div style={{ display: 'inline-flex', opacity: 0.8 }}><PhiIcon value={kpi.icon} size={22} /></div>
               </div>
             ))}
         </div>
 
         {/* أدوات البحث والفلترة */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary }}>🔍 البحث السريع</label>
+            <label style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary }}>البحث السريع</label>
             <input 
               type="text" 
               placeholder="ابحث برقم السند أو اسم العميل..."
@@ -115,7 +116,7 @@ export function OperationsCenter({
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '15px' }}>
             
             <button onClick={() => { onAdd(); setIsOpen(false); }} style={{ ...btnStyle, background: THEME.primary, color: 'white', fontSize: '16px', boxShadow: `0 8px 15px ${THEME.primary}30` }}>
-              ➕ إضافة جديد
+              إضافة جديد
             </button>
 
             {/* صندوق الأدوات الجماعية - يظهر فقط عند الاختيار */}
@@ -129,37 +130,37 @@ export function OperationsCenter({
               gap: '12px',
               padding: hasSelection ? '20px 15px' : '0 15px',
               background: '#f1f5f9',
-              borderRadius: '18px',
+              borderRadius: '14px',
               border: '1px solid #e2e8f0'
             }}>
                 <div style={{ textAlign: 'center', fontSize: '12px', color: THEME.primary, fontWeight: 900, marginBottom: '5px' }}>
-                   ⚡ أدوات التحكم ({selectedCount}) سجل مختار
+                   أدوات التحكم ({selectedCount}) سجل مختار
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <button onClick={onPostSelected} style={{ ...btnStyle, background: THEME.success, color: 'white' }}>
-                      ✅ ترحيل
+                      ترحيل
                     </button>
                     <button onClick={onUnpostSelected} style={{ ...btnStyle, background: THEME.accent, color: 'white' }}>
-                      ↩️ فك ترحيل
+                      فك ترحيل
                     </button>
                 </div>
 
                 {/* 🚀 زر الإرجاع يظهر فقط لو الصفحة بعتت دالة onRefundSelected */}
                 {onRefundSelected && (
                     <button onClick={onRefundSelected} style={{ ...btnStyle, background: 'white', color: THEME.ruby, border: `1.5px solid ${THEME.ruby}50` }}>
-                      🔙 إرجاع السداد
+                      إرجاع السداد
                     </button>
                 )}
 
                 {isSingleSelection && onEdit && (
                     <button onClick={() => { onEdit(); setIsOpen(false); }} style={{ ...btnStyle, background: '#e2e8f0', color: THEME.primary }}>
-                      📝 تعديل البيانات
+                      تعديل البيانات
                     </button>
                 )}
 
                 <button onClick={onDeleteSelected} style={{ ...btnStyle, background: '#fee2e2', color: THEME.ruby, border: `1.5px solid ${THEME.ruby}30` }}>
-                  🗑️ حذف نهائي
+                  حذف نهائي
                 </button>
             </div>
         </div>

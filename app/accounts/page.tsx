@@ -8,6 +8,7 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import { usePermissions } from '@/lib/PermissionsContext'; 
 import SecureAction from '@/components/SecureAction'; 
 import LoadingScreen from '@/components/LoadingScreen';
+import { FolderOpen, Folder, FileText } from 'lucide-react';
 
 export default function HierarchicalLedgerPage() {
   const { 
@@ -64,7 +65,7 @@ export default function HierarchicalLedgerPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <SecureAction module="accounts" action="create">
         <button className="btn-premium-gold" onClick={handleAdd}>
-            ➕ إضافة حساب جديد
+            إضافة حساب جديد
         </button>
       </SecureAction>
       
@@ -72,19 +73,19 @@ export default function HierarchicalLedgerPage() {
         <>
           <p style={{fontSize:'10px', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>إجراءات على ({selectedIds.length})</p>
           <SecureAction module="accounts" action="edit">
-            <button className="btn-main-glass blue" onClick={() => handleEdit(selectedIds)} disabled={selectedIds.length !== 1 || isDeleting}>✏️ تعديل الحساب</button>
+            <button className="btn-main-glass blue" onClick={() => handleEdit(selectedIds)} disabled={selectedIds.length !== 1 || isDeleting}>تعديل الحساب</button>
           </SecureAction>
           <SecureAction module="accounts" action="delete">
             <button className="btn-main-glass red" onClick={() => handleDelete(selectedIds)} disabled={isDeleting}>
-              {isDeleting ? '⏳ جاري الحذف...' : '🗑️ حذف الحساب'}
+              {isDeleting ? 'جاري الحذف...' : 'حذف الحساب'}
             </button>
           </SecureAction>
         </>
       )}
 
       <div style={{ display: 'flex', gap: '10px' }}>
-         <button className="btn-main-glass white" style={{flex: 1}} onClick={expandAll}>🔽 فتح الكل</button>
-         <button className="btn-main-glass white" style={{flex: 1}} onClick={collapseAll}>🔼 طي الكل</button>
+         <button className="btn-main-glass white" style={{flex: 1}} onClick={expandAll}>فتح الكل</button>
+         <button className="btn-main-glass white" style={{flex: 1}} onClick={collapseAll}>طي الكل</button>
       </div>
 
       {/* 📊 زر الإكسل الاحترافي */}
@@ -93,7 +94,7 @@ export default function HierarchicalLedgerPage() {
         onClick={exportToExcel}
         style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)' }}
       >
-        📊 تصدير إكسل
+        تصدير إكسل
       </button>
 
       {/* 🖨️ زر الطباعة الاحترافي المطور */}
@@ -108,7 +109,7 @@ export default function HierarchicalLedgerPage() {
                       let rowHtml = `
                           <tr style="${isRoot ? 'background: #f8fafc; font-weight: bold;' : ''}">
                               <td>${n.code || ''}</td>
-                              <td style="padding-right: ${indent + 10}px;">${isRoot ? '📁' : '📄'} ${n.name}</td>
+                              <td style="padding-right: ${indent + 10}px;">${isRoot ? '' : ''} ${n.name}</td>
                               <td class="text-center text-success">${formatCurrency(n.totalDebit)}</td>
                               <td class="text-center text-danger">${formatCurrency(n.totalCredit)}</td>
                               <td class="text-center" style="font-weight: bold;">${formatCurrency(n.balance)}</td>
@@ -161,7 +162,7 @@ export default function HierarchicalLedgerPage() {
               printWindow.document.close();
               setTimeout(() => { printWindow.print(); }, 250); // تأخير بسيط لضمان تحميل الـ CSS
           }
-      }}>🖨️ طباعة الميزان</button>
+      }}>طباعة الميزان</button>
     </div>
   );
 
@@ -176,16 +177,16 @@ export default function HierarchicalLedgerPage() {
             summary={
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div className="summary-glass-card">
-                      <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المدين 📈</span>
+                      <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المدين</span>
                       <div style={{fontSize:'18px', fontWeight:900, color: THEME.success}}>{formatCurrency(summary.debit)}</div>
                   </div>
                   <div className="summary-glass-card">
-                      <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الدائن 📉</span>
+                      <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الدائن</span>
                       <div style={{fontSize:'18px', fontWeight:900, color: THEME.danger}}>{formatCurrency(summary.credit)}</div>
                   </div>
                   <div className="summary-glass-card" style={{ background: summary.balance === 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', borderColor: summary.balance === 0 ? THEME.success : THEME.warning }}>
-                      <span style={{fontSize:'12px', fontWeight:800, color: summary.balance === 0 ? THEME.success : THEME.warning}}>الرصيد / الفارق ⚖️</span>
-                      <div style={{fontSize:'22px', fontWeight:900, color: 'white'}}>
+                      <span style={{fontSize:'12px', fontWeight:800, color: summary.balance === 0 ? THEME.success : THEME.warning}}>الرصيد / الفارق</span>
+                      <div style={{fontSize:'22px', fontWeight:900, color: THEME.coffeeDark}}>
                         {formatCurrency(summary.balance)}
                       </div>
                       <div style={{fontSize:'10px', marginTop: '4px', color: '#94a3b8'}}>{summary.balance !== 0 && (summary.isDebitBalance ? '(رصيد مدين)' : '(رصيد دائن)')}</div>
@@ -196,16 +197,16 @@ export default function HierarchicalLedgerPage() {
             customFilters={
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '10px' }}>
                   <div>
-                     <label style={{color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>🔍 بحث في الدليل:</label>
+                     <label style={{color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>بحث في الدليل:</label>
                      <input type="text" placeholder="الاسم، الكود..." className="glass-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                   </div>
 
                   <div>
-                      <label style={{color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>📅 من تاريخ:</label>
+                      <label style={{color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>من تاريخ:</label>
                       <input type="date" className="glass-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
                   </div>
                   <div>
-                      <label style={{color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>📅 إلى تاريخ:</label>
+                      <label style={{color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>إلى تاريخ:</label>
                       <input type="date" className="glass-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
                   </div>
               </div>
@@ -252,7 +253,7 @@ export default function HierarchicalLedgerPage() {
 
         .glass-master-card {
           background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
-          border-radius: 30px; border: 1px solid rgba(255, 255, 255, 0.9);
+          border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.9);
           box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.08); overflow: hidden;
           margin-top: 25px; animation: cardFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
@@ -336,7 +337,7 @@ function AccountNode({ node, expandedIds, toggleExpand, selectedIds, toggleSelec
         />
         <div>
           <span style={{ fontWeight: isRoot ? 900 : 700, fontSize: isRoot ? '16px' : '14px', color: THEME.primary }}>
-            {hasSub ? (isExpanded ? '📂 ' : '📁 ') : '📄 '}
+            {hasSub ? (isExpanded ? <FolderOpen size={16} aria-hidden="true" /> : <Folder size={16} aria-hidden="true" />) : <FileText size={16} aria-hidden="true" />}
             {node.name}
           </span>
           <span style={{ fontSize: '11px', color: '#94a3b8', marginRight: '10px' }}>#{node.code}</span>

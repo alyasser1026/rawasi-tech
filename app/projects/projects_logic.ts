@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query'; 
 import { useToast } from '@/lib/toast-context';
 import { fetchAllSupabaseData } from '@/lib/helpers';
+import { notify } from '@/lib/notify';
 
 // دالة تطهير النصوص لضمان تطابق البحث في المصروفات
 const normalizeArabic = (str: string) => {
@@ -66,7 +67,7 @@ export function useProjectsLogic() {
           }
       },
       onSuccess: (updatedPayload) => {
-          showToast("تم الحفظ بنجاح 🚀", "success");
+          showToast("تم الحفظ بنجاح", "success");
           setIsAddProjectModalOpen(false);
           setCurrentProjectRecord(defaultProjectRecord);
           fetchData(); 
@@ -84,7 +85,7 @@ export function useProjectsLogic() {
           if (error) throw error;
       },
       onSuccess: () => {
-          showToast("تم حذف المشروع نهائياً 🗑️", "success");
+          showToast("تم حذف المشروع نهائياً", "success");
           setSelectedProject(null); 
           fetchData(); 
       },
@@ -165,7 +166,7 @@ export function useProjectsLogic() {
     onSuccess: () => {
         setIsBoqModalOpen(false);
         if (selectedProject) loadProjectDetails(selectedProject);
-        showToast("تم حفظ البند بنجاح ✅", "success");
+        showToast("تم حفظ البند بنجاح", "success");
     },
     onError: (err: any) => {
         showToast(`خطأ في الحفظ: ${err.message}`, "error");
@@ -178,7 +179,7 @@ export function useProjectsLogic() {
           if (error) throw new Error(error.message);
       },
       onSuccess: () => {
-          showToast("تم حذف البند من المقايسة بنجاح 🗑️", "success");
+          showToast("تم حذف البند من المقايسة بنجاح", "success");
           if (selectedProject) loadProjectDetails(selectedProject); 
       },
       onError: (err: any) => showToast(`خطأ في الحذف: ${err.message}`, "error")
@@ -239,7 +240,7 @@ export function useProjectsLogic() {
 
           if (itemErr) throw itemErr;
 
-          showToast(`تم سحب [${libraryItem.item_name}] وتسكينه بنجاح! 🎯`, "success");
+          showToast(`تم سحب [${libraryItem.item_name}] وتسكينه بنجاح!`, "success");
           loadProjectDetails(selectedProject); 
 
       } catch (err: any) {
@@ -251,7 +252,7 @@ export function useProjectsLogic() {
 
   const runDiagnostics = async () => {
     if (!selectedProject) {
-      alert("يرجى اختيار مشروع أولاً من القائمة الجانبية لتشغيل الفحص عليه.");
+      notify("يرجى اختيار مشروع أولاً من القائمة الجانبية لتشغيل الفحص عليه.");
       return;
     }
     console.log(`🚀 بدء فحص قاعدة البيانات للمشروع: ${selectedProject.Property}`);
@@ -264,7 +265,7 @@ export function useProjectsLogic() {
       if (expTest.error) console.error("❌ إيرور في expenses:", expTest.error.message);
       else console.log(`✅ المصروفات: تم سحب (${expTest.data?.length}) سجل بنجاح.`);
       
-      alert("تم الفحص! راجع الـ Console (F12) لمعرفة التفاصيل.");
+      notify("تم الفحص! راجع الـ Console (F12) لمعرفة التفاصيل.");
     } catch (err) {
       console.error("حدث خطأ غير متوقع أثناء الفحص:", err);
     }
@@ -400,7 +401,7 @@ export function useProjectsLogic() {
     if (!error) {
       setSelectedProject({ ...selectedProject, status: newStatus });
       setProjects(prevProjects => prevProjects.map(p => p.id === selectedProject.id ? { ...p, status: newStatus } : p));
-      showToast("تم تحديث حالة المشروع بنجاح ✅", "success");
+      showToast("تم تحديث حالة المشروع بنجاح", "success");
     }
   };
 
@@ -434,24 +435,24 @@ export function useProjectsLogic() {
     if (budgetRatio > 1.1) budgetHealth = 'red';
     else if (budgetRatio > 0.9) budgetHealth = 'yellow';
 
-    let timeProgress = 0, timeStatus = 'منتظم 🟢';
+    let timeProgress = 0, timeStatus = 'منتظم';
     if (selectedProject.start_date && selectedProject.end_date) {
       const start = new Date(selectedProject.start_date).getTime();
       const end = new Date(selectedProject.end_date).getTime();
       const now = new Date().getTime();
-      if (now > end) { timeProgress = 100; timeStatus = 'متأخر جداً 🔴'; }
-      else if (now < start) { timeProgress = 0; timeStatus = 'لم يبدأ بعد ⚪'; }
+      if (now > end) { timeProgress = 100; timeStatus = 'متأخر جداً'; }
+      else if (now < start) { timeProgress = 0; timeStatus = 'لم يبدأ بعد'; }
       else { 
         timeProgress = ((now - start) / (end - start)) * 100; 
-        if (timeProgress > physicalProgress + 15) timeStatus = 'تأخر زمني 🟠';
+        if (timeProgress > physicalProgress + 15) timeStatus = 'تأخر زمني';
       }
     }
 
     const requiredCashflow = totalEstimatedBudget - actualCost;
     const alerts = [];
-    if (budgetHealth === 'red') alerts.push("🚨 تجاوز الميزانية المعتمدة");
-    if (timeStatus.includes('تأخر')) alerts.push("⚠️ تأخر في الجدول الزمني مقارنة بنسبة الإنجاز");
-    if (totalRevenue < actualCost) alerts.push("💸 التدفق النقدي بالسالب");
+    if (budgetHealth === 'red') alerts.push("تجاوز الميزانية المعتمدة");
+    if (timeStatus.includes('تأخر')) alerts.push("تأخر في الجدول الزمني مقارنة بنسبة الإنجاز");
+    if (totalRevenue < actualCost) alerts.push("التدفق النقدي بالسالب");
 
     return { 
       totalContract, totalEstimatedBudget, actualCost, totalRevenue, 

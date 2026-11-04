@@ -36,7 +36,7 @@ export default function InvoiceAgingDashboard({ aging }: { aging: AgingStats }) 
       {/* 1. العنوان وإجمالي المتأخرات */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h2 style={{ margin: 0, color: '#1e293b', fontSize: '20px', fontWeight: 900 }}>📊 تحليل أعمار الديون</h2>
+          <h2 style={{ margin: 0, color: '#1e293b', fontSize: '20px', fontWeight: 900 }}>تحليل أعمار الديون</h2>
           <p style={{ margin: '5px 0 0', color: '#64748b', fontSize: '13px' }}>إجمالي الأرصدة المفتوحة: <strong>{formatCurrency(aging.totalOpen)}</strong></p>
         </div>
         <div style={{ background: '#fee2e2', padding: '10px 15px', borderRadius: '10px', border: '1px solid #fca5a5' }}>

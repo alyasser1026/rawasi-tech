@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { notify } from '@/lib/notify';
 
 // البنود الافتراضية لو الشهر ملوش خطة محفوظة
 const DEFAULT_ITEMS = [
@@ -129,10 +130,10 @@ export function useFinancialPlanLogic() {
 
             if (insertError) throw insertError;
 
-            alert("✅ تم حفظ وتثبيت الخطه المالية بنجاح تام!");
+            notify("تم حفظ وتثبيت الخطه المالية بنجاح تام!");
             await fetchPlan(); // تحديث فوري للشاشة لجلب البيانات المستقرة من الداتابيز
         } catch (err: any) {
-            alert(`❌ خطأ في الحفظ: ${err.message}`);
+            notify(`خطأ في الحفظ: ${err.message}`);
             console.error("Full Save Error Details:", err);
         } finally {
             setIsSaving(false);

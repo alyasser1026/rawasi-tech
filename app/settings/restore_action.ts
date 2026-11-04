@@ -318,7 +318,7 @@ export async function processExcelInBackend(formData: FormData) {
                   newRow['project_id'] = matchedId;
                   if (dbColumnName === 'project_id') newRow[dbColumnName] = matchedId;
               } else if (dbColumnName === 'project_id' && val && !val.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/)) {
-                  throw new Error(`❌ خطأ في الصف رقم ${excelRowNumber}: العقار "${val}" غير موجود بقاعدة البيانات! يرجى التأكد من الاسم.`);
+                  throw new Error(`خطأ في الصف رقم ${excelRowNumber}: العقار "${val}" غير موجود بقاعدة البيانات! يرجى التأكد من الاسم.`);
               }
             }
             
@@ -458,7 +458,7 @@ export async function processExcelInBackend(formData: FormData) {
                   .upsert(item.data, { onConflict: 'id', ignoreDuplicates: false });
 
                 if (singleError) {
-                    exactErrorMsg = `❌ خطأ في شيت: [${sheetName}]\n📍 الصف رقم: (${item.excelRow})\n🔍 التفاصيل: ${singleError.message || singleError.details}`;
+                    exactErrorMsg = `خطأ في شيت: [${sheetName}]\n الصف رقم: (${item.excelRow})\n التفاصيل: ${singleError.message || singleError.details}`;
                     break; 
                 }
             }

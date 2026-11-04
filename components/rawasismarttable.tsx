@@ -5,10 +5,7 @@ import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { toast } from 'react-hot-toast';
-
-const THEME = {
-    coffeeDark: '#27272a', goldAccent: '#c2410c', sandLight: '#f7f7f8', sandDark: '#e4e4e7', success: '#166534', danger: '#be123c', border: '#eef2f6'
-};
+import { ArrowDown, ArrowUp, Download, Printer } from 'lucide-react';
 
 // 🟢 التعديل الأهم: تغيير النوع ليقبل React.ReactNode (مثل الـ Checkbox) بالإضافة للنصوص
 interface Column {
@@ -132,8 +129,8 @@ export default function RawasiSmartTable({
     }, [sortedData, enablePagination, activePage, activeRows]);
 
     const exportToExcel = () => {
-        if (!data || data.length === 0) return toast.error('عفواً، لا توجد بيانات للتصدير ❌');
-        const toastId = toast.loading('جاري تحضير ملف Excel... ⏳');
+        if (!data || data.length === 0) return toast.error('عفواً، لا توجد بيانات للتصدير');
+        const toastId = toast.loading('جاري تحضير ملف Excel...');
         try {
             // يتم التصدير من `sortedData` لضمان تصدير جميع البيانات (وليس فقط المقطوعة) وبنفس ترتيب الفرز
             const exportData = sortedData.map(row => {
@@ -157,21 +154,21 @@ export default function RawasiSmartTable({
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "التقرير");
             XLSX.writeFile(workbook, `${fileName}_${new Date().toLocaleDateString('en-GB')}.xlsx`);
-            toast.success('تم تصدير ملف Excel بنجاح ✅', { id: toastId });
+            toast.success('تم تصدير ملف Excel بنجاح', { id: toastId });
         } catch (error) {
-            toast.error('حدث خطأ أثناء التصدير ❌', { id: toastId });
+            toast.error('حدث خطأ أثناء التصدير', { id: toastId });
         }
     };
 
     const exportToPDF = () => {
-        if (!data || data.length === 0) return toast.error('عفواً، لا توجد بيانات للتصدير ❌');
-        const toastId = toast.loading('جاري تحضير ملف PDF... ⏳');
+        if (!data || data.length === 0) return toast.error('عفواً، لا توجد بيانات للتصدير');
+        const toastId = toast.loading('جاري تحضير ملف PDF...');
         try {
             // استخدام نافذة الطباعة كحل أمثل للغة العربية
             window.print();
-            toast.success('تم فتح نافذة الطباعة بنجاح ✅', { id: toastId });
+            toast.success('تم فتح نافذة الطباعة بنجاح', { id: toastId });
         } catch (error) {
-            toast.error('حدث خطأ أثناء التصدير ❌', { id: toastId });
+            toast.error('حدث خطأ أثناء التصدير', { id: toastId });
         }
     };
 
@@ -179,29 +176,22 @@ export default function RawasiSmartTable({
     const itemVariants = { hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0 } };
 
     return (
-        <div className="rawasi-table-wrapper" style={{ 
-            background: 'rgba(255, 255, 255, 0.7)', 
-            backdropFilter: 'blur(15px)', 
-            borderRadius: '20px', 
-            padding: '20px', 
-            border: `1px solid rgba(255,255,255,0.5)`, 
-            boxShadow: '0 8px 32px rgba(0,0,0,0.05)' 
-        }}>
+        <div className="rawasi-table-wrapper">
             
             {/* 🛠️ شريط أدوات الجدول (أزرار التصدير والعنوان) */}
-            <div className="table-toolbar hide-on-print" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '10px' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={exportToExcel} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#10b981', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '10px', cursor: 'pointer', fontWeight: 900, fontSize: '12px', transition: '0.2s', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }}>📥 Excel</button>
-                    <button onClick={exportToPDF} style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#ef4444', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '10px', cursor: 'pointer', fontWeight: 900, fontSize: '12px', transition: '0.2s', boxShadow: '0 4px 10px rgba(239, 68, 68, 0.3)' }}>📄 PDF</button>
+            <div className="table-toolbar hide-on-print">
+                <div className="rawasi-table-exports">
+                    <button onClick={exportToExcel} className="rawasi-table-button"><Download size={15} aria-hidden="true" /> Excel</button>
+                    <button onClick={exportToPDF} className="rawasi-table-button"><Printer size={15} aria-hidden="true" /> PDF</button>
                 </div>
             </div>
 
-            <div style={{ overflowX: 'auto', borderRadius: '12px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }} className="rawasi-printable-table">
-                    <thead style={{ background: 'rgba(0,0,0,0.02)' }}>
+            <div className="rawasi-table-scroll">
+                <table className="rawasi-printable-table">
+                    <thead>
                         <tr>
                             {selectable && (
-                                <th className="hide-on-print" style={{ padding: '15px', width: '40px', textAlign: 'right' }}>
+                                <th className="rawasi-table-check hide-on-print">
                                     <input 
                                         type="checkbox" 
                                         onChange={(e) => {
@@ -210,7 +200,7 @@ export default function RawasiSmartTable({
                                             else onSelectionChange?.([]);
                                         }}
                                         checked={paginatedData.length > 0 && selectedIds.length === paginatedData.length}
-                                        style={{ accentColor: THEME.goldAccent, width: '16px', height: '16px', cursor: 'pointer' }}
+                                        className="rawasi-table-checkbox"
                                     />
                                 </th>
                             )}
@@ -222,27 +212,18 @@ export default function RawasiSmartTable({
                                     <th 
                                         key={idx} 
                                         onClick={() => handleSort(sortKey)}
-                                        style={{ 
-                                            padding: '15px', 
-                                            textAlign: 'right', 
-                                            color: THEME.coffeeDark, 
-                                            fontWeight: 900, 
-                                            fontSize: '13px', 
-                                            borderBottom: `2px solid ${THEME.goldAccent}40`,
-                                            cursor: sortKey ? 'pointer' : 'default',
-                                            userSelect: 'none',
-                                            whiteSpace: 'nowrap'
-                                        }}
+                                        className={sortKey ? 'rawasi-table-sortable' : undefined}
+                                        aria-sort={isSorted ? (sortConfig?.direction === 'asc' ? 'ascending' : 'descending') : undefined}
                                         title={sortKey ? `فرز حسب ${typeof col.label === 'string' ? col.label : (typeof col.header === 'string' ? col.header : '')}` : ''}
                                     >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                        <div className="rawasi-table-column-label">
                                             {/* 🟢 الآن يمكن رسم الـ Checkbox هنا بدون أخطاء */}
                                             {col.label || col.header}
                                             
                                             {/* مؤشر الفرز */}
                                             {sortKey && (
-                                                <span style={{ fontSize: '10px', color: isSorted ? THEME.goldAccent : 'transparent' }}>
-                                                    {sortConfig?.direction === 'asc' ? '🔼' : '🔽'}
+                                                <span className={`rawasi-table-sort-indicator ${isSorted ? 'is-sorted' : ''}`} aria-hidden="true">
+                                                    {sortConfig?.direction === 'asc' ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
                                                 </span>
                                             )}
                                         </div>
@@ -253,7 +234,7 @@ export default function RawasiSmartTable({
                     </thead>
                     <motion.tbody variants={containerVariants} initial="hidden" animate="show">
                         {paginatedData.length === 0 ? (
-                            <tr><td colSpan={columns.length + (selectable ? 1 : 0)} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', fontWeight: 900 }}>{emptyMessage || 'لا توجد بيانات'}</td></tr>
+                            <tr><td colSpan={columns.length + (selectable ? 1 : 0)} className="rawasi-table-empty">{emptyMessage || 'لا توجد بيانات'}</td></tr>
                         ) : (
                             // 🚀 رسم البيانات المقطوعة فقط لمنع تهنيج المتصفح
                             paginatedData.map((row, rowIndex) => (
@@ -261,17 +242,12 @@ export default function RawasiSmartTable({
                                     key={row._unique_key || row[rowKey] || rowIndex}
                                     variants={itemVariants} 
                                     onClick={() => onRowClick?.(row)} 
-                                    style={{ 
-                                        borderBottom: '1px solid rgba(0,0,0,0.03)', 
-                                        cursor: onRowClick ? 'pointer' : 'default',
-                                        background: rowIndex % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.4)',
-                                        transition: '0.2s'
-                                    }}
                                     className="table-row-hover"
+                                    data-clickable={onRowClick ? 'true' : undefined}
                                     data-selected={selectable && selectedIds.includes(row[rowKey]) ? 'true' : undefined}
                                 >
                                     {selectable && (
-                                        <td className="hide-on-print" style={{ padding: '12px 15px' }} onClick={(e) => e.stopPropagation()}>
+                                        <td className="rawasi-table-check hide-on-print" onClick={(e) => e.stopPropagation()}>
                                             <input 
                                                 type="checkbox" 
                                                 checked={selectedIds.includes(row[rowKey])}
@@ -281,12 +257,12 @@ export default function RawasiSmartTable({
                                                         : [...selectedIds, row[rowKey]];
                                                     onSelectionChange?.(newSelection);
                                                 }}
-                                                style={{ accentColor: THEME.goldAccent, width: '16px', height: '16px', cursor: 'pointer' }}
+                                                className="rawasi-table-checkbox"
                                             />
                                         </td>
                                     )}
                                     {columns.map((col, colIndex) => (
-                                        <td key={colIndex} style={{ padding: '12px 15px', color: '#334155', fontSize: '13px' }}>
+                                        <td key={colIndex}>
                                             {col.render ? col.render(row) : (row[col.key || col.accessor || ''] || '---')}
                                         </td>
                                     ))}
@@ -298,40 +274,37 @@ export default function RawasiSmartTable({
             </div>
 
             {enablePagination && activeTotal > 0 && (
-                <div className="hide-on-print" style={{ 
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                    padding: '15px 20px', marginTop: '15px', borderTop: '1px solid rgba(0,0,0,0.05)',
-                    background: 'rgba(255,255,255,0.4)', borderRadius: '12px', flexWrap: 'wrap', gap: '15px'
-                }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <span style={{ fontSize: '12px', fontWeight: 900, color: '#64748b' }}>عرض:</span>
+                <div className="rawasi-table-footer hide-on-print">
+                    <div className="rawasi-table-page-size">
+                        <span>عرض:</span>
                         <select 
                             value={activeRows} 
                             onChange={(e) => handleRowsChange(Number(e.target.value))}
-                            style={{ padding: '8px 15px', borderRadius: '12px', border: '1px solid #cbd5e1', outline: 'none', fontWeight: 800, cursor: 'pointer', background: 'white', color: '#0f172a' }}
+                            className="rawasi-table-page-select"
+                            aria-label="عدد السجلات في الصفحة"
                         >
                             <option value="50">50 سجل</option>
                             <option value="100">100 سجل</option>
                             <option value="500">500 سجل</option>
                         </select>
-                        <span style={{ fontSize: '12px', fontWeight: 700, color: '#94a3b8' }}>من إجمالي {activeTotal}</span>
+                        <span className="rawasi-table-total">من إجمالي {activeTotal}</span>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div className="rawasi-table-pagination">
                         <button 
                             disabled={activePage === 1} 
                             onClick={(e) => { e.stopPropagation(); handlePageChange(activePage - 1); }} 
-                            style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: activePage === 1 ? 'not-allowed' : 'pointer', opacity: activePage === 1 ? 0.5 : 1, color: '#0f172a', transition: '0.2s' }}
+                            className="rawasi-table-button"
                         >
                             السابق
                         </button>
-                        <div style={{ background: THEME.goldAccent, color: 'white', padding: '8px 20px', borderRadius: '12px', fontWeight: 900, fontSize: '13px', boxShadow: `0 4px 10px ${THEME.goldAccent}40` }}>
+                        <div className="rawasi-table-page-number" aria-live="polite">
                             صفحة {activePage} من {totalPages}
                         </div>
                         <button 
                             disabled={activePage >= totalPages} 
                             onClick={(e) => { e.stopPropagation(); handlePageChange(activePage + 1); }} 
-                            style={{ padding: '8px 16px', borderRadius: '12px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: activePage >= totalPages ? 'not-allowed' : 'pointer', opacity: activePage >= totalPages ? 0.5 : 1, color: '#0f172a', transition: '0.2s' }}
+                            className="rawasi-table-button"
                         >
                             التالي
                         </button>
@@ -341,8 +314,6 @@ export default function RawasiSmartTable({
 
             {/* 🎨 CSS للطباعة ولتأثيرات الهوفر */}
             <style>{`
-                .table-row-hover:hover { background: rgba(255, 255, 255, 0.9) !important; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transform: translateY(-1px); }
-                
                 @media print {
                     body * { visibility: hidden; }
                     .rawasi-printable-table, .rawasi-printable-table * { visibility: visible; }

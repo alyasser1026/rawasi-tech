@@ -15,12 +15,12 @@ export default function ProjectLaborCostsPage() {
     const totalPages = Math.ceil(logic.groupedProjects.length / logic.rowsPerPage);
 
     return (
-        <MasterPage icon="💰" title="رادار تكاليف العمالة الميدانية" subtitle="تحليل وتجميع كشوف يوميات العمالة الفعلية مجمعة لكل فيلا ومشروع">
+        <MasterPage title="رادار تكاليف العمالة الميدانية" subtitle="تحليل وتجميع كشوف يوميات العمالة الفعلية مجمعة لكل فيلا ومشروع">
             
             <RawasiSidebarManager 
                 summary={
                     <div className="summary-glass-card">
-                        <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي تكلفة الميدان الحية 💵</span>
+                        <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي تكلفة الميدان الحية</span>
                         <div className="val" style={{fontSize:'22px', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>
                             {formatCurrency(logic.grandTotalLaborCost)}
                         </div>
@@ -102,7 +102,7 @@ export default function ProjectLaborCostsPage() {
                 .combo-glass { width:100%; padding:10px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; font-weight:700; outline:none; cursor:pointer; }
                 .combo-glass option { background: #1e1b18; color: white; }
                 
-                /* 🚀 ستايل أزرار التقليب (Pagination) */
+                /* ستايل أزرار التقليب (Pagination) */
                 .pagination-footer {
                     display: flex;
                     justify-content: space-between;
@@ -166,7 +166,7 @@ export default function ProjectLaborCostsPage() {
                                         <React.Fragment key={idx}>
                                             <tr className="project-row-head" onClick={() => setExpandedProject(isExpanded ? null : group.projectName)}>
                                                 <td className="sticky-col-1" style={{fontWeight:900, color: THEME.primary, background: '#f8fafc'}}>
-                                                    {isExpanded ? '▼ 🏢 ' : '► 🏢 '} {group.projectName}
+                                                    {isExpanded ? '▼' : '►'} {group.projectName}
                                                 </td>
                                                 <td className="sticky-col-2" style={{color:'#94a3b8', background: '#f8fafc'}}>كشف تفصيلي ↳</td>
                                                 <td style={{color:'#94a3b8'}}>--</td>

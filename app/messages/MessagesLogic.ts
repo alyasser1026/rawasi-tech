@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { usePresence } from '@/hooks/usePresence';
+import { notify } from '@/lib/notify';
 
 export function useMessagesLogic() {
     const [users, setUsers] = useState<any[]>([]);
@@ -146,7 +147,7 @@ export function useMessagesLogic() {
 
         if (error) {
             console.error("Failed to send message:", error.message, error.details, error.hint);
-            alert(`حدث خطأ أثناء الإرسال: ${error.message || 'حاول مرة أخرى'}`);
+            notify(`حدث خطأ أثناء الإرسال: ${error.message || 'حاول مرة أخرى'}`);
         }
     };
 

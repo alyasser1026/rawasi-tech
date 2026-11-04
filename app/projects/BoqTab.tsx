@@ -5,6 +5,7 @@ import { formatCurrency } from '@/lib/helpers';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import BoqFormModal from './BoqFormModal';
 import ProjectReportModal from './ProjectReportModal'; 
+import { Pencil, Trash2, Plus, Printer, ClipboardList } from 'lucide-react';
 
 // دالة تطهير النصوص خارج المكون لمنع الـ Loop وتنظيف الكلمات
 const normalizeArabic = (str: string) => {
@@ -91,8 +92,8 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
         header: 'البند / المرحلة', 
         accessor: 'work_item',
         render: (row: any) => {
-            if (row.item_type === 'رئيسي') return <span style={{ fontWeight: 900, color: THEME.coffeeDark, fontSize: '15px' }}>📂 {row.work_item}</span>;
-            return <span style={{ paddingRight: '25px', color: '#475569', fontWeight: 800 }}>↪️ {row.work_item}</span>;
+            if (row.item_type === 'رئيسي') return <span style={{ fontWeight: 900, color: THEME.coffeeDark, fontSize: '15px' }}>{row.work_item}</span>;
+            return <span style={{ paddingRight: '25px', color: '#475569', fontWeight: 800 }}>{row.work_item}</span>;
         }
     },
     { 
@@ -170,8 +171,8 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
         header: 'الإجراءات',
         render: (row: any) => (
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                <SecureAction module="boqbudget" action="edit"><button onClick={() => { logic.setCurrentBoqRecord(row); logic.setIsBoqModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }} title="تعديل البند">✏️</button></SecureAction>
-                <SecureAction module="boqbudget" action="delete"><button onClick={() => { setDeleteAlert({ isOpen: true, type: 'boq', id: row.id, title: 'حذف بند مقايسة', message: `هل أنت متأكد من حذف البند "${row.work_item}"؟` }); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', opacity: 0.8 }} title="حذف البند">🗑️</button></SecureAction>
+                <SecureAction module="boqbudget" action="edit"><button onClick={() => { logic.setCurrentBoqRecord(row); logic.setIsBoqModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }} title="تعديل البند"><Pencil size={14} aria-hidden="true" /></button></SecureAction>
+                <SecureAction module="boqbudget" action="delete"><button onClick={() => { setDeleteAlert({ isOpen: true, type: 'boq', id: row.id, title: 'حذف بند مقايسة', message: `هل أنت متأكد من حذف البند "${row.work_item}"؟` }); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', opacity: 0.8 }} title="حذف البند"><Trash2 size={14} aria-hidden="true" /></button></SecureAction>
             </div>
         )
     }
@@ -182,30 +183,30 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
       {/* 📊 كروت السامري الكلية المطورة للرقابة المالية */}
       {flatBoqData.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '25px' }}>
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '20px', borderBottom: `4px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
             <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>臨 إجمالي قيمة المقايسة</span>
             <strong style={{ fontSize: '20px', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(boqStats.totalContractValue)}</strong>
           </div>
 
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '20px', borderBottom: `4px solid #475569`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>📋 إجمالي الميزانية التقديرية</span>
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #475569`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي الميزانية التقديرية</span>
             <strong style={{ fontSize: '20px', color: '#1e293b', fontWeight: 900 }}>{formatCurrency(boqStats.totalEstimatedCosts)}</strong>
           </div>
 
           {/* 🏢 الكارت الجديد اللي بيجمع المصروفات الموزعة (ABC) كلها للفيلا */}
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '20px', borderBottom: `4px solid #9333EA`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>🏢 التكاليف الموزعة (ABC)</span>
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #9333EA`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>التكاليف الموزعة (ABC)</span>
             <strong style={{ fontSize: '20px', color: '#9333EA', fontWeight: 900 }}>{formatCurrency(boqStats.totalAllocatedExpensesABC)}</strong>
           </div>
 
           {/* ⚖️ كارت مؤشر انحراف الميزانية الكلي */}
           <div style={{ 
             backgroundColor: boqStats.totalBudgetVariance < 0 ? 'rgba(254,226,226,0.6)' : 'rgba(209,250,229,0.6)', 
-            backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '20px', 
+            backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', 
             borderBottom: `4px solid ${boqStats.totalBudgetVariance < 0 ? THEME.danger : '#057857'}`, 
             boxShadow: '0 4px 15px rgba(0,0,0,0.02)' 
           }}>
-            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>⚖️ انحراف الميزانية الكلي</span>
+            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>انحراف الميزانية الكلي</span>
             <strong style={{ fontSize: '20px', color: boqStats.totalBudgetVariance < 0 ? THEME.danger : '#057857', fontWeight: 900 }}>
               {boqStats.totalBudgetVariance > 0 ? '+' : ''}{formatCurrency(boqStats.totalBudgetVariance)}
             </strong>
@@ -214,12 +215,12 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
           {/* 📊 كارت صافي الأرباح الفعلية المحدث من السيرفر */}
           <div style={{ 
               backgroundColor: boqStats.isLoss ? 'rgba(254,226,226,0.8)' : 'rgba(220,252,231,0.6)', 
-              backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '20px', 
+              backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', 
               borderBottom: `4px solid ${boqStats.isLoss ? THEME.danger : THEME.success}`, 
               boxShadow: '0 4px 15px rgba(0,0,0,0.02)' 
           }}>
             <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: boqStats.isLoss ? THEME.danger : '#166534', fontWeight: 900, marginBottom: '5px' }}>
-              <span>{boqStats.isLoss ? '📉 صافي خسارة فعلية' : '📊 صافي الأرباح الحقيقية'}</span>
+              <span>{boqStats.isLoss ? 'صافي خسارة فعلية' : 'صافي الأرباح الحقيقية'}</span>
               <span style={{ background: boqStats.isLoss ? THEME.danger : '#166534', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', direction: 'ltr' }}>
                 {boqStats.profitMargin}%
               </span>
@@ -234,7 +235,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
       {/* 📋 جدول المقايسة الذكي ومتابعة التكاليف الفعلية */}
       <div className="glass-card" style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', padding: '0 10px', flexWrap: 'wrap', gap: '15px' }}>
-           <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900 }}>📋 مقارنة ومتابعة الميزانيات بالتكاليف الفعلية والانحرافات</h3>
+           <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900 }}>مقارنة ومتابعة الميزانيات بالتكاليف الفعلية والانحرافات</h3>
            
            <div style={{ display: 'flex', gap: '10px' }}>
              <SecureAction module="boqbudget" action="create">
@@ -249,7 +250,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)', transition: 'all 0.3s'
                  }}
                >
-                 <span>➕</span> إضافة بند موازنة
+                 <span><Plus size={16} aria-hidden="true" /></span> إضافة بند موازنة
                </button>
              </SecureAction>
 
@@ -262,7 +263,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)', transition: 'all 0.3s'
                  }}
                >
-                 <span>🖨️</span> عرض التقرير للطباعة
+                 <span><Printer size={16} aria-hidden="true" /></span> عرض التقرير للطباعة
                </button>
              )}
            </div>
@@ -270,7 +271,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
 
         {flatBoqData.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: 900 }}>
-                <div style={{ fontSize: '40px', marginBottom: '10px' }}>📋</div>
+                <div style={{ fontSize: '40px', marginBottom: '10px' }}><ClipboardList size={34} aria-hidden="true" /></div>
                 لا توجد بنود مقايسة مضافة لهذا المشروع بعد.<br/>
             </div>
         ) : (

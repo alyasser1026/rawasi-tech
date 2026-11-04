@@ -19,6 +19,7 @@ import InvoiceFormModal from './InvoiceFormModal';
 import InvoicePrintModal from './InvoicePrintModal';
 import ReceiptVoucherModal from '@/app/ReceiptVouchers/ReceiptVoucherModal';
 import LoadingScreen from '@/components/LoadingScreen';
+import { Printer, Banknote } from 'lucide-react';
 
 export default function InvoicesPage() {
   const logic = useInvoicesLogic(); 
@@ -97,7 +98,7 @@ export default function InvoicesPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
             <b style={{ color: '#8b5cf6', textShadow: '0 0 10px rgba(139, 92, 246, 0.3)', fontSize: '14px' }}>#{row.invoice_number}</b>
             <span style={{ fontSize: '10px', color: '#64748b' }}>
-               {row.skip_zatca ? '📄 فاتورة داخلية' : '🧾 ضريبية (ZATCA)'}
+               {row.skip_zatca ? 'فاتورة داخلية' : 'ضريبية (ZATCA)'}
             </span>
           </div>
         );
@@ -201,8 +202,8 @@ export default function InvoicesPage() {
         const paid = Number(row.paid_amount || 0);
         
         // 🚀 حالات الدفع (مكتمل أو بزيادة)
-        if (paid > total && total > 0) return <span className="deadline-badge paid" style={{background: '#e0e7ff', color: '#4f46e5', border: '1px solid #c7d2fe'}}>🌟 سداد بزيادة</span>;
-        if (paid === total && total > 0) return <span className="deadline-badge paid">✅ مكتمل</span>;
+        if (paid > total && total > 0) return <span className="deadline-badge paid" style={{background: '#e0e7ff', color: '#4f46e5', border: '1px solid #c7d2fe'}}>سداد بزيادة</span>;
+        if (paid === total && total > 0) return <span className="deadline-badge paid">مكتمل</span>;
         
         if (!row.due_date) return <span style={{color:'#94a3b8', fontWeight: 'bold'}}>---</span>;
         
@@ -213,9 +214,9 @@ export default function InvoicesPage() {
         const diffTime = due.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         
-        if (diffDays < 0) return <div className="deadline-badge overdue">⚠️ متأخر ({Math.abs(diffDays)} يوم)</div>;
-        if (diffDays === 0) return <div className="deadline-badge today">🚨 السداد اليوم</div>;
-        return <div className="deadline-badge active">⏳ متبقي {diffDays} يوم</div>;
+        if (diffDays < 0) return <div className="deadline-badge overdue">متأخر ({Math.abs(diffDays)} يوم)</div>;
+        if (diffDays === 0) return <div className="deadline-badge today">السداد اليوم</div>;
+        return <div className="deadline-badge active">متبقي {diffDays} يوم</div>;
       }
     },
     {
@@ -233,14 +234,14 @@ export default function InvoicesPage() {
         
         return (
           <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center' }}>
-            <button onClick={(e) => { e.stopPropagation(); setPrintData(row); setIsPrintModalOpen(true); }} className="btn-glass-print" title="طباعة الفاتورة" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '18px', transition: '0.2s' }}>🖨️</button>
+            <button onClick={(e) => { e.stopPropagation(); setPrintData(row); setIsPrintModalOpen(true); }} className="btn-glass-print" title="طباعة الفاتورة" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '18px', transition: '0.2s' }}><Printer size={15} aria-hidden="true" /></button>
             
             {/* 🚀 السحر هنا: دمجنا needsPayment في الشرط عشان يخفي الزرار */}
             {needsPayment && isApproved && logic.handleOpenPaymentModal && (
               <button onClick={(e) => {
                   e.stopPropagation(); 
                   logic.handleOpenPaymentModal(row); 
-                }} className="btn-glass-pay" title="تسجيل سند قبض / دفعة إضافية" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '18px', transition: '0.2s' }}>💰</button>
+                }} className="btn-glass-pay" title="تسجيل سند قبض / دفعة إضافية" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '18px', transition: '0.2s' }}><Banknote size={15} aria-hidden="true" /></button>
             )}
           </div>
         );
@@ -255,7 +256,7 @@ export default function InvoicesPage() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <SecureAction module="invoices" action="create">
         <button className="btn-main-glass gold" onClick={logic.handleAddNew}>
-          ➕ إنشاء فاتورة جديدة
+          إنشاء فاتورة جديدة
         </button>
       </SecureAction>
 
@@ -264,24 +265,24 @@ export default function InvoicesPage() {
           <p style={{fontSize:'10px', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات على ({logic.selectedIds.length})</p>
           <SecureAction module="invoices" action="post">
             <button className="btn-main-glass blue" onClick={logic.handlePostSelected} disabled={logic.isSaving}>
-              {logic.isSaving ? '⏳ جاري الترحيل...' : '🚀 اعتماد وترحيل'}
+              {logic.isSaving ? 'جاري الترحيل...' : 'اعتماد وترحيل'}
             </button>
           </SecureAction>
           <SecureAction module="invoices" action="post">
             <button className="btn-main-glass yellow" onClick={logic.handleUnpostSelected} disabled={logic.isSaving}>
-              🔴 تعليق الفاتورة
+              تعليق الفاتورة
             </button>
           </SecureAction>
           {logic.selectedIds.length === 1 && (
             <SecureAction module="invoices" action="edit">
               <button className="btn-main-glass white" onClick={() => logic.handleEdit(logic.allFiltered.find((i:any) => String(i.id) === logic.selectedIds[0]))}>
-                📝 تعديل البيانات
+                تعديل البيانات
               </button>
             </SecureAction>
           )}
           <SecureAction module="invoices" action="delete">
             <button className="btn-main-glass red" onClick={logic.handleDeleteSelected} disabled={logic.isSaving}>
-              🗑️ حذف نهائي
+              حذف نهائي
             </button>
           </SecureAction>
         </div>
@@ -298,7 +299,7 @@ export default function InvoicesPage() {
       <RawasiSidebarManager 
         summary={
           <div className="summary-glass-card">
-            <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المديونية 💼</span>
+            <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المديونية</span>
             <div className="val" style={{fontSize:'24px', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>{formatCurrency(result.totalRemaining)}</div>
           </div>
         }
@@ -338,7 +339,7 @@ export default function InvoicesPage() {
       {( (logic.isLoading || permsLoading) && logic.allFiltered.length === 0 ) ? (
         <LoadingScreen message="جاري المزامنة..." fullScreen={false} />
       ) : (
-        <div className="clickable-rows cinematic-scroll" style={{ background: 'white', borderRadius: '24px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
+        <div className="clickable-rows cinematic-scroll" style={{ background: 'white', borderRadius: '14px', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', overflow: 'hidden' }}>
           <RawasiSmartTable 
               data={logic.allFiltered} 
               columns={invoiceColumns} 

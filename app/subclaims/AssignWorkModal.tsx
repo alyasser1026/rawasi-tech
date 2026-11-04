@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
+import { notify } from '@/lib/notify';
 
 export default function AssignWorkModal({ isOpen, onClose, record, setRecord, onSave, isSaving, contractorName, logic }: any) {
     const [mounted, setMounted] = useState(false);
@@ -19,9 +20,9 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
     if (!isOpen || !mounted) return null;
 
     const handleSave = () => {
-        if (!record.project_id) return alert("⚠️ يرجى اختيار المشروع العقاري أولاً.");
-        if (!record.job_order_id) return alert("⚠️ يرجى اختيار أمر التشغيل."); 
-        if (Number(record.assigned_qty) <= 0 || Number(record.unit_price) <= 0) return alert("⚠️ يرجى إدخال كمية وسعر صحيحين أكبر من الصفر.");
+        if (!record.project_id) return notify("يرجى اختيار المشروع العقاري أولاً.");
+        if (!record.job_order_id) return notify("يرجى اختيار أمر التشغيل."); 
+        if (Number(record.assigned_qty) <= 0 || Number(record.unit_price) <= 0) return notify("يرجى إدخال كمية وسعر صحيحين أكبر من الصفر.");
         
         onSave(record);
     };
@@ -30,22 +31,22 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
         <div style={{ position: 'fixed', inset: 0, zIndex: 99999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(28, 20, 10, 0.85)', backdropFilter: 'blur(10px)', direction: 'rtl', padding: '20px' }}>
             <div style={{ position: 'fixed', inset: 0 }} onClick={onClose} />
             
-            <div className="cinematic-scroll" style={{ background: 'white', borderRadius: '30px', width: '100%', maxWidth: '650px', padding: '40px', position: 'relative', zIndex: 10, boxShadow: '0 50px 100px rgba(0,0,0,0.5)', border: `1px solid ${THEME.accent}40` }}>
+            <div className="cinematic-scroll" style={{ background: 'white', borderRadius: '14px', width: '100%', maxWidth: '650px', padding: '40px', position: 'relative', zIndex: 10, boxShadow: '0 50px 100px rgba(0,0,0,0.5)', border: `1px solid ${THEME.accent}40` }}>
                 
                 <h2 style={{ margin: '0 0 30px 0', fontWeight: 900, color: THEME.primary, borderBottom: '2px dashed #eee', paddingBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span>➕ إسناد أمر تشغيل للمقاول:</span>
+                    <span>إسناد أمر تشغيل للمقاول:</span>
                     <span style={{ color: THEME.accent, background: '#fef3c7', padding: '5px 15px', borderRadius: '12px', fontSize: '18px' }}>{contractorName}</span>
                 </h2>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
                     
                     <div style={{ zIndex: 60, position: 'relative' }}>
-                        <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>🏢 اختيار الفيلا / المشروع العقاري *</label>
+                        <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>اختيار الفيلا / المشروع العقاري *</label>
                         <SmartCombo 
                             table="projects" 
                             displayCol="Property" 
                             searchCols="Property,project_code" 
-                            placeholder="🔍 ابحث عن الفيلا..."
+                            placeholder="ابحث عن الفيلا..."
                             onSelect={(val: any) => {
                                 // 🚀 تصفير أمر التشغيل عند تغيير الفيلا
                                 setRecord({...record, project_id: val?.id, job_order_id: null, assigned_qty: 0}); 
@@ -55,7 +56,7 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                     </div>
 
                     <div style={{ zIndex: 50, position: 'relative' }}>
-                        <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>📑 أوامر التشغيل المتاحة (للفيلا المحددة) *</label>
+                        <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>أوامر التشغيل المتاحة (للفيلا المحددة) *</label>
                         <select 
                             style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e2e8f0', fontWeight: 800, outline: 'none', background: '#f8fafc' }}
                             value={record.job_order_id || ''}
@@ -83,9 +84,9 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                         </select>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '10px', background: '#f8fafc', padding: '20px', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '10px', background: '#f8fafc', padding: '20px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
                         <div>
-                            <label style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '10px' }}>📦 الكمية (قابلة للتعديل)</label>
+                            <label style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '10px' }}>الكمية (قابلة للتعديل)</label>
                             <input 
                                 type="number" 
                                 style={{ width: '100%', padding: '15px', borderRadius: '14px', border: `2px solid ${THEME.primary}40`, outline: 'none', fontWeight: 900, textAlign: 'center', fontSize: '18px' }} 
@@ -95,7 +96,7 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                             {record.unit && <div style={{ fontSize: '12px', color: THEME.success, marginTop: '8px', textAlign: 'center', fontWeight: 800, background: '#dcfce7', padding: '4px', borderRadius: '6px' }}>الوحدة: {record.unit}</div>}
                         </div>
                         <div>
-                            <label style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '10px' }}>💵 سعر الاتفاق (للوحدة)</label>
+                            <label style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '10px' }}>سعر الاتفاق (للوحدة)</label>
                             <input 
                                 type="number" 
                                 style={{ width: '100%', padding: '15px', borderRadius: '14px', border: `2px solid ${THEME.primary}40`, outline: 'none', fontWeight: 900, textAlign: 'center', color: THEME.primary, fontSize: '18px' }} 
@@ -107,10 +108,10 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                 </div>
 
                 <div style={{ display: 'flex', gap: '15px', marginTop: '40px' }}>
-                    <button onClick={handleSave} disabled={isSaving} style={{ flex: 2, background: THEME.success, color: 'white', border: 'none', padding: '18px', borderRadius: '18px', fontWeight: 900, cursor: 'pointer', fontSize: '16px', boxShadow: `0 10px 20px ${THEME.success}40`, transition: '0.3s' }}>
-                        {isSaving ? '⏳ جاري الإسناد...' : '✅ حفظ الإسناد الآن'}
+                    <button onClick={handleSave} disabled={isSaving} style={{ flex: 2, background: THEME.success, color: 'white', border: 'none', padding: '18px', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', fontSize: '16px', boxShadow: `0 10px 20px ${THEME.success}40`, transition: '0.3s' }}>
+                        {isSaving ? 'جاري الإسناد...' : 'حفظ الإسناد الآن'}
                     </button>
-                    <button onClick={onClose} style={{ flex: 1, background: '#f1f5f9', color: '#475569', border: 'none', padding: '18px', borderRadius: '18px', fontWeight: 900, cursor: 'pointer', fontSize: '16px', transition: '0.3s' }}>إلغاء</button>
+                    <button onClick={onClose} style={{ flex: 1, background: '#f1f5f9', color: '#475569', border: 'none', padding: '18px', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', fontSize: '16px', transition: '0.3s' }}>إلغاء</button>
                 </div>
             </div>
         </div>,

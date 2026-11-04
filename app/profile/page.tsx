@@ -9,6 +9,7 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import MasterPage from '@/components/MasterPage';
 import LoadingScreen from '@/components/LoadingScreen'; // 🖼️ استدعاء الغلاف الموحد
 import SmartCombo from '@/components/SmartCombo'; // 🧠 استدعاء السمارت كومبو
+import { Hourglass, Printer, Mail, Plus, ClipboardList, ChartColumn, Building2, Files, User, Trophy, Zap, TriangleAlert, CalendarDays } from 'lucide-react';
 
 export default function EmployeeProfilePage() {
     const { 
@@ -47,8 +48,8 @@ export default function EmployeeProfilePage() {
 
         const actionBtnStyle: React.CSSProperties = {
             width: '100%', padding: '12px', borderRadius: '12px', 
-            borderStyle: 'solid', borderWidth: '1px', borderColor: 'rgba(255,255,255,0.1)',
-            background: 'rgba(255,255,255,0.05)', color: 'white', display: 'flex', alignItems: 'center',
+            borderStyle: 'solid', borderWidth: '1px', borderColor: '#dce2ea',
+            background: '#fff', color: THEME.coffeeDark, display: 'flex', alignItems: 'center',
             gap: '10px', cursor: 'pointer', fontWeight: 900, fontSize: '13px', transition: '0.3s', marginBottom: '8px'
         };
 
@@ -60,33 +61,33 @@ export default function EmployeeProfilePage() {
         switch (activeTab) {
             case 'tasks':
                 summary = (
-                    <div style={{ background: 'rgba(220, 38, 38, 0.1)', padding: '20px', borderRadius: '20px', textAlign: 'center', ...getBorderStyles('rgba(220, 38, 38, 0.3)') }}>
-                        <div style={{ fontSize: '30px', marginBottom: '10px' }}>⏳</div>
+                    <div style={{ background: 'rgba(220, 38, 38, 0.1)', padding: '20px', borderRadius: '14px', textAlign: 'center', ...getBorderStyles('rgba(220, 38, 38, 0.3)') }}>
+                        <div style={{ fontSize: '30px', marginBottom: '10px' }}><Hourglass size={26} aria-hidden="true" /></div>
                         <p style={{ margin: 0, fontSize: '13px', color: THEME.danger || '#be123c', fontWeight: 900 }}>مهام قيد التنفيذ</p>
-                        <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '28px', color: 'white' }}>{pTasks} <small style={{fontSize:'12px'}}>مهمة</small></h3>
+                        <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '28px', color: THEME.coffeeDark }}>{pTasks} <small style={{fontSize:'12px'}}>مهمة</small></h3>
                     </div>
                 );
-                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}>🖨️</span> طباعة المهام</button>;
+                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}><Printer size={15} aria-hidden="true" /></span> طباعة المهام</button>;
                 break;
 
             case 'requests':
                 summary = (
-                    <div style={{ background: 'rgba(194,65,12, 0.1)', padding: '20px', borderRadius: '20px', textAlign: 'center', ...getBorderStyles('rgba(194,65,12, 0.3)') }}>
-                        <div style={{ fontSize: '30px', marginBottom: '10px' }}>📨</div>
+                    <div style={{ background: 'rgba(194,65,12, 0.1)', padding: '20px', borderRadius: '14px', textAlign: 'center', ...getBorderStyles('rgba(194,65,12, 0.3)') }}>
+                        <div style={{ fontSize: '30px', marginBottom: '10px' }}><Mail size={26} aria-hidden="true" /></div>
                         <p style={{ margin: 0, fontSize: '13px', color: THEME.goldAccent, fontWeight: 900 }}>الطلبات المعلقة</p>
-                        <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '28px', color: 'white' }}>{pReqs} <small style={{fontSize:'12px'}}>طلب</small></h3>
+                        <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '28px', color: THEME.coffeeDark }}>{pReqs} <small style={{fontSize:'12px'}}>طلب</small></h3>
                     </div>
                 );
                 actions = (
                     <>
                         <button style={{...actionBtnStyle, background: `${THEME.success}20`, ...getBorderStyles(THEME.success)}} onClick={() => window.dispatchEvent(new CustomEvent('openRequestsTab'))}>
-                            <span style={{fontSize:'18px'}}>➕</span> إنشاء طلب جديد
+                            <span style={{fontSize:'18px'}}><Plus size={15} aria-hidden="true" /></span> إنشاء طلب جديد
                         </button>
                         <button style={actionBtnStyle} onClick={() => window.dispatchEvent(new CustomEvent('closeRequestsForm'))}>
-                            <span style={{fontSize:'18px'}}>📋</span> عرض السجل
+                            <span style={{fontSize:'18px'}}><ClipboardList size={15} aria-hidden="true" /></span> عرض السجل
                         </button>
-                        <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '10px 0' }} />
-                        <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}>🖨️</span> طباعة السجل</button>
+                        <div style={{ height: '1px', background: '#e6e8ec', margin: '10px 0' }} />
+                        <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}><Printer size={15} aria-hidden="true" /></span> طباعة السجل</button>
                     </>
                 );
                 break;
@@ -94,27 +95,27 @@ export default function EmployeeProfilePage() {
             case 'statement':
                 summary = (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                        <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '15px', textAlign: 'center' }}>
-                            <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8', fontWeight: 900 }}>أيام العمل</p>
+                        <div style={{ background: '#f3f5f8', padding: '15px', borderRadius: '15px', textAlign: 'center' }}>
+                            <p style={{ margin: 0, fontSize: '11px', color: '#687180', fontWeight: 900 }}>أيام العمل</p>
                             <h4 style={{ margin: '5px 0 0 0', color: THEME.goldAccent, fontSize: '20px' }}>{workDays}</h4>
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
                             <div style={{ background: 'rgba(16, 185, 129, 0.1)', padding: '10px', borderRadius: '15px', textAlign: 'center' }}>
                                 <p style={{ margin: 0, fontSize: '10px', color: THEME.success, fontWeight: 900 }}>مستحقات</p>
-                                <div style={{ margin: '5px 0 0 0', color: 'white', fontSize: '13px', fontWeight: 900 }}>{formatCurrency(totalWages)}</div>
+                                <div style={{ margin: '5px 0 0 0', color: THEME.coffeeDark, fontSize: '13px', fontWeight: 900 }}>{formatCurrency(totalWages)}</div>
                             </div>
                             <div style={{ background: 'rgba(220, 38, 38, 0.1)', padding: '10px', borderRadius: '15px', textAlign: 'center' }}>
                                 <p style={{ margin: 0, fontSize: '10px', color: THEME.danger, fontWeight: 900 }}>خصوم</p>
-                                <div style={{ margin: '5px 0 0 0', color: 'white', fontSize: '13px', fontWeight: 900 }}>{formatCurrency(totalDeductions)}</div>
+                                <div style={{ margin: '5px 0 0 0', color: THEME.coffeeDark, fontSize: '13px', fontWeight: 900 }}>{formatCurrency(totalDeductions)}</div>
                             </div>
                         </div>
                         <div style={{ background: 'rgba(194,65,12, 0.2)', padding: '15px', borderRadius: '15px', textAlign: 'center', ...getBorderStyles(THEME.goldAccent) }}>
                             <p style={{ margin: 0, fontSize: '11px', color: THEME.goldAccent, fontWeight: 900 }}>الصافي</p>
-                            <h3 style={{ margin: '5px 0 0 0', color: 'white', fontSize: '22px' }}>{formatCurrency(nBal)}</h3>
+                            <h3 style={{ margin: '5px 0 0 0', color: THEME.coffeeDark, fontSize: '22px' }}>{formatCurrency(nBal)}</h3>
                         </div>
                     </div>
                 );
-                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}>🖨️</span> طباعة الكشف</button>;
+                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}><Printer size={15} aria-hidden="true" /></span> طباعة الكشف</button>;
                 break;
             
             case 'kpi':
@@ -123,32 +124,32 @@ export default function EmployeeProfilePage() {
                         {/* 🌟 تقييم الأداء (كفاءة الإنتاجية) */}
                         <div style={{ background: `rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.1)`, padding: '15px', borderRadius: '15px', textAlign: 'center', ...getBorderStyles(`rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.3)`) }}>
                             <p style={{ margin: 0, fontSize: '11px', color: performanceRate >= 100 ? THEME.success : performanceRate >= 80 ? '#f59e0b' : THEME.danger, fontWeight: 900 }}>تقييم الأداء وكفاءة الإنتاج</p>
-                            <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '26px', color: 'white' }}>{performanceRate}%</h3>
+                            <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '26px', color: THEME.coffeeDark }}>{performanceRate}%</h3>
                         </div>
                         {/* الإنتاجية */}
                         <div style={{ background: 'rgba(194,65,12, 0.1)', padding: '15px', borderRadius: '15px', textAlign: 'center', ...getBorderStyles('rgba(194,65,12, 0.3)') }}>
                             <p style={{ margin: 0, fontSize: '11px', color: THEME.goldAccent, fontWeight: 900 }}>إجمالي الإنتاجية المنجزة</p>
-                            <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '20px', color: 'white' }}>{totalProd} <span style={{fontSize:'12px'}}>وحدة</span></h3>
+                            <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '20px', color: THEME.coffeeDark }}>{totalProd} <span style={{fontSize:'12px'}}>وحدة</span></h3>
                         </div>
                         {/* نسبة الالتزام */}
-                        <div style={{ background: 'rgba(15, 23, 42, 0.4)', padding: '15px', borderRadius: '15px', textAlign: 'center', ...getBorderStyles('rgba(255,255,255,0.1)') }}>
-                            <p style={{ margin: 0, fontSize: '11px', color: '#94a3b8', fontWeight: 900 }}>نسبة التزام الحضور</p>
-                            <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '20px', color: '#e2e8f0' }}>{attendanceRate}%</h3>
+                        <div style={{ background: '#f3f5f8', padding: '15px', borderRadius: '15px', textAlign: 'center', ...getBorderStyles('#e0e5ed') }}>
+                            <p style={{ margin: 0, fontSize: '11px', color: '#687180', fontWeight: 900 }}>نسبة التزام الحضور</p>
+                            <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '20px', color: THEME.coffeeDark }}>{attendanceRate}%</h3>
                         </div>
                     </div>
                 );
-                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}>📊</span> طباعة التقييم</button>;
+                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}><ChartColumn size={15} aria-hidden="true" /></span> طباعة التقييم</button>;
                 break;
 
             default:
                 summary = (
-                    <div style={{ background: 'rgba(194,65,12, 0.1)', padding: '20px', borderRadius: '20px', textAlign: 'center', ...getBorderStyles('rgba(194,65,12, 0.3)') }}>
-                        <div style={{ fontSize: '30px', marginBottom: '10px' }}>🏗️</div>
+                    <div style={{ background: 'rgba(194,65,12, 0.1)', padding: '20px', borderRadius: '14px', textAlign: 'center', ...getBorderStyles('rgba(194,65,12, 0.3)') }}>
+                        <div style={{ fontSize: '30px', marginBottom: '10px' }}><Building2 size={26} aria-hidden="true" /></div>
                         <p style={{ margin: 0, fontSize: '13px', color: THEME.goldAccent, fontWeight: 900 }}>الإنتاجية المحققة</p>
-                        <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '28px', color: 'white' }}>{totalProd}</h3>
+                        <h3 style={{ margin: '5px 0 0 0', fontWeight: 900, fontSize: '28px', color: THEME.coffeeDark }}>{totalProd}</h3>
                     </div>
                 );
-                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}>📑</span> طباعة التقرير</button>;
+                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'18px'}}><Files size={15} aria-hidden="true" /></span> طباعة التقرير</button>;
                 break;
         }
 
@@ -243,25 +244,25 @@ export default function EmployeeProfilePage() {
 
             <style>{`
                 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(12px); display: flex; justify-content: center; align-items: center; z-index: 2000; animation: fadeIn 0.3s ease; }
-                .modal-box { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); width: 600px; padding: 40px; border-radius: 35px; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 25px 50px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
+                .modal-box { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); width: 600px; padding: 40px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 25px 50px rgba(0,0,0,0.2); position: relative; max-height: 90vh; overflow-y: auto; }
                 .sidebar-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: white; margin-bottom: 20px; outline: none; font-size: 13px; transition: 0.3s; }
                 .sidebar-input:focus { border-color: ${THEME.goldAccent}; background: rgba(194,65,12, 0.05); }
                 .tab-btn { padding: 16px 25px; border: none; background: transparent; font-size: 14px; font-weight: 900; color: #64748b; cursor: pointer; transition: 0.3s; white-space: nowrap; border-radius: 16px; }
                 .tab-btn.active { color: white; background: ${THEME.primary}; box-shadow: 0 5px 15px rgba(15, 23, 42, 0.3); }
                 .tab-btn:hover:not(.active) { background: rgba(0,0,0,0.05); }
-                .card-base { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.8); border-radius: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 30px; }
-                .policy-paper { background: rgba(252, 250, 248, 0.85); backdrop-filter: blur(10px); padding: 45px; border-radius: 25px; border: 1px solid rgba(230, 213, 195, 0.5); line-height: 1.8; position: relative; color: ${THEME.coffeeDark}; }
+                .card-base { background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.8); border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 30px; }
+                .policy-paper { background: rgba(252, 250, 248, 0.85); backdrop-filter: blur(10px); padding: 45px; border-radius: 14px; border: 1px solid rgba(230, 213, 195, 0.5); line-height: 1.8; position: relative; color: ${THEME.coffeeDark}; }
                 .policy-paper::after { content: 'فاي تك'; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-30deg); font-size: 150px; color: rgba(0,0,0,0.02); pointer-events: none; }
-                .request-card { background: rgba(255,255,255,0.9); padding: 25px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.5); border-right: 6px solid ${THEME.goldAccent}; transition: 0.3s; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
+                .request-card { background: rgba(255,255,255,0.9); padding: 25px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.5); border-right: 6px solid ${THEME.goldAccent}; transition: 0.3s; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
                 .request-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
                 .btn-primary { background: ${THEME.goldAccent}; color: white; border: none; padding: 12px 25px; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; }
                 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(194,65,12, 0.3); }
-                .status-badge { padding: 6px 15px; border-radius: 20px; font-size: 11px; font-weight: 900; }
+                .status-badge { padding: 6px 15px; border-radius: 14px; font-size: 11px; font-weight: 900; }
                 .animate-fade-in { animation: fadeIn 0.4s ease forwards; }
                 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
                 ${isKpiOnly ? `
-                    /* 🚀 إخفاء كل ما يحيط بالتقييم عند طلب التقييم فقط */
+                    /* إخفاء كل ما يحيط بالتقييم عند طلب التقييم فقط */
                     aside, header, nav, .sidebar { display: none !important; }
                     main { padding: 0 !important; margin: 0 !important; max-width: 100% !important; background: ${THEME.background} !important; }
                     .card-base { box-shadow: none !important; border: none !important; background: transparent !important; margin: 0 !important; }
@@ -271,26 +272,26 @@ export default function EmployeeProfilePage() {
 
             {/* 👤 الهيدر العلوي للموظف */}
             {!isKpiOnly && (
-            <div className="profile-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px', background: 'rgba(255,255,255,0.4)', padding: '25px', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.6)' }}>
+            <div className="profile-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '35px', background: 'rgba(255,255,255,0.4)', padding: '25px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.6)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '25px' }}>
-                    <div style={{ width: '90px', height: '90px', borderRadius: '25px', background: 'rgba(255,255,255,0.8)', border: `4px solid white`, overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-                        {avatarImg ? <img src={avatarImg} style={{width:'100%', height:'100%', objectFit:'cover'}} alt="Avatar" /> : <div style={{width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'35px'}}>👤</div>}
+                    <div style={{ width: '90px', height: '90px', borderRadius: '14px', background: 'rgba(255,255,255,0.8)', border: `4px solid white`, overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                        {avatarImg ? <img src={avatarImg} style={{width:'100%', height:'100%', objectFit:'cover'}} alt="Avatar" /> : <div style={{width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'35px'}}><User size={30} aria-hidden="true" /></div>}
                     </div>
                     <div>
-                        <h1 style={{ margin: 0, color: THEME.primary, fontWeight: 900, fontSize: '28px' }}>مرحباً، {displayName} 👷‍♂️</h1>
+                        <h1 style={{ margin: 0, color: THEME.primary, fontWeight: 900, fontSize: '28px' }}>مرحباً، {displayName}</h1>
                         <p style={{ margin: '5px 0 8px 0', color: THEME.accent, fontSize: '15px', fontWeight: 900 }}>{profession}</p>
                         <div style={{ display: 'flex', gap: '10px' }}>
                             <span style={{ fontSize: '11px', background: 'white', color: '#64748b', padding: '4px 10px', borderRadius: '8px', fontWeight: 900, border: '1px solid #e2e8f0' }}>
-                                🆔 {usernamePhone}
+                                {usernamePhone}
                             </span>
                         </div>
                     </div>
                 </div>
                 
                 <div style={{ display: 'flex', gap: '15px' }}>
-                    <button onClick={() => setIsSettingsOpen(true)} style={{ background: 'white', border: '1px solid #e2e8f0', padding: '12px 25px', borderRadius: '15px', fontWeight: 900, cursor: 'pointer', color: THEME.primary, transition: '0.3s', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>⚙️ الإعدادات</button>
+                    <button onClick={() => setIsSettingsOpen(true)} style={{ background: 'white', border: '1px solid #e2e8f0', padding: '12px 25px', borderRadius: '15px', fontWeight: 900, cursor: 'pointer', color: THEME.primary, transition: '0.3s', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>الإعدادات</button>
                     <div onClick={markAllNotificationsAsRead} style={{ position: 'relative', background: THEME.primary, color: 'white', padding: '12px 20px', borderRadius: '15px', cursor: 'pointer', boxShadow: `0 8px 20px ${THEME.primary}40` }}>
-                        🔔 {(notifications || []).length > 0 && <span style={{ position: 'absolute', top: '-5px', left: '-5px', background: THEME.danger || '#ef4444', color: 'white', fontSize: '10px', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', fontWeight: 900 }}>{notifications.length}</span>}
+                        {(notifications || []).length > 0 && <span style={{ position: 'absolute', top: '-5px', left: '-5px', background: THEME.danger || '#ef4444', color: 'white', fontSize: '10px', width: '22px', height: '22px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid white', fontWeight: 900 }}>{notifications.length}</span>}
                     </div>
                 </div>
             </div>
@@ -299,13 +300,13 @@ export default function EmployeeProfilePage() {
             <div className={!isKpiOnly ? "card-base" : ""}>
                 {!isKpiOnly && (
                 <div className="tabs-container" style={{ display: 'flex', borderBottom: '1px solid rgba(0,0,0,0.05)', background: 'rgba(255,255,255,0.4)', padding: '15px', gap: '10px', overflowX: 'auto' }}>
-                    <button className={`tab-btn ${activeTab === 'tasks' ? 'active' : ''}`} onClick={() => setActiveTab('tasks')}>📋 المهام</button>
-                    <button className={`tab-btn ${activeTab === 'report' ? 'active' : ''}`} onClick={() => setActiveTab('report')}>📑 الإنتاجية</button>
-                    <button className={`tab-btn ${activeTab === 'daily_fin' ? 'active' : ''}`} onClick={() => setActiveTab('daily_fin')}>💰 ملخص مالي</button>
-                    <button className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`} onClick={() => setActiveTab('requests')}>⚖️ الطلبات</button>
-                    <button className={`tab-btn ${activeTab === 'statement' ? 'active' : ''}`} onClick={() => setActiveTab('statement')}>🧾 كشف الحساب</button>
-                    <button className={`tab-btn ${activeTab === 'kpi' ? 'active' : ''}`} onClick={() => setActiveTab('kpi')}>📊 التقييم</button>
-                    <button className={`tab-btn ${activeTab === 'policy' ? 'active' : ''}`} onClick={() => setActiveTab('policy')}>📜 اللائحة</button>
+                    <button className={`tab-btn ${activeTab === 'tasks' ? 'active' : ''}`} onClick={() => setActiveTab('tasks')}>المهام</button>
+                    <button className={`tab-btn ${activeTab === 'report' ? 'active' : ''}`} onClick={() => setActiveTab('report')}>الإنتاجية</button>
+                    <button className={`tab-btn ${activeTab === 'daily_fin' ? 'active' : ''}`} onClick={() => setActiveTab('daily_fin')}>ملخص مالي</button>
+                    <button className={`tab-btn ${activeTab === 'requests' ? 'active' : ''}`} onClick={() => setActiveTab('requests')}>الطلبات</button>
+                    <button className={`tab-btn ${activeTab === 'statement' ? 'active' : ''}`} onClick={() => setActiveTab('statement')}>كشف الحساب</button>
+                    <button className={`tab-btn ${activeTab === 'kpi' ? 'active' : ''}`} onClick={() => setActiveTab('kpi')}>التقييم</button>
+                    <button className={`tab-btn ${activeTab === 'policy' ? 'active' : ''}`} onClick={() => setActiveTab('policy')}>اللائحة</button>
                 </div>
                 )}
 
@@ -313,13 +314,13 @@ export default function EmployeeProfilePage() {
                     {activeTab === 'tasks' && !isKpiOnly && (
                         <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '35px' }}>
                             <div>
-                                <h3 style={{ color: THEME.danger || '#be123c', borderRight: `6px solid ${THEME.danger || '#be123c'}`, paddingRight: '15px', marginBottom: '25px' }}>⏳ مهام قيد التنفيذ</h3>
+                                <h3 style={{ color: THEME.danger || '#be123c', borderRight: `6px solid ${THEME.danger || '#be123c'}`, paddingRight: '15px', marginBottom: '25px' }}>مهام قيد التنفيذ</h3>
                                 {(tasks || []).filter((t:any) => t.status !== 'completed').map((task: any) => (
                                     <div key={task.id} className="request-card" style={{ borderRightColor: THEME.accent }}>
                                         <h4 style={{ margin: 0, fontSize: '18px', color: THEME.primary }}>{task.title}</h4>
                                         <p style={{ fontSize: '14px', color: '#64748b', margin: '10px 0' }}>{task.description}</p>
                                         <div style={{ display: 'flex', gap: '10px' }}>
-                                            <button onClick={() => submitTaskUpdate(task.id, 'completed')} className="btn-primary" style={{ background: THEME.success, padding: '8px 20px' }}>تم الإنجاز ✅</button>
+                                            <button onClick={() => submitTaskUpdate(task.id, 'completed')} className="btn-primary" style={{ background: THEME.success, padding: '8px 20px' }}>تم الإنجاز</button>
                                             <button onClick={() => setFailingTaskId(task.id)} className="btn-primary" style={{ background: THEME.danger || '#be123c', padding: '8px 20px' }}>لم يتم</button>
                                         </div>
                                         {failingTaskId === task.id && (
@@ -333,7 +334,7 @@ export default function EmployeeProfilePage() {
                                 {pTasks === 0 && <p style={{color:'#94a3b8', textAlign:'center', padding: '20px', background: 'rgba(255,255,255,0.5)', borderRadius: '15px'}}>لا توجد مهام قيد التنفيذ حالياً.</p>}
                             </div>
                             <div>
-                                <h3 style={{ color: THEME.success, borderRight: `6px solid ${THEME.success}`, paddingRight: '15px', marginBottom: '25px' }}>✅ المهام المكتملة</h3>
+                                <h3 style={{ color: THEME.success, borderRight: `6px solid ${THEME.success}`, paddingRight: '15px', marginBottom: '25px' }}>المهام المكتملة</h3>
                                 {(tasks || []).filter((t:any) => t.status === 'completed').map((task: any) => (
                                     <div key={task.id} className="request-card" style={{ borderRightColor: THEME.success, opacity: 0.65 }}>
                                         <h4 style={{ margin: 0, textDecoration: 'line-through', color: THEME.primary }}>{task.title}</h4>
@@ -347,13 +348,13 @@ export default function EmployeeProfilePage() {
                     {activeTab === 'report' && !isKpiOnly && (
                          <div className="animate-fade-in">
                             <RawasiSmartTable 
-                                title="📑 أرشيف يوميات العمل والإنتاجية (مفلتر)"
+                                title="أرشيف يوميات العمل والإنتاجية (مفلتر)"
                                 fileName={`WorkReport_${displayName}`}
                                 data={filteredData?.logs || []}
                                 columns={[
-                                    { header: 'التاريخ', accessor: 'work_date', render: (row: any) => `📅 ${formatDate(row.work_date || row.Date)}` },
+                                    { header: 'التاريخ', accessor: 'work_date', render: (row: any) => `${formatDate(row.work_date || row.Date)}` },
                                     { header: 'الموقع والبند', accessor: 'site_ref', render: (row: any) => <div style={{ fontWeight: 900, color: THEME.primary }}>{row.site_ref || row.Site} <span style={{fontSize:'12px', color:THEME.accent, display:'block'}}>{row.work_item || row.Item}</span></div> },
-                                    { header: 'الإنتاجية', accessor: 'daily_production', render: (row: any) => <span style={{ fontWeight: 900, color: THEME.primary }}>📦 {row.daily_production || row.productivity || row.Prod || 0} وحدة</span> },
+                                    { header: 'الإنتاجية', accessor: 'daily_production', render: (row: any) => <span style={{ fontWeight: 900, color: THEME.primary }}>{row.daily_production || row.productivity || row.Prod || 0} وحدة</span> },
                                     { header: 'الأجر المسجل', accessor: 'daily_wage', render: (row: any) => <span style={{ fontWeight: 900, color: THEME.success }}>{formatCurrency(row.daily_wage || row.D_W)}</span> }
                                 ]}
                             />
@@ -365,7 +366,7 @@ export default function EmployeeProfilePage() {
                             {/* Summary Cards */}
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px' }}>
                                 {/* Current Balance */}
-                                <div style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '25px', border: `1px solid ${THEME.brand.gold}50`, textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
+                                <div style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '14px', border: `1px solid ${THEME.brand.gold}50`, textAlign: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.05)' }}>
                                     <h4 style={{ color: THEME.brand.coffee, margin: '0 0 10px 0', fontSize: '15px', fontWeight: 900 }}>الرصيد المالي الحالي المستحق</h4>
                                     <div style={{ fontSize: '30px', fontWeight: 900, color: (combinedStatement[0]?.balance >= 0 ? THEME.success : THEME.danger) || THEME.brand.coffee }}>
                                         {formatCurrency(Math.abs(combinedStatement[0]?.balance || 0))}
@@ -373,21 +374,21 @@ export default function EmployeeProfilePage() {
                                     </div>
                                 </div>
                                 {/* Total Credits */}
-                                <div style={{ background: 'rgba(220, 252, 231, 0.8)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '25px', border: `1px solid ${THEME.success}50`, textAlign: 'center' }}>
+                                <div style={{ background: 'rgba(220, 252, 231, 0.8)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '14px', border: `1px solid ${THEME.success}50`, textAlign: 'center' }}>
                                     <h4 style={{ color: THEME.success, margin: '0 0 10px 0', fontSize: '15px', fontWeight: 900 }}>إجمالي الاستحقاقات (له)</h4>
                                     <div style={{ fontSize: '26px', fontWeight: 900, color: THEME.success }}>
                                         {formatCurrency(combinedStatement.filter(x => x.sign === '+').reduce((s, x) => s + x.amount, 0))}
                                     </div>
                                 </div>
                                 {/* Total Debits */}
-                                <div style={{ background: 'rgba(254, 226, 226, 0.8)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '25px', border: `1px solid ${THEME.danger}50`, textAlign: 'center' }}>
+                                <div style={{ background: 'rgba(254, 226, 226, 0.8)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '14px', border: `1px solid ${THEME.danger}50`, textAlign: 'center' }}>
                                     <h4 style={{ color: THEME.danger, margin: '0 0 10px 0', fontSize: '15px', fontWeight: 900 }}>إجمالي السحوبات (عليه)</h4>
                                     <div style={{ fontSize: '26px', fontWeight: 900, color: THEME.danger }}>
                                         {formatCurrency(combinedStatement.filter(x => x.sign === '-').reduce((s, x) => s + x.amount, 0))}
                                     </div>
                                 </div>
                                 {/* Attendance Days */}
-                                <div style={{ background: 'rgba(241, 245, 249, 0.8)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '25px', border: `1px solid #94a3b8`, textAlign: 'center' }}>
+                                <div style={{ background: 'rgba(241, 245, 249, 0.8)', backdropFilter: 'blur(10px)', padding: '25px', borderRadius: '14px', border: `1px solid #94a3b8`, textAlign: 'center' }}>
                                     <h4 style={{ color: '#475569', margin: '0 0 10px 0', fontSize: '15px', fontWeight: 900 }}>أيام الحضور والعمل</h4>
                                     <div style={{ fontSize: '26px', fontWeight: 900, color: '#334155' }}>
                                         {(filteredData?.logs || []).reduce((acc: any, log: any) => acc + (Number(log.attendance_value) || 1), 0)} <span style={{ fontSize: '14px' }}>يوم</span>
@@ -396,9 +397,9 @@ export default function EmployeeProfilePage() {
                             </div>
 
                             {/* Recent Transactions List */}
-                            <div style={{ background: 'rgba(252, 248, 241, 0.8)', backdropFilter: 'blur(10px)', padding: '30px', borderRadius: '25px', border: `1px solid ${THEME.accent}` }}>
+                            <div style={{ background: 'rgba(252, 248, 241, 0.8)', backdropFilter: 'blur(10px)', padding: '30px', borderRadius: '14px', border: `1px solid ${THEME.accent}` }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                    <h4 style={{ color: THEME.accent, margin: 0, fontSize: '18px' }}>🧾 أحدث الحركات في الحساب</h4>
+                                    <h4 style={{ color: THEME.accent, margin: 0, fontSize: '18px' }}>أحدث الحركات في الحساب</h4>
                                     <button onClick={() => setActiveTab('statement')} style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '8px 15px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>عرض كشف الحساب كاملاً</button>
                                 </div>
                                 
@@ -434,22 +435,22 @@ export default function EmployeeProfilePage() {
                     {activeTab === 'requests' && !isKpiOnly && (
                          <div className="animate-fade-in">
                             {showRequestForm ? (
-                                <div className="animate-fade-in" style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', padding: '40px', borderRadius: '30px', border: `1px solid rgba(255,255,255,0.8)`, maxWidth: '700px', margin: '0 auto', boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }}>
-                                    <h3 style={{marginTop:0, marginBottom:'25px', color: THEME.primary, fontWeight: 900, textAlign: 'center'}}>📝 تعبئة بيانات الطلب</h3>
+                                <div className="animate-fade-in" style={{ background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', padding: '40px', borderRadius: '14px', border: `1px solid rgba(255,255,255,0.8)`, maxWidth: '700px', margin: '0 auto', boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }}>
+                                    <h3 style={{marginTop:0, marginBottom:'25px', color: THEME.primary, fontWeight: 900, textAlign: 'center'}}>تعبئة بيانات الطلب</h3>
                                     
                                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                                         {/* 🧠 استخدام السمارت كومبو بدلًا من الـ Select العادي */}
                                         <SmartCombo 
                                             label="نوع الطلب"
-                                            options={['🛑 اعتراض مالي', '📨 طلب إداري', '🏖️ إجازة']}
-                                            initialDisplay={newRequest.type === 'objection' ? '🛑 اعتراض مالي' : '📨 طلب إداري'}
+                                            options={['اعتراض مالي', 'طلب إداري', 'إجازة']}
+                                            initialDisplay={newRequest.type === 'objection' ? 'اعتراض مالي' : 'طلب إداري'}
                                             onSelect={(val) => setNewRequest({...newRequest, type: val.includes('اعتراض') ? 'objection' : 'request'})}
                                             strict={true}
                                         />
                                         <SmartCombo 
                                             label="التصنيف"
-                                            options={['💰 الأجور واليوميات', '📉 الخصومات والجزاءات', '💸 السلف المالية', '📅 الإجازات والغياب']}
-                                            initialDisplay="💰 الأجور واليوميات"
+                                            options={['الأجور واليوميات', 'الخصومات والجزاءات', 'السلف المالية', 'الإجازات والغياب']}
+                                            initialDisplay="الأجور واليوميات"
                                             onSelect={(val) => {
                                                 const cat = val.includes('الأجور') ? 'wage' : val.includes('خصوم') ? 'deduction' : val.includes('سلف') ? 'advance' : 'leave';
                                                 setNewRequest({...newRequest, category: cat});
@@ -465,7 +466,7 @@ export default function EmployeeProfilePage() {
                                     <textarea style={{width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #cbd5e1', height: '120px', marginBottom: '25px', resize: 'vertical', outline: 'none'}} placeholder="اشرح التفاصيل بوضوح هنا..." onChange={(e) => setNewRequest({...newRequest, details: e.target.value})} />
                                     
                                     <div style={{ display: 'flex', gap: '15px' }}>
-                                        <button onClick={() => createRequest(newRequest).then(() => setShowRequestForm(false))} style={{ flex: 2, background: THEME.accent, color: 'white', padding: '16px', borderRadius: '15px', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '15px', boxShadow: `0 10px 20px ${THEME.accent}40` }}>إرسال الطلب للإدارة 🚀</button>
+                                        <button onClick={() => createRequest(newRequest).then(() => setShowRequestForm(false))} style={{ flex: 2, background: THEME.accent, color: 'white', padding: '16px', borderRadius: '15px', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '15px', boxShadow: `0 10px 20px ${THEME.accent}40` }}>إرسال الطلب للإدارة</button>
                                         <button onClick={() => setShowRequestForm(false)} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', padding: '16px', borderRadius: '15px', border: 'none', fontWeight: 900, cursor: 'pointer', fontSize: '15px' }}>إلغاء</button>
                                     </div>
                                 </div>
@@ -476,24 +477,24 @@ export default function EmployeeProfilePage() {
                                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                                 <div>
                                                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '5px' }}>
-                                                        <span style={{ fontSize: '10px', background: 'rgba(0,0,0,0.05)', padding: '4px 10px', borderRadius: '8px', fontWeight: 900, color: THEME.primary }}>{req.category === 'wage' ? '💰 أجور' : req.category === 'leave' ? '📅 إجازات' : '⚙️ أخرى'}</span>
+                                                        <span style={{ fontSize: '10px', background: 'rgba(0,0,0,0.05)', padding: '4px 10px', borderRadius: '8px', fontWeight: 900, color: THEME.primary }}>{req.category === 'wage' ? 'أجور' : req.category === 'leave' ? 'إجازات' : 'أخرى'}</span>
                                                         <h4 style={{ margin: 0, fontSize: '18px', color: THEME.primary }}>{req.subject}</h4>
                                                     </div>
                                                     <p style={{ margin: 0, fontSize: '14px', color: '#64748b', marginTop: '10px', lineHeight: 1.6 }}>{req.details}</p>
                                                     <div style={{ fontSize: '11px', marginTop: '12px', color: '#94a3b8', fontWeight: 700 }}>تاريخ التقديم: {formatDate(req.created_at)}</div>
                                                 </div>
                                                 <span className="status-badge" style={{ background: req.status === 'approved' ? '#dcfce7' : req.status === 'rejected' ? '#fee2e2' : '#fef3c7', color: req.status === 'approved' ? '#16a34a' : req.status === 'rejected' ? '#ef4444' : '#d97706', padding: '8px 18px' }}>
-                                                    {req.status === 'pending' ? '⏳ قيد المراجعة' : req.status === 'approved' ? '✅ تم القبول' : '❌ مرفوض'}
+                                                    {req.status === 'pending' ? 'قيد المراجعة' : req.status === 'approved' ? 'تم القبول' : 'مرفوض'}
                                                 </span>
                                             </div>
                                             {req.admin_note && (
                                                 <div style={{ marginTop: '15px', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '12px', fontSize: '13px', color: THEME.primary }}>
-                                                    <strong>💬 رد الإدارة:</strong> {req.admin_note}
+                                                    <strong>رد الإدارة:</strong> {req.admin_note}
                                                 </div>
                                             )}
                                         </div>
                                     ))}
-                                    {pReqs === 0 && <div style={{ textAlign: 'center', padding: '50px', color: '#94a3b8', background: 'rgba(255,255,255,0.6)', borderRadius: '25px', fontWeight: 800 }}>لا توجد طلبات أو اعتراضات سابقة.</div>}
+                                    {pReqs === 0 && <div style={{ textAlign: 'center', padding: '50px', color: '#94a3b8', background: 'rgba(255,255,255,0.6)', borderRadius: '14px', fontWeight: 800 }}>لا توجد طلبات أو اعتراضات سابقة.</div>}
                                 </div>
                             )}
                         </div>
@@ -502,7 +503,7 @@ export default function EmployeeProfilePage() {
                     {activeTab === 'statement' && !isKpiOnly && (
                         <div className="animate-fade-in">
                             <RawasiSmartTable 
-                                title="🧾 كشف الحساب التفصيلي"
+                                title="كشف الحساب التفصيلي"
                                 fileName={`AccountStatement_${displayName}`}
                                 data={combinedStatement || []}
                                 columns={[
@@ -519,14 +520,14 @@ export default function EmployeeProfilePage() {
 
                     {activeTab === 'kpi' && (
                         <div className="animate-fade-in">
-                            <div style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', padding: '40px', borderRadius: '30px', border: `1px solid ${THEME.accent}50`, boxShadow: '0 15px 35px rgba(0,0,0,0.05)' }}>
-                                <h3 style={{ margin: '0 0 35px 0', color: THEME.primary, fontWeight: 900, fontSize: '24px', textAlign: 'center' }}>📊 لوحة تقييم الأداء والإنتاجية</h3>
+                            <div style={{ background: 'rgba(255, 255, 255, 0.9)', backdropFilter: 'blur(10px)', padding: '40px', borderRadius: '14px', border: `1px solid ${THEME.accent}50`, boxShadow: '0 15px 35px rgba(0,0,0,0.05)' }}>
+                                <h3 style={{ margin: '0 0 35px 0', color: THEME.primary, fontWeight: 900, fontSize: '24px', textAlign: 'center' }}>لوحة تقييم الأداء والإنتاجية</h3>
                                 
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px' }}>
                                     
                                     {/* 🌟 كفاءة الأداء */}
-                                    <div style={{ background: `rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.05)`, padding: '30px', borderRadius: '25px', textAlign: 'center', border: `2px solid rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.3)` }}>
-                                        <div style={{ fontSize: '50px', marginBottom: '15px' }}>{performanceRate >= 100 ? '🏆' : performanceRate >= 80 ? '⚡' : '⚠️'}</div>
+                                    <div style={{ background: `rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.05)`, padding: '30px', borderRadius: '14px', textAlign: 'center', border: `2px solid rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.3)` }}>
+                                        <div style={{ fontSize: '50px', marginBottom: '15px' }}>{performanceRate >= 100 ? <Trophy size={40} aria-hidden="true" /> : performanceRate >= 80 ? <Zap size={40} aria-hidden="true" /> : <TriangleAlert size={40} aria-hidden="true" />}</div>
                                         <p style={{ margin: 0, fontSize: '18px', color: performanceRate >= 100 ? THEME.success : performanceRate >= 80 ? '#f59e0b' : THEME.danger, fontWeight: 900 }}>تقييم كفاءة الإنتاج</p>
                                         <h3 style={{ margin: '15px 0 0 0', fontWeight: 900, fontSize: '55px', color: THEME.brand.coffee }}>{performanceRate}%</h3>
                                         <p style={{ margin: '15px 0 0 0', fontSize: '14px', color: '#64748b', fontWeight: 700, lineHeight: 1.6 }}>
@@ -535,8 +536,8 @@ export default function EmployeeProfilePage() {
                                     </div>
 
                                     {/* 📦 الإنتاجية المنجزة vs المطلوبة */}
-                                    <div style={{ background: 'rgba(194,65,12, 0.05)', padding: '30px', borderRadius: '25px', textAlign: 'center', border: `2px solid ${THEME.goldAccent}50` }}>
-                                        <div style={{ fontSize: '50px', marginBottom: '15px' }}>🏗️</div>
+                                    <div style={{ background: 'rgba(194,65,12, 0.05)', padding: '30px', borderRadius: '14px', textAlign: 'center', border: `2px solid ${THEME.goldAccent}50` }}>
+                                        <div style={{ fontSize: '50px', marginBottom: '15px' }}><Building2 size={40} aria-hidden="true" /></div>
                                         <p style={{ margin: 0, fontSize: '18px', color: THEME.goldAccent, fontWeight: 900 }}>الإنتاجية (المنجزة / المطلوبة)</p>
                                         <div style={{ fontSize: '45px', fontWeight: 900, color: THEME.brand.coffee, direction: 'ltr', marginTop: '15px' }}>
                                             <span style={{ color: THEME.success }}>{totalProd}</span>
@@ -547,8 +548,8 @@ export default function EmployeeProfilePage() {
                                     </div>
 
                                     {/* 📅 نسبة التزام الحضور */}
-                                    <div style={{ background: 'rgba(15, 23, 42, 0.05)', padding: '30px', borderRadius: '25px', textAlign: 'center', border: `2px solid rgba(15, 23, 42, 0.1)` }}>
-                                        <div style={{ fontSize: '50px', marginBottom: '15px' }}>📅</div>
+                                    <div style={{ background: 'rgba(15, 23, 42, 0.05)', padding: '30px', borderRadius: '14px', textAlign: 'center', border: `2px solid rgba(15, 23, 42, 0.1)` }}>
+                                        <div style={{ fontSize: '50px', marginBottom: '15px' }}><CalendarDays size={40} aria-hidden="true" /></div>
                                         <p style={{ margin: 0, fontSize: '18px', color: THEME.primary, fontWeight: 900 }}>نسبة التزام الحضور</p>
                                         <h3 style={{ margin: '15px 0 0 0', fontWeight: 900, fontSize: '55px', color: THEME.primary }}>{attendanceRate}%</h3>
                                         <p style={{ margin: '15px 0 0 0', fontSize: '14px', color: '#64748b', fontWeight: 700, lineHeight: 1.6 }}>حضر <strong style={{color: THEME.primary}}>{monthlyKPIs?.daysWorked || 0}</strong> يوم عمل من أصل <strong style={{color: THEME.danger}}>{monthlyKPIs?.expectedDays || 0}</strong> يوم عمل متوقع (حتى آخر شهر عمل فيه).</p>
@@ -558,8 +559,8 @@ export default function EmployeeProfilePage() {
 
                                 {/* تفصيل الإنتاجية لكل بند */}
                                 {(monthlyKPIs?.itemBreakdown || []).length > 0 && (
-                                    <div style={{ marginTop: '40px', background: 'rgba(252, 248, 241, 0.8)', padding: '25px', borderRadius: '20px', border: `1px solid ${THEME.accent}` }}>
-                                        <h4 style={{ color: THEME.accent, margin: '0 0 20px 0', fontSize: '18px', fontWeight: 900 }}>📋 تفصيل التقييم حسب البند</h4>
+                                    <div style={{ marginTop: '40px', background: 'rgba(252, 248, 241, 0.8)', padding: '25px', borderRadius: '14px', border: `1px solid ${THEME.accent}` }}>
+                                        <h4 style={{ color: THEME.accent, margin: '0 0 20px 0', fontSize: '18px', fontWeight: 900 }}>تفصيل التقييم حسب البند</h4>
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                                             {(monthlyKPIs.itemBreakdown).map((b: any, idx: number) => (
                                                 <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '15px 20px', borderRadius: '15px', border: '1px solid rgba(194,65,12, 0.2)' }}>
@@ -585,8 +586,8 @@ export default function EmployeeProfilePage() {
 
                                 {/* قائمة الحضور حسب الشهر */}
                                 {(monthlyKPIs?.attendanceBreakdown || []).length > 0 && (
-                                    <div style={{ marginTop: '20px', background: 'rgba(241, 245, 249, 0.8)', padding: '25px', borderRadius: '20px', border: `1px solid #cbd5e1` }}>
-                                        <h4 style={{ color: THEME.primary, margin: '0 0 20px 0', fontSize: '18px', fontWeight: 900 }}>🗓️ تفصيل الحضور حسب الشهر</h4>
+                                    <div style={{ marginTop: '20px', background: 'rgba(241, 245, 249, 0.8)', padding: '25px', borderRadius: '14px', border: `1px solid #cbd5e1` }}>
+                                        <h4 style={{ color: THEME.primary, margin: '0 0 20px 0', fontSize: '18px', fontWeight: 900 }}>تفصيل الحضور حسب الشهر</h4>
                                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '15px' }}>
                                             {(monthlyKPIs.attendanceBreakdown).map((m: any, idx: number) => (
                                                 <div key={idx} style={{ background: 'white', padding: '15px', borderRadius: '15px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -616,20 +617,20 @@ export default function EmployeeProfilePage() {
                                 </div>
                                 <div style={{ display: 'grid', gap: '30px', position: 'relative', zIndex: 1 }}>
                                     <section>
-                                        <h4 style={{ color: THEME.accent, borderRight: `5px solid ${THEME.accent}`, paddingRight: '15px', marginBottom: '15px', fontSize: '18px' }}>📌 ساعات العمل والحضور</h4>
+                                        <h4 style={{ color: THEME.accent, borderRight: `5px solid ${THEME.accent}`, paddingRight: '15px', marginBottom: '15px', fontSize: '18px' }}>ساعات العمل والحضور</h4>
                                         <ul style={{ paddingRight: '20px', fontSize: '15px', fontWeight: 700, color: '#475569', lineHeight: 1.8 }}>
                                             <li>ساعات العمل الفعلية هي (8) ساعات. يبدأ الدوام من الساعة <strong>5:00 صباحاً</strong>.</li>
                                             <li>يُثبت الحضور حصراً عبر النظام الرقمي في الموقع الجغرافي للمشروع.</li>
                                         </ul>
                                     </section>
-                                    <section style={{ background: 'rgba(194,65,12, 0.05)', padding: '25px', borderRadius: '20px' }}>
-                                        <h4 style={{ color: THEME.accent, borderRight: `5px solid ${THEME.accent}`, paddingRight: '15px', marginBottom: '15px', fontSize: '18px' }}>👷 نظام العمالة والإنتاجية</h4>
+                                    <section style={{ background: 'rgba(194,65,12, 0.05)', padding: '25px', borderRadius: '14px' }}>
+                                        <h4 style={{ color: THEME.accent, borderRight: `5px solid ${THEME.accent}`, paddingRight: '15px', marginBottom: '15px', fontSize: '18px' }}>نظام العمالة والإنتاجية</h4>
                                         <ul style={{ paddingRight: '20px', fontSize: '15px', fontWeight: 700, color: '#475569', lineHeight: 1.8 }}>
                                             <li>لا تُعتمد اليومية كاملة إلا بتحقيق "الحد الأدنى للإنتاج" المتفق عليه.</li>
                                             <li>في حال رفض الجودة من المهندس، يلتزم العامل بالإعادة على نفقته الخاصة.</li>
                                         </ul>
                                     </section>
-                                    <div style={{ marginTop: '30px', padding: '20px', background: THEME.primary, color: 'white', borderRadius: '20px', textAlign: 'center', fontSize: '14px', fontWeight: 800, boxShadow: `0 10px 20px ${THEME.primary}40` }}>
+                                    <div style={{ marginTop: '30px', padding: '20px', background: THEME.primary, color: 'white', borderRadius: '14px', textAlign: 'center', fontSize: '14px', fontWeight: 800, boxShadow: `0 10px 20px ${THEME.primary}40` }}>
                                         "استخدامك لهذا النظام يُعد إقراراً بالموافقة على بنود اللائحة، وتعتبر توقيعاً ملزماً."
                                     </div>
                                 </div>
@@ -644,19 +645,19 @@ export default function EmployeeProfilePage() {
                 <div className="modal-overlay" onClick={() => setIsSettingsOpen(false)}>
                     <div className="modal-box" onClick={e => e.stopPropagation()}>
                         <button onClick={() => setIsSettingsOpen(false)} style={{ position: 'absolute', top: '25px', left: '25px', background: '#f1f5f9', border: 'none', width: '40px', height: '40px', borderRadius: '50%', fontSize: '18px', cursor: 'pointer', color: '#64748b', fontWeight: 900 }}>✕</button>
-                        <h2 style={{ marginTop: 0, marginBottom: '35px', color: THEME.primary, fontWeight: 900, textAlign: 'center', borderBottom: `3px solid #f1f5f9`, paddingBottom: '20px' }}>⚙️ إعدادات الملف الشخصي</h2>
+                        <h2 style={{ marginTop: 0, marginBottom: '35px', color: THEME.primary, fontWeight: 900, textAlign: 'center', borderBottom: `3px solid #f1f5f9`, paddingBottom: '20px' }}>إعدادات الملف الشخصي</h2>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
                             <div style={{ textAlign: 'center' }}>
                                 <div style={{ width: '130px', height: '130px', borderRadius: '50%', background: THEME.primary, margin: '0 auto 20px', border: `5px solid ${THEME.accent}`, overflow: 'hidden', boxShadow: '0 15px 30px rgba(0,0,0,0.15)' }}>
-                                    {avatarImg ? <img src={avatarImg} style={{width:'100%', height:'100%', objectFit:'cover'}} alt="Avatar" /> : <span style={{fontSize:'50px', lineHeight: '120px', color:'white'}}>👤</span>}
+                                    {avatarImg ? <img src={avatarImg} style={{width:'100%', height:'100%', objectFit:'cover'}} alt="Avatar" /> : <span style={{fontSize:'50px', lineHeight: '120px', color:'white'}}><User size={40} aria-hidden="true" /></span>}
                                 </div>
                                 <input type="file" id="modalFile" hidden accept="image/*" onChange={(e) => e.target.files && uploadAvatar(e.target.files[0])} />
-                                <label htmlFor="modalFile" style={{ cursor: 'pointer', color: THEME.primary, fontWeight: 900, fontSize: '14px', background:'#f8fafc', padding:'12px 30px', borderRadius:'12px', border:`2px solid #e2e8f0`, transition: '0.3s' }}>{isSaving ? '⏳ جاري الرفع...' : '📸 تغيير الصورة الشخصية'}</label>
+                                <label htmlFor="modalFile" style={{ cursor: 'pointer', color: THEME.primary, fontWeight: 900, fontSize: '14px', background:'#f8fafc', padding:'12px 30px', borderRadius:'12px', border:`2px solid #e2e8f0`, transition: '0.3s' }}>{isSaving ? 'جاري الرفع...' : 'تغيير الصورة الشخصية'}</label>
                             </div>
                             
                             <div style={{ borderTop: '2px dashed #e2e8f0', marginTop: '10px', paddingTop: '30px' }}>
-                                <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, marginBottom: '12px', color: THEME.primary }}>🔐 تغيير كلمة المرور</label>
+                                <label style={{ display: 'block', fontSize: '14px', fontWeight: 900, marginBottom: '12px', color: THEME.primary }}>تغيير كلمة المرور</label>
                                 <input 
                                     className="sidebar-input" 
                                     type="password"
@@ -675,7 +676,7 @@ export default function EmployeeProfilePage() {
                                             }}
                                             style={{ flex: 2, padding: '14px', background: THEME.success, color: 'white', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', boxShadow: `0 8px 20px ${THEME.success}40` }}
                                         >
-                                            ✅ حفظ كلمة السر
+                                            حفظ كلمة السر
                                         </button>
                                         <button 
                                             onClick={() => setTempPassword("")}
@@ -699,8 +700,8 @@ export default function EmployeeProfilePage() {
                             </div>
                             
                             <div style={{ borderTop: '2px dashed #e2e8f0', paddingTop: '30px' }}>
-                                <h4 style={{ color: THEME.primary, fontWeight: 900, marginBottom: '20px', textAlign: 'center', fontSize: '16px' }}>✍️ تحديث التوقيع الرقمي المعتمد</h4>
-                                <div style={{ border: `2px solid #e2e8f0`, borderRadius: '20px', overflow: 'hidden', background: '#f8fafc' }}>
+                                <h4 style={{ color: THEME.primary, fontWeight: 900, marginBottom: '20px', textAlign: 'center', fontSize: '16px' }}>تحديث التوقيع الرقمي المعتمد</h4>
+                                <div style={{ border: `2px solid #e2e8f0`, borderRadius: '14px', overflow: 'hidden', background: '#f8fafc' }}>
                                     <SignaturePad userId={userProfile?.id} currentSignature={userProfile?.signature_url} onSaved={refreshProfile} />
                                 </div>
                             </div>
@@ -722,7 +723,7 @@ export default function EmployeeProfilePage() {
     }
 
     return (
-        <MasterPage icon="👤" 
+        <MasterPage 
             title="ملف الموظف الشخصي" 
             subtitle="المركز الرقمي لإدارة المهام والمستحقات والطلبات"
         >

@@ -119,7 +119,7 @@ export function useJournalLogic() {
             if (error) throw new Error(error.message);
         },
         onSuccess: () => {
-            showToast('تم حذف القيود وارتباطاتها بنجاح 🗑️', 'success');
+            showToast('تم حذف القيود وارتباطاتها بنجاح', 'success');
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['journal_master_view'] });
         },

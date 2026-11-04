@@ -79,7 +79,7 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
     if (loading && !permissions) {
         return (
             <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f7f7f8" }}>
-                <div className="loader" style={{ fontWeight: 900, color: "#c2410c" }}>⏳ جاري إعداد مركز القيادة...</div>
+                <div className="loader" style={{ fontWeight: 900, color: "#c2410c" }}>جاري إعداد مركز القيادة...</div>
             </div>
         );
     }

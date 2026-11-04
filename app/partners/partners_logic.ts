@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fetchAllSupabaseData } from '@/lib/helpers';
+import { notify } from '@/lib/notify';
 
 export function usePartnersLogic() {
   // 1️⃣ الحالات (States) الأساسية
@@ -71,7 +72,7 @@ export function usePartnersLogic() {
   // 💾 دالة الحفظ
   const handleSavePartner = async () => {
     if (!newPartner.name || !newPartner.code) {
-      return alert('الرجاء إدخال الاسم والكود!');
+      return notify('الرجاء إدخال الاسم والكود!');
     }
     
     setIsSaving(true);
@@ -103,9 +104,9 @@ export function usePartnersLogic() {
     }
 
     if (error) {
-      alert('خطأ في العملية: ' + error.message);
+      notify('خطأ في العملية: ' + error.message);
     } else {
-      alert(editingId ? 'تم تحديث البيانات بنجاح! ✅' : 'تم إضافة الشريك بنجاح! 🎉');
+      notify(editingId ? 'تم تحديث البيانات بنجاح!' : 'تم إضافة الشريك بنجاح!');
       closeModal();
       fetchPartners();
     }
@@ -116,7 +117,7 @@ export function usePartnersLogic() {
   const handleDelete = async (id: string) => {
     if (confirm('هل أنت متأكد من حذف هذا الكيان نهائياً من سجلات فاي تك؟')) {
       const { error } = await supabase.from('partners').delete().eq('id', id);
-      if (error) alert('خطأ في الحذف: ' + error.message);
+      if (error) notify('خطأ في الحذف: ' + error.message);
       else fetchPartners();
     }
   };

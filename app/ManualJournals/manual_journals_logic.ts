@@ -131,13 +131,13 @@ export function useManualJournalsLogic() {
             }
 
             if (!journalData.amount || Number(journalData.amount) <= 0) {
-                throw new Error("⚠️ تنبيه: يرجى إدخال المبلغ المراد ترحيله.");
+                throw new Error("تنبيه: يرجى إدخال المبلغ المراد ترحيله.");
             }
             if (!journalData.debit_account_id || !journalData.credit_account_id) {
-                throw new Error("⚠️ تنبيه: يرجى اختيار الحساب المدين والدائن.");
+                throw new Error("تنبيه: يرجى اختيار الحساب المدين والدائن.");
             }
             if (journalData.debit_account_id === journalData.credit_account_id) {
-                throw new Error("⚠️ تنبيه: لا يمكن أن يكون الحساب المدين هو نفسه الحساب الدائن.");
+                throw new Error("تنبيه: لا يمكن أن يكون الحساب المدين هو نفسه الحساب الدائن.");
             }
 
             let payload = { ...journalData };
@@ -165,7 +165,7 @@ export function useManualJournalsLogic() {
             }
         },
         onSuccess: () => {
-            showToast('تم الحفظ بنجاح ✅', 'success');
+            showToast('تم الحفظ بنجاح', 'success');
             queryClient.invalidateQueries({ queryKey: ['manual_journals'] });
         },
         onError: (err: any) => {
@@ -184,7 +184,7 @@ export function useManualJournalsLogic() {
             if (error) throw error;
         },
         onSuccess: () => {
-            showToast('تم الحذف بنجاح 🗑️', 'success');
+            showToast('تم الحذف بنجاح', 'success');
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['manual_journals'] });
         },

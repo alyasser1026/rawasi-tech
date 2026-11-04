@@ -79,7 +79,7 @@ export function useViolationsLogic() {
             }
         },
         onSuccess: (data, ids) => {
-            showToast(`✅ تم الترحيل وخصم المبالغ من ذمم ${ids.length} شريك`, 'success');
+            showToast(`تم الترحيل وخصم المبالغ من ذمم ${ids.length} شريك`, 'success');
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['violations'] });
         },
@@ -103,7 +103,7 @@ export function useViolationsLogic() {
             }
         },
         onSuccess: () => {
-            showToast('⏸️ تم فك الترحيل وحذف القيود بنجاح', 'warning');
+            showToast('تم فك الترحيل وحذف القيود بنجاح', 'warning');
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['violations'] });
         },
@@ -128,7 +128,7 @@ export function useViolationsLogic() {
             return ids; 
         },
         onSuccess: () => {
-            showToast('تم الحذف بنجاح 🗑️', 'success');
+            showToast('تم الحذف بنجاح', 'success');
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['violations'] });
         },
@@ -176,7 +176,7 @@ export function useViolationsLogic() {
             }
         },
         onSuccess: () => {
-            showToast('تم الحفظ والتوجيه المحاسبي بنجاح 📝', 'success');
+            showToast('تم الحفظ والتوجيه المحاسبي بنجاح', 'success');
             setIsEditModalOpen(false);
             queryClient.invalidateQueries({ queryKey: ['violations'] });
         },

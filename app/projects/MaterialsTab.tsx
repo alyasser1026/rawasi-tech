@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
 import RawasiSmartTable from '@/components/rawasismarttable';
+import { BrickWall } from 'lucide-react';
 
 export default function MaterialsTab({ logic }: { logic: any }) {
   const materials = logic.projectDetails.materials || [];
@@ -51,7 +52,7 @@ export default function MaterialsTab({ logic }: { logic: any }) {
         header: 'البند الهندسي (WBS)', 
         render: (row: any) => (
           <span style={{ fontWeight: 800, color: THEME.coffeeMain, fontSize: '13px' }}>
-            📂 {boqMap[row.boq_id] || 'بند عام / غير مصنف'}
+            {boqMap[row.boq_id] || 'بند عام / غير مصنف'}
           </span>
         ) 
       },
@@ -81,13 +82,13 @@ export default function MaterialsTab({ logic }: { logic: any }) {
     <div>
       {/* 📊 أولاً: كروت السامري الإحصائي المتغير مع الفلتر */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '25px' }}>
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '20px', borderBottom: `4px solid ${THEME.goldAccent}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>🏗️ تكلفة الخامات (للبند المحدد حالياً)</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '14px', borderBottom: `4px solid ${THEME.goldAccent}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>تكلفة الخامات (للبند المحدد حالياً)</span>
           <strong style={{ fontSize: '24px', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(summaryStats.totalCost)}</strong>
         </div>
         
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '20px', borderBottom: `4px solid #475569`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>📦 إجمالي عدد حركات وخطوط السحب</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '14px', borderBottom: `4px solid #475569`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي عدد حركات وخطوط السحب</span>
           <strong style={{ fontSize: '24px', color: '#1e293b', fontWeight: 900 }}>{summaryStats.totalQuantitiesCount} <span style={{fontSize:'14px', color:'#64748b'}}>حركة صرف</span></strong>
         </div>
       </div>
@@ -97,7 +98,7 @@ export default function MaterialsTab({ logic }: { logic: any }) {
         
         {/* 🔍 شريط الفلترة العبكري بالبند */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '20px', flexWrap: 'wrap' }}>
-          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '16px' }}>🧱 بيان حركة وتفاصيل الخامات والمواد المنصرفة</h3>
+          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '16px' }}>بيان حركة وتفاصيل الخامات والمواد المنصرفة</h3>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <span style={{ fontSize: '13px', fontWeight: 900, color: '#64748b', whiteSpace: 'nowrap' }}>فلترة حسب البند:</span>
@@ -110,9 +111,9 @@ export default function MaterialsTab({ logic }: { logic: any }) {
                 boxShadow: '0 4px 10px rgba(0,0,0,0.02)', outline: 'none', cursor: 'pointer', fontSize: '13px'
               }}
             >
-              <option value="الكل">كل بنود المقايسة 📂</option>
+              <option value="الكل">كل بنود المقايسة</option>
               {uniqueBoqOptions.map(opt => (
-                <option key={opt.id} value={opt.id}>↪️ {opt.name}</option>
+                <option key={opt.id} value={opt.id}>{opt.name}</option>
               ))}
             </select>
           </div>
@@ -121,7 +122,7 @@ export default function MaterialsTab({ logic }: { logic: any }) {
         {/* عرض الجدول المفلتر أو رسالة خلو البيانات */}
         {filteredMaterials.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '50px', color: '#94a3b8', fontWeight: 900 }}>
-                <div style={{ fontSize: '40px', marginBottom: '10px' }}>🧱</div>
+                <div style={{ fontSize: '40px', marginBottom: '10px' }}><BrickWall size={34} aria-hidden="true" /></div>
                 لا توجد خامات مسحوبة مسجلة تحت هذا التصنيف حالياً.
             </div>
         ) : (

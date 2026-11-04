@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useSidebar } from '@/lib/SidebarContext';
+import { Pin, MapPin, Settings } from 'lucide-react';
 
 interface RawasiSidebarProps {
   onSearch?: (term: string) => void;
@@ -80,7 +81,7 @@ export default function RawasiFilterSidebar({
           bottom: 20px;
           width: 280px;
           background: rgba(25, 20, 15, 0.4);
-          border-radius: 24px;
+          border-radius: 14px;
           box-shadow: -10px 15px 40px rgba(0,0,0,0.3);
           z-index: 1000; transition: right 0.5s cubic-bezier(0.165, 0.84, 0.44, 1);
           backdrop-filter: blur(30px); border: 1px solid rgba(255,255,255,0.15);
@@ -146,7 +147,7 @@ export default function RawasiFilterSidebar({
           transition: 0.3s; z-index: 1001; backdrop-filter: blur(5px);
         }
         
-        /* 🚀 تنسيق التاريخ */
+        /* تنسيق التاريخ */
         .date-label { font-size: 10px; color: #94a3b8; display: block; margin-bottom: 5px; }
 
         @media (max-width: 768px) {
@@ -183,7 +184,7 @@ export default function RawasiFilterSidebar({
       >
         <button className="pin-btn-sidebar" onClick={(e) => { e.stopPropagation(); setIsPinned(!isPinned); }}>
           <span style={{ fontSize: '16px', color: '#fff' }}>
-            {isMobile ? '✕' : (isPinned ? '📌' : '📍')}
+            {isMobile ? '✕' : (isPinned ? <Pin size={14} aria-hidden="true" /> : <MapPin size={14} aria-hidden="true" />)}
           </span>
         </button>
 
@@ -201,14 +202,14 @@ export default function RawasiFilterSidebar({
           
           {(extraActions || actions) && (
             <>
-              <div className="filter-section-title">⚡ عمليات الصفحة</div>
+              <div className="filter-section-title">عمليات الصفحة</div>
               <div className="action-grid">
                 {actions || extraActions}
               </div>
             </>
           )}
 
-          <div className="filter-section-title">🔍 البحث والفلترة</div>
+          <div className="filter-section-title">البحث والفلترة</div>
           <div style={{ flex: 1 }}>
             
             <input 
@@ -267,7 +268,7 @@ export default function RawasiFilterSidebar({
         onClick={() => isMobile && setIsPinned(true)}
       >
           <span className="tab-icon" style={{ fontSize: '16px' }}>
-            ⚙️
+            <Settings size={14} aria-hidden="true" />
           </span>
       </div>
     </>

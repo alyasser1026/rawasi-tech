@@ -295,7 +295,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                     margin: 0 auto 40px auto !important; 
                     box-shadow: 0 20px 50px rgba(0,0,0,0.4);
                     direction: rtl; 
-                    border-radius: 24px !important; 
+                    border-radius: 14px !important; 
                     overflow: hidden !important;
                     display: flex !important;
                     flex-direction: column !important; 
@@ -351,7 +351,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                 .box-label { 
                     position: absolute; top: -10px; right: 20px; background: white; 
                     padding: 0 10px; font-size: 11px; font-weight: 900; color: #475569; 
-                    border-radius: 20px; 
+                    border-radius: 14px; 
                 }
 
                 .inner-table { width: 100%; border-collapse: collapse; }
@@ -365,7 +365,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                 .inv-table td { padding: 6px 4px; border-bottom: 1px solid #e2e8f0; text-align: center; color: #1e293b; font-weight: 700; font-size: 12px; }
                 .inv-table td.desc { text-align: right; font-weight: 900; font-size: 13px; line-height: 1.5; }
 
-                /* 🚀 جعلنا المربعات السفلية متوازية (align-items: flex-end) بدلا من flex-start */
+                /* جعلنا المربعات السفلية متوازية (align-items: flex-end) بدلا من flex-start */
                 .inv-footer-flex { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; flex-grow: 1; gap: 30px; }
                 .inv-amount-words { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
                 .inv-amount-words .words-box { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 12px; border-radius: 12px; font-weight: 900; font-size: 13px; color: #0f172a; line-height: 1.5; }
@@ -373,7 +373,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                 .signature-area { margin-top: 20px; text-align: center; align-self: flex-start; }
                 .signature-title { font-weight: 900; font-size: 12px; color: #64748b; margin-bottom: 10px; border-bottom: 1px solid #e2e8f0; padding-bottom: 6px; }
 
-                /* 🚀 تم تكبير السامري وزيادة عرضة (420px) والخطوط جواه */
+                /* تم تكبير السامري وزيادة عرضة (420px) والخطوط جواه */
                 .inv-totals-box { width: 420px; }
                 .inv-total-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: 800; color: #334155; align-items: center; }
                 .inv-total-row.tax { color: #0284c7; }
@@ -454,10 +454,10 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
 
             <div className="print-actions-bar no-print">
                 <button onClick={handlePrintOrPDF} className="action-btn print">
-                    🖨️ طباعة / تنزيل PDF
+                    طباعة / تنزيل PDF
                 </button>
                 <button onClick={onClose} className="action-btn close">
-                    ❌ إغلاق المعاينة
+                    إغلاق المعاينة
                 </button>
             </div>
 

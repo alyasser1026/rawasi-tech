@@ -7,10 +7,12 @@ interface SidebarContextType {
   summary: ReactNode;
   customFilters?: ReactNode; // 👈 ضفنا دي كقيمة اختيارية
   searchPlaceholder?: string;
+  enableSearch?: boolean;
+  enableDates?: boolean;
   setSidebarContent: (content: SidebarContent) => void;
 }
 
-type SidebarContent = { actions: ReactNode; summary: ReactNode; customFilters?: ReactNode; searchPlaceholder?: string };
+type SidebarContent = { actions: ReactNode; summary: ReactNode; customFilters?: ReactNode; searchPlaceholder?: string; enableSearch?: boolean; enableDates?: boolean };
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 

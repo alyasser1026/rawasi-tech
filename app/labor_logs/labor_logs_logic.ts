@@ -134,7 +134,7 @@ export function useLaborLogsLogic() {
             }
         },
         onSuccess: (res) => {
-            showToast('تم الحفظ بنجاح 🚀', 'success');
+            showToast('تم الحفظ بنجاح', 'success');
             setIsAddModalOpen(false);
             setEditingId(null);
             setCurrentLog(defaultLog);
@@ -154,7 +154,7 @@ export function useLaborLogsLogic() {
 
     const handleSaveLog = () => {
         if (!currentLog.worker_name) return showToast('يجب إدخال اسم العامل!', 'error');
-        if (!currentLog.job_order_id && currentLog.project_id) return showToast('يرجى تحديد أمر الشغل للموقع لربطه بالميزانية بشكل صحيح ⚠️', 'error');
+        if (!currentLog.job_order_id && currentLog.project_id) return showToast('يرجى تحديد أمر الشغل للموقع لربطه بالميزانية بشكل صحيح', 'error');
 
         let finalPercentage = currentLog.completion_percentage;
         const t = parseFloat(currentLog.tareeha);
@@ -215,7 +215,7 @@ export function useLaborLogsLogic() {
             return ids; 
         },
         onSuccess: () => {
-            showToast('تم الحذف بنجاح 🗑️', 'success');
+            showToast('تم الحذف بنجاح', 'success');
             setSelectedIds([]);
         },
         onError: (err: any) => showToast(`خطأ في الحذف: ${err.message}`, 'error')
@@ -234,7 +234,7 @@ export function useLaborLogsLogic() {
             }
         },
         onSuccess: () => {
-            showToast('تم الترحيل وسماع كشف الحساب بنجاح ✅', 'success');
+            showToast('تم الترحيل وسماع كشف الحساب بنجاح', 'success');
             setSelectedIds([]);
         },
         onError: (err: any) => showToast(`فشل الترحيل: ${err.message}`, 'error')
@@ -253,7 +253,7 @@ export function useLaborLogsLogic() {
             }
         },
         onSuccess: () => {
-            showToast('تم إلغاء الترحيل وتطهير الحسابات بنجاح ⏸️', 'warning');
+            showToast('تم إلغاء الترحيل وتطهير الحسابات بنجاح', 'warning');
             setSelectedIds([]);
         },
         onError: (err: any) => showToast(`عذراً: ${err.message}`, 'error')
@@ -342,7 +342,7 @@ export function useLaborLogsLogic() {
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "يوميات_العمالة_كشف_حساب");
         XLSX.writeFile(wb, "يوميات_العمالة.xlsx");
-        showToast('تم تصدير الإكسل بتنسيق جديد 📊', 'success');
+        showToast('تم تصدير الإكسل بتنسيق جديد', 'success');
     };
 
     const getAttendanceStyle = (status: string) => {

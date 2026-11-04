@@ -42,7 +42,7 @@ export default function RawasiToast({ message, type, onClose, duration = 4000 }:
           align-items: center;
           gap: 15px;
           padding: 12px 24px;
-          border-radius: 20px;
+          border-radius: 14px;
           background: ${config.bg};
           backdrop-filter: blur(15px);
           border: 1px solid rgba(255, 255, 255, 0.6);
@@ -63,7 +63,7 @@ export default function RawasiToast({ message, type, onClose, duration = 4000 }:
           left: 0;
           height: 3px;
           background: ${config.color};
-          border-radius: 0 0 20px 20px;
+          border-radius: 0 0 14px 14px;
           animation: progress linear forwards;
           animation-duration: ${duration}ms;
         }

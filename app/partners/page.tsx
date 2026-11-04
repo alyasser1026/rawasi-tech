@@ -77,18 +77,18 @@ export default function PartnersDirectory() {
   const sidebarActions = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <button onClick={handleMainAction} className="btn-main-glass" style={{ backgroundColor: isOneSelected ? '#3b82f6' : THEME.goldAccent, color: 'white' }}>
-        {isOneSelected ? '✏️ تعديل الكيان المحدد' : '➕ إضافة كيان جديد'}
+        {isOneSelected ? 'تعديل الكيان المحدد' : 'إضافة كيان جديد'}
       </button>
       
       {selectedIds.length > 0 && (
         <button onClick={() => selectedIds.forEach(id => handleDelete(id))} className="btn-main-glass" style={{ backgroundColor: THEME.danger, color: 'white' }}>
-          🗑️ مسح المحدد ({selectedIds.length})
+          مسح المحدد ({selectedIds.length})
         </button>
       )}
 
       <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
-        <button onClick={exportToExcel} className="btn-main-glass" style={{ backgroundColor: '#166534', color: 'white', flex: 1 }}>📊 إكسل</button>
-        <button onClick={handlePrint} className="btn-main-glass" style={{ backgroundColor: '#f8fafc', color: THEME.primary, border: '1px solid #cbd5e1', flex: 1 }}>🖨️ طباعة</button>
+        <button onClick={exportToExcel} className="btn-main-glass" style={{ backgroundColor: '#166534', color: 'white', flex: 1 }}>إكسل</button>
+        <button onClick={handlePrint} className="btn-main-glass" style={{ backgroundColor: '#f8fafc', color: THEME.primary, border: '1px solid #cbd5e1', flex: 1 }}>طباعة</button>
       </div>
     </div>
   );
@@ -96,20 +96,20 @@ export default function PartnersDirectory() {
   const customFilters = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <div>
-        <label style={{ color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px' }}>🔍 بحث سريع:</label>
+        <label style={{ color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px' }}>بحث سريع:</label>
         <input type="text" placeholder="الاسم، الكود، الجوال..." className="sidebar-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
 
       <div>
-        <label style={{ color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px' }}>🏷️ تصفية بالتصنيف:</label>
+        <label style={{ color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px' }}>تصفية بالتصنيف:</label>
         <select className="sidebar-input" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
             <option value="الكل" style={{color: 'black'}}>كل التصنيفات</option>
-            <option value="جهة داخلية" style={{color: 'black'}}>جهة داخلية 🏛️</option>
-            <option value="موظف" style={{color: 'black'}}>موظف 👔</option>
-            <option value="مقاول" style={{color: 'black'}}>مقاول 🏗️</option>
-            <option value="عامل يومية" style={{color: 'black'}}>عامل يومية 👷</option>
-            <option value="عميل" style={{color: 'black'}}>عميل 🏢</option>
-            <option value="مورد" style={{color: 'black'}}>مورد 📦</option>
+            <option value="جهة داخلية" style={{color: 'black'}}>جهة داخلية</option>
+            <option value="موظف" style={{color: 'black'}}>موظف</option>
+            <option value="مقاول" style={{color: 'black'}}>مقاول</option>
+            <option value="عامل يومية" style={{color: 'black'}}>عامل يومية</option>
+            <option value="عميل" style={{color: 'black'}}>عميل</option>
+            <option value="مورد" style={{color: 'black'}}>مورد</option>
         </select>
       </div>
     </div>
@@ -123,15 +123,15 @@ export default function PartnersDirectory() {
       </div>
       <div className="kpi-box" style={{ borderRight: `4px solid #0369A1` }}>
         <span>موظفين / جهات</span>
-        <strong style={{ color: '#38bdf8' }}>{stats.employees}</strong>
+        <strong style={{ color: '#0369a1' }}>{stats.employees}</strong>
       </div>
       <div className="kpi-box" style={{ borderRight: `4px solid #B45309` }}>
         <span>مقاولين وموردين</span>
-        <strong style={{ color: '#fbbf24' }}>{stats.contractors}</strong>
+        <strong style={{ color: '#b45309' }}>{stats.contractors}</strong>
       </div>
       <div className="kpi-box" style={{ borderRight: `4px solid #166534` }}>
         <span>عمالة يومية</span>
-        <strong style={{ color: '#4ade80' }}>{stats.labor}</strong>
+        <strong style={{ color: '#047857' }}>{stats.labor}</strong>
       </div>
     </div>
   );
@@ -164,7 +164,7 @@ export default function PartnersDirectory() {
           @media screen { .print-only { display: none !important; } }
 
           .floating-row, .table-header-grid {
-            background: white; border-radius: 20px; margin-bottom: 12px; display: grid; 
+            background: white; border-radius: 14px; margin-bottom: 12px; display: grid; 
             grid-template-columns: 40px 80px 1.5fr 0.8fr 1fr 0.8fr 0.8fr 1.2fr 0.8fr;
             align-items: center; padding: 15px 15px; border: 1px solid transparent; transition: 0.3s;
           }
@@ -200,7 +200,7 @@ export default function PartnersDirectory() {
           </div>
 
           {isLoading ? (
-             <div style={{ textAlign: 'center', padding: '50px', fontWeight: 900, color: THEME.coffeeMain }}>⏳ جاري تحميل الشركاء...</div>
+             <div style={{ textAlign: 'center', padding: '50px', fontWeight: 900, color: THEME.coffeeMain }}>جاري تحميل الشركاء...</div>
           ) : (
              filteredPartners.map((p) => {
               const badge = getBadgeStyle(p.type); 
@@ -213,7 +213,7 @@ export default function PartnersDirectory() {
                     <div style={{ fontSize: '11px', color: '#64748b' }}>{p.role}</div>
                   </div>
                   <div><span className="category-badge" style={{ backgroundColor: badge.bg, color: badge.color }}>{p.type}</span></div>
-                  <div className="data-text" style={{ fontSize: '12px', color: '#0ea5e9', fontWeight: 900 }}>💳 {p.account_name}</div>
+                  <div className="data-text" style={{ fontSize: '12px', color: '#0ea5e9', fontWeight: 900 }}>{p.account_name}</div>
                   <div>
                      <div className="data-text">{p.idNumber}</div>
                      <div style={{ fontSize: '10px', color: '#D946EF' }}>ينتهي: {p.identity_expiry_date || "---"}</div>
@@ -283,12 +283,12 @@ export default function PartnersDirectory() {
 
       {/* 🚀 السحر هنا: استخدام createPortal لعرض المودال في منتصف الشاشة دائماً */}
       {isAddModalOpen && mounted && createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, rgba(40, 24, 10, 0.4) 0%, rgba(15, 7, 0, 0.9) 100%)', backdropFilter: 'blur(20px)', direction: 'rtl' }} onClick={() => setIsAddModalOpen(false)}>
-            <div className="cinematic-scroll" onClick={e => e.stopPropagation()} style={{ width: '900px', maxHeight: '90vh', background: 'rgba(248, 250, 252, 0.9)', backdropFilter: 'blur(30px)', borderRadius: '35px', padding: '40px', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto' }}>
+        <div className="phi-modal-backdrop" style={{ position: 'fixed', inset: 0, zIndex: 9999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle at center, rgba(40, 24, 10, 0.4) 0%, rgba(15, 7, 0, 0.9) 100%)', backdropFilter: 'blur(20px)', direction: 'rtl' }} onClick={() => setIsAddModalOpen(false)}>
+            <div className="cinematic-scroll phi-modal-panel" onClick={e => e.stopPropagation()} style={{ width: '900px', maxHeight: '90vh', background: 'rgba(248, 250, 252, 0.9)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto' }}>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: `2px solid ${THEME.goldAccent}50`, paddingBottom: '15px' }}>
                     <h2 style={{ color: THEME.coffeeDark, fontWeight: 900, margin: 0, fontSize: '26px' }}>
-                        {editingId ? '✏️ تعديل بيانات الكيان' : '➕ تعريف كيان جديد'}
+                        {editingId ? 'تعديل بيانات الكيان' : 'تعريف كيان جديد'}
                     </h2>
                 </div>
 
@@ -300,12 +300,12 @@ export default function PartnersDirectory() {
                     <div>
                         <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>التصنيف *</label>
                         <select className="glass-input-field" value={newPartner.type} onChange={e => setNewPartner({...newPartner, type: e.target.value})}>
-                            <option value="موظف">موظف 👔</option>
-                            <option value="عامل يومية">عامل يومية 👷</option>
-                            <option value="مقاول">مقاول 🏗️</option>
-                            <option value="جهة داخلية">جهة داخلية 🏛️</option>
-                            <option value="عميل">عميل 🏢</option>
-                            <option value="مورد">مورد 📦</option>
+                            <option value="موظف">موظف</option>
+                            <option value="عامل يومية">عامل يومية</option>
+                            <option value="مقاول">مقاول</option>
+                            <option value="جهة داخلية">جهة داخلية</option>
+                            <option value="عميل">عميل</option>
+                            <option value="مورد">مورد</option>
                         </select>
                     </div>
                 </div>
@@ -322,7 +322,7 @@ export default function PartnersDirectory() {
                 </div>
 
                 <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: `1px dashed ${THEME.goldAccent}`, marginBottom: '20px', zIndex: 90, position: 'relative' }}>
-                    <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#0ea5e9' }}>💳 الربط المالي (شجرة الحسابات)</h3>
+                    <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#0ea5e9' }}>الربط المالي (شجرة الحسابات)</h3>
                     <SmartCombo 
                         label="الحساب المحاسبي المرتبط بالكيان" 
                         table="accounts" 
@@ -364,7 +364,7 @@ export default function PartnersDirectory() {
 
                 <div style={{ display: 'flex', gap: '15px' }}>
                     <button onClick={handleSavePartner} disabled={isSaving} className="btn-glass-save" style={{ flex: 2 }}>
-                        {isSaving ? '⏳ جاري الحفظ...' : '✅ اعتماد وحفظ البيانات'}
+                        {isSaving ? 'جاري الحفظ...' : 'اعتماد وحفظ البيانات'}
                     </button>
                     <button onClick={() => setIsAddModalOpen(false)} className="btn-glass-cancel" style={{ flex: 1 }}>
                         إلغاء

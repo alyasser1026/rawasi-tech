@@ -75,7 +75,7 @@ export default function RawasiMultiSelect({ options, selectedIds, onChange, plac
             <input 
               autoFocus
               type="text" 
-              placeholder="🔍 ابحث بالاسم..." 
+              placeholder="ابحث بالاسم..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ width: '100%', padding: '8px 12px', borderRadius: '6px', border: `1px solid ${THEME.border}`, outline: 'none', fontWeight: 'bold', fontFamily: 'Cairo' }}
