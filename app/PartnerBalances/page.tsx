@@ -7,7 +7,9 @@ import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabase'; 
 import PrintStatement from './printstatement'; 
 import LoadingScreen from '@/components/LoadingScreen';
-import { ChartColumn, CircleCheck } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, ChartColumn, CircleCheck, Scale } from 'lucide-react';
+import RawasiSidebarManager from '@/components/RawasiSidebarManager';
+import KpiStrip from '@/components/KpiStrip';
 import { notify } from '@/lib/notify';
 
 export default function PartnerBalancesPage() {
@@ -397,81 +399,35 @@ export default function PartnerBalancesPage() {
                     .pill-btn:hover:not(.active) { background: #f1f5f9; }
                 `}</style>
 
-                <div className="glass-panel" style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                    <div className="stat-card credit">
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#475569' }}>إجمالي دائن (لهم) في الفترة</div>
-                        <div style={{ fontSize: '24px', fontWeight: 900, color: '#059669' }}>{formatCurrency(stats.totalCredit)}</div>
-                    </div>
-                    <div className="stat-card debit">
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#475569' }}>إجمالي مدين (عليهم) في الفترة</div>
-                        <div style={{ fontSize: '24px', fontWeight: 900, color: '#d97706' }}>{formatCurrency(stats.totalDebit)}</div>
-                    </div>
-                    <div className="stat-card net">
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#475569' }}>الرصيد الصافي لحركات الفترة</div>
-                        <div style={{ fontSize: '24px', fontWeight: 900, color: getBalanceInfo(stats.net).text }}>
-                            {formatCurrency(Math.abs(stats.net))} ({getBalanceInfo(stats.net).label})
+                <RawasiSidebarManager
+                    summary={
+                        <KpiStrip compact items={[
+                            { label: 'إجمالي دائن (لهم) في الفترة', value: formatCurrency(stats.totalCredit), tone: 'success', icon: <ArrowDownLeft /> },
+                            { label: 'إجمالي مدين (عليهم) في الفترة', value: formatCurrency(stats.totalDebit), tone: 'warning', icon: <ArrowUpRight /> },
+                            { label: 'صافي حركات الفترة', value: formatCurrency(Math.abs(stats.net)), tone: stats.net === 0 ? 'neutral' : 'info', icon: <Scale />, hint: getBalanceInfo(stats.net).label },
+                        ]} />
+                    }
+                    actions={<button type="button" className="ent-button ent-success" onClick={exportToExcelWithColors}><ChartColumn size={16} aria-hidden="true" />تحميل Excel</button>}
+                    onSearch={setSearchTerm}
+                    placeholder="ابحث باسم الشريك أو الكود…"
+                    customFilters={
+                        <div>
+                            <div><label htmlFor="pb-from">حركات من تاريخ</label><input id="pb-from" type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} /></div>
+                            <div><label htmlFor="pb-to">حركات إلى تاريخ</label><input id="pb-to" type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} /></div>
+                            <div className="phi-filter-wide">
+                                <label className="phi-check"><input type="checkbox" checked={showInactive} onChange={e => setShowInactive(e.target.checked)} />عرض الحسابات الموقوفة</label>
+                                <label className="phi-check"><input type="checkbox" checked={activeWorkersOnly} onChange={e => setActiveWorkersOnly(e.target.checked)} />عمال ومقاولون لهم حركات نشطة فقط</label>
+                            </div>
+                            {uniqueTypes.length > 0 && <div className="phi-filter-wide">
+                                <div><span className="filter-label">التصنيف (يمكن اختيار أكثر من تصنيف)</span><div className="phi-segmented" role="group" aria-label="تصنيف الشريك">
+                                    <button type="button" aria-pressed={selectedTypes.length === 0} onClick={() => setSelectedTypes([])}>الكل</button>
+                                    {uniqueTypes.map(t => { const isSelected = selectedTypes.includes(t); return <button key={t} type="button" aria-pressed={isSelected} onClick={() => setSelectedTypes(prev => isSelected ? prev.filter(x => x !== t) : [...prev, t])}>{isSelected && <CircleCheck size={14} aria-hidden="true" />}{t}</button>; })}
+                                </div></div>
+                            </div>}
                         </div>
-                    </div>
-                </div>
-
-                <div className="glass-panel no-print" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-                    <div style={{ display: 'flex', gap: '15px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                        <div style={{ flex: 2, minWidth: '250px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', marginBottom: '5px', display: 'block' }}>بحث عام</label>
-                            <input type="text" className="glass-input" placeholder="ابحث بالاسم أو الكود..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} />
-                        </div>
-                        
-                        <div style={{ flex: 1, minWidth: '150px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', marginBottom: '5px', display: 'block' }}>حركات من تاريخ</label>
-                            <input type="date" className="glass-input" value={dateFrom} onChange={e => setDateFrom(e.target.value)} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: '150px' }}>
-                            <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', marginBottom: '5px', display: 'block' }}>حركات إلى تاريخ</label>
-                            <input type="date" className="glass-input" value={dateTo} onChange={e => setDateTo(e.target.value)} />
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', padding: '10px 15px', borderRadius: '10px', border: '1px solid #e2e8f0', cursor: 'pointer', height: '44px' }} onClick={() => setShowInactive(!showInactive)}>
-                            <input type="checkbox" checked={showInactive} readOnly style={{ transform: 'scale(1.2)', marginLeft: '10px', cursor: 'pointer' }} />
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>عرض الموقوفين</span>
-                        </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', background: '#f8fafc', padding: '10px 15px', borderRadius: '10px', border: '1px solid #e2e8f0', cursor: 'pointer', height: '44px' }} onClick={() => setActiveWorkersOnly(!activeWorkersOnly)}>
-                            <input type="checkbox" checked={activeWorkersOnly} readOnly style={{ transform: 'scale(1.2)', marginLeft: '10px', cursor: 'pointer' }} />
-                            <span style={{ fontSize: '13px', fontWeight: 800, color: '#475569' }}>عمال ومقاولين بحركات نشطة</span>
-                        </div>
-
-                        <button onClick={exportToExcelWithColors} style={{ padding: '0 20px', height: '44px', background: '#10b981', color: 'white', borderRadius: '10px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <span><ChartColumn size={16} aria-hidden="true" /></span> تحميل Excel
-                        </button>
-                    </div>
-
-                    <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', marginBottom: '8px', display: 'block' }}>فلترة بالتصنيف (يمكنك اختيار أكثر من تصنيف):</label>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            <button 
-                                className={`pill-btn ${selectedTypes.length === 0 ? 'active' : ''}`}
-                                onClick={() => setSelectedTypes([])}
-                            >
-                                الكل
-                            </button>
-                            {uniqueTypes.map(t => {
-                                const isSelected = selectedTypes.includes(t);
-                                return (
-                                    <button
-                                        key={t}
-                                        className={`pill-btn ${isSelected ? 'active' : ''}`}
-                                        onClick={() => {
-                                            if (isSelected) setSelectedTypes(prev => prev.filter(x => x !== t));
-                                            else setSelectedTypes(prev => [...prev, t]);
-                                        }}
-                                    >
-                                        {isSelected ? <CircleCheck size={16} aria-hidden="true" /> : ''}{t}
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                </div>
+                    }
+                    watchDeps={[stats, dateFrom, dateTo, showInactive, activeWorkersOnly, selectedTypes, uniqueTypes.length]}
+                />
 
                 {isLoading ? (
                     <LoadingScreen message="جاري تحميل وتجميع الحسابات بدقة..." fullScreen={false} />

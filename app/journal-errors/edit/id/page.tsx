@@ -214,9 +214,6 @@ export default function EditJournalEntryPage() {
             <h1 style={{ fontSize: '26px', fontWeight: 900, color: THEME.accentLight }}>معالجة قيد يومية #{id}</h1>
             <p style={{ color: THEME.slate, fontSize: '14px' }}>تعديل الأطراف والمبالغ لضبط ميزان المراجعة</p>
           </div>
-          <button className="btn-action phi-back-button" style={{ background: 'transparent', border: '1px solid white', color: 'white' }} onClick={() => router.back()}>
-            تراجع
-          </button>
         </div>
 
         {/* رأس القيد */}
@@ -291,7 +288,8 @@ export default function EditJournalEntryPage() {
             <div className="summary-value" style={{ color: '#be123c' }}>{totals.credit.toLocaleString()}</div>
           </div>
 
-          <div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button type="button" className="ent-button" onClick={() => router.push('/journal-errors')} disabled={isSaving}>إلغاء</button>
             <button className="btn-action btn-save" onClick={handleSave} disabled={isSaving || totals.diff !== 0}>
               {isSaving ? 'جاري الحفظ...' : 'اعتماد وحفظ القيد'}
             </button>

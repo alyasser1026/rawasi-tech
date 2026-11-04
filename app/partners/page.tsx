@@ -7,6 +7,8 @@ import { usePartnersLogic } from './partners_logic';
 import SmartCombo from '@/components/SmartCombo';
 import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
+import KpiStrip from '@/components/KpiStrip';
+import { Building2, HardHat, Truck, Users } from 'lucide-react';
 
 const THEME = {
   sandLight: '#f7f7f8',
@@ -116,24 +118,12 @@ export default function PartnersDirectory() {
   );
 
   const summaryStats = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'white' }}>
-      <div className="kpi-box" style={{ borderRight: `4px solid ${THEME.goldAccent}` }}>
-        <span>إجمالي الشركاء</span>
-        <strong>{stats.total} كيان مسجل</strong>
-      </div>
-      <div className="kpi-box" style={{ borderRight: `4px solid #0369A1` }}>
-        <span>موظفين / جهات</span>
-        <strong style={{ color: '#0369a1' }}>{stats.employees}</strong>
-      </div>
-      <div className="kpi-box" style={{ borderRight: `4px solid #B45309` }}>
-        <span>مقاولين وموردين</span>
-        <strong style={{ color: '#b45309' }}>{stats.contractors}</strong>
-      </div>
-      <div className="kpi-box" style={{ borderRight: `4px solid #166534` }}>
-        <span>عمالة يومية</span>
-        <strong style={{ color: '#047857' }}>{stats.labor}</strong>
-      </div>
-    </div>
+    <KpiStrip compact items={[
+      { label: 'إجمالي الشركاء', value: Number(stats.total || 0).toLocaleString('ar-EG'), tone: 'brand', icon: <Users />, hint: 'كيان مسجل' },
+      { label: 'موظفون وجهات داخلية', value: Number(stats.employees || 0).toLocaleString('ar-EG'), tone: 'info', icon: <Building2 /> },
+      { label: 'مقاولون وموردون', value: Number(stats.contractors || 0).toLocaleString('ar-EG'), tone: 'warning', icon: <Truck /> },
+      { label: 'عمالة يومية', value: Number(stats.labor || 0).toLocaleString('ar-EG'), tone: 'success', icon: <HardHat /> },
+    ]} />
   );
 
   return (

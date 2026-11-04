@@ -15,7 +15,8 @@ import SmartCombo from '@/components/SmartCombo';
 import JobOrderModal from './JobOrderModal';
 import JobOrderLedgerModal from './JobOrderLedgerModal'; 
 import LoadingScreen from '@/components/LoadingScreen';
-import { HardHat, Handshake } from 'lucide-react';
+import { HardHat, Handshake, Activity, CircleCheck, CirclePause, ClipboardList } from 'lucide-react';
+import KpiStrip from '@/components/KpiStrip';
 import PhiIcon from '@/components/PhiIcon';
 
 export default function JobOrdersPage() {
@@ -85,20 +86,12 @@ export default function JobOrdersPage() {
       
       <RawasiSidebarManager 
         summary={
-          <div className="summary-glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
-                <span style={{fontSize:'14px', fontWeight:900, color:'#94a3b8'}}>جاري التنفيذ</span>
-                <span style={{fontSize:'15px', fontWeight:900, color: '#3b82f6'}}>{logic.kpis.running}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
-                <span style={{fontSize:'14px', fontWeight:900, color:'#94a3b8'}}>موقوف</span>
-                <span style={{fontSize:'15px', fontWeight:900, color: '#ef4444'}}>{logic.kpis.suspended}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{fontSize:'14px', fontWeight:900, color:'#94a3b8'}}>مكتمل</span>
-                <span style={{fontSize:'15px', fontWeight:900, color: '#10b981'}}>{logic.kpis.completed}</span>
-            </div>
-          </div>
+          <KpiStrip compact items={[
+            { label: 'إجمالي الأوامر', value: logic.kpis.total.toLocaleString('ar-EG'), tone: 'brand', icon: <ClipboardList /> },
+            { label: 'جاري التنفيذ', value: logic.kpis.running.toLocaleString('ar-EG'), tone: 'info', icon: <Activity /> },
+            { label: 'موقوف', value: logic.kpis.suspended.toLocaleString('ar-EG'), tone: 'danger', icon: <CirclePause /> },
+            { label: 'مكتمل', value: logic.kpis.completed.toLocaleString('ar-EG'), tone: 'success', icon: <CircleCheck /> },
+          ]} />
         }
         actions={sidebarActions}
         customFilters={
@@ -189,7 +182,7 @@ export default function JobOrdersPage() {
         }
         onSearch={logic.setGlobalSearch}
         onDateFilter={(start, end) => { logic.setDateFrom(start); logic.setDateTo(end); }}
-        watchDeps={[logic.selectedIds, logic.allFiltered.length, logic.statusFilter, logic.executorFilter, logic.workitemFilter, logic.projectFilter, logic.partnerFilter, logic.financialFilter]}
+        watchDeps={[logic.selectedIds, logic.allFiltered.length, logic.kpis, logic.statusFilter, logic.executorFilter, logic.workitemFilter, logic.projectFilter, logic.partnerFilter, logic.financialFilter]}
       />
 
       <style>{`

@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 
 export function useNotificationsLogic() {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [userId, setUserId] = useState<string | null>(null);
+    // Each user of this hook (page and bell dialog) needs its own channel; a shared name makes
+    // supabase-js reuse an already-subscribed channel and throw when callbacks are added.
+    const channelName = useRef(`notifications-${Math.random().toString(36).slice(2)}`);
 
     useEffect(() => {
         const fetchUserAndNotifications = async () => {
@@ -38,7 +41,7 @@ export function useNotificationsLogic() {
         if (!userId) return;
 
         const channel = supabase
-            .channel('public:notifications')
+            .channel(channelName.current)
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userId}` }, payload => {
                 setNotifications(prev => [payload.new, ...prev]);
             })

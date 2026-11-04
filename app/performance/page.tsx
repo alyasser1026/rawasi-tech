@@ -1,6 +1,5 @@
 "use client";
 import React from 'react';
-import { useRouter } from 'next/navigation';
 import { useProfileLogic } from '@/app/profile/profile_logic';
 import { THEME } from '@/lib/theme';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -8,7 +7,6 @@ import MasterPage from '@/components/MasterPage';
 import { Trophy, Zap, TriangleAlert, Building2, CalendarDays } from 'lucide-react';
 
 export default function PerformancePage() {
-    const router = useRouter();
     const { 
         isLoading, monthlyKPIs
     } = useProfileLogic();
@@ -23,14 +21,6 @@ export default function PerformancePage() {
         <MasterPage title="مؤشرات الأداء التشغيلي والمالي" subtitle="تحليل شامل ومتقدم لأداء الشركة">
                 <div className="ent-performance-content">
             <div className="animate-fade-in" style={{ maxWidth: '1000px', margin: '0 auto' }}>
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                    <button onClick={() => router.back()} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '15px', background: 'white', border: `1px solid ${THEME.accent}50`, color: THEME.primary, fontWeight: 900, cursor: 'pointer', transition: '0.3s', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-                        <span style={{ fontSize: '18px' }}>➔</span> رجوع للخلف
-                    </button>
-                    <button onClick={() => router.forward()} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '15px', background: 'white', border: `1px solid ${THEME.accent}50`, color: THEME.primary, fontWeight: 900, cursor: 'pointer', transition: '0.3s', boxShadow: '0 4px 10px rgba(0,0,0,0.05)' }}>
-                        تقدم للأمام <span style={{ fontSize: '18px', transform: 'rotate(180deg)' }}>➔</span>
-                    </button>
-                </div>
                 <div className="ent-panel ent-performance-panel">
                     <h3 style={{ margin: '0 0 35px 0', color: THEME.primary, fontWeight: 900, fontSize: '24px', textAlign: 'center' }}>ملف تقييم الأداء والإنتاجية</h3>
                     

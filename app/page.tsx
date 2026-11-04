@@ -10,6 +10,7 @@ import { menuGroups } from '@/lib/menuData';
 import { getSectionStyle } from '@/lib/section-colors';
 import { Plus } from 'lucide-react';
 import { MenuIcon } from '@/components/NavigationIcon';
+import { useDisplayName } from '@/hooks/useDisplayName';
 
 const MOTIVATIONAL_MESSAGES = [
     "يوم جديد لنجاحات مبهرة، توكل على الله وانطلق!",
@@ -75,8 +76,8 @@ export default function WelcomeHomePage() {
         return <LoadingScreen message="جاري تحضير مساحة العمل..." fullScreen={false} />;
     }
 
-    const userName = profile?.full_name || 'زميلنا العزيز';
-    const firstNameOnly = userName.split(' ')[0];
+    const displayName = useDisplayName();
+    const firstNameOnly = displayName.firstName;
     const roleTitle = role === 'super_admin' ? 'المدير العام' : role === 'admin' ? 'مدير النظام' : 'مستخدم النظام';
 
     // مسطح لعناصر القائمة لسهولة البحث
@@ -139,6 +140,9 @@ export default function WelcomeHomePage() {
                     letter-spacing: -1px;
                 }
                 
+                .welcome-profile-hint { margin: -10px 0 24px; font-size: 13px; color: #687180; }
+                .welcome-profile-hint a { color: #c2410c; font-weight: 800; text-decoration: none; }
+                .welcome-profile-hint a:hover { text-decoration: underline; }
                 .welcome-subtitle {
                     color: #64748b;
                     font-size: 18px;
@@ -274,6 +278,7 @@ export default function WelcomeHomePage() {
 
                 <h1 className="welcome-title">{greeting}، {firstNameOnly}</h1>
                 <p className="welcome-subtitle">{quote}</p>
+                {!permsLoading && !displayName.hasProfileName && <p className="welcome-profile-hint">لم تُكمل اسمك في الملف الشخصي بعد. <Link href="/profile">أكمل بياناتك</Link> ليظهر اسمك في التحيات والتقارير.</p>}
 
                 <div style={{ textAlign: 'right', marginBottom: '15px' }}>
                     <h2 style={{ fontSize: '20px', fontWeight: 900, color: THEME.coffeeDark }}>الصفحات المفضلة</h2>

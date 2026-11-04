@@ -1,6 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from 'react'; 
-import { createPortal } from 'react-dom';
+import React, { useState, useMemo } from 'react'; 
 import { useManualJournalsLogic } from './manual_journals_logic';
 import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo'; 
@@ -11,17 +10,13 @@ import { formatCurrency } from '@/lib/helpers';
 import MasterPage from '@/components/MasterPage';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
-import { Pencil } from 'lucide-react';
+import { ArrowLeftRight, FileText, Link2, Pencil, Save, Scale } from 'lucide-react';
+import PhiDialog from '@/components/PhiDialog';
 import { notify } from '@/lib/notify';
 
 export default function ManualJournalsPage() {
     const logic = useManualJournalsLogic();
     const { can } = usePermissions();
-    const [mounted, setMounted] = useState(false);
-    
-    useEffect(() => {
-        setMounted(true);
-    }, []);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingVoucher, setEditingVoucher] = useState<any>(null);
@@ -198,97 +193,33 @@ export default function ManualJournalsPage() {
                 />
             </MasterPage>
 
-            {mounted && isModalOpen && createPortal(
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(39,39,42, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', overflowY: 'auto' }} onClick={() => setIsModalOpen(false)}>
-                    <div className="cinematic-scroll" onClick={e => e.stopPropagation()} style={{ background: '#ffffff', padding: '30px', borderRadius: '14px', width: '100%', maxWidth: '900px', direction: 'rtl', boxShadow: '0 20px 60px rgba(0,0,0,0.3)', margin: 'auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '2px dashed #e2e8f0', paddingBottom: '15px' }}>
-                            <h2 style={{ fontWeight: 900, fontSize: '22px', color: '#1e293b', margin: 0 }}>{editingVoucher ? 'تعديل سند التسوية' : 'سند تسوية جديد'}</h2>
-                            <button onClick={() => setIsModalOpen(false)} style={{ background: '#f1f5f9', border: 'none', width: '36px', height: '36px', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', color: '#64748b' }}>×</button>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div className="glass-input-group">
-                                <label>التاريخ</label>
-                                <input type="date" className="glass-input" value={formData.entry_date} onChange={e => setFormData({...formData, entry_date: e.target.value})} />
-                            </div>
-                            <div className="glass-input-group">
-                                <label>المبلغ</label>
-                                <input type="number" className="glass-input" placeholder="0.00" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
-                            </div>
-                            <div className="glass-input-group">
-                                <label>البيان / تفاصيل التسوية</label>
-                                <textarea className="glass-input" rows={2} placeholder="سبب التسوية..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
-                            </div>
-                            
-                            <div style={{ display: 'flex', gap: '15px' }}>
-                                <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>من حساب (الطرف الدائن)</label>
-                                    <SmartCombo 
-                                        options={logic.state.accounts || []}
-                                        displayCol="name"
-                                        initialDisplay={(logic.state.accounts || []).find((a:any) => a.id === formData.credit_account_id)?.name || ''}
-                                        onSelect={(val: any) => setFormData({...formData, credit_account_id: val?.id || ''})}
-                                        placeholder="اختر الحساب الدائن..."
-                                    />
-                                </div>
-                                <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>إلى حساب (الطرف المدين)</label>
-                                    <SmartCombo 
-                                        options={logic.state.accounts || []}
-                                        displayCol="name"
-                                        initialDisplay={(logic.state.accounts || []).find((a:any) => a.id === formData.debit_account_id)?.name || ''}
-                                        onSelect={(val: any) => setFormData({...formData, debit_account_id: val?.id || ''})}
-                                        placeholder="اختر الحساب المدين..."
-                                    />
-                                </div>
-                            </div>
-
-                            <div style={{ display: 'flex', gap: '15px' }}>
-                                <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>الشريك (اختياري)</label>
-                                    <SmartCombo 
-                                        options={logic.state.partners || []}
-                                        displayCol="name"
-                                        initialDisplay={(logic.state.partners || []).find((p:any) => p.id === formData.partner_id)?.name || ''}
-                                        onSelect={(val: any) => setFormData({...formData, partner_id: val?.id || ''})}
-                                        placeholder="بدون شريك"
-                                    />
-                                </div>
-                                <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>الموقع / المشروع (اختياري)</label>
-                                    <SmartCombo 
-                                        options={logic.state.projects || []}
-                                        displayCol="Property"
-                                        initialDisplay={(logic.state.projects || []).find(p => p.id === formData.project_id)?.name || ''}
-                                        onSelect={(val: any) => setFormData({...formData, project_id: val?.id || ''})}
-                                        placeholder="بدون مشروع"
-                                    />
-                                </div>
-                                <div className="glass-input-group" style={{ flex: 1 }}>
-                                    <label>أمر الشغل (اختياري)</label>
-                                    <SmartCombo 
-                                        table="job_orders"
-                                        displayCol="order_number"
-                                        searchCols="order_number,notes"
-                                        filterColumn="project_id"
-                                        filterValue={formData.project_id || undefined}
-                                        initialDisplay={formData.job_order_id ? 'أمر شغل مرتبط' : ''}
-                                        customQuery={(q: any) => q.select('*, boq_budget:boq_budget_id(work_item)')}
-                                        displayFormat={(item: any) => `${item.order_number} - ${item.boq_budget?.work_item || 'بدون بند'}`}
-                                        onSelect={(val: any) => setFormData({...formData, job_order_id: val?.id || ''})}
-                                        placeholder="بدون أمر شغل"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: '15px', marginTop: '30px', borderTop: '2px dashed #e2e8f0', paddingTop: '20px' }}>
-                            <button className="btn-main-glass green" onClick={handleSave} disabled={logic.state.isProcessing} style={{ flex: 2, padding: '15px', fontSize: '16px' }}>
-                                {editingVoucher ? 'تحديث التسوية' : 'حفظ التسوية'}
-                            </button>
-                            <button className="btn-main-glass red" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '15px', fontSize: '16px' }}>إلغاء</button>
-                        </div>
-                    </div>
-                </div>
-            , document.body)}
+            <PhiDialog
+                open={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                title={editingVoucher ? 'تعديل سند التسوية' : 'سند تسوية جديد'}
+                subtitle={editingVoucher?.voucher_number ? `رقم السند: ${editingVoucher.voucher_number}` : 'قيد بطرفين: حساب مدين وحساب دائن بنفس المبلغ'}
+                icon={<Scale size={22} />}
+                busy={logic.state.isProcessing}
+                total={<><small>مبلغ التسوية</small><strong>{formatCurrency(Number(formData.amount || 0))}</strong></>}
+                footer={<button type="button" className="ent-button ent-primary" onClick={() => void handleSave()} disabled={logic.state.isProcessing || !(Number(formData.amount) > 0)}><Save size={16} aria-hidden="true" />{logic.state.isProcessing ? 'جاري الحفظ…' : editingVoucher ? 'تحديث التسوية' : 'حفظ التسوية'}</button>}
+            >
+                <section className="ent-form-section"><h3><FileText size={17} aria-hidden="true" />بيانات السند</h3><div className="ent-form-grid">
+                    <div className="ent-form-field"><label htmlFor="mj-date">التاريخ</label><input id="mj-date" type="date" required value={formData.entry_date} onChange={e => setFormData({...formData, entry_date: e.target.value})} /></div>
+                    <div className="ent-form-field"><label htmlFor="mj-amount">المبلغ <span aria-hidden="true">*</span></label><input id="mj-amount" data-autofocus type="number" min="0.01" step="0.01" required placeholder="0.00" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} /></div>
+                    <div className="ent-form-field ent-form-full"><label htmlFor="mj-description">البيان / تفاصيل التسوية</label><textarea id="mj-description" rows={2} placeholder="سبب التسوية…" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} /></div>
+                </div></section>
+                <div className="ent-form-divider" />
+                <section className="ent-form-section"><h3><ArrowLeftRight size={17} aria-hidden="true" />طرفا القيد</h3><div className="ent-form-grid">
+                    <div className="ent-form-field"><SmartCombo label="من حساب (الطرف الدائن)" options={logic.state.accounts || []} displayCol="name" initialDisplay={(logic.state.accounts || []).find((a: any) => a.id === formData.credit_account_id)?.name || ''} onSelect={(val: any) => setFormData({...formData, credit_account_id: val?.id || ''})} placeholder="اختر الحساب الدائن…" /></div>
+                    <div className="ent-form-field"><SmartCombo label="إلى حساب (الطرف المدين)" options={logic.state.accounts || []} displayCol="name" initialDisplay={(logic.state.accounts || []).find((a: any) => a.id === formData.debit_account_id)?.name || ''} onSelect={(val: any) => setFormData({...formData, debit_account_id: val?.id || ''})} placeholder="اختر الحساب المدين…" /></div>
+                </div></section>
+                <div className="ent-form-divider" />
+                <section className="ent-form-section"><h3><Link2 size={17} aria-hidden="true" />الربط التحليلي <span className="ent-muted">اختياري</span></h3><div className="ent-form-grid cols-3">
+                    <div className="ent-form-field"><SmartCombo label="الشريك" options={logic.state.partners || []} displayCol="name" initialDisplay={(logic.state.partners || []).find((p: any) => p.id === formData.partner_id)?.name || ''} onSelect={(val: any) => setFormData({...formData, partner_id: val?.id || ''})} placeholder="بدون شريك" /></div>
+                    <div className="ent-form-field"><SmartCombo label="الموقع / المشروع" options={logic.state.projects || []} displayCol="Property" initialDisplay={(() => { const project: any = (logic.state.projects || []).find((p: any) => p.id === formData.project_id); return project?.Property || project?.name || ''; })()} onSelect={(val: any) => setFormData({...formData, project_id: val?.id || ''})} placeholder="بدون مشروع" /></div>
+                    <div className="ent-form-field"><SmartCombo label="أمر الشغل" table="job_orders" displayCol="order_number" searchCols="order_number,notes" filterColumn="project_id" filterValue={formData.project_id || undefined} initialDisplay={formData.job_order_id ? 'أمر شغل مرتبط' : ''} customQuery={(q: any) => q.select('*, boq_budget:boq_budget_id(work_item)')} displayFormat={(item: any) => `${item.order_number} - ${item.boq_budget?.work_item || 'بدون بند'}`} onSelect={(val: any) => setFormData({...formData, job_order_id: val?.id || ''})} placeholder="بدون أمر شغل" /></div>
+                </div></section>
+            </PhiDialog>
         </div>
     );
 }

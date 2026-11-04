@@ -12,7 +12,6 @@ import SecureAction from '@/components/SecureAction';
 
 // 🎨 معايير الواجهة 
 import GlassContainer from '@/components/GlassContainer'; 
-import UserCard from '@/components/UserCard'; 
 
 // 🏗️ معايير إعادة الاستخدام 
 import RawasiSmartTable from '@/components/rawasismarttable'; 
@@ -75,37 +74,9 @@ export default function JournalMaintenancePage() {
             />
 
             <div className="sovereign-glass-wrapper clean-page" style={{ padding: 'clamp(15px, 3vw, 30px)', direction: 'rtl', fontFamily: 'Cairo, sans-serif', minHeight: '100vh', position: 'relative' }}>
-                
-                {/* 📱 نافيجيشن الموبايل (اليوزر كارد أقصى اليسار) */}
-
-
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     <GlassContainer>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '15px' }}>
-                                <div>
-                                    <h1 style={{ color: THEME.primary, margin: 0, fontWeight: 900, fontSize: 'clamp(20px, 4vw, 26px)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                        غرفة تدقيق وصيانة الحسابات
-                                    </h1>
-                                    <p style={{ color: '#64748b', marginTop: '8px', fontSize: '14px', fontWeight: 'bold' }}>
-                                        فحص شامل لدفتر اليومية وضمان سلامة ميزان المراجعة.
-                                    </p>
-                                </div>
-
-                                <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                                    <input 
-                                        type="text" 
-                                        placeholder="ابحث في الأخطاء..." 
-                                        value={logic.searchQuery}
-                                        onChange={(e) => logic.setSearchQuery(e.target.value)}
-                                        style={{ padding: '12px 20px', borderRadius: '12px', border: '1px solid #e2e8f0', width: '250px', outline: 'none', fontWeight: 800, background: 'rgba(255,255,255,0.8)' }}
-                                    />
-                                    <div className="hidden-on-mobile">
-                                        <UserCard />
-                                    </div>
-                                </div>
-                            </div>
-
                             {/* شريط الإحصائيات (KPIs) */}
                             <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
                                 {kpis.map((kpi, idx) => (

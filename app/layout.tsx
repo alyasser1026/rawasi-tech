@@ -6,6 +6,7 @@ import "./brand.css";
 import "./enterprise.css";
 import "./enterprise-content.css";
 import "./enterprise-dialogs.css";
+import "./enterprise-layout.css";
 import AutoLogoutWrapper from '../components/AutoLogoutWrapper';
 import Providers from './providers';
 import NextTopLoader from 'nextjs-toploader';

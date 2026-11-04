@@ -20,7 +20,8 @@ import FinancialsTab from './FinancialsTab';
 import QcTab from './QcTab';
 import ExpensesTab from './ExpensesTab'; // 👈 استدعاء تاب المصروفات الجديد
 import LoadingScreen from '@/components/LoadingScreen';
-import { TriangleAlert } from 'lucide-react';
+import { Activity, Building2, CirclePause, Layers, TriangleAlert } from 'lucide-react';
+import KpiStrip from '@/components/KpiStrip';
 
 export default function AdvancedProjectsPage() {
     const logic = useProjectsLogic();
@@ -98,7 +99,8 @@ export default function AdvancedProjectsPage() {
     const sidebarFilters = (
       <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
           <input 
-              type="text" 
+              type="search" 
+              aria-label="بحث في المشاريع"
               placeholder="ابحث عن مشروع أو نوع النموذج..." 
               className="glass-input-field" 
               value={logic.searchQuery} 
@@ -106,7 +108,7 @@ export default function AdvancedProjectsPage() {
           />
           {!logic.selectedProject && (
               <>
-                  <select className="glass-input-field" value={logic.filterStatus} onChange={e => logic.setFilterStatus(e.target.value)}>
+                  <select className="glass-input-field" aria-label="حالة المشروع" value={logic.filterStatus} onChange={e => logic.setFilterStatus(e.target.value)}>
                       <option value="الكل">كل الحالات</option>
                       <option value="قيد الدراسة">قيد الدراسة</option>
                       <option value="جاري تجهيز الموقع">جاري تجهيز الموقع</option>
@@ -116,7 +118,7 @@ export default function AdvancedProjectsPage() {
                       <option value="منتهي">منتهي</option>
                   </select>
                   
-                  <select className="glass-input-field" value={logic.filterStage} onChange={e => logic.setFilterStage(e.target.value)}>
+                  <select className="glass-input-field" aria-label="المرحلة الإنشائية" value={logic.filterStage} onChange={e => logic.setFilterStage(e.target.value)}>
                       <option value="الكل">كل المراحل الإنشائية</option>
                       <option value="قيد الدراسة">قيد الدراسة</option>
                       {logic.availableStages?.map((stage: string) => (
@@ -133,14 +135,20 @@ export default function AdvancedProjectsPage() {
         <MasterPage title="غرفة عمليات المشاريع المتقدمة" subtitle="إدارة الميزانيات، المقايسات، والتدفقات النقدية للمشروعات">
           
           <RawasiSidebarManager 
-              summary={
-                  <div className="summary-glass-card">
-                      <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>{logic.selectedProject ? 'المشروع الحالي' : 'إجمالي المشاريع النشطة'}</span>
-                      <div className="val" style={{fontSize:'22px', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>
-                          {logic.selectedProject ? logic.selectedProject.project_code || 'بدون كود' : logic.projects.length}
-                      </div>
-                  </div>
-              }
+              summary={logic.selectedProject ? (
+                  <KpiStrip compact items={[
+                      { label: 'كود المشروع', value: logic.selectedProject.project_code || 'بدون كود', tone: 'brand', icon: <Building2 /> },
+                      { label: 'الحالة', value: logic.selectedProject.status || '—', tone: 'info', icon: <Activity /> },
+                      { label: 'المرحلة الحالية', value: logic.selectedProject.current_stage || '—', tone: 'neutral', icon: <Layers /> },
+                  ]} />
+              ) : (
+                  <KpiStrip compact items={[
+                      { label: 'المشاريع المعروضة', value: logic.projects.length.toLocaleString('ar-EG'), tone: 'brand', icon: <Building2 /> },
+                      { label: 'قيد التنفيذ', value: logic.projects.filter((p: any) => p.status === 'قيد التنفيذ').length.toLocaleString('ar-EG'), tone: 'success', icon: <Activity /> },
+                      { label: 'قيد الدراسة', value: logic.projects.filter((p: any) => p.status === 'قيد الدراسة').length.toLocaleString('ar-EG'), tone: 'info', icon: <Layers /> },
+                      { label: 'متوقف أو منتهي', value: logic.projects.filter((p: any) => ['متوقف', 'متوقف مؤقتا', 'منتهي'].includes(p.status)).length.toLocaleString('ar-EG'), tone: 'neutral', icon: <CirclePause /> },
+                  ]} />
+              )}
               actions={sidebarActions}
               customFilters={sidebarFilters}
               watchDeps={[logic.selectedProject, logic.activeTab, logic.searchQuery, logic.projects.length, logic.filterStatus, logic.filterStage]}
@@ -159,8 +167,8 @@ export default function AdvancedProjectsPage() {
             .glass-card { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); padding: 25px; borderRadius: 24px; border: 1px solid rgba(255,255,255,0.8); boxShadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 25px; }
             .labor-stat-item { display: flex; flex-direction: column; background: rgba(255,255,255,0.5); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.7); }
             
-            .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-            .project-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 14px; padding: 25px; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
+            .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+            .project-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 14px; padding: 20px; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
             .project-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); border-color: ${THEME.goldAccent}; }
             .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,0.05); fontSize: 12px; font-weight: 800; color: #475569; }
             .stat-row:last-child { border-bottom: none; }

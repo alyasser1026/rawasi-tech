@@ -4,16 +4,14 @@ import { useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { usePermissions } from '@/lib/PermissionsContext';
 import { NAVIGATION_SHORTCUTS, searchWorkspacePages, workspacePages } from '@/lib/workspace-navigation';
-import { usePerformancePreferences } from './PerformancePreferences';
 import WorkspaceDialog from './WorkspaceDialog';
-import { Search, Zap, Keyboard } from 'lucide-react';
 import { MenuIcon } from './NavigationIcon';
+import { OPEN_SEARCH_EVENT, OPEN_SHORTCUTS_EVENT } from './AppTopBar';
 
 export default function GlobalNavigationShortcuts() {
   const router = useRouter();
   const pathname = usePathname();
   const { role, can, loading } = usePermissions();
-  const { fastMode, ready, toggle } = usePerformancePreferences();
   const [dialog, setDialog] = useState<'search' | 'help' | null>(null);
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(0);
@@ -35,6 +33,15 @@ export default function GlobalNavigationShortcuts() {
   }, []);
 
   useEffect(() => { setDialog(null); }, [pathname]);
+
+  // The top bar opens these dialogs through window events, so dialogs and shortcuts live in one place.
+  useEffect(() => {
+    const showSearch = () => openSearch();
+    const showShortcuts = () => setDialog('help');
+    window.addEventListener(OPEN_SEARCH_EVENT, showSearch);
+    window.addEventListener(OPEN_SHORTCUTS_EVENT, showShortcuts);
+    return () => { window.removeEventListener(OPEN_SEARCH_EVENT, showSearch); window.removeEventListener(OPEN_SHORTCUTS_EVENT, showShortcuts); };
+  }, [openSearch]);
 
   useEffect(() => {
     if (isPublicPage || loading) return;
@@ -63,17 +70,6 @@ export default function GlobalNavigationShortcuts() {
   if (isPublicPage) return null;
 
   return <>
-    <div className="workspace-tools no-print" aria-label="أدوات مساحة العمل">
-      <button type="button" className="workspace-button workspace-search-trigger" onClick={openSearch} disabled={loading}>
-        <span><Search size={15} aria-hidden="true"/>البحث في الشاشات</span><kbd dir="ltr">Ctrl K</kbd>
-      </button>
-      <div className="workspace-tool-actions">
-        <button type="button" className="workspace-button" onClick={toggle} disabled={!ready} aria-pressed={fastMode} title="تقليل الحركات والظلال والتغبيش على هذا الجهاز">
-          <Zap size={15} aria-hidden="true"/>{fastMode ? 'الأداء السريع مفعّل' : 'وضع الأداء السريع'}
-        </button>
-        <button type="button" className="workspace-button" onClick={() => setDialog('help')}><Keyboard size={15} aria-hidden="true"/>الاختصارات <kbd>F1</kbd></button>
-      </div>
-    </div>
     {online === false && <div className="workspace-offline no-print" role="status">الاتصال بالإنترنت غير متاح. قد تكون البيانات المعروضة قديمة؛ تأكد من نجاح الحفظ بعد عودة الاتصال.</div>}
     {dialog === 'search' && <WorkspaceDialog title="انتقل إلى شاشة" onClose={close}>
       <label className="workspace-search-label" htmlFor={`${resultId}-search`}>ابحث باسم الشاشة أو القسم</label>

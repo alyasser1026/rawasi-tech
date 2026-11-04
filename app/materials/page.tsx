@@ -15,6 +15,8 @@ import { useConfirm } from '@/components/ConfirmContext';
 // 🚀 استدعاء مودال الصرف المجمع الجديد
 import BulkDispenseModal from './BulkDispenseModal'; 
 import LoadingScreen from '@/components/LoadingScreen';
+import KpiStrip from '@/components/KpiStrip';
+import { FileText, ListChecks, Package } from 'lucide-react';
 import { notify } from '@/lib/notify';
 
 // =========================================================================
@@ -332,17 +334,65 @@ export default function MaterialsPage() {
                         </div>
                     }
                     summary={
-                        <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'white' }}>
-                            <div className="kpi-box danger">
-                                <span>إجمالي قيمة الخامات (للفلتر الحالي)</span>
-                                <strong>{formatCurrency(filteredTotalCost)}</strong>
-                            </div>
-                            <div className="kpi-box secondary">
-                                <span>عدد الفواتير المعروضة</span>
-                                <strong>{groupedData.length} فاتورة</strong>
-                            </div>
+                        <KpiStrip compact items={[
+                            { label: 'قيمة الخامات (حسب التصفية)', value: formatCurrency(filteredTotalCost), tone: 'brand', icon: <Package /> },
+                            { label: 'الفواتير المعروضة', value: groupedData.length.toLocaleString('ar-EG'), tone: 'info', icon: <FileText /> },
+                            { label: 'المحدد للصرف', value: (logic.selectedLineItems?.length || 0).toLocaleString('ar-EG'), tone: 'neutral', icon: <ListChecks />, hint: 'سطور خامات' },
+                        ]} />
+                    }
+                    customFilters={
+                        <div>
+                    <MultiSelectDropdown 
+                        title="فلتر المشاريع (الفلل)"
+                        placeholder="كل المشاريع"
+                        options={uniqueProjects}
+                        selected={selectedProjects}
+                        onChange={setSelectedProjects}
+                        accentColor={THEME.primary || '#2563eb'}
+                    />
+
+                    <MultiSelectDropdown 
+                        title="فلتر الموردين"
+                        placeholder="كل الموردين"
+                        options={uniqueSuppliers}
+                        selected={selectedSuppliers}
+                        onChange={setSelectedSuppliers}
+                        accentColor="#8b5cf6"
+                    />
+
+                    <MultiSelectDropdown 
+                        title="فلتر الخامات الموردة"
+                        placeholder="كل الخامات"
+                        options={uniqueItems}
+                        selected={selectedItems}
+                        onChange={setSelectedItems}
+                        accentColor={THEME.goldAccent || '#d97706'}
+                    />
+
+                    <div>
+                        <label style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>ترتيب العرض</label>
+                        <select className="glass-input-field" aria-label="ترتيب العرض" value={logic.sortBy} onChange={e => logic.setSortBy(e.target.value)}>
+                            <option value="newest">الأحدث إضافة</option>
+                            <option value="oldest">الأقدم</option>
+                            <option value="highest_price">السعر: الأعلى أولاً</option>
+                            <option value="lowest_price">السعر: الأقل أولاً</option>
+                        </select>
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+                        <div>
+                            <label style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>من تاريخ</label>
+                            <input type="date" className="glass-input-field" value={logic.dateFrom} onChange={e => logic.setDateFrom(e.target.value)} />
+                        </div>
+                        <div>
+                            <label style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>إلى تاريخ</label>
+                            <input type="date" className="glass-input-field" value={logic.dateTo} onChange={e => logic.setDateTo(e.target.value)} />
+                        </div>
+                    </div>
                         </div>
                     }
+                    onSearch={(value) => logic.setGlobalSearch(value)}
+                    placeholder="ابحث برقم الفاتورة أو البيان…"
                     watchDeps={[logic.globalSearch, logic.dateFrom, logic.dateTo, logic.selectedIds, logic.sortBy, currentPage, rowsPerPage, groupedData, selectedProjects, selectedSuppliers, selectedItems, logic.selectedLineItems]}
                 />
 
@@ -421,69 +471,6 @@ export default function MaterialsPage() {
                         .child-table td { border: 1px solid #000; }
                     }
                 `}</style>
-
-                {/* 🚀 شريط الفلاتر الزجاجي الأبيض أعلى الجدول */}
-                <div className="apple-glass-filter-bar no-print">
-                    <div>
-                        <label style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>بحث عام بالنص</label>
-                        <input 
-                            type="text" 
-                            placeholder="ابحث بالرقم أو البيان..." 
-                            className="glass-input-field" 
-                            style={{ height: '45px' }}
-                            value={logic.globalSearch} 
-                            onChange={e => logic.setGlobalSearch(e.target.value)} 
-                        />
-                    </div>
-                    
-                    <MultiSelectDropdown 
-                        title="فلتر المشاريع (الفلل)"
-                        placeholder="كل المشاريع"
-                        options={uniqueProjects}
-                        selected={selectedProjects}
-                        onChange={setSelectedProjects}
-                        accentColor={THEME.primary || '#2563eb'}
-                    />
-
-                    <MultiSelectDropdown 
-                        title="فلتر الموردين"
-                        placeholder="كل الموردين"
-                        options={uniqueSuppliers}
-                        selected={selectedSuppliers}
-                        onChange={setSelectedSuppliers}
-                        accentColor="#8b5cf6"
-                    />
-
-                    <MultiSelectDropdown 
-                        title="فلتر الخامات الموردة"
-                        placeholder="كل الخامات"
-                        options={uniqueItems}
-                        selected={selectedItems}
-                        onChange={setSelectedItems}
-                        accentColor={THEME.goldAccent || '#d97706'}
-                    />
-
-                    <div>
-                        <label style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>ترتيب العرض</label>
-                        <select className="glass-input-field" style={{ height: '45px' }} value={logic.sortBy} onChange={e => logic.setSortBy(e.target.value)}>
-                            <option value="newest">الأحدث إضافة</option>
-                            <option value="oldest">الأقدم</option>
-                            <option value="highest_price">السعر: الأعلى أولاً</option>
-                            <option value="lowest_price">السعر: الأقل أولاً</option>
-                        </select>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
-                        <div>
-                            <label style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>من تاريخ</label>
-                            <input type="date" className="glass-input-field" style={{ height: '45px', padding: '0 10px' }} value={logic.dateFrom} onChange={e => logic.setDateFrom(e.target.value)} />
-                        </div>
-                        <div>
-                            <label style={{ fontSize: '11px', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>إلى تاريخ</label>
-                            <input type="date" className="glass-input-field" style={{ height: '45px', padding: '0 10px' }} value={logic.dateTo} onChange={e => logic.setDateTo(e.target.value)} />
-                        </div>
-                    </div>
-                </div>
 
                 {/* 🌳 جدول الشجرة التجميعي الذكي بناءً على الفاتورة */}
                 <div>

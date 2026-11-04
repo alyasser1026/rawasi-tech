@@ -12,6 +12,8 @@ import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
+import KpiStrip from '@/components/KpiStrip';
+import { ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, Scale, Trash2 } from 'lucide-react';
 
 // ==========================================
 // 🧠 العقل المدبر (Logic) - متوافق مع قوانين Supabase
@@ -266,214 +268,88 @@ export default function JournalPage() {
     }
   ], []);
 
-  const sidebarActions = useMemo(() => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-      {logic.selectedIds.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <p style={{fontSize:'11px', textAlign:'center', color:'#94a3b8', fontWeight:900, margin:0}}>تم تحديد ({logic.selectedIds.length}) سطر من الدفتر</p>
-          <SecureAction module="journal" action="delete">
-            <button className="btn-main-glass red" onClick={logic.handleDeleteHeaders}>حذف القيود المحددة نهائياً</button>
-          </SecureAction>
-        </div>
-      )}
+  const voucherTypes = ['الكل', 'يدوي', 'مصروف', 'إيراد', 'صرف', 'قبض', 'توريد', 'مستخلص'];
+  const statuses = ['الكل', 'معتمد', 'مسودة'];
+  const balanced = logic.totals.balance === 0;
+
+  const summary = useMemo(() => <KpiStrip compact items={[
+    { label: 'إجمالي المدين', value: formatCurrency(logic.totals.totalDebit), tone: 'success', icon: <ArrowDownLeft /> },
+    { label: 'إجمالي الدائن', value: formatCurrency(logic.totals.totalCredit), tone: 'danger', icon: <ArrowUpRight /> },
+    { label: logic.isFiltered ? 'صافي رصيد التصفية' : (balanced ? 'الدفتر متزن' : (logic.totals.balance > 0 ? 'رصيد مدين' : 'رصيد دائن')), value: formatCurrency(Math.abs(logic.totals.balance)), tone: balanced ? 'success' : 'warning', icon: <Scale />, hint: `${logic.totals.count.toLocaleString('ar-EG')} سطر` },
+  ]} />, [logic.totals, logic.isFiltered, balanced]);
+
+  const sidebarActions = useMemo(() => logic.selectedIds.length > 0 ? <>
+    <p>تم تحديد {logic.selectedIds.length.toLocaleString('ar-EG')} سطر</p>
+    <SecureAction module="journal" action="delete">
+      <button type="button" className="ent-button ent-danger" onClick={logic.handleDeleteHeaders}><Trash2 size={15} aria-hidden="true" />حذف القيود المحددة</button>
+    </SecureAction>
+    <button type="button" className="ent-button" onClick={() => logic.setSelectedIds([])}>إلغاء التحديد</button>
+  </> : null, [logic.selectedIds.length, logic.handleDeleteHeaders, logic.setSelectedIds]);
+
+  const filters = (
+    <div>
+      <div><label className="filter-label" htmlFor="journal-from">من تاريخ</label><input id="journal-from" type="date" value={logic.dateFrom} onChange={e => logic.setDateFrom(e.target.value)} /></div>
+      <div><label className="filter-label" htmlFor="journal-to">إلى تاريخ</label><input id="journal-to" type="date" value={logic.dateTo} onChange={e => logic.setDateTo(e.target.value)} /></div>
+      <SmartCombo label="الحساب (رقم أو اسم)" table="accounts" displayCol="name" initialDisplay="" onSelect={(v: any) => logic.setFilterAccountId(v?.id || null)} />
+      <SmartCombo label="الشريك (مورد / عميل / عامل)" table="partners" displayCol="name" initialDisplay="" onSelect={(v: any) => logic.setFilterPartnerId(v?.id || null)} />
+      <SmartCombo label="المشروع / الفيلا" table="projects" displayCol="name" initialDisplay="" onSelect={(v: any) => logic.setFilterProjectId(v?.id || null)} />
+      <div className="phi-filter-wide">
+        <div><span className="filter-label">نوع القيد</span><div className="phi-segmented" role="group" aria-label="نوع القيد">{voucherTypes.map(type => <button key={type} type="button" aria-pressed={logic.filterVType === type} onClick={() => logic.setFilterVType(type)}>{type}</button>)}</div></div>
+        <div><span className="filter-label">الحالة</span><div className="phi-segmented" role="group" aria-label="حالة القيد">{statuses.map(type => <button key={type} type="button" aria-pressed={logic.filterStatus === type} onClick={() => logic.setFilterStatus(type)}>{type}</button>)}</div></div>
+      </div>
     </div>
-  ), [logic.selectedIds.length, logic.handleDeleteHeaders]); 
+  );
 
   return (
     <div className="clean-page">
-      <MasterPage title="دفتر اليومية الشامل" subtitle="استعلام شامل وسريع جداً مع تقسيم يدوي للصفحات لمنع التهنيج.">
-          
-          <RawasiSidebarManager 
-            summary={
-              <div className="summary-glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div>
-                  <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المدين</span>
-                  <div style={{fontSize:'18px', fontWeight:900, color: '#059669'}}>
-                    {formatCurrency(logic.totals.totalDebit)}
-                  </div>
-                </div>
-                <div style={{ borderTop: '1px dashed rgba(255,255,255,0.2)', paddingTop: '10px' }}>
-                  <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الدائن</span>
-                  <div style={{fontSize:'18px', fontWeight:900, color: '#dc2626'}}>
-                    {formatCurrency(logic.totals.totalCredit)}
-                  </div>
-                </div>
-                <div style={{ borderTop: '1px dashed rgba(255,255,255,0.2)', paddingTop: '10px', background: logic.totals.balance !== 0 ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)', padding: '10px', borderRadius: '10px' }}>
-                  <span style={{fontSize:'12px', fontWeight:800, color: logic.totals.balance !== 0 ? '#d97706' : '#059669'}}>
-                     {logic.isFiltered ? 'صافي رصيد الفلترة' : (logic.totals.balance === 0 ? 'متزن' : (logic.totals.balance > 0 ? 'رصيد مدين' : 'رصيد دائن'))}
-                  </span>
-                  <div style={{fontSize:'20px', fontWeight:900, color: logic.totals.balance !== 0 ? '#d97706' : '#059669'}}>
-                    {formatCurrency(Math.abs(logic.totals.balance))}
-                  </div>
-                </div>
-              </div>
-            }
+      <MasterPage title="دفتر اليومية الشامل" subtitle="كل سطور القيود مع البحث والتصفية حسب الحساب والشريك والمشروع">
+          <RawasiSidebarManager
+            summary={summary}
             actions={sidebarActions}
-            customFilters={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
-                
-                <div>
-                    <label className="filter-label">عدد الصفوف في الصفحة (للجدول)</label>
-                    <select 
-                        value={logic.rowsPerPage} 
-                        onChange={(e) => logic.setRowsPerPage(Number(e.target.value))} 
-                        className="filter-input-glass custom-select"
-                    >
-                        <option value={50}>50 صف / صفحة</option>
-                        <option value={100}>100 صف / صفحة</option>
-                        <option value={500}>500 صف / صفحة</option>
-                    </select>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <div>
-                        <label className="filter-label">من تاريخ</label>
-                        <input type="date" value={logic.dateFrom} onChange={e => logic.setDateFrom(e.target.value)} className="filter-input-glass" />
-                    </div>
-                    <div>
-                        <label className="filter-label">إلى تاريخ</label>
-                        <input type="date" value={logic.dateTo} onChange={e => logic.setDateTo(e.target.value)} className="filter-input-glass" />
-                    </div>
-                </div>
-
-                <div style={{ zIndex: 100 }}>
-                    <SmartCombo 
-                        label="البحث برقم / اسم الحساب" 
-                        table="accounts"
-                        displayCol="name"
-                        initialDisplay="" 
-                        onSelect={(v:any) => logic.setFilterAccountId(v?.id || null)} 
-                    />
-                </div>
-
-                <div style={{ zIndex: 90 }}>
-                    <SmartCombo 
-                        label="البحث باسم الشريك (مورد/عميل/عامل)" 
-                        table="partners"
-                        displayCol="name"
-                        initialDisplay="" 
-                        onSelect={(v:any) => logic.setFilterPartnerId(v?.id || null)} 
-                    />
-                </div>
-
-                <div style={{ zIndex: 80 }}>
-                    <SmartCombo 
-                        label="البحث باسم المشروع / الفيلا" 
-                        table="projects"
-                        displayCol="name"
-                        initialDisplay="" 
-                        onSelect={(v:any) => logic.setFilterProjectId(v?.id || null)} 
-                    />
-                </div>
-
-                <div>
-                  <label className="filter-label">تصفية حسب نوع القيد</label>
-                  <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
-                    {['الكل', 'يدوي', 'مصروف', 'إيراد', 'صرف', 'قبض', 'توريد', 'مستخلص'].map(type => (
-                      <button 
-                        key={type} 
-                        onClick={() => logic.setFilterVType(type)} 
-                        className={`filter-btn ${logic.filterVType === type ? 'active' : ''}`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="filter-label">تصفية حسب الحالة</label>
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    {['الكل', 'معتمد', 'مسودة'].map(type => (
-                      <button 
-                        key={type} 
-                        onClick={() => logic.setFilterStatus(type)} 
-                        className={`filter-btn ${logic.filterStatus === type ? 'active' : ''}`}
-                      >
-                        {type}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-              </div>
-            }
-            onSearch={(val) => logic.setGlobalSearch(val)} 
-            watchDeps={[logic.selectedIds.length, logic.totals.balance, logic.filterStatus, logic.filterVType, logic.dateFrom, logic.dateTo, logic.filterAccountId, logic.filterPartnerId, logic.filterProjectId, logic.rowsPerPage, logic.globalSearch]}
+            customFilters={filters}
+            placeholder="ابحث في البيان أو الحساب أو رقم القيد…"
+            onSearch={(val) => logic.setGlobalSearch(val)}
+            watchDeps={[logic.selectedIds.length, logic.totals, logic.filterStatus, logic.filterVType, logic.dateFrom, logic.dateTo, logic.filterAccountId, logic.filterPartnerId, logic.filterProjectId, logic.globalSearch]}
           />
 
           <style>{`
-            .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-            .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-            .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); }
-            
-            .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
-            
-            .filter-label { color: white; fontSize: 11px; font-weight: 900; display: block; margin-bottom: 8px; }
-            .filter-input-glass { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white; outline: none; font-family: inherit; font-weight: 800; font-size: 13px; transition: 0.3s; }
-            .filter-input-glass:focus { background: rgba(0,0,0,0.4); border-color: ${THEME.goldAccent}; }
-            .filter-input-glass::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
-            
-            .custom-select { appearance: auto; cursor: pointer; }
-            .custom-select option { background: #1e293b; color: white; font-weight: 900; }
-
-            .filter-btn { flex: 1; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: 11px; transition: 0.3s; }
-            .filter-btn.active { background: ${THEME.goldAccent}; color: #1e293b; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-            
-            .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; display: inline-block; }
-            .badge-glass.green { background: #ecfdf5; color: #059669; }
-            .badge-glass.yellow { background: #fff7ed; color: #d97706; }
-            
-            .pagination-container { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
-            .btn-pagination { background: rgba(255,255,255,0.1); color: white; border: none; padding: 10px 20px; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; }
-            .btn-pagination:hover:not(:disabled) { background: ${THEME.goldAccent}; color: #1e293b; }
-            .btn-pagination:disabled { opacity: 0.3; cursor: not-allowed; }
+            .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; display: inline-block; }
+            .badge-glass.green { background: #ecfdf5; color: #047857; }
+            .badge-glass.yellow { background: #fff7ed; color: #b45309; }
           `}</style>
 
           {(logic.isLoading || permsLoading) ? (
-            <LoadingScreen message="جاري سحب البيانات (دفعات 1000 سطر)..." fullScreen={false} />
+            <LoadingScreen message="جاري تحميل سطور دفتر اليومية..." fullScreen={false} />
           ) : logic.isError ? (
-            <div style={{ textAlign: 'center', padding: '100px', fontWeight: 900, color: '#ef4444' }}>
-              حدث خطأ في الاتصال بقاعدة البيانات.
-            </div>
+            <div className="ent-panel"><div className="ent-empty" role="alert"><h3>تعذر تحميل دفتر اليومية</h3><p>تحقق من الاتصال ثم أعد تحميل الصفحة.</p></div></div>
           ) : (
-            <>
-              <RawasiSmartTable 
-                  data={logic.paginatedLines} 
-                  columns={columns} 
+            <div className="ent-panel">
+              <RawasiSmartTable
+                  data={logic.paginatedLines}
+                  columns={columns}
                   selectable={true}
                   selectedIds={logic.selectedIds}
                   onSelectionChange={logic.setSelectedIds}
-                  enablePagination={false} 
-                  rowKey="line_id" 
+                  enablePagination={false}
+                  rowKey="line_id"
               />
-              
               {logic.totals.count > 0 && (
-                <div className="pagination-container">
-                    <button 
-                        className="btn-pagination" 
-                        onClick={() => logic.setCurrentPage(p => Math.max(1, p - 1))} 
-                        disabled={logic.currentPage === 1}
-                    >\
-                        السابق
-                    </button>
-                    
-                    <span style={{ color: '#94a3b8', fontWeight: 800, fontSize: '13px' }}>
-                        صفحة <b style={{color: 'white'}}>{logic.currentPage}</b> من <b style={{color: 'white'}}>{logic.totalPages}</b> 
-                        <span style={{margin: '0 10px'}}>|</span> 
-                        إجمالي <b style={{color: THEME.goldAccent}}>{logic.totals.count}</b> سطر
-                    </span>
-
-                    <button 
-                        className="btn-pagination" 
-                        onClick={() => logic.setCurrentPage(p => Math.min(logic.totalPages, p + 1))} 
-                        disabled={logic.currentPage === logic.totalPages}
-                    >
-                        التالي
-                    </button>
+                <div className="ent-table-footer">
+                  <span>صفحة <b>{logic.currentPage.toLocaleString('ar-EG')}</b> من <b>{logic.totalPages.toLocaleString('ar-EG')}</b> · إجمالي <b>{logic.totals.count.toLocaleString('ar-EG')}</b> سطر</span>
+                  <div className="phi-pager">
+                    <label>عدد الصفوف
+                      <select value={logic.rowsPerPage} onChange={(e) => logic.setRowsPerPage(Number(e.target.value))}>
+                        <option value={50}>50</option>
+                        <option value={100}>100</option>
+                        <option value={500}>500</option>
+                      </select>
+                    </label>
+                    <button type="button" className="ent-button" onClick={() => logic.setCurrentPage(p => Math.max(1, p - 1))} disabled={logic.currentPage === 1}><ChevronRight size={15} aria-hidden="true" />السابق</button>
+                    <button type="button" className="ent-button" onClick={() => logic.setCurrentPage(p => Math.min(logic.totalPages, p + 1))} disabled={logic.currentPage === logic.totalPages}>التالي<ChevronLeft size={15} aria-hidden="true" /></button>
+                  </div>
                 </div>
               )}
-            </>
+            </div>
           )}
       </MasterPage>
     </div>
