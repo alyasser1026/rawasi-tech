@@ -36,12 +36,12 @@ export default function InvoiceAgingDashboard({ aging }: { aging: AgingStats }) 
       {/* 1. العنوان وإجمالي المتأخرات */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
-          <h2 style={{ margin: 0, color: '#1e293b', fontSize: '20px', fontWeight: 900 }}>تحليل أعمار الديون</h2>
-          <p style={{ margin: '5px 0 0', color: '#64748b', fontSize: '13px' }}>إجمالي الأرصدة المفتوحة: <strong>{formatCurrency(aging.totalOpen)}</strong></p>
+          <h2 style={{ margin: 0, color: '#1e293b', fontSize: 'var(--fs-xl)', fontWeight: 900 }}>تحليل أعمار الديون</h2>
+          <p style={{ margin: '5px 0 0', color: '#64748b', fontSize: 'var(--fs-sm)' }}>إجمالي الأرصدة المفتوحة: <strong>{formatCurrency(aging.totalOpen)}</strong></p>
         </div>
         <div style={{ background: '#fee2e2', padding: '10px 15px', borderRadius: '10px', border: '1px solid #fca5a5' }}>
-          <span style={{ color: '#991b1b', fontSize: '12px', fontWeight: 'bold', display: 'block' }}>إجمالي المتأخرات</span>
-          <span style={{ color: '#ef4444', fontSize: '18px', fontWeight: 900 }}>{formatCurrency(aging.totalOverdue)}</span>
+          <span style={{ color: '#991b1b', fontSize: 'var(--fs-sm)', fontWeight: 'bold', display: 'block' }}>إجمالي المتأخرات</span>
+          <span style={{ color: '#ef4444', fontSize: 'var(--fs-xl)', fontWeight: 900 }}>{formatCurrency(aging.totalOverdue)}</span>
         </div>
       </div>
 
@@ -78,8 +78,8 @@ function AgingCard({ title, amount, color }: { title: string, amount: number, co
   
   return (
     <div style={{ display: 'flex', flexDirection: 'column', padding: '10px', background: 'rgba(255,255,255,0.5)', borderRadius: '8px', borderLeft: `4px solid ${color}` }}>
-      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 'bold' }}>{title}</span>
-      <span style={{ fontSize: '14px', color: '#1e293b', fontWeight: 900 }}>{formatCurrency(amount)}</span>
+      <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 'bold' }}>{title}</span>
+      <span style={{ fontSize: 'var(--fs-md)', color: '#1e293b', fontWeight: 900 }}>{formatCurrency(amount)}</span>
     </div>
   );
 }

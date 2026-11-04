@@ -127,7 +127,7 @@ export default function AuditLogs() {
             render: (row: any) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ fontWeight: 900, color: THEME.brand.coffee }}>{row.profiles?.full_name || 'System / Unknown'}</span>
-                    <span style={{ fontSize: '10px', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{row.profiles?.role || '---'}</span>
+                    <span style={{ fontSize: 'var(--fs-xs)', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px' }}>{row.profiles?.role || '---'}</span>
                 </div>
             )
         },
@@ -158,7 +158,7 @@ export default function AuditLogs() {
                 }
 
                 return (
-                    <span style={{ background: `${displayColor}15`, color: displayColor, padding: '6px 12px', borderRadius: '12px', fontWeight: 900, fontSize: '12px' }}>
+                    <span style={{ background: `${displayColor}15`, color: displayColor, padding: '6px 12px', borderRadius: '12px', fontWeight: 900, fontSize: 'var(--fs-sm)' }}>
                         {displayLabel}
                     </span>
                 );
@@ -196,7 +196,7 @@ export default function AuditLogs() {
 
         return (
             <div style={{ overflowX: 'auto', paddingBottom: '10px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', direction: 'ltr', textAlign: 'left', minWidth: 'max-content' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--fs-sm)', direction: 'ltr', textAlign: 'left', minWidth: 'max-content' }}>
                     <thead>
                         <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
                             <th style={{ padding: '10px', background: '#e2e8f0', position: 'sticky', left: 0, zIndex: 2, borderRight: '1px solid #cbd5e1' }}>الحالة (State)</th>
@@ -247,13 +247,13 @@ export default function AuditLogs() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', animation: 'fadeUp 0.5s ease-out' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <div>
-                    <h2 style={{ fontSize: '18px', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>سجل المراقبة والنشاطات</h2>
-                    <p style={{ margin: 0, fontSize: '12px', color: '#64748b', fontWeight: 700 }}>تتبع دقيق لجميع التعديلات والعمليات في النظام (Audit Logs)</p>
+                    <h2 style={{ fontSize: 'var(--fs-xl)', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>سجل المراقبة والنشاطات</h2>
+                    <p style={{ margin: 0, fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 700 }}>تتبع دقيق لجميع التعديلات والعمليات في النظام (Audit Logs)</p>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                     <div style={{ background: '#f8fafc', border: `1px solid ${THEME.brand.gold}`, padding: '8px 16px', borderRadius: '10px' }}>
-                        <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الحركات </span>
-                        <span style={{fontSize:'18px', fontWeight:900, color: THEME.brand.gold}}>{filteredLogs.length}</span>
+                        <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي الحركات </span>
+                        <span style={{fontSize:'var(--fs-xl)', fontWeight:900, color: THEME.brand.gold}}>{filteredLogs.length}</span>
                     </div>
                     <button onClick={fetchLogs} style={{ background: THEME.primary, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', fontWeight: 900 }}>
                         تحديث السجل
@@ -262,7 +262,7 @@ export default function AuditLogs() {
             </div>
             {logs.length === 0 && !isLoading && (
                 <div style={{ textAlign: 'center', padding: '60px', background: 'white', borderRadius: '14px', border: `1px solid ${THEME.brand.gold}40` }}>
-                    <div style={{ fontSize: '50px' }}><ShieldCheck size={40} aria-hidden="true" /></div>
+                    <div style={{ fontSize: 'var(--fs-display)' }}><ShieldCheck size={40} aria-hidden="true" /></div>
                     <h3 style={{ color: THEME.brand.coffee, fontWeight: 900 }}>لم يتم تسجيل أي نشاط بعد أو أن المحرك غير مفعل</h3>
                     <p style={{ color: '#64748b' }}>يرجى التأكد من تشغيل سكريبت (SQL) الخاص بسجل المراقبة في قاعدة البيانات لتفعيل الرصد التلقائي.</p>
                 </div>
@@ -272,25 +272,25 @@ export default function AuditLogs() {
                 <>
                     <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', marginBottom: '5px', background: '#f8fafc', padding: '15px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
                         <div style={{ flex: 1, minWidth: '150px' }}>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#64748b', marginBottom: '5px' }}>المستخدم (User)</label>
-                            <select value={filterUser} onChange={(e) => setFilterUser(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}>
+                            <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#64748b', marginBottom: '5px' }}>المستخدم (User)</label>
+                            <select value={filterUser} onChange={(e) => setFilterUser(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-sm)' }}>
                                 <option value="">الكل (All)</option>
                                 {uniqueUsers.map((user: string) => <option key={user} value={user}>{user}</option>)}
                             </select>
                         </div>
                         <div style={{ flex: 1, minWidth: '150px' }}>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#64748b', marginBottom: '5px' }}>الجدول (Table)</label>
-                            <select value={filterTable} onChange={(e) => setFilterTable(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}>
+                            <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#64748b', marginBottom: '5px' }}>الجدول (Table)</label>
+                            <select value={filterTable} onChange={(e) => setFilterTable(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-sm)' }}>
                                 <option value="">الكل (All)</option>
                                 {uniqueTables.map((table: string) => <option key={table} value={table}>{table}</option>)}
                             </select>
                         </div>
                         <div style={{ flex: 1, minWidth: '150px' }}>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#64748b', marginBottom: '5px' }}>نوع العملية (Action)</label>
+                            <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#64748b', marginBottom: '5px' }}>نوع العملية (Action)</label>
                             <select
                                 value={filterAction}
                                 onChange={(e) => setFilterAction(e.target.value)}
-                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px' }}
+                                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-sm)' }}
                             >
                                 <option value="">الكل (All)</option>
                                 {uniqueActions.map((action: string) => {
@@ -300,8 +300,8 @@ export default function AuditLogs() {
                             </select>
                         </div>
                         <div style={{ flex: 1, minWidth: '150px' }}>
-                            <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#64748b', marginBottom: '5px' }}>التاريخ (Date)</label>
-                            <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} style={{ width: '100%', padding: '9px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '13px', fontFamily: 'inherit' }} />
+                            <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#64748b', marginBottom: '5px' }}>التاريخ (Date)</label>
+                            <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} style={{ width: '100%', padding: '9px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-sm)', fontFamily: 'inherit' }} />
                         </div>
                         {(filterUser || filterTable || filterAction || filterDate) && (
                             <div style={{ display: 'flex', alignItems: 'flex-end' }}>
@@ -337,18 +337,18 @@ export default function AuditLogs() {
                     <div style={{ background: 'white', width: '900px', maxWidth: '95vw', maxHeight: '90vh', borderRadius: '14px', zIndex: 10, display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px rgba(0,0,0,0.3)' }}>
                         <div style={{ padding: '25px', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div>
-                                <h3 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: '20px' }}>تفاصيل العملية</h3>
-                                <p style={{ margin: '5px 0 0', fontSize: '13px', color: '#64748b' }}>معرف السجل: {selectedLog.id}</p>
+                                <h3 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-xl)' }}>تفاصيل العملية</h3>
+                                <p style={{ margin: '5px 0 0', fontSize: 'var(--fs-sm)', color: '#64748b' }}>معرف السجل: {selectedLog.id}</p>
                             </div>
                             <button onClick={() => setSelectedLog(null)} style={{ background: 'white', border: '1px solid #cbd5e1', borderRadius: '50%', width: '35px', height: '35px', cursor: 'pointer', fontWeight: 900 }}>✕</button>
                         </div>
 
                         <div style={{ padding: '25px', overflowY: 'auto', flex: 1 }}>
                             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginBottom: '25px', background: '#f1f5f9', padding: '15px', borderRadius: '16px' }}>
-                                <div><span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800 }}>الجدول:</span><span style={{ fontWeight: 900 }}>{selectedLog.table_name}</span></div>
-                                <div><span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800 }}>العملية:</span><span style={{ fontWeight: 900 }}>{selectedLog.action}</span></div>
-                                <div><span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800 }}>الوقت:</span><span style={{ fontWeight: 900, direction: 'ltr', display: 'inline-block' }}>{formatDate(selectedLog.created_at, true)}</span></div>
-                                <div><span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800 }}>بواسطة:</span><span style={{ fontWeight: 900 }}>{selectedLog.profiles?.full_name || 'System'}</span></div>
+                                <div><span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>الجدول:</span><span style={{ fontWeight: 900 }}>{selectedLog.table_name}</span></div>
+                                <div><span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>العملية:</span><span style={{ fontWeight: 900 }}>{selectedLog.action}</span></div>
+                                <div><span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>الوقت:</span><span style={{ fontWeight: 900, direction: 'ltr', display: 'inline-block' }}>{formatDate(selectedLog.created_at, true)}</span></div>
+                                <div><span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>بواسطة:</span><span style={{ fontWeight: 900 }}>{selectedLog.profiles?.full_name || 'System'}</span></div>
                             </div>
 
                             <h4 style={{ fontWeight: 900, marginBottom: '15px', color: THEME.brand.coffee }}>مقارنة البيانات الدقيقة (Data Diff)</h4>

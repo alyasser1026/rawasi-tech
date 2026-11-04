@@ -48,13 +48,13 @@ export default function SecureAction({ module, action, children, fallback = null
                 {showDeleteConfirm && (
                     <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.8)', backdropFilter: 'blur(5px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '14px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)', animation: 'scaleUp 0.3s ease-out', maxWidth: '400px', width: '90%', border: `2px solid ${THEME.danger || '#ef4444'}` }}>
-                            <div style={{ marginBottom: '20px', fontSize: '40px' }}>
+                            <div style={{ marginBottom: '20px', fontSize: 'var(--fs-display)' }}>
                                 <TriangleAlert size={34} aria-hidden="true" />
                             </div>
-                            <h2 style={{ color: THEME.danger || '#ef4444', fontWeight: 900, marginBottom: '10px', fontSize: '24px' }}>
+                            <h2 style={{ color: THEME.danger || '#ef4444', fontWeight: 900, marginBottom: '10px', fontSize: 'var(--fs-2xl)' }}>
                                 هل أنت متأكد من الحذف؟
                             </h2>
-                            <p style={{ color: '#64748b', fontSize: '14px', fontWeight: 700, marginBottom: '25px' }}>
+                            <p style={{ color: '#64748b', fontSize: 'var(--fs-md)', fontWeight: 700, marginBottom: '25px' }}>
                                 لا يمكن التراجع عن هذه العملية بعد إتمامها.
                             </p>
                             <div style={{ display: 'flex', gap: '15px' }}>
@@ -65,13 +65,13 @@ export default function SecureAction({ module, action, children, fallback = null
                                             originalOnClick(pendingEvent);
                                         }
                                     }}
-                                    style={{ flex: 1, padding: '12px', background: THEME.danger || '#ef4444', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '15px', transition: '0.3s' }}
+                                    style={{ flex: 1, padding: '12px', background: THEME.danger || '#ef4444', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-lg)', transition: '0.3s' }}
                                 >
                                     نعم
                                 </button>
                                 <button 
                                     onClick={() => setShowDeleteConfirm(false)}
-                                    style={{ flex: 1, padding: '12px', background: '#e2e8f0', color: '#475569', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: '15px', transition: '0.3s' }}
+                                    style={{ flex: 1, padding: '12px', background: '#e2e8f0', color: '#475569', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-lg)', transition: '0.3s' }}
                                 >
                                     لا
                                 </button>

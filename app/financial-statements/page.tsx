@@ -65,10 +65,10 @@ export default function FinancialStatementsPage() {
 
   const netIncome = Number(incomeStatement?.net_income || 0);
   const summary = useMemo(() => (incomeStatement || balanceSheet) ? <KpiStrip items={[
-    { label: 'إجمالي الإيرادات', value: formatCurrency(incomeStatement?.total_revenue || 0), tone: 'info', icon: <TrendingUp /> },
-    { label: 'إجمالي المصروفات', value: formatCurrency(incomeStatement?.total_expense || 0), tone: 'warning', icon: <TrendingDown /> },
-    { label: netIncome >= 0 ? 'صافي الربح' : 'صافي الخسارة', value: formatCurrency(Math.abs(netIncome)), tone: netIncome >= 0 ? 'success' : 'danger', icon: <Scale /> },
-    { label: 'إجمالي الأصول', value: formatCurrency(balanceSheet?.total_assets || 0), tone: 'brand', icon: <Landmark /> },
+    { label: 'إجمالي الإيرادات', amount: incomeStatement?.total_revenue || 0, tone: 'info', icon: <TrendingUp /> },
+    { label: 'إجمالي المصروفات', amount: incomeStatement?.total_expense || 0, tone: 'warning', icon: <TrendingDown /> },
+    { label: netIncome >= 0 ? 'صافي الربح' : 'صافي الخسارة', amount: Math.abs(netIncome), tone: netIncome >= 0 ? 'success' : 'danger', icon: <Scale /> },
+    { label: 'إجمالي الأصول', amount: balanceSheet?.total_assets || 0, tone: 'brand', icon: <Landmark /> },
   ]} /> : null, [incomeStatement, balanceSheet, netIncome]);
 
   const actions = useMemo(() => <>

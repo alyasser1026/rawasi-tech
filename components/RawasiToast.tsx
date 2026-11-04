@@ -49,13 +49,13 @@ export default function RawasiToast({ message, type, onClose, duration = 4000 }:
           box-shadow: 0 15px 35px rgba(0,0,0,0.1);
           color: #1e293b;
           font-weight: 800;
-          font-size: 14px;
+          font-size: var(--fs-md);
           min-width: 300px;
           pointer-events: auto;
           direction: rtl;
         }
         .toast-icon {
-          font-size: 20px;
+          font-size: var(--fs-xl);
         }
         .toast-progress {
           position: absolute;

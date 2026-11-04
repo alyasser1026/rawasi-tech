@@ -1,6 +1,7 @@
 import { Cairo } from "next/font/google";
 import LayoutClient from '../components/layout/LayoutClient';
 import "./globals.css";
+import "./phi-scale.css";
 import "./workspace.css";
 import "./brand.css";
 import "./enterprise.css";

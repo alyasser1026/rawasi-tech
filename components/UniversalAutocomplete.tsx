@@ -69,11 +69,11 @@ export const UniversalAutocomplete = ({ label, value, onChange, options, placeho
 
   return (
     <div style={{ position: 'relative', marginBottom: '15px' }} ref={ref}>
-      {label && <label className="label-royal" style={{display: 'block', fontWeight: 900, fontSize: '14px', color: THEME.primary, marginBottom: '6px'}}>{label}</label>}
-      <div onClick={() => !disabled && setIsOpen(true)} style={{ minHeight: isTextArea ? '80px' : '45px', padding: isTextArea ? '10px 12px' : '0 12px', borderRadius: '10px', border: `2px solid ${THEME.border}`, background: disabled ? '#f1f5f9' : '#ffffff', display: 'flex', alignItems: isTextArea ? 'flex-start' : 'center', cursor: disabled ? 'not-allowed' : 'text', color: '#000000', fontWeight: 900, fontSize: '15px' }}>
+      {label && <label className="label-royal" style={{display: 'block', fontWeight: 900, fontSize: 'var(--fs-md)', color: THEME.primary, marginBottom: '6px'}}>{label}</label>}
+      <div onClick={() => !disabled && setIsOpen(true)} style={{ minHeight: isTextArea ? '80px' : '45px', padding: isTextArea ? '10px 12px' : '0 12px', borderRadius: '10px', border: `2px solid ${THEME.border}`, background: disabled ? '#f1f5f9' : '#ffffff', display: 'flex', alignItems: isTextArea ? 'flex-start' : 'center', cursor: disabled ? 'not-allowed' : 'text', color: '#000000', fontWeight: 900, fontSize: 'var(--fs-lg)' }}>
         <InputElement 
           disabled={disabled}
-          style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', color: '#000000', fontWeight: 900, fontSize: '16px', resize: isTextArea ? 'vertical' : 'none', minHeight: isTextArea ? '70px' : 'auto' }}
+          style={{ width: '100%', border: 'none', outline: 'none', background: 'transparent', color: '#000000', fontWeight: 900, fontSize: 'var(--fs-lg)', resize: isTextArea ? 'vertical' : 'none', minHeight: isTextArea ? '70px' : 'auto' }}
           placeholder={placeholder}
           value={search}
           onChange={(e:any) => { setSearch(e.target.value); if(freeText) onChange(e.target.value); setIsOpen(true); }}
@@ -81,13 +81,13 @@ export const UniversalAutocomplete = ({ label, value, onChange, options, placeho
           onBlur={handleBlur} 
           onKeyDown={handleKeyDown} 
         />
-        {!isTextArea && <span style={{ fontSize: '10px', color: '#000000', cursor: 'pointer', paddingRight: '5px' }} onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}>▼</span>}
+        {!isTextArea && <span style={{ fontSize: 'var(--fs-xs)', color: '#000000', cursor: 'pointer', paddingRight: '5px' }} onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }}>▼</span>}
       </div>
       {isOpen && filtered.length > 0 && !disabled && (
          <div style={{ position: 'absolute', top: '100%', right: 0, left: 0, background: '#ffffff', zIndex: 10000, border: `2px solid ${THEME.accent}`, borderRadius: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.15)', maxHeight: '200px', overflowY: 'auto', marginTop: '5px' }}>
           {filtered.map((o:any, i:number) => (
               <div key={i} onMouseDown={(e) => { e.preventDefault(); handleSelect(o); }} onMouseEnter={() => setHighlightedIndex(i)} 
-                style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', fontSize: '15px', fontWeight: 900, color: '#000000', backgroundColor: highlightedIndex === i ? '#fef3c7' : 'transparent' }}>
+                style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#000000', backgroundColor: highlightedIndex === i ? '#fef3c7' : 'transparent' }}>
                 {typeof o === 'object' ? (o.display || o.item_name || o.Property || o.name) : o}
               </div>
           ))}
@@ -124,27 +124,27 @@ export const MultiSelectAutocomplete = ({ label, selectedValues = [], onChange, 
 
   return (
     <div style={{ position: 'relative', marginBottom: '15px' }} ref={ref}>
-      {label && <label className="label-royal" style={{display: 'block', fontWeight: 900, fontSize: '14px', color: THEME.primary, marginBottom: '6px'}}>{label}</label>}
-      <div onClick={() => setIsOpen(!isOpen)} style={{ minHeight: '45px', padding: '10px 12px', borderRadius: '10px', border: `2px solid ${THEME.border}`, background: '#ffffff', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#000000', fontWeight: 900, fontSize: '15px' }}>
+      {label && <label className="label-royal" style={{display: 'block', fontWeight: 900, fontSize: 'var(--fs-md)', color: THEME.primary, marginBottom: '6px'}}>{label}</label>}
+      <div onClick={() => setIsOpen(!isOpen)} style={{ minHeight: '45px', padding: '10px 12px', borderRadius: '10px', border: `2px solid ${THEME.border}`, background: '#ffffff', display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#000000', fontWeight: 900, fontSize: 'var(--fs-lg)' }}>
         <div style={{ flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: selectedDisplays ? '#000' : '#9ca3af' }}>
            {selectedDisplays || placeholder}
         </div>
-        <span style={{ fontSize: '10px', color: '#000000', paddingRight: '5px' }}>▼</span>
+        <span style={{ fontSize: 'var(--fs-xs)', color: '#000000', paddingRight: '5px' }}>▼</span>
       </div>
       
       {isOpen && (
          <div style={{ position: 'absolute', top: '100%', right: 0, left: 0, background: '#ffffff', zIndex: 10000, border: `2px solid ${THEME.accent}`, borderRadius: '10px', boxShadow: '0 10px 30px rgba(0,0,0,0.15)', maxHeight: '300px', display: 'flex', flexDirection: 'column', marginTop: '5px', overflow: 'hidden' }}>
           <div style={{ padding: '10px', borderBottom: `2px solid ${THEME.border}`, backgroundColor: '#f8fafc' }}>
-             <input autoFocus type="text" placeholder="ابحث عن اسم أو كود العقار..." value={search} onChange={(e) => setSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: `1px solid ${THEME.border}`, outline: 'none', fontWeight: 900, fontSize: '14px', color: '#000' }} />
+             <input autoFocus type="text" placeholder="ابحث عن اسم أو كود العقار..." value={search} onChange={(e) => setSearch(e.target.value)} onClick={(e) => e.stopPropagation()} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: `1px solid ${THEME.border}`, outline: 'none', fontWeight: 900, fontSize: 'var(--fs-md)', color: '#000' }} />
           </div>
           <div style={{ overflowY: 'auto', flex: 1 }}>
               {filteredOptions.length > 0 ? filteredOptions.map((o:any, i:number) => (
-                  <div key={i} onClick={(e) => { e.stopPropagation(); toggleSelection(o.id); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', fontSize: '15px', fontWeight: 900, color: '#000000', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: selectedValues.includes(o.id) ? '#fef3c7' : 'transparent' }}>
+                  <div key={i} onClick={(e) => { e.stopPropagation(); toggleSelection(o.id); }} style={{ padding: '12px 15px', cursor: 'pointer', borderBottom: '1px solid #f1f5f9', fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#000000', display: 'flex', alignItems: 'center', gap: '10px', backgroundColor: selectedValues.includes(o.id) ? '#fef3c7' : 'transparent' }}>
                     <input type="checkbox" checked={selectedValues.includes(o.id)} readOnly style={{ width: '18px', height: '18px', accentColor: THEME.accent, cursor: 'pointer' }} />
                     <span>{o.display || o.Property}</span>
                   </div>
               )) : (
-                  <div style={{ padding: '15px', textAlign: 'center', color: '#9ca3af', fontWeight: 900, fontSize: '14px' }}>لا توجد عقارات مطابقة لبحثك</div>
+                  <div style={{ padding: '15px', textAlign: 'center', color: '#9ca3af', fontWeight: 900, fontSize: 'var(--fs-md)' }}>لا توجد عقارات مطابقة لبحثك</div>
               )}
           </div>
         </div>

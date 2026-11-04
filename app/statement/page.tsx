@@ -61,7 +61,7 @@ function PartnerStatementContent() {
             accessor: 'description', 
             render: (row: any) => {
                 if (!row) return null; 
-                return <span style={{fontSize: '13px', fontWeight: 800, color: '#2c221b'}}>{row.description}</span>;
+                return <span style={{fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#2c221b'}}>{row.description}</span>;
             }
         },
         { 
@@ -92,7 +92,7 @@ function PartnerStatementContent() {
                         color: row.balance >= 0 ? THEME.success : THEME.danger
                     }}>
                         {formatCurrency(Math.abs(row.balance))}
-                        <small style={{marginRight: '5px', fontSize: '10px', color: '#8a7a6b'}}>{row.balance >= 0 ? '(له)' : '(عليه)'}</small>
+                        <small style={{marginRight: '5px', fontSize: 'var(--fs-xs)', color: '#8a7a6b'}}>{row.balance >= 0 ? '(له)' : '(عليه)'}</small>
                     </div>
                 );
             }
@@ -171,19 +171,19 @@ function PartnerStatementContent() {
                                 <div className="grid-box blue final-balance">
                                     <small>{netTitle}</small>
                                     <span style={{ color: logic.periodNet >= 0 ? '#047857' : '#be123c' }}>
-                                        {formatCurrency(Math.abs(logic.periodNet))}<small style={{fontSize: '14px', marginLeft: '5px'}}>{logic.periodNet >= 0 ? '(له)' : '(عليه)'}</small>
+                                        {formatCurrency(Math.abs(logic.periodNet))}<small style={{fontSize: 'var(--fs-md)', marginLeft: '5px'}}>{logic.periodNet >= 0 ? '(له)' : '(عليه)'}</small>
                                     </span>
                                     {isPeriodSelected && (
                                         <div className="cumulative-balance">
-                                            الرصيد التراكمي (النهائي): {formatCurrency(Math.abs(logic.currentBalance))} <span style={{fontSize: '10px'}}>{logic.currentBalance >= 0 ? '(له)' : '(عليه)'}</span>
+                                            الرصيد التراكمي (النهائي): {formatCurrency(Math.abs(logic.currentBalance))} <span style={{fontSize: 'var(--fs-xs)'}}>{logic.currentBalance >= 0 ? '(له)' : '(عليه)'}</span>
                                         </div>
                                     )}
                                 </div>
                             </div>
                             <hr className="glass-divider" />
                             <div className="dashboard-stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-                                <div className="stat-box cyan-outline"><small>عدد أيام الحضور</small><span style={{ fontSize: '24px' }}>{logic.attendanceCount} <small style={{fontSize:'14px', opacity:0.8}}>يوم</small></span></div>
-                                <div className="stat-box dark-red"><small>إجمالي الغرامات (عليه)</small><span style={{ fontSize: '24px' }}>{formatCurrency(logic.totalViolations)}</span></div>
+                                <div className="stat-box cyan-outline"><small>عدد أيام الحضور</small><span style={{ fontSize: 'var(--fs-2xl)' }}>{logic.attendanceCount} <small style={{fontSize:'var(--fs-md)', opacity:0.8}}>يوم</small></span></div>
+                                <div className="stat-box dark-red"><small>إجمالي الغرامات (عليه)</small><span style={{ fontSize: 'var(--fs-2xl)' }}>{formatCurrency(logic.totalViolations)}</span></div>
                             </div>
                         </div>
                     )}
@@ -221,25 +221,25 @@ function PartnerStatementContent() {
                 .grid-box.red span { color: #be123c; }
                 .grid-box.blue { border-bottom: 3px solid #1d4ed8; }
                 .grid-box.gold { border-bottom: 3px solid ${THEME.goldAccent}; background: #fff7ed; }
-                .grid-box small { font-size: 12px; color: #687180; font-weight: 800; margin-bottom: 8px; }
-                .grid-box span { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
-                .final-balance span { font-size: 28px; }
-                .final-balance .cumulative-balance { margin-top: 8px; font-size: 12px; color: #687180; font-weight: 700; border-top: 1px dashed #dce2ea; padding-top: 8px; }
+                .grid-box small { font-size: var(--fs-sm); color: #687180; font-weight: 800; margin-bottom: 8px; }
+                .grid-box span { font-size: var(--fs-2xl); font-weight: 800; font-variant-numeric: tabular-nums; }
+                .final-balance span { font-size: var(--fs-3xl); }
+                .final-balance .cumulative-balance { margin-top: 8px; font-size: var(--fs-sm); color: #687180; font-weight: 700; border-top: 1px dashed #dce2ea; padding-top: 8px; }
                 .dashboard-stats-grid { display: grid; gap: 14px; }
                 .stat-box { padding: 15px; border-radius: 12px; text-align: center; background: #f8fafc; border: 1px solid #e3e7ed; display: flex; flex-direction: column; justify-content: center; }
                 .stat-box.cyan-outline { border-bottom: 3px solid #0e7490; }
                 .stat-box.dark-red { border-bottom: 3px solid #be123c; }
-                .stat-box small { font-size: 12px; color: #687180; display: block; margin-bottom: 8px; font-weight: 800; }
-                .stat-box span { font-size: 18px; font-weight: 800; color: #202329; font-variant-numeric: tabular-nums; }
+                .stat-box small { font-size: var(--fs-sm); color: #687180; display: block; margin-bottom: 8px; font-weight: 800; }
+                .stat-box span { font-size: var(--fs-xl); font-weight: 800; color: #202329; font-variant-numeric: tabular-nums; }
                 .stat-box.dark-red span { color: #be123c; }
                 .filter-dashboard-glass { background: linear-gradient(180deg, #ffffff, #f8fafc); border: 1px solid #e0e5ed; box-shadow: var(--ent-card-elevation, 0 1px 3px #25344a0a); padding: 18px 20px; border-radius: var(--phi-radius-card, 14px); }
                 .filter-header { margin-bottom: 14px; }
-                .filter-title { font-size: 14px; font-weight: 800; color: #202329; }
+                .filter-title { font-size: var(--fs-md); font-weight: 800; color: #202329; }
                 .filters-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 16px; align-items: end; }
-                .filter-col label { font-size: 12px; font-weight: 700; color: #657080; margin-bottom: 7px; display: block; }
-                .glass-input { width: 100%; min-height: 42px; padding: 10px 12px; border-radius: 8px; border: 1px solid #dce2ea; background: #fff; color: #303a48; color-scheme: light; outline: none; transition: border-color 150ms ease, box-shadow 150ms ease; font-size: 13px; font-weight: 600; }
+                .filter-col label { font-size: var(--fs-sm); font-weight: 700; color: #657080; margin-bottom: 7px; display: block; }
+                .glass-input { width: 100%; min-height: 42px; padding: 10px 12px; border-radius: 8px; border: 1px solid #dce2ea; background: #fff; color: #303a48; color-scheme: light; outline: none; transition: border-color 150ms ease, box-shadow 150ms ease; font-size: var(--fs-sm); font-weight: 600; }
                 .glass-input:focus { border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 3px #c2410c14; }
-                .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; display: inline-block; }
+                .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 800; display: inline-block; }
                 .badge-glass.red { background: #fff1f2; color: #be123c; }
                 .badge-glass.green { background: #ecfdf5; color: #047857; }
                 .badge-glass.blue { background: #eff6ff; color: #1d4ed8; }
@@ -247,7 +247,7 @@ function PartnerStatementContent() {
                 .btn-main-glass:disabled { opacity: 0.55; cursor: not-allowed; }
                 .welcome-placeholder { text-align: center; padding: 72px 24px; color: #4b5563; background: #fff; border-radius: var(--phi-radius-card, 14px); border: 1px dashed #d6dce5; }
                 .welcome-placeholder .icon { display: inline-grid; place-items: center; width: 56px; height: 56px; margin-bottom: 16px; border-radius: 14px; background: #fff7ed; color: ${THEME.goldAccent}; }
-                .welcome-placeholder h3 { margin: 0; font-size: 16px; font-weight: 700; }
+                .welcome-placeholder h3 { margin: 0; font-size: var(--fs-lg); font-weight: 700; }
                 .table-wrapper-glass { background: #fff; border-radius: var(--phi-radius-card, 14px); overflow: hidden; padding: 10px; border: 1px solid #e0e5ed; box-shadow: var(--ent-card-elevation, 0 1px 3px #25344a0a); }
                 @media (max-width: 900px) {
                     .filters-grid { grid-template-columns: 1fr 1fr; }

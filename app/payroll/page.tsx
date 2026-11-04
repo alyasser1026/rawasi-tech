@@ -80,7 +80,7 @@ export default function PayrollPage() {
         return (
           <div style={{ textAlign: 'right', minWidth: '150px' }}>
             <div style={{ fontWeight: '900', color: THEME.primary }}>{row.name}</div>
-            <div style={{ fontSize: '11px', color: THEME.textMuted }}>
+            <div style={{ fontSize: 'var(--fs-xs)', color: THEME.textMuted }}>
                <span style={{ color: row.type === 'عامل يومية' ? THEME.accent : THEME.success, fontWeight: 'bold' }}>{row.type}</span> | {row.job_role || 'بدون مسمى'}
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function PayrollPage() {
       render: (row: any) => {
         if (!row) return null;
         return (
-          <div style={{ fontWeight: '900', color: 'white', fontSize: '14px', background: THEME.primary, padding: '4px 8px', borderRadius: '6px', textAlign: 'center' }}>
+          <div style={{ fontWeight: '900', color: 'white', fontSize: 'var(--fs-md)', background: THEME.primary, padding: '4px 8px', borderRadius: '6px', textAlign: 'center' }}>
             {formatCurrency(row.net_salary)}
           </div>
         );
@@ -271,10 +271,10 @@ export default function PayrollPage() {
         <div style={{ flex: 1, overflowX: 'auto' }}>
           
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center', background: 'white', padding: '15px 20px', borderRadius: '12px', marginBottom: '20px', border: `1px solid ${THEME.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: '15px', minWidth: '130px' }}>خيارات المسير:</div>
+            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: 'var(--fs-lg)', minWidth: '130px' }}>خيارات المسير:</div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: THEME.slate, padding: '5px 15px', borderRadius: '8px' }}>
-              <label style={{ fontSize: '13px', color: THEME.textMuted, fontWeight: 'bold' }}>تاريخ قطع المسحوبات:</label>
+              <label style={{ fontSize: 'var(--fs-sm)', color: THEME.textMuted, fontWeight: 'bold' }}>تاريخ قطع المسحوبات:</label>
               <input 
                 type="date" 
                 value={logic.cutoffDate} 
@@ -293,7 +293,7 @@ export default function PayrollPage() {
                 background: logic.filterActiveOnly ? THEME.success : 'white',
                 color: logic.filterActiveOnly ? 'white' : THEME.textMain,
                 fontWeight: '900',
-                fontSize: '13px',
+                fontSize: 'var(--fs-sm)',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease',
                 boxShadow: logic.filterActiveOnly ? '0 2px 4px rgba(5,150,105,0.2)' : 'none'
@@ -314,20 +314,20 @@ export default function PayrollPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', marginBottom: '25px' }}>
             <div className="ent-summary-card" style={{ borderBottom: `4px solid ${THEME.primary}` }}>
-              <div style={{ fontSize: '13px', color: THEME.textMuted, fontWeight: 'bold' }}>الكوادر المعروضة</div>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: THEME.primary }}>{logic.filteredRecords.length}</div>
+              <div style={{ fontSize: 'var(--fs-sm)', color: THEME.textMuted, fontWeight: 'bold' }}>الكوادر المعروضة</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: THEME.primary }}>{logic.filteredRecords.length}</div>
             </div>
             <div className="ent-summary-card" style={{ borderBottom: `4px solid ${THEME.primary}` }}>
-              <div style={{ fontSize: '13px', color: THEME.textMuted, fontWeight: 'bold' }}>إجمالي الاستحقاقات (الأساسي)</div>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: THEME.primary }}>{formatCurrency(logic.totals.current_net + logic.totals.deductions + logic.totals.extended_advances)}</div>
+              <div style={{ fontSize: 'var(--fs-sm)', color: THEME.textMuted, fontWeight: 'bold' }}>إجمالي الاستحقاقات (الأساسي)</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: THEME.primary }}>{formatCurrency(logic.totals.current_net + logic.totals.deductions + logic.totals.extended_advances)}</div>
             </div>
             <div className="ent-summary-card" style={{ borderBottom: `4px solid ${THEME.ruby}` }}>
-              <div style={{ fontSize: '13px', color: THEME.textMuted, fontWeight: 'bold' }}>إجمالي الخصم والمسحوبات</div>
-              <div style={{ fontSize: '24px', fontWeight: '900', color: THEME.ruby }}>{formatCurrency(logic.totals.deductions + logic.totals.extended_advances)}</div>
+              <div style={{ fontSize: 'var(--fs-sm)', color: THEME.textMuted, fontWeight: 'bold' }}>إجمالي الخصم والمسحوبات</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: THEME.ruby }}>{formatCurrency(logic.totals.deductions + logic.totals.extended_advances)}</div>
             </div>
             <div className="ent-summary-card ent-payroll-total" style={{ borderBottom: `4px solid ${THEME.accent}` }}>
-              <div style={{ fontSize: '13px', color: '#047857', fontWeight: 'bold' }}>إجمالي المراد صرفه فعلياً</div>
-              <div style={{ fontSize: '24px', fontWeight: '900' }}>{formatCurrency(logic.totals.amount_to_pay || 0)}</div>
+              <div style={{ fontSize: 'var(--fs-sm)', color: '#047857', fontWeight: 'bold' }}>إجمالي المراد صرفه فعلياً</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900' }}>{formatCurrency(logic.totals.amount_to_pay || 0)}</div>
             </div>
           </div>
 
@@ -349,8 +349,8 @@ export default function PayrollPage() {
          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '20px', marginBottom: '25px' }}>
             <div>
                
-               <p style={{ margin: '8px 0 0 0', fontWeight: 700, fontSize: '14px', color: THEME.textMuted }}>شركة فاي تك للمقاولات | عن شهر ({logic.selectedMonth} / {logic.selectedYear})</p>
-               <p style={{ margin: '4px 0 0 0', fontWeight: 600, fontSize: '12px', color: THEME.ruby }}>تاريخ القطع للمسحوبات: {logic.cutoffDate}</p>
+               <p style={{ margin: '8px 0 0 0', fontWeight: 700, fontSize: 'var(--fs-md)', color: THEME.textMuted }}>شركة فاي تك للمقاولات | عن شهر ({logic.selectedMonth} / {logic.selectedYear})</p>
+               <p style={{ margin: '4px 0 0 0', fontWeight: 600, fontSize: 'var(--fs-sm)', color: THEME.ruby }}>تاريخ القطع للمسحوبات: {logic.cutoffDate}</p>
             </div>
             <img src="/company-logo.svg" alt="Company Logo" style={{ height: '60px', objectFit: 'contain' }} />
          </div>
@@ -375,38 +375,38 @@ export default function PayrollPage() {
                {logic.filteredRecords.map((r, i) => (
                   <tr key={r.id}>
                      <td style={{fontWeight: 900}}>{i + 1}</td>
-                     <td style={{ fontWeight: 900, textAlign: 'right' }}>{r.name} <br/><span style={{fontSize:'10px', color: '#555'}}>{r.job_role}</span></td>
+                     <td style={{ fontWeight: 900, textAlign: 'right' }}>{r.name} <br/><span style={{fontSize:'var(--fs-xs)', color: '#555'}}>{r.job_role}</span></td>
                      <td style={{fontWeight: 700}}>{formatCurrency(r.base_rate)}</td>
                      <td style={{fontWeight: 700}}>{formatCurrency(r.allowances)}</td>
                      <td style={{fontWeight: 700}}>{formatCurrency(r.deductions)}</td>
                      <td style={{fontWeight: 700, color: r.extended_advances > 0 ? THEME.ruby : 'inherit'}}>{formatCurrency(r.extended_advances)}</td>
                      <td style={{fontWeight: 700}}>{formatCurrency(r.previous_balance)}</td>
                      <td style={{fontWeight: 900}}>{formatCurrency(r.net_salary)}</td>
-                     <td style={{fontWeight: 900, fontSize: '12px', color: THEME.success}}>{formatCurrency(r.amount_to_pay || 0)}</td>
-                     <td style={{fontWeight: 900, fontSize: '12px', color: THEME.ruby}}>{formatCurrency(Number(r.net_salary || 0) - Number(r.amount_to_pay || 0))}</td>
+                     <td style={{fontWeight: 900, fontSize: 'var(--fs-sm)', color: THEME.success}}>{formatCurrency(r.amount_to_pay || 0)}</td>
+                     <td style={{fontWeight: 900, fontSize: 'var(--fs-sm)', color: THEME.ruby}}>{formatCurrency(Number(r.net_salary || 0) - Number(r.amount_to_pay || 0))}</td>
                      <td></td>
                   </tr>
                ))}
-               <tr style={{ background: THEME.primary, color: 'white', fontWeight: 900, fontSize: '12px' }}>
+               <tr style={{ background: THEME.primary, color: 'white', fontWeight: 900, fontSize: 'var(--fs-sm)' }}>
                    <td colSpan={2} style={{ textAlign: 'left', paddingLeft: '20px' }}>الإجمـــــالي الكــــلي:</td>
                    <td>{formatCurrency(logic.totals.current_net + logic.totals.deductions + logic.totals.extended_advances - logic.totals.allowances)}</td>
                    <td>{formatCurrency(logic.totals.allowances)}</td>
                    <td>{formatCurrency(logic.totals.deductions)}</td>
                    <td>{formatCurrency(logic.totals.extended_advances)}</td>
                    <td>{formatCurrency(logic.totals.previous_balances)}</td>
-                   <td style={{ fontSize: '13px' }}>{formatCurrency(logic.totals.net)}</td>
-                   <td style={{ fontSize: '13px', color: THEME.accent }}>{formatCurrency(logic.totals.amount_to_pay || 0)}</td>
-                   <td style={{ fontSize: '13px', color: '#fca5a5' }}>{formatCurrency(logic.totals.net - (logic.totals.amount_to_pay || 0))}</td>
+                   <td style={{ fontSize: 'var(--fs-sm)' }}>{formatCurrency(logic.totals.net)}</td>
+                   <td style={{ fontSize: 'var(--fs-sm)', color: THEME.accent }}>{formatCurrency(logic.totals.amount_to_pay || 0)}</td>
+                   <td style={{ fontSize: 'var(--fs-sm)', color: '#fca5a5' }}>{formatCurrency(logic.totals.net - (logic.totals.amount_to_pay || 0))}</td>
                    <td></td>
                </tr>
             </tbody>
          </table>
 
-         <div style={{ marginTop: '20px', fontSize: '13px', fontWeight: 800, background: THEME.slate, padding: '12px', borderRadius: '6px', border: `1px solid ${THEME.border}` }}>
+         <div style={{ marginTop: '20px', fontSize: 'var(--fs-sm)', fontWeight: 800, background: THEME.slate, padding: '12px', borderRadius: '6px', border: `1px solid ${THEME.border}` }}>
              إجمالي المبالغ المراد صرفها بالحروف: فقط ( {tafqeet(logic.totals.amount_to_pay || 0)} ريال سعودي ) لا غير.
          </div>
 
-         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '60px', fontSize: '14px', fontWeight: 800, padding: '0 40px' }}>
+         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '60px', fontSize: 'var(--fs-md)', fontWeight: 800, padding: '0 40px' }}>
              <div style={{textAlign: 'center', width: '200px'}}>أعده / محاسب الرواتب<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '30px 0 10px 0'}}/>الاسم والتوقيع</div>
              <div style={{textAlign: 'center', width: '200px'}}>راجعه / مدير الموارد البشرية<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '30px 0 10px 0'}}/>الاسم والتوقيع</div>
              <div style={{textAlign: 'center', width: '200px'}}>اعتمده / المدير المالي<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '30px 0 10px 0'}}/>الاسم والتوقيع</div>

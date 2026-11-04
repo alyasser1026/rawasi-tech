@@ -49,16 +49,16 @@ export default function TrialBalancePage() {
       <style>{`
         /* تنسيقات الشاشة الأساسية */
         .tb-table { width: 100%; border-collapse: collapse; text-align: center; background: #ffffff; }
-        .tb-table th, .tb-table td { border: 1px solid #cbd5e1; padding: 10px 8px; font-size: 14px; }
+        .tb-table th, .tb-table td { border: 1px solid #cbd5e1; padding: 10px 8px; font-size: var(--fs-md); }
         
         .tb-table thead th { color: #000000 !important; font-weight: 900; }
         .tb-table tbody td { color: #000000; } 
         .tb-table tbody tr:hover { background-color: #f1f5f9; }
         .tb-table tbody td.text-right { text-align: right; font-weight: 900; }
-        .tb-table tbody td.number { font-family: monospace; font-size: 13px; font-weight: 900; }
+        .tb-table tbody td.number { font-family: monospace; font-size: var(--fs-sm); font-weight: 900; }
         
         .tb-totals { font-weight: 900 !important; }
-        .tb-totals td { border-top: 3px double #94a3b8 !important; font-size: 15px; }
+        .tb-totals td { border-top: 3px double #94a3b8 !important; font-size: var(--fs-lg); }
 
         /* تنسيقات الطباعة المعزولة */
         @media print {
@@ -82,10 +82,10 @@ export default function TrialBalancePage() {
           
           {/* لوحة الفلاتر */}
           <div style={{ display: 'flex', gap: '15px', alignItems: 'center', background: '#ffffff', padding: '15px 20px', borderRadius: '12px', marginBottom: '20px', border: `1px solid ${THEME.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: '15px', minWidth: '100px' }}>فترة الميزان:</div>
+            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: 'var(--fs-lg)', minWidth: '100px' }}>فترة الميزان:</div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: THEME.slate, padding: '5px 15px', borderRadius: '8px' }}>
-              <label style={{ fontSize: '13px', color: THEME.textMain, fontWeight: '900' }}>من:</label>
+              <label style={{ fontSize: 'var(--fs-sm)', color: THEME.textMain, fontWeight: '900' }}>من:</label>
               <input 
                 type="date" 
                 value={logic.startDate} 
@@ -95,7 +95,7 @@ export default function TrialBalancePage() {
             </div>
             
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', background: THEME.slate, padding: '5px 15px', borderRadius: '8px' }}>
-              <label style={{ fontSize: '13px', color: THEME.textMain, fontWeight: '900' }}>إلى:</label>
+              <label style={{ fontSize: 'var(--fs-sm)', color: THEME.textMain, fontWeight: '900' }}>إلى:</label>
               <input 
                 type="date" 
                 value={logic.endDate} 
@@ -167,7 +167,7 @@ export default function TrialBalancePage() {
                       {isBalanced ? 'الميزان متزن تماماً (لا توجد فروق)' : 'يوجد فرق في الميزان! يرجى مراجعة قيود اليومية.'}
                     </span>
                     {!isBalanced && (
-                      <span style={{ color: THEME.ruby, fontSize: '16px' }}>قيمة الفرق: {formatCurrency(Math.abs(logic.totals.end_debit - logic.totals.end_credit))}</span>
+                      <span style={{ color: THEME.ruby, fontSize: 'var(--fs-lg)' }}>قيمة الفرق: {formatCurrency(Math.abs(logic.totals.end_debit - logic.totals.end_credit))}</span>
                     )}
                   </div>
               </div>
@@ -183,8 +183,8 @@ export default function TrialBalancePage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '15px', marginBottom: '20px' }}>
             <div>
                 
-                <p style={{ margin: '8px 0 0 0', fontWeight: 700, fontSize: '14px', color: '#000000' }}>شركة فاي تك للمقاولات</p>
-                <p style={{ margin: '4px 0 0 0', fontWeight: 900, fontSize: '13px', color: '#000000' }}>عن الفترة من {logic.startDate} إلى {logic.endDate}</p>
+                <p style={{ margin: '8px 0 0 0', fontWeight: 700, fontSize: 'var(--fs-md)', color: '#000000' }}>شركة فاي تك للمقاولات</p>
+                <p style={{ margin: '4px 0 0 0', fontWeight: 900, fontSize: 'var(--fs-sm)', color: '#000000' }}>عن الفترة من {logic.startDate} إلى {logic.endDate}</p>
             </div>
             <img src="/company-logo.svg" alt="Company Logo" style={{ height: '50px', objectFit: 'contain' }} />
           </div>
@@ -236,7 +236,7 @@ export default function TrialBalancePage() {
           </table>
 
           {/* توقيعات الطباعة */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '50px', fontSize: '14px', fontWeight: 900, padding: '0 40px', color: '#000000' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '50px', fontSize: 'var(--fs-md)', fontWeight: 900, padding: '0 40px', color: '#000000' }}>
               <div style={{textAlign: 'center', width: '200px'}}>أعده / المحاسب المالي<br/><br/><hr style={{borderTop: '2px dashed #000000', margin: '30px 0 10px 0'}}/>الاسم والتوقيع</div>
               <div style={{textAlign: 'center', width: '200px'}}>اعتمده / المدير المالي<br/><br/><hr style={{borderTop: '2px dashed #000000', margin: '30px 0 10px 0'}}/>الاسم والتوقيع</div>
               <div style={{textAlign: 'center', width: '200px'}}>المدير العام<br/><br/><hr style={{borderTop: '2px dashed #000000', margin: '30px 0 10px 0'}}/>الاسم والتوقيع</div>

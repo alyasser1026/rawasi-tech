@@ -74,7 +74,7 @@ export default function JobOrderSelector({
 
     return (
         <div style={{ width: '100%', zIndex: 65, position: 'relative' }}>
-            <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>
+            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>
                 أمر التشغيل / الشغل *
             </label>
             
@@ -126,9 +126,9 @@ export default function JobOrderSelector({
 
                 <div style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
                     {isLoading ? (
-                        <span style={{ fontSize: '12px', color: THEME.accent }}><Hourglass size={14} aria-hidden="true" /></span>
+                        <span style={{ fontSize: 'var(--fs-sm)', color: THEME.accent }}><Hourglass size={14} aria-hidden="true" /></span>
                     ) : (
-                        <span style={{ fontSize: '12px', color: THEME.primary }}>▼</span>
+                        <span style={{ fontSize: 'var(--fs-sm)', color: THEME.primary }}>▼</span>
                     )}
                 </div>
             </div>

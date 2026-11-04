@@ -157,7 +157,7 @@ export default function AdvancedProjectsPage() {
           <style>{`
             .glass-input-field { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; font-weight: 700; color: #1e293b; transition: 0.3s; }
             .glass-input-field:focus { background: #ffffff; border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 4px rgba(194,65,12, 0.15); }
-            .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+            .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
             .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
             .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
             .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; }
@@ -172,7 +172,7 @@ export default function AdvancedProjectsPage() {
             .project-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); border-color: ${THEME.goldAccent}; }
             .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,0.05); fontSize: 12px; font-weight: 800; color: #475569; }
             .stat-row:last-child { border-bottom: none; }
-            .stage-badge { position: absolute; top: 20px; left: 20px; background: linear-gradient(135deg, ${THEME.goldAccent}, #d97706); color: white; padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 900; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3); z-index: 2; }
+            .stage-badge { position: absolute; top: 20px; left: 20px; background: linear-gradient(135deg, ${THEME.goldAccent}, #d97706); color: white; padding: 5px 12px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 900; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3); z-index: 2; }
           `}</style>
 
           {logic.isLoading ? (
@@ -199,20 +199,20 @@ export default function AdvancedProjectsPage() {
                                {proj.current_stage && <div className="stage-badge">{proj.current_stage}</div>}
 
                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                                   <span style={{ fontSize: '11px', color: THEME.white, fontWeight: 900, backgroundColor: THEME.coffeeDark, padding: '4px 10px', borderRadius: '8px' }}>
+                                   <span style={{ fontSize: 'var(--fs-xs)', color: THEME.white, fontWeight: 900, backgroundColor: THEME.coffeeDark, padding: '4px 10px', borderRadius: '8px' }}>
                                        {proj.project_code || 'بدون كود'}
                                    </span>
                                    <StatusBadge status={proj.status || 'قيد الدراسة'} />
                                </div>
                                
-                               <h3 style={{ margin: '0 0 5px 0', color: THEME.coffeeDark, fontWeight: 900, fontSize: '18px', paddingLeft: '90px' }}>
+                               <h3 style={{ margin: '0 0 5px 0', color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-xl)', paddingLeft: '90px' }}>
                                    {proj.Property} 
-                                   {proj.unit_type && <span style={{ fontSize: '13px', color: THEME.goldAccent, marginRight: '8px' }}>({proj.unit_type})</span>}
+                                   {proj.unit_type && <span style={{ fontSize: 'var(--fs-sm)', color: THEME.goldAccent, marginRight: '8px' }}>({proj.unit_type})</span>}
                                </h3>
-                               <p style={{ margin: '0 0 8px 0', fontSize: '11px', color: '#64748b', fontWeight: 800 }}>العميل: {proj.client?.name || proj.client_name || '---'}</p>
+                               <p style={{ margin: '0 0 8px 0', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>العميل: {proj.client?.name || proj.client_name || '---'}</p>
                                
                                {(proj.engineer_in_charge || proj.engineer_phone) && (
-                                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 800, color: '#334155', marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
+                                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#334155', marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
                                       <span>{proj.engineer_in_charge || 'غير محدد'}</span>
                                       {proj.engineer_phone && <span>{proj.engineer_phone}</span>}
                                   </div>
@@ -230,7 +230,7 @@ export default function AdvancedProjectsPage() {
                                </div>
 
                                <div>
-                                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 900, color: THEME.coffeeDark, marginBottom: '8px' }}>
+                                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.coffeeDark, marginBottom: '8px' }}>
                                        <span>نسبة الإنجاز الفعلي للموقع</span>
                                        <span>{physicalProgress}%</span>
                                    </div>
@@ -255,11 +255,11 @@ export default function AdvancedProjectsPage() {
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', background: 'rgba(255,255,255,0.4)', padding: '20px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.5)' }}>
                     <div>
-                        <h2 style={{ margin: 0, fontWeight: 900, color: THEME.coffeeDark, fontSize: '24px' }}>
+                        <h2 style={{ margin: 0, fontWeight: 900, color: THEME.coffeeDark, fontSize: 'var(--fs-2xl)' }}>
                             {logic.selectedProject.Property}
-                            {logic.selectedProject.unit_type && <span style={{ fontSize: '16px', color: THEME.goldAccent, marginRight: '10px' }}>- {logic.selectedProject.unit_type}</span>}
+                            {logic.selectedProject.unit_type && <span style={{ fontSize: 'var(--fs-lg)', color: THEME.goldAccent, marginRight: '10px' }}>- {logic.selectedProject.unit_type}</span>}
                         </h2>
-                        <div style={{ display: 'flex', gap: '20px', marginTop: '10px', fontSize: '13px', fontWeight: 800, color: '#475569' }}>
+                        <div style={{ display: 'flex', gap: '20px', marginTop: '10px', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569' }}>
                             {logic.selectedProject.engineer_in_charge && <span>المهندس المسئول: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_in_charge}</strong></span>}
                             {logic.selectedProject.engineer_phone && <span>جوال: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_phone}</strong></span>}
                         </div>
@@ -273,7 +273,7 @@ export default function AdvancedProjectsPage() {
                             العودة لقائمة المشاريع
                         </button>
 
-                        <span style={{ fontSize: '13px', fontWeight: 900, color: '#64748b' }}>تغيير حالة المشروع:</span>
+                        <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b' }}>تغيير حالة المشروع:</span>
                         <select 
                             value={logic.selectedProject.status || 'قيد الدراسة'}
                             onChange={(e) => logic.updateProjectStatus(e.target.value)}
@@ -320,9 +320,9 @@ export default function AdvancedProjectsPage() {
             {mounted && deleteAlert.isOpen && createPortal(
                 <div style={{ position: 'fixed', inset: 0, zIndex: 99999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(10px)', direction: 'rtl' }}>
                     <div style={{ background: 'white', padding: '35px', borderRadius: '14px', maxWidth: '450px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #fee2e2', animation: 'fadeIn 0.2s ease-out' }}>
-                        <div style={{ fontSize: '55px', marginBottom: '15px', animation: 'pulse-red 2s infinite' }}><TriangleAlert size={40} aria-hidden="true" /></div>
-                        <h3 style={{ color: THEME.danger, fontWeight: 900, fontSize: '22px', marginBottom: '15px' }}>{deleteAlert.title}</h3>
-                        <p style={{ color: '#475569', fontSize: '15px', fontWeight: 800, marginBottom: '30px', lineHeight: 1.6 }}>{deleteAlert.message}</p>
+                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '15px', animation: 'pulse-red 2s infinite' }}><TriangleAlert size={40} aria-hidden="true" /></div>
+                        <h3 style={{ color: THEME.danger, fontWeight: 900, fontSize: 'var(--fs-2xl)', marginBottom: '15px' }}>{deleteAlert.title}</h3>
+                        <p style={{ color: '#475569', fontSize: 'var(--fs-lg)', fontWeight: 800, marginBottom: '30px', lineHeight: 1.6 }}>{deleteAlert.message}</p>
                         
                         <div style={{ display: 'flex', gap: '15px' }}>
                             <button 
@@ -331,13 +331,13 @@ export default function AdvancedProjectsPage() {
                                     if (deleteAlert.type === 'boq' && deleteAlert.id) logic.deleteBoqMutation.mutate(deleteAlert.id);
                                     setDeleteAlert({ isOpen: false, type: '', id: null, title: '', message: '' });
                                 }} 
-                                style={{ flex: 1, background: THEME.danger, color: 'white', padding: '14px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: '15px', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }}
+                                style={{ flex: 1, background: THEME.danger, color: 'white', padding: '14px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: 'var(--fs-lg)', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }}
                             >
                                 نعم، تأكيد الحذف
                             </button>
                             <button 
                                 onClick={() => setDeleteAlert({ isOpen: false, type: '', id: null, title: '', message: '' })} 
-                                style={{ flex: 1, background: '#f1f5f9', color: '#64748b', padding: '14px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: '15px', cursor: 'pointer', transition: '0.2s' }}
+                                style={{ flex: 1, background: '#f1f5f9', color: '#64748b', padding: '14px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: 'var(--fs-lg)', cursor: 'pointer', transition: '0.2s' }}
                             >
                                 إلغاء والتراجع
                             </button>

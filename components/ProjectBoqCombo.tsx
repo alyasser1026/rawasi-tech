@@ -69,10 +69,10 @@ export default function ProjectBoqCombo({ projectId, value, initialDisplay, onSe
                     height: '46px', padding: '0 12px'
                 }}
             >
-                <span style={{ fontWeight: 800, color: displayVal ? '#1e293b' : '#94a3b8', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontWeight: 800, color: displayVal ? '#1e293b' : '#94a3b8', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {isLoading ? 'جاري جلب أوامر الشغل...' : (!projectId ? 'اختر العقار أولاً' : (displayVal || placeholder))}
                 </span>
-                <span style={{ color: '#94a3b8', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s', fontSize: '10px' }}>▼</span>
+                <span style={{ color: '#94a3b8', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s', fontSize: 'var(--fs-xs)' }}>▼</span>
             </div>
             
             {isOpen && (
@@ -84,7 +84,7 @@ export default function ProjectBoqCombo({ projectId, value, initialDisplay, onSe
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: '12px', fontWeight: 700, color: '#1e293b' }}
+                            style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#1e293b' }}
                         />
                     </div>
                     <div className="custom-scrollbar" style={{ maxHeight: '200px', overflowY: 'auto', padding: '5px' }}>
@@ -97,14 +97,14 @@ export default function ProjectBoqCombo({ projectId, value, initialDisplay, onSe
                                     setIsOpen(false);
                                     setSearch('');
                                 }}
-                                style={{ padding: '10px', cursor: 'pointer', borderRadius: '6px', fontSize: '12px', fontWeight: 800, color: value === (opt.boq_item_id || opt.id) ? THEME.primary : '#334155', background: value === (opt.boq_item_id || opt.id) ? '#eff6ff' : 'transparent', borderBottom: '1px solid #f1f5f9', transition: '0.2s' }}
+                                style={{ padding: '10px', cursor: 'pointer', borderRadius: '6px', fontSize: 'var(--fs-sm)', fontWeight: 800, color: value === (opt.boq_item_id || opt.id) ? THEME.primary : '#334155', background: value === (opt.boq_item_id || opt.id) ? '#eff6ff' : 'transparent', borderBottom: '1px solid #f1f5f9', transition: '0.2s' }}
                                 onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
                                 onMouseLeave={(e) => e.currentTarget.style.background = value === (opt.boq_item_id || opt.id) ? '#eff6ff' : 'transparent'}
                             >
                                 {opt.display_name || opt.work_item}
                             </div>
                         )) : (
-                            <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>لا توجد بنود/أوامر شغل لهذا العقار</div>
+                            <div style={{ padding: '15px', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد بنود/أوامر شغل لهذا العقار</div>
                         )}
                     </div>
                 </div>

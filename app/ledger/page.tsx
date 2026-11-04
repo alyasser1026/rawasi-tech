@@ -22,7 +22,7 @@ export default function AccountLedger() {
       render: (row: any) => row ? (
         <div>
           <div style={{ fontWeight: 900, color: THEME.primary }}>{row.notes || row.journal_headers?.description || row.item_name || 'بدون بيان'}</div>
-          <div style={{ fontSize: '11px', opacity: 0.7, color: '#64748b' }}>
+          <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.7, color: '#64748b' }}>
             {row.projects?.name || row.projects?.Property || 'مصاريف إدارية'} | {row.partners?.name || 'عام'}
           </div>
         </div>
@@ -48,12 +48,12 @@ export default function AccountLedger() {
       <RawasiSidebarManager 
         summary={
           <div className="summary-card">
-            <span style={{ fontSize: '12px', fontWeight: 800, opacity: 0.8 }}>إجمالي رصيد الحساب</span>
-            <div style={{ fontSize: '24px', fontWeight: 900, marginTop: '5px' }}>
+            <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, opacity: 0.8 }}>إجمالي رصيد الحساب</span>
+            <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, marginTop: '5px' }}>
               {formatCurrency(logic.currentBalance)}
             </div>
             <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '15px 0' }} />
-            <div style={{ fontSize: '11px', opacity: 0.7 }}>
+            <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.7 }}>
                 حركة مدينة: {formatCurrency(logic.totalDebit)} <br/>
                 حركة دائنة: {formatCurrency(logic.totalCredit)}
             </div>

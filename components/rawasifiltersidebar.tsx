@@ -103,7 +103,7 @@ export default function RawasiFilterSidebar({
 
         .vertical-text {
           writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 900;
-          font-size: 20px; letter-spacing: 6px; color: ${accentColor}; opacity: 0.6;
+          font-size: var(--fs-xl); letter-spacing: 6px; color: ${accentColor}; opacity: 0.6;
           text-shadow: 0 2px 10px rgba(0,0,0,0.3); white-space: nowrap;
         }
 
@@ -129,14 +129,14 @@ export default function RawasiFilterSidebar({
         }
 
         .filter-section-title {
-          font-size: 10px; font-weight: 900; color: ${accentColor};
+          font-size: var(--fs-xs); font-weight: 900; color: ${accentColor};
           margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0;
         }
 
         .filter-input {
           width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
           border-radius: 10px; padding: 10px; color: white; margin-bottom: 15px; outline: none;
-          font-size: 13px; transition: 0.3s;
+          font-size: var(--fs-sm); transition: 0.3s;
         }
         .filter-input:focus { border-color: ${accentColor}; background: rgba(255,255,255,0.15); box-shadow: 0 0 15px rgba(194,65,12, 0.2); }
 
@@ -148,7 +148,7 @@ export default function RawasiFilterSidebar({
         }
         
         /* تنسيق التاريخ */
-        .date-label { font-size: 10px; color: #94a3b8; display: block; margin-bottom: 5px; }
+        .date-label { font-size: var(--fs-xs); color: #94a3b8; display: block; margin-bottom: 5px; }
 
         @media (max-width: 768px) {
           .filter-sidebar-v3 {
@@ -169,7 +169,7 @@ export default function RawasiFilterSidebar({
             border-radius: 0 !important;
           }
           .tab-text { display: none !important; }
-          .tab-icon { display: block !important; font-size: 16px; transform: none !important; writing-mode: horizontal-tb !important; }
+          .tab-icon { display: block !important; font-size: var(--fs-lg); transform: none !important; writing-mode: horizontal-tb !important; }
         }
       `}</style>
 
@@ -183,7 +183,7 @@ export default function RawasiFilterSidebar({
         onMouseLeave={() => !isMobile && setIsHovered(false)}
       >
         <button className="pin-btn-sidebar" onClick={(e) => { e.stopPropagation(); setIsPinned(!isPinned); }}>
-          <span style={{ fontSize: '16px', color: '#fff' }}>
+          <span style={{ fontSize: 'var(--fs-lg)', color: '#fff' }}>
             {isMobile ? '✕' : (isPinned ? <Pin size={14} aria-hidden="true" /> : <MapPin size={14} aria-hidden="true" />)}
           </span>
         </button>
@@ -191,7 +191,7 @@ export default function RawasiFilterSidebar({
         <div className="filter-content">
           <div className="sidebar-logo-container">
             <img src={logoPath} alt="Logo" className="sidebar-logo-img" />
-            <h2 style={{ fontSize: '16px', fontWeight: 900, marginTop: '10px', color: accentColor }}>{title}</h2>
+            <h2 style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '10px', color: accentColor }}>{title}</h2>
           </div>
           
           {(summarySlot || summary) && (
@@ -255,7 +255,7 @@ export default function RawasiFilterSidebar({
               </div>
             )}
           </div>
-          <div style={{ textAlign: 'center', opacity: 0.4, fontSize: '10px', marginTop: '20px', paddingBottom: '20px' }}>
+          <div style={{ textAlign: 'center', opacity: 0.4, fontSize: 'var(--fs-xs)', marginTop: '20px', paddingBottom: '20px' }}>
             نظام فاي تك الموحد v2.0
           </div>
         </div>
@@ -267,7 +267,7 @@ export default function RawasiFilterSidebar({
         onMouseEnter={() => !isMobile && setIsHovered(true)}
         onClick={() => isMobile && setIsPinned(true)}
       >
-          <span className="tab-icon" style={{ fontSize: '16px' }}>
+          <span className="tab-icon" style={{ fontSize: 'var(--fs-lg)' }}>
             <Settings size={14} aria-hidden="true" />
           </span>
       </div>

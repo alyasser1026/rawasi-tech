@@ -39,9 +39,9 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                 }
                 .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#c2410c'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
                 
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
+                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
-                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; }
+                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
                 
                 .lines-table-container {
                     background: rgba(255, 255, 255, 0.5);
@@ -59,12 +59,12 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
             }}>
                 
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'15px'}}>
-                    <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '26px' }}>
+                    <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>
                         {logic.editingIssueId ? 'تعديل إذن صرف خامات' : 'إصدار إذن صرف خامات'}
                     </h2>
                     <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 900 }}>الصافي النهائي للصرف</div>
-                        <div style={{ color: THEME.goldAccent || '#c2410c', fontWeight: 900, fontSize: '28px' }}>{formatCurrency(grandTotal)}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 900 }}>الصافي النهائي للصرف</div>
+                        <div style={{ color: THEME.goldAccent || '#c2410c', fontWeight: 900, fontSize: 'var(--fs-3xl)' }}>{formatCurrency(grandTotal)}</div>
                     </div>
                 </div>
 
@@ -82,7 +82,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                     </div>
                     
                     <div style={{ zIndex: 80, position: 'relative' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', display: 'block', marginBottom: '6px' }}>نوع الصرف *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', display: 'block', marginBottom: '6px' }}>نوع الصرف *</label>
                         <select className="glass-input-field" value={logic.issueData?.issue_type || 'صرف لمقاول'} onChange={e => logic.setIssueData({...logic.issueData, issue_type: e.target.value})}>
                             <option value="صرف لمقاول">صرف لمقاول باطن (يُحمل عليه)</option>
                             <option value="استهلاك مباشر">استهلاك مباشر للشركة (يُحمل كـ تكلفة)</option>
@@ -112,7 +112,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                 </div>
 
                 <div style={{ marginBottom: '25px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', display: 'block', marginBottom: '6px' }}>تاريخ الصرف</label>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', display: 'block', marginBottom: '6px' }}>تاريخ الصرف</label>
                     <input 
                         type="date" 
                         className="glass-input-field" 
@@ -124,7 +124,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                 
                 <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '14px', marginBottom: '25px', border: `1px dashed ${THEME.goldAccent || '#c2410c'}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11' }}>الخامات المنصرفة وربطها بالبنود</h3>
+                        <h3 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11' }}>الخامات المنصرفة وربطها بالبنود</h3>
                         <button onClick={logic.addItem} style={{ background: 'white', color: THEME.coffeeDark || '#2d1a11', border: `1px solid ${THEME.goldAccent || '#c2410c'}`, padding: '8px 15px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
                             إضافة صنف آخر
                         </button>
@@ -134,13 +134,13 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
                             <thead style={{ background: THEME.coffeeDark || '#2d1a11', color: 'white' }}>
                                 <tr>
-                                    <th style={{ padding: '12px', fontSize: '11px', textAlign: 'right', width: '25%' }}>بيان الخامة (من المخزن)</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '25%' }}>تحميل على بند (BOQ) - اختياري</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '10%' }}>الكمية</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '8%' }}>الوحدة</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '12%' }}>السعر</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '15%' }}>الإجمالي</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '5%' }}>حذف</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', textAlign: 'right', width: '25%' }}>بيان الخامة (من المخزن)</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '25%' }}>تحميل على بند (BOQ) - اختياري</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '10%' }}>الكمية</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '8%' }}>الوحدة</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '12%' }}>السعر</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '15%' }}>الإجمالي</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '5%' }}>حذف</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -162,7 +162,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                                                     onSelect={(v: any) => logic.handleItemChange(idx, 'item_selection', v)} 
                                                 />
                                                 {item.item_id && (
-                                                    <div style={{ fontSize: '10px', marginTop: '5px', fontWeight: 900, color: isOutOfStock ? '#ef4444' : '#166534', textAlign: 'right', paddingRight: '5px' }}>
+                                                    <div style={{ fontSize: 'var(--fs-xs)', marginTop: '5px', fontWeight: 900, color: isOutOfStock ? '#ef4444' : '#166534', textAlign: 'right', paddingRight: '5px' }}>
                                                         {isOutOfStock ? 'رصيد غير كافٍ!' : 'رصيد متوفر'} (المخزن: {totalStock} {item.unit})
                                                     </div>
                                                 )}
@@ -211,12 +211,12 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                                                     title="مسحوب بآخر سعر شراء، قابل للتعديل"
                                                 />
                                             </td>
-                                            <td style={{ padding: '10px', fontWeight: 900, color: THEME.danger || '#ef4444', fontSize: '14px' }}>
+                                            <td style={{ padding: '10px', fontWeight: 900, color: THEME.danger || '#ef4444', fontSize: 'var(--fs-md)' }}>
                                                 {formatCurrency(item.total_price)}
                                             </td>
                                             <td style={{ padding: '10px' }}>
                                                 {idx > 0 ? (
-                                                    <button onClick={() => logic.handleRemoveItem(idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px' }} title="حذف الصنف"><Trash2 size={15} aria-hidden="true" /></button>
+                                                    <button onClick={() => logic.handleRemoveItem(idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xl)' }} title="حذف الصنف"><Trash2 size={15} aria-hidden="true" /></button>
                                                 ) : <div style={{width: '24px'}}></div>}
                                             </td>
                                         </tr>
@@ -229,16 +229,16 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
 
                 <div className="responsive-summary-grid" style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 800 }}>عدد الأصناف المنصرفة</div>
-                        <div style={{ fontSize: '24px', fontWeight: 900 }}>{logic.issueData?.items?.length || 0}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>عدد الأصناف المنصرفة</div>
+                        <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{logic.issueData?.items?.length || 0}</div>
                     </div>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 800 }}>إجمالي الكميات</div>
-                        <div style={{ fontSize: '24px', fontWeight: 900 }}>{totalQuantity}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الكميات</div>
+                        <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{totalQuantity}</div>
                     </div>
                     <div style={{ background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.goldAccent || '#c2410c'}80`, boxShadow: `0 0 20px ${THEME.goldAccent || '#c2410c'}20` }}>
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: '#fcd34d' }}>إجمالي التكلفة / الخصم</div>
-                        <div style={{ fontSize: '28px', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(grandTotal)}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#fcd34d' }}>إجمالي التكلفة / الخصم</div>
+                        <div style={{ fontSize: 'var(--fs-3xl)', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(grandTotal)}</div>
                     </div>
                 </div>
 

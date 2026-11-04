@@ -17,7 +17,7 @@ export default function RevenuePage() {
             render: (row: any) => row ? (
                 <div>
                     <div style={{ fontWeight: 900, color: THEME.primary }}>{row.partners?.name || 'عميل نقدي'}</div>
-                    <div style={{ fontSize: '11px', opacity: 0.7 }}>#{row.invoice_number} | {row.description || 'إيراد تشغيل'}</div>
+                    <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.7 }}>#{row.invoice_number} | {row.description || 'إيراد تشغيل'}</div>
                 </div>
             ) : null
         },
@@ -37,7 +37,7 @@ export default function RevenuePage() {
         { 
             header: 'صافي الإيراد المحقق', 
             render: (row: any) => row ? (
-                <div style={{ fontWeight: 900, color: THEME.success, fontSize: '14px', background: '#f0fdf4', padding: '6px 12px', borderRadius: '10px', textAlign: 'center' }}>
+                <div style={{ fontWeight: 900, color: THEME.success, fontSize: 'var(--fs-md)', background: '#f0fdf4', padding: '6px 12px', borderRadius: '10px', textAlign: 'center' }}>
                     {formatCurrency(row.total_amount)}
                 </div>
             ) : null
@@ -99,14 +99,14 @@ export default function RevenuePage() {
 
             <style>{`
                 .kpi-box { background: rgba(255,255,255,0.08); padding: 18px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.15); }
-                .kpi-box span { display: block; font-size: 11px; opacity: 0.8; color: #cbd5e1; font-weight: 800; margin-bottom: 5px; }
-                .kpi-box strong { display: block; font-size: 22px; color: ${THEME.goldAccent}; }
+                .kpi-box span { display: block; font-size: var(--fs-xs); opacity: 0.8; color: #cbd5e1; font-weight: 800; margin-bottom: 5px; }
+                .kpi-box strong { display: block; font-size: var(--fs-2xl); color: ${THEME.goldAccent}; }
                 .kpi-box.success { border-right: 4px solid #4ade80; background: rgba(74, 222, 128, 0.05); }
                 .kpi-box.success strong { color: #4ade80; }
                 .kpi-box.warning { border-right: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.05); }
                 .kpi-box.warning strong { color: #fbbf24; }
                 .kpi-box.secondary { border-right: 4px solid #94a3b8; }
-                .glass-input { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: white; outline: none; font-size: 13px; }
+                .glass-input { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: white; outline: none; font-size: var(--fs-sm); }
             `}</style>
 
         </MasterPage>

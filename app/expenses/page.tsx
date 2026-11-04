@@ -138,7 +138,7 @@ export default function ExpensesPage() {
           title={`ترتيب حسب ${label}`}
       >
           <span>{label}</span>
-          <span style={{ fontSize: '10px', opacity: sortConfig?.key === key ? 1 : 0.3 }}>
+          <span style={{ fontSize: 'var(--fs-xs)', opacity: sortConfig?.key === key ? 1 : 0.3 }}>
               {sortConfig?.key === key ? (sortConfig.direction === 'asc' ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />) : <ArrowUpDown size={14} aria-hidden="true" />}
           </span>
       </div>
@@ -190,7 +190,7 @@ export default function ExpensesPage() {
     { 
       header: renderSortableHeader('التاريخ', 'exp_date'), 
       accessor: 'exp_date', 
-      render: (row: any) => row ? <span style={{ color: '#64748b', fontSize: '13px', fontWeight: 700 }}>{row.exp_date}</span> : null,
+      render: (row: any) => row ? <span style={{ color: '#64748b', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>{row.exp_date}</span> : null,
       exportValue: (row: any) => row.exp_date || '---' 
     },
     { 
@@ -203,7 +203,7 @@ export default function ExpensesPage() {
       header: renderSortableHeader('التصنيف', 'main_category'), 
       accessor: 'main_category', 
       render: (row: any) => row ? (
-        <span style={{ fontSize:'11px', background: '#e0f2fe', padding: '4px 10px', borderRadius: '8px', color: '#0369a1', fontWeight: 900, border: '1px solid #bae6fd', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize:'var(--fs-xs)', background: '#e0f2fe', padding: '4px 10px', borderRadius: '8px', color: '#0369a1', fontWeight: 900, border: '1px solid #bae6fd', whiteSpace: 'nowrap' }}>
           {row.main_category || 'غير مصنف'}
         </span>
       ) : null,
@@ -213,7 +213,7 @@ export default function ExpensesPage() {
       header: renderSortableHeader('المشروع', 'site_ref'), 
       accessor: 'site_ref', 
       render: (row: any) => row ? (
-        <span style={{ fontSize:'11px', background: row.is_auto_distributed ? '#f3e8ff' : '#f1f5f9', padding: '4px 10px', borderRadius: '8px', color: row.is_auto_distributed ? THEME.purple : THEME.brand.coffee, fontWeight: 900 }}>
+        <span style={{ fontSize:'var(--fs-xs)', background: row.is_auto_distributed ? '#f3e8ff' : '#f1f5f9', padding: '4px 10px', borderRadius: '8px', color: row.is_auto_distributed ? THEME.purple : THEME.brand.coffee, fontWeight: 900 }}>
           {row.is_auto_distributed ? 'توزيع ذكي' : row.site_ref || 'عام'}
         </span>
       ) : null,
@@ -223,7 +223,7 @@ export default function ExpensesPage() {
       header: renderSortableHeader('المدين', 'creditor_account'), 
       accessor: 'creditor_account', 
       render: (row: any) => row ? (
-        <span style={{ fontSize:'11px', background: '#f8fafc', padding: '4px 10px', borderRadius: '8px', color: '#475569', fontWeight: 900 }}>
+        <span style={{ fontSize:'var(--fs-xs)', background: '#f8fafc', padding: '4px 10px', borderRadius: '8px', color: '#475569', fontWeight: 900 }}>
           {row.creditor_account || '---'}
         </span>
       ) : null,
@@ -233,7 +233,7 @@ export default function ExpensesPage() {
       header: renderSortableHeader('الدائن', 'payment_account'), 
       accessor: 'payment_account', 
       render: (row: any) => row ? (
-        <span style={{ fontSize:'11px', background: '#f8fafc', padding: '4px 10px', borderRadius: '8px', color: '#475569', fontWeight: 900 }}>
+        <span style={{ fontSize:'var(--fs-xs)', background: '#f8fafc', padding: '4px 10px', borderRadius: '8px', color: '#475569', fontWeight: 900 }}>
           {row.payment_account || '---'}
         </span>
       ) : null,
@@ -248,7 +248,7 @@ export default function ExpensesPage() {
         if ((!displayDesc || displayDesc.trim() === '') && row.lines_data && Array.isArray(row.lines_data) && row.lines_data.length > 0) {
             displayDesc = row.lines_data.map((l: any) => l.description).filter(Boolean).join(' + ');
         }
-        return <span style={{ fontSize:'12px', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block' }} title={displayDesc || '---'}>{displayDesc || '---'}</span>;
+        return <span style={{ fontSize:'var(--fs-sm)', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block' }} title={displayDesc || '---'}>{displayDesc || '---'}</span>;
       },
       exportValue: (row: any) => {
         let displayDesc = row.description;
@@ -276,7 +276,7 @@ export default function ExpensesPage() {
       render: (row: any) => {
         if (!row) return null;
         const total = row.total_price || ((Number(row.quantity || 1) * Number(row.unit_price || 0)) + Number(row.vat_amount || 0) - Number(row.discount_amount || 0));
-        return <span style={{ color: THEME.success, fontWeight: 900, fontSize: '14px' }}>{total.toLocaleString()}</span>;
+        return <span style={{ color: THEME.success, fontWeight: 900, fontSize: 'var(--fs-md)' }}>{total.toLocaleString()}</span>;
       },
       exportValue: (row: any) => {
         if (row.total_price) return Number(row.total_price);
@@ -309,7 +309,7 @@ export default function ExpensesPage() {
         }
 
         return (
-          <span style={{ display: 'inline-block', background: bgColor, color: textColor, padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, border: `1px solid ${textColor}30`, whiteSpace: 'nowrap' }}>
+          <span style={{ display: 'inline-block', background: bgColor, color: textColor, padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900, border: `1px solid ${textColor}30`, whiteSpace: 'nowrap' }}>
             {statusText}
           </span>
         );
@@ -328,8 +328,8 @@ export default function ExpensesPage() {
       render: (row: any) => {
         if (!row) return null;
         return row.is_posted ? 
-          <span style={{ display: 'inline-block', background: '#ecfdf5', color: '#059669', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 900 }}>معتمد</span> : 
-          <span style={{ display: 'inline-block', background: '#fff7ed', color: '#d97706', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 900 }}>معلق</span>;
+          <span style={{ display: 'inline-block', background: '#ecfdf5', color: '#059669', padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>معتمد</span> : 
+          <span style={{ display: 'inline-block', background: '#fff7ed', color: '#d97706', padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>معلق</span>;
       },
       exportValue: (row: any) => row.is_posted ? 'معتمد' : 'معلق'
     },
@@ -349,7 +349,7 @@ export default function ExpensesPage() {
           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', alignItems: 'center' }}>
             <button 
               onClick={(e) => { e.stopPropagation(); setPrintData(row); setIsPrintModalOpen(true); }} 
-              style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.1)', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', transition: '0.2s', fontSize: '14px' }}
+              style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.1)', padding: '6px 10px', borderRadius: '8px', cursor: 'pointer', transition: '0.2s', fontSize: 'var(--fs-md)' }}
               title="طباعة المصروف"
             >
               <Printer size={14} aria-hidden="true" />
@@ -400,7 +400,7 @@ export default function ExpensesPage() {
                       borderRadius: '10px', 
                       cursor: pvLogic.state.isEditModalOpen ? 'not-allowed' : 'pointer', 
                       fontWeight: 900, 
-                      fontSize: '12px', 
+                      fontSize: 'var(--fs-sm)', 
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
@@ -413,7 +413,7 @@ export default function ExpensesPage() {
                   onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
                   title="إصدار سند صرف فوري"
               >
-                  <span style={{ fontSize: '14px' }}><Banknote size={14} aria-hidden="true" /></span>
+                  <span style={{ fontSize: 'var(--fs-md)' }}><Banknote size={14} aria-hidden="true" /></span>
                   صرف السند
               </button>
             )}
@@ -432,8 +432,8 @@ export default function ExpensesPage() {
       {logic.selectedIds.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
           <div style={{ textAlign: 'center', marginBottom: '5px' }}>
-              <p style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 900, margin: 0 }}>الإجراءات على ({logic.selectedIds.length})</p>
-              <button onClick={() => logic.setSelectedIds([])} style={{ background: 'none', border: 'none', color: THEME.primary, fontSize: '10px', fontWeight: 900, cursor: 'pointer', textDecoration: 'underline' }}>إلغاء التحديد</button>
+              <p style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 900, margin: 0 }}>الإجراءات على ({logic.selectedIds.length})</p>
+              <button onClick={() => logic.setSelectedIds([])} style={{ background: 'none', border: 'none', color: THEME.primary, fontSize: 'var(--fs-xs)', fontWeight: 900, cursor: 'pointer', textDecoration: 'underline' }}>إلغاء التحديد</button>
           </div>
           
           <SecureAction module="expenses" action="edit">
@@ -476,18 +476,18 @@ export default function ExpensesPage() {
           <RawasiSidebarManager 
             summary={
               <div className="summary-glass-card">
-                <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي مصروفات الفترة</span>
-                <div className="val" style={{fontSize:'24px', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>{formatCurrency(displayedTotal)}</div>
-                <div style={{fontSize:'11px', color:'#10b981', fontWeight:800, marginTop:'5px'}}>إجمالي القيود: {displayedExpenses.length}</div>
+                <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي مصروفات الفترة</span>
+                <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>{formatCurrency(displayedTotal)}</div>
+                <div style={{fontSize:'var(--fs-xs)', color:'#10b981', fontWeight:800, marginTop:'5px'}}>إجمالي القيود: {displayedExpenses.length}</div>
               </div>
             }
             actions={sidebarActions}
             customFilters={
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
                 <div>
-                  <label style={{color: 'white', fontSize: '11px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>تصفية بالتصنيف:</label>
+                  <label style={{color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '8px'}}>تصفية بالتصنيف:</label>
                   <select 
-                      style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 800, outline: 'none', cursor: 'pointer', fontSize: '12px', appearance: 'auto' }} 
+                      style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 800, outline: 'none', cursor: 'pointer', fontSize: 'var(--fs-sm)', appearance: 'auto' }} 
                       value={categoryFilter || "الكل"}
                       onChange={e => {
                         const val = e.target.value;
@@ -500,9 +500,9 @@ export default function ExpensesPage() {
                 </div>
 
                 <div>
-                  <label style={{color: 'white', fontSize: '11px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>عرض السجلات:</label>
+                  <label style={{color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '8px'}}>عرض السجلات:</label>
                   <select 
-                      style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 800, outline: 'none', cursor: 'pointer', fontSize: '12px' }} 
+                      style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 800, outline: 'none', cursor: 'pointer', fontSize: 'var(--fs-sm)' }} 
                       value={logic.rowsPerPage} 
                       onChange={e => { logic.setRowsPerPage(Number(e.target.value)); logic.setCurrentPage(1); }}
                   >
@@ -513,7 +513,7 @@ export default function ExpensesPage() {
                 </div>
                 
                 <div>
-                  <label style={{ color: 'white', fontSize: '11px', fontWeight: 900, display: 'block', marginBottom: '8px' }}>تصفية حسب الحالة:</label>
+                  <label style={{ color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '8px' }}>تصفية حسب الحالة:</label>
                   <div style={{ display: 'flex', gap: '5px' }}>
                     {['الكل', 'معتمد', 'معلق'].map(type => (
                       <button 
@@ -528,14 +528,14 @@ export default function ExpensesPage() {
                 </div>
 
                 <div>
-                  <label style={{ color: 'white', fontSize: '11px', fontWeight: 900, display: 'block', marginBottom: '8px' }}>تصفية حسب السداد:</label>
+                  <label style={{ color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '8px' }}>تصفية حسب السداد:</label>
                   <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
                     {['الكل', 'مسدد', 'مسدد جزئي', 'غير مسدد'].map(type => (
                       <button 
                         key={type} 
                         onClick={() => logic.setPaymentFilter(type)} 
                         className={`filter-btn ${logic.paymentFilter === type ? 'active' : ''}`}
-                        style={{ padding: '6px', fontSize: '10px' }}
+                        style={{ padding: '6px', fontSize: 'var(--fs-xs)' }}
                       >
                         {type}
                       </button>
@@ -550,7 +550,7 @@ export default function ExpensesPage() {
 
           <style>{`
             .table-glass-wrapper { background: rgba(255,255,255,0.5); backdrop-filter: blur(10px); border-radius: 14px; padding: 10px; border: 1px solid rgba(255,255,255,0.7); transition: all 0.3s ease; }
-            .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+            .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
             .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
             .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; }
             .btn-main-glass.green { background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.9)); color: white; }
@@ -559,7 +559,7 @@ export default function ExpensesPage() {
             .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
             .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); }
             .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
-            .filter-btn { flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: 11px; transition: 0.3s; }
+            .filter-btn { flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: var(--fs-xs); transition: 0.3s; }
             .filter-btn.active { background: ${THEME.goldAccent}; color: #1e293b; }
             .custom-checkbox { width: 20px; height: 20px; accent-color: ${THEME.goldAccent}; cursor: pointer; transition: 0.1s; }
             @keyframes modalEntrance { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
@@ -588,7 +588,7 @@ export default function ExpensesPage() {
             <div style={{ position: 'fixed', inset: 0, zIndex: 999999999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: 'rgba(40, 24, 10, 0.85)', backdropFilter: 'blur(10px)', padding: '50px 20px', overflowY: 'auto' }}>
               <div style={{ position: 'fixed', inset: 0 }} onClick={() => logic.setIsBulkFixModalOpen(false)} />
               <div className="cinematic-scroll" style={{ background: 'rgba(255, 255, 255, 0.95)', borderRadius: '14px', width: '100%', maxWidth: '600px', padding: '40px', position: 'relative', zIndex: 10, margin: 'auto', boxShadow: '0 50px 100px -20px rgba(0,0,0,0.5)', animation: 'modalEntrance 0.4s forwards' }}>
-                <h2 style={{ fontWeight: 900, textAlign: 'center', marginBottom: '30px', color: THEME.brand.coffee, fontSize: '24px' }}>تصحيح الحسابات لـ ({logic.selectedIds.length}) سجل</h2>
+                <h2 style={{ fontWeight: 900, textAlign: 'center', marginBottom: '30px', color: THEME.brand.coffee, fontSize: 'var(--fs-2xl)' }}>تصحيح الحسابات لـ ({logic.selectedIds.length}) سجل</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', zIndex: 50, position: 'relative' }}>
                   <div style={{ zIndex: 60, position: 'relative' }}>
                     <SmartCombo 
@@ -624,8 +624,8 @@ export default function ExpensesPage() {
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '15px', marginTop: '40px' }}>
-                  <button onClick={logic.handleBulkFixSave} disabled={logic.isLoading} style={{ flex: 2, padding: '18px', borderRadius: '16px', background: THEME.info, color: 'white', fontWeight: 900, border: 'none', cursor: 'pointer', fontSize: '16px', boxShadow: `0 10px 25px ${THEME.info}40` }}>{logic.isLoading ? 'جاري الحفظ...' : 'تطبيق التعديلات'}</button>
-                  <button onClick={()=>logic.setIsBulkFixModalOpen(false)} style={{ flex: 1, padding: '18px', borderRadius: '16px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: '16px' }}>إلغاء</button>
+                  <button onClick={logic.handleBulkFixSave} disabled={logic.isLoading} style={{ flex: 2, padding: '18px', borderRadius: '16px', background: THEME.info, color: 'white', fontWeight: 900, border: 'none', cursor: 'pointer', fontSize: 'var(--fs-lg)', boxShadow: `0 10px 25px ${THEME.info}40` }}>{logic.isLoading ? 'جاري الحفظ...' : 'تطبيق التعديلات'}</button>
+                  <button onClick={()=>logic.setIsBulkFixModalOpen(false)} style={{ flex: 1, padding: '18px', borderRadius: '16px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)' }}>إلغاء</button>
                 </div>
               </div>
             </div>,

@@ -56,12 +56,12 @@ export default function RawasiMultiSelect({ options, selectedIds, onChange, plac
         style={{ minHeight: '42px', padding: '6px 10px', background: THEME.slate, border: `1px solid ${isOpen ? THEME.accent : THEME.border}`, borderRadius: '8px', cursor: 'pointer', display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center', transition: '0.2s' }}
       >
         {selectedOptions.length === 0 ? (
-          <span style={{ color: THEME.textMuted, fontSize: '13px', fontWeight: 'bold', padding: '4px' }}>{placeholder}</span>
+          <span style={{ color: THEME.textMuted, fontSize: 'var(--fs-sm)', fontWeight: 'bold', padding: '4px' }}>{placeholder}</span>
         ) : (
           selectedOptions.map(opt => (
-            <span key={opt.id} style={{ background: THEME.primary, color: 'white', fontSize: '11px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span key={opt.id} style={{ background: THEME.primary, color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 'bold', padding: '4px 8px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               {opt.name}
-              <button onClick={(e) => removeOption(e, opt.id)} style={{ background: 'transparent', border: 'none', color: THEME.accent, cursor: 'pointer', padding: 0, fontSize: '14px', lineHeight: 1 }}>×</button>
+              <button onClick={(e) => removeOption(e, opt.id)} style={{ background: 'transparent', border: 'none', color: THEME.accent, cursor: 'pointer', padding: 0, fontSize: 'var(--fs-md)', lineHeight: 1 }}>×</button>
             </span>
           ))
         )}
@@ -84,7 +84,7 @@ export default function RawasiMultiSelect({ options, selectedIds, onChange, plac
 
           <div style={{ maxHeight: '250px', overflowY: 'auto', padding: '5px 0' }}>
             {filteredOptions.length === 0 ? (
-              <div style={{ padding: '15px', textAlign: 'center', color: THEME.textMuted, fontSize: '13px', fontWeight: 'bold' }}>لا يوجد أسماء مطابقة</div>
+              <div style={{ padding: '15px', textAlign: 'center', color: THEME.textMuted, fontSize: 'var(--fs-sm)', fontWeight: 'bold' }}>لا يوجد أسماء مطابقة</div>
             ) : (
               filteredOptions.map(opt => (
                 <div 
@@ -100,7 +100,7 @@ export default function RawasiMultiSelect({ options, selectedIds, onChange, plac
                     readOnly
                     style={{ width: '16px', height: '16px', accentColor: THEME.primary, cursor: 'pointer' }}
                   />
-                  <span style={{ fontWeight: 'bold', color: THEME.primary, fontSize: '13px' }}>{opt.name}</span>
+                  <span style={{ fontWeight: 'bold', color: THEME.primary, fontSize: 'var(--fs-sm)' }}>{opt.name}</span>
                 </div>
               ))
             )}

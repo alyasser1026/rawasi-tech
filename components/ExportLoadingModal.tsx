@@ -60,13 +60,13 @@ export default function ExportLoadingModal({ isOpen, progressText }: ExportLoadi
                 }
                 .phi-export-preview .pulse-icon { display: grid; place-items: center; width: 58px; height: 58px; border-radius: 15px; color: #c2410c; background: linear-gradient(150deg,#fff7ed,#ffedd5); border: 1px solid #fed7aa; margin: 0 auto 15px; box-shadow: inset 0 1px 0 white,0 2px 4px #9a341208; }
                 
-                .phi-export-preview .live-preview-header h2 { color: #202329; margin: 0 0 10px 0; font-size: 22px; font-weight: 800; }
-                .phi-export-preview .progress-text { color: #526071; font-size: 13px; font-weight: 500; line-height: 1.8; display: block; margin: 0; }
+                .phi-export-preview .live-preview-header h2 { color: #202329; margin: 0 0 10px 0; font-size: var(--fs-2xl); font-weight: 800; }
+                .phi-export-preview .progress-text { color: #526071; font-size: var(--fs-sm); font-weight: 500; line-height: 1.8; display: block; margin: 0; }
                 
                 .phi-export-preview .progress-bar-container { width: 100%; height: 7px; background: #e6e8ec; border-radius: 10px; margin: 15px 0; overflow: hidden; }
                 .phi-export-preview .progress-bar-fill { height: 100%; background: linear-gradient(135deg, #c2410c, #fb923c); transition: width 0.3s ease; }
                 
-                .phi-export-preview .warning { color: #687180; font-size: 11px; }
+                .phi-export-preview .warning { color: #687180; font-size: var(--fs-xs); }
 
                 /* مساحة العمل التي سيرسم فيها الكشف (محاكاة شكل البرنامج) */
                 .live-preview-workspace {

@@ -20,8 +20,8 @@ export default function ProjectLaborCostsPage() {
             <RawasiSidebarManager 
                 summary={
                     <div className="summary-glass-card">
-                        <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي تكلفة الميدان الحية</span>
-                        <div className="val" style={{fontSize:'22px', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>
+                        <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي تكلفة الميدان الحية</span>
+                        <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>
                             {formatCurrency(logic.grandTotalLaborCost)}
                         </div>
                     </div>
@@ -29,7 +29,7 @@ export default function ProjectLaborCostsPage() {
                 actions={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                         <div className="filter-group">
-                            <label style={{fontSize:'11px', fontWeight:800, color:'#94a3b8', display:'block', marginBottom:'5px'}}>تصفية بالمشروع</label>
+                            <label style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#94a3b8', display:'block', marginBottom:'5px'}}>تصفية بالمشروع</label>
                             <select className="combo-glass" value={logic.selectedProject} onChange={(e)=>logic.setSelectedProject(e.target.value)}>
                                 <option value="">كل المشاريع المتاحة</option>
                                 {logic.uniqueProjects.map((p, i)=><option key={i} value={p}>{p}</option>)}
@@ -37,7 +37,7 @@ export default function ProjectLaborCostsPage() {
                         </div>
 
                         <div className="filter-group">
-                            <label style={{fontSize:'11px', fontWeight:800, color:'#94a3b8', display:'block', marginBottom:'5px'}}>تصفية بالشهر المالي</label>
+                            <label style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#94a3b8', display:'block', marginBottom:'5px'}}>تصفية بالشهر المالي</label>
                             <select className="combo-glass" value={logic.selectedMonth} onChange={(e)=>logic.setSelectedMonth(e.target.value)}>
                                 <option value="">كل الأشهر</option>
                                 {logic.uniqueMonths.map((m, i)=><option key={i} value={m}>{m}</option>)}
@@ -70,7 +70,7 @@ export default function ProjectLaborCostsPage() {
                 
                 .labor-scroller th {
                     padding: 12px 10px !important;
-                    font-size: 12px !important;
+                    font-size: var(--fs-sm) !important;
                     white-space: nowrap !important;
                     font-weight: 900 !important;
                     color: #334155 !important;
@@ -82,7 +82,7 @@ export default function ProjectLaborCostsPage() {
                 .labor-scroller td {
                     padding: 10px 10px !important;
                     border-bottom: 1px solid #f1f5f9 !important;
-                    font-size: 12px;
+                    font-size: var(--fs-sm);
                     font-weight: 700;
                     color: #475569;
                     white-space: nowrap;
@@ -119,7 +119,7 @@ export default function ProjectLaborCostsPage() {
                     padding: 6px 16px;
                     border-radius: 8px;
                     font-weight: 800;
-                    font-size: 12px;
+                    font-size: var(--fs-sm);
                     color: #334155;
                     cursor: pointer;
                     transition: 0.2s;
@@ -170,18 +170,18 @@ export default function ProjectLaborCostsPage() {
                                                 </td>
                                                 <td className="sticky-col-2" style={{color:'#94a3b8', background: '#f8fafc'}}>كشف تفصيلي ↳</td>
                                                 <td style={{color:'#94a3b8'}}>--</td>
-                                                <td style={{color:'#64748b', fontSize:'11px'}}>إجمالي يوميات الموقع</td>
+                                                <td style={{color:'#64748b', fontSize:'var(--fs-xs)'}}>إجمالي يوميات الموقع</td>
                                                 <td style={{color:'#1e293b'}}>
                                                     <span style={{background:'#e2e8f0', padding:'3px 8px', borderRadius:'6px'}}>
                                                         {Number(group.totalWorkers).toFixed(2).replace(/\.00$/, '')} عامل
                                                     </span>
                                                 </td>
-                                                <td style={{color:'#047857', fontWeight:900, fontSize:'14px', background:'rgba(16, 185, 129, 0.05)'}}>{formatCurrency(group.totalCost)}</td>
+                                                <td style={{color:'#047857', fontWeight:900, fontSize:'var(--fs-md)', background:'rgba(16, 185, 129, 0.05)'}}>{formatCurrency(group.totalCost)}</td>
                                             </tr>
 
                                             {isExpanded && group.items.map((item, iIdx) => (
                                                 <tr key={item.id || iIdx} style={{background: 'rgba(248,250,252,0.6)'}}>
-                                                    <td className="sticky-col-1" style={{paddingRight:'35px', color:'#94a3b8', fontSize:'11px', background: 'inherit'}}>↳ تابع: {group.projectName}</td>
+                                                    <td className="sticky-col-1" style={{paddingRight:'35px', color:'#94a3b8', fontSize:'var(--fs-xs)', background: 'inherit'}}>↳ تابع: {group.projectName}</td>
                                                     <td className="sticky-col-2" style={{color:'#334155', background: 'inherit'}}>{item["تاريخ اليومية"]}</td>
                                                     <td style={{color:'#64748b'}}>{item["الشهر المالي"]}</td>
                                                     <td style={{color: THEME.goldAccent}}>{item["اسم البند المتأثر"] || 'عام / غير محدد'}</td>
@@ -207,7 +207,7 @@ export default function ProjectLaborCostsPage() {
                                 ◀ السابق
                             </button>
                             
-                            <span style={{ fontSize: '12px', fontWeight: 900, color: '#64748b' }}>
+                            <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b' }}>
                                 صفحة {logic.currentPage} من {totalPages}
                             </span>
 

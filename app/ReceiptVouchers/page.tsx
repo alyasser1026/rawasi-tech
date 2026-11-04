@@ -102,7 +102,7 @@ export default function ReceiptVouchersPage() {
                 return (
                     <div style={{ fontWeight: 900, color: THEME.brand.coffee }}>
                         {row.receipt_number}
-                        {row.reference_number && <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px' }}>مرجع: {row.reference_number}</div>}
+                        {row.reference_number && <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '4px' }}>مرجع: {row.reference_number}</div>}
                     </div>
                 );
             }
@@ -112,7 +112,7 @@ export default function ReceiptVouchersPage() {
             accessor: 'date',
             render: (row: any) => {
                 if (!row) return null;
-                return <span style={{ color: '#64748b', fontSize: '13px', fontWeight: 700 }}>{row.date}</span>;
+                return <span style={{ color: '#64748b', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>{row.date}</span>;
             }
         },
         {
@@ -129,7 +129,7 @@ export default function ReceiptVouchersPage() {
             render: (row: any) => {
                 if (!row) return null;
                 return (
-                    <div style={{ color: THEME.brand.gold, fontSize: '12px', fontWeight: 800, maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ color: THEME.brand.gold, fontSize: 'var(--fs-sm)', fontWeight: 800, maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {row.project_names || '---'}
                     </div>
                 );
@@ -140,7 +140,7 @@ export default function ReceiptVouchersPage() {
             accessor: 'amount',
             render: (row: any) => {
                 if (!row) return null;
-                return <span style={{ color: THEME.success, fontWeight: 900, fontSize: '14px' }}>{formatCurrency(row.amount)}</span>;
+                return <span style={{ color: THEME.success, fontWeight: 900, fontSize: 'var(--fs-md)' }}>{formatCurrency(row.amount)}</span>;
             }
         },
         {
@@ -152,7 +152,7 @@ export default function ReceiptVouchersPage() {
                 const isRefunded = row.status === 'مسترجع';
                 return (
                     <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '12px', fontSize: '11px', fontWeight: 900,
+                        display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 900,
                         background: isPosted ? '#ecfdf5' : isRefunded ? '#fef2f2' : '#fff7ed',
                         color: isPosted ? '#059669' : isRefunded ? '#dc2626' : '#d97706',
                     }}>
@@ -194,7 +194,7 @@ export default function ReceiptVouchersPage() {
 
                     {selectedCount > 0 && (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
-                            <span style={{ fontSize: '11px', color: THEME.brand.gold, fontWeight: 900, textAlign: 'center' }}>إجراءات جماعية ({selectedCount})</span>
+                            <span style={{ fontSize: 'var(--fs-xs)', color: THEME.brand.gold, fontWeight: 900, textAlign: 'center' }}>إجراءات جماعية ({selectedCount})</span>
                             
                             {/* 🛡️ حماية الترحيل والإلغاء والتصحيح المجمع */}
                             <SecureAction module="receipt_vouchers" action="post">
@@ -220,17 +220,17 @@ export default function ReceiptVouchersPage() {
             summary: (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                     <div className="summary-glass-card" style={{ borderColor: THEME.brand.gold, padding: '15px' }}>
-                        <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي التحصيلات</span>
-                        <div style={{fontSize:'22px', fontWeight:900, color: THEME.brand.gold}}>{formatCurrency(logic.kpis.totalAmount)}</div>
+                        <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي التحصيلات</span>
+                        <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.brand.gold}}>{formatCurrency(logic.kpis.totalAmount)}</div>
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
                         <div className="summary-glass-card" style={{ borderColor: THEME.success, padding: '10px', textAlign: 'center' }}>
-                            <span style={{fontSize:'10px', fontWeight:800, color:'#64748b'}}>مُرحّل</span>
-                            <div style={{fontSize:'16px', fontWeight:900, color: THEME.success}}>{logic.kpis.posted}</div>
+                            <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#64748b'}}>مُرحّل</span>
+                            <div style={{fontSize:'var(--fs-lg)', fontWeight:900, color: THEME.success}}>{logic.kpis.posted}</div>
                         </div>
                         <div className="summary-glass-card" style={{ borderColor: '#f59e0b', padding: '10px', textAlign: 'center' }}>
-                            <span style={{fontSize:'10px', fontWeight:800, color:'#64748b'}}>معلق</span>
-                            <div style={{fontSize:'16px', fontWeight:900, color: '#f59e0b'}}>{logic.kpis.pending}</div>
+                            <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#64748b'}}>معلق</span>
+                            <div style={{fontSize:'var(--fs-lg)', fontWeight:900, color: '#f59e0b'}}>{logic.kpis.pending}</div>
                         </div>
                     </div>
                 </div>
@@ -342,7 +342,7 @@ export default function ReceiptVouchersPage() {
                 }}>
                     <div className="cinematic-scroll phi-modal-panel" style={{ background: 'white', borderRadius: '14px', width: '100%', maxWidth: '500px', padding: '30px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', zIndex: 10 }}>
                         <h3 style={{ margin: '0 0 10px 0', color: THEME.brand.coffee, fontWeight: 900 }}>التصحيح المجمع للحسابات</h3>
-                        <p style={{ fontSize: '13px', color: '#64748b', marginBottom: '20px', fontWeight: 800 }}>
+                        <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginBottom: '20px', fontWeight: 800 }}>
                             سيتم تطبيق التعديلات على ({logic.selectedIds.length}) سند مسودة.
                         </p>
                         

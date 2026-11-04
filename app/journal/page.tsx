@@ -202,7 +202,7 @@ export default function JournalPage() {
         return (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ color: '#64748b', fontWeight: 900 }}>{row.entry_date}</span>
-            <span style={{ fontSize: '10px', color: '#94a3b8' }}>#{row.reference_id?.split('-')[0] || row.header_id?.split('-')[0]}</span>
+            <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8' }}>#{row.reference_id?.split('-')[0] || row.header_id?.split('-')[0]}</span>
           </div>
         );
       } 
@@ -214,8 +214,8 @@ export default function JournalPage() {
         if (!row) return null;
         return (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <b style={{ color: THEME.primary, fontSize: '13px' }}>{row.account_name || '---'}</b>
-            <span style={{ fontSize: '11px', color: '#64748b' }}>{row.account_code || ''}</span>
+            <b style={{ color: THEME.primary, fontSize: 'var(--fs-sm)' }}>{row.account_name || '---'}</b>
+            <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b' }}>{row.account_code || ''}</span>
           </div>
         );
       } 
@@ -228,7 +228,7 @@ export default function JournalPage() {
         return (
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{ fontWeight: 800, color: '#334155' }}>{row.partner_name || '---'}</span>
-            {row.project_name && <span style={{ fontSize: '11px', color: '#10b981', fontWeight: 700 }}>{row.project_name}</span>}
+            {row.project_name && <span style={{ fontSize: 'var(--fs-xs)', color: '#10b981', fontWeight: 700 }}>{row.project_name}</span>}
           </div>
         );
       } 
@@ -240,8 +240,8 @@ export default function JournalPage() {
         if (!row) return null;
         return (
           <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '300px' }}>
-            <span style={{ color: '#1e293b', fontWeight: 800, fontSize: '12px' }}>{row.header_description}</span>
-            {row.line_notes && <span style={{ color: '#64748b', fontSize: '11px', marginTop: '2px' }}>* {row.line_notes}</span>}
+            <span style={{ color: '#1e293b', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>{row.header_description}</span>
+            {row.line_notes && <span style={{ color: '#64748b', fontSize: 'var(--fs-xs)', marginTop: '2px' }}>* {row.line_notes}</span>}
           </div>
         );
       } 
@@ -249,12 +249,12 @@ export default function JournalPage() {
     { 
       header: 'مدين', 
       accessor: 'debit', 
-      render: (row: any) => row && row.debit > 0 ? <span style={{ fontWeight: 900, color: '#059669', fontSize: '14px' }}>{formatCurrency(row.debit)}</span> : '-' 
+      render: (row: any) => row && row.debit > 0 ? <span style={{ fontWeight: 900, color: '#059669', fontSize: 'var(--fs-md)' }}>{formatCurrency(row.debit)}</span> : '-' 
     },
     { 
       header: 'دائن', 
       accessor: 'credit', 
-      render: (row: any) => row && row.credit > 0 ? <span style={{ fontWeight: 900, color: '#dc2626', fontSize: '14px' }}>{formatCurrency(row.credit)}</span> : '-' 
+      render: (row: any) => row && row.credit > 0 ? <span style={{ fontWeight: 900, color: '#dc2626', fontSize: 'var(--fs-md)' }}>{formatCurrency(row.credit)}</span> : '-' 
     },
     {
       header: 'الحالة',
@@ -273,9 +273,9 @@ export default function JournalPage() {
   const balanced = logic.totals.balance === 0;
 
   const summary = useMemo(() => <KpiStrip compact items={[
-    { label: 'إجمالي المدين', value: formatCurrency(logic.totals.totalDebit), tone: 'success', icon: <ArrowDownLeft /> },
-    { label: 'إجمالي الدائن', value: formatCurrency(logic.totals.totalCredit), tone: 'danger', icon: <ArrowUpRight /> },
-    { label: logic.isFiltered ? 'صافي رصيد التصفية' : (balanced ? 'الدفتر متزن' : (logic.totals.balance > 0 ? 'رصيد مدين' : 'رصيد دائن')), value: formatCurrency(Math.abs(logic.totals.balance)), tone: balanced ? 'success' : 'warning', icon: <Scale />, hint: `${logic.totals.count.toLocaleString('ar-EG')} سطر` },
+    { label: 'إجمالي المدين', amount: logic.totals.totalDebit, tone: 'success', icon: <ArrowDownLeft /> },
+    { label: 'إجمالي الدائن', amount: logic.totals.totalCredit, tone: 'danger', icon: <ArrowUpRight /> },
+    { label: logic.isFiltered ? 'صافي رصيد التصفية' : (balanced ? 'الدفتر متزن' : (logic.totals.balance > 0 ? 'رصيد مدين' : 'رصيد دائن')), amount: Math.abs(logic.totals.balance), tone: balanced ? 'success' : 'warning', icon: <Scale />, hint: `${logic.totals.count.toLocaleString('ar-EG')} سطر` },
   ]} />, [logic.totals, logic.isFiltered, balanced]);
 
   const sidebarActions = useMemo(() => logic.selectedIds.length > 0 ? <>
@@ -313,7 +313,7 @@ export default function JournalPage() {
           />
 
           <style>{`
-            .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; display: inline-block; }
+            .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 800; display: inline-block; }
             .badge-glass.green { background: #ecfdf5; color: #047857; }
             .badge-glass.yellow { background: #fff7ed; color: #b45309; }
           `}</style>

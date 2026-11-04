@@ -84,9 +84,9 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                 }
                 .glass-input-field:focus { background: #fff; border-color: ${THEME.accent}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
                 
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
+                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
-                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; }
+                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
                 .btn-glass-cancel:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
                 
                 .lines-table-container {
@@ -107,10 +107,10 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                 
                 {/* 📝 الهيدر */}
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'15px'}}>
-                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '26px' }}>إصدار فاتورة توريد خامات</h2>
+                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>إصدار فاتورة توريد خامات</h2>
                     <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
-                        <div style={{ color: THEME.accent, fontWeight: 900, fontSize: '28px' }}>{formatCurrency(logic.grandTotal)}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
+                        <div style={{ color: THEME.accent, fontWeight: 900, fontSize: 'var(--fs-3xl)' }}>{formatCurrency(logic.grandTotal)}</div>
                     </div>
                 </div>
 
@@ -142,7 +142,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                         <SmartCombo label="حساب التوجيه المالي (مثال: خامات العملاء) *" icon="💳" table="accounts" displayCol="name" searchCols="name,code" value={logic.invoiceData.account_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, account_id: v?.id })} />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ الفاتورة *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ الفاتورة *</label>
                         <input type="date" className="glass-input-field" value={logic.invoiceData.exp_date} onChange={e => logic.setInvoiceData({...logic.invoiceData, exp_date: e.target.value})} />
                     </div>
                 </div>
@@ -150,7 +150,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                 {/* 🚀 قسم إدخال الأصناف (متعدد الأصناف مع الـ BOQ والكتالوج الموحد) */}
                 <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '14px', marginBottom: '25px', border: `1px dashed ${THEME.accent}` }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: THEME.brand?.coffee || THEME.coffeeDark }}>أصناف الفاتورة (الخامات) وربطها بالبنود</h3>
+                        <h3 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.brand?.coffee || THEME.coffeeDark }}>أصناف الفاتورة (الخامات) وربطها بالبنود</h3>
                         <button onClick={logic.handleAddItem} style={{ background: 'white', color: THEME.primary, border: `1px solid ${THEME.accent}`, padding: '8px 15px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
                             إضافة صنف آخر
                         </button>
@@ -160,13 +160,13 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
                             <thead style={{ background: THEME.primary, color: 'white' }}>
                                 <tr>
-                                    <th style={{ padding: '12px', fontSize: '11px', textAlign: 'right', width: '25%' }}>اسم الخامة (من الدليل الموحد)</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '25%' }}>توجيه لبند (BOQ) - اختياري</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '10%' }}>الكمية</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '10%' }}>الوحدة</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '12%' }}>السعر</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '13%' }}>الإجمالي</th>
-                                    <th style={{ padding: '12px', fontSize: '11px', width: '5%' }}>حذف</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', textAlign: 'right', width: '25%' }}>اسم الخامة (من الدليل الموحد)</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '25%' }}>توجيه لبند (BOQ) - اختياري</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '10%' }}>الكمية</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '10%' }}>الوحدة</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '12%' }}>السعر</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '13%' }}>الإجمالي</th>
+                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '5%' }}>حذف</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -218,12 +218,12 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                                         <td style={{ padding: '10px' }}>
                                             <input type="number" placeholder="0.00" className="glass-input-field" style={{ padding: '8px', textAlign: 'center', background: 'white' }} value={item.unit_price} onChange={e => logic.handleItemChange(idx, 'unit_price', e.target.value)} />
                                         </td>
-                                        <td style={{ padding: '10px', fontWeight: 900, color: THEME.primary, fontSize: '15px' }}>
+                                        <td style={{ padding: '10px', fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-lg)' }}>
                                             {formatCurrency(item.total_price)}
                                         </td>
                                         <td style={{ padding: '10px' }}>
                                             {idx > 0 ? (
-                                                <button onClick={() => logic.handleRemoveItem(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby || '#ef4444', cursor: 'pointer', fontSize: '18px' }} title="حذف الصنف"><Trash2 size={15} aria-hidden="true" /></button>
+                                                <button onClick={() => logic.handleRemoveItem(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby || '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xl)' }} title="حذف الصنف"><Trash2 size={15} aria-hidden="true" /></button>
                                             ) : <div style={{width: '24px'}}></div>}
                                         </td>
                                     </tr>
@@ -257,16 +257,16 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                 {/* 🚀 الملخص المالي السفلي */}
                 <div className="responsive-summary-grid" style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 800 }}>عدد الأصناف المُسجلة</div>
-                        <div style={{ fontSize: '24px', fontWeight: 900 }}>{logic.invoiceData.items.length}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>عدد الأصناف المُسجلة</div>
+                        <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{logic.invoiceData.items.length}</div>
                     </div>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: 800 }}>إجمالي الكميات</div>
-                        <div style={{ fontSize: '24px', fontWeight: 900 }}>{totalQuantity}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الكميات</div>
+                        <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{totalQuantity}</div>
                     </div>
                     <div style={{ background: `linear-gradient(135deg, ${THEME.accent}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.accent}80`, boxShadow: `0 0 20px ${THEME.accent}20` }}>
-                        <div style={{ fontSize: '13px', fontWeight: 900, color: THEME.accentLight || '#fcd34d' }}>الصافي النهائي للتوريد</div>
-                        <div style={{ fontSize: '28px', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(logic.grandTotal)}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.accentLight || '#fcd34d' }}>الصافي النهائي للتوريد</div>
+                        <div style={{ fontSize: 'var(--fs-3xl)', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(logic.grandTotal)}</div>
                     </div>
                 </div>
 

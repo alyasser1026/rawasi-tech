@@ -41,19 +41,19 @@ export default function CatalogItemModal({ isOpen, onClose, record, setRecord, o
                     </div>
 
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '8px' }}>اسم البند (مثال: توريد ودهان بلاستيك للحوائط)</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '8px' }}>اسم البند (مثال: توريد ودهان بلاستيك للحوائط)</label>
                         <textarea style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '1px solid #cbd5e1', outline: 'none', fontWeight: 900, minHeight: '80px', resize: 'vertical' }} 
                                value={record.item_name || ''} onChange={e => setRecord({...record, item_name: e.target.value})} />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
                         <div>
-                            <label style={{ fontSize: '12px', fontWeight: 900 }}>الكود الذكي (اتركه فارغاً للتوليد الآلي)</label>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>الكود الذكي (اتركه فارغاً للتوليد الآلي)</label>
                             <input type="text" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #cbd5e1', textAlign: 'center', background: '#f8fafc' }} 
                                    value={record.item_code || ''} onChange={e => setRecord({...record, item_code: e.target.value})} placeholder="مثال: FIN-01-01" />
                         </div>
                         <div>
-                            <label style={{ fontSize: '12px', fontWeight: 900 }}>وحدة القياس</label>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>وحدة القياس</label>
                             <input type="text" style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 900 }} 
                                    value={record.unit_of_measure || ''} onChange={e => setRecord({...record, unit_of_measure: e.target.value})} placeholder="مثال: م2, م.ط, عدد" />
                         </div>
@@ -61,10 +61,10 @@ export default function CatalogItemModal({ isOpen, onClose, record, setRecord, o
                 </div>
 
                 <div style={{ display: 'flex', gap: '15px', marginTop: '35px' }}>
-                    <button onClick={() => onSave(record)} disabled={isSaving} style={{ flex: 2, background: THEME.success, color: 'white', border: 'none', padding: '16px', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: '16px' }}>
+                    <button onClick={() => onSave(record)} disabled={isSaving} style={{ flex: 2, background: THEME.success, color: 'white', border: 'none', padding: '16px', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)' }}>
                         {isSaving ? 'جاري الحفظ...' : 'حفظ في الدليل'}
                     </button>
-                    <button onClick={onClose} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '16px', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: '16px' }}>إلغاء</button>
+                    <button onClick={onClose} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '16px', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)' }}>إلغاء</button>
                 </div>
             </div>
         </div>,

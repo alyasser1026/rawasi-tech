@@ -35,7 +35,7 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
         
         {/* شريط التحكم (يختفي في الطباعة) */}
         <div className="no-print sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-10">
-          <h2 style={{ color: THEME.coffeeDark, fontWeight: 900, fontSize: '18px', margin: 0 }}>معاينة التقرير المالي والتحليلي (يشمل تكاليف ABC)</h2>
+          <h2 style={{ color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-xl)', margin: 0 }}>معاينة التقرير المالي والتحليلي (يشمل تكاليف ABC)</h2>
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={() => window.print()} style={{ backgroundColor: THEME.primary, color: 'white', padding: '8px 20px', borderRadius: '8px', fontWeight: 800, display: 'flex', gap: '8px', alignItems: 'center' }}>
               <span><Printer size={16} aria-hidden="true" /></span> طباعة الآن
@@ -52,18 +52,18 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
           {/* الترويسة Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `3px solid ${THEME.primary}`, paddingBottom: '20px', marginBottom: '30px' }}>
             <div>
-              <h1 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '24px' }}>التقرير المالي والتحليلي للمشروع</h1>
+              <h1 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-2xl)' }}>التقرير المالي والتحليلي للمشروع</h1>
               <p style={{ margin: '5px 0 0 0', color: '#64748b', fontWeight: 800 }}>تاريخ الإصدار: {today}</p>
             </div>
             <div style={{ textAlign: 'left' }}>
               <h2 style={{ margin: 0, color: THEME.primary, fontWeight: 900 }}>إدارة المشاريع والتكاليف</h2>
-              <p style={{ margin: '5px 0 0 0', color: '#64748b', fontWeight: 700, fontSize: '12px' }}>نظام الرقابة المالية (ABC Costing)</p>
+              <p style={{ margin: '5px 0 0 0', color: '#64748b', fontWeight: 700, fontSize: 'var(--fs-sm)' }}>نظام الرقابة المالية (ABC Costing)</p>
             </div>
           </div>
 
           {/* بيانات المشروع */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '30px', backgroundColor: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-            <div><strong style={{ color: '#64748b' }}>اسم المشروع / العقار:</strong> <span style={{ fontWeight: 900, fontSize: '16px' }}>{project.Property}</span></div>
+            <div><strong style={{ color: '#64748b' }}>اسم المشروع / العقار:</strong> <span style={{ fontWeight: 900, fontSize: 'var(--fs-lg)' }}>{project.Property}</span></div>
             <div><strong style={{ color: '#64748b' }}>العميل المالك:</strong> <span style={{ fontWeight: 900 }}>{project.client?.name || 'غير محدد'}</span></div>
             <div><strong style={{ color: '#64748b' }}>حالة المشروع:</strong> <span style={{ fontWeight: 900 }}>{project.status}</span></div>
             <div><strong style={{ color: '#64748b' }}>المهندس المسئول:</strong> <span style={{ fontWeight: 900 }}>{project.engineer_in_charge || 'غير محدد'}</span></div>
@@ -73,31 +73,31 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
           <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', color: THEME.coffeeDark, fontWeight: 900 }}>الملخص المالي والتكاليف الموزعة</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '15px', marginBottom: '40px' }}>
             <div style={{ padding: '15px', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 800 }}>إجمالي قيمة التعاقد</div>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: THEME.coffeeDark }}>{formatCurrency(boqStats.totalContractValue)}</div>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>إجمالي قيمة التعاقد</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: THEME.coffeeDark }}>{formatCurrency(boqStats.totalContractValue)}</div>
             </div>
             <div style={{ padding: '15px', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 800 }}>إجمالي الميزانية المعتمدة</div>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: THEME.danger }}>{formatCurrency(boqStats.totalEstimatedCosts)}</div>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>إجمالي الميزانية المعتمدة</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: THEME.danger }}>{formatCurrency(boqStats.totalEstimatedCosts)}</div>
             </div>
             {/* 🚀 إجمالي التوزيعات ABC */}
             <div style={{ padding: '15px', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center', backgroundColor: '#F3E8FF' }}>
-              <div style={{ fontSize: '11px', color: '#6B21A8', fontWeight: 800 }}>المصروفات الموزعة (ABC)</div>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: '#9333EA' }}>{formatCurrency(boqStats.totalAllocatedExpensesABC)}</div>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#6B21A8', fontWeight: 800 }}>المصروفات الموزعة (ABC)</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#9333EA' }}>{formatCurrency(boqStats.totalAllocatedExpensesABC)}</div>
             </div>
             <div style={{ padding: '15px', border: `1px solid ${boqStats.isLoss ? THEME.danger : THEME.success}`, backgroundColor: boqStats.isLoss ? '#FEF2F2' : '#F0FDF4', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '11px', color: boqStats.isLoss ? THEME.danger : '#166534', fontWeight: 800 }}>{boqStats.isLoss ? 'خسارة المشروع' : 'صافي الأرباح الحقيقية'}</div>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: boqStats.isLoss ? THEME.danger : THEME.success }}>{formatCurrency(boqStats.totalNetProfit)}</div>
+              <div style={{ fontSize: 'var(--fs-xs)', color: boqStats.isLoss ? THEME.danger : '#166534', fontWeight: 800 }}>{boqStats.isLoss ? 'خسارة المشروع' : 'صافي الأرباح الحقيقية'}</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: boqStats.isLoss ? THEME.danger : THEME.success }}>{formatCurrency(boqStats.totalNetProfit)}</div>
             </div>
             <div style={{ padding: '15px', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 800 }}>هامش الربح الفعلي</div>
-              <div style={{ fontSize: '16px', fontWeight: 900, color: '#1e293b', direction: 'ltr' }}>{boqStats.profitMargin}%</div>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>هامش الربح الفعلي</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#1e293b', direction: 'ltr' }}>{boqStats.profitMargin}%</div>
             </div>
           </div>
 
           {/* 📋 جدول المقايسة المطور (ABC) */}
           <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '10px', color: THEME.coffeeDark, fontWeight: 900 }}>تفاصيل التكاليف والأرباح لكل بند (WBS & ABC)</h3>
-          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '40px', fontSize: '11px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '40px', fontSize: 'var(--fs-xs)' }}>
             <thead>
               <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #cbd5e1' }}>
                 <th style={{ padding: '10px', textAlign: 'right', fontWeight: 900, width: '20%' }}>البند / المرحلة</th>

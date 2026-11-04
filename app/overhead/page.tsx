@@ -19,18 +19,18 @@ const ProjectGroupCard = ({ group }: { group: any }) => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     <div className="icon-box">{expanded ? <FolderOpen size={16} aria-hidden="true" /> : <Folder size={16} aria-hidden="true" />}</div>
                     <div>
-                        <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: '#1e293b' }}>
+                        <h3 style={{ margin: 0, fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#1e293b' }}>
                             {group.projectName}
                         </h3>
-                        <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
+                        <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 700 }}>
                             {group.items.length} حركات مالية
                         </span>
                     </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <div style={{ textAlign: 'left' }}>
-                        <span style={{ fontSize: '10px', color: '#dc2626', fontWeight: 800, display: 'block' }}>إجمالي المُحمل</span>
-                        <strong style={{ fontSize: '16px', color: '#b91c1c', fontWeight: 900 }}>
+                        <span style={{ fontSize: 'var(--fs-xs)', color: '#dc2626', fontWeight: 800, display: 'block' }}>إجمالي المُحمل</span>
+                        <strong style={{ fontSize: 'var(--fs-lg)', color: '#b91c1c', fontWeight: 900 }}>
                             {formatCurrency(group.totalAmount)}
                         </strong>
                     </div>
@@ -58,9 +58,9 @@ const ProjectGroupCard = ({ group }: { group: any }) => {
                                 <tr key={item.id || idx}>
                                     <td style={{width:'80px'}}><span className="badge-month">{item["شهر التحميل المالي"]}</span></td>
                                     <td style={{width:'120px'}}><span className="badge-category">{item["التصنيف الرئيسي"]}</span></td>
-                                    <td><span style={{fontSize:'11px', color:'#334155', fontWeight:700}}>{item["البيان / الوصف"]}</span></td>
-                                    <td align="center"><span style={{color: '#94a3b8', textDecoration: 'line-through', fontSize:'11px'}}>{formatCurrency(item["قيمة الفاتورة الأصلية (ر.س)"])}</span></td>
-                                    <td align="center"><strong style={{color: '#b91c1c', fontSize:'12px'}}>{formatCurrency(item["المبلغ المحمل (ر.س)"])}</strong></td>
+                                    <td><span style={{fontSize:'var(--fs-xs)', color:'#334155', fontWeight:700}}>{item["البيان / الوصف"]}</span></td>
+                                    <td align="center"><span style={{color: '#94a3b8', textDecoration: 'line-through', fontSize:'var(--fs-xs)'}}>{formatCurrency(item["قيمة الفاتورة الأصلية (ر.س)"])}</span></td>
+                                    <td align="center"><strong style={{color: '#b91c1c', fontSize:'var(--fs-sm)'}}>{formatCurrency(item["المبلغ المحمل (ر.س)"])}</strong></td>
                                     <td align="center"><span className="badge-percentage">{item["نسبة التحميل (%)"]}%</span></td>
                                     <td><span className="badge-mechanism">{item["آلية التوزيع"]}</span></td>
                                 </tr>
@@ -83,26 +83,26 @@ export default function ProjectOverheadPage() {
                 summary={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         <div className="summary-glass-box border-red">
-                            <span style={{fontSize:'11px', fontWeight:800, color:'#dc2626'}}>إجمالي الأوفر هيد لجميع المشاريع</span>
-                            <div style={{fontSize:'19px', fontWeight:900, color: '#b91c1c', marginTop:'4px'}}>{formatCurrency(logic.totalAllocatedOverhead)}</div>
+                            <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#dc2626'}}>إجمالي الأوفر هيد لجميع المشاريع</span>
+                            <div style={{fontSize:'var(--fs-xl)', fontWeight:900, color: '#b91c1c', marginTop:'4px'}}>{formatCurrency(logic.totalAllocatedOverhead)}</div>
                         </div>
                         <div className="summary-glass-box">
-                            <span style={{fontSize:'11px', fontWeight:800, color:'#64748b'}}>عدد المشاريع النشطة</span>
-                            <div style={{fontSize:'18px', fontWeight:900, color: '#1e293b', marginTop:'4px'}}>{logic.groupedProjects.length} مشروع</div>
+                            <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#64748b'}}>عدد المشاريع النشطة</span>
+                            <div style={{fontSize:'var(--fs-xl)', fontWeight:900, color: '#1e293b', marginTop:'4px'}}>{logic.groupedProjects.length} مشروع</div>
                         </div>
                     </div>
                 }
                 actions={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div>
-                            <label style={{ fontSize: '11px', fontWeight: 900, color: 'white', display: 'block', marginBottom: '4px' }}>تصفية بحسب المشروع</label>
+                            <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'white', display: 'block', marginBottom: '4px' }}>تصفية بحسب المشروع</label>
                             <select value={logic.selectedProject} onChange={(e) => logic.setSelectedProject(e.target.value)} className="glass-dropdown">
                                 <option value="">كل المشاريع</option>
                                 {logic.uniqueProjects.map(p => <option key={p} value={p}>{p}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label style={{ fontSize: '11px', fontWeight: 900, color: 'white', display: 'block', marginBottom: '4px' }}>تصفية بحسب الشهر المالي</label>
+                            <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'white', display: 'block', marginBottom: '4px' }}>تصفية بحسب الشهر المالي</label>
                             <select value={logic.selectedMonth} onChange={(e) => logic.setSelectedMonth(e.target.value)} className="glass-dropdown">
                                 <option value="">كل الشهور</option>
                                 {logic.uniqueMonths.map(m => <option key={m} value={m}>{m}</option>)}
@@ -122,23 +122,23 @@ export default function ProjectOverheadPage() {
                 .accordion-header { padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #f8fafc; transition: all 0.2s ease; }
                 .accordion-header:hover { background: #f1f5f9; }
                 
-                .icon-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
-                .toggle-arrow { font-size: 12px; color: #94a3b8; background: #e2e8f0; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+                .icon-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: var(--fs-xl); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+                .toggle-arrow { font-size: var(--fs-sm); color: #94a3b8; background: #e2e8f0; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
                 
                 .accordion-body { padding: 0 16px 16px 16px; background: white; border-top: 1px solid #e2e8f0; overflow-x: auto; zoom: 0.9; }
                 
                 .nested-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
-                .nested-table th { background: #f8fafc; color: #475569; font-weight: 800; font-size: 11px; padding: 10px; text-align: right; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+                .nested-table th { background: #f8fafc; color: #475569; font-weight: 800; font-size: var(--fs-xs); padding: 10px; text-align: right; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
                 .nested-table td { padding: 10px; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
                 .nested-table tr:hover td { background: #f8fafc; }
                 
                 .summary-glass-box { background: rgba(255,255,255,0.8); padding: 10px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.04); }
                 .summary-glass-box.border-red { border-left: 4px solid #dc2626; background: rgba(254,242,242,0.7); }
-                .glass-dropdown { width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: #1e293b; font-weight: 700; font-size: 12px; outline: none; cursor: pointer; }
-                .badge-month { background: #f1f5f9; color: #334155; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 10px; border: 1px solid #cbd5e1; display: inline-block; }
-                .badge-category { background: rgba(79,70,229,0.06); color: #4f46e5; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: 10px; display: inline-block; }
-                .badge-percentage { background: #fef3c7; color: #b45309; padding: 3px 8px; border-radius: 6px; font-weight: 900; font-size: 10px; display: inline-block; }
-                .badge-mechanism { background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 10px; border: 1px solid #bfdbfe; display: inline-block; }
+                .glass-dropdown { width: 100%; padding: 10px; border-radius: 8px; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: #1e293b; font-weight: 700; font-size: var(--fs-sm); outline: none; cursor: pointer; }
+                .badge-month { background: #f1f5f9; color: #334155; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: var(--fs-xs); border: 1px solid #cbd5e1; display: inline-block; }
+                .badge-category { background: rgba(79,70,229,0.06); color: #4f46e5; padding: 3px 8px; border-radius: 6px; font-weight: 800; font-size: var(--fs-xs); display: inline-block; }
+                .badge-percentage { background: #fef3c7; color: #b45309; padding: 3px 8px; border-radius: 6px; font-weight: 900; font-size: var(--fs-xs); display: inline-block; }
+                .badge-mechanism { background: #eff6ff; color: #2563eb; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: var(--fs-xs); border: 1px solid #bfdbfe; display: inline-block; }
             `}</style>
 
             {logic.isLoading ? (

@@ -140,7 +140,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
                 }
                 .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#c2410c'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); width: 100%; }
+                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); width: 100%; }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
             `}</style>
 
@@ -150,13 +150,13 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'25px', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'15px'}}>
-                    <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: '24px' }}>صرف مباشر للموقع</h2>
+                    <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>صرف مباشر للموقع</h2>
                 </div>
 
                 <div style={{ background: 'white', padding: '15px', borderRadius: '16px', marginBottom: '25px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                        <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '18px' }}>{invoiceItem?.item_name}</div>
-                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 800 }}>
+                        <div style={{ fontWeight: 900, color: '#0f172a', fontSize: 'var(--fs-xl)' }}>{invoiceItem?.item_name}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginTop: '4px', fontWeight: 800 }}>
                             المتاح للصرف: {' '}
                             {isFetchingQty ? (
                                 <span style={{color: '#f59e0b', animation: 'pulse 1.5s infinite'}}>جاري حساب الرصيد...</span>
@@ -166,7 +166,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                         </div>
                     </div>
                     <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 900 }}>سعر الوحدة</div>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 900 }}>سعر الوحدة</div>
                         <div style={{ fontWeight: 900, color: THEME.primary }}>{formatCurrency(invoiceItem?.unit_price)}</div>
                     </div>
                 </div>
@@ -222,7 +222,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                     <div style={{ zIndex: 85, position: 'relative' }}>
                         {/* 🚀 السحب باستخدام الكمبوننت الذكي المخصص للبند */}
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>
                             تحميل على بند (BOQ)
                         </label>
                         <ProjectBoqCombo 
@@ -243,11 +243,11 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>تاريخ الصرف</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>تاريخ الصرف</label>
                         <input type="date" className="glass-input-field" value={formData.issue_date} onChange={e => setFormData({...formData, issue_date: e.target.value})} />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الكمية المراد صرفها</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الكمية المراد صرفها</label>
                         <input 
                             type="number" 
                             max={realAvailableQty} 
@@ -262,13 +262,13 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                 </div>
 
                 <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '16px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '15px' }}>التوجيه المحاسبي (جهة التحميل) *</label>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '15px' }}>التوجيه المحاسبي (جهة التحميل) *</label>
                     <div style={{ display: 'flex', gap: '20px', marginBottom: formData.issue_type === 'صرف لمقاول' ? '15px' : '0' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '13px' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>
                             <input type="radio" checked={formData.issue_type === 'استهلاك مباشر'} onChange={() => setFormData({...formData, issue_type: 'استهلاك مباشر', subcontractor_id: ''})} style={{ accentColor: THEME.primary, transform: 'scale(1.2)' }} />
                             استهلاك للشركة (تكلفة مشروع)
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: '13px', color: '#be123c' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)', color: '#be123c' }}>
                             <input type="radio" checked={formData.issue_type === 'صرف لمقاول'} onChange={() => setFormData({...formData, issue_type: 'صرف لمقاول'})} style={{ accentColor: '#be123c', transform: 'scale(1.2)' }} />
                             تحميل كسلفة على مقاول
                         </label>
@@ -298,8 +298,8 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}20, transparent)`, padding: '15px 20px', borderRadius: '16px', border: `1px dashed ${THEME.goldAccent || '#c2410c'}`, marginBottom: '25px' }}>
-                    <div style={{ fontSize: '14px', fontWeight: 900, color: THEME.coffeeDark }}>إجمالي قيمة الصرف:</div>
-                    <div style={{ fontSize: '24px', fontWeight: 900, color: THEME.goldAccent || '#c2410c' }}>{formatCurrency(totalPrice)}</div>
+                    <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: THEME.coffeeDark }}>إجمالي قيمة الصرف:</div>
+                    <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: THEME.goldAccent || '#c2410c' }}>{formatCurrency(totalPrice)}</div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '15px' }}>

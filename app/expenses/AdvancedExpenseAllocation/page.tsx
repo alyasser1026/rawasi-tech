@@ -149,7 +149,7 @@ export default function AdvancedExpenseAllocation() {
     {
       header: 'الشهر المالي',
       render: (row: any) => (
-        <span style={{ fontWeight: 800, color: THEME.coffeeDark, backgroundColor: '#f5ebe0', padding: '6px 12px', borderRadius: '8px', fontSize: '13px' }}>
+        <span style={{ fontWeight: 800, color: THEME.coffeeDark, backgroundColor: '#f5ebe0', padding: '6px 12px', borderRadius: '8px', fontSize: 'var(--fs-sm)' }}>
           {row["شهر التحميل المالي"]}
         </span>
       )
@@ -157,7 +157,7 @@ export default function AdvancedExpenseAllocation() {
     {
       header: 'الفيلا المحمل عليها',
       render: (row: any) => (
-        <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '14px' }}>
+        <span style={{ fontWeight: 900, color: '#0f172a', fontSize: 'var(--fs-md)' }}>
           {row["اسم الفيلا المحمل عليها"]}
         </span>
       )
@@ -165,19 +165,19 @@ export default function AdvancedExpenseAllocation() {
     {
       header: 'التصنيف',
       render: (row: any) => (
-        <span style={{ fontWeight: 800, color: '#334155', backgroundColor: '#f1f5f9', padding: '5px 10px', borderRadius: '6px', fontSize: '12px' }}>
+        <span style={{ fontWeight: 800, color: '#334155', backgroundColor: '#f1f5f9', padding: '5px 10px', borderRadius: '6px', fontSize: 'var(--fs-sm)' }}>
           {row["التصنيف الرئيسي"]}
         </span>
       )
     },
     {
       header: 'وصف المصروف والبيان التلقائي',
-      render: (row: any) => <span style={{ color: '#475569', fontWeight: 700, fontSize: '13px' }}>{row["وصف المصروف التلقائي"]}</span>
+      render: (row: any) => <span style={{ color: '#475569', fontWeight: 700, fontSize: 'var(--fs-sm)' }}>{row["وصف المصروف التلقائي"]}</span>
     },
     {
       header: 'المبلغ المحمل',
       render: (row: any) => (
-        <strong style={{ fontWeight: 900, color: '#c2410c', fontSize: '15px', fontFamily: 'monospace' }}>
+        <strong style={{ fontWeight: 900, color: '#c2410c', fontSize: 'var(--fs-lg)', fontFamily: 'monospace' }}>
           {formatCurrency(row["المبلغ المحمل (جنيه)"])}
         </strong>
       )
@@ -191,7 +191,7 @@ export default function AdvancedExpenseAllocation() {
         else if (mech.includes('شهري')) { color = '#ea580c'; bg = '#FFF7ED'; }
 
         return (
-          <span style={{ fontWeight: 800, color: color, backgroundColor: bg, padding: '6px 12px', borderRadius: '8px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+          <span style={{ fontWeight: 800, color: color, backgroundColor: bg, padding: '6px 12px', borderRadius: '8px', fontSize: 'var(--fs-sm)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
             {mech}
           </span>
         );
@@ -206,7 +206,7 @@ export default function AdvancedExpenseAllocation() {
       <div className="print-only-header" style={{ display: 'none' }}>
         <div style={{ textAlign: 'center', padding: '20px', borderBottom: '2px solid #334155', marginBottom: '30px' }}>
           <h1 style={{ margin: '0 0 10px 0', color: '#1e293b', fontWeight: 900 }}>شركة فاي تك للمقاولات والاستثمار العقاري</h1>
-          <h2 style={{ margin: 0, color: '#475569', fontSize: '18px' }}>تقرير توزيع وتحميل المصروفات العامة غير المباشرة على الفلل والمشاريع</h2>
+          <h2 style={{ margin: 0, color: '#475569', fontSize: 'var(--fs-xl)' }}>تقرير توزيع وتحميل المصروفات العامة غير المباشرة على الفلل والمشاريع</h2>
           <small style={{ color: '#94a3b8', display: 'block', marginTop: '10px' }}>تاريخ استخراج التقرير: {new Date().toLocaleDateString('ar-EG')}</small>
         </div>
       </div>
@@ -214,8 +214,8 @@ export default function AdvancedExpenseAllocation() {
       {/* 🔝 العنوان الرئيسي */}
       <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', flexWrap: 'wrap', gap: '15px' }}>
         <div>
-          <h2 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '22px' }}>لوحة تحكم توزيع وتحميل المصروفات غير المباشرة</h2>
-          <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '13px', fontWeight: 700 }}>متابعة ذكية لتفكيك مصاريف الإدارة والتشغيل وتحميلها على الفلل بناءً على مسببات التكلفة وعمالة الموقع بالقرش.</p>
+          <h2 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-2xl)' }}>لوحة تحكم توزيع وتحميل المصروفات غير المباشرة</h2>
+          <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>متابعة ذكية لتفكيك مصاريف الإدارة والتشغيل وتحميلها على الفلل بناءً على مسببات التكلفة وعمالة الموقع بالقرش.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
           <button onClick={exportToCSV} className="btn-action-premium" style={{ backgroundColor: '#16a34a', color: 'white', padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(22,163,74,0.15)' }}>
@@ -230,41 +230,41 @@ export default function AdvancedExpenseAllocation() {
       {/* 📊 كروت الإحصائيات الذكية */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
         <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #ea580c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>إجمالي التكاليف المحملة (حسب الفلترة)</span>
-          <strong style={{ fontSize: '24px', color: '#ea580c', fontWeight: 900 }}>{formatCurrency(stats.totalAllocated)}</strong>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>إجمالي التكاليف المحملة (حسب الفلترة)</span>
+          <strong style={{ fontSize: 'var(--fs-2xl)', color: '#ea580c', fontWeight: 900 }}>{formatCurrency(stats.totalAllocated)}</strong>
           <div style={{ height: '4px', backgroundColor: '#fed7aa', borderRadius: '2px', marginTop: '15px' }} />
         </div>
 
         <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #16a34a`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>تحميل يومي (عمالة وموقع)</span>
-          <strong style={{ fontSize: '20px', color: '#16a34a', fontWeight: 900 }}>{formatCurrency(stats.dailyLaborTotal)}</strong>
-          <div style={{ fontSize: '11px', color: '#16a34a', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.dailyLaborPct}%</div>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>تحميل يومي (عمالة وموقع)</span>
+          <strong style={{ fontSize: 'var(--fs-xl)', color: '#16a34a', fontWeight: 900 }}>{formatCurrency(stats.dailyLaborTotal)}</strong>
+          <div style={{ fontSize: 'var(--fs-xs)', color: '#16a34a', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.dailyLaborPct}%</div>
           <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
             <div style={{ width: `${stats.dailyLaborPct}%`, height: '100%', backgroundColor: '#16a34a', borderRadius: '2px' }} />
           </div>
         </div>
 
         <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #c2410c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>تحميل شهري (بالتساوي)</span>
-          <strong style={{ fontSize: '20px', color: '#c2410c', fontWeight: 900 }}>{formatCurrency(stats.monthlyEqualTotal)}</strong>
-          <div style={{ fontSize: '11px', color: '#c2410c', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.monthlyEqualPct}%</div>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>تحميل شهري (بالتساوي)</span>
+          <strong style={{ fontSize: 'var(--fs-xl)', color: '#c2410c', fontWeight: 900 }}>{formatCurrency(stats.monthlyEqualTotal)}</strong>
+          <div style={{ fontSize: 'var(--fs-xs)', color: '#c2410c', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.monthlyEqualPct}%</div>
           <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
             <div style={{ width: `${stats.monthlyEqualPct}%`, height: '100%', backgroundColor: '#c2410c', borderRadius: '2px' }} />
           </div>
         </div>
 
         <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #0284C7`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>إطفاء سنوي (إدارة ورواتب المكتب)</span>
-          <strong style={{ fontSize: '20px', color: '#0284C7', fontWeight: 900 }}>{formatCurrency(stats.annualOfficeTotal)}</strong>
-          <div style={{ fontSize: '11px', color: '#0284C7', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.annualOfficePct}%</div>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>إطفاء سنوي (إدارة ورواتب المكتب)</span>
+          <strong style={{ fontSize: 'var(--fs-xl)', color: '#0284C7', fontWeight: 900 }}>{formatCurrency(stats.annualOfficeTotal)}</strong>
+          <div style={{ fontSize: 'var(--fs-xs)', color: '#0284C7', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.annualOfficePct}%</div>
           <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
             <div style={{ width: `${stats.annualOfficePct}%`, height: '100%', backgroundColor: '#0284C7', borderRadius: '2px' }} />
           </div>
         </div>
 
         <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>عدد الفلل المستفيدة</span>
-          <strong style={{ fontSize: '24px', color: THEME.coffeeDark, fontWeight: 900 }}>{stats.villasCount} فيلا</strong>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>عدد الفلل المستفيدة</span>
+          <strong style={{ fontSize: 'var(--fs-2xl)', color: THEME.coffeeDark, fontWeight: 900 }}>{stats.villasCount} فيلا</strong>
           <div style={{ height: '4px', backgroundColor: '#ebd9c8', borderRadius: '2px', marginTop: '15px' }} />
         </div>
       </div>
@@ -272,39 +272,39 @@ export default function AdvancedExpenseAllocation() {
       {/* 🔍 وحدة الفلاتر المتقدمة (تعمل Server-Side) */}
       <div className="glass-card no-print" style={{ padding: '22px', marginBottom: '30px', display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#fff', borderRadius: '14px', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
         <div style={{ flex: '2', minWidth: '250px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>بحث نصي في الوصف</label>
+          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>بحث نصي في الوصف</label>
           <input 
             type="text" 
             placeholder="ابحث في أسطر الجدول الحالي..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 700, outline: 'none', fontSize: '13px' }}
+            style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 700, outline: 'none', fontSize: 'var(--fs-sm)' }}
           />
         </div>
 
         <div style={{ flex: '1', minWidth: '140px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>الشهر المالي</label>
-          <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: '13px' }}>
+          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>الشهر المالي</label>
+          <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
             {monthsOptions.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
 
         <div style={{ flex: '1', minWidth: '160px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>الفيلا المستهدفة</label>
-          <select value={filterVilla} onChange={(e) => setFilterVilla(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: '13px' }}>
+          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>الفيلا المستهدفة</label>
+          <select value={filterVilla} onChange={(e) => setFilterVilla(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
             {villasOptions.map(v => <option key={v} value={v}>{v}</option>)}
           </select>
         </div>
 
         <div style={{ flex: '1', minWidth: '160px' }}>
-          <label style={{ display: 'block', fontSize: '12px', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>تصنيف المصروف</label>
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: '13px' }}>
+          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>تصنيف المصروف</label>
+          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
             {categoriesOptions.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
 
         <div style={{ alignSelf: 'flex-end' }}>
-          <button onClick={() => { setSearchQuery(''); setFilterMonth('الكل'); setFilterVilla('الكل'); setFilterCategory('الكل'); }} style={{ padding: '12px 22px', borderRadius: '12px', border: 'none', backgroundColor: '#f1f5f9', color: '#475569', fontWeight: 800, cursor: 'pointer', fontSize: '13px' }}>
+          <button onClick={() => { setSearchQuery(''); setFilterMonth('الكل'); setFilterVilla('الكل'); setFilterCategory('الكل'); }} style={{ padding: '12px 22px', borderRadius: '12px', border: 'none', backgroundColor: '#f1f5f9', color: '#475569', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-sm)' }}>
             إعادة تعيين
           </button>
         </div>
@@ -313,8 +313,8 @@ export default function AdvancedExpenseAllocation() {
       {/* 📋 جدول البيانات الرئيسي */}
       <div className="glass-card table-premium-container" style={{ padding: '30px', backgroundColor: '#fff', borderRadius: '14px', boxShadow: '0 4px 25px rgba(0,0,0,0.02)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '18px' }}>السجل التفصيلي لتحميل وتكليفات الفلل بالمصروفات غير المباشرة</h3>
-          <button onClick={fetchAllocationData} className="no-print" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }} title="تحديث البيانات"><RefreshCw size={15} aria-hidden="true" /></button>
+          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-xl)' }}>السجل التفصيلي لتحميل وتكليفات الفلل بالمصروفات غير المباشرة</h3>
+          <button onClick={fetchAllocationData} className="no-print" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-xl)' }} title="تحديث البيانات"><RefreshCw size={15} aria-hidden="true" /></button>
         </div>
 
         {isLoading ? (

@@ -54,7 +54,7 @@ export default function JobOrdersPage() {
 
       {logic.selectedIds.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <p style={{fontSize:'10px', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات المجمعة ({logic.selectedIds.length})</p>
+          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات المجمعة ({logic.selectedIds.length})</p>
           
           <SecureAction module="job_orders" action="edit">
             <button className="btn-main-glass green" onClick={logic.handleCompleteSelected} disabled={logic.isSaving}>
@@ -128,7 +128,7 @@ export default function JobOrdersPage() {
                 />
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         حالة الأمر
                     </label>
                     <select 
@@ -148,7 +148,7 @@ export default function JobOrdersPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         جهة التنفيذ
                     </label>
                     <select 
@@ -163,7 +163,7 @@ export default function JobOrdersPage() {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: '13px', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
                         الحالة المالية
                     </label>
                     <select 
@@ -187,7 +187,7 @@ export default function JobOrdersPage() {
 
       <style>{`
         .custom-checkbox { width: 20px; height: 20px; accent-color: ${THEME.goldAccent || '#d97706'}; cursor: pointer; transition: 0.1s; border-radius: 4px; }
-        .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
         .btn-main-glass.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(5, 150, 105, 0.9)); color: white; }
         .btn-main-glass.yellow { background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.9)); color: white; }
@@ -278,32 +278,32 @@ export default function JobOrdersPage() {
                         />
                       </div>
                       <div>
-                        <b style={{ color: '#8b5cf6', fontSize: '15px', fontWeight: 900 }}>#{row.order_number}</b>
-                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{row.start_date ? new Date(row.start_date).toLocaleDateString('ar-EG') : '---'}</div>
+                        <b style={{ color: '#8b5cf6', fontSize: 'var(--fs-lg)', fontWeight: 900 }}>#{row.order_number}</b>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '2px' }}>{row.start_date ? new Date(row.start_date).toLocaleDateString('ar-EG') : '---'}</div>
                       </div>
                     </div>
                     <div style={{
                       display: 'flex', alignItems: 'center', gap: '6px',
-                      padding: '4px 10px', borderRadius: '14px', fontSize: '11px', fontWeight: 800,
+                      padding: '4px 10px', borderRadius: '14px', fontSize: 'var(--fs-xs)', fontWeight: 800,
                       backgroundColor: badgeStyle.bg, color: badgeStyle.color, border: `1px solid ${badgeStyle.dot}40`
                     }}>
                       <PhiIcon value={badgeStyle.icon} size={14} /> {row.status}
                     </div>
                   </div>
 
-                  <div className="jo-project-name" style={{ fontSize: '18px', fontWeight: 900, color: '#27272a', background: 'linear-gradient(90deg, rgba(194,65,12, 0.15) 0%, transparent 100%)', padding: '8px 12px', borderRight: '4px solid #c2410c', borderRadius: '4px' }}>
+                  <div className="jo-project-name" style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#27272a', background: 'linear-gradient(90deg, rgba(194,65,12, 0.15) 0%, transparent 100%)', padding: '8px 12px', borderRight: '4px solid #c2410c', borderRadius: '4px' }}>
                         {row.projects?.Property || row.projects?.project_name || 'العقار غير محدد'}
                   </div>
                   
                   {row.boq_budget?.work_item && (
-                       <span style={{ fontSize: '11px', color: '#475569', background: '#f1f5f9', padding: '4px 10px', borderRadius: '8px', width: 'fit-content', border: '1px solid #e2e8f0', fontWeight: 800 }}>
+                       <span style={{ fontSize: 'var(--fs-xs)', color: '#475569', background: '#f1f5f9', padding: '4px 10px', borderRadius: '8px', width: 'fit-content', border: '1px solid #e2e8f0', fontWeight: 800 }}>
                          {row.boq_budget.work_item}
                        </span>
                   )}
 
                   <div>
                     <span style={{ 
-                      padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 800, display: 'inline-block',
+                      padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-sm)', fontWeight: 800, display: 'inline-block',
                       background: isSelf ? 'rgba(99, 102, 241, 0.1)' : 'rgba(245, 158, 11, 0.1)',
                       color: isSelf ? '#4f46e5' : '#d97706',
                       border: `1px solid ${isSelf ? 'rgba(99, 102, 241, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
@@ -314,7 +314,7 @@ export default function JobOrdersPage() {
 
                   <div style={{ borderTop: '1px dashed #cbd5e1', margin: '5px 0' }}></div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '12px', fontWeight: 800 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>
                      <div style={{ color: '#0ea5e9', display: 'flex', justifyContent: 'space-between' }}>
                          <span>أصل الموازنة:</span> <span>{targetBudget.toLocaleString()} ر.س</span>
                      </div>
@@ -340,13 +340,13 @@ export default function JobOrdersPage() {
                      
                      <div style={{ 
                          color: profitColor, background: profitBg, 
-                         padding: '6px 10px', borderRadius: '8px', border: `1px solid ${profitColor}40`, marginTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: '13px'
+                         padding: '6px 10px', borderRadius: '8px', border: `1px solid ${profitColor}40`, marginTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)'
                      }}>
                        <span>{profitLabel}</span> <span>{Math.abs(calculatedProfit).toLocaleString()} ر.س</span>
                      </div>
 
                      <div style={{ marginTop: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', color: '#64748b', marginBottom: '6px' }}>
                           <span>استهلاك الميزانية (عمالة + خامات)</span>
                           <span style={{ color: progressColor, fontWeight: 900 }}>{usagePercent.toFixed(1)}%</span>
                         </div>

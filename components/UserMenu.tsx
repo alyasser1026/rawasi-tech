@@ -133,7 +133,7 @@ export default function UserCard() {
                 /* 3. النصوص الملكية */
                 .imperial-info { display: flex; flex-direction: column; text-align: right; }
                 .u-name-grand { 
-                    font-size: 22px; 
+                    font-size: var(--fs-2xl); 
                     font-weight: 1000; 
                     color: #0f172a; 
                     white-space: nowrap; 
@@ -141,7 +141,7 @@ export default function UserCard() {
                     line-height: 1;
                 }
                 .u-badge-grand { 
-                    font-size: 13px; font-weight: 900; 
+                    font-size: var(--fs-sm); font-weight: 900; 
                     color: white; 
                     background: linear-gradient(135deg, #c2410c 0%, #52525b 100%);
                     padding: 6px 15px; border-radius: 15px; 
@@ -197,13 +197,13 @@ export default function UserCard() {
                 }
 
                 .dropdown-title-c { padding-bottom: 20px; text-align: right; }
-                .dropdown-title-c p { margin: 0; font-weight: 1000; font-size: 18px; color: #0f172a; }
-                .dropdown-title-c small { color: ${THEME.goldAccent}; font-weight: 800; font-size: 13px; }
+                .dropdown-title-c p { margin: 0; font-weight: 1000; font-size: var(--fs-xl); color: #0f172a; }
+                .dropdown-title-c small { color: ${THEME.goldAccent}; font-weight: 800; font-size: var(--fs-sm); }
 
                 .dropdown-link-g {
                     display: flex; align-items: center; gap: 20px;
                     padding: 18px 25px; border-radius: 14px;
-                    font-size: 16px; font-weight: 900; color: #475569;
+                    font-size: var(--fs-lg); font-weight: 900; color: #475569;
                     cursor: pointer; transition: 0.3s; direction: rtl;
                 }
                 .dropdown-link-g:hover { 

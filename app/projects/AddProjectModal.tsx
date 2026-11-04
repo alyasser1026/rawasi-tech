@@ -22,12 +22,12 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
             outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
         }
         .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 4px rgba(194,65,12, 0.15); }
-        .modal-label { font-size: 13px; font-weight: 900; color: ${THEME.coffeeDark}; display: block; margin-bottom: 8px; }
+        .modal-label { font-size: var(--fs-sm); font-weight: 900; color: ${THEME.coffeeDark}; display: block; margin-bottom: 8px; }
         
-        .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(194,65,12, 0.4); }
+        .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(194,65,12, 0.4); }
         .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
         
-        .btn-glass-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; }
+        .btn-glass-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
         .btn-glass-cancel:hover { background: #e2e8f0; transform: translateY(-2px); }
       `}</style>
 
@@ -36,7 +36,7 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
         onClick={(e) => e.stopPropagation()} 
         style={{ background: 'rgba(255, 255, 255, 0.95)', padding: '40px', borderRadius: '14px', width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', position: 'relative' }}
       >
-        <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px', fontSize: '26px', borderBottom: `2px dashed ${THEME.goldAccent}50`, paddingBottom: '15px' }}>
+        <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px', fontSize: 'var(--fs-2xl)', borderBottom: `2px dashed ${THEME.goldAccent}50`, paddingBottom: '15px' }}>
             {isEditing ? 'تعديل بيانات المشروع' : 'إضافة مشروع / عقار جديد'}
         </h2>
         

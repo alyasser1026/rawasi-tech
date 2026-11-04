@@ -19,7 +19,7 @@ export default function PaginationPanel({ totalItems, currentPage, rowsPerPage, 
         >
           السابق
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 15px', fontWeight: 800, color: '#475569', fontSize: '14px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 15px', fontWeight: 800, color: '#475569', fontSize: 'var(--fs-md)' }}>
           صفحة {currentPage} من {totalPages}
         </div>
         <button 
@@ -32,7 +32,7 @@ export default function PaginationPanel({ totalItems, currentPage, rowsPerPage, 
       </div>
       <div style={{ height: '20px', width: '1px', background: '#e2e8f0' }} />
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>عرض:</span>
+        <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#64748b' }}>عرض:</span>
         <select 
           value={rowsPerPage} onChange={(e) => onRowsChange(Number(e.target.value))}
           style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '4px 8px', fontWeight: 800, color: '#1e293b', outline: 'none' }}

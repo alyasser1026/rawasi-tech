@@ -97,7 +97,7 @@ body {
     background: linear-gradient(135deg, #c2410c 0%, #c2410c 100%);
     color: white;
     border-radius: 14px;
-    padding: 12px 24px;
+    padding: 0.75rem 1.5rem;
     font-weight: 800;
     border: none;
     box-shadow: 0 4px 15px rgba(194,65,12, 0.3);
@@ -115,7 +115,7 @@ body {
     background: rgba(0, 0, 0, 0.03);
     border: 1px solid rgba(0, 0, 0, 0.05);
     border-radius: 12px;
-    padding: 14px;
+    padding: 0.875rem;
     outline: none;
     transition: 0.3s;
 }
@@ -128,8 +128,8 @@ body {
 /* 🏗️ اللوجو العائم */
 .app-branding {
   position: fixed;
-  top: 24px;
-  right: 24px;
+  top: 1.5rem;
+  right: 1.5rem;
   z-index: 9999; 
   pointer-events: none; 
 }
@@ -154,7 +154,7 @@ body {
   -webkit-overflow-scrolling: touch;
   border: 1px solid var(--glass-border);
   box-shadow: var(--card-shadow);
-  margin-bottom: 25px;
+  margin-bottom: 1.5625rem;
 }
 
 table {
@@ -170,10 +170,10 @@ thead th {
   background: rgba(255, 255, 255, 0.4) !important; /* هيدر أبيض خفيف */
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  padding: 18px 16px;
+  padding: 1.125rem 1rem;
   font-weight: 900; /* خط أتخن للوضوح */
   color: var(--primary);
-  font-size: 13px;
+  font-size: var(--fs-sm);
   border-bottom: 2px solid rgba(0, 0, 0, 0.05); /* خط فاصل واضح للهيدر */
 }
 
@@ -187,16 +187,16 @@ tbody tr:hover {
 }
 
 td {
-  padding: 16px;
-  font-size: 14px;
+  padding: 1rem;
+  font-size: var(--fs-md);
   color: var(--text-main);
   font-weight: 600; /* خط أثقل للقراءة المريحة */
 }
 
 /* 🖱️ سكرول بار أنيق */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 0.375rem;
+  height: 0.375rem;
 }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -207,7 +207,7 @@ td {
 
 /* 🚀 الأزرار */
 .btn {
-  padding: 12px 24px;
+  padding: 0.75rem 1.5rem;
   border-radius: 999px; 
   font-weight: 700;
   border: none;
@@ -216,9 +216,9 @@ td {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0.5rem;
   text-decoration: none;
-  font-size: 14px;
+  font-size: var(--fs-md);
 }
 
 .btn:active:not(:disabled) {
@@ -275,7 +275,7 @@ td {
   /* 🚀 رفع البلور */
   backdrop-filter: blur(40px) saturate(200%);
   -webkit-backdrop-filter: blur(40px) saturate(200%);
-  padding: 14px 24px;
+  padding: 0.875rem 1.5rem;
   border-bottom: 1px solid var(--glass-border);
   position: sticky;
   top: 0;
@@ -289,14 +289,14 @@ td {
 }
 
 .summary-label {
-  font-size: 12px;
+  font-size: var(--fs-sm);
   color: var(--text-muted);
   font-weight: 800;
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 
 .summary-value {
-  font-size: 18px;
+  font-size: var(--fs-xl);
   font-weight: 900;
   color: var(--primary);
   display: block;
@@ -307,12 +307,12 @@ td {
   background: var(--glass-surface);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg); 
-  padding: 30px; 
+  padding: 1.875rem; 
   transition: var(--apple-transition);
   box-shadow: var(--card-shadow);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.625rem;
   position: relative;
   overflow: hidden;
   /* 🚀 رفع البلور في الكروت */
@@ -329,14 +329,14 @@ td {
 /* 3. المدخلات (Soft Inputs) */
 .form-input {
   width: 100%;
-  padding: 14px 16px;
+  padding: 0.875rem 1rem;
   border-radius: var(--radius-md); 
   border: 1px solid rgba(255, 255, 255, 0.8);
   background: var(--input-bg);
   backdrop-filter: blur(20px);
   color: var(--text-main);
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-lg);
   transition: var(--apple-transition);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); /* ظل داخلي خفيف بيخلي الخانة محفورة شيك */
 }
@@ -350,9 +350,9 @@ td {
 
 /* 4. شارات الحالات (Pill Badges) */
 .badge {
-  padding: 6px 14px;
+  padding: 0.375rem 0.875rem;
   border-radius: 999px;
-  font-size: 11px;
+  font-size: var(--fs-xs);
   font-weight: 800;
 }
 
@@ -372,15 +372,15 @@ td {
 
 /* 📱 دعم الجوال */
 @media (max-width: 768px) {
-  body { padding: 12px; }
-  .btn { width: 100%; padding: 14px; }
+  body { padding: 0.75rem; }
+  .btn { width: 100%; padding: 0.875rem; }
   h1 { font-size: 1.4rem; font-weight: 800; }
   .hide-on-mobile { display: none !important; }
   
   :root { --logo-size: 55px; }
-  .app-branding { top: 16px; right: 16px; }
+  .app-branding { top: 1rem; right: 1rem; }
 
-  .summary-bar { flex-direction: column; gap: 12px; border-radius: var(--radius-lg); margin-bottom: 15px; }
+  .summary-bar { flex-direction: column; gap: 0.75rem; border-radius: var(--radius-lg); margin-bottom: 0.9375rem; }
   
 }
 
@@ -417,7 +417,7 @@ td {
 
 /* 1. الصفحة الأساسية (بدون خلفيات حاوية) */
 .clean-page {
-    padding: 30px;
+    padding: 1.875rem;
     direction: rtl;
     background: transparent;
     min-height: 100vh;
@@ -435,24 +435,24 @@ td {
     background: rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    padding: 20px;
+    padding: 1.25rem;
     border-radius: 20px;
     border: 1px solid rgba(255, 255, 255, 0.4);
-    margin-bottom: 25px;
+    margin-bottom: 1.5625rem;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
 }
 
 .summary-glass-card .val {
-    font-size: 24px;
+    font-size: var(--fs-2xl);
     font-weight: 900;
     color: #1e293b;
-    margin-top: 5px;
+    margin-top: 0.3125rem;
 }
 
 /* 4. أزرار السايد بار (Glassy Slabs) */
 .btn-main-glass {
     width: 100%;
-    padding: 14px;
+    padding: 0.875rem;
     border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(15px);
@@ -460,12 +460,12 @@ td {
     font-weight: 900;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-size: 13px;
+    font-size: var(--fs-sm);
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin-bottom: 10px;
+    gap: 0.5rem;
+    margin-bottom: 0.625rem;
 }
 
 .btn-main-glass:hover {
@@ -486,12 +486,12 @@ td {
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.3);
     color: white;
-    padding: 6px 14px;
+    padding: 0.375rem 0.875rem;
     border-radius: 10px;
     font-weight: 800;
     cursor: pointer;
     transition: 0.3s;
-    font-size: 11px;
+    font-size: var(--fs-xs);
     box-shadow: 0 4px 15px rgba(34, 197, 94, 0.2);
 }
 
@@ -499,7 +499,7 @@ td {
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.5);
-    padding: 7px;
+    padding: 0.4375rem;
     border-radius: 10px;
     cursor: pointer;
     transition: 0.3s;
@@ -509,10 +509,10 @@ td {
 .approval-glass-badge {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 16px;
+    gap: 0.5rem;
+    padding: 0.375rem 1rem;
     border-radius: 12px;
-    font-size: 11px;
+    font-size: var(--fs-xs);
     font-weight: 900;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.4);
@@ -526,8 +526,8 @@ td {
     border-color: rgba(34, 197, 94, 0.2);
 }
 .approval-glass-badge.approved .dot {
-    width: 8px;
-    height: 8px;
+    width: 0.5rem;
+    height: 0.5rem;
     background: #22c55e;
     border-radius: 50%;
     box-shadow: 0 0 10px #22c55e, 0 0 20px rgba(34, 197, 94, 0.4);
@@ -540,8 +540,8 @@ td {
     border-color: rgba(239, 68, 68, 0.15);
 }
 .approval-glass-badge.pending .dot {
-    width: 8px;
-    height: 8px;
+    width: 0.5rem;
+    height: 0.5rem;
     background: #ef4444;
     border-radius: 50%;
     box-shadow: 0 0 10px #ef4444;
@@ -556,9 +556,9 @@ td {
 
 /* 7. شارات حالة السداد (Glass Status Labels) */
 .glass-status-label {
-    padding: 5px 12px;
+    padding: 0.3125rem 0.75rem;
     border-radius: 10px;
-    font-size: 11px;
+    font-size: var(--fs-xs);
     font-weight: 800;
     background: rgba(255, 255, 255, 0.8);
     border: 1px solid var(--table-border);
@@ -583,7 +583,7 @@ td {
       overflow-x: auto !important;
       -webkit-overflow-scrolling: touch !important;
   }
-  table { width: 100% !important; min-width: 600px !important; }
+  table { width: 100% !important; min-width: 37.5rem !important; }
   
   /* 3. Sidebars & Layouts */
   /* Convert any flex-row layouts to flex-column */
@@ -596,7 +596,7 @@ td {
   aside, .sidebar {
       width: 100% !important;
       min-width: 100% !important;
-      margin-bottom: 20px !important;
+      margin-bottom: 1.25rem !important;
       border-radius: 12px !important;
       height: auto !important;
       min-height: unset !important;
@@ -604,14 +604,14 @@ td {
   
   /* 4. Glass Containers & Paddings */
   .clean-page {
-      padding: 10px !important;
+      padding: 0.625rem !important;
       margin: 0 !important;
   }
   
   .glass-container, 
   .glass-card,
   main {
-      padding: 15px !important;
+      padding: 0.9375rem !important;
       border-radius: 15px !important;
       margin: 0 !important;
       width: 100% !important;
@@ -624,11 +624,11 @@ td {
   .master-header {
       flex-direction: column !important;
       align-items: flex-start !important;
-      gap: 15px !important;
-      padding: 15px !important;
+      gap: 0.9375rem !important;
+      padding: 0.9375rem !important;
   }
   
-  .title-area h1 { font-size: 20px !important; }
+  .title-area h1 { font-size: var(--fs-xl) !important; }
   
   /* Ensure buttons don't break flex layout */
   button {
@@ -650,7 +650,7 @@ td {
       max-width: 95vw !important;
       margin-left: auto !important;
       margin-right: auto !important;
-      padding: 15px !important;
+      padding: 0.9375rem !important;
       max-height: 90vh !important;
       overflow-y: auto !important;
       box-sizing: border-box !important;
@@ -664,7 +664,7 @@ td {
     .responsive-summary-grid, 
     .responsive-card-grid {
         grid-template-columns: 1fr !important;
-        gap: 15px !important;
+        gap: 0.9375rem !important;
     }
 
     /* Named dialogs resize without changing unrelated cards and table columns. */
@@ -675,7 +675,7 @@ td {
         min-width: 0 !important;
         margin-left: auto !important;
         margin-right: auto !important;
-        padding: 15px !important;
+        padding: 0.9375rem !important;
         overflow-x: hidden !important;
         box-sizing: border-box !important;
     }

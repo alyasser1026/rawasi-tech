@@ -133,19 +133,19 @@ export default function WelcomeHomePage() {
                 }
 
                 .welcome-title {
-                    font-size: 38px;
+                    font-size: var(--fs-3xl);
                     font-weight: 900;
                     color: ${THEME.coffeeDark};
                     margin: 0 0 15px 0;
                     letter-spacing: -1px;
                 }
                 
-                .welcome-profile-hint { margin: -10px 0 24px; font-size: 13px; color: #687180; }
+                .welcome-profile-hint { margin: -10px 0 24px; font-size: var(--fs-sm); color: #687180; }
                 .welcome-profile-hint a { color: #c2410c; font-weight: 800; text-decoration: none; }
                 .welcome-profile-hint a:hover { text-decoration: underline; }
                 .welcome-subtitle {
                     color: #64748b;
-                    font-size: 18px;
+                    font-size: var(--fs-xl);
                     font-weight: 700;
                     max-width: 600px;
                     margin: 0 auto 40px auto;
@@ -194,7 +194,7 @@ export default function WelcomeHomePage() {
                     background: #f8fafc;
                     border-radius: 50%;
                     display: flex; align-items: center; justify-content: center;
-                    font-size: 32px;
+                    font-size: var(--fs-3xl);
                     transition: 0.3s;
                     position: relative; z-index: 1;
                 }
@@ -202,7 +202,7 @@ export default function WelcomeHomePage() {
                     background: ${THEME.goldAccent}20;
                     transform: rotate(10deg) scale(1.15);
                 }
-                .module-title { color: ${THEME.coffeeDark}; font-weight: 900; font-size: 16px; margin: 0; position: relative; z-index: 1; }
+                .module-title { color: ${THEME.coffeeDark}; font-weight: 900; font-size: var(--fs-lg); margin: 0; position: relative; z-index: 1; }
 
                 .add-fav-card {
                     background: transparent;
@@ -217,9 +217,9 @@ export default function WelcomeHomePage() {
                     background: rgba(194,65,12, 0.05);
                     transform: translateY(-5px);
                 }
-                .add-fav-icon { font-size: 30px; color: #cbd5e1; transition: 0.3s; }
+                .add-fav-icon { font-size: var(--fs-3xl); color: #cbd5e1; transition: 0.3s; }
                 .add-fav-card:hover .add-fav-icon { color: ${THEME.goldAccent}; transform: scale(1.2); }
-                .add-fav-title { font-weight: 800; color: #94a3b8; font-size: 16px; transition: 0.3s; }
+                .add-fav-title { font-weight: 800; color: #94a3b8; font-size: var(--fs-lg); transition: 0.3s; }
                 .add-fav-card:hover .add-fav-title { color: ${THEME.goldAccent}; }
 
                 /* Fav Modal Styles */
@@ -247,7 +247,7 @@ export default function WelcomeHomePage() {
                     display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc;
                 }
                 
-                .fav-group-title { font-weight: 900; color: ${THEME.coffeeDark}; margin-bottom: 10px; font-size: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px; }
+                .fav-group-title { font-weight: 900; color: ${THEME.coffeeDark}; margin-bottom: 10px; font-size: var(--fs-lg); border-bottom: 2px solid #f1f5f9; padding-bottom: 5px; }
                 .fav-items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
                 
                 .fav-item-check {
@@ -262,17 +262,17 @@ export default function WelcomeHomePage() {
 
                 @media (max-width: 768px) {
                     .hero-glass-card { padding: 30px 20px; border-radius: 14px; }
-                    .welcome-title { font-size: 26px; }
-                    .welcome-subtitle { font-size: 14px; }
+                    .welcome-title { font-size: var(--fs-2xl); }
+                    .welcome-subtitle { font-size: var(--fs-md); }
                     .modules-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
                     .module-card { padding: 20px 10px; }
-                    .module-icon { width: 50px; height: 50px; font-size: 24px; }
-                    .module-title { font-size: 14px; }
+                    .module-icon { width: 50px; height: 50px; font-size: var(--fs-2xl); }
+                    .module-title { font-size: var(--fs-md); }
                 }
             `}</style>
 
             <div className="hero-glass-card">
-                <div style={{ display: 'inline-block', padding: '8px 20px', background: `${THEME.goldAccent}20`, color: THEME.coffeeDark, borderRadius: '14px', fontWeight: 900, fontSize: '14px', marginBottom: '20px' }}>
+                <div style={{ display: 'inline-block', padding: '8px 20px', background: `${THEME.goldAccent}20`, color: THEME.coffeeDark, borderRadius: '14px', fontWeight: 900, fontSize: 'var(--fs-md)', marginBottom: '20px' }}>
                     {roleTitle}
                 </div>
 
@@ -281,7 +281,7 @@ export default function WelcomeHomePage() {
                 {!permsLoading && !displayName.hasProfileName && <p className="welcome-profile-hint">لم تُكمل اسمك في الملف الشخصي بعد. <Link href="/profile">أكمل بياناتك</Link> ليظهر اسمك في التحيات والتقارير.</p>}
 
                 <div style={{ textAlign: 'right', marginBottom: '15px' }}>
-                    <h2 style={{ fontSize: '20px', fontWeight: 900, color: THEME.coffeeDark }}>الصفحات المفضلة</h2>
+                    <h2 style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.coffeeDark }}>الصفحات المفضلة</h2>
                 </div>
 
                 <div className="modules-grid">
@@ -304,8 +304,8 @@ export default function WelcomeHomePage() {
                 <div className="fav-modal-overlay" onClick={() => setIsFavModalOpen(false)}>
                     <div className="fav-modal" onClick={e => e.stopPropagation()}>
                         <div className="fav-modal-header">
-                            <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: THEME.coffeeDark }}>تخصيص الصفحات المفضلة</h2>
-                            <button onClick={() => setIsFavModalOpen(false)} style={{ background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer' }}>✖</button>
+                            <h2 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.coffeeDark }}>تخصيص الصفحات المفضلة</h2>
+                            <button onClick={() => setIsFavModalOpen(false)} style={{ background: 'transparent', border: 'none', fontSize: 'var(--fs-xl)', cursor: 'pointer' }}>✖</button>
                         </div>
                         <div className="fav-modal-content">
                             {menuGroups.map((group, gIdx) => {
@@ -326,7 +326,7 @@ export default function WelcomeHomePage() {
                                                         <div style={{ display: 'inline-flex', color: THEME.goldAccent }}><MenuIcon id={item.id} size={20} /></div>
                                                         <div style={{ fontWeight: 800, color: '#1e293b', flex: 1 }}>{item.title}</div>
                                                         <div style={{ width: '20px', height: '20px', borderRadius: '5px', border: `2px solid ${isSelected ? THEME.goldAccent : '#cbd5e1'}`, background: isSelected ? THEME.goldAccent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                            {isSelected && <span style={{ color: 'white', fontSize: '14px' }}>✔</span>}
+                                                            {isSelected && <span style={{ color: 'white', fontSize: 'var(--fs-md)' }}>✔</span>}
                                                         </div>
                                                     </div>
                                                 )
@@ -345,7 +345,7 @@ export default function WelcomeHomePage() {
             )}
 
             {/* Footer */}
-            <div style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 700, fontSize: '13px', paddingBottom: '10px' }}>
+            <div style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 700, fontSize: 'var(--fs-sm)', paddingBottom: '10px' }}>
                 تم تأمين الجلسة الخاصة بك | فاي تك © {new Date().getFullYear()}
             </div>
         </div>

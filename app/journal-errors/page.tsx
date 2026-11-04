@@ -82,8 +82,8 @@ export default function JournalMaintenancePage() {
                                 {kpis.map((kpi, idx) => (
                                     <div key={idx} style={{ flex: 1, minWidth: '120px', background: `${kpi.color}10`, padding: '15px', borderRadius: '16px', border: `1px solid ${kpi.color}30`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                                         <span style={{ display: 'inline-flex' }}><PhiIcon value={kpi.icon} size={22} /></span>
-                                        <span style={{ fontSize: '20px', fontWeight: 900, color: kpi.color }}>{kpi.value}</span>
-                                        <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569' }}>{kpi.title}</span>
+                                        <span style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: kpi.color }}>{kpi.value}</span>
+                                        <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 'bold', color: '#475569' }}>{kpi.title}</span>
                                     </div>
                                 ))}
                             </div>
@@ -93,9 +93,9 @@ export default function JournalMaintenancePage() {
                     {/* 🔍 منطقة الجداول */}
                     {!logic.hasScanned ? (
                         <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', borderRadius: '14px', border: '2px dashed #cbd5e1' }}>
-                            <div style={{ fontSize: '60px', marginBottom: '15px', animation: 'pulse 2s infinite' }}><ScanSearch size={40} aria-hidden="true" /></div>
+                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '15px', animation: 'pulse 2s infinite' }}><ScanSearch size={40} aria-hidden="true" /></div>
                             <h2 style={{ color: THEME.primary, fontWeight: 900 }}>النظام جاهز للفحص</h2>
-                            <p style={{ fontSize: '15px' }}>استخدم زر "إطلاق الرادار" من القائمة الجانبية للبدء.</p>
+                            <p style={{ fontSize: 'var(--fs-lg)' }}>استخدم زر "إطلاق الرادار" من القائمة الجانبية للبدء.</p>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
@@ -164,14 +164,14 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
 
                 return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 'bold' }}>{item.description || 'لا يوجد بيان'}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 'bold' }}>{item.description || 'لا يوجد بيان'}</div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                            <span style={{ background: `${color}15`, color: color, padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 900 }}>
+                            <span style={{ background: `${color}15`, color: color, padding: '2px 6px', borderRadius: '4px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>
                                 {formatCurrency(documentAmount)}
                             </span>
-                            {documentDate && <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '10px' }}>{documentDate}</span>}
+                            {documentDate && <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: 'var(--fs-xs)' }}>{documentDate}</span>}
                             {refId && (
-                                <span style={{ background: 'rgba(255, 247, 237, 0.8)', color: '#d97706', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', border: '1px dashed #fcd34d' }}>
+                                <span style={{ background: 'rgba(255, 247, 237, 0.8)', color: '#d97706', padding: '2px 6px', borderRadius: '4px', fontSize: 'var(--fs-xs)', border: '1px dashed #fcd34d' }}>
                                     {/* 🛡️ الباب التاسع: إجبار المعرفات المحاسبية باستخدام String(id) */}
                                     {String(refId).slice(0, 8)}
                                 </span>
@@ -188,7 +188,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 // 🛡️ حارس رندر إلزامي[cite: 22]
                 if (!item) return null; 
                 return (
-                    <div style={{ fontSize: '11px', lineHeight: '1.4' }}>
+                    <div style={{ fontSize: 'var(--fs-xs)', lineHeight: '1.4' }}>
                         <div style={{ color: color, fontWeight: 'bold' }}>{item.diagnosis}</div>
                         <div style={{ color: '#059669', marginTop: '3px' }}>{item.solution}</div>
                     </div>
@@ -208,7 +208,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                         <SecureAction module="journal_audit" action="edit">
                             <button 
                                 onClick={() => onAction(String(item.id), item)} 
-                                style={{ padding: '6px 12px', background: color, color: 'white', border: 'none', borderRadius: '6px', fontWeight: 900, cursor: 'pointer', fontSize: '11px' }}
+                                style={{ padding: '6px 12px', background: color, color: 'white', border: 'none', borderRadius: '6px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-xs)' }}
                             >
                                 {actionText}
                             </button>
@@ -217,7 +217,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                             <SecureAction module="journal_audit" action="delete">
                                 <button 
                                     onClick={() => secondaryAction(String(item.id))} 
-                                    style={{ background: 'none', border: 'none', color: '#e11d48', fontSize: '10px', cursor: 'pointer', textDecoration: 'underline' }}
+                                    style={{ background: 'none', border: 'none', color: '#e11d48', fontSize: 'var(--fs-xs)', cursor: 'pointer', textDecoration: 'underline' }}
                                 >
                                     {secondaryActionText}
                                 </button>
@@ -240,7 +240,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 borderRadius: '10px', 
                 borderRight: `5px solid ${color}` 
             }}>
-                <h3 style={{ margin: 0, color: color, fontWeight: 900, fontSize: '15px' }}>
+                <h3 style={{ margin: 0, color: color, fontWeight: 900, fontSize: 'var(--fs-lg)' }}>
                     <PhiIcon value={icon} size={18} /> {title} ({data.length})
                 </h3>
             </div>

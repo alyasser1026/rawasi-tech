@@ -69,9 +69,9 @@ export default function FinancialCenter() {
   }, [refreshCore, router]);
 
   const summary = useMemo(() => totals && <KpiStrip items={[
-    { label: 'صافي النقدية', value: formatCurrency(totals.netCash), tone: totals.netCash >= 0 ? 'success' : 'danger', icon: <Landmark />, hint: 'المقبوضات ناقص المصروفات' },
-    { label: 'إجمالي المقبوضات', value: formatCurrency(totals.totalIn), tone: 'info', icon: <ArrowDownLeft />, hint: 'الجانب الدائن في قيود اليومية' },
-    { label: 'إجمالي المصروفات', value: formatCurrency(totals.totalOut), tone: 'warning', icon: <ArrowUpRight />, hint: 'كل المصروفات المسجلة' },
+    { label: 'صافي النقدية', amount: totals.netCash, tone: totals.netCash >= 0 ? 'success' : 'danger', icon: <Landmark />, hint: 'المقبوضات ناقص المصروفات' },
+    { label: 'إجمالي المقبوضات', amount: totals.totalIn, tone: 'info', icon: <ArrowDownLeft />, hint: 'الجانب الدائن في قيود اليومية' },
+    { label: 'إجمالي المصروفات', amount: totals.totalOut, tone: 'warning', icon: <ArrowUpRight />, hint: 'كل المصروفات المسجلة' },
     { label: 'مؤشر السيولة', value: `${totals.liquidityIndex.toLocaleString('ar-EG')}٪`, tone: totals.liquidityIndex >= 0 ? 'brand' : 'danger', icon: <Droplets />, hint: 'صافي النقدية ÷ المقبوضات' },
   ]} />, [totals]);
 

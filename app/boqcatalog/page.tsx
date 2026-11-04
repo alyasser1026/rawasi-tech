@@ -34,8 +34,8 @@ export default function BoqCatalogPage() {
                 <RawasiSidebarManager 
                     summary={
                         <div className="summary-glass-card">
-                            <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي البنود المسجلة</span>
-                            <div className="val" style={{fontSize:'24px', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>{logic.catalogItems.length}</div>
+                            <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي البنود المسجلة</span>
+                            <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>{logic.catalogItems.length}</div>
                         </div>
                     }
                     actions={sidebarActions}
@@ -56,7 +56,7 @@ export default function BoqCatalogPage() {
                 <style>{`
                     .glass-input-field { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; font-weight: 700; color: #1e293b; transition: 0.3s; }
                     .glass-input-field:focus { background: #ffffff; border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 4px rgba(194,65,12, 0.15); }
-                    .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+                    .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
                     .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
                     .btn-main-glass.white { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255,255,255,0.8); }
                     .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
@@ -64,18 +64,18 @@ export default function BoqCatalogPage() {
                     
                     /* ستايلات الشجرة وإدارة الأقسام */
                     .tree-main { background: white; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 15px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-                    .tree-main-header { background: #f8fafc; padding: 15px 20px; font-weight: 900; font-size: 16px; color: ${THEME.coffeeDark}; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; transition: 0.2s; }
+                    .tree-main-header { background: #f8fafc; padding: 15px 20px; font-weight: 900; font-size: var(--fs-lg); color: ${THEME.coffeeDark}; cursor: pointer; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; transition: 0.2s; }
                     .tree-main-header:hover { background: #f1f5f9; }
                     
                     .tree-sub { margin: 10px 20px 10px 0; border-right: 3px solid ${THEME.goldAccent}50; padding-right: 15px; }
-                    .tree-sub-header { padding: 10px; font-weight: 900; font-size: 14px; color: ${THEME.coffeeMain}; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; border-radius: 8px; }
+                    .tree-sub-header { padding: 10px; font-weight: 900; font-size: var(--fs-md); color: ${THEME.coffeeMain}; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.2s; border-radius: 8px; }
                     .tree-sub-header:hover { background: #f8fafc; }
                     
                     .tree-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: white; border: 1px solid #f1f5f9; border-radius: 12px; margin: 5px 20px 5px 0; transition: 0.2s; }
                     .tree-item:hover { border-color: ${THEME.goldAccent}; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
-                    .tree-item-code { background: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; margin-left: 10px; }
+                    .tree-item-code { background: #f1f5f9; color: #64748b; padding: 3px 8px; border-radius: 6px; font-size: var(--fs-xs); font-weight: 800; margin-left: 10px; }
 
-                    .action-icon { background: none; border: none; cursor: pointer; font-size: 14px; opacity: 0; transition: 0.2s; padding: 5px; border-radius: 6px; }
+                    .action-icon { background: none; border: none; cursor: pointer; font-size: var(--fs-md); opacity: 0; transition: 0.2s; padding: 5px; border-radius: 6px; }
                     .action-icon:hover { background: rgba(0,0,0,0.05); transform: scale(1.1); }
                     .tree-main-header:hover .action-icon, .tree-sub-header:hover .action-icon { opacity: 1; }
                 `}</style>
@@ -118,8 +118,8 @@ export default function BoqCatalogPage() {
                                                     {/* رأس القسم الفرعي */}
                                                     <div className="tree-sub-header" onClick={() => logic.toggleNode(`sub_${mainCat}_${subCat}`)}>
                                                         <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-                                                            <span style={{ width: '25px', fontSize: '12px' }}>{isSubExpanded ? '▼' : '◀'}</span>
-                                                            {subCat} <span style={{ fontSize: '11px', color: '#94a3b8', marginRight: '8px' }}>({items.length} بنود)</span>
+                                                            <span style={{ width: '25px', fontSize: 'var(--fs-sm)' }}>{isSubExpanded ? '▼' : '◀'}</span>
+                                                            {subCat} <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginRight: '8px' }}>({items.length} بنود)</span>
                                                         </div>
                                                         <div style={{ display: 'flex', gap: '5px' }}>
                                                             <SecureAction module="boqcatalog" action="edit"><button onClick={(e) => { e.stopPropagation(); logic.setCategoryModal({ isOpen: true, oldName: subCat, newName: subCat, type: 'sub', parentMain: mainCat }); }} className="action-icon" title="تعديل اسم القسم الفرعي"><Pencil size={16} aria-hidden="true" /></button></SecureAction>
@@ -132,15 +132,15 @@ export default function BoqCatalogPage() {
                                                         <div key={item.id} className="tree-item">
                                                             <div>
                                                                 <span className="tree-item-code">{item.item_code}</span>
-                                                                <span style={{ fontWeight: 800, color: '#1e293b', fontSize: '13px' }}>{item.item_name}</span>
+                                                                <span style={{ fontWeight: 800, color: '#1e293b', fontSize: 'var(--fs-sm)' }}>{item.item_name}</span>
                                                             </div>
                                                             <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                                                                <span style={{ fontSize: '11px', background: '#ecfdf5', color: '#059669', padding: '4px 8px', borderRadius: '6px', fontWeight: 900 }}>
+                                                                <span style={{ fontSize: 'var(--fs-xs)', background: '#ecfdf5', color: '#059669', padding: '4px 8px', borderRadius: '6px', fontWeight: 900 }}>
                                                                     {item.unit_of_measure}
                                                                 </span>
                                                                 <div>
-                                                                    <SecureAction module="boqcatalog" action="edit"><button onClick={() => { logic.setCurrentRecord(item); logic.setIsModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: 0.6 }} title="تعديل البند"><Pencil size={14} aria-hidden="true" /></button></SecureAction>
-                                                                    <SecureAction module="boqcatalog" action="delete"><button onClick={() => logic.handleDeleteItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '14px', opacity: 0.6 }} title="حذف البند"><Trash2 size={14} aria-hidden="true" /></button></SecureAction>
+                                                                    <SecureAction module="boqcatalog" action="edit"><button onClick={() => { logic.setCurrentRecord(item); logic.setIsModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-md)', opacity: 0.6 }} title="تعديل البند"><Pencil size={14} aria-hidden="true" /></button></SecureAction>
+                                                                    <SecureAction module="boqcatalog" action="delete"><button onClick={() => logic.handleDeleteItem(item.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-md)', opacity: 0.6 }} title="حذف البند"><Trash2 size={14} aria-hidden="true" /></button></SecureAction>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -151,7 +151,7 @@ export default function BoqCatalogPage() {
                                                         <button onClick={() => {
                                                             logic.setCurrentRecord({ main_category: mainCat, sub_category: subCat, item_name: '', unit_of_measure: 'مقطوعية' });
                                                             logic.setIsModalOpen(true);
-                                                        }} style={{ background: 'transparent', color: THEME.goldAccent, border: 'none', padding: '5px 20px', fontSize: '11px', fontWeight: 900, cursor: 'pointer', display: 'block', marginTop: '5px' }}>
+                                                        }} style={{ background: 'transparent', color: THEME.goldAccent, border: 'none', padding: '5px 20px', fontSize: 'var(--fs-xs)', fontWeight: 900, cursor: 'pointer', display: 'block', marginTop: '5px' }}>
                                                             + إضافة بند جديد تحت "{subCat}"
                                                         </button>
                                                     )}
@@ -176,7 +176,7 @@ export default function BoqCatalogPage() {
                                 type="text" 
                                 value={logic.categoryModal.newName} 
                                 onChange={e => logic.setCategoryModal({...logic.categoryModal, newName: e.target.value})}
-                                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', outline: 'none', fontWeight: 900, fontSize: '15px' }}
+                                style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '2px solid #e2e8f0', outline: 'none', fontWeight: 900, fontSize: 'var(--fs-lg)' }}
                                 autoFocus
                             />
                             <div style={{ display: 'flex', gap: '10px', marginTop: '25px' }}>

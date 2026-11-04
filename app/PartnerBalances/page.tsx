@@ -370,31 +370,31 @@ export default function PartnerBalancesPage() {
                     .stat-card.net { background: linear-gradient(135deg, #3b82f615, #1d4ed815); border: 1px solid #3b82f630; }
                     
                     .smart-table { width: 100%; border-collapse: collapse; text-align: right; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-                    .smart-table th { background: #f8fafc; padding: 15px; font-size: 13px; font-weight: 900; color: #334155; border-bottom: 2px solid #e2e8f0; }
-                    .smart-table td { padding: 15px; font-size: 14px; font-weight: 800; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+                    .smart-table th { background: #f8fafc; padding: 15px; font-size: var(--fs-sm); font-weight: 900; color: #334155; border-bottom: 2px solid #e2e8f0; }
+                    .smart-table td { padding: 15px; font-size: var(--fs-md); font-weight: 800; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
                     .main-row { cursor: pointer; transition: 0.2s; }
                     .main-row:hover { background: #f8fafc; }
                     .main-row.inactive { opacity: 0.6; background: #fafafa; }
                     
                     .ledger-container { background: #f8fafc; padding: 15px 30px; border-bottom: 2px solid #cbd5e1; box-shadow: inset 0 4px 6px -4px rgba(0,0,0,0.05); }
                     .ledger-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
-                    .ledger-table th { background: #475569; color: white; padding: 10px; font-size: 12px; }
-                    .ledger-table td { padding: 10px; font-size: 12px; border-bottom: 1px solid #f1f5f9; }
+                    .ledger-table th { background: #475569; color: white; padding: 10px; font-size: var(--fs-sm); }
+                    .ledger-table td { padding: 10px; font-size: var(--fs-sm); border-bottom: 1px solid #f1f5f9; }
 
                     .arrow-icon { display: inline-block; transition: transform 0.3s; margin-left: 10px; color: #94a3b8; }
                     .arrow-expanded { transform: rotate(90deg); color: #3b82f6; }
                     .glass-input { width: 100%; padding: 10px 15px; border-radius: 10px; border: 2px solid #e2e8f0; outline: none; font-weight: 700; transition: 0.3s; background: white; }
                     .glass-input:focus { border-color: ${THEME.primary || '#3b82f6'}; }
 
-                    .btn-toggle-status { padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 900; border: none; cursor: pointer; transition: 0.2s; }
+                    .btn-toggle-status { padding: 6px 10px; border-radius: 6px; font-size: var(--fs-xs); font-weight: 900; border: none; cursor: pointer; transition: 0.2s; }
                     .btn-toggle-status.active { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
                     .btn-toggle-status.inactive { background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; }
                     .btn-toggle-status:hover { transform: translateY(-1px); filter: brightness(0.9); }
                     
-                    .btn-print-row { padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 900; background: white; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; transition: 0.2s; }
+                    .btn-print-row { padding: 6px 10px; border-radius: 6px; font-size: var(--fs-xs); font-weight: 900; background: white; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; transition: 0.2s; }
                     .btn-print-row:hover { background: #f1f5f9; transform: translateY(-1px); border-color: #94a3b8; }
 
-                    .pill-btn { padding: 6px 14px; border-radius: 14px; font-size: 12px; font-weight: 800; cursor: pointer; border: 1px solid #cbd5e1; transition: 0.2s; background: white; color: #475569; white-space: nowrap; }
+                    .pill-btn { padding: 6px 14px; border-radius: 14px; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; border: 1px solid #cbd5e1; transition: 0.2s; background: white; color: #475569; white-space: nowrap; }
                     .pill-btn.active { background: ${THEME.primary || '#3b82f6'}; color: white; border-color: ${THEME.primary || '#3b82f6'}; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
                     .pill-btn:hover:not(.active) { background: #f1f5f9; }
                 `}</style>
@@ -402,9 +402,9 @@ export default function PartnerBalancesPage() {
                 <RawasiSidebarManager
                     summary={
                         <KpiStrip compact items={[
-                            { label: 'إجمالي دائن (لهم) في الفترة', value: formatCurrency(stats.totalCredit), tone: 'success', icon: <ArrowDownLeft /> },
-                            { label: 'إجمالي مدين (عليهم) في الفترة', value: formatCurrency(stats.totalDebit), tone: 'warning', icon: <ArrowUpRight /> },
-                            { label: 'صافي حركات الفترة', value: formatCurrency(Math.abs(stats.net)), tone: stats.net === 0 ? 'neutral' : 'info', icon: <Scale />, hint: getBalanceInfo(stats.net).label },
+                            { label: 'إجمالي دائن (لهم) في الفترة', amount: stats.totalCredit, tone: 'success', icon: <ArrowDownLeft /> },
+                            { label: 'إجمالي مدين (عليهم) في الفترة', amount: stats.totalDebit, tone: 'warning', icon: <ArrowUpRight /> },
+                            { label: 'صافي حركات الفترة', amount: Math.abs(stats.net), tone: stats.net === 0 ? 'neutral' : 'info', icon: <Scale />, hint: getBalanceInfo(stats.net).label },
                         ]} />
                     }
                     actions={<button type="button" className="ent-button ent-success" onClick={exportToExcelWithColors}><ChartColumn size={16} aria-hidden="true" />تحميل Excel</button>}
@@ -463,17 +463,17 @@ export default function PartnerBalancesPage() {
                                                 <td>
                                                     <span className={`arrow-icon ${isExpanded ? 'arrow-expanded' : ''}`}>◀</span>
                                                     <div style={{ display: 'inline-block' }}>
-                                                        <div style={{ color: !isActive ? '#94a3b8' : (THEME.primary || '#2563eb'), fontSize: '15px', fontWeight: 900 }}>
+                                                        <div style={{ color: !isActive ? '#94a3b8' : (THEME.primary || '#2563eb'), fontSize: 'var(--fs-lg)', fontWeight: 900 }}>
                                                             {row.partner_name} {!isActive && '(موقوف)'}
                                                         </div>
-                                                        <div style={{ color: '#94a3b8', fontSize: '11px', fontWeight: 800 }}>كود: #{row.partner_code || '---'}</div>
+                                                        <div style={{ color: '#94a3b8', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>كود: #{row.partner_code || '---'}</div>
                                                     </div>
                                                 </td>
-                                                <td><span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 900, color: '#475569' }}>{row.partner_type}</span></td>
+                                                <td><span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px', fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#475569' }}>{row.partner_type}</span></td>
                                                 
                                                 {dateFrom && (
                                                     <td>
-                                                        <span style={{ fontWeight: 900, color: (row.previous_balance || 0) < 0 ? '#dc2626' : '#059669', fontSize: '14px' }}>
+                                                        <span style={{ fontWeight: 900, color: (row.previous_balance || 0) < 0 ? '#dc2626' : '#059669', fontSize: 'var(--fs-md)' }}>
                                                             {formatCurrency(Math.abs(row.previous_balance || 0))} {(row.previous_balance || 0) === 0 ? '' : (row.previous_balance || 0) < 0 ? 'عليه' : 'له'}
                                                         </span>
                                                     </td>
@@ -516,7 +516,7 @@ export default function PartnerBalancesPage() {
                                                         <div className="ledger-container">
                                                             <div style={{ marginBottom: '10px', fontWeight: 900, color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
                                                                 <span>تفاصيل كشف الحساب {dateFrom || dateTo ? '(حسب الفترة المحددة)' : ''}</span>
-                                                                <span style={{ color: '#94a3b8', fontSize: '12px' }}>{pLedger.length} حركة مسجلة</span>
+                                                                <span style={{ color: '#94a3b8', fontSize: 'var(--fs-sm)' }}>{pLedger.length} حركة مسجلة</span>
                                                             </div>
                                                             
                                                             {loadingLedgers[row.partner_id] ? (
@@ -546,7 +546,7 @@ export default function PartnerBalancesPage() {
                                                                                         <td style={{ fontWeight: 900, color: '#475569' }}>{lg.transaction_date}</td>
                                                                                         <td>
                                                                                             <strong style={{ color: '#1e293b' }}>{lg.main_description}</strong>
-                                                                                            {lg.line_details && <div style={{ fontSize: '10px', color: '#64748b', marginTop: '2px' }}>{lg.line_details}</div>}
+                                                                                            {lg.line_details && <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '2px' }}>{lg.line_details}</div>}
                                                                                         </td>
                                                                                         <td style={{ color: '#059669', fontWeight: 800 }}>{c > 0 ? formatCurrency(c) : '-'}</td>
                                                                                         <td style={{ color: '#dc2626', fontWeight: 800 }}>{d > 0 ? formatCurrency(d) : '-'}</td>
@@ -577,7 +577,7 @@ export default function PartnerBalancesPage() {
                         {/* 🚀 زراير التقسيم (Pagination) */}
                         {filteredData.length > 0 && (
                             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', background: 'white', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                                <div style={{ fontSize: '14px', fontWeight: 900, color: '#475569' }}>
+                                <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: '#475569' }}>
                                     الحسابات المعروضة: <span style={{ color: THEME.primary || '#3b82f6' }}>{filteredData.length}</span> حساب
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>

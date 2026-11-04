@@ -13,7 +13,7 @@ const CompactCell = ({ children, justify = 'flex-start', isBold = false }: { chi
     <div style={{ 
         padding: '3px 6px', borderRadius: '4px', height: '100%', minHeight: '26px', 
         display: 'flex', alignItems: 'center', justifyContent: justify,
-        fontSize: '11px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+        fontSize: 'var(--fs-xs)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         fontWeight: isBold ? 900 : 600, color: '#1e293b'
     }}>
         {children}
@@ -37,10 +37,10 @@ export default function CostAllocationPage() {
             render: (row: any) => (
                 <CompactCell justify="flex-start">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                        <span style={{ fontWeight: 900, color: '#1e293b', fontSize: '12px' }}>
+                        <span style={{ fontWeight: 900, color: '#1e293b', fontSize: 'var(--fs-sm)' }}>
                             {row["اسم الفيلا المحمل عليها"] || 'عام/غير موزع'}
                         </span>
-                        <span style={{ fontSize: '10.5px', color: '#c2410c', fontWeight: 800 }}>
+                        <span style={{ fontSize: 'var(--fs-xs)', color: '#c2410c', fontWeight: 800 }}>
                             بند: {row["البند المحمل عليه"] || 'مصروف عام (لم يوجه لبند)'}
                         </span>
                     </div>
@@ -53,7 +53,7 @@ export default function CostAllocationPage() {
         },
         { 
             key: 'desc', label: 'وصف المصروف', 
-            render: (row: any) => <CompactCell><span style={{color: '#475569', fontSize:'10.5px'}}>{row["البيان / الوصف"]}</span></CompactCell> 
+            render: (row: any) => <CompactCell><span style={{color: '#475569', fontSize:'var(--fs-xs)'}}>{row["البيان / الوصف"]}</span></CompactCell> 
         },
         { 
             key: 'percentage', label: 'نسبة الاستهلاك', 
@@ -64,7 +64,7 @@ export default function CostAllocationPage() {
             key: 'amount', label: 'التكلفة المحملة للبند', 
             render: (row: any) => (
                 <CompactCell justify="center">
-                    <strong style={{color: '#16a34a', background: 'rgba(22,163,74,0.08)', padding: '4px 10px', borderRadius: '6px', fontSize:'13px'}}>
+                    <strong style={{color: '#16a34a', background: 'rgba(22,163,74,0.08)', padding: '4px 10px', borderRadius: '6px', fontSize:'var(--fs-sm)'}}>
                         {formatCurrency(row["المبلغ المحمل (جنيه)"])}
                     </strong>
                 </CompactCell>
@@ -83,18 +83,18 @@ export default function CostAllocationPage() {
                 summary={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         <div className="summary-glass-box">
-                            <span style={{fontSize:'11px', fontWeight:800, color:'#64748b'}}>إجمالي المبالغ الموزعة</span>
-                            <div style={{fontSize:'20px', fontWeight:900, color: '#16a34a', marginTop:'4px'}}>{formatCurrency(logic.totalAllocatedAmount)}</div>
+                            <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#64748b'}}>إجمالي المبالغ الموزعة</span>
+                            <div style={{fontSize:'var(--fs-xl)', fontWeight:900, color: '#16a34a', marginTop:'4px'}}>{formatCurrency(logic.totalAllocatedAmount)}</div>
                         </div>
                         <div className="summary-glass-box">
-                            <span style={{fontSize:'11px', fontWeight:800, color:'#64748b'}}>عدد القيود المحملة</span>
-                            <div style={{fontSize:'22px', fontWeight:900, color: THEME.primary, marginTop:'4px'}}>{logic.filteredData.length} قيد</div>
+                            <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#64748b'}}>عدد القيود المحملة</span>
+                            <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.primary, marginTop:'4px'}}>{logic.filteredData.length} قيد</div>
                         </div>
                     </div>
                 }
                 actions={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: 'white', display: 'block' }}>تصفية بحسب الشهر المالي</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'white', display: 'block' }}>تصفية بحسب الشهر المالي</label>
                         <select 
                             value={logic.selectedMonth} 
                             onChange={(e) => logic.setSelectedMonth(e.target.value)} 
@@ -119,11 +119,11 @@ export default function CostAllocationPage() {
                 .summary-glass-box { background: rgba(255,255,255,0.6); padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.04); }
                 .glass-dropdown {
                     width: 100%; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.2);
-                    border: 1px solid rgba(255,255,255,0.3); color: #1e293b; font-weight: 700; font-size: 13px; outline: none; cursor: pointer;
+                    border: 1px solid rgba(255,255,255,0.3); color: #1e293b; font-weight: 700; font-size: var(--fs-sm); outline: none; cursor: pointer;
                 }
                 .glass-dropdown option { background: white; color: #1e293b; }
-                .badge-month { background: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 4px; font-weight: 900; font-size: 11px; border: 1px solid #cbd5e1; }
-                .badge-mechanism { background: #eff6ff; color: #2563eb; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: 11px; border: 1px solid #bfdbfe; word-break: break-all; }
+                .badge-month { background: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 4px; font-weight: 900; font-size: var(--fs-xs); border: 1px solid #cbd5e1; }
+                .badge-mechanism { background: #eff6ff; color: #2563eb; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: var(--fs-xs); border: 1px solid #bfdbfe; word-break: break-all; }
             `}</style>
 
             {logic.isLoading ? (

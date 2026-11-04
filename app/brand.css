@@ -73,7 +73,7 @@ html.phi-brand ::selection { background: #ffedd5; color: #7c2d12; }
 .phi-brand .pin-btn-sidebar span { color: #52525b !important; }
 .phi-brand .sidebar-summary-glass { background: #fafafa; border: 1px solid var(--phi-border); box-shadow: none; }
 .phi-brand .sidebar-summary-glass .summary-title { color: #52525b !important; }
-.phi-brand .fab-main { width: 64px; height: 64px; background: linear-gradient(145deg, white, #fff7ed) !important; border: 1px solid #fed7aa; box-shadow: 0 6px 24px #c2410c1a; animation: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.phi-brand .fab-main { width: 4rem; height: 4rem; background: linear-gradient(145deg, white, #fff7ed) !important; border: 1px solid #fed7aa; box-shadow: 0 6px 24px #c2410c1a; animation: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .phi-brand .fab-logo { filter: none; }
 .phi-brand .overlay-screen { background: #f7f7f8fa; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .phi-brand .group-header { color: var(--phi-text); border-bottom-color: var(--phi-border); text-shadow: none; }
@@ -84,9 +84,9 @@ html.phi-brand ::selection { background: #ffedd5; color: #7c2d12; }
 .phi-brand .nav-card:hover .icon-wrapper { background: white; color: var(--section-accent); transform: none; }
 .phi-brand .welcome-page-wrapper { background: none; }
 .phi-brand .hero-glass-card { background: radial-gradient(ellipse at 100% 0, #ffedd5b3, transparent 55%), linear-gradient(135deg, white 50%, #eef2ff80); border-color: #fed7aa; box-shadow: 0 8px 36px #18181b08; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.phi-brand .hero-glass-card::before { display: block; background: linear-gradient(90deg, #fdba74, #f97316, #c2410c); height: 4px; }
+.phi-brand .hero-glass-card::before { display: block; background: linear-gradient(90deg, #fdba74, #f97316, #c2410c); height: 0.25rem; }
 .phi-brand .module-card::after { display: none; }
-.phi-brand .modules-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); }
+.phi-brand .modules-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.625rem), 1fr)); }
 .phi-brand .module-card { min-width: 0; background: linear-gradient(145deg, white 55%, var(--section-tint)); border-color: var(--section-border); border-top: 3px solid var(--section-accent); box-shadow: 0 4px 16px #18181b05; border-radius: 16px; }
 .phi-brand .module-title { overflow-wrap: break-word; }
 .phi-brand .module-card:hover { transform: translateY(-3px); border-color: var(--section-accent); box-shadow: 0 10px 24px #18181b0d; }
@@ -112,7 +112,7 @@ html.phi-brand ::selection { background: #ffedd5; color: #7c2d12; }
 .phi-brand .login-wrapper { background: var(--phi-background); background-image: none; }
 .phi-brand .login-wrapper .glass-card { background: white; border: 1px solid var(--phi-border); box-shadow: 0 8px 40px #18181b08; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .phi-brand .login-wrapper .logo-container { text-align: center; }
-.phi-brand .login-wrapper .logo-container img { width: min(100%, 300px); height: auto; filter: none; }
+.phi-brand .login-wrapper .logo-container img { width: min(100%, 18.75rem); height: auto; filter: none; }
 .phi-brand .login-wrapper .cinematic-title { color: var(--phi-text); text-shadow: none; }
 .phi-brand .login-wrapper .cinematic-subtitle, .phi-brand .login-wrapper .toggle-btn, .phi-brand .login-wrapper .glass-card > div:last-child p { color: var(--phi-muted) !important; }
 .phi-brand .login-wrapper .cinematic-input { background: #fafafa !important; color: var(--phi-text) !important; border: 1px solid #d4d4d8; }
@@ -151,10 +151,10 @@ html.phi-brand.low-graphics-mode :is(.hero-glass-card, .module-card, .fab-main, 
 html.phi-brand.low-graphics-mode :is(.nav-card, .module-card, .add-fav-card):hover { transform: none !important; }
 html.phi-brand.low-graphics-mode .hero-glass-card::before { display: none; }
 @media (max-width: 768px) {
-  .phi-brand .fab-main { width: 56px !important; height: 56px !important; }
+  .phi-brand .fab-main { width: 3.5rem !important; height: 3.5rem !important; }
   .phi-brand .master-header { border-radius: 0 0 14px 14px !important; }
-  .phi-brand .welcome-page-wrapper { padding: 10px 0; }
-  .phi-brand .hero-glass-card { padding: 26px 14px; }
+  .phi-brand .welcome-page-wrapper { padding: 0.625rem 0; }
+  .phi-brand .hero-glass-card { padding: 1.625rem 0.875rem; }
   .phi-brand .modules-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .phi-brand .add-fav-card { white-space: normal !important; min-width: 0; }
 }

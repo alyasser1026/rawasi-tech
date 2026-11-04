@@ -10,7 +10,7 @@ export default function ModernInput({ label, ...props }: ModernInputProps) {
     <div className="field-group">
       <style jsx>{`
         .field-group { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-        .field-group label { color: var(--primary); font-size: 14px; font-weight: 900; padding-right: 5px; }
+        .field-group label { color: var(--primary); font-size: var(--fs-md); font-weight: 900; padding-right: 5px; }
         
         .modern-input {
           width: 100%;
@@ -19,7 +19,7 @@ export default function ModernInput({ label, ...props }: ModernInputProps) {
           border: 1px solid rgba(15, 23, 42, 0.1);
           border-radius: 14px;
           color: var(--primary);
-          font-size: 15px;
+          font-size: var(--fs-lg);
           font-weight: 700;
           outline: none;
           transition: 0.3s;

@@ -250,12 +250,12 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                 }
                 .module-card { background: #f8fafc; border-radius: 14px; padding: 22px; margin-bottom: 15px; border: 1px solid #e2e8f0; transition: 0.3s; }
                 .module-card:hover { border-color: ${THEME.primary}; background: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
-                .perm-btn { padding: 10px 18px; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; border: 2px solid #e2e8f0; background: white; color: #64748b; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+                .perm-btn { padding: 10px 18px; border-radius: 12px; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; border: 2px solid #e2e8f0; background: white; color: #64748b; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
                 .perm-btn:hover { border-color: #cbd5e1; color: #1e293b; }
                 .perm-btn.active { background: ${THEME.primary}; color: white; border-color: ${THEME.primary}; box-shadow: 0 8px 20px ${THEME.primary}40; }
-                .btn-all { font-size: 11px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 900; transition: 0.2s; }
+                .btn-all { font-size: var(--fs-xs); background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 900; transition: 0.2s; }
                 .btn-all:hover { background: #e2e8f0; color: #0f172a; border-color: #cbd5e1; }
-                .modal-input { width: 100%; padding: 15px 20px; border-radius: 16px; border: 2px solid #e2e8f0; font-weight: 800; font-size: 14px; outline: none; transition: 0.3s; color: #1e293b; background: #f8fafc; }
+                .modal-input { width: 100%; padding: 15px 20px; border-radius: 16px; border: 2px solid #e2e8f0; font-weight: 800; font-size: var(--fs-md); outline: none; transition: 0.3s; color: #1e293b; background: #f8fafc; }
                 .modal-input:focus { border-color: ${THEME.primary}; background: white; box-shadow: 0 0 0 4px ${THEME.primary}15; }
                 .cinematic-scroll::-webkit-scrollbar { width: 8px; }
                 .cinematic-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -266,10 +266,10 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
             <div className="profile-modal-box">
                 <div style={{ padding: '30px 40px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', flexShrink: 0 }}>
                     <div>
-                        <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: '24px', letterSpacing: '-0.5px' }}>
+                        <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-2xl)', letterSpacing: '-0.5px' }}>
                             {isNewUser ? 'إضافة مستخدم جديد' : 'إعدادات حساب المستخدم'}
                         </h2>
-                        <p style={{ margin: '8px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>إدارة وصول المستخدم: <b style={{color: '#1e293b', fontSize: '14px'}}>{form.full_name || 'مستخدم جديد'}</b></p>
+                        <p style={{ margin: '8px 0 0 0', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 600 }}>إدارة وصول المستخدم: <b style={{color: '#1e293b', fontSize: 'var(--fs-md)'}}>{form.full_name || 'مستخدم جديد'}</b></p>
                     </div>
                     <button onClick={onClose} style={{ background: '#f1f5f9', color: '#64748b', border: 'none', width: '38px', height: '38px', borderRadius: '50%', cursor: 'pointer', fontWeight: 900, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                 </div>
@@ -291,19 +291,19 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
                             <div>
-                                <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>الاسم الكامل</label>
+                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>الاسم الكامل</label>
                                 <input type="text" className="modal-input" value={form.full_name} placeholder="اسم الموظف أو المستخدم..." onChange={e => setForm({...form, full_name: e.target.value})} />
                             </div>
                             <div>
-                                <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>البريد الإلكتروني</label>
+                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>البريد الإلكتروني</label>
                                 <input type="email" className="modal-input" value={form.email} placeholder="مثال: user@company.com" onChange={e => setForm({...form, email: e.target.value})} />
                             </div>
                             <div>
-                                <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>كلمة المرور {isNewUser ? '*' : '(اختياري للتغيير)'}</label>
+                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>كلمة المرور {isNewUser ? '*' : '(اختياري للتغيير)'}</label>
                                 <input type="password" className="modal-input" value={form.password} placeholder={isNewUser ? "كلمة المرور الجديدة" : "اتركه فارغاً للاحتفاظ بالحالية"} onChange={e => setForm({...form, password: e.target.value})} />
                             </div>
                             <div>
-                                <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>رقم الجوال</label>
+                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>رقم الجوال</label>
                                 <input type="tel" className="modal-input" value={form.phone} placeholder="رقم الموبايل..." onChange={e => setForm({...form, phone: e.target.value})} />
                             </div>
                         </div>
@@ -312,7 +312,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                     {/* بيانات الوظيفة والربط المحاسبي */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '40px' }}>
                         <div>
-                            <label style={{ fontSize: '13px', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>الرتبة (System Role)</label>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>الرتبة (System Role)</label>
                             <select className="modal-input" style={{ cursor: 'pointer' }} value={form.role} onChange={e => setForm({...form, role: e.target.value})}>
                                 <optgroup label="الإدارة العليا">
                                     <option value="super_admin">سوبر أدمن (صلاحيات مطلقة)</option>
@@ -342,15 +342,15 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px', borderBottom: '2px dashed #f1f5f9', paddingBottom: '15px' }}>
-                        <span style={{ fontSize: '20px' }}><Lock size={17} aria-hidden="true" /></span>
-                        <h3 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>مصفوفة الوصول المتقدمة</h3>
+                        <span style={{ fontSize: 'var(--fs-xl)' }}><Lock size={17} aria-hidden="true" /></span>
+                        <h3 style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#0f172a', margin: 0 }}>مصفوفة الوصول المتقدمة</h3>
                     </div>
                     
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '15px' }}>
                         {Object.keys(form.permissions).map((module) => (
                             <div key={module} className="module-card">
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
-                                    <span style={{ fontWeight: 900, fontSize: '15px', color: '#1e293b' }}>{moduleNames[module] || module}</span>
+                                    <span style={{ fontWeight: 900, fontSize: 'var(--fs-lg)', color: '#1e293b' }}>{moduleNames[module] || module}</span>
                                     <button className="btn-all" onClick={() => toggleAllInModule(module)}>الكل</button>
                                 </div>
                                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
@@ -374,13 +374,13 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                 <div style={{ padding: '25px 40px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '15px', background: 'white', flexShrink: 0 }}>
                     <button 
                         onClick={handleSave} disabled={isSaving}
-                        style={{ flex: 2, padding: '18px', borderRadius: '14px', border: 'none', background: THEME.primary, color: 'white', fontWeight: 900, fontSize: '16px', cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.primary}40`, transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                        style={{ flex: 2, padding: '18px', borderRadius: '14px', border: 'none', background: THEME.primary, color: 'white', fontWeight: 900, fontSize: 'var(--fs-lg)', cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.primary}40`, transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
                     >
                         {isSaving ? 'جاري الحفظ...' : 'اعتماد وحفظ التغييرات'}
                     </button>
                     <button 
                         onClick={onClose} 
-                        style={{ flex: 1, padding: '18px', borderRadius: '14px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: '16px', transition: '0.3s' }}
+                        style={{ flex: 1, padding: '18px', borderRadius: '14px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)', transition: '0.3s' }}
                     >
                         إلغاء
                     </button>

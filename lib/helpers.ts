@@ -152,6 +152,18 @@ export const checkAdminApprovalPrivilege = async (
   }
 };
 
+/** Short currency for tight spaces, e.g. "١٫٣ مليون ر.س."; pair it with the full value (title/tooltip). */
+export const formatCompactCurrency = (amount: number | string | null | undefined): string => {
+  const num = Number(amount) || 0;
+  return new Intl.NumberFormat('ar-SA', {
+    style: 'currency',
+    currency: 'SAR',
+    notation: 'compact',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+  }).format(num);
+};
+
 export const formatCurrency = (amount: number | string | null | undefined): string => {
   const num = Number(amount) || 0;
   return new Intl.NumberFormat('ar-SA', {

@@ -43,11 +43,11 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
 
     return (
         <div ref={dropdownRef} className="no-print" style={{ position: 'relative', flex: 1, minWidth: '250px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 900, marginBottom: '6px', color: '#475569', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, marginBottom: '6px', color: '#475569', display: 'flex', justifyContent: 'space-between' }}>
                 <span>{title}</span>
                 {selected.length > 0 && (
                     <span 
-                        style={{ color: '#ef4444', cursor: 'pointer', fontSize: '11px', background: '#fef2f2', padding: '2px 8px', borderRadius: '4px' }} 
+                        style={{ color: '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xs)', background: '#fef2f2', padding: '2px 8px', borderRadius: '4px' }} 
                         onClick={() => onChange([])}
                     >
                         إلغاء التحديد ({selected.length})
@@ -59,7 +59,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
                 onClick={() => setIsOpen(!isOpen)}
                 style={{ background: 'white', padding: '10px 15px', borderRadius: '8px', border: `2px solid ${THEME.sandDark || '#e2e8f0'}`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.2s' }}
             >
-                <span style={{ fontWeight: 800, color: selected.length ? '#0f172a' : '#94a3b8', fontSize: '13px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontWeight: 800, color: selected.length ? '#0f172a' : '#94a3b8', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selected.length > 0 ? selected.join('، ') : placeholder}
                 </span>
                 <span style={{ color: '#94a3b8', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }}>▼</span>
@@ -74,7 +74,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: '12px', fontWeight: 700 }}
+                            style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
                         />
                     </div>
                     <div className="custom-scrollbar" style={{ maxHeight: '220px', overflowY: 'auto', padding: '5px' }}>
@@ -86,10 +86,10 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
                                     onChange={() => handleToggle(opt)} 
                                     style={{ accentColor: accentColor, transform: 'scale(1.2)', cursor: 'pointer' }}
                                 />
-                                <span style={{ fontSize: '13px', fontWeight: 800, color: selected.includes(opt) ? accentColor : '#334155' }}>{opt}</span>
+                                <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: selected.includes(opt) ? accentColor : '#334155' }}>{opt}</span>
                             </label>
                         )) : (
-                            <div style={{ padding: '15px', textAlign: 'center', fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>لا توجد نتائج مطابقة</div>
+                            <div style={{ padding: '15px', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد نتائج مطابقة</div>
                         )}
                     </div>
                 </div>
@@ -256,7 +256,7 @@ export default function MaterialIssuesPage() {
         { 
             header: 'رقم الإذن', 
             render: (row: any) => (
-                <div style={{ fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', background: '#f8fafc', padding: '4px 10px', borderRadius: '8px', fontSize: '12px', textAlign: 'center', border: `1px solid #cbd5e1`, minWidth: '85px' }}>
+                <div style={{ fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', background: '#f8fafc', padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-sm)', textAlign: 'center', border: `1px solid #cbd5e1`, minWidth: '85px' }}>
                     #{row.issue_number || '---'}
                 </div>
             )
@@ -267,8 +267,8 @@ export default function MaterialIssuesPage() {
                 const iType = row.issue_type || 'صرف لمقاول';
                 return (
                     <div>
-                        <div style={{ fontWeight: 900, color: '#1e293b', marginBottom: '4px', fontSize: '13px' }}>{row.issue_date}</div>
-                        <span style={{ fontSize: '10px', background: iType === 'صرف لمقاول' ? '#fee2e2' : '#f0fdf4', color: iType === 'صرف لمقاول' ? '#dc2626' : '#166534', padding: '2px 8px', borderRadius: '6px', fontWeight: 900, whiteSpace: 'nowrap' }}>
+                        <div style={{ fontWeight: 900, color: '#1e293b', marginBottom: '4px', fontSize: 'var(--fs-sm)' }}>{row.issue_date}</div>
+                        <span style={{ fontSize: 'var(--fs-xs)', background: iType === 'صرف لمقاول' ? '#fee2e2' : '#f0fdf4', color: iType === 'صرف لمقاول' ? '#dc2626' : '#166534', padding: '2px 8px', borderRadius: '6px', fontWeight: 900, whiteSpace: 'nowrap' }}>
                             {iType}
                         </span>
                     </div>
@@ -279,8 +279,8 @@ export default function MaterialIssuesPage() {
             header: 'الخامة المنصرفة', 
             render: (row: any) => (
                 <div style={{ minWidth: '140px' }}>
-                    <strong style={{ color: '#2563eb', fontSize: '14px', display: 'block' }}>{row.item_name}</strong>
-                    <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 900 }}>
+                    <strong style={{ color: '#2563eb', fontSize: 'var(--fs-md)', display: 'block' }}>{row.item_name}</strong>
+                    <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 900 }}>
                         {row.quantity} {row.unit || 'وحدة'} | {formatCurrency(row.unit_price)}
                     </span>
                 </div>
@@ -290,10 +290,10 @@ export default function MaterialIssuesPage() {
             header: 'التوجيه (مشروع / مقاول)', 
             render: (row: any) => (
                 <div style={{ minWidth: '150px' }}>
-                    <div style={{ fontWeight: 800, color: THEME.coffeeDark || '#2d1a11', fontSize: '13px' }}>{row.project_name || '---'}</div>
-                    {row.boq_item && <div style={{ fontSize: '11px', color: THEME.goldAccent || '#c2410c', marginTop: '2px', fontWeight: 700 }}>{row.boq_item}</div>}
+                    <div style={{ fontWeight: 800, color: THEME.coffeeDark || '#2d1a11', fontSize: 'var(--fs-sm)' }}>{row.project_name || '---'}</div>
+                    {row.boq_item && <div style={{ fontSize: 'var(--fs-xs)', color: THEME.goldAccent || '#c2410c', marginTop: '2px', fontWeight: 700 }}>{row.boq_item}</div>}
                     {(row.subcontractor_name || row.contractor_text_name) && (
-                        <div style={{ fontSize: '11px', color: '#be123c', marginTop: '2px', fontWeight: 700 }}>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#be123c', marginTop: '2px', fontWeight: 700 }}>
                             {row.subcontractor_name || row.contractor_text_name}
                         </div>
                     )}
@@ -302,12 +302,12 @@ export default function MaterialIssuesPage() {
         },
         { 
             header: 'الإجمالي', 
-            render: (row: any) => <span style={{ fontWeight: 900, color: '#ef4444', fontSize: '14px' }}>{formatCurrency(row.total_price)}</span>
+            render: (row: any) => <span style={{ fontWeight: 900, color: '#ef4444', fontSize: 'var(--fs-md)' }}>{formatCurrency(row.total_price)}</span>
         },
         { 
             header: 'الحالة المحاسبية', 
             render: (row: any) => (
-                 <span style={{ background: row.is_posted === true ? '#dcfce7' : '#fef2f2', color: row.is_posted === true ? '#166534' : '#dc2626', padding: '2px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: 900 }}>
+                 <span style={{ background: row.is_posted === true ? '#dcfce7' : '#fef2f2', color: row.is_posted === true ? '#166534' : '#dc2626', padding: '2px 8px', borderRadius: '6px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>
                     {row.is_posted === true ? 'معتمد' : 'مسودة'}
                 </span>
             )
@@ -336,7 +336,7 @@ export default function MaterialIssuesPage() {
                                 </>
                             ) : (
                                 <>
-                                    <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center', color: THEME.goldAccent || '#c2410c', fontWeight: 900, fontSize: '12px', border: `1px solid ${THEME.goldAccent || '#c2410c'}50` }}>
+                                    <div style={{ background: 'rgba(255,255,255,0.1)', padding: '10px', borderRadius: '8px', textAlign: 'center', color: THEME.goldAccent || '#c2410c', fontWeight: 900, fontSize: 'var(--fs-sm)', border: `1px solid ${THEME.goldAccent || '#c2410c'}50` }}>
                                         ✓ تم تحديد ({logic.selectedIds.length}) أسطر خامات
                                     </div>
                                     
@@ -414,7 +414,7 @@ export default function MaterialIssuesPage() {
                     .btn-main-glass { background: linear-gradient(135deg, #2563eb, #1e40af); color: white; width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; }
                     .btn-main-glass:hover { filter: brightness(1.2); transform: translateY(-2px); }
                     
-                    .btn-action-glass { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 13px; }
+                    .btn-action-glass { width: 100%; padding: 12px; border-radius: 10px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: var(--fs-sm); }
                     .btn-action-glass:disabled { opacity: 0.5; cursor: not-allowed; }
                     .btn-action-glass:hover:not(:disabled) { transform: translateY(-2px); filter: brightness(1.2); }
                     
@@ -424,9 +424,9 @@ export default function MaterialIssuesPage() {
                     .btn-action-glass.delete { background: rgba(239, 68, 68, 0.2); color: #b91c1c; border: 1px dashed rgba(239, 68, 68, 0.5); }
 
                     .summary-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; justify-content: center; border: 1px solid rgba(255,255,255,0.1); flex: 1; }
-                    .summary-card .label { font-size: 10px; font-weight: 900; opacity: 0.8; margin-bottom: 4px; }
-                    .summary-card .value { font-size: 18px; font-weight: 900; }
-                    .summary-card .value-sm { font-size: 13px; font-weight: 900; }
+                    .summary-card .label { font-size: var(--fs-xs); font-weight: 900; opacity: 0.8; margin-bottom: 4px; }
+                    .summary-card .value { font-size: var(--fs-xl); font-weight: 900; }
+                    .summary-card .value-sm { font-size: var(--fs-sm); font-weight: 900; }
                     
                     .summary-card.total { background: linear-gradient(135deg, rgba(37,99,235,0.2), rgba(30,64,175,0.2)); color: #60a5fa; border-color: rgba(59,130,246,0.3); }
                     .summary-card.posted { background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.1)); color: #34d399; border-color: rgba(16,185,129,0.2); }
@@ -516,8 +516,8 @@ export default function MaterialIssuesPage() {
 
                 {!logic.isLoading && filteredIssues.length > 0 && (
                     <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', padding: '15px', background: 'white', borderRadius: '12px', border: `1px solid ${THEME.sandDark || '#e2e8f0'}`, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-                        <div style={{ fontSize: '13px', color: THEME.coffeeMain || '#334155', fontWeight: 900 }}>
-                            إجمالي السجلات المفلترة: <b style={{ color: THEME.danger || '#ef4444', fontSize: '16px' }}>{filteredIssues.length}</b>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: THEME.coffeeMain || '#334155', fontWeight: 900 }}>
+                            إجمالي السجلات المفلترة: <b style={{ color: THEME.danger || '#ef4444', fontSize: 'var(--fs-lg)' }}>{filteredIssues.length}</b>
                         </div>
                         
                         <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>

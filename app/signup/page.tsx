@@ -138,14 +138,14 @@ export default function SignUpPage() {
                 }
 
                 .input-label {
-                    font-size: 12px; font-weight: 900; color: ${THEME.brand.gold};
+                    font-size: var(--fs-sm); font-weight: 900; color: ${THEME.brand.gold};
                     display: block; margin-bottom: 10px; padding-right: 5px;
                 }
 
                 .custom-input {
                     width: 100%; padding: 18px; border-radius: 14px;
                     background: rgba(0, 0, 0, 0.2); border: 1.5px solid rgba(255, 255, 255, 0.1);
-                    color: white; font-weight: 700; font-size: 15px; outline: none;
+                    color: white; font-weight: 700; font-size: var(--fs-lg); outline: none;
                     transition: 0.3s; margin-bottom: 20px;
                 }
                 .custom-input:focus { border-color: ${THEME.brand.gold}; background: rgba(0, 0, 0, 0.4); }
@@ -153,7 +153,7 @@ export default function SignUpPage() {
                 .signup-btn {
                     width: 100%; padding: 20px; border-radius: 14px;
                     background: linear-gradient(135deg, ${THEME.brand.gold}, ${THEME.brand.goldLight});
-                    color: ${THEME.brand.coffee}; font-size: 16px; font-weight: 900;
+                    color: ${THEME.brand.coffee}; font-size: var(--fs-lg); font-weight: 900;
                     border: none; cursor: pointer; transition: 0.4s;
                     box-shadow: 0 10px 30px ${THEME.brand.gold}40;
                 }
@@ -178,12 +178,12 @@ export default function SignUpPage() {
                             style={{ objectFit: 'contain', filter: 'drop-shadow(0 15px 25px rgba(0,0,0,0.4))' }} 
                         />
                     </div>
-                    <h2 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: '26px' }}>بوابة الموظفين والشركاء</h2>
-                    <p style={{ color: '#94a3b8', fontSize: '14px', marginTop: '8px' }}>أنشئ حسابك للوصول إلى كامل صلاحيات النظام</p>
+                    <h2 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: 'var(--fs-2xl)' }}>بوابة الموظفين والشركاء</h2>
+                    <p style={{ color: '#94a3b8', fontSize: 'var(--fs-md)', marginTop: '8px' }}>أنشئ حسابك للوصول إلى كامل صلاحيات النظام</p>
                 </div>
 
-                {errorMsg && <div style={{ background: '#7f1d1d40', color: '#fca5a5', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: '13px', textAlign: 'center', border: '1px solid #7f1d1d60' }}>{errorMsg}</div>}
-                {successMsg && <div style={{ background: '#064e3b40', color: '#6ee7b7', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: '13px', textAlign: 'center', border: '1px solid #064e3b60' }}>{successMsg}</div>}
+                {errorMsg && <div style={{ background: '#7f1d1d40', color: '#fca5a5', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: 'var(--fs-sm)', textAlign: 'center', border: '1px solid #7f1d1d60' }}>{errorMsg}</div>}
+                {successMsg && <div style={{ background: '#064e3b40', color: '#6ee7b7', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: 'var(--fs-sm)', textAlign: 'center', border: '1px solid #064e3b60' }}>{successMsg}</div>}
 
                 <form onSubmit={handleSignUp}>
                     <label className="input-label">الاسم الكامل</label>
@@ -233,7 +233,7 @@ export default function SignUpPage() {
                     </button>
                 </form>
 
-                <div style={{ marginTop: '35px', textAlign: 'center', fontSize: '14px', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '25px' }}>
+                <div style={{ marginTop: '35px', textAlign: 'center', fontSize: 'var(--fs-md)', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '25px' }}>
                     لديك حساب بالفعل؟{' '}
                     <Link href="/login" style={{ color: THEME.brand.gold, textDecoration: 'none', fontWeight: 900 }}>
                         سجل دخولك الآن

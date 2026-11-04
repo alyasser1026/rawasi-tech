@@ -95,9 +95,9 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                     border: 1px solid rgba(255, 255, 255, 0.8); outline: none; transition: all 0.2s; font-weight: 700; color: #1e293b;
                 }
                 .glass-input-field:focus { background: #ffffff; border-color: ${THEME.accent}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
+                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(16, 185, 129, 0.5); }
-                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; }
+                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
                 .btn-glass-cancel:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
                 
                 @media (max-width: 768px) {
@@ -114,10 +114,10 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
             }}>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: `2px solid ${THEME.accent}50`, paddingBottom: '15px' }}>
-                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '26px' }}>
+                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>
                         {record.id ? 'تعديل أمر التشغيل' : 'إصدار أمر تشغيل جديد'}
                     </h2>
-                    <div style={{ fontSize: '16px', fontWeight: 900, color: '#64748b', background: 'rgba(255,255,255,0.8)', padding: '8px 16px', borderRadius: '12px' }}>
+                    <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#64748b', background: 'rgba(255,255,255,0.8)', padding: '8px 16px', borderRadius: '12px' }}>
                         رقم الأمر: <span style={{ color: THEME.primary }}>{record.order_number}</span>
                     </div>
                 </div>
@@ -128,16 +128,16 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                     {/* التواريخ والحالة */}
                     <div style={{ display: 'flex', gap: '15px' }}>
                         <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ البدء</label>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ البدء</label>
                             <input type="date" value={record.start_date?.split('T')[0] ?? ''} onChange={(e) => setRecord({...record, start_date: e.target.value})} className="glass-input-field" />
                         </div>
                         <div style={{ flex: 1 }}>
-                            <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ الانتهاء</label>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ الانتهاء</label>
                             <input type="date" value={record.end_date?.split('T')[0] ?? ''} onChange={(e) => setRecord({...record, end_date: e.target.value})} className="glass-input-field" />
                         </div>
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>حالة الأمر</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>حالة الأمر</label>
                         <select value={record.status ?? 'مسودة'} onChange={(e) => setRecord({...record, status: e.target.value})} className="glass-input-field" style={{ appearance: 'auto', border: `2px solid ${THEME.accent}70` }}>
                             <option value="مسودة">مسودة</option>
                             <option value="جاري التنفيذ">جاري التنفيذ</option>
@@ -162,7 +162,7 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                     </div>
 
                     <div style={{ gridColumn: 'span 1' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>بند المقايسة (BOQ) المستهدف</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>بند المقايسة (BOQ) المستهدف</label>
                         <select 
                             value={record.boq_budget_id ?? ''} 
                             onChange={(e) => {
@@ -193,7 +193,7 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
 
                     {/* جهة التنفيذ والمقاول */}
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>جهة التنفيذ</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>جهة التنفيذ</label>
                         <select 
                             value={record.executor_type ?? 'تنفيذ ذاتي'} 
                             onChange={(e) => {
@@ -233,16 +233,16 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
 
                     {/* الكمية والسعر والملاحظات */}
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>الكمية المسندة</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>الكمية المسندة</label>
                         <input type="number" min="0" step="0.01" value={record.assigned_qty ?? ''} onChange={(e) => setRecord({...record, assigned_qty: e.target.value})} className="glass-input-field" placeholder="الكمية من المقايسة..." />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>سعر الوحدة</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>سعر الوحدة</label>
                         <input type="number" min="0" step="0.01" value={record.unit_price ?? ''} onChange={(e) => setRecord({...record, unit_price: e.target.value})} className="glass-input-field" placeholder="السعر..." />
                     </div>
 
                     <div style={{ gridColumn: 'span 2' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>ملاحظات العمل</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>ملاحظات العمل</label>
                         <textarea value={record.notes ?? ''} onChange={(e) => setRecord({...record, notes: e.target.value})} className="glass-input-field" style={{ height: '70px', resize: 'none' }} placeholder="شروط التنفيذ أو ملاحظات فنية..." />
                     </div>
                 </div>
@@ -250,16 +250,16 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                 {/* Summary Grid */}
                 <div style={{ marginTop: '35px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>الكمية المسندة</div>
-                        <div style={{ fontSize: '20px', fontWeight: 900 }}>{Number(record.assigned_qty || 0).toLocaleString('en-US')}</div>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>الكمية المسندة</div>
+                        <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900 }}>{Number(record.assigned_qty || 0).toLocaleString('en-US')}</div>
                     </div>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>سعر الوحدة (ر.س)</div>
-                        <div style={{ fontSize: '20px', fontWeight: 900 }}>{formatCurrency(record.unit_price || 0)}</div>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>سعر الوحدة (ر.س)</div>
+                        <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900 }}>{formatCurrency(record.unit_price || 0)}</div>
                     </div>
                     <div style={{ background: `linear-gradient(135deg, ${THEME.accent}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.accent}80`, boxShadow: `0 0 20px ${THEME.accent}20` }}>
-                        <div style={{ fontSize: '12px', fontWeight: 900, color: THEME.accentLight }}>التكلفة التقديرية للأمر</div>
-                        <div style={{ fontSize: '26px', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(totalAmount)}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.accentLight }}>التكلفة التقديرية للأمر</div>
+                        <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(totalAmount)}</div>
                     </div>
                 </div>
 

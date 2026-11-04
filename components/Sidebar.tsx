@@ -35,8 +35,8 @@ export default function Sidebar() {
     }}>
       {/* اللوجو وزر التصغير */}
       <div style={{ padding: '25px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-        {!isCollapsed && <span style={{ fontWeight: 900, fontSize: '20px', color: '#fbbf24' }}>رواد المحاسبي</span>}
-        <button onClick={() => setIsCollapsed(!isCollapsed)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '20px' }}>
+        {!isCollapsed && <span style={{ fontWeight: 900, fontSize: 'var(--fs-xl)', color: '#fbbf24' }}>رواد المحاسبي</span>}
+        <button onClick={() => setIsCollapsed(!isCollapsed)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: 'var(--fs-xl)' }}>
           {isCollapsed ? '➡️' : '⬅️'}
         </button>
       </div>
@@ -60,7 +60,7 @@ export default function Sidebar() {
               overflow: 'hidden',
               whiteSpace: 'nowrap'
             }}>
-              <span style={{ fontSize: '20px' }}>{item.icon}</span>
+              <span style={{ fontSize: 'var(--fs-xl)' }}>{item.icon}</span>
               {!isCollapsed && <span>{item.name}</span>}
             </Link>
           );
@@ -69,7 +69,7 @@ export default function Sidebar() {
 
       {/* فوتر السايد بار */}
       {!isCollapsed && (
-        <div style={{ padding: '20px', background: 'rgba(0,0,0,0.2)', fontSize: '12px', textAlign: 'center', color: '#94a3b8' }}>
+        <div style={{ padding: '20px', background: 'rgba(0,0,0,0.2)', fontSize: 'var(--fs-sm)', textAlign: 'center', color: '#94a3b8' }}>
           نسخة v2.0.1 🚀
         </div>
       )}

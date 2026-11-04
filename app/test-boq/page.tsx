@@ -45,7 +45,7 @@ export default function TestBoq() {
   return (
     <div style={{ padding: '40px', maxWidth: '600px', margin: 'auto', fontFamily: 'sans-serif' }}>
       <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-        <h1 style={{ fontSize: '20px', color: '#1e293b', marginBottom: '20px' }}>لوحة تشخيص جدول المقايسات</h1>
+        <h1 style={{ fontSize: 'var(--fs-xl)', color: '#1e293b', marginBottom: '20px' }}>لوحة تشخيص جدول المقايسات</h1>
         
         <button 
           onClick={runDiagnostic} 
@@ -62,7 +62,7 @@ export default function TestBoq() {
           {logs.map((log, index) => (
             <div key={index} style={{ 
               color: log.type === 'error' ? '#f87171' : log.type === 'success' ? '#4ade80' : '#94a3b8',
-              marginBottom: '10px', fontSize: '13px', fontFamily: 'monospace'
+              marginBottom: '10px', fontSize: 'var(--fs-sm)', fontFamily: 'monospace'
             }}>
               {log.msg}
             </div>

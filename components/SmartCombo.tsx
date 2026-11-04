@@ -339,13 +339,13 @@ export default function SmartCombo({
                 {showAvatar && !isPrimitive && <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${displayName}&background=random`} alt="avatar" style={{ width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, border: '1px solid #e2e8f0' }} />}
                 
                 <div style={{ wordBreak: 'break-word', flex: 1 }}>
-                    <span style={{ fontWeight: 900, color: THEME.primary, opacity: 0.7, fontSize: '11px', marginLeft: displayCode ? '5px' : '0' }}>
+                    <span style={{ fontWeight: 900, color: THEME.primary, opacity: 0.7, fontSize: 'var(--fs-xs)', marginLeft: displayCode ? '5px' : '0' }}>
                         {displayCode ? `[${isSensitive ? applyMask(displayCode) : displayCode}] ` : ''}
                     </span> 
                     {isSensitive ? applyMask(displayName) : displayName}
                 </div>
                 
-                {isRecent && <span style={{ fontSize: '10px', color: '#94a3b8' }}><Clock size={14} aria-hidden="true" /></span>}
+                {isRecent && <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8' }}><Clock size={14} aria-hidden="true" /></span>}
             </div>
         );
     };
@@ -355,7 +355,7 @@ export default function SmartCombo({
         return (
             <div style={{ position: 'relative', flex: 1, width: '100%', opacity: 0.7 }} title="ليس لديك صلاحية للوصول لهذا الحقل">
                 {label && (
-                    <label style={{ fontSize: '13px', fontWeight: 900, color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
                         {icon && <PhiIcon value={icon} size={14} />} {label} <Lock size={12} aria-hidden="true" />
                     </label>
                 )}
@@ -379,13 +379,13 @@ export default function SmartCombo({
                     background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);
                     border: 1.5px solid rgba(255, 255, 255, 0.8); outline: none;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    font-weight: 800; color: #1e293b; font-size: 13px;
+                    font-weight: 800; color: #1e293b; font-size: var(--fs-sm);
                     font-family: inherit; box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
                 }
                 .smart-combo-input:focus { background: #ffffff; border-color: ${THEME.accent}; box-shadow: 0 0 0 4px ${THEME.accent}20; }
                 .smart-combo-input::placeholder { color: #94a3b8; font-weight: 600; }
                 .smart-combo-input.disabled { background: rgba(0,0,0,0.05); cursor: not-allowed; color: #64748b; border-color: transparent; }
-                .smart-drop-item { padding: 10px; cursor: pointer; border-radius: 10px; font-size: 12px; transition: all 0.1s; display: flex; align-items: center; gap: 8px; color: #334155; }
+                .smart-drop-item { padding: 10px; cursor: pointer; border-radius: 10px; font-size: var(--fs-sm); transition: all 0.1s; display: flex; align-items: center; gap: 8px; color: #334155; }
                 .smart-drop-item:hover { background: #f8fafc; }
                 .smart-drop-item.highlighted { background: #f1f5f9; border-right: 4px solid ${THEME.primary}; color: ${THEME.primary}; font-weight: 800; }
                 .smart-drop-item.selected { background: ${THEME.success}10; border-right: 4px solid ${THEME.success}; color: ${THEME.success}; font-weight: 800; }
@@ -396,7 +396,7 @@ export default function SmartCombo({
             `}</style>
 
             {label && (
-                <label style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
                     {icon && <PhiIcon value={icon} size={14} />}
                     {label}
                 </label>
@@ -417,18 +417,18 @@ export default function SmartCombo({
                 />
                 
                 {enableClear && search && !disabled && (
-                    <span onClick={handleClear} style={{ position: 'absolute', left: '35px', top: isTextArea ? '15px' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: '14px', color: '#ef4444', cursor: 'pointer', padding: '5px', fontWeight: 900, background: '#fee2e2', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="مسح">
+                    <span onClick={handleClear} style={{ position: 'absolute', left: '35px', top: isTextArea ? '15px' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: 'var(--fs-md)', color: '#ef4444', cursor: 'pointer', padding: '5px', fontWeight: 900, background: '#fee2e2', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="مسح">
                         ×
                     </span>
                 )}
 
                 {!isTextArea && !disabled && (
-                    <span onClick={() => { if(!disabled) { setShow(!show); if(!show) loadData(search || ''); } }} style={{ position: 'absolute', left: '15px', fontSize: '10px', color: '#64748b', cursor: 'pointer', padding: '5px', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    <span onClick={() => { if(!disabled) { setShow(!show); if(!show) loadData(search || ''); } }} style={{ position: 'absolute', left: '15px', fontSize: 'var(--fs-xs)', color: '#64748b', cursor: 'pointer', padding: '5px', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                         ▼
                     </span>
                 )}
                 
-                {isLoading && <div style={{ position: 'absolute', left: enableClear && search ? '65px' : '35px', top: isTextArea ? '20px' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: '12px' }}><Hourglass size={14} aria-hidden="true" /></div>}
+                {isLoading && <div style={{ position: 'absolute', left: enableClear && search ? '65px' : '35px', top: isTextArea ? '20px' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: 'var(--fs-sm)' }}><Hourglass size={14} aria-hidden="true" /></div>}
             </div>
 
             {show && !disabled && (
@@ -438,9 +438,9 @@ export default function SmartCombo({
                         {isMobile && isMobileBottomSheet && <div style={{ width: '40px', height: '5px', background: '#cbd5e1', borderRadius: '10px', margin: '0 auto 15px auto' }} />}
                         {(results?.length || 0) === 0 && (search?.length || 0) > 0 && !isLoading && (
                             <div style={{ padding: '15px', textAlign: 'center' }}>
-                                <p style={{ fontSize: '13px', color: '#64748b', fontWeight: 800, margin: '0 0 10px 0' }}>لا توجد نتائج لـ "<span style={{color: THEME.ruby}}>{search}</span>"</p>
+                                <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, margin: '0 0 10px 0' }}>لا توجد نتائج لـ "<span style={{color: THEME.ruby}}>{search}</span>"</p>
                                 {allowAddNew && onAddNew && hasAddPermission && (
-                                    <button onMouseDown={(e) => { e.preventDefault(); onAddNew(search); setShow(false); }} style={{ background: THEME.success, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: '13px', boxShadow: `0 5px 15px ${THEME.success}40`, width: '100%' }}>
+                                    <button onMouseDown={(e) => { e.preventDefault(); onAddNew(search); setShow(false); }} style={{ background: THEME.success, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-sm)', boxShadow: `0 5px 15px ${THEME.success}40`, width: '100%' }}>
                                         إضافة "{search}" كجديد
                                     </button>
                                 )}
@@ -448,7 +448,7 @@ export default function SmartCombo({
                         )}
                         {(results?.length || 0) === 0 && (search?.length || 0) === 0 && showRecent && (recentItems?.length || 0) > 0 && !isLoading && (
                             <div>
-                                <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 900, marginBottom: '8px', padding: '0 10px' }}>آخر الاختيارات</div>
+                                <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 900, marginBottom: '8px', padding: '0 10px' }}>آخر الاختيارات</div>
                                 {recentItems.map((item, index) => renderListItem(item, index, true))}
                                 <div style={{ height: '1px', background: '#f1f5f9', margin: '10px 0' }} />
                             </div>

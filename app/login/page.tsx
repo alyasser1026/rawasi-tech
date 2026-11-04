@@ -82,7 +82,7 @@ export default function LoginPage() {
         .cinematic-title {
           color: ${THEME.white};
           font-weight: 900;
-          font-size: 32px;
+          font-size: var(--fs-3xl);
           text-align: center;
           margin-bottom: 8px;
           text-shadow: 0 2px 10px rgba(0,0,0,0.3);
@@ -91,7 +91,7 @@ export default function LoginPage() {
         .cinematic-subtitle {
           color: rgba(255, 255, 255, 0.7);
           text-align: center;
-          font-size: 15px;
+          font-size: var(--fs-lg);
           font-weight: 600;
           margin-bottom: 40px;
         }
@@ -108,7 +108,7 @@ export default function LoginPage() {
           border: 2px solid rgba(255, 255, 255, 0.2);
           border-radius: 14px;
           color: ${THEME.white} !important;
-          font-size: 16px;
+          font-size: var(--fs-lg);
           font-weight: 700;
           outline: none;
           transition: all 0.3s ease;
@@ -134,7 +134,7 @@ export default function LoginPage() {
           top: 50%;
           transform: translateY(-50%);
           color: rgba(255, 255, 255, 0.7);
-          font-size: 16px;
+          font-size: var(--fs-lg);
           font-weight: 700;
           pointer-events: none;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -147,7 +147,7 @@ export default function LoginPage() {
         .forced-float {
           top: -12px !important;
           right: 15px !important;
-          font-size: 13px !important;
+          font-size: var(--fs-sm) !important;
           color: ${THEME.coffeeDark} !important;
           background: ${THEME.goldAccent} !important;
           padding: 2px 10px !important;
@@ -166,7 +166,7 @@ export default function LoginPage() {
           color: ${THEME.coffeeDark};
           border: none;
           border-radius: 14px;
-          font-size: 18px;
+          font-size: var(--fs-xl);
           font-weight: 900;
           cursor: pointer;
           transition: all 0.3s ease;
@@ -192,7 +192,7 @@ export default function LoginPage() {
           border: none;
           color: rgba(255, 255, 255, 0.7);
           font-family: inherit;
-          font-size: 14px;
+          font-size: var(--fs-md);
           font-weight: 700;
           margin-top: 20px;
           cursor: pointer;
@@ -204,7 +204,7 @@ export default function LoginPage() {
         /* تعديل صغير للموبايل في اللوجن */
         @media (max-width: 480px) {
             .glass-card { padding: 40px 25px; border-radius: 14px; }
-            .cinematic-title { font-size: 28px; }
+            .cinematic-title { font-size: var(--fs-3xl); }
             .logo-container img { height: 90px; }
         }
       `}</style>
@@ -275,7 +275,7 @@ export default function LoginPage() {
         </button>
 
         <div style={{ textAlign: 'center', marginTop: '25px' }}>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '12px', fontWeight: 600 }}>
+          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
             جميع الحقوق محفوظة © {new Date().getFullYear()} <br/> إدارة تقنية المعلومات - فاي تك
           </p>
         </div>

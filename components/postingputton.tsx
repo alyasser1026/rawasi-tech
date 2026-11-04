@@ -47,7 +47,7 @@ export function OperationsCenter({
     alignItems: 'center',
     justifyContent: 'center',
     gap: '10px',
-    fontSize: '14px'
+    fontSize: 'var(--fs-md)'
   };
 
   return (
@@ -83,7 +83,7 @@ export function OperationsCenter({
       }}>
         
         <div style={{ borderBottom: `2px solid ${THEME.primary}20`, paddingBottom: '15px' }}>
-            <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '20px' }}>{title}</h2>
+            <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-xl)' }}>{title}</h2>
         </div>
 
         {/* كروت المؤشرات المالية */}
@@ -91,8 +91,8 @@ export function OperationsCenter({
             {kpis.map((kpi, idx) => (
               <div key={idx} style={{ background: '#f8fafc', padding: '15px', borderRadius: '16px', border: `1px solid ${kpi.color}20`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                      <div style={{ fontSize: '11px', fontWeight: 'bold', color: '#64748b', marginBottom: '4px' }}>{kpi.title}</div>
-                      <div style={{ fontSize: '18px', fontWeight: 900, color: kpi.color }}>{kpi.value}</div>
+                      <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 'bold', color: '#64748b', marginBottom: '4px' }}>{kpi.title}</div>
+                      <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: kpi.color }}>{kpi.value}</div>
                   </div>
                   <div style={{ display: 'inline-flex', opacity: 0.8 }}><PhiIcon value={kpi.icon} size={22} /></div>
               </div>
@@ -101,13 +101,13 @@ export function OperationsCenter({
 
         {/* أدوات البحث والفلترة */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 900, color: THEME.primary }}>البحث السريع</label>
+            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary }}>البحث السريع</label>
             <input 
               type="text" 
               placeholder="ابحث برقم السند أو اسم العميل..."
               value={searchQuery} 
               onChange={(e) => onSearchChange(e.target.value)} 
-              style={{ padding: '12px', borderRadius: '12px', border: `1.5px solid #e2e8f0`, outline: 'none', fontSize: '14px' }} 
+              style={{ padding: '12px', borderRadius: '12px', border: `1.5px solid #e2e8f0`, outline: 'none', fontSize: 'var(--fs-md)' }} 
             />
             {filtersSlot}
         </div>
@@ -115,7 +115,7 @@ export function OperationsCenter({
         {/* 🚀 أدوات الترحيل والعمليات */}
         <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '15px' }}>
             
-            <button onClick={() => { onAdd(); setIsOpen(false); }} style={{ ...btnStyle, background: THEME.primary, color: 'white', fontSize: '16px', boxShadow: `0 8px 15px ${THEME.primary}30` }}>
+            <button onClick={() => { onAdd(); setIsOpen(false); }} style={{ ...btnStyle, background: THEME.primary, color: 'white', fontSize: 'var(--fs-lg)', boxShadow: `0 8px 15px ${THEME.primary}30` }}>
               إضافة جديد
             </button>
 
@@ -133,7 +133,7 @@ export function OperationsCenter({
               borderRadius: '14px',
               border: '1px solid #e2e8f0'
             }}>
-                <div style={{ textAlign: 'center', fontSize: '12px', color: THEME.primary, fontWeight: 900, marginBottom: '5px' }}>
+                <div style={{ textAlign: 'center', fontSize: 'var(--fs-sm)', color: THEME.primary, fontWeight: 900, marginBottom: '5px' }}>
                    أدوات التحكم ({selectedCount}) سجل مختار
                 </div>
 
@@ -172,11 +172,11 @@ export function OperationsCenter({
 // مكون الترقيم (Pagination) بتصميم متناسق
 export function PaginationPanel({ totalItems, currentPage, rowsPerPage, onPageChange, onRowsChange }: any) {
   const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
-  const btnActionStyle = { padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: '13px', fontWeight: 600 };
+  const btnActionStyle = { padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 'var(--fs-sm)', fontWeight: 600 };
 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '15px 25px', borderRadius: '16px', marginTop: '20px', direction: 'rtl', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: '1px solid #f1f5f9' }}>
-      <div style={{ fontSize: '14px', color: '#64748b' }}>
+      <div style={{ fontSize: 'var(--fs-md)', color: '#64748b' }}>
         <span>عرض: </span>
         <select 
           value={rowsPerPage} 

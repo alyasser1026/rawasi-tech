@@ -46,7 +46,7 @@ export default function MobileTopNav({ title, subtitle }: MobileTopNavProps) {
                         align-items: center;
                         justify-content: center;
                         color: white;
-                        font-size: 20px;
+                        font-size: var(--fs-xl);
                         box-shadow: 0 5px 15px rgba(0,0,0,0.2);
                         cursor: pointer;
                         transition: 0.2s;
@@ -57,8 +57,8 @@ export default function MobileTopNav({ title, subtitle }: MobileTopNavProps) {
 
             <div className="mobile-top-nav">
                 <div>
-                    <h1 style={{ margin: 0, fontSize: '20px', fontWeight: 900, color: THEME.primary }}>{title}</h1>
-                    {subtitle && <p style={{ margin: 0, fontSize: '11px', color: '#64748b', fontWeight: 800 }}>{subtitle}</p>}
+                    <h1 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.primary }}>{title}</h1>
+                    {subtitle && <p style={{ margin: 0, fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>{subtitle}</p>}
                 </div>
                 <button className="mobile-menu-btn" onClick={handleToggleSidebar}>
                     ☰

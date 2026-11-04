@@ -74,7 +74,7 @@ export default function SignaturePad({ userId, currentSignature, onSaved }: { us
       {/* لو عنده توقيع قديم بنعرضهوله كمعاينة */}
       {currentSignature && (
         <div style={{ marginBottom: '15px', textAlign: 'center' }}>
-          <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 5px 0' }}>توقيعك الحالي المعتمد:</p>
+          <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', margin: '0 0 5px 0' }}>توقيعك الحالي المعتمد:</p>
           <img src={currentSignature} alt="Current Signature" style={{ maxHeight: '60px', background: 'white', padding: '5px', borderRadius: '8px', border: '1px dashed #cbd5e1' }} />
         </div>
       )}
@@ -88,7 +88,7 @@ export default function SignaturePad({ userId, currentSignature, onSaved }: { us
         />
       </div>
 
-      {message && <p style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: '13px', fontWeight: 'bold', color: messageType === 'success' ? THEME.success : THEME.ruby }}>{message}</p>}
+      {message && <p style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: 'var(--fs-sm)', fontWeight: 'bold', color: messageType === 'success' ? THEME.success : THEME.ruby }}>{message}</p>}
 
       <div style={{ display: 'flex', gap: '10px' }}>
         <button onClick={save} disabled={isSaving} style={{ flex: 2, background: THEME.primary, color: 'white', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>

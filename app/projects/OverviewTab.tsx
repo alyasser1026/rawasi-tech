@@ -99,10 +99,10 @@ export default function OverviewTab({ logic }: { logic: any }) {
         <div className="glass-card">
           <h3 style={{ margin: '0 0 20px 0', color: THEME.coffeeDark, fontWeight: 900 }}>تقرير العمالة الميدانية</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-            <div className="labor-stat-item"><span style={{fontSize:'11px', color:'#64748b', fontWeight:800}}>عمالة اليوم</span><strong style={{fontSize:'18px'}}>{projectDetails.laborStats?.todayWorkers || 0}</strong></div>
-            <div className="labor-stat-item"><span style={{fontSize:'11px', color:'#64748b', fontWeight:800}}>تكلفة اليوم</span><strong style={{fontSize:'18px', color: THEME.danger}}>{projectDetails.laborStats?.todayCost?.toLocaleString() || 0} ج.م</strong></div>
-            <div className="labor-stat-item"><span style={{fontSize:'11px', color:'#64748b', fontWeight:800}}>إجمالي العمالة السابقة</span><strong style={{fontSize:'18px'}}>{projectDetails.laborStats?.totalWorkersToDate || 0}</strong></div>
-            <div className="labor-stat-item"><span style={{fontSize:'11px', color:'#64748b', fontWeight:800}}>إجمالي الأجور المسددة</span><strong style={{fontSize:'18px'}}>{projectDetails.laborStats?.totalLaborCost?.toLocaleString() || 0} ج.م</strong></div>
+            <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>عمالة اليوم</span><strong style={{fontSize:'var(--fs-xl)'}}>{projectDetails.laborStats?.todayWorkers || 0}</strong></div>
+            <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>تكلفة اليوم</span><strong style={{fontSize:'var(--fs-xl)', color: THEME.danger}}>{projectDetails.laborStats?.todayCost?.toLocaleString() || 0} ج.م</strong></div>
+            <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>إجمالي العمالة السابقة</span><strong style={{fontSize:'var(--fs-xl)'}}>{projectDetails.laborStats?.totalWorkersToDate || 0}</strong></div>
+            <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>إجمالي الأجور المسددة</span><strong style={{fontSize:'var(--fs-xl)'}}>{projectDetails.laborStats?.totalLaborCost?.toLocaleString() || 0} ج.م</strong></div>
           </div>
         </div>
 

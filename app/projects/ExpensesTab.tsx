@@ -115,7 +115,7 @@ export default function ExpensesTab({ logic }: { logic: any }) {
     { 
         header: 'الشهر المالي', 
         accessor: 'الشهر المالي',
-        render: (row: any) => <span style={{ fontSize: '12px', background: '#f1f5f9', padding: '4px 8px', borderRadius: '6px', fontWeight: 900 }}>{row['الشهر المالي']}</span>
+        render: (row: any) => <span style={{ fontSize: 'var(--fs-sm)', background: '#f1f5f9', padding: '4px 8px', borderRadius: '6px', fontWeight: 900 }}>{row['الشهر المالي']}</span>
     },
     { 
         header: 'نوع التكلفة', 
@@ -141,7 +141,7 @@ export default function ExpensesTab({ logic }: { logic: any }) {
             <span style={{ 
               backgroundColor: bgColor, 
               color: textColor, 
-              padding: '6px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 900 
+              padding: '6px 12px', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900 
             }}>
               {label}
             </span>
@@ -150,7 +150,7 @@ export default function ExpensesTab({ logic }: { logic: any }) {
     },
     { 
         header: 'البيان / اسم البند', 
-        render: (row: any) => <strong style={{ color: THEME.coffeeDark, fontSize: '13px' }}>{row['البيان / البند']}</strong> 
+        render: (row: any) => <strong style={{ color: THEME.coffeeDark, fontSize: 'var(--fs-sm)' }}>{row['البيان / البند']}</strong> 
     },
     { 
         header: 'التكلفة المحملة', 
@@ -163,7 +163,7 @@ export default function ExpensesTab({ logic }: { logic: any }) {
             if (isAbc) textColor = '#9333EA';
 
             return (
-                <strong style={{ fontSize: '15px', color: textColor }}>
+                <strong style={{ fontSize: 'var(--fs-lg)', color: textColor }}>
                     {formatCurrency(row['التكلفة المحملة (جنيه)'])}
                 </strong>
             );
@@ -177,24 +177,24 @@ export default function ExpensesTab({ logic }: { logic: any }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px', marginBottom: '25px' }}>
         
         <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid ${THEME.danger}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي التكلفة الظاهرة</span>
-          <strong style={{ fontSize: '22px', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(summaryStats.total)}</strong>
+          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي التكلفة الظاهرة</span>
+          <strong style={{ fontSize: 'var(--fs-2xl)', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(summaryStats.total)}</strong>
         </div>
 
         <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #0369A1`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>أجور العمالة المباشرة</span>
-          <strong style={{ fontSize: '22px', color: '#0369A1', fontWeight: 900 }}>{formatCurrency(summaryStats.labor)}</strong>
+          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>أجور العمالة المباشرة</span>
+          <strong style={{ fontSize: 'var(--fs-2xl)', color: '#0369A1', fontWeight: 900 }}>{formatCurrency(summaryStats.labor)}</strong>
         </div>
 
         <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #6B21A8`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>المصروفات المباشرة</span>
-          <strong style={{ fontSize: '22px', color: '#6B21A8', fontWeight: 900 }}>{formatCurrency(summaryStats.overhead)}</strong>
+          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>المصروفات المباشرة</span>
+          <strong style={{ fontSize: 'var(--fs-2xl)', color: '#6B21A8', fontWeight: 900 }}>{formatCurrency(summaryStats.overhead)}</strong>
         </div>
 
         {/* 🚀 الكارت الجديد لتجميع توزيعات ABC فقط */}
         <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #9333EA`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>التوزيعات غير المباشرة (ABC)</span>
-          <strong style={{ fontSize: '22px', color: '#9333EA', fontWeight: 900 }}>{formatCurrency(summaryStats.abc)}</strong>
+          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>التوزيعات غير المباشرة (ABC)</span>
+          <strong style={{ fontSize: 'var(--fs-2xl)', color: '#9333EA', fontWeight: 900 }}>{formatCurrency(summaryStats.abc)}</strong>
         </div>
 
       </div>
@@ -202,7 +202,7 @@ export default function ExpensesTab({ logic }: { logic: any }) {
       {/* 📋 جدول كشف الحساب الموحد */}
       <div className="glass-card" style={{ padding: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '20px', flexWrap: 'wrap' }}>
-          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '16px' }}>
+          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-lg)' }}>
             كشف الحساب الشامل للتكاليف
           </h3>
           
@@ -213,14 +213,14 @@ export default function ExpensesTab({ logic }: { logic: any }) {
               placeholder="ابحث في البيان أو البند..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              style={{ padding: '10px 15px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, outline: 'none', width: '220px', fontSize: '13px' }}
+              style={{ padding: '10px 15px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, outline: 'none', width: '220px', fontSize: 'var(--fs-sm)' }}
             />
             
             {/* 🚀 فلتر نوع التكلفة بعد إضافة ABC */}
             <select 
               value={filterType} 
               onChange={(e) => setFilterType(e.target.value)}
-              style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, backgroundColor: 'white', color: '#1e293b', outline: 'none', cursor: 'pointer', fontSize: '13px' }}
+              style={{ padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', fontWeight: 800, backgroundColor: 'white', color: '#1e293b', outline: 'none', cursor: 'pointer', fontSize: 'var(--fs-sm)' }}
             >
               <option value="الكل">كل أنواع التكاليف</option>
               <option value="عمالة مباشرة">عمالة مباشرة فقط</option>
@@ -234,7 +234,7 @@ export default function ExpensesTab({ logic }: { logic: any }) {
             <LoadingScreen message="جاري سحب وتجميع بيانات التوزيع الذكي (ABC)..." fullScreen={false} />
         ) : filteredLedger.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: 900 }}>
-                <div style={{ fontSize: '40px', marginBottom: '10px' }}><Search size={34} aria-hidden="true" /></div>
+                <div style={{ fontSize: 'var(--fs-display)', marginBottom: '10px' }}><Search size={34} aria-hidden="true" /></div>
                 لا توجد تكاليف مطابقة لخيارات البحث.
             </div>
         ) : (

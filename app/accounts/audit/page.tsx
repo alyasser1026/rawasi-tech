@@ -53,14 +53,14 @@ export default function DetailedAuditPage() {
                             <span style={{ color: '#991B1B', fontWeight: 900 }}>قيمة العجز: {e.diff.toLocaleString()}</span>
                         </div>
                         
-                        <div style={{ marginBottom: '10px', fontSize: '13px' }}>
+                        <div style={{ marginBottom: '10px', fontSize: 'var(--fs-sm)' }}>
                             <strong>ID القيد الرئيسي (Header ID):</strong> 
                             <code style={{ background: '#fef2f2', padding: '4px 8px', borderRadius: '5px', marginLeft: '10px', color: '#b91c1c' }}>{e.id}</code>
                         </div>
 
                         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
                             <thead>
-                                <tr style={{ background: '#f8fafc', textAlign: 'right', fontSize: '12px' }}>
+                                <tr style={{ background: '#f8fafc', textAlign: 'right', fontSize: 'var(--fs-sm)' }}>
                                     <th style={{ padding: '10px' }}>ID الحساب المرتبط (Account ID)</th>
                                     <th>البيان</th>
                                     <th>مدين</th>
@@ -69,7 +69,7 @@ export default function DetailedAuditPage() {
                             </thead>
                             <tbody>
                                 {e.entries.map((line: any, idx: number) => (
-                                    <tr key={idx} style={{ borderTop: '1px solid #f1f5f9', fontSize: '12px' }}>
+                                    <tr key={idx} style={{ borderTop: '1px solid #f1f5f9', fontSize: 'var(--fs-sm)' }}>
                                         <td style={{ padding: '10px' }}>
                                             <code style={{ color: '#0369a1', fontWeight: 'bold' }}>{line.account_id}</code>
                                         </td>

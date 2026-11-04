@@ -51,7 +51,7 @@ export default function MaterialsTab({ logic }: { logic: any }) {
       { 
         header: 'البند الهندسي (WBS)', 
         render: (row: any) => (
-          <span style={{ fontWeight: 800, color: THEME.coffeeMain, fontSize: '13px' }}>
+          <span style={{ fontWeight: 800, color: THEME.coffeeMain, fontSize: 'var(--fs-sm)' }}>
             {boqMap[row.boq_id] || 'بند عام / غير مصنف'}
           </span>
         ) 
@@ -70,11 +70,11 @@ export default function MaterialsTab({ logic }: { logic: any }) {
       },
       { 
         header: 'إجمالي التكلفة', 
-        render: (row: any) => <span style={{ fontWeight: 900, color: THEME.danger, fontSize: '14px' }}>{formatCurrency(row.total_price)}</span> 
+        render: (row: any) => <span style={{ fontWeight: 900, color: THEME.danger, fontSize: 'var(--fs-md)' }}>{formatCurrency(row.total_price)}</span> 
       },
       { 
         header: 'المورد / ملاحظات', 
-        render: (row: any) => <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>{row.supplier_name || row.notes || '---'}</span> 
+        render: (row: any) => <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 700 }}>{row.supplier_name || row.notes || '---'}</span> 
       },
   ];
 
@@ -83,13 +83,13 @@ export default function MaterialsTab({ logic }: { logic: any }) {
       {/* 📊 أولاً: كروت السامري الإحصائي المتغير مع الفلتر */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '25px' }}>
         <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '14px', borderBottom: `4px solid ${THEME.goldAccent}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>تكلفة الخامات (للبند المحدد حالياً)</span>
-          <strong style={{ fontSize: '24px', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(summaryStats.totalCost)}</strong>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>تكلفة الخامات (للبند المحدد حالياً)</span>
+          <strong style={{ fontSize: 'var(--fs-2xl)', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(summaryStats.totalCost)}</strong>
         </div>
         
         <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '14px', borderBottom: `4px solid #475569`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: '12px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي عدد حركات وخطوط السحب</span>
-          <strong style={{ fontSize: '24px', color: '#1e293b', fontWeight: 900 }}>{summaryStats.totalQuantitiesCount} <span style={{fontSize:'14px', color:'#64748b'}}>حركة صرف</span></strong>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي عدد حركات وخطوط السحب</span>
+          <strong style={{ fontSize: 'var(--fs-2xl)', color: '#1e293b', fontWeight: 900 }}>{summaryStats.totalQuantitiesCount} <span style={{fontSize:'var(--fs-md)', color:'#64748b'}}>حركة صرف</span></strong>
         </div>
       </div>
 
@@ -98,17 +98,17 @@ export default function MaterialsTab({ logic }: { logic: any }) {
         
         {/* 🔍 شريط الفلترة العبكري بالبند */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '20px', flexWrap: 'wrap' }}>
-          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: '16px' }}>بيان حركة وتفاصيل الخامات والمواد المنصرفة</h3>
+          <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-lg)' }}>بيان حركة وتفاصيل الخامات والمواد المنصرفة</h3>
           
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '13px', fontWeight: 900, color: '#64748b', whiteSpace: 'nowrap' }}>فلترة حسب البند:</span>
+            <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', whiteSpace: 'nowrap' }}>فلترة حسب البند:</span>
             <select 
               value={selectedBoqId} 
               onChange={(e) => setSelectedBoqId(e.target.value)}
               style={{ 
                 padding: '10px 20px', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', 
                 fontWeight: 800, backgroundColor: 'white', color: '#1e293b', 
-                boxShadow: '0 4px 10px rgba(0,0,0,0.02)', outline: 'none', cursor: 'pointer', fontSize: '13px'
+                boxShadow: '0 4px 10px rgba(0,0,0,0.02)', outline: 'none', cursor: 'pointer', fontSize: 'var(--fs-sm)'
               }}
             >
               <option value="الكل">كل بنود المقايسة</option>
@@ -122,7 +122,7 @@ export default function MaterialsTab({ logic }: { logic: any }) {
         {/* عرض الجدول المفلتر أو رسالة خلو البيانات */}
         {filteredMaterials.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '50px', color: '#94a3b8', fontWeight: 900 }}>
-                <div style={{ fontSize: '40px', marginBottom: '10px' }}><BrickWall size={34} aria-hidden="true" /></div>
+                <div style={{ fontSize: 'var(--fs-display)', marginBottom: '10px' }}><BrickWall size={34} aria-hidden="true" /></div>
                 لا توجد خامات مسحوبة مسجلة تحت هذا التصنيف حالياً.
             </div>
         ) : (

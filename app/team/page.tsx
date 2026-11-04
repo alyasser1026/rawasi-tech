@@ -161,8 +161,8 @@ export default function TeamPage() {
             ),
             summary: (
                 <div className="summary-glass-card" style={{ borderColor: THEME.brand.gold }}>
-                    <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الفريق</span>
-                    <div style={{fontSize:'28px', fontWeight:900, color: THEME.brand.gold}}>{profiles.length}</div>
+                    <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي الفريق</span>
+                    <div style={{fontSize:'var(--fs-3xl)', fontWeight:900, color: THEME.brand.gold}}>{profiles.length}</div>
                 </div>
             ),
             customFilters: (
@@ -227,7 +227,7 @@ export default function TeamPage() {
                     margin-bottom: 18px; object-fit: cover; background: white;
                 }
                 .role-tag {
-                    font-size: 11px; font-weight: 900; padding: 6px 16px;
+                    font-size: var(--fs-xs); font-weight: 900; padding: 6px 16px;
                     border-radius: 12px; display: inline-block; margin-top: 15px;
                     letter-spacing: 0.3px;
                 }
@@ -241,18 +241,18 @@ export default function TeamPage() {
 
             {/* 🔄 Loading State */}
             {isLoading ? (
-                <div style={{ textAlign: 'center', padding: '100px', fontWeight: 900, color: THEME.brand.coffee, fontSize: '18px' }}>
-                    <span style={{ display: 'block', fontSize: '30px', marginBottom: '15px' }}><Hourglass size={26} aria-hidden="true" /></span>
+                <div style={{ textAlign: 'center', padding: '100px', fontWeight: 900, color: THEME.brand.coffee, fontSize: 'var(--fs-xl)' }}>
+                    <span style={{ display: 'block', fontSize: 'var(--fs-3xl)', marginBottom: '15px' }}><Hourglass size={26} aria-hidden="true" /></span>
                     جاري تحميل هويات الكوادر...
                 </div>
             
             /* 📭 Empty State */
             ) : profiles.length === 0 ? (
                 <div className="empty-state">
-                    <div style={{ fontSize: '60px', marginBottom: '20px' }}><Sparkles size={40} aria-hidden="true" /></div>
-                    <h2 style={{ fontWeight: 900, color: THEME.brand.coffee, fontSize: '26px' }}>ابدأ ببناء فريقك الرقمي</h2>
-                    <p style={{ color: '#64748b', fontWeight: 600, fontSize: '15px', marginBottom: '30px' }}>لم يسجل أي مستخدم في النظام حتى الآن. شارك رابط الدعوة للبدء.</p>
-                    <button onClick={handleCopyInvite} style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '18px 40px', borderRadius: '14px', fontSize: '16px', fontWeight: 900, cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.brand.gold}30`, transition: '0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                    <div style={{ fontSize: 'var(--fs-display)', marginBottom: '20px' }}><Sparkles size={40} aria-hidden="true" /></div>
+                    <h2 style={{ fontWeight: 900, color: THEME.brand.coffee, fontSize: 'var(--fs-2xl)' }}>ابدأ ببناء فريقك الرقمي</h2>
+                    <p style={{ color: '#64748b', fontWeight: 600, fontSize: 'var(--fs-lg)', marginBottom: '30px' }}>لم يسجل أي مستخدم في النظام حتى الآن. شارك رابط الدعوة للبدء.</p>
+                    <button onClick={handleCopyInvite} style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '18px 40px', borderRadius: '14px', fontSize: 'var(--fs-lg)', fontWeight: 900, cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.brand.gold}30`, transition: '0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
                         انسخ رابط الدعوة وانطلق
                     </button>
                 </div>
@@ -267,8 +267,8 @@ export default function TeamPage() {
                                 className="avatar" 
                                 alt="User Avatar" 
                             />
-                            <h3 style={{ margin: 0, fontSize: '19px', fontWeight: 900, color: THEME.brand.coffee }}>{user.full_name || user.nickname || 'مستخدم غير مسمى'}</h3>
-                            <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>{user.email || user.username}</p>
+                            <h3 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.brand.coffee }}>{user.full_name || user.nickname || 'مستخدم غير مسمى'}</h3>
+                            <p style={{ margin: '6px 0 0 0', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>{user.email || user.username}</p>
                             
                             <div className="role-tag" style={{ 
                                 background: user.role === 'admin' ? '#fef3c7' : user.role === 'staff' ? '#dcfce7' : user.role === 'contractor' ? '#e0f2fe' : '#f1f5f9',
@@ -281,7 +281,7 @@ export default function TeamPage() {
                             <div style={{ position: 'absolute', top: 15, right: 15, width: 12, height: 12, borderRadius: '50%', background: user.is_active === false ? '#ef4444' : '#22c55e', boxShadow: `0 0 10px ${user.is_active === false ? '#ef4444' : '#22c55e'}`, border: '2px solid white' }} title={user.is_active === false ? 'حساب موقوف' : 'حساب نشط'} />
 
                             {user.partners?.name && (
-                                <div style={{ marginTop: '18px', fontSize: '11px', fontWeight: 900, color: THEME.brand.gold, background: `${THEME.brand.gold}15`, padding: '8px 12px', borderRadius: '10px' }}>
+                                <div style={{ marginTop: '18px', fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.brand.gold, background: `${THEME.brand.gold}15`, padding: '8px 12px', borderRadius: '10px' }}>
                                     شريك: {user.partners.name}
                                 </div>
                             )}

@@ -92,13 +92,13 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
         header: 'البند / المرحلة', 
         accessor: 'work_item',
         render: (row: any) => {
-            if (row.item_type === 'رئيسي') return <span style={{ fontWeight: 900, color: THEME.coffeeDark, fontSize: '15px' }}>{row.work_item}</span>;
+            if (row.item_type === 'رئيسي') return <span style={{ fontWeight: 900, color: THEME.coffeeDark, fontSize: 'var(--fs-lg)' }}>{row.work_item}</span>;
             return <span style={{ paddingRight: '25px', color: '#475569', fontWeight: 800 }}>{row.work_item}</span>;
         }
     },
     { 
         header: 'إجمالى البند (البيع)', 
-        render: (row: any) => <span style={{ fontWeight: 900, color: THEME.coffeeDark, fontSize: '14px' }}>{formatCurrency(row.total_contract_amount)}</span>
+        render: (row: any) => <span style={{ fontWeight: 900, color: THEME.coffeeDark, fontSize: 'var(--fs-md)' }}>{formatCurrency(row.total_contract_amount)}</span>
     },
     { 
         header: 'الميزانية المقدرة', 
@@ -115,7 +115,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
     { 
         header: 'مصروفات موزعة (ABC)', 
         render: (row: any) => (
-            <span style={{ fontWeight: 900, color: '#9333EA', backgroundColor: '#F3E8FF', padding: '4px 8px', borderRadius: '6px', fontSize: '13px' }}>
+            <span style={{ fontWeight: 900, color: '#9333EA', backgroundColor: '#F3E8FF', padding: '4px 8px', borderRadius: '6px', fontSize: 'var(--fs-sm)' }}>
                 {formatCurrency(row.allocated_expenses || 0)}
             </span>
         )
@@ -151,7 +151,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
             return (
               <span style={{ 
                 fontWeight: 900, color: isLoss ? THEME.danger : THEME.success, 
-                backgroundColor: isLoss ? '#FEF2F2' : '#F0FDF4', padding: '4px 8px', borderRadius: '6px', fontSize: '13px', display: 'inline-block'
+                backgroundColor: isLoss ? '#FEF2F2' : '#F0FDF4', padding: '4px 8px', borderRadius: '6px', fontSize: 'var(--fs-sm)', display: 'inline-block'
               }}>
                 {formatCurrency(netProfit)}
               </span>
@@ -163,7 +163,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
         render: (row: any) => (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
             <span style={{ fontWeight: 900, color: '#475569' }}>{formatCurrency(row.actual_retention_amount)}</span>
-            {Number(row.retention_percentage) > 0 && <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>({row.retention_percentage}%)</span>}
+            {Number(row.retention_percentage) > 0 && <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 700 }}>({row.retention_percentage}%)</span>}
           </div>
         )
     },
@@ -171,8 +171,8 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
         header: 'الإجراءات',
         render: (row: any) => (
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                <SecureAction module="boqbudget" action="edit"><button onClick={() => { logic.setCurrentBoqRecord(row); logic.setIsBoqModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }} title="تعديل البند"><Pencil size={14} aria-hidden="true" /></button></SecureAction>
-                <SecureAction module="boqbudget" action="delete"><button onClick={() => { setDeleteAlert({ isOpen: true, type: 'boq', id: row.id, title: 'حذف بند مقايسة', message: `هل أنت متأكد من حذف البند "${row.work_item}"؟` }); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px', opacity: 0.8 }} title="حذف البند"><Trash2 size={14} aria-hidden="true" /></button></SecureAction>
+                <SecureAction module="boqbudget" action="edit"><button onClick={() => { logic.setCurrentBoqRecord(row); logic.setIsBoqModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-lg)' }} title="تعديل البند"><Pencil size={14} aria-hidden="true" /></button></SecureAction>
+                <SecureAction module="boqbudget" action="delete"><button onClick={() => { setDeleteAlert({ isOpen: true, type: 'boq', id: row.id, title: 'حذف بند مقايسة', message: `هل أنت متأكد من حذف البند "${row.work_item}"؟` }); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-lg)', opacity: 0.8 }} title="حذف البند"><Trash2 size={14} aria-hidden="true" /></button></SecureAction>
             </div>
         )
     }
@@ -184,19 +184,19 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
       {flatBoqData.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '25px' }}>
           <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>臨 إجمالي قيمة المقايسة</span>
-            <strong style={{ fontSize: '20px', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(boqStats.totalContractValue)}</strong>
+            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>臨 إجمالي قيمة المقايسة</span>
+            <strong style={{ fontSize: 'var(--fs-xl)', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(boqStats.totalContractValue)}</strong>
           </div>
 
           <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #475569`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي الميزانية التقديرية</span>
-            <strong style={{ fontSize: '20px', color: '#1e293b', fontWeight: 900 }}>{formatCurrency(boqStats.totalEstimatedCosts)}</strong>
+            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي الميزانية التقديرية</span>
+            <strong style={{ fontSize: 'var(--fs-xl)', color: '#1e293b', fontWeight: 900 }}>{formatCurrency(boqStats.totalEstimatedCosts)}</strong>
           </div>
 
           {/* 🏢 الكارت الجديد اللي بيجمع المصروفات الموزعة (ABC) كلها للفيلا */}
           <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #9333EA`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>التكاليف الموزعة (ABC)</span>
-            <strong style={{ fontSize: '20px', color: '#9333EA', fontWeight: 900 }}>{formatCurrency(boqStats.totalAllocatedExpensesABC)}</strong>
+            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>التكاليف الموزعة (ABC)</span>
+            <strong style={{ fontSize: 'var(--fs-xl)', color: '#9333EA', fontWeight: 900 }}>{formatCurrency(boqStats.totalAllocatedExpensesABC)}</strong>
           </div>
 
           {/* ⚖️ كارت مؤشر انحراف الميزانية الكلي */}
@@ -206,8 +206,8 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
             borderBottom: `4px solid ${boqStats.totalBudgetVariance < 0 ? THEME.danger : '#057857'}`, 
             boxShadow: '0 4px 15px rgba(0,0,0,0.02)' 
           }}>
-            <span style={{ display: 'block', fontSize: '11px', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>انحراف الميزانية الكلي</span>
-            <strong style={{ fontSize: '20px', color: boqStats.totalBudgetVariance < 0 ? THEME.danger : '#057857', fontWeight: 900 }}>
+            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>انحراف الميزانية الكلي</span>
+            <strong style={{ fontSize: 'var(--fs-xl)', color: boqStats.totalBudgetVariance < 0 ? THEME.danger : '#057857', fontWeight: 900 }}>
               {boqStats.totalBudgetVariance > 0 ? '+' : ''}{formatCurrency(boqStats.totalBudgetVariance)}
             </strong>
           </div>
@@ -219,13 +219,13 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
               borderBottom: `4px solid ${boqStats.isLoss ? THEME.danger : THEME.success}`, 
               boxShadow: '0 4px 15px rgba(0,0,0,0.02)' 
           }}>
-            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: boqStats.isLoss ? THEME.danger : '#166534', fontWeight: 900, marginBottom: '5px' }}>
+            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--fs-xs)', color: boqStats.isLoss ? THEME.danger : '#166534', fontWeight: 900, marginBottom: '5px' }}>
               <span>{boqStats.isLoss ? 'صافي خسارة فعلية' : 'صافي الأرباح الحقيقية'}</span>
-              <span style={{ background: boqStats.isLoss ? THEME.danger : '#166534', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', direction: 'ltr' }}>
+              <span style={{ background: boqStats.isLoss ? THEME.danger : '#166534', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: 'var(--fs-xs)', direction: 'ltr' }}>
                 {boqStats.profitMargin}%
               </span>
             </span>
-            <strong style={{ fontSize: '20px', color: boqStats.isLoss ? THEME.danger : THEME.success, fontWeight: 900, direction: 'ltr' }}>
+            <strong style={{ fontSize: 'var(--fs-xl)', color: boqStats.isLoss ? THEME.danger : THEME.success, fontWeight: 900, direction: 'ltr' }}>
               {formatCurrency(boqStats.totalNetProfit)}
             </strong>
           </div>
@@ -271,7 +271,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
 
         {flatBoqData.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: 900 }}>
-                <div style={{ fontSize: '40px', marginBottom: '10px' }}><ClipboardList size={34} aria-hidden="true" /></div>
+                <div style={{ fontSize: 'var(--fs-display)', marginBottom: '10px' }}><ClipboardList size={34} aria-hidden="true" /></div>
                 لا توجد بنود مقايسة مضافة لهذا المشروع بعد.<br/>
             </div>
         ) : (

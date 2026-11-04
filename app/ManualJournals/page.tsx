@@ -81,8 +81,8 @@ export default function ManualJournalsPage() {
             accessor: 'voucher_number', 
             render: (row: any) => (
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <b style={{ color: THEME.primary, fontSize: '14px' }}>{row.voucher_number}</b>
-                    <span style={{ fontSize: '11px', color: '#64748b' }}>{row.entry_date}</span>
+                    <b style={{ color: THEME.primary, fontSize: 'var(--fs-md)' }}>{row.voucher_number}</b>
+                    <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b' }}>{row.entry_date}</span>
                 </div>
             )
         },
@@ -116,7 +116,7 @@ export default function ManualJournalsPage() {
         { 
             header: 'المبلغ', 
             accessor: 'amount', 
-            render: (row: any) => <span style={{ fontWeight: 900, color: '#1e293b', fontSize: '15px' }}>{formatCurrency(row.amount)}</span> 
+            render: (row: any) => <span style={{ fontWeight: 900, color: '#1e293b', fontSize: 'var(--fs-lg)' }}>{formatCurrency(row.amount)}</span> 
         },
         {
             header: 'الحالة',
@@ -143,14 +143,14 @@ export default function ManualJournalsPage() {
     const sidebarActions = useMemo(() => (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
             <SecureAction module="manual_journals" action="add">
-                <button className="btn-main-glass green" onClick={() => openModal()} style={{ height: '50px', fontSize: '15px' }}>
+                <button className="btn-main-glass green" onClick={() => openModal()} style={{ height: '50px', fontSize: 'var(--fs-lg)' }}>
                     إضافة تسوية جديدة
                 </button>
             </SecureAction>
 
             {logic.state.selectedIds.length > 0 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-                    <p style={{fontSize:'12px', textAlign:'center', color:'#94a3b8', fontWeight:900, margin:0}}>تم تحديد ({logic.state.selectedIds.length}) سند</p>
+                    <p style={{fontSize:'var(--fs-sm)', textAlign:'center', color:'#94a3b8', fontWeight:900, margin:0}}>تم تحديد ({logic.state.selectedIds.length}) سند</p>
                     <SecureAction module="manual_journals" action="post">
                         <button className="btn-main-glass blue" onClick={logic.actions.handlePostSelected}>ترحيل القيود المحددة</button>
                     </SecureAction>
@@ -174,8 +174,8 @@ export default function ManualJournalsPage() {
                 <RawasiSidebarManager 
                     summary={
                         <div className="summary-glass-card">
-                            <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي مبالغ التسويات</span>
-                            <div style={{fontSize:'22px', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>
+                            <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي مبالغ التسويات</span>
+                            <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>
                                 {formatCurrency(logic.state.totals.amount)}
                             </div>
                         </div>

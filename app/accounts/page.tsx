@@ -71,7 +71,7 @@ export default function HierarchicalLedgerPage() {
       
       {selectedIds.length > 0 && (
         <>
-          <p style={{fontSize:'10px', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>إجراءات على ({selectedIds.length})</p>
+          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>إجراءات على ({selectedIds.length})</p>
           <SecureAction module="accounts" action="edit">
             <button className="btn-main-glass blue" onClick={() => handleEdit(selectedIds)} disabled={selectedIds.length !== 1 || isDeleting}>تعديل الحساب</button>
           </SecureAction>
@@ -177,19 +177,19 @@ export default function HierarchicalLedgerPage() {
             summary={
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   <div className="summary-glass-card">
-                      <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المدين</span>
-                      <div style={{fontSize:'18px', fontWeight:900, color: THEME.success}}>{formatCurrency(summary.debit)}</div>
+                      <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي المدين</span>
+                      <div style={{fontSize:'var(--fs-xl)', fontWeight:900, color: THEME.success}}>{formatCurrency(summary.debit)}</div>
                   </div>
                   <div className="summary-glass-card">
-                      <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الدائن</span>
-                      <div style={{fontSize:'18px', fontWeight:900, color: THEME.danger}}>{formatCurrency(summary.credit)}</div>
+                      <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي الدائن</span>
+                      <div style={{fontSize:'var(--fs-xl)', fontWeight:900, color: THEME.danger}}>{formatCurrency(summary.credit)}</div>
                   </div>
                   <div className="summary-glass-card" style={{ background: summary.balance === 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', borderColor: summary.balance === 0 ? THEME.success : THEME.warning }}>
-                      <span style={{fontSize:'12px', fontWeight:800, color: summary.balance === 0 ? THEME.success : THEME.warning}}>الرصيد / الفارق</span>
-                      <div style={{fontSize:'22px', fontWeight:900, color: THEME.coffeeDark}}>
+                      <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color: summary.balance === 0 ? THEME.success : THEME.warning}}>الرصيد / الفارق</span>
+                      <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.coffeeDark}}>
                         {formatCurrency(summary.balance)}
                       </div>
-                      <div style={{fontSize:'10px', marginTop: '4px', color: '#94a3b8'}}>{summary.balance !== 0 && (summary.isDebitBalance ? '(رصيد مدين)' : '(رصيد دائن)')}</div>
+                      <div style={{fontSize:'var(--fs-xs)', marginTop: '4px', color: '#94a3b8'}}>{summary.balance !== 0 && (summary.isDebitBalance ? '(رصيد مدين)' : '(رصيد دائن)')}</div>
                   </div>
               </div>
             }
@@ -197,16 +197,16 @@ export default function HierarchicalLedgerPage() {
             customFilters={
               <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '10px' }}>
                   <div>
-                     <label style={{color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>بحث في الدليل:</label>
+                     <label style={{color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '8px'}}>بحث في الدليل:</label>
                      <input type="text" placeholder="الاسم، الكود..." className="glass-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                   </div>
 
                   <div>
-                      <label style={{color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>من تاريخ:</label>
+                      <label style={{color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '8px'}}>من تاريخ:</label>
                       <input type="date" className="glass-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
                   </div>
                   <div>
-                      <label style={{color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px'}}>إلى تاريخ:</label>
+                      <label style={{color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '8px'}}>إلى تاريخ:</label>
                       <input type="date" className="glass-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
                   </div>
               </div>
@@ -266,7 +266,7 @@ export default function HierarchicalLedgerPage() {
         .btn-premium-gold { width: 100%; padding: 16px; border-radius: 16px; background: linear-gradient(135deg, #c2410c, #c2410c); color: white; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(194,65,12, 0.3); transition: 0.3s; }
         .btn-premium-gold:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(194,65,12, 0.4); filter: brightness(1.1); }
 
-        .btn-main-glass { width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 13px; }
+        .btn-main-glass { width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: var(--fs-sm); }
         .btn-main-glass.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
         .btn-main-glass.blue:hover:not(:disabled) { background: #3b82f6; color: white; }
         .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
@@ -277,7 +277,7 @@ export default function HierarchicalLedgerPage() {
 
         .table-header {
           display: grid; grid-template-columns: 40px 2.5fr 1fr 1fr 1fr 1.2fr; 
-          padding: 15px 20px; font-weight: 900; color: #64748b; font-size: 13px;
+          padding: 15px 20px; font-weight: 900; color: #64748b; font-size: var(--fs-sm);
           background: rgba(0,0,0,0.02); border-radius: 16px; margin-bottom: 15px; border: 1px solid #f1f5f9;
         }
 
@@ -301,7 +301,7 @@ export default function HierarchicalLedgerPage() {
         .entry-line { 
           background: #f8fafc; margin: 4px 20px 8px 60px; padding: 12px 20px; 
           border-radius: 12px; border-right: 3px solid ${THEME.goldAccent}; display: grid; 
-          grid-template-columns: 120px 2fr 120px 120px; gap: 15px; font-size: 12px;
+          grid-template-columns: 120px 2fr 120px 120px; gap: 15px; font-size: var(--fs-sm);
           border: 1px solid #f1f5f9;
         }
 
@@ -340,18 +340,18 @@ function AccountNode({ node, expandedIds, toggleExpand, selectedIds, toggleSelec
             {hasSub ? (isExpanded ? <FolderOpen size={16} aria-hidden="true" /> : <Folder size={16} aria-hidden="true" />) : <FileText size={16} aria-hidden="true" />}
             {node.name}
           </span>
-          <span style={{ fontSize: '11px', color: '#94a3b8', marginRight: '10px' }}>#{node.code}</span>
+          <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginRight: '10px' }}>#{node.code}</span>
         </div>
-        <div style={{ fontSize: '12px', color: node.is_transactional ? '#64748b' : THEME.goldAccent, fontWeight: 800 }}>
+        <div style={{ fontSize: 'var(--fs-sm)', color: node.is_transactional ? '#64748b' : THEME.goldAccent, fontWeight: 800 }}>
           {node.is_transactional ? 'حساب فرعي' : 'تجميعي'}
         </div>
-        <div style={{ textAlign: 'center', color: THEME.success, fontWeight: isRoot ? 900 : 700, fontFamily: 'monospace', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', color: THEME.success, fontWeight: isRoot ? 900 : 700, fontFamily: 'monospace', fontSize: 'var(--fs-md)' }}>
           {formatCurrency(node.totalDebit)}
         </div>
-        <div style={{ textAlign: 'center', color: THEME.danger, fontWeight: isRoot ? 900 : 700, fontFamily: 'monospace', fontSize: '14px' }}>
+        <div style={{ textAlign: 'center', color: THEME.danger, fontWeight: isRoot ? 900 : 700, fontFamily: 'monospace', fontSize: 'var(--fs-md)' }}>
           {formatCurrency(node.totalCredit)}
         </div>
-        <div style={{ textAlign: 'center', fontWeight: 900, color: isRoot ? 'white' : THEME.primary, fontFamily: 'monospace', fontSize: '14px', background: isRoot ? THEME.primary : '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
+        <div style={{ textAlign: 'center', fontWeight: 900, color: isRoot ? 'white' : THEME.primary, fontFamily: 'monospace', fontSize: 'var(--fs-md)', background: isRoot ? THEME.primary : '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
           {formatCurrency(node.balance)}
         </div>
       </div>

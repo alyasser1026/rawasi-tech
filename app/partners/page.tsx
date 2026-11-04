@@ -98,12 +98,12 @@ export default function PartnersDirectory() {
   const customFilters = (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
       <div>
-        <label style={{ color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px' }}>بحث سريع:</label>
+        <label style={{ color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '8px' }}>بحث سريع:</label>
         <input type="text" placeholder="الاسم، الكود، الجوال..." className="sidebar-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
       </div>
 
       <div>
-        <label style={{ color: 'white', fontSize: '12px', fontWeight: 900, display: 'block', marginBottom: '8px' }}>تصفية بالتصنيف:</label>
+        <label style={{ color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '8px' }}>تصفية بالتصنيف:</label>
         <select className="sidebar-input" value={filterType} onChange={(e) => setFilterType(e.target.value)}>
             <option value="الكل" style={{color: 'black'}}>كل التصنيفات</option>
             <option value="جهة داخلية" style={{color: 'black'}}>جهة داخلية</option>
@@ -159,24 +159,24 @@ export default function PartnersDirectory() {
             align-items: center; padding: 15px 15px; border: 1px solid transparent; transition: 0.3s;
           }
           .floating-row:hover { border-color: ${THEME.goldAccent}; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-          .data-text { font-weight: 700; font-size: 13px; color: ${THEME.coffeeDark}; }
-          .label-header { font-size: 11px; font-weight: 900; color: ${THEME.coffeeDark}; opacity: 0.7; }
+          .data-text { font-weight: 700; font-size: var(--fs-sm); color: ${THEME.coffeeDark}; }
+          .label-header { font-size: var(--fs-xs); font-weight: 900; color: ${THEME.coffeeDark}; opacity: 0.7; }
           
-          .btn-main-glass { padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: 13px; width: 100%; }
+          .btn-main-glass { padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: var(--fs-sm); width: 100%; }
           .btn-main-glass:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
           .sidebar-input { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.2); padding: 12px; border-radius: 12px; color: white; width: 100%; outline: none; font-weight: 700; transition: 0.3s; }
           .sidebar-input:focus { border-color: ${THEME.goldAccent}; background: rgba(255, 255, 255, 0.1); }
           .kpi-box { padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
-          .kpi-box span { font-size: 11px; opacity: 0.8; }
-          .kpi-box strong { display: block; font-size: 20px; color: white; margin-top: 5px; }
-          .category-badge { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; display: inline-block; }
+          .kpi-box span { font-size: var(--fs-xs); opacity: 0.8; }
+          .kpi-box strong { display: block; font-size: var(--fs-xl); color: white; margin-top: 5px; }
+          .category-badge { padding: 4px 10px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 900; display: inline-block; }
 
           /* نافذة المودال */
           .glass-input-field { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; transition: 0.2s; font-weight: 700; color: #1e293b; }
           .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 4px rgba(194,65,12, 0.15); }
-          .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(194,65,12, 0.4); }
+          .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 900; font-size: var(--fs-lg); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(194,65,12, 0.4); }
           .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
-          .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 16px; border-radius: 16px; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.3s; }
+          .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 16px; border-radius: 16px; font-weight: 900; font-size: var(--fs-lg); cursor: pointer; transition: 0.3s; }
           .btn-glass-cancel:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
           .nav-btn { padding: 8px 16px; border-radius: 8px; border: none; background: ${THEME.primary}; color: white; cursor: pointer; font-weight: 900; transition: 0.2s; }
           .nav-btn:disabled { background: ${THEME.sandLight}; color: #94a3b8; cursor: not-allowed; }
@@ -200,16 +200,16 @@ export default function PartnersDirectory() {
                   <div className="data-text" style={{ color: THEME.goldAccent }}>{p.code}</div>
                   <div>
                     <div className="data-text" style={{ cursor: 'pointer', color: THEME.primary, textDecoration: 'underline' }} onClick={() => router.push(`/performance?partner_id=${p.id}`)}>{p.name}</div>
-                    <div style={{ fontSize: '11px', color: '#64748b' }}>{p.role}</div>
+                    <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b' }}>{p.role}</div>
                   </div>
                   <div><span className="category-badge" style={{ backgroundColor: badge.bg, color: badge.color }}>{p.type}</span></div>
-                  <div className="data-text" style={{ fontSize: '12px', color: '#0ea5e9', fontWeight: 900 }}>{p.account_name}</div>
+                  <div className="data-text" style={{ fontSize: 'var(--fs-sm)', color: '#0ea5e9', fontWeight: 900 }}>{p.account_name}</div>
                   <div>
                      <div className="data-text">{p.idNumber}</div>
-                     <div style={{ fontSize: '10px', color: '#D946EF' }}>ينتهي: {p.identity_expiry_date || "---"}</div>
+                     <div style={{ fontSize: 'var(--fs-xs)', color: '#D946EF' }}>ينتهي: {p.identity_expiry_date || "---"}</div>
                   </div>
                   <div className="data-text" style={{ color: THEME.coffeeMain }}>{p.vat_number || "---"}</div>
-                  <div className="data-text" style={{ fontSize: '11px', opacity: 0.7 }}>{p.address}</div>
+                  <div className="data-text" style={{ fontSize: 'var(--fs-xs)', opacity: 0.7 }}>{p.address}</div>
                   <div className="data-text">{p.phone}</div>
                 </div>
               );
@@ -218,8 +218,8 @@ export default function PartnersDirectory() {
 
           {!isLoading && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '15px', background: 'white', borderRadius: '16px', border: `1px solid ${THEME.sandDark}` }}>
-              <div style={{ fontSize: '13px', color: THEME.coffeeDark, fontWeight: 900 }}>
-                إجمالي السجلات: <b style={{ color: THEME.goldAccent, fontSize: '16px' }}>{totalResults}</b>
+              <div style={{ fontSize: 'var(--fs-sm)', color: THEME.coffeeDark, fontWeight: 900 }}>
+                إجمالي السجلات: <b style={{ color: THEME.goldAccent, fontSize: 'var(--fs-lg)' }}>{totalResults}</b>
               </div>
               <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
                 <select value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ padding: '8px 12px', borderRadius: '8px', border: `2px solid ${THEME.sandDark}`, outline: 'none', fontWeight: 900, cursor: 'pointer' }}>
@@ -277,18 +277,18 @@ export default function PartnersDirectory() {
             <div className="cinematic-scroll phi-modal-panel" onClick={e => e.stopPropagation()} style={{ width: '900px', maxHeight: '90vh', background: 'rgba(248, 250, 252, 0.9)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto' }}>
                 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px', borderBottom: `2px solid ${THEME.goldAccent}50`, paddingBottom: '15px' }}>
-                    <h2 style={{ color: THEME.coffeeDark, fontWeight: 900, margin: 0, fontSize: '26px' }}>
+                    <h2 style={{ color: THEME.coffeeDark, fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>
                         {editingId ? 'تعديل بيانات الكيان' : 'تعريف كيان جديد'}
                     </h2>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الكود المرجعي *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الكود المرجعي *</label>
                         <input className="glass-input-field" value={newPartner.code} onChange={e => setNewPartner({...newPartner, code: e.target.value})} placeholder="مثال: PRT-001" />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>التصنيف *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>التصنيف *</label>
                         <select className="glass-input-field" value={newPartner.type} onChange={e => setNewPartner({...newPartner, type: e.target.value})}>
                             <option value="موظف">موظف</option>
                             <option value="عامل يومية">عامل يومية</option>
@@ -302,17 +302,17 @@ export default function PartnersDirectory() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الاسم الكامل *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الاسم الكامل *</label>
                         <input className="glass-input-field" value={newPartner.name} onChange={e => setNewPartner({...newPartner, name: e.target.value})} placeholder="اسم الشخص أو الشركة" />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>المهنة / الدور</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>المهنة / الدور</label>
                         <input className="glass-input-field" value={newPartner.role} onChange={e => setNewPartner({...newPartner, role: e.target.value})} placeholder="مثال: نجار، مورد حديد..." />
                     </div>
                 </div>
 
                 <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: `1px dashed ${THEME.goldAccent}`, marginBottom: '20px', zIndex: 90, position: 'relative' }}>
-                    <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', color: '#0ea5e9' }}>الربط المالي (شجرة الحسابات)</h3>
+                    <h3 style={{ margin: '0 0 15px 0', fontSize: 'var(--fs-lg)', color: '#0ea5e9' }}>الربط المالي (شجرة الحسابات)</h3>
                     <SmartCombo 
                         label="الحساب المحاسبي المرتبط بالكيان" 
                         table="accounts" 
@@ -322,33 +322,33 @@ export default function PartnersDirectory() {
                         value={newPartner.account_id}
                         onSelect={(v: any) => setNewPartner({ ...newPartner, account_id: v?.id })} 
                     />
-                    <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#64748b' }}>* بدون ربط الحساب، لن تظهر قيود هذا الشخص في ميزان المراجعة بشكل صحيح.</p>
+                    <p style={{ margin: '8px 0 0 0', fontSize: 'var(--fs-xs)', color: '#64748b' }}>* بدون ربط الحساب، لن تظهر قيود هذا الشخص في ميزان المراجعة بشكل صحيح.</p>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>رقم الهوية / الإقامة</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>رقم الهوية / الإقامة</label>
                         <input className="glass-input-field" value={newPartner.idNumber} onChange={e => setNewPartner({...newPartner, idNumber: e.target.value})} placeholder="أدخل رقم الهوية" />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>تاريخ انتهاء الهوية</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>تاريخ انتهاء الهوية</label>
                         <input type="date" className="glass-input-field" value={newPartner.identity_expiry_date} onChange={e => setNewPartner({...newPartner, identity_expiry_date: e.target.value})} />
                     </div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الرقم الضريبي</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الرقم الضريبي</label>
                         <input className="glass-input-field" value={newPartner.vat_number} onChange={e => setNewPartner({...newPartner, vat_number: e.target.value})} placeholder="للمقاولين والشركات" />
                     </div>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>رقم الجوال</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>رقم الجوال</label>
                         <input className="glass-input-field" value={newPartner.phone} onChange={e => setNewPartner({...newPartner, phone: e.target.value})} placeholder="05xxxxxxxx" />
                     </div>
                 </div>
 
                 <div style={{ marginBottom: '30px' }}>
-                    <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>العنوان الوطني / الوصف</label>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>العنوان الوطني / الوصف</label>
                     <input className="glass-input-field" value={newPartner.address} onChange={e => setNewPartner({...newPartner, address: e.target.value})} placeholder="المدينة، الحي، الشارع..." />
                 </div>
 

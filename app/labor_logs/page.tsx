@@ -117,7 +117,7 @@ export default function LaborLogsDirectory() {
     { 
       key: 'daily_wage', 
       label: 'اليومية',
-      render: (row: any) => row ? <span style={{ fontWeight: 900, color: '#059669', fontSize: '14px' }}>{logic.formatCurrency(row.daily_wage || 0)}</span> : null
+      render: (row: any) => row ? <span style={{ fontWeight: 900, color: '#059669', fontSize: 'var(--fs-md)' }}>{logic.formatCurrency(row.daily_wage || 0)}</span> : null
     },
     { 
       key: 'attendance_value', 
@@ -166,7 +166,7 @@ export default function LaborLogsDirectory() {
       
       {logic.selectedIds.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <p style={{fontSize:'10px', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات على ({logic.selectedIds.length})</p>
+          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات على ({logic.selectedIds.length})</p>
           <SecureAction module="labor_logs" action="post">
             <button className="btn-main-glass green" onClick={logic.handlePostSelected}>اعتماد وترحيل</button>
           </SecureAction>
@@ -190,11 +190,11 @@ export default function LaborLogsDirectory() {
         <RawasiSidebarManager 
           summary={
             <div className="summary-glass-card">
-              <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي الأجور المحسوبة</span>
-              <div className="val" style={{fontSize:'24px', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>
+              <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي الأجور المحسوبة</span>
+              <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>
                 {logic.formatCurrency(logic.stats.sum)}
               </div>
-              <div style={{fontSize:'11px', color:'#10b981', fontWeight:800, marginTop:'5px'}}>
+              <div style={{fontSize:'var(--fs-xs)', color:'#10b981', fontWeight:800, marginTop:'5px'}}>
                 إجمالي السجلات: {logic.stats.count}
               </div>
             </div>
@@ -247,11 +247,11 @@ export default function LaborLogsDirectory() {
 
         <style>{`
           .glass-label { color: white; fontSize: 12px; fontWeight: 900; display: block; marginBottom: 8px; }
-          .glass-input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-weight: 800; outline: none; font-size: 12px; }
-          .filter-btn { flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: 11px; transition: 0.3s; }
+          .glass-input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-weight: 800; outline: none; font-size: var(--fs-sm); }
+          .filter-btn { flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: var(--fs-xs); transition: 0.3s; }
           .filter-btn.active { background: ${THEME.goldAccent}; color: #1e293b; }
           .dark-select option { color: #000; }
-          .glass-badge { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; display: inline-block; }
+          .glass-badge { padding: 4px 10px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 900; display: inline-block; }
           
           /* أنماط المودال */
           .modal-label { color: ${THEME.coffeeMain}; fontSize: 12px; fontWeight: 900; display: block; marginBottom: 8px; }
@@ -282,7 +282,7 @@ export default function LaborLogsDirectory() {
       {mounted && logic.isAddModalOpen && createPortal(
         <div className="phi-modal-backdrop" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(39,39,42, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '5vh', paddingBottom: '5vh', overflowY: 'auto' }} onClick={() => logic.setIsAddModalOpen(false)}>
           <div className="cinematic-scroll phi-modal-panel" onClick={(e) => e.stopPropagation()} style={{ background: 'white', padding: '35px', borderRadius: '14px', width: '100%', maxWidth: '900px', direction: 'rtl', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', margin: 'auto' }}>
-            <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px', fontSize: '24px', borderBottom: `2px dashed ${THEME.goldAccent}`, paddingBottom: '15px' }}>
+            <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px', fontSize: 'var(--fs-2xl)', borderBottom: `2px dashed ${THEME.goldAccent}`, paddingBottom: '15px' }}>
               {logic.editingId ? 'تعديل بيانات اليومية' : 'إضافة يومية جديدة'}
             </h2>
             

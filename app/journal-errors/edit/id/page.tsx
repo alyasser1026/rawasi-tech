@@ -181,11 +181,11 @@ export default function EditJournalEntryPage() {
         .header-section { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 30px; }
         
         .input-group { display: flex; flex-direction: column; gap: 8px; }
-        .input-group label { color: ${THEME.slate}; font-size: 13px; font-weight: 700; }
+        .input-group label { color: ${THEME.slate}; font-size: var(--fs-sm); font-weight: 700; }
         .standard-input {
           padding: 12px 15px; background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;
-          color: white; font-size: 14px; font-weight: 600; outline: none; transition: 0.3s; color-scheme: dark;
+          color: white; font-size: var(--fs-md); font-weight: 600; outline: none; transition: 0.3s; color-scheme: dark;
         }
         .standard-input:focus { border-color: ${THEME.accent}; }
 
@@ -197,7 +197,7 @@ export default function EditJournalEntryPage() {
         .btn-add { background: rgba(255,255,255,0.05); color: white; border: 1px dashed rgba(255,255,255,0.3); width: 100%; padding: 15px; }
         .btn-add:hover { background: rgba(255,255,255,0.1); }
         .btn-del { background: rgba(239, 68, 68, 0.1); color: ${THEME.danger}; padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; }
-        .btn-save { background: linear-gradient(135deg, ${THEME.accent}, ${THEME.accentLight}); color: ${THEME.primary}; font-size: 18px; padding: 15px 40px; }
+        .btn-save { background: linear-gradient(135deg, ${THEME.accent}, ${THEME.accentLight}); color: ${THEME.primary}; font-size: var(--fs-xl); padding: 15px 40px; }
         .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .summary-box {
@@ -205,14 +205,14 @@ export default function EditJournalEntryPage() {
           background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; border-right: 4px solid ${THEME.accent}; margin-top: 30px;
         }
         .summary-item { text-align: center; }
-        .summary-value { font-size: 24px; font-weight: 900; font-family: monospace; }
+        .summary-value { font-size: var(--fs-2xl); font-weight: 900; font-family: monospace; }
       `}</style>
 
       <div className="glass-container">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
           <div>
-            <h1 style={{ fontSize: '26px', fontWeight: 900, color: THEME.accentLight }}>معالجة قيد يومية #{id}</h1>
-            <p style={{ color: THEME.slate, fontSize: '14px' }}>تعديل الأطراف والمبالغ لضبط ميزان المراجعة</p>
+            <h1 style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: THEME.accentLight }}>معالجة قيد يومية #{id}</h1>
+            <p style={{ color: THEME.slate, fontSize: 'var(--fs-md)' }}>تعديل الأطراف والمبالغ لضبط ميزان المراجعة</p>
           </div>
         </div>
 
@@ -272,19 +272,19 @@ export default function EditJournalEntryPage() {
         {/* ملخص الاتزان */}
         <div className="summary-box">
           <div className="summary-item">
-            <div style={{ color: THEME.slate, fontSize: '14px' }}>إجمالي المدين</div>
+            <div style={{ color: THEME.slate, fontSize: 'var(--fs-md)' }}>إجمالي المدين</div>
             <div className="summary-value" style={{ color: '#15803d' }}>{totals.debit.toLocaleString()}</div>
           </div>
           
           <div className="summary-item">
-            <div style={{ color: THEME.slate, fontSize: '14px' }}>الفرق (عدم الاتزان)</div>
+            <div style={{ color: THEME.slate, fontSize: 'var(--fs-md)' }}>الفرق (عدم الاتزان)</div>
             <div className="summary-value" style={{ color: totals.diff === 0 ? THEME.success : THEME.danger }}>
               {totals.diff === 0 ? 'القيد متزن' : `${totals.diff.toLocaleString()}`}
             </div>
           </div>
 
           <div className="summary-item">
-            <div style={{ color: THEME.slate, fontSize: '14px' }}>إجمالي الدائن</div>
+            <div style={{ color: THEME.slate, fontSize: 'var(--fs-md)' }}>إجمالي الدائن</div>
             <div className="summary-value" style={{ color: '#be123c' }}>{totals.credit.toLocaleString()}</div>
           </div>
 

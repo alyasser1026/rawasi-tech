@@ -84,7 +84,7 @@ export default function AddAccountPage() {
           color: ${THEME.slate}; font-weight: 700; pointer-events: none; transition: 0.2s ease-all;
         }
         .forced-float, .standard-input:focus ~ .floating-label, .standard-input:not(:placeholder-shown) ~ .floating-label {
-          top: -12px !important; right: 12px !important; font-size: 12px !important;
+          top: -12px !important; right: 12px !important; font-size: var(--fs-sm) !important;
           color: ${THEME.accent} !important; background: #151c2c !important;
           padding: 0 10px !important; border-radius: 4px !important; transform: translateY(0) !important;
         }
@@ -96,7 +96,7 @@ export default function AddAccountPage() {
       <div className="glass-card">
         <div className="header">
           <img src="/company-logo.svg" alt="Logo" />
-          <h1 style={{color:'white', fontSize:'22px'}}>إضافة حساب جديد</h1>
+          <h1 style={{color:'white', fontSize:'var(--fs-2xl)'}}>إضافة حساب جديد</h1>
         </div>
         <form onSubmit={handleSubmit}>
           

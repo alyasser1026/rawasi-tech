@@ -233,9 +233,9 @@ export default function ExpenseFormModal({
                 .warm-portal-overlay-fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: radial-gradient(circle at center, rgba(40, 24, 10, 0.4) 0%, rgba(15, 7, 0, 0.9) 100%) !important; backdrop-filter: blur(20px) !important; display: flex !important; align-items: center !important; justify-content: center !important; z-index: 999999999 !important; }
                 .glass-input-field { width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; transition: 0.2s; font-weight: 700; color: #1e293b; }
                 .glass-input-field:focus { background: #fff; border-color: ${THEME.accent}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
+                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
-                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.3s; }
+                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
                 .btn-glass-cancel:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
                 .lines-table-container { background: rgba(255, 255, 255, 0.5); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.7); overflow: hidden; margin-top: 15px; }
                 .item-row { transition: 0.2s; border-bottom: 1px solid rgba(0,0,0,0.05); }
@@ -245,16 +245,16 @@ export default function ExpenseFormModal({
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ width: '1000px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl' }}>
                 
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'15px'}}>
-                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: '26px' }}>{record?.id ? 'تعديل المصروف' : 'إنشاء مصروف جديد'}</h2>
+                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>{record?.id ? 'تعديل المصروف' : 'إنشاء مصروف جديد'}</h2>
                     <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
-                        <div style={{ color: THEME.accent, fontWeight: 900, fontSize: '28px' }}>{formatCurrency(finalTotal)}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
+                        <div style={{ color: THEME.accent, fontWeight: 900, fontSize: 'var(--fs-3xl)' }}>{formatCurrency(finalTotal)}</div>
                     </div>
                 </div>
 
                 <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '25px', marginBottom: '25px' }}>
                     <div>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ المصروف *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ المصروف *</label>
                         <input type="date" className="glass-input-field" value={record?.exp_date || ''} onChange={e => setRecord({...record, exp_date: e.target.value})} />
                     </div>
                     <div style={{ gridColumn: 'span 2', zIndex: 90, position: 'relative' }}>
@@ -314,7 +314,7 @@ export default function ExpenseFormModal({
                     </div>
                     
                     <div style={{ zIndex: 65, position: 'relative' }}>
-                        <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>أمر التشغيل / الشغل *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>أمر التشغيل / الشغل *</label>
                         <select 
                             className="glass-input-field"
                             value={record?.job_order_id || ''}
@@ -378,7 +378,7 @@ export default function ExpenseFormModal({
                             })}
                         </select>
                         <div style={{ position: 'absolute', left: '15px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                            {isLoadingJobOrders ? <span style={{ fontSize: '12px', color: THEME.accent }}><Hourglass size={14} aria-hidden="true" /></span> : <span style={{ fontSize: '12px', color: THEME.primary }}>▼</span>}
+                            {isLoadingJobOrders ? <span style={{ fontSize: 'var(--fs-sm)', color: THEME.accent }}><Hourglass size={14} aria-hidden="true" /></span> : <span style={{ fontSize: 'var(--fs-sm)', color: THEME.primary }}>▼</span>}
                         </div>
                     </div>
                 </div>
@@ -430,28 +430,28 @@ export default function ExpenseFormModal({
                 </div>
                 
                 <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '14px', marginBottom: '25px', border: `1px dashed ${THEME.accent}` }}>
-                    <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: THEME.brand.coffee, marginBottom: '15px' }}>إضافة بنود المصروف</h3>
+                    <h3 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.brand.coffee, marginBottom: '15px' }}>إضافة بنود المصروف</h3>
                     <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 0.5fr', gap: '15px', alignItems: 'end' }}>
                         <div style={{ zIndex: 40 }}>
                             <SmartCombo label="البيان / الصنف *" icon="🛠️" freeText={true} initialDisplay={record.description} onSelect={(val: any) => setRecord({...record, description: typeof val === 'object' && val !== null ? val.name : val})} options={historicalData?.descriptions || []} />
                         </div>
                         <div>
-                            <label style={{ fontSize: '11px', fontWeight: 900, color: THEME.primary }}>الكمية *</label>
+                            <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.primary }}>الكمية *</label>
                             <input type="number" value={record.quantity || ''} onChange={e => setRecord({...record, quantity: e.target.value})} className="glass-input-field" style={{ textAlign: 'center' }} />
                         </div>
                         <div>
-                            <label style={{ fontSize: '11px', fontWeight: 900, color: THEME.primary }}>سعر الوحدة *</label>
+                            <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.primary }}>سعر الوحدة *</label>
                             <input type="number" value={record.unit_price || ''} onChange={e => setRecord({...record, unit_price: e.target.value})} className="glass-input-field" style={{ textAlign: 'center' }} />
                         </div>
                         <div>
-                            <label style={{ fontSize: '11px', fontWeight: 900, color: THEME.primary }}>قيمة الضريبة</label>
+                            <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.primary }}>قيمة الضريبة</label>
                             <input type="number" value={record.vat_amount || ''} onChange={e => setRecord({...record, vat_amount: e.target.value})} className="glass-input-field" style={{ textAlign: 'center' }} />
                         </div>
                         <div>
-                            <label style={{ fontSize: '11px', fontWeight: 900, color: THEME.ruby }}>الخصم (-)</label>
+                            <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.ruby }}>الخصم (-)</label>
                             <input type="number" value={record.discount_amount || ''} onChange={e => setRecord({...record, discount_amount: e.target.value})} className="glass-input-field" style={{ border: `1px solid ${THEME.ruby}50`, color: THEME.ruby, textAlign: 'center' }}/>
                         </div>
-                        <button onClick={handleAddStatement} style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', height: '45px', borderRadius: '12px', cursor: 'pointer', fontWeight: 900, fontSize: '18px', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }}><Plus size={15} aria-hidden="true" /></button>
+                        <button onClick={handleAddStatement} style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', height: '45px', borderRadius: '12px', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-xl)', boxShadow: '0 4px 10px rgba(16, 185, 129, 0.3)' }}><Plus size={15} aria-hidden="true" /></button>
                     </div>
 
                     {safeAddedLines.length > 0 && (
@@ -459,13 +459,13 @@ export default function ExpenseFormModal({
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
                                 <thead style={{ background: THEME.primary, color: 'white' }}>
                                     <tr>
-                                        <th style={{ padding: '12px', fontSize: '11px', textAlign: 'right' }}>البيان</th>
-                                        <th style={{ padding: '12px', fontSize: '11px' }}>الكمية</th>
-                                        <th style={{ padding: '12px', fontSize: '11px' }}>السعر</th>
-                                        <th style={{ padding: '12px', fontSize: '11px' }}>الضريبة</th>
-                                        <th style={{ padding: '12px', fontSize: '11px' }}>الخصم</th>
-                                        <th style={{ padding: '12px', fontSize: '11px' }}>الإجمالي</th>
-                                        <th style={{ padding: '12px', fontSize: '11px' }}>حذف</th>
+                                        <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', textAlign: 'right' }}>البيان</th>
+                                        <th style={{ padding: '12px', fontSize: 'var(--fs-xs)' }}>الكمية</th>
+                                        <th style={{ padding: '12px', fontSize: 'var(--fs-xs)' }}>السعر</th>
+                                        <th style={{ padding: '12px', fontSize: 'var(--fs-xs)' }}>الضريبة</th>
+                                        <th style={{ padding: '12px', fontSize: 'var(--fs-xs)' }}>الخصم</th>
+                                        <th style={{ padding: '12px', fontSize: 'var(--fs-xs)' }}>الإجمالي</th>
+                                        <th style={{ padding: '12px', fontSize: 'var(--fs-xs)' }}>حذف</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -477,7 +477,7 @@ export default function ExpenseFormModal({
                                             <td style={{ padding: '12px', fontWeight: 700 }}>{formatCurrency(line.vat_amount)}</td>
                                             <td style={{ padding: '12px', fontWeight: 700, color: THEME.ruby }}>{formatCurrency(line.discount_amount)}</td>
                                             <td style={{ padding: '12px', fontWeight: 900, color: THEME.primary }}>{formatCurrency(line.total_price)}</td>
-                                            <td style={{ padding: '12px' }}><button onClick={() => handleRemoveLine(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby, cursor: 'pointer', fontSize: '16px' }}><Trash2 size={14} aria-hidden="true" /></button></td>
+                                            <td style={{ padding: '12px' }}><button onClick={() => handleRemoveLine(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby, cursor: 'pointer', fontSize: 'var(--fs-lg)' }}><Trash2 size={14} aria-hidden="true" /></button></td>
                                         </tr>
                                     ))}
                                 </tbody>
@@ -496,20 +496,20 @@ export default function ExpenseFormModal({
 
                 <div className="responsive-summary-grid" style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>إجمالي الأعمال</div>
-                        <div style={{ fontSize: '20px', fontWeight: 900 }}>{formatCurrency(finalSubtotal)}</div>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الأعمال</div>
+                        <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900 }}>{formatCurrency(finalSubtotal)}</div>
                     </div>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>إجمالي الضريبة</div>
-                        <div style={{ fontSize: '20px', fontWeight: 900 }}>{formatCurrency(finalVat)}</div>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الضريبة</div>
+                        <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900 }}>{formatCurrency(finalVat)}</div>
                     </div>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 800 }}>إجمالي الخصم</div>
-                        <div style={{ fontSize: '20px', fontWeight: 900, color: THEME.ruby }}>{formatCurrency(finalDiscount)}</div>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الخصم</div>
+                        <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.ruby }}>{formatCurrency(finalDiscount)}</div>
                     </div>
                     <div style={{ background: `linear-gradient(135deg, ${THEME.accent}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.accent}80`, boxShadow: `0 0 20px ${THEME.accent}20` }}>
-                        <div style={{ fontSize: '12px', fontWeight: 900, color: THEME.accentLight }}>الصافي المستحق</div>
-                        <div style={{ fontSize: '26px', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(finalTotal)}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.accentLight }}>الصافي المستحق</div>
+                        <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(finalTotal)}</div>
                     </div>
                 </div>
 

@@ -77,7 +77,7 @@ export default function ViolationsPage() {
           const type = row?.violation_type || 'غرامة';
           const bg = type === 'غرامة' ? '#fef2f2' : '#fff7ed';
           const fg = type === 'غرامة' ? '#ef4444' : '#d97706';
-          return <span style={{ background: bg, color: fg, padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 900 }}>{type}</span>;
+          return <span style={{ background: bg, color: fg, padding: '4px 8px', borderRadius: '6px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>{type}</span>;
       }
     },
     { 
@@ -91,13 +91,13 @@ export default function ViolationsPage() {
       render: (row: any) => {
         return row?.image_url ? (
           <img src={row.image_url} alt="مرفق" style={{width:'45px', height:'45px', borderRadius:'10px', border:'2px solid #e2e8f0', objectFit: 'cover'}} />
-        ) : <span style={{color: '#94a3b8', fontSize: '11px', fontWeight: 800}}>بدون</span>;
+        ) : <span style={{color: '#94a3b8', fontSize: 'var(--fs-xs)', fontWeight: 800}}>بدون</span>;
       } 
     },
     { 
       key: 'amount',
       header: 'المبلغ', 
-      render: (row: any) => <span style={{ fontWeight: 900, color: THEME.ruby, fontSize: '15px' }}>{formatCurrency(row?.amount || 0)}</span>
+      render: (row: any) => <span style={{ fontWeight: 900, color: THEME.ruby, fontSize: 'var(--fs-lg)' }}>{formatCurrency(row?.amount || 0)}</span>
     },
     {
       key: 'is_posted',
@@ -115,7 +115,7 @@ export default function ViolationsPage() {
         return (
           can('violations', 'edit') && !row.is_posted ? (
             <button onClick={(e) => { e.stopPropagation(); logic.actions.handleEdit(row); }} className="btn-glass-print"><Pencil size={16} aria-hidden="true" /></button>
-          ) : <span style={{color:'#94a3b8', fontSize:'11px', fontWeight: 900}}>مقفل</span>
+          ) : <span style={{color:'#94a3b8', fontSize:'var(--fs-xs)', fontWeight: 900}}>مقفل</span>
         );
       }
     }
@@ -129,7 +129,7 @@ export default function ViolationsPage() {
       
       {logic.state.selectedIds.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <p style={{fontSize:'11px', textAlign:'center', color:'#94a3b8', fontWeight:900, margin:0}}>تم تحديد ({logic.state.selectedIds.length}) سجل</p>
+          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, margin:0}}>تم تحديد ({logic.state.selectedIds.length}) سجل</p>
           <SecureAction module="violations" action="post">
             <button className="btn-main-glass green" onClick={logic.actions.handlePost}>ترحيل للرواتب</button>
           </SecureAction>
@@ -178,16 +178,16 @@ export default function ViolationsPage() {
             <RawasiSidebarManager 
               summary={
                 <div className="summary-glass-card">
-                  <span style={{fontSize:'12px', fontWeight:800, color:'#64748b'}}>إجمالي المبالغ المفلترة</span>
-                  <div className="val" style={{fontSize:'24px', fontWeight:900, color: THEME.ruby, marginTop:'5px'}}>{formatCurrency(logic.totals.totalSum)}</div>
-                  <div style={{fontSize:'11px', color:'#10b981', fontWeight:800, marginTop:'5px'}}>عدد السجلات: {logic.totals.totalCount}</div>
+                  <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي المبالغ المفلترة</span>
+                  <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.ruby, marginTop:'5px'}}>{formatCurrency(logic.totals.totalSum)}</div>
+                  <div style={{fontSize:'var(--fs-xs)', color:'#10b981', fontWeight:800, marginTop:'5px'}}>عدد السجلات: {logic.totals.totalCount}</div>
                 </div>
               }
               actions={sidebarActions}
               customFilters={
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '10px' }}>
                   <div>
-                    <label style={{ color: 'white', fontSize: '11px', fontWeight: 900, display: 'block', marginBottom: '8px' }}>الحالة:</label>
+                    <label style={{ color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '8px' }}>الحالة:</label>
                     <div style={{ display: 'flex', gap: '5px' }}>
                       {['الكل', 'معتمد', 'معلق'].map(type => (
                         <button key={type} onClick={() => { logic.actions.setFilterStatus(type); setCurrentPage(1); }} className={`filter-btn ${logic.state.filterStatus === type ? 'active' : ''}`}>{type}</button>
@@ -202,16 +202,16 @@ export default function ViolationsPage() {
 
             <style>{`
               .custom-checkbox { width: 20px; height: 20px; accent-color: ${THEME.goldAccent}; cursor: pointer; transition: 0.1s; }
-              .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+              .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
               .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
               .btn-main-glass.green { background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.9)); color: white; }
               .btn-main-glass.yellow { background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.9)); color: white; }
               .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
               .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); }
               .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
-              .filter-btn { flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: 11px; transition: 0.3s; }
+              .filter-btn { flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: var(--fs-xs); transition: 0.3s; }
               .filter-btn.active { background: ${THEME.goldAccent}; color: #1e293b; }
-              .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 900; display: inline-block; }
+              .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 900; display: inline-block; }
               .badge-glass.green { background: #ecfdf5; color: #059669; }
               .badge-glass.yellow { background: #fff7ed; color: #d97706; }
               .btn-glass-print { background: rgba(0, 0, 0, 0.03); border: 1px solid rgba(0, 0, 0, 0.1); padding: 8px 14px; border-radius: 12px; cursor: pointer; transition: 0.2s; }
@@ -221,7 +221,7 @@ export default function ViolationsPage() {
               .type-selector { display: flex; gap: 10px; background: #f8fafc; padding: 10px; border-radius: 14px; border: 2px solid #e2e8f0; }
               .type-radio { flex: 1; position: relative; cursor: pointer; }
               .type-radio input { position: absolute; opacity: 0; cursor: pointer; }
-              .type-label { display: block; padding: 12px 10px; text-align: center; border-radius: 10px; font-size: 12px; font-weight: 900; color: #64748b; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
+              .type-label { display: block; padding: 12px 10px; text-align: center; border-radius: 10px; font-size: var(--fs-sm); font-weight: 900; color: #64748b; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
               .type-radio input:checked + .type-label.penalty { background: #fef2f2; color: #ef4444; border-color: #fca5a5; }
               .type-radio input:checked + .type-label.housing { background: #fff7ed; color: #d97706; border-color: #fcd34d; }
             `}</style>
@@ -239,13 +239,13 @@ export default function ViolationsPage() {
           <div style={{ background: 'white', padding: '35px', borderRadius: '14px', width: '100%', maxWidth: '650px', direction: 'rtl', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', margin: 'auto' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '15px', borderBottom: '2px dashed #f1f5f9' }}>
-                <h3 style={{fontWeight:900, fontSize:'20px', color: THEME.primary, margin: 0}}>تسجيل حركة خصم / استقطاع</h3>
+                <h3 style={{fontWeight:900, fontSize:'var(--fs-xl)', color: THEME.primary, margin: 0}}>تسجيل حركة خصم / استقطاع</h3>
                 <button onClick={() => { stopCamera(); logic.state.setIsEditModalOpen(false); }} style={{ background: '#f1f5f9', border: 'none', width: '35px', height: '35px', borderRadius: '50%', cursor: 'pointer', fontWeight: 900, color: '#64748b' }}>✕</button>
             </div>
             
             {/* 🎯 أزرار اختيار نوع الحركة (تم إزالة السلف) */}
             <div style={{ marginBottom: '25px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 900, color: '#334155', display: 'block', marginBottom: '8px' }}>حدد طبيعة الخصم (للتوجيه المحاسبي):</label>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#334155', display: 'block', marginBottom: '8px' }}>حدد طبيعة الخصم (للتوجيه المحاسبي):</label>
                 <div className="type-selector">
                     <label className="type-radio">
                         <input type="radio" name="v_type" checked={logic.state.editingRecord.violation_type === 'غرامة'} onChange={() => logic.state.setEditingRecord({...logic.state.editingRecord, violation_type: 'غرامة'})} />
@@ -260,7 +260,7 @@ export default function ViolationsPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>تاريخ الاستقطاع</label>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>تاريخ الاستقطاع</label>
                 <input type="date" value={logic.state.editingRecord.date || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, date: e.target.value})} style={{ padding: '14px', borderRadius: '14px', border: '2px solid #e2e8f0', width: '100%', fontWeight: 800, outline: 'none', background: '#f8fafc' }} />
               </div>
               <div style={{ zIndex: 100 }}>
@@ -277,7 +277,7 @@ export default function ViolationsPage() {
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '20px' }}>
               <div>
-                <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>المهنة</label>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>المهنة</label>
                 <input type="text" value={logic.state.editingRecord.profession || ''} readOnly style={{ padding: '14px', borderRadius: '14px', border: '2px solid #e2e8f0', width: '100%', fontWeight: 800, outline: 'none', background: '#f8fafc', opacity: 0.7 }} placeholder="تُسحب تلقائياً..." />
               </div>
               <div style={{ zIndex: 90 }}>
@@ -292,13 +292,13 @@ export default function ViolationsPage() {
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>البيان الوصفي (السبب)</label>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '8px' }}>البيان الوصفي (السبب)</label>
                 <input type="text" placeholder="مثال: خصم إيجار سكن شهر مايو" value={logic.state.editingRecord.reason || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, reason: e.target.value})} style={{ padding: '14px', borderRadius: '14px', border: '2px solid #e2e8f0', width: '100%', fontWeight: 800, outline: 'none', background: '#f8fafc' }} />
             </div>
 
             <div style={{ marginBottom: '30px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 900, color: THEME.ruby, display: 'block', marginBottom: '8px' }}>قيمة المبلغ المخصوم</label>
-                <input type="number" value={logic.state.editingRecord.amount || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, amount: Number(e.target.value)})} style={{ padding: '14px', borderRadius: '14px', border: `2px solid ${THEME.ruby}40`, width: '100%', fontWeight: 900, outline: 'none', background: '#fef2f2', color: THEME.ruby, fontSize: '20px' }} />
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.ruby, display: 'block', marginBottom: '8px' }}>قيمة المبلغ المخصوم</label>
+                <input type="number" value={logic.state.editingRecord.amount || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, amount: Number(e.target.value)})} style={{ padding: '14px', borderRadius: '14px', border: `2px solid ${THEME.ruby}40`, width: '100%', fontWeight: 900, outline: 'none', background: '#fef2f2', color: THEME.ruby, fontSize: 'var(--fs-xl)' }} />
             </div>
 
             <div style={{ background: '#f8fafc', padding: '25px', borderRadius: '14px', border: '2px dashed #cbd5e1', marginBottom: '30px', textAlign: 'center' }}>

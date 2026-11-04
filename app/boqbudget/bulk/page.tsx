@@ -32,17 +32,17 @@ export default function BulkBudgetPage() {
           gap: 20px;
           flex-wrap: wrap;
         }
-        .header-title { font-size: 24px; font-weight: 800; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 10px; }
+        .header-title { font-size: var(--fs-2xl); font-weight: 800; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 10px; }
         
         .filters-row { display: flex; gap: 20px; flex: 1; align-items: flex-end; }
         .filter-group { display: flex; flex-direction: column; gap: 8px; flex: 1; }
-        .filter-group label { font-size: 14px; font-weight: 700; color: #475569; }
+        .filter-group label { font-size: var(--fs-md); font-weight: 700; color: #475569; }
         .styled-select {
           padding: 12px 15px;
           border-radius: 12px;
           border: 1px solid #cbd5e1;
           background: rgba(255,255,255,0.8);
-          font-size: 15px;
+          font-size: var(--fs-lg);
           color: #1e293b;
           outline: none;
           transition: all 0.3s;
@@ -57,7 +57,7 @@ export default function BulkBudgetPage() {
           padding: 12px 25px;
           border-radius: 12px;
           font-weight: 700;
-          font-size: 16px;
+          font-size: var(--fs-lg);
           cursor: pointer;
           transition: all 0.3s;
           display: flex;
@@ -84,7 +84,7 @@ export default function BulkBudgetPage() {
           text-align: right;
           font-weight: 800;
           color: #334155;
-          font-size: 14px;
+          font-size: var(--fs-md);
           border-bottom: 2px solid ${THEME.border};
           white-space: nowrap;
         }
@@ -101,7 +101,7 @@ export default function BulkBudgetPage() {
           border-radius: 8px;
           border: 1px solid #e2e8f0;
           background: #f8fafc;
-          font-size: 14px;
+          font-size: var(--fs-md);
           transition: all 0.2s;
           text-align: center;
         }
@@ -111,7 +111,7 @@ export default function BulkBudgetPage() {
           outline: none;
           box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.15);
         }
-        .villa-name { font-weight: 700; color: #0f172a; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+        .villa-name { font-weight: 700; color: #0f172a; font-size: var(--fs-lg); display: flex; align-items: center; gap: 8px; }
       `}</style>
 
       <div className="glass-header">
@@ -212,8 +212,8 @@ export default function BulkBudgetPage() {
                     <div className="villa-name">
                       <span style={{color: THEME.accent}}><House size={16} aria-hidden="true" /></span> 
                       {b.projects?.Property || 'بدون فيلا'}
-                      {b.projects?.unit_type && <span style={{ fontSize: '12px', background: 'rgba(202, 138, 4, 0.1)', color: THEME.accent, padding: '2px 8px', borderRadius: '10px' }}>{b.projects.unit_type}</span>}
-                      {b._isNew && <span style={{ fontSize: '10px', background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '10px' }}>غير مسجل</span>}
+                      {b.projects?.unit_type && <span style={{ fontSize: 'var(--fs-sm)', background: 'rgba(202, 138, 4, 0.1)', color: THEME.accent, padding: '2px 8px', borderRadius: '10px' }}>{b.projects.unit_type}</span>}
+                      {b._isNew && <span style={{ fontSize: 'var(--fs-xs)', background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '10px' }}>غير مسجل</span>}
                     </div>
                   </td>
                   <td>

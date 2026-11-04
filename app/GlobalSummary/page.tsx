@@ -164,7 +164,7 @@ function KPICard({ title, value, icon, color, isCurrency = true }: any) {
     return (
         <div className="kpi-card fade-in-up" style={{ borderRight: `4px solid ${color}` }}>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted)' }}>{title}</span>
+                <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--text-muted)' }}>{title}</span>
                 <span style={{ display: 'inline-flex' }}><PhiIcon value={icon} size={20} /></span>
             </div>
             <h2 style={{ color: color, marginTop: '10px' }}>{isCurrency ? formatCurrency(value) : value}</h2>
@@ -176,7 +176,7 @@ function ProgressBar({ label, percentage, color }: any) {
     const safePercent = Math.min(percentage, 100);
     return (
         <div style={{ marginBottom: '15px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '5px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', marginBottom: '5px' }}>
                 <span>{label}</span>
                 <span style={{ fontWeight: 900 }}>{percentage.toFixed(1)}%</span>
             </div>
@@ -191,7 +191,7 @@ function QuickAction({ icon, label }: any) {
     return (
         <div className="btn" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: THEME.primary, padding: '15px', flexDirection: 'column' }}>
             <span style={{ display: 'inline-flex' }}><PhiIcon value={icon} size={20} /></span>
-            <span style={{ fontSize: '12px' }}>{label}</span>
+            <span style={{ fontSize: 'var(--fs-sm)' }}>{label}</span>
         </div>
                 );
 }

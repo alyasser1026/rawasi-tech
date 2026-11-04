@@ -47,7 +47,7 @@ export default function MaterialCatalogPage() {
   const tableColumns = [
     { header: 'كود الصنف', render: (row: any) => <strong style={{ color: THEME.primary }}>{row.item_code || '---'}</strong> },
     { header: 'اسم الخريطة / الصنف', render: (row: any) => <span style={{ fontWeight: 900 }}>{row.item_name}</span> },
-    { header: 'التصنيف الرئيسي', render: (row: any) => <span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '8px', fontSize: '12px', fontWeight: 800 }}>{row.main_category || 'عام'}</span> },
+    { header: 'التصنيف الرئيسي', render: (row: any) => <span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>{row.main_category || 'عام'}</span> },
     { header: 'الوحدة الافتراضية', render: (row: any) => <span style={{ fontWeight: 700 }}>{row.default_unit}</span> },
     { header: 'السعر الاسترشادي', render: (row: any) => <span style={{ color: THEME.success, fontWeight: 900 }}>{formatCurrency(row.default_unit_price)}</span> },
     {
@@ -56,7 +56,7 @@ export default function MaterialCatalogPage() {
         <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
           <button 
             onClick={() => { logic.setCurrentRecord(row); logic.setIsModalOpen(true); }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }} title="تعديل"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-lg)' }} title="تعديل"
           ><Pencil size={14} aria-hidden="true" /></button>
           <button 
             onClick={() => {
@@ -67,7 +67,7 @@ export default function MaterialCatalogPage() {
                 onConfirm: () => logic.deleteItem(row.id)
               });
             }}
-            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '16px' }} title="حذف"
+            style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-lg)' }} title="حذف"
           ><Trash2 size={14} aria-hidden="true" /></button>
         </div>
       )
@@ -98,8 +98,8 @@ export default function MaterialCatalogPage() {
         <RawasiSidebarManager 
           summary={
             <div className="summary-glass-card">
-              <span style={{ fontSize: '12px', fontWeight: 800, color: '#64748b' }}>إجمالي الأصناف المسجلة</span>
-              <div className="val" style={{ fontSize: '24px', fontWeight: 900, color: THEME.primary, marginTop: '5px' }}>{logic.items.length} صنف</div>
+              <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#64748b' }}>إجمالي الأصناف المسجلة</span>
+              <div className="val" style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: THEME.primary, marginTop: '5px' }}>{logic.items.length} صنف</div>
             </div>
           }
           actions={sidebarActions}
@@ -131,17 +131,17 @@ export default function MaterialCatalogPage() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '15px' }}>
-                  <div><label style={{ fontSize: '12px', fontWeight: 900 }}>كود الصنف</label><input type="text" className="glass-input-field" placeholder="MAT-001" value={logic.currentRecord.item_code || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, item_code: e.target.value})} /></div>
-                  <div><label style={{ fontSize: '12px', fontWeight: 900 }}>اسم الخامة / الصنف الموحد</label><input type="text" className="glass-input-field" placeholder="مثال: حديد تسليح عز 16 مم" value={logic.currentRecord.item_name || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, item_name: e.target.value})} /></div>
+                  <div><label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>كود الصنف</label><input type="text" className="glass-input-field" placeholder="MAT-001" value={logic.currentRecord.item_code || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, item_code: e.target.value})} /></div>
+                  <div><label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>اسم الخامة / الصنف الموحد</label><input type="text" className="glass-input-field" placeholder="مثال: حديد تسليح عز 16 مم" value={logic.currentRecord.item_name || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, item_name: e.target.value})} /></div>
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
-                  <div><label style={{ fontSize: '12px', fontWeight: 900 }}>التصنيف (النوع)</label><input type="text" className="glass-input-field" placeholder="مثال: حديد، أسمنت، دهانات" value={logic.currentRecord.main_category || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, main_category: e.target.value})} /></div>
-                  <div><label style={{ fontSize: '12px', fontWeight: 900 }}>الوحدة الافتراضية</label><input type="text" className="glass-input-field" placeholder="طن، متر، كيس، حبة" value={logic.currentRecord.default_unit || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, default_unit: e.target.value})} /></div>
+                  <div><label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>التصنيف (النوع)</label><input type="text" className="glass-input-field" placeholder="مثال: حديد، أسمنت، دهانات" value={logic.currentRecord.main_category || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, main_category: e.target.value})} /></div>
+                  <div><label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>الوحدة الافتراضية</label><input type="text" className="glass-input-field" placeholder="طن، متر، كيس، حبة" value={logic.currentRecord.default_unit || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, default_unit: e.target.value})} /></div>
                 </div>
 
-                <div><label style={{ fontSize: '12px', fontWeight: 900 }}>السعر الاسترشادي المتوقع</label><input type="number" className="glass-input-field" placeholder="0.00" value={logic.currentRecord.default_unit_price || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, default_unit_price: Number(e.target.value)})} /></div>
-                <div><label style={{ fontSize: '12px', fontWeight: 900 }}>ملاحظات ومواصفات</label><textarea className="glass-input-field" rows={2} placeholder="أي مواصفات فنية خاصة بالخامة..." value={logic.currentRecord.notes || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, notes: e.target.value})}></textarea></div>
+                <div><label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>السعر الاسترشادي المتوقع</label><input type="number" className="glass-input-field" placeholder="0.00" value={logic.currentRecord.default_unit_price || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, default_unit_price: Number(e.target.value)})} /></div>
+                <div><label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>ملاحظات ومواصفات</label><textarea className="glass-input-field" rows={2} placeholder="أي مواصفات فنية خاصة بالخامة..." value={logic.currentRecord.notes || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, notes: e.target.value})}></textarea></div>
               </div>
 
               <div style={{ display: 'flex', gap: '15px', marginTop: '30px' }}>

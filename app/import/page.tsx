@@ -320,7 +320,7 @@ export default function UnifiedImportHub() {
         
         return (
             <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: '12px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: 'var(--fs-sm)' }}>
                     <thead>
                         <tr style={{ background: '#f8fafc', color: '#475569' }}>
                             <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0', width: '30px' }}>حالة</th>
@@ -332,8 +332,8 @@ export default function UnifiedImportHub() {
                             <tr key={i} style={{ background: row._errors?.length > 0 ? '#fef2f2' : (row._fixes?.length > 0 ? '#f0fdf4' : 'white'), borderBottom: '1px solid #f1f5f9' }}>
                                 <td style={{ padding: '12px' }}>
                                     {row._errors?.length > 0 
-                                        ? <span title={row._errors.join(' | ')} style={{ cursor: 'help', fontSize: '16px' }}><X size={14} aria-hidden="true" /></span> 
-                                        : (row._fixes?.length > 0 ? <span title="تم التصحيح آلياً" style={{ cursor: 'help', fontSize: '16px' }}><Wrench size={14} aria-hidden="true" /></span> : <span style={{ fontSize: '16px' }}><CircleCheck size={14} aria-hidden="true" /></span>)}
+                                        ? <span title={row._errors.join(' | ')} style={{ cursor: 'help', fontSize: 'var(--fs-lg)' }}><X size={14} aria-hidden="true" /></span> 
+                                        : (row._fixes?.length > 0 ? <span title="تم التصحيح آلياً" style={{ cursor: 'help', fontSize: 'var(--fs-lg)' }}><Wrench size={14} aria-hidden="true" /></span> : <span style={{ fontSize: 'var(--fs-lg)' }}><CircleCheck size={14} aria-hidden="true" /></span>)}
                                 </td>
                                 {keys.map(k => {
                                     const fix = row._fixes?.find((f:any) => f.col === k);
@@ -341,12 +341,12 @@ export default function UnifiedImportHub() {
                                     <td key={k} style={{ padding: '12px', color: row._errors?.length > 0 ? '#991b1b' : (fix ? '#166534' : '#334155') }}>
                                         {row[k]}
                                         {row._errors?.length > 0 && (k === 'اسم العامل' || k === 'الفيلا' || k === 'البند' || k === 'اسم المستفيد') && (
-                                            <div style={{ fontSize: '10px', color: '#dc2626', fontWeight: 'bold', marginTop: '4px' }}>
+                                            <div style={{ fontSize: 'var(--fs-xs)', color: '#dc2626', fontWeight: 'bold', marginTop: '4px' }}>
                                                 {row._errors.find((e:string) => e.includes(k.split(' ')[1] || k))}
                                             </div>
                                         )}
                                         {fix && (
-                                            <div style={{ fontSize: '10px', color: '#16a34a', fontWeight: 'bold', marginTop: '4px' }}>
+                                            <div style={{ fontSize: 'var(--fs-xs)', color: '#16a34a', fontWeight: 'bold', marginTop: '4px' }}>
                                                 {fix.msg}
                                             </div>
                                         )}
@@ -367,9 +367,9 @@ export default function UnifiedImportHub() {
                 {/* Sidebar Controls */}
                 <GlassContainer>
                     <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                        <div style={{ fontSize: '40px', marginBottom: '10px' }}><ChartColumn size={34} aria-hidden="true" /></div>
+                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '10px' }}><ChartColumn size={34} aria-hidden="true" /></div>
                         <h2 style={{ margin: 0, color: THEME.primary, fontWeight: 900 }}>الاستيراد الشامل</h2>
-                        <p style={{ fontSize: '12px', color: '#64748b', fontWeight: 700, marginTop: '5px' }}>
+                        <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 700, marginTop: '5px' }}>
                             حمل القالب، املأ البيانات، ارفعه هنا.
                         </p>
                     </div>
@@ -416,7 +416,7 @@ export default function UnifiedImportHub() {
                             </div>
 
                             {hasErrors && (
-                                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '15px', borderRadius: '12px', marginBottom: '20px', color: '#991b1b', fontSize: '13px', fontWeight: 900 }}>
+                                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '15px', borderRadius: '12px', marginBottom: '20px', color: '#991b1b', fontSize: 'var(--fs-sm)', fontWeight: 900 }}>
                                     يوجد أخطاء في بعض السطور مضللة باللون الأحمر. يرجى التأكد من مطابقة الأسماء والفلل والبنود مع المسجل في النظام.
                                 </div>
                             )}
@@ -428,9 +428,9 @@ export default function UnifiedImportHub() {
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', textAlign: 'center' }}>
-                            <div style={{ fontSize: '50px', marginBottom: '15px', opacity: 0.5 }}><Pencil size={40} aria-hidden="true" /></div>
+                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '15px', opacity: 0.5 }}><Pencil size={40} aria-hidden="true" /></div>
                             <h3 style={{ margin: 0, fontWeight: 900 }}>شاشة المعاينة الذكية</h3>
-                            <p style={{ fontSize: '13px', fontWeight: 700, maxWidth: '300px', marginTop: '10px' }}>
+                            <p style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, maxWidth: '300px', marginTop: '10px' }}>
                                 قم برفع الملف لتظهر البيانات هنا ويتم مراجعتها آلياً ومطابقتها مع الداتابيز قبل الاعتماد.
                             </p>
                         </div>
@@ -439,18 +439,18 @@ export default function UnifiedImportHub() {
             </div>
 
             <style>{`
-                .btn-action { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 900; font-size: 14px; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+                .btn-action { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
                 .btn-action.primary { background: #0f172a; color: white; }
                 .btn-action.primary:hover { background: #1e293b; transform: translateY(-2px); }
                 .btn-action.success { background: #10b981; color: white; }
                 .btn-action.success:hover { background: #059669; transform: translateY(-2px); }
                 .btn-action.disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; border: 1px solid #e2e8f0; }
                 
-                .upload-dropzone { border: 2px dashed #cbd5e1; background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.2s; font-weight: 900; font-size: 14px; color: #3b82f6; display: block; }
+                .upload-dropzone { border: 2px dashed #cbd5e1; background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.2s; font-weight: 900; font-size: var(--fs-md); color: #3b82f6; display: block; }
                 .upload-dropzone:hover { background: #eff6ff; border-color: #3b82f6; }
                 .upload-dropzone.loading { opacity: 0.7; cursor: wait; background: #f1f5f9; border-color: #94a3b8; color: #64748b; }
 
-                .tab-btn { padding: 10px 20px; border-radius: 10px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-weight: 900; font-size: 13px; cursor: pointer; transition: 0.2s; white-space: nowrap; }
+                .tab-btn { padding: 10px 20px; border-radius: 10px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-weight: 900; font-size: var(--fs-sm); cursor: pointer; transition: 0.2s; white-space: nowrap; }
                 .tab-btn:hover { background: #f8fafc; }
                 .tab-btn.active { background: #0f172a; color: white; border-color: #0f172a; box-shadow: 0 4px 10px rgba(15,23,42,0.2); }
             `}</style>
