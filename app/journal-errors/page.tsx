@@ -80,10 +80,10 @@ export default function JournalMaintenancePage() {
                             {/* شريط الإحصائيات (KPIs) */}
                             <div style={{ display: 'flex', gap: '0.9375rem', overflowX: 'auto', paddingBottom: '0.625rem' }}>
                                 {kpis.map((kpi, idx) => (
-                                    <div key={idx} style={{ flex: 1, minWidth: '7.5rem', background: `${kpi.color}10`, padding: '0.9375rem', borderRadius: '16px', border: `1px solid ${kpi.color}30`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
+                                    <div key={idx} style={{ flex: 1, minWidth: '7.5rem', background: 'var(--surface-subcard)', padding: '0.9375rem', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-elevation)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                                         <span style={{ display: 'inline-flex' }}><PhiIcon value={kpi.icon} size={22} /></span>
                                         <span style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: kpi.color }}>{kpi.value}</span>
-                                        <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 'bold', color: '#475569' }}>{kpi.title}</span>
+                                        <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 'bold', color: 'var(--text-secondary)' }}>{kpi.title}</span>
                                     </div>
                                 ))}
                             </div>
@@ -92,10 +92,14 @@ export default function JournalMaintenancePage() {
 
                     {/* 🔍 منطقة الجداول */}
                     {!logic.hasScanned ? (
-                        <div style={{ textAlign: 'center', padding: '6.25rem 1.25rem', color: '#94a3b8', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', borderRadius: '14px', border: '2px dashed #cbd5e1' }}>
-                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem', animation: 'pulse 2s infinite' }}><ScanSearch size={40} aria-hidden="true" /></div>
-                            <h2 style={{ color: THEME.primary, fontWeight: 900 }}>النظام جاهز للفحص</h2>
-                            <p style={{ fontSize: 'var(--fs-lg)' }}>استخدم زر "إطلاق الرادار" من القائمة الجانبية للبدء.</p>
+                        <div className="glossy-card" style={{ textAlign: 'center', padding: '5rem 1.5rem', color: 'var(--text-secondary, #94a3b8)', background: 'var(--surface-card)', borderRadius: '24px', border: 'none', boxShadow: 'var(--shadow-ambient)', position: 'relative', overflow: 'hidden' }}>
+                            <div className="specular-top" />
+                            <div className="gloss-overlay" />
+                            <div style={{ position: 'relative', zIndex: 2 }}>
+                                <div style={{ width: '4.5rem', height: '4.5rem', margin: '0 auto 1.25rem', borderRadius: '50%', background: 'var(--accent-soft-bg, rgba(249, 115, 22, 0.12))', color: 'var(--accent-main, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 25px var(--accent-glow)', animation: 'pulse 2s infinite' }}><ScanSearch size={36} aria-hidden="true" /></div>
+                                <h2 style={{ color: 'var(--accent-bright, #fb923c)', fontWeight: 900, fontSize: 'var(--fs-2xl)', margin: '0 0 0.5rem' }}>النظام جاهز للفحص</h2>
+                                <p style={{ fontSize: 'var(--fs-md)', color: 'var(--text-secondary, #94a3b8)', margin: 0 }}>استخدم زر &quot;إطلاق الرادار&quot; من القائمة الجانبية للبدء.</p>
+                            </div>
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.875rem' }}>
@@ -144,7 +148,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 if (!item || !item.id) return null; 
 
                 return (
-                    <span style={{ fontWeight: 900, fontFamily: 'monospace', color: '#334155' }}>
+                    <span style={{ fontWeight: 900, fontFamily: 'monospace', color: 'var(--text-primary)' }}>
                         {/* 🛡️ الباب التاسع: صرامة الأنواع (Strict Casting) لضمان توافق الـ UUID */}
                         {item.isGhost ? 'GHOST' : `JRN-${String(item.id).slice(0,8).toUpperCase()}`}
                     </span>
@@ -169,7 +173,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                             <span style={{ background: `${color}15`, color: color, padding: '2px 0.375rem', borderRadius: '4px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>
                                 {formatCurrency(documentAmount)}
                             </span>
-                            {documentDate && <span style={{ background: '#f1f5f9', padding: '2px 0.375rem', borderRadius: '4px', fontSize: 'var(--fs-xs)' }}>{documentDate}</span>}
+                            {documentDate && <span style={{ background: 'var(--surface-subcard)', color: 'var(--text-secondary)', padding: '2px 0.375rem', borderRadius: '4px', fontSize: 'var(--fs-xs)' }}>{documentDate}</span>}
                             {refId && (
                                 <span style={{ background: 'rgba(255, 247, 237, 0.8)', color: '#d97706', padding: '2px 0.375rem', borderRadius: '4px', fontSize: 'var(--fs-xs)', border: '1px dashed #fcd34d' }}>
                                     {/* 🛡️ الباب التاسع: إجبار المعرفات المحاسبية باستخدام String(id) */}

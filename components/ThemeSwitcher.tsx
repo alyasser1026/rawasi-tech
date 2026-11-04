@@ -27,7 +27,15 @@ export default function ThemeSwitcher() {
   }, []);
 
   return (
-    <div className="flex items-center gap-1.5" ref={containerRef}>
+    <div
+      ref={containerRef}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "0.25rem",
+        position: "relative",
+      }}
+    >
       {/* Day / Night Toggle Button */}
       <button
         type="button"
@@ -36,11 +44,15 @@ export default function ThemeSwitcher() {
         title={mode === "dark" ? "التبديل إلى الوضع النهاري اللؤلؤي" : "التبديل إلى الوضع الليلي الفحمي"}
         aria-label={mode === "dark" ? "الوضع النهاري" : "الوضع الليلي"}
       >
-        {mode === "dark" ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-slate-700" />}
+        {mode === "dark" ? (
+          <Sun size={17} style={{ color: "#fbbf24" }} />
+        ) : (
+          <Moon size={17} style={{ color: "var(--text-secondary, #64748b)" }} />
+        )}
       </button>
 
-      {/* Accent Color Palette Selector */}
-      <div className="relative">
+      {/* Accent Color Palette Selector Button */}
+      <div style={{ position: "relative", display: "inline-flex" }}>
         <button
           type="button"
           className="ent-icon-button"
@@ -54,44 +66,85 @@ export default function ThemeSwitcher() {
 
         {dropdownOpen && (
           <div
-            className="absolute left-0 mt-2 w-56 rounded-2xl p-2 z-50 shadow-2xl backdrop-blur-xl"
             style={{
+              position: "absolute",
+              top: "calc(100% + 0.5rem)",
+              left: 0,
+              minWidth: "14.5rem",
+              borderRadius: "16px",
+              padding: "0.625rem",
+              zIndex: 10000,
+              backdropFilter: "blur(24px)",
+              WebkitBackdropFilter: "blur(24px)",
               background: "var(--surface-card, #12151c)",
               boxShadow: "var(--shadow-elevation, 0 20px 45px rgba(0,0,0,0.8))",
               border: "none",
+              display: "flex",
+              flexDirection: "column",
+              gap: "0.375rem",
+              direction: "rtl",
             }}
           >
-            <div className="px-2.5 py-1.5 text-xs font-bold" style={{ color: "var(--text-secondary, #94a3b8)" }}>
+            <div
+              style={{
+                padding: "0.25rem 0.5rem 0.375rem",
+                fontSize: "var(--fs-xs, 0.75rem)",
+                fontWeight: 800,
+                color: "var(--text-secondary, #94a3b8)",
+                borderBottom: "1px solid var(--table-zebra-bg, rgba(255,255,255,0.06))",
+              }}
+            >
               الهوية اللونية (Accent)
             </div>
-            <div className="space-y-1">
-              {accents.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => {
-                    setAccent(item.id);
-                    setDropdownOpen(false);
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all"
-                  style={{
-                    background: accent === item.id ? "var(--accent-soft-bg, rgba(249,115,22,0.15))" : "transparent",
-                    color: accent === item.id ? "var(--accent-main, #f97316)" : "var(--text-primary, #f8fafc)",
-                  }}
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{
-                        backgroundColor: item.color,
-                        boxShadow: `0 0 8px ${item.color}80`,
-                      }}
-                    />
-                    <span>{item.label}</span>
-                  </div>
-                  {accent === item.id && <Check size={14} className="shrink-0" />}
-                </button>
-              ))}
+
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+              {accents.map((item) => {
+                const isSelected = accent === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setAccent(item.id);
+                      setDropdownOpen(false);
+                    }}
+                    style={{
+                      width: "100%",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "0.5rem 0.75rem",
+                      borderRadius: "12px",
+                      fontSize: "var(--fs-xs, 0.75rem)",
+                      fontWeight: 700,
+                      border: "none",
+                      cursor: "pointer",
+                      background: isSelected
+                        ? "var(--accent-soft-bg, rgba(249,115,22,0.15))"
+                        : "transparent",
+                      color: isSelected
+                        ? "var(--accent-main, #f97316)"
+                        : "var(--text-primary, #f8fafc)",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.625rem" }}>
+                      <span
+                        style={{
+                          width: "0.75rem",
+                          height: "0.75rem",
+                          borderRadius: "50%",
+                          backgroundColor: item.color,
+                          boxShadow: `0 0 8px ${item.color}80`,
+                          flexShrink: 0,
+                        }}
+                      />
+                      <span>{item.label}</span>
+                    </div>
+                    {isSelected && <Check size={14} style={{ flexShrink: 0 }} />}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
