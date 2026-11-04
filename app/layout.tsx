@@ -1,5 +1,5 @@
-import { Cairo } from "next/font/google";
 import LayoutClient from '../components/layout/LayoutClient';
+import "./phi-fonts.css";
 import "./globals.css";
 import "./phi-scale.css";
 import "./workspace.css";
@@ -28,12 +28,7 @@ import { ConfirmProvider } from '../components/ConfirmContext';
 import GlobalNavigationShortcuts from '../components/GlobalNavigationShortcuts';
 import { PerformancePreferences } from '@/components/PerformancePreferences';
 
-const cairo = Cairo({ 
-  subsets: ["arabic"],
-  weight: ["400", "500", "700", "900"], // أضفنا وزن 500 للجماليات
-  display: 'swap',
-  variable: '--font-cairo', // تحويله لـ CSS Variable لأفضل أداء
-});
+// Cairo is self-hosted in app/phi-fonts.css (app/fonts), so builds never download fonts.
 
 // 📱 التعديل هنا: منع الـ Zoom وتغطية الشاشة بالكامل للموبايل
 export const viewport = {
@@ -60,7 +55,6 @@ export default function RootLayout({
     // 🛡️ suppressHydrationWarning يمنع رسائل الخطأ المزعجة في الكونسول
     <html lang="ar" dir="rtl" className="phi-brand" suppressHydrationWarning>
       <body 
-        className={`${cairo.className} ${cairo.variable}`} 
         style={{ 
           position: 'relative', 
           minHeight: '100vh', 
