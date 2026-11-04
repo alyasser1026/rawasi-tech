@@ -15,41 +15,41 @@
 }
 
 /* --------------------------------------------------------------------------
-   DARK MODE (الوضع الليلي الافتراضي: فحمي متدرّج جلوسي بدون إطارات)
+   DARK MODE (الوضع الليلي الافتراضي: أوبسيديان سيراميكي متدرّج جلوسي بدون إطارات)
    -------------------------------------------------------------------------- */
 :root,
 html[data-mode="dark"] {
   --bg-canvas: #07080b;
-  --bg-canvas-secondary: #0b0d12;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --bg-canvas-secondary: #0a0c0f;
+  --text-primary: #fefcf9;
+  --text-secondary: #ede5da;
+  --text-muted: #b8aea2;
 
-  /* Elevated Card Layered Gradients (Default Dark) */
-  --surface-card: linear-gradient(180deg, #181c24 0%, #12151c 52%, #0c0e12 100%);
-  --surface-card-hover: linear-gradient(180deg, #1d222c 0%, #151922 52%, #0e1016 100%);
-  --surface-header: linear-gradient(135deg, #171b24 0%, #101319 55%, #0a0c10 100%);
-  --surface-sidebar: linear-gradient(180deg, #151921 0%, #0f1218 60%, #090b0f 100%);
-  --surface-subcard: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
+  /* Elevated Card Layered Gradients (Warm Obsidian Deep Surfaces - Zero Dull Gray) */
+  --surface-card: linear-gradient(180deg, #181512 0%, #120f0d 52%, #0b0908 100%);
+  --surface-card-hover: linear-gradient(180deg, #221d18 0%, #171310 52%, #0e0c0a 100%);
+  --surface-header: linear-gradient(135deg, #191613 0%, #120f0d 55%, #090807 100%);
+  --surface-sidebar: linear-gradient(180deg, #161310 0%, #100e0b 60%, #090807 100%);
+  --surface-subcard: linear-gradient(180deg, rgba(249, 115, 22, 0.07) 0%, rgba(20, 16, 13, 0.92) 100%);
   
   /* Sunken Wells (Inputs, Search, Pill Tracks) - Borderless Inner Depth */
-  --surface-sunken: #07090c;
-  --shadow-sunken: inset 0 2px 6px rgba(0, 0, 0, 0.85), inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+  --surface-sunken: #090807;
+  --shadow-sunken: inset 0 2px 6px rgba(0, 0, 0, 0.92), inset 0 -1px 1px rgba(249, 115, 22, 0.06);
 
   /* Glossy Surface Sheen & Specular Top Reflection */
-  --gloss-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.085) 0%, rgba(255, 255, 255, 0.02) 42%, rgba(0, 0, 0, 0.28) 100%);
+  --gloss-sheen: linear-gradient(180deg, rgba(254, 243, 199, 0.06) 0%, rgba(255, 255, 255, 0.015) 38%, rgba(0, 0, 0, 0.35) 100%);
   --gloss-button: linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.04) 48%, rgba(0, 0, 0, 0.25) 100%);
-  --specular-beam: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.28) 50%, transparent 100%);
-  --specular-beam-soft: linear-gradient(90deg, transparent 5%, rgba(255, 255, 255, 0.14) 50%, transparent 95%);
+  --specular-beam: linear-gradient(90deg, transparent 0%, rgba(254, 215, 170, 0.35) 50%, transparent 100%);
+  --specular-beam-soft: linear-gradient(90deg, transparent 5%, rgba(254, 215, 170, 0.18) 50%, transparent 95%);
 
   /* Table Striping & Hover (Zero Borders) */
-  --table-head-bg: rgba(255, 255, 255, 0.03);
+  --table-head-bg: rgba(255, 255, 255, 0.035);
   --table-zebra-bg: rgba(255, 255, 255, 0.018);
-  --table-row-hover: linear-gradient(90deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.01) 100%);
+  --table-row-hover: linear-gradient(90deg, rgba(249, 115, 22, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
 
   /* Diffuse Elevation Shadows */
-  --shadow-elevation: 0 24px 48px -14px rgba(0, 0, 0, 0.82), 0 8px 20px -6px rgba(0, 0, 0, 0.6);
-  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(249, 115, 22, 0.09);
+  --shadow-elevation: 0 24px 48px -14px rgba(0, 0, 0, 0.88), 0 8px 20px -6px rgba(0, 0, 0, 0.65);
+  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.9), 0 12px 32px -10px rgba(249, 115, 22, 0.12);
   --chart-grid: rgba(255, 255, 255, 0.04);
 
   /* Legacy variable mappings */
@@ -59,12 +59,12 @@ html[data-mode="dark"] {
   --accent-light: rgba(249, 115, 22, 0.15);
   --white: #ffffff;
   --bg-main: #07080b;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --glass-surface: linear-gradient(180deg, #181c24 0%, #12151c 52%, #0c0e12 100%);
+  --text-main: #fefcf9;
+  --text-muted: #ede5da;
+  --glass-surface: linear-gradient(180deg, #181512 0%, #120f0d 52%, #0b0908 100%);
   --glass-border: transparent;
-  --input-bg: #07090c;
-  --card-shadow: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(249, 115, 22, 0.09);
+  --input-bg: #090807;
+  --card-shadow: 0 26px 54px -15px rgba(0, 0, 0, 0.9), 0 12px 32px -10px rgba(249, 115, 22, 0.12);
   --glow-accent: rgba(249, 115, 22, 0.35);
 }
 
@@ -72,16 +72,31 @@ html[data-mode="dark"] {
 :root,
 html[data-mode="dark"][data-accent="amber"],
 html:not([data-accent]) {
-  --surface-card: linear-gradient(180deg, #191d25 0%, #12151b 52%, #0c0e12 100%);
-  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(249, 115, 22, 0.09);
+  --text-primary: #fffdfa;
+  --text-secondary: #eee7dd;
+  --text-muted: #c2b7a9;
+  --surface-card: linear-gradient(180deg, #191512 0%, #130f0d 52%, #0c0a08 100%);
+  --surface-card-hover: linear-gradient(180deg, #231d18 0%, #171310 52%, #0f0c0a 100%);
+  --surface-subcard: linear-gradient(180deg, rgba(249, 115, 22, 0.09) 0%, rgba(22, 17, 14, 0.95) 100%);
+  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.9), 0 12px 32px -10px rgba(249, 115, 22, 0.12);
 }
 html[data-mode="dark"][data-accent="cyan"] {
-  --surface-card: linear-gradient(180deg, #151b26 0%, #0f131c 52%, #090c11 100%);
-  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(56, 189, 248, 0.09);
+  --text-primary: #f0f9ff;
+  --text-secondary: #dbeafe;
+  --text-muted: #93c5fd;
+  --surface-card: linear-gradient(180deg, #111722 0%, #0c1119 52%, #070a10 100%);
+  --surface-card-hover: linear-gradient(180deg, #182230 0%, #101824 52%, #090e15 100%);
+  --surface-subcard: linear-gradient(180deg, rgba(14, 165, 233, 0.08) 0%, rgba(12, 17, 25, 0.95) 100%);
+  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.9), 0 12px 32px -10px rgba(56, 189, 248, 0.12);
 }
 html[data-mode="dark"][data-accent="emerald"] {
-  --surface-card: linear-gradient(180deg, #121d18 0%, #0d1511 52%, #080c0a 100%);
-  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(16, 185, 129, 0.09);
+  --text-primary: #f0fdf4;
+  --text-secondary: #dcfce7;
+  --text-muted: #86efac;
+  --surface-card: linear-gradient(180deg, #101813 0%, #0b120e 52%, #060a08 100%);
+  --surface-card-hover: linear-gradient(180deg, #16241b 0%, #0f1a13 52%, #080f0b 100%);
+  --surface-subcard: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(11, 18, 14, 0.95) 100%);
+  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.9), 0 12px 32px -10px rgba(16, 185, 129, 0.12);
 }
 
 /* --------------------------------------------------------------------------
@@ -426,14 +441,14 @@ thead th {
   position: sticky;
   top: 0;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.4) !important; /* هيدر أبيض خفيف */
+  background: var(--table-head-bg) !important;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   padding: 1.125rem 1rem;
-  font-weight: 900; /* خط أتخن للوضوح */
-  color: var(--primary);
+  font-weight: 900;
+  color: var(--accent-main);
   font-size: var(--fs-sm);
-  border-bottom: 2px solid rgba(0, 0, 0, 0.05); /* خط فاصل واضح للهيدر */
+  border-bottom: 1px solid var(--table-zebra-bg);
 }
 
 tbody tr {
@@ -563,26 +578,25 @@ td {
 
 /* 2. كروت الـ KPIs (Smooth & Blurry Widget Style) */
 .kpi-card {
-  background: var(--glass-surface);
-  border: 1px solid var(--glass-border);
+  background: var(--surface-card);
+  border: none !important;
   border-radius: var(--radius-lg); 
   padding: 1.875rem; 
   transition: var(--apple-transition);
-  box-shadow: var(--card-shadow);
+  box-shadow: var(--shadow-ambient);
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
   position: relative;
   overflow: hidden;
-  /* 🚀 رفع البلور في الكروت */
   backdrop-filter: blur(40px) saturate(200%); 
   -webkit-backdrop-filter: blur(40px) saturate(200%);
 }
 
 .kpi-card:hover {
-  transform: translateY(-5px) scale(1.02);
-  background: rgba(255, 255, 255, 0.85); /* تفتيح أبيض ناصع عند الـ Hover */
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  background: var(--surface-card-hover);
+  box-shadow: var(--shadow-elevation);
 }
 
 /* 3. المدخلات (Soft Inputs) */
@@ -590,14 +604,13 @@ td {
   width: 100%;
   padding: 0.875rem 1rem;
   border-radius: var(--radius-md); 
-  border: 1px solid rgba(255, 255, 255, 0.8);
-  background: var(--input-bg);
-  backdrop-filter: blur(20px);
-  color: var(--text-main);
+  border: none !important;
+  background: var(--surface-sunken);
+  box-shadow: var(--shadow-sunken);
+  color: var(--text-primary);
   font-weight: 700;
   font-size: var(--fs-lg);
   transition: var(--apple-transition);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.02); /* ظل داخلي خفيف بيخلي الخانة محفورة شيك */
 }
 
 .form-input:focus {
@@ -691,20 +704,19 @@ td {
 
 /* 3. البطاقات الزجاجية (Summary Card) */
 .summary-glass-card {
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: var(--surface-card);
     padding: 1.25rem;
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: none !important;
     margin-bottom: 1.5625rem;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--shadow-ambient);
+    color: var(--text-primary);
 }
 
 .summary-glass-card .val {
     font-size: var(--fs-2xl);
     font-weight: 900;
-    color: #1e293b;
+    color: var(--text-primary);
     margin-top: 0.3125rem;
 }
 
@@ -713,9 +725,10 @@ td {
     width: 100%;
     padding: 0.875rem;
     border-radius: 16px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
+    border: none !important;
+    background: var(--surface-subcard);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-elevation);
     font-weight: 900;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -728,16 +741,16 @@ td {
 }
 
 .btn-main-glass:hover {
-    transform: translateY(-3px) scale(1.02);
-    filter: brightness(1.1);
+    transform: translateY(-2px);
+    background: var(--surface-card-hover);
 }
 
 /* التدرجات اللونية (Gradients) */
-.btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; box-shadow: 0 8px 25px rgba(194,65,12, 0.3); }
+.btn-main-glass.gold { background: var(--accent-gradient) !important; color: white; box-shadow: 0 8px 25px var(--accent-glow); }
 .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; box-shadow: 0 5px 20px rgba(14, 165, 233, 0.3); }
 .btn-main-glass.yellow { background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.9)); color: white; box-shadow: 0 5px 20px rgba(245, 158, 11, 0.3); }
-.btn-main-glass.white { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); }
-.btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
+.btn-main-glass.white { background: var(--surface-subcard); color: var(--text-secondary); border: none !important; }
+.btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: none !important; }
 
 /* 5. أزرار الصف (Row Action Buttons) */
 .btn-glass-pay {
@@ -819,8 +832,8 @@ td {
     border-radius: 10px;
     font-size: var(--fs-xs);
     font-weight: 800;
-    background: rgba(255, 255, 255, 0.8);
-    border: 1px solid var(--table-border);
+    background: var(--surface-subcard);
+    border: none;
     box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
 }
 .glass-status-label.green { color: var(--success); }

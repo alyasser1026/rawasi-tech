@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { THEME } from '@/lib/theme';
 import { usePermissions } from '@/lib/PermissionsContext';
+import { supabase } from '@/lib/supabase';
 import SecureAction from '@/components/SecureAction';
 import LoadingScreen from '@/components/LoadingScreen';
 import MasterPage from '@/components/MasterPage';
@@ -28,10 +29,10 @@ const MOTIVATIONAL_MESSAGES = [
 const DEFAULT_FAVORITES = ['global_summary', 'dashboard', 'journal', 'accounts', 'projects'];
 
 export default function WelcomeHomePage() {
-    const { role, can, loading: permsLoading, profile } = usePermissions();
+    const { role, can, loading: permsLoading, profile, userId } = usePermissions();
     const [greeting, setGreeting] = useState('');
     const [quote, setQuote] = useState('');
-    const [favorites, setFavorites] = useState<string[]>([]);
+    const [favorites, setFavorites] = useState<string[]>(DEFAULT_FAVORITES);
     const [isFavModalOpen, setIsFavModalOpen] = useState(false);
     const [tempFavorites, setTempFavorites] = useState<string[]>([]);
 
@@ -44,19 +45,88 @@ export default function WelcomeHomePage() {
         setQuote(MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length)]);
     }, []);
 
+    // 🚀 تحميل الصفحات المفضلة الخاصة بهذا المستخدم تحديداً (Per-User Persistence)
     useEffect(() => {
-        const saved = localStorage.getItem('rawasi_fav_pages');
-        if (saved) {
-            setFavorites(JSON.parse(saved));
-        } else {
-            setFavorites(DEFAULT_FAVORITES);
-        }
-    }, [profile?.id]);
+        const loadUserFavorites = async () => {
+            try {
+                let currentId = userId || profile?.id;
+                if (!currentId) {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    currentId = session?.user?.id;
+                }
 
-    const saveFavorites = () => {
+                if (currentId) {
+                    // 1. فحص التخزين المحلي الخاص بهذا المستخدم
+                    const userKey = `rawasi_fav_pages_${currentId}`;
+                    const saved = localStorage.getItem(userKey);
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved);
+                            if (Array.isArray(parsed) && parsed.length > 0) {
+                                setFavorites(parsed);
+                                return;
+                            }
+                        } catch {}
+                    }
+
+                    // 2. فحص بيانات الحساب المحفوظة سحابياً على Supabase (User Metadata)
+                    const { data: { user } } = await supabase.auth.getUser();
+                    const metaFavs = user?.user_metadata?.favorite_pages;
+                    if (Array.isArray(metaFavs) && metaFavs.length > 0) {
+                        setFavorites(metaFavs);
+                        localStorage.setItem(userKey, JSON.stringify(metaFavs));
+                        return;
+                    }
+                }
+
+                // 3. احتياطي عام في حالة عدم توفر حساب
+                const genericSaved = localStorage.getItem('rawasi_fav_pages');
+                if (genericSaved) {
+                    try {
+                        const parsed = JSON.parse(genericSaved);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            setFavorites(parsed);
+                            return;
+                        }
+                    } catch {}
+                }
+
+                setFavorites(DEFAULT_FAVORITES);
+            } catch {
+                setFavorites(DEFAULT_FAVORITES);
+            }
+        };
+
+        loadUserFavorites();
+    }, [userId, profile?.id]);
+
+    // 🚀 حفظ الصفحات المفضلة على مستوى الحساب والمستخدم الحالي
+    const saveFavorites = async () => {
         setFavorites(tempFavorites);
-        localStorage.setItem('rawasi_fav_pages', JSON.stringify(tempFavorites));
         setIsFavModalOpen(false);
+
+        try {
+            let currentId = userId || profile?.id;
+            if (!currentId) {
+                const { data: { session } } = await supabase.auth.getSession();
+                currentId = session?.user?.id;
+            }
+
+            // 1. حفظ احتياطي عام
+            localStorage.setItem('rawasi_fav_pages', JSON.stringify(tempFavorites));
+
+            // 2. حفظ محلي خاص بهذا المستخدم فقط
+            if (currentId) {
+                localStorage.setItem(`rawasi_fav_pages_${currentId}`, JSON.stringify(tempFavorites));
+            }
+
+            // 3. حفظ سحابي على حساب المستخدم في Supabase لمنع الضياع نهائياً
+            await supabase.auth.updateUser({
+                data: { favorite_pages: tempFavorites }
+            });
+        } catch (err) {
+            console.error("Failed to save favorites per user:", err);
+        }
     };
 
     const openFavModal = () => {
@@ -90,10 +160,16 @@ export default function WelcomeHomePage() {
         return can(item.id, 'view');
     });
 
-    const favItems = favorites.flatMap(id => {
+    // جلب العناصر المفضلة المسموح بها للمستخدم
+    let favItems = favorites.flatMap(id => {
         const item = allowedItems.find(i => i.id === id);
         return item ? [item] : [];
     });
+
+    // 🛡️ حارس عدم الفراغ: إذا كانت قائمة المفضلات لا تتطابق مع صلاحيات الحساب الحالي، اعرض له الصفحات المسموحة له
+    if (favItems.length === 0 && allowedItems.length > 0) {
+        favItems = allowedItems.filter(i => i.id !== 'home').slice(0, 5);
+    }
 
     return (
         <MasterPage title="الصفحة الرئيسية" subtitle="بوابة الإدارة المركزية لفاي تك">

@@ -1,27 +1,27 @@
-/* PHI TECH — سيم: فحمي متدرّج جلوسي بدون إطارات (Obsidian Amber Gloss - Borderless UI) */
+/* PHI TECH — سيم: أوبسيديان سيراميك جلوسي بدون إطارات (Obsidian Amber Gloss - Borderless UI) */
 :root {
   --phi-orange: var(--accent-main, #f97316);
   --phi-action: var(--accent-main, #f97316);
   --phi-action-hover: var(--accent-deep, #ea580c);
   --phi-orange-soft: var(--accent-soft-bg, rgba(249, 115, 22, 0.13));
   --phi-charcoal: var(--bg-canvas, #07080b);
-  --phi-text: var(--text-primary, #f8fafc);
-  --phi-muted: var(--text-secondary, #94a3b8);
+  --phi-text: var(--text-primary, #fefcf9);
+  --phi-muted: var(--text-secondary, #ede5da);
   --phi-background: var(--bg-canvas, #07080b);
   --phi-surface: var(--surface-card);
   --phi-border: transparent;
   --section-accent: var(--accent-main, #f97316);
   --section-tint: var(--accent-soft-bg, rgba(249, 115, 22, 0.06));
   --section-border: transparent;
-  --primary: var(--text-primary, #f8fafc);
+  --primary: var(--accent-main, #f97316);
   --accent: var(--accent-main, #f97316);
   --accent-light: var(--accent-soft-bg);
   --bg-main: var(--bg-canvas, #07080b);
-  --text-main: var(--text-primary, #f8fafc);
-  --text-muted: var(--text-secondary, #94a3b8);
+  --text-main: var(--text-primary, #fefcf9);
+  --text-muted: var(--text-secondary, #ede5da);
   --glass-surface: var(--surface-card);
   --glass-border: transparent;
-  --input-bg: var(--surface-sunken, #07090c);
+  --input-bg: var(--surface-sunken, #090807);
   --card-shadow: var(--shadow-ambient);
   --glow-accent: var(--accent-glow);
 }
@@ -40,7 +40,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 
 /* 🌟 Master Header: سطح فحم جلوسي بدون إطارات صلبة */
 .phi-brand .master-header {
-  background: var(--surface-header, linear-gradient(135deg, #171b24 0%, #101319 55%, #0a0c10 100%)) !important;
+  background: var(--surface-header) !important;
   border: none !important;
   border-inline-start: none !important;
   border-radius: 24px !important;
@@ -61,35 +61,35 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   pointer-events: none;
 }
 
-.phi-brand .title-area h1 { color: var(--text-primary, #ffffff) !important; }
+.phi-brand .title-area h1 { color: var(--text-primary) !important; }
 .phi-brand .header-icon { 
-  background: var(--accent-soft-bg, rgba(249, 115, 22, 0.15)) !important; 
+  background: var(--accent-soft-bg) !important; 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 8px 20px -4px var(--accent-glow) !important; 
   border: none !important; 
-  color: var(--accent-bright, #fb923c) !important;
+  color: var(--accent-bright) !important;
 }
 
 .phi-brand .imperial-trigger { 
-  background: var(--surface-subcard, rgba(255, 255, 255, 0.05)); 
+  background: var(--surface-subcard); 
   border: none; 
   border-radius: 14px; 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); 
-  color: var(--text-primary, #f3f4f6);
+  color: var(--text-primary);
 }
 .phi-brand .imperial-trigger:hover { 
   transform: none; 
-  background: rgba(255, 255, 255, 0.08); 
+  background: var(--surface-card-hover); 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); 
 }
 
-.phi-brand .u-name { color: var(--text-primary, #f3f4f6); }
-.phi-brand .u-role { color: var(--text-secondary, #94a3b8); }
+.phi-brand .u-name { color: var(--text-primary); }
+.phi-brand .u-role { color: var(--text-secondary); }
 .phi-brand .avatar-frame img { border: none; box-shadow: 0 0 0 2px var(--accent-glow); }
 
 /* أزرار التنقل الزجاجية */
 .phi-brand .nav-btn-glass { 
-  background: var(--surface-subcard, rgba(255, 255, 255, 0.04)); 
-  color: var(--text-primary, #f3f4f6); 
+  background: var(--surface-subcard); 
+  color: var(--text-primary); 
   border: none; 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); 
   -webkit-backdrop-filter: blur(12px); 
@@ -104,13 +104,13 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 /* 🌟 الكروت العامة وحاويات الزجاج: Borderless + Diffuse Shadow + Specular Sheen */
 .phi-brand .glass-container,
 .phi-brand .apple-card { 
-  background: var(--surface-card, linear-gradient(180deg, #181c24 0%, #12151c 52%, #0c0e12 100%)) !important; 
+  background: var(--surface-card) !important; 
   border: none !important; 
   border-radius: 24px !important; 
   box-shadow: var(--shadow-ambient) !important; 
   -webkit-backdrop-filter: blur(20px); 
   backdrop-filter: blur(20px); 
-  color: var(--text-primary, #f3f4f6) !important;
+  color: var(--text-primary) !important;
   position: relative;
   overflow: hidden;
 }
@@ -132,15 +132,10 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   box-shadow: var(--shadow-ambient), 0 0 25px -5px var(--accent-glow) !important; 
 }
 
-.phi-brand .apple-card:hover { 
-  transform: translateY(-2px); 
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important; 
-}
-
 /* شريط الفلاتر الجانبي */
 .phi-brand .filter-sidebar-v3 {
-  background: linear-gradient(180deg, #15181f 0%, #0d0f14 100%) !important; 
-  color: #f3f4f6 !important;
+  background: var(--surface-sidebar) !important; 
+  color: var(--text-primary) !important;
   border: none !important; 
   border-radius: 20px;
   -webkit-backdrop-filter: blur(20px) !important; 
@@ -148,52 +143,52 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .phi-brand .filter-toggle-tab-v3 { 
-  background: #14171d !important; 
-  color: #f3f4f6 !important; 
+  background: var(--surface-subcard) !important; 
+  color: var(--text-primary) !important; 
   border: none !important; 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); 
 }
 .phi-brand .filter-toggle-tab-v3:hover { 
-  background: rgba(249, 115, 22, 0.15) !important; 
-  color: #fb923c !important;
+  background: var(--accent-soft-bg) !important; 
+  color: var(--accent-bright) !important;
 }
 .phi-brand .sidebar-logo-container { border: none; }
 .phi-brand .sidebar-logo-img { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)) !important; }
-.phi-brand .filter-section-title, .phi-brand .date-label { color: #cbd5e1 !important; border: none; }
+.phi-brand .filter-section-title, .phi-brand .date-label { color: var(--text-secondary) !important; border: none; }
 
 /* 🌟 حقول الإدخال الغائرة (Sunken Recessed Inputs - Borderless) */
 .phi-brand .filter-input,
 .phi-brand .standard-input,
 .phi-brand .custom-input,
 .phi-brand .cinematic-input { 
-  background: #0a0c10 !important; 
+  background: var(--surface-sunken) !important; 
   border: none !important; 
-  color: #f3f4f6 !important; 
+  color: var(--text-primary) !important; 
   color-scheme: dark; 
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03) !important;
+  box-shadow: var(--shadow-sunken) !important;
 }
 .phi-brand .filter-input::placeholder,
 .phi-brand .standard-input::placeholder,
 .phi-brand .custom-input::placeholder,
-.phi-brand .cinematic-input::placeholder { color: #64748b !important; }
+.phi-brand .cinematic-input::placeholder { color: var(--text-muted) !important; }
 
 .phi-brand .filter-input:focus,
 .phi-brand .standard-input:focus,
 .phi-brand .custom-input:focus,
 .phi-brand .cinematic-input:focus { 
-  background: #0d0f14 !important; 
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(249, 115, 22, 0.4) !important; 
+  background: var(--surface-sunken) !important; 
+  box-shadow: var(--shadow-sunken), 0 0 0 2px var(--accent-glow) !important; 
   outline: none !important;
 }
 
-.phi-brand .pin-btn-sidebar { background: #181c24; border: none; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
-.phi-brand .pin-btn-sidebar span { color: #cbd5e1 !important; }
+.phi-brand .pin-btn-sidebar { background: var(--surface-subcard); border: none; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+.phi-brand .pin-btn-sidebar span { color: var(--text-secondary) !important; }
 .phi-brand .sidebar-summary-glass { 
-  background: #111318; 
+  background: var(--surface-subcard); 
   border: none; 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04); 
 }
-.phi-brand .sidebar-summary-glass .summary-title { color: #cbd5e1 !important; }
+.phi-brand .sidebar-summary-glass .summary-title { color: var(--text-secondary) !important; }
 
 /* زر الإجراء العائم */
 .phi-brand .fab-main { 
@@ -209,11 +204,11 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 
 /* كروت التنقل الداخلية */
 .phi-brand .nav-card { 
-  background: linear-gradient(145deg, #181c24 0%, #111319 100%); 
+  background: var(--surface-card); 
   border: none; 
   border-radius: 18px; 
-  box-shadow: 0 16px 35px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06); 
-  color: #f3f4f6;
+  box-shadow: var(--shadow-ambient); 
+  color: var(--text-primary);
   position: relative;
   overflow: hidden;
 }
@@ -222,33 +217,33 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   position: absolute;
   top: 0; left: 15%; right: 15%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(254, 215, 170, 0.25), transparent);
   pointer-events: none;
 }
 .phi-brand .nav-card:hover, .phi-brand .nav-card.active { 
-  background: linear-gradient(145deg, #202530 0%, #151821 100%); 
-  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.85), 0 0 25px -5px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12); 
+  background: var(--surface-card-hover); 
+  box-shadow: var(--shadow-elevation), 0 0 25px -5px var(--accent-glow); 
   transform: translateY(-2px); 
 }
 .phi-brand .nav-card .icon-wrapper { 
-  background: rgba(249, 115, 22, 0.12); 
-  color: #fb923c; 
+  background: var(--accent-soft-bg); 
+  color: var(--accent-bright); 
   border: none; 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1); 
 }
 .phi-brand .nav-card:hover .icon-wrapper { 
-  background: #f97316; 
+  background: var(--accent-main); 
   color: #ffffff; 
-  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4); 
+  box-shadow: 0 4px 15px var(--accent-glow); 
 }
 
 /* شاشة الترحيب وكارت الهيرو */
 .phi-brand .welcome-page-wrapper { background: none; }
 .phi-brand .hero-glass-card { 
-  background: linear-gradient(145deg, #181c24 0%, #111319 60%, #0c0e12 100%); 
+  background: var(--surface-card); 
   border: none; 
   border-radius: 24px;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+  box-shadow: var(--shadow-ambient); 
   position: relative;
   overflow: hidden;
 }
@@ -258,54 +253,54 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   position: absolute; 
   top: 0; left: 0; right: 0; 
   height: 2px; 
-  background: linear-gradient(90deg, transparent 0%, #f97316 50%, transparent 100%); 
+  background: var(--accent-gradient); 
 }
 
 .phi-brand .module-card::after { display: none; }
 .phi-brand .modules-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.625rem), 1fr)); }
 .phi-brand .module-card { 
   min-width: 0; 
-  background: linear-gradient(145deg, #181c24 0%, #111319 100%); 
+  background: var(--surface-card); 
   border: none; 
-  box-shadow: 0 14px 30px -8px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06); 
+  box-shadow: var(--shadow-elevation); 
   border-radius: 18px; 
-  color: #f3f4f6;
+  color: var(--text-primary);
 }
-.phi-brand .module-title { overflow-wrap: break-word; color: #f3f4f6; }
+.phi-brand .module-title { overflow-wrap: break-word; color: var(--text-primary); }
 .phi-brand .module-card:hover { 
   transform: translateY(-3px); 
-  background: linear-gradient(145deg, #202530 0%, #141720 100%); 
-  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.85), 0 0 20px -5px rgba(249, 115, 22, 0.15); 
+  background: var(--surface-card-hover); 
+  box-shadow: var(--shadow-ambient), 0 0 20px -5px var(--accent-glow); 
 }
 .phi-brand .module-card .module-icon { 
-  background: rgba(249, 115, 22, 0.1); 
+  background: var(--accent-soft-bg); 
   border: none; 
   border-radius: 18px; 
-  color: #fb923c; 
+  color: var(--accent-bright); 
 }
 .phi-brand .module-card:hover .module-icon { 
-  background: #f97316; 
+  background: var(--accent-main); 
   color: #ffffff; 
 }
 
 .phi-brand .add-fav-card { 
-  color: #fb923c; 
-  background: rgba(249, 115, 22, 0.05); 
+  color: var(--accent-bright); 
+  background: var(--accent-soft-bg); 
   border: none; 
-  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.2); 
+  box-shadow: inset 0 0 0 1px var(--accent-glow); 
   border-radius: 18px; 
 }
 .phi-brand .add-fav-card:hover { 
-  background: rgba(249, 115, 22, 0.1); 
-  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.4); 
+  background: var(--surface-card-hover); 
+  box-shadow: inset 0 0 0 1px var(--accent-main); 
   transform: translateY(-3px); 
 }
-.phi-brand .add-fav-title { color: #fb923c; }
+.phi-brand .add-fav-title { color: var(--accent-bright); }
 
 /* أزرار الإجراءات الذهبية والعنبرية */
 .phi-brand .btn-gold-pro, 
 .phi-brand .btn-main-glass.gold { 
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+  background: var(--accent-gradient); 
   color: white; 
   border: none; 
   box-shadow: 0 8px 25px rgba(249, 115, 22, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25); 
@@ -313,87 +308,87 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 }
 .phi-brand .btn-gold-pro:hover, 
 .phi-brand .btn-main-glass.gold:hover { 
-  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); 
+  background: var(--accent-gradient); filter: brightness(1.08); 
   box-shadow: 0 10px 30px rgba(249, 115, 22, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35); 
   filter: none; 
   transform: none; 
 }
 .phi-brand .btn-main-glass.white { 
-  background: rgba(255, 255, 255, 0.05); 
-  color: #f3f4f6; 
+  background: var(--surface-subcard); 
+  color: var(--text-secondary); 
   border: none; 
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+  box-shadow: var(--shadow-elevation); 
 }
 
 /* 🌟 الجداول الذكية: Borderless Table Design */
 .phi-brand .rawasi-table-wrapper { 
-  background: linear-gradient(180deg, #14171e 0%, #0d0f14 100%) !important; 
+  background: var(--surface-card) !important; 
   border: none !important; 
   border-radius: 20px !important; 
-  box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important; 
+  box-shadow: var(--shadow-ambient) !important; 
   overflow: hidden;
 }
 .phi-brand .rawasi-printable-table thead th { 
-  background: rgba(255, 255, 255, 0.03) !important; 
-  color: #f8fafc !important; 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important; 
+  background: var(--table-head-bg) !important; 
+  color: var(--text-primary) !important; 
+  border-bottom: 1px solid var(--table-zebra-bg) !important; 
 }
 .phi-brand .rawasi-printable-table tbody td { 
-  border-bottom: 1px solid rgba(255, 255, 255, 0.02) !important; 
-  color: #e2e8f0;
+  border-bottom: 1px solid var(--table-zebra-bg) !important; 
+  color: var(--text-secondary);
   font-variant-numeric: tabular-nums; 
 }
 .phi-brand .rawasi-printable-table tbody tr:hover { 
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%) !important; 
+  background: var(--table-row-hover) !important; 
 }
 .phi-brand .rawasi-printable-table tbody tr[data-selected="true"] { 
-  background: rgba(249, 115, 22, 0.12) !important; 
+  background: var(--accent-soft-bg) !important; 
 }
 
 /* أزرار مساحة العمل والبحث */
 .phi-brand .workspace-button { 
-  background: rgba(255, 255, 255, 0.04); 
-  color: #f3f4f6; 
+  background: var(--surface-subcard); 
+  color: var(--text-primary); 
   border: none; 
   border-radius: 12px; 
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); 
+  box-shadow: var(--shadow-elevation); 
 }
 .phi-brand .workspace-button[aria-pressed="true"] { 
-  background: rgba(249, 115, 22, 0.2); 
-  color: #fb923c; 
-  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1); 
+  background: var(--accent-soft-bg); 
+  color: var(--accent-bright); 
+  box-shadow: 0 4px 15px var(--accent-glow); 
 }
 .phi-brand .workspace-search-trigger { 
   border: none; 
-  background: linear-gradient(145deg, #181c24 0%, #111318 100%); 
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); 
-  color: #f3f4f6;
+  background: var(--surface-sunken); 
+  box-shadow: var(--shadow-sunken); 
+  color: var(--text-primary);
 }
 .phi-brand .workspace-dialog { 
-  background: linear-gradient(180deg, #181c24 0%, #0d0f14 100%); 
+  background: var(--surface-card); 
   border: none; 
   border-radius: 20px;
-  box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08); 
-  color: #f3f4f6;
+  box-shadow: var(--shadow-ambient); 
+  color: var(--text-primary);
 }
 .phi-brand .workspace-search-result[aria-selected="true"] { 
-  background: rgba(249, 115, 22, 0.15); 
+  background: var(--accent-soft-bg); 
   color: #ffffff; 
 }
 .phi-brand .workspace-tools kbd, .phi-brand .workspace-dialog kbd { 
-  background: #0b0d10; 
+  background: var(--surface-sunken); 
   border: none; 
-  color: #94a3b8; 
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05); 
+  color: var(--text-secondary); 
+  box-shadow: var(--shadow-sunken); 
 }
 
 /* شاشات تسجيل الدخول وإنشاء الحساب */
 .phi-brand .login-wrapper { background: var(--phi-background); }
 .phi-brand .login-wrapper .glass-card { 
-  background: linear-gradient(180deg, #181c24 0%, #12141a 60%, #0c0e12 100%); 
+  background: var(--surface-card); 
   border: none; 
   border-radius: 24px;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+  box-shadow: var(--shadow-ambient); 
 }
 .phi-brand .login-wrapper .cinematic-title { color: #ffffff; text-shadow: none; }
 .phi-brand .login-wrapper .cinematic-subtitle, 
@@ -401,27 +396,27 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 .phi-brand .login-wrapper .glass-card > div:last-child p { color: var(--phi-muted) !important; }
 
 .phi-brand .login-wrapper .submit-btn { 
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+  background: var(--accent-gradient); 
   color: white; 
   box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35); 
   border-radius: 14px; 
 }
 .phi-brand .login-wrapper .submit-btn:hover:not(:disabled) { 
-  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); 
+  background: var(--accent-gradient); filter: brightness(1.08); 
 }
 
 .phi-brand .phi-signup { background: var(--phi-background) !important; }
 .phi-brand .phi-signup .signup-card { 
-  background: linear-gradient(180deg, #181c24 0%, #0c0e12 100%); 
+  background: var(--surface-card); 
   border: none; 
   border-radius: 24px; 
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+  box-shadow: var(--shadow-ambient); 
 }
 .phi-brand .phi-signup .signup-card h2 { color: #ffffff !important; }
 .phi-brand .phi-signup .signup-card p { color: var(--phi-muted) !important; }
-.phi-brand .phi-signup .input-label { color: #cbd5e1; }
+.phi-brand .phi-signup .input-label { color: var(--text-secondary); }
 .phi-brand .phi-signup .signup-btn { 
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+  background: var(--accent-gradient); 
   color: white; 
   border-radius: 14px; 
   box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35); 
@@ -430,20 +425,20 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 /* النماذج العامة (Forms) */
 .phi-brand .phi-light-form { background: var(--phi-background) !important; color: var(--phi-text); }
 .phi-brand .phi-light-form .glass-card { 
-  background: linear-gradient(180deg, #181c24 0%, #0c0e12 100%); 
+  background: var(--surface-card); 
   border: none; 
   border-radius: 20px;
   box-shadow: var(--card-shadow); 
 }
 .phi-brand .phi-light-form h1 { color: #ffffff !important; }
-.phi-brand .phi-light-form .standard-input option { background: #12141a; color: #f3f4f6; }
+.phi-brand .phi-light-form .standard-input option { background: var(--surface-sunken); color: var(--text-primary); }
 .phi-brand .phi-light-form .floating-label, .phi-brand .phi-light-form .input-group label { color: var(--phi-muted); }
 .phi-brand .phi-light-form :is(.forced-float, .standard-input:focus ~ .floating-label, .standard-input:not(:placeholder-shown) ~ .floating-label) { 
-  background: #181c24 !important; 
+  background: var(--surface-sunken) !important; 
   color: #fb923c !important; 
 }
 .phi-brand .phi-light-form .btn-submit, .phi-brand .phi-light-form .btn-save { 
-  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+  background: var(--accent-gradient); 
   color: white; 
   border-radius: 12px;
 }
@@ -454,7 +449,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 .phi-brand .phi-light-form .phi-back-button { color: #f3f4f6 !important; border: none !important; background: rgba(255, 255, 255, 0.05); }
-.phi-brand .phi-light-form .summary-box { background: #0e1015; border-radius: 16px; }
+.phi-brand .phi-light-form .summary-box { background: var(--surface-subcard); border-radius: 16px; }
 
 /* Responsive Adjustments (الأبعاد كما هي تماماً) */
 @media (max-width: 768px) {

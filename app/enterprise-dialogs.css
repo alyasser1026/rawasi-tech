@@ -9,7 +9,7 @@
 
 /* 🌟 الأسطح الرئيسية للمودالات: بدون إطارات + تدرج فحمي + لمعة علوية */
 .phi-notifications, .phi-blur-modal, .phi-confirm-dialog {
-  background: linear-gradient(180deg, #181c24 0%, #12141a 60%, #0c0e12 100%);
+  background: var(--surface-card);
   color: #f3f4f6; 
   border: none; 
   border-radius: var(--phi-radius-dialog, 20px);
@@ -50,7 +50,7 @@
 }
 
 .phi-confirm-dialog h2 { color: #ffffff; font-size: var(--fs-xl); font-weight: 800; margin: 0 0 0.75rem; line-height: 1.6; }
-.phi-confirm-dialog p { color: #94a3b8; font-size: var(--fs-sm); line-height: 1.9; margin: 0 0 1.5rem; white-space: pre-line; overflow-wrap: anywhere; }
+.phi-confirm-dialog p { color: var(--text-secondary); font-size: var(--fs-sm); line-height: 1.9; margin: 0 0 1.5rem; white-space: pre-line; overflow-wrap: anywhere; }
 .phi-confirm-actions { display: flex; flex-wrap: wrap; gap: 0.625rem; }
 .phi-confirm-actions .ent-button { flex: 1; min-height: 2.75rem; white-space: normal !important; border: none; }
 .phi-confirm-actions .phi-confirm-submit { 
@@ -84,10 +84,10 @@
 }
 .phi-notifications-header h2 { display: flex; align-items: center; gap: 0.5625rem; color: #ffffff; font-size: var(--fs-xl); font-weight: 800; margin: 0; }
 .phi-notifications-header h2 svg { color: #f97316; }
-.phi-notifications-header p { font-size: var(--fs-sm); color: #94a3b8; margin: 0.4375rem 0 0; }
+.phi-notifications-header p { font-size: var(--fs-sm); color: var(--text-secondary); margin: 0.4375rem 0 0; }
 .phi-notifications-actions { display: flex; align-items: center; gap: 0.5rem; }
 .phi-notifications-body { overflow-y: auto; padding: 1.3125rem 1.5625rem; min-height: 0; flex: 1; }
-.phi-notifications-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.875rem; padding: 2.8125rem 0.9375rem; color: #94a3b8; }
+.phi-notifications-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.875rem; padding: 2.8125rem 0.9375rem; color: var(--text-secondary); }
 .phi-notifications-empty strong { font-size: var(--fs-lg); color: #f3f4f6; }
 .phi-notifications-empty p { font-size: var(--fs-sm); margin: 0; line-height: 1.8; }
 .phi-notification-list { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -106,15 +106,15 @@
   background: linear-gradient(150deg, rgba(249, 115, 22, 0.12) 0%, rgba(249, 115, 22, 0.03) 100%); 
   box-shadow: inset 0 1px 0 rgba(249, 115, 22, 0.2);
 }
-.phi-notification-icon { color: #94a3b8; background: rgba(255, 255, 255, 0.05); border-radius: 10px; width: 2.1875rem; height: 2.1875rem; flex-shrink: 0; display: grid; place-items: center; }
+.phi-notification-icon { color: var(--text-secondary); background: rgba(255, 255, 255, 0.05); border-radius: 10px; width: 2.1875rem; height: 2.1875rem; flex-shrink: 0; display: grid; place-items: center; }
 .phi-notification-icon.alert { color: #fb7185; background: rgba(244, 63, 94, 0.12); }
 .phi-notification-icon.success { color: #34d399; background: rgba(16, 185, 129, 0.12); }
 .phi-notification-icon.task { color: #38bdf8; background: rgba(56, 189, 248, 0.12); }
 .phi-notification-content { flex: 1; min-width: 0; }
 .phi-notification-meta { display: flex; align-items: flex-start; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; }
 .phi-notification-meta h3 { margin: 0; font-size: var(--fs-sm); line-height: 1.8; color: #f3f4f6; font-weight: 700; overflow-wrap: anywhere; }
-.phi-notification.is-read h3 { color: #94a3b8; }
-.phi-notification-meta time { font-size: var(--fs-xs); color: #64748b; white-space: nowrap; }
+.phi-notification.is-read h3 { color: var(--text-secondary); }
+.phi-notification-meta time { font-size: var(--fs-xs); color: var(--text-muted); white-space: nowrap; }
 .phi-mark-read { margin-top: 0.625rem; background: transparent; border: 0; padding: 0; min-height: 1.875rem; font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; color: #f97316; }
 .phi-mark-read:focus-visible { outline: 2px solid #f97316; outline-offset: 4px; }
 .phi-dialog-spinner { animation: phi-dialog-spin 1s linear infinite; }
@@ -136,7 +136,7 @@
   html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .profile-modal-box, .modal-content, .modal-box, .warm-portal-overlay-fullscreen > .cinematic-scroll) {
     border: none !important;
     border-radius: var(--phi-radius-dialog, 20px) !important;
-    background: linear-gradient(180deg, #181c24 0%, #12141a 60%, #0c0e12 100%) !important;
+    background: var(--surface-card) !important;
     box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
     backdrop-filter: blur(20px) !important;
     -webkit-backdrop-filter: blur(20px) !important;
@@ -166,7 +166,7 @@
     min-height: 2.75rem; padding: 0.6875rem 0.75rem !important; border-radius: 10px !important;
     border: none !important; 
     font-size: var(--fs-sm) !important; font-weight: 500 !important;
-    background: #0a0c10 !important; 
+    background: var(--surface-sunken) !important; 
     color: #f3f4f6 !important;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03) !important; 
     box-sizing: border-box;
@@ -179,7 +179,7 @@
   
   /* القوائم المنسدلة داخل المودال */
   html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .profile-modal-box, .warm-portal-overlay-fullscreen) .glass-dropdown {
-    background: #14171e !important; border: none !important; border-radius: 12px !important;
+    background: var(--surface-card) !important; border: none !important; border-radius: 12px !important;
     backdrop-filter: blur(20px) !important; 
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
     color: #f3f4f6 !important;
@@ -189,13 +189,13 @@
   html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .profile-modal-box, .warm-portal-overlay-fullscreen) :is(.btn-glass-save, .btn-save) {
     min-height: 2.75rem; border-radius: 12px !important; padding: 0.75rem 1.25rem !important; font-size: var(--fs-sm) !important;
     font-weight: 700 !important; color: #fff !important; border: none !important;
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;
+    background: var(--accent-gradient) !important;
     box-shadow: 0 8px 25px rgba(249, 115, 22, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
   }
   html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .profile-modal-box, .warm-portal-overlay-fullscreen) :is(.btn-glass-cancel, .btn-cancel) {
     min-height: 2.75rem; border-radius: 12px !important; padding: 0.75rem 1.25rem !important; font-size: var(--fs-sm) !important;
-    font-weight: 700 !important; color: #94a3b8 !important; border: none !important;
-    background: rgba(255, 255, 255, 0.05) !important; 
+    font-weight: 700 !important; color: var(--text-secondary) !important; border: none !important;
+    background: var(--surface-subcard) !important; 
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
   }
   html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .profile-modal-box, .warm-portal-overlay-fullscreen) :is(.btn-glass-save, .btn-save, .btn-glass-cancel, .btn-cancel):hover:not(:disabled) {

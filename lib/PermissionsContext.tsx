@@ -9,6 +9,7 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
     const [role, setRole] = useState<string>('client');
     const [loading, setLoading] = useState(true);
     const [profile, setProfile] = useState<any>(null);
+    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         let isMounted = true; // 🛡️ حماية ضد الـ Memory Leak وتحديث الواجهة وهي مقفولة
@@ -27,7 +28,7 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
                 if (currentUser && isMounted) {
                     const { data, error } = await supabase
                         .from('profiles')
-                        .select('role, permissions, is_admin, full_name, avatar_url')
+                        .select('id, role, permissions, is_admin, full_name, avatar_url')
                         .eq('id', currentUser.id)
                         .single();
                         
@@ -35,7 +36,8 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
                         const userRole = data.is_admin ? 'super_admin' : (data.role || 'client');
                         setRole(userRole);
                         setPermissions(data.permissions || {});
-                        setProfile(data);
+                        setProfile({ ...data, id: currentUser.id });
+                        setUser(currentUser);
                     }
                 } else if (isMounted) {
                      setLoading(false);
@@ -54,6 +56,8 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
             } else if (event === 'SIGNED_OUT') {
                 if (isMounted) {
                     setPermissions(null);
+                    setProfile(null);
+                    setUser(null);
                     setRole('client');
                     setLoading(false);
                 }
@@ -72,8 +76,8 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
     };
 
     const value = useMemo(() => ({
-        can, role, permissions, loading, profile
-    }), [permissions, role, loading, profile]);
+        can, role, permissions, loading, profile, user, userId: user?.id || profile?.id
+    }), [permissions, role, loading, profile, user]);
 
     // 🚨 لا تعرض شاشة سوداء طالما الصلاحيات موجودة مسبقاً
     if (loading && !permissions) {

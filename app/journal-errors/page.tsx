@@ -29,7 +29,7 @@ export default function JournalMaintenancePage() {
         { title: 'قيود مكررة', value: logic.filteredDuplicates.length, color: '#ea580c', icon: '👯' },
         { title: 'غير متزنة', value: logic.filteredUnbalanced.length, color: '#7c3aed', icon: '⚖️' },
         { title: 'قيود يتيمة', value: logic.filteredOrphans.length, color: THEME.ruby, icon: '🗑️' },
-        { title: 'قيود صفرية', value: logic.filteredEmpty.length, color: '#475569', icon: '🕳️' },
+        { title: 'قيود صفرية', value: logic.filteredEmpty.length, color: 'var(--text-secondary)', icon: '🕳️' },
         { title: 'سطور شبح', value: logic.filteredGhosts.length, color: '#0891b2', icon: '👻' }
     ];
 
@@ -92,13 +92,13 @@ export default function JournalMaintenancePage() {
 
                     {/* 🔍 منطقة الجداول */}
                     {!logic.hasScanned ? (
-                        <div className="glossy-card" style={{ textAlign: 'center', padding: '5rem 1.5rem', color: 'var(--text-secondary, #94a3b8)', background: 'var(--surface-card)', borderRadius: '24px', border: 'none', boxShadow: 'var(--shadow-ambient)', position: 'relative', overflow: 'hidden' }}>
+                        <div className="glossy-card" style={{ textAlign: 'center', padding: '5rem 1.5rem', color: 'var(--text-secondary)', background: 'var(--surface-card)', borderRadius: '24px', border: 'none', boxShadow: 'var(--shadow-ambient)', position: 'relative', overflow: 'hidden' }}>
                             <div className="specular-top" />
                             <div className="gloss-overlay" />
                             <div style={{ position: 'relative', zIndex: 2 }}>
                                 <div style={{ width: '4.5rem', height: '4.5rem', margin: '0 auto 1.25rem', borderRadius: '50%', background: 'var(--accent-soft-bg, rgba(249, 115, 22, 0.12))', color: 'var(--accent-main, #f97316)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 25px var(--accent-glow)', animation: 'pulse 2s infinite' }}><ScanSearch size={36} aria-hidden="true" /></div>
                                 <h2 style={{ color: 'var(--accent-bright, #fb923c)', fontWeight: 900, fontSize: 'var(--fs-2xl)', margin: '0 0 0.5rem' }}>النظام جاهز للفحص</h2>
-                                <p style={{ fontSize: 'var(--fs-md)', color: 'var(--text-secondary, #94a3b8)', margin: 0 }}>استخدم زر &quot;إطلاق الرادار&quot; من القائمة الجانبية للبدء.</p>
+                                <p style={{ fontSize: 'var(--fs-md)', color: 'var(--text-secondary)', margin: 0 }}>استخدم زر &quot;إطلاق الرادار&quot; من القائمة الجانبية للبدء.</p>
                             </div>
                         </div>
                     ) : (
@@ -106,7 +106,7 @@ export default function JournalMaintenancePage() {
                             <AuditSection logic={logic} data={logic.filteredDuplicates} title="سندات مكررة" color="#ea580c" icon="👯" actionText="مسح التكرار" onAction={logic.deleteHeader} />
                             <AuditSection logic={logic} data={logic.filteredUnbalanced} title="قيود غير متزنة" color="#7c3aed" icon="⚖️" actionText="موازنة آلية" onAction={(id:any, item:any) => logic.forceBalanceJournal(id, item.diffAmount)} secondaryAction={logic.deleteHeader} secondaryActionText="حذف نهائي" />
                             <AuditSection logic={logic} data={logic.filteredOrphans} title="القيود اليتيمة" color={THEME.ruby} icon="🗑️" actionText="مسح القيد" onAction={logic.deleteHeader} />
-                            <AuditSection logic={logic} data={logic.filteredEmpty} title="القيود الصفرية" color="#475569" icon="🕳️" actionText="مسح القيد" onAction={logic.deleteHeader} />
+                            <AuditSection logic={logic} data={logic.filteredEmpty} title="القيود الصفرية" color="var(--text-secondary)" icon="🕳️" actionText="مسح القيد" onAction={logic.deleteHeader} />
                             <AuditSection logic={logic} data={logic.filteredGhosts} title="سطور شبح" color="#0891b2" icon="👻" actionText="تطهير السطور" onAction={(id:any) => logic.deleteHeader(id, true)} />
                         </div>
                     )}
