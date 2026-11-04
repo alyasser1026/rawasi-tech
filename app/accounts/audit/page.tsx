@@ -39,7 +39,7 @@ export default function DetailedAuditPage() {
     }, []);
 
     return (
-        <div style={{ padding: '30px', direction: 'rtl', fontFamily: 'Cairo', backgroundColor: '#f9fafb' }}>
+        <div style={{ padding: '1.875rem', direction: 'rtl', fontFamily: 'Cairo', backgroundColor: '#f9fafb' }}>
             <h1 style={{ color: '#991B1B' }}>كاشف الـ IDs للعمليات المعطوبة</h1>
             <p>الصفحة دي بتعرضلك الـ ID الحقيقي عشان تنسخه وتروح للـ Database</p>
 
@@ -47,21 +47,21 @@ export default function DetailedAuditPage() {
                 <LoadingScreen message="جاري الفحص..." fullScreen={false} />
             ) : (
                 brokenEntries.map((e, i) => (
-                    <div key={i} style={{ background: 'white', padding: '20px', borderRadius: '15px', marginBottom: '25px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #f3f4f6', paddingBottom: '10px', marginBottom: '15px' }}>
+                    <div key={i} style={{ background: 'white', padding: '1.25rem', borderRadius: '15px', marginBottom: '1.5625rem', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '2px solid #f3f4f6', paddingBottom: '0.625rem', marginBottom: '0.9375rem' }}>
                             <span style={{ fontWeight: 900, color: '#27272a' }}>التاريخ: {e.entry_date} | {e.description}</span>
                             <span style={{ color: '#991B1B', fontWeight: 900 }}>قيمة العجز: {e.diff.toLocaleString()}</span>
                         </div>
                         
-                        <div style={{ marginBottom: '10px', fontSize: 'var(--fs-sm)' }}>
+                        <div style={{ marginBottom: '0.625rem', fontSize: 'var(--fs-sm)' }}>
                             <strong>ID القيد الرئيسي (Header ID):</strong> 
-                            <code style={{ background: '#fef2f2', padding: '4px 8px', borderRadius: '5px', marginLeft: '10px', color: '#b91c1c' }}>{e.id}</code>
+                            <code style={{ background: '#fef2f2', padding: '0.25rem 0.5rem', borderRadius: '5px', marginLeft: '0.625rem', color: '#b91c1c' }}>{e.id}</code>
                         </div>
 
-                        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '10px' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '0.625rem' }}>
                             <thead>
                                 <tr style={{ background: '#f8fafc', textAlign: 'right', fontSize: 'var(--fs-sm)' }}>
-                                    <th style={{ padding: '10px' }}>ID الحساب المرتبط (Account ID)</th>
+                                    <th style={{ padding: '0.625rem' }}>ID الحساب المرتبط (Account ID)</th>
                                     <th>البيان</th>
                                     <th>مدين</th>
                                     <th>دائن</th>
@@ -70,7 +70,7 @@ export default function DetailedAuditPage() {
                             <tbody>
                                 {e.entries.map((line: any, idx: number) => (
                                     <tr key={idx} style={{ borderTop: '1px solid #f1f5f9', fontSize: 'var(--fs-sm)' }}>
-                                        <td style={{ padding: '10px' }}>
+                                        <td style={{ padding: '0.625rem' }}>
                                             <code style={{ color: '#0369a1', fontWeight: 'bold' }}>{line.account_id}</code>
                                         </td>
                                         <td>{line.item_name}</td>

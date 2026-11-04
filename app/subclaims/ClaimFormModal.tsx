@@ -164,14 +164,14 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
         <div className="warm-portal-overlay-fullscreen" onClick={onClose}>
             <style>{`
                 .warm-portal-overlay-fullscreen { position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important; background: radial-gradient(circle at center, rgba(40, 24, 10, 0.4) 0%, rgba(15, 7, 0, 0.9) 100%) !important; backdrop-filter: blur(20px) !important; display: flex !important; align-items: center !important; justify-content: center !important; z-index: 999999999 !important; }
-                .glass-input-field { width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; transition: 0.2s; font-weight: 700; color: #1e293b; text-align: center; }
+                .glass-input-field { width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; transition: 0.2s; font-weight: 700; color: #1e293b; text-align: center; }
                 .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#ea580c'}; box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.15); }
-                .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent || '#ea580c'}, ${THEME.coffeeDark || '#2d1a11'}); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3); }
+                .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent || '#ea580c'}, ${THEME.coffeeDark || '#2d1a11'}); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(212, 175, 55, 0.3); }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
-                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
+                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
             `}</style>
 
-            <div className="cinematic-scroll" onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '1100px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.95)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', boxShadow: '0 40px 80px rgba(0,0,0,0.5)', overflowY: 'auto', direction: 'rtl' }}>
+            <div className="cinematic-scroll" onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '68.75rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.95)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', boxShadow: '0 40px 80px rgba(0,0,0,0.5)', overflowY: 'auto', direction: 'rtl' }}>
                 
                 {isEnriching && (
                     <div style={{ position: 'absolute', inset: 0, background: 'rgba(255,255,255,0.85)', zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.primary, borderRadius: '14px', backdropFilter: 'blur(5px)' }}>
@@ -179,10 +179,10 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                     </div>
                 )}
 
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.goldAccent || '#ea580c'}50`, paddingBottom:'15px'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.875rem', borderBottom:`2px solid ${THEME.goldAccent || '#ea580c'}50`, paddingBottom:'0.9375rem'}}>
                     <div>
                         <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>إصدار مستخلص مقاول باطن</h2>
-                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginTop: '5px', fontWeight: 800 }}>المقاول: {logic.selectedContractor?.name}</div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginTop: '0.3125rem', fontWeight: 800 }}>المقاول: {logic.selectedContractor?.name}</div>
                     </div>
                     <div style={{ textAlign: 'left' }}>
                         <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 900 }}>الصافي النهائي للصرف</div>
@@ -190,10 +190,10 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: '20px', marginBottom: '25px', background: 'rgba(212, 175, 55, 0.05)', padding: '20px', borderRadius: '14px', border: `1px solid rgba(212, 175, 55, 0.2)` }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr 1fr 1fr', gap: '1.25rem', marginBottom: '1.5625rem', background: 'rgba(212, 175, 55, 0.05)', padding: '1.25rem', borderRadius: '14px', border: `1px solid rgba(212, 175, 55, 0.2)` }}>
                     <div style={{ zIndex: 90 }}>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>المشاريع المشمولة</label>
-                        <div className="glass-input-field" style={{ background: '#f8fafc', color: THEME.coffeeDark, minHeight: '43px', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '5px 15px', border: `1px solid ${THEME.goldAccent}50` }}>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>المشاريع المشمولة</label>
+                        <div className="glass-input-field" style={{ background: '#f8fafc', color: THEME.coffeeDark, minHeight: '2.6875rem', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0.3125rem 0.9375rem', border: `1px solid ${THEME.goldAccent}50` }}>
                             {/* 🚀 عرض أسماء كل الفلل المجمعة بوضوح */}
                             <span style={{ fontWeight: 900, fontSize: uniqueProjectNames.length > 1 ? '11px' : '13px', textAlign: 'center', lineHeight: '1.6' }}>
                                 {combinedProjectsText || 'عقار غير محدد'}
@@ -201,32 +201,32 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                         </div>
                     </div>
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>تاريخ المستخلص</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>تاريخ المستخلص</label>
                         <input type="date" className="glass-input-field" value={logic.currentClaim.date} onChange={e => logic.setCurrentClaim({...logic.currentClaim, date: e.target.value})} />
                     </div>
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>فترة السداد (يوم)</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>فترة السداد (يوم)</label>
                         <input type="number" min="0" className="glass-input-field" value={logic.currentClaim.payment_period_days || ''} onChange={e => logic.setCurrentClaim({...logic.currentClaim, payment_period_days: Number(e.target.value)})} />
                     </div>
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>نسبة احتجاز الضمان %</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>نسبة احتجاز الضمان %</label>
                         <input type="number" className="glass-input-field" value={logic.currentClaim.retention_percent} onChange={e => logic.setCurrentClaim({...logic.currentClaim, retention_percent: e.target.value})} />
                     </div>
                 </div>
 
-                <div style={{ marginBottom: '25px' }}>
-                    <h3 style={{ color: THEME.primary, fontWeight: 900, fontSize: 'var(--fs-lg)', marginBottom: '10px' }}>أوامر التشغيل المعتمدة في هذا المستخلص</h3>
+                <div style={{ marginBottom: '1.5625rem' }}>
+                    <h3 style={{ color: THEME.primary, fontWeight: 900, fontSize: 'var(--fs-lg)', marginBottom: '0.625rem' }}>أوامر التشغيل المعتمدة في هذا المستخلص</h3>
                     {enrichedAssignments.length > 0 ? (
                         <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
                                 <thead style={{ background: '#f8fafc', color: '#64748b', fontSize: 'var(--fs-sm)' }}>
                                     <tr>
-                                        <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>أمر التشغيل</th>
-                                        <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0' }}>البند / الموقع</th>
-                                        <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>قيمة الأعمال</th>
-                                        <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>خصم خامات</th>
-                                        <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>خصم نثريات</th>
-                                        <th style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>الصافي المبدئي</th>
+                                        <th style={{ padding: '0.75rem', borderBottom: '1px solid #e2e8f0' }}>أمر التشغيل</th>
+                                        <th style={{ padding: '0.75rem', borderBottom: '1px solid #e2e8f0' }}>البند / الموقع</th>
+                                        <th style={{ padding: '0.75rem', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>قيمة الأعمال</th>
+                                        <th style={{ padding: '0.75rem', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>خصم خامات</th>
+                                        <th style={{ padding: '0.75rem', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>خصم نثريات</th>
+                                        <th style={{ padding: '0.75rem', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>الصافي المبدئي</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -235,15 +235,15 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                                         const exp = Number(a.expenses_deduction || 0);
                                         return (
                                             <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                                                <td style={{ padding: '10px', fontSize: 'var(--fs-sm)', fontWeight: 800, color: THEME.accent }}>{a.real_order_number}</td>
-                                                <td style={{ padding: '10px', fontSize: 'var(--fs-sm)', fontWeight: 800, color: THEME.primary }}>
+                                                <td style={{ padding: '0.625rem', fontSize: 'var(--fs-sm)', fontWeight: 800, color: THEME.accent }}>{a.real_order_number}</td>
+                                                <td style={{ padding: '0.625rem', fontSize: 'var(--fs-sm)', fontWeight: 800, color: THEME.primary }}>
                                                     {a.real_item_name}
-                                                    <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginTop: '4px', fontWeight: 700 }}>{a.real_project_name}</div>
+                                                    <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginTop: '0.25rem', fontWeight: 700 }}>{a.real_project_name}</div>
                                                 </td>
-                                                <td style={{ padding: '10px', textAlign: 'center', fontWeight: 900, color: THEME.success }}>{formatCurrency(a.calc_gross)}</td>
-                                                <td style={{ padding: '10px', textAlign: 'center', fontWeight: 900, color: THEME.danger }}>{formatCurrency(mat)}</td>
-                                                <td style={{ padding: '10px', textAlign: 'center', fontWeight: 900, color: THEME.danger }}>{formatCurrency(exp)}</td>
-                                                <td style={{ padding: '10px', textAlign: 'center', fontWeight: 900, color: THEME.primary }}>{formatCurrency(a.calc_gross - mat - exp)}</td>
+                                                <td style={{ padding: '0.625rem', textAlign: 'center', fontWeight: 900, color: THEME.success }}>{formatCurrency(a.calc_gross)}</td>
+                                                <td style={{ padding: '0.625rem', textAlign: 'center', fontWeight: 900, color: THEME.danger }}>{formatCurrency(mat)}</td>
+                                                <td style={{ padding: '0.625rem', textAlign: 'center', fontWeight: 900, color: THEME.danger }}>{formatCurrency(exp)}</td>
+                                                <td style={{ padding: '0.625rem', textAlign: 'center', fontWeight: 900, color: THEME.primary }}>{formatCurrency(a.calc_gross - mat - exp)}</td>
                                             </tr>
                                         )
                                     })}
@@ -251,51 +251,51 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                             </table>
                         </div>
                     ) : (
-                        <div style={{ background: '#fef2f2', padding: '15px', borderRadius: '12px', textAlign: 'center', color: '#991b1b', fontWeight: 800, border: '1px dashed #fca5a5' }}>لم يتم تحديد أي أعمال منجزة لهذا المستخلص.</div>
+                        <div style={{ background: '#fef2f2', padding: '0.9375rem', borderRadius: '12px', textAlign: 'center', color: '#991b1b', fontWeight: 800, border: '1px dashed #fca5a5' }}>لم يتم تحديد أي أعمال منجزة لهذا المستخلص.</div>
                     )}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '15px', marginTop: '15px' }}>
-                    <div style={{ background: 'rgba(255, 107, 107, 0.05)', padding: '15px', borderRadius: '12px', border: '1px dashed #fca5a5' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.25rem, 1fr))', gap: '0.9375rem', marginTop: '0.9375rem' }}>
+                    <div style={{ background: 'rgba(255, 107, 107, 0.05)', padding: '0.9375rem', borderRadius: '12px', border: '1px dashed #fca5a5' }}>
                         <div style={{ fontSize: 'var(--fs-xs)', color: '#ef4444', fontWeight: 800, textAlign: 'center' }}>إجمالي خصم الخامات (دقيق ومسحوب)</div>
-                        <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#dc2626', textAlign: 'center', marginTop: '10px' }}>{formatCurrency(realMatDed)}</div>
+                        <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#dc2626', textAlign: 'center', marginTop: '0.625rem' }}>{formatCurrency(realMatDed)}</div>
                     </div>
-                    <div style={{ background: 'rgba(255, 159, 67, 0.05)', padding: '15px', borderRadius: '12px', border: '1px dashed #fcd34d' }}>
+                    <div style={{ background: 'rgba(255, 159, 67, 0.05)', padding: '0.9375rem', borderRadius: '12px', border: '1px dashed #fcd34d' }}>
                         <div style={{ fontSize: 'var(--fs-xs)', color: '#d97706', fontWeight: 800, textAlign: 'center' }}>نقدية ومصروفات (دقيق ومسحوب)</div>
-                        <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#b45309', textAlign: 'center', marginTop: '10px' }}>{formatCurrency(realExpDed)}</div>
+                        <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#b45309', textAlign: 'center', marginTop: '0.625rem' }}>{formatCurrency(realExpDed)}</div>
                     </div>
-                    <div style={{ background: 'rgba(0, 210, 211, 0.05)', padding: '15px', borderRadius: '12px', border: '1px dashed #67e8f9' }}>
+                    <div style={{ background: 'rgba(0, 210, 211, 0.05)', padding: '0.9375rem', borderRadius: '12px', border: '1px dashed #67e8f9' }}>
                         <div style={{ fontSize: 'var(--fs-xs)', color: '#0891b2', fontWeight: 800, textAlign: 'center' }}>خصم سلفة / دفعة مقدمة (يدوي)</div>
                         <input 
                             type="number" 
                             className="glass-input-field" 
-                            style={{ height: '35px', marginTop: '8px', fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#0891b2', background: 'white', border: '1px solid #67e8f9' }}
+                            style={{ height: '2.1875rem', marginTop: '0.5rem', fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#0891b2', background: 'white', border: '1px solid #67e8f9' }}
                             value={logic.currentClaim.advance_payment || 0}
                             onChange={e => logic.setCurrentClaim({...logic.currentClaim, advance_payment: Number(e.target.value)})} 
                         />
                     </div>
                 </div>
 
-                <div style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div style={{ marginTop: '1.875rem', padding: '1.5625rem', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9.375rem, 1fr))', gap: '0.9375rem', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الأعمال المنجزة</div>
                         <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#60a5fa' }}>{formatCurrency(totalWork)}</div>
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>محتجز ضمان أعمال ({retentionPercent}%)</div>
                         <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#fca5a5' }}>{formatCurrency(retentionAmount)}</div>
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الاستقطاعات والخصومات</div>
                         <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#fca5a5' }}>{formatCurrency(totalDeductions)}</div>
                     </div>
-                    <div style={{ background: `linear-gradient(135deg, ${THEME.goldAccent || '#ea580c'}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.goldAccent || '#ea580c'}80`, boxShadow: `0 0 20px ${THEME.goldAccent || '#ea580c'}20` }}>
+                    <div style={{ background: `linear-gradient(135deg, ${THEME.goldAccent || '#ea580c'}40, transparent)`, padding: '0.9375rem', borderRadius: '16px', border: `1px solid ${THEME.goldAccent || '#ea580c'}80`, boxShadow: `0 0 20px ${THEME.goldAccent || '#ea580c'}20` }}>
                         <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.goldAccent || '#ea580c' }}>الصافي المستحق للصرف</div>
                         <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(netAmount)}</div>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '20px', marginTop: '35px' }}>
+                <div style={{ display: 'flex', gap: '1.25rem', marginTop: '2.1875rem' }}>
                     <button onClick={handleSave} disabled={logic.isClaimSaving || isEnriching} className="btn-glass-save" style={{ flex: 2 }}>
                         {logic.isClaimSaving ? 'جاري الاعتماد والترحيل...' : 'اعتماد المستخلص'}
                     </button>

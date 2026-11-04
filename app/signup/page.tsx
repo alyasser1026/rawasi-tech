@@ -108,7 +108,7 @@ export default function SignUpPage() {
             minHeight: '100vh', width: '100vw', display: 'grid', placeItems: 'center',
             background: THEME.brand.coffee, // ☕ تغيير الخلفية للون القهوة الرسمي
             fontFamily: "'Cairo', sans-serif", direction: 'rtl', 
-            padding: '20px', position: 'relative', overflow: 'hidden'
+            padding: '1.25rem', position: 'relative', overflow: 'hidden'
         }}>
             
             {/* ✨ توهج ذهبي ملكي (بدل الأزرق) */}
@@ -116,7 +116,7 @@ export default function SignUpPage() {
 
             <style>{`
                 .gold-glow {
-                    position: absolute; top: 50%; left: 50%; width: 600px; height: 600px;
+                    position: absolute; top: 50%; left: 50%; width: 37.5rem; height: 37.5rem;
                     background: radial-gradient(circle, ${THEME.brand.gold}30 0%, transparent 70%);
                     border-radius: 50%; filter: blur(80px);
                     animation: pulseGlow 8s infinite alternate;
@@ -128,8 +128,8 @@ export default function SignUpPage() {
                 }
 
                 .signup-card {
-                    width: 100%; max-width: 480px; z-index: 10;
-                    padding: 50px 40px; border-radius: 14px;
+                    width: 100%; max-width: 30rem; z-index: 10;
+                    padding: 3.125rem 2.5rem; border-radius: 14px;
                     background: rgba(255, 255, 255, 0.05);
                     backdrop-filter: blur(40px);
                     -webkit-backdrop-filter: blur(40px);
@@ -139,19 +139,19 @@ export default function SignUpPage() {
 
                 .input-label {
                     font-size: var(--fs-sm); font-weight: 900; color: ${THEME.brand.gold};
-                    display: block; margin-bottom: 10px; padding-right: 5px;
+                    display: block; margin-bottom: 0.625rem; padding-right: 0.3125rem;
                 }
 
                 .custom-input {
-                    width: 100%; padding: 18px; border-radius: 14px;
+                    width: 100%; padding: 1.125rem; border-radius: 14px;
                     background: rgba(0, 0, 0, 0.2); border: 1.5px solid rgba(255, 255, 255, 0.1);
                     color: white; font-weight: 700; font-size: var(--fs-lg); outline: none;
-                    transition: 0.3s; margin-bottom: 20px;
+                    transition: 0.3s; margin-bottom: 1.25rem;
                 }
                 .custom-input:focus { border-color: ${THEME.brand.gold}; background: rgba(0, 0, 0, 0.4); }
 
                 .signup-btn {
-                    width: 100%; padding: 20px; border-radius: 14px;
+                    width: 100%; padding: 1.25rem; border-radius: 14px;
                     background: linear-gradient(135deg, ${THEME.brand.gold}, ${THEME.brand.goldLight});
                     color: ${THEME.brand.coffee}; font-size: var(--fs-lg); font-weight: 900;
                     border: none; cursor: pointer; transition: 0.4s;
@@ -164,14 +164,14 @@ export default function SignUpPage() {
                     border: 1.5px solid rgba(255, 255, 255, 0.1) !important;
                     color: white !important;
                     border-radius: 14px !important;
-                    padding: 18px !important;
+                    padding: 1.125rem !important;
                 }
             `}</style>
 
             <div className="signup-card">
                 {/* 🍎 هيدر اللوجو الفخم */}
-                <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-                    <div style={{ position: 'relative', width: '100px', height: '100px', margin: '0 auto 20px' }}>
+                <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+                    <div style={{ position: 'relative', width: '6.25rem', height: '6.25rem', margin: '0 auto 1.25rem' }}>
                         <Image 
                             src="/phitech-symbol.svg"
                             alt="شعار فاي تك" fill
@@ -179,11 +179,11 @@ export default function SignUpPage() {
                         />
                     </div>
                     <h2 style={{ color: 'white', margin: 0, fontWeight: 900, fontSize: 'var(--fs-2xl)' }}>بوابة الموظفين والشركاء</h2>
-                    <p style={{ color: '#94a3b8', fontSize: 'var(--fs-md)', marginTop: '8px' }}>أنشئ حسابك للوصول إلى كامل صلاحيات النظام</p>
+                    <p style={{ color: '#94a3b8', fontSize: 'var(--fs-md)', marginTop: '0.5rem' }}>أنشئ حسابك للوصول إلى كامل صلاحيات النظام</p>
                 </div>
 
-                {errorMsg && <div style={{ background: '#7f1d1d40', color: '#fca5a5', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: 'var(--fs-sm)', textAlign: 'center', border: '1px solid #7f1d1d60' }}>{errorMsg}</div>}
-                {successMsg && <div style={{ background: '#064e3b40', color: '#6ee7b7', padding: '15px', borderRadius: '15px', marginBottom: '20px', fontSize: 'var(--fs-sm)', textAlign: 'center', border: '1px solid #064e3b60' }}>{successMsg}</div>}
+                {errorMsg && <div style={{ background: '#7f1d1d40', color: '#fca5a5', padding: '0.9375rem', borderRadius: '15px', marginBottom: '1.25rem', fontSize: 'var(--fs-sm)', textAlign: 'center', border: '1px solid #7f1d1d60' }}>{errorMsg}</div>}
+                {successMsg && <div style={{ background: '#064e3b40', color: '#6ee7b7', padding: '0.9375rem', borderRadius: '15px', marginBottom: '1.25rem', fontSize: 'var(--fs-sm)', textAlign: 'center', border: '1px solid #064e3b60' }}>{successMsg}</div>}
 
                 <form onSubmit={handleSignUp}>
                     <label className="input-label">الاسم الكامل</label>
@@ -198,7 +198,7 @@ export default function SignUpPage() {
                         value={form.email} onChange={e => setForm({...form, email: e.target.value})}
                     />
 
-                    <div style={{ marginBottom: '25px' }} className="dark-combo">
+                    <div style={{ marginBottom: '1.5625rem' }} className="dark-combo">
                         <SmartCombo 
                             label="تحديد صفة الدخول"
                             options={['موظف إداري / مهندس', 'مقاول باطن / مورد', 'عميل / صاحب مشروع']}
@@ -211,7 +211,7 @@ export default function SignUpPage() {
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.9375rem' }}>
                         <div>
                             <label className="input-label">كلمة المرور</label>
                             <input 
@@ -233,7 +233,7 @@ export default function SignUpPage() {
                     </button>
                 </form>
 
-                <div style={{ marginTop: '35px', textAlign: 'center', fontSize: 'var(--fs-md)', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '25px' }}>
+                <div style={{ marginTop: '2.1875rem', textAlign: 'center', fontSize: 'var(--fs-md)', color: '#94a3b8', borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5625rem' }}>
                     لديك حساب بالفعل؟{' '}
                     <Link href="/login" style={{ color: THEME.brand.gold, textDecoration: 'none', fontWeight: 900 }}>
                         سجل دخولك الآن

@@ -32,33 +32,33 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                     z-index: 999999999 !important;
                 }
                 .glass-input-field {
-                    width: 100%; padding: 10px 12px; border-radius: 12px;
+                    width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px;
                     background: rgba(255, 255, 255, 0.65);
                     border: 1px solid rgba(255, 255, 255, 0.8);
                     outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
                 }
                 .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#c2410c'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
                 
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
+                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
-                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
+                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
                 
                 .lines-table-container {
                     background: rgba(255, 255, 255, 0.5);
                     border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.7);
-                    overflow: visible; margin-top: 15px;
+                    overflow: visible; margin-top: 0.9375rem;
                 }
                 .item-row { transition: 0.2s; border-bottom: 1px solid rgba(0,0,0,0.05); }
                 .item-row:hover { background: rgba(255, 255, 255, 0.8); }
             `}</style>
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
-                width: '1100px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
-                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', 
+                width: '68.75rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
+                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', 
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
                 
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'15px'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.875rem', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'0.9375rem'}}>
                     <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>
                         {logic.editingIssueId ? 'تعديل إذن صرف خامات' : 'إصدار إذن صرف خامات'}
                     </h2>
@@ -68,7 +68,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                     </div>
                 </div>
 
-                <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '25px', marginBottom: '25px' }}>
+                <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.25rem, 1fr))', gap: '1.5625rem', marginBottom: '1.5625rem' }}>
                     <div style={{ zIndex: 90, position: 'relative' }}>
                         <SmartCombo 
                             label="العقار/المشروع المستفيد *" 
@@ -82,7 +82,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                     </div>
                     
                     <div style={{ zIndex: 80, position: 'relative' }}>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', display: 'block', marginBottom: '6px' }}>نوع الصرف *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', display: 'block', marginBottom: '0.375rem' }}>نوع الصرف *</label>
                         <select className="glass-input-field" value={logic.issueData?.issue_type || 'صرف لمقاول'} onChange={e => logic.setIssueData({...logic.issueData, issue_type: e.target.value})}>
                             <option value="صرف لمقاول">صرف لمقاول باطن (يُحمل عليه)</option>
                             <option value="استهلاك مباشر">استهلاك مباشر للشركة (يُحمل كـ تكلفة)</option>
@@ -103,7 +103,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                             />
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'flex-end' }}>
-                                <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#166534', padding: '12px', borderRadius: '12px', textAlign: 'center', fontWeight: 900, border: '1px dashed rgba(34, 197, 94, 0.4)' }}>
+                                <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#166534', padding: '0.75rem', borderRadius: '12px', textAlign: 'center', fontWeight: 900, border: '1px dashed rgba(34, 197, 94, 0.4)' }}>
                                     سيتم تحميل التكلفة مباشرة على المشروع
                                 </div>
                             </div>
@@ -111,21 +111,21 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                     </div>
                 </div>
 
-                <div style={{ marginBottom: '25px' }}>
-                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', display: 'block', marginBottom: '6px' }}>تاريخ الصرف</label>
+                <div style={{ marginBottom: '1.5625rem' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', display: 'block', marginBottom: '0.375rem' }}>تاريخ الصرف</label>
                     <input 
                         type="date" 
                         className="glass-input-field" 
-                        style={{maxWidth: '300px'}} 
+                        style={{maxWidth: '18.75rem'}} 
                         value={logic.issueData?.issue_date || ''} 
                         onChange={e => logic.setIssueData({...logic.issueData, issue_date: e.target.value})} 
                     />
                 </div>
                 
-                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '14px', marginBottom: '25px', border: `1px dashed ${THEME.goldAccent || '#c2410c'}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '1.25rem', borderRadius: '14px', marginBottom: '1.5625rem', border: `1px dashed ${THEME.goldAccent || '#c2410c'}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.9375rem' }}>
                         <h3 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.coffeeDark || '#2d1a11' }}>الخامات المنصرفة وربطها بالبنود</h3>
-                        <button onClick={logic.addItem} style={{ background: 'white', color: THEME.coffeeDark || '#2d1a11', border: `1px solid ${THEME.goldAccent || '#c2410c'}`, padding: '8px 15px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
+                        <button onClick={logic.addItem} style={{ background: 'white', color: THEME.coffeeDark || '#2d1a11', border: `1px solid ${THEME.goldAccent || '#c2410c'}`, padding: '0.5rem 0.9375rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
                             إضافة صنف آخر
                         </button>
                     </div>
@@ -134,13 +134,13 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
                             <thead style={{ background: THEME.coffeeDark || '#2d1a11', color: 'white' }}>
                                 <tr>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', textAlign: 'right', width: '25%' }}>بيان الخامة (من المخزن)</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '25%' }}>تحميل على بند (BOQ) - اختياري</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '10%' }}>الكمية</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '8%' }}>الوحدة</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '12%' }}>السعر</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '15%' }}>الإجمالي</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '5%' }}>حذف</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', textAlign: 'right', width: '25%' }}>بيان الخامة (من المخزن)</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '25%' }}>تحميل على بند (BOQ) - اختياري</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '10%' }}>الكمية</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '8%' }}>الوحدة</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '12%' }}>السعر</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '15%' }}>الإجمالي</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '5%' }}>حذف</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -150,7 +150,7 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
 
                                     return (
                                         <tr key={idx} className="item-row">
-                                            <td style={{ padding: '10px', zIndex: 60 - idx, position: 'relative' }}>
+                                            <td style={{ padding: '0.625rem', zIndex: 60 - idx, position: 'relative' }}>
                                                 {/* 🚀 القراءة من الجدول الأساسي للمخازن مباشرة material_items */}
                                                 <SmartCombo 
                                                     table="material_items" 
@@ -162,13 +162,13 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                                                     onSelect={(v: any) => logic.handleItemChange(idx, 'item_selection', v)} 
                                                 />
                                                 {item.item_id && (
-                                                    <div style={{ fontSize: 'var(--fs-xs)', marginTop: '5px', fontWeight: 900, color: isOutOfStock ? '#ef4444' : '#166534', textAlign: 'right', paddingRight: '5px' }}>
+                                                    <div style={{ fontSize: 'var(--fs-xs)', marginTop: '0.3125rem', fontWeight: 900, color: isOutOfStock ? '#ef4444' : '#166534', textAlign: 'right', paddingRight: '0.3125rem' }}>
                                                         {isOutOfStock ? 'رصيد غير كافٍ!' : 'رصيد متوفر'} (المخزن: {totalStock} {item.unit})
                                                     </div>
                                                 )}
                                             </td>
                                             
-                                            <td style={{ padding: '10px', zIndex: 50 - idx, position: 'relative' }}>
+                                            <td style={{ padding: '0.625rem', zIndex: 50 - idx, position: 'relative' }}>
                                                 {/* 🚀 السحب باستخدام الكمبوننت الذكي المخصص للبند */}
                                                 <ProjectBoqCombo 
                                                     projectId={logic.issueData?.project_id}
@@ -180,44 +180,44 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                                                 />
                                             </td>
 
-                                            <td style={{ padding: '10px' }}>
+                                            <td style={{ padding: '0.625rem' }}>
                                                 <input 
                                                     type="number" 
                                                     placeholder="0" 
                                                     className="glass-input-field" 
-                                                    style={{ padding: '8px', textAlign: 'center', background: 'white', borderColor: isOutOfStock ? '#ef4444' : '', borderWidth: isOutOfStock ? '2px' : '1px' }} 
+                                                    style={{ padding: '0.5rem', textAlign: 'center', background: 'white', borderColor: isOutOfStock ? '#ef4444' : '', borderWidth: isOutOfStock ? '2px' : '1px' }} 
                                                     value={item.quantity ?? ''} 
                                                     onChange={e => logic.handleItemChange(idx, 'quantity', e.target.value)} 
                                                 />
                                             </td>
-                                            <td style={{ padding: '10px' }}>
+                                            <td style={{ padding: '0.625rem' }}>
                                                 <input 
                                                     type="text" 
                                                     placeholder="وحدة" 
                                                     disabled
                                                     className="glass-input-field" 
-                                                    style={{ padding: '8px', textAlign: 'center', background: '#f8fafc', opacity: 0.8 }} 
+                                                    style={{ padding: '0.5rem', textAlign: 'center', background: '#f8fafc', opacity: 0.8 }} 
                                                     value={item.unit || ''} 
                                                 />
                                             </td>
-                                            <td style={{ padding: '10px' }}>
+                                            <td style={{ padding: '0.625rem' }}>
                                                 <input 
                                                     type="number" 
                                                     placeholder="0.00" 
                                                     className="glass-input-field" 
-                                                    style={{ padding: '8px', textAlign: 'center', background: 'white' }} 
+                                                    style={{ padding: '0.5rem', textAlign: 'center', background: 'white' }} 
                                                     value={item.unit_price ?? ''} 
                                                     onChange={e => logic.handleItemChange(idx, 'unit_price', e.target.value)} 
                                                     title="مسحوب بآخر سعر شراء، قابل للتعديل"
                                                 />
                                             </td>
-                                            <td style={{ padding: '10px', fontWeight: 900, color: THEME.danger || '#ef4444', fontSize: 'var(--fs-md)' }}>
+                                            <td style={{ padding: '0.625rem', fontWeight: 900, color: THEME.danger || '#ef4444', fontSize: 'var(--fs-md)' }}>
                                                 {formatCurrency(item.total_price)}
                                             </td>
-                                            <td style={{ padding: '10px' }}>
+                                            <td style={{ padding: '0.625rem' }}>
                                                 {idx > 0 ? (
                                                     <button onClick={() => logic.handleRemoveItem(idx)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xl)' }} title="حذف الصنف"><Trash2 size={15} aria-hidden="true" /></button>
-                                                ) : <div style={{width: '24px'}}></div>}
+                                                ) : <div style={{width: '1.5rem'}}></div>}
                                             </td>
                                         </tr>
                                     );
@@ -227,22 +227,22 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                     </div>
                 </div>
 
-                <div className="responsive-summary-grid" style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="responsive-summary-grid" style={{ marginTop: '1.875rem', padding: '1.5625rem', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.25rem, 1fr))', gap: '1.25rem', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>عدد الأصناف المنصرفة</div>
                         <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{logic.issueData?.items?.length || 0}</div>
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الكميات</div>
                         <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{totalQuantity}</div>
                     </div>
-                    <div style={{ background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.goldAccent || '#c2410c'}80`, boxShadow: `0 0 20px ${THEME.goldAccent || '#c2410c'}20` }}>
+                    <div style={{ background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}40, transparent)`, padding: '0.9375rem', borderRadius: '16px', border: `1px solid ${THEME.goldAccent || '#c2410c'}80`, boxShadow: `0 0 20px ${THEME.goldAccent || '#c2410c'}20` }}>
                         <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#fcd34d' }}>إجمالي التكلفة / الخصم</div>
                         <div style={{ fontSize: 'var(--fs-3xl)', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(grandTotal)}</div>
                     </div>
                 </div>
 
-                <div className="responsive-actions" style={{ display: 'flex', gap: '20px', marginTop: '35px' }}>
+                <div className="responsive-actions" style={{ display: 'flex', gap: '1.25rem', marginTop: '2.1875rem' }}>
                     <button onClick={logic.handleSave} className="btn-glass-save" style={{ flex: 2 }}>
                         {logic.editingIssueId ? 'تحديث وحفظ الإذن' : 'حفظ إذن الصرف (مسودة)'}
                     </button>

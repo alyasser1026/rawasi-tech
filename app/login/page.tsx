@@ -47,17 +47,17 @@ export default function LoginPage() {
 
         .glass-card {
           width: 100%;
-          max-width: 480px;
+          max-width: 30rem;
           /* زجاج دافئ يميل للون الرملي */
           background: rgba(244, 241, 238, 0.15); 
           backdrop-filter: blur(25px);
           -webkit-backdrop-filter: blur(25px);
           border: 1px solid rgba(194,65,12, 0.4); /* حواف ذهبية */
           border-radius: 14px;
-          padding: 50px 40px;
+          padding: 3.125rem 2.5rem;
           box-shadow: 0 25px 50px -12px rgba(39,39,42, 0.7), 0 0 40px rgba(194,65,12, 0.15);
           animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          margin: 20px;
+          margin: 1.25rem;
         }
 
         @keyframes fadeInUp {
@@ -67,11 +67,11 @@ export default function LoginPage() {
 
         .logo-container {
           text-align: right;
-          margin-bottom: 25px;
+          margin-bottom: 1.5625rem;
         }
 
         .logo-container img {
-          height: 110px;
+          height: 6.875rem;
           filter: drop-shadow(0px 10px 15px rgba(39,39,42,0.6));
           transition: transform 0.3s ease;
         }
@@ -83,7 +83,7 @@ export default function LoginPage() {
           font-weight: 900;
           font-size: var(--fs-3xl);
           text-align: center;
-          margin-bottom: 8px;
+          margin-bottom: 0.5rem;
           text-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
@@ -92,17 +92,17 @@ export default function LoginPage() {
           text-align: center;
           font-size: var(--fs-lg);
           font-weight: 600;
-          margin-bottom: 40px;
+          margin-bottom: 2.5rem;
         }
 
         .input-group {
           position: relative;
-          margin-bottom: 25px;
+          margin-bottom: 1.5625rem;
         }
 
         .cinematic-input {
           width: 100%;
-          padding: 18px 20px;
+          padding: 1.125rem 1.25rem;
           background: rgba(255, 255, 255, 0.1) !important;
           border: 2px solid rgba(255, 255, 255, 0.2);
           border-radius: 14px;
@@ -129,7 +129,7 @@ export default function LoginPage() {
 
         .floating-label {
           position: absolute;
-          right: 20px;
+          right: 1.25rem;
           top: 50%;
           transform: translateY(-50%);
           color: rgba(255, 255, 255, 0.7);
@@ -144,12 +144,12 @@ export default function LoginPage() {
         .cinematic-input:not(:placeholder-shown) ~ .floating-label,
         .cinematic-input:-webkit-autofill ~ .floating-label,
         .forced-float {
-          top: -12px !important;
-          right: 15px !important;
+          top: -0.75rem !important;
+          right: 0.9375rem !important;
           font-size: var(--fs-sm) !important;
           color: ${THEME.coffeeDark} !important;
           background: ${THEME.goldAccent} !important;
-          padding: 2px 10px !important;
+          padding: 2px 0.625rem !important;
           border-radius: 6px !important;
           transform: translateY(0) !important;
           opacity: 1 !important;
@@ -159,8 +159,8 @@ export default function LoginPage() {
 
         .submit-btn {
           width: 100%;
-          padding: 18px;
-          margin-top: 10px;
+          padding: 1.125rem;
+          margin-top: 0.625rem;
           background: linear-gradient(135deg, ${THEME.goldAccent}, #ea580c);
           color: ${THEME.coffeeDark};
           border: none;
@@ -193,7 +193,7 @@ export default function LoginPage() {
           font-family: inherit;
           font-size: var(--fs-md);
           font-weight: 700;
-          margin-top: 20px;
+          margin-top: 1.25rem;
           cursor: pointer;
           transition: 0.3s;
         }
@@ -202,9 +202,9 @@ export default function LoginPage() {
         
         /* تعديل صغير للموبايل في اللوجن */
         @media (max-width: 480px) {
-            .glass-card { padding: 40px 25px; border-radius: 14px; }
+            .glass-card { padding: 2.5rem 1.5625rem; border-radius: 14px; }
             .cinematic-title { font-size: var(--fs-3xl); }
-            .logo-container img { height: 90px; }
+            .logo-container img { height: 5.625rem; }
         }
       `}</style>
 
@@ -273,7 +273,7 @@ export default function LoginPage() {
           )}
         </button>
 
-        <div style={{ textAlign: 'center', marginTop: '25px' }}>
+        <div style={{ textAlign: 'center', marginTop: '1.5625rem' }}>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
             جميع الحقوق محفوظة © {new Date().getFullYear()} <br/> إدارة تقنية المعلومات - فاي تك
           </p>

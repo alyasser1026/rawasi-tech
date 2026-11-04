@@ -43,26 +43,26 @@ export default function TestBoq() {
   };
 
   return (
-    <div style={{ padding: '40px', maxWidth: '600px', margin: 'auto', fontFamily: 'sans-serif' }}>
-      <div style={{ background: '#f8fafc', padding: '30px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-        <h1 style={{ fontSize: 'var(--fs-xl)', color: '#1e293b', marginBottom: '20px' }}>لوحة تشخيص جدول المقايسات</h1>
+    <div style={{ padding: '2.5rem', maxWidth: '37.5rem', margin: 'auto', fontFamily: 'sans-serif' }}>
+      <div style={{ background: '#f8fafc', padding: '1.875rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+        <h1 style={{ fontSize: 'var(--fs-xl)', color: '#1e293b', marginBottom: '1.25rem' }}>لوحة تشخيص جدول المقايسات</h1>
         
         <button 
           onClick={runDiagnostic} 
           disabled={loading}
           style={{ 
-            width: '100%', padding: '14px', background: loading ? '#94a3b8' : '#3b82f6', 
+            width: '100%', padding: '0.875rem', background: loading ? '#94a3b8' : '#3b82f6', 
             color: 'white', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' 
           }}
         >
           {loading ? 'جاري الفحص...' : 'تشغيل فحص النظام الشامل'}
         </button>
 
-        <div style={{ marginTop: '25px', background: '#0f172a', padding: '20px', borderRadius: '12px', height: '300px', overflowY: 'auto' }}>
+        <div style={{ marginTop: '1.5625rem', background: '#0f172a', padding: '1.25rem', borderRadius: '12px', height: '18.75rem', overflowY: 'auto' }}>
           {logs.map((log, index) => (
             <div key={index} style={{ 
               color: log.type === 'error' ? '#f87171' : log.type === 'success' ? '#4ade80' : '#94a3b8',
-              marginBottom: '10px', fontSize: 'var(--fs-sm)', fontFamily: 'monospace'
+              marginBottom: '0.625rem', fontSize: 'var(--fs-sm)', fontFamily: 'monospace'
             }}>
               {log.msg}
             </div>

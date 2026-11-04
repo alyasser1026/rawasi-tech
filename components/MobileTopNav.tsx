@@ -25,7 +25,7 @@ export default function MobileTopNav({ title, subtitle }: MobileTopNavProps) {
                         display: flex;
                         align-items: center;
                         justify-content: space-between;
-                        padding: 15px 20px;
+                        padding: 0.9375rem 1.25rem;
                         background: rgba(255, 255, 255, 0.75);
                         backdrop-filter: blur(25px);
                         border-bottom: 1px solid rgba(255,255,255,0.6);
@@ -33,15 +33,15 @@ export default function MobileTopNav({ title, subtitle }: MobileTopNavProps) {
                         top: 0;
                         z-index: 1000;
                         border-radius: 0 0 14px 14px;
-                        margin: -10px -10px 20px -10px; /* لتغطية الحواف */
+                        margin: -0.625rem -0.625rem 1.25rem -0.625rem; /* لتغطية الحواف */
                         box-shadow: 0 10px 30px rgba(0,0,0,0.08);
                     }
                     .mobile-menu-btn {
                         background: linear-gradient(135deg, ${THEME.primary}, #0f172a);
                         border: none;
                         border-radius: 12px;
-                        width: 40px;
-                        height: 40px;
+                        width: 2.5rem;
+                        height: 2.5rem;
                         display: flex;
                         align-items: center;
                         justify-content: center;

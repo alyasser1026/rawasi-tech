@@ -314,7 +314,7 @@ export default function UnifiedImportHub() {
 
     // Render Table Helper
     const renderTable = (data: any[]) => {
-        if (data.length === 0) return <div style={{ padding: '30px', textAlign: 'center', color: '#94a3b8', fontWeight: 900 }}>لا توجد بيانات مسحوبة في هذا القسم</div>;
+        if (data.length === 0) return <div style={{ padding: '1.875rem', textAlign: 'center', color: '#94a3b8', fontWeight: 900 }}>لا توجد بيانات مسحوبة في هذا القسم</div>;
         
         const keys = Object.keys(data[0]).filter(k => !k.startsWith('_'));
         
@@ -323,14 +323,14 @@ export default function UnifiedImportHub() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: 'var(--fs-sm)' }}>
                     <thead>
                         <tr style={{ background: '#f8fafc', color: '#475569' }}>
-                            <th style={{ padding: '12px', borderBottom: '2px solid #e2e8f0', width: '30px' }}>حالة</th>
-                            {keys.map(k => <th key={k} style={{ padding: '12px', borderBottom: '2px solid #e2e8f0' }}>{k}</th>)}
+                            <th style={{ padding: '0.75rem', borderBottom: '2px solid #e2e8f0', width: '1.875rem' }}>حالة</th>
+                            {keys.map(k => <th key={k} style={{ padding: '0.75rem', borderBottom: '2px solid #e2e8f0' }}>{k}</th>)}
                         </tr>
                     </thead>
                     <tbody>
                         {data.map((row, i) => (
                             <tr key={i} style={{ background: row._errors?.length > 0 ? '#fef2f2' : (row._fixes?.length > 0 ? '#f0fdf4' : 'white'), borderBottom: '1px solid #f1f5f9' }}>
-                                <td style={{ padding: '12px' }}>
+                                <td style={{ padding: '0.75rem' }}>
                                     {row._errors?.length > 0 
                                         ? <span title={row._errors.join(' | ')} style={{ cursor: 'help', fontSize: 'var(--fs-lg)' }}><X size={14} aria-hidden="true" /></span> 
                                         : (row._fixes?.length > 0 ? <span title="تم التصحيح آلياً" style={{ cursor: 'help', fontSize: 'var(--fs-lg)' }}><Wrench size={14} aria-hidden="true" /></span> : <span style={{ fontSize: 'var(--fs-lg)' }}><CircleCheck size={14} aria-hidden="true" /></span>)}
@@ -338,15 +338,15 @@ export default function UnifiedImportHub() {
                                 {keys.map(k => {
                                     const fix = row._fixes?.find((f:any) => f.col === k);
                                     return (
-                                    <td key={k} style={{ padding: '12px', color: row._errors?.length > 0 ? '#991b1b' : (fix ? '#166534' : '#334155') }}>
+                                    <td key={k} style={{ padding: '0.75rem', color: row._errors?.length > 0 ? '#991b1b' : (fix ? '#166534' : '#334155') }}>
                                         {row[k]}
                                         {row._errors?.length > 0 && (k === 'اسم العامل' || k === 'الفيلا' || k === 'البند' || k === 'اسم المستفيد') && (
-                                            <div style={{ fontSize: 'var(--fs-xs)', color: '#dc2626', fontWeight: 'bold', marginTop: '4px' }}>
+                                            <div style={{ fontSize: 'var(--fs-xs)', color: '#dc2626', fontWeight: 'bold', marginTop: '0.25rem' }}>
                                                 {row._errors.find((e:string) => e.includes(k.split(' ')[1] || k))}
                                             </div>
                                         )}
                                         {fix && (
-                                            <div style={{ fontSize: 'var(--fs-xs)', color: '#16a34a', fontWeight: 'bold', marginTop: '4px' }}>
+                                            <div style={{ fontSize: 'var(--fs-xs)', color: '#16a34a', fontWeight: 'bold', marginTop: '0.25rem' }}>
                                                 {fix.msg}
                                             </div>
                                         )}
@@ -362,19 +362,19 @@ export default function UnifiedImportHub() {
 
     return (
         <MasterPage title="مركز استيراد البيانات" subtitle="استيراد الإكسيل الموحد مع المراجعة الذكية">
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) minmax(300px, 3fr)', gap: '20px', padding: '20px 0' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(18.75rem, 1fr) minmax(18.75rem, 3fr)', gap: '1.25rem', padding: '1.25rem 0' }}>
                 
                 {/* Sidebar Controls */}
                 <GlassContainer>
-                    <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '10px' }}><ChartColumn size={34} aria-hidden="true" /></div>
+                    <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.625rem' }}><ChartColumn size={34} aria-hidden="true" /></div>
                         <h2 style={{ margin: 0, color: THEME.primary, fontWeight: 900 }}>الاستيراد الشامل</h2>
-                        <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 700, marginTop: '5px' }}>
+                        <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 700, marginTop: '0.3125rem' }}>
                             حمل القالب، املأ البيانات، ارفعه هنا.
                         </p>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
                         <button onClick={downloadMasterTemplate} className="btn-action primary">
                             تحميل القالب الموحد (Excel)
                         </button>
@@ -400,7 +400,7 @@ export default function UnifiedImportHub() {
                 <GlassContainer>
                     {isParsed ? (
                         <div>
-                            <div style={{ display: 'flex', gap: '10px', borderBottom: '2px solid #f1f5f9', paddingBottom: '15px', marginBottom: '20px', overflowX: 'auto' }}>
+                            <div style={{ display: 'flex', gap: '0.625rem', borderBottom: '2px solid #f1f5f9', paddingBottom: '0.9375rem', marginBottom: '1.25rem', overflowX: 'auto' }}>
                                 <button className={`tab-btn ${activeTab === 'labor' ? 'active' : ''}`} onClick={() => setActiveTab('labor')}>
                                     يومية العمالة ({parsedData.labor.length})
                                 </button>
@@ -416,7 +416,7 @@ export default function UnifiedImportHub() {
                             </div>
 
                             {hasErrors && (
-                                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '15px', borderRadius: '12px', marginBottom: '20px', color: '#991b1b', fontSize: 'var(--fs-sm)', fontWeight: 900 }}>
+                                <div style={{ background: '#fef2f2', border: '1px solid #fca5a5', padding: '0.9375rem', borderRadius: '12px', marginBottom: '1.25rem', color: '#991b1b', fontSize: 'var(--fs-sm)', fontWeight: 900 }}>
                                     يوجد أخطاء في بعض السطور مضللة باللون الأحمر. يرجى التأكد من مطابقة الأسماء والفلل والبنود مع المسجل في النظام.
                                 </div>
                             )}
@@ -428,9 +428,9 @@ export default function UnifiedImportHub() {
                         </div>
                     ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94a3b8', textAlign: 'center' }}>
-                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '15px', opacity: 0.5 }}><Pencil size={40} aria-hidden="true" /></div>
+                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem', opacity: 0.5 }}><Pencil size={40} aria-hidden="true" /></div>
                             <h3 style={{ margin: 0, fontWeight: 900 }}>شاشة المعاينة الذكية</h3>
-                            <p style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, maxWidth: '300px', marginTop: '10px' }}>
+                            <p style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, maxWidth: '18.75rem', marginTop: '0.625rem' }}>
                                 قم برفع الملف لتظهر البيانات هنا ويتم مراجعتها آلياً ومطابقتها مع الداتابيز قبل الاعتماد.
                             </p>
                         </div>
@@ -439,18 +439,18 @@ export default function UnifiedImportHub() {
             </div>
 
             <style>{`
-                .btn-action { width: 100%; padding: 15px; border-radius: 12px; border: none; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; }
+                .btn-action { width: 100%; padding: 0.9375rem; border-radius: 12px; border: none; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
                 .btn-action.primary { background: #0f172a; color: white; }
                 .btn-action.primary:hover { background: #1e293b; transform: translateY(-2px); }
                 .btn-action.success { background: #10b981; color: white; }
                 .btn-action.success:hover { background: #059669; transform: translateY(-2px); }
                 .btn-action.disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; border: 1px solid #e2e8f0; }
                 
-                .upload-dropzone { border: 2px dashed #cbd5e1; background: #f8fafc; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.2s; font-weight: 900; font-size: var(--fs-md); color: #3b82f6; display: block; }
+                .upload-dropzone { border: 2px dashed #cbd5e1; background: #f8fafc; padding: 1.25rem; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.2s; font-weight: 900; font-size: var(--fs-md); color: #3b82f6; display: block; }
                 .upload-dropzone:hover { background: #eff6ff; border-color: #3b82f6; }
                 .upload-dropzone.loading { opacity: 0.7; cursor: wait; background: #f1f5f9; border-color: #94a3b8; color: #64748b; }
 
-                .tab-btn { padding: 10px 20px; border-radius: 10px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-weight: 900; font-size: var(--fs-sm); cursor: pointer; transition: 0.2s; white-space: nowrap; }
+                .tab-btn { padding: 0.625rem 1.25rem; border-radius: 10px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-weight: 900; font-size: var(--fs-sm); cursor: pointer; transition: 0.2s; white-space: nowrap; }
                 .tab-btn:hover { background: #f8fafc; }
                 .tab-btn.active { background: #0f172a; color: white; border-color: #0f172a; box-shadow: 0 4px 10px rgba(15,23,42,0.2); }
             `}</style>

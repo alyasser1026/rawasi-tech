@@ -93,7 +93,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
         accessor: 'work_item',
         render: (row: any) => {
             if (row.item_type === 'رئيسي') return <span style={{ fontWeight: 900, color: THEME.coffeeDark, fontSize: 'var(--fs-lg)' }}>{row.work_item}</span>;
-            return <span style={{ paddingRight: '25px', color: '#475569', fontWeight: 800 }}>{row.work_item}</span>;
+            return <span style={{ paddingRight: '1.5625rem', color: '#475569', fontWeight: 800 }}>{row.work_item}</span>;
         }
     },
     { 
@@ -104,7 +104,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
         header: 'الميزانية المقدرة', 
         render: (row: any) => {
             const budget = Number(row.estimated_labor_cost || 0) + Number(row.estimated_material_cost || 0) + Number(row.estimated_expenses_cost || 0);
-            return <span style={{ fontWeight: 900, color: '#475569', backgroundColor: '#f1f5f9', padding: '4px 8px', borderRadius: '6px' }}>{formatCurrency(budget)}</span>;
+            return <span style={{ fontWeight: 900, color: '#475569', backgroundColor: '#f1f5f9', padding: '0.25rem 0.5rem', borderRadius: '6px' }}>{formatCurrency(budget)}</span>;
         }
     },
     { 
@@ -115,7 +115,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
     { 
         header: 'مصروفات موزعة (ABC)', 
         render: (row: any) => (
-            <span style={{ fontWeight: 900, color: '#9333EA', backgroundColor: '#F3E8FF', padding: '4px 8px', borderRadius: '6px', fontSize: 'var(--fs-sm)' }}>
+            <span style={{ fontWeight: 900, color: '#9333EA', backgroundColor: '#F3E8FF', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: 'var(--fs-sm)' }}>
                 {formatCurrency(row.allocated_expenses || 0)}
             </span>
         )
@@ -151,7 +151,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
             return (
               <span style={{ 
                 fontWeight: 900, color: isLoss ? THEME.danger : THEME.success, 
-                backgroundColor: isLoss ? '#FEF2F2' : '#F0FDF4', padding: '4px 8px', borderRadius: '6px', fontSize: 'var(--fs-sm)', display: 'inline-block'
+                backgroundColor: isLoss ? '#FEF2F2' : '#F0FDF4', padding: '0.25rem 0.5rem', borderRadius: '6px', fontSize: 'var(--fs-sm)', display: 'inline-block'
               }}>
                 {formatCurrency(netProfit)}
               </span>
@@ -170,7 +170,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
     {
         header: 'الإجراءات',
         render: (row: any) => (
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'center' }}>
                 <SecureAction module="boqbudget" action="edit"><button onClick={() => { logic.setCurrentBoqRecord(row); logic.setIsBoqModalOpen(true); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-lg)' }} title="تعديل البند"><Pencil size={14} aria-hidden="true" /></button></SecureAction>
                 <SecureAction module="boqbudget" action="delete"><button onClick={() => { setDeleteAlert({ isOpen: true, type: 'boq', id: row.id, title: 'حذف بند مقايسة', message: `هل أنت متأكد من حذف البند "${row.work_item}"؟` }); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-lg)', opacity: 0.8 }} title="حذف البند"><Trash2 size={14} aria-hidden="true" /></button></SecureAction>
             </div>
@@ -182,31 +182,31 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
     <div>
       {/* 📊 كروت السامري الكلية المطورة للرقابة المالية */}
       {flatBoqData.length > 0 && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '25px' }}>
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>臨 إجمالي قيمة المقايسة</span>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.9375rem', marginBottom: '1.5625rem' }}>
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '0.9375rem 1.25rem', borderRadius: '14px', borderBottom: `4px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '0.3125rem' }}>臨 إجمالي قيمة المقايسة</span>
             <strong style={{ fontSize: 'var(--fs-xl)', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(boqStats.totalContractValue)}</strong>
           </div>
 
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #475569`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إجمالي الميزانية التقديرية</span>
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '0.9375rem 1.25rem', borderRadius: '14px', borderBottom: `4px solid #475569`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '0.3125rem' }}>إجمالي الميزانية التقديرية</span>
             <strong style={{ fontSize: 'var(--fs-xl)', color: '#1e293b', fontWeight: 900 }}>{formatCurrency(boqStats.totalEstimatedCosts)}</strong>
           </div>
 
           {/* 🏢 الكارت الجديد اللي بيجمع المصروفات الموزعة (ABC) كلها للفيلا */}
-          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', borderBottom: `4px solid #9333EA`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>التكاليف الموزعة (ABC)</span>
+          <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '0.9375rem 1.25rem', borderRadius: '14px', borderBottom: `4px solid #9333EA`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '0.3125rem' }}>التكاليف الموزعة (ABC)</span>
             <strong style={{ fontSize: 'var(--fs-xl)', color: '#9333EA', fontWeight: 900 }}>{formatCurrency(boqStats.totalAllocatedExpensesABC)}</strong>
           </div>
 
           {/* ⚖️ كارت مؤشر انحراف الميزانية الكلي */}
           <div style={{ 
             backgroundColor: boqStats.totalBudgetVariance < 0 ? 'rgba(254,226,226,0.6)' : 'rgba(209,250,229,0.6)', 
-            backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', 
+            backdropFilter: 'blur(10px)', padding: '0.9375rem 1.25rem', borderRadius: '14px', 
             borderBottom: `4px solid ${boqStats.totalBudgetVariance < 0 ? THEME.danger : '#057857'}`, 
             boxShadow: '0 4px 15px rgba(0,0,0,0.02)' 
           }}>
-            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>انحراف الميزانية الكلي</span>
+            <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '0.3125rem' }}>انحراف الميزانية الكلي</span>
             <strong style={{ fontSize: 'var(--fs-xl)', color: boqStats.totalBudgetVariance < 0 ? THEME.danger : '#057857', fontWeight: 900 }}>
               {boqStats.totalBudgetVariance > 0 ? '+' : ''}{formatCurrency(boqStats.totalBudgetVariance)}
             </strong>
@@ -215,13 +215,13 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
           {/* 📊 كارت صافي الأرباح الفعلية المحدث من السيرفر */}
           <div style={{ 
               backgroundColor: boqStats.isLoss ? 'rgba(254,226,226,0.8)' : 'rgba(220,252,231,0.6)', 
-              backdropFilter: 'blur(10px)', padding: '15px 20px', borderRadius: '14px', 
+              backdropFilter: 'blur(10px)', padding: '0.9375rem 1.25rem', borderRadius: '14px', 
               borderBottom: `4px solid ${boqStats.isLoss ? THEME.danger : THEME.success}`, 
               boxShadow: '0 4px 15px rgba(0,0,0,0.02)' 
           }}>
-            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--fs-xs)', color: boqStats.isLoss ? THEME.danger : '#166534', fontWeight: 900, marginBottom: '5px' }}>
+            <span style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 'var(--fs-xs)', color: boqStats.isLoss ? THEME.danger : '#166534', fontWeight: 900, marginBottom: '0.3125rem' }}>
               <span>{boqStats.isLoss ? 'صافي خسارة فعلية' : 'صافي الأرباح الحقيقية'}</span>
-              <span style={{ background: boqStats.isLoss ? THEME.danger : '#166534', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: 'var(--fs-xs)', direction: 'ltr' }}>
+              <span style={{ background: boqStats.isLoss ? THEME.danger : '#166534', color: 'white', padding: '2px 0.375rem', borderRadius: '4px', fontSize: 'var(--fs-xs)', direction: 'ltr' }}>
                 {boqStats.profitMargin}%
               </span>
             </span>
@@ -233,11 +233,11 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
       )}
 
       {/* 📋 جدول المقايسة الذكي ومتابعة التكاليف الفعلية */}
-      <div className="glass-card" style={{ padding: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', padding: '0 10px', flexWrap: 'wrap', gap: '15px' }}>
+      <div className="glass-card" style={{ padding: '1.25rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', padding: '0 0.625rem', flexWrap: 'wrap', gap: '0.9375rem' }}>
            <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900 }}>مقارنة ومتابعة الميزانيات بالتكاليف الفعلية والانحرافات</h3>
            
-           <div style={{ display: 'flex', gap: '10px' }}>
+           <div style={{ display: 'flex', gap: '0.625rem' }}>
              <SecureAction module="boqbudget" action="create">
                <button 
                  onClick={() => {
@@ -245,8 +245,8 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
                    logic.setIsBoqModalOpen(true);
                  }}
                  style={{
-                   backgroundColor: '#fb923c', color: 'white', padding: '10px 20px', borderRadius: '10px',
-                   border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                   backgroundColor: '#fb923c', color: 'white', padding: '0.625rem 1.25rem', borderRadius: '10px',
+                   border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)', transition: 'all 0.3s'
                  }}
                >
@@ -258,8 +258,8 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
                <button 
                  onClick={() => setIsReportOpen(true)}
                  style={{
-                   backgroundColor: THEME.primary, color: 'white', padding: '10px 20px', borderRadius: '10px',
-                   border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px',
+                   backgroundColor: THEME.primary, color: 'white', padding: '0.625rem 1.25rem', borderRadius: '10px',
+                   border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem',
                    boxShadow: '0 4px 10px rgba(0,0,0,0.1)', transition: 'all 0.3s'
                  }}
                >
@@ -270,8 +270,8 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
         </div>
 
         {flatBoqData.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: 900 }}>
-                <div style={{ fontSize: 'var(--fs-display)', marginBottom: '10px' }}><ClipboardList size={34} aria-hidden="true" /></div>
+            <div style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8', fontWeight: 900 }}>
+                <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.625rem' }}><ClipboardList size={34} aria-hidden="true" /></div>
                 لا توجد بنود مقايسة مضافة لهذا المشروع بعد.<br/>
             </div>
         ) : (

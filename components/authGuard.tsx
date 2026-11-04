@@ -146,14 +146,14 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
 
   if (!isAuthorized) {
     return (
-      <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', background: '#f8fafc', padding: '20px', textAlign: 'center' }}>
-        <div style={{ marginBottom: '15px', fontSize: 'var(--fs-display)' }}>
+      <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', background: '#f8fafc', padding: '1.25rem', textAlign: 'center' }}>
+        <div style={{ marginBottom: '0.9375rem', fontSize: 'var(--fs-display)' }}>
           <OctagonX size={40} aria-hidden="true" />
         </div>
         <h1 style={{ color: '#dc2626', fontWeight: 900, fontSize: 'var(--fs-3xl)', margin: '0' }}>إنت إيه اللي جابك هنا؟!</h1>
         <button 
           onClick={() => router.push('/')}
-          style={{ marginTop: '25px', padding: '14px 30px', background: '#dc2626', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-lg)', boxShadow: '0 4px 15px rgba(220,38,38,0.4)', transition: '0.3s' }}
+          style={{ marginTop: '1.5625rem', padding: '0.875rem 1.875rem', background: '#dc2626', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-lg)', boxShadow: '0 4px 15px rgba(220,38,38,0.4)', transition: '0.3s' }}
           onMouseOver={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
           onMouseOut={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >

@@ -246,12 +246,12 @@ export default function FinancialPlanPage() {
     const isRevenue = category === 'إيرادات';
     
     return (
-      <div className="ent-panel" style={{ marginBottom: '30px' }}>
-        <div style={{ background: isRevenue ? '#ecfdf5' : '#fff1f2', padding: '15px 20px', borderBottom: `1px solid ${THEME.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="ent-panel" style={{ marginBottom: '1.875rem' }}>
+        <div style={{ background: isRevenue ? '#ecfdf5' : '#fff1f2', padding: '0.9375rem 1.25rem', borderBottom: `1px solid ${THEME.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ margin: 0, color: isRevenue ? THEME.success : THEME.ruby, fontSize: 'var(--fs-xl)', fontWeight: '900' }}>
             {isRevenue ? 'الإيرادات المتوقعة' : 'المصروفات المقدرة'}
           </h2>
-          <button onClick={() => logic.addNewItem(category)} style={{ background: THEME.primary, color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
+          <button onClick={() => logic.addNewItem(category)} style={{ background: THEME.primary, color: 'white', border: 'none', padding: '0.375rem 0.75rem', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>
             + إضافة بند
           </button>
         </div>
@@ -259,11 +259,11 @@ export default function FinancialPlanPage() {
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
           <thead style={{ background: THEME.slate, color: THEME.textMain, fontSize: 'var(--fs-md)' }}>
             <tr>
-              <th style={{ padding: '12px 15px', borderBottom: `1px solid ${THEME.border}` }}>اسم البند</th>
-              <th style={{ padding: '12px 15px', borderBottom: `1px solid ${THEME.border}`, width: '150px' }}>المبلغ المخطط (مستهدف)</th>
-              <th style={{ padding: '12px 15px', borderBottom: `1px solid ${THEME.border}`, width: '150px' }}>الفعلي (المنفذ)</th>
-              <th style={{ padding: '12px 15px', borderBottom: `1px solid ${THEME.border}`, width: '150px' }}>نسبة الانحراف</th>
-              <th style={{ padding: '12px 15px', borderBottom: `1px solid ${THEME.border}`, width: '60px' }}></th>
+              <th style={{ padding: '0.75rem 0.9375rem', borderBottom: `1px solid ${THEME.border}` }}>اسم البند</th>
+              <th style={{ padding: '0.75rem 0.9375rem', borderBottom: `1px solid ${THEME.border}`, width: '9.375rem' }}>المبلغ المخطط (مستهدف)</th>
+              <th style={{ padding: '0.75rem 0.9375rem', borderBottom: `1px solid ${THEME.border}`, width: '9.375rem' }}>الفعلي (المنفذ)</th>
+              <th style={{ padding: '0.75rem 0.9375rem', borderBottom: `1px solid ${THEME.border}`, width: '9.375rem' }}>نسبة الانحراف</th>
+              <th style={{ padding: '0.75rem 0.9375rem', borderBottom: `1px solid ${THEME.border}`, width: '3.75rem' }}></th>
             </tr>
           </thead>
           <tbody>
@@ -278,19 +278,19 @@ export default function FinancialPlanPage() {
 
               return (
                 <tr key={r.id} style={{ borderBottom: `1px solid ${THEME.border}` }}>
-                  <td style={{ padding: '10px 15px' }}>
-                    <input type="text" value={r.item_name} onChange={e => logic.updateRecord(r.id, 'item_name', e.target.value)} style={{ width: '100%', padding: '8px', border: `1px solid ${THEME.border}`, borderRadius: '6px', fontWeight: 'bold', color: THEME.textMain }} />
+                  <td style={{ padding: '0.625rem 0.9375rem' }}>
+                    <input type="text" value={r.item_name} onChange={e => logic.updateRecord(r.id, 'item_name', e.target.value)} style={{ width: '100%', padding: '0.5rem', border: `1px solid ${THEME.border}`, borderRadius: '6px', fontWeight: 'bold', color: THEME.textMain }} />
                   </td>
-                  <td style={{ padding: '10px 15px' }}>
-                    <input type="number" value={r.planned_amount === 0 ? '' : r.planned_amount} onChange={e => logic.updateRecord(r.id, 'planned_amount', e.target.value)} style={{ width: '100%', padding: '8px', border: `1px solid ${THEME.border}`, borderRadius: '6px', textAlign: 'center', fontWeight: 'bold' }} placeholder="0" />
+                  <td style={{ padding: '0.625rem 0.9375rem' }}>
+                    <input type="number" value={r.planned_amount === 0 ? '' : r.planned_amount} onChange={e => logic.updateRecord(r.id, 'planned_amount', e.target.value)} style={{ width: '100%', padding: '0.5rem', border: `1px solid ${THEME.border}`, borderRadius: '6px', textAlign: 'center', fontWeight: 'bold' }} placeholder="0" />
                   </td>
-                  <td style={{ padding: '10px 15px' }}>
-                    <input type="number" value={r.actual_amount === 0 ? '' : r.actual_amount} onChange={e => logic.updateRecord(r.id, 'actual_amount', e.target.value)} style={{ width: '100%', padding: '8px', border: `1px solid ${THEME.border}`, borderRadius: '6px', textAlign: 'center', fontWeight: 'bold', background: '#f8fafc' }} placeholder="0" />
+                  <td style={{ padding: '0.625rem 0.9375rem' }}>
+                    <input type="number" value={r.actual_amount === 0 ? '' : r.actual_amount} onChange={e => logic.updateRecord(r.id, 'actual_amount', e.target.value)} style={{ width: '100%', padding: '0.5rem', border: `1px solid ${THEME.border}`, borderRadius: '6px', textAlign: 'center', fontWeight: 'bold', background: '#f8fafc' }} placeholder="0" />
                   </td>
-                  <td style={{ padding: '10px 15px', fontWeight: '900', color: varianceColor, textAlign: 'center', direction: 'ltr' }}>
+                  <td style={{ padding: '0.625rem 0.9375rem', fontWeight: '900', color: varianceColor, textAlign: 'center', direction: 'ltr' }}>
                     {variance > 0 ? '+' : ''}{formatCurrency(variance)}
                   </td>
-                  <td style={{ padding: '10px 15px', textAlign: 'center' }}>
+                  <td style={{ padding: '0.625rem 0.9375rem', textAlign: 'center' }}>
                     <button onClick={() => logic.removeItem(r.id)} style={{ background: 'transparent', border: 'none', color: THEME.ruby, cursor: 'pointer', fontSize: 'var(--fs-lg)' }}><Trash2 size={14} aria-hidden="true" /></button>
                   </td>
                 </tr>
@@ -322,34 +322,34 @@ export default function FinancialPlanPage() {
 
       {/* 🖥️ قسم الشاشة التفاعلي الافتراضي (يختفي بالكامل أثناء الطباعة) */}
       <div className="no-print">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '15px 20px', borderRadius: '12px', marginBottom: '20px', border: `1px solid ${THEME.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.02)', flexWrap: 'wrap', gap: '15px' }}>
-          <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '0.9375rem 1.25rem', borderRadius: '12px', marginBottom: '1.25rem', border: `1px solid ${THEME.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.02)', flexWrap: 'wrap', gap: '0.9375rem' }}>
+          <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center' }}>
             <div style={{ fontWeight: '900', color: THEME.primary, fontSize: 'var(--fs-md)' }}>فترة الخطة:</div>
-            <select value={logic.selectedMonth} onChange={e => logic.setSelectedMonth(Number(e.target.value))} style={{ padding: '8px 12px', borderRadius: '6px', border: `1px solid ${THEME.border}`, fontWeight: 'bold', color: THEME.textMain }}>
+            <select value={logic.selectedMonth} onChange={e => logic.setSelectedMonth(Number(e.target.value))} style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: `1px solid ${THEME.border}`, fontWeight: 'bold', color: THEME.textMain }}>
               {Array.from({length: 12}, (_, i) => i + 1).map(m => <option key={m} value={m}>شهر {m}</option>)}
             </select>
-            <select value={logic.selectedYear} onChange={e => logic.setSelectedYear(Number(e.target.value))} style={{ padding: '8px 12px', borderRadius: '6px', border: `1px solid ${THEME.border}`, fontWeight: 'bold', color: THEME.textMain }}>
+            <select value={logic.selectedYear} onChange={e => logic.setSelectedYear(Number(e.target.value))} style={{ padding: '0.5rem 0.75rem', borderRadius: '6px', border: `1px solid ${THEME.border}`, fontWeight: 'bold', color: THEME.textMain }}>
               {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>سنة {y}</option>)}
             </select>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ display: 'flex', gap: '0.625rem' }}>
             <button 
               onClick={handleExportToExcel}
-              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+              style={{ padding: '0.625rem 1.25rem', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
             >
               تصدير إكسيل الاحترافي
             </button>
             <button 
               onClick={() => window.print()}
-              style={{ padding: '10px 20px', borderRadius: '8px', border: `1px solid ${THEME.border}`, background: THEME.slate, color: THEME.textMain, fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ padding: '0.625rem 1.25rem', borderRadius: '8px', border: `1px solid ${THEME.border}`, background: THEME.slate, color: THEME.textMain, fontWeight: 'bold', cursor: 'pointer' }}
             >
               طباعة التقرير الورقي
             </button>
             <button 
               onClick={logic.savePlanToDB} 
               disabled={logic.isSaving}
-              style={{ padding: '10px 25px', borderRadius: '8px', border: 'none', background: THEME.primary, color: 'white', fontWeight: 'bold', cursor: logic.isSaving ? 'not-allowed' : 'pointer', opacity: logic.isSaving ? 0.7 : 1 }}
+              style={{ padding: '0.625rem 1.5625rem', borderRadius: '8px', border: 'none', background: THEME.primary, color: 'white', fontWeight: 'bold', cursor: logic.isSaving ? 'not-allowed' : 'pointer', opacity: logic.isSaving ? 0.7 : 1 }}
             >
               {logic.isSaving ? 'جاري الحفظ...' : 'حفظ خطة الموازنة'}
             </button>
@@ -359,7 +359,7 @@ export default function FinancialPlanPage() {
         {logic.isLoading ? (
           <LoadingScreen message="جاري تحميل بنود الخطة من النظام..." fullScreen={false} />
         ) : (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '25px', alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.5625rem', alignItems: 'flex-start' }}>
             
             {/* الجداول الأساسية التفاعلية */}
             <div style={{ flex: '1 1 520px', minWidth: 0 }}>
@@ -368,31 +368,31 @@ export default function FinancialPlanPage() {
             </div>
 
             {/* 🛡️ كارت المخلص الجانبي (مؤمن ومحمي داخل no-print فلن يظهر في الطباعة أبداً) */}
-            <div className="ent-panel ent-plan-summary" style={{ width: '320px', padding: '20px', position: 'sticky', top: '20px' }}>
-              <h3 style={{ margin: '0 0 20px 0', borderBottom: '1px solid #e6e8ec', paddingBottom: '10px', fontWeight: 900, fontSize: 'var(--fs-lg)' }}>ملخص الخطة والمستهدف</h3>
+            <div className="ent-panel ent-plan-summary" style={{ width: '20rem', padding: '1.25rem', position: 'sticky', top: '1.25rem' }}>
+              <h3 style={{ margin: '0 0 1.25rem 0', borderBottom: '1px solid #e6e8ec', paddingBottom: '0.625rem', fontWeight: 900, fontSize: 'var(--fs-lg)' }}>ملخص الخطة والمستهدف</h3>
               
-              <div style={{ marginBottom: '15px' }}>
+              <div style={{ marginBottom: '0.9375rem' }}>
                 <div style={{ fontSize: 'var(--fs-sm)', color: '#687180', fontWeight: 700 }}>إجمالي الإيرادات المتوقعة</div>
                 <div style={{ fontSize: 'var(--fs-xl)', fontWeight: '900', color: '#047857' }}>{formatCurrency(logic.totals.totalRevPlanned)}</div>
               </div>
               
-              <div style={{ marginBottom: '15px' }}>
+              <div style={{ marginBottom: '0.9375rem' }}>
                 <div style={{ fontSize: 'var(--fs-sm)', color: '#687180', fontWeight: 700 }}>إجمالي المصروفات المقدرة</div>
                 <div style={{ fontSize: 'var(--fs-xl)', fontWeight: '900', color: '#be123c' }}>{formatCurrency(logic.totals.totalExpPlanned)}</div>
               </div>
 
-              <div style={{ margin: '15px 0', borderTop: '1px dashed #dce2ea' }}></div>
+              <div style={{ margin: '0.9375rem 0', borderTop: '1px dashed #dce2ea' }}></div>
 
-              <div style={{ marginBottom: '15px' }}>
+              <div style={{ marginBottom: '0.9375rem' }}>
                 <div style={{ fontSize: 'var(--fs-sm)', color: THEME.textMain, fontWeight: 'bold' }}>صافي الربح التقديري (المخطط)</div>
                 <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: logic.totals.netPlanned >= 0 ? '#047857' : '#be123c' }}>
                   {formatCurrency(logic.totals.netPlanned)}
                 </div>
               </div>
 
-              <div style={{ margin: '15px 0', borderTop: '1px dashed #dce2ea' }}></div>
+              <div style={{ margin: '0.9375rem 0', borderTop: '1px dashed #dce2ea' }}></div>
 
-              <div style={{ marginBottom: '5px' }}>
+              <div style={{ marginBottom: '0.3125rem' }}>
                 <div style={{ fontSize: 'var(--fs-sm)', color: THEME.textMain, fontWeight: 'bold' }}>صافي الربح الفعلي (المحقق الحقيقي)</div>
                 <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: logic.totals.netActual >= 0 ? '#1d4ed8' : '#be123c' }}>
                   {formatCurrency(logic.totals.netActual)}
@@ -405,12 +405,12 @@ export default function FinancialPlanPage() {
 
       {/* 🖨️ قسم الطباعة الرسمي النظيف والمستقل (مخفي تماماً عن الشاشة ويظهر فقط في ورق المطبوعات) */}
       <div className="print-area" style={{ display: 'none' }}>
-         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '12px', marginBottom: '25px' }}>
+         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '0.75rem', marginBottom: '1.5625rem' }}>
             <div>
                
-               <p style={{ margin: '6px 0 0 0', fontWeight: 800, fontSize: 'var(--fs-md)', color: THEME.textMain }}>شركة فاي تك للمقاولات | كشف تفصيلي لشهر: ({monthNameArabic} / {logic.selectedYear})</p>
+               <p style={{ margin: '0.375rem 0 0 0', fontWeight: 800, fontSize: 'var(--fs-md)', color: THEME.textMain }}>شركة فاي تك للمقاولات | كشف تفصيلي لشهر: ({monthNameArabic} / {logic.selectedYear})</p>
             </div>
-            <img src="/company-logo.svg" alt=" RY Logo" style={{ height: '55px', objectFit: 'contain' }} />
+            <img src="/company-logo.svg" alt=" RY Logo" style={{ height: '3.4375rem', objectFit: 'contain' }} />
          </div>
 
          {/* جدول الإيرادات الورقي */}
@@ -431,7 +431,7 @@ export default function FinancialPlanPage() {
                  const variance = Number(r.actual_amount || 0) - Number(r.planned_amount || 0);
                  return (
                    <tr key={r.id}>
-                     <td style={{ fontWeight: 800, paddingRight: '12px' }}>{r.item_name}</td>
+                     <td style={{ fontWeight: 800, paddingRight: '0.75rem' }}>{r.item_name}</td>
                      <td style={{ fontWeight: 700, textAlign: 'center' }}>{formatCurrency(r.planned_amount)}</td>
                      <td style={{ fontWeight: 700, textAlign: 'center' }}>{formatCurrency(r.actual_amount)}</td>
                      <td style={{ fontWeight: 900, direction: 'ltr', textAlign: 'center', color: variance >= 0 ? THEME.success : THEME.ruby }}>
@@ -441,7 +441,7 @@ export default function FinancialPlanPage() {
                  );
                })}
                <tr style={{ background: '#e2e8f0', fontWeight: 900 }}>
-                  <td style={{ color: THEME.primary, paddingRight: '12px' }}>إجمالي قسم الإيرادات الكلي:</td>
+                  <td style={{ color: THEME.primary, paddingRight: '0.75rem' }}>إجمالي قسم الإيرادات الكلي:</td>
                   <td style={{ color: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalRevPlanned)}</td>
                   <td style={{ color: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalRevActual)}</td>
                   <td style={{ direction: 'ltr', textAlign: 'center', color: (logic.totals.totalRevActual - logic.totals.totalRevPlanned) >= 0 ? THEME.success : THEME.ruby }}>
@@ -469,7 +469,7 @@ export default function FinancialPlanPage() {
                  const variance = Number(r.actual_amount || 0) - Number(r.planned_amount || 0);
                  return (
                    <tr key={r.id}>
-                     <td style={{ fontWeight: 800, paddingRight: '12px' }}>{r.item_name}</td>
+                     <td style={{ fontWeight: 800, paddingRight: '0.75rem' }}>{r.item_name}</td>
                      <td style={{ fontWeight: 700, textAlign: 'center' }}>{formatCurrency(r.planned_amount)}</td>
                      <td style={{ fontWeight: 700, textAlign: 'center' }}>{formatCurrency(r.actual_amount)}</td>
                      <td style={{ fontWeight: 900, direction: 'ltr', textAlign: 'center', color: variance <= 0 ? THEME.success : THEME.ruby }}>
@@ -479,7 +479,7 @@ export default function FinancialPlanPage() {
                  );
                })}
                <tr style={{ background: '#e2e8f0', fontWeight: 900 }}>
-                  <td style={{ color: THEME.primary, paddingRight: '12px' }}>إجمالي قسم المصروفات الكلي:</td>
+                  <td style={{ color: THEME.primary, paddingRight: '0.75rem' }}>إجمالي قسم المصروفات الكلي:</td>
                   <td style={{ color: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalExpPlanned)}</td>
                   <td style={{ color: THEME.primary, textAlign: 'center' }}>{formatCurrency(logic.totals.totalExpActual)}</td>
                   <td style={{ direction: 'ltr', textAlign: 'center', color: (logic.totals.totalExpActual - logic.totals.totalExpPlanned) <= 0 ? THEME.success : THEME.ruby }}>
@@ -490,16 +490,16 @@ export default function FinancialPlanPage() {
          </table>
 
          {/* جدول ملخص الأرباح النهائي للطباعة */}
-         <table className="print-table" style={{ marginTop: '25px', border: `2px solid ${THEME.primary}` }}>
+         <table className="print-table" style={{ marginTop: '1.5625rem', border: `2px solid ${THEME.primary}` }}>
             <tbody>
                <tr style={{ background: '#f8fafc' }}>
-                  <th style={{ width: '45%', fontSize: 'var(--fs-md)', paddingRight: '12px', background: '#f1f5f9', color: THEME.primary }}>صافي الربح التقديري المستهدف (المخطط له)</th>
+                  <th style={{ width: '45%', fontSize: 'var(--fs-md)', paddingRight: '0.75rem', background: '#f1f5f9', color: THEME.primary }}>صافي الربح التقديري المستهدف (المخطط له)</th>
                   <td style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: logic.totals.netPlanned >= 0 ? THEME.success : THEME.ruby, textAlign: 'center' }}>
                     {formatCurrency(logic.totals.netPlanned)}
                   </td>
                </tr>
                <tr style={{ background: '#f8fafc' }}>
-                  <th style={{ width: '45%', fontSize: 'var(--fs-md)', paddingRight: '12px', background: '#f1f5f9', color: THEME.primary }}>صافي الربح المالي المحقق الحقيقي (المنفذ الفعلي)</th>
+                  <th style={{ width: '45%', fontSize: 'var(--fs-md)', paddingRight: '0.75rem', background: '#f1f5f9', color: THEME.primary }}>صافي الربح المالي المحقق الحقيقي (المنفذ الفعلي)</th>
                   <td style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: logic.totals.netActual >= 0 ? THEME.success : THEME.ruby, textAlign: 'center' }}>
                     {formatCurrency(logic.totals.netActual)}
                   </td>
@@ -508,10 +508,10 @@ export default function FinancialPlanPage() {
          </table>
 
          {/* ذيل اعتماد ومصادقة التقرير المالي */}
-         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '60px', fontSize: 'var(--fs-sm)', fontWeight: 800, padding: '0 20px' }}>
-             <div style={{textAlign: 'center', width: '180px'}}>أعده / المحاسب المالي<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '25px 0 10px 0'}}/>الاسم والتوقيع</div>
-             <div style={{textAlign: 'center', width: '180px'}}>راجعه / المدير المالي<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '25px 0 10px 0'}}/>الاسم والتوقيع</div>
-             <div style={{textAlign: 'center', width: '180px'}}>اعتمده / المدير العام<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '25px 0 10px 0'}}/>الاسم والتوقيع</div>
+         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3.75rem', fontSize: 'var(--fs-sm)', fontWeight: 800, padding: '0 1.25rem' }}>
+             <div style={{textAlign: 'center', width: '11.25rem'}}>أعده / المحاسب المالي<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '1.5625rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
+             <div style={{textAlign: 'center', width: '11.25rem'}}>راجعه / المدير المالي<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '1.5625rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
+             <div style={{textAlign: 'center', width: '11.25rem'}}>اعتمده / المدير العام<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '1.5625rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
          </div>
       </div>
 

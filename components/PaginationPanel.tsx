@@ -7,11 +7,11 @@ export default function PaginationPanel({ totalItems, currentPage, rowsPerPage, 
 
   return (
     <div style={{ 
-      display: 'flex', alignItems: 'center', gap: '20px', 
-      background: 'white', padding: '10px 25px', borderRadius: '15px',
+      display: 'flex', alignItems: 'center', gap: '1.25rem', 
+      background: 'white', padding: '0.625rem 1.5625rem', borderRadius: '15px',
       border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.03)' 
     }}>
-      <div style={{ display: 'flex', gap: '5px' }}>
+      <div style={{ display: 'flex', gap: '0.3125rem' }}>
         <button 
           disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)}
           className="icon-btn hover-scale"
@@ -19,7 +19,7 @@ export default function PaginationPanel({ totalItems, currentPage, rowsPerPage, 
         >
           السابق
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', padding: '0 15px', fontWeight: 800, color: '#475569', fontSize: 'var(--fs-md)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '0 0.9375rem', fontWeight: 800, color: '#475569', fontSize: 'var(--fs-md)' }}>
           صفحة {currentPage} من {totalPages}
         </div>
         <button 
@@ -30,12 +30,12 @@ export default function PaginationPanel({ totalItems, currentPage, rowsPerPage, 
           التالي
         </button>
       </div>
-      <div style={{ height: '20px', width: '1px', background: '#e2e8f0' }} />
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ height: '1.25rem', width: '1px', background: '#e2e8f0' }} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
         <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#64748b' }}>عرض:</span>
         <select 
           value={rowsPerPage} onChange={(e) => onRowsChange(Number(e.target.value))}
-          style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '4px 8px', fontWeight: 800, color: '#1e293b', outline: 'none' }}
+          style={{ border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.25rem 0.5rem', fontWeight: 800, color: '#1e293b', outline: 'none' }}
         >
           {[10, 20, 50, 100].map(val => <option key={val} value={val}>{val}</option>)}
         </select>

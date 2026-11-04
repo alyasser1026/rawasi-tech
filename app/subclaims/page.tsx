@@ -36,30 +36,30 @@ const FilterDropdown = ({ title, options, selectedOptions, setSelectedOptions }:
     };
 
     return (
-        <div ref={wrapperRef} style={{ position: 'relative', minWidth: '220px' }}>
+        <div ref={wrapperRef} style={{ position: 'relative', minWidth: '13.75rem' }}>
             <div 
                 onClick={() => setIsOpen(!isOpen)}
-                style={{ background: 'white', border: '2px solid #e2e8f0', borderRadius: '14px', padding: '10px 15px', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, fontSize: 'var(--fs-sm)', color: selectedOptions.length > 0 ? THEME.primary : '#64748b' }}
+                style={{ background: 'white', border: '2px solid #e2e8f0', borderRadius: '14px', padding: '0.625rem 0.9375rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, fontSize: 'var(--fs-sm)', color: selectedOptions.length > 0 ? THEME.primary : '#64748b' }}
             >
                 <span>{title} {selectedOptions.length > 0 ? `(${selectedOptions.length})` : ''}</span>
                 <span style={{ fontSize: 'var(--fs-xs)', transition: '0.3s', transform: isOpen ? 'rotate(180deg)' : 'none' }}>▼</span>
             </div>
             
             {isOpen && (
-                <div style={{ position: 'absolute', top: '110%', right: 0, width: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '14px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: '250px', overflowY: 'auto', padding: '10px' }}>
-                    {options.length === 0 ? <div style={{ padding: '10px', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8' }}>لا يوجد بيانات</div> : null}
+                <div style={{ position: 'absolute', top: '110%', right: 0, width: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '14px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: '15.625rem', overflowY: 'auto', padding: '0.625rem' }}>
+                    {options.length === 0 ? <div style={{ padding: '0.625rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8' }}>لا يوجد بيانات</div> : null}
                     {options.map((opt: string, idx: number) => (
                         <label 
                             key={idx} 
                             onClick={(e) => { e.preventDefault(); toggleOption(opt); }}
-                            style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', cursor: 'pointer', borderRadius: '8px', transition: '0.2s' }} 
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.625rem', cursor: 'pointer', borderRadius: '8px', transition: '0.2s' }} 
                             className="hover-bg-slate"
                         >
                             <input 
                                 type="checkbox" 
                                 checked={selectedOptions.includes(opt)}
                                 readOnly
-                                style={{ accentColor: THEME.primary, width: '16px', height: '16px' }}
+                                style={{ accentColor: THEME.primary, width: '1rem', height: '1rem' }}
                             />
                             <span style={{ fontSize: 'var(--fs-sm)', color: '#0f172a', fontWeight: 600 }}>{opt}</span>
                         </label>
@@ -154,7 +154,7 @@ export default function SubContractorClaimsPage() {
     if (!mounted) return null;
 
     const sidebarActions = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
             {logic.selectedContractor ? (
                 <>
                     <SecureAction module="job_orders" action="create">
@@ -179,7 +179,7 @@ export default function SubContractorClaimsPage() {
                         </button>
                     </SecureAction>
 
-                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '10px 0' }} />
+                    <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '0.625rem 0' }} />
 
                     <button 
                         onClick={() => {
@@ -192,7 +192,7 @@ export default function SubContractorClaimsPage() {
                     </button>
                 </>
             ) : (
-                <div style={{ textAlign: 'center', padding: '16px', background: '#f6f8fb', border: '1px dashed #d6dce5', borderRadius: '12px', color: '#4b5563', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>
+                <div style={{ textAlign: 'center', padding: '1rem', background: '#f6f8fb', border: '1px dashed #d6dce5', borderRadius: '12px', color: '#4b5563', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>
                     يرجى اختيار مقاول من القائمة لعرض الإجراءات وإسناد الأعمال
                 </div>
             )}
@@ -209,8 +209,8 @@ export default function SubContractorClaimsPage() {
                 const displayNames = row.project_names_text || row.projects?.Property || 'مجمع (عدة عقارات)';
                 return (
                     <div style={{ 
-                        maxWidth: '200px', whiteSpace: 'normal', lineHeight: '1.6', fontSize: 'var(--fs-xs)', 
-                        fontWeight: 900, color: THEME.primary, background: '#f1f5f9', padding: '6px 10px', 
+                        maxWidth: '12.5rem', whiteSpace: 'normal', lineHeight: '1.6', fontSize: 'var(--fs-xs)', 
+                        fontWeight: 900, color: THEME.primary, background: '#f1f5f9', padding: '0.375rem 0.625rem', 
                         borderRadius: '8px', textAlign: 'center', border: '1px solid #e2e8f0'
                     }}>
                         {displayNames}
@@ -268,13 +268,13 @@ export default function SubContractorClaimsPage() {
                 }
 
                 return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', alignItems: 'center' }}>
                         <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>
                             {dueDate.toISOString().split('T')[0]}
                         </div>
                         <div style={{
-                            display: 'inline-flex', alignItems: 'center', gap: '4px',
-                            padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-xs)',
+                            display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                            padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-xs)',
                             fontWeight: 900, color: color, background: bg, border: `1px solid ${color}40`,
                             whiteSpace: 'nowrap'
                         }}>
@@ -299,13 +299,13 @@ export default function SubContractorClaimsPage() {
                 }
 
                 return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '10px', fontSize: 'var(--fs-xs)', fontWeight: 900, color: status.color, background: status.bg, border: `1px solid ${status.color}30` }}>
-                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: status.color }}></span>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3125rem', alignItems: 'center' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.3125rem 0.75rem', borderRadius: '10px', fontSize: 'var(--fs-xs)', fontWeight: 900, color: status.color, background: status.bg, border: `1px solid ${status.color}30` }}>
+                            <span style={{ width: '0.375rem', height: '0.375rem', borderRadius: '50%', background: status.color }}></span>
                             {status.label}
                         </div>
                         {paid > 0 && paid < net && (
-                            <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, background: '#f8fafc', padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, background: '#f8fafc', padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
                                 سُدد: <span style={{ color: '#16a34a' }}>{formatCurrency(paid)}</span> | متبقي: <span style={{ color: '#ef4444' }}>{formatCurrency(remaining)}</span>
                             </div>
                         )}
@@ -316,7 +316,7 @@ export default function SubContractorClaimsPage() {
         { 
             header: 'الحالة المحاسبية', 
             render: (row: any) => (
-                <span style={{ background: row.is_posted ? '#dcfce7' : '#fef3c7', color: row.is_posted ? '#166534' : '#b45309', padding: '5px 12px', borderRadius: '10px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>
+                <span style={{ background: row.is_posted ? '#dcfce7' : '#fef3c7', color: row.is_posted ? '#166534' : '#b45309', padding: '0.3125rem 0.75rem', borderRadius: '10px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>
                     {row.is_posted ? 'معتمد' : 'مسودة'}
                 </span>
             ) 
@@ -330,23 +330,23 @@ export default function SubContractorClaimsPage() {
                 const isActionPending = logic.actionMutation.isPending && logic.actionMutation.variables?.id === row.id;
 
                 return (
-                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                         {row.is_posted && !isFullyPaid && (
                             <button 
                                 disabled={logic.isSavingPayment}
                                 onClick={() => logic.handleOpenPayment(row)} 
-                                style={{ background: '#16a34a', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s', boxShadow: '0 4px 10px rgba(22,163,74,0.3)' }}
+                                style={{ background: '#16a34a', color: 'white', border: 'none', padding: '0.375rem 0.75rem', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s', boxShadow: '0 4px 10px rgba(22,163,74,0.3)' }}
                             >
                                 {paid > 0 ? 'صرف المتبقي' : 'صرف'}
                             </button>
                         )}
-                        <button onClick={() => logic.handlePreparePrint(row)} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s' }}>طباعة</button>
+                        <button onClick={() => logic.handlePreparePrint(row)} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.375rem 0.75rem', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s' }}>طباعة</button>
 
                         {!row.is_posted ? (
                             <button 
                                 disabled={logic.actionMutation.isPending}
                                 onClick={() => logic.actionMutation.mutate({ action: 'post', id: row.id })} 
-                                style={{ background: THEME.success, color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
+                                style={{ background: THEME.success, color: 'white', border: 'none', padding: '0.375rem 0.75rem', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
                             >
                                 {isActionPending && logic.actionMutation.variables?.action === 'post' ? 'جاري...' : 'ترحيل'}
                             </button>
@@ -354,7 +354,7 @@ export default function SubContractorClaimsPage() {
                             <button 
                                 disabled={logic.actionMutation.isPending}
                                 onClick={() => { if(confirm('تأكيد فك ترحيل المستخلص؟ سيتم الاحتفاظ بسندات الصرف والأعمال المرتبطة. يلزم فك ترحيل سنداته أولاً.')) logic.actionMutation.mutate({ action: 'unpost', id: row.id }) }}
-                                style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
+                                style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '0.375rem 0.75rem', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
                             >
                                 {isActionPending && logic.actionMutation.variables?.action === 'unpost' ? 'جاري...' : 'فك الترحيل'}
                             </button>
@@ -363,7 +363,7 @@ export default function SubContractorClaimsPage() {
                         <button 
                             disabled={logic.actionMutation.isPending}
                             onClick={() => { if(confirm('تأكيد حذف مستخلص المسودة وإرجاع الأعمال لجاري التنفيذ؟ يجب فك ترحيله ومعالجة سندات الصرف المرتبطة أولاً.')) logic.actionMutation.mutate({ action: 'delete', id: row.id }) }}
-                            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
+                            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.375rem 0.75rem', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)', transition: '0.2s', opacity: logic.actionMutation.isPending ? 0.6 : 1 }}
                         >
                             {isActionPending && logic.actionMutation.variables?.action === 'delete' ? 'جاري...' : 'مسح'}
                         </button>
@@ -383,21 +383,21 @@ export default function SubContractorClaimsPage() {
                 />
 
                 <style>{`
-                    .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
+                    .btn-main-glass { width: 100%; padding: 0.875rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
                     .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; }
                     .btn-main-glass.green { background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.9)); color: white; }
                     .btn-main-glass.white { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255,255,255,0.8); }
                     .btn-main-glass:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(1); }
                     .btn-main-glass:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
                     
-                    .search-box-container { margin-bottom: 25px; background: white; padding: 10px 15px; border-radius: 14px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; position: relative; }
-                    .search-input-fancy { width: 100%; padding: 10px 35px 10px 10px; border-radius: 15px; border: 2px solid transparent; outline: none; transition: 0.3s; font-weight: 700; font-size: var(--fs-md); background: #f8fafc; }
+                    .search-box-container { margin-bottom: 1.5625rem; background: white; padding: 0.625rem 0.9375rem; border-radius: 14px; border: 1px solid #eee; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; align-items: center; position: relative; }
+                    .search-input-fancy { width: 100%; padding: 0.625rem 2.1875rem 0.625rem 0.625rem; border-radius: 15px; border: 2px solid transparent; outline: none; transition: 0.3s; font-weight: 700; font-size: var(--fs-md); background: #f8fafc; }
                     .search-input-fancy:focus { border-color: ${THEME.primary}80; background: #fff; }
-                    .search-icon { position: absolute; right: 25px; color: #94a3b8; pointer-events: none; }
-                    .search-clear-btn { position: absolute; left: 25px; background: #e2e8f0; border: none; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: 0.2s; font-size: var(--fs-xs); }
+                    .search-icon { position: absolute; right: 1.5625rem; color: #94a3b8; pointer-events: none; }
+                    .search-clear-btn { position: absolute; left: 1.5625rem; background: #e2e8f0; border: none; width: 1.5rem; height: 1.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #64748b; cursor: pointer; transition: 0.2s; font-size: var(--fs-xs); }
                     .search-clear-btn:hover { background: #ef4444; color: white; }
                     
-                    .tab-btn { padding: 12px 25px; border-radius: 15px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: var(--fs-md); }
+                    .tab-btn { padding: 0.75rem 1.5625rem; border-radius: 15px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: var(--fs-md); }
                     .tab-btn.active { background: ${THEME.primary}; color: white; box-shadow: 0 10px 20px ${THEME.primary}40; }
                     .tab-btn.inactive { background: white; color: #64748b; border: 1px solid #e2e8f0; }
                     .tab-btn.inactive:hover { background: #f8fafc; }
@@ -422,34 +422,34 @@ export default function SubContractorClaimsPage() {
                         </div>
 
                         {filteredContractors.length > 0 ? (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px', padding: '10px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(17.5rem, 1fr))', gap: '1.25rem', padding: '0.625rem' }}>
                                 {filteredContractors.map((contractor: any) => (
                                     <div key={contractor.id} onClick={() => logic.setSelectedContractor(contractor)} 
-                                         style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(15px)', borderRadius: '14px', padding: '25px', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.5)', transition: '0.3s', boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}>
-                                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '15px' }}><HardHat size={34} aria-hidden="true" /></div>
+                                         style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(15px)', borderRadius: '14px', padding: '1.5625rem', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.5)', transition: '0.3s', boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}>
+                                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem' }}><HardHat size={34} aria-hidden="true" /></div>
                                         <h3 style={{ margin: 0, color: THEME.primary, fontWeight: 900 }}>{contractor.name}</h3>
-                                        <div style={{ marginTop: '15px', background: THEME.accent, color: 'white', padding: '8px', borderRadius: '12px', textAlign: 'center', fontSize: 'var(--fs-sm)', fontWeight: 900 }}>فتح ملف الأعمال</div>
+                                        <div style={{ marginTop: '0.9375rem', background: THEME.accent, color: 'white', padding: '0.5rem', borderRadius: '12px', textAlign: 'center', fontSize: 'var(--fs-sm)', fontWeight: 900 }}>فتح ملف الأعمال</div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div style={{ textAlign: 'center', padding: '60px 20px', background: 'white', borderRadius: '14px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
-                                <div style={{ fontSize: 'var(--fs-display)', marginBottom: '15px' }}><ScanSearch size={38} aria-hidden="true" /></div>
-                                <h3 style={{ margin: '0 0 8px 0', color: '#0f172a', fontWeight: 900 }}>لم نتمكن من العثور على مقاول</h3>
+                            <div style={{ textAlign: 'center', padding: '3.75rem 1.25rem', background: 'white', borderRadius: '14px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
+                                <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem' }}><ScanSearch size={38} aria-hidden="true" /></div>
+                                <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontWeight: 900 }}>لم نتمكن من العثور على مقاول</h3>
                                 <p style={{ margin: 0, fontSize: 'var(--fs-md)', fontWeight: 700 }}>تأكد من كتابة الاسم بشكل صحيح.</p>
                             </div>
                         )}
                     </div>
                 ) : (
                     <div style={{ animation: 'slideUp 0.5s ease-out' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', background: 'white', padding: '20px', border: '1px solid #eee', borderRadius: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5625rem', background: 'white', padding: '1.25rem', border: '1px solid #eee', borderRadius: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
                             <div>
                                 <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary }}>سجل أعمال المقاول</h2>
                                 <span style={{ fontSize: 'var(--fs-md)', color: THEME.accent, fontWeight: 800 }}>الاسم: {logic.selectedContractor.name}</span>
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '15px', marginBottom: '25px' }}>
+                        <div style={{ display: 'flex', gap: '0.9375rem', marginBottom: '1.5625rem' }}>
                             <button 
                                 className={`tab-btn ${logic.activeTab === 'assignments' ? 'active' : 'inactive'}`} 
                                 onClick={() => logic.setActiveTab('assignments')}
@@ -466,7 +466,7 @@ export default function SubContractorClaimsPage() {
 
                         {logic.activeTab === 'assignments' && (
                             <div style={{ animation: 'fadeIn 0.3s' }}>
-                                <div style={{ background: 'white', padding: '15px', borderRadius: '14px', marginBottom: '20px', border: '1px solid #eee', display: 'flex', flexWrap: 'wrap', gap: '15px', alignItems: 'center' }}>
+                                <div style={{ background: 'white', padding: '0.9375rem', borderRadius: '14px', marginBottom: '1.25rem', border: '1px solid #eee', display: 'flex', flexWrap: 'wrap', gap: '0.9375rem', alignItems: 'center' }}>
                                     <FilterDropdown 
                                         title="تحديد الفلل" 
                                         options={availableVillas as string[]} 
@@ -490,17 +490,17 @@ export default function SubContractorClaimsPage() {
                                     />
 
                                     <div style={{ flex: 1, position: 'relative' }}>
-                                        <span className="search-icon" style={{ right: '15px', top: '12px' }}><Search size={16} aria-hidden="true" /></span>
+                                        <span className="search-icon" style={{ right: '0.9375rem', top: '0.75rem' }}><Search size={16} aria-hidden="true" /></span>
                                         <input 
                                             type="text" 
                                             className="search-input-fancy" 
-                                            style={{ background: '#f1f5f9', border: 'none', padding: '12px 40px 12px 10px' }}
+                                            style={{ background: '#f1f5f9', border: 'none', padding: '0.75rem 2.5rem 0.75rem 0.625rem' }}
                                             placeholder="بحث سريع (فيلا، بند، رقم أمر)..." 
                                             value={assignmentSearch}
                                             onChange={(e) => setAssignmentSearch(e.target.value)}
                                         />
                                         {assignmentSearch && (
-                                            <button className="search-clear-btn" style={{ top: '10px' }} onClick={() => setAssignmentSearch("")}>✖</button>
+                                            <button className="search-clear-btn" style={{ top: '0.625rem' }} onClick={() => setAssignmentSearch("")}>✖</button>
                                         )}
                                     </div>
                                     
@@ -516,13 +516,13 @@ export default function SubContractorClaimsPage() {
                                                 logic.setSelectedAssignments(validIds);
                                             }
                                         }}
-                                        style={{ background: THEME.primary, color: 'white', border: 'none', padding: '12px 20px', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', transition: '0.2s', fontSize: 'var(--fs-sm)' }}
+                                        style={{ background: THEME.primary, color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', transition: '0.2s', fontSize: 'var(--fs-sm)' }}
                                     >
                                         تحديد الأعمال الجارية فقط ✓
                                     </button>
                                 </div>
 
-                                <div style={{ background: 'white', borderRadius: '14px', padding: '10px', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
+                                <div style={{ background: 'white', borderRadius: '14px', padding: '0.625rem', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.05)' }}>
                                     <RawasiSmartTable 
                                         data={filteredAssignments} 
                                         isLoading={logic.isAssignLoading}
@@ -544,7 +544,7 @@ export default function SubContractorClaimsPage() {
                                                     <span style={{ 
                                                         background: row.assignment_status === 'مفوتر' ? '#dcfce7' : '#fef3c7', 
                                                         color: row.assignment_status === 'مفوتر' ? '#166534' : '#b45309', 
-                                                        padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900,
+                                                        padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900,
                                                         whiteSpace: 'nowrap'
                                                     }}>
                                                         {row.assignment_status === 'مفوتر' ? 'مفوتر' : 'جاري التنفيذ'}
@@ -555,7 +555,7 @@ export default function SubContractorClaimsPage() {
                                             {
                                                 header: 'إجراءات',
                                                 render: (row: any) => (
-                                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
                                                         {/* 🚀 إخفاء أزرار التعديل والمسح لو البند مفوتر */}
                                                         {row.assignment_status === 'مفوتر' ? (
                                                             <span style={{fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800}}>مغلق (مفوتر)</span>
@@ -563,7 +563,7 @@ export default function SubContractorClaimsPage() {
                                                             <>
                                                                 <button 
                                                                     onClick={(e) => { e.stopPropagation(); logic.handleEditAssignment(row); }} 
-                                                                    style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)' }}
+                                                                    style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.375rem 0.625rem', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)' }}
                                                                 >
                                                                     تعديل
                                                                 </button>
@@ -572,7 +572,7 @@ export default function SubContractorClaimsPage() {
                                                                         e.stopPropagation(); 
                                                                         if(confirm('متأكد من مسح هذا البند وإرجاع أمر التشغيل لتنفيذ ذاتي؟')) logic.deleteAssignment(row.assignment_id); 
                                                                     }} 
-                                                                    style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 10px', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)' }}
+                                                                    style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.375rem 0.625rem', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)' }}
                                                                 >
                                                                     مسح
                                                                 </button>
@@ -591,7 +591,7 @@ export default function SubContractorClaimsPage() {
                         )}
 
                         {logic.activeTab === 'history' && (
-                            <div style={{ background: 'white', borderRadius: '14px', padding: '10px', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', animation: 'fadeIn 0.3s' }}>
+                            <div style={{ background: 'white', borderRadius: '14px', padding: '0.625rem', border: '1px solid #eee', boxShadow: '0 10px 30px rgba(0,0,0,0.05)', animation: 'fadeIn 0.3s' }}>
                                 <RawasiSmartTable 
                                     data={logic.claimsHistory} 
                                     isLoading={logic.isHistoryLoading} 

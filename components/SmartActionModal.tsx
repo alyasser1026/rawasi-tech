@@ -82,7 +82,7 @@ export default function SmartActionModal({ isOpen, onClose, siteData }: SmartAct
                     <input type="text" placeholder="مثال: أسمنت بورتلاندي" style={styles.input} />
                   </div>
                 </div>
-                <div style={{...styles.row, marginTop: '15px'}}>
+                <div style={{...styles.row, marginTop: '0.9375rem'}}>
                   <div style={styles.field}>
                     <label style={styles.label}>الكمية</label>
                     <input type="number" value={qty} onChange={(e) => setQty(Number(e.target.value))} style={styles.input} />
@@ -142,8 +142,8 @@ export default function SmartActionModal({ isOpen, onClose, siteData }: SmartAct
               <div style={styles.sectionBox}>
                 <h4 style={styles.secTitle}>إرفاق مستندات (فواتير/صور موقع)</h4>
                 <div style={styles.uploadArea}>
-                  <div style={{fontSize: 'var(--fs-3xl)', marginBottom: '10px'}}><Folder size={26} aria-hidden="true" /></div>
-                  <p style={{margin: '0 0 10px 0', fontSize: 'var(--fs-sm)', color: '#666'}}>اضغط هنا لرفع صورة الفاتورة أو المستخلص</p>
+                  <div style={{fontSize: 'var(--fs-3xl)', marginBottom: '0.625rem'}}><Folder size={26} aria-hidden="true" /></div>
+                  <p style={{margin: '0 0 0.625rem 0', fontSize: 'var(--fs-sm)', color: '#666'}}>اضغط هنا لرفع صورة الفاتورة أو المستخلص</p>
                   <input type="file" style={styles.fileInput} />
                 </div>
               </div>
@@ -173,37 +173,37 @@ export default function SmartActionModal({ isOpen, onClose, siteData }: SmartAct
 }
 
 const styles: { [key: string]: React.CSSProperties } = {
-  overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, backdropFilter: 'blur(5px)', direction: 'rtl', padding: '15px' },
-  card: { backgroundColor: '#fdfcf9', width: '100%', maxWidth: '750px', maxHeight: '95vh', borderRadius: '15px', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' },
+  overlay: { position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, backdropFilter: 'blur(5px)', direction: 'rtl', padding: '0.9375rem' },
+  card: { backgroundColor: '#fdfcf9', width: '100%', maxWidth: '46.875rem', maxHeight: '95vh', borderRadius: '15px', overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' },
   
-  header: { padding: '20px 25px', backgroundColor: '#4a3e35', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  header: { padding: '1.25rem 1.5625rem', backgroundColor: '#4a3e35', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   closeBtn: { background: 'none', border: 'none', color: '#fff', fontSize: 'var(--fs-2xl)', cursor: 'pointer' },
   
   tabsContainer: { display: 'flex', backgroundColor: '#fff', borderBottom: '1px solid #ddd' },
-  tab: { flex: 1, padding: '15px 10px', background: 'none', border: 'none', fontWeight: 'bold', fontSize: 'var(--fs-md)', cursor: 'pointer', transition: '0.3s' },
+  tab: { flex: 1, padding: '0.9375rem 0.625rem', background: 'none', border: 'none', fontWeight: 'bold', fontSize: 'var(--fs-md)', cursor: 'pointer', transition: '0.3s' },
   
-  body: { padding: '25px', overflowY: 'auto', flex: 1 },
+  body: { padding: '1.5625rem', overflowY: 'auto', flex: 1 },
   
-  sectionBox: { backgroundColor: '#fff', border: '1px solid #eee', padding: '20px', borderRadius: '10px', marginBottom: '20px', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' },
-  secTitle: { margin: '0 0 15px 0', fontSize: 'var(--fs-lg)', color: '#4a3e35', fontWeight: 'bold' },
+  sectionBox: { backgroundColor: '#fff', border: '1px solid #eee', padding: '1.25rem', borderRadius: '10px', marginBottom: '1.25rem', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' },
+  secTitle: { margin: '0 0 0.9375rem 0', fontSize: 'var(--fs-lg)', color: '#4a3e35', fontWeight: 'bold' },
   
-  row: { display: 'flex', gap: '15px', flexWrap: 'wrap' },
-  field: { display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, minWidth: '150px' },
+  row: { display: 'flex', gap: '0.9375rem', flexWrap: 'wrap' },
+  field: { display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1, minWidth: '9.375rem' },
   label: { fontSize: 'var(--fs-sm)', color: '#555', fontWeight: 'bold' },
-  input: { padding: '12px 15px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none', backgroundColor: '#fcfaf7', fontSize: 'var(--fs-md)' },
+  input: { padding: '0.75rem 0.9375rem', borderRadius: '8px', border: '1px solid #ddd', outline: 'none', backgroundColor: '#fcfaf7', fontSize: 'var(--fs-md)' },
   
-  totalBox: { flex: 1, minWidth: '150px', backgroundColor: '#fafafa', border: '1px dashed #c2410c', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '10px' },
+  totalBox: { flex: 1, minWidth: '9.375rem', backgroundColor: '#fafafa', border: '1px dashed #c2410c', borderRadius: '8px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '0.625rem' },
   
-  divider: { height: '1px', backgroundColor: '#eee', margin: '20px 0' },
+  divider: { height: '1px', backgroundColor: '#eee', margin: '1.25rem 0' },
   
-  autoField: { flex: 1, padding: '15px', background: '#f0f9f1', borderRadius: '8px', border: '1px solid #d4edda', textAlign: 'center' },
-  autoLabel: { display: 'inline-block', padding: '4px 10px', background: '#27ae60', color: '#fff', borderRadius: '14px', fontSize: 'var(--fs-xs)', marginBottom: '10px' },
+  autoField: { flex: 1, padding: '0.9375rem', background: '#f0f9f1', borderRadius: '8px', border: '1px solid #d4edda', textAlign: 'center' },
+  autoLabel: { display: 'inline-block', padding: '0.25rem 0.625rem', background: '#27ae60', color: '#fff', borderRadius: '14px', fontSize: 'var(--fs-xs)', marginBottom: '0.625rem' },
   autoText: { margin: 0, fontSize: 'var(--fs-lg)', color: '#333' },
   
-  uploadArea: { border: '2px dashed #ccc', borderRadius: '10px', padding: '30px', textAlign: 'center', backgroundColor: '#fafafa', position: 'relative', cursor: 'pointer' },
+  uploadArea: { border: '2px dashed #ccc', borderRadius: '10px', padding: '1.875rem', textAlign: 'center', backgroundColor: '#fafafa', position: 'relative', cursor: 'pointer' },
   fileInput: { position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' },
-  textarea: { width: '100%', height: '100px', padding: '15px', borderRadius: '8px', border: '1px solid #ddd', outline: 'none', resize: 'none', boxSizing: 'border-box', backgroundColor: '#fcfaf7' },
+  textarea: { width: '100%', height: '6.25rem', padding: '0.9375rem', borderRadius: '8px', border: '1px solid #ddd', outline: 'none', resize: 'none', boxSizing: 'border-box', backgroundColor: '#fcfaf7' },
   
-  footer: { padding: '20px 25px', backgroundColor: '#fff', borderTop: '1px solid #eee' },
-  saveBtn: { width: '100%', padding: '16px', backgroundColor: '#4a3e35', color: '#c2410c', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-lg)', transition: '0.3s' }
+  footer: { padding: '1.25rem 1.5625rem', backgroundColor: '#fff', borderTop: '1px solid #eee' },
+  saveBtn: { width: '100%', padding: '1rem', backgroundColor: '#4a3e35', color: '#c2410c', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 'bold', fontSize: 'var(--fs-lg)', transition: '0.3s' }
 };

@@ -9,12 +9,12 @@ export default function ModernInput({ label, ...props }: ModernInputProps) {
   return (
     <div className="field-group">
       <style jsx>{`
-        .field-group { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-        .field-group label { color: var(--primary); font-size: var(--fs-md); font-weight: 900; padding-right: 5px; }
+        .field-group { display: flex; flex-direction: column; gap: 0.5rem; width: 100%; }
+        .field-group label { color: var(--primary); font-size: var(--fs-md); font-weight: 900; padding-right: 0.3125rem; }
         
         .modern-input {
           width: 100%;
-          padding: 14px 18px;
+          padding: 0.875rem 1.125rem;
           background: var(--input-bg);
           border: 1px solid rgba(15, 23, 42, 0.1);
           border-radius: 14px;

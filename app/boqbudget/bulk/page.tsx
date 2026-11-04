@@ -16,7 +16,7 @@ export default function BulkBudgetPage() {
   const logic = useBulkBudgetLogic();
 
   return (
-    <div className="clean-page" style={{ direction: 'rtl', padding: '20px' }}>
+    <div className="clean-page" style={{ direction: 'rtl', padding: '1.25rem' }}>
       <style>{`
         .clean-page { min-height: 100vh; background: linear-gradient(135deg, #f8fafc, #e2e8f0); font-family: 'Cairo', sans-serif; }
         .glass-header {
@@ -24,21 +24,21 @@ export default function BulkBudgetPage() {
           backdrop-filter: blur(15px);
           border: 1px solid rgba(255,255,255,0.8);
           border-radius: 14px;
-          padding: 20px;
-          margin-bottom: 20px;
+          padding: 1.25rem;
+          margin-bottom: 1.25rem;
           box-shadow: 0 10px 30px rgba(0,0,0,0.05);
           display: flex;
           align-items: center;
-          gap: 20px;
+          gap: 1.25rem;
           flex-wrap: wrap;
         }
-        .header-title { font-size: var(--fs-2xl); font-weight: 800; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 10px; }
+        .header-title { font-size: var(--fs-2xl); font-weight: 800; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 0.625rem; }
         
-        .filters-row { display: flex; gap: 20px; flex: 1; align-items: flex-end; }
-        .filter-group { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+        .filters-row { display: flex; gap: 1.25rem; flex: 1; align-items: flex-end; }
+        .filter-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
         .filter-group label { font-size: var(--fs-md); font-weight: 700; color: #475569; }
         .styled-select {
-          padding: 12px 15px;
+          padding: 0.75rem 0.9375rem;
           border-radius: 12px;
           border: 1px solid #cbd5e1;
           background: rgba(255,255,255,0.8);
@@ -54,7 +54,7 @@ export default function BulkBudgetPage() {
           background: linear-gradient(135deg, ${THEME.accent}, #a16207);
           color: white;
           border: none;
-          padding: 12px 25px;
+          padding: 0.75rem 1.5625rem;
           border-radius: 12px;
           font-weight: 700;
           font-size: var(--fs-lg);
@@ -62,7 +62,7 @@ export default function BulkBudgetPage() {
           transition: all 0.3s;
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 0.5rem;
           box-shadow: 0 8px 15px rgba(202, 138, 4, 0.3);
         }
         .btn-save:hover { transform: translateY(-2px); box-shadow: 0 12px 20px rgba(202, 138, 4, 0.4); }
@@ -80,7 +80,7 @@ export default function BulkBudgetPage() {
         .bulk-table { width: 100%; border-collapse: collapse; }
         .bulk-table th {
           background: rgba(15, 23, 42, 0.03);
-          padding: 15px;
+          padding: 0.9375rem;
           text-align: right;
           font-weight: 800;
           color: #334155;
@@ -89,7 +89,7 @@ export default function BulkBudgetPage() {
           white-space: nowrap;
         }
         .bulk-table td {
-          padding: 12px 15px;
+          padding: 0.75rem 0.9375rem;
           border-bottom: 1px solid #f1f5f9;
           vertical-align: middle;
         }
@@ -97,7 +97,7 @@ export default function BulkBudgetPage() {
         
         .styled-input {
           width: 100%;
-          padding: 8px 12px;
+          padding: 0.5rem 0.75rem;
           border-radius: 8px;
           border: 1px solid #e2e8f0;
           background: #f8fafc;
@@ -111,7 +111,7 @@ export default function BulkBudgetPage() {
           outline: none;
           box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.15);
         }
-        .villa-name { font-weight: 700; color: #0f172a; font-size: var(--fs-lg); display: flex; align-items: center; gap: 8px; }
+        .villa-name { font-weight: 700; color: #0f172a; font-size: var(--fs-lg); display: flex; align-items: center; gap: 0.5rem; }
       `}</style>
 
       <div className="glass-header">
@@ -198,11 +198,11 @@ export default function BulkBudgetPage() {
             <thead>
               <tr>
                 <th>الفيلا / المشروع</th>
-                <th style={{ width: '120px' }}>الكمية</th>
-                <th style={{ width: '120px' }}>سعر الوحدة</th>
-                <th style={{ width: '140px' }}>موازنة الخامات</th>
-                <th style={{ width: '140px' }}>موازنة العمالة</th>
-                <th style={{ width: '140px' }}>موازنة المصروفات</th>
+                <th style={{ width: '7.5rem' }}>الكمية</th>
+                <th style={{ width: '7.5rem' }}>سعر الوحدة</th>
+                <th style={{ width: '8.75rem' }}>موازنة الخامات</th>
+                <th style={{ width: '8.75rem' }}>موازنة العمالة</th>
+                <th style={{ width: '8.75rem' }}>موازنة المصروفات</th>
               </tr>
             </thead>
             <tbody>
@@ -212,8 +212,8 @@ export default function BulkBudgetPage() {
                     <div className="villa-name">
                       <span style={{color: THEME.accent}}><House size={16} aria-hidden="true" /></span> 
                       {b.projects?.Property || 'بدون فيلا'}
-                      {b.projects?.unit_type && <span style={{ fontSize: 'var(--fs-sm)', background: 'rgba(202, 138, 4, 0.1)', color: THEME.accent, padding: '2px 8px', borderRadius: '10px' }}>{b.projects.unit_type}</span>}
-                      {b._isNew && <span style={{ fontSize: 'var(--fs-xs)', background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '10px' }}>غير مسجل</span>}
+                      {b.projects?.unit_type && <span style={{ fontSize: 'var(--fs-sm)', background: 'rgba(202, 138, 4, 0.1)', color: THEME.accent, padding: '2px 0.5rem', borderRadius: '10px' }}>{b.projects.unit_type}</span>}
+                      {b._isNew && <span style={{ fontSize: 'var(--fs-xs)', background: '#e2e8f0', color: '#475569', padding: '2px 0.375rem', borderRadius: '10px' }}>غير مسجل</span>}
                     </div>
                   </td>
                   <td>
@@ -262,11 +262,11 @@ export default function BulkBudgetPage() {
           </table>
         </div>
       ) : logic.selectedWorkItem ? (
-        <div style={{ textAlign: 'center', padding: '50px', background: 'rgba(255,255,255,0.5)', borderRadius: '14px' }}>
+        <div style={{ textAlign: 'center', padding: '3.125rem', background: 'rgba(255,255,255,0.5)', borderRadius: '14px' }}>
           <h3>لا توجد موازنات مسجلة لهذا البند في الفلل الحالية.</h3>
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '50px', background: 'rgba(255,255,255,0.5)', borderRadius: '14px', color: '#64748b' }}>
+        <div style={{ textAlign: 'center', padding: '3.125rem', background: 'rgba(255,255,255,0.5)', borderRadius: '14px', color: '#64748b' }}>
           <h3>يرجى اختيار نوع البند ثم البند لعرض وتعديل موازنات الفلل</h3>
         </div>
       )}

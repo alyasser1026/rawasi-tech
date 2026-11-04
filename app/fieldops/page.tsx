@@ -12,7 +12,7 @@ export default function FieldOperationsPage() {
 
     const sidebarContent = (
         <div className="summary-glass-card">
-            <h4 style={{ color: THEME.coffeeDark, margin: '0 0 15px 0', fontSize: 'var(--fs-md)' }}>نبض الميدان - اليوم</h4>
+            <h4 style={{ color: THEME.coffeeDark, margin: '0 0 0.9375rem 0', fontSize: 'var(--fs-md)' }}>نبض الميدان - اليوم</h4>
             <div style={styles.sideStat}>
                 <span>إجمالي العمالة بالمواقع</span>
                 <strong>{logic.companyTotals.totalWorkers} عامل</strong>
@@ -21,7 +21,7 @@ export default function FieldOperationsPage() {
                 <span>إجمالي المنصرف اليومي</span>
                 <strong style={{ color: THEME.accent }}>{formatCurrency(logic.companyTotals.totalCost)}</strong>
             </div>
-            <p style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginTop: '20px', textAlign: 'center' }}>
+            <p style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginTop: '1.25rem', textAlign: 'center' }}>
                 تحديث تلقائي: {logic.today}
             </p>
         </div>
@@ -37,12 +37,12 @@ export default function FieldOperationsPage() {
                 />
 
                 <style>{`
-                    .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; padding: 10px; }
-                    .site-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 14px; padding: 25px; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; position: relative; overflow: hidden; }
+                    .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr)); gap: 1.5625rem; padding: 0.625rem; }
+                    .site-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 14px; padding: 1.5625rem; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; position: relative; overflow: hidden; }
                     .site-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); }
-                    .stat-badge { background: #f1f5f9; padding: 10px 15px; borderRadius: 16px; textAlign: center; }
-                    .task-pill { background: ${THEME.coffeeDark}; color: white; padding: 4px 10px; border-radius: 6px; font-size: var(--fs-xs); font-weight: 800; }
-                    .summary-glass-card { background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); }
+                    .stat-badge { background: #f1f5f9; padding: 0.625rem 0.9375rem; borderRadius: 16px; textAlign: center; }
+                    .task-pill { background: ${THEME.coffeeDark}; color: white; padding: 0.25rem 0.625rem; border-radius: 6px; font-size: var(--fs-xs); font-weight: 800; }
+                    .summary-glass-card { background: rgba(255, 255, 255, 0.1); padding: 1.25rem; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); }
                 `}</style>
 
                 {logic.isLoading ? (
@@ -52,18 +52,18 @@ export default function FieldOperationsPage() {
                         {logic.projectStats.map(site => (
                             <div key={site.id} className="site-card">
                                 {/* الهيدر */}
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
                                     <div>
                                         <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900 }}>{site.Property}</h3>
                                         <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 700 }}>العميل: {site.client?.name || '---'}</span>
                                     </div>
-                                    <div style={{ background: THEME.success + '20', color: THEME.success, padding: '5px 12px', borderRadius: '10px', fontSize: 'var(--fs-xs)', fontWeight: 900, height: 'fit-content' }}>
+                                    <div style={{ background: THEME.success + '20', color: THEME.success, padding: '0.3125rem 0.75rem', borderRadius: '10px', fontSize: 'var(--fs-xs)', fontWeight: 900, height: 'fit-content' }}>
                                         بث مباشر
                                     </div>
                                 </div>
 
                                 {/* عدادات اليوم */}
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.9375rem', marginBottom: '1.25rem' }}>
                                     <div className="stat-badge">
                                         <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>العمالة اليوم</div>
                                         <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.primary }}>{site.todayWorkers}</div>
@@ -75,9 +75,9 @@ export default function FieldOperationsPage() {
                                 </div>
 
                                 {/* المهام الجارية */}
-                                <div style={{ marginBottom: '15px' }}>
-                                    <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, marginBottom: '8px', color: '#475569' }}>أعمال جارية الآن:</div>
-                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                                <div style={{ marginBottom: '0.9375rem' }}>
+                                    <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, marginBottom: '0.5rem', color: '#475569' }}>أعمال جارية الآن:</div>
+                                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3125rem' }}>
                                         {site.activeTasks.length > 0 ? site.activeTasks.map((t: string) => (
                                             <span key={t} className="task-pill">{t}</span>
                                         )) : <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8' }}>لم تُسجل مهام بعد</span>}
@@ -85,18 +85,18 @@ export default function FieldOperationsPage() {
                                 </div>
 
                                 {/* شريط التقدم (نسبة الصرف من الميزانية) */}
-                                <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #f1f5f9' }}>
-                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', fontWeight: 800, marginBottom: '5px' }}>
+                                <div style={{ marginTop: '1.25rem', paddingTop: '0.9375rem', borderTop: '1px solid #f1f5f9' }}>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', fontWeight: 800, marginBottom: '0.3125rem' }}>
                                         <span>استهلاك الميزانية الميدانية</span>
                                         <span>{((site.todayLaborCost / (site.estimated_budget / 100)) || 0).toFixed(1)}%</span>
                                     </div>
-                                    <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
+                                    <div style={{ height: '0.375rem', background: '#e2e8f0', borderRadius: '10px', overflow: 'hidden' }}>
                                         <div style={{ width: '45%', height: '100%', background: THEME.goldAccent, borderRadius: '10px' }} />
                                     </div>
                                 </div>
                                 
                                 {/* زر الدخول السريع للمشروع */}
-                                <button style={{ width: '100%', marginTop: '20px', padding: '12px', border: 'none', borderRadius: '12px', background: THEME.coffeeDark, color: THEME.goldAccent, fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
+                                <button style={{ width: '100%', marginTop: '1.25rem', padding: '0.75rem', border: 'none', borderRadius: '12px', background: THEME.coffeeDark, color: THEME.goldAccent, fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
                                     فتح غرفة عمليات المشروع
                                 </button>
                             </div>
@@ -109,5 +109,5 @@ export default function FieldOperationsPage() {
 }
 
 const styles = {
-    sideStat: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f3f5f8', padding: '12px', borderRadius: '12px', marginBottom: '10px', fontSize: 'var(--fs-sm)', color: THEME.coffeeDark, fontWeight: 700 }
+    sideStat: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f3f5f8', padding: '0.75rem', borderRadius: '12px', marginBottom: '0.625rem', fontSize: 'var(--fs-sm)', color: THEME.coffeeDark, fontWeight: 700 }
 };

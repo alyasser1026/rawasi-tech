@@ -30,7 +30,7 @@ export default function RawasiToast({ message, type, onClose, duration = 4000 }:
       <style>{`
         .toast-container {
           position: fixed;
-          top: 20px;
+          top: 1.25rem;
           left: 50%;
           transform: translateX(-50%);
           z-index: 99999;
@@ -40,8 +40,8 @@ export default function RawasiToast({ message, type, onClose, duration = 4000 }:
         .toast-content {
           display: flex;
           align-items: center;
-          gap: 15px;
-          padding: 12px 24px;
+          gap: 0.9375rem;
+          padding: 0.75rem 1.5rem;
           border-radius: 14px;
           background: ${config.bg};
           backdrop-filter: blur(15px);
@@ -50,7 +50,7 @@ export default function RawasiToast({ message, type, onClose, duration = 4000 }:
           color: #1e293b;
           font-weight: 800;
           font-size: var(--fs-md);
-          min-width: 300px;
+          min-width: 18.75rem;
           pointer-events: auto;
           direction: rtl;
         }
@@ -61,7 +61,7 @@ export default function RawasiToast({ message, type, onClose, duration = 4000 }:
           position: absolute;
           bottom: 0;
           left: 0;
-          height: 3px;
+          height: 0.1875rem;
           background: ${config.color};
           border-radius: 0 0 14px 14px;
           animation: progress linear forwards;

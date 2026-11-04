@@ -148,7 +148,7 @@ export default function LaborLogsDirectory() {
   ], [logic.selectedIds, isAllSelected, allFilteredIds, logic]); 
 
   const sidebarActions = useMemo(() => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
       <SecureAction module="labor_logs" action="create">
         <button className="btn-main-glass gold" onClick={() => {
             if (isOneSelected) {
@@ -165,8 +165,8 @@ export default function LaborLogsDirectory() {
       </SecureAction>
       
       {logic.selectedIds.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات على ({logic.selectedIds.length})</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.3125rem', paddingTop: '0.9375rem', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
+          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-0.3125rem'}}>الإجراءات على ({logic.selectedIds.length})</p>
           <SecureAction module="labor_logs" action="post">
             <button className="btn-main-glass green" onClick={logic.handlePostSelected}>اعتماد وترحيل</button>
           </SecureAction>
@@ -191,17 +191,17 @@ export default function LaborLogsDirectory() {
           summary={
             <div className="summary-glass-card">
               <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي الأجور المحسوبة</span>
-              <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>
+              <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.goldAccent, marginTop:'0.3125rem'}}>
                 {logic.formatCurrency(logic.stats.sum)}
               </div>
-              <div style={{fontSize:'var(--fs-xs)', color:'#10b981', fontWeight:800, marginTop:'5px'}}>
+              <div style={{fontSize:'var(--fs-xs)', color:'#10b981', fontWeight:800, marginTop:'0.3125rem'}}>
                 إجمالي السجلات: {logic.stats.count}
               </div>
             </div>
           }
           actions={sidebarActions}
           customFilters={
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '10px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '0.625rem' }}>
               <div>
                 <label className="glass-label">بحث سريع:</label>
                 <input 
@@ -215,7 +215,7 @@ export default function LaborLogsDirectory() {
 
               <div>
                 <label className="glass-label">تصفية حسب الحالة:</label>
-                <div style={{ display: 'flex', gap: '5px' }}>
+                <div style={{ display: 'flex', gap: '0.3125rem' }}>
                   {['الكل', 'معتمد', 'معلق'].map(type => (
                     <button 
                       key={type} 
@@ -247,18 +247,18 @@ export default function LaborLogsDirectory() {
 
         <style>{`
           .glass-label { color: white; fontSize: 12px; fontWeight: 900; display: block; marginBottom: 8px; }
-          .glass-input { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-weight: 800; outline: none; font-size: var(--fs-sm); }
-          .filter-btn { flex: 1; padding: 8px; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: var(--fs-xs); transition: 0.3s; }
+          .glass-input { width: 100%; padding: 0.625rem; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-weight: 800; outline: none; font-size: var(--fs-sm); }
+          .filter-btn { flex: 1; padding: 0.5rem; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: var(--fs-xs); transition: 0.3s; }
           .filter-btn.active { background: ${THEME.goldAccent}; color: #1e293b; }
           .dark-select option { color: #000; }
-          .glass-badge { padding: 4px 10px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 900; display: inline-block; }
+          .glass-badge { padding: 0.25rem 0.625rem; border-radius: 8px; font-size: var(--fs-xs); font-weight: 900; display: inline-block; }
           
           /* أنماط المودال */
           .modal-label { color: ${THEME.coffeeMain}; fontSize: 12px; fontWeight: 900; display: block; marginBottom: 8px; }
-          .modal-input { padding: 14px; border-radius: 12px; border: 2px solid #e2e8f0; width: 100%; fontWeight: 800; outline: none; }
+          .modal-input { padding: 0.875rem; border-radius: 12px; border: 2px solid #e2e8f0; width: 100%; fontWeight: 800; outline: none; }
           .success-text { fontWeight: 900; color: ${THEME.success}; }
-          .save-btn { flex: 2; background: ${THEME.coffeeDark}; color: white; padding: 16px; border-radius: 15px; border: none; fontWeight: 900; cursor: pointer; fontSize: 16px; transition: 0.3s; }
-          .cancel-btn { flex: 1; background: #f1f5f9; color: #64748b; padding: 16px; border-radius: 15px; border: none; fontWeight: 900; cursor: pointer; transition: 0.3s; }
+          .save-btn { flex: 2; background: ${THEME.coffeeDark}; color: white; padding: 1rem; border-radius: 15px; border: none; fontWeight: 900; cursor: pointer; fontSize: 16px; transition: 0.3s; }
+          .cancel-btn { flex: 1; background: #f1f5f9; color: #64748b; padding: 1rem; border-radius: 15px; border: none; fontWeight: 900; cursor: pointer; transition: 0.3s; }
         `}</style>
 
         <div className="no-print">
@@ -281,15 +281,15 @@ export default function LaborLogsDirectory() {
 
       {mounted && logic.isAddModalOpen && createPortal(
         <div className="phi-modal-backdrop" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(39,39,42, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '5vh', paddingBottom: '5vh', overflowY: 'auto' }} onClick={() => logic.setIsAddModalOpen(false)}>
-          <div className="cinematic-scroll phi-modal-panel" onClick={(e) => e.stopPropagation()} style={{ background: 'white', padding: '35px', borderRadius: '14px', width: '100%', maxWidth: '900px', direction: 'rtl', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', margin: 'auto' }}>
-            <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px', fontSize: 'var(--fs-2xl)', borderBottom: `2px dashed ${THEME.goldAccent}`, paddingBottom: '15px' }}>
+          <div className="cinematic-scroll phi-modal-panel" onClick={(e) => e.stopPropagation()} style={{ background: 'white', padding: '2.1875rem', borderRadius: '14px', width: '100%', maxWidth: '56.25rem', direction: 'rtl', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', margin: 'auto' }}>
+            <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '1.5625rem', fontSize: 'var(--fs-2xl)', borderBottom: `2px dashed ${THEME.goldAccent}`, paddingBottom: '0.9375rem' }}>
               {logic.editingId ? 'تعديل بيانات اليومية' : 'إضافة يومية جديدة'}
             </h2>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                
                {/* الصف الأول */}
-               <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px', zIndex: 100 }}>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.25rem', zIndex: 100 }}>
                  <div>
                     <label className="modal-label">التاريخ</label>
                     <input type="date" value={logic.currentLog.work_date || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, work_date: e.target.value})} className="modal-input" />
@@ -298,7 +298,7 @@ export default function LaborLogsDirectory() {
                </div>
 
                {/* الصف الثاني المطور 🚀 */}
-               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1.5fr 1fr', gap: '20px', zIndex: 90 }}>
+               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1.5fr 1.5fr 1fr', gap: '1.25rem', zIndex: 90 }}>
                  <SmartCombo 
                      label="الموقع / العمارة" 
                      table="projects" 
@@ -388,7 +388,7 @@ export default function LaborLogsDirectory() {
                </div>
 
                {/* الصف الثالث (حقول الإنتاج والطريحة) */}
-               <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '20px' }}>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr 1fr', gap: '1.25rem' }}>
                  <div>
                     <label className="modal-label">مستوى المهارة</label>
                     <input type="text" placeholder="معلم، مساعد..." value={logic.currentLog.skill_level || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, skill_level: e.target.value})} className="modal-input" />
@@ -404,7 +404,7 @@ export default function LaborLogsDirectory() {
                </div>
 
                {/* الصف الرابع (الإنتاجية والأجور) */}
-               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '15px' }}>
+               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.9375rem' }}>
                  <div>
                     <label className="modal-label">الإنتاجية (المنفذ)</label>
                     <input type="text" placeholder="الكمية المنفذة فعلياً" value={logic.currentLog.productivity || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, productivity: e.target.value})} className="modal-input" />
@@ -428,7 +428,7 @@ export default function LaborLogsDirectory() {
                </div>
 
                {/* الصف الخامس (ملاحظات ومقاول) */}
-               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr', gap: '20px', zIndex: 80 }}>
+               <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 2fr', gap: '1.25rem', zIndex: 80 }}>
                  <SmartCombo 
                     label="المقاول الباطن (اختياري)" 
                     table="partners" 
@@ -445,7 +445,7 @@ export default function LaborLogsDirectory() {
                </div>
 
                {/* أزرار الحفظ */}
-               <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+               <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '1.25rem' }}>
                  <button onClick={logic.handleSaveLog} disabled={logic.isSaving} className="save-btn" title="يمكنك أيضاً استخدام Ctrl + Enter للحفظ">
                    {logic.isSaving ? 'جاري الحفظ...' : 'اعتماد السجل'}
                  </button>

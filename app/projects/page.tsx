@@ -46,7 +46,7 @@ export default function AdvancedProjectsPage() {
     // 🎛️ أزرار وفلاتر السايد بار 
     // =========================================================================
     const sidebarActions = (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
         
         {!logic.selectedProject && (
             <SecureAction module="projects" action="create">
@@ -97,7 +97,7 @@ export default function AdvancedProjectsPage() {
     );
 
     const sidebarFilters = (
-      <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <div style={{ marginTop: '0.9375rem', display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
           <input 
               type="search" 
               aria-label="بحث في المشاريع"
@@ -155,24 +155,24 @@ export default function AdvancedProjectsPage() {
           />
 
           <style>{`
-            .glass-input-field { width: 100%; padding: 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; font-weight: 700; color: #1e293b; transition: 0.3s; }
+            .glass-input-field { width: 100%; padding: 0.75rem; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8); outline: none; font-weight: 700; color: #1e293b; transition: 0.3s; }
             .glass-input-field:focus { background: #ffffff; border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 4px rgba(194,65,12, 0.15); }
-            .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
+            .btn-main-glass { width: 100%; padding: 0.875rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
             .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
             .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
             .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; }
             .btn-main-glass.white { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255,255,255,0.8); }
             .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
-            .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 20px; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 25px; }
-            .glass-card { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); padding: 25px; borderRadius: 24px; border: 1px solid rgba(255,255,255,0.8); boxShadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 25px; }
-            .labor-stat-item { display: flex; flex-direction: column; background: rgba(255,255,255,0.5); padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.7); }
+            .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 1.25rem; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 1.5625rem; }
+            .glass-card { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); padding: 1.5625rem; borderRadius: 24px; border: 1px solid rgba(255,255,255,0.8); boxShadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 1.5625rem; }
+            .labor-stat-item { display: flex; flex-direction: column; background: rgba(255,255,255,0.5); padding: 0.75rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.7); }
             
-            .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
-            .project-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 14px; padding: 20px; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
+            .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18.125rem, 1fr)); gap: 1rem; }
+            .project-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 14px; padding: 1.25rem; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
             .project-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); border-color: ${THEME.goldAccent}; }
-            .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px dashed rgba(0,0,0,0.05); fontSize: 12px; font-weight: 800; color: #475569; }
+            .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed rgba(0,0,0,0.05); fontSize: 12px; font-weight: 800; color: #475569; }
             .stat-row:last-child { border-bottom: none; }
-            .stage-badge { position: absolute; top: 20px; left: 20px; background: linear-gradient(135deg, ${THEME.goldAccent}, #d97706); color: white; padding: 5px 12px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 900; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3); z-index: 2; }
+            .stage-badge { position: absolute; top: 1.25rem; left: 1.25rem; background: linear-gradient(135deg, ${THEME.goldAccent}, #d97706); color: white; padding: 0.3125rem 0.75rem; border-radius: 8px; font-size: var(--fs-xs); font-weight: 900; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3); z-index: 2; }
           `}</style>
 
           {logic.isLoading ? (
@@ -198,27 +198,27 @@ export default function AdvancedProjectsPage() {
                            <div key={proj.id} className="project-card" onClick={() => logic.loadProjectDetails(proj)}>
                                {proj.current_stage && <div className="stage-badge">{proj.current_stage}</div>}
 
-                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                                   <span style={{ fontSize: 'var(--fs-xs)', color: THEME.white, fontWeight: 900, backgroundColor: THEME.coffeeDark, padding: '4px 10px', borderRadius: '8px' }}>
+                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.9375rem' }}>
+                                   <span style={{ fontSize: 'var(--fs-xs)', color: THEME.white, fontWeight: 900, backgroundColor: THEME.coffeeDark, padding: '0.25rem 0.625rem', borderRadius: '8px' }}>
                                        {proj.project_code || 'بدون كود'}
                                    </span>
                                    <StatusBadge status={proj.status || 'قيد الدراسة'} />
                                </div>
                                
-                               <h3 style={{ margin: '0 0 5px 0', color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-xl)', paddingLeft: '90px' }}>
+                               <h3 style={{ margin: '0 0 0.3125rem 0', color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-xl)', paddingLeft: '5.625rem' }}>
                                    {proj.Property} 
-                                   {proj.unit_type && <span style={{ fontSize: 'var(--fs-sm)', color: THEME.goldAccent, marginRight: '8px' }}>({proj.unit_type})</span>}
+                                   {proj.unit_type && <span style={{ fontSize: 'var(--fs-sm)', color: THEME.goldAccent, marginRight: '0.5rem' }}>({proj.unit_type})</span>}
                                </h3>
-                               <p style={{ margin: '0 0 8px 0', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>العميل: {proj.client?.name || proj.client_name || '---'}</p>
+                               <p style={{ margin: '0 0 0.5rem 0', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>العميل: {proj.client?.name || proj.client_name || '---'}</p>
                                
                                {(proj.engineer_in_charge || proj.engineer_phone) && (
-                                  <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#334155', marginBottom: '15px', display: 'flex', justifyContent: 'space-between' }}>
+                                  <div style={{ background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#334155', marginBottom: '0.9375rem', display: 'flex', justifyContent: 'space-between' }}>
                                       <span>{proj.engineer_in_charge || 'غير محدد'}</span>
                                       {proj.engineer_phone && <span>{proj.engineer_phone}</span>}
                                   </div>
                                )}
 
-                               <div style={{ background: 'rgba(255,255,255,0.5)', padding: '15px', borderRadius: '16px', marginBottom: '20px' }}>
+                               <div style={{ background: 'rgba(255,255,255,0.5)', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.25rem' }}>
                                    <div className="stat-row">
                                        <span>الميزانية المعتمدة:</span>
                                        <span style={{ color: THEME.primary, fontWeight: 900 }}>{formatCurrency(proj.estimated_budget || 0)}</span>
@@ -230,11 +230,11 @@ export default function AdvancedProjectsPage() {
                                </div>
 
                                <div>
-                                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.coffeeDark, marginBottom: '8px' }}>
+                                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.coffeeDark, marginBottom: '0.5rem' }}>
                                        <span>نسبة الإنجاز الفعلي للموقع</span>
                                        <span>{physicalProgress}%</span>
                                    </div>
-                                   <div style={{ height: '8px', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
+                                   <div style={{ height: '0.5rem', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
                                        <div style={{ width: `${physicalProgress}%`, height: '100%', backgroundColor: Number(physicalProgress) === 100 ? THEME.success : THEME.goldAccent, borderRadius: '10px' }}></div>
                                    </div>
                                </div>
@@ -242,7 +242,7 @@ export default function AdvancedProjectsPage() {
                        );
                    })}
                    {logic.projects.length === 0 && (
-                       <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '50px', color: '#94a3b8', fontWeight: 900 }}>
+                       <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3.125rem', color: '#94a3b8', fontWeight: 900 }}>
                            لا توجد مشاريع تطابق شروط البحث أو الفلاتر المحددة.
                        </div>
                    )}
@@ -253,22 +253,22 @@ export default function AdvancedProjectsPage() {
           ) : (
               <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', background: 'rgba(255,255,255,0.4)', padding: '20px', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5625rem', background: 'rgba(255,255,255,0.4)', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.5)' }}>
                     <div>
                         <h2 style={{ margin: 0, fontWeight: 900, color: THEME.coffeeDark, fontSize: 'var(--fs-2xl)' }}>
                             {logic.selectedProject.Property}
-                            {logic.selectedProject.unit_type && <span style={{ fontSize: 'var(--fs-lg)', color: THEME.goldAccent, marginRight: '10px' }}>- {logic.selectedProject.unit_type}</span>}
+                            {logic.selectedProject.unit_type && <span style={{ fontSize: 'var(--fs-lg)', color: THEME.goldAccent, marginRight: '0.625rem' }}>- {logic.selectedProject.unit_type}</span>}
                         </h2>
-                        <div style={{ display: 'flex', gap: '20px', marginTop: '10px', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569' }}>
+                        <div style={{ display: 'flex', gap: '1.25rem', marginTop: '0.625rem', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569' }}>
                             {logic.selectedProject.engineer_in_charge && <span>المهندس المسئول: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_in_charge}</strong></span>}
                             {logic.selectedProject.engineer_phone && <span>جوال: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_phone}</strong></span>}
                         </div>
                     </div>
                     
-                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center' }}>
                         <button 
                             onClick={() => logic.setSelectedProject(null)} 
-                            style={{ padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 900, backgroundColor: '#475569', color: 'white', cursor: 'pointer', boxShadow: '0 5px 15px rgba(0,0,0,0.1)', transition: '0.3s' }}
+                            style={{ padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', fontWeight: 900, backgroundColor: '#475569', color: 'white', cursor: 'pointer', boxShadow: '0 5px 15px rgba(0,0,0,0.1)', transition: '0.3s' }}
                         >
                             العودة لقائمة المشاريع
                         </button>
@@ -278,7 +278,7 @@ export default function AdvancedProjectsPage() {
                             value={logic.selectedProject.status || 'قيد الدراسة'}
                             onChange={(e) => logic.updateProjectStatus(e.target.value)}
                             style={{ 
-                                padding: '10px 20px', borderRadius: '12px', border: 'none', 
+                                padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', 
                                 fontWeight: 900, backgroundColor: 'white', color: THEME.primary, 
                                 boxShadow: '0 5px 15px rgba(0,0,0,0.05)', outline: 'none', cursor: 'pointer'
                             }}
@@ -294,7 +294,7 @@ export default function AdvancedProjectsPage() {
                 </div>
 
                 {/* 🚀 إضافة زرار تاب المصروفات المباشرة هنا */}
-                <div style={{ display: 'flex', gap: '10px', marginBottom: '25px', overflowX: 'auto', paddingBottom: '10px' }}>
+                <div style={{ display: 'flex', gap: '0.625rem', marginBottom: '1.5625rem', overflowX: 'auto', paddingBottom: '0.625rem' }}>
                   <TabButton active={logic.activeTab === 'overview'} onClick={() => logic.setActiveTab('overview')} text="النظرة العامة و KPIs" />
                   <TabButton active={logic.activeTab === 'boq'} onClick={() => logic.setActiveTab('boq')} text="المقايسات والجدول الزمني" />
                   <TabButton active={logic.activeTab === 'expenses'} onClick={() => logic.setActiveTab('expenses')} text="المصروفات المباشرة" />
@@ -319,25 +319,25 @@ export default function AdvancedProjectsPage() {
             {/* 🚀 نافذة التأكيد الزجاجية (Custom Delete Modal) */}
             {mounted && deleteAlert.isOpen && createPortal(
                 <div style={{ position: 'fixed', inset: 0, zIndex: 99999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(10px)', direction: 'rtl' }}>
-                    <div style={{ background: 'white', padding: '35px', borderRadius: '14px', maxWidth: '450px', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #fee2e2', animation: 'fadeIn 0.2s ease-out' }}>
-                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '15px', animation: 'pulse-red 2s infinite' }}><TriangleAlert size={40} aria-hidden="true" /></div>
-                        <h3 style={{ color: THEME.danger, fontWeight: 900, fontSize: 'var(--fs-2xl)', marginBottom: '15px' }}>{deleteAlert.title}</h3>
-                        <p style={{ color: '#475569', fontSize: 'var(--fs-lg)', fontWeight: 800, marginBottom: '30px', lineHeight: 1.6 }}>{deleteAlert.message}</p>
+                    <div style={{ background: 'white', padding: '2.1875rem', borderRadius: '14px', maxWidth: '28.125rem', width: '90%', textAlign: 'center', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #fee2e2', animation: 'fadeIn 0.2s ease-out' }}>
+                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem', animation: 'pulse-red 2s infinite' }}><TriangleAlert size={40} aria-hidden="true" /></div>
+                        <h3 style={{ color: THEME.danger, fontWeight: 900, fontSize: 'var(--fs-2xl)', marginBottom: '0.9375rem' }}>{deleteAlert.title}</h3>
+                        <p style={{ color: '#475569', fontSize: 'var(--fs-lg)', fontWeight: 800, marginBottom: '1.875rem', lineHeight: 1.6 }}>{deleteAlert.message}</p>
                         
-                        <div style={{ display: 'flex', gap: '15px' }}>
+                        <div style={{ display: 'flex', gap: '0.9375rem' }}>
                             <button 
                                 onClick={() => {
                                     if (deleteAlert.type === 'project' && deleteAlert.id) logic.deleteProjectMutation.mutate(deleteAlert.id);
                                     if (deleteAlert.type === 'boq' && deleteAlert.id) logic.deleteBoqMutation.mutate(deleteAlert.id);
                                     setDeleteAlert({ isOpen: false, type: '', id: null, title: '', message: '' });
                                 }} 
-                                style={{ flex: 1, background: THEME.danger, color: 'white', padding: '14px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: 'var(--fs-lg)', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }}
+                                style={{ flex: 1, background: THEME.danger, color: 'white', padding: '0.875rem', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: 'var(--fs-lg)', cursor: 'pointer', transition: '0.2s', boxShadow: '0 4px 10px rgba(239,68,68,0.3)' }}
                             >
                                 نعم، تأكيد الحذف
                             </button>
                             <button 
                                 onClick={() => setDeleteAlert({ isOpen: false, type: '', id: null, title: '', message: '' })} 
-                                style={{ flex: 1, background: '#f1f5f9', color: '#64748b', padding: '14px', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: 'var(--fs-lg)', cursor: 'pointer', transition: '0.2s' }}
+                                style={{ flex: 1, background: '#f1f5f9', color: '#64748b', padding: '0.875rem', borderRadius: '14px', border: 'none', fontWeight: 900, fontSize: 'var(--fs-lg)', cursor: 'pointer', transition: '0.2s' }}
                             >
                                 إلغاء والتراجع
                             </button>

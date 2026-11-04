@@ -61,7 +61,7 @@ export default function OverviewTab({ logic }: { logic: any }) {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '25px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13.75rem, 1fr))', gap: '1.25rem', marginBottom: '1.5625rem' }}>
         <KpiCard title="قيمة التعاقد الكلية" value={projectFinancials.totalContract} color={THEME.coffeeDark} />
         <KpiCard title="الميزانية المعتمدة" value={projectFinancials.totalBudget} color={THEME.coffeeMain} />
         
@@ -74,7 +74,7 @@ export default function OverviewTab({ logic }: { logic: any }) {
         <KpiCard title="المحصل (إيرادات مخصصة للفيلا)" value={projectFinancials.totalVillaRevenue} color={THEME.success} />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '25px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13.75rem, 1fr))', gap: '1.25rem', marginBottom: '1.5625rem' }}>
         <KpiCard 
           title="صافي الأرباح الحقيقية" 
           value={projectFinancials.totalNetProfit} 
@@ -95,10 +95,10 @@ export default function OverviewTab({ logic }: { logic: any }) {
         <KpiCard title="المصروفات الموزعة (ABC)" value={projectFinancials.totalAllocatedABC} color="#9333EA" />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '25px', marginBottom: '25px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(17.5rem, 1fr))', gap: '1.5625rem', marginBottom: '1.5625rem' }}>
         <div className="glass-card">
-          <h3 style={{ margin: '0 0 20px 0', color: THEME.coffeeDark, fontWeight: 900 }}>تقرير العمالة الميدانية</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px' }}>
+          <h3 style={{ margin: '0 0 1.25rem 0', color: THEME.coffeeDark, fontWeight: 900 }}>تقرير العمالة الميدانية</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.9375rem' }}>
             <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>عمالة اليوم</span><strong style={{fontSize:'var(--fs-xl)'}}>{projectDetails.laborStats?.todayWorkers || 0}</strong></div>
             <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>تكلفة اليوم</span><strong style={{fontSize:'var(--fs-xl)', color: THEME.danger}}>{projectDetails.laborStats?.todayCost?.toLocaleString() || 0} ج.م</strong></div>
             <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>إجمالي العمالة السابقة</span><strong style={{fontSize:'var(--fs-xl)'}}>{projectDetails.laborStats?.totalWorkersToDate || 0}</strong></div>
@@ -107,12 +107,12 @@ export default function OverviewTab({ logic }: { logic: any }) {
         </div>
 
         <div className="glass-card">
-          <h3 style={{ margin: '0 0 20px 0', color: THEME.coffeeDark, fontWeight: 900 }}>مؤشر الإنجاز والزمن</h3>
+          <h3 style={{ margin: '0 0 1.25rem 0', color: THEME.coffeeDark, fontWeight: 900 }}>مؤشر الإنجاز والزمن</h3>
           <ProgressBar label="الوقت المنقضي من مدة المشروع" percentage={kpis?.timeProgress} color={THEME.coffeeMain} />
-          <div style={{height:'15px'}}/>
+          <div style={{height:'0.9375rem'}}/>
           <ProgressBar label="الإنجاز المالي والتحصيل الفعلي للفيلا" percentage={projectFinancials.financialProgress} color={THEME.goldAccent} />
           <div style={{ 
-            marginTop: '20px', padding: '12px', 
+            marginTop: '1.25rem', padding: '0.75rem', 
             backgroundColor: kpis?.timeStatus?.includes('متأخر') ? '#FEE2E2' : '#DCFCE7', 
             borderRadius: '12px', fontWeight: 900, textAlign: 'center', 
             color: kpis?.timeStatus?.includes('متأخر') ? THEME.danger : THEME.success 

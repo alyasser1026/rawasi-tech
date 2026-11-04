@@ -38,12 +38,12 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
     };
 
     return (
-        <div ref={dropdownRef} style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-            <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, marginBottom: '6px', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+        <div ref={dropdownRef} style={{ position: 'relative', flex: 1, minWidth: '12.5rem' }}>
+            <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, marginBottom: '0.375rem', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
                 <span>{title}</span>
                 {selected.length > 0 && (
                     <span 
-                        style={{ color: '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xs)', background: '#fef2f2', padding: '2px 6px', borderRadius: '4px' }} 
+                        style={{ color: '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xs)', background: '#fef2f2', padding: '2px 0.375rem', borderRadius: '4px' }} 
                         onClick={() => onChange([])}
                     >
                         إلغاء ({selected.length})
@@ -53,7 +53,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
             
             <div 
                 onClick={() => setIsOpen(!isOpen)}
-                style={{ background: 'white', padding: '12px 15px', borderRadius: '10px', border: `2px solid #e2e8f0`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.2s', height: '48px' }}
+                style={{ background: 'white', padding: '0.75rem 0.9375rem', borderRadius: '10px', border: `2px solid #e2e8f0`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.2s', height: '3rem' }}
             >
                 <span style={{ fontWeight: 800, color: selected.length ? '#334155' : '#94a3b8', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selected.length > 0 ? selected.join('، ') : placeholder}
@@ -62,20 +62,20 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
             </div>
             
             {isOpen && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: `1px solid #e2e8f0`, borderRadius: '12px', marginTop: '8px', zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-                    <div style={{ padding: '10px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: `1px solid #e2e8f0`, borderRadius: '12px', marginTop: '0.5rem', zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+                    <div style={{ padding: '0.625rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                         <input 
                             type="text" 
                             placeholder="بحث سريع..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
+                            style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
                         />
                     </div>
-                    <div className="custom-scrollbar" style={{ maxHeight: '220px', overflowY: 'auto', padding: '5px' }}>
+                    <div className="custom-scrollbar" style={{ maxHeight: '13.75rem', overflowY: 'auto', padding: '0.3125rem' }}>
                         {filteredOptions.length > 0 ? filteredOptions.map((opt: string) => (
-                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', cursor: 'pointer', borderRadius: '6px', background: selected.includes(opt) ? `${accentColor}15` : 'transparent', transition: '0.2s' }}>
+                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.625rem', cursor: 'pointer', borderRadius: '6px', background: selected.includes(opt) ? `${accentColor}15` : 'transparent', transition: '0.2s' }}>
                                 <input 
                                     type="checkbox" 
                                     checked={selected.includes(opt)} 
@@ -85,13 +85,13 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
                                 <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: selected.includes(opt) ? accentColor : '#334155' }}>{opt}</span>
                             </label>
                         )) : (
-                            <div style={{ padding: '15px', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد نتائج مطابقة</div>
+                            <div style={{ padding: '0.9375rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد نتائج مطابقة</div>
                         )}
                     </div>
                 </div>
             )}
             <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+                .custom-scrollbar::-webkit-scrollbar { width: 0.375rem; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -300,55 +300,55 @@ export default function CashFlowsPage() {
     }, [treeGroupedData, currentPage, rowsPerPage]);
 
     return (
-        <div className="clean-page" style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '50px' }}>
+        <div className="clean-page" style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '3.125rem' }}>
             <MasterPage title="التدفقات النقدية (Cash Flows)" subtitle="مراقبة حركات السيولة، المقبوضات، والمدفوعات بشكل لحظي وتجميعي">
                 
                 <style>{`
-                    .summary-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 14px; padding: 25px; flex: 1; border: 1px solid rgba(255,255,255,0.9); position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); transition: all 0.3s ease; }
+                    .summary-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 14px; padding: 1.5625rem; flex: 1; border: 1px solid rgba(255,255,255,0.9); position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); transition: all 0.3s ease; }
                     .summary-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
-                    .summary-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 5px; }
+                    .summary-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 0.3125rem; }
                     .summary-card.inflow::after { background: linear-gradient(90deg, #10b981, #34d399); }
                     .summary-card.outflow::after { background: linear-gradient(90deg, #ef4444, #f87171); }
                     .summary-card.net::after { background: linear-gradient(90deg, #c2410c, #fcd34d); }
                     
-                    .summary-label { font-size: var(--fs-md); font-weight: 900; color: #64748b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+                    .summary-label { font-size: var(--fs-md); font-weight: 900; color: #64748b; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
                     .summary-val { font-size: var(--fs-3xl); font-weight: 900; color: #0f172a; text-shadow: 0 2px 10px rgba(0,0,0,0.02); }
 
-                    .source-breakdown-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 220px; box-shadow: 0 5px 20px rgba(0,0,0,0.02); transition: all 0.3s ease; }
+                    .source-breakdown-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); padding: 1.25rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 13.75rem; box-shadow: 0 5px 20px rgba(0,0,0,0.02); transition: all 0.3s ease; }
                     .source-breakdown-card:hover { transform: translateY(-3px); }
-                    .source-breakdown-title { font-size: var(--fs-sm); font-weight: 900; color: #64748b; margin-bottom: 8px; }
+                    .source-breakdown-title { font-size: var(--fs-sm); font-weight: 900; color: #64748b; margin-bottom: 0.5rem; }
                     .source-breakdown-val { font-size: var(--fs-xl); font-weight: 900; }
                     
-                    .filter-input { width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; font-weight: 800; color: #334155; transition: 0.2s; height: 50px; background: rgba(255,255,255,0.9); }
+                    .filter-input { width: 100%; padding: 0.75rem 0.9375rem; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; font-weight: 800; color: #334155; transition: 0.2s; height: 3.125rem; background: rgba(255,255,255,0.9); }
                     .filter-input:focus { border-color: #c2410c; box-shadow: 0 0 0 3px rgba(194,65,12, 0.1); }
 
                     .tree-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: center; background: transparent; }
                     .tree-thead { background: ${THEME.gradients.primary}; color: ${THEME.white}; border-radius: 16px 16px 0 0; }
-                    .tree-thead th { padding: 20px 15px; font-size: var(--fs-lg); font-weight: 900; border: none; }
+                    .tree-thead th { padding: 1.25rem 0.9375rem; font-size: var(--fs-lg); font-weight: 900; border: none; }
                     .tree-thead th:first-child { border-top-right-radius: 16px; }
                     .tree-thead th:last-child { border-top-left-radius: 16px; }
                     
                     .master-group-row { cursor: pointer; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); transition: 0.3s; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
                     .master-group-row:hover { background: #ffffff; transform: scale(1.002); z-index: 10; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-                    .master-group-row td { padding: 20px 16px; font-size: var(--fs-lg); font-weight: 900; border-bottom: 1px solid #f1f5f9; }
+                    .master-group-row td { padding: 1.25rem 1rem; font-size: var(--fs-lg); font-weight: 900; border-bottom: 1px solid #f1f5f9; }
 
-                    .child-tree-container { background: rgba(248, 250, 252, 0.9); padding: 20px 40px; border-bottom: 2px solid ${THEME.border}; backdrop-filter: blur(5px); }
+                    .child-tree-container { background: rgba(248, 250, 252, 0.9); padding: 1.25rem 2.5rem; border-bottom: 2px solid ${THEME.border}; backdrop-filter: blur(5px); }
                     .child-table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 14px; border: 1px solid ${THEME.border}; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.03); }
-                    .child-table th { background: linear-gradient(135deg, #fafafa, #f3eedf); color: ${THEME.brand.coffee}; padding: 15px; font-size: var(--fs-sm); font-weight: 900; border-bottom: 2px solid ${THEME.brand.goldLight}; }
-                    .child-table td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: var(--fs-sm); font-weight: 800; color: #334155; transition: 0.2s; }
+                    .child-table th { background: linear-gradient(135deg, #fafafa, #f3eedf); color: ${THEME.brand.coffee}; padding: 0.9375rem; font-size: var(--fs-sm); font-weight: 900; border-bottom: 2px solid ${THEME.brand.goldLight}; }
+                    .child-table td { padding: 0.9375rem 0.75rem; border-bottom: 1px solid #f1f5f9; font-size: var(--fs-sm); font-weight: 800; color: #334155; transition: 0.2s; }
                     .child-table tr:hover td { background: rgba(194,65,12, 0.02); }
                     
-                    .arrow-icon { display: inline-block; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 12px; color: #c2410c; font-size: var(--fs-lg); background: rgba(194,65,12, 0.1); width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 50%; }
+                    .arrow-icon { display: inline-block; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 0.75rem; color: #c2410c; font-size: var(--fs-lg); background: rgba(194,65,12, 0.1); width: 1.75rem; height: 1.75rem; line-height: 1.75rem; text-align: center; border-radius: 50%; }
                     .arrow-expanded { transform: rotate(90deg); background: #c2410c; color: white; }
 
-                    .view-toggle-btn { flex: 1; padding: 12px; font-size: var(--fs-md); font-weight: 900; border: none; cursor: pointer; transition: 0.3s; }
+                    .view-toggle-btn { flex: 1; padding: 0.75rem; font-size: var(--fs-md); font-weight: 900; border: none; cursor: pointer; transition: 0.3s; }
                     .view-toggle-btn.active { background: #c2410c; color: white; }
                     .view-toggle-btn:not(.active) { background: transparent; color: #64748b; }
                     .view-toggle-btn:not(.active):hover { background: rgba(194,65,12, 0.05); color: #1e293b; }
                 `}</style>
 
                 {/* 📊 بطاقات الملخص الرئيسية */}
-                <div style={{ display: 'flex', gap: '20px', marginBottom: '15px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '0.9375rem', flexWrap: 'wrap' }}>
                     <div className="summary-card inflow">
                         <div className="summary-label"><span><Download size={16} aria-hidden="true" /></span> إجمالي الوارد (المقبوضات)</div>
                         <div className="summary-val" style={{ color: '#059669' }}>{formatCurrency(summaryStats.totalIn)}</div>
@@ -387,7 +387,7 @@ export default function CashFlowsPage() {
                 </div>
 
                 {/* 🔍 تفاصيل المصادر (Breakdown) */}
-                <div style={{ display: 'flex', gap: '20px', marginBottom: '25px', flexWrap: 'wrap', padding: '5px' }}>
+                <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.5625rem', flexWrap: 'wrap', padding: '0.3125rem' }}>
                     <div className="source-breakdown-card" style={{ borderRight: '4px solid #10b981' }}>
                         <div>
                             <div className="source-breakdown-title">مقبوضات من (سندات القبض)</div>
@@ -420,10 +420,10 @@ export default function CashFlowsPage() {
 
 
                 {/* 🔍 شريط الفلاتر */}
-                <div style={{ display: 'flex', gap: '15px', marginBottom: '30px', background: 'rgba(255,255,255,0.8)', padding: '25px', borderRadius: '14px', boxShadow: '0 5px 20px rgba(0,0,0,0.02)', border: `1px solid rgba(255,255,255,0.9)`, flexWrap: 'wrap', alignItems: 'flex-end', backdropFilter: 'blur(10px)' }}>
+                <div style={{ display: 'flex', gap: '0.9375rem', marginBottom: '1.875rem', background: 'rgba(255,255,255,0.8)', padding: '1.5625rem', borderRadius: '14px', boxShadow: '0 5px 20px rgba(0,0,0,0.02)', border: `1px solid rgba(255,255,255,0.9)`, flexWrap: 'wrap', alignItems: 'flex-end', backdropFilter: 'blur(10px)' }}>
                     
-                    <div style={{ flex: '1', minWidth: '180px' }}>
-                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '6px', display: 'block' }}>بحث عام</label>
+                    <div style={{ flex: '1', minWidth: '11.25rem' }}>
+                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '0.375rem', display: 'block' }}>بحث عام</label>
                         <input 
                             type="text" 
                             className="filter-input"
@@ -451,8 +451,8 @@ export default function CashFlowsPage() {
                         accentColor="#8b5cf6" 
                     />
                     
-                    <div style={{ width: '130px' }}>
-                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '6px', display: 'block' }}>نوع الحركة</label>
+                    <div style={{ width: '8.125rem' }}>
+                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '0.375rem', display: 'block' }}>نوع الحركة</label>
                         <select className="filter-input" value={logic.filterType} onChange={(e) => logic.setFilterType(e.target.value)}>
                             <option value="all">كل الحركات</option>
                             <option value="inflow">وارد (مقبوضات)</option>
@@ -460,19 +460,19 @@ export default function CashFlowsPage() {
                         </select>
                     </div>
 
-                    <div style={{ width: '130px' }}>
-                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '6px', display: 'block' }}>من تاريخ</label>
+                    <div style={{ width: '8.125rem' }}>
+                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '0.375rem', display: 'block' }}>من تاريخ</label>
                         <input type="date" className="filter-input" value={logic.dateFrom} onChange={(e) => logic.setDateFrom(e.target.value)} />
                     </div>
 
-                    <div style={{ width: '130px' }}>
-                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '6px', display: 'block' }}>إلى تاريخ</label>
+                    <div style={{ width: '8.125rem' }}>
+                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '0.375rem', display: 'block' }}>إلى تاريخ</label>
                         <input type="date" className="filter-input" value={logic.dateTo} onChange={(e) => logic.setDateTo(e.target.value)} />
                     </div>
 
                     <button 
                         onClick={handleExportExcel}
-                        style={{ padding: '0 15px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: 'none', borderRadius: '12px', color: '#fff', fontWeight: 900, cursor: 'pointer', transition: '0.2s', height: '50px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
+                        style={{ padding: '0 0.9375rem', background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: 'none', borderRadius: '12px', color: '#fff', fontWeight: 900, cursor: 'pointer', transition: '0.2s', height: '3.125rem', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
                     >
                         Excel
                     </button>
@@ -485,7 +485,7 @@ export default function CashFlowsPage() {
                     <table className="tree-table">
                         <thead className="tree-thead">
                             <tr>
-                                <th style={{ textAlign: 'right', width: '35%', paddingRight: '30px' }}>
+                                <th style={{ textAlign: 'right', width: '35%', paddingRight: '1.875rem' }}>
                                     {groupBy === 'partner' ? 'اسم الشريك (مقاول / مورد / عميل)' : 'التاريخ الزمني'}
                                 </th>
                                 <th style={{ width: '15%' }}>المقبوضات</th>
@@ -502,7 +502,7 @@ export default function CashFlowsPage() {
                                 return (
                                     <React.Fragment key={group.name}>
                                         <tr className="master-group-row" onClick={() => toggleGroup(group.name)}>
-                                            <td style={{ textAlign: 'right', color: '#1e293b', paddingRight: '20px' }}>
+                                            <td style={{ textAlign: 'right', color: '#1e293b', paddingRight: '1.25rem' }}>
                                                 <span className={`arrow-icon ${isExpanded ? 'arrow-expanded' : ''}`}>◀</span>
                                                 {group.name}
                                             </td>
@@ -512,7 +512,7 @@ export default function CashFlowsPage() {
                                                 {netGroupAmount > 0 ? '+' : ''}{formatCurrency(netGroupAmount)}
                                             </td>
                                             <td>
-                                                <span style={{ background: '#f1f5f9', padding: '6px 15px', borderRadius: '14px', fontSize: 'var(--fs-sm)', color: '#475569' }}>
+                                                <span style={{ background: '#f1f5f9', padding: '0.375rem 0.9375rem', borderRadius: '14px', fontSize: 'var(--fs-sm)', color: '#475569' }}>
                                                     {group.items.length} حركة
                                                 </span>
                                             </td>
@@ -542,7 +542,7 @@ export default function CashFlowsPage() {
                                                                         <tr key={item.id}>
                                                                             <td>{item.transaction_date ? String(item.transaction_date).substring(0, 10) : '---'}</td>
                                                                             <td>
-                                                                                <span style={{ color: isChildInflow ? '#059669' : '#e11d48', fontSize: 'var(--fs-xs)', fontWeight: 900, background: isChildInflow ? '#ecfdf5' : '#fff1f2', padding: '4px 8px', borderRadius: '6px' }}>
+                                                                                <span style={{ color: isChildInflow ? '#059669' : '#e11d48', fontSize: 'var(--fs-xs)', fontWeight: 900, background: isChildInflow ? '#ecfdf5' : '#fff1f2', padding: '0.25rem 0.5rem', borderRadius: '6px' }}>
                                                                                     {isChildInflow ? 'إيداع / قبض' : 'صرف / مدفوعات'}
                                                                                 </span>
                                                                             </td>
@@ -557,7 +557,7 @@ export default function CashFlowsPage() {
                                                                                 <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '2px' }}>
                                                                                     {item.payment_method} {item.reference_number ? `| مرجع: ${item.reference_number}` : ''}
                                                                                 </div>
-                                                                                {item.description && <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginTop: '4px' }}>{item.description}</div>}
+                                                                                {item.description && <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginTop: '0.25rem' }}>{item.description}</div>}
                                                                             </td>
                                                                             <td>
                                                                                 <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#c2410c' }}>
@@ -579,7 +579,7 @@ export default function CashFlowsPage() {
                             
                             {treeGroupedData.length > 0 && (
                                 <tr style={{ background: 'rgba(194,65,12, 0.1)', backdropFilter: 'blur(5px)' }}>
-                                    <td style={{ padding: '25px', fontWeight: 900, color: '#1e293b', textAlign: 'left' }}>الإجمالي الكلي للصفحة والفلتر:</td>
+                                    <td style={{ padding: '1.5625rem', fontWeight: 900, color: '#1e293b', textAlign: 'left' }}>الإجمالي الكلي للصفحة والفلتر:</td>
                                     <td style={{ fontWeight: 900, color: '#059669', fontSize: 'var(--fs-xl)' }}>{formatCurrency(summaryStats.totalIn)}</td>
                                     <td style={{ fontWeight: 900, color: '#dc2626', fontSize: 'var(--fs-xl)' }}>{formatCurrency(summaryStats.totalOut)}</td>
                                     <td style={{ fontWeight: 900, color: summaryStats.netCash >= 0 ? '#059669' : '#dc2626', fontSize: 'var(--fs-xl)' }}>{formatCurrency(summaryStats.netCash)}</td>
@@ -589,7 +589,7 @@ export default function CashFlowsPage() {
 
                             {treeGroupedData.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} style={{ padding: '40px', color: '#94a3b8', fontWeight: 900, background: 'rgba(255,255,255,0.8)' }}>لا توجد أي تدفقات نقدية مطابقة للفلاتر الحالية</td>
+                                    <td colSpan={5} style={{ padding: '2.5rem', color: '#94a3b8', fontWeight: 900, background: 'rgba(255,255,255,0.8)' }}>لا توجد أي تدفقات نقدية مطابقة للفلاتر الحالية</td>
                                 </tr>
                             )}
                         </tbody>
@@ -598,16 +598,16 @@ export default function CashFlowsPage() {
 
                 {/* 🔢 تقسيم الصفحات */}
                 {!logic.isLoading && treeGroupedData.length > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', padding: '20px', background: 'rgba(255,255,255,0.8)', borderRadius: '16px', border: `1px solid rgba(255,255,255,0.9)`, backdropFilter: 'blur(10px)', boxShadow: '0 5px 20px rgba(0,0,0,0.02)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', padding: '1.25rem', background: 'rgba(255,255,255,0.8)', borderRadius: '16px', border: `1px solid rgba(255,255,255,0.9)`, backdropFilter: 'blur(10px)', boxShadow: '0 5px 20px rgba(0,0,0,0.02)' }}>
                         <div style={{ fontSize: 'var(--fs-md)', color: '#334155', fontWeight: 900 }}>
                             إجمالي الـ {groupBy === 'partner' ? 'الشركاء' : 'أيام الحركة'}: <b style={{ color: '#c2410c', fontSize: 'var(--fs-xl)' }}>{treeGroupedData.length}</b>
                         </div>
                         
-                        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center' }}>
                             <select 
                                 value={rowsPerPage} 
                                 onChange={(e) => {setRowsPerPage(Number(e.target.value)); setCurrentPage(1);}} 
-                                style={{ padding: '10px 15px', borderRadius: '10px', border: `1px solid #e2e8f0`, outline: 'none', fontWeight: 900, cursor: 'pointer', background: 'white' }}
+                                style={{ padding: '0.625rem 0.9375rem', borderRadius: '10px', border: `1px solid #e2e8f0`, outline: 'none', fontWeight: 900, cursor: 'pointer', background: 'white' }}
                             >
                                 <option value={10}>عرض 10 عناصر</option>
                                 <option value={50}>عرض 50 عنصر</option>
@@ -615,21 +615,21 @@ export default function CashFlowsPage() {
                                 <option value={100000}>عرض الكل</option>
                             </select>
                             
-                            <div style={{ display: 'flex', gap: '10px' }}>
+                            <div style={{ display: 'flex', gap: '0.625rem' }}>
                                 <button 
                                     disabled={currentPage === 1} 
                                     onClick={() => setCurrentPage(p => p - 1)} 
-                                    style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: currentPage === 1 ? '#f8fafc' : '#1e293b', color: currentPage === 1 ? '#94a3b8' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                    style={{ padding: '0.625rem 1.25rem', borderRadius: '10px', border: 'none', background: currentPage === 1 ? '#f8fafc' : '#1e293b', color: currentPage === 1 ? '#94a3b8' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
                                 >
                                     السابق
                                 </button>
-                                <span style={{ padding: '10px 20px', background: 'white', borderRadius: '10px', fontWeight: 900, border: `1px solid #e2e8f0` }}>
+                                <span style={{ padding: '0.625rem 1.25rem', background: 'white', borderRadius: '10px', fontWeight: 900, border: `1px solid #e2e8f0` }}>
                                     {currentPage} / {totalPages}
                                 </span>
                                 <button 
                                     disabled={currentPage >= totalPages} 
                                     onClick={() => setCurrentPage(p => p + 1)} 
-                                    style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: currentPage >= totalPages ? '#f8fafc' : '#1e293b', color: currentPage >= totalPages ? '#94a3b8' : 'white', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                    style={{ padding: '0.625rem 1.25rem', borderRadius: '10px', border: 'none', background: currentPage >= totalPages ? '#f8fafc' : '#1e293b', color: currentPage >= totalPages ? '#94a3b8' : 'white', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
                                 >
                                     التالي
                                 </button>

@@ -149,7 +149,7 @@ export default function AdvancedExpenseAllocation() {
     {
       header: 'الشهر المالي',
       render: (row: any) => (
-        <span style={{ fontWeight: 800, color: THEME.coffeeDark, backgroundColor: '#f5ebe0', padding: '6px 12px', borderRadius: '8px', fontSize: 'var(--fs-sm)' }}>
+        <span style={{ fontWeight: 800, color: THEME.coffeeDark, backgroundColor: '#f5ebe0', padding: '0.375rem 0.75rem', borderRadius: '8px', fontSize: 'var(--fs-sm)' }}>
           {row["شهر التحميل المالي"]}
         </span>
       )
@@ -165,7 +165,7 @@ export default function AdvancedExpenseAllocation() {
     {
       header: 'التصنيف',
       render: (row: any) => (
-        <span style={{ fontWeight: 800, color: '#334155', backgroundColor: '#f1f5f9', padding: '5px 10px', borderRadius: '6px', fontSize: 'var(--fs-sm)' }}>
+        <span style={{ fontWeight: 800, color: '#334155', backgroundColor: '#f1f5f9', padding: '0.3125rem 0.625rem', borderRadius: '6px', fontSize: 'var(--fs-sm)' }}>
           {row["التصنيف الرئيسي"]}
         </span>
       )
@@ -191,7 +191,7 @@ export default function AdvancedExpenseAllocation() {
         else if (mech.includes('شهري')) { color = '#ea580c'; bg = '#FFF7ED'; }
 
         return (
-          <span style={{ fontWeight: 800, color: color, backgroundColor: bg, padding: '6px 12px', borderRadius: '8px', fontSize: 'var(--fs-sm)', display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+          <span style={{ fontWeight: 800, color: color, backgroundColor: bg, padding: '0.375rem 0.75rem', borderRadius: '8px', fontSize: 'var(--fs-sm)', display: 'inline-flex', alignItems: 'center', gap: '0.3125rem' }}>
             {mech}
           </span>
         );
@@ -200,119 +200,119 @@ export default function AdvancedExpenseAllocation() {
   ], []);
 
   return (
-    <div className="allocation-dashboard-container" style={{ padding: '25px', direction: 'rtl', fontFamily: 'inherit' }}>
+    <div className="allocation-dashboard-container" style={{ padding: '1.5625rem', direction: 'rtl', fontFamily: 'inherit' }}>
       
       {/* 🖨️ جزء الطباعة المخفي */}
       <div className="print-only-header" style={{ display: 'none' }}>
-        <div style={{ textAlign: 'center', padding: '20px', borderBottom: '2px solid #334155', marginBottom: '30px' }}>
-          <h1 style={{ margin: '0 0 10px 0', color: '#1e293b', fontWeight: 900 }}>شركة فاي تك للمقاولات والاستثمار العقاري</h1>
+        <div style={{ textAlign: 'center', padding: '1.25rem', borderBottom: '2px solid #334155', marginBottom: '1.875rem' }}>
+          <h1 style={{ margin: '0 0 0.625rem 0', color: '#1e293b', fontWeight: 900 }}>شركة فاي تك للمقاولات والاستثمار العقاري</h1>
           <h2 style={{ margin: 0, color: '#475569', fontSize: 'var(--fs-xl)' }}>تقرير توزيع وتحميل المصروفات العامة غير المباشرة على الفلل والمشاريع</h2>
-          <small style={{ color: '#94a3b8', display: 'block', marginTop: '10px' }}>تاريخ استخراج التقرير: {new Date().toLocaleDateString('ar-EG')}</small>
+          <small style={{ color: '#94a3b8', display: 'block', marginTop: '0.625rem' }}>تاريخ استخراج التقرير: {new Date().toLocaleDateString('ar-EG')}</small>
         </div>
       </div>
 
       {/* 🔝 العنوان الرئيسي */}
-      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', flexWrap: 'wrap', gap: '15px' }}>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5625rem', flexWrap: 'wrap', gap: '0.9375rem' }}>
         <div>
           <h2 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-2xl)' }}>لوحة تحكم توزيع وتحميل المصروفات غير المباشرة</h2>
-          <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>متابعة ذكية لتفكيك مصاريف الإدارة والتشغيل وتحميلها على الفلل بناءً على مسببات التكلفة وعمالة الموقع بالقرش.</p>
+          <p style={{ margin: '0.3125rem 0 0 0', color: '#64748b', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>متابعة ذكية لتفكيك مصاريف الإدارة والتشغيل وتحميلها على الفلل بناءً على مسببات التكلفة وعمالة الموقع بالقرش.</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <button onClick={exportToCSV} className="btn-action-premium" style={{ backgroundColor: '#16a34a', color: 'white', padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(22,163,74,0.15)' }}>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button onClick={exportToCSV} className="btn-action-premium" style={{ backgroundColor: '#16a34a', color: 'white', padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 10px rgba(22,163,74,0.15)' }}>
             تصدير لـ Excel
           </button>
-          <button onClick={() => window.print()} className="btn-action-premium" style={{ backgroundColor: THEME.primary, color: 'white', padding: '10px 20px', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 10px rgba(0,0,0,0.08)' }}>
+          <button onClick={() => window.print()} className="btn-action-premium" style={{ backgroundColor: THEME.primary, color: 'white', padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 10px rgba(0,0,0,0.08)' }}>
             طباعة التقرير
           </button>
         </div>
       </div>
 
       {/* 📊 كروت الإحصائيات الذكية */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '30px' }}>
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #ea580c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>إجمالي التكاليف المحملة (حسب الفلترة)</span>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13.75rem, 1fr))', gap: '1.25rem', marginBottom: '1.875rem' }}>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '1.25rem', borderRadius: '14px', borderBottom: `5px solid #ea580c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '0.375rem' }}>إجمالي التكاليف المحملة (حسب الفلترة)</span>
           <strong style={{ fontSize: 'var(--fs-2xl)', color: '#ea580c', fontWeight: 900 }}>{formatCurrency(stats.totalAllocated)}</strong>
-          <div style={{ height: '4px', backgroundColor: '#fed7aa', borderRadius: '2px', marginTop: '15px' }} />
+          <div style={{ height: '0.25rem', backgroundColor: '#fed7aa', borderRadius: '2px', marginTop: '0.9375rem' }} />
         </div>
 
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #16a34a`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>تحميل يومي (عمالة وموقع)</span>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '1.25rem', borderRadius: '14px', borderBottom: `5px solid #16a34a`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '0.375rem' }}>تحميل يومي (عمالة وموقع)</span>
           <strong style={{ fontSize: 'var(--fs-xl)', color: '#16a34a', fontWeight: 900 }}>{formatCurrency(stats.dailyLaborTotal)}</strong>
-          <div style={{ fontSize: 'var(--fs-xs)', color: '#16a34a', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.dailyLaborPct}%</div>
-          <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
+          <div style={{ fontSize: 'var(--fs-xs)', color: '#16a34a', fontWeight: 800, textAlign: 'left', marginTop: '0.25rem' }}>{stats.dailyLaborPct}%</div>
+          <div style={{ height: '0.25rem', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '0.3125rem' }}>
             <div style={{ width: `${stats.dailyLaborPct}%`, height: '100%', backgroundColor: '#16a34a', borderRadius: '2px' }} />
           </div>
         </div>
 
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #c2410c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>تحميل شهري (بالتساوي)</span>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '1.25rem', borderRadius: '14px', borderBottom: `5px solid #c2410c`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '0.375rem' }}>تحميل شهري (بالتساوي)</span>
           <strong style={{ fontSize: 'var(--fs-xl)', color: '#c2410c', fontWeight: 900 }}>{formatCurrency(stats.monthlyEqualTotal)}</strong>
-          <div style={{ fontSize: 'var(--fs-xs)', color: '#c2410c', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.monthlyEqualPct}%</div>
-          <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
+          <div style={{ fontSize: 'var(--fs-xs)', color: '#c2410c', fontWeight: 800, textAlign: 'left', marginTop: '0.25rem' }}>{stats.monthlyEqualPct}%</div>
+          <div style={{ height: '0.25rem', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '0.3125rem' }}>
             <div style={{ width: `${stats.monthlyEqualPct}%`, height: '100%', backgroundColor: '#c2410c', borderRadius: '2px' }} />
           </div>
         </div>
 
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid #0284C7`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '6px' }}>إطفاء سنوي (إدارة ورواتب المكتب)</span>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '1.25rem', borderRadius: '14px', borderBottom: `5px solid #0284C7`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '0.375rem' }}>إطفاء سنوي (إدارة ورواتب المكتب)</span>
           <strong style={{ fontSize: 'var(--fs-xl)', color: '#0284C7', fontWeight: 900 }}>{formatCurrency(stats.annualOfficeTotal)}</strong>
-          <div style={{ fontSize: 'var(--fs-xs)', color: '#0284C7', fontWeight: 800, textAlign: 'left', marginTop: '4px' }}>{stats.annualOfficePct}%</div>
-          <div style={{ height: '4px', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '5px' }}>
+          <div style={{ fontSize: 'var(--fs-xs)', color: '#0284C7', fontWeight: 800, textAlign: 'left', marginTop: '0.25rem' }}>{stats.annualOfficePct}%</div>
+          <div style={{ height: '0.25rem', backgroundColor: '#e2e8f0', borderRadius: '2px', marginTop: '0.3125rem' }}>
             <div style={{ width: `${stats.annualOfficePct}%`, height: '100%', backgroundColor: '#0284C7', borderRadius: '2px' }} />
           </div>
         </div>
 
-        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '14px', borderBottom: `5px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>عدد الفلل المستفيدة</span>
+        <div className="stat-premium-card" style={{ backgroundColor: '#fff', padding: '1.25rem', borderRadius: '14px', borderBottom: `5px solid ${THEME.coffeeDark}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, marginBottom: '0.3125rem' }}>عدد الفلل المستفيدة</span>
           <strong style={{ fontSize: 'var(--fs-2xl)', color: THEME.coffeeDark, fontWeight: 900 }}>{stats.villasCount} فيلا</strong>
-          <div style={{ height: '4px', backgroundColor: '#ebd9c8', borderRadius: '2px', marginTop: '15px' }} />
+          <div style={{ height: '0.25rem', backgroundColor: '#ebd9c8', borderRadius: '2px', marginTop: '0.9375rem' }} />
         </div>
       </div>
 
       {/* 🔍 وحدة الفلاتر المتقدمة (تعمل Server-Side) */}
-      <div className="glass-card no-print" style={{ padding: '22px', marginBottom: '30px', display: 'flex', gap: '15px', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#fff', borderRadius: '14px', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
-        <div style={{ flex: '2', minWidth: '250px' }}>
-          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>بحث نصي في الوصف</label>
+      <div className="glass-card no-print" style={{ padding: '1.375rem', marginBottom: '1.875rem', display: 'flex', gap: '0.9375rem', flexWrap: 'wrap', alignItems: 'center', backgroundColor: '#fff', borderRadius: '14px', boxShadow: '0 4px 20px rgba(0,0,0,0.01)' }}>
+        <div style={{ flex: '2', minWidth: '15.625rem' }}>
+          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '0.5rem' }}>بحث نصي في الوصف</label>
           <input 
             type="text" 
             placeholder="ابحث في أسطر الجدول الحالي..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 700, outline: 'none', fontSize: 'var(--fs-sm)' }}
+            style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 700, outline: 'none', fontSize: 'var(--fs-sm)' }}
           />
         </div>
 
-        <div style={{ flex: '1', minWidth: '140px' }}>
-          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>الشهر المالي</label>
-          <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
+        <div style={{ flex: '1', minWidth: '8.75rem' }}>
+          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '0.5rem' }}>الشهر المالي</label>
+          <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
             {monthsOptions.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
 
-        <div style={{ flex: '1', minWidth: '160px' }}>
-          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>الفيلا المستهدفة</label>
-          <select value={filterVilla} onChange={(e) => setFilterVilla(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
+        <div style={{ flex: '1', minWidth: '10rem' }}>
+          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '0.5rem' }}>الفيلا المستهدفة</label>
+          <select value={filterVilla} onChange={(e) => setFilterVilla(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
             {villasOptions.map(v => <option key={v} value={v}>{v}</option>)}
           </select>
         </div>
 
-        <div style={{ flex: '1', minWidth: '160px' }}>
-          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '8px' }}>تصنيف المصروف</label>
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
+        <div style={{ flex: '1', minWidth: '10rem' }}>
+          <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '0.5rem' }}>تصنيف المصروف</label>
+          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
             {categoriesOptions.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
 
         <div style={{ alignSelf: 'flex-end' }}>
-          <button onClick={() => { setSearchQuery(''); setFilterMonth('الكل'); setFilterVilla('الكل'); setFilterCategory('الكل'); }} style={{ padding: '12px 22px', borderRadius: '12px', border: 'none', backgroundColor: '#f1f5f9', color: '#475569', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-sm)' }}>
+          <button onClick={() => { setSearchQuery(''); setFilterMonth('الكل'); setFilterVilla('الكل'); setFilterCategory('الكل'); }} style={{ padding: '0.75rem 1.375rem', borderRadius: '12px', border: 'none', backgroundColor: '#f1f5f9', color: '#475569', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-sm)' }}>
             إعادة تعيين
           </button>
         </div>
       </div>
 
       {/* 📋 جدول البيانات الرئيسي */}
-      <div className="glass-card table-premium-container" style={{ padding: '30px', backgroundColor: '#fff', borderRadius: '14px', boxShadow: '0 4px 25px rgba(0,0,0,0.02)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div className="glass-card table-premium-container" style={{ padding: '1.875rem', backgroundColor: '#fff', borderRadius: '14px', boxShadow: '0 4px 25px rgba(0,0,0,0.02)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
           <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-xl)' }}>السجل التفصيلي لتحميل وتكليفات الفلل بالمصروفات غير المباشرة</h3>
           <button onClick={fetchAllocationData} className="no-print" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-xl)' }} title="تحديث البيانات"><RefreshCw size={15} aria-hidden="true" /></button>
         </div>
@@ -320,7 +320,7 @@ export default function AdvancedExpenseAllocation() {
         {isLoading ? (
           <LoadingScreen message="جاري سحب وتصفية الداتا مباشرة من السيرفر وبدون تخطي الحدود..." fullScreen={false} />
         ) : filteredData.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px', color: '#94a3b8', fontWeight: 900 }}>
+          <div style={{ textAlign: 'center', padding: '3.75rem', color: '#94a3b8', fontWeight: 900 }}>
             لا توجد سجلات توزيع متطابقة مع خيارات الفلترة الحالية.
           </div>
         ) : (

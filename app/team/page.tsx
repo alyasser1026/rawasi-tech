@@ -139,18 +139,18 @@ export default function TeamPage() {
     useEffect(() => {
         setSidebarContent({
             actions: (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-                    <button onClick={() => { setSelectedProfile(null); setIsModalOpen(true); }} className="btn-main-glass gold" style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', fontWeight: 900, padding: '15px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
+                    <button onClick={() => { setSelectedProfile(null); setIsModalOpen(true); }} className="btn-main-glass gold" style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', fontWeight: 900, padding: '0.9375rem' }}>
                         إضافة مستخدم جديد
                     </button>
                     <button onClick={handleCopyInvite} className="btn-main-glass white">
                         نسخ رابط دعوة للتسجيل
                     </button>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <button onClick={() => handleBulkToggle('suspend_all')} style={{ flex: 1, padding: '10px', background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>
+                    <div style={{ display: 'flex', gap: '0.625rem' }}>
+                        <button onClick={() => handleBulkToggle('suspend_all')} style={{ flex: 1, padding: '0.625rem', background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>
                             إيقاف الكل
                         </button>
-                        <button onClick={() => handleBulkToggle('activate_all')} style={{ flex: 1, padding: '10px', background: '#dcfce7', color: '#22c55e', border: '1px solid #bbf7d0', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>
+                        <button onClick={() => handleBulkToggle('activate_all')} style={{ flex: 1, padding: '0.625rem', background: '#dcfce7', color: '#22c55e', border: '1px solid #bbf7d0', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}>
                             تنشيط الكل
                         </button>
                     </div>
@@ -166,13 +166,13 @@ export default function TeamPage() {
                 </div>
             ),
             customFilters: (
-                <div style={{ marginTop: '10px' }}>
+                <div style={{ marginTop: '0.625rem' }}>
                     <input 
                         type="text"
                         placeholder="ابحث بالاسم، الإيميل، أو الشريك..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontWeight: 700, outline: 'none', transition: '0.3s' }}
+                        style={{ width: '100%', padding: '0.875rem', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontWeight: 700, outline: 'none', transition: '0.3s' }}
                         onFocus={(e) => e.target.style.borderColor = THEME.brand.gold}
                         onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.2)'}
                     />
@@ -192,16 +192,16 @@ export default function TeamPage() {
             <style>{`
                 .users-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                    gap: 25px;
-                    padding: 15px 0;
+                    grid-template-columns: repeat(auto-fill, minmax(17.5rem, 1fr));
+                    gap: 1.5625rem;
+                    padding: 0.9375rem 0;
                 }
                 .user-card {
                     background: rgba(255, 255, 255, 0.6);
                     backdrop-filter: blur(20px);
                     border: 1px solid rgba(255, 255, 255, 0.9);
                     border-radius: 14px;
-                    padding: 35px 25px;
+                    padding: 2.1875rem 1.5625rem;
                     text-align: center;
                     cursor: pointer;
                     transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -215,24 +215,24 @@ export default function TeamPage() {
                     box-shadow: 0 25px 50px rgba(0,0,0,0.06);
                 }
                 .user-card::before {
-                    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+                    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 0.25rem;
                     background: linear-gradient(90deg, transparent, ${THEME.brand.gold}, transparent);
                     opacity: 0; transition: 0.4s;
                 }
                 .user-card:hover::before { opacity: 1; }
                 
                 .avatar {
-                    width: 85px; height: 85px; border-radius: 50%;
+                    width: 5.3125rem; height: 5.3125rem; border-radius: 50%;
                     border: 4px solid white; box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-                    margin-bottom: 18px; object-fit: cover; background: white;
+                    margin-bottom: 1.125rem; object-fit: cover; background: white;
                 }
                 .role-tag {
-                    font-size: var(--fs-xs); font-weight: 900; padding: 6px 16px;
-                    border-radius: 12px; display: inline-block; margin-top: 15px;
+                    font-size: var(--fs-xs); font-weight: 900; padding: 0.375rem 1rem;
+                    border-radius: 12px; display: inline-block; margin-top: 0.9375rem;
                     letter-spacing: 0.3px;
                 }
                 .empty-state {
-                    text-align: center; padding: 80px 20px;
+                    text-align: center; padding: 5rem 1.25rem;
                     background: rgba(255,255,255,0.4); border-radius: 14px;
                     border: 2px dashed ${THEME.brand.gold}40;
                     backdrop-filter: blur(10px);
@@ -241,18 +241,18 @@ export default function TeamPage() {
 
             {/* 🔄 Loading State */}
             {isLoading ? (
-                <div style={{ textAlign: 'center', padding: '100px', fontWeight: 900, color: THEME.brand.coffee, fontSize: 'var(--fs-xl)' }}>
-                    <span style={{ display: 'block', fontSize: 'var(--fs-3xl)', marginBottom: '15px' }}><Hourglass size={26} aria-hidden="true" /></span>
+                <div style={{ textAlign: 'center', padding: '6.25rem', fontWeight: 900, color: THEME.brand.coffee, fontSize: 'var(--fs-xl)' }}>
+                    <span style={{ display: 'block', fontSize: 'var(--fs-3xl)', marginBottom: '0.9375rem' }}><Hourglass size={26} aria-hidden="true" /></span>
                     جاري تحميل هويات الكوادر...
                 </div>
             
             /* 📭 Empty State */
             ) : profiles.length === 0 ? (
                 <div className="empty-state">
-                    <div style={{ fontSize: 'var(--fs-display)', marginBottom: '20px' }}><Sparkles size={40} aria-hidden="true" /></div>
+                    <div style={{ fontSize: 'var(--fs-display)', marginBottom: '1.25rem' }}><Sparkles size={40} aria-hidden="true" /></div>
                     <h2 style={{ fontWeight: 900, color: THEME.brand.coffee, fontSize: 'var(--fs-2xl)' }}>ابدأ ببناء فريقك الرقمي</h2>
-                    <p style={{ color: '#64748b', fontWeight: 600, fontSize: 'var(--fs-lg)', marginBottom: '30px' }}>لم يسجل أي مستخدم في النظام حتى الآن. شارك رابط الدعوة للبدء.</p>
-                    <button onClick={handleCopyInvite} style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '18px 40px', borderRadius: '14px', fontSize: 'var(--fs-lg)', fontWeight: 900, cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.brand.gold}30`, transition: '0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
+                    <p style={{ color: '#64748b', fontWeight: 600, fontSize: 'var(--fs-lg)', marginBottom: '1.875rem' }}>لم يسجل أي مستخدم في النظام حتى الآن. شارك رابط الدعوة للبدء.</p>
+                    <button onClick={handleCopyInvite} style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '1.125rem 2.5rem', borderRadius: '14px', fontSize: 'var(--fs-lg)', fontWeight: 900, cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.brand.gold}30`, transition: '0.3s' }} onMouseEnter={e => e.currentTarget.style.transform = 'translateY(-3px)'} onMouseLeave={e => e.currentTarget.style.transform = 'none'}>
                         انسخ رابط الدعوة وانطلق
                     </button>
                 </div>
@@ -268,7 +268,7 @@ export default function TeamPage() {
                                 alt="User Avatar" 
                             />
                             <h3 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.brand.coffee }}>{user.full_name || user.nickname || 'مستخدم غير مسمى'}</h3>
-                            <p style={{ margin: '6px 0 0 0', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>{user.email || user.username}</p>
+                            <p style={{ margin: '0.375rem 0 0 0', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>{user.email || user.username}</p>
                             
                             <div className="role-tag" style={{ 
                                 background: user.role === 'admin' ? '#fef3c7' : user.role === 'staff' ? '#dcfce7' : user.role === 'contractor' ? '#e0f2fe' : '#f1f5f9',
@@ -278,16 +278,16 @@ export default function TeamPage() {
                             </div>
 
                             {/* مؤشر حالة الحساب */}
-                            <div style={{ position: 'absolute', top: 15, right: 15, width: 12, height: 12, borderRadius: '50%', background: user.is_active === false ? '#ef4444' : '#22c55e', boxShadow: `0 0 10px ${user.is_active === false ? '#ef4444' : '#22c55e'}`, border: '2px solid white' }} title={user.is_active === false ? 'حساب موقوف' : 'حساب نشط'} />
+                            <div style={{ position: 'absolute', top: '0.9375rem', right: '0.9375rem', width: '0.75rem', height: '0.75rem', borderRadius: '50%', background: user.is_active === false ? '#ef4444' : '#22c55e', boxShadow: `0 0 10px ${user.is_active === false ? '#ef4444' : '#22c55e'}`, border: '2px solid white' }} title={user.is_active === false ? 'حساب موقوف' : 'حساب نشط'} />
 
                             {user.partners?.name && (
-                                <div style={{ marginTop: '18px', fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.brand.gold, background: `${THEME.brand.gold}15`, padding: '8px 12px', borderRadius: '10px' }}>
+                                <div style={{ marginTop: '1.125rem', fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.brand.gold, background: `${THEME.brand.gold}15`, padding: '0.5rem 0.75rem', borderRadius: '10px' }}>
                                     شريك: {user.partners.name}
                                 </div>
                             )}
                         </div>
                     )) : (
-                        <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '50px', color: '#94a3b8', fontWeight: 800 }}>
+                        <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3.125rem', color: '#94a3b8', fontWeight: 800 }}>
                             لا توجد نتائج مطابقة لبحثك
                         </div>
                     )}

@@ -95,7 +95,7 @@ export default function InvoicesPage() {
       render: (row: any) => {
         if (!row) return null;
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
             <b style={{ color: '#8b5cf6', textShadow: '0 0 10px rgba(139, 92, 246, 0.3)', fontSize: 'var(--fs-md)' }}>#{row.invoice_number}</b>
             <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b' }}>
                {row.skip_zatca ? 'فاتورة داخلية' : 'ضريبية (ZATCA)'}
@@ -110,7 +110,7 @@ export default function InvoicesPage() {
       render: (row: any) => {
         if (!row) return null;
         return (
-          <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#0284c7', background: 'rgba(2, 132, 199, 0.1)', padding: '4px 10px', borderRadius: '8px', border: '1px solid rgba(2, 132, 199, 0.2)' }}>
+          <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#0284c7', background: 'rgba(2, 132, 199, 0.1)', padding: '0.25rem 0.625rem', borderRadius: '8px', border: '1px solid rgba(2, 132, 199, 0.2)' }}>
             {row.date ? new Date(row.date).toLocaleDateString('ar-EG') : '---'}
           </span> 
         );
@@ -123,10 +123,10 @@ export default function InvoicesPage() {
         if (!row) return null; 
         const finalClientName = row.partners?.name || row.client_name || '---';
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', textAlign: 'right' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', textAlign: 'right' }}>
              <span style={{fontWeight: 900, color: '#1e293b'}}>{finalClientName}</span>
              {row.description && (
-               <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '180px' }} title={row.description}>
+               <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '11.25rem' }} title={row.description}>
                   {row.description}
                </span>
              )}
@@ -167,12 +167,12 @@ export default function InvoicesPage() {
         const remaining = total - paid;
         
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>
              {paid > 0 && <span style={{ color: '#10b981' }}>مسدد: {formatCurrency(paid)}</span>}
              
              {/* 🚀 إظهار المتبقي لو كان لسه عليه فلوس، أو دائن لو دفع بزيادة */}
              {remaining > 0 && <span style={{ color: '#ef4444' }}>متبقي: {formatCurrency(remaining)}</span>}
-             {remaining < 0 && <span style={{ color: '#8b5cf6', background: '#f5f3ff', padding: '2px 4px', borderRadius: '4px' }}>دائن (بزيادة): {formatCurrency(Math.abs(remaining))}</span>}
+             {remaining < 0 && <span style={{ color: '#8b5cf6', background: '#f5f3ff', padding: '2px 0.25rem', borderRadius: '4px' }}>دائن (بزيادة): {formatCurrency(Math.abs(remaining))}</span>}
              
              {paid === 0 && remaining === 0 && <span style={{ color: '#94a3b8' }}>0.00</span>}
           </div>
@@ -233,7 +233,7 @@ export default function InvoicesPage() {
         const isApproved = row.status === 'معتمد' || row.status === 'معتمد' || row.is_posted === true;
         
         return (
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'center', alignItems: 'center' }}>
             <button onClick={(e) => { e.stopPropagation(); setPrintData(row); setIsPrintModalOpen(true); }} className="btn-glass-print" title="طباعة الفاتورة" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-xl)', transition: '0.2s' }}><Printer size={15} aria-hidden="true" /></button>
             
             {/* 🚀 السحر هنا: دمجنا needsPayment في الشرط عشان يخفي الزرار */}
@@ -253,7 +253,7 @@ export default function InvoicesPage() {
   // 🎛️ أزرار السايد بار
   // =========================================================================
   const sidebarActions = useMemo(() => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
       <SecureAction module="invoices" action="create">
         <button className="btn-main-glass gold" onClick={logic.handleAddNew}>
           إنشاء فاتورة جديدة
@@ -261,8 +261,8 @@ export default function InvoicesPage() {
       </SecureAction>
 
       {logic.selectedIds.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات على ({logic.selectedIds.length})</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.3125rem', paddingTop: '0.9375rem', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
+          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-0.3125rem'}}>الإجراءات على ({logic.selectedIds.length})</p>
           <SecureAction module="invoices" action="post">
             <button className="btn-main-glass blue" onClick={logic.handlePostSelected} disabled={logic.isSaving}>
               {logic.isSaving ? 'جاري الترحيل...' : 'اعتماد وترحيل'}
@@ -300,12 +300,12 @@ export default function InvoicesPage() {
         summary={
           <div className="summary-glass-card">
             <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي المديونية</span>
-            <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>{formatCurrency(result.totalRemaining)}</div>
+            <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.goldAccent, marginTop:'0.3125rem'}}>{formatCurrency(result.totalRemaining)}</div>
           </div>
         }
         actions={sidebarActions}
         customFilters={
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <SmartCombo 
                     label="تصفية سريعة بالعميل"
                     icon="🔍"
@@ -315,7 +315,7 @@ export default function InvoicesPage() {
                     enableClear={true}
                     onSelect={(item:any) => logic.setGlobalSearch(item?.name || '')}
                 />
-                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '10px 0' }} />
+                <div style={{ height: '1px', background: 'rgba(255,255,255,0.1)', margin: '0.625rem 0' }} />
               <InvoiceAgingDashboard aging={{ ...result.aging, totalOverdue: result.totalOverdue, totalOpen: result.aging.current + result.totalOverdue }} />
             </div>
         }
@@ -325,8 +325,8 @@ export default function InvoicesPage() {
       />
 
       <style>{`
-        .custom-checkbox { width: 20px; height: 20px; accent-color: ${THEME.goldAccent}; cursor: pointer; transition: 0.1s; }
-        .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .custom-checkbox { width: 1.25rem; height: 1.25rem; accent-color: ${THEME.goldAccent}; cursor: pointer; transition: 0.1s; }
+        .btn-main-glass { width: 100%; padding: 0.875rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
         .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; }
         .btn-main-glass.green { background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.9)); color: white; }
@@ -367,9 +367,9 @@ export default function InvoicesPage() {
             alignItems: 'flex-start',
             justifyContent: 'center', 
             overflowY: 'auto', 
-            padding: '50px 20px' 
+            padding: '3.125rem 1.25rem' 
         }}>
-            <div style={{ width: '100%', maxWidth: '900px', position: 'relative' }}>
+            <div style={{ width: '100%', maxWidth: '56.25rem', position: 'relative' }}>
                 <ReceiptVoucherModal 
                     isOpen={logic.isReceiptModalOpen} 
                     onClose={() => logic.setIsReceiptModalOpen(false)} 

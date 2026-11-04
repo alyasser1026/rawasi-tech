@@ -37,7 +37,7 @@ export default function RevenuePage() {
         { 
             header: 'صافي الإيراد المحقق', 
             render: (row: any) => row ? (
-                <div style={{ fontWeight: 900, color: THEME.success, fontSize: 'var(--fs-md)', background: '#f0fdf4', padding: '6px 12px', borderRadius: '10px', textAlign: 'center' }}>
+                <div style={{ fontWeight: 900, color: THEME.success, fontSize: 'var(--fs-md)', background: '#f0fdf4', padding: '0.375rem 0.75rem', borderRadius: '10px', textAlign: 'center' }}>
                     {formatCurrency(row.total_amount)}
                 </div>
             ) : null
@@ -49,7 +49,7 @@ export default function RevenuePage() {
             
             <RawasiSidebarManager 
                 summary={
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', color: 'white' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', color: 'white' }}>
                         
                         {/* 💰 الصافي المحقق - أخضر */}
                         <div className="kpi-box success">
@@ -72,7 +72,7 @@ export default function RevenuePage() {
                     </div>
                 }
                 customFilters={
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                         <input 
                             type="text" 
                             placeholder="بحث سريع..." 
@@ -80,7 +80,7 @@ export default function RevenuePage() {
                             value={logic.globalSearch} 
                             onChange={(e) => logic.setGlobalSearch(e.target.value)} 
                         />
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '5px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.3125rem' }}>
                             <input type="date" className="glass-input" value={logic.dateFrom} onChange={(e) => logic.setDateFrom(e.target.value)} />
                             <input type="date" className="glass-input" value={logic.dateTo} onChange={(e) => logic.setDateTo(e.target.value)} />
                         </div>
@@ -98,15 +98,15 @@ export default function RevenuePage() {
             />
 
             <style>{`
-                .kpi-box { background: rgba(255,255,255,0.08); padding: 18px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.15); }
-                .kpi-box span { display: block; font-size: var(--fs-xs); opacity: 0.8; color: #cbd5e1; font-weight: 800; margin-bottom: 5px; }
+                .kpi-box { background: rgba(255,255,255,0.08); padding: 1.125rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.15); }
+                .kpi-box span { display: block; font-size: var(--fs-xs); opacity: 0.8; color: #cbd5e1; font-weight: 800; margin-bottom: 0.3125rem; }
                 .kpi-box strong { display: block; font-size: var(--fs-2xl); color: ${THEME.goldAccent}; }
                 .kpi-box.success { border-right: 4px solid #4ade80; background: rgba(74, 222, 128, 0.05); }
                 .kpi-box.success strong { color: #4ade80; }
                 .kpi-box.warning { border-right: 4px solid #fbbf24; background: rgba(251, 191, 36, 0.05); }
                 .kpi-box.warning strong { color: #fbbf24; }
                 .kpi-box.secondary { border-right: 4px solid #94a3b8; }
-                .glass-input { width: 100%; padding: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: white; outline: none; font-size: var(--fs-sm); }
+                .glass-input { width: 100%; padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: white; outline: none; font-size: var(--fs-sm); }
             `}</style>
 
         </MasterPage>

@@ -33,9 +33,9 @@ export default function LoadingScreen({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: '300px',
+        minHeight: '18.75rem',
         width: '100%',
-        padding: '50px',
+        padding: '3.125rem',
         borderRadius: '14px',
         backgroundColor: 'rgba(255, 255, 255, 0.4)',
         backdropFilter: 'blur(10px)',
@@ -45,7 +45,7 @@ export default function LoadingScreen({
     return (
         <div style={containerStyle} className="fade-in">
             {/* الدائرة المتحركة الاحترافية */}
-            <div style={{ position: 'relative', width: '80px', height: '80px', marginBottom: '30px' }}>
+            <div style={{ position: 'relative', width: '5rem', height: '5rem', marginBottom: '1.875rem' }}>
                 <div style={{
                     position: 'absolute',
                     top: 0, left: 0, right: 0, bottom: 0,
@@ -60,7 +60,7 @@ export default function LoadingScreen({
                     position: 'absolute',
                     top: '50%', left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: '30px', height: '30px',
+                    width: '1.875rem', height: '1.875rem',
                     backgroundColor: THEME.primary,
                     borderRadius: '50%',
                     animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
@@ -73,7 +73,7 @@ export default function LoadingScreen({
                 fontWeight: 900,
                 fontSize: '1.5rem',
                 margin: 0,
-                marginBottom: '8px',
+                marginBottom: '0.5rem',
                 textShadow: '0 2px 10px rgba(0,0,0,0.05)',
                 letterSpacing: '-0.5px'
             }}>

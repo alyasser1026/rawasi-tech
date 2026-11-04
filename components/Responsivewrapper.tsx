@@ -26,7 +26,7 @@ export default function ResponsiveWrapper({ children }: ResponsiveWrapperProps) 
     <div 
       style={{
         // تقليل الهوامش على الموبايل عشان نستغل كل مساحة الشاشة
-        padding: isMobile ? '10px' : '25px',
+        padding: isMobile ? '0.625rem' : '1.5625rem',
         width: '100%',
         maxWidth: '100vw',
         overflowX: 'hidden',

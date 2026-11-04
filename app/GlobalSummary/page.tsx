@@ -71,10 +71,10 @@ export default function MasterDashboard() {
     return (
         <MasterPage title="الملخص العام (Global Summary)" subtitle="نظرة شاملة وموحدة لجميع قطاعات النظام">
         
-        <div style={{ padding: '25px', direction: 'rtl', maxWidth: '1600px', margin: '0 auto' }}>
+        <div style={{ padding: '1.5625rem', direction: 'rtl', maxWidth: '100rem', margin: '0 auto' }}>
             
             {/* 👑 الهيدر العلوي: شريط المعلومات السريع */}
-            <div className="summary-bar fade-in-up" style={{ borderRadius: '14px', marginBottom: '30px' }}>
+            <div className="summary-bar fade-in-up" style={{ borderRadius: '14px', marginBottom: '1.875rem' }}>
                 <div className="summary-item">
                     <span className="summary-label">صافي السيولة</span>
                     <span className="summary-value" style={{ color: THEME.success }}>{formatCurrency(summary.finance.liquidity)}</span>
@@ -90,7 +90,7 @@ export default function MasterDashboard() {
             </div>
 
             {/* 🏎️ صف الـ KPIs الأساسي */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px', marginBottom: '30px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(17.5rem, 1fr))', gap: '1.25rem', marginBottom: '1.875rem' }}>
                 <KPICard title="إجمالي ميزانية المشاريع" value={summary.projects.totalBudget} icon="🏗️" color={THEME.primary} />
                 <KPICard title="تكاليف التشغيل الفعلية" value={summary.projects.actualSpend} icon="📉" color={THEME.danger} />
                 <KPICard title="تحصيلات متوقعة" value={summary.finance.receivables} icon="📩" color={THEME.accent} />
@@ -98,20 +98,20 @@ export default function MasterDashboard() {
             </div>
 
             {/* 🧩 مصفوفة البيانات الكبرى (The Grid) */}
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '25px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1.2fr', gap: '1.5625rem' }}>
                 
                 {/* العمود الأيمن: تحليل المشاريع والإنتاجية */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5625rem' }}>
                     <GlassContainer>
-                        <h3 style={{ marginBottom: '20px' }}>مراقبة تنفيذ المشاريع (Budget Tracker)</h3>
+                        <h3 style={{ marginBottom: '1.25rem' }}>مراقبة تنفيذ المشاريع (Budget Tracker)</h3>
                         <ProgressBar label="استهلاك الميزانية" percentage={summary.projects.progress} color={THEME.accent} />
                         <ProgressBar label="كفاءة توزيع العمالة" percentage={summary.labor.efficiency} color={THEME.success} />
-                        <div style={{ marginTop: '20px', display: 'flex', gap: '20px' }}>
-                            <div className="kpi-card" style={{ flex: 1, padding: '15px' }}>
+                        <div style={{ marginTop: '1.25rem', display: 'flex', gap: '1.25rem' }}>
+                            <div className="kpi-card" style={{ flex: 1, padding: '0.9375rem' }}>
                                 <small>تكلفة المواد</small>
                                 <h4>{formatCurrency(summary.projects.actualSpend * 0.7)}</h4>
                             </div>
-                            <div className="kpi-card" style={{ flex: 1, padding: '15px' }}>
+                            <div className="kpi-card" style={{ flex: 1, padding: '0.9375rem' }}>
                                 <small>أجور العمالة</small>
                                 <h4>{formatCurrency(summary.labor.monthlyCost)}</h4>
                             </div>
@@ -119,33 +119,33 @@ export default function MasterDashboard() {
                     </GlassContainer>
 
                     <GlassContainer>
-                        <h3 style={{ marginBottom: '20px' }}>ذمم مدينة وحركة التحصيل</h3>
+                        <h3 style={{ marginBottom: '1.25rem' }}>ذمم مدينة وحركة التحصيل</h3>
                         <p style={{ color: 'var(--text-muted)' }}>فواتير لم يتم تحصيلها وتؤثر على التدفق النقدي:</p>
-                        <h2 style={{ color: THEME.accent, margin: '15px 0' }}>{formatCurrency(summary.finance.receivables)}</h2>
+                        <h2 style={{ color: THEME.accent, margin: '0.9375rem 0' }}>{formatCurrency(summary.finance.receivables)}</h2>
                         <button className="btn btn-primary">إرسال مطالبات جماعية</button>
                     </GlassContainer>
                 </div>
 
                 {/* العمود الأيسر: الإجراءات والرقابة */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5625rem' }}>
                     <GlassContainer style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: 'white' }}>
                         <h3>رادار الرقابة المالية</h3>
-                        <div style={{ marginTop: '20px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #334155' }}>
+                        <div style={{ marginTop: '1.25rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.625rem 0', borderBottom: '1px solid #334155' }}>
                                 <span>قيود يتيمة</span>
                                 <span style={{ color: THEME.accent, fontWeight: 900 }}>{summary.audit.orphans}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #334155' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.625rem 0', borderBottom: '1px solid #334155' }}>
                                 <span>حركات غير متزنة</span>
                                 <span style={{ color: '#10b981' }}>0</span>
                             </div>
                         </div>
-                        <button className="btn" style={{ width: '100%', marginTop: '20px', background: THEME.accent, color: 'white' }}>فتح غرفة العمليات</button>
+                        <button className="btn" style={{ width: '100%', marginTop: '1.25rem', background: THEME.accent, color: 'white' }}>فتح غرفة العمليات</button>
                     </GlassContainer>
 
                     <GlassContainer>
                         <h3>وصول سريع</h3>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginTop: '15px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.625rem', marginTop: '0.9375rem' }}>
                             <QuickAction icon="📝" label="قيد جديد" />
                             <QuickAction icon="👷" label="تحضير عمال" />
                             <QuickAction icon="📂" label="التقارير" />
@@ -167,7 +167,7 @@ function KPICard({ title, value, icon, color, isCurrency = true }: any) {
                 <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--text-muted)' }}>{title}</span>
                 <span style={{ display: 'inline-flex' }}><PhiIcon value={icon} size={20} /></span>
             </div>
-            <h2 style={{ color: color, marginTop: '10px' }}>{isCurrency ? formatCurrency(value) : value}</h2>
+            <h2 style={{ color: color, marginTop: '0.625rem' }}>{isCurrency ? formatCurrency(value) : value}</h2>
         </div>
     );
 }
@@ -175,12 +175,12 @@ function KPICard({ title, value, icon, color, isCurrency = true }: any) {
 function ProgressBar({ label, percentage, color }: any) {
     const safePercent = Math.min(percentage, 100);
     return (
-        <div style={{ marginBottom: '15px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', marginBottom: '5px' }}>
+        <div style={{ marginBottom: '0.9375rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)', marginBottom: '0.3125rem' }}>
                 <span>{label}</span>
                 <span style={{ fontWeight: 900 }}>{percentage.toFixed(1)}%</span>
             </div>
-            <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '10px' }}>
+            <div style={{ width: '100%', height: '0.5rem', background: '#e2e8f0', borderRadius: '10px' }}>
                 <div style={{ width: `${safePercent}%`, height: '100%', background: color, borderRadius: '10px', transition: '1s' }}></div>
             </div>
         </div>
@@ -189,7 +189,7 @@ function ProgressBar({ label, percentage, color }: any) {
 
 function QuickAction({ icon, label }: any) {
     return (
-        <div className="btn" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: THEME.primary, padding: '15px', flexDirection: 'column' }}>
+        <div className="btn" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: THEME.primary, padding: '0.9375rem', flexDirection: 'column' }}>
             <span style={{ display: 'inline-flex' }}><PhiIcon value={icon} size={20} /></span>
             <span style={{ fontSize: 'var(--fs-sm)' }}>{label}</span>
         </div>

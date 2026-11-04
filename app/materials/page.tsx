@@ -49,11 +49,11 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
 
     return (
         <div ref={dropdownRef} style={{ position: 'relative', width: '100%' }}>
-            <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, marginBottom: '6px', color: '#475569', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, marginBottom: '0.375rem', color: '#475569', display: 'flex', justifyContent: 'space-between' }}>
                 <span>{title}</span>
                 {selected.length > 0 && (
                     <span 
-                        style={{ color: '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xs)', background: '#fef2f2', padding: '2px 6px', borderRadius: '4px' }} 
+                        style={{ color: '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xs)', background: '#fef2f2', padding: '2px 0.375rem', borderRadius: '4px' }} 
                         onClick={() => onChange([])}
                     >
                         إلغاء ({selected.length})
@@ -64,7 +64,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
             <div 
                 onClick={() => setIsOpen(!isOpen)}
                 className="glass-input-field"
-                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '45px', padding: '0 12px' }}
+                style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '2.8125rem', padding: '0 0.75rem' }}
             >
                 <span style={{ fontWeight: 800, color: selected.length ? '#1e293b' : '#94a3b8', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selected.length > 0 ? selected.join('، ') : placeholder}
@@ -73,20 +73,20 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
             </div>
             
             {isOpen && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: `1px solid #e2e8f0`, borderRadius: '12px', marginTop: '8px', zIndex: 9999, boxShadow: '0 10px 30px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-                    <div style={{ padding: '8px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: `1px solid #e2e8f0`, borderRadius: '12px', marginTop: '0.5rem', zIndex: 9999, boxShadow: '0 10px 30px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+                    <div style={{ padding: '0.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                         <input 
                             type="text" 
                             placeholder="بحث سريع..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#1e293b' }}
+                            style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#1e293b' }}
                         />
                     </div>
-                    <div className="custom-scrollbar" style={{ maxHeight: '200px', overflowY: 'auto', padding: '5px' }}>
+                    <div className="custom-scrollbar" style={{ maxHeight: '12.5rem', overflowY: 'auto', padding: '0.3125rem' }}>
                         {filteredOptions.length > 0 ? filteredOptions.map((opt: string) => (
-                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', cursor: 'pointer', borderRadius: '6px', background: selected.includes(opt) ? `${accentColor}15` : 'transparent', transition: '0.2s' }}>
+                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.625rem', cursor: 'pointer', borderRadius: '6px', background: selected.includes(opt) ? `${accentColor}15` : 'transparent', transition: '0.2s' }}>
                                 <input 
                                     type="checkbox" 
                                     checked={selected.includes(opt)} 
@@ -96,7 +96,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
                                 <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: selected.includes(opt) ? accentColor : '#334155' }}>{opt}</span>
                             </label>
                         )) : (
-                            <div style={{ padding: '15px', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد نتائج</div>
+                            <div style={{ padding: '0.9375rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد نتائج</div>
                         )}
                     </div>
                 </div>
@@ -263,7 +263,7 @@ export default function MaterialsPage() {
                 
                 <RawasiSidebarManager 
                     actions={
-                        <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                             <button onClick={logic.openAddModal} className="btn-main-glass gold">
                                 إصدار فاتورة توريد جديدة
                             </button>
@@ -323,7 +323,7 @@ export default function MaterialsPage() {
                                 </>
                             )}
 
-                            <hr style={{ borderColor: 'rgba(255,255,255,0.2)', margin: '10px 0' }} />
+                            <hr style={{ borderColor: 'rgba(255,255,255,0.2)', margin: '0.625rem 0' }} />
                             
                             <button onClick={exportToExcel} className="btn-main-glass" style={{ background: '#10b981', color: 'white' }}>
                                 تصدير الخامات (Excel)
@@ -370,7 +370,7 @@ export default function MaterialsPage() {
                     />
 
                     <div>
-                        <label style={{ fontSize: 'var(--fs-xs)', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>ترتيب العرض</label>
+                        <label style={{ fontSize: 'var(--fs-xs)', color: '#475569', marginBottom: '0.375rem', display: 'block', fontWeight: 900 }}>ترتيب العرض</label>
                         <select className="glass-input-field" aria-label="ترتيب العرض" value={logic.sortBy} onChange={e => logic.setSortBy(e.target.value)}>
                             <option value="newest">الأحدث إضافة</option>
                             <option value="oldest">الأقدم</option>
@@ -379,13 +379,13 @@ export default function MaterialsPage() {
                         </select>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '8px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.5rem' }}>
                         <div>
-                            <label style={{ fontSize: 'var(--fs-xs)', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>من تاريخ</label>
+                            <label style={{ fontSize: 'var(--fs-xs)', color: '#475569', marginBottom: '0.375rem', display: 'block', fontWeight: 900 }}>من تاريخ</label>
                             <input type="date" className="glass-input-field" value={logic.dateFrom} onChange={e => logic.setDateFrom(e.target.value)} />
                         </div>
                         <div>
-                            <label style={{ fontSize: 'var(--fs-xs)', color: '#475569', marginBottom: '6px', display: 'block', fontWeight: 900 }}>إلى تاريخ</label>
+                            <label style={{ fontSize: 'var(--fs-xs)', color: '#475569', marginBottom: '0.375rem', display: 'block', fontWeight: 900 }}>إلى تاريخ</label>
                             <input type="date" className="glass-input-field" value={logic.dateTo} onChange={e => logic.setDateTo(e.target.value)} />
                         </div>
                     </div>
@@ -404,18 +404,18 @@ export default function MaterialsPage() {
                         -webkit-backdrop-filter: blur(20px);
                         border: 1px solid rgba(255, 255, 255, 0.8);
                         border-radius: 16px;
-                        padding: 20px;
-                        margin-bottom: 20px;
+                        padding: 1.25rem;
+                        margin-bottom: 1.25rem;
                         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
                         display: grid;
-                        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                        gap: 15px;
+                        grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+                        gap: 0.9375rem;
                         align-items: flex-end;
                     }
 
                     .glass-input-field { 
                         width: 100%; 
-                        padding: 10px 12px; 
+                        padding: 0.625rem 0.75rem; 
                         border-radius: 10px; 
                         background: rgba(255, 255, 255, 0.9); 
                         border: 1px solid #cbd5e1; 
@@ -430,31 +430,31 @@ export default function MaterialsPage() {
                         background: #fff;
                     }
                     
-                    .btn-main-glass { width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); }
+                    .btn-main-glass { width: 100%; padding: 0.75rem; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); }
                     .btn-main-glass.gold { background: ${THEME.goldAccent}; color: white; }
                     .btn-main-glass:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
                     
-                    .kpi-box { padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
+                    .kpi-box { padding: 0.9375rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.05); }
                     .kpi-box span { font-size: var(--fs-xs); opacity: 0.8; }
-                    .kpi-box strong { display: block; font-size: var(--fs-xl); color: white; margin-top: 5px; }
+                    .kpi-box strong { display: block; font-size: var(--fs-xl); color: white; margin-top: 0.3125rem; }
                     .kpi-box.danger { border-right: 4px solid #ef4444; }
                     .kpi-box.danger strong { color: #ef4444; }
 
                     /* ستايل شجرة الجداول الاحترافي */
                     .tree-table { width: 100%; border-collapse: collapse; text-align: center; background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.02); }
                     .tree-thead { background: #ffffff; color: white; }
-                    .tree-thead th { padding: 15px; font-size: var(--fs-sm); font-weight: 900; }
+                    .tree-thead th { padding: 0.9375rem; font-size: var(--fs-sm); font-weight: 900; }
                     
                     .master-group-row { cursor: pointer; border-bottom: 2px solid #f1f5f9; background: #ffffff; transition: 0.2s; }
                     .master-group-row:hover { background: #f8fafc; }
-                    .master-group-row td { padding: 12px; font-size: var(--fs-md); font-weight: 800; }
+                    .master-group-row td { padding: 0.75rem; font-size: var(--fs-md); font-weight: 800; }
 
-                    .child-tree-container { background: #f8fafc; padding: 15px 30px; border-bottom: 2px solid #e2e8f0; }
+                    .child-tree-container { background: #f8fafc; padding: 0.9375rem 1.875rem; border-bottom: 2px solid #e2e8f0; }
                     .child-table { width: 100%; border-collapse: collapse; background: rgba(255,255,255,0.9); border-radius: 10px; border: 1px solid #e2e8f0; overflow: hidden; }
-                    .child-table th { background: #475569; color: white; padding: 10px; font-size: var(--fs-xs); font-weight: 900; }
-                    .child-table td { padding: 12px 10px; border-bottom: 1px solid #f1f5f9; font-size: var(--fs-sm); font-weight: 700; color: #334155; }
+                    .child-table th { background: #475569; color: white; padding: 0.625rem; font-size: var(--fs-xs); font-weight: 900; }
+                    .child-table td { padding: 0.75rem 0.625rem; border-bottom: 1px solid #f1f5f9; font-size: var(--fs-sm); font-weight: 700; color: #334155; }
                     
-                    .arrow-icon { display: inline-block; transition: transform 0.2s; margin-left: 8px; color: ${THEME.goldAccent || '#c2410c'}; font-size: var(--fs-md); }
+                    .arrow-icon { display: inline-block; transition: transform 0.2s; margin-left: 0.5rem; color: ${THEME.goldAccent || '#c2410c'}; font-size: var(--fs-md); }
                     .arrow-expanded { transform: rotate(90deg); }
 
                     /* تنسيقات الطباعة */
@@ -518,13 +518,13 @@ export default function MaterialsPage() {
                                                 </td>
                                                 <td>
                                                     <span className={`arrow-icon no-print ${isExpanded ? 'arrow-expanded' : ''}`}>◀</span>
-                                                    <div style={{ display: 'inline-block', fontWeight: 900, color: THEME.coffeeDark, background: THEME.sandDark, padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-sm)' }}>
+                                                    <div style={{ display: 'inline-block', fontWeight: 900, color: THEME.coffeeDark, background: THEME.sandDark, padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-sm)' }}>
                                                         #{group.receipt_no || '---'}
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <div style={{ fontWeight: 900, color: '#1e293b', marginBottom: '4px', fontSize: 'var(--fs-sm)' }}>{group.exp_date}</div>
-                                                    <span style={{ fontSize: 'var(--fs-xs)', background: group.receipt_type === 'توريد عميل' ? '#dbeafe' : '#fef3c7', color: group.receipt_type === 'توريد عميل' ? '#1d4ed8' : '#d97706', padding: '2px 8px', borderRadius: '6px', fontWeight: 900 }}>
+                                                    <div style={{ fontWeight: 900, color: '#1e293b', marginBottom: '0.25rem', fontSize: 'var(--fs-sm)' }}>{group.exp_date}</div>
+                                                    <span style={{ fontSize: 'var(--fs-xs)', background: group.receipt_type === 'توريد عميل' ? '#dbeafe' : '#fef3c7', color: group.receipt_type === 'توريد عميل' ? '#1d4ed8' : '#d97706', padding: '2px 0.5rem', borderRadius: '6px', fontWeight: 900 }}>
                                                         {group.receipt_type || 'توريد شركة'}
                                                     </span>
                                                 </td>
@@ -533,11 +533,11 @@ export default function MaterialsPage() {
                                                     <div style={{ fontSize: 'var(--fs-xs)', color: THEME.ruby, marginTop: '2px', fontWeight: 700 }}>{group.supplier?.name || '---'}</div>
                                                 </td>
                                                 <td>
-                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
-                                                        <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, background: '#f1f5f9', padding: '2px 8px', borderRadius: '6px', color: '#475569' }}>
+                                                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                                                        <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, background: '#f1f5f9', padding: '2px 0.5rem', borderRadius: '6px', color: '#475569' }}>
                                                             {group.account?.name || '---'}
                                                         </span>
-                                                        <span style={{ background: group.is_posted ? '#dcfce7' : '#fef2f2', color: group.is_posted ? '#166534' : '#dc2626', padding: '2px 8px', borderRadius: '6px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>
+                                                        <span style={{ background: group.is_posted ? '#dcfce7' : '#fef2f2', color: group.is_posted ? '#166534' : '#dc2626', padding: '2px 0.5rem', borderRadius: '6px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>
                                                             {group.is_posted ? 'معتمد' : 'مسودة'}
                                                         </span>
                                                     </div>
@@ -548,14 +548,14 @@ export default function MaterialsPage() {
                                                     </span>
                                                 </td>
                                                 <td className="no-print">
-                                                    <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                                                    <div style={{ display: 'flex', gap: '0.3125rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                                                         <button 
                                                             onClick={(e) => { 
                                                                 e.stopPropagation(); 
                                                                 logic.setPrintReceiptId(group.id); 
                                                                 logic.setIsPrintModalOpen(true); 
                                                             }} 
-                                                            style={{ padding: '6px 10px', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-xs)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+                                                            style={{ padding: '0.375rem 0.625rem', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-xs)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
                                                         >
                                                             طباعة الفاتورة
                                                         </button>
@@ -572,7 +572,7 @@ export default function MaterialsPage() {
                                                                             setTimeout(() => logic.handleEditSelected(), 50);
                                                                         }
                                                                     }} 
-                                                                    style={{ padding: '6px 10px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-xs)', boxShadow: '0 2px 4px rgba(59,130,246,0.2)' }}
+                                                                    style={{ padding: '0.375rem 0.625rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-xs)', boxShadow: '0 2px 4px rgba(59,130,246,0.2)' }}
                                                                 >
                                                                     تعديل
                                                                 </button>
@@ -588,7 +588,7 @@ export default function MaterialsPage() {
                                                                         }
                                                                     }} 
                                                                     disabled={logic.isActionPending} 
-                                                                    style={{ padding: '6px 10px', background: THEME.success, color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-xs)', boxShadow: '0 2px 4px rgba(16,185,129,0.2)' }}
+                                                                    style={{ padding: '0.375rem 0.625rem', background: THEME.success, color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-xs)', boxShadow: '0 2px 4px rgba(16,185,129,0.2)' }}
                                                                 >
                                                                     ترحيل
                                                                 </button>
@@ -605,7 +605,7 @@ export default function MaterialsPage() {
                                                                     }
                                                                 }} 
                                                                 disabled={logic.isActionPending} 
-                                                                style={{ padding: '6px 15px', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-xs)', boxShadow: '0 2px 4px rgba(245,158,11,0.2)' }}
+                                                                style={{ padding: '0.375rem 0.9375rem', background: '#f59e0b', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-xs)', boxShadow: '0 2px 4px rgba(245,158,11,0.2)' }}
                                                             >
                                                                 فك
                                                             </button>
@@ -667,7 +667,7 @@ export default function MaterialsPage() {
                                                                                     title={!group.is_posted ? "يجب ترحيل الفاتورة أولاً لصرف الخامات" : ""}
                                                                                     style={{ 
                                                                                         background: (group.is_posted && item.available_qty > 0) ? '#3b82f6' : '#cbd5e1', 
-                                                                                        color: 'white', border: 'none', padding: '6px 12px', 
+                                                                                        color: 'white', border: 'none', padding: '0.375rem 0.75rem', 
                                                                                         borderRadius: '6px', fontWeight: 800, 
                                                                                         cursor: (group.is_posted && item.available_qty > 0) ? 'pointer' : 'not-allowed', 
                                                                                         fontSize: 'var(--fs-xs)', transition: '0.2s', whiteSpace: 'nowrap'
@@ -689,7 +689,7 @@ export default function MaterialsPage() {
                                 })}
                                 {groupedData.length === 0 && (
                                     <tr>
-                                        <td colSpan={7} style={{ padding: '30px', color: '#94a3b8', fontWeight: 900 }}>لا توجد فواتير مطابقة للبحث</td>
+                                        <td colSpan={7} style={{ padding: '1.875rem', color: '#94a3b8', fontWeight: 900 }}>لا توجد فواتير مطابقة للبحث</td>
                                     </tr>
                                 )}
                             </tbody>
@@ -699,16 +699,16 @@ export default function MaterialsPage() {
 
                 {/* 🔢 نظام الترقيم والصفحات */}
                 {!logic.isLoading && groupedData.length > 0 && (
-                    <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', padding: '15px', background: 'white', borderRadius: '12px', border: `1px solid ${THEME.sandDark}`, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+                    <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.9375rem', padding: '0.9375rem', background: 'white', borderRadius: '12px', border: `1px solid ${THEME.sandDark}`, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
                         <div style={{ fontSize: 'var(--fs-sm)', color: THEME.coffeeMain, fontWeight: 900 }}>
                             إجمالي الفواتير المطابقة: <b style={{ color: THEME.danger, fontSize: 'var(--fs-lg)' }}>{groupedData.length}</b> فاتورة
                         </div>
                         
-                        <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center' }}>
                             <select 
                                 value={rowsPerPage} 
                                 onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} 
-                                style={{ padding: '8px 12px', borderRadius: '8px', border: `2px solid ${THEME.sandDark}`, outline: 'none', fontWeight: 900, color: THEME.coffeeDark, cursor: 'pointer' }}
+                                style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: `2px solid ${THEME.sandDark}`, outline: 'none', fontWeight: 900, color: THEME.coffeeDark, cursor: 'pointer' }}
                             >
                                 <option value={10}>عرض 10 فواتير</option>
                                 <option value={50}>عرض 50 فاتورة</option>
@@ -716,21 +716,21 @@ export default function MaterialsPage() {
                                 <option value={100000}>عرض الكل (للطباعة)</option>
                             </select>
                             
-                            <div style={{ display: 'flex', gap: '8px' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <button 
                                     disabled={currentPage === 1} 
                                     onClick={() => setCurrentPage(p => p - 1)} 
-                                    style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: currentPage === 1 ? THEME.sandLight : THEME.coffeeMain, color: currentPage === 1 ? '#94a3b8' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                    style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: currentPage === 1 ? THEME.sandLight : THEME.coffeeMain, color: currentPage === 1 ? '#94a3b8' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
                                 >
                                     السابق
                                 </button>
-                                <span style={{ padding: '8px 16px', background: THEME.sandLight, borderRadius: '8px', fontWeight: 900, color: THEME.coffeeDark, border: `1px solid ${THEME.sandDark}` }}>
+                                <span style={{ padding: '0.5rem 1rem', background: THEME.sandLight, borderRadius: '8px', fontWeight: 900, color: THEME.coffeeDark, border: `1px solid ${THEME.sandDark}` }}>
                                     {currentPage} / {totalPages || 1}
                                 </span>
                                 <button 
                                     disabled={currentPage >= totalPages} 
                                     onClick={() => setCurrentPage(p => p + 1)} 
-                                    style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: currentPage >= totalPages ? THEME.sandLight : THEME.coffeeMain, color: currentPage >= totalPages ? '#94a3b8' : 'white', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                    style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: currentPage >= totalPages ? THEME.sandLight : THEME.coffeeMain, color: currentPage >= totalPages ? '#94a3b8' : 'white', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
                                 >
                                     التالي
                                 </button>

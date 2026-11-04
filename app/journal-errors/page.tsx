@@ -37,7 +37,7 @@ export default function JournalMaintenancePage() {
     // 📋 تصميم الأزرار (Actions) اللي هتروح للسايد بار
     // =========================================================
     const SidebarActions = (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
             <SecureAction module="journal_audit" action="view">
                 <button 
                     onClick={logic.scanForErrors} 
@@ -73,14 +73,14 @@ export default function JournalMaintenancePage() {
                 watchDeps={[logic.isLoading, logic.selectedIds.length]} 
             />
 
-            <div className="sovereign-glass-wrapper clean-page" style={{ padding: 'clamp(15px, 3vw, 30px)', direction: 'rtl', fontFamily: 'Cairo, sans-serif', minHeight: '100vh', position: 'relative' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div className="sovereign-glass-wrapper clean-page" style={{ padding: 'clamp(0.9375rem, 3vw, 1.875rem)', direction: 'rtl', fontFamily: 'Cairo, sans-serif', minHeight: '100vh', position: 'relative' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <GlassContainer>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                             {/* شريط الإحصائيات (KPIs) */}
-                            <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+                            <div style={{ display: 'flex', gap: '0.9375rem', overflowX: 'auto', paddingBottom: '0.625rem' }}>
                                 {kpis.map((kpi, idx) => (
-                                    <div key={idx} style={{ flex: 1, minWidth: '120px', background: `${kpi.color}10`, padding: '15px', borderRadius: '16px', border: `1px solid ${kpi.color}30`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                                    <div key={idx} style={{ flex: 1, minWidth: '7.5rem', background: `${kpi.color}10`, padding: '0.9375rem', borderRadius: '16px', border: `1px solid ${kpi.color}30`, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem' }}>
                                         <span style={{ display: 'inline-flex' }}><PhiIcon value={kpi.icon} size={22} /></span>
                                         <span style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: kpi.color }}>{kpi.value}</span>
                                         <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 'bold', color: '#475569' }}>{kpi.title}</span>
@@ -92,13 +92,13 @@ export default function JournalMaintenancePage() {
 
                     {/* 🔍 منطقة الجداول */}
                     {!logic.hasScanned ? (
-                        <div style={{ textAlign: 'center', padding: '100px 20px', color: '#94a3b8', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', borderRadius: '14px', border: '2px dashed #cbd5e1' }}>
-                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '15px', animation: 'pulse 2s infinite' }}><ScanSearch size={40} aria-hidden="true" /></div>
+                        <div style={{ textAlign: 'center', padding: '6.25rem 1.25rem', color: '#94a3b8', background: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', borderRadius: '14px', border: '2px dashed #cbd5e1' }}>
+                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem', animation: 'pulse 2s infinite' }}><ScanSearch size={40} aria-hidden="true" /></div>
                             <h2 style={{ color: THEME.primary, fontWeight: 900 }}>النظام جاهز للفحص</h2>
                             <p style={{ fontSize: 'var(--fs-lg)' }}>استخدم زر "إطلاق الرادار" من القائمة الجانبية للبدء.</p>
                         </div>
                     ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '30px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.875rem' }}>
                             <AuditSection logic={logic} data={logic.filteredDuplicates} title="سندات مكررة" color="#ea580c" icon="👯" actionText="مسح التكرار" onAction={logic.deleteHeader} />
                             <AuditSection logic={logic} data={logic.filteredUnbalanced} title="قيود غير متزنة" color="#7c3aed" icon="⚖️" actionText="موازنة آلية" onAction={(id:any, item:any) => logic.forceBalanceJournal(id, item.diffAmount)} secondaryAction={logic.deleteHeader} secondaryActionText="حذف نهائي" />
                             <AuditSection logic={logic} data={logic.filteredOrphans} title="القيود اليتيمة" color={THEME.ruby} icon="🗑️" actionText="مسح القيد" onAction={logic.deleteHeader} />
@@ -110,7 +110,7 @@ export default function JournalMaintenancePage() {
 
                 <style>{`
                     .sidebar-action-btn {
-                        padding: 12px; border-radius: 10px; font-weight: 900; cursor: pointer; border: none; width: 100%; transition: 0.3s;
+                        padding: 0.75rem; border-radius: 10px; font-weight: 900; cursor: pointer; border: none; width: 100%; transition: 0.3s;
                     }
                     .sidebar-action-btn.primary { background: ${THEME.primary}; color: white; box-shadow: 0 5px 15px ${THEME.primary}40; }
                     .sidebar-action-btn.success { background: rgba(22, 163, 74, 0.1); color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.2); }
@@ -163,15 +163,15 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 const refId = item.reference_id || item.reference_number;
 
                 return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3125rem' }}>
                         <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 'bold' }}>{item.description || 'لا يوجد بيان'}</div>
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                            <span style={{ background: `${color}15`, color: color, padding: '2px 6px', borderRadius: '4px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.3125rem' }}>
+                            <span style={{ background: `${color}15`, color: color, padding: '2px 0.375rem', borderRadius: '4px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>
                                 {formatCurrency(documentAmount)}
                             </span>
-                            {documentDate && <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: 'var(--fs-xs)' }}>{documentDate}</span>}
+                            {documentDate && <span style={{ background: '#f1f5f9', padding: '2px 0.375rem', borderRadius: '4px', fontSize: 'var(--fs-xs)' }}>{documentDate}</span>}
                             {refId && (
-                                <span style={{ background: 'rgba(255, 247, 237, 0.8)', color: '#d97706', padding: '2px 6px', borderRadius: '4px', fontSize: 'var(--fs-xs)', border: '1px dashed #fcd34d' }}>
+                                <span style={{ background: 'rgba(255, 247, 237, 0.8)', color: '#d97706', padding: '2px 0.375rem', borderRadius: '4px', fontSize: 'var(--fs-xs)', border: '1px dashed #fcd34d' }}>
                                     {/* 🛡️ الباب التاسع: إجبار المعرفات المحاسبية باستخدام String(id) */}
                                     {String(refId).slice(0, 8)}
                                 </span>
@@ -190,7 +190,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 return (
                     <div style={{ fontSize: 'var(--fs-xs)', lineHeight: '1.4' }}>
                         <div style={{ color: color, fontWeight: 'bold' }}>{item.diagnosis}</div>
-                        <div style={{ color: '#059669', marginTop: '3px' }}>{item.solution}</div>
+                        <div style={{ color: '#059669', marginTop: '0.1875rem' }}>{item.solution}</div>
                     </div>
                 );
             }
@@ -203,12 +203,12 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 if (!item || !item.id) return null; 
 
                 return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3125rem' }}>
                         {/* 🛡️ الأمان المجهري: فحص الصلاحية بـ SecureAction[cite: 22] */}
                         <SecureAction module="journal_audit" action="edit">
                             <button 
                                 onClick={() => onAction(String(item.id), item)} 
-                                style={{ padding: '6px 12px', background: color, color: 'white', border: 'none', borderRadius: '6px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-xs)' }}
+                                style={{ padding: '0.375rem 0.75rem', background: color, color: 'white', border: 'none', borderRadius: '6px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-xs)' }}
                             >
                                 {actionText}
                             </button>
@@ -234,8 +234,8 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
             <div style={{ 
                 display: 'flex', 
                 justifyContent: 'space-between', 
-                marginBottom: '15px', 
-                padding: '10px 15px', 
+                marginBottom: '0.9375rem', 
+                padding: '0.625rem 0.9375rem', 
                 background: `${color}10`, 
                 borderRadius: '10px', 
                 borderRight: `5px solid ${color}` 

@@ -49,10 +49,10 @@ export default function AccountLedger() {
         summary={
           <div className="summary-card">
             <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, opacity: 0.8 }}>إجمالي رصيد الحساب</span>
-            <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, marginTop: '5px' }}>
+            <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, marginTop: '0.3125rem' }}>
               {formatCurrency(logic.currentBalance)}
             </div>
-            <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '15px 0' }} />
+            <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '0.9375rem 0' }} />
             <div style={{ fontSize: 'var(--fs-xs)', opacity: 0.7 }}>
                 حركة مدينة: {formatCurrency(logic.totalDebit)} <br/>
                 حركة دائنة: {formatCurrency(logic.totalCredit)}
@@ -67,19 +67,19 @@ export default function AccountLedger() {
           z-index: 100;      /* رفع الحاوية فوق مستوى الجدول */
           background: rgba(255, 255, 255, 0.7);
           backdrop-filter: blur(15px);
-          padding: 30px;
+          padding: 1.875rem;
           border-radius: 14px;
           border: 1px solid rgba(255, 255, 255, 0.8);
-          margin-bottom: 25px;
+          margin-bottom: 1.5625rem;
           box-shadow: 0 10px 30px rgba(0,0,0,0.03);
           display: flex;
           align-items: flex-end;
-          gap: 20px;
+          gap: 1.25rem;
         }
         .summary-card {
           background: linear-gradient(135deg, ${THEME.coffeeDark}, ${THEME.primary});
           color: white;
-          padding: 20px;
+          padding: 1.25rem;
           border-radius: 14px;
           box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
@@ -100,9 +100,9 @@ export default function AccountLedger() {
         <button 
           onClick={() => window.print()}
           style={{ 
-            padding: '14px 25px', borderRadius: '14px', border: 'none', 
+            padding: '0.875rem 1.5625rem', borderRadius: '14px', border: 'none', 
             background: THEME.coffeeDark, color: THEME.goldAccent, 
-            fontWeight: 900, cursor: 'pointer', height: '52px'
+            fontWeight: 900, cursor: 'pointer', height: '3.25rem'
           }}
         >
           طباعة الكشف
@@ -111,7 +111,7 @@ export default function AccountLedger() {
 
       {/* الجدول الماسي */}
       {!logic.selectedAccountId ? (
-          <div style={{ textAlign: 'center', padding: '100px', color: '#94a3b8', background: 'white', borderRadius: '14px', fontWeight: 900 }}>
+          <div style={{ textAlign: 'center', padding: '6.25rem', color: '#94a3b8', background: 'white', borderRadius: '14px', fontWeight: 900 }}>
              يرجى اختيار حساب من القائمة أعلاه لعرض كشف الحساب.
           </div>
       ) : (

@@ -239,7 +239,7 @@ export default function JournalPage() {
       render: (row: any) => {
         if (!row) return null;
         return (
-          <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '300px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '18.75rem' }}>
             <span style={{ color: '#1e293b', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>{row.header_description}</span>
             {row.line_notes && <span style={{ color: '#64748b', fontSize: 'var(--fs-xs)', marginTop: '2px' }}>* {row.line_notes}</span>}
           </div>
@@ -313,7 +313,7 @@ export default function JournalPage() {
           />
 
           <style>{`
-            .badge-glass { padding: 4px 10px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 800; display: inline-block; }
+            .badge-glass { padding: 0.25rem 0.625rem; border-radius: 8px; font-size: var(--fs-xs); font-weight: 800; display: inline-block; }
             .badge-glass.green { background: #ecfdf5; color: #047857; }
             .badge-glass.yellow { background: #fff7ed; color: #b45309; }
           `}</style>

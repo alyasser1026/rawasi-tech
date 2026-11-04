@@ -319,8 +319,8 @@ export default function SmartCombo({
     const InputElement = isTextArea ? 'textarea' : 'input';
 
     const dropdownStyle: React.CSSProperties = (isMobile && isMobileBottomSheet) 
-        ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 99999, background: '#fff', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '20px 15px', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 -15px 40px rgba(0,0,0,0.15)', animation: 'slideUp 0.3s ease-out' }
-        : { position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2000, maxHeight: '250px', overflowY: 'auto', background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)', borderRadius: '16px', padding: '8px', boxShadow: '0 15px 40px rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.05)', marginTop: '5px' };
+        ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 99999, background: '#fff', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '1.25rem 0.9375rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 -15px 40px rgba(0,0,0,0.15)', animation: 'slideUp 0.3s ease-out' }
+        : { position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2000, maxHeight: '15.625rem', overflowY: 'auto', background: 'rgba(255, 255, 255, 0.95)', backdropFilter: 'blur(20px)', borderRadius: '16px', padding: '0.5rem', boxShadow: '0 15px 40px rgba(0,0,0,0.12)', border: '1px solid rgba(0,0,0,0.05)', marginTop: '0.3125rem' };
 
     const renderListItem = (item: any, index: number, isRecent = false) => {
         const isPrimitive = typeof item !== 'object';
@@ -335,11 +335,11 @@ export default function SmartCombo({
                  onClick={(e) => handleItemSelect(item, e)} 
                  className={`smart-drop-item ${isSelected ? 'selected' : ''} ${isHighlighted ? 'highlighted' : ''}`}>
                 
-                {multi && <input type="checkbox" checked={isSelected} readOnly style={{ width: '18px', height: '18px', accentColor: THEME.success, cursor: 'pointer', flexShrink: 0 }} />}
-                {showAvatar && !isPrimitive && <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${displayName}&background=random`} alt="avatar" style={{ width: '28px', height: '28px', borderRadius: '50%', flexShrink: 0, border: '1px solid #e2e8f0' }} />}
+                {multi && <input type="checkbox" checked={isSelected} readOnly style={{ width: '1.125rem', height: '1.125rem', accentColor: THEME.success, cursor: 'pointer', flexShrink: 0 }} />}
+                {showAvatar && !isPrimitive && <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${displayName}&background=random`} alt="avatar" style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', flexShrink: 0, border: '1px solid #e2e8f0' }} />}
                 
                 <div style={{ wordBreak: 'break-word', flex: 1 }}>
-                    <span style={{ fontWeight: 900, color: THEME.primary, opacity: 0.7, fontSize: 'var(--fs-xs)', marginLeft: displayCode ? '5px' : '0' }}>
+                    <span style={{ fontWeight: 900, color: THEME.primary, opacity: 0.7, fontSize: 'var(--fs-xs)', marginLeft: displayCode ? '0.3125rem' : '0' }}>
                         {displayCode ? `[${isSensitive ? applyMask(displayCode) : displayCode}] ` : ''}
                     </span> 
                     {isSensitive ? applyMask(displayName) : displayName}
@@ -355,15 +355,15 @@ export default function SmartCombo({
         return (
             <div style={{ position: 'relative', flex: 1, width: '100%', opacity: 0.7 }} title="ليس لديك صلاحية للوصول لهذا الحقل">
                 {label && (
-                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.3125rem', marginBottom: '0.5rem' }}>
                         {icon && <PhiIcon value={icon} size={14} />} {label} <Lock size={12} aria-hidden="true" />
                     </label>
                 )}
                 <div className="smart-combo-input disabled" style={{ 
                     background: 'rgba(0,0,0,0.03)', cursor: 'not-allowed', color: '#94a3b8', 
-                    border: '1px dashed #cbd5e1', minHeight: isTextArea ? '90px' : 'auto', 
+                    border: '1px dashed #cbd5e1', minHeight: isTextArea ? '5.625rem' : 'auto', 
                     display: 'flex', alignItems: isTextArea ? 'flex-start' : 'center',
-                    padding: '14px 15px'
+                    padding: '0.875rem 0.9375rem'
                 }}>
                     {initialDisplay || search || 'محمي ومقفل...'}
                 </div>
@@ -375,7 +375,7 @@ export default function SmartCombo({
         <div style={{ position: 'relative', flex: 1, width: '100%' }}>
             <style>{`
                 .smart-combo-input {
-                    width: 100%; padding: 10px 12px; border-radius: 12px;
+                    width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px;
                     background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px);
                     border: 1.5px solid rgba(255, 255, 255, 0.8); outline: none;
                     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -385,18 +385,18 @@ export default function SmartCombo({
                 .smart-combo-input:focus { background: #ffffff; border-color: ${THEME.accent}; box-shadow: 0 0 0 4px ${THEME.accent}20; }
                 .smart-combo-input::placeholder { color: #94a3b8; font-weight: 600; }
                 .smart-combo-input.disabled { background: rgba(0,0,0,0.05); cursor: not-allowed; color: #64748b; border-color: transparent; }
-                .smart-drop-item { padding: 10px; cursor: pointer; border-radius: 10px; font-size: var(--fs-sm); transition: all 0.1s; display: flex; align-items: center; gap: 8px; color: #334155; }
+                .smart-drop-item { padding: 0.625rem; cursor: pointer; border-radius: 10px; font-size: var(--fs-sm); transition: all 0.1s; display: flex; align-items: center; gap: 0.5rem; color: #334155; }
                 .smart-drop-item:hover { background: #f8fafc; }
                 .smart-drop-item.highlighted { background: #f1f5f9; border-right: 4px solid ${THEME.primary}; color: ${THEME.primary}; font-weight: 800; }
                 .smart-drop-item.selected { background: ${THEME.success}10; border-right: 4px solid ${THEME.success}; color: ${THEME.success}; font-weight: 800; }
-                .cinematic-scroll::-webkit-scrollbar { width: 6px; }
+                .cinematic-scroll::-webkit-scrollbar { width: 0.375rem; }
                 .cinematic-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
                 .cinematic-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
                 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
             `}</style>
 
             {label && (
-                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '8px' }}>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'flex', alignItems: 'center', gap: '0.3125rem', marginBottom: '0.5rem' }}>
                     {icon && <PhiIcon value={icon} size={14} />}
                     {label}
                 </label>
@@ -413,34 +413,34 @@ export default function SmartCombo({
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown} 
                     className={`smart-combo-input ${disabled ? 'disabled' : ''}`}
-                    style={{ resize: isTextArea ? 'vertical' : 'none', minHeight: isTextArea ? '90px' : 'auto', paddingLeft: (!isTextArea && !disabled) ? (enableClear && search ? '60px' : '35px') : '15px' }}
+                    style={{ resize: isTextArea ? 'vertical' : 'none', minHeight: isTextArea ? '5.625rem' : 'auto', paddingLeft: (!isTextArea && !disabled) ? (enableClear && search ? '3.75rem' : '2.1875rem') : '0.9375rem' }}
                 />
                 
                 {enableClear && search && !disabled && (
-                    <span onClick={handleClear} style={{ position: 'absolute', left: '35px', top: isTextArea ? '15px' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: 'var(--fs-md)', color: '#ef4444', cursor: 'pointer', padding: '5px', fontWeight: 900, background: '#fee2e2', borderRadius: '50%', width: '22px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="مسح">
+                    <span onClick={handleClear} style={{ position: 'absolute', left: '2.1875rem', top: isTextArea ? '0.9375rem' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: 'var(--fs-md)', color: '#ef4444', cursor: 'pointer', padding: '0.3125rem', fontWeight: 900, background: '#fee2e2', borderRadius: '50%', width: '1.375rem', height: '1.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="مسح">
                         ×
                     </span>
                 )}
 
                 {!isTextArea && !disabled && (
-                    <span onClick={() => { if(!disabled) { setShow(!show); if(!show) loadData(search || ''); } }} style={{ position: 'absolute', left: '15px', fontSize: 'var(--fs-xs)', color: '#64748b', cursor: 'pointer', padding: '5px', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    <span onClick={() => { if(!disabled) { setShow(!show); if(!show) loadData(search || ''); } }} style={{ position: 'absolute', left: '0.9375rem', fontSize: 'var(--fs-xs)', color: '#64748b', cursor: 'pointer', padding: '0.3125rem', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                         ▼
                     </span>
                 )}
                 
-                {isLoading && <div style={{ position: 'absolute', left: enableClear && search ? '65px' : '35px', top: isTextArea ? '20px' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: 'var(--fs-sm)' }}><Hourglass size={14} aria-hidden="true" /></div>}
+                {isLoading && <div style={{ position: 'absolute', left: enableClear && search ? '4.0625rem' : '2.1875rem', top: isTextArea ? '1.25rem' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: 'var(--fs-sm)' }}><Hourglass size={14} aria-hidden="true" /></div>}
             </div>
 
             {show && !disabled && (
                 <>
                     <div onClick={() => setShow(false)} style={{ position: 'fixed', inset: 0, zIndex: 1999, background: (isMobile && isMobileBottomSheet) ? 'rgba(0,0,0,0.5)' : 'transparent', backdropFilter: (isMobile && isMobileBottomSheet) ? 'blur(5px)' : 'none' }} />
                     <div ref={listRef} className="cinematic-scroll" style={dropdownStyle}>
-                        {isMobile && isMobileBottomSheet && <div style={{ width: '40px', height: '5px', background: '#cbd5e1', borderRadius: '10px', margin: '0 auto 15px auto' }} />}
+                        {isMobile && isMobileBottomSheet && <div style={{ width: '2.5rem', height: '0.3125rem', background: '#cbd5e1', borderRadius: '10px', margin: '0 auto 0.9375rem auto' }} />}
                         {(results?.length || 0) === 0 && (search?.length || 0) > 0 && !isLoading && (
-                            <div style={{ padding: '15px', textAlign: 'center' }}>
-                                <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, margin: '0 0 10px 0' }}>لا توجد نتائج لـ "<span style={{color: THEME.ruby}}>{search}</span>"</p>
+                            <div style={{ padding: '0.9375rem', textAlign: 'center' }}>
+                                <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, margin: '0 0 0.625rem 0' }}>لا توجد نتائج لـ "<span style={{color: THEME.ruby}}>{search}</span>"</p>
                                 {allowAddNew && onAddNew && hasAddPermission && (
-                                    <button onMouseDown={(e) => { e.preventDefault(); onAddNew(search); setShow(false); }} style={{ background: THEME.success, color: 'white', border: 'none', padding: '10px 20px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-sm)', boxShadow: `0 5px 15px ${THEME.success}40`, width: '100%' }}>
+                                    <button onMouseDown={(e) => { e.preventDefault(); onAddNew(search); setShow(false); }} style={{ background: THEME.success, color: 'white', border: 'none', padding: '0.625rem 1.25rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-sm)', boxShadow: `0 5px 15px ${THEME.success}40`, width: '100%' }}>
                                         إضافة "{search}" كجديد
                                     </button>
                                 )}
@@ -448,9 +448,9 @@ export default function SmartCombo({
                         )}
                         {(results?.length || 0) === 0 && (search?.length || 0) === 0 && showRecent && (recentItems?.length || 0) > 0 && !isLoading && (
                             <div>
-                                <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 900, marginBottom: '8px', padding: '0 10px' }}>آخر الاختيارات</div>
+                                <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 900, marginBottom: '0.5rem', padding: '0 0.625rem' }}>آخر الاختيارات</div>
                                 {recentItems.map((item, index) => renderListItem(item, index, true))}
-                                <div style={{ height: '1px', background: '#f1f5f9', margin: '10px 0' }} />
+                                <div style={{ height: '1px', background: '#f1f5f9', margin: '0.625rem 0' }} />
                             </div>
                         )}
                         {results.length > 0 && results.map((item, index) => renderListItem(item, index, false))}

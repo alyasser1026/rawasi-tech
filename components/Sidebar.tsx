@@ -19,7 +19,7 @@ export default function Sidebar() {
 
   return (
     <div style={{
-      width: isCollapsed ? '80px' : '260px',
+      width: isCollapsed ? '5rem' : '16.25rem',
       height: '100vh',
       background: '#1e293b', // Slate Dark - نفس روح السيستم
       color: 'white',
@@ -34,7 +34,7 @@ export default function Sidebar() {
       direction: 'rtl'
     }}>
       {/* اللوجو وزر التصغير */}
-      <div style={{ padding: '25px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+      <div style={{ padding: '1.5625rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
         {!isCollapsed && <span style={{ fontWeight: 900, fontSize: 'var(--fs-xl)', color: '#fbbf24' }}>رواد المحاسبي</span>}
         <button onClick={() => setIsCollapsed(!isCollapsed)} style={{ background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: 'var(--fs-xl)' }}>
           {isCollapsed ? '➡️' : '⬅️'}
@@ -42,15 +42,15 @@ export default function Sidebar() {
       </div>
 
       {/* الروابط */}
-      <nav style={{ flex: 1, padding: '20px 10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <nav style={{ flex: 1, padding: '1.25rem 0.625rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
         {menuItems.map((item) => {
           const isActive = pathname === item.path;
           return (
             <Link key={item.path} href={item.path} style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '15px',
-              padding: '12px 15px',
+              gap: '0.9375rem',
+              padding: '0.75rem 0.9375rem',
               borderRadius: '12px',
               textDecoration: 'none',
               color: isActive ? '#1e293b' : 'white',
@@ -69,7 +69,7 @@ export default function Sidebar() {
 
       {/* فوتر السايد بار */}
       {!isCollapsed && (
-        <div style={{ padding: '20px', background: 'rgba(0,0,0,0.2)', fontSize: 'var(--fs-sm)', textAlign: 'center', color: '#94a3b8' }}>
+        <div style={{ padding: '1.25rem', background: 'rgba(0,0,0,0.2)', fontSize: 'var(--fs-sm)', textAlign: 'center', color: '#94a3b8' }}>
           نسخة v2.0.1 🚀
         </div>
       )}

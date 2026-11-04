@@ -90,7 +90,7 @@ export default function ManualJournalsPage() {
             header: 'بيان التسوية', 
             accessor: 'description', 
             render: (row: any) => (
-                <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '250px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', maxWidth: '15.625rem' }}>
                     <span style={{ color: '#1e293b', fontWeight: 800 }}>{row.description}</span>
                 </div>
             )
@@ -141,15 +141,15 @@ export default function ManualJournalsPage() {
     ], []);
 
     const sidebarActions = useMemo(() => (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
             <SecureAction module="manual_journals" action="add">
-                <button className="btn-main-glass green" onClick={() => openModal()} style={{ height: '50px', fontSize: 'var(--fs-lg)' }}>
+                <button className="btn-main-glass green" onClick={() => openModal()} style={{ height: '3.125rem', fontSize: 'var(--fs-lg)' }}>
                     إضافة تسوية جديدة
                 </button>
             </SecureAction>
 
             {logic.state.selectedIds.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '10px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.625rem', paddingTop: '0.9375rem', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
                     <p style={{fontSize:'var(--fs-sm)', textAlign:'center', color:'#94a3b8', fontWeight:900, margin:0}}>تم تحديد ({logic.state.selectedIds.length}) سند</p>
                     <SecureAction module="manual_journals" action="post">
                         <button className="btn-main-glass blue" onClick={logic.actions.handlePostSelected}>ترحيل القيود المحددة</button>
@@ -175,7 +175,7 @@ export default function ManualJournalsPage() {
                     summary={
                         <div className="summary-glass-card">
                             <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي مبالغ التسويات</span>
-                            <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.primary, marginTop:'5px'}}>
+                            <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.primary, marginTop:'0.3125rem'}}>
                                 {formatCurrency(logic.state.totals.amount)}
                             </div>
                         </div>

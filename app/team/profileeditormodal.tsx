@@ -243,76 +243,76 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                     100% { opacity: 1; transform: scale(1) translateY(0); }
                 }
                 .profile-modal-box {
-                    background: #ffffff; border-radius: 14px; width: 1000px; max-width: 95vw; max-height: 90vh;
+                    background: #ffffff; border-radius: 14px; width: 62.5rem; max-width: 95vw; max-height: 90vh;
                     display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.5);
                     direction: rtl; position: relative; z-index: 10; animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                     border: 1px solid rgba(255,255,255,0.2);
                 }
-                .module-card { background: #f8fafc; border-radius: 14px; padding: 22px; margin-bottom: 15px; border: 1px solid #e2e8f0; transition: 0.3s; }
+                .module-card { background: #f8fafc; border-radius: 14px; padding: 1.375rem; margin-bottom: 0.9375rem; border: 1px solid #e2e8f0; transition: 0.3s; }
                 .module-card:hover { border-color: ${THEME.primary}; background: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
-                .perm-btn { padding: 10px 18px; border-radius: 12px; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; border: 2px solid #e2e8f0; background: white; color: #64748b; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+                .perm-btn { padding: 0.625rem 1.125rem; border-radius: 12px; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; border: 2px solid #e2e8f0; background: white; color: #64748b; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
                 .perm-btn:hover { border-color: #cbd5e1; color: #1e293b; }
                 .perm-btn.active { background: ${THEME.primary}; color: white; border-color: ${THEME.primary}; box-shadow: 0 8px 20px ${THEME.primary}40; }
-                .btn-all { font-size: var(--fs-xs); background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 8px 14px; border-radius: 10px; cursor: pointer; font-weight: 900; transition: 0.2s; }
+                .btn-all { font-size: var(--fs-xs); background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 0.5rem 0.875rem; border-radius: 10px; cursor: pointer; font-weight: 900; transition: 0.2s; }
                 .btn-all:hover { background: #e2e8f0; color: #0f172a; border-color: #cbd5e1; }
-                .modal-input { width: 100%; padding: 15px 20px; border-radius: 16px; border: 2px solid #e2e8f0; font-weight: 800; font-size: var(--fs-md); outline: none; transition: 0.3s; color: #1e293b; background: #f8fafc; }
+                .modal-input { width: 100%; padding: 0.9375rem 1.25rem; border-radius: 16px; border: 2px solid #e2e8f0; font-weight: 800; font-size: var(--fs-md); outline: none; transition: 0.3s; color: #1e293b; background: #f8fafc; }
                 .modal-input:focus { border-color: ${THEME.primary}; background: white; box-shadow: 0 0 0 4px ${THEME.primary}15; }
-                .cinematic-scroll::-webkit-scrollbar { width: 8px; }
+                .cinematic-scroll::-webkit-scrollbar { width: 0.5rem; }
                 .cinematic-scroll::-webkit-scrollbar-track { background: transparent; }
                 .cinematic-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid white; }
                 .cinematic-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
             `}</style>
 
             <div className="profile-modal-box">
-                <div style={{ padding: '30px 40px 20px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', flexShrink: 0 }}>
+                <div style={{ padding: '1.875rem 2.5rem 1.25rem', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', flexShrink: 0 }}>
                     <div>
                         <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-2xl)', letterSpacing: '-0.5px' }}>
                             {isNewUser ? 'إضافة مستخدم جديد' : 'إعدادات حساب المستخدم'}
                         </h2>
-                        <p style={{ margin: '8px 0 0 0', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 600 }}>إدارة وصول المستخدم: <b style={{color: '#1e293b', fontSize: 'var(--fs-md)'}}>{form.full_name || 'مستخدم جديد'}</b></p>
+                        <p style={{ margin: '0.5rem 0 0 0', fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 600 }}>إدارة وصول المستخدم: <b style={{color: '#1e293b', fontSize: 'var(--fs-md)'}}>{form.full_name || 'مستخدم جديد'}</b></p>
                     </div>
-                    <button onClick={onClose} style={{ background: '#f1f5f9', color: '#64748b', border: 'none', width: '38px', height: '38px', borderRadius: '50%', cursor: 'pointer', fontWeight: 900, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                    <button onClick={onClose} style={{ background: '#f1f5f9', color: '#64748b', border: 'none', width: '2.375rem', height: '2.375rem', borderRadius: '50%', cursor: 'pointer', fontWeight: 900, transition: '0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                 </div>
 
-                <div className="cinematic-scroll" style={{ overflowY: 'auto', padding: '30px 40px', flex: 1, background: '#ffffff' }}>
+                <div className="cinematic-scroll" style={{ overflowY: 'auto', padding: '1.875rem 2.5rem', flex: 1, background: '#ffffff' }}>
                     
                     {/* بيانات المصادقة والملف الشخصي */}
-                    <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '30px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                    <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '1.875rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                             <h3 style={{ margin: 0, fontWeight: 900, color: '#0f172a' }}>بيانات الحساب الأساسية</h3>
                             {!isNewUser && (
                                 <button 
                                     onClick={() => setForm({...form, is_active: !form.is_active})}
-                                    style={{ padding: '8px 16px', borderRadius: '12px', fontWeight: 900, border: 'none', cursor: 'pointer', background: form.is_active ? '#fee2e2' : '#dcfce7', color: form.is_active ? '#ef4444' : '#22c55e', transition: '0.3s' }}
+                                    style={{ padding: '0.5rem 1rem', borderRadius: '12px', fontWeight: 900, border: 'none', cursor: 'pointer', background: form.is_active ? '#fee2e2' : '#dcfce7', color: form.is_active ? '#ef4444' : '#22c55e', transition: '0.3s' }}
                                 >
                                     {form.is_active ? 'إيقاف الحساب' : 'تنشيط الحساب'}
                                 </button>
                             )}
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13.75rem, 1fr))', gap: '1.25rem' }}>
                             <div>
-                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>الاسم الكامل</label>
+                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>الاسم الكامل</label>
                                 <input type="text" className="modal-input" value={form.full_name} placeholder="اسم الموظف أو المستخدم..." onChange={e => setForm({...form, full_name: e.target.value})} />
                             </div>
                             <div>
-                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>البريد الإلكتروني</label>
+                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>البريد الإلكتروني</label>
                                 <input type="email" className="modal-input" value={form.email} placeholder="مثال: user@company.com" onChange={e => setForm({...form, email: e.target.value})} />
                             </div>
                             <div>
-                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>كلمة المرور {isNewUser ? '*' : '(اختياري للتغيير)'}</label>
+                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>كلمة المرور {isNewUser ? '*' : '(اختياري للتغيير)'}</label>
                                 <input type="password" className="modal-input" value={form.password} placeholder={isNewUser ? "كلمة المرور الجديدة" : "اتركه فارغاً للاحتفاظ بالحالية"} onChange={e => setForm({...form, password: e.target.value})} />
                             </div>
                             <div>
-                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>رقم الجوال</label>
+                                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>رقم الجوال</label>
                                 <input type="tel" className="modal-input" value={form.phone} placeholder="رقم الموبايل..." onChange={e => setForm({...form, phone: e.target.value})} />
                             </div>
                         </div>
                     </div>
 
                     {/* بيانات الوظيفة والربط المحاسبي */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '40px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13.75rem, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
                         <div>
-                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>الرتبة (System Role)</label>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>الرتبة (System Role)</label>
                             <select className="modal-input" style={{ cursor: 'pointer' }} value={form.role} onChange={e => setForm({...form, role: e.target.value})}>
                                 <optgroup label="الإدارة العليا">
                                     <option value="super_admin">سوبر أدمن (صلاحيات مطلقة)</option>
@@ -341,19 +341,19 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                         </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '25px', borderBottom: '2px dashed #f1f5f9', paddingBottom: '15px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', marginBottom: '1.5625rem', borderBottom: '2px dashed #f1f5f9', paddingBottom: '0.9375rem' }}>
                         <span style={{ fontSize: 'var(--fs-xl)' }}><Lock size={17} aria-hidden="true" /></span>
                         <h3 style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#0f172a', margin: 0 }}>مصفوفة الوصول المتقدمة</h3>
                     </div>
                     
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '15px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(25rem, 1fr))', gap: '0.9375rem' }}>
                         {Object.keys(form.permissions).map((module) => (
                             <div key={module} className="module-card">
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.125rem', flexWrap: 'wrap', gap: '0.625rem' }}>
                                     <span style={{ fontWeight: 900, fontSize: 'var(--fs-lg)', color: '#1e293b' }}>{moduleNames[module] || module}</span>
                                     <button className="btn-all" onClick={() => toggleAllInModule(module)}>الكل</button>
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
                                     {Object.keys((form.permissions as any)[module]).map((action) => (
                                         <button key={action} onClick={() => togglePerm(module, action)} className={`perm-btn ${(form.permissions as any)[module][action] ? 'active' : ''}`}>
                                             {action === 'view' ? 'عرض' : 
@@ -371,16 +371,16 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                     </div>
                 </div>
 
-                <div style={{ padding: '25px 40px', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '15px', background: 'white', flexShrink: 0 }}>
+                <div style={{ padding: '1.5625rem 2.5rem', borderTop: '1px solid #f1f5f9', display: 'flex', gap: '0.9375rem', background: 'white', flexShrink: 0 }}>
                     <button 
                         onClick={handleSave} disabled={isSaving}
-                        style={{ flex: 2, padding: '18px', borderRadius: '14px', border: 'none', background: THEME.primary, color: 'white', fontWeight: 900, fontSize: 'var(--fs-lg)', cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.primary}40`, transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
+                        style={{ flex: 2, padding: '1.125rem', borderRadius: '14px', border: 'none', background: THEME.primary, color: 'white', fontWeight: 900, fontSize: 'var(--fs-lg)', cursor: 'pointer', boxShadow: `0 15px 30px ${THEME.primary}40`, transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
                     >
                         {isSaving ? 'جاري الحفظ...' : 'اعتماد وحفظ التغييرات'}
                     </button>
                     <button 
                         onClick={onClose} 
-                        style={{ flex: 1, padding: '18px', borderRadius: '14px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)', transition: '0.3s' }}
+                        style={{ flex: 1, padding: '1.125rem', borderRadius: '14px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)', transition: '0.3s' }}
                     >
                         إلغاء
                     </button>

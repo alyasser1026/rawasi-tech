@@ -45,7 +45,7 @@ export default function JobOrdersPage() {
   // 🎛️ أزرار السايد بار
   // =========================================================================
   const sidebarActions = useMemo(() => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
       <SecureAction module="job_orders" action="create">
         <button className="btn-main-glass gold" onClick={logic.handleAddNew}>
           إصدار أمر تشغيل جديد
@@ -53,8 +53,8 @@ export default function JobOrdersPage() {
       </SecureAction>
 
       {logic.selectedIds.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات المجمعة ({logic.selectedIds.length})</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.3125rem', paddingTop: '0.9375rem', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
+          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-0.3125rem'}}>الإجراءات المجمعة ({logic.selectedIds.length})</p>
           
           <SecureAction module="job_orders" action="edit">
             <button className="btn-main-glass green" onClick={logic.handleCompleteSelected} disabled={logic.isSaving}>
@@ -95,7 +95,7 @@ export default function JobOrdersPage() {
         }
         actions={sidebarActions}
         customFilters={
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '5px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem', maxHeight: '60vh', overflowY: 'auto', paddingRight: '0.3125rem' }}>
                 <SmartCombo 
                     label="تصفية بالمشروع (العقار)"
                     icon="🏢"
@@ -127,14 +127,14 @@ export default function JobOrdersPage() {
                     onSelect={(item:any) => logic.setWorkitemFilter(item?.work_item || '')}
                 />
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                         حالة الأمر
                     </label>
                     <select 
                         value={logic.statusFilter}
                         onChange={(e) => logic.setStatusFilter(e.target.value)}
-                        style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
+                        style={{ width: '100%', padding: '0.625rem', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
                     >
                         <option value="">جميع الحالات</option>
                         <option value="مسودة">مسودة</option>
@@ -147,14 +147,14 @@ export default function JobOrdersPage() {
                     </select>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                         جهة التنفيذ
                     </label>
                     <select 
                         value={logic.executorFilter}
                         onChange={(e) => logic.setExecutorFilter(e.target.value)}
-                        style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
+                        style={{ width: '100%', padding: '0.625rem', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
                     >
                         <option value="">جميع الجهات</option>
                         <option value="مقاول باطن">مقاول باطن</option>
@@ -162,14 +162,14 @@ export default function JobOrdersPage() {
                     </select>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#27272a', display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
                         الحالة المالية
                     </label>
                     <select 
                         value={logic.financialFilter}
                         onChange={(e) => logic.setFinancialFilter(e.target.value)}
-                        style={{ width: '100%', padding: '10px', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
+                        style={{ width: '100%', padding: '0.625rem', borderRadius: '12px', border: '1px solid rgba(194,65,12, 0.3)', background: 'rgba(255, 255, 255, 0.8)', color: '#1e293b', outline: 'none', fontWeight: 800, cursor: 'pointer', backdropFilter: 'blur(8px)' }}
                     >
                         <option value="">جميع الحالات</option>
                         <option value="رابح">رابح</option>
@@ -186,8 +186,8 @@ export default function JobOrdersPage() {
       />
 
       <style>{`
-        .custom-checkbox { width: 20px; height: 20px; accent-color: ${THEME.goldAccent || '#d97706'}; cursor: pointer; transition: 0.1s; border-radius: 4px; }
-        .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .custom-checkbox { width: 1.25rem; height: 1.25rem; accent-color: ${THEME.goldAccent || '#d97706'}; cursor: pointer; transition: 0.1s; border-radius: 4px; }
+        .btn-main-glass { width: 100%; padding: 0.875rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
         .btn-main-glass.green { background: linear-gradient(135deg, rgba(16, 185, 129, 0.8), rgba(5, 150, 105, 0.9)); color: white; }
         .btn-main-glass.yellow { background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.9)); color: white; }
@@ -199,8 +199,8 @@ export default function JobOrdersPage() {
             {(logic.isLoading && logic.allFiltered.length === 0) ? (
         <LoadingScreen message="جاري تحميل أوامر التشغيل..." fullScreen={false} />
       ) : (
-        <div style={{ padding: '10px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '20px' }}>
+        <div style={{ padding: '0.625rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(17.5rem, 1fr))', gap: '1.25rem' }}>
             {logic.allFiltered.slice((logic.currentPage - 1) * logic.rowsPerPage, logic.currentPage * logic.rowsPerPage).map((row: any) => {
               const isSelected = logic.selectedIds.includes(String(row.id));
               const isSelf = row.executor_type === 'تنفيذ ذاتي';
@@ -250,7 +250,7 @@ export default function JobOrdersPage() {
                     backdropFilter: 'blur(20px)', 
                     border: isSelected ? '2px solid #d97706' : '1px solid rgba(255, 255, 255, 0.4)', 
                     borderRadius: '14px', 
-                    padding: '20px', 
+                    padding: '1.25rem', 
                     cursor: 'pointer',
                     boxShadow: isSelected ? '0 10px 30px rgba(217, 119, 6, 0.15)' : '0 10px 30px rgba(0, 0, 0, 0.03)',
                     transition: 'all 0.3s ease',
@@ -258,13 +258,13 @@ export default function JobOrdersPage() {
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '15px'
+                    gap: '0.9375rem'
                   }}
                   onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.08)'; }}
                   onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = isSelected ? '0 10px 30px rgba(217, 119, 6, 0.15)' : '0 10px 30px rgba(0, 0, 0, 0.03)'; }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                       <div className="jo-checkbox-wrap" style={{ marginTop: '2px' }} onClick={(e) => e.stopPropagation()}>
                         <input 
                           type="checkbox" 
@@ -283,27 +283,27 @@ export default function JobOrdersPage() {
                       </div>
                     </div>
                     <div style={{
-                      display: 'flex', alignItems: 'center', gap: '6px',
-                      padding: '4px 10px', borderRadius: '14px', fontSize: 'var(--fs-xs)', fontWeight: 800,
+                      display: 'flex', alignItems: 'center', gap: '0.375rem',
+                      padding: '0.25rem 0.625rem', borderRadius: '14px', fontSize: 'var(--fs-xs)', fontWeight: 800,
                       backgroundColor: badgeStyle.bg, color: badgeStyle.color, border: `1px solid ${badgeStyle.dot}40`
                     }}>
                       <PhiIcon value={badgeStyle.icon} size={14} /> {row.status}
                     </div>
                   </div>
 
-                  <div className="jo-project-name" style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#27272a', background: 'linear-gradient(90deg, rgba(194,65,12, 0.15) 0%, transparent 100%)', padding: '8px 12px', borderRight: '4px solid #c2410c', borderRadius: '4px' }}>
+                  <div className="jo-project-name" style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#27272a', background: 'linear-gradient(90deg, rgba(194,65,12, 0.15) 0%, transparent 100%)', padding: '0.5rem 0.75rem', borderRight: '4px solid #c2410c', borderRadius: '4px' }}>
                         {row.projects?.Property || row.projects?.project_name || 'العقار غير محدد'}
                   </div>
                   
                   {row.boq_budget?.work_item && (
-                       <span style={{ fontSize: 'var(--fs-xs)', color: '#475569', background: '#f1f5f9', padding: '4px 10px', borderRadius: '8px', width: 'fit-content', border: '1px solid #e2e8f0', fontWeight: 800 }}>
+                       <span style={{ fontSize: 'var(--fs-xs)', color: '#475569', background: '#f1f5f9', padding: '0.25rem 0.625rem', borderRadius: '8px', width: 'fit-content', border: '1px solid #e2e8f0', fontWeight: 800 }}>
                          {row.boq_budget.work_item}
                        </span>
                   )}
 
                   <div>
                     <span style={{ 
-                      padding: '4px 10px', borderRadius: '8px', fontSize: 'var(--fs-sm)', fontWeight: 800, display: 'inline-block',
+                      padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-sm)', fontWeight: 800, display: 'inline-block',
                       background: isSelf ? 'rgba(99, 102, 241, 0.1)' : 'rgba(245, 158, 11, 0.1)',
                       color: isSelf ? '#4f46e5' : '#d97706',
                       border: `1px solid ${isSelf ? 'rgba(99, 102, 241, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
@@ -312,9 +312,9 @@ export default function JobOrdersPage() {
                     </span>
                   </div>
 
-                  <div style={{ borderTop: '1px dashed #cbd5e1', margin: '5px 0' }}></div>
+                  <div style={{ borderTop: '1px dashed #cbd5e1', margin: '0.3125rem 0' }}></div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>
                      <div style={{ color: '#0ea5e9', display: 'flex', justifyContent: 'space-between' }}>
                          <span>أصل الموازنة:</span> <span>{targetBudget.toLocaleString()} ر.س</span>
                      </div>
@@ -334,34 +334,34 @@ export default function JobOrdersPage() {
                         </div>
                      )}
                      
-                     <div style={{ color: '#1e293b', borderTop: '1px dashed #cbd5e1', paddingTop: '6px', marginTop: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                     <div style={{ color: '#1e293b', borderTop: '1px dashed #cbd5e1', paddingTop: '0.375rem', marginTop: '0.25rem', display: 'flex', justifyContent: 'space-between' }}>
                          <span>إجمالي التكلفة:</span> <span>{finalCost.toLocaleString()} ر.س</span>
                      </div>
                      
                      <div style={{ 
                          color: profitColor, background: profitBg, 
-                         padding: '6px 10px', borderRadius: '8px', border: `1px solid ${profitColor}40`, marginTop: '4px', display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)'
+                         padding: '0.375rem 0.625rem', borderRadius: '8px', border: `1px solid ${profitColor}40`, marginTop: '0.25rem', display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)'
                      }}>
                        <span>{profitLabel}</span> <span>{Math.abs(calculatedProfit).toLocaleString()} ر.س</span>
                      </div>
 
-                     <div style={{ marginTop: '10px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', color: '#64748b', marginBottom: '6px' }}>
+                     <div style={{ marginTop: '0.625rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', color: '#64748b', marginBottom: '0.375rem' }}>
                           <span>استهلاك الميزانية (عمالة + خامات)</span>
                           <span style={{ color: progressColor, fontWeight: 900 }}>{usagePercent.toFixed(1)}%</span>
                         </div>
-                        <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{ width: '100%', height: '0.5rem', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
                           <div style={{ width: `${Math.min(usagePercent, 100)}%`, height: '100%', background: progressColor, transition: 'width 0.5s ease-out' }}></div>
                         </div>
                      </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.625rem' }}>
                     <select 
                         value={row.status}
                         onChange={(e) => { e.stopPropagation(); logic.handleUpdateSingleStatus(row.id, e.target.value); }}
                         onClick={(e) => e.stopPropagation()}
-                        style={{ flex: 1, padding: '8px', background: 'rgba(255, 255, 255, 0.8)', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
+                        style={{ flex: 1, padding: '0.5rem', background: 'rgba(255, 255, 255, 0.8)', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
                     >
                         <option value="مسودة">مسودة</option>
                         <option value="جاري التنفيذ">جاري التنفيذ</option>
@@ -371,10 +371,10 @@ export default function JobOrdersPage() {
                         <option value="مفوتر">مفوتر</option>
                         <option value="تم التحصيل">تم التحصيل</option>
                     </select>
-                    <button onClick={(e) => { e.stopPropagation(); logic.handleEdit(row); }} className="btn-main-glass" style={{ flex: 1, padding: '8px', background: 'rgba(59, 130, 246, 0.05)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
+                    <button onClick={(e) => { e.stopPropagation(); logic.handleEdit(row); }} className="btn-main-glass" style={{ flex: 1, padding: '0.5rem', background: 'rgba(59, 130, 246, 0.05)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
                       تعديل
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); logic.setLedgerRecord(row); logic.setIsLedgerOpen(true); }} className="btn-main-glass" style={{ flex: 1, padding: '8px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                    <button onClick={(e) => { e.stopPropagation(); logic.setLedgerRecord(row); logic.setIsLedgerOpen(true); }} className="btn-main-glass" style={{ flex: 1, padding: '0.5rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                       الليدجر
                     </button>
                   </div>
@@ -383,11 +383,11 @@ export default function JobOrdersPage() {
             })}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '15px', marginTop: '30px', padding: '15px', background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.9375rem', marginTop: '1.875rem', padding: '0.9375rem', background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
               <button 
                   onClick={() => logic.setCurrentPage((p:number) => Math.max(1, p - 1))} 
                   disabled={logic.currentPage === 1}
-                  style={{ padding: '8px 15px', borderRadius: '8px', border: '1px solid #cbd5e1', background: logic.currentPage === 1 ? '#f1f5f9' : 'white', cursor: logic.currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 800 }}
+                  style={{ padding: '0.5rem 0.9375rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: logic.currentPage === 1 ? '#f1f5f9' : 'white', cursor: logic.currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 800 }}
               >
                   السابق
               </button>
@@ -397,7 +397,7 @@ export default function JobOrdersPage() {
               <button 
                   onClick={() => logic.setCurrentPage((p:number) => Math.min(Math.ceil(logic.allFiltered.length / logic.rowsPerPage), p + 1))} 
                   disabled={logic.currentPage >= Math.ceil(logic.allFiltered.length / logic.rowsPerPage)}
-                  style={{ padding: '8px 15px', borderRadius: '8px', border: '1px solid #cbd5e1', background: logic.currentPage >= Math.ceil(logic.allFiltered.length / logic.rowsPerPage) ? '#f1f5f9' : 'white', cursor: 'pointer', fontWeight: 800 }}
+                  style={{ padding: '0.5rem 0.9375rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: logic.currentPage >= Math.ceil(logic.allFiltered.length / logic.rowsPerPage) ? '#f1f5f9' : 'white', cursor: 'pointer', fontWeight: 800 }}
               >
                   التالي
               </button>

@@ -6,7 +6,7 @@ export default function GlassContainer({ children, style }: { children: React.Re
   return (
     <div style={{
       ...getGlassStyle(),
-      padding: '20px',
+      padding: '1.25rem',
       ...style // 👈 السطر ده اللي بياخد الـ style اللي إنت بتبعته من بره ويطبقه
     }}>
       {children}

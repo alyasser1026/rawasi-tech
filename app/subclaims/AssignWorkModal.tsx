@@ -28,20 +28,20 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
     };
 
     return createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 99999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(28, 20, 10, 0.85)', backdropFilter: 'blur(10px)', direction: 'rtl', padding: '20px' }}>
+        <div style={{ position: 'fixed', inset: 0, zIndex: 99999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(28, 20, 10, 0.85)', backdropFilter: 'blur(10px)', direction: 'rtl', padding: '1.25rem' }}>
             <div style={{ position: 'fixed', inset: 0 }} onClick={onClose} />
             
-            <div className="cinematic-scroll" style={{ background: 'white', borderRadius: '14px', width: '100%', maxWidth: '650px', padding: '40px', position: 'relative', zIndex: 10, boxShadow: '0 50px 100px rgba(0,0,0,0.5)', border: `1px solid ${THEME.accent}40` }}>
+            <div className="cinematic-scroll" style={{ background: 'white', borderRadius: '14px', width: '100%', maxWidth: '40.625rem', padding: '2.5rem', position: 'relative', zIndex: 10, boxShadow: '0 50px 100px rgba(0,0,0,0.5)', border: `1px solid ${THEME.accent}40` }}>
                 
-                <h2 style={{ margin: '0 0 30px 0', fontWeight: 900, color: THEME.primary, borderBottom: '2px dashed #eee', paddingBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <h2 style={{ margin: '0 0 1.875rem 0', fontWeight: 900, color: THEME.primary, borderBottom: '2px dashed #eee', paddingBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                     <span>إسناد أمر تشغيل للمقاول:</span>
-                    <span style={{ color: THEME.accent, background: '#fef3c7', padding: '5px 15px', borderRadius: '12px', fontSize: 'var(--fs-xl)' }}>{contractorName}</span>
+                    <span style={{ color: THEME.accent, background: '#fef3c7', padding: '0.3125rem 0.9375rem', borderRadius: '12px', fontSize: 'var(--fs-xl)' }}>{contractorName}</span>
                 </h2>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '25px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5625rem' }}>
                     
                     <div style={{ zIndex: 60, position: 'relative' }}>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>اختيار الفيلا / المشروع العقاري *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>اختيار الفيلا / المشروع العقاري *</label>
                         <SmartCombo 
                             table="projects" 
                             displayCol="Property" 
@@ -56,9 +56,9 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                     </div>
 
                     <div style={{ zIndex: 50, position: 'relative' }}>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '10px' }}>أوامر التشغيل المتاحة (للفيلا المحددة) *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>أوامر التشغيل المتاحة (للفيلا المحددة) *</label>
                         <select 
-                            style={{ width: '100%', padding: '14px', borderRadius: '12px', border: '2px solid #e2e8f0', fontWeight: 800, outline: 'none', background: '#f8fafc' }}
+                            style={{ width: '100%', padding: '0.875rem', borderRadius: '12px', border: '2px solid #e2e8f0', fontWeight: 800, outline: 'none', background: '#f8fafc' }}
                             value={record.job_order_id || ''}
                             onChange={(e) => {
                                 // 🚀 2. البحث في قائمة أوامر التشغيل وسحب السعر والكمية
@@ -84,22 +84,22 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                         </select>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginTop: '10px', background: '#f8fafc', padding: '20px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginTop: '0.625rem', background: '#f8fafc', padding: '1.25rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
                         <div>
-                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '10px' }}>الكمية (قابلة للتعديل)</label>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.625rem' }}>الكمية (قابلة للتعديل)</label>
                             <input 
                                 type="number" 
-                                style={{ width: '100%', padding: '15px', borderRadius: '14px', border: `2px solid ${THEME.primary}40`, outline: 'none', fontWeight: 900, textAlign: 'center', fontSize: 'var(--fs-xl)' }} 
+                                style={{ width: '100%', padding: '0.9375rem', borderRadius: '14px', border: `2px solid ${THEME.primary}40`, outline: 'none', fontWeight: 900, textAlign: 'center', fontSize: 'var(--fs-xl)' }} 
                                 value={record.assigned_qty || ''} 
                                 onChange={e => setRecord({...record, assigned_qty: e.target.value})} 
                             />
-                            {record.unit && <div style={{ fontSize: 'var(--fs-sm)', color: THEME.success, marginTop: '8px', textAlign: 'center', fontWeight: 800, background: '#dcfce7', padding: '4px', borderRadius: '6px' }}>الوحدة: {record.unit}</div>}
+                            {record.unit && <div style={{ fontSize: 'var(--fs-sm)', color: THEME.success, marginTop: '0.5rem', textAlign: 'center', fontWeight: 800, background: '#dcfce7', padding: '0.25rem', borderRadius: '6px' }}>الوحدة: {record.unit}</div>}
                         </div>
                         <div>
-                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '10px' }}>سعر الاتفاق (للوحدة)</label>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.625rem' }}>سعر الاتفاق (للوحدة)</label>
                             <input 
                                 type="number" 
-                                style={{ width: '100%', padding: '15px', borderRadius: '14px', border: `2px solid ${THEME.primary}40`, outline: 'none', fontWeight: 900, textAlign: 'center', color: THEME.primary, fontSize: 'var(--fs-xl)' }} 
+                                style={{ width: '100%', padding: '0.9375rem', borderRadius: '14px', border: `2px solid ${THEME.primary}40`, outline: 'none', fontWeight: 900, textAlign: 'center', color: THEME.primary, fontSize: 'var(--fs-xl)' }} 
                                 value={record.unit_price || ''} 
                                 onChange={e => setRecord({...record, unit_price: e.target.value})} 
                             />
@@ -107,11 +107,11 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '15px', marginTop: '40px' }}>
-                    <button onClick={handleSave} disabled={isSaving} style={{ flex: 2, background: THEME.success, color: 'white', border: 'none', padding: '18px', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)', boxShadow: `0 10px 20px ${THEME.success}40`, transition: '0.3s' }}>
+                <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '2.5rem' }}>
+                    <button onClick={handleSave} disabled={isSaving} style={{ flex: 2, background: THEME.success, color: 'white', border: 'none', padding: '1.125rem', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)', boxShadow: `0 10px 20px ${THEME.success}40`, transition: '0.3s' }}>
                         {isSaving ? 'جاري الإسناد...' : 'حفظ الإسناد الآن'}
                     </button>
-                    <button onClick={onClose} style={{ flex: 1, background: '#f1f5f9', color: '#475569', border: 'none', padding: '18px', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)', transition: '0.3s' }}>إلغاء</button>
+                    <button onClick={onClose} style={{ flex: 1, background: '#f1f5f9', color: '#475569', border: 'none', padding: '1.125rem', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)', transition: '0.3s' }}>إلغاء</button>
                 </div>
             </div>
         </div>,

@@ -167,49 +167,49 @@ export default function EditJournalEntryPage() {
       <style>{`
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
         .page-wrapper {
-          min-height: 100vh; padding: 40px; direction: rtl;
+          min-height: 100vh; padding: 2.5rem; direction: rtl;
           background-image: linear-gradient(rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.95)), url('/ryc_login.jpeg');
           background-size: cover; background-position: center; background-attachment: fixed; color: white;
         }
 
         .glass-container {
-          max-width: 1200px; margin: 0 auto; background: rgba(15, 23, 42, 0.7);
+          max-width: 75rem; margin: 0 auto; background: rgba(15, 23, 42, 0.7);
           backdrop-filter: blur(20px); border: 1px solid ${THEME.accent}44;
-          border-radius: 14px; padding: 30px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+          border-radius: 14px; padding: 1.875rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
 
-        .header-section { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; margin-bottom: 30px; }
+        .header-section { display: grid; grid-template-columns: 1fr 2fr; gap: 1.25rem; margin-bottom: 1.875rem; }
         
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
+        .input-group { display: flex; flex-direction: column; gap: 0.5rem; }
         .input-group label { color: ${THEME.slate}; font-size: var(--fs-sm); font-weight: 700; }
         .standard-input {
-          padding: 12px 15px; background: rgba(255, 255, 255, 0.05);
+          padding: 0.75rem 0.9375rem; background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 10px;
           color: white; font-size: var(--fs-md); font-weight: 600; outline: none; transition: 0.3s; color-scheme: dark;
         }
         .standard-input:focus { border-color: ${THEME.accent}; }
 
-        .lines-grid { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .lines-grid th { background: rgba(202, 138, 4, 0.1); color: ${THEME.accent}; padding: 15px; text-align: right; font-weight: 900; }
-        .lines-grid td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .lines-grid { width: 100%; border-collapse: collapse; margin-bottom: 1.25rem; }
+        .lines-grid th { background: rgba(202, 138, 4, 0.1); color: ${THEME.accent}; padding: 0.9375rem; text-align: right; font-weight: 900; }
+        .lines-grid td { padding: 0.625rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
 
-        .btn-action { padding: 10px 20px; border-radius: 10px; font-weight: 900; border: none; cursor: pointer; transition: 0.3s; }
-        .btn-add { background: rgba(255,255,255,0.05); color: white; border: 1px dashed rgba(255,255,255,0.3); width: 100%; padding: 15px; }
+        .btn-action { padding: 0.625rem 1.25rem; border-radius: 10px; font-weight: 900; border: none; cursor: pointer; transition: 0.3s; }
+        .btn-add { background: rgba(255,255,255,0.05); color: white; border: 1px dashed rgba(255,255,255,0.3); width: 100%; padding: 0.9375rem; }
         .btn-add:hover { background: rgba(255,255,255,0.1); }
-        .btn-del { background: rgba(239, 68, 68, 0.1); color: ${THEME.danger}; padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; }
-        .btn-save { background: linear-gradient(135deg, ${THEME.accent}, ${THEME.accentLight}); color: ${THEME.primary}; font-size: var(--fs-xl); padding: 15px 40px; }
+        .btn-del { background: rgba(239, 68, 68, 0.1); color: ${THEME.danger}; padding: 0.5rem 0.75rem; border-radius: 8px; border: none; cursor: pointer; }
+        .btn-save { background: linear-gradient(135deg, ${THEME.accent}, ${THEME.accentLight}); color: ${THEME.primary}; font-size: var(--fs-xl); padding: 0.9375rem 2.5rem; }
         .btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .summary-box {
           display: flex; justify-content: space-between; align-items: center;
-          background: rgba(0,0,0,0.3); padding: 20px; border-radius: 15px; border-right: 4px solid ${THEME.accent}; margin-top: 30px;
+          background: rgba(0,0,0,0.3); padding: 1.25rem; border-radius: 15px; border-right: 4px solid ${THEME.accent}; margin-top: 1.875rem;
         }
         .summary-item { text-align: center; }
         .summary-value { font-size: var(--fs-2xl); font-weight: 900; font-family: monospace; }
       `}</style>
 
       <div className="glass-container">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.875rem' }}>
           <div>
             <h1 style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: THEME.accentLight }}>معالجة قيد يومية #{id}</h1>
             <p style={{ color: THEME.slate, fontSize: 'var(--fs-md)' }}>تعديل الأطراف والمبالغ لضبط ميزان المراجعة</p>
@@ -244,19 +244,19 @@ export default function EditJournalEntryPage() {
               {lines.map((line, index) => (
                 <tr key={index}>
                   <td>
-                    <select className="standard-input" style={{ width: '100%', padding: '10px' }} value={line.account_id} onChange={(e) => handleLineChange(index, 'account_id', e.target.value)}>
+                    <select className="standard-input" style={{ width: '100%', padding: '0.625rem' }} value={line.account_id} onChange={(e) => handleLineChange(index, 'account_id', e.target.value)}>
                       <option value="">-- اختر الحساب --</option>
                       {accounts.map(acc => <option key={acc.id} value={acc.id} style={{color:'black'}}>{acc.code} - {acc.name}</option>)}
                     </select>
                   </td>
                   <td>
-                    <input type="text" className="standard-input" style={{ width: '100%', padding: '10px' }} value={line.item_name} onChange={(e) => handleLineChange(index, 'item_name', e.target.value)} placeholder="شرح تفصيلي..." />
+                    <input type="text" className="standard-input" style={{ width: '100%', padding: '0.625rem' }} value={line.item_name} onChange={(e) => handleLineChange(index, 'item_name', e.target.value)} placeholder="شرح تفصيلي..." />
                   </td>
                   <td>
-                    <input type="number" className="standard-input" style={{ width: '100%', padding: '10px', textAlign: 'center', color: '#4ade80' }} value={line.debit || ''} onChange={(e) => handleLineChange(index, 'debit', e.target.value)} min="0" />
+                    <input type="number" className="standard-input" style={{ width: '100%', padding: '0.625rem', textAlign: 'center', color: '#4ade80' }} value={line.debit || ''} onChange={(e) => handleLineChange(index, 'debit', e.target.value)} min="0" />
                   </td>
                   <td>
-                    <input type="number" className="standard-input" style={{ width: '100%', padding: '10px', textAlign: 'center', color: '#f87171' }} value={line.credit || ''} onChange={(e) => handleLineChange(index, 'credit', e.target.value)} min="0" />
+                    <input type="number" className="standard-input" style={{ width: '100%', padding: '0.625rem', textAlign: 'center', color: '#f87171' }} value={line.credit || ''} onChange={(e) => handleLineChange(index, 'credit', e.target.value)} min="0" />
                   </td>
                   <td style={{ textAlign: 'center' }}>
                     {!(header.status === 'معتمد' && !isAdmin) && <button type="button" className="btn-del" onClick={() => removeLine(index)}><Trash2 size={16} aria-hidden="true" /></button>}
@@ -288,7 +288,7 @@ export default function EditJournalEntryPage() {
             <div className="summary-value" style={{ color: '#be123c' }}>{totals.credit.toLocaleString()}</div>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
             <button type="button" className="ent-button" onClick={() => router.push('/journal-errors')} disabled={isSaving}>إلغاء</button>
             <button className="btn-action btn-save" onClick={handleSave} disabled={isSaving || totals.diff !== 0}>
               {isSaving ? 'جاري الحفظ...' : 'اعتماد وحفظ القيد'}

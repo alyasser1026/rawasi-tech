@@ -12,7 +12,7 @@ export default function ZatcaQRCode({ record }: { record: any }) {
 
   if (record.is_internal || record.skip_zatca) {
      return (
-        <div style={{ padding: '4px', border: `2px solid ${THEME.ruby}`, borderRadius: '8px', background: 'white', display: 'inline-block' }}>
+        <div style={{ padding: '0.25rem', border: `2px solid ${THEME.ruby}`, borderRadius: '8px', background: 'white', display: 'inline-block' }}>
            <QRCodeSVG value={`INTERNAL-INV-${record.invoice_number}`} size={90} level="H" imageSettings={{ src: "/phitech-symbol.svg", height: 20, width: 20, excavate: true }} />
         </div>
      );
@@ -35,7 +35,7 @@ export default function ZatcaQRCode({ record }: { record: any }) {
   const taxTotal = Number(record.tax_amount || 0).toFixed(2);
 
   return (
-    <div style={{ padding: '4px', border: `2px solid ${THEME.primary}`, borderRadius: '8px', background: 'white', display: 'inline-block' }}>
+    <div style={{ padding: '0.25rem', border: `2px solid ${THEME.primary}`, borderRadius: '8px', background: 'white', display: 'inline-block' }}>
       <QRCodeSVG 
         value={generateQR("شركة فاي تك", "312487477800003", timestamp, invoiceTotal, taxTotal)}
         size={90} 

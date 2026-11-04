@@ -136,7 +136,7 @@ export default function SettingsPage() {
               </div>
           );
           actions = (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
                   <button 
                       onClick={() => backupToExcel(selectedTables)} 
                       disabled={selectedCount === 0 || isUploading}
@@ -174,9 +174,9 @@ export default function SettingsPage() {
           watchDeps={[activeTab, selectedCount, isUploading]} 
       />
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '30px', animation: 'fadeUp 0.5s ease-out' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.875rem', animation: 'fadeUp 0.5s ease-out' }}>
         
-        <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '10px' }}>
+        <div style={{ display: 'flex', gap: '0.9375rem', overflowX: 'auto', paddingBottom: '0.625rem' }}>
           <button className={`tab-btn ${activeTab === 'permissions' ? 'active' : ''}`} onClick={() => setActiveTab('permissions')}>
             مصفوفة الصلاحيات
           </button>
@@ -198,31 +198,31 @@ export default function SettingsPage() {
         {activeTab === 'audit' && <AuditLogs />}
 
         {activeTab === 'backup' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 2fr) minmax(250px, 1fr)', gap: '30px', alignItems: 'start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(18.75rem, 2fr) minmax(15.625rem, 1fr)', gap: '1.875rem', alignItems: 'start' }}>
             
             <GlassContainer>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', borderBottom: '2px solid #f1f5f9', paddingBottom: '15px', flexWrap: 'wrap', gap: '10px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5625rem', borderBottom: '2px solid #f1f5f9', paddingBottom: '0.9375rem', flexWrap: 'wrap', gap: '0.625rem' }}>
                 <div>
-                  <h2 style={{ fontSize: 'var(--fs-xl)', color: THEME.primary, margin: '0 0 5px 0', fontWeight: 900 }}>بنية النظام والجداول</h2>
+                  <h2 style={{ fontSize: 'var(--fs-xl)', color: THEME.primary, margin: '0 0 0.3125rem 0', fontWeight: 900 }}>بنية النظام والجداول</h2>
                   <p style={{ margin: 0, fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 700 }}>حدد الجداول لتصديرها أو تحميل قوالب الإدخال.</p>
                 </div>
-                <button onClick={selectAllTables} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '8px 16px', borderRadius: '10px', cursor: 'pointer', fontWeight: 900, color: THEME.primary, transition: '0.2s', fontSize: 'var(--fs-sm)' }}>
+                <button onClick={selectAllTables} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '0.5rem 1rem', borderRadius: '10px', cursor: 'pointer', fontWeight: 900, color: THEME.primary, transition: '0.2s', fontSize: 'var(--fs-sm)' }}>
                   {selectedCount === TABLE_GROUPS.flatMap(g => g.tables).length ? 'إلغاء الكل' : 'تحديد الكل'}
                 </button>
               </div>
 
-              <div className="cinematic-scroll" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', maxHeight: '600px', overflowY: 'auto', paddingRight: '5px' }}>
+              <div className="cinematic-scroll" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15.625rem, 1fr))', gap: '1.25rem', maxHeight: '37.5rem', overflowY: 'auto', paddingRight: '0.3125rem' }}>
                 {TABLE_GROUPS.map((group, gIdx) => (
                   <div key={gIdx} className="group-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.9375rem' }}>
                       <h3 style={{ margin: 0, fontSize: 'var(--fs-sm)', color: THEME.primary, fontWeight: 900 }}>{group.name}</h3>
                       <button onClick={() => selectGroup(group.tables.map(t => t.id))} style={{ background: 'none', border: 'none', color: '#0ea5e9', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-xs)' }}>تحديد</button>
                     </div>
                     
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
                       {group.tables.map(table => (
                         <div key={table.id} className={`table-row ${selectedTables.includes(table.id) ? 'selected' : ''}`}>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#334155', flex: 1 }}>
+                          <label style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer', fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#334155', flex: 1 }}>
                             <input type="checkbox" className="custom-checkbox" checked={selectedTables.includes(table.id)} onChange={() => toggleTable(table.id)} />
                             {table.name}
                           </label>
@@ -238,18 +238,18 @@ export default function SettingsPage() {
             </GlassContainer>
 
             <GlassContainer>
-              <h3 style={{ margin: '0 0 5px 0', color: THEME.primary, fontWeight: 900, fontSize: 'var(--fs-xl)', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <h3 style={{ margin: '0 0 0.3125rem 0', color: THEME.primary, fontWeight: 900, fontSize: 'var(--fs-xl)', display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                 <span><RefreshCw size={16} aria-hidden="true" /></span> استيراد البيانات
               </h3>
-              <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', margin: '0 0 25px 0', fontWeight: 700, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', margin: '0 0 1.5625rem 0', fontWeight: 700, lineHeight: 1.6 }}>
                 ارفع القوالب المعبأة (Excel) لإضافتها للنظام.
               </p>
               
               <label className={`premium-dropzone ${selectedFile ? 'has-file' : ''} ${isUploading ? 'uploading' : ''}`}>
                 {isUploading ? (
-                    <div style={{ width: '100%', padding: '20px 0' }}>
+                    <div style={{ width: '100%', padding: '1.25rem 0' }}>
                         <div className="loading-spinner"><Settings size={16} aria-hidden="true" /></div>
-                        <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, marginTop: '10px' }}>
+                        <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, marginTop: '0.625rem' }}>
                             جاري القراءة والمعالجة...
                         </div>
                     </div>
@@ -257,7 +257,7 @@ export default function SettingsPage() {
                     <>
                         <div style={{ fontSize: 'var(--fs-display)' }}>{selectedFile ? <Files size={34} aria-hidden="true" /> : <FolderOpen size={34} aria-hidden="true" />}</div>
                         <div>
-                            <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: selectedFile ? '#059669' : THEME.primary, marginBottom: '5px' }}>
+                            <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: selectedFile ? '#059669' : THEME.primary, marginBottom: '0.3125rem' }}>
                             {selectedFile ? selectedFile.name : 'اختر ملف الإكسل للرفع'}
                             </div>
                             {!selectedFile && <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 700 }}>.xlsx فقط</div>}
@@ -290,11 +290,11 @@ export default function SettingsPage() {
                 </button>
               )}
 
-              <div style={{ background: '#fef2f2', border: `1px dashed #fca5a5`, padding: '15px', borderRadius: '12px', marginTop: '25px' }}>
-                <div style={{ color: '#dc2626', fontWeight: 900, fontSize: 'var(--fs-sm)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <div style={{ background: '#fef2f2', border: `1px dashed #fca5a5`, padding: '0.9375rem', borderRadius: '12px', marginTop: '1.5625rem' }}>
+                <div style={{ color: '#dc2626', fontWeight: 900, fontSize: 'var(--fs-sm)', display: 'flex', alignItems: 'center', gap: '0.3125rem' }}>
                   <span><TriangleAlert size={16} aria-hidden="true" /></span> تعليمات الاستيراد
                 </div>
-                <ul style={{ fontSize: 'var(--fs-xs)', color: '#7f1d1d', margin: '8px 0 0 0', paddingRight: '20px', lineHeight: 1.6, fontWeight: 700 }}>
+                <ul style={{ fontSize: 'var(--fs-xs)', color: '#7f1d1d', margin: '0.5rem 0 0 0', paddingRight: '1.25rem', lineHeight: 1.6, fontWeight: 700 }}>
                   <li>استخدم النماذج المحملة من النظام حصراً.</li>
                   <li>تجنب تعديل عناوين الأعمدة في الملف.</li>
                   <li>يتم تطبيق الحماية ضد التكرار (Upsert) آلياً.</li>
@@ -308,39 +308,39 @@ export default function SettingsPage() {
       </div>
 
       <style>{`
-        .tab-btn { padding: 12px 24px; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 900; font-size: var(--fs-sm); cursor: pointer; transition: 0.3s; background: white; color: #64748b; white-space: nowrap; }
+        .tab-btn { padding: 0.75rem 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 900; font-size: var(--fs-sm); cursor: pointer; transition: 0.3s; background: white; color: #64748b; white-space: nowrap; }
         .tab-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
         .tab-btn.active { background: #0f172a; color: white; border-color: #0f172a; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2); }
-        .group-card { background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #f1f5f9; transition: 0.2s; }
-        .table-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: white; border-radius: 8px; margin-top: 5px; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .group-card { background: #f8fafc; padding: 0.9375rem; border-radius: 12px; border: 1px solid #f1f5f9; transition: 0.2s; }
+        .table-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; background: white; border-radius: 8px; margin-top: 0.3125rem; border: 1px solid #e2e8f0; transition: 0.2s; }
         .table-row.selected { border-color: #0ea5e9; background: #f0f9ff; }
         .table-row:hover { border-color: #cbd5e1; }
-        .custom-checkbox { width: 16px; height: 16px; cursor: pointer; }
+        .custom-checkbox { width: 1rem; height: 1rem; cursor: pointer; }
         .template-btn { background: none; border: none; cursor: pointer; font-size: var(--fs-md); opacity: 0.5; transition: 0.2s; }
         .template-btn:hover { opacity: 1; transform: scale(1.1); }
-        .premium-dropzone { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 30px 20px; text-align: center; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; gap: 10px; justify-content: center; align-items: center; }
+        .premium-dropzone { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 16px; padding: 1.875rem 1.25rem; text-align: center; cursor: pointer; transition: all 0.3s ease; display: flex; flex-direction: column; gap: 0.625rem; justify-content: center; align-items: center; }
         .premium-dropzone:hover { background: white; border-color: #94a3b8; }
         .premium-dropzone.has-file { background: #f0fdf4; border-color: #10b981; border-style: solid; }
         .premium-dropzone.uploading { pointer-events: none; opacity: 0.8; border-color: #3b82f6; }
         .loading-spinner { font-size: var(--fs-2xl); animation: spin 2s linear infinite; }
-        .btn-premium-upload { background: #0f172a; color: white; padding: 14px; border-radius: 12px; border: none; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.2s; width: 100%; margin-top: 15px; }
+        .btn-premium-upload { background: #0f172a; color: white; padding: 0.875rem; border-radius: 12px; border: none; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.2s; width: 100%; margin-top: 0.9375rem; }
         .btn-premium-upload:hover { background: #1e293b; transform: translateY(-2px); }
-        .sidebar-summary-glass { background: rgba(255,255,255,0.8); padding: 20px; border-radius: 16px; text-align: center; border: 1px solid #e2e8f0; }
-        .sidebar-summary-glass .icon-pulse { font-size: var(--fs-3xl); margin-bottom: 5px; }
+        .sidebar-summary-glass { background: rgba(255,255,255,0.8); padding: 1.25rem; border-radius: 16px; text-align: center; border: 1px solid #e2e8f0; }
+        .sidebar-summary-glass .icon-pulse { font-size: var(--fs-3xl); margin-bottom: 0.3125rem; }
         .summary-title { margin: 0; font-size: var(--fs-sm); color: #64748b; font-weight: 900; }
-        .summary-value { margin: 5px 0 0 0; font-weight: 900; font-size: var(--fs-3xl); color: #0f172a; }
-        .btn-premium-glass { width: 100%; padding: 12px; border-radius: 12px; border: none; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; font-weight: 900; font-size: var(--fs-sm); transition: 0.2s; }
+        .summary-value { margin: 0.3125rem 0 0 0; font-weight: 900; font-size: var(--fs-3xl); color: #0f172a; }
+        .btn-premium-glass { width: 100%; padding: 0.75rem; border-radius: 12px; border: none; color: white; display: flex; align-items: center; justify-content: center; gap: 0.5rem; cursor: pointer; font-weight: 900; font-size: var(--fs-sm); transition: 0.2s; }
         .btn-premium-glass.excel { background: #10b981; }
         .btn-premium-glass.json { background: #3b82f6; }
         .btn-premium-glass:hover:not(.disabled) { filter: brightness(1.1); transform: translateY(-2px); }
         .btn-premium-glass.disabled { opacity: 0.5; cursor: not-allowed; }
-        .status-alert { padding: 12px; border-radius: 10px; font-size: var(--fs-sm); font-weight: 900; text-align: center; margin-top: 15px; animation: fadeUp 0.3s; }
+        .status-alert { padding: 0.75rem; border-radius: 10px; font-size: var(--fs-sm); font-weight: 900; text-align: center; margin-top: 0.9375rem; animation: fadeUp 0.3s; }
         .status-alert.loading { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
         .status-alert.success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
         .status-alert.error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
         @keyframes spin { 100% { transform: rotate(360deg); } }
         @keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .cinematic-scroll::-webkit-scrollbar { width: 5px; }
+        .cinematic-scroll::-webkit-scrollbar { width: 0.3125rem; }
         .cinematic-scroll::-webkit-scrollbar-track { background: transparent; }
         .cinematic-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
       `}</style>

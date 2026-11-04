@@ -12,9 +12,9 @@ import { Pencil } from 'lucide-react';
 
 const CellWrapper = ({ row, children, justify = 'center' }: { row: any, children: React.ReactNode, justify?: string }) => (
     <div style={{ 
-        padding: '6px 10px', 
+        padding: '0.375rem 0.625rem', 
         height: '100%',
-        minHeight: '35px', 
+        minHeight: '2.1875rem', 
         display: 'flex', 
         alignItems: 'center', 
         justifyContent: justify,
@@ -132,14 +132,14 @@ export default function BOQBudgetPage() {
   };
 
   const sidebarActions = useMemo(() => (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
         <button className="btn-main-glass gold" onClick={logic.handleAddNew}>
           إضافة بند جديد
         </button>
 
       {logic.selectedIds.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '5px', paddingTop: '15px', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>الإجراءات على ({logic.selectedIds.length})</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.3125rem', paddingTop: '0.9375rem', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
+          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-0.3125rem'}}>الإجراءات على ({logic.selectedIds.length})</p>
           
           {logic.selectedIds.length === 1 && (
               <button className="btn-main-glass white" onClick={() => logic.handleEdit(logic.allFiltered.find((i:any) => String(i.id) === logic.selectedIds[0]))}>
@@ -161,13 +161,13 @@ export default function BOQBudgetPage() {
         summary={
           <div className="summary-glass-card">
             <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي المشاريع / الفلل</span>
-            <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.goldAccent, marginTop:'5px'}}>{groupedProjects.length}</div>
-            <div style={{fontSize:'var(--fs-xs)', color:'#94a3b8', marginTop:'5px'}}>تضم {logic.allFiltered.length} بند أعمال</div>
+            <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.goldAccent, marginTop:'0.3125rem'}}>{groupedProjects.length}</div>
+            <div style={{fontSize:'var(--fs-xs)', color:'#94a3b8', marginTop:'0.3125rem'}}>تضم {logic.allFiltered.length} بند أعمال</div>
           </div>
         }
         actions={sidebarActions}
         customFilters={
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                 <SmartCombo 
                     label="تصفية سريعة بالمشروع"
                     icon="🏢"
@@ -212,7 +212,7 @@ export default function BOQBudgetPage() {
         }
 
         .boq-table-scroller th {
-            padding: 15px 10px !important;
+            padding: 0.9375rem 0.625rem !important;
             font-size: var(--fs-xs) !important;
             white-space: nowrap !important;
             font-weight: 900 !important;
@@ -226,9 +226,9 @@ export default function BOQBudgetPage() {
             border-bottom: 1px solid #f1f5f9 !important;
         }
 
-        .sticky-col-1 { position: sticky !important; right: 0px !important; z-index: 10; background: inherit; min-width: 40px; }
-        .sticky-col-2 { position: sticky !important; right: 40px !important; z-index: 10; background: inherit; min-width: 180px; }
-        .sticky-col-3 { position: sticky !important; right: 220px !important; z-index: 10; background: inherit; border-left: 2px solid #cbd5e1; min-width: 200px; box-shadow: -4px 0 8px rgba(0,0,0,0.05); }
+        .sticky-col-1 { position: sticky !important; right: 0px !important; z-index: 10; background: inherit; min-width: 2.5rem; }
+        .sticky-col-2 { position: sticky !important; right: 2.5rem !important; z-index: 10; background: inherit; min-width: 11.25rem; }
+        .sticky-col-3 { position: sticky !important; right: 13.75rem !important; z-index: 10; background: inherit; border-left: 2px solid #cbd5e1; min-width: 12.5rem; box-shadow: -4px 0 8px rgba(0,0,0,0.05); }
         th.sticky-col-1, th.sticky-col-2, th.sticky-col-3 { background: #1e293b !important; z-index: 11; }
 
         .master-row { background: #f8fafc !important; cursor: pointer; transition: 0.2s; }
@@ -238,16 +238,16 @@ export default function BOQBudgetPage() {
         .child-row { background: white !important; transition: 0.2s; }
         .child-row:hover { background: #f8fafc !important; }
 
-        .row-edit-btn { background: rgba(255,255,255,0.8); border: 1px solid rgba(0,0,0,0.1); border-radius: 4px; padding: 2px 4px; cursor: pointer; font-size: var(--fs-xs); transition: 0.2s; margin-right: 8px; }
+        .row-edit-btn { background: rgba(255,255,255,0.8); border: 1px solid rgba(0,0,0,0.1); border-radius: 4px; padding: 2px 0.25rem; cursor: pointer; font-size: var(--fs-xs); transition: 0.2s; margin-right: 0.5rem; }
         .row-edit-btn:hover { background: #cbd5e1; transform: scale(1.1); }
-        .custom-checkbox { width: 14px; height: 14px; accent-color: ${THEME.goldAccent}; cursor: pointer; }
+        .custom-checkbox { width: 0.875rem; height: 0.875rem; accent-color: ${THEME.goldAccent}; cursor: pointer; }
         
-        .cinematic-scroll::-webkit-scrollbar { height: 8px; }
+        .cinematic-scroll::-webkit-scrollbar { height: 0.5rem; }
         .cinematic-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
         .cinematic-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .cinematic-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
-        .btn-main-glass { width: 100%; padding: 14px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-main-glass { width: 100%; padding: 0.875rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
         .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
         .btn-main-glass.white { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255,255,255,0.8); }
         .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
@@ -256,16 +256,16 @@ export default function BOQBudgetPage() {
         .type-badge {
             background: rgba(15, 23, 42, 0.06);
             color: #475569;
-            padding: 2px 6px;
+            padding: 2px 0.375rem;
             border-radius: 4px;
             font-size: var(--fs-xs);
-            margin-right: 8px;
+            margin-right: 0.5rem;
             font-weight: 800;
             border: 1px solid rgba(15, 23, 42, 0.1);
         }
 
         .status-dropdown {
-            padding: 4px 8px;
+            padding: 0.25rem 0.5rem;
             border-radius: 6px;
             font-size: var(--fs-xs);
             font-weight: 900;
@@ -304,33 +304,33 @@ export default function BOQBudgetPage() {
                 <th className="sticky-col-2">المشروع / الفيلا</th>
                 <th className="sticky-col-3">وصف البند</th>
                 
-                <th style={{minWidth:'110px', background:'#475569'}}>حالة التنفيذ</th>
-                <th style={{minWidth:'80px'}}>الوحدة</th>
+                <th style={{minWidth:'6.875rem', background:'#475569'}}>حالة التنفيذ</th>
+                <th style={{minWidth:'5rem'}}>الوحدة</th>
                 
-                <th style={{minWidth:'100px', background:'#312e81'}}>كمية عقدية</th>
-                <th style={{minWidth:'120px', background:'#312e81'}}>سعر الوحدة</th>
-                <th style={{minWidth:'140px', background:'#312e81'}}>إجمالي العقد</th>
+                <th style={{minWidth:'6.25rem', background:'#312e81'}}>كمية عقدية</th>
+                <th style={{minWidth:'7.5rem', background:'#312e81'}}>سعر الوحدة</th>
+                <th style={{minWidth:'8.75rem', background:'#312e81'}}>إجمالي العقد</th>
                 
-                <th style={{minWidth:'120px', background:'#78350f'}}>خامات (ت)</th>
-                <th style={{minWidth:'120px', background:'#78350f'}}>عمالة (ت)</th>
-                <th style={{minWidth:'120px', background:'#78350f'}}>مصروف (ت)</th> 
+                <th style={{minWidth:'7.5rem', background:'#78350f'}}>خامات (ت)</th>
+                <th style={{minWidth:'7.5rem', background:'#78350f'}}>عمالة (ت)</th>
+                <th style={{minWidth:'7.5rem', background:'#78350f'}}>مصروف (ت)</th> 
 
-                <th style={{minWidth:'100px', background:'#064e3b'}}>منفذ فعلي</th>
-                <th style={{minWidth:'80px', background:'#064e3b'}}>إنجاز %</th>
-                <th style={{minWidth:'120px', background:'#064e3b'}}>خامات (ف)</th>
-                <th style={{minWidth:'120px', background:'#064e3b'}}>عمالة (ف)</th>
-                <th style={{minWidth:'120px', background:'#064e3b'}}>مصروف (ف)</th> 
-                <th style={{minWidth:'140px', background:'#064e3b'}}>إيراد فعلي</th>
+                <th style={{minWidth:'6.25rem', background:'#064e3b'}}>منفذ فعلي</th>
+                <th style={{minWidth:'5rem', background:'#064e3b'}}>إنجاز %</th>
+                <th style={{minWidth:'7.5rem', background:'#064e3b'}}>خامات (ف)</th>
+                <th style={{minWidth:'7.5rem', background:'#064e3b'}}>عمالة (ف)</th>
+                <th style={{minWidth:'7.5rem', background:'#064e3b'}}>مصروف (ف)</th> 
+                <th style={{minWidth:'8.75rem', background:'#064e3b'}}>إيراد فعلي</th>
 
-                <th style={{minWidth:'120px'}}>± خامات</th>
-                <th style={{minWidth:'120px'}}>± عمالة</th>
-                <th style={{minWidth:'120px'}}>± الإجمالي</th>
-                <th style={{minWidth:'140px', background:'#0f172a'}}>الربح الصافي</th>
+                <th style={{minWidth:'7.5rem'}}>± خامات</th>
+                <th style={{minWidth:'7.5rem'}}>± عمالة</th>
+                <th style={{minWidth:'7.5rem'}}>± الإجمالي</th>
+                <th style={{minWidth:'8.75rem', background:'#0f172a'}}>الربح الصافي</th>
               </tr>
             </thead>
             <tbody>
                 {paginatedGroups.length === 0 ? (
-                    <tr><td colSpan={21} style={{textAlign:'center', padding:'30px', fontWeight:900, color:'#94a3b8'}}>لا توجد بيانات مطابقة</td></tr>
+                    <tr><td colSpan={21} style={{textAlign:'center', padding:'1.875rem', fontWeight:900, color:'#94a3b8'}}>لا توجد بيانات مطابقة</td></tr>
                 ) : (
                     paginatedGroups.map((group, idx) => {
                         const isExpanded = expandedProjects.includes(group.projectName);
@@ -350,7 +350,7 @@ export default function BOQBudgetPage() {
                                     <td></td>
                                     <td></td>
                                     
-                                    <td style={{textAlign:'left', color:'#4338ca', fontSize:'var(--fs-xs)', paddingRight:'10px'}}>إجمالي التعاقد ⬅</td>
+                                    <td style={{textAlign:'left', color:'#4338ca', fontSize:'var(--fs-xs)', paddingRight:'0.625rem'}}>إجمالي التعاقد ⬅</td>
                                     <td style={{fontWeight:900, color:'#4338ca', textAlign:'center', fontSize:'var(--fs-md)', background:'rgba(79,70,229,0.08)'}}>{formatCurrency(group.total_contract)}</td>
                                     
                                     <td style={{fontWeight:800, color:'#b45309', textAlign:'center'}}>{formatCurrency(group.est_material)}</td>
@@ -388,7 +388,7 @@ export default function BOQBudgetPage() {
                                                     }} 
                                                 />
                                             </td>
-                                            <td className="sticky-col-2" style={{color:'#94a3b8', fontSize:'var(--fs-xs)', paddingRight:'20px'}}>↳ تابع للمشروع</td>
+                                            <td className="sticky-col-2" style={{color:'#94a3b8', fontSize:'var(--fs-xs)', paddingRight:'1.25rem'}}>↳ تابع للمشروع</td>
                                             
                                             <td className="sticky-col-3">
                                                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
@@ -437,7 +437,7 @@ export default function BOQBudgetPage() {
                                             <td style={{textAlign:'center', color:'#b45309', fontWeight:700}}>{formatCurrency(item.estimated_labor_cost)}</td>
                                             <td style={{textAlign:'center', color:'#b45309', fontWeight:700}}>{formatCurrency(item.estimated_expenses_cost)}</td>
 
-                                            <td style={{textAlign:'center', color:'#047857', fontWeight:900}}><span style={{background:'#f1f5f9', padding:'2px 8px', borderRadius:'6px'}}>{Number(item.actual_quantity || 0).toLocaleString()}</span></td>
+                                            <td style={{textAlign:'center', color:'#047857', fontWeight:900}}><span style={{background:'#f1f5f9', padding:'2px 0.5rem', borderRadius:'6px'}}>{Number(item.actual_quantity || 0).toLocaleString()}</span></td>
                                             <td style={{textAlign:'center', fontWeight:900, fontSize:'var(--fs-xs)'}}>{Number(item.completed_percentage || 0).toFixed(0)}%</td>
                                             
                                             <td style={{textAlign:'center', color:'#059669', fontWeight:700}}>{formatCurrency(item.actual_material_cost)}</td>
@@ -463,10 +463,10 @@ export default function BOQBudgetPage() {
           </table>
 
           {totalPages > 1 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', background: '#f8fafc', borderTop: '1px solid #e2e8f0', position: 'sticky', left: 0 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9375rem 1.25rem', background: '#f8fafc', borderTop: '1px solid #e2e8f0', position: 'sticky', left: 0 }}>
                   <button 
                       onClick={() => logic.setCurrentPage((p:number) => p - 1)} disabled={logic.currentPage === 1}
-                      style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: logic.currentPage === 1 ? 'not-allowed' : 'pointer' }}
+                      style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: logic.currentPage === 1 ? 'not-allowed' : 'pointer' }}
                   >
                       ◀ السابق
                   </button>
@@ -475,7 +475,7 @@ export default function BOQBudgetPage() {
                   </span>
                   <button 
                       onClick={() => logic.setCurrentPage((p:number) => p + 1)} disabled={logic.currentPage === totalPages}
-                      style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: logic.currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+                      style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontWeight: 900, cursor: logic.currentPage === totalPages ? 'not-allowed' : 'pointer' }}
                   >
                       التالي ▶
                   </button>

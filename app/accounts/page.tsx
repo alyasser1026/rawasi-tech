@@ -62,7 +62,7 @@ export default function HierarchicalLedgerPage() {
 
   // 🚀 تجهيز أزرار السايد بار (وإضافة زر الإكسل)
   const sidebarActions = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
       <SecureAction module="accounts" action="create">
         <button className="btn-premium-gold" onClick={handleAdd}>
             إضافة حساب جديد
@@ -71,7 +71,7 @@ export default function HierarchicalLedgerPage() {
       
       {selectedIds.length > 0 && (
         <>
-          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-5px'}}>إجراءات على ({selectedIds.length})</p>
+          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-0.3125rem'}}>إجراءات على ({selectedIds.length})</p>
           <SecureAction module="accounts" action="edit">
             <button className="btn-main-glass blue" onClick={() => handleEdit(selectedIds)} disabled={selectedIds.length !== 1 || isDeleting}>تعديل الحساب</button>
           </SecureAction>
@@ -83,7 +83,7 @@ export default function HierarchicalLedgerPage() {
         </>
       )}
 
-      <div style={{ display: 'flex', gap: '10px' }}>
+      <div style={{ display: 'flex', gap: '0.625rem' }}>
          <button className="btn-main-glass white" style={{flex: 1}} onClick={expandAll}>فتح الكل</button>
          <button className="btn-main-glass white" style={{flex: 1}} onClick={collapseAll}>طي الكل</button>
       </div>
@@ -92,7 +92,7 @@ export default function HierarchicalLedgerPage() {
       <button 
         className="btn-main-glass" 
         onClick={exportToExcel}
-        style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', padding: '12px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)' }}
+        style={{ background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', padding: '0.75rem', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 10px 20px rgba(16, 185, 129, 0.3)' }}
       >
         تصدير إكسل
       </button>
@@ -175,7 +175,7 @@ export default function HierarchicalLedgerPage() {
         <div className="content-container">
           <RawasiSidebarManager 
             summary={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                   <div className="summary-glass-card">
                       <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي المدين</span>
                       <div style={{fontSize:'var(--fs-xl)', fontWeight:900, color: THEME.success}}>{formatCurrency(summary.debit)}</div>
@@ -189,24 +189,24 @@ export default function HierarchicalLedgerPage() {
                       <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.coffeeDark}}>
                         {formatCurrency(summary.balance)}
                       </div>
-                      <div style={{fontSize:'var(--fs-xs)', marginTop: '4px', color: '#94a3b8'}}>{summary.balance !== 0 && (summary.isDebitBalance ? '(رصيد مدين)' : '(رصيد دائن)')}</div>
+                      <div style={{fontSize:'var(--fs-xs)', marginTop: '0.25rem', color: '#94a3b8'}}>{summary.balance !== 0 && (summary.isDebitBalance ? '(رصيد مدين)' : '(رصيد دائن)')}</div>
                   </div>
               </div>
             }
             actions={sidebarActions}
             customFilters={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', marginTop: '0.625rem' }}>
                   <div>
-                     <label style={{color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '8px'}}>بحث في الدليل:</label>
+                     <label style={{color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '0.5rem'}}>بحث في الدليل:</label>
                      <input type="text" placeholder="الاسم، الكود..." className="glass-input" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
                   </div>
 
                   <div>
-                      <label style={{color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '8px'}}>من تاريخ:</label>
+                      <label style={{color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '0.5rem'}}>من تاريخ:</label>
                       <input type="date" className="glass-input" value={startDate} onChange={e => setStartDate(e.target.value)} />
                   </div>
                   <div>
-                      <label style={{color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '8px'}}>إلى تاريخ:</label>
+                      <label style={{color: 'white', fontSize: 'var(--fs-sm)', fontWeight: 900, display: 'block', marginBottom: '0.5rem'}}>إلى تاريخ:</label>
                       <input type="date" className="glass-input" value={endDate} onChange={e => setEndDate(e.target.value)} />
                   </div>
               </div>
@@ -219,7 +219,7 @@ export default function HierarchicalLedgerPage() {
               <h4 style={{ margin: 0, fontWeight: 900, color: THEME.primary }}>الدليل المحاسبي وميزان المراجعة</h4>
             </div>
 
-            <div className="table-inner-scroll cinematic-scroll" style={{ padding: '20px' }}>
+            <div className="table-inner-scroll cinematic-scroll" style={{ padding: '1.25rem' }}>
               
               <div className="table-header">
                  <div></div>
@@ -247,26 +247,26 @@ export default function HierarchicalLedgerPage() {
       </div>
 
       <style>{`
-        .floating-stack-layout { position: relative; width: 100%; padding: 0 20px 20px 20px; z-index: 5; direction: rtl; }
+        .floating-stack-layout { position: relative; width: 100%; padding: 0 1.25rem 1.25rem 1.25rem; z-index: 5; direction: rtl; }
         .warm-depth-glow { position: absolute; inset: 0; background: radial-gradient(circle at 20% 30%, rgba(194,65,12, 0.15) 0%, transparent 70%); z-index: -1; pointer-events: none; }
-        .content-container { max-width: 1600px; margin: 0 auto; }
+        .content-container { max-width: 100rem; margin: 0 auto; }
 
         .glass-master-card {
           background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
           border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.9);
           box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.08); overflow: hidden;
-          margin-top: 25px; animation: cardFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+          margin-top: 1.5625rem; animation: cardFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .card-header { padding: 25px 35px; background: rgba(255, 255, 255, 0.3); border-bottom: 1px solid rgba(0,0,0,0.03); }
+        .card-header { padding: 1.5625rem 2.1875rem; background: rgba(255, 255, 255, 0.3); border-bottom: 1px solid rgba(0,0,0,0.03); }
 
-        .summary-glass-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 15px; border-radius: 16px; text-align: center; transition: 0.3s; }
-        .glass-input { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-weight: 800; outline: none; transition: 0.3s; color-scheme: dark;}
+        .summary-glass-card { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); padding: 0.9375rem; border-radius: 16px; text-align: center; transition: 0.3s; }
+        .glass-input { width: 100%; padding: 0.75rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.1); color: white; font-weight: 800; outline: none; transition: 0.3s; color-scheme: dark;}
         .glass-input:focus { background: rgba(255,255,255,0.2); border-color: ${THEME.goldAccent}; }
 
-        .btn-premium-gold { width: 100%; padding: 16px; border-radius: 16px; background: linear-gradient(135deg, #c2410c, #c2410c); color: white; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(194,65,12, 0.3); transition: 0.3s; }
+        .btn-premium-gold { width: 100%; padding: 1rem; border-radius: 16px; background: linear-gradient(135deg, #c2410c, #c2410c); color: white; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(194,65,12, 0.3); transition: 0.3s; }
         .btn-premium-gold:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(194,65,12, 0.4); filter: brightness(1.1); }
 
-        .btn-main-glass { width: 100%; padding: 12px; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: var(--fs-sm); }
+        .btn-main-glass { width: 100%; padding: 0.75rem; border-radius: 12px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: var(--fs-sm); }
         .btn-main-glass.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.2); }
         .btn-main-glass.blue:hover:not(:disabled) { background: #3b82f6; color: white; }
         .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
@@ -276,15 +276,15 @@ export default function HierarchicalLedgerPage() {
         .btn-main-glass:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .table-header {
-          display: grid; grid-template-columns: 40px 2.5fr 1fr 1fr 1fr 1.2fr; 
-          padding: 15px 20px; font-weight: 900; color: #64748b; font-size: var(--fs-sm);
-          background: rgba(0,0,0,0.02); border-radius: 16px; margin-bottom: 15px; border: 1px solid #f1f5f9;
+          display: grid; grid-template-columns: 2.5rem 2.5fr 1fr 1fr 1fr 1.2fr; 
+          padding: 0.9375rem 1.25rem; font-weight: 900; color: #64748b; font-size: var(--fs-sm);
+          background: rgba(0,0,0,0.02); border-radius: 16px; margin-bottom: 0.9375rem; border: 1px solid #f1f5f9;
         }
 
         .acc-row { 
-          border-radius: 16px; margin-bottom: 8px; 
-          display: grid; grid-template-columns: 40px 2.5fr 1fr 1fr 1fr 1.2fr; 
-          align-items: center; padding: 15px 20px; cursor: pointer; 
+          border-radius: 16px; margin-bottom: 0.5rem; 
+          display: grid; grid-template-columns: 2.5rem 2.5fr 1fr 1fr 1fr 1.2fr; 
+          align-items: center; padding: 0.9375rem 1.25rem; cursor: pointer; 
           border: 1px solid #f1f5f9; transition: 0.2s; box-shadow: 0 2px 10px rgba(0,0,0,0.01);
         }
         .acc-row.root-node {
@@ -299,14 +299,14 @@ export default function HierarchicalLedgerPage() {
         .acc-row.selected { background: rgba(194,65,12, 0.05); border-color: ${THEME.goldAccent}; }
 
         .entry-line { 
-          background: #f8fafc; margin: 4px 20px 8px 60px; padding: 12px 20px; 
+          background: #f8fafc; margin: 0.25rem 1.25rem 0.5rem 3.75rem; padding: 0.75rem 1.25rem; 
           border-radius: 12px; border-right: 3px solid ${THEME.goldAccent}; display: grid; 
-          grid-template-columns: 120px 2fr 120px 120px; gap: 15px; font-size: var(--fs-sm);
+          grid-template-columns: 7.5rem 2fr 7.5rem 7.5rem; gap: 0.9375rem; font-size: var(--fs-sm);
           border: 1px solid #f1f5f9;
         }
 
-        .custom-checkbox { width: 18px; height: 18px; accent-color: ${THEME.goldAccent}; cursor: pointer; }
-        .cinematic-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-checkbox { width: 1.125rem; height: 1.125rem; accent-color: ${THEME.goldAccent}; cursor: pointer; }
+        .cinematic-scroll::-webkit-scrollbar { width: 0.375rem; }
         .cinematic-scroll::-webkit-scrollbar-track { background: transparent; }
         .cinematic-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 10px; }
 
@@ -340,7 +340,7 @@ function AccountNode({ node, expandedIds, toggleExpand, selectedIds, toggleSelec
             {hasSub ? (isExpanded ? <FolderOpen size={16} aria-hidden="true" /> : <Folder size={16} aria-hidden="true" />) : <FileText size={16} aria-hidden="true" />}
             {node.name}
           </span>
-          <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginRight: '10px' }}>#{node.code}</span>
+          <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginRight: '0.625rem' }}>#{node.code}</span>
         </div>
         <div style={{ fontSize: 'var(--fs-sm)', color: node.is_transactional ? '#64748b' : THEME.goldAccent, fontWeight: 800 }}>
           {node.is_transactional ? 'حساب فرعي' : 'تجميعي'}
@@ -351,13 +351,13 @@ function AccountNode({ node, expandedIds, toggleExpand, selectedIds, toggleSelec
         <div style={{ textAlign: 'center', color: THEME.danger, fontWeight: isRoot ? 900 : 700, fontFamily: 'monospace', fontSize: 'var(--fs-md)' }}>
           {formatCurrency(node.totalCredit)}
         </div>
-        <div style={{ textAlign: 'center', fontWeight: 900, color: isRoot ? 'white' : THEME.primary, fontFamily: 'monospace', fontSize: 'var(--fs-md)', background: isRoot ? THEME.primary : '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
+        <div style={{ textAlign: 'center', fontWeight: 900, color: isRoot ? 'white' : THEME.primary, fontFamily: 'monospace', fontSize: 'var(--fs-md)', background: isRoot ? THEME.primary : '#f1f5f9', padding: '0.25rem', borderRadius: '8px' }}>
           {formatCurrency(node.balance)}
         </div>
       </div>
 
       {isExpanded && (
-        <div style={{ marginTop: '5px', marginBottom: '15px' }}>
+        <div style={{ marginTop: '0.3125rem', marginBottom: '0.9375rem' }}>
           {node.children?.map((child: any) => (
             <AccountNode key={child.id} node={child} expandedIds={expandedIds} toggleExpand={toggleExpand} selectedIds={selectedIds} toggleSelection={toggleSelection} depth={depth + 1} />
           ))}

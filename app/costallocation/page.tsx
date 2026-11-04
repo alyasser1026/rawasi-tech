@@ -11,7 +11,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 // 🎨 مكون تغليف الخلية لضغط المساحات وعرض الجدول بشكل سينمائي مريح للعين
 const CompactCell = ({ children, justify = 'flex-start', isBold = false }: { children: React.ReactNode, justify?: string, isBold?: boolean }) => (
     <div style={{ 
-        padding: '3px 6px', borderRadius: '4px', height: '100%', minHeight: '26px', 
+        padding: '0.1875rem 0.375rem', borderRadius: '4px', height: '100%', minHeight: '1.625rem', 
         display: 'flex', alignItems: 'center', justifyContent: justify,
         fontSize: 'var(--fs-xs)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
         fontWeight: isBold ? 900 : 600, color: '#1e293b'
@@ -36,7 +36,7 @@ export default function CostAllocationPage() {
             // 🎯 تم دمج الفيلا والبند هنا بشكل احترافي
             render: (row: any) => (
                 <CompactCell justify="flex-start">
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1875rem' }}>
                         <span style={{ fontWeight: 900, color: '#1e293b', fontSize: 'var(--fs-sm)' }}>
                             {row["اسم الفيلا المحمل عليها"] || 'عام/غير موزع'}
                         </span>
@@ -64,7 +64,7 @@ export default function CostAllocationPage() {
             key: 'amount', label: 'التكلفة المحملة للبند', 
             render: (row: any) => (
                 <CompactCell justify="center">
-                    <strong style={{color: '#16a34a', background: 'rgba(22,163,74,0.08)', padding: '4px 10px', borderRadius: '6px', fontSize:'var(--fs-sm)'}}>
+                    <strong style={{color: '#16a34a', background: 'rgba(22,163,74,0.08)', padding: '0.25rem 0.625rem', borderRadius: '6px', fontSize:'var(--fs-sm)'}}>
                         {formatCurrency(row["المبلغ المحمل (جنيه)"])}
                     </strong>
                 </CompactCell>
@@ -81,19 +81,19 @@ export default function CostAllocationPage() {
             
             <RawasiSidebarManager 
                 summary={
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                         <div className="summary-glass-box">
                             <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#64748b'}}>إجمالي المبالغ الموزعة</span>
-                            <div style={{fontSize:'var(--fs-xl)', fontWeight:900, color: '#16a34a', marginTop:'4px'}}>{formatCurrency(logic.totalAllocatedAmount)}</div>
+                            <div style={{fontSize:'var(--fs-xl)', fontWeight:900, color: '#16a34a', marginTop:'0.25rem'}}>{formatCurrency(logic.totalAllocatedAmount)}</div>
                         </div>
                         <div className="summary-glass-box">
                             <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#64748b'}}>عدد القيود المحملة</span>
-                            <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.primary, marginTop:'4px'}}>{logic.filteredData.length} قيد</div>
+                            <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.primary, marginTop:'0.25rem'}}>{logic.filteredData.length} قيد</div>
                         </div>
                     </div>
                 }
                 actions={
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'white', display: 'block' }}>تصفية بحسب الشهر المالي</label>
                         <select 
                             value={logic.selectedMonth} 
@@ -114,16 +114,16 @@ export default function CostAllocationPage() {
                 /* تنسيقات الشاشة الاحترافية المدمجة */
                 .compact-table-holder {
                     width: 100%; overflow-x: hidden !important; zoom: 0.82; background: white; border-radius: 16px;
-                    box-shadow: 0 4px 20px rgba(0,0,0,0.02); padding: 8px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.02); padding: 0.5rem;
                 }
-                .summary-glass-box { background: rgba(255,255,255,0.6); padding: 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.04); }
+                .summary-glass-box { background: rgba(255,255,255,0.6); padding: 0.75rem; border-radius: 12px; border: 1px solid rgba(0,0,0,0.04); }
                 .glass-dropdown {
-                    width: 100%; padding: 10px; border-radius: 10px; background: rgba(255,255,255,0.2);
+                    width: 100%; padding: 0.625rem; border-radius: 10px; background: rgba(255,255,255,0.2);
                     border: 1px solid rgba(255,255,255,0.3); color: #1e293b; font-weight: 700; font-size: var(--fs-sm); outline: none; cursor: pointer;
                 }
                 .glass-dropdown option { background: white; color: #1e293b; }
-                .badge-month { background: #f1f5f9; color: #334155; padding: 2px 6px; border-radius: 4px; font-weight: 900; font-size: var(--fs-xs); border: 1px solid #cbd5e1; }
-                .badge-mechanism { background: #eff6ff; color: #2563eb; padding: 4px 8px; border-radius: 6px; font-weight: 800; font-size: var(--fs-xs); border: 1px solid #bfdbfe; word-break: break-all; }
+                .badge-month { background: #f1f5f9; color: #334155; padding: 2px 0.375rem; border-radius: 4px; font-weight: 900; font-size: var(--fs-xs); border: 1px solid #cbd5e1; }
+                .badge-mechanism { background: #eff6ff; color: #2563eb; padding: 0.25rem 0.5rem; border-radius: 6px; font-weight: 800; font-size: var(--fs-xs); border: 1px solid #bfdbfe; word-break: break-all; }
             `}</style>
 
             {logic.isLoading ? (

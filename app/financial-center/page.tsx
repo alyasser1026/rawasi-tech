@@ -92,7 +92,7 @@ export default function FinancialCenter() {
               <span className="phi-badge is-live">مباشر</span>
             </div>
           </div>
-          {failed && <div className="ent-overpaid" role="alert" style={{ margin: 16 }}>تعذر تحميل بيانات المركز المالي. تحقق من الاتصال ثم اضغط «تحديث البيانات».</div>}
+          {failed && <div className="ent-overpaid" role="alert" style={{ margin: '1rem' }}>تعذر تحميل بيانات المركز المالي. تحقق من الاتصال ثم اضغط «تحديث البيانات».</div>}
           {movements.length ? <div className="ent-table-scroll"><table className="ent-table">
             <thead><tr><th>التاريخ والوقت</th><th>النوع</th><th>البيان</th><th>الاتجاه</th><th style={{ textAlign: 'left' }}>المبلغ</th></tr></thead>
             <tbody>{movements.map((m, i) => <tr key={`${m.created_at}-${i}`}>

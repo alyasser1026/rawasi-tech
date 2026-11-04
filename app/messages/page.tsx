@@ -30,17 +30,17 @@ export default function MessagesPage() {
 
     return (
         <MasterPage title="التواصل الداخلي" subtitle="الرسائل والمحادثات بين فرق العمل">
-        <div style={{ height: 'calc(100vh - 120px)', display: 'flex', gap: '20px', padding: '20px', animation: 'fadeUp 0.5s ease-out' }}>
+        <div style={{ height: 'calc(100vh - 7.5rem)', display: 'flex', gap: '1.25rem', padding: '1.25rem', animation: 'fadeUp 0.5s ease-out' }}>
                 
                 {/* Users Sidebar */}
-                <div style={{ width: '320px', background: 'white', borderRadius: '14px', border: `1px solid ${THEME.border}`, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', overflow: 'hidden', flexShrink: 0 }}>
-                    <div style={{ padding: '20px', borderBottom: `1px solid ${THEME.border}`, background: '#f8fafc' }}>
+                <div style={{ width: '20rem', background: 'white', borderRadius: '14px', border: `1px solid ${THEME.border}`, display: 'flex', flexDirection: 'column', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', overflow: 'hidden', flexShrink: 0 }}>
+                    <div style={{ padding: '1.25rem', borderBottom: `1px solid ${THEME.border}`, background: '#f8fafc' }}>
                         <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-xl)' }}>المحادثات الداخلية</h2>
-                        <p style={{ margin: '5px 0 0 0', fontSize: 'var(--fs-sm)', color: '#64748b' }}>اختر موظفاً لبدء المحادثة</p>
+                        <p style={{ margin: '0.3125rem 0 0 0', fontSize: 'var(--fs-sm)', color: '#64748b' }}>اختر موظفاً لبدء المحادثة</p>
                     </div>
                     <div style={{ flex: 1, overflowY: 'auto' }} className="cinematic-scroll">
                         {isLoadingUsers ? (
-                            <div style={{ textAlign: 'center', padding: '30px', color: THEME.primary }}>جاري تحميل الموظفين...</div>
+                            <div style={{ textAlign: 'center', padding: '1.875rem', color: THEME.primary }}>جاري تحميل الموظفين...</div>
                         ) : (
                             sortedUsers.map((user) => {
                                 const online = isUserOnline(user.id);
@@ -49,7 +49,7 @@ export default function MessagesPage() {
                                     key={user.id}
                                     onClick={() => setActiveUserId(user.id)}
                                     style={{
-                                        padding: '15px 20px',
+                                        padding: '0.9375rem 1.25rem',
                                         borderBottom: `1px solid ${THEME.border}`,
                                         cursor: 'pointer',
                                         background: activeUserId === user.id ? '#f0f9ff' : 'white',
@@ -57,22 +57,22 @@ export default function MessagesPage() {
                                         transition: '0.2s',
                                         display: 'flex',
                                         alignItems: 'center',
-                                        gap: '12px',
+                                        gap: '0.75rem',
                                         position: 'relative'
                                     }}
                                 >
                                     <div style={{ position: 'relative' }}>
-                                        <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: THEME.primary, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 'var(--fs-lg)', flexShrink: 0 }}>
+                                        <div style={{ width: '2.5rem', height: '2.5rem', borderRadius: '50%', background: THEME.primary, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 'var(--fs-lg)', flexShrink: 0 }}>
                                             {user.full_name?.charAt(0) || 'م'}
                                         </div>
-                                        {online && <div style={{ position: 'absolute', bottom: 0, right: 0, width: '12px', height: '12px', background: '#10b981', borderRadius: '50%', border: '2px solid white' }}></div>}
+                                        {online && <div style={{ position: 'absolute', bottom: 0, right: 0, width: '0.75rem', height: '0.75rem', background: '#10b981', borderRadius: '50%', border: '2px solid white' }}></div>}
                                     </div>
                                     <div style={{ overflow: 'hidden', flex: 1 }}>
                                         <div style={{ fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>{user.full_name || 'بدون اسم'}</div>
                                         <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '2px' }}>{user.role === 'super_admin' ? 'مدير نظام' : 'موظف'}</div>
                                     </div>
                                     {unreadCounts && unreadCounts[user.id] > 0 && (
-                                        <div style={{ background: THEME.ruby, color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 'bold', padding: '2px 6px', borderRadius: '10px', minWidth: '20px', textAlign: 'center', flexShrink: 0, boxShadow: '0 2px 5px rgba(225, 29, 72, 0.3)' }}>
+                                        <div style={{ background: THEME.ruby, color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 'bold', padding: '2px 0.375rem', borderRadius: '10px', minWidth: '1.25rem', textAlign: 'center', flexShrink: 0, boxShadow: '0 2px 5px rgba(225, 29, 72, 0.3)' }}>
                                             {unreadCounts[user.id]}
                                         </div>
                                     )}
@@ -91,12 +91,12 @@ export default function MessagesPage() {
                     {activeUserId ? (
                         <>
                             {/* Chat Header */}
-                            <div style={{ padding: '20px', borderBottom: `1px solid ${THEME.border}`, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '15px', zIndex: 1 }}>
+                            <div style={{ padding: '1.25rem', borderBottom: `1px solid ${THEME.border}`, background: 'rgba(255,255,255,0.9)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', gap: '0.9375rem', zIndex: 1 }}>
                                 <div style={{ position: 'relative' }}>
-                                    <div style={{ width: '45px', height: '45px', borderRadius: '50%', background: THEME.primary, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 'var(--fs-xl)' }}>
+                                    <div style={{ width: '2.8125rem', height: '2.8125rem', borderRadius: '50%', background: THEME.primary, color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: 'var(--fs-xl)' }}>
                                         {activeUser?.full_name?.charAt(0) || 'م'}
                                     </div>
-                                    {isUserOnline(activeUserId) && <div style={{ position: 'absolute', bottom: '2px', right: '2px', width: '12px', height: '12px', background: '#10b981', borderRadius: '50%', border: '2px solid white' }}></div>}
+                                    {isUserOnline(activeUserId) && <div style={{ position: 'absolute', bottom: '2px', right: '2px', width: '0.75rem', height: '0.75rem', background: '#10b981', borderRadius: '50%', border: '2px solid white' }}></div>}
                                 </div>
                                 <div>
                                     <h3 style={{ margin: 0, fontWeight: 900, color: '#0f172a', fontSize: 'var(--fs-lg)' }}>{activeUser?.full_name}</h3>
@@ -107,12 +107,12 @@ export default function MessagesPage() {
                             </div>
 
                             {/* Messages Container */}
-                            <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column', gap: '15px', zIndex: 1 }} className="cinematic-scroll">
+                            <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.9375rem', zIndex: 1 }} className="cinematic-scroll">
                                 {isLoadingMessages ? (
-                                    <div style={{ textAlign: 'center', padding: '30px', color: THEME.primary }}>جاري تحميل الرسائل...</div>
+                                    <div style={{ textAlign: 'center', padding: '1.875rem', color: THEME.primary }}>جاري تحميل الرسائل...</div>
                                 ) : messages.length === 0 ? (
                                     <div style={{ textAlign: 'center', margin: 'auto', color: '#94a3b8', fontWeight: 800 }}>
-                                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '10px', opacity: 0.5 }}><Hand size={34} aria-hidden="true" /></div>
+                                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.625rem', opacity: 0.5 }}><Hand size={34} aria-hidden="true" /></div>
                                         ابدأ المحادثة الآن...
                                     </div>
                                 ) : (
@@ -123,7 +123,7 @@ export default function MessagesPage() {
                                                 <div style={{
                                                     background: isMine ? THEME.primary : '#f1f5f9',
                                                     color: isMine ? 'white' : '#1e293b',
-                                                    padding: '12px 18px',
+                                                    padding: '0.75rem 1.125rem',
                                                     borderRadius: '16px',
                                                     borderTopRightRadius: isMine ? '0' : '16px',
                                                     borderTopLeftRadius: isMine ? '16px' : '0',
@@ -134,7 +134,7 @@ export default function MessagesPage() {
                                                 }}>
                                                     {msg.content}
                                                 </div>
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '5px', justifyContent: isMine ? 'flex-start' : 'flex-end', padding: '0 5px', position: 'relative' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.3125rem', justifyContent: isMine ? 'flex-start' : 'flex-end', padding: '0 0.3125rem', position: 'relative' }}>
                                                     <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 600 }}>
                                                         {new Date(msg.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                                                     </span>
@@ -147,14 +147,14 @@ export default function MessagesPage() {
                                                     {/* Info Circle */}
                                                     <div 
                                                         onClick={() => setMsgDetailsOpen(msgDetailsOpen === msg.id ? null : msg.id)}
-                                                        style={{ width: '14px', height: '14px', borderRadius: '50%', border: '1px solid #cbd5e1', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--fs-xs)', cursor: 'pointer', fontWeight: 900 }}
+                                                        style={{ width: '0.875rem', height: '0.875rem', borderRadius: '50%', border: '1px solid #cbd5e1', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 'var(--fs-xs)', cursor: 'pointer', fontWeight: 900 }}
                                                     >
                                                         i
                                                     </div>
 
                                                     {/* Details Popover */}
                                                     {msgDetailsOpen === msg.id && (
-                                                        <div style={{ position: 'absolute', top: '100%', right: isMine ? '0' : 'auto', left: isMine ? 'auto' : '0', marginTop: '5px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '10px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '180px', fontSize: 'var(--fs-xs)', color: '#475569', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                                                        <div style={{ position: 'absolute', top: '100%', right: isMine ? '0' : 'auto', left: isMine ? 'auto' : '0', marginTop: '0.3125rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.625rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '11.25rem', fontSize: 'var(--fs-xs)', color: '#475569', display: 'flex', flexDirection: 'column', gap: '0.3125rem' }}>
                                                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                                 <span style={{ fontWeight: 800 }}>وقت الإرسال:</span>
                                                                 <span>{new Date(msg.created_at).toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
@@ -174,24 +174,24 @@ export default function MessagesPage() {
                             </div>
 
                             {/* Chat Input */}
-                            <form onSubmit={sendMessage} style={{ padding: '20px', borderTop: `1px solid ${THEME.border}`, background: 'rgba(255,255,255,0.9)', zIndex: 1, display: 'flex', gap: '10px' }}>
+                            <form onSubmit={sendMessage} style={{ padding: '1.25rem', borderTop: `1px solid ${THEME.border}`, background: 'rgba(255,255,255,0.9)', zIndex: 1, display: 'flex', gap: '0.625rem' }}>
                                 <input 
                                     type="text" 
                                     value={newMessage}
                                     onChange={(e) => setNewMessage(e.target.value)}
                                     placeholder="اكتب رسالتك هنا..." 
-                                    style={{ flex: 1, padding: '15px 20px', borderRadius: '14px', border: `1px solid ${THEME.border}`, outline: 'none', background: '#f8fafc', fontSize: 'var(--fs-md)', fontWeight: 700 }}
+                                    style={{ flex: 1, padding: '0.9375rem 1.25rem', borderRadius: '14px', border: `1px solid ${THEME.border}`, outline: 'none', background: '#f8fafc', fontSize: 'var(--fs-md)', fontWeight: 700 }}
                                 />
-                                <button type="submit" disabled={!newMessage.trim()} style={{ background: THEME.primary, color: 'white', border: 'none', width: '50px', height: '50px', borderRadius: '50%', cursor: newMessage.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: newMessage.trim() ? 1 : 0.5, transition: '0.2s', fontSize: 'var(--fs-xl)' }}>
+                                <button type="submit" disabled={!newMessage.trim()} style={{ background: THEME.primary, color: 'white', border: 'none', width: '3.125rem', height: '3.125rem', borderRadius: '50%', cursor: newMessage.trim() ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: newMessage.trim() ? 1 : 0.5, transition: '0.2s', fontSize: 'var(--fs-xl)' }}>
                                     ➤
                                 </button>
                             </form>
                         </>
                     ) : (
                         <div style={{ margin: 'auto', textAlign: 'center', color: '#94a3b8', zIndex: 1 }}>
-                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '15px', opacity: 0.3 }}><MessageSquare size={40} aria-hidden="true" /></div>
+                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem', opacity: 0.3 }}><MessageSquare size={40} aria-hidden="true" /></div>
                             <h3 style={{ margin: 0, fontWeight: 900 }}>الرسائل الداخلية</h3>
-                            <p style={{ marginTop: '5px', fontSize: 'var(--fs-md)' }}>قم باختيار محادثة من القائمة للبدء</p>
+                            <p style={{ marginTop: '0.3125rem', fontSize: 'var(--fs-md)' }}>قم باختيار محادثة من القائمة للبدء</p>
                         </div>
                     )}
                 </div>

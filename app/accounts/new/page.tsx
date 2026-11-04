@@ -65,31 +65,31 @@ export default function AddAccountPage() {
           background-size: cover; background-position: center;
         }
         .glass-card {
-          width: 100%; max-width: 500px; background: rgba(15, 23, 42, 0.8);
+          width: 100%; max-width: 31.25rem; background: rgba(15, 23, 42, 0.8);
           backdrop-filter: blur(20px); border: 1px solid ${THEME.accent}44;
-          border-radius: 14px; padding: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+          border-radius: 14px; padding: 2.5rem; box-shadow: 0 25px 50px rgba(0,0,0,0.5);
         }
-        .header { text-align: left; margin-bottom: 30px; }
-        .header img { height: 60px; margin-bottom: 10px; }
-        .input-group { position: relative; margin-bottom: 25px; }
+        .header { text-align: left; margin-bottom: 1.875rem; }
+        .header img { height: 3.75rem; margin-bottom: 0.625rem; }
+        .input-group { position: relative; margin-bottom: 1.5625rem; }
         .standard-input {
-          width: 100%; padding: 15px; background: rgba(255, 255, 255, 0.05);
+          width: 100%; padding: 0.9375rem; background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px;
           color: white; outline: none; text-align: right; appearance: none;
         }
         .standard-input:focus { border-color: ${THEME.accent}; }
         .standard-input option { background: ${THEME.primary}; color: white; }
         .floating-label {
-          position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+          position: absolute; right: 0.9375rem; top: 50%; transform: translateY(-50%);
           color: ${THEME.slate}; font-weight: 700; pointer-events: none; transition: 0.2s ease-all;
         }
         .forced-float, .standard-input:focus ~ .floating-label, .standard-input:not(:placeholder-shown) ~ .floating-label {
-          top: -12px !important; right: 12px !important; font-size: var(--fs-sm) !important;
+          top: -0.75rem !important; right: 0.75rem !important; font-size: var(--fs-sm) !important;
           color: ${THEME.accent} !important; background: #151c2c !important;
-          padding: 0 10px !important; border-radius: 4px !important; transform: translateY(0) !important;
+          padding: 0 0.625rem !important; border-radius: 4px !important; transform: translateY(0) !important;
         }
         .btn-submit {
-          width: 100%; padding: 15px; background: linear-gradient(135deg, ${THEME.accent}, ${THEME.accentLight});
+          width: 100%; padding: 0.9375rem; background: linear-gradient(135deg, ${THEME.accent}, ${THEME.accentLight});
           color: ${THEME.primary}; border: none; border-radius: 12px; font-weight: 900; cursor: pointer;
         }
       `}</style>

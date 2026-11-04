@@ -102,7 +102,7 @@ export default function ReceiptVouchersPage() {
                 return (
                     <div style={{ fontWeight: 900, color: THEME.brand.coffee }}>
                         {row.receipt_number}
-                        {row.reference_number && <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '4px' }}>مرجع: {row.reference_number}</div>}
+                        {row.reference_number && <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '0.25rem' }}>مرجع: {row.reference_number}</div>}
                     </div>
                 );
             }
@@ -129,7 +129,7 @@ export default function ReceiptVouchersPage() {
             render: (row: any) => {
                 if (!row) return null;
                 return (
-                    <div style={{ color: THEME.brand.gold, fontSize: 'var(--fs-sm)', fontWeight: 800, maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    <div style={{ color: THEME.brand.gold, fontSize: 'var(--fs-sm)', fontWeight: 800, maxWidth: '11.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {row.project_names || '---'}
                     </div>
                 );
@@ -152,11 +152,11 @@ export default function ReceiptVouchersPage() {
                 const isRefunded = row.status === 'مسترجع';
                 return (
                     <div style={{
-                        display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '6px 12px', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 900,
+                        display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0.375rem 0.75rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 900,
                         background: isPosted ? '#ecfdf5' : isRefunded ? '#fef2f2' : '#fff7ed',
                         color: isPosted ? '#059669' : isRefunded ? '#dc2626' : '#d97706',
                     }}>
-                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPosted ? '#10b981' : isRefunded ? '#ef4444' : '#f59e0b' }}></span>
+                        <span style={{ width: '0.375rem', height: '0.375rem', borderRadius: '50%', background: isPosted ? '#10b981' : isRefunded ? '#ef4444' : '#f59e0b' }}></span>
                         {row.status || 'مسودة'}
                     </div>
                 );
@@ -175,10 +175,10 @@ export default function ReceiptVouchersPage() {
 
         setSidebarContent({
             actions: (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem', width: '100%' }}>
                     {/* 🛡️ حماية الإضافة */}
                     <SecureAction module="receipt_vouchers" action="create">
-                        <button onClick={logic.handleAddNew} className="btn-main-glass gold" style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '14px', fontWeight: 900 }}>
+                        <button onClick={logic.handleAddNew} className="btn-main-glass gold" style={{ background: THEME.brand.gold, color: THEME.brand.coffee, border: 'none', padding: '0.875rem', fontWeight: 900 }}>
                             سند قبض جديد
                         </button>
                     </SecureAction>
@@ -186,14 +186,14 @@ export default function ReceiptVouchersPage() {
                     {/* 🛡️ حماية التعديل */}
                     {canEdit && (
                         <SecureAction module="receipt_vouchers" action="edit">
-                            <button onClick={() => logic.handleEdit(selectedRecord)} className="btn-main-glass white" style={{ padding: '12px' }}>
+                            <button onClick={() => logic.handleEdit(selectedRecord)} className="btn-main-glass white" style={{ padding: '0.75rem' }}>
                                 تعديل السند
                             </button>
                         </SecureAction>
                     )}
 
                     {selectedCount > 0 && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '10px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '0.625rem', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.9375rem' }}>
                             <span style={{ fontSize: 'var(--fs-xs)', color: THEME.brand.gold, fontWeight: 900, textAlign: 'center' }}>إجراءات جماعية ({selectedCount})</span>
                             
                             {/* 🛡️ حماية الترحيل والإلغاء والتصحيح المجمع */}
@@ -218,17 +218,17 @@ export default function ReceiptVouchersPage() {
                 </div>
             ),
             summary: (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div className="summary-glass-card" style={{ borderColor: THEME.brand.gold, padding: '15px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div className="summary-glass-card" style={{ borderColor: THEME.brand.gold, padding: '0.9375rem' }}>
                         <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي التحصيلات</span>
                         <div style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.brand.gold}}>{formatCurrency(logic.kpis.totalAmount)}</div>
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px' }}>
-                        <div className="summary-glass-card" style={{ borderColor: THEME.success, padding: '10px', textAlign: 'center' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.625rem' }}>
+                        <div className="summary-glass-card" style={{ borderColor: THEME.success, padding: '0.625rem', textAlign: 'center' }}>
                             <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#64748b'}}>مُرحّل</span>
                             <div style={{fontSize:'var(--fs-lg)', fontWeight:900, color: THEME.success}}>{logic.kpis.posted}</div>
                         </div>
-                        <div className="summary-glass-card" style={{ borderColor: '#f59e0b', padding: '10px', textAlign: 'center' }}>
+                        <div className="summary-glass-card" style={{ borderColor: '#f59e0b', padding: '0.625rem', textAlign: 'center' }}>
                             <span style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#64748b'}}>معلق</span>
                             <div style={{fontSize:'var(--fs-lg)', fontWeight:900, color: '#f59e0b'}}>{logic.kpis.pending}</div>
                         </div>
@@ -236,13 +236,13 @@ export default function ReceiptVouchersPage() {
                 </div>
             ),
             customFilters: (
-                <div style={{ marginTop: '10px' }}>
+                <div style={{ marginTop: '0.625rem' }}>
                     <input 
                         type="text"
                         placeholder="بحث برقم السند، العميل..."
                         value={logic.globalSearch}
                         onChange={(e) => logic.setGlobalSearch(e.target.value)}
-                        style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontWeight: 700, outline: 'none' }}
+                        style={{ width: '100%', padding: '0.875rem', borderRadius: '12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', fontWeight: 700, outline: 'none' }}
                         onFocus={(e) => e.target.style.borderColor = THEME.brand.gold}
                         onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.2)'}
                     />
@@ -283,7 +283,7 @@ export default function ReceiptVouchersPage() {
                             }
                         }} 
                     />
-                    <div style={{ padding: '20px', display: 'flex', justifyContent: 'center' }}>
+                    <div style={{ padding: '1.25rem', display: 'flex', justifyContent: 'center' }}>
                         <PaginationPanel totalItems={logic.allFiltered.length} currentPage={logic.currentPage} rowsPerPage={logic.rowsPerPage} onPageChange={logic.setCurrentPage} onRowsChange={logic.setRowsPerPage} />
                     </div>
                 </div>
@@ -302,7 +302,7 @@ export default function ReceiptVouchersPage() {
                     background: 'rgba(44, 34, 30, 0.5)',
                     backdropFilter: 'blur(20px) saturate(180%) brightness(0.8)',
                     WebkitBackdropFilter: 'blur(20px) saturate(180%) brightness(0.8)',
-                    padding: '40px 20px',
+                    padding: '2.5rem 1.25rem',
                     overflowY: 'auto',
                     direction: 'rtl'
                 }}>
@@ -315,7 +315,7 @@ export default function ReceiptVouchersPage() {
                         background: 'rgba(255, 255, 255, 0.95)', 
                         borderRadius: '14px', 
                         width: '100%', 
-                        maxWidth: '980px', 
+                        maxWidth: '61.25rem', 
                         position: 'relative', 
                         zIndex: 10,
                         margin: 'auto', 
@@ -340,13 +340,13 @@ export default function ReceiptVouchersPage() {
                     position: 'fixed', inset: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', 
                     background: 'rgba(44, 34, 30, 0.5)', backdropFilter: 'blur(10px)', direction: 'rtl'
                 }}>
-                    <div className="cinematic-scroll phi-modal-panel" style={{ background: 'white', borderRadius: '14px', width: '100%', maxWidth: '500px', padding: '30px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', zIndex: 10 }}>
-                        <h3 style={{ margin: '0 0 10px 0', color: THEME.brand.coffee, fontWeight: 900 }}>التصحيح المجمع للحسابات</h3>
-                        <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginBottom: '20px', fontWeight: 800 }}>
+                    <div className="cinematic-scroll phi-modal-panel" style={{ background: 'white', borderRadius: '14px', width: '100%', maxWidth: '31.25rem', padding: '1.875rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', zIndex: 10 }}>
+                        <h3 style={{ margin: '0 0 0.625rem 0', color: THEME.brand.coffee, fontWeight: 900 }}>التصحيح المجمع للحسابات</h3>
+                        <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginBottom: '1.25rem', fontWeight: 800 }}>
                             سيتم تطبيق التعديلات على ({logic.selectedIds.length}) سند مسودة.
                         </p>
                         
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
                             <SmartCombo 
                                 label="حساب الخزينة / البنك (للتعديل)" 
                                 table="accounts" 
@@ -361,11 +361,11 @@ export default function ReceiptVouchersPage() {
                             />
                         </div>
 
-                        <div style={{ display: 'flex', gap: '10px', marginTop: '30px' }}>
-                            <button onClick={logic.handleBulkFixSave} disabled={logic.isSaving} style={{ flex: 2, background: THEME.brand.gold, color: 'white', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
+                        <div style={{ display: 'flex', gap: '0.625rem', marginTop: '1.875rem' }}>
+                            <button onClick={logic.handleBulkFixSave} disabled={logic.isSaving} style={{ flex: 2, background: THEME.brand.gold, color: 'white', border: 'none', padding: '0.875rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
                                 {logic.isSaving ? 'جاري الحفظ...' : 'تطبيق التعديل'}
                             </button>
-                            <button onClick={() => logic.setIsBulkFixModalOpen(false)} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '14px', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
+                            <button onClick={() => logic.setIsBulkFixModalOpen(false)} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '0.875rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
                                 إلغاء
                             </button>
                         </div>

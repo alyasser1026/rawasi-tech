@@ -100,12 +100,12 @@ export default function WelcomeHomePage() {
         <div className="welcome-page-wrapper">
             <style>{`
                 .welcome-page-wrapper {
-                    padding: 30px;
+                    padding: 1.875rem;
                     direction: rtl;
-                    min-height: calc(100vh - 80px);
+                    min-height: calc(100vh - 5rem);
                     display: flex;
                     flex-direction: column;
-                    gap: 30px;
+                    gap: 1.875rem;
                     background: radial-gradient(circle at top right, rgba(194,65,12, 0.05), transparent 400px),
                                 radial-gradient(circle at bottom left, rgba(39,39,42, 0.03), transparent 400px);
                 }
@@ -120,7 +120,7 @@ export default function WelcomeHomePage() {
                     backdrop-filter: blur(25px);
                     border: 1px solid rgba(255,255,255,1);
                     border-radius: 14px;
-                    padding: 50px 40px;
+                    padding: 3.125rem 2.5rem;
                     text-align: center;
                     box-shadow: 0 15px 50px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255,255,255,0.5);
                     animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -128,7 +128,7 @@ export default function WelcomeHomePage() {
                     overflow: hidden;
                 }
                 .hero-glass-card::before {
-                    content: ''; position: absolute; top: 0; right: 0; left: 0; height: 5px;
+                    content: ''; position: absolute; top: 0; right: 0; left: 0; height: 0.3125rem;
                     background: linear-gradient(90deg, ${THEME.goldAccent}, ${THEME.coffeeDark});
                 }
 
@@ -136,28 +136,28 @@ export default function WelcomeHomePage() {
                     font-size: var(--fs-3xl);
                     font-weight: 900;
                     color: ${THEME.coffeeDark};
-                    margin: 0 0 15px 0;
+                    margin: 0 0 0.9375rem 0;
                     letter-spacing: -1px;
                 }
                 
-                .welcome-profile-hint { margin: -10px 0 24px; font-size: var(--fs-sm); color: #687180; }
+                .welcome-profile-hint { margin: -0.625rem 0 1.5rem; font-size: var(--fs-sm); color: #687180; }
                 .welcome-profile-hint a { color: #c2410c; font-weight: 800; text-decoration: none; }
                 .welcome-profile-hint a:hover { text-decoration: underline; }
                 .welcome-subtitle {
                     color: #64748b;
                     font-size: var(--fs-xl);
                     font-weight: 700;
-                    max-width: 600px;
-                    margin: 0 auto 40px auto;
+                    max-width: 37.5rem;
+                    margin: 0 auto 2.5rem auto;
                     line-height: 1.7;
                     font-style: italic;
                 }
 
                 .modules-grid {
                     display: grid;
-                    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-                    gap: 20px;
-                    max-width: 1100px;
+                    grid-template-columns: repeat(auto-fill, minmax(11.25rem, 1fr));
+                    gap: 1.25rem;
+                    max-width: 68.75rem;
                     margin: 0 auto;
                 }
 
@@ -165,7 +165,7 @@ export default function WelcomeHomePage() {
                     background: white;
                     border: 1px solid #f1f5f9;
                     border-radius: 14px;
-                    padding: 30px 20px;
+                    padding: 1.875rem 1.25rem;
                     text-align: center;
                     text-decoration: none;
                     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -173,7 +173,7 @@ export default function WelcomeHomePage() {
                     display: flex;
                     flex-direction: column;
                     align-items: center;
-                    gap: 15px;
+                    gap: 0.9375rem;
                     position: relative;
                     overflow: hidden;
                 }
@@ -190,7 +190,7 @@ export default function WelcomeHomePage() {
                 .module-card:hover::after { opacity: 1; }
                 
                 .module-icon {
-                    width: 70px; height: 70px;
+                    width: 4.375rem; height: 4.375rem;
                     background: #f8fafc;
                     border-radius: 50%;
                     display: flex; align-items: center; justify-content: center;
@@ -208,8 +208,8 @@ export default function WelcomeHomePage() {
                     background: transparent;
                     border: 2px dashed #cbd5e1;
                     border-radius: 14px;
-                    padding: 30px 20px;
-                    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px;
+                    padding: 1.875rem 1.25rem;
+                    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.9375rem;
                     cursor: pointer; transition: 0.3s;
                 }
                 .add-fav-card:hover {
@@ -229,29 +229,29 @@ export default function WelcomeHomePage() {
                     animation: fadeIn 0.3s ease;
                 }
                 .fav-modal {
-                    background: white; border-radius: 14px; width: 90%; max-width: 700px; max-height: 85vh;
+                    background: white; border-radius: 14px; width: 90%; max-width: 43.75rem; max-height: 85vh;
                     display: flex; flex-direction: column; overflow: hidden;
                     box-shadow: 0 25px 50px rgba(0,0,0,0.25);
                     animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                 }
                 .fav-modal-header {
-                    padding: 20px 25px; border-bottom: 1px solid #f1f5f9;
+                    padding: 1.25rem 1.5625rem; border-bottom: 1px solid #f1f5f9;
                     display: flex; justify-content: space-between; align-items: center;
                     background: #f8fafc;
                 }
                 .fav-modal-content {
-                    padding: 25px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px;
+                    padding: 1.5625rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;
                 }
                 .fav-modal-footer {
-                    padding: 20px 25px; border-top: 1px solid #f1f5f9;
-                    display: flex; justify-content: flex-end; gap: 10px; background: #f8fafc;
+                    padding: 1.25rem 1.5625rem; border-top: 1px solid #f1f5f9;
+                    display: flex; justify-content: flex-end; gap: 0.625rem; background: #f8fafc;
                 }
                 
-                .fav-group-title { font-weight: 900; color: ${THEME.coffeeDark}; margin-bottom: 10px; font-size: var(--fs-lg); border-bottom: 2px solid #f1f5f9; padding-bottom: 5px; }
-                .fav-items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+                .fav-group-title { font-weight: 900; color: ${THEME.coffeeDark}; margin-bottom: 0.625rem; font-size: var(--fs-lg); border-bottom: 2px solid #f1f5f9; padding-bottom: 0.3125rem; }
+                .fav-items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)); gap: 0.625rem; }
                 
                 .fav-item-check {
-                    display: flex; align-items: center; gap: 10px; padding: 12px 15px;
+                    display: flex; align-items: center; gap: 0.625rem; padding: 0.75rem 0.9375rem;
                     border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: 0.2s;
                 }
                 .fav-item-check:hover { background: #f8fafc; border-color: #cbd5e1; }
@@ -261,18 +261,18 @@ export default function WelcomeHomePage() {
                 @keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
                 @media (max-width: 768px) {
-                    .hero-glass-card { padding: 30px 20px; border-radius: 14px; }
+                    .hero-glass-card { padding: 1.875rem 1.25rem; border-radius: 14px; }
                     .welcome-title { font-size: var(--fs-2xl); }
                     .welcome-subtitle { font-size: var(--fs-md); }
-                    .modules-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-                    .module-card { padding: 20px 10px; }
-                    .module-icon { width: 50px; height: 50px; font-size: var(--fs-2xl); }
+                    .modules-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+                    .module-card { padding: 1.25rem 0.625rem; }
+                    .module-icon { width: 3.125rem; height: 3.125rem; font-size: var(--fs-2xl); }
                     .module-title { font-size: var(--fs-md); }
                 }
             `}</style>
 
             <div className="hero-glass-card">
-                <div style={{ display: 'inline-block', padding: '8px 20px', background: `${THEME.goldAccent}20`, color: THEME.coffeeDark, borderRadius: '14px', fontWeight: 900, fontSize: 'var(--fs-md)', marginBottom: '20px' }}>
+                <div style={{ display: 'inline-block', padding: '0.5rem 1.25rem', background: `${THEME.goldAccent}20`, color: THEME.coffeeDark, borderRadius: '14px', fontWeight: 900, fontSize: 'var(--fs-md)', marginBottom: '1.25rem' }}>
                     {roleTitle}
                 </div>
 
@@ -280,7 +280,7 @@ export default function WelcomeHomePage() {
                 <p className="welcome-subtitle">{quote}</p>
                 {!permsLoading && !displayName.hasProfileName && <p className="welcome-profile-hint">لم تُكمل اسمك في الملف الشخصي بعد. <Link href="/profile">أكمل بياناتك</Link> ليظهر اسمك في التحيات والتقارير.</p>}
 
-                <div style={{ textAlign: 'right', marginBottom: '15px' }}>
+                <div style={{ textAlign: 'right', marginBottom: '0.9375rem' }}>
                     <h2 style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.coffeeDark }}>الصفحات المفضلة</h2>
                 </div>
 
@@ -325,7 +325,7 @@ export default function WelcomeHomePage() {
                                                     >
                                                         <div style={{ display: 'inline-flex', color: THEME.goldAccent }}><MenuIcon id={item.id} size={20} /></div>
                                                         <div style={{ fontWeight: 800, color: '#1e293b', flex: 1 }}>{item.title}</div>
-                                                        <div style={{ width: '20px', height: '20px', borderRadius: '5px', border: `2px solid ${isSelected ? THEME.goldAccent : '#cbd5e1'}`, background: isSelected ? THEME.goldAccent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '5px', border: `2px solid ${isSelected ? THEME.goldAccent : '#cbd5e1'}`, background: isSelected ? THEME.goldAccent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                             {isSelected && <span style={{ color: 'white', fontSize: 'var(--fs-md)' }}>✔</span>}
                                                         </div>
                                                     </div>
@@ -337,15 +337,15 @@ export default function WelcomeHomePage() {
                             })}
                         </div>
                         <div className="fav-modal-footer">
-                            <button onClick={() => setIsFavModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '12px', border: 'none', background: '#e2e8f0', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>إلغاء</button>
-                            <button onClick={saveFavorites} style={{ padding: '10px 20px', borderRadius: '12px', border: 'none', background: THEME.goldAccent, color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: `0 4px 10px ${THEME.goldAccent}60` }}>حفظ التغييرات</button>
+                            <button onClick={() => setIsFavModalOpen(false)} style={{ padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', background: '#e2e8f0', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>إلغاء</button>
+                            <button onClick={saveFavorites} style={{ padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', background: THEME.goldAccent, color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: `0 4px 10px ${THEME.goldAccent}60` }}>حفظ التغييرات</button>
                         </div>
                     </div>
                 </div>
             )}
 
             {/* Footer */}
-            <div style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 700, fontSize: 'var(--fs-sm)', paddingBottom: '10px' }}>
+            <div style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 700, fontSize: 'var(--fs-sm)', paddingBottom: '0.625rem' }}>
                 تم تأمين الجلسة الخاصة بك | فاي تك © {new Date().getFullYear()}
             </div>
         </div>

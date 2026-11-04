@@ -16,33 +16,33 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
     >
       <style>{`
         .glass-input-field {
-            width: 100%; padding: 14px; border-radius: 12px;
+            width: 100%; padding: 0.875rem; border-radius: 12px;
             background: rgba(248, 250, 252, 0.8);
             border: 1px solid #e2e8f0;
             outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
         }
         .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 4px rgba(194,65,12, 0.15); }
-        .modal-label { font-size: var(--fs-sm); font-weight: 900; color: ${THEME.coffeeDark}; display: block; margin-bottom: 8px; }
+        .modal-label { font-size: var(--fs-sm); font-weight: 900; color: ${THEME.coffeeDark}; display: block; margin-bottom: 0.5rem; }
         
-        .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(194,65,12, 0.4); }
+        .btn-glass-save { background: linear-gradient(135deg, ${THEME.goldAccent}, ${THEME.coffeeMain}); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(194,65,12, 0.4); }
         .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
         
-        .btn-glass-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
+        .btn-glass-cancel { background: #f1f5f9; color: #64748b; border: none; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
         .btn-glass-cancel:hover { background: #e2e8f0; transform: translateY(-2px); }
       `}</style>
 
       <div 
         className="cinematic-scroll phi-modal-panel"
         onClick={(e) => e.stopPropagation()} 
-        style={{ background: 'rgba(255, 255, 255, 0.95)', padding: '40px', borderRadius: '14px', width: '100%', maxWidth: '850px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', position: 'relative' }}
+        style={{ background: 'rgba(255, 255, 255, 0.95)', padding: '2.5rem', borderRadius: '14px', width: '100%', maxWidth: '53.125rem', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', position: 'relative' }}
       >
-        <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '25px', fontSize: 'var(--fs-2xl)', borderBottom: `2px dashed ${THEME.goldAccent}50`, paddingBottom: '15px' }}>
+        <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '1.5625rem', fontSize: 'var(--fs-2xl)', borderBottom: `2px dashed ${THEME.goldAccent}50`, paddingBottom: '0.9375rem' }}>
             {isEditing ? 'تعديل بيانات المشروع' : 'إضافة مشروع / عقار جديد'}
         </h2>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
            
-           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '20px' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.25rem' }}>
              <div>
                 <label className="modal-label"># كود المشروع</label>
                 <input type="text" className="glass-input-field" placeholder="مثال: PRJ-001" value={logic.currentProjectRecord.project_code || ''} onChange={e => logic.setCurrentProjectRecord({...logic.currentProjectRecord, project_code: e.target.value})} />
@@ -53,7 +53,7 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
              </div>
            </div>
 
-           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', background: '#fffbeb', padding: '20px', borderRadius: '14px', border: '1px solid #fef3c7' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', background: '#fffbeb', padding: '1.25rem', borderRadius: '14px', border: '1px solid #fef3c7' }}>
              <div>
                 <label className="modal-label" style={{ color: '#b45309' }}>نوع النموذج (Type)</label>
                 <input type="text" className="glass-input-field" placeholder="مثال: Type A, فيلا مزدوجة..." value={logic.currentProjectRecord.unit_type || ''} onChange={e => logic.setCurrentProjectRecord({...logic.currentProjectRecord, unit_type: e.target.value})} />
@@ -64,7 +64,7 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
              </div>
            </div>
 
-           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem' }}>
              <div>
                 <label className="modal-label">العميل المالك</label>
                 <select className="glass-input-field" value={logic.currentProjectRecord.client_id || ''} onChange={e => logic.setCurrentProjectRecord({...logic.currentProjectRecord, client_id: e.target.value})}>
@@ -79,7 +79,7 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
            </div>
 
            {/* 🚀 الحقول الجديدة: المهندس المسئول */}
-           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', background: '#f8fafc', padding: '15px', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', background: '#f8fafc', padding: '0.9375rem', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
              <div>
                 <label className="modal-label" style={{ color: '#0f172a' }}>المهندس المسئول (بالموقع)</label>
                 <input type="text" className="glass-input-field" placeholder="اسم المهندس المشرف" value={logic.currentProjectRecord.engineer_in_charge || ''} onChange={e => logic.setCurrentProjectRecord({...logic.currentProjectRecord, engineer_in_charge: e.target.value})} />
@@ -90,7 +90,7 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
              </div>
            </div>
 
-           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem' }}>
              <div>
                 <label className="modal-label">تاريخ البدء</label>
                 <input type="date" className="glass-input-field" value={logic.currentProjectRecord.start_date || ''} onChange={e => logic.setCurrentProjectRecord({...logic.currentProjectRecord, start_date: e.target.value})} />
@@ -101,7 +101,7 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
              </div>
            </div>
 
-           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', background: '#f8fafc', padding: '20px', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.25rem, 1fr))', gap: '1.25rem', background: '#f8fafc', padding: '1.25rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
              <div>
                 <label className="modal-label" style={{ color: '#0369a1' }}>قيمة التعاقد</label>
                 <input type="number" className="glass-input-field" placeholder="0.00" value={logic.currentProjectRecord.contract_value || ''} onChange={e => logic.setCurrentProjectRecord({...logic.currentProjectRecord, contract_value: e.target.value})} />
@@ -116,7 +116,7 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
              </div>
            </div>
 
-           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '20px' }}>
+           <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1.25rem' }}>
              <div>
                 <label className="modal-label">عنوان الموقع</label>
                 <input type="text" className="glass-input-field" placeholder="عنوان العقار بالتفصيل" value={logic.currentProjectRecord.location_address || ''} onChange={e => logic.setCurrentProjectRecord({...logic.currentProjectRecord, location_address: e.target.value})} />
@@ -142,7 +142,7 @@ export default function AddProjectModal({ logic, mounted }: { logic: any, mounte
            </div>
 
            {/* 💾 أزرار الحفظ والإلغاء */}
-           <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+           <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '1.25rem' }}>
              <button onClick={logic.handleSaveProject} disabled={logic.isSavingProject} className="btn-glass-save" style={{ flex: 2 }}>
                {logic.isSavingProject ? 'جاري الحفظ...' : (isEditing ? 'حفظ التعديلات' : 'اعتماد المشروع')}
              </button>

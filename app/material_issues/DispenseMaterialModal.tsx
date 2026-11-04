@@ -136,27 +136,27 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     z-index: 999999999 !important;
                 }
                 .glass-input-field {
-                    width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8);
+                    width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8);
                     outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
                 }
                 .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#c2410c'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); width: 100%; }
+                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); width: 100%; }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
             `}</style>
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
-                width: '700px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
-                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', 
+                width: '43.75rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
+                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', 
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'25px', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'15px'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5625rem', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'0.9375rem'}}>
                     <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>صرف مباشر للموقع</h2>
                 </div>
 
-                <div style={{ background: 'white', padding: '15px', borderRadius: '16px', marginBottom: '25px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ background: 'white', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <div style={{ fontWeight: 900, color: '#0f172a', fontSize: 'var(--fs-xl)' }}>{invoiceItem?.item_name}</div>
-                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginTop: '4px', fontWeight: 800 }}>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginTop: '0.25rem', fontWeight: 800 }}>
                             المتاح للصرف: {' '}
                             {isFetchingQty ? (
                                 <span style={{color: '#f59e0b', animation: 'pulse 1.5s infinite'}}>جاري حساب الرصيد...</span>
@@ -171,7 +171,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
                     <div style={{ zIndex: 100, position: 'relative' }}>
                         <SmartCombo 
                             label="المشروع المستفيد *" 
@@ -222,7 +222,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                     <div style={{ zIndex: 85, position: 'relative' }}>
                         {/* 🚀 السحب باستخدام الكمبوننت الذكي المخصص للبند */}
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>
                             تحميل على بند (BOQ)
                         </label>
                         <ProjectBoqCombo 
@@ -241,13 +241,13 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '20px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>تاريخ الصرف</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>تاريخ الصرف</label>
                         <input type="date" className="glass-input-field" value={formData.issue_date} onChange={e => setFormData({...formData, issue_date: e.target.value})} />
                     </div>
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '6px' }}>الكمية المراد صرفها</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>الكمية المراد صرفها</label>
                         <input 
                             type="number" 
                             max={realAvailableQty} 
@@ -261,14 +261,14 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', padding: '15px', borderRadius: '16px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
-                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '15px' }}>التوجيه المحاسبي (جهة التحميل) *</label>
-                    <div style={{ display: 'flex', gap: '20px', marginBottom: formData.issue_type === 'صرف لمقاول' ? '15px' : '0' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>
+                <div style={{ background: '#f8fafc', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: '1px solid #e2e8f0' }}>
+                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.9375rem' }}>التوجيه المحاسبي (جهة التحميل) *</label>
+                    <div style={{ display: 'flex', gap: '1.25rem', marginBottom: formData.issue_type === 'صرف لمقاول' ? '0.9375rem' : '0' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>
                             <input type="radio" checked={formData.issue_type === 'استهلاك مباشر'} onChange={() => setFormData({...formData, issue_type: 'استهلاك مباشر', subcontractor_id: ''})} style={{ accentColor: THEME.primary, transform: 'scale(1.2)' }} />
                             استهلاك للشركة (تكلفة مشروع)
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)', color: '#be123c' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)', color: '#be123c' }}>
                             <input type="radio" checked={formData.issue_type === 'صرف لمقاول'} onChange={() => setFormData({...formData, issue_type: 'صرف لمقاول'})} style={{ accentColor: '#be123c', transform: 'scale(1.2)' }} />
                             تحميل كسلفة على مقاول
                         </label>
@@ -288,8 +288,8 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                                 onSelect={(v: any) => setFormData({ ...formData, subcontractor_id: v?.id || '', subcontractor_name: v?.name || '' })} 
                             />
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '10px' }}>
-                                <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#166534', padding: '12px', borderRadius: '12px', textAlign: 'center', fontWeight: 900, border: '1px dashed rgba(34, 197, 94, 0.4)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.625rem' }}>
+                                <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#166534', padding: '0.75rem', borderRadius: '12px', textAlign: 'center', fontWeight: 900, border: '1px dashed rgba(34, 197, 94, 0.4)' }}>
                                     سيتم تحميل التكلفة مباشرة على حساب تكلفة المشروع
                                 </div>
                             </div>
@@ -297,16 +297,16 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}20, transparent)`, padding: '15px 20px', borderRadius: '16px', border: `1px dashed ${THEME.goldAccent || '#c2410c'}`, marginBottom: '25px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}20, transparent)`, padding: '0.9375rem 1.25rem', borderRadius: '16px', border: `1px dashed ${THEME.goldAccent || '#c2410c'}`, marginBottom: '1.5625rem' }}>
                     <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: THEME.coffeeDark }}>إجمالي قيمة الصرف:</div>
                     <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: THEME.goldAccent || '#c2410c' }}>{formatCurrency(totalPrice)}</div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '15px' }}>
+                <div style={{ display: 'flex', gap: '0.9375rem' }}>
                     <button onClick={handleSubmit} disabled={isSaving || isFetchingQty} className="btn-glass-save" style={{ flex: 2, opacity: isFetchingQty ? 0.7 : 1 }}>
                         {isSaving ? 'جاري الصرف والترحيل...' : 'تأكيد الصرف والترحيل'}
                     </button>
-                    <button onClick={onClose} disabled={isSaving} style={{ flex: 1, padding: '16px', background: '#e2e8f0', color: '#475569', borderRadius: '16px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>
+                    <button onClick={onClose} disabled={isSaving} style={{ flex: 1, padding: '1rem', background: '#e2e8f0', color: '#475569', borderRadius: '16px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>
                         إلغاء
                     </button>
                 </div>

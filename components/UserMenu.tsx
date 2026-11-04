@@ -113,10 +113,10 @@ export default function UserCard() {
 
                 /* 2. الزرار العملاق (أكبر حجم في السيستم) */
                 .imperial-trigger {
-                    display: flex; align-items: center; gap: 20px;
+                    display: flex; align-items: center; gap: 1.25rem;
                     background: rgba(255, 255, 255, 0.95);
                     backdrop-filter: blur(40px);
-                    padding: 10px 30px 10px 15px; 
+                    padding: 0.625rem 1.875rem 0.625rem 0.9375rem; 
                     border-radius: 100px;
                     border: 3px solid rgba(255,255,255,0.8);
                     cursor: pointer; 
@@ -144,14 +144,14 @@ export default function UserCard() {
                     font-size: var(--fs-sm); font-weight: 900; 
                     color: white; 
                     background: linear-gradient(135deg, #c2410c 0%, #52525b 100%);
-                    padding: 6px 15px; border-radius: 15px; 
-                    margin-top: 6px; display: flex; align-items: center; gap: 8px;
+                    padding: 0.375rem 0.9375rem; border-radius: 15px; 
+                    margin-top: 0.375rem; display: flex; align-items: center; gap: 0.5rem;
                     width: fit-content; align-self: flex-end;
                     box-shadow: 0 10px 20px rgba(82,82,91, 0.3);
                 }
 
                 /* 4. صورة الصقر */
-                .avatar-frame-grand { position: relative; width: 75px; height: 75px; flex-shrink: 0; }
+                .avatar-frame-grand { position: relative; width: 4.6875rem; height: 4.6875rem; flex-shrink: 0; }
                 .avatar-frame-grand img { 
                     width: 100%; height: 100%; 
                     border-radius: 50%; object-fit: cover; 
@@ -160,7 +160,7 @@ export default function UserCard() {
                     box-shadow: 0 15px 30px rgba(0,0,0,0.2);
                 }
                 .magical-glow {
-                    position: absolute; inset: -10px;
+                    position: absolute; inset: -0.625rem;
                     background: conic-gradient(from 0deg, transparent, ${THEME.goldAccent}, transparent);
                     border-radius: 50%;
                     animation: rotateGlow 3s linear infinite;
@@ -171,8 +171,8 @@ export default function UserCard() {
                     to { transform: rotate(360deg); }
                 }
                 .active-pulse-grand { 
-                    position: absolute; bottom: 5px; right: 5px; 
-                    width: 20px; height: 20px; 
+                    position: absolute; bottom: 0.3125rem; right: 0.3125rem; 
+                    width: 1.25rem; height: 1.25rem; 
                     background: #10b981; 
                     border: 4px solid white; border-radius: 50%; 
                     box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
@@ -181,10 +181,10 @@ export default function UserCard() {
 
                 /* 5. القائمة المنسدلة (Supreme Menu) */
                 .imperial-dropdown {
-                    position: absolute; top: 110%; left: 0; width: 340px;
+                    position: absolute; top: 110%; left: 0; width: 21.25rem;
                     background: rgba(255, 255, 255, 0.98);
                     backdrop-filter: blur(30px);
-                    border-radius: 14px; padding: 25px;
+                    border-radius: 14px; padding: 1.5625rem;
                     box-shadow: 0 40px 100px rgba(0,0,0,0.3);
                     border: 2px solid rgba(194,65,12, 0.2);
                     z-index: 100000; 
@@ -196,13 +196,13 @@ export default function UserCard() {
                     to { opacity: 1; transform: scale(1) rotate(0) translateY(0); }
                 }
 
-                .dropdown-title-c { padding-bottom: 20px; text-align: right; }
+                .dropdown-title-c { padding-bottom: 1.25rem; text-align: right; }
                 .dropdown-title-c p { margin: 0; font-weight: 1000; font-size: var(--fs-xl); color: #0f172a; }
                 .dropdown-title-c small { color: ${THEME.goldAccent}; font-weight: 800; font-size: var(--fs-sm); }
 
                 .dropdown-link-g {
-                    display: flex; align-items: center; gap: 20px;
-                    padding: 18px 25px; border-radius: 14px;
+                    display: flex; align-items: center; gap: 1.25rem;
+                    padding: 1.125rem 1.5625rem; border-radius: 14px;
                     font-size: var(--fs-lg); font-weight: 900; color: #475569;
                     cursor: pointer; transition: 0.3s; direction: rtl;
                 }
@@ -210,18 +210,18 @@ export default function UserCard() {
                     background: #f8fafc; color: ${THEME.goldAccent}; 
                     transform: translateX(-15px) scale(1.05); 
                 }
-                .logout-grand { color: #ef4444 !important; background: #fff1f2; margin-top: 20px; }
+                .logout-grand { color: #ef4444 !important; background: #fff1f2; margin-top: 1.25rem; }
                 .logout-grand:hover { background: #ef4444 !important; color: white !important; }
                 
-                .imperial-divider { height: 3px; background: #f1f5f9; margin: 15px 0; border-radius: 10px; }
-                .skeleton-grand { width: 280px; height: 100px; background: rgba(238, 238, 238, 0.5); border-radius: 100px; animation: pulse 2s infinite; }
+                .imperial-divider { height: 0.1875rem; background: #f1f5f9; margin: 0.9375rem 0; border-radius: 10px; }
+                .skeleton-grand { width: 17.5rem; height: 6.25rem; background: rgba(238, 238, 238, 0.5); border-radius: 100px; animation: pulse 2s infinite; }
 
                 /* 6. التجاوب مع الموبايل (إخفاء النص وترك الصورة السيادية فقط) */
                 @media (max-width: 768px) {
                     .hidden-on-mobile-text { display: none !important; }
-                    .imperial-trigger { padding: 5px; gap: 0; border-radius: 50%; border: none; background: transparent; box-shadow: none; }
-                    .avatar-frame-grand { width: 55px; height: 55px; }
-                    .imperial-dropdown { width: 280px; left: auto; right: -10px; transform-origin: top right; }
+                    .imperial-trigger { padding: 0.3125rem; gap: 0; border-radius: 50%; border: none; background: transparent; box-shadow: none; }
+                    .avatar-frame-grand { width: 3.4375rem; height: 3.4375rem; }
+                    .imperial-dropdown { width: 17.5rem; left: auto; right: -0.625rem; transform-origin: top right; }
                 }
             `}</style>
         </div>

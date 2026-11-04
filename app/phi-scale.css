@@ -1,17 +1,21 @@
 /* Phi Tech — type and spacing scale.
-   Every size is in rem, so the whole interface follows one root size:
-   16px on screens up to ~1440px wide, growing smoothly to 18px on very wide screens (≈2400px+),
-   and following the user's own browser font setting. Use these tokens instead of fixed px values. */
+   Every size is in rem, so the whole interface follows one root size that changes with the window:
+   15px on small laptops (≈1024px), 16px at ~1440px, 17px at ~1920px and 18px on very wide screens,
+   16px on phones and tablets, always relative to the user's own browser font setting.
+   Use these tokens instead of fixed px values. */
 
 html {
-  font-size: clamp(100%, 0.8125rem + 0.2083vw, 112.5%);
+  font-size: clamp(0.9375rem, 0.798rem + 0.218vw, 1.125rem);
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+@media screen and (max-width: 800px) {
+  html { font-size: 100%; }
 }
 
 :root {
   /* Font sizes — 8 steps; the smallest is 12px because Arabic glyphs need it to stay readable. */
-  --fs-xs: 0.75rem;                                        /* 12px  labels, hints, badges */
+  --fs-xs: max(12px, 0.75rem);                             /* 12px+ labels, hints, badges (never below 12px) */
   --fs-sm: 0.8125rem;                                      /* 13px  secondary text, table cells */
   --fs-md: 0.875rem;                                       /* 14px  body text, inputs, buttons */
   --fs-lg: 1rem;                                           /* 16px  section titles, emphasised text */

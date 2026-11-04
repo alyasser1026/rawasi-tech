@@ -77,16 +77,16 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                     z-index: 999999999 !important;
                 }
                 .glass-input-field {
-                    width: 100%; padding: 10px 12px; border-radius: 12px;
+                    width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px;
                     background: rgba(255, 255, 255, 0.65);
                     border: 1px solid rgba(255, 255, 255, 0.8);
                     outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
                 }
                 .glass-input-field:focus { background: #fff; border-color: ${THEME.accent}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
                 
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
+                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
-                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 12px 20px; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
+                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
                 .btn-glass-cancel:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
                 
                 .lines-table-container {
@@ -100,13 +100,13 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
             `}</style>
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
-                width: '1100px', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
-                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '40px', 
+                width: '68.75rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
+                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', 
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
                 
                 {/* 📝 الهيدر */}
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'30px', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'15px'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.875rem', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'0.9375rem'}}>
                     <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>إصدار فاتورة توريد خامات</h2>
                     <div style={{ textAlign: 'left' }}>
                         <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
@@ -115,7 +115,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                 </div>
 
                 {/* 📋 البيانات الأساسية (Master Data) */}
-                <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '25px', marginBottom: '25px' }}>
+                <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.5625rem', marginBottom: '1.5625rem' }}>
                     <div style={{ zIndex: 100, position: 'relative' }}>
                         <SmartCombo 
                             label="المشروع المستفيد (مركز التكلفة) *" 
@@ -137,21 +137,21 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '25px', background: '#f8fafc', padding: '25px', borderRadius: '14px', marginBottom: '25px', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5625rem', background: '#f8fafc', padding: '1.5625rem', borderRadius: '14px', marginBottom: '1.5625rem', border: '1px solid #e2e8f0' }}>
                     <div style={{ zIndex: 80, position: 'relative' }}>
                         <SmartCombo label="حساب التوجيه المالي (مثال: خامات العملاء) *" icon="💳" table="accounts" displayCol="name" searchCols="name,code" value={logic.invoiceData.account_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, account_id: v?.id })} />
                     </div>
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '6px' }}>تاريخ الفاتورة *</label>
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.375rem' }}>تاريخ الفاتورة *</label>
                         <input type="date" className="glass-input-field" value={logic.invoiceData.exp_date} onChange={e => logic.setInvoiceData({...logic.invoiceData, exp_date: e.target.value})} />
                     </div>
                 </div>
                 
                 {/* 🚀 قسم إدخال الأصناف (متعدد الأصناف مع الـ BOQ والكتالوج الموحد) */}
-                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '20px', borderRadius: '14px', marginBottom: '25px', border: `1px dashed ${THEME.accent}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '1.25rem', borderRadius: '14px', marginBottom: '1.5625rem', border: `1px dashed ${THEME.accent}` }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.9375rem' }}>
                         <h3 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.brand?.coffee || THEME.coffeeDark }}>أصناف الفاتورة (الخامات) وربطها بالبنود</h3>
-                        <button onClick={logic.handleAddItem} style={{ background: 'white', color: THEME.primary, border: `1px solid ${THEME.accent}`, padding: '8px 15px', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
+                        <button onClick={logic.handleAddItem} style={{ background: 'white', color: THEME.primary, border: `1px solid ${THEME.accent}`, padding: '0.5rem 0.9375rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
                             إضافة صنف آخر
                         </button>
                     </div>
@@ -160,20 +160,20 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
                             <thead style={{ background: THEME.primary, color: 'white' }}>
                                 <tr>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', textAlign: 'right', width: '25%' }}>اسم الخامة (من الدليل الموحد)</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '25%' }}>توجيه لبند (BOQ) - اختياري</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '10%' }}>الكمية</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '10%' }}>الوحدة</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '12%' }}>السعر</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '13%' }}>الإجمالي</th>
-                                    <th style={{ padding: '12px', fontSize: 'var(--fs-xs)', width: '5%' }}>حذف</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', textAlign: 'right', width: '25%' }}>اسم الخامة (من الدليل الموحد)</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '25%' }}>توجيه لبند (BOQ) - اختياري</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '10%' }}>الكمية</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '10%' }}>الوحدة</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '12%' }}>السعر</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '13%' }}>الإجمالي</th>
+                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '5%' }}>حذف</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {logic.invoiceData.items.map((item: any, idx: number) => (
                                     <tr key={idx} className="item-row">
                                         {/* 🚀 السحب من الدليل الموحد */}
-                                        <td style={{ padding: '10px', zIndex: 70 - idx, position: 'relative' }}>
+                                        <td style={{ padding: '0.625rem', zIndex: 70 - idx, position: 'relative' }}>
                                             <SmartCombo 
                                                 table="material_items" 
                                                 searchCols="item_name,item_code"
@@ -198,7 +198,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                                         </td>
                                         
                                         {/* 🚀 تم التعديل: القراءة من boq_id لضمان الربط السليم */}
-                                        <td style={{ padding: '10px', zIndex: 60 - idx, position: 'relative' }}>
+                                        <td style={{ padding: '0.625rem', zIndex: 60 - idx, position: 'relative' }}>
                                             <ProjectBoqCombo 
                                                 projectId={logic.invoiceData.project_id} 
                                                 value={item.boq_id} /* 🎯 تم التعديل ليقرأ boq_id بدلاً من boq_item_id */
@@ -209,22 +209,22 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                                             />
                                         </td>
 
-                                        <td style={{ padding: '10px' }}>
-                                            <input type="number" placeholder="0" className="glass-input-field" style={{ padding: '8px', textAlign: 'center', background: 'white' }} value={item.quantity} onChange={e => logic.handleItemChange(idx, 'quantity', e.target.value)} />
+                                        <td style={{ padding: '0.625rem' }}>
+                                            <input type="number" placeholder="0" className="glass-input-field" style={{ padding: '0.5rem', textAlign: 'center', background: 'white' }} value={item.quantity} onChange={e => logic.handleItemChange(idx, 'quantity', e.target.value)} />
                                         </td>
-                                        <td style={{ padding: '10px' }}>
-                                            <input type="text" placeholder="طن" className="glass-input-field" style={{ padding: '8px', textAlign: 'center', background: 'white' }} value={item.unit} onChange={e => logic.handleItemChange(idx, 'unit', e.target.value)} />
+                                        <td style={{ padding: '0.625rem' }}>
+                                            <input type="text" placeholder="طن" className="glass-input-field" style={{ padding: '0.5rem', textAlign: 'center', background: 'white' }} value={item.unit} onChange={e => logic.handleItemChange(idx, 'unit', e.target.value)} />
                                         </td>
-                                        <td style={{ padding: '10px' }}>
-                                            <input type="number" placeholder="0.00" className="glass-input-field" style={{ padding: '8px', textAlign: 'center', background: 'white' }} value={item.unit_price} onChange={e => logic.handleItemChange(idx, 'unit_price', e.target.value)} />
+                                        <td style={{ padding: '0.625rem' }}>
+                                            <input type="number" placeholder="0.00" className="glass-input-field" style={{ padding: '0.5rem', textAlign: 'center', background: 'white' }} value={item.unit_price} onChange={e => logic.handleItemChange(idx, 'unit_price', e.target.value)} />
                                         </td>
-                                        <td style={{ padding: '10px', fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-lg)' }}>
+                                        <td style={{ padding: '0.625rem', fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-lg)' }}>
                                             {formatCurrency(item.total_price)}
                                         </td>
-                                        <td style={{ padding: '10px' }}>
+                                        <td style={{ padding: '0.625rem' }}>
                                             {idx > 0 ? (
                                                 <button onClick={() => logic.handleRemoveItem(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby || '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xl)' }} title="حذف الصنف"><Trash2 size={15} aria-hidden="true" /></button>
-                                            ) : <div style={{width: '24px'}}></div>}
+                                            ) : <div style={{width: '1.5rem'}}></div>}
                                         </td>
                                     </tr>
                                 ))}
@@ -234,44 +234,44 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                 </div>
 
                 {/* 📂 المرفقات والكاميرا */}
-                <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-                    <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '18px', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', color: '#475569', transition: '0.2s' }}>
+                <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.875rem' }}>
+                    <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '1.125rem', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', color: '#475569', transition: '0.2s' }}>
                         إرفاق مستند (صورة الفاتورة / إذن الاستلام)
                     </button>
-                    <button onClick={isCameraOpen ? takePhoto : startCamera} style={{ flex: 1, padding: '18px', background: '#1e293b', color: 'white', borderRadius: '16px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
+                    <button onClick={isCameraOpen ? takePhoto : startCamera} style={{ flex: 1, padding: '1.125rem', background: '#1e293b', color: 'white', borderRadius: '16px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
                         {isCameraOpen ? 'التقاط الفاتورة' : 'مسح بالكاميرا'}
                     </button>
                 </div>
                 
                 {imagePreview && !isCameraOpen && (
-                    <div style={{ marginBottom: '20px', position: 'relative', display: 'inline-block' }}>
-                        <img src={imagePreview} alt="مرفق الفاتورة" style={{ maxHeight: '200px', borderRadius: '16px', border: `2px solid ${THEME.accent}` }} />
-                        <button onClick={() => { setImagePreview(null); logic.setInvoiceData({ ...logic.invoiceData, attachments: [] }); }} style={{ position: 'absolute', top: '-10px', right: '-10px', background: THEME.danger || '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '30px', height: '30px', cursor: 'pointer', fontWeight: 'bold' }}>X</button>
+                    <div style={{ marginBottom: '1.25rem', position: 'relative', display: 'inline-block' }}>
+                        <img src={imagePreview} alt="مرفق الفاتورة" style={{ maxHeight: '12.5rem', borderRadius: '16px', border: `2px solid ${THEME.accent}` }} />
+                        <button onClick={() => { setImagePreview(null); logic.setInvoiceData({ ...logic.invoiceData, attachments: [] }); }} style={{ position: 'absolute', top: '-0.625rem', right: '-0.625rem', background: THEME.danger || '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '1.875rem', height: '1.875rem', cursor: 'pointer', fontWeight: 'bold' }}>X</button>
                     </div>
                 )}
                 
-                {isCameraOpen && <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '14px', marginBottom: '20px', border: `4px solid ${THEME.accent}` }} />}
+                {isCameraOpen && <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '14px', marginBottom: '1.25rem', border: `4px solid ${THEME.accent}` }} />}
                 <canvas ref={canvasRef} style={{ display: 'none' }} />
                 <input type="file" ref={fileInputRef} hidden accept="image/*,.pdf" onChange={(e) => { const file = e.target.files?.[0]; if(file) { const r = new FileReader(); r.onload = () => { setImagePreview(r.result as string); logic.setInvoiceData({ ...logic.invoiceData, attachments: [r.result] }); }; r.readAsDataURL(file); } }} />
 
                 {/* 🚀 الملخص المالي السفلي */}
-                <div className="responsive-summary-grid" style={{ marginTop: '30px', padding: '25px', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '20px', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                <div className="responsive-summary-grid" style={{ marginTop: '1.875rem', padding: '1.5625rem', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.25rem, 1fr))', gap: '1.25rem', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>عدد الأصناف المُسجلة</div>
                         <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{logic.invoiceData.items.length}</div>
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '15px', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
                         <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الكميات</div>
                         <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{totalQuantity}</div>
                     </div>
-                    <div style={{ background: `linear-gradient(135deg, ${THEME.accent}40, transparent)`, padding: '15px', borderRadius: '16px', border: `1px solid ${THEME.accent}80`, boxShadow: `0 0 20px ${THEME.accent}20` }}>
+                    <div style={{ background: `linear-gradient(135deg, ${THEME.accent}40, transparent)`, padding: '0.9375rem', borderRadius: '16px', border: `1px solid ${THEME.accent}80`, boxShadow: `0 0 20px ${THEME.accent}20` }}>
                         <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.accentLight || '#fcd34d' }}>الصافي النهائي للتوريد</div>
                         <div style={{ fontSize: 'var(--fs-3xl)', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(logic.grandTotal)}</div>
                     </div>
                 </div>
 
                 {/* أزرار الحفظ والإغلاق */}
-                <div className="responsive-actions" style={{ display: 'flex', gap: '20px', marginTop: '35px' }}>
+                <div className="responsive-actions" style={{ display: 'flex', gap: '1.25rem', marginTop: '2.1875rem' }}>
                     <button onClick={logic.handleSave} className="btn-glass-save" style={{ flex: 2 }}>
                         حفظ وترحيل الخامات للمشروع
                     </button>

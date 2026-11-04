@@ -66,7 +66,7 @@ export default function ProjectBoqCombo({ projectId, value, initialDisplay, onSe
                     cursor: (!projectId || isLoading) ? 'not-allowed' : 'pointer', 
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
                     opacity: (!projectId) ? 0.6 : 1,
-                    height: '46px', padding: '0 12px'
+                    height: '2.875rem', padding: '0 0.75rem'
                 }}
             >
                 <span style={{ fontWeight: 800, color: displayVal ? '#1e293b' : '#94a3b8', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -76,18 +76,18 @@ export default function ProjectBoqCombo({ projectId, value, initialDisplay, onSe
             </div>
             
             {isOpen && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: `1px solid ${THEME.sandDark || '#e2e8f0'}`, borderRadius: '12px', marginTop: '8px', zIndex: 9999, boxShadow: '0 10px 30px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-                    <div style={{ padding: '8px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: `1px solid ${THEME.sandDark || '#e2e8f0'}`, borderRadius: '12px', marginTop: '0.5rem', zIndex: 9999, boxShadow: '0 10px 30px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
+                    <div style={{ padding: '0.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                         <input 
                             type="text" 
                             placeholder="بحث باسم البند أو الكود..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#1e293b' }}
+                            style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#1e293b' }}
                         />
                     </div>
-                    <div className="custom-scrollbar" style={{ maxHeight: '200px', overflowY: 'auto', padding: '5px' }}>
+                    <div className="custom-scrollbar" style={{ maxHeight: '12.5rem', overflowY: 'auto', padding: '0.3125rem' }}>
                         {filteredOptions.length > 0 ? filteredOptions.map((opt: any) => (
                             <div 
                                 key={opt.id} 
@@ -97,14 +97,14 @@ export default function ProjectBoqCombo({ projectId, value, initialDisplay, onSe
                                     setIsOpen(false);
                                     setSearch('');
                                 }}
-                                style={{ padding: '10px', cursor: 'pointer', borderRadius: '6px', fontSize: 'var(--fs-sm)', fontWeight: 800, color: value === (opt.boq_item_id || opt.id) ? THEME.primary : '#334155', background: value === (opt.boq_item_id || opt.id) ? '#eff6ff' : 'transparent', borderBottom: '1px solid #f1f5f9', transition: '0.2s' }}
+                                style={{ padding: '0.625rem', cursor: 'pointer', borderRadius: '6px', fontSize: 'var(--fs-sm)', fontWeight: 800, color: value === (opt.boq_item_id || opt.id) ? THEME.primary : '#334155', background: value === (opt.boq_item_id || opt.id) ? '#eff6ff' : 'transparent', borderBottom: '1px solid #f1f5f9', transition: '0.2s' }}
                                 onMouseEnter={(e) => e.currentTarget.style.background = '#f8fafc'}
                                 onMouseLeave={(e) => e.currentTarget.style.background = value === (opt.boq_item_id || opt.id) ? '#eff6ff' : 'transparent'}
                             >
                                 {opt.display_name || opt.work_item}
                             </div>
                         )) : (
-                            <div style={{ padding: '15px', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد بنود/أوامر شغل لهذا العقار</div>
+                            <div style={{ padding: '0.9375rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد بنود/أوامر شغل لهذا العقار</div>
                         )}
                     </div>
                 </div>

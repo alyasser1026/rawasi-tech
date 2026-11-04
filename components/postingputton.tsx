@@ -37,7 +37,7 @@ export function OperationsCenter({
 
   // ستايل موحد للأزرار لضمان المظهر الاحترافي
   const btnStyle = {
-    padding: '14px',
+    padding: '0.875rem',
     borderRadius: '12px',
     fontWeight: 700,
     cursor: 'pointer',
@@ -46,7 +46,7 @@ export function OperationsCenter({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '10px',
+    gap: '0.625rem',
     fontSize: 'var(--fs-md)'
   };
 
@@ -56,12 +56,12 @@ export function OperationsCenter({
       <button 
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          position: 'fixed', top: '120px', right: isOpen ? '380px' : '0px',
+          position: 'fixed', top: '7.5rem', right: isOpen ? '23.75rem' : '0px',
           zIndex: 1001, background: THEME.primary, color: 'white',
-          border: 'none', padding: '15px 20px', borderRadius: '12px 0 0 12px',
+          border: 'none', padding: '0.9375rem 1.25rem', borderRadius: '12px 0 0 12px',
           cursor: 'pointer', transition: 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
           boxShadow: '-5px 0 20px rgba(0,0,0,0.2)', fontWeight: 900,
-          display: 'flex', alignItems: 'center', gap: '10px'
+          display: 'flex', alignItems: 'center', gap: '0.625rem'
         }}
       >
         {isOpen ? '◀' : 'مركز العمليات'}
@@ -74,24 +74,24 @@ export function OperationsCenter({
 
       {/* الجانب الأيمن (Sidebar) */}
       <div style={{
-        position: 'fixed', top: 0, right: isOpen ? 0 : '-400px',
-        width: '380px', height: '100vh', zIndex: 1000,
+        position: 'fixed', top: 0, right: isOpen ? 0 : '-25rem',
+        width: '23.75rem', height: '100vh', zIndex: 1000,
         background: 'white', borderLeft: '1px solid rgba(0,0,0,0.05)',
         boxShadow: '-15px 0 50px rgba(0,0,0,0.1)',
-        padding: '40px 25px', display: 'flex', flexDirection: 'column', gap: '25px',
+        padding: '2.5rem 1.5625rem', display: 'flex', flexDirection: 'column', gap: '1.5625rem',
         transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)', direction: 'rtl', overflowY: 'auto' 
       }}>
         
-        <div style={{ borderBottom: `2px solid ${THEME.primary}20`, paddingBottom: '15px' }}>
+        <div style={{ borderBottom: `2px solid ${THEME.primary}20`, paddingBottom: '0.9375rem' }}>
             <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-xl)' }}>{title}</h2>
         </div>
 
         {/* كروت المؤشرات المالية */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
             {kpis.map((kpi, idx) => (
-              <div key={idx} style={{ background: '#f8fafc', padding: '15px', borderRadius: '16px', border: `1px solid ${kpi.color}20`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={idx} style={{ background: '#f8fafc', padding: '0.9375rem', borderRadius: '16px', border: `1px solid ${kpi.color}20`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <div>
-                      <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 'bold', color: '#64748b', marginBottom: '4px' }}>{kpi.title}</div>
+                      <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 'bold', color: '#64748b', marginBottom: '0.25rem' }}>{kpi.title}</div>
                       <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: kpi.color }}>{kpi.value}</div>
                   </div>
                   <div style={{ display: 'inline-flex', opacity: 0.8 }}><PhiIcon value={kpi.icon} size={22} /></div>
@@ -100,20 +100,20 @@ export function OperationsCenter({
         </div>
 
         {/* أدوات البحث والفلترة */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
             <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary }}>البحث السريع</label>
             <input 
               type="text" 
               placeholder="ابحث برقم السند أو اسم العميل..."
               value={searchQuery} 
               onChange={(e) => onSearchChange(e.target.value)} 
-              style={{ padding: '12px', borderRadius: '12px', border: `1.5px solid #e2e8f0`, outline: 'none', fontSize: 'var(--fs-md)' }} 
+              style={{ padding: '0.75rem', borderRadius: '12px', border: `1.5px solid #e2e8f0`, outline: 'none', fontSize: 'var(--fs-md)' }} 
             />
             {filtersSlot}
         </div>
 
         {/* 🚀 أدوات الترحيل والعمليات */}
-        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
             
             <button onClick={() => { onAdd(); setIsOpen(false); }} style={{ ...btnStyle, background: THEME.primary, color: 'white', fontSize: 'var(--fs-lg)', boxShadow: `0 8px 15px ${THEME.primary}30` }}>
               إضافة جديد
@@ -121,23 +121,23 @@ export function OperationsCenter({
 
             {/* صندوق الأدوات الجماعية - يظهر فقط عند الاختيار */}
             <div style={{ 
-              maxHeight: hasSelection ? '500px' : '0', 
+              maxHeight: hasSelection ? '31.25rem' : '0', 
               opacity: hasSelection ? 1 : 0,
               overflow: 'hidden', 
               transition: 'all 0.5s ease', 
               display: 'flex', 
               flexDirection: 'column', 
-              gap: '12px',
-              padding: hasSelection ? '20px 15px' : '0 15px',
+              gap: '0.75rem',
+              padding: hasSelection ? '1.25rem 0.9375rem' : '0 0.9375rem',
               background: '#f1f5f9',
               borderRadius: '14px',
               border: '1px solid #e2e8f0'
             }}>
-                <div style={{ textAlign: 'center', fontSize: 'var(--fs-sm)', color: THEME.primary, fontWeight: 900, marginBottom: '5px' }}>
+                <div style={{ textAlign: 'center', fontSize: 'var(--fs-sm)', color: THEME.primary, fontWeight: 900, marginBottom: '0.3125rem' }}>
                    أدوات التحكم ({selectedCount}) سجل مختار
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.625rem' }}>
                     <button onClick={onPostSelected} style={{ ...btnStyle, background: THEME.success, color: 'white' }}>
                       ترحيل
                     </button>
@@ -172,16 +172,16 @@ export function OperationsCenter({
 // مكون الترقيم (Pagination) بتصميم متناسق
 export function PaginationPanel({ totalItems, currentPage, rowsPerPage, onPageChange, onRowsChange }: any) {
   const totalPages = Math.ceil(totalItems / rowsPerPage) || 1;
-  const btnActionStyle = { padding: '8px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 'var(--fs-sm)', fontWeight: 600 };
+  const btnActionStyle = { padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', cursor: 'pointer', fontSize: 'var(--fs-sm)', fontWeight: 600 };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '15px 25px', borderRadius: '16px', marginTop: '20px', direction: 'rtl', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: '1px solid #f1f5f9' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '0.9375rem 1.5625rem', borderRadius: '16px', marginTop: '1.25rem', direction: 'rtl', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', border: '1px solid #f1f5f9' }}>
       <div style={{ fontSize: 'var(--fs-md)', color: '#64748b' }}>
         <span>عرض: </span>
         <select 
           value={rowsPerPage} 
           onChange={(e) => onRowsChange(Number(e.target.value))}
-          style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #e2e8f0', margin: '0 5px', outline: 'none' }}
+          style={{ padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #e2e8f0', margin: '0 0.3125rem', outline: 'none' }}
         >
           <option value={50}>50</option>
           <option value={100}>100</option>
@@ -189,7 +189,7 @@ export function PaginationPanel({ totalItems, currentPage, rowsPerPage, onPageCh
         <span> من {totalItems} سجل</span>
       </div>
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <button 
           onClick={() => onPageChange(currentPage - 1)} 
           disabled={currentPage === 1}
@@ -198,7 +198,7 @@ export function PaginationPanel({ totalItems, currentPage, rowsPerPage, onPageCh
           السابق
         </button>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3125rem' }}>
           <span style={{ color: THEME.primary, fontWeight: 900 }}>{currentPage}</span>
           <span style={{ color: '#cbd5e1' }}>/</span>
           <span style={{ color: '#64748b' }}>{totalPages}</span>

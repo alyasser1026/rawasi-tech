@@ -76,10 +76,10 @@ export default function RawasiFilterSidebar({
 
         .filter-sidebar-v3 {
           position: fixed;
-          top: 20px;
+          top: 1.25rem;
           right: ${isOpen ? '20px' : '-320px'};
-          bottom: 20px;
-          width: 280px;
+          bottom: 1.25rem;
+          width: 17.5rem;
           background: rgba(25, 20, 15, 0.4);
           border-radius: 14px;
           box-shadow: -10px 15px 40px rgba(0,0,0,0.3);
@@ -92,14 +92,14 @@ export default function RawasiFilterSidebar({
         }
 
         .filter-toggle-tab-v3 {
-          position: fixed; top: 0; right: 0; bottom: 0; height: 100vh; width: 24px;
+          position: fixed; top: 0; right: 0; bottom: 0; height: 100vh; width: 1.5rem;
           background: rgba(15, 12, 10, 0.4); backdrop-filter: blur(5px);
-          color: #fff; padding: 0 4px; border-radius: 0;
+          color: #fff; padding: 0 0.25rem; border-radius: 0;
           cursor: pointer; z-index: 998; display: flex; align-items: center; justify-content: center;
           box-shadow: -2px 0 10px rgba(0,0,0,0.4); border-left: 1px solid rgba(255,255,255,0.1);
           transition: all 0.3s ease; opacity: ${isOpen ? 0 : 1}; pointer-events: ${isOpen ? 'none' : 'auto'};
         }
-        .filter-toggle-tab-v3:hover { background: rgba(15, 12, 10, 0.8); width: 28px; }
+        .filter-toggle-tab-v3:hover { background: rgba(15, 12, 10, 0.8); width: 1.75rem; }
 
         .vertical-text {
           writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 900;
@@ -108,51 +108,51 @@ export default function RawasiFilterSidebar({
         }
 
         .filter-content {
-          width: 280px; padding: 25px 20px; opacity: 1;
+          width: 17.5rem; padding: 1.5625rem 1.25rem; opacity: 1;
           display: flex; flex-direction: column; height: 100%; overflow-y: auto; overflow-x: hidden;
         }
 
-        .filter-content::-webkit-scrollbar { width: 4px; }
+        .filter-content::-webkit-scrollbar { width: 0.25rem; }
         .filter-content::-webkit-scrollbar-track { background: transparent; }
         .filter-content::-webkit-scrollbar-thumb { background: ${accentColor}44; border-radius: 10px; }
         .filter-content::-webkit-scrollbar-thumb:hover { background: ${accentColor}88; }
 
         .sidebar-logo-container {
-          text-align: center; margin-bottom: 30px; padding-bottom: 20px;
+          text-align: center; margin-bottom: 1.875rem; padding-bottom: 1.25rem;
           border-bottom: 1px solid rgba(255,255,255,0.1); flex-shrink: 0;
         }
         
-        .sidebar-logo-img { width: 100px; height: auto; filter: drop-shadow(0 0 10px rgba(0,0,0,0.2)); }
+        .sidebar-logo-img { width: 6.25rem; height: auto; filter: drop-shadow(0 0 10px rgba(0,0,0,0.2)); }
 
         .action-grid {
-          display: flex; flex-direction: column; gap: 8px; margin-bottom: 25px; flex-shrink: 0;
+          display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.5625rem; flex-shrink: 0;
         }
 
         .filter-section-title {
           font-size: var(--fs-xs); font-weight: 900; color: ${accentColor};
-          margin-bottom: 12px; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0;
+          margin-bottom: 0.75rem; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0;
         }
 
         .filter-input {
           width: 100%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 10px; padding: 10px; color: white; margin-bottom: 15px; outline: none;
+          border-radius: 10px; padding: 0.625rem; color: white; margin-bottom: 0.9375rem; outline: none;
           font-size: var(--fs-sm); transition: 0.3s;
         }
         .filter-input:focus { border-color: ${accentColor}; background: rgba(255,255,255,0.15); box-shadow: 0 0 15px rgba(194,65,12, 0.2); }
 
         .pin-btn-sidebar {
-          position: absolute; left: 15px; top: 15px; background: ${isPinned ? accentColor : 'rgba(255,255,255,0.1)'};
-          border: 1px solid rgba(255,255,255,0.1); width: 32px; height: 32px; border-radius: 8px;
+          position: absolute; left: 0.9375rem; top: 0.9375rem; background: ${isPinned ? accentColor : 'rgba(255,255,255,0.1)'};
+          border: 1px solid rgba(255,255,255,0.1); width: 2rem; height: 2rem; border-radius: 8px;
           cursor: pointer; display: flex; align-items: center; justify-content: center;
           transition: 0.3s; z-index: 1001; backdrop-filter: blur(5px);
         }
         
         /* تنسيق التاريخ */
-        .date-label { font-size: var(--fs-xs); color: #94a3b8; display: block; margin-bottom: 5px; }
+        .date-label { font-size: var(--fs-xs); color: #94a3b8; display: block; margin-bottom: 0.3125rem; }
 
         @media (max-width: 768px) {
           .filter-sidebar-v3 {
-            width: 280px !important;
+            width: 17.5rem !important;
             right: ${isOpen ? '0' : '-100%'} !important;
             border-left: none !important;
             top: 0 !important;
@@ -162,8 +162,8 @@ export default function RawasiFilterSidebar({
             width: 100% !important;
           }
           .filter-toggle-tab-v3 {
-            width: 24px !important;
-            padding: 0 4px !important;
+            width: 1.5rem !important;
+            padding: 0 0.25rem !important;
             top: 0 !important;
             height: 100vh !important;
             border-radius: 0 !important;
@@ -191,11 +191,11 @@ export default function RawasiFilterSidebar({
         <div className="filter-content">
           <div className="sidebar-logo-container">
             <img src={logoPath} alt="Logo" className="sidebar-logo-img" />
-            <h2 style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '10px', color: accentColor }}>{title}</h2>
+            <h2 style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '0.625rem', color: accentColor }}>{title}</h2>
           </div>
           
           {(summarySlot || summary) && (
-            <div style={{ marginBottom: '25px' }}>
+            <div style={{ marginBottom: '1.5625rem' }}>
               {summary || summarySlot}
             </div>
           )}
@@ -219,7 +219,7 @@ export default function RawasiFilterSidebar({
               onChange={(e) => handleSearch(e.target.value)} 
             />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.125rem' }}>
               <div style={{ position: 'relative' }}>
                 <label className="date-label">من تاريخ</label>
                 <input 
@@ -250,12 +250,12 @@ export default function RawasiFilterSidebar({
             </div>
 
             {(extraFilters || customFilters) && (
-              <div className="animate-fade-in" style={{ marginTop: '20px' }}>
+              <div className="animate-fade-in" style={{ marginTop: '1.25rem' }}>
                 {extraFilters || customFilters}
               </div>
             )}
           </div>
-          <div style={{ textAlign: 'center', opacity: 0.4, fontSize: 'var(--fs-xs)', marginTop: '20px', paddingBottom: '20px' }}>
+          <div style={{ textAlign: 'center', opacity: 0.4, fontSize: 'var(--fs-xs)', marginTop: '1.25rem', paddingBottom: '1.25rem' }}>
             نظام فاي تك الموحد v2.0
           </div>
         </div>

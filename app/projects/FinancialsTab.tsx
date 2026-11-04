@@ -51,9 +51,9 @@ export default function FinancialsTab({ logic }: { logic: any }) {
                     // 🎨 تمييز لوني دقيق (أحمر للالتزامات، أخضر للإيرادات)
                     color: row.display_type?.includes('مقاول') ? '#991B1B' : '#166534',
                     backgroundColor: row.display_type?.includes('مقاول') ? '#FEE2E2' : '#DCFCE7',
-                    padding: '2px 6px',
+                    padding: '2px 0.375rem',
                     borderRadius: '4px',
-                    marginTop: '4px',
+                    marginTop: '0.25rem',
                     display: 'inline-block'
                 }}>
                     {row.display_type || 'مستخلص عام'}
@@ -74,7 +74,7 @@ export default function FinancialsTab({ logic }: { logic: any }) {
         render: (row: any) => {
             const isSub = row.display_type?.includes('مقاول');
             return (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3125rem' }}>
                     <span style={{ fontWeight: 900, fontSize: 'var(--fs-lg)', color: isSub ? THEME.danger : THEME.success }}>
                         {isSub ? '-' : '+'}{formatCurrency(row.final_amount || 0)}
                     </span>
@@ -91,34 +91,34 @@ export default function FinancialsTab({ logic }: { logic: any }) {
   return (
     <div>
       {/* 📊 كروت التحليل المالي الشامل للسيولة النقدية */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '15px', marginBottom: '25px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13.75rem, 1fr))', gap: '0.9375rem', marginBottom: '1.5625rem' }}>
         
         {/* كارت 1: الإيرادات */}
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '14px', borderBottom: `4px solid ${THEME.success}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>إيرادات المشروع (مستخلصات العميل)</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '1.25rem', borderRadius: '14px', borderBottom: `4px solid ${THEME.success}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '0.3125rem' }}>إيرادات المشروع (مستخلصات العميل)</span>
           <strong style={{ fontSize: 'var(--fs-2xl)', color: THEME.success, fontWeight: 900 }}>{formatCurrency(financialStats.clientTotal)}</strong>
         </div>
         
         {/* كارت 2: التزامات الباطن */}
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '14px', borderBottom: `4px solid ${THEME.danger}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>التزامات العقود (مقاولي الباطن)</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '1.25rem', borderRadius: '14px', borderBottom: `4px solid ${THEME.danger}`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '0.3125rem' }}>التزامات العقود (مقاولي الباطن)</span>
           <strong style={{ fontSize: 'var(--fs-2xl)', color: THEME.danger, fontWeight: 900 }}>{formatCurrency(financialStats.subContractorTotal)}</strong>
         </div>
 
         {/* كارت 3: التكاليف الداخلية اللي سحبناها من اللوجيك */}
-        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '14px', borderBottom: `4px solid #ea580c`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '5px' }}>تكاليف داخلية (مواد + عمالة + ABC)</span>
+        <div style={{ backgroundColor: 'rgba(255,255,255,0.6)', backdropFilter: 'blur(10px)', padding: '1.25rem', borderRadius: '14px', borderBottom: `4px solid #ea580c`, boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginBottom: '0.3125rem' }}>تكاليف داخلية (مواد + عمالة + ABC)</span>
           <strong style={{ fontSize: 'var(--fs-2xl)', color: '#ea580c', fontWeight: 900 }}>{formatCurrency(financialStats.internalCosts)}</strong>
         </div>
 
         {/* كارت 4: الخلاصة والتدفق النقدي الفعلي */}
         <div style={{ 
             backgroundColor: financialStats.netCashFlow >= 0 ? '#F0FDF4' : '#FEF2F2', 
-            backdropFilter: 'blur(10px)', padding: '20px', borderRadius: '14px', 
+            backdropFilter: 'blur(10px)', padding: '1.25rem', borderRadius: '14px', 
             borderBottom: `4px solid ${financialStats.netCashFlow >= 0 ? '#166534' : '#991B1B'}`, 
             boxShadow: '0 4px 15px rgba(0,0,0,0.02)' 
         }}>
-          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: financialStats.netCashFlow >= 0 ? '#166534' : '#991B1B', fontWeight: 900, marginBottom: '5px' }}>
+          <span style={{ display: 'block', fontSize: 'var(--fs-xs)', color: financialStats.netCashFlow >= 0 ? '#166534' : '#991B1B', fontWeight: 900, marginBottom: '0.3125rem' }}>
             التدفق النقدي (السيولة المتاحة)
           </span>
           <strong style={{ fontSize: 'var(--fs-2xl)', color: financialStats.netCashFlow >= 0 ? '#166534' : '#991B1B', fontWeight: 900, direction: 'ltr' }}>
@@ -129,14 +129,14 @@ export default function FinancialsTab({ logic }: { logic: any }) {
       </div>
 
       {/* 📋 جدول الحسابات الموحد */}
-      <div className="glass-card" style={{ padding: '15px' }}>
-        <div style={{ marginBottom: '15px', padding: '0 10px' }}>
+      <div className="glass-card" style={{ padding: '0.9375rem' }}>
+        <div style={{ marginBottom: '0.9375rem', padding: '0 0.625rem' }}>
             <h3 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-lg)' }}>سجل المستخلصات والمطالبات المالية</h3>
         </div>
 
         {financials.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8', fontWeight: 900 }}>
-                <div style={{ fontSize: 'var(--fs-display)', marginBottom: '10px' }}><Banknote size={34} aria-hidden="true" /></div>
+            <div style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8', fontWeight: 900 }}>
+                <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.625rem' }}><Banknote size={34} aria-hidden="true" /></div>
                 لا توجد مستخلصات مالية أو فواتير مسجلة لهذا المشروع حتى الآن.
             </div>
         ) : (

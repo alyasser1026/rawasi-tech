@@ -363,38 +363,38 @@ export default function PartnerBalancesPage() {
             <MasterPage title="أرصدة الشركاء وكشف الحساب" subtitle="اضغط على أي حساب لعرض تفاصيل حركاته (Ledger)">
                 
                 <style>{`
-                    .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.5); border-radius: 16px; padding: 20px; box-shadow: 0 4px 25px rgba(0,0,0,0.03); margin-bottom: 20px; }
-                    .stat-card { flex: 1; padding: 20px; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
+                    .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.5); border-radius: 16px; padding: 1.25rem; box-shadow: 0 4px 25px rgba(0,0,0,0.03); margin-bottom: 1.25rem; }
+                    .stat-card { flex: 1; padding: 1.25rem; border-radius: 12px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
                     .stat-card.credit { background: linear-gradient(135deg, #10b98115, #05966915); border: 1px solid #10b98130; }
                     .stat-card.debit { background: linear-gradient(135deg, #f59e0b15, #d9770615); border: 1px solid #f59e0b30; }
                     .stat-card.net { background: linear-gradient(135deg, #3b82f615, #1d4ed815); border: 1px solid #3b82f630; }
                     
                     .smart-table { width: 100%; border-collapse: collapse; text-align: right; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-                    .smart-table th { background: #f8fafc; padding: 15px; font-size: var(--fs-sm); font-weight: 900; color: #334155; border-bottom: 2px solid #e2e8f0; }
-                    .smart-table td { padding: 15px; font-size: var(--fs-md); font-weight: 800; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
+                    .smart-table th { background: #f8fafc; padding: 0.9375rem; font-size: var(--fs-sm); font-weight: 900; color: #334155; border-bottom: 2px solid #e2e8f0; }
+                    .smart-table td { padding: 0.9375rem; font-size: var(--fs-md); font-weight: 800; border-bottom: 1px solid #f1f5f9; color: #1e293b; }
                     .main-row { cursor: pointer; transition: 0.2s; }
                     .main-row:hover { background: #f8fafc; }
                     .main-row.inactive { opacity: 0.6; background: #fafafa; }
                     
-                    .ledger-container { background: #f8fafc; padding: 15px 30px; border-bottom: 2px solid #cbd5e1; box-shadow: inset 0 4px 6px -4px rgba(0,0,0,0.05); }
+                    .ledger-container { background: #f8fafc; padding: 0.9375rem 1.875rem; border-bottom: 2px solid #cbd5e1; box-shadow: inset 0 4px 6px -4px rgba(0,0,0,0.05); }
                     .ledger-table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
-                    .ledger-table th { background: #475569; color: white; padding: 10px; font-size: var(--fs-sm); }
-                    .ledger-table td { padding: 10px; font-size: var(--fs-sm); border-bottom: 1px solid #f1f5f9; }
+                    .ledger-table th { background: #475569; color: white; padding: 0.625rem; font-size: var(--fs-sm); }
+                    .ledger-table td { padding: 0.625rem; font-size: var(--fs-sm); border-bottom: 1px solid #f1f5f9; }
 
-                    .arrow-icon { display: inline-block; transition: transform 0.3s; margin-left: 10px; color: #94a3b8; }
+                    .arrow-icon { display: inline-block; transition: transform 0.3s; margin-left: 0.625rem; color: #94a3b8; }
                     .arrow-expanded { transform: rotate(90deg); color: #3b82f6; }
-                    .glass-input { width: 100%; padding: 10px 15px; border-radius: 10px; border: 2px solid #e2e8f0; outline: none; font-weight: 700; transition: 0.3s; background: white; }
+                    .glass-input { width: 100%; padding: 0.625rem 0.9375rem; border-radius: 10px; border: 2px solid #e2e8f0; outline: none; font-weight: 700; transition: 0.3s; background: white; }
                     .glass-input:focus { border-color: ${THEME.primary || '#3b82f6'}; }
 
-                    .btn-toggle-status { padding: 6px 10px; border-radius: 6px; font-size: var(--fs-xs); font-weight: 900; border: none; cursor: pointer; transition: 0.2s; }
+                    .btn-toggle-status { padding: 0.375rem 0.625rem; border-radius: 6px; font-size: var(--fs-xs); font-weight: 900; border: none; cursor: pointer; transition: 0.2s; }
                     .btn-toggle-status.active { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
                     .btn-toggle-status.inactive { background: #e2e8f0; color: #475569; border: 1px solid #cbd5e1; }
                     .btn-toggle-status:hover { transform: translateY(-1px); filter: brightness(0.9); }
                     
-                    .btn-print-row { padding: 6px 10px; border-radius: 6px; font-size: var(--fs-xs); font-weight: 900; background: white; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; transition: 0.2s; }
+                    .btn-print-row { padding: 0.375rem 0.625rem; border-radius: 6px; font-size: var(--fs-xs); font-weight: 900; background: white; color: #0f172a; border: 1px solid #cbd5e1; cursor: pointer; transition: 0.2s; }
                     .btn-print-row:hover { background: #f1f5f9; transform: translateY(-1px); border-color: #94a3b8; }
 
-                    .pill-btn { padding: 6px 14px; border-radius: 14px; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; border: 1px solid #cbd5e1; transition: 0.2s; background: white; color: #475569; white-space: nowrap; }
+                    .pill-btn { padding: 0.375rem 0.875rem; border-radius: 14px; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; border: 1px solid #cbd5e1; transition: 0.2s; background: white; color: #475569; white-space: nowrap; }
                     .pill-btn.active { background: ${THEME.primary || '#3b82f6'}; color: white; border-color: ${THEME.primary || '#3b82f6'}; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
                     .pill-btn:hover:not(.active) { background: #f1f5f9; }
                 `}</style>
@@ -469,7 +469,7 @@ export default function PartnerBalancesPage() {
                                                         <div style={{ color: '#94a3b8', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>كود: #{row.partner_code || '---'}</div>
                                                     </div>
                                                 </td>
-                                                <td><span style={{ background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px', fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#475569' }}>{row.partner_type}</span></td>
+                                                <td><span style={{ background: '#f1f5f9', padding: '0.25rem 0.625rem', borderRadius: '6px', fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#475569' }}>{row.partner_type}</span></td>
                                                 
                                                 {dateFrom && (
                                                     <td>
@@ -482,12 +482,12 @@ export default function PartnerBalancesPage() {
                                                 <td style={{ color: '#059669', fontWeight: 900 }}>{formatCurrency(tCredit)}</td>
                                                 <td style={{ color: '#dc2626', fontWeight: 900 }}>{formatCurrency(tDebit)}</td>
                                                 <td>
-                                                    <span style={{ background: balInfo.bg, color: balInfo.text, padding: '6px 12px', borderRadius: '8px', WebkitPrintColorAdjust: 'exact' }}>
+                                                    <span style={{ background: balInfo.bg, color: balInfo.text, padding: '0.375rem 0.75rem', borderRadius: '8px', WebkitPrintColorAdjust: 'exact' }}>
                                                         {formatCurrency(Math.abs(netBal))} {balInfo.label}
                                                     </span>
                                                 </td>
                                                 <td style={{ textAlign: 'center' }}>
-                                                    <div style={{ display: 'flex', gap: '5px', justifyContent: 'center' }}>
+                                                    <div style={{ display: 'flex', gap: '0.3125rem', justifyContent: 'center' }}>
                                                         <button 
                                                             className="btn-print-row"
                                                             title="طباعة كشف الحساب"
@@ -514,7 +514,7 @@ export default function PartnerBalancesPage() {
                                                 <tr>
                                                     <td colSpan={6} style={{ padding: 0 }}>
                                                         <div className="ledger-container">
-                                                            <div style={{ marginBottom: '10px', fontWeight: 900, color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
+                                                            <div style={{ marginBottom: '0.625rem', fontWeight: 900, color: '#334155', display: 'flex', justifyContent: 'space-between' }}>
                                                                 <span>تفاصيل كشف الحساب {dateFrom || dateTo ? '(حسب الفترة المحددة)' : ''}</span>
                                                                 <span style={{ color: '#94a3b8', fontSize: 'var(--fs-sm)' }}>{pLedger.length} حركة مسجلة</span>
                                                             </div>
@@ -551,7 +551,7 @@ export default function PartnerBalancesPage() {
                                                                                         <td style={{ color: '#059669', fontWeight: 800 }}>{c > 0 ? formatCurrency(c) : '-'}</td>
                                                                                         <td style={{ color: '#dc2626', fontWeight: 800 }}>{d > 0 ? formatCurrency(d) : '-'}</td>
                                                                                         <td style={{ fontWeight: 900, background: '#f8fafc' }}>
-                                                                                            <span style={{ color: lgBalInfo.text, background: Math.abs(runningBal) < 0.01 ? lgBalInfo.bg : 'transparent', padding: Math.abs(runningBal) < 0.01 ? '2px 8px' : '0', borderRadius: '4px' }}>
+                                                                                            <span style={{ color: lgBalInfo.text, background: Math.abs(runningBal) < 0.01 ? lgBalInfo.bg : 'transparent', padding: Math.abs(runningBal) < 0.01 ? '2px 0.5rem' : '0', borderRadius: '4px' }}>
                                                                                                 {formatCurrency(Math.abs(runningBal))} {lgBalInfo.label}
                                                                                             </span>
                                                                                         </td>
@@ -562,7 +562,7 @@ export default function PartnerBalancesPage() {
                                                                     </tbody>
                                                                 </table>
                                                             ) : (
-                                                                <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontWeight: 800 }}>لا توجد حركات معتمدة لهذا الحساب في هذه الفترة.</div>
+                                                                <div style={{ textAlign: 'center', padding: '1.25rem', color: '#94a3b8', fontWeight: 800 }}>لا توجد حركات معتمدة لهذا الحساب في هذه الفترة.</div>
                                                             )}
                                                         </div>
                                                     </td>
@@ -576,29 +576,29 @@ export default function PartnerBalancesPage() {
 
                         {/* 🚀 زراير التقسيم (Pagination) */}
                         {filteredData.length > 0 && (
-                            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', background: 'white', padding: '15px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                            <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', background: 'white', padding: '0.9375rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                                 <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: '#475569' }}>
                                     الحسابات المعروضة: <span style={{ color: THEME.primary || '#3b82f6' }}>{filteredData.length}</span> حساب
                                 </div>
-                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center' }}>
                                     <button 
                                         onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}
-                                        style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: currentPage === 1 ? '#f1f5f9' : (THEME.primary || '#3b82f6'), color: currentPage === 1 ? '#94a3b8' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                        style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: currentPage === 1 ? '#f1f5f9' : (THEME.primary || '#3b82f6'), color: currentPage === 1 ? '#94a3b8' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
                                     >السابق</button>
                                     
-                                    <span style={{ padding: '8px 20px', background: '#f8fafc', borderRadius: '8px', fontWeight: 900, border: '1px solid #e2e8f0', color: '#1e293b' }}>
+                                    <span style={{ padding: '0.5rem 1.25rem', background: '#f8fafc', borderRadius: '8px', fontWeight: 900, border: '1px solid #e2e8f0', color: '#1e293b' }}>
                                         صفحة {currentPage} من {totalPages}
                                     </span>
                                     
                                     <button 
                                         onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}
-                                        style={{ padding: '8px 20px', borderRadius: '8px', border: 'none', background: currentPage === totalPages ? '#f1f5f9' : (THEME.primary || '#3b82f6'), color: currentPage === totalPages ? '#94a3b8' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                        style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', border: 'none', background: currentPage === totalPages ? '#f1f5f9' : (THEME.primary || '#3b82f6'), color: currentPage === totalPages ? '#94a3b8' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
                                     >التالي</button>
                                 </div>
                             </div>
                         )}
                         {filteredData.length === 0 && (
-                            <div style={{ textAlign: 'center', padding: '30px', color: '#94a3b8', fontWeight: 900, background: 'white', borderRadius: '12px', marginTop: '20px' }}>
+                            <div style={{ textAlign: 'center', padding: '1.875rem', color: '#94a3b8', fontWeight: 900, background: 'white', borderRadius: '12px', marginTop: '1.25rem' }}>
                                 لا توجد حسابات أو حركات مطابقة للبحث في الفترة المحددة
                             </div>
                         )}
