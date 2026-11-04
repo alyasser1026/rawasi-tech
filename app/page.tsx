@@ -106,8 +106,6 @@ export default function WelcomeHomePage() {
                     display: flex;
                     flex-direction: column;
                     gap: 1.875rem;
-                    background: radial-gradient(circle at top right, rgba(194,65,12, 0.05), transparent 400px),
-                                radial-gradient(circle at bottom left, rgba(39,39,42, 0.03), transparent 400px);
                 }
 
                 @keyframes fadeUp {
@@ -116,35 +114,34 @@ export default function WelcomeHomePage() {
                 }
 
                 .hero-glass-card {
-                    background: rgba(255,255,255,0.7);
-                    backdrop-filter: blur(25px);
-                    border: 1px solid rgba(255,255,255,1);
-                    border-radius: 14px;
+                    background: var(--surface-card);
+                    border: none;
+                    border-radius: 28px;
                     padding: 3.125rem 2.5rem;
                     text-align: center;
-                    box-shadow: 0 15px 50px rgba(0,0,0,0.03), inset 0 0 0 1px rgba(255,255,255,0.5);
+                    box-shadow: var(--shadow-ambient);
                     animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                     position: relative;
                     overflow: hidden;
                 }
                 .hero-glass-card::before {
-                    content: ''; position: absolute; top: 0; right: 0; left: 0; height: 0.3125rem;
-                    background: linear-gradient(90deg, ${THEME.goldAccent}, ${THEME.coffeeDark});
+                    content: ''; position: absolute; top: 0; right: 10%; left: 10%; height: 2px;
+                    background: var(--specular-beam);
                 }
 
                 .welcome-title {
                     font-size: var(--fs-3xl);
                     font-weight: 900;
-                    color: ${THEME.coffeeDark};
+                    color: var(--text-primary);
                     margin: 0 0 0.9375rem 0;
                     letter-spacing: -1px;
                 }
                 
-                .welcome-profile-hint { margin: -0.625rem 0 1.5rem; font-size: var(--fs-sm); color: #687180; }
-                .welcome-profile-hint a { color: #c2410c; font-weight: 800; text-decoration: none; }
+                .welcome-profile-hint { margin: -0.625rem 0 1.5rem; font-size: var(--fs-sm); color: var(--text-secondary); }
+                .welcome-profile-hint a { color: var(--accent-main); font-weight: 800; text-decoration: none; }
                 .welcome-profile-hint a:hover { text-decoration: underline; }
                 .welcome-subtitle {
-                    color: #64748b;
+                    color: var(--text-secondary);
                     font-size: var(--fs-xl);
                     font-weight: 700;
                     max-width: 37.5rem;
@@ -162,14 +159,14 @@ export default function WelcomeHomePage() {
                 }
 
                 .module-card {
-                    background: white;
-                    border: 1px solid #f1f5f9;
-                    border-radius: 14px;
+                    background: var(--surface-card);
+                    border: none;
+                    border-radius: 22px;
                     padding: 1.875rem 1.25rem;
                     text-align: center;
                     text-decoration: none;
-                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.02);
+                    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+                    box-shadow: var(--shadow-elevation);
                     display: flex;
                     flex-direction: column;
                     align-items: center;
@@ -177,21 +174,21 @@ export default function WelcomeHomePage() {
                     position: relative;
                     overflow: hidden;
                 }
-                .module-card::after {
-                    content: ''; position: absolute; inset: 0;
-                    background: linear-gradient(135deg, rgba(194,65,12, 0.1), transparent);
-                    opacity: 0; transition: 0.3s;
+                .module-card::before {
+                    content: ''; position: absolute; top: 0; left: 15%; right: 15%; height: 1.5px;
+                    background: var(--specular-beam-soft); pointer-events: none;
                 }
                 .module-card:hover {
-                    transform: translateY(-10px) scale(1.02);
-                    box-shadow: 0 20px 40px rgba(194,65,12, 0.1);
-                    border-color: ${THEME.goldAccent};
+                    transform: translateY(-6px);
+                    box-shadow: var(--shadow-ambient);
+                    background: var(--surface-card-hover);
                 }
-                .module-card:hover::after { opacity: 1; }
                 
                 .module-icon {
                     width: 4.375rem; height: 4.375rem;
-                    background: #f8fafc;
+                    background: var(--surface-sunken);
+                    box-shadow: var(--shadow-sunken);
+                    color: var(--accent-main);
                     border-radius: 50%;
                     display: flex; align-items: center; justify-content: center;
                     font-size: var(--fs-3xl);
@@ -199,69 +196,74 @@ export default function WelcomeHomePage() {
                     position: relative; z-index: 1;
                 }
                 .module-card:hover .module-icon {
-                    background: ${THEME.goldAccent}20;
-                    transform: rotate(10deg) scale(1.15);
+                    transform: scale(1.1);
+                    color: var(--accent-bright);
                 }
-                .module-title { color: ${THEME.coffeeDark}; font-weight: 900; font-size: var(--fs-lg); margin: 0; position: relative; z-index: 1; }
+                .module-title { color: var(--text-primary); font-weight: 800; font-size: var(--fs-lg); margin: 0; position: relative; z-index: 1; }
 
                 .add-fav-card {
-                    background: transparent;
-                    border: 2px dashed #cbd5e1;
-                    border-radius: 14px;
+                    background: var(--surface-subcard);
+                    border: 1.5px dashed var(--accent-glow);
+                    border-radius: 22px;
                     padding: 1.875rem 1.25rem;
                     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.9375rem;
                     cursor: pointer; transition: 0.3s;
+                    box-shadow: var(--shadow-elevation);
                 }
                 .add-fav-card:hover {
-                    border-color: ${THEME.goldAccent};
-                    background: rgba(194,65,12, 0.05);
+                    border-color: var(--accent-main);
+                    background: var(--surface-card-hover);
                     transform: translateY(-5px);
                 }
-                .add-fav-icon { font-size: var(--fs-3xl); color: #cbd5e1; transition: 0.3s; }
-                .add-fav-card:hover .add-fav-icon { color: ${THEME.goldAccent}; transform: scale(1.2); }
-                .add-fav-title { font-weight: 800; color: #94a3b8; font-size: var(--fs-lg); transition: 0.3s; }
-                .add-fav-card:hover .add-fav-title { color: ${THEME.goldAccent}; }
+                .add-fav-icon { font-size: var(--fs-3xl); color: var(--text-secondary); transition: 0.3s; }
+                .add-fav-card:hover .add-fav-icon { color: var(--accent-main); transform: scale(1.2); }
+                .add-fav-title { font-weight: 800; color: var(--text-secondary); font-size: var(--fs-lg); transition: 0.3s; }
+                .add-fav-card:hover .add-fav-title { color: var(--accent-main); }
 
                 /* Fav Modal Styles */
                 .fav-modal-overlay {
-                    position: fixed; inset: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+                    position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(16px);
                     z-index: 99999; display: flex; align-items: center; justify-content: center;
                     animation: fadeIn 0.3s ease;
                 }
                 .fav-modal {
-                    background: white; border-radius: 14px; width: 90%; max-width: 43.75rem; max-height: 85vh;
+                    background: var(--surface-card); border-radius: 24px; width: 90%; max-width: 43.75rem; max-height: 85vh;
                     display: flex; flex-direction: column; overflow: hidden;
-                    box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+                    border: none;
+                    box-shadow: var(--shadow-elevation);
                     animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    position: relative;
                 }
                 .fav-modal-header {
-                    padding: 1.25rem 1.5625rem; border-bottom: 1px solid #f1f5f9;
+                    padding: 1.25rem 1.5625rem; border-bottom: 1px solid var(--table-zebra-bg);
                     display: flex; justify-content: space-between; align-items: center;
-                    background: #f8fafc;
+                    background: var(--surface-subcard);
                 }
                 .fav-modal-content {
                     padding: 1.5625rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;
                 }
                 .fav-modal-footer {
-                    padding: 1.25rem 1.5625rem; border-top: 1px solid #f1f5f9;
-                    display: flex; justify-content: flex-end; gap: 0.625rem; background: #f8fafc;
+                    padding: 1.25rem 1.5625rem; border-top: 1px solid var(--table-zebra-bg);
+                    display: flex; justify-content: flex-end; gap: 0.625rem; background: var(--surface-subcard);
                 }
                 
-                .fav-group-title { font-weight: 900; color: ${THEME.coffeeDark}; margin-bottom: 0.625rem; font-size: var(--fs-lg); border-bottom: 2px solid #f1f5f9; padding-bottom: 0.3125rem; }
+                .fav-group-title { font-weight: 900; color: var(--text-primary); margin-bottom: 0.625rem; font-size: var(--fs-lg); border-bottom: 2px solid var(--table-zebra-bg); padding-bottom: 0.3125rem; }
                 .fav-items-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)); gap: 0.625rem; }
                 
                 .fav-item-check {
                     display: flex; align-items: center; gap: 0.625rem; padding: 0.75rem 0.9375rem;
-                    border: 1px solid #e2e8f0; border-radius: 12px; cursor: pointer; transition: 0.2s;
+                    border: none; border-radius: 14px; cursor: pointer; transition: 0.2s;
+                    background: var(--surface-sunken);
+                    box-shadow: var(--shadow-sunken);
                 }
-                .fav-item-check:hover { background: #f8fafc; border-color: #cbd5e1; }
-                .fav-item-check.selected { border-color: ${THEME.goldAccent}; background: rgba(194,65,12, 0.05); }
+                .fav-item-check:hover { background: var(--surface-card-hover); }
+                .fav-item-check.selected { box-shadow: var(--shadow-sunken), 0 0 0 2px var(--accent-glow); background: var(--accent-soft-bg); }
 
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
                 @media (max-width: 768px) {
-                    .hero-glass-card { padding: 1.875rem 1.25rem; border-radius: 14px; }
+                    .hero-glass-card { padding: 1.875rem 1.25rem; border-radius: 20px; }
                     .welcome-title { font-size: var(--fs-2xl); }
                     .welcome-subtitle { font-size: var(--fs-md); }
                     .modules-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
@@ -272,7 +274,7 @@ export default function WelcomeHomePage() {
             `}</style>
 
             <div className="hero-glass-card">
-                <div style={{ display: 'inline-block', padding: '0.5rem 1.25rem', background: `${THEME.goldAccent}20`, color: THEME.coffeeDark, borderRadius: '14px', fontWeight: 900, fontSize: 'var(--fs-md)', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'inline-block', padding: '0.5rem 1.25rem', background: 'var(--accent-soft-bg)', color: 'var(--accent-main)', borderRadius: '14px', fontWeight: 900, fontSize: 'var(--fs-md)', marginBottom: '1.25rem', boxShadow: '0 4px 14px var(--accent-glow)' }}>
                     {roleTitle}
                 </div>
 
@@ -281,7 +283,7 @@ export default function WelcomeHomePage() {
                 {!permsLoading && !displayName.hasProfileName && <p className="welcome-profile-hint">لم تُكمل اسمك في الملف الشخصي بعد. <Link href="/profile">أكمل بياناتك</Link> ليظهر اسمك في التحيات والتقارير.</p>}
 
                 <div style={{ textAlign: 'right', marginBottom: '0.9375rem' }}>
-                    <h2 style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.coffeeDark }}>الصفحات المفضلة</h2>
+                    <h2 style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: 'var(--text-primary)' }}>الصفحات المفضلة</h2>
                 </div>
 
                 <div className="modules-grid">
@@ -304,8 +306,8 @@ export default function WelcomeHomePage() {
                 <div className="fav-modal-overlay" onClick={() => setIsFavModalOpen(false)}>
                     <div className="fav-modal" onClick={e => e.stopPropagation()}>
                         <div className="fav-modal-header">
-                            <h2 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.coffeeDark }}>تخصيص الصفحات المفضلة</h2>
-                            <button onClick={() => setIsFavModalOpen(false)} style={{ background: 'transparent', border: 'none', fontSize: 'var(--fs-xl)', cursor: 'pointer' }}>✖</button>
+                            <h2 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: 'var(--text-primary)' }}>تخصيص الصفحات المفضلة</h2>
+                            <button onClick={() => setIsFavModalOpen(false)} style={{ background: 'transparent', border: 'none', fontSize: 'var(--fs-xl)', cursor: 'pointer', color: 'var(--text-secondary)' }}>✖</button>
                         </div>
                         <div className="fav-modal-content">
                             {menuGroups.map((group, gIdx) => {
@@ -323,9 +325,9 @@ export default function WelcomeHomePage() {
                                                         className={`fav-item-check ${isSelected ? 'selected' : ''}`}
                                                         onClick={() => toggleFav(item.id)}
                                                     >
-                                                        <div style={{ display: 'inline-flex', color: THEME.goldAccent }}><MenuIcon id={item.id} size={20} /></div>
-                                                        <div style={{ fontWeight: 800, color: '#1e293b', flex: 1 }}>{item.title}</div>
-                                                        <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '5px', border: `2px solid ${isSelected ? THEME.goldAccent : '#cbd5e1'}`, background: isSelected ? THEME.goldAccent : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                        <div style={{ display: 'inline-flex', color: 'var(--accent-main)' }}><MenuIcon id={item.id} size={20} /></div>
+                                                        <div style={{ fontWeight: 800, color: 'var(--text-primary)', flex: 1 }}>{item.title}</div>
+                                                        <div style={{ width: '1.25rem', height: '1.25rem', borderRadius: '5px', border: `2px solid ${isSelected ? 'var(--accent-main)' : 'var(--text-muted)'}`, background: isSelected ? 'var(--accent-main)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                                             {isSelected && <span style={{ color: 'white', fontSize: 'var(--fs-md)' }}>✔</span>}
                                                         </div>
                                                     </div>
@@ -337,15 +339,15 @@ export default function WelcomeHomePage() {
                             })}
                         </div>
                         <div className="fav-modal-footer">
-                            <button onClick={() => setIsFavModalOpen(false)} style={{ padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', background: '#e2e8f0', color: '#475569', fontWeight: 800, cursor: 'pointer' }}>إلغاء</button>
-                            <button onClick={saveFavorites} style={{ padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', background: THEME.goldAccent, color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: `0 4px 10px ${THEME.goldAccent}60` }}>حفظ التغييرات</button>
+                            <button onClick={() => setIsFavModalOpen(false)} style={{ padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', background: 'var(--surface-sunken)', color: 'var(--text-secondary)', fontWeight: 800, cursor: 'pointer' }}>إلغاء</button>
+                            <button onClick={saveFavorites} style={{ padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', background: 'var(--accent-gradient)', color: 'white', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 10px var(--accent-glow)' }}>حفظ التغييرات</button>
                         </div>
                     </div>
                 </div>
             )}
 
             {/* Footer */}
-            <div style={{ textAlign: 'center', color: '#94a3b8', fontWeight: 700, fontSize: 'var(--fs-sm)', paddingBottom: '0.625rem' }}>
+            <div style={{ textAlign: 'center', color: 'var(--text-muted)', fontWeight: 700, fontSize: 'var(--fs-sm)', paddingBottom: '0.625rem' }}>
                 تم تأمين الجلسة الخاصة بك | فاي تك © {new Date().getFullYear()}
             </div>
         </div>

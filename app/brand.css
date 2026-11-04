@@ -1,167 +1,474 @@
-/* PHI TECH — expressive light identity. Financial status colors stay independent. */
+/* PHI TECH — سيم: فحمي متدرّج جلوسي بدون إطارات (Obsidian Amber Gloss - Borderless UI) */
 :root {
-  --phi-orange: #f97316;
-  --phi-action: #c2410c;
-  --phi-action-hover: #9a3412;
-  --phi-orange-soft: #fff7ed;
-  --phi-charcoal: #121215;
-  --phi-text: #27272a;
-  --phi-muted: #71717a;
-  --phi-background: #f7f7f8;
-  --phi-surface: #ffffff;
-  --phi-border: #e4e4e7;
-  --section-accent: #c2410c;
-  --section-tint: #fff7ed;
-  --section-border: #fed7aa;
-  --primary: var(--phi-text);
-  --accent: var(--phi-action);
-  --accent-light: var(--phi-orange-soft);
-  --bg-main: var(--phi-background);
-  --text-main: var(--phi-text);
-  --text-muted: var(--phi-muted);
-  --glass-surface: var(--phi-surface);
-  --glass-border: var(--phi-border);
-  --input-bg: var(--phi-surface);
-  --card-shadow: 0 6px 24px #18181b0a;
-  --glow-accent: none;
+  --phi-orange: var(--accent-main, #f97316);
+  --phi-action: var(--accent-main, #f97316);
+  --phi-action-hover: var(--accent-deep, #ea580c);
+  --phi-orange-soft: var(--accent-soft-bg, rgba(249, 115, 22, 0.13));
+  --phi-charcoal: var(--bg-canvas, #07080b);
+  --phi-text: var(--text-primary, #f8fafc);
+  --phi-muted: var(--text-secondary, #94a3b8);
+  --phi-background: var(--bg-canvas, #07080b);
+  --phi-surface: var(--surface-card);
+  --phi-border: transparent;
+  --section-accent: var(--accent-main, #f97316);
+  --section-tint: var(--accent-soft-bg, rgba(249, 115, 22, 0.06));
+  --section-border: transparent;
+  --primary: var(--text-primary, #f8fafc);
+  --accent: var(--accent-main, #f97316);
+  --accent-light: var(--accent-soft-bg);
+  --bg-main: var(--bg-canvas, #07080b);
+  --text-main: var(--text-primary, #f8fafc);
+  --text-muted: var(--text-secondary, #94a3b8);
+  --glass-surface: var(--surface-card);
+  --glass-border: transparent;
+  --input-bg: var(--surface-sunken, #07090c);
+  --card-shadow: var(--shadow-ambient);
+  --glow-accent: var(--accent-glow);
 }
+
 html.phi-brand body {
-  background: var(--phi-background) !important;
-  background-image: radial-gradient(ellipse at 100% 0, #ffedd580, transparent 55%), radial-gradient(ellipse at 0 100%, #e0f2fe55, transparent 50%) !important;
+  background: radial-gradient(circle at 15% 10%, var(--ambient-orb-1), transparent 38%),
+              radial-gradient(circle at 85% 85%, var(--ambient-orb-2), transparent 40%),
+              linear-gradient(180deg, var(--bg-canvas) 0%, var(--bg-canvas-secondary) 100%) !important;
   background-attachment: fixed !important;
-  color: var(--phi-text);
-  accent-color: var(--phi-action);
+  color: var(--text-primary) !important;
+  accent-color: var(--accent-main) !important;
 }
-html.phi-brand ::selection { background: #ffedd5; color: #7c2d12; }
-.phi-brand :is(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--phi-action); outline-offset: 3px; }
+
+html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
+.phi-brand :is(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--accent-main); outline-offset: 3px; }
+
+/* 🌟 Master Header: سطح فحم جلوسي بدون إطارات صلبة */
 .phi-brand .master-header {
-  background: var(--phi-surface) !important;
-  background-image: linear-gradient(110deg, white 45%, var(--section-tint)) !important;
-  border: 1px solid var(--section-border) !important;
-  border-inline-start: 4px solid var(--section-accent) !important;
-  border-radius: 18px !important;
-  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-  box-shadow: var(--card-shadow) !important; animation: none !important;
+  background: var(--surface-header, linear-gradient(135deg, #171b24 0%, #101319 55%, #0a0c10 100%)) !important;
+  border: none !important;
+  border-inline-start: none !important;
+  border-radius: 24px !important;
+  -webkit-backdrop-filter: blur(20px) !important; 
+  backdrop-filter: blur(20px) !important;
+  box-shadow: var(--shadow-elevation) !important; 
+  animation: none !important;
+  position: relative;
+  overflow: hidden;
 }
-.phi-brand .title-area h1 { color: var(--phi-text) !important; }
-.phi-brand .header-icon { background: var(--section-tint) !important; box-shadow: inset 0 1px 0 white, 0 4px 12px #18181b08 !important; border: 1px solid var(--section-border); }
-.phi-brand .imperial-trigger { background: #ffffffd9; border-color: var(--section-border); border-radius: 14px; box-shadow: 0 2px 8px #18181b04; }
-.phi-brand .imperial-trigger:hover { transform: none; border-color: #d4d4d8; box-shadow: none; }
-.phi-brand .u-name { color: var(--phi-text); }
-.phi-brand .u-role { color: var(--phi-muted); }
-.phi-brand .avatar-frame img { border-color: #f4f4f5; box-shadow: none; }
-.phi-brand .nav-btn-glass { background: #fafafa; color: var(--phi-text); border: 1px solid var(--phi-border); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.phi-brand .nav-btn-glass:hover { background: var(--phi-orange-soft); border-color: #fed7aa; }
-.phi-brand .glass-container { background: var(--phi-surface); border: 1px solid var(--phi-border); border-radius: 18px !important; box-shadow: 0 4px 24px #18181b05; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.phi-brand .apple-card { background: var(--phi-surface); border-color: var(--phi-border); box-shadow: var(--card-shadow); -webkit-backdrop-filter: none; backdrop-filter: none; border-radius: 16px; }
-.phi-brand .apple-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px #18181b0a; }
+
+.phi-brand .master-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 8%; right: 8%;
+  height: 1.5px;
+  background: var(--specular-beam);
+  pointer-events: none;
+}
+
+.phi-brand .title-area h1 { color: var(--text-primary, #ffffff) !important; }
+.phi-brand .header-icon { 
+  background: var(--accent-soft-bg, rgba(249, 115, 22, 0.15)) !important; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 8px 20px -4px var(--accent-glow) !important; 
+  border: none !important; 
+  color: var(--accent-bright, #fb923c) !important;
+}
+
+.phi-brand .imperial-trigger { 
+  background: var(--surface-subcard, rgba(255, 255, 255, 0.05)); 
+  border: none; 
+  border-radius: 14px; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+  color: var(--text-primary, #f3f4f6);
+}
+.phi-brand .imperial-trigger:hover { 
+  transform: none; 
+  background: rgba(255, 255, 255, 0.08); 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); 
+}
+
+.phi-brand .u-name { color: var(--text-primary, #f3f4f6); }
+.phi-brand .u-role { color: var(--text-secondary, #94a3b8); }
+.phi-brand .avatar-frame img { border: none; box-shadow: 0 0 0 2px var(--accent-glow); }
+
+/* أزرار التنقل الزجاجية */
+.phi-brand .nav-btn-glass { 
+  background: var(--surface-subcard, rgba(255, 255, 255, 0.04)); 
+  color: var(--text-primary, #f3f4f6); 
+  border: none; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); 
+  -webkit-backdrop-filter: blur(12px); 
+  backdrop-filter: blur(12px); 
+}
+.phi-brand .nav-btn-glass:hover { 
+  background: var(--accent-soft-bg); 
+  color: var(--accent-bright);
+  box-shadow: 0 4px 15px var(--accent-glow); 
+}
+
+/* 🌟 الكروت العامة وحاويات الزجاج: Borderless + Diffuse Shadow + Specular Sheen */
+.phi-brand .glass-container,
+.phi-brand .apple-card { 
+  background: var(--surface-card, linear-gradient(180deg, #181c24 0%, #12151c 52%, #0c0e12 100%)) !important; 
+  border: none !important; 
+  border-radius: 24px !important; 
+  box-shadow: var(--shadow-ambient) !important; 
+  -webkit-backdrop-filter: blur(20px); 
+  backdrop-filter: blur(20px); 
+  color: var(--text-primary, #f3f4f6) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.phi-brand .glass-container::before,
+.phi-brand .apple-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 8%; right: 8%;
+  height: 1.5px;
+  background: var(--specular-beam);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.phi-brand .apple-card:hover { 
+  transform: translateY(-3px); 
+  background: var(--surface-card-hover) !important;
+  box-shadow: var(--shadow-ambient), 0 0 25px -5px var(--accent-glow) !important; 
+}
+
+.phi-brand .apple-card:hover { 
+  transform: translateY(-2px); 
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important; 
+}
+
+/* شريط الفلاتر الجانبي */
 .phi-brand .filter-sidebar-v3 {
-  background: var(--phi-surface) !important; color: var(--phi-text) !important;
-  border: 1px solid var(--phi-border) !important; border-radius: 18px;
-  -webkit-backdrop-filter: none !important; backdrop-filter: none !important;
-  box-shadow: 0 8px 30px #18181b0d;
+  background: linear-gradient(180deg, #15181f 0%, #0d0f14 100%) !important; 
+  color: #f3f4f6 !important;
+  border: none !important; 
+  border-radius: 20px;
+  -webkit-backdrop-filter: blur(20px) !important; 
+  backdrop-filter: blur(20px) !important;
+  box-shadow: 0 20px 50px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-.phi-brand .filter-toggle-tab-v3 { background: #ffffff !important; color: var(--phi-text) !important; border-left: 1px solid var(--phi-border); -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
-.phi-brand .filter-toggle-tab-v3:hover { background: var(--phi-orange-soft) !important; }
-.phi-brand .sidebar-logo-container { border-color: var(--phi-border); }
-.phi-brand .sidebar-logo-img { filter: none !important; }
-.phi-brand .filter-section-title, .phi-brand .date-label { color: #52525b !important; border-color: var(--phi-border); }
-.phi-brand .filter-input { background: #fafafa !important; border: 1px solid var(--phi-border) !important; color: var(--phi-text) !important; color-scheme: light; }
-.phi-brand .filter-input::placeholder { color: var(--phi-muted) !important; }
-.phi-brand .filter-input:focus { border-color: var(--phi-action) !important; background: white !important; }
-.phi-brand .pin-btn-sidebar { background: #f4f4f5; border: 1px solid var(--phi-border); }
-.phi-brand .pin-btn-sidebar span { color: #52525b !important; }
-.phi-brand .sidebar-summary-glass { background: #fafafa; border: 1px solid var(--phi-border); box-shadow: none; }
-.phi-brand .sidebar-summary-glass .summary-title { color: #52525b !important; }
-.phi-brand .fab-main { width: 4rem; height: 4rem; background: linear-gradient(145deg, white, #fff7ed) !important; border: 1px solid #fed7aa; box-shadow: 0 6px 24px #c2410c1a; animation: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.phi-brand .fab-logo { filter: none; }
-.phi-brand .overlay-screen { background: #f7f7f8fa; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.phi-brand .group-header { color: var(--phi-text); border-bottom-color: var(--phi-border); text-shadow: none; }
-.phi-brand .nav-card { background: linear-gradient(145deg, white 55%, var(--section-tint)); border-color: var(--section-border); border-radius: 16px; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 4px 16px #18181b06; animation: none; opacity: 1; }
-.phi-brand .nav-card::before { display: none; }
-.phi-brand .nav-card:hover, .phi-brand .nav-card.active { border-color: var(--section-accent); background: var(--section-tint); box-shadow: 0 8px 20px #18181b0c; transform: translateY(-2px); }
-.phi-brand .nav-card .icon-wrapper { background: var(--section-tint); color: var(--section-accent); border: 1px solid var(--section-border); }
-.phi-brand .nav-card:hover .icon-wrapper { background: white; color: var(--section-accent); transform: none; }
+.phi-brand .filter-toggle-tab-v3 { 
+  background: #14171d !important; 
+  color: #f3f4f6 !important; 
+  border: none !important; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+}
+.phi-brand .filter-toggle-tab-v3:hover { 
+  background: rgba(249, 115, 22, 0.15) !important; 
+  color: #fb923c !important;
+}
+.phi-brand .sidebar-logo-container { border: none; }
+.phi-brand .sidebar-logo-img { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)) !important; }
+.phi-brand .filter-section-title, .phi-brand .date-label { color: #cbd5e1 !important; border: none; }
+
+/* 🌟 حقول الإدخال الغائرة (Sunken Recessed Inputs - Borderless) */
+.phi-brand .filter-input,
+.phi-brand .standard-input,
+.phi-brand .custom-input,
+.phi-brand .cinematic-input { 
+  background: #0a0c10 !important; 
+  border: none !important; 
+  color: #f3f4f6 !important; 
+  color-scheme: dark; 
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.03) !important;
+}
+.phi-brand .filter-input::placeholder,
+.phi-brand .standard-input::placeholder,
+.phi-brand .custom-input::placeholder,
+.phi-brand .cinematic-input::placeholder { color: #64748b !important; }
+
+.phi-brand .filter-input:focus,
+.phi-brand .standard-input:focus,
+.phi-brand .custom-input:focus,
+.phi-brand .cinematic-input:focus { 
+  background: #0d0f14 !important; 
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(249, 115, 22, 0.4) !important; 
+  outline: none !important;
+}
+
+.phi-brand .pin-btn-sidebar { background: #181c24; border: none; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+.phi-brand .pin-btn-sidebar span { color: #cbd5e1 !important; }
+.phi-brand .sidebar-summary-glass { 
+  background: #111318; 
+  border: none; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04); 
+}
+.phi-brand .sidebar-summary-glass .summary-title { color: #cbd5e1 !important; }
+
+/* زر الإجراء العائم */
+.phi-brand .fab-main { 
+  width: 4rem; height: 4rem; 
+  background: linear-gradient(135deg, #f97316 0%, #c2410c 100%) !important; 
+  border: none; 
+  box-shadow: 0 12px 35px rgba(249, 115, 22, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3); 
+  animation: none; 
+}
+.phi-brand .fab-logo { filter: brightness(0) invert(1); }
+.phi-brand .overlay-screen { background: rgba(9, 10, 13, 0.95); backdrop-filter: blur(15px); }
+.phi-brand .group-header { color: #f3f4f6; border-bottom: none; text-shadow: none; }
+
+/* كروت التنقل الداخلية */
+.phi-brand .nav-card { 
+  background: linear-gradient(145deg, #181c24 0%, #111319 100%); 
+  border: none; 
+  border-radius: 18px; 
+  box-shadow: 0 16px 35px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06); 
+  color: #f3f4f6;
+  position: relative;
+  overflow: hidden;
+}
+.phi-brand .nav-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 15%; right: 15%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  pointer-events: none;
+}
+.phi-brand .nav-card:hover, .phi-brand .nav-card.active { 
+  background: linear-gradient(145deg, #202530 0%, #151821 100%); 
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.85), 0 0 25px -5px rgba(249, 115, 22, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.12); 
+  transform: translateY(-2px); 
+}
+.phi-brand .nav-card .icon-wrapper { 
+  background: rgba(249, 115, 22, 0.12); 
+  color: #fb923c; 
+  border: none; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1); 
+}
+.phi-brand .nav-card:hover .icon-wrapper { 
+  background: #f97316; 
+  color: #ffffff; 
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.4); 
+}
+
+/* شاشة الترحيب وكارت الهيرو */
 .phi-brand .welcome-page-wrapper { background: none; }
-.phi-brand .hero-glass-card { background: radial-gradient(ellipse at 100% 0, #ffedd5b3, transparent 55%), linear-gradient(135deg, white 50%, #eef2ff80); border-color: #fed7aa; box-shadow: 0 8px 36px #18181b08; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.phi-brand .hero-glass-card::before { display: block; background: linear-gradient(90deg, #fdba74, #f97316, #c2410c); height: 0.25rem; }
+.phi-brand .hero-glass-card { 
+  background: linear-gradient(145deg, #181c24 0%, #111319 60%, #0c0e12 100%); 
+  border: none; 
+  border-radius: 24px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+  position: relative;
+  overflow: hidden;
+}
+.phi-brand .hero-glass-card::before { 
+  content: ''; 
+  display: block; 
+  position: absolute; 
+  top: 0; left: 0; right: 0; 
+  height: 2px; 
+  background: linear-gradient(90deg, transparent 0%, #f97316 50%, transparent 100%); 
+}
+
 .phi-brand .module-card::after { display: none; }
 .phi-brand .modules-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 10.625rem), 1fr)); }
-.phi-brand .module-card { min-width: 0; background: linear-gradient(145deg, white 55%, var(--section-tint)); border-color: var(--section-border); border-top: 3px solid var(--section-accent); box-shadow: 0 4px 16px #18181b05; border-radius: 16px; }
-.phi-brand .module-title { overflow-wrap: break-word; }
-.phi-brand .module-card:hover { transform: translateY(-3px); border-color: var(--section-accent); box-shadow: 0 10px 24px #18181b0d; }
-.phi-brand .module-card .module-icon { background: var(--section-tint); border: 1px solid var(--section-border); border-radius: 18px; }
-.phi-brand .module-card:hover .module-icon { background: white; transform: none; }
-.phi-brand .add-fav-card { color: #9a3412; background: #fffaf5; border-color: #fdba74; font: inherit; }
-.phi-brand .add-fav-card:hover { background: #fff7ed; border-color: var(--phi-action); transform: translateY(-3px); }
-.phi-brand .add-fav-title { color: #9a3412; }
-.phi-brand .btn-gold-pro, .phi-brand .btn-main-glass.gold { background: linear-gradient(125deg, #c2410c, #9a3412); color: white; border: 1px solid var(--phi-action); box-shadow: 0 4px 12px #c2410c1f; border-radius: 10px; }
-.phi-brand .btn-gold-pro:hover, .phi-brand .btn-main-glass.gold:hover { background: var(--phi-action-hover); filter: none; transform: none; }
-.phi-brand .btn-main-glass.white { background: #fafafa; color: var(--phi-text); border-color: var(--phi-border); }
-.phi-brand .rawasi-table-wrapper { background: white !important; border: 1px solid var(--phi-border) !important; border-radius: 14px !important; box-shadow: none !important; }
-.phi-brand .rawasi-printable-table thead th { background: #f4f4f5 !important; color: var(--phi-text) !important; border-bottom: 1px solid var(--phi-border) !important; }
-.phi-brand .rawasi-printable-table tbody td { border-bottom-color: #f0f0f2 !important; font-variant-numeric: tabular-nums; }
-.phi-brand .rawasi-printable-table tbody tr:hover { background: #fff7ed !important; }
-.phi-brand .rawasi-printable-table tbody tr[data-selected="true"] { background: #ffedd5 !important; }
-.phi-brand .workspace-button { background: white; color: var(--phi-text); border-color: var(--phi-border); border-radius: 10px; }
-.phi-brand .workspace-button[aria-pressed="true"] { background: var(--phi-orange-soft); color: var(--phi-action); border-color: #fdba74; box-shadow: 0 2px 6px #c2410c0a; }
-.phi-brand .workspace-search-trigger { border-color: #fed7aa; background: linear-gradient(110deg, white 65%, #fff7ed); }
-.phi-brand .workspace-dialog { background: white; border-color: var(--phi-border); box-shadow: 0 16px 64px #18181b26; }
-.phi-brand .workspace-search-result[aria-selected="true"] { background: var(--phi-orange-soft); border-color: #fed7aa; }
-.phi-brand .workspace-tools kbd, .phi-brand .workspace-dialog kbd { background: #f4f4f5; border-color: var(--phi-border); color: #52525b; }
-.phi-brand .login-wrapper { background: var(--phi-background); background-image: none; }
-.phi-brand .login-wrapper .glass-card { background: white; border: 1px solid var(--phi-border); box-shadow: 0 8px 40px #18181b08; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.phi-brand .login-wrapper .logo-container { text-align: center; }
-.phi-brand .login-wrapper .logo-container img { width: min(100%, 18.75rem); height: auto; filter: none; }
-.phi-brand .login-wrapper .cinematic-title { color: var(--phi-text); text-shadow: none; }
-.phi-brand .login-wrapper .cinematic-subtitle, .phi-brand .login-wrapper .toggle-btn, .phi-brand .login-wrapper .glass-card > div:last-child p { color: var(--phi-muted) !important; }
-.phi-brand .login-wrapper .cinematic-input { background: #fafafa !important; color: var(--phi-text) !important; border: 1px solid #d4d4d8; }
-.phi-brand .login-wrapper .cinematic-input:focus { background: white !important; border-color: var(--phi-action); box-shadow: 0 0 0 3px #ffedd5; }
-.phi-brand .login-wrapper .cinematic-input:-webkit-autofill { -webkit-text-fill-color: var(--phi-text) !important; -webkit-box-shadow: 0 0 0 1000px #fafafa inset !important; }
-.phi-brand .login-wrapper .floating-label { color: var(--phi-muted); }
-.phi-brand .login-wrapper :is(.cinematic-input:focus ~ .floating-label, .cinematic-input:not(:placeholder-shown) ~ .floating-label, .forced-float) { background: #fff7ed !important; color: #9a3412 !important; box-shadow: none; }
-.phi-brand .login-wrapper .submit-btn { background: var(--phi-action); color: white; box-shadow: none; border-radius: 10px; }
-.phi-brand .login-wrapper .submit-btn:hover:not(:disabled) { background: var(--phi-action-hover); box-shadow: none; }
-.phi-brand .login-wrapper .toggle-btn:hover { color: var(--phi-action) !important; }
+.phi-brand .module-card { 
+  min-width: 0; 
+  background: linear-gradient(145deg, #181c24 0%, #111319 100%); 
+  border: none; 
+  box-shadow: 0 14px 30px -8px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.06); 
+  border-radius: 18px; 
+  color: #f3f4f6;
+}
+.phi-brand .module-title { overflow-wrap: break-word; color: #f3f4f6; }
+.phi-brand .module-card:hover { 
+  transform: translateY(-3px); 
+  background: linear-gradient(145deg, #202530 0%, #141720 100%); 
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.85), 0 0 20px -5px rgba(249, 115, 22, 0.15); 
+}
+.phi-brand .module-card .module-icon { 
+  background: rgba(249, 115, 22, 0.1); 
+  border: none; 
+  border-radius: 18px; 
+  color: #fb923c; 
+}
+.phi-brand .module-card:hover .module-icon { 
+  background: #f97316; 
+  color: #ffffff; 
+}
+
+.phi-brand .add-fav-card { 
+  color: #fb923c; 
+  background: rgba(249, 115, 22, 0.05); 
+  border: none; 
+  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.2); 
+  border-radius: 18px; 
+}
+.phi-brand .add-fav-card:hover { 
+  background: rgba(249, 115, 22, 0.1); 
+  box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.4); 
+  transform: translateY(-3px); 
+}
+.phi-brand .add-fav-title { color: #fb923c; }
+
+/* أزرار الإجراءات الذهبية والعنبرية */
+.phi-brand .btn-gold-pro, 
+.phi-brand .btn-main-glass.gold { 
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+  color: white; 
+  border: none; 
+  box-shadow: 0 8px 25px rgba(249, 115, 22, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25); 
+  border-radius: 14px; 
+}
+.phi-brand .btn-gold-pro:hover, 
+.phi-brand .btn-main-glass.gold:hover { 
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); 
+  box-shadow: 0 10px 30px rgba(249, 115, 22, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35); 
+  filter: none; 
+  transform: none; 
+}
+.phi-brand .btn-main-glass.white { 
+  background: rgba(255, 255, 255, 0.05); 
+  color: #f3f4f6; 
+  border: none; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+}
+
+/* 🌟 الجداول الذكية: Borderless Table Design */
+.phi-brand .rawasi-table-wrapper { 
+  background: linear-gradient(180deg, #14171e 0%, #0d0f14 100%) !important; 
+  border: none !important; 
+  border-radius: 20px !important; 
+  box-shadow: 0 20px 45px -12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important; 
+  overflow: hidden;
+}
+.phi-brand .rawasi-printable-table thead th { 
+  background: rgba(255, 255, 255, 0.03) !important; 
+  color: #f8fafc !important; 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important; 
+}
+.phi-brand .rawasi-printable-table tbody td { 
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02) !important; 
+  color: #e2e8f0;
+  font-variant-numeric: tabular-nums; 
+}
+.phi-brand .rawasi-printable-table tbody tr:hover { 
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%) !important; 
+}
+.phi-brand .rawasi-printable-table tbody tr[data-selected="true"] { 
+  background: rgba(249, 115, 22, 0.12) !important; 
+}
+
+/* أزرار مساحة العمل والبحث */
+.phi-brand .workspace-button { 
+  background: rgba(255, 255, 255, 0.04); 
+  color: #f3f4f6; 
+  border: none; 
+  border-radius: 12px; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); 
+}
+.phi-brand .workspace-button[aria-pressed="true"] { 
+  background: rgba(249, 115, 22, 0.2); 
+  color: #fb923c; 
+  box-shadow: 0 4px 15px rgba(249, 115, 22, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.1); 
+}
+.phi-brand .workspace-search-trigger { 
+  border: none; 
+  background: linear-gradient(145deg, #181c24 0%, #111318 100%); 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); 
+  color: #f3f4f6;
+}
+.phi-brand .workspace-dialog { 
+  background: linear-gradient(180deg, #181c24 0%, #0d0f14 100%); 
+  border: none; 
+  border-radius: 20px;
+  box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+  color: #f3f4f6;
+}
+.phi-brand .workspace-search-result[aria-selected="true"] { 
+  background: rgba(249, 115, 22, 0.15); 
+  color: #ffffff; 
+}
+.phi-brand .workspace-tools kbd, .phi-brand .workspace-dialog kbd { 
+  background: #0b0d10; 
+  border: none; 
+  color: #94a3b8; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05); 
+}
+
+/* شاشات تسجيل الدخول وإنشاء الحساب */
+.phi-brand .login-wrapper { background: var(--phi-background); }
+.phi-brand .login-wrapper .glass-card { 
+  background: linear-gradient(180deg, #181c24 0%, #12141a 60%, #0c0e12 100%); 
+  border: none; 
+  border-radius: 24px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+}
+.phi-brand .login-wrapper .cinematic-title { color: #ffffff; text-shadow: none; }
+.phi-brand .login-wrapper .cinematic-subtitle, 
+.phi-brand .login-wrapper .toggle-btn, 
+.phi-brand .login-wrapper .glass-card > div:last-child p { color: var(--phi-muted) !important; }
+
+.phi-brand .login-wrapper .submit-btn { 
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+  color: white; 
+  box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35); 
+  border-radius: 14px; 
+}
+.phi-brand .login-wrapper .submit-btn:hover:not(:disabled) { 
+  background: linear-gradient(135deg, #fb923c 0%, #f97316 100%); 
+}
+
 .phi-brand .phi-signup { background: var(--phi-background) !important; }
-.phi-brand .phi-signup .gold-glow { display: none; }
-.phi-brand .phi-signup .signup-card { background: white; border: 1px solid var(--phi-border); border-radius: 20px; box-shadow: 0 8px 40px #18181b08; -webkit-backdrop-filter: none; backdrop-filter: none; }
-.phi-brand .phi-signup .signup-card h2 { color: var(--phi-text) !important; }
+.phi-brand .phi-signup .signup-card { 
+  background: linear-gradient(180deg, #181c24 0%, #0c0e12 100%); 
+  border: none; 
+  border-radius: 24px; 
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.08); 
+}
+.phi-brand .phi-signup .signup-card h2 { color: #ffffff !important; }
 .phi-brand .phi-signup .signup-card p { color: var(--phi-muted) !important; }
-.phi-brand .phi-signup .input-label { color: #52525b; }
-.phi-brand .phi-signup .custom-input { background: #fafafa; border-color: #d4d4d8; color: var(--phi-text); border-radius: 10px; }
-.phi-brand .phi-signup .custom-input:focus { background: white; border-color: var(--phi-action); }
-.phi-brand .phi-signup .signup-btn { background: var(--phi-action); color: white; border-radius: 10px; box-shadow: none; }
-.phi-brand .phi-signup .signup-btn:hover { background: var(--phi-action-hover); transform: none; box-shadow: none; }
-.phi-brand .phi-light-form { background: var(--phi-background) !important; background-image: none !important; color: var(--phi-text); }
-.phi-brand .phi-light-form .glass-card { background: white; border-color: var(--phi-border); box-shadow: var(--card-shadow); -webkit-backdrop-filter: none; backdrop-filter: none; }
-.phi-brand .phi-light-form h1 { color: var(--phi-text) !important; }
-.phi-brand .phi-light-form .standard-input { background: #fafafa; border-color: #d4d4d8; color: var(--phi-text); color-scheme: light; }
-.phi-brand .phi-light-form .standard-input option { background: white; color: var(--phi-text); }
+.phi-brand .phi-signup .input-label { color: #cbd5e1; }
+.phi-brand .phi-signup .signup-btn { 
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+  color: white; 
+  border-radius: 14px; 
+  box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35); 
+}
+
+/* النماذج العامة (Forms) */
+.phi-brand .phi-light-form { background: var(--phi-background) !important; color: var(--phi-text); }
+.phi-brand .phi-light-form .glass-card { 
+  background: linear-gradient(180deg, #181c24 0%, #0c0e12 100%); 
+  border: none; 
+  border-radius: 20px;
+  box-shadow: var(--card-shadow); 
+}
+.phi-brand .phi-light-form h1 { color: #ffffff !important; }
+.phi-brand .phi-light-form .standard-input option { background: #12141a; color: #f3f4f6; }
 .phi-brand .phi-light-form .floating-label, .phi-brand .phi-light-form .input-group label { color: var(--phi-muted); }
-.phi-brand .phi-light-form :is(.forced-float, .standard-input:focus ~ .floating-label, .standard-input:not(:placeholder-shown) ~ .floating-label) { background: white !important; color: var(--phi-action) !important; }
-.phi-brand .phi-light-form .btn-submit, .phi-brand .phi-light-form .btn-save { background: var(--phi-action); color: white; }
-.phi-brand .phi-light-form .btn-add { background: #fafafa; border-color: #d4d4d8; color: var(--phi-text); }
-.phi-brand .phi-light-form .phi-back-button { color: var(--phi-text) !important; border-color: #d4d4d8 !important; }
-.phi-brand .phi-light-form .summary-box { background: #f4f4f5; }
-html.phi-brand.low-graphics-mode .glass-container, html.phi-brand.low-graphics-mode .master-header, html.phi-brand.low-graphics-mode .nav-card, html.phi-brand.low-graphics-mode .overlay-screen { background: white !important; }
-html.phi-brand.low-graphics-mode :is(.master-header, .header-icon) { box-shadow: none !important; }
-html.phi-brand.low-graphics-mode body { background-image: none !important; }
-html.phi-brand.low-graphics-mode :is(.hero-glass-card, .module-card, .fab-main, .workspace-search-trigger) { background-image: none !important; }
-html.phi-brand.low-graphics-mode :is(.nav-card, .module-card, .add-fav-card):hover { transform: none !important; }
-html.phi-brand.low-graphics-mode .hero-glass-card::before { display: none; }
+.phi-brand .phi-light-form :is(.forced-float, .standard-input:focus ~ .floating-label, .standard-input:not(:placeholder-shown) ~ .floating-label) { 
+  background: #181c24 !important; 
+  color: #fb923c !important; 
+}
+.phi-brand .phi-light-form .btn-submit, .phi-brand .phi-light-form .btn-save { 
+  background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); 
+  color: white; 
+  border-radius: 12px;
+}
+.phi-brand .phi-light-form .btn-add { 
+  background: rgba(255, 255, 255, 0.05); 
+  border: none; 
+  color: #f3f4f6; 
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.phi-brand .phi-light-form .phi-back-button { color: #f3f4f6 !important; border: none !important; background: rgba(255, 255, 255, 0.05); }
+.phi-brand .phi-light-form .summary-box { background: #0e1015; border-radius: 16px; }
+
+/* Responsive Adjustments (الأبعاد كما هي تماماً) */
 @media (max-width: 768px) {
   .phi-brand .fab-main { width: 3.5rem !important; height: 3.5rem !important; }
-  .phi-brand .master-header { border-radius: 0 0 14px 14px !important; }
+  .phi-brand .master-header { border-radius: 0 0 18px 18px !important; }
   .phi-brand .welcome-page-wrapper { padding: 0.625rem 0; }
   .phi-brand .hero-glass-card { padding: 1.625rem 0.875rem; }
   .phi-brand .modules-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .phi-brand .add-fav-card { white-space: normal !important; min-width: 0; }
 }
+
 @media print {
-  html.phi-brand body, .phi-brand .glass-container, .phi-brand .master-header { background: white !important; box-shadow: none !important; }
-  .phi-brand :is(.hero-glass-card, .module-card, .nav-card) { background: white !important; box-shadow: none !important; transform: none !important; }
-  .phi-brand .hero-glass-card::before { display: none; }
+  html.phi-brand body, .phi-brand .glass-container, .phi-brand .master-header { background: white !important; color: black !important; box-shadow: none !important; }
+  .phi-brand :is(.hero-glass-card, .module-card, .nav-card) { background: white !important; color: black !important; box-shadow: none !important; transform: none !important; }
   .phi-brand .rawasi-printable-table tbody tr[data-selected="true"], .phi-brand .rawasi-printable-table tbody tr:hover { background: white !important; }
   .phi-brand .rawasi-printable-table thead th { background: #f4f4f5 !important; color: #18181b !important; }
 }

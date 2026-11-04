@@ -1,42 +1,311 @@
 
+/* ==========================================================================
+   DESIGN SYSTEM TOKENS: BORDERLESS GLOSSY LAYERED GRADIENT UI (DAY & NIGHT)
+   Zero 1px solid borders anywhere. Depth is sculpted via surface luminance,
+   multi-stop gradients, top specular light beams, and diffuse shadows.
+   ========================================================================== */
 :root {
-  /* 🎨 ألوان الهوية (Apple-like Color Palette) */
-  --primary: #1d1d1f; 
-  --primary-light: #434344;
-  --accent: #c2410c;
-  --accent-light: #fb923c;
-  --white: #ffffff;
-  --bg-main: #f5f5f7; 
+  --font-ar: 'Cairo', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   
-  /* 🧊 الزجاج المغبش المدمج (Milky White Frosted Glass) */
-  /* 🚀 التعديل هنا: رفعنا نسبة الأبيض عشان الزجاج ينور والكلام يبان */
-  --glass-surface: rgba(255, 255, 255, 0.65); 
-  --glass-border: rgba(255, 255, 255, 0.8);
-  --input-bg: rgba(255, 255, 255, 0.7);
-  
-  /* 🆕 نعومة الحواف (Apple Squircle Radius) */
   --radius-lg: 28px;
-  --radius-md: 16px;
-
-  /* 📝 ألوان النصوص */
-  --text-main: #1d1d1f;
-  --text-muted: #64748b; /* غمقنا الرمادي شوية عشان يقرأ أحسن فوق الأبيض */
-  --danger: #ff3b30; 
-  --success: #16a34a; /* أخضر أغمق قليلاً للقراءة */
-
-  /* 🆕 إضافات الجداول */
-  --table-hover: rgba(255, 255, 255, 0.8);
-  --table-border: rgba(0, 0, 0, 0.05); /* خطوط رمادية خفيفة جداً للفصل */
-
-  /* 🆕 إعدادات اللوجو */
+  --radius-md: 18px;
   --logo-size: 90px;
+  --apple-transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
-  /* ✨ ظلال ناعمة جداً (Soft Diffuse Shadows) */
-  --card-shadow: 0 10px 40px rgba(0, 0, 0, 0.05); /* ظل أقوى شوية عشان يفصل الكارت الأبيض عن الخلفية */
-  --glow-accent: 0 4px 20px rgba(202, 138, 4, 0.15);
+/* --------------------------------------------------------------------------
+   DARK MODE (الوضع الليلي الافتراضي: فحمي متدرّج جلوسي بدون إطارات)
+   -------------------------------------------------------------------------- */
+:root,
+html[data-mode="dark"] {
+  --bg-canvas: #07080b;
+  --bg-canvas-secondary: #0b0d12;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  /* Elevated Card Layered Gradients (Default Dark) */
+  --surface-card: linear-gradient(180deg, #181c24 0%, #12151c 52%, #0c0e12 100%);
+  --surface-card-hover: linear-gradient(180deg, #1d222c 0%, #151922 52%, #0e1016 100%);
+  --surface-header: linear-gradient(135deg, #171b24 0%, #101319 55%, #0a0c10 100%);
+  --surface-sidebar: linear-gradient(180deg, #151921 0%, #0f1218 60%, #090b0f 100%);
+  --surface-subcard: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.015) 100%);
   
-  /* انسيابية الحركة (Apple Spring Transition) */
-  --apple-transition: all 0.5s cubic-bezier(0.15, 0.83, 0.66, 1); 
+  /* Sunken Wells (Inputs, Search, Pill Tracks) - Borderless Inner Depth */
+  --surface-sunken: #07090c;
+  --shadow-sunken: inset 0 2px 6px rgba(0, 0, 0, 0.85), inset 0 -1px 1px rgba(255, 255, 255, 0.05);
+
+  /* Glossy Surface Sheen & Specular Top Reflection */
+  --gloss-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.085) 0%, rgba(255, 255, 255, 0.02) 42%, rgba(0, 0, 0, 0.28) 100%);
+  --gloss-button: linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.04) 48%, rgba(0, 0, 0, 0.25) 100%);
+  --specular-beam: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.28) 50%, transparent 100%);
+  --specular-beam-soft: linear-gradient(90deg, transparent 5%, rgba(255, 255, 255, 0.14) 50%, transparent 95%);
+
+  /* Table Striping & Hover (Zero Borders) */
+  --table-head-bg: rgba(255, 255, 255, 0.03);
+  --table-zebra-bg: rgba(255, 255, 255, 0.018);
+  --table-row-hover: linear-gradient(90deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.01) 100%);
+
+  /* Diffuse Elevation Shadows */
+  --shadow-elevation: 0 24px 48px -14px rgba(0, 0, 0, 0.82), 0 8px 20px -6px rgba(0, 0, 0, 0.6);
+  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(249, 115, 22, 0.09);
+  --chart-grid: rgba(255, 255, 255, 0.04);
+
+  /* Legacy variable mappings */
+  --primary: #f97316;
+  --primary-light: #fb923c;
+  --accent: #f97316;
+  --accent-light: rgba(249, 115, 22, 0.15);
+  --white: #ffffff;
+  --bg-main: #07080b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --glass-surface: linear-gradient(180deg, #181c24 0%, #12151c 52%, #0c0e12 100%);
+  --glass-border: transparent;
+  --input-bg: #07090c;
+  --card-shadow: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(249, 115, 22, 0.09);
+  --glow-accent: rgba(249, 115, 22, 0.35);
+}
+
+/* Dark Mode Accent Specific Tints */
+:root,
+html[data-mode="dark"][data-accent="amber"],
+html:not([data-accent]) {
+  --surface-card: linear-gradient(180deg, #191d25 0%, #12151b 52%, #0c0e12 100%);
+  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(249, 115, 22, 0.09);
+}
+html[data-mode="dark"][data-accent="cyan"] {
+  --surface-card: linear-gradient(180deg, #151b26 0%, #0f131c 52%, #090c11 100%);
+  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(56, 189, 248, 0.09);
+}
+html[data-mode="dark"][data-accent="emerald"] {
+  --surface-card: linear-gradient(180deg, #121d18 0%, #0d1511 52%, #080c0a 100%);
+  --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.85), 0 12px 32px -10px rgba(16, 185, 129, 0.09);
+}
+
+/* --------------------------------------------------------------------------
+   LIGHT MODE (الوضع النهاري: لؤلؤي سيراميكي متدرّج جلوسي بدون إطارات)
+   -------------------------------------------------------------------------- */
+html[data-mode="light"] {
+  --bg-canvas: #e8eef5;
+  --bg-canvas-secondary: #dde5ef;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+
+  --surface-card: linear-gradient(180deg, #ffffff 0%, #f9fbfd 58%, #f1f5f9 100%);
+  --surface-card-hover: linear-gradient(180deg, #ffffff 0%, #fcfdff 65%, #f5f8fc 100%);
+  --surface-header: linear-gradient(135deg, #ffffff 0%, #f8fafd 55%, #eef3f9 100%);
+  --surface-sidebar: linear-gradient(180deg, #ffffff 0%, #f7faff 60%, #edf2f8 100%);
+  --surface-subcard: linear-gradient(180deg, #f3f6fa 0%, #eaeff6 100%);
+
+  --surface-sunken: #dfe6ef;
+  --shadow-sunken: inset 0 2px 5px rgba(15, 23, 42, 0.08), inset 0 -1px 0px rgba(255, 255, 255, 0.9);
+
+  --gloss-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.35) 45%, rgba(203, 213, 225, 0.18) 100%);
+  --gloss-button: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(0, 0, 0, 0.12) 100%);
+  --specular-beam: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 1) 50%, transparent 100%);
+  --specular-beam-soft: linear-gradient(90deg, transparent 5%, rgba(255, 255, 255, 0.9) 50%, transparent 95%);
+
+  --table-head-bg: rgba(15, 23, 42, 0.035);
+  --table-zebra-bg: rgba(15, 23, 42, 0.02);
+  --table-row-hover: linear-gradient(90deg, rgba(15, 23, 42, 0.045) 0%, rgba(15, 23, 42, 0.008) 100%);
+
+  --shadow-elevation: 0 20px 42px -12px rgba(15, 23, 42, 0.08), 0 6px 16px -4px rgba(15, 23, 42, 0.04);
+  --chart-grid: rgba(15, 23, 42, 0.05);
+
+  --bg-main: var(--bg-canvas);
+  --text-main: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --glass-surface: var(--surface-card);
+  --input-bg: var(--surface-sunken);
+  --card-shadow: var(--shadow-ambient);
+}
+
+html[data-mode="light"][data-accent="amber"],
+html[data-mode="light"]:not([data-accent]) {
+  --shadow-ambient: 0 22px 46px -12px rgba(15, 23, 42, 0.085), 0 10px 26px -8px rgba(249, 115, 22, 0.09);
+}
+html[data-mode="light"][data-accent="cyan"] {
+  --shadow-ambient: 0 22px 46px -12px rgba(15, 23, 42, 0.085), 0 10px 26px -8px rgba(14, 165, 233, 0.09);
+}
+html[data-mode="light"][data-accent="emerald"] {
+  --shadow-ambient: 0 22px 46px -12px rgba(15, 23, 42, 0.085), 0 10px 26px -8px rgba(16, 185, 129, 0.09);
+}
+
+/* --------------------------------------------------------------------------
+   ACCENT PALETTES (عنبري | تيتانيوم تقني | زمردي مالي)
+   -------------------------------------------------------------------------- */
+:root,
+html[data-accent="amber"],
+html:not([data-accent]) {
+  --accent-main: #f97316;
+  --accent-bright: #fb923c;
+  --accent-deep: #ea580c;
+  --accent-soft-bg: rgba(249, 115, 22, 0.13);
+  --accent-glow: rgba(249, 115, 22, 0.35);
+  --accent-gradient: linear-gradient(180deg, #fb923c 0%, #f97316 55%, #d9460f 100%);
+  --ambient-orb-1: rgba(249, 115, 22, 0.13);
+  --ambient-orb-2: rgba(245, 158, 11, 0.08);
+}
+
+html[data-accent="cyan"] {
+  --accent-main: #0ea5e9;
+  --accent-bright: #38bdf8;
+  --accent-deep: #0284c7;
+  --accent-soft-bg: rgba(56, 189, 248, 0.13);
+  --accent-glow: rgba(56, 189, 248, 0.35);
+  --accent-gradient: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 55%, #0369a1 100%);
+  --ambient-orb-1: rgba(56, 189, 248, 0.13);
+  --ambient-orb-2: rgba(59, 130, 246, 0.08);
+}
+
+html[data-accent="emerald"] {
+  --accent-main: #10b981;
+  --accent-bright: #34d399;
+  --accent-deep: #059669;
+  --accent-soft-bg: rgba(16, 185, 129, 0.13);
+  --accent-glow: rgba(16, 185, 129, 0.35);
+  --accent-gradient: linear-gradient(180deg, #34d399 0%, #10b981 55%, #047857 100%);
+  --ambient-orb-1: rgba(16, 185, 129, 0.13);
+  --ambient-orb-2: rgba(20, 184, 166, 0.08);
+}
+
+/* --------------------------------------------------------------------------
+   CORE UTILITY CLASSES: BORDERLESS GLOSSY SURFACES
+   -------------------------------------------------------------------------- */
+.glossy-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-ambient);
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.35s ease;
+  border: none !important;
+}
+
+.glossy-card-interactive:hover {
+  transform: translateY(-4px);
+  background: var(--surface-card-hover);
+}
+
+.glossy-header {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-header);
+  box-shadow: var(--shadow-elevation);
+  border: none !important;
+}
+
+.glossy-sidebar {
+  position: relative;
+  overflow: hidden;
+  background: var(--surface-sidebar);
+  box-shadow: var(--shadow-elevation);
+  border: none !important;
+}
+
+.specular-top {
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1.5px;
+  background: var(--specular-beam);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.gloss-overlay {
+  position: absolute;
+  inset: 0 0 45% 0;
+  background: var(--gloss-sheen);
+  pointer-events: none;
+  z-index: 1;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+}
+
+.sunken-well {
+  background: var(--surface-sunken);
+  box-shadow: var(--shadow-sunken);
+  color: var(--text-primary);
+  border: none !important;
+  transition: box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.sunken-well:focus-within,
+.sunken-well:focus {
+  outline: none;
+  box-shadow: var(--shadow-sunken), 0 0 0 2px var(--accent-glow);
+}
+
+.subcard-surface {
+  background: var(--surface-subcard);
+  border: none !important;
+}
+
+.btn-glossy-accent {
+  position: relative;
+  overflow: hidden;
+  background: var(--accent-gradient);
+  color: #ffffff;
+  border: none !important;
+  box-shadow: 0 10px 26px -4px var(--accent-glow);
+  transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+}
+.btn-glossy-accent:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 14px 32px -4px var(--accent-glow);
+  filter: brightness(1.05);
+}
+.btn-glossy-accent:active {
+  transform: translateY(0px) scale(0.98);
+}
+.btn-glossy-accent::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--gloss-button);
+  pointer-events: none;
+}
+
+.text-accent {
+  color: var(--accent-main);
+}
+html[data-mode="dark"] .text-accent {
+  color: var(--accent-bright);
+}
+.bg-accent-soft {
+  background-color: var(--accent-soft-bg);
+}
+.dot-accent {
+  background-color: var(--accent-main);
+  box-shadow: 0 0 10px var(--accent-glow);
+}
+
+.table-head-row {
+  background: var(--table-head-bg);
+  color: var(--text-secondary);
+  border: none !important;
+}
+.table-row-zebra {
+  background: var(--table-zebra-bg);
+  border: none !important;
+}
+.table-row-interactive {
+  transition: background 0.2s ease, transform 0.15s ease;
+  border: none !important;
+}
+.table-row-interactive:hover {
+  background: var(--table-row-hover);
+}
+
+.font-mono-num {
+  font-family: var(--font-mono);
+  letter-spacing: -0.02em;
 }
 
 /* 🚀 ضبط السلوك العام */
@@ -44,7 +313,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: var(--font-ar);
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -57,19 +326,10 @@ html, body {
 }
 
 body {
-  /* 🖼️ خلفية مريحة للعين */
-  background-color: var(--bg-main);
-  background-image: 
-    linear-gradient(rgba(245, 245, 247, 0.85), rgba(255, 255, 255, 0.95)), 
-    url('/company-logo.svg'),
-    url('/ryc_login.jpeg');
-  
-  background-position: center, center, center;
-  background-repeat: no-repeat, no-repeat, no-repeat;
-  background-size: cover, 40% auto, cover; 
-  background-attachment: fixed;
-  
-  color: var(--text-main);
+  background: radial-gradient(circle at 15% 10%, var(--ambient-orb-1), transparent 38%),
+              radial-gradient(circle at 85% 85%, var(--ambient-orb-2), transparent 40%),
+              linear-gradient(180deg, var(--bg-canvas) 0%, var(--bg-canvas-secondary) 100%) !important;
+  color: var(--text-primary) !important;
   direction: rtl;
   min-height: 100vh;
   line-height: 1.5;

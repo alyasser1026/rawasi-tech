@@ -1,55 +1,62 @@
-/* Shared screen surfaces for the PHI TECH workspace. Print templates keep their own styles. */
+/* Shared screen surfaces for the PHI TECH workspace. Borderless Glossy Layered Gradient UI. */
 @media screen {
   .enterprise-page {
-    --ent-card-gloss: linear-gradient(135deg, #ffffff99, #ffffff00 52%), linear-gradient(180deg, #ffffff 0%, #fbfcfe 42%, #f2f5f9 100%);
-    --ent-card-elevation: inset 0 1px 0 #ffffff, inset 0 -1px 0 #e8edf566, 0 1px 3px #25344a08, 0 9px 24px -9px #38445d17;
-    --ent-card-hover: inset 0 1px 0 #ffffff, inset 0 -1px 0 #e8edf566, 0 2px 4px #25344a0a, 0 12px 28px -10px #38445d20;
-    --table-border: #edf0f4;
-    --table-hover: #fafbfe;
-    --card-shadow: var(--ent-card-elevation);
-    color: var(--ent-ink, #202329);
+    --ent-card-gloss: var(--surface-card);
+    --ent-card-elevation: var(--shadow-ambient);
+    --ent-card-hover: var(--shadow-elevation);
+    --table-border: transparent;
+    --table-hover: var(--table-row-hover);
+    --card-shadow: var(--shadow-ambient);
+    color: var(--text-primary);
     min-width: 0;
   }
 
-  /* The opaque glossy surface adds a top highlight without blurring financial content. */
+  /* Borderless glossy surface with specular highlight */
   .enterprise-page.enterprise-page :is(.glass-card, .glass-panel, .glass-master-card, .apple-card, .project-card, .site-card, .group-card, .user-card, .audit-stat-card, .summary-glass-card, .summary-card, .source-breakdown-card, .kpi-card, .kpi-box, .mini-stat-card, .health-ring-card, .module-card),
   .enterprise-page.enterprise-page .premium-card:not(.financial-stat) {
-    background: var(--ent-card-gloss);
-    border: 1px solid #e0e5ed;
-    border-radius: var(--phi-radius-card, 14px);
-    box-shadow: var(--ent-card-elevation);
+    background: var(--surface-card);
+    border: none !important;
+    border-width: 0 !important;
+    border-radius: var(--phi-radius-card, 20px);
+    box-shadow: var(--shadow-ambient);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     min-width: 0;
-    transition: border-color 160ms ease, box-shadow 160ms ease;
+    position: relative;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background 0.25s ease;
   }
   .enterprise-page.enterprise-page :is(.project-card, .site-card, .user-card, .module-card, .apple-card):hover,
   .enterprise-page.enterprise-page .premium-card:not(.financial-stat):hover {
-    transform: none;
-    border-color: #ccd4df;
-    box-shadow: var(--ent-card-hover);
+    transform: translateY(-2px);
+    background: var(--surface-card-hover);
+    border-color: transparent !important;
+    box-shadow: var(--shadow-elevation);
   }
   .enterprise-page.enterprise-page :is(.summary-card, .source-breakdown-card, .mini-stat-card, .health-ring-card, .kpi-card):hover {
-    transform: none;
-    box-shadow: var(--ent-card-hover);
+    transform: translateY(-2px);
+    background: var(--surface-card-hover);
+    box-shadow: var(--shadow-elevation);
   }
   .enterprise-page.enterprise-page :is(.stat-card, .labor-stat-item) {
-    border-radius: 12px;
-    box-shadow: var(--ent-card-elevation);
+    background: var(--surface-card);
+    border: none !important;
+    border-radius: 16px;
+    box-shadow: var(--shadow-ambient);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     min-width: 0;
   }
   .enterprise-page.enterprise-page .summary-glass-card {
-    color: var(--ent-ink, #202329);
+    color: var(--text-primary);
     padding: 1.125rem;
     margin-bottom: 0;
   }
   .enterprise-page.enterprise-page :is(.summary-glass-card, .kpi-box) strong { font-variant-numeric: tabular-nums; }
-  .enterprise-page.enterprise-page .kpi-box strong { color: #29313e; }
+  .enterprise-page.enterprise-page .kpi-box strong { color: var(--text-primary); }
   .enterprise-page.enterprise-page .glass-master-card .card-header {
-    background: linear-gradient(180deg, #fff, #f9fafc);
-    border-bottom: 1px solid #e6e8ec;
+    background: var(--surface-subcard);
+    border: none !important;
+    border-bottom: none !important;
     padding: 1.125rem 1.25rem;
   }
   .enterprise-page.enterprise-page .warm-depth-glow { display: none; }
@@ -58,54 +65,70 @@
   .enterprise-page.enterprise-page .field-grid { gap: 1.125rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 17.5rem), 1fr)); }
   .enterprise-page.enterprise-page .field-grid { padding: 0; }
 
-  /* Bounded legacy surfaces used by the remaining accounting modules. */
+  /* Bounded legacy surfaces used by accounting modules */
   .enterprise-page.enterprise-page :is(.summary-glass-box, .control-panel, .card-base, .request-card, .policy-paper, .air-status-card, .hero-vault-air, .glass-terminal, .matrix-tile, .project-accordion, .summary-box, .stat-premium-card) {
-    background-image: var(--ent-card-gloss);
-    background-color: #fff;
-    border-color: #e0e5ed;
-    border-radius: var(--phi-radius-card, 14px);
-    box-shadow: var(--ent-card-elevation);
+    background: var(--surface-card);
+    border: none !important;
+    border-radius: var(--phi-radius-card, 18px);
+    box-shadow: var(--shadow-ambient);
+    color: var(--text-primary);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     min-width: 0;
   }
-  .enterprise-page.enterprise-page :is(.request-card, .matrix-tile):hover { transform: none; box-shadow: var(--ent-card-hover); }
-  .enterprise-page.enterprise-page .summary-glass-box.border-red { background: linear-gradient(180deg, #fff, #fff5f6); border-left: 4px solid #be123c; }
+  .enterprise-page.enterprise-page :is(.request-card, .matrix-tile):hover { transform: translateY(-2px); box-shadow: var(--shadow-elevation); }
+  .enterprise-page.enterprise-page .summary-glass-box.border-red { border-left: 4px solid #be123c !important; }
   .enterprise-page.enterprise-page .request-card { border-right-width: 4px; }
-  .enterprise-page.enterprise-page .stat-premium-card { border-radius: var(--phi-radius-card, 14px) !important; box-shadow: var(--ent-card-elevation) !important; }
-  .enterprise-page.enterprise-page .summary-card { color: var(--ent-ink, #202329); }
-  .enterprise-page.enterprise-page .summary-card.total { color: #1d4ed8; }
-  .enterprise-page.enterprise-page .summary-card.posted { color: #047857; }
-  .enterprise-page.enterprise-page .summary-card.draft { color: #a16207; }
-  .enterprise-page.enterprise-page .summary-card.subcontractor { color: #be123c; }
-  .enterprise-page.enterprise-page .summary-card.direct { color: #6d28d9; }
-  .enterprise-page.enterprise-page .kpi-box>span { color: #687180; }
-  .enterprise-page.enterprise-page .kpi-box.success strong { color: #047857; }
-  .enterprise-page.enterprise-page .kpi-box.warning strong { color: #a16207; }
-  .enterprise-page.enterprise-page .kpi-box.danger strong { color: #be123c; }
+  .enterprise-page.enterprise-page .stat-premium-card { border-radius: var(--phi-radius-card, 18px) !important; box-shadow: var(--shadow-ambient) !important; }
+  .enterprise-page.enterprise-page .summary-card { color: var(--text-primary); }
+  .enterprise-page.enterprise-page .summary-card.total { color: #38bdf8; }
+  .enterprise-page.enterprise-page .summary-card.posted { color: #10b981; }
+  .enterprise-page.enterprise-page .summary-card.draft { color: #f59e0b; }
+  .enterprise-page.enterprise-page .summary-card.subcontractor { color: #fb7185; }
+  .enterprise-page.enterprise-page .summary-card.direct { color: #a78bfa; }
+  .enterprise-page.enterprise-page .kpi-box>span { color: var(--text-secondary); }
+  .enterprise-page.enterprise-page .kpi-box.success strong { color: #10b981; }
+  .enterprise-page.enterprise-page .kpi-box.warning strong { color: #f59e0b; }
+  .enterprise-page.enterprise-page .kpi-box.danger strong { color: #f43f5e; }
   .enterprise-page .ent-page-summary>div>.summary-glass-box { flex: 1; min-width: 10rem; }
   .enterprise-page .ent-page-summary>.air-status-card { width: 100%; }
-  .enterprise-page .ent-page-actions label { color: #657080 !important; font-size: var(--fs-sm); }
-  .enterprise-page .ent-page-actions .glass-dropdown { min-height: 2.5rem; border: 1px solid #dce2ea; border-radius: 8px; background: #fff; color: #303a48; padding: 0.5rem 0.75rem; }
+  .enterprise-page .ent-page-actions label { color: var(--text-secondary) !important; font-size: var(--fs-sm); }
+  .enterprise-page .ent-page-actions .glass-dropdown {
+    min-height: 2.5rem;
+    border: none !important;
+    border-radius: 12px;
+    background: var(--surface-sunken) !important;
+    box-shadow: var(--shadow-sunken) !important;
+    color: var(--text-primary) !important;
+    padding: 0.5rem 0.75rem;
+  }
   .enterprise-page .ent-performance-content { padding: 0; direction: rtl; background: transparent; }
   .enterprise-page .ent-performance-panel { padding: 1.75rem; }
-  .enterprise-page .ent-payroll-total { color: #047857; }
+  .enterprise-page .ent-payroll-total { color: #10b981; }
   .enterprise-page.enterprise-page .hero-vault-air { padding: 2rem; margin-bottom: 1.5rem; }
   .enterprise-page.enterprise-page .hero-vault-air .hero-value { font-size: clamp(32px, 5vw, 64px); letter-spacing: -1px; overflow-wrap: anywhere; }
-  .enterprise-page.enterprise-page .hero-vault-air .hero-label { letter-spacing: 1px; color: #687180; opacity: 1; }
+  .enterprise-page.enterprise-page .hero-vault-air .hero-label { letter-spacing: 1px; color: var(--text-secondary); opacity: 1; }
   .enterprise-page.enterprise-page .glare-effect { display: none; }
   .enterprise-page.enterprise-page .matrix-tile { padding: 1.5rem; }
   .enterprise-page.enterprise-page .glass-terminal { padding: 1.5rem; }
   .enterprise-page.enterprise-page .control-panel { flex-wrap: wrap; }
 
-  /* Page tools host content written for the old dark filter rail: white inline text becomes ink,
-     translucent white chips become light fields, and coloured buttons keep their own colours. */
-  .enterprise-page .ent-page-tools :is([style*="color: white"], [style*="color:white"], [style*="color: rgb(255, 255, 255)"], [style*="color: rgb(226, 232, 240)"]):not([style*="background"]):not(button) { color: var(--ent-ink, #202329) !important; }
-  .enterprise-page .ent-page-tools [style*="background: rgba(255, 255, 255"]:is([style*="color: white"], [style*="color: rgb(255, 255, 255)"]) { background: #f6f8fb !important; color: #303a48 !important; border-color: #dce2ea !important; }
-  .enterprise-page .ent-page-tools hr { border: 0 !important; border-top: 1px solid #e6e8ec !important; margin: 0.25rem 0 !important; }
-  .enterprise-page .ent-page-tools .filter-btn:not(.active) { background: #f3f5f8; color: #4b5563; border: 1px solid #dce2ea; }
-  .enterprise-page .ent-page-tools .filter-btn.active { background: #c2410c; color: #fff; border: 1px solid #c2410c; box-shadow: none; }
-  .enterprise-page .ent-page-tools .date-label { color: #657080; }
+  /* Page tools host content */
+  .enterprise-page .ent-page-tools hr { border: 0 !important; border-top: 1px solid var(--table-zebra-bg) !important; margin: 0.25rem 0 !important; }
+  .enterprise-page .ent-page-tools .filter-btn:not(.active) {
+    background: var(--surface-subcard);
+    color: var(--text-secondary);
+    border: none !important;
+    border-radius: 10px;
+  }
+  .enterprise-page .ent-page-tools .filter-btn.active {
+    background: var(--accent-gradient);
+    color: #fff;
+    border: none !important;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px var(--accent-glow);
+  }
+  .enterprise-page .ent-page-tools .date-label { color: var(--text-secondary); }
   @media (max-width: 800px) {
     .enterprise-page .ent-performance-panel { padding: 1.125rem; }
     .enterprise-page .ent-page-summary>div>.summary-glass-box { min-width: 8.125rem; }
@@ -113,81 +136,85 @@
     .enterprise-page .ent-plan-summary { width: 100% !important; position: static !important; }
   }
 
-  /* Muted and status text written inline with light tints is darkened for readable contrast on white. */
-  .enterprise-page :is([style^="color: rgb(148, 163, 184)"], [style*="; color: rgb(148, 163, 184)"], [style^="color: rgb(203, 213, 225)"], [style*="; color: rgb(203, 213, 225)"]) { color: #6b7280 !important; }
-  .enterprise-page :is([style^="color: rgb(16, 185, 129)"], [style*="; color: rgb(16, 185, 129)"], [style^="color: rgb(52, 211, 153)"], [style*="; color: rgb(52, 211, 153)"], [style^="color: rgb(74, 222, 128)"], [style*="; color: rgb(74, 222, 128)"], [style^="color: rgb(34, 197, 94)"], [style*="; color: rgb(34, 197, 94)"]) { color: #047857 !important; }
-  .enterprise-page :is([style^="color: rgb(245, 158, 11)"], [style*="; color: rgb(245, 158, 11)"], [style^="color: rgb(251, 191, 36)"], [style*="; color: rgb(251, 191, 36)"]) { color: #b45309 !important; }
-  .enterprise-page :is([style^="color: rgb(56, 189, 248)"], [style*="; color: rgb(56, 189, 248)"], [style^="color: rgb(14, 165, 233)"], [style*="; color: rgb(14, 165, 233)"]) { color: #0369a1 !important; }
-  .enterprise-page.enterprise-page :is(.num.success, .nav-sync, .security-tag) { color: #047857; }
-  .enterprise-page.enterprise-page .num.danger { color: #be123c; }
-  /* The page search keeps room for its icon. */
+  /* Muted and status text */
+  .enterprise-page.enterprise-page :is(.num.success, .nav-sync, .security-tag) { color: #10b981; }
+  .enterprise-page.enterprise-page .num.danger { color: #f43f5e; }
   .ent-page-custom-filters .ent-search input[type=search]:not([type=checkbox]):not([type=radio]) { padding-inline-start: 2.375rem !important; }
 
-  /* Existing form classes share the same readable light field contract. */
+  /* Sunken Borderless Form Fields */
   .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input) {
     width: 100%;
     min-height: 2.625rem;
     padding: 0.625rem 0.75rem;
-    border: 1px solid #dce2ea;
-    border-radius: 8px;
-    background: #fff;
-    color: #303a48;
-    color-scheme: light;
+    border: none !important;
+    border-width: 0 !important;
+    border-radius: 12px;
+    background: var(--surface-sunken) !important;
+    box-shadow: var(--shadow-sunken) !important;
+    color: var(--text-primary) !important;
     font: inherit;
     font-size: var(--fs-sm);
     font-weight: 500;
-    transition: border-color 150ms ease, box-shadow 150ms ease;
+    transition: box-shadow 150ms ease, background 150ms ease;
   }
-  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input)::placeholder { color: #8791a0; }
+  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input)::placeholder { color: var(--text-muted); }
   .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input):focus {
-    background: white;
-    border-color: #c2410c;
-    box-shadow: 0 0 0 3px #c2410c0d;
+    outline: none;
+    background: var(--surface-sunken) !important;
+    box-shadow: var(--shadow-sunken), 0 0 0 2px var(--accent-glow) !important;
   }
-  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input):disabled { background: #f3f5f8; color: #7b8492; cursor: not-allowed; }
-  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input) option { color: #303a48; background: #fff; }
-  .enterprise-page.enterprise-page .custom-checkbox { accent-color: #c2410c; }
+  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input):disabled { opacity: 0.5; cursor: not-allowed; }
+  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input) option { color: var(--text-primary); background: var(--surface-card); }
+  .enterprise-page.enterprise-page .custom-checkbox { accent-color: var(--accent-main); }
 
+  /* Glossy Buttons */
   .enterprise-page.enterprise-page :is(.btn-main-glass, .btn-premium-gold, .btn-glass-save, .btn-glass-cancel, .btn-gold-pro) {
     min-height: 2.5rem;
     padding: 0.625rem 0.875rem;
-    border-radius: 8px;
+    border-radius: 12px;
     font: inherit;
     font-size: var(--fs-sm);
     font-weight: 700;
+    border: none !important;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    transition: background-color 150ms ease, border-color 150ms ease;
+    transition: transform 150ms ease, box-shadow 150ms ease, filter 150ms ease;
   }
   .enterprise-page.enterprise-page :is(.btn-main-glass, .btn-premium-gold, .btn-glass-save, .btn-glass-cancel, .btn-gold-pro):hover {
-    transform: none;
-    filter: none;
-    box-shadow: none;
+    transform: translateY(-1.5px);
   }
   .enterprise-page.enterprise-page :is(.btn-premium-gold, .btn-glass-save, .btn-gold-pro),
   .enterprise-page.enterprise-page .btn-main-glass.gold {
-    background: linear-gradient(135deg, #c2410c, #c7470c);
-    border: 1px solid #c2410c;
-    color: #fff;
-    box-shadow: inset 0 1px 0 #ffffff26, 0 2px 5px #c2410c16;
+    background: var(--accent-gradient) !important;
+    border: none !important;
+    color: #fff !important;
+    box-shadow: 0 10px 24px -4px var(--accent-glow) !important;
   }
   .enterprise-page.enterprise-page .btn-main-glass.white,
-  .enterprise-page.enterprise-page .btn-glass-cancel { background: #fff; border: 1px solid #dce2ea; color: #495364; box-shadow: 0 1px 2px #25344a06; }
+  .enterprise-page.enterprise-page .btn-glass-cancel {
+    background: var(--surface-subcard) !important;
+    border: none !important;
+    color: var(--text-secondary) !important;
+    box-shadow: var(--shadow-elevation);
+  }
   .enterprise-page.enterprise-page .btn-main-glass.white:hover,
-  .enterprise-page.enterprise-page .btn-glass-cancel:hover { background: #f7f9fc; border-color: #cbd3df; }
-  .enterprise-page.enterprise-page .btn-main-glass.blue { color: #1d4ed8; background: #eff6ff; border: 1px solid #bfdbfe; box-shadow: none; }
-  .enterprise-page.enterprise-page .btn-main-glass.green { color: #047857; background: #ecfdf5; border: 1px solid #a7f3d0; box-shadow: none; }
-  .enterprise-page.enterprise-page .btn-main-glass.red { color: #be123c; background: #fff1f2; border: 1px solid #fecdd3; box-shadow: none; }
-  .enterprise-page.enterprise-page .btn-main-glass.yellow { color: #a16207; background: #fffbeb; border: 1px solid #fde68a; box-shadow: none; }
+  .enterprise-page.enterprise-page .btn-glass-cancel:hover {
+    background: var(--surface-card-hover) !important;
+    color: var(--text-primary) !important;
+  }
+  .enterprise-page.enterprise-page .btn-main-glass.blue { color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: none !important; box-shadow: none; }
+  .enterprise-page.enterprise-page .btn-main-glass.green { color: #34d399; background: rgba(16, 185, 129, 0.12); border: none !important; box-shadow: none; }
+  .enterprise-page.enterprise-page .btn-main-glass.red { color: #fb7185; background: rgba(244, 63, 94, 0.12); border: none !important; box-shadow: none; }
+  .enterprise-page.enterprise-page .btn-main-glass.yellow { color: #fbbf24; background: rgba(245, 158, 11, 0.12); border: none !important; box-shadow: none; }
   .enterprise-page.enterprise-page :is(.btn-main-glass, .btn-premium-gold, .btn-glass-save, .btn-glass-cancel):disabled { opacity: .5; cursor: not-allowed; }
   .enterprise-page .ent-page-actions .btn-premium-gold { width: auto; }
 
-  /* Legacy registers retain their column definitions and financial status colors. */
+  /* Borderless Registers & Tables */
   .enterprise-page.enterprise-page :is(.table-container, .table-glass-wrapper) {
-    border: 1px solid #e0e5ed;
-    border-radius: 13px;
-    background: #fff;
-    box-shadow: var(--ent-card-elevation);
+    border: none !important;
+    border-radius: 18px;
+    background: var(--surface-card);
+    box-shadow: var(--shadow-ambient);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     overflow-x: auto;
@@ -196,9 +223,10 @@
   .enterprise-page.enterprise-page :is(.table-inner-scroll, .boq-table-scroller) { max-width: 100%; overflow-x: auto; }
   .enterprise-page.enterprise-page :is(.smart-table, .tree-table, .child-table, .modern-table, .ledger-table, .nested-table, .tb-table, .bulk-table) { font-variant-numeric: tabular-nums; }
   .enterprise-page.enterprise-page :is(.smart-table, .tree-table, .child-table, .modern-table, .ledger-table, .nested-table, .tb-table, .bulk-table) th {
-    background: #f8f9fb !important; /* supersedes the global translucent sticky header */
-    color: #657080;
-    border-bottom: 1px solid #e2e7ee;
+    background: var(--table-head-bg) !important;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--table-zebra-bg) !important;
+    border-top: none; border-left: none; border-right: none;
     font-size: var(--fs-xs);
     font-weight: 700;
     padding: 0.8125rem 0.9375rem;
@@ -206,53 +234,109 @@
     backdrop-filter: none;
   }
   .enterprise-page.enterprise-page :is(.smart-table, .tree-table, .child-table, .modern-table, .ledger-table, .nested-table, .tb-table, .bulk-table) td {
-    border-bottom-color: #edf0f4;
+    border-bottom: 1px solid var(--table-zebra-bg);
+    border-top: none; border-left: none; border-right: none;
+    color: var(--text-primary);
     font-size: var(--fs-sm);
     font-weight: 500;
     padding: 0.875rem 0.9375rem;
   }
-  .enterprise-page.enterprise-page :is(.floating-row, .acc-row) { border-radius: 9px; box-shadow: 0 1px 2px #25344a05; transition: border-color 150ms ease, background-color 150ms ease; }
-  .enterprise-page.enterprise-page :is(.floating-row, .acc-row):hover { transform: none; box-shadow: 0 1px 4px #25344a08; }
-  .enterprise-page.enterprise-page :is(.table-header-grid, .table-header) { background: #f8f9fb; border: 1px solid #e4e8ef; border-radius: 8px; color: #687180; }
+  .enterprise-page.enterprise-page :is(.floating-row, .acc-row) {
+    background: var(--surface-card);
+    border: none !important;
+    border-radius: 12px;
+    box-shadow: var(--shadow-ambient);
+    transition: background-color 150ms ease;
+  }
+  .enterprise-page.enterprise-page :is(.floating-row, .acc-row):hover {
+    background: var(--surface-card-hover);
+    transform: none;
+    box-shadow: var(--shadow-elevation);
+  }
+  .enterprise-page.enterprise-page :is(.table-header-grid, .table-header) {
+    background: var(--table-head-bg);
+    border: none !important;
+    border-radius: 12px;
+    color: var(--text-secondary);
+  }
   .enterprise-page.enterprise-page .no-print:has(> .table-header-grid) { overflow-x: auto; }
 
-  /* Shared register: styles live here rather than individual inline declarations. */
+  /* Shared register: Rawasi table wrapper */
   .enterprise-page .rawasi-table-wrapper {
-    background: var(--ent-card-gloss) !important; /* replaces the old brand wrapper contract */
-    border: 1px solid #e0e5ed !important;
-    border-radius: 13px !important;
-    box-shadow: var(--ent-card-elevation) !important;
+    background: var(--surface-card) !important;
+    border: none !important;
+    border-radius: 18px !important;
+    box-shadow: var(--shadow-ambient) !important;
     padding: 0;
     min-width: 0;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
-  .enterprise-page .rawasi-table-wrapper .table-toolbar { display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap; padding: 0.875rem 1.125rem; margin: 0; border-bottom: 1px solid #e6e8ec; }
+  .enterprise-page .rawasi-table-wrapper .table-toolbar {
+    display: flex; align-items: center; justify-content: flex-end; gap: 0.75rem; flex-wrap: wrap;
+    padding: 0.875rem 1.125rem; margin: 0;
+    border-bottom: 1px solid var(--table-zebra-bg);
+  }
   .enterprise-page .rawasi-table-exports { display: flex; gap: 0.5rem; }
   .enterprise-page .rawasi-table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
   .enterprise-page .rawasi-printable-table { width: 100%; border-collapse: collapse; text-align: right; font-variant-numeric: tabular-nums; }
-  .enterprise-page .rawasi-printable-table thead th { padding: 0.8125rem 1.125rem; background: #f8f9fb !important; color: #687180 !important; border-bottom: 1px solid #e6e8ec !important; font-size: var(--fs-xs); font-weight: 700; text-align: right; user-select: none; white-space: nowrap; -webkit-backdrop-filter: none; backdrop-filter: none; }
-  .enterprise-page .rawasi-printable-table td { padding: 1rem 1.125rem; font-size: var(--fs-sm); color: #495364; font-weight: 500; border-bottom: 1px solid #edf0f4; }
+  .enterprise-page .rawasi-printable-table thead th {
+    padding: 0.8125rem 1.125rem;
+    background: var(--table-head-bg) !important;
+    color: var(--text-secondary) !important;
+    border-bottom: 1px solid var(--table-zebra-bg) !important;
+    border-top: none; border-left: none; border-right: none;
+    font-size: var(--fs-xs); font-weight: 700; text-align: right; user-select: none; white-space: nowrap;
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+  }
+  .enterprise-page .rawasi-printable-table td {
+    padding: 1rem 1.125rem; font-size: var(--fs-sm);
+    color: var(--text-primary); font-weight: 500;
+    border-bottom: 1px solid var(--table-zebra-bg);
+    border-top: none; border-left: none; border-right: none;
+  }
   .enterprise-page .rawasi-printable-table .table-row-hover { transition: background-color 150ms ease; }
   .enterprise-page .rawasi-printable-table .table-row-hover[data-clickable="true"] { cursor: pointer; }
-  .enterprise-page .rawasi-printable-table tbody tr:hover { background: #fafbfe !important; box-shadow: none; transform: none; }
-  .enterprise-page .rawasi-printable-table tbody tr[data-selected="true"] { background: #fff7ed !important; }
+  .enterprise-page .rawasi-printable-table tbody tr:hover { background: var(--table-row-hover) !important; box-shadow: none; transform: none; }
+  .enterprise-page .rawasi-printable-table tbody tr[data-selected="true"] { background: var(--accent-soft-bg) !important; }
   .enterprise-page .rawasi-printable-table tbody tr:last-child td { border-bottom: 0; }
-  .enterprise-page .rawasi-printable-table .rawasi-table-empty { padding: 3rem 1.25rem; text-align: center; color: #8791a0; font-size: var(--fs-sm); }
+  .enterprise-page .rawasi-printable-table .rawasi-table-empty { padding: 3rem 1.25rem; text-align: center; color: var(--text-muted); font-size: var(--fs-sm); }
   .enterprise-page .rawasi-table-check { width: 2.625rem; }
-  .enterprise-page .rawasi-table-checkbox { width: 1rem; height: 1rem; accent-color: #c2410c; cursor: pointer; }
+  .enterprise-page .rawasi-table-checkbox { width: 1rem; height: 1rem; accent-color: var(--accent-main); cursor: pointer; }
   .enterprise-page .rawasi-table-sortable { cursor: pointer; }
   .enterprise-page .rawasi-table-column-label { display: flex; align-items: center; gap: 0.375rem; }
   .enterprise-page .rawasi-table-sort-indicator { display: inline-flex; color: transparent; }
-  .enterprise-page .rawasi-table-sort-indicator.is-sorted { color: #c2410c; }
-  .enterprise-page .rawasi-table-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.4375rem; min-height: 2.25rem; padding: 0.5rem 0.75rem; border: 1px solid #dce2ea; border-radius: 7px; background: #fff; color: #596474; font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer; }
-  .enterprise-page .rawasi-table-button:hover:not(:disabled) { background: #f6f8fb; border-color: #cbd3df; }
+  .enterprise-page .rawasi-table-sort-indicator.is-sorted { color: var(--accent-main); }
+  .enterprise-page .rawasi-table-button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 0.4375rem;
+    min-height: 2.25rem; padding: 0.5rem 0.75rem;
+    border: none !important; border-radius: 10px;
+    background: var(--surface-subcard);
+    color: var(--text-secondary);
+    font: inherit; font-size: var(--fs-xs); font-weight: 700; cursor: pointer;
+    box-shadow: var(--shadow-elevation);
+    transition: background 150ms ease, color 150ms ease;
+  }
+  .enterprise-page .rawasi-table-button:hover:not(:disabled) {
+    background: var(--surface-card-hover);
+    color: var(--text-primary);
+  }
   .enterprise-page .rawasi-table-button:disabled { opacity: .45; cursor: not-allowed; }
-  .enterprise-page .rawasi-table-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.875rem; border-top: 1px solid #e6e8ec; padding: 0.875rem 1.125rem; font-size: var(--fs-xs); color: #687180; }
+  .enterprise-page .rawasi-table-footer {
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.875rem;
+    border-top: 1px solid var(--table-zebra-bg);
+    padding: 0.875rem 1.125rem; font-size: var(--fs-xs); color: var(--text-secondary);
+  }
   .enterprise-page :is(.rawasi-table-page-size, .rawasi-table-pagination) { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5625rem; }
-  .enterprise-page .rawasi-table-page-select { border: 1px solid #dce2ea; border-radius: 6px; background: #fff; color: #495364; font: inherit; padding: 0.4375rem; cursor: pointer; }
-  .enterprise-page .rawasi-table-total { color: #8791a0; }
-  .enterprise-page .rawasi-table-page-number { color: #596474; font-size: var(--fs-xs); font-weight: 700; padding: 0.4375rem; }
+  .enterprise-page .rawasi-table-page-select {
+    border: none !important; border-radius: 8px;
+    background: var(--surface-sunken);
+    box-shadow: var(--shadow-sunken);
+    color: var(--text-primary);
+    font: inherit; padding: 0.4375rem; cursor: pointer;
+  }
+  .enterprise-page .rawasi-table-total { color: var(--text-muted); }
+  .enterprise-page .rawasi-table-page-number { color: var(--text-primary); font-size: var(--fs-xs); font-weight: 700; padding: 0.4375rem; }
 }
 
 @media screen and (max-width: 1100px) {
@@ -263,7 +347,7 @@
 @media screen and (max-width: 800px) {
   .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input) { min-height: 2.75rem; font-size: var(--fs-lg); }
   .enterprise-page.enterprise-page :is(.project-card, .site-card, .glass-panel) { padding: 1.125rem; }
-  .enterprise-page.enterprise-page :is(.glass-card, .glass-panel) { border: 1px solid #e0e5ed !important; box-shadow: var(--ent-card-elevation) !important; }
+  .enterprise-page.enterprise-page :is(.glass-card, .glass-panel) { border: none !important; box-shadow: var(--shadow-ambient) !important; }
   .enterprise-page .rawasi-table-wrapper .table-toolbar,
   .enterprise-page .rawasi-table-footer { padding: 0.875rem; }
   .enterprise-page .rawasi-table-button { min-height: 2.5rem; }
@@ -273,7 +357,7 @@
   .enterprise-page.enterprise-page :is(.project-card, .site-card, .module-card, .apple-card, .premium-card, .floating-row, .acc-row) { transition: none; }
 }
 @media screen {
-  html.low-graphics-mode .enterprise-page { --ent-card-gloss: #fff; --ent-card-elevation: none; --ent-card-hover: none; }
+  html.low-graphics-mode .enterprise-page { --ent-card-gloss: var(--surface-card); --ent-card-elevation: none; --ent-card-hover: none; }
   html.low-graphics-mode .enterprise-page.enterprise-page :is(.project-card, .site-card, .module-card, .premium-card, .mini-stat-card, .summary-card, .kpi-card):hover { transform: none; }
-  html.low-graphics-mode .enterprise-page.enterprise-page :is(.btn-premium-gold, .btn-glass-save, .btn-gold-pro, .btn-main-glass.gold) { background: #c2410c; }
+  html.low-graphics-mode .enterprise-page.enterprise-page :is(.btn-premium-gold, .btn-glass-save, .btn-gold-pro, .btn-main-glass.gold) { background: var(--accent-gradient); }
 }

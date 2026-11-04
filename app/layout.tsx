@@ -17,6 +17,7 @@ import { SidebarProvider } from '@/lib/SidebarContext';
 import AuthGuard from "../components/authGuard"; 
 import { ToastProvider } from '@/lib/toast-context'; 
 import { PermissionsProvider } from '@/lib/PermissionsContext';
+import { ThemeProvider } from '@/lib/ThemeContext';
 
 // 🚀 1. استدعاء محرك الأوفلاين والكاش الجديد (V9)
 import QueryProvider from '../components/QueryProvider';
@@ -53,14 +54,21 @@ export default function RootLayout({
 }) {
   return (
     // 🛡️ suppressHydrationWarning يمنع رسائل الخطأ المزعجة في الكونسول
-    <html lang="ar" dir="rtl" className="phi-brand" suppressHydrationWarning>
+    <html lang="ar" dir="rtl" className="phi-brand" data-mode="dark" data-accent="amber" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var m=localStorage.getItem('phi_theme_mode')||'dark';var a=localStorage.getItem('phi_theme_accent')||'amber';document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-accent',a);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body 
         style={{ 
           position: 'relative', 
           minHeight: '100vh', 
           margin: 0, 
-          backgroundColor: THEME.sandLight,
-          color: THEME.text 
+          backgroundColor: 'var(--bg-canvas, #07080b)',
+          color: 'var(--text-primary, #f8fafc)' 
         }}
       >
         
@@ -68,7 +76,7 @@ export default function RootLayout({
         <style dangerouslySetInnerHTML={{__html: `
           .bg-master-container {
             position: fixed; inset: 0; z-index: -4; 
-            background-color: ${THEME.sandLight}; 
+            background-color: var(--bg-canvas, #07080b); 
             overflow: hidden;
             pointer-events: none;
           }
@@ -77,19 +85,17 @@ export default function RootLayout({
             background-image: url('/ryc_login.jpeg'); 
             background-size: cover;
             background-position: center;
-            filter: blur(60px); 
+            filter: blur(80px); 
             transform: scale(1.1); 
-            opacity: 0.45; 
+            opacity: 0.08; 
           }
           .bg-glass-tint {
             position: absolute; inset: 0; z-index: -3;
-            background: linear-gradient(
-              135deg, 
-              rgba(244, 241, 238, 0.8) 0%, 
-              rgba(255, 255, 255, 0.85) 50%,
-              rgba(194,65,12, 0.1) 100%
-            );
-            backdrop-filter: blur(10px);
+            background: 
+              radial-gradient(circle at 15% 10%, var(--ambient-orb-1, rgba(249, 115, 22, 0.13)), transparent 38%),
+              radial-gradient(circle at 85% 85%, var(--ambient-orb-2, rgba(245, 158, 11, 0.08)), transparent 40%),
+              linear-gradient(180deg, var(--bg-canvas, #07080b) 0%, var(--bg-canvas-secondary, #0b0d12) 100%);
+            backdrop-filter: blur(15px);
           }
           .watermark-bg {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -110,28 +116,30 @@ export default function RootLayout({
         <GlobalErrorBoundary>
             <QueryProvider>
                 <Providers>
-                    <ToastProvider>
-                        {/* 🚀 تغليف السيستم بخدمة التأكيد الذكية */}
-                        <PerformancePreferences>
-                        <ConfirmProvider>
-                            <AutoLogoutWrapper>
-                                <AuthGuard> 
-                                    <PermissionsProvider>
-                                        <SidebarProvider> 
-                                            {/* LayoutClient هو المتحكم في حركة السايد بار والصفحة */}
-                                            <LayoutClient>
-                                                <GlobalNavigationShortcuts />
-                                                <div style={{ position: 'relative', zIndex: 1 }}>
-                                                    {children}
-                                                </div>
-                                            </LayoutClient>
-                                        </SidebarProvider> 
-                                    </PermissionsProvider>
-                                </AuthGuard>
-                            </AutoLogoutWrapper>
-                        </ConfirmProvider>
-                        </PerformancePreferences>
-                    </ToastProvider>
+                    <ThemeProvider>
+                        <ToastProvider>
+                            {/* 🚀 تغليف السيستم بخدمة التأكيد الذكية */}
+                            <PerformancePreferences>
+                            <ConfirmProvider>
+                                <AutoLogoutWrapper>
+                                    <AuthGuard> 
+                                        <PermissionsProvider>
+                                            <SidebarProvider> 
+                                                {/* LayoutClient هو المتحكم في حركة السايد بار والصفحة */}
+                                                <LayoutClient>
+                                                    <GlobalNavigationShortcuts />
+                                                    <div style={{ position: 'relative', zIndex: 1 }}>
+                                                        {children}
+                                                    </div>
+                                                </LayoutClient>
+                                            </SidebarProvider> 
+                                        </PermissionsProvider>
+                                    </AuthGuard>
+                                </AutoLogoutWrapper>
+                            </ConfirmProvider>
+                            </PerformancePreferences>
+                        </ToastProvider>
+                    </ThemeProvider>
                 </Providers>
             </QueryProvider>
         </GlobalErrorBoundary>

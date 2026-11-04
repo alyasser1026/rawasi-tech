@@ -8,7 +8,7 @@ export default function GlassModalWrapper({ children, isOpen, onClose }: any) {
   if (!isOpen || !mounted) return null;
 
   return createPortal(
-    <div className="phi-modal-backdrop" style={{ position: 'fixed', inset: 0, zIndex: 999999999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: 'rgba(40, 24, 10, 0.85)', backdropFilter: 'blur(10px)', padding: '3.125rem 1.25rem', overflowY: 'auto' }}>
+    <div className="phi-modal-backdrop" style={{ position: 'fixed', inset: 0, zIndex: 999999999, display: 'flex', alignItems: 'flex-start', justifyContent: 'center', background: 'rgba(5, 7, 10, 0.8)', backdropFilter: 'blur(16px)', padding: '3.125rem 1.25rem', overflowY: 'auto' }}>
       <div style={{ position: 'fixed', inset: 0 }} onClick={onClose} />
       <div style={{ width: '100%', maxWidth: '61.25rem', position: 'relative', margin: 'auto', zIndex: 10 }}>
         {children}
