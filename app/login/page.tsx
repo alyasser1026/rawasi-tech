@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
-import { useLoginLogic } from './login_logic'; // 👈 استدعاء العقل المدبر
+import { useLoginLogic } from './login_logic';
+import CompanyLogo from '@/components/CompanyLogo';
 
 // 🎨 تطبيق ألوان هوية "فاي تك" الدافئة
 const THEME = {
@@ -204,13 +205,13 @@ export default function LoginPage() {
         @media (max-width: 480px) {
             .glass-card { padding: 2.5rem 1.5625rem; border-radius: 14px; }
             .cinematic-title { font-size: var(--fs-3xl); }
-            .logo-container img { height: 5.625rem; }
+            .logo-container :is(img, svg) { height: 5.625rem; }
         }
       `}</style>
 
       <div className="glass-card">
         <div className="logo-container">
-          <img src="/company-logo.svg" alt="شعار شركة فاي تك" />
+          <CompanyLogo style={{ maxHeight: '6rem', width: 'auto', margin: '0 auto' }} />
         </div>
         
         <h1 className="cinematic-title">فاي تك</h1>

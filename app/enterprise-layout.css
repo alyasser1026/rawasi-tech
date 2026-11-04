@@ -13,7 +13,7 @@
 .ent-topbar-start { display:flex; align-items:center; gap:0.625rem; min-width:0; }
 .ent-topbar-end { display:flex; align-items:center; gap:0.25rem; flex-shrink:0; }
 .ent-topbar-menu, .ent-topbar-logo { display:none !important; }
-.ent-topbar-logo img { display:block; width:7rem; height:2.25rem; object-fit:contain; }
+.ent-topbar-logo :is(img, svg) { display:block; width:7rem; height:2.25rem; object-fit:contain; }
 .ent-topbar-crumbs { display:flex; align-items:center; gap:0.375rem; min-width:0; font-size:var(--fs-sm); color:var(--text-secondary, #94a3b8); white-space:nowrap; }
 .ent-topbar-crumbs a { color:var(--text-secondary, #94a3b8); text-decoration:none; border-radius:6px; }
 .ent-topbar-crumbs a:hover { color:var(--accent-main, #f97316); }
@@ -44,7 +44,7 @@ html.low-graphics-mode .ent-topbar { background:#fff; backdrop-filter:none; -web
   .ent-topbar .ent-icon-button { width:2.5rem; min-height:2.5rem; }
 }
 @media screen and (max-width:440px) {
-  .ent-topbar-logo img { width:5.75rem; }
+  .ent-topbar-logo :is(img, svg) { width:5.75rem; }
   .ent-topbar-zap { display:none !important; }
 }
 

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSidebar } from '@/lib/SidebarContext';
 import { Pin, MapPin, Settings } from 'lucide-react';
+import CompanyLogo from './CompanyLogo';
 
 interface RawasiSidebarProps {
   onSearch?: (term: string) => void;
@@ -190,7 +191,7 @@ export default function RawasiFilterSidebar({
 
         <div className="filter-content">
           <div className="sidebar-logo-container">
-            <img src={logoPath} alt="Logo" className="sidebar-logo-img" />
+            {logoPath === '/company-logo.svg' ? <CompanyLogo className="sidebar-logo-img" /> : <img src={logoPath} alt="Logo" className="sidebar-logo-img" />}
             <h2 style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '0.625rem', color: accentColor }}>{title}</h2>
           </div>
           
