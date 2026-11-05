@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createCopilotTools } from './copilot-tools.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,7 +18,7 @@ function loadEnvLocal() {
     if (!trimmed || trimmed.startsWith('#')) continue;
     const eqIdx = trimmed.indexOf('=');
     if (eqIdx > 0) {
-      const key = trimmed.slice(0, eqIdx).trim();
+      const key = trimmed.slice(0, eqIdx).trim().replace(/^\uFEFF/, '');
       const val = trimmed.slice(eqIdx + 1).trim();
       env[key] = val;
     }
@@ -29,8 +30,18 @@ const env = loadEnvLocal();
 const BOT_TOKEN = env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
 const CHAT_ID = env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
 const GEMINI_API_KEY = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-const SUPABASE_URL = env.NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const SUPABASE_URL =
+  env.SUPABASE_URL ||
+  env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env['\uFEFFNEXT_PUBLIC_SUPABASE_URL'];
+const SUPABASE_ANON_KEY =
+  env.SUPABASE_SERVICE_ROLE_KEY ||
+  env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  env.SUPABASE_ANON_KEY ||
+  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 if (!BOT_TOKEN) {
   console.error('❌ خطأ: TELEGRAM_BOT_TOKEN غير موجود في ملف .env.local');
@@ -46,7 +57,14 @@ console.log('🤖 بدء تشغيل المساعد الذكي لنظام فاي 
 const KNOWLEDGE_PATH = path.join(rootDir, 'config', 'copilot_knowledge.md');
 const MEMORY_PATH = path.join(rootDir, 'config', 'copilot_memory.json');
 
-// 📚 تحميل دليل المعرفة الثابت من الملف
+// Initialize database & PDF tools
+const copilotTools = createCopilotTools({
+  supabaseUrl: SUPABASE_URL,
+  supabaseKey: SUPABASE_ANON_KEY,
+  botToken: BOT_TOKEN,
+});
+
+// 📚 تحميل دليل المعرفة الثابت
 function loadKnowledgeBase() {
   try {
     if (fs.existsSync(KNOWLEDGE_PATH)) {
@@ -115,19 +133,115 @@ function deleteRuleFromMemory(idOrKeyword) {
   }
 }
 
-// 🧹 تصفير الذاكرة المكتسبة
-function clearAllMemory() {
-  try {
-    const payload = {
-      last_updated: new Date().toISOString(),
-      rules: [],
-    };
-    fs.writeFileSync(MEMORY_PATH, JSON.stringify(payload, null, 2), 'utf8');
-    return true;
-  } catch (err) {
-    return false;
-  }
-}
+// تعريف الأدوات لـ Gemini (Function Declarations)
+const FUNCTION_DECLARATIONS = [
+  {
+    name: 'get_labor_daily_logs',
+    description: 'الاستعلام عن عدد وأسماء وتفاصيل العمال الذين اشتغلوا اليوم أو في تاريخ معين أو فترة من تاريخ إلى تاريخ مع أجورهم ومواقعهم',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        date: { type: 'STRING', description: 'تاريخ محدد بصيغة YYYY-MM-DD أو كلمة today للبحث في يومية اليوم' },
+        start_date: { type: 'STRING', description: 'تاريخ بداية الفترة بصيغة YYYY-MM-DD' },
+        end_date: { type: 'STRING', description: 'تاريخ نهاية الفترة بصيغة YYYY-MM-DD' },
+        worker_name: { type: 'STRING', description: 'اسم عامل معين إذا كان السؤال يخصه فقط' },
+      },
+    },
+  },
+  {
+    name: 'get_tareeha_deficits',
+    description: 'كشف وحصر العمال الذين عجزوا في الطريحة (الإنتاجية المنفذة أقل من الطريحة المطلوبة للبند) مع بيان مقدار العجز لكل عامل',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        date: { type: 'STRING', description: 'تاريخ اليوم أو تاريخ محدد YYYY-MM-DD' },
+        start_date: { type: 'STRING', description: 'تاريخ بداية الفترة YYYY-MM-DD' },
+        end_date: { type: 'STRING', description: 'تاريخ نهاية الفترة YYYY-MM-DD' },
+      },
+    },
+  },
+  {
+    name: 'get_villa_and_budget_details',
+    description: 'استعلام عن تفاصيل وبيانات وميزانية وتكاليف فيلا أو مشروع معين برقم الفيلا أو الكود أو الاسم',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        villa_identifier: { type: 'STRING', description: 'رقم أو اسم الفيلا مثل 101 أو فيلا 204 أو كود المشروع' },
+      },
+      required: ['villa_identifier'],
+    },
+  },
+  {
+    name: 'get_model_villas_and_specs',
+    description: 'استعلام عن عدد الفلل المسجلة تحت نموذج معين وقائمة أسمائها ومواصفات النموذج والمساحة',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        model_name: { type: 'STRING', description: 'اسم أو رمز النموذج مثل A أو B أو دوبلكس أو نموذج 1' },
+      },
+      required: ['model_name'],
+    },
+  },
+  {
+    name: 'get_boq_and_materials',
+    description: 'الاستعلام عن كمية بند معين في فيلا محددة (بالمتر والمنفذ)، أو الاستعلام عن البند موجود في كم فيلا، أو استهلاك الماتيريال والخامات للبند',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        work_item: { type: 'STRING', description: 'اسم البند مثل خرسانة مسلحة، مباني، لياسة، عزل، دهانات' },
+        villa_identifier: { type: 'STRING', description: 'رقم أو اسم الفيلا إذا كان السؤال عن كمية البند أو مواده في فيلا محددة' },
+      },
+      required: ['work_item'],
+    },
+  },
+  {
+    name: 'get_contractors_summary',
+    description: 'استعلام عن مقاولي الباطن الذين معهم شغل جاري حالياً أو المقاولين الذين لهم مستحقات وفلوس واجبة السداد',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        filter_type: {
+          type: 'STRING',
+          enum: ['active_work', 'with_balances'],
+          description: 'active_work للمقاولين الذين معهم شغل جاري، with_balances للمقاولين الذين لهم فلوس ومستحقات',
+        },
+      },
+      required: ['filter_type'],
+    },
+  },
+  {
+    name: 'get_pending_subclaims',
+    description: 'الاستعلام عن المستخلصات المعلقة أو غير المعتمدة لمقاولي الباطن وتفاصيل مبالغها',
+    parameters: {
+      type: 'OBJECT',
+      properties: {},
+    },
+  },
+  {
+    name: 'get_financial_transaction_details',
+    description: 'البحث واستخراج تفاصيل أي عملية مالية أو سند صرف أو سند قبض أو فاتورة أو قيد يومية بالرقم أو الاسم أو البيان',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        search_query: { type: 'STRING', description: 'رقم السند أو الفاتورة أو اسم المورد أو بيان العملية' },
+      },
+      required: ['search_query'],
+    },
+  },
+  {
+    name: 'generate_and_send_worker_statement_pdf',
+    description: 'إصدار وتوليد كشف حساب وسجل يوميات وإنتاجية عامل بصيغة PDF وإرساله مباشرة كمستند في التلجرام',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        worker_name: { type: 'STRING', description: 'اسم العامل المطلوب إصدار الكشف له' },
+        start_date: { type: 'STRING', description: 'تاريخ بداية الفترة بصيغة YYYY-MM-DD اختياري' },
+        end_date: { type: 'STRING', description: 'تاريخ نهاية الفترة بصيغة YYYY-MM-DD اختياري' },
+      },
+      required: ['worker_name'],
+    },
+  },
+];
 
 const BASE_SYSTEM_PROMPT = `
 أنت المساعد الذكي الخبير لمنظومة فاي تك (PHI TECH) لإدارة المشروعات والمقاولات والمحاسبة المالية.
@@ -180,60 +294,10 @@ async function sendChatAction(chatId, action = 'typing') {
   } catch {}
 }
 
-// Fetch live database context from Supabase (REST API)
-async function fetchDatabaseSummary() {
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return 'قاعدة البيانات غير متصلة مباشرة.';
-  try {
-    const headers = {
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    };
-
-    const [projRes, visitsRes, custRes, posRes, expRes, partRes] = await Promise.allSettled([
-      fetch(`${SUPABASE_URL}/rest/v1/projects?select=id,Property,status,client_name&limit=15`, { headers }).then((r) => r.json()),
-      fetch(`${SUPABASE_URL}/rest/v1/project_site_visits?select=title,stage,status,visit_date,inspector_name&order=created_at.desc&limit=10`, { headers }).then((r) => r.json()),
-      fetch(`${SUPABASE_URL}/rest/v1/site_custodies?select=title,disbursed_amount,spent_amount,remaining_amount,status&limit=10`, { headers }).then((r) => r.json()),
-      fetch(`${SUPABASE_URL}/rest/v1/purchase_orders?select=po_number,total_amount,status&order=created_at.desc&limit=10`, { headers }).then((r) => r.json()),
-      fetch(`${SUPABASE_URL}/rest/v1/expenses?select=description,total_price,exp_date,is_posted&order=created_at.desc&limit=8`, { headers }).then((r) => r.json()),
-      fetch(`${SUPABASE_URL}/rest/v1/partners?select=name,partner_type,phone&limit=10`, { headers }).then((r) => r.json()),
-    ]);
-
-    let summary = '📊 ملخص البيانات الحالية في النظام:\n';
-    if (projRes.status === 'fulfilled' && Array.isArray(projRes.value)) {
-      summary += `\n🏢 المشاريع (${projRes.value.length}):\n` +
-        projRes.value.map((p) => `- ${p.Property || 'بدون اسم'} (الحالة: ${p.status || 'قيد التنفيذ'})`).join('\n');
-    }
-    if (visitsRes.status === 'fulfilled' && Array.isArray(visitsRes.value)) {
-      summary += `\n\n📐 أحدث ملاحظات وزيارات الموقع:\n` +
-        visitsRes.value.map((v) => `- ${v.title} (${v.stage || 'عام'} - الحالة: ${v.status} - بتاريخ ${v.visit_date})`).join('\n');
-    }
-    if (custRes.status === 'fulfilled' && Array.isArray(custRes.value)) {
-      summary += `\n\n💼 العُهد المفتوحة:\n` +
-        custRes.value.map((c) => `- ${c.title} (المتبقي: ${c.remaining_amount || 0} ر.س - الحالة: ${c.status})`).join('\n');
-    }
-    if (posRes.status === 'fulfilled' && Array.isArray(posRes.value)) {
-      summary += `\n\n🛒 أحدث أوامر الشراء:\n` +
-        posRes.value.map((o) => `- ${o.po_number} (الإجمالي: ${o.total_amount} ر.س - الحالة: ${o.status})`).join('\n');
-    }
-    if (expRes.status === 'fulfilled' && Array.isArray(expRes.value)) {
-      summary += `\n\n💸 أحدث المصروفات المسجلة:\n` +
-        expRes.value.map((e) => `- ${e.description} (${Number(e.total_price || 0).toLocaleString()} ر.س - بتاريخ ${e.exp_date})`).join('\n');
-    }
-    if (partRes.status === 'fulfilled' && Array.isArray(partRes.value)) {
-      summary += `\n\n🤝 الشركاء والموردين:\n` +
-        partRes.value.map((pt) => `- ${pt.name} (${pt.partner_type || 'مورد/مقاول'})`).join('\n');
-    }
-
-    return summary;
-  } catch (err) {
-    return 'تعذر جلب تفاصيل البيانات: ' + err.message;
-  }
-}
-
-// Call Google Gemini API
-async function askGemini(userPrompt, dbContext) {
+// Call Google Gemini API with smart tool routing
+async function processUserPromptWithGemini(userPrompt, chatId) {
   if (!GEMINI_API_KEY) {
-    return '⚠️ مفتاح <code>GEMINI_API_KEY</code> غير مضاف في ملف <code>.env.local</code>.\nيرجى إضافته لتفعيل ردود الذكاء الاصطناعي الذكية.';
+    return '⚠️ مفتاح <code>GEMINI_API_KEY</code> غير مضاف في ملف <code>.env.local</code>.';
   }
 
   const knowledge = loadKnowledgeBase();
@@ -241,59 +305,98 @@ async function askGemini(userPrompt, dbContext) {
 
   let memoryContext = '';
   if (knowledge) {
-    memoryContext += `\n\n📖 دليل المعرفة وقواعد العمل الرسمية للشركة:\n${knowledge}`;
+    memoryContext += `\n\n📖 دليل المعرفة وقواعد العمل الهندسية والمحاسبية:\n${knowledge}`;
   }
   if (memoryRules.length > 0) {
-    memoryContext += `\n\n🧠 القواعد والمعلومات المكتسبة من التدريب:\n` +
+    memoryContext += `\n\n🧠 القواعد والمعلومات المكتسبة من التدريب المباشر:\n` +
       memoryRules.map((r, i) => `${i + 1}. [${r.topic}] ${r.text}`).join('\n');
   }
 
-  const fullPrompt = `${BASE_SYSTEM_PROMPT}
+  const systemInstructions = `${BASE_SYSTEM_PROMPT}
 ${memoryContext}
+تاريخ اليوم الحالي: ${new Date().toISOString().split('T')[0]}
+`;
 
-بيانات النظام وقاعدة البيانات الحالية:
-${dbContext}
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
 
-سؤال المستخدم:
-${userPrompt}`;
+  // Step 1: Call Gemini with Tool Declarations
+  const toolCheckBody = {
+    contents: [
+      {
+        role: 'user',
+        parts: [{ text: `${systemInstructions}\n\nطلب المستخدم:\n${userPrompt}` }],
+      },
+    ],
+    tools: [{ function_declarations: FUNCTION_DECLARATIONS }],
+    generationConfig: {
+      temperature: 0.1,
+    },
+  };
 
-  const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
-  let lastError = null;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(toolCheckBody),
+      signal: AbortSignal.timeout(15000),
+    });
 
-  for (const model of models) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
-      const body = {
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: fullPrompt }],
-          },
-        ],
-        generationConfig: {
-          temperature: 0.25,
-          maxOutputTokens: 1400,
-        },
-      };
+    const json = await res.json();
+    const candidate = json.candidates?.[0];
+    const functionCall = candidate?.content?.parts?.[0]?.functionCall;
 
-      const res = await fetch(url, {
+    // If Gemini decided to call a database / PDF tool
+    if (functionCall && functionCall.name && typeof copilotTools[functionCall.name] === 'function') {
+      console.log(`🔧 [Tool Call]: ${functionCall.name}`, functionCall.args);
+      await sendChatAction(chatId, functionCall.name.includes('pdf') ? 'upload_document' : 'typing');
+
+      const toolArgs = { ...functionCall.args, chatId };
+      const toolOutput = await copilotTools[functionCall.name](toolArgs);
+
+      // If PDF was generated and sent directly, we synthesize a confirmation message
+      if (functionCall.name === 'generate_and_send_worker_statement_pdf') {
+        if (toolOutput.success) {
+          return `📄 <b>تم إصدار وإرسال كشف حساب العامل (${toolOutput.worker_name}) بصيغة PDF بنجاح إلى المحادثة أعلاه!</b>\n\n📊 <b>ملخص الكشف:</b>\n- عدد السجلات واليوميات: ${toolOutput.records_count} يومية\n- إجمالي الأجر المستحق: <b>${toolOutput.total_wages.toLocaleString()} ر.س</b>\n\nهل تحتاج إلى الاستعلام عن إنتاجية عامل آخر أو مقارنتها بالطريحة؟`;
+        } else {
+          return `⚠️ تعذر إصدار ملف الـ PDF: ${toolOutput.message || toolOutput.error}`;
+        }
+      }
+
+      // Step 2: Synthesize the tool result into a rich, structured Arabic engineering report
+      const synthesisPrompt = `أنت المساعد الذكي لنظام فاي تك.
+المستخدم سأل: "${userPrompt}"
+بيانات الاستعلام الحقيقية المستخرجة من قاعدة البيانات:
+${JSON.stringify(toolOutput, null, 2)}
+
+قم بصياغة إجابة باللغة العربية بأسلوب هندسي ومحاسبي محترف وواضح، مع إبراز الأرقام والأسماء في نقاط وتوضيح الموقف بدقة مع الإيموجي المناسب.`;
+
+      const synthRes = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-        signal: AbortSignal.timeout(15000),
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: synthesisPrompt }] }],
+          generationConfig: { temperature: 0.25, maxOutputTokens: 1400 },
+        }),
       });
 
-      const json = await res.json();
-      if (res.ok && json.candidates?.[0]?.content?.parts?.[0]?.text) {
-        return json.candidates[0].content.parts[0].text;
-      }
-      lastError = json.error?.message || 'Gemini response error';
-    } catch (err) {
-      lastError = err.message;
+      const synthJson = await synthRes.json();
+      const answer = synthJson.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (answer) return answer;
     }
+
+    // Direct response if no tool was required
+    const directText = candidate?.content?.parts?.[0]?.text;
+    if (directText) return directText;
+
+    if (json.error) {
+      return `⚠️ تنبيه من Gemini: ${json.error.message}`;
+    }
+  } catch (err) {
+    console.error('Error in Gemini processing:', err);
+    return `⚠️ حدث استثناء أثناء معالجة الطلب: ${err.message}`;
   }
 
-  return `عذراً، حدث خطأ أثناء الاتصال بمحرك Gemini: ${lastError}`;
+  return 'عذراً، لم أتمكن من صياغة الإجابة بدقة، يرجى إعادة كتابة السؤال بصيغة أخرى.';
 }
 
 // Format markdown/plain text to Telegram HTML safe
@@ -327,42 +430,43 @@ async function handleUpdate(update) {
   console.log(`📩 [${new Date().toLocaleTimeString('ar-SA')}] رسالة من ${fromName} (${chatId}): ${rawText}`);
 
   try {
-    // Strip bot username mention if mentioned in group
     let cleanText = rawText.replace(/@phitechbot/gi, '').trim();
 
-    // 1. أمر البداية والمساعدة
+    // 1. أمر البداية والترحيب
     if (cleanText === '/start' || cleanText === '/help') {
       const welcome = `
 👋 أهلاً بك يا <b>${fromName}</b>!
-أنا <b>المساعد الذكي لمنظومة فاي تك (PHI TECH Copilot)</b> 🤖.
+أنا <b>المساعد الذكي الاحترافي لمنظومة فاي تك (PHI TECH Copilot)</b> 🤖👷‍♂️.
 
-يمكنك محادثتي وتدريبي هنا في أي وقت وكأنك داخل بيئة العمل تماماً:
+أنا مدرب ومتصل مباشرة بقاعدة البيانات الحية للإجابة على جميع استفساراتك الهندسية والمالية:
 
-🧠 <b>أوامر التدريب والذاكرة:</b>
-🔹 <code>/train المعلومة</code> أو <code>/learn المعلومة</code> — لتدريبي على قاعدة أو معلومة جديدة.
-🔹 <code>/memory</code> — لعرض كل القواعد والمعلومات التي درّبتني عليها.
-🔹 <code>/forget رقم_القاعدة</code> — لمسح معلومة معينة.
-🔹 <code>/reload</code> — لإعادة قراءة ملف المعرفة <code>config/copilot_knowledge.md</code>.
+📋 <b>أمثلة على ما يمكنك سؤالي عنه فوراً:</b>
+🔹 <i>"في كام عامل اشتغل النهارده؟"</i> — لحصر عمال اليومية وأجورهم ومواقعهم.
+🔹 <i>"العمال من تاريخ 2026-11-01 لتاريخ 2026-11-05"</i> — لحصر فترة محددة.
+🔹 <i>"مين عجز في الطريحة في شغل النهارده؟"</i> — لكشف من لم يحقق المستهدف ومقدار العجز.
+🔹 <i>"بيانات وميزانية فيلا 105"</i> — لعقد الفيلا والمصروف الفعلي وهامش الربح.
+🔹 <i>"عدد الفلل نموذج A ومواصفاته ومساحته"</i> — لحصر النماذج ومواصفاتها.
+🔹 <i>"بند بياض المحارة في كام فيلا؟"</i> أو <i>"بند الخرسانة في فيلا 102 كام متر وخاماته؟"</i>.
+🔹 <i>"المقاولين اللي معاهم شغل حالياً"</i> أو <i>"المقاولين اللي ليهم فلوس ومستحقات"</i>.
+🔹 <i>"المستخلصات المعلقة"</i> — لحصر مستخلصات مقاولي الباطن غير المعتمدة.
+🔹 <i>"ابعت كشف حساب العامل أحمد محمود بي دي اف من 1 نوفمبر إلى 5 نوفمبر"</i> — لتوليد وإرسال ملف PDF فخم للمحادثة فوراً!
 
-📊 <b>أوامر الاستعلام عن البيانات:</b>
-🔹 <code>/projects</code> — لعرض ملخص فوري بالمشاريع وحالاتها.
-🔹 <code>/visits</code> — لعرض أحدث زيارات وملاحظات الشوب دروينج.
-🔹 <code>/custodies</code> — لعرض العُهد المفتوحة ومتبقياتها.
-🔹 <code>/pos</code> — لعرض أحدث أوامر الشراء وموقف التوريد.
-
-💡 <i>يمكنك أيضاً تدريبي مباشرة بالكلام العادي، مثلاً: "احفظ عندك أن مهندس الموقع هو م. أحمد وله صلاحية اعتماد الصرف حتى 10 آلاف".</i>
+🧠 <b>أوامر التدريب والتخصيص:</b>
+🔹 <code>/train المعلومة</code> أو <code>احفظ عندك أن...</code> — لتعليمي أي قاعدة جديدة.
+🔹 <code>/memory</code> — لمراجعة القواعد المحفوظة في ذاكرتي.
+🔹 <code>/reload</code> — لتحديث دليل المعرفة من ملف <code>copilot_knowledge.md</code>.
 `;
       await sendTelegramMessage(chatId, welcome, messageId);
       return;
     }
 
-    // 2. أمر تدريب البوت عبر /train أو /learn
+    // 2. أمر تدريب البوت
     if (cleanText.startsWith('/train') || cleanText.startsWith('/learn')) {
       const ruleText = cleanText.replace(/^\/(train|learn)\s*/i, '').trim();
       if (!ruleText) {
         await sendTelegramMessage(
           chatId,
-          '⚠️ يرجى كتابة المعلومة بعد الأمر، مثلاً:\n<code>/train الحد الأقصى للمصروفات النثرية بدون موافقة هو 3000 ريال</code>',
+          '⚠️ يرجى كتابة المعلومة بعد الأمر، مثلاً:\n<code>/train طريحة بياض المحارة المعتمدة للفيلا هي 25 م² يومياً</code>',
           messageId
         );
         return;
@@ -374,24 +478,18 @@ async function handleUpdate(update) {
           `✅ <b>تم التدريب والحفظ بنجاح!</b> 🧠\n\n📌 <b>القاعدة الجديدة (#${saved.id}):</b>\n"${toTelegramHtml(saved.text)}"\n\n<i>سألتزم بهذه القاعدة وأضعها في اعتباري في جميع الإجابات القادمة.</i>`,
           messageId
         );
-      } else {
-        await sendTelegramMessage(chatId, '❌ تعذر حفظ المعلومة في ملف الذاكرة.', messageId);
       }
       return;
     }
 
-    // 3. أمر عرض الذاكرة والقواعد المكتسبة
+    // 3. عرض الذاكرة
     if (cleanText === '/memory' || cleanText === '/rules') {
       const rules = loadMemory();
       if (rules.length === 0) {
-        await sendTelegramMessage(
-          chatId,
-          '📭 الذاكرة المكتسبة فارغة حالياً.\nيمكنك تدريبي بكتابة: <code>/train المعلومة</code> أو في ملف <code>config/copilot_knowledge.md</code>.',
-          messageId
-        );
+        await sendTelegramMessage(chatId, '📭 الذاكرة المكتسبة فارغة حالياً. اكتب <code>/train المعلومة</code> لتدريبي.', messageId);
         return;
       }
-      let memText = `🧠 <b>القواعد والمعلومات التي تم تدريبي عليها (${rules.length}):</b>\n\n`;
+      let memText = `🧠 <b>القواعد والمعلومات المكتسبة من التدريب (${rules.length}):</b>\n\n`;
       rules.forEach((r, idx) => {
         memText += `<b>${idx + 1}.</b> ${toTelegramHtml(r.text)}\n`;
       });
@@ -400,35 +498,31 @@ async function handleUpdate(update) {
       return;
     }
 
-    // 4. أمر مسح قاعدة معينة
+    // 4. حذف قاعدة
     if (cleanText.startsWith('/forget')) {
       const target = cleanText.replace(/^\/forget\s*/i, '').trim();
-      if (!target) {
-        await sendTelegramMessage(chatId, 'يرجى تحديد رقم القاعدة لمسحها، مثلاً: <code>/forget 1</code>', messageId);
-        return;
-      }
       const ok = deleteRuleFromMemory(target);
       if (ok) {
-        await sendTelegramMessage(chatId, `🗑️ تم مسح القاعدة بنجاح وتحديث الذاكرة.`, messageId);
+        await sendTelegramMessage(chatId, `🗑️ تم مسح القاعدة بنجاح من الذاكرة.`, messageId);
       } else {
-        await sendTelegramMessage(chatId, `⚠️ لم يتم العثور على قاعدة برقم أو نص: ${target}`, messageId);
+        await sendTelegramMessage(chatId, `⚠️ لم يتم العثور على قاعدة برقم: ${target}`, messageId);
       }
       return;
     }
 
-    // 5. أمر إعادة تحميل ملف المعرفة
+    // 5. إعادة تحميل دليل المعرفة
     if (cleanText === '/reload') {
       const k = loadKnowledgeBase();
       const m = loadMemory();
       await sendTelegramMessage(
         chatId,
-        `🔄 تم إعادة تحميل الذاكرة بنجاح!\n📖 حجم دليل المعرفة: ${k.length} حرف\n🧠 عدد القواعد المكتسبة: ${m.length} قاعدة`,
+        `🔄 تم تحديث وقراءة ملف المعرفة بنجاح!\n📖 حجم دليل المعرفة: ${k.length} حرف\n🧠 عدد القواعد المكتسبة: ${m.length} قاعدة`,
         messageId
       );
       return;
     }
 
-    // 6. التحقق من العبارات التلقائية للتعلم الطبيعي (مثلاً: "احفظ عندك أن..." أو "تعلم أن...")
+    // 6. عبارات التعلم الطبيعي
     const naturalLearnMatch = cleanText.match(/^(?:احفظ عندك|تعلم أن|خليك عارف إن|سجل عندك|قاعدة جديدة)\s*[:،,-]?\s*(.+)$/i);
     if (naturalLearnMatch && naturalLearnMatch[1]) {
       const learned = naturalLearnMatch[1].trim();
@@ -445,13 +539,6 @@ async function handleUpdate(update) {
 
     await sendChatAction(chatId, 'typing');
 
-    // 7. أوامر سريعة للاستعلام
-    if (cleanText.startsWith('/projects')) {
-      const dbSummary = await fetchDatabaseSummary();
-      await sendTelegramMessage(chatId, toTelegramHtml(dbSummary), messageId);
-      return;
-    }
-
     // إزالة بادئة /ask إن وجدت
     if (cleanText.startsWith('/ask')) {
       cleanText = cleanText.replace(/^\/ask\s*/i, '').trim();
@@ -461,9 +548,8 @@ async function handleUpdate(update) {
       cleanText = rawText;
     }
 
-    // 8. الإجابة الذكية عبر Gemini بالاعتماد على الذاكرة وقاعدة البيانات
-    const dbContext = await fetchDatabaseSummary();
-    const aiReply = await askGemini(cleanText, dbContext);
+    // 7. المعالجة الذكية بالذكاء الاصطناعي واستدعاء الأدوات الحية
+    const aiReply = await processUserPromptWithGemini(cleanText, chatId);
     const formattedReply = toTelegramHtml(aiReply);
 
     await sendTelegramMessage(chatId, formattedReply, messageId);
@@ -504,7 +590,6 @@ async function pollUpdates() {
   }
 }
 
-// Handle termination gracefully
 process.on('SIGINT', () => {
   console.log('Stopping bot...');
   isPolling = false;
