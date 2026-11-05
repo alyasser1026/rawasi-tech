@@ -13,6 +13,7 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
 import { Pencil } from 'lucide-react';
+import TelegramAttachmentField, { AttachmentViewButton } from '@/components/TelegramAttachmentField';
 import { notify } from '@/lib/notify';
 
 export default function ViolationsPage() {
@@ -20,9 +21,9 @@ export default function ViolationsPage() {
   const [mounted, setMounted] = useState(false);
   const { can, loading: permsLoading } = usePermissions();
 
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
+
+
+
   
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 50;
@@ -90,9 +91,7 @@ export default function ViolationsPage() {
       key: 'image_url',
       header: 'المرفق', 
       render: (row: any) => {
-        return row?.image_url ? (
-          <img src={row.image_url} alt="مرفق" style={{width:'2.8125rem', height:'2.8125rem', borderRadius:'10px', border:'2px solid #e2e8f0', objectFit: 'cover'}} />
-        ) : <span style={{color: '#94a3b8', fontSize: 'var(--fs-xs)', fontWeight: 800}}>بدون</span>;
+        return <AttachmentViewButton url={row?.image_url} label="المرفق" title={`مخالفة ${row?.emp_name || ''}`} />;
       } 
     },
     { 
@@ -145,32 +144,6 @@ export default function ViolationsPage() {
     </div>
   ), [logic.state.selectedIds, logic.actions]);
 
-  const startCamera = async () => {
-    setIsCameraOpen(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-      if (videoRef.current) videoRef.current.srcObject = stream;
-    } catch (err) { 
-      notify("الكاميرا غير متاحة."); 
-      setIsCameraOpen(false); 
-    }
-  };
-
-  const takePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const context = canvasRef.current.getContext('2d');
-      canvasRef.current.width = videoRef.current.videoWidth;
-      canvasRef.current.height = videoRef.current.videoHeight;
-      context?.drawImage(videoRef.current, 0, 0);
-      logic.state.setEditingRecord({ ...logic.state.editingRecord, image_url: canvasRef.current.toDataURL('image/jpeg', 0.8) });
-      stopCamera();
-    }
-  };
-
-  const stopCamera = () => {
-    if (videoRef.current?.srcObject) (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop()); 
-    setIsCameraOpen(false);
-  };
 
   return (
     <>
@@ -241,7 +214,7 @@ export default function ViolationsPage() {
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.9375rem', borderBottom: '2px dashed #f1f5f9' }}>
                 <h3 style={{fontWeight:900, fontSize:'var(--fs-xl)', color: THEME.primary, margin: 0}}>تسجيل حركة خصم / استقطاع</h3>
-                <button onClick={() => { stopCamera(); logic.state.setIsEditModalOpen(false); }} style={{ background: '#f1f5f9', border: 'none', width: '2.1875rem', height: '2.1875rem', borderRadius: '50%', cursor: 'pointer', fontWeight: 900, color: '#64748b' }}>✕</button>
+                <button onClick={() => { logic.state.setIsEditModalOpen(false); }} style={{ background: '#f1f5f9', border: 'none', width: '2.1875rem', height: '2.1875rem', borderRadius: '50%', cursor: 'pointer', fontWeight: 900, color: '#64748b' }}>✕</button>
             </div>
             
             {/* 🎯 أزرار اختيار نوع الحركة (تم إزالة السلف) */}
@@ -311,35 +284,32 @@ export default function ViolationsPage() {
                 <input type="number" value={logic.state.editingRecord.amount || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, amount: Number(e.target.value)})} style={{ padding: '0.875rem', borderRadius: '14px', border: `2px solid ${THEME.ruby}40`, width: '100%', fontWeight: 900, outline: 'none', background: '#fef2f2', color: THEME.ruby, fontSize: 'var(--fs-xl)' }} />
             </div>
 
-            <div style={{ background: '#f8fafc', padding: '1.5625rem', borderRadius: '14px', border: '2px dashed #cbd5e1', marginBottom: '1.875rem', textAlign: 'center' }}>
-                {!isCameraOpen && !logic.state.editingRecord.image_url && (
-                    <button onClick={startCamera} style={{ background: THEME.primary, color: 'white', padding: '1rem 1.875rem', borderRadius: '14px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>
-                        إرفاق مستند أو صورة (اختياري)
-                    </button>
-                )}
-                {isCameraOpen && (
-                    <div style={{ position: 'relative' }}>
-                        <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '16px', border: `4px solid ${THEME.ruby}` }} />
-                        <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '1.25rem' }}>
-                            <button onClick={takePhoto} style={{ flex: 2, background: THEME.ruby, color: 'white', padding: '1rem', borderRadius: '14px', fontWeight: 900, border: 'none' }}>التقاط</button>
-                            <button onClick={stopCamera} style={{ flex: 1, background: '#e2e8f0', color: '#475569', padding: '1rem', borderRadius: '14px', fontWeight: 900, border: 'none' }}>إلغاء</button>
-                        </div>
-                    </div>
-                )}
-                {logic.state.editingRecord.image_url && !isCameraOpen && (
-                    <div>
-                        <img src={logic.state.editingRecord.image_url} alt="مرفق" style={{ width: '100%', maxHeight: '17.5rem', objectFit: 'contain', borderRadius: '16px', border: '3px solid #e2e8f0', marginBottom: '1.25rem' }} />
-                        <button onClick={() => logic.state.setEditingRecord({...logic.state.editingRecord, image_url: null})} style={{ background: '#fef2f2', color: THEME.ruby, padding: '0.75rem 1.5rem', borderRadius: '12px', fontWeight: 900, border: `1px solid ${THEME.ruby}50` }}>مسح وإعادة تصوير</button>
-                    </div>
-                )}
-                <canvas ref={canvasRef} style={{ display: 'none' }} />
+            <div style={{ marginBottom: '1.875rem' }}>
+              <TelegramAttachmentField
+                module="violations"
+                value={logic.state.editingRecord.image_url || null}
+                onChange={(url) =>
+                  logic.state.setEditingRecord({
+                    ...logic.state.editingRecord,
+                    image_url: url,
+                  })
+                }
+                label="صورة إثبات المخالفة أو المستند المرفق"
+                caption={`مخالفة: ${logic.state.editingRecord.emp_name || ''} - ${logic.state.editingRecord.reason || ''}`}
+                allowStamp={true}
+                stampContext={{
+                  buildingName: logic.state.editingRecord.site_name || '',
+                  boqItem: logic.state.editingRecord.violation_type || 'مخالفة',
+                  capturedBy: logic.state.editingRecord.emp_name || '',
+                }}
+              />
             </div>
 
             <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '0.625rem' }}>
               <button onClick={logic.actions.handleSave} disabled={logic.isLoading} style={{ flex: 2, background: THEME.ruby, color: 'white', padding: '1.125rem', borderRadius: '16px', border: 'none', fontWeight: 900, opacity: logic.isLoading ? 0.7 : 1 }}>
                   {logic.isLoading ? 'جاري التسجيل...' : 'اعتماد الخصم والتوجيه المحاسبي'}
               </button>
-              <button onClick={() => { stopCamera(); logic.state.setIsEditModalOpen(false); }} style={{ flex: 1, background: '#f1f5f9', color: '#475569', padding: '1.125rem', borderRadius: '16px', border: 'none', fontWeight: 900 }}>
+              <button onClick={() => { logic.state.setIsEditModalOpen(false); }} style={{ flex: 1, background: '#f1f5f9', color: '#475569', padding: '1.125rem', borderRadius: '16px', border: 'none', fontWeight: 900 }}>
                   إلغاء
               </button>
             </div>

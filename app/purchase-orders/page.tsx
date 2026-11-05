@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import MasterPage from '@/components/MasterPage';
 import LoadingScreen from '@/components/LoadingScreen';
+import TelegramAttachmentField, { AttachmentViewButton } from '@/components/TelegramAttachmentField';
 import { useCompany } from '@/lib/CompanyContext';
 import { notify } from '@/lib/notify';
 import {
@@ -133,6 +134,7 @@ export default function PurchaseOrdersPage() {
   const [createPoDeliveryDate, setCreatePoDeliveryDate] = useState<string>('');
   const [createPoNotes, setCreatePoNotes] = useState<string>('');
   const [createPoTerms, setCreatePoTerms] = useState<string>('');
+  const [createPoAttachment, setCreatePoAttachment] = useState<string | null>(null);
   const [createPoLines, setCreatePoLines] = useState<CreatePoLineInput[]>([
     {
       item_name: '',
@@ -169,6 +171,7 @@ export default function PurchaseOrdersPage() {
       unit_price: number;
     }>
   >([]);
+  const [invAttachment, setInvAttachment] = useState<string | null>(null);
   const [isPostingInvoice, setIsPostingInvoice] = useState<boolean>(true);
 
   // Filter orders by search query
@@ -260,6 +263,7 @@ export default function PurchaseOrdersPage() {
         expected_delivery_date: createPoDeliveryDate || null,
         notes: createPoNotes,
         terms: createPoTerms,
+        attachment_url: createPoAttachment,
         lines: createPoLines,
       });
 
@@ -270,6 +274,7 @@ export default function PurchaseOrdersPage() {
       setCreatePoProject('');
       setCreatePoNotes('');
       setCreatePoTerms('');
+      setCreatePoAttachment(null);
       setCreatePoLines([
         {
           item_name: '',
@@ -364,6 +369,7 @@ export default function PurchaseOrdersPage() {
         }));
       setInvLines(lines);
       setInvRef('');
+      setInvAttachment(null);
       setShowInvoiceModal(true);
     } catch (err: any) {
       notify(err.message || 'تعذر تحميل بيانات الفوترة', 'error');
@@ -402,6 +408,7 @@ export default function PurchaseOrdersPage() {
         invoice_date: invDate,
         due_date: invDueDate || null,
         notes: invNotes,
+        attachment_url: invAttachment,
         lines: linesToPost,
       });
 
@@ -416,6 +423,7 @@ export default function PurchaseOrdersPage() {
       }
 
       setShowInvoiceModal(false);
+      setInvAttachment(null);
       queryClient.invalidateQueries({ queryKey: ['purchase_orders_summary'] });
     } catch (err: any) {
       notify(err.message || 'فشل حفظ فاتورة المورد', 'error');
@@ -599,6 +607,7 @@ export default function PurchaseOrdersPage() {
                   <th>المورد</th>
                   <th>المشروع</th>
                   <th>عدد البنود</th>
+                  <th>المرفق</th>
                   <th>المبلغ قبل الضريبة</th>
                   <th>الضريبة 15%</th>
                   <th>الإجمالي</th>
@@ -609,14 +618,14 @@ export default function PurchaseOrdersPage() {
               <tbody>
                 {isLoadingSummary ? (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: 'center', padding: '30px' }}>
+                    <td colSpan={11} style={{ textAlign: 'center', padding: '30px' }}>
                       <LoadingScreen />
                     </td>
                   </tr>
                 ) : filteredOrders.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={10}
+                      colSpan={11}
                       style={{
                         textAlign: 'center',
                         padding: '40px',
@@ -634,6 +643,13 @@ export default function PurchaseOrdersPage() {
                       <td>{po.supplier_name}</td>
                       <td>{po.project_name || 'عام'}</td>
                       <td>{po.lines_count}</td>
+                      <td>
+                        <AttachmentViewButton
+                          url={po.attachment_url}
+                          label="المرفق"
+                          title={`أمر شراء ${po.po_number}`}
+                        />
+                      </td>
                       <td>{formatCurrency(po.subtotal)}</td>
                       <td>{formatCurrency(po.tax_amount)}</td>
                       <td style={{ fontWeight: 700 }}>{formatCurrency(po.total_amount)}</td>
@@ -936,6 +952,22 @@ export default function PurchaseOrdersPage() {
                       />
                     </div>
                   </div>
+
+                  <div style={{ marginTop: '1rem' }}>
+                    <TelegramAttachmentField
+                      module="purchase_orders"
+                      value={createPoAttachment}
+                      onChange={setCreatePoAttachment}
+                      label="صورة أمر الشراء المعتمد / عرض السعر المرفق"
+                      caption={`أمر شراء لمشروع: ${projects.find((p) => p.id === createPoProject)?.Property || 'عام'}`}
+                      allowStamp={true}
+                      stampContext={{
+                        buildingName: projects.find((p) => p.id === createPoProject)?.Property || '',
+                        boqItem: 'أمر شراء مواد',
+                        capturedBy: '',
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className={styles.modalFooter}>
@@ -1228,6 +1260,22 @@ export default function PurchaseOrdersPage() {
                       className={styles.formTextarea}
                     />
                   </div>
+
+                  <div style={{ marginTop: '1rem' }}>
+                    <TelegramAttachmentField
+                      module="supplier_invoices"
+                      value={invAttachment}
+                      onChange={setInvAttachment}
+                      label="صورة فاتورة المورد الضريبية (QR / ZATCA)"
+                      caption={`فاتورة مورد: ${selectedPo?.supplier_name || ''} - مرجع: ${invRef}`}
+                      allowStamp={true}
+                      stampContext={{
+                        buildingName: selectedPo?.project_name || '',
+                        boqItem: 'فاتورة توريد مواد',
+                        capturedBy: selectedPo?.supplier_name || '',
+                      }}
+                    />
+                  </div>
                 </div>
 
                 <div className={styles.modalFooter}>
@@ -1286,6 +1334,15 @@ export default function PurchaseOrdersPage() {
                         <h4>إجمالي أمر الشراء (PO)</h4>
                         <p>{formatCurrency(matchingData.summary.total_ordered_amount)}</p>
                         <small>{matchingData.lines.length} بنود مسجلة</small>
+                        {matchingData.po.attachment_url && (
+                          <div style={{ marginTop: '6px' }}>
+                            <AttachmentViewButton
+                              url={matchingData.po.attachment_url}
+                              label="مستند أمر الشراء"
+                              title={`أمر شراء ${matchingData.po.po_number}`}
+                            />
+                          </div>
+                        )}
                       </div>
 
                       <div className={styles.matchSummaryBox}>
@@ -1363,6 +1420,13 @@ export default function PurchaseOrdersPage() {
                                   <span>(مرجع: {inv.supplier_invoice_ref})</span>
                                   <span>{formatCurrency(inv.total_amount)}</span>
                                   <span>{inv.is_posted ? 'مرحل' : 'مسودة'}</span>
+                                  {inv.attachment_url && (
+                                    <AttachmentViewButton
+                                      url={inv.attachment_url}
+                                      label="الفاتورة الضريبية"
+                                      title={`فاتورة مورد: ${inv.supplier_invoice_ref}`}
+                                    />
+                                  )}
                                 </div>
                               ))
                             )}

@@ -12,6 +12,11 @@ const ALLOWED_MODULES = new Set([
   'receipt_vouchers',
   'payment_vouchers',
   'invoices',
+  'violations',
+  'purchase_orders',
+  'supplier_invoices',
+  'project_drawings',
+  'site_visits',
   'general',
 ]);
 

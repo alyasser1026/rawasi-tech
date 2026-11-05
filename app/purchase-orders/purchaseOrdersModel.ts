@@ -16,6 +16,7 @@ export interface PurchaseOrder {
   notes?: string | null;
   terms?: string | null;
   lines_count: number;
+  attachment_url?: string | null;
 }
 
 export interface PurchaseOrderLine {
@@ -80,6 +81,7 @@ export interface ThreeWayMatchingResponse {
     subtotal: number;
     tax_amount: number;
     total_amount: number;
+    attachment_url?: string | null;
   };
   receipts: Array<{
     id: string;
@@ -99,6 +101,7 @@ export interface ThreeWayMatchingResponse {
     total_amount: number;
     status: string;
     is_posted: boolean;
+    attachment_url?: string | null;
   }>;
   lines: ThreeWayMatchingLine[];
   summary: {
@@ -128,6 +131,7 @@ export interface CreatePoInput {
   expected_delivery_date?: string | null;
   notes?: string;
   terms?: string;
+  attachment_url?: string | null;
   lines: CreatePoLineInput[];
 }
 
@@ -155,6 +159,7 @@ export interface CreateSupplierInvoiceInput {
   invoice_date: string;
   due_date?: string | null;
   notes?: string;
+  attachment_url?: string | null;
   lines: CreateSupplierInvoiceLineInput[];
 }
 
@@ -174,7 +179,23 @@ export async function fetchPurchaseOrdersSummary(
     throw error;
   }
 
-  return data as PurchaseOrdersSummaryResponse;
+  const res = data as PurchaseOrdersSummaryResponse;
+  if (res?.orders && res.orders.length > 0) {
+    const ids = res.orders.map((o) => o.id);
+    const { data: poRows } = await supabase
+      .from('purchase_orders')
+      .select('id, attachment_url')
+      .in('id', ids);
+    if (poRows) {
+      const map = new Map(poRows.map((r: any) => [r.id, r.attachment_url]));
+      res.orders = res.orders.map((o) => ({
+        ...o,
+        attachment_url: map.get(o.id) ?? o.attachment_url ?? null,
+      }));
+    }
+  }
+
+  return res;
 }
 
 export async function fetchPurchaseOrderMatching(poId: string): Promise<ThreeWayMatchingResponse> {
@@ -187,7 +208,33 @@ export async function fetchPurchaseOrderMatching(poId: string): Promise<ThreeWay
     throw error;
   }
 
-  return data as ThreeWayMatchingResponse;
+  const res = data as ThreeWayMatchingResponse;
+  if (res?.po) {
+    const { data: poRow } = await supabase
+      .from('purchase_orders')
+      .select('attachment_url')
+      .eq('id', poId)
+      .maybeSingle();
+    if (poRow) {
+      res.po.attachment_url = poRow.attachment_url;
+    }
+  }
+  if (res?.invoices && res.invoices.length > 0) {
+    const invIds = res.invoices.map((i: any) => i.id || (i as any).invoice_id);
+    const { data: invRows } = await supabase
+      .from('supplier_invoices')
+      .select('id, attachment_url')
+      .in('id', invIds);
+    if (invRows) {
+      const map = new Map(invRows.map((r: any) => [r.id, r.attachment_url]));
+      res.invoices = res.invoices.map((inv: any) => ({
+        ...inv,
+        attachment_url: map.get(inv.id || (inv as any).invoice_id) ?? (inv as any).attachment_url ?? null,
+      }));
+    }
+  }
+
+  return res;
 }
 
 export async function createPurchaseOrder(input: CreatePoInput): Promise<string> {
@@ -204,6 +251,10 @@ export async function createPurchaseOrder(input: CreatePoInput): Promise<string>
   if (error) {
     console.error('Error creating purchase order:', error);
     throw error;
+  }
+
+  if (input.attachment_url && data) {
+    await supabase.from('purchase_orders').update({ attachment_url: input.attachment_url }).eq('id', data);
   }
 
   return data as string;
@@ -258,6 +309,10 @@ export async function createSupplierInvoice(input: CreateSupplierInvoiceInput): 
   if (error) {
     console.error('Error creating supplier invoice:', error);
     throw error;
+  }
+
+  if (input.attachment_url && data) {
+    await supabase.from('supplier_invoices').update({ attachment_url: input.attachment_url }).eq('id', data);
   }
 
   return data as string;

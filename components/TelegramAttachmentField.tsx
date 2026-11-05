@@ -7,6 +7,8 @@ import {
   Eye,
   FileText,
   Loader2,
+  MapPin,
+  Navigation,
   Paperclip,
   Send,
   Trash2,
@@ -210,6 +212,13 @@ export function AttachmentViewButton({
   );
 }
 
+export interface StampContext {
+  buildingName?: string;
+  location?: string;
+  boqItem?: string;
+  capturedBy?: string;
+}
+
 export interface TelegramAttachmentFieldProps {
   value?: string | null;
   onChange: (url: string | null) => void;
@@ -221,6 +230,8 @@ export interface TelegramAttachmentFieldProps {
   caption?: string;
   compact?: boolean;
   disabled?: boolean;
+  stampContext?: StampContext;
+  allowStamp?: boolean;
 }
 
 export default function TelegramAttachmentField({
@@ -234,6 +245,8 @@ export default function TelegramAttachmentField({
   caption,
   compact = false,
   disabled = false,
+  stampContext,
+  allowStamp = true,
 }: TelegramAttachmentFieldProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mobileCameraInputRef = useRef<HTMLInputElement | null>(null);
@@ -245,6 +258,44 @@ export default function TelegramAttachmentField({
   const [viewerOpen, setViewerOpen] = useState(false);
   const [stagedPreviewUrl, setStagedPreviewUrl] = useState<string | null>(null);
   const [cameraModalOpen, setCameraModalOpen] = useState(false);
+
+  // 📍 خيارات ختم الموقع والبيانات (Stamp)
+  const [stampEnabled, setStampEnabled] = useState(Boolean(stampContext));
+  const [stampBuilding, setStampBuilding] = useState(stampContext?.buildingName || '');
+  const [stampLocation, setStampLocation] = useState(stampContext?.location || '');
+  const [stampBoqItem, setStampBoqItem] = useState(stampContext?.boqItem || '');
+  const [stampInspector, setStampInspector] = useState(stampContext?.capturedBy || '');
+  const [isLocating, setIsLocating] = useState(false);
+
+  useEffect(() => {
+    if (stampContext) {
+      if (stampContext.buildingName !== undefined) setStampBuilding(stampContext.buildingName);
+      if (stampContext.location !== undefined) setStampLocation(stampContext.location);
+      if (stampContext.boqItem !== undefined) setStampBoqItem(stampContext.boqItem);
+      if (stampContext.capturedBy !== undefined) setStampInspector(stampContext.capturedBy);
+    }
+  }, [stampContext]);
+
+  const handleFetchGps = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setErrorMsg('تحديد الموقع الجغرافي (GPS) غير مدعوم في متصفحك');
+      return;
+    }
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setIsLocating(false);
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        setStampLocation(`${lat}° N, ${lng}° E`);
+      },
+      (err) => {
+        setIsLocating(false);
+        setErrorMsg('تعذر جلب إحداثيات GPS: ' + (err.message || 'تم رفض الإذن'));
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  };
 
   useEffect(() => {
     if (!stagedAttachment) {
@@ -363,6 +414,47 @@ export default function TelegramAttachmentField({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // 📍 حرق ختم الموقع والبيانات على الصورة (Canvas Watermark Stamp)
+    if (stampEnabled) {
+      const width = canvas.width;
+      const height = canvas.height;
+      const bannerHeight = Math.max(90, Math.round(height * 0.14));
+
+      // شريط التدرج الداكن أسفل الصورة
+      const grad = ctx.createLinearGradient(0, height - bannerHeight, 0, height);
+      grad.addColorStop(0, 'rgba(15, 23, 42, 0.88)');
+      grad.addColorStop(1, 'rgba(2, 6, 23, 0.96)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, height - bannerHeight, width, bannerHeight);
+
+      // شريط ذهبي علوي فائق الأناقة
+      ctx.fillStyle = '#f59e0b';
+      ctx.fillRect(0, height - bannerHeight, width, Math.max(3, Math.round(height * 0.005)));
+
+      // تنسيق النصوص باللغة العربية RTL
+      const baseFontSize = Math.max(16, Math.round(height * 0.026));
+      ctx.direction = 'rtl';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+
+      const paddingX = Math.round(width * 0.035);
+      const line1Y = height - bannerHeight + bannerHeight * 0.32;
+      const line2Y = height - bannerHeight + bannerHeight * 0.72;
+
+      // السطر الأول: اسم العمارة/المشروع + البند
+      ctx.font = `bold ${baseFontSize}px Cairo, system-ui, sans-serif`;
+      ctx.fillStyle = '#ffffff';
+      const l1 = `🏢 المشروع/العمارة: ${stampBuilding || 'مشروع الموقع'}   |   🔨 البند: ${stampBoqItem || 'عام'}`;
+      ctx.fillText(l1, width - paddingX, line1Y);
+
+      // السطر الثاني: الموقع الجغرافي + المهندس الملتقط + التاريخ والوقت
+      ctx.font = `600 ${Math.round(baseFontSize * 0.82)}px Cairo, system-ui, sans-serif`;
+      ctx.fillStyle = '#fbbf24';
+      const l2 = `📍 الموقع: ${stampLocation || 'إحداثيات الموقع'}   |   👷 الملتقط: ${stampInspector || 'مهندس الموقع'}   |   🕒 ${new Date().toLocaleString('ar-SA')}`;
+      ctx.fillText(l2, width - paddingX, line2Y);
+    }
+
     canvas.toBlob(
       (blob) => {
         stopCameraStream();
@@ -572,6 +664,78 @@ export default function TelegramAttachmentField({
             </div>
             <div className={styles.modalBody} style={{ flexDirection: 'column', gap: '0.85rem' }}>
               <video ref={videoRef} playsInline muted className={styles.videoFrame} />
+
+              {allowStamp && (
+                <div className={styles.stampPanel}>
+                  <div className={styles.stampHeader}>
+                    <span>📍 بيانات ختم وتوثيق الكاميرا على الصورة</span>
+                    <button
+                      type="button"
+                      className={`${styles.stampToggleBtn} ${stampEnabled ? styles.active : ''}`}
+                      onClick={() => setStampEnabled(!stampEnabled)}
+                    >
+                      {stampEnabled ? '✓ الختم مفعل على الصورة' : 'تفعيل الختم على الصورة'}
+                    </button>
+                  </div>
+                  {stampEnabled && (
+                    <div className={styles.stampGrid}>
+                      <div className={styles.stampField}>
+                        <label>🏢 اسم العمارة / المشروع</label>
+                        <input
+                          type="text"
+                          value={stampBuilding}
+                          onChange={(e) => setStampBuilding(e.target.value)}
+                          placeholder="مثال: برج الروضة 4"
+                          className={styles.stampInput}
+                        />
+                      </div>
+                      <div className={styles.stampField}>
+                        <label>🔨 البند / نوع المخالفة</label>
+                        <input
+                          type="text"
+                          value={stampBoqItem}
+                          onChange={(e) => setStampBoqItem(e.target.value)}
+                          placeholder="مثال: أعمال النجارة المسلحة"
+                          className={styles.stampInput}
+                        />
+                      </div>
+                      <div className={styles.stampField}>
+                        <label>👷 الشخص الملتقط / المشرف</label>
+                        <input
+                          type="text"
+                          value={stampInspector}
+                          onChange={(e) => setStampInspector(e.target.value)}
+                          placeholder="اسم المهندس أو المراقب"
+                          className={styles.stampInput}
+                        />
+                      </div>
+                      <div className={styles.stampField}>
+                        <label>📍 الموقع على الخريطة</label>
+                        <div className={styles.stampGpsRow}>
+                          <input
+                            type="text"
+                            value={stampLocation}
+                            onChange={(e) => setStampLocation(e.target.value)}
+                            placeholder="العنوان أو الإحداثيات"
+                            className={styles.stampInput}
+                          />
+                          <button
+                            type="button"
+                            onClick={handleFetchGps}
+                            disabled={isLocating}
+                            className={styles.gpsBtn}
+                            title="جلب إحداثيات GPS الحالية"
+                          >
+                            {isLocating ? <Loader2 size={12} className={styles.spin} /> : <Navigation size={12} />}
+                            <span>GPS</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className={styles.actionsRow}>
                 <button
                   type="button"

@@ -300,7 +300,7 @@ export default function AdvancedProjectsPage() {
                   <TabButton active={logic.activeTab === 'expenses'} onClick={() => logic.setActiveTab('expenses')} text="المصروفات المباشرة" />
                   <TabButton active={logic.activeTab === 'materials'} onClick={() => logic.setActiveTab('materials')} text="الخامات المسحوبة" />
                   <TabButton active={logic.activeTab === 'financials'} onClick={() => logic.setActiveTab('financials')} text="المستخلصات والماليات" />
-                  <TabButton active={logic.activeTab === 'qc'} onClick={() => logic.setActiveTab('qc')} text="الجودة والصور" />
+                  <TabButton active={logic.activeTab === 'qc'} onClick={() => logic.setActiveTab('qc')} text="الشوب دروينج والزيارات الميدانية 📐" />
                 </div>
 
                 {/* 🚀 استدعاء المكونات (التابات) بناءً على النشط */}
