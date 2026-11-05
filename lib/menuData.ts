@@ -28,7 +28,7 @@ export const menuGroups = [
             { id: 'custodies', title: 'عُهد المواقع والموظفين', icon: '💼', path: '/custodies' },
             { id: 'cash_closing', title: 'إقفال الخزينة اليومي', icon: '🔒', path: '/cash-closing' },
             { id: 'fixed_assets', title: 'الأصول الثابتة والمعدات', icon: '🚜', path: '/fixed-assets' },
-            { id: 'audit', title: 'المراجعة والتدقيق', icon: '🔍', path: '/audit' },
+            { id: 'audit', title: 'الرقابة والتنبيهات وصحة البيانات', icon: '🛡️', path: '/audit' },
             { id: 'financialplan', title: 'الخطة المالية', icon: '📅', path: '/financialplan' },
             { id: 'trialbalance', title: 'ميزان المراجعة', icon: '⚖️', path: '/trialbalance' },
             { id: 'statement', title: 'كشف حساب', icon: '📄', path: '/statement' },

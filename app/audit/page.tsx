@@ -1,288 +1,963 @@
 "use client";
+
 import React, { useState, useEffect, useMemo } from 'react';
 import MasterPage from '@/components/MasterPage';
-import { useAdvancedAuditLogic } from './audit_logic';
-import { THEME } from '@/lib/theme';
-import LoadingScreen from '@/components/LoadingScreen';
-import { Siren, Scale, Ghost, Link, PartyPopper } from 'lucide-react';
-import PhiIcon from '@/components/PhiIcon';
+import styles from './audit.module.css';
+import {
+  fetchSystemHealthRadar,
+  fetchDocumentExpiryAlerts,
+  upsertCompanyDocument,
+  markCompanyDocumentRenewed,
+  runDailyScanManually,
+  HealthRadarSummary,
+  DocumentExpiryAlertsResponse,
+  CompanyDocument,
+  RetentionGuarantee,
+} from './auditModel';
+import { supabase } from '@/lib/supabase';
+import { useToast } from '@/lib/toast-context';
+import {
+  ShieldAlert,
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  RefreshCw,
+  Plus,
+  ExternalLink,
+  Calendar,
+  Building2,
+  Bell,
+  Truck,
+  UserCheck,
+  FileText,
+  FileCheck,
+  ChevronDown,
+  ChevronUp,
+} from 'lucide-react';
+import Link from 'next/link';
 
-export default function AccountingAuditPage() {
-    const logic = useAdvancedAuditLogic();
-    
-    // 📑 حالة لتخزين الـ IDs المختارة للمسح الجماعي
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+export default function ComplianceAndAuditPage() {
+  const { showToast } = useToast();
 
-    // 🚀 إعدادات تقسيم الصفحات (Pagination)
-    const [currentPage, setCurrentPage] = useState(1);
-    const rowsPerPage = 50;
+  const [activeTab, setActiveTab] = useState<'radar' | 'expiry' | 'retention' | 'alerts'>('radar');
 
-    // تصفير الصفحة للرقم 1 عند البحث
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [logic.searchQuery, logic.activeTab]);
+  // Radar State
+  const [radar, setRadar] = useState<HealthRadarSummary | null>(null);
+  const [loadingRadar, setLoadingRadar] = useState(true);
+  const [expandedCheckId, setExpandedCheckId] = useState<string | null>(null);
 
-    // حساب عدد الصفحات وتقطيع البيانات
-    const totalPages = Math.ceil(logic.errors.length / rowsPerPage) || 1;
-    const paginatedErrors = useMemo(() => {
-        const start = (currentPage - 1) * rowsPerPage;
-        return logic.errors.slice(start, start + rowsPerPage);
-    }, [logic.errors, currentPage]);
+  // Expiry & Retention State
+  const [expiry, setExpiry] = useState<DocumentExpiryAlertsResponse | null>(null);
+  const [loadingExpiry, setLoadingExpiry] = useState(true);
+  const [docFilter, setDocFilter] = useState<'all' | 'expired' | 'critical' | 'upcoming' | 'safe' | 'renewed'>('all');
 
-    // 🚀 تصنيف الأخطاء الذكي
-    const errorCategories = [
-        { id: 'unbalanced', keys: ['غير متزن'], title: 'قيود غير متزنة', icon: '⚖️', color: '#ef4444', bg: '#fef2f2' },
-        { id: 'missing', keys: ['مفقود', 'نقص', 'غير مكتملة'], title: 'حسابات وتوجيهات مفقودة', icon: '🔗', color: '#d97706', bg: '#fef3c7' },
-        { id: 'orphan', keys: ['يتيم'], title: 'سجلات يتيمة (مقطوعة الرأس)', icon: '🕳️', color: '#3b82f6', bg: '#eff6ff' },
-        { id: 'ghost', keys: ['شبح'], title: 'سجلات شبح (فارغة بدون تفاصيل)', icon: '👻', color: '#8b5cf6', bg: '#f3e8ff' },
-    ];
+  // Master Data for Dropdowns
+  const [partners, setPartners] = useState<{ id: string; name: string }[]>([]);
+  const [projects, setProjects] = useState<{ id: string; Property: string }[]>([]);
+  const [assets, setAssets] = useState<{ id: string; name: string }[]>([]);
 
-    // 🔄 معالج اختيار/إلغاء اختيار عنصر واحد
-    const handleToggleSelect = (id: string) => {
-        setSelectedIds(prev => 
-            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-        );
-    };
+  // Modals
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showRenewModal, setShowRenewModal] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState<CompanyDocument | null>(null);
+  const [newExpiryDate, setNewExpiryDate] = useState('');
+  const [savingDoc, setSavingDoc] = useState(false);
+  const [runningScan, setRunningScan] = useState(false);
 
-    // 🔄 معالج اختيار/إلغاء اختيار كل العناصر داخل قسم (تصنيف) معين في الصفحة الحالية
-    const handleToggleSelectCategory = (catErrors: any[]) => {
-        const catIds = catErrors.map(e => e.error_id);
-        const isAllChecked = catIds.length > 0 && catIds.every(id => selectedIds.includes(id));
+  // Form State
+  const [form, setForm] = useState({
+    document_number: '',
+    title: '',
+    doc_type: 'worker_iqama',
+    expiry_date: '',
+    issue_date: '',
+    alert_days_before: 30,
+    partner_id: '',
+    project_id: '',
+    asset_id: '',
+    notes: '',
+  });
 
-        if (isAllChecked) {
-            setSelectedIds(prev => prev.filter(id => !catIds.includes(id)));
-        } else {
-            setSelectedIds(prev => [...new Set([...prev, ...catIds])]);
-        }
-    };
+  const loadRadar = async () => {
+    try {
+      setLoadingRadar(true);
+      const data = await fetchSystemHealthRadar();
+      setRadar(data);
+    } catch (err: any) {
+      showToast(`تعذر جلب بيانات الرادار: ${err.message}`, 'error');
+    } finally {
+      setLoadingRadar(false);
+    }
+  };
 
-    // 🗑️ معالج الحذف الجماعي للعناصر المحددة
-    const handleBulkDelete = async () => {
-        if (confirm(`هل أنت متأكد من الحذف النهائي لـ (${selectedIds.length}) من السجلات والتشوهات المحددة؟`)) {
-            try {
-                await logic.bulkDelete();
-                setSelectedIds([]); 
-            } catch (err) {
-                console.error("Bulk delete error:", err);
-            }
-        }
-    };
+  const loadExpiry = async () => {
+    try {
+      setLoadingExpiry(true);
+      const data = await fetchDocumentExpiryAlerts(30);
+      setExpiry(data);
+    } catch (err: any) {
+      showToast(`تعذر جلب تنبيهات المستندات: ${err.message}`, 'error');
+    } finally {
+      setLoadingExpiry(false);
+    }
+  };
 
-    return (
-        <MasterPage title="الرادار المحاسبي المتقدم" subtitle="لوحة التدقيق التفصيلية، الموازنة الآلية، والتطهير الشامل">
-            <style>{`
-                .audit-stat-card { background: white; border-radius: 16px; padding: 1.25rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); display: flex; align-items: center; justify-content: space-between; transition: 0.3s; }
-                .audit-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.05); }
-                
-                /* تم تعديل التقسيمة هنا لتشمل 7 أعمدة بدلاً من 6 */
-                .err-row { display: grid; grid-template-columns: 2.5rem 2.5rem 1fr 1.6fr 1.8fr 1fr 1.2fr; gap: 0.9375rem; align-items: center; padding: 0.9375rem; border-bottom: 1px dashed #e2e8f0; transition: 0.2s; }
-                .err-row:hover { background: #f8fafc; }
-                
-                .section-container { background: white; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 1.875rem; }
-                .section-header { padding: 0.9375rem 1.25rem; color: white; display: flex; align-items: center; gap: 0.625rem; font-weight: 900; font-size: var(--fs-lg); }
-                
-                .audit-checkbox { width: 1.125rem; height: 1.125rem; cursor: pointer; accent-color: ${THEME.primary || '#3b82f6'}; }
-                
-                @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(-5px); }
-                    to { opacity: 1; transform: translateY(0); }
-                }
-            `}</style>
+  const loadMasterData = async () => {
+    try {
+      const [pRes, prRes, aRes] = await Promise.all([
+        supabase.from('partners').select('id, name').order('name'),
+        supabase.from('projects').select('id, Property').order('"Property"'),
+        supabase.from('fixed_assets').select('id, name').order('name'),
+      ]);
+      if (pRes.data) setPartners(pRes.data);
+      if (prRes.data) setProjects(prRes.data);
+      if (aRes.data) setAssets(aRes.data);
+    } catch {
+      // Non-blocking fallback
+    }
+  };
 
-            {/* 📊 الإحصائيات العلوية */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.9375rem', marginBottom: '1.875rem' }}>
-                <div className="audit-stat-card">
-                    <div><h3 style={{ margin: '0 0 0.3125rem 0', color: THEME.primary || '#3b82f6', fontSize: 'var(--fs-2xl)' }}>{logic.stats.total}</h3><p style={{ margin: 0, fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#64748b' }}>إجمالي التشوهات</p></div><div style={{ fontSize: 'var(--fs-3xl)' }}><Siren size={27} aria-hidden="true" /></div>
+  useEffect(() => {
+    loadRadar();
+    loadExpiry();
+    loadMasterData();
+  }, []);
+
+  const handleSaveDocument = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.document_number.trim() || !form.title.trim() || !form.expiry_date) {
+      showToast('يرجى ملء كافة الحقول الإلزامية (رقم المستند، العنوان، وتاريخ الانتهاء)', 'error');
+      return;
+    }
+
+    try {
+      setSavingDoc(true);
+      await upsertCompanyDocument({
+        document_number: form.document_number.trim(),
+        title: form.title.trim(),
+        doc_type: form.doc_type,
+        expiry_date: form.expiry_date,
+        issue_date: form.issue_date || null,
+        alert_days_before: Number(form.alert_days_before) || 30,
+        partner_id: form.partner_id || null,
+        project_id: form.project_id || null,
+        asset_id: form.asset_id || null,
+        notes: form.notes || null,
+      });
+
+      showToast('تم حفظ وثيقة الشركة بنجاح', 'success');
+      setShowAddModal(false);
+      setForm({
+        document_number: '',
+        title: '',
+        doc_type: 'worker_iqama',
+        expiry_date: '',
+        issue_date: '',
+        alert_days_before: 30,
+        partner_id: '',
+        project_id: '',
+        asset_id: '',
+        notes: '',
+      });
+      loadExpiry();
+    } catch (err: any) {
+      showToast(`فشل حفظ المستند: ${err.message}`, 'error');
+    } finally {
+      setSavingDoc(false);
+    }
+  };
+
+  const handleRenewDocument = async () => {
+    if (!selectedDoc) return;
+    try {
+      setSavingDoc(true);
+      await markCompanyDocumentRenewed(selectedDoc.id, newExpiryDate || undefined);
+      showToast('تم تجديد المستند وتحديث الصلاحية بنجاح', 'success');
+      setShowRenewModal(false);
+      setSelectedDoc(null);
+      setNewExpiryDate('');
+      loadExpiry();
+    } catch (err: any) {
+      showToast(`فشل تجديد المستند: ${err.message}`, 'error');
+    } finally {
+      setSavingDoc(false);
+    }
+  };
+
+  const handleRunDailyScan = async () => {
+    try {
+      setRunningScan(true);
+      const count = await runDailyScanManually();
+      showToast(
+        count > 0
+          ? `اكتمل الفحص الدوري: تم توليد ${count} تنبيهات جديدة في مركز الإشعارات.`
+          : 'اكتمل الفحص الدوري: لا توجد إشعارات جديدة متكررة (كافة الملاحظات المفتوحة مرصودة مسبقاً).',
+        'success'
+      );
+      loadRadar();
+      loadExpiry();
+    } catch (err: any) {
+      showToast(`تعذر تشغيل الفحص التلقائي: ${err.message}`, 'error');
+    } finally {
+      setRunningScan(false);
+    }
+  };
+
+  const filteredDocs = useMemo(() => {
+    if (!expiry?.documents) return [];
+    if (docFilter === 'all') return expiry.documents;
+    return expiry.documents.filter(d => d.status === docFilter);
+  }, [expiry, docFilter]);
+
+  return (
+    <MasterPage title="الرقابة والتنبيهات ورادار صحة البيانات" subtitle="الفحص اللحظي للشذوذ المالي، تتبع انتهاء المستندات، وفك ضمانات الأعمال">
+      <div className={styles.container}>
+        {/* Header Actions */}
+        <div className={styles.headerSection}>
+          <div className={styles.titleArea}>
+            <h1>
+              <ShieldAlert size={28} color="#d97706" />
+              منظومة الرقابة والامتثال الذكية
+            </h1>
+            <p>رصد استباقي للتشوهات والقيود اليتيمة، ومراقبة دقيقة لمواعيد تجديد الإقامات والرخص والضمانات</p>
+          </div>
+          <div className={styles.headerActions}>
+            <button
+              className={`${styles.btn} ${styles.btnSecondary}`}
+              onClick={() => { loadRadar(); loadExpiry(); }}
+              disabled={loadingRadar || loadingExpiry}
+            >
+              <RefreshCw size={16} className={loadingRadar || loadingExpiry ? 'spin' : ''} />
+              تحديث البيانات
+            </button>
+            <button
+              className={`${styles.btn} ${styles.btnPrimary}`}
+              onClick={handleRunDailyScan}
+              disabled={runningScan}
+            >
+              <Bell size={16} />
+              {runningScan ? 'جارٍ الفحص...' : 'تشغيل الفحص الدوري (pg_cron)'}
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className={styles.tabsBar}>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'radar' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('radar')}
+          >
+            <ShieldAlert size={18} />
+            رادار صحة البيانات ({radar?.total_issues ?? '...'})
+          </button>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'expiry' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('expiry')}
+          >
+            <Clock size={18} />
+            انتهاء المستندات والصلاحيات ({expiry?.summary.total_documents ?? '...'})
+          </button>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'retention' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('retention')}
+          >
+            <FileCheck size={18} />
+            مواعيد فك ضمان الأعمال ({expiry?.retention_guarantees?.length ?? 0})
+          </button>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'alerts' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('alerts')}
+          >
+            <Bell size={18} />
+            الجدولة التلقائية والإشعارات
+          </button>
+        </div>
+
+        {/* =================================================================== */}
+        {/* TAB 1: DATA HEALTH RADAR */}
+        {/* =================================================================== */}
+        {activeTab === 'radar' && (
+          <div>
+            {/* KPI Summary */}
+            <div className={styles.kpiGrid}>
+              <div className={styles.kpiCard}>
+                <div>
+                  <h3 className={styles.kpiValue} style={{ color: '#1e293b' }}>
+                    {radar?.total_issues ?? 0}
+                  </h3>
+                  <p className={styles.kpiLabel}>إجمالي الملاحظات والتشوهات</p>
                 </div>
-                <div className="audit-stat-card">
-                    <div><h3 style={{ margin: '0 0 0.3125rem 0', color: '#ef4444', fontSize: 'var(--fs-2xl)' }}>{logic.stats.unbalanced}</h3><p style={{ margin: 0, fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#64748b' }}>قيود غير متزنة</p></div><div style={{ fontSize: 'var(--fs-3xl)' }}><Scale size={27} aria-hidden="true" /></div>
+                <div className={styles.kpiIcon}>📊</div>
+              </div>
+
+              <div className={styles.kpiCard}>
+                <div>
+                  <h3 className={styles.kpiValue} style={{ color: '#b91c1c' }}>
+                    {radar?.critical_count ?? 0}
+                  </h3>
+                  <p className={styles.kpiLabel}>أخطاء حرجة (تتطلب معالجة فورية)</p>
                 </div>
-                <div className="audit-stat-card">
-                    <div><h3 style={{ margin: '0 0 0.3125rem 0', color: '#8b5cf6', fontSize: 'var(--fs-2xl)' }}>{logic.stats.ghosts}</h3><p style={{ margin: 0, fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#64748b' }}>سجلات شبح</p></div><div style={{ fontSize: 'var(--fs-3xl)' }}><Ghost size={27} aria-hidden="true" /></div>
+                <div className={styles.kpiIcon}>🚨</div>
+              </div>
+
+              <div className={styles.kpiCard}>
+                <div>
+                  <h3 className={styles.kpiValue} style={{ color: '#b45309' }}>
+                    {radar?.medium_count ?? 0}
+                  </h3>
+                  <p className={styles.kpiLabel}>ملاحظات متوسطة الخطورة</p>
                 </div>
-                <div className="audit-stat-card">
-                    <div><h3 style={{ margin: '0 0 0.3125rem 0', color: '#f59e0b', fontSize: 'var(--fs-2xl)' }}>{logic.stats.brokenRef}</h3><p style={{ margin: 0, fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#64748b' }}>بيانات مفقودة</p></div><div style={{ fontSize: 'var(--fs-3xl)' }}><Link size={27} aria-hidden="true" /></div>
+                <div className={styles.kpiIcon}>⚠️</div>
+              </div>
+
+              <div className={styles.kpiCard}>
+                <div>
+                  <h3 className={styles.kpiValue} style={{ color: '#854d0e' }}>
+                    {radar?.warning_count ?? 0}
+                  </h3>
+                  <p className={styles.kpiLabel}>تنبيهات تدقيق استرشادية</p>
                 </div>
+                <div className={styles.kpiIcon}>💡</div>
+              </div>
             </div>
 
-            {/* 🎛️ شريط التحكم */}
-            <div style={{ background: 'white', padding: '0.9375rem 1.5625rem', borderRadius: '16px', marginBottom: '1.875rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '0.9375rem' }}>
-                <input 
-                    type="text" 
-                    placeholder="ابحث في تفاصيل المشكلة، التوجيه، الجهة، أو ID..." 
-                    value={logic.searchQuery}
-                    onChange={(e) => logic.setSearchQuery(e.target.value)}
-                    style={{ padding: '0.75rem 1.25rem', borderRadius: '10px', border: '2px solid #f1f5f9', outline: 'none', width: '23.75rem', fontWeight: 700, fontSize: 'var(--fs-md)' }}
-                />
-                <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center' }}>
-                    {selectedIds.length > 0 && (
-                        <button 
-                            onClick={handleBulkDelete} 
-                            disabled={logic.isBulkDeleting}
-                            style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', animation: 'fadeIn 0.2s', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                        >
-                            {logic.isBulkDeleting ? 'جاري الحذف...' : `حذف المحدد (${selectedIds.length})`}
-                        </button>
-                    )}
-                    
-                    {/* 🚀 الزرار الجديد: تطهير القيود الصفرية */}
-                    <button 
-                        onClick={() => confirm('هل أنت متأكد من مسح كافة القيود الصفرية والعمياء من قاعدة البيانات؟') && logic.cleanZeroLines()} 
-                        disabled={logic.isCleaningZeroLines}
-                        style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '10px', fontWeight: 900, cursor: logic.isCleaningZeroLines ? 'not-allowed' : 'pointer', opacity: logic.isCleaningZeroLines ? 0.7 : 1, transition: '0.2s' }}
-                    >
-                        {logic.isCleaningZeroLines ? 'جاري التنظيف...' : 'تطهير القيود الصفرية'}
-                    </button>
+            {/* Radar Checks Grid */}
+            <div className={styles.radarGrid}>
+              {radar?.checks.map(chk => {
+                const isExpanded = expandedCheckId === chk.id;
+                const isClean = chk.count === 0;
 
-                    <button onClick={logic.exportToExcel} style={{ background: '#10b981', color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer' }}>تصدير التقرير</button>
-                    <button onClick={() => { logic.refetch(); setSelectedIds([]); setCurrentPage(1); }} style={{ background: THEME.primary || '#3b82f6', color: 'white', border: 'none', padding: '0.75rem 1.25rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer' }}>تحديث الرادار</button>
-                </div>
-            </div>
-
-            {/* 📋 الأقسام المفصلة (مقطعة إلى صفحات) */}
-            {logic.isLoading ? (
-                <LoadingScreen message="جاري الفحص الشامل للدفاتر..." fullScreen={false} />
-            ) : logic.errors.length === 0 ? (
-                <div style={{ padding: '3.75rem', textAlign: 'center', background: 'white', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0,0,0,0.02)' }}>
-                    <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem' }}><PartyPopper size={40} aria-hidden="true" /></div>
-                    <h2 style={{ color: '#16a34a', margin: 0, fontWeight: 900 }}>الدفاتر متزنة وقاعدة البيانات نظيفة 100%</h2>
-                    <p style={{ color: '#64748b', marginTop: '0.625rem', fontWeight: 700 }}>لم يتم اكتشاف أي تشوهات محاسبية أو مراجع مفقودة.</p>
-                </div>
-            ) : (
-                <>
-                    <div>
-                        {errorCategories.map(cat => {
-                            const catErrors = paginatedErrors.filter((e:any) => cat.keys.some(k => e.error_type.includes(k)));
-                            
-                            if (catErrors.length === 0) return null;
-
-                            const catIds = catErrors.map(e => e.error_id);
-                            const isAllCatChecked = catIds.length > 0 && catIds.every(id => selectedIds.includes(id));
-
-                            return (
-                                <div key={cat.id} className="section-container">
-                                    <div className="section-header" style={{ background: cat.color }}>
-                                        <PhiIcon value={cat.icon} size={18} /> {cat.title} ({catErrors.length})
-                                    </div>
-                                    {/* 🚀 تم تعديل التقسيمة هنا أيضاً لتتطابق مع الـ err-row */}
-                                    <div style={{ background: '#f8fafc', padding: '0.75rem 0.9375rem', display: 'grid', gridTemplateColumns: '2.5rem 2.5rem 1fr 1.6fr 1.8fr 1fr 1.2fr', gap: '0.9375rem', fontWeight: 900, color: '#475569', fontSize: 'var(--fs-sm)', borderBottom: '1px solid #e2e8f0', alignItems: 'center' }}>
-                                        <input 
-                                            type="checkbox" 
-                                            className="audit-checkbox"
-                                            checked={isAllCatChecked}
-                                            onChange={() => handleToggleSelectCategory(catErrors)}
-                                            title="تحديد كل أخطاء هذا القسم في هذه الصفحة"
-                                        />
-                                        <span>م</span>
-                                        <span>التاريخ</span>
-                                        <span>مصدر الحركة والجهة</span>
-                                        <span>التشخيص الفني والبيان</span>
-                                        <span>الفرق المالي</span>
-                                        <span style={{ textAlign: 'center' }}>إجراءات الإصلاح</span>
-                                    </div>
-                                    
-                                    {catErrors.map((err: any, idx: number) => (
-                                        <div key={err.error_id} className="err-row">
-                                            <input 
-                                                type="checkbox" 
-                                                className="audit-checkbox"
-                                                checked={selectedIds.includes(err.error_id)}
-                                                onChange={() => handleToggleSelect(err.error_id)}
-                                            />
-                                            
-                                            <div style={{ color: '#94a3b8', fontWeight: 900, fontSize: 'var(--fs-md)' }}>{(currentPage - 1) * rowsPerPage + idx + 1}</div>
-                                            
-                                            <div style={{ fontSize: 'var(--fs-md)', fontWeight: 800, color: '#334155' }}>
-                                                {err.error_date}
-                                            </div>
-
-                                            {/* 🚀 قسم مصدر الحركة والمستند الأصلي والجهة */}
-                                            <div>
-                                                <div style={{ display: 'inline-block', background: cat.bg, color: cat.color, padding: '0.25rem 0.625rem', borderRadius: '6px', fontSize: 'var(--fs-sm)', fontWeight: 900, marginBottom: '0.375rem' }}>
-                                                    أصل الحركة: {err.source_type === 'journal_headers' ? 'قيد مباشر/يدوي' : (err.source_type || err.table_name || 'غير محدد')}
-                                                </div>
-                                                
-                                                {/* 👤 عرض العميل / المقاول / المستفيد */}
-                                                {err.info_party && (
-                                                    <div style={{ fontSize: 'var(--fs-sm)', color: '#1e293b', fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                                                        <span style={{ color: '#64748b' }}>الجهة:</span> {err.info_party}
-                                                    </div>
-                                                )}
-
-                                                <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontFamily: 'monospace', fontWeight: 800, userSelect: 'all' }}>
-                                                    مرجع الأصل: {err.source_id || err.error_id || 'N/A'}
-                                                </div>
-                                            </div>
-
-                                            {/* 📋 التشخيص الفني ووصف الحركة */}
-                                            <div style={{ fontSize: 'var(--fs-md)', fontWeight: 700, color: '#475569', lineHeight: 1.6 }}>
-                                                <div style={{ color: '#1e293b', fontWeight: 800 }}>{err.details}</div>
-                                                
-                                                {/* 📝 عرض البيان / وصف الفاتورة أو المصروف الاصلية */}
-                                                {err.info_description && (
-                                                    <div style={{ background: '#f1f5f9', padding: '0.375rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-sm)', color: '#64748b', marginTop: '0.375rem', borderRight: `3px solid ${cat.color}`, fontWeight: 600 }}>
-                                                        البيان الأصلي: {err.info_description}
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* 💰 عرض الفرق المالي في عمود منفصل لتسهيل القراءة */}
-                                            <div>
-                                                {Math.abs(Number(err.diff_amount || 0)) > 0 ? (
-                                                    <div style={{ color: cat.color, fontSize: 'var(--fs-md)', fontWeight: 900, background: cat.bg, padding: '0.25rem 0.5rem', borderRadius: '6px', display: 'inline-block' }}>
-                                                        {Math.abs(Number(err.diff_amount)).toLocaleString()} ريال
-                                                    </div>
-                                                ) : (
-                                                    <span style={{ color: '#cbd5e1', fontWeight: 800 }}>-</span>
-                                                )}
-                                            </div>
-
-                                            {/* 🛠️ أزرار الإجراءات */}
-                                            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                                {cat.id === 'unbalanced' && (
-                                                    <button 
-                                                        onClick={() => logic.autoBalance(err.header_id, err.diff_amount)} 
-                                                        style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.5rem 0.875rem', borderRadius: '8px', fontWeight: 900, fontSize: 'var(--fs-sm)', cursor: 'pointer', transition: '0.2s' }}
-                                                    >موازنة</button>
-                                                )}
-                                                <button 
-                                                    onClick={() => confirm('هل أنت متأكد من الحذف النهائي لتنظيف السجل؟') && logic.deleteError(err.error_id, err.table_name)} 
-                                                    disabled={logic.isDeleting}
-                                                    style={{ background: '#ef4444', color: 'white', border: 'none', padding: '0.5rem 0.875rem', borderRadius: '8px', fontWeight: 900, fontSize: 'var(--fs-sm)', cursor: 'pointer', opacity: logic.isDeleting ? 0.5 : 1, transition: '0.2s' }}
-                                                >حذف</button>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            );
-                        })}
+                return (
+                  <div key={chk.id} className={styles.radarCard}>
+                    <div className={styles.radarCardHeader}>
+                      <h4 className={styles.radarCardTitle}>
+                        {chk.severity === 'critical' ? '🚨' : chk.severity === 'medium' ? '⚠️' : '💡'}
+                        {chk.title_ar}
+                      </h4>
+                      <span
+                        className={`${styles.badge} ${
+                          isClean
+                            ? styles.badgeSafe
+                            : chk.severity === 'critical'
+                            ? styles.badgeCritical
+                            : chk.severity === 'medium'
+                            ? styles.badgeMedium
+                            : styles.badgeWarning
+                        }`}
+                      >
+                        {isClean ? 'سليم تماماً' : `${chk.count} حالة`}
+                      </span>
                     </div>
 
-                    {/* 🚀 زراير التقسيم (Pagination Footer) */}
-                    {logic.errors.length > 0 && (
-                        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.625rem', background: 'white', padding: '1.125rem 1.5625rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                            <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#475569' }}>
-                                إجمالي السجلات المصابة: <span style={{ color: THEME.primary || '#3b82f6', fontSize: 'var(--fs-xl)' }}>{logic.errors.length}</span> سجل
-                            </div>
-                            <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center' }}>
-                                <button 
-                                    onClick={() => setCurrentPage(p => p - 1)} disabled={currentPage === 1}
-                                    style={{ padding: '0.625rem 1.5625rem', borderRadius: '10px', border: 'none', background: currentPage === 1 ? '#f1f5f9' : (THEME.primary || '#3b82f6'), color: currentPage === 1 ? '#94a3b8' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
-                                >السابق</button>
-                                
-                                <span style={{ padding: '0.625rem 1.5625rem', background: '#f8fafc', borderRadius: '10px', fontWeight: 900, border: '1px solid #e2e8f0', color: '#1e293b', fontSize: 'var(--fs-md)' }}>
-                                    صفحة {currentPage} من {totalPages}
-                                </span>
-                                
-                                <button 
-                                    onClick={() => setCurrentPage(p => p + 1)} disabled={currentPage === totalPages}
-                                    style={{ padding: '0.625rem 1.5625rem', borderRadius: '10px', border: 'none', background: currentPage === totalPages ? '#f1f5f9' : (THEME.primary || '#3b82f6'), color: currentPage === totalPages ? '#94a3b8' : 'white', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
-                                >التالي</button>
-                            </div>
+                    <div className={styles.radarCardBody}>
+                      <p className={styles.radarCountText}>
+                        {isClean
+                          ? 'لم يتم رصد أي خلل أو تشوه مطابق لهذا الفحص في سجلات الشركة.'
+                          : `يوجد (${chk.count}) سجلات بحاجة للتدقيق والتسوية.`}
+                      </p>
+
+                      {!isClean && chk.items && chk.items.length > 0 && (
+                        <div>
+                          <div className={styles.radarItemsList}>
+                            {chk.items.slice(0, isExpanded ? 20 : 3).map((item, idx) => (
+                              <div key={item.id || idx} className={styles.radarItemRow}>
+                                <div className={styles.radarItemLeft}>
+                                  <span className={styles.radarItemName}>
+                                    {item.identifier || item.id?.slice(0, 8)}
+                                  </span>
+                                  <span className={styles.radarItemSub}>
+                                    {item.date ? `${item.date} — ` : ''}
+                                    {item.description || 'بدون تفاصيل'}
+                                  </span>
+                                </div>
+                                {item.amount !== undefined && item.amount !== 0 && (
+                                  <span className={styles.radarItemAmount}>
+                                    {Number(item.amount).toLocaleString('ar-SA')} ر.س
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          {chk.items.length > 3 && (
+                            <button
+                              className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSmall}`}
+                              style={{ width: '100%', marginTop: '0.5rem', justifyContent: 'center' }}
+                              onClick={() => setExpandedCheckId(isExpanded ? null : chk.id)}
+                            >
+                              {isExpanded ? (
+                                <>
+                                  <ChevronUp size={14} /> عرض أقل
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown size={14} /> عرض كل السجلات ({chk.items.length})
+                                </>
+                              )}
+                            </button>
+                          )}
                         </div>
-                    )}
-                </>
-            )}
-        </MasterPage>
-    );
+                      )}
+                    </div>
+
+                    <div className={styles.radarCardFooter}>
+                      <Link href={chk.action_url} className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSmall}`}>
+                        <ExternalLink size={14} />
+                        الانتقال للشاشة والمعالجة
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* TAB 2: DOCUMENT EXPIRY & COMPLIANCE */}
+        {/* =================================================================== */}
+        {activeTab === 'expiry' && (
+          <div>
+            {/* KPI Summary */}
+            <div className={styles.kpiGrid}>
+              <div className={styles.kpiCard}>
+                <div>
+                  <h3 className={styles.kpiValue} style={{ color: '#1e293b' }}>
+                    {expiry?.summary.total_documents ?? 0}
+                  </h3>
+                  <p className={styles.kpiLabel}>إجمالي الوثائق والرخص المسجلة</p>
+                </div>
+                <div className={styles.kpiIcon}>📁</div>
+              </div>
+
+              <div className={styles.kpiCard}>
+                <div>
+                  <h3 className={styles.kpiValue} style={{ color: '#b91c1c' }}>
+                    {expiry?.summary.expired_count ?? 0}
+                  </h3>
+                  <p className={styles.kpiLabel}>مستندات منتهية الصلاحية</p>
+                </div>
+                <div className={styles.kpiIcon}>❌</div>
+              </div>
+
+              <div className={styles.kpiCard}>
+                <div>
+                  <h3 className={styles.kpiValue} style={{ color: '#b45309' }}>
+                    {expiry?.summary.critical_count ?? 0}
+                  </h3>
+                  <p className={styles.kpiLabel}>حرجة (تنتهي خلال 10 أيام)</p>
+                </div>
+                <div className={styles.kpiIcon}>⏳</div>
+              </div>
+
+              <div className={styles.kpiCard}>
+                <div>
+                  <h3 className={styles.kpiValue} style={{ color: '#854d0e' }}>
+                    {expiry?.summary.upcoming_count ?? 0}
+                  </h3>
+                  <p className={styles.kpiLabel}>قادمة (تنتهي خلال 30 يوماً)</p>
+                </div>
+                <div className={styles.kpiIcon}>📅</div>
+              </div>
+            </div>
+
+            {/* Document Table Card */}
+            <div className={styles.tableContainer}>
+              <div className={styles.tableToolbar}>
+                <div className={styles.filterGroup}>
+                  <button
+                    className={`${styles.filterBtn} ${docFilter === 'all' ? styles.filterBtnActive : ''}`}
+                    onClick={() => setDocFilter('all')}
+                  >
+                    الكل ({expiry?.documents.length ?? 0})
+                  </button>
+                  <button
+                    className={`${styles.filterBtn} ${docFilter === 'expired' ? styles.filterBtnActive : ''}`}
+                    onClick={() => setDocFilter('expired')}
+                  >
+                    منتهي ({expiry?.summary.expired_count ?? 0})
+                  </button>
+                  <button
+                    className={`${styles.filterBtn} ${docFilter === 'critical' ? styles.filterBtnActive : ''}`}
+                    onClick={() => setDocFilter('critical')}
+                  >
+                    حرج &lt; 10 أيام ({expiry?.summary.critical_count ?? 0})
+                  </button>
+                  <button
+                    className={`${styles.filterBtn} ${docFilter === 'upcoming' ? styles.filterBtnActive : ''}`}
+                    onClick={() => setDocFilter('upcoming')}
+                  >
+                    قريب &lt; 30 يوم ({expiry?.summary.upcoming_count ?? 0})
+                  </button>
+                  <button
+                    className={`${styles.filterBtn} ${docFilter === 'safe' ? styles.filterBtnActive : ''}`}
+                    onClick={() => setDocFilter('safe')}
+                  >
+                    ساري
+                  </button>
+                  <button
+                    className={`${styles.filterBtn} ${docFilter === 'renewed' ? styles.filterBtnActive : ''}`}
+                    onClick={() => setDocFilter('renewed')}
+                  >
+                    تم التجديد
+                  </button>
+                </div>
+
+                <button
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  onClick={() => setShowAddModal(true)}
+                >
+                  <Plus size={16} />
+                  تسجيل وثيقة أو ترخيص جديد
+                </button>
+              </div>
+
+              {filteredDocs.length === 0 ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyStateIcon}>📑</div>
+                  <h4 className={styles.emptyStateTitle}>لا توجد مستندات في هذا التصنيف</h4>
+                  <p>يمكنك تسجيل إقامات العمال، ورخص البلدية، وتأمينات السيارات عبر زر الإضافة أعلاه.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>رقم المستند</th>
+                        <th>العنوان والبيان</th>
+                        <th>النوع</th>
+                        <th>الارتباط</th>
+                        <th>تاريخ الانتهاء</th>
+                        <th>المتبقي</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredDocs.map(doc => {
+                        const days = doc.days_left;
+                        let statusBadge = (
+                          <span className={`${styles.badge} ${styles.badgeSafe}`}>ساري</span>
+                        );
+                        if (doc.is_renewed) {
+                          statusBadge = <span className={`${styles.badge} ${styles.badgeRenewed}`}>مجدد</span>;
+                        } else if (doc.status === 'expired') {
+                          statusBadge = <span className={`${styles.badge} ${styles.badgeCritical}`}>منتهي</span>;
+                        } else if (doc.status === 'critical') {
+                          statusBadge = <span className={`${styles.badge} ${styles.badgeMedium}`}>عاجل جداً</span>;
+                        } else if (doc.status === 'upcoming') {
+                          statusBadge = <span className={`${styles.badge} ${styles.badgeWarning}`}>يقترب الانتهاء</span>;
+                        }
+
+                        return (
+                          <tr key={doc.id}>
+                            <td style={{ fontWeight: 800, fontFamily: 'monospace' }}>
+                              {doc.document_number}
+                            </td>
+                            <td>
+                              <div style={{ fontWeight: 700 }}>{doc.title}</div>
+                              {doc.notes && (
+                                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>{doc.notes}</div>
+                              )}
+                            </td>
+                            <td>{doc.doc_type_ar || doc.doc_type}</td>
+                            <td>
+                              {doc.partner_name && <div>👤 {doc.partner_name}</div>}
+                              {doc.project_name && <div>🏗️ {doc.project_name}</div>}
+                              {doc.asset_name && <div>🚜 {doc.asset_name}</div>}
+                              {!doc.partner_name && !doc.project_name && !doc.asset_name && (
+                                <span style={{ color: '#94a3b8' }}>—</span>
+                              )}
+                            </td>
+                            <td style={{ fontWeight: 700 }}>{doc.expiry_date}</td>
+                            <td style={{ fontWeight: 800, color: days < 0 ? '#b91c1c' : days <= 10 ? '#b45309' : '#1e293b' }}>
+                              {days < 0 ? `متأخر ${Math.abs(days)} يوم` : days === 0 ? 'ينتهي اليوم!' : `${days} يوم`}
+                            </td>
+                            <td>{statusBadge}</td>
+                            <td>
+                              <button
+                                className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSmall}`}
+                                onClick={() => {
+                                  setSelectedDoc(doc);
+                                  setShowRenewModal(true);
+                                }}
+                              >
+                                تجديد / تمديد
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* TAB 3: RETENTION GUARANTEE RELEASES */}
+        {/* =================================================================== */}
+        {activeTab === 'retention' && (
+          <div>
+            <div className={styles.tableContainer} style={{ marginTop: 0 }}>
+              <div className={styles.tableToolbar}>
+                <div>
+                  <h3 style={{ margin: '0 0 0.25rem 0', fontWeight: 800, fontSize: '1.125rem' }}>
+                    استحقاقات فك ضمان الأعمال والمبالغ المحجوزة
+                  </h3>
+                  <p style={{ margin: 0, fontSize: '0.8125rem', color: '#64748b' }}>
+                    رصد تواريخ انتهاء فترة الضمان للمشاريع المحسوبة من تاريخ الاستلام الابتدائي مع تتبع مبالغ فواتير العملاء ومستخلصات مقاولي الباطن
+                  </p>
+                </div>
+              </div>
+
+              {(!expiry?.retention_guarantees || expiry.retention_guarantees.length === 0) ? (
+                <div className={styles.emptyState}>
+                  <div className={styles.emptyStateIcon}>🏗️</div>
+                  <h4 className={styles.emptyStateTitle}>لا توجد ضمانات أعمال محجوزة حالياً</h4>
+                  <p>تظهر هنا تلقائياً أي مبالغ محتجزة كضمان أعمال في فواتير العملاء أو مستخلصات مقاولي الباطن للمشاريع المسلمة.</p>
+                </div>
+              ) : (
+                <div style={{ overflowX: 'auto' }}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th>المشروع</th>
+                        <th>العميل</th>
+                        <th>تاريخ الاستلام الابتدائي</th>
+                        <th>مدة الضمان</th>
+                        <th>ميعاد فك الضمان</th>
+                        <th>المتبقي</th>
+                        <th>محجوز العملاء</th>
+                        <th>محجوز المقاولين</th>
+                        <th>إجمالي الضمان المحجوز</th>
+                        <th>الحالة</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {expiry.retention_guarantees.map(r => {
+                        const days = r.days_left;
+                        let statusBadge = <span className={`${styles.badge} ${styles.badgeSafe}`}>ساري</span>;
+                        if (r.status === 'overdue') {
+                          statusBadge = <span className={`${styles.badge} ${styles.badgeCritical}`}>مستحق الفك ومتأخر</span>;
+                        } else if (r.status === 'due_soon') {
+                          statusBadge = <span className={`${styles.badge} ${styles.badgeWarning}`}>يستحق قريباً (&lt; 30 يوم)</span>;
+                        }
+
+                        return (
+                          <tr key={r.project_id}>
+                            <td style={{ fontWeight: 800 }}>{r.project_name}</td>
+                            <td>{r.client_name || '—'}</td>
+                            <td>{r.handover_date || '—'}</td>
+                            <td>{r.warranty_months} شهراً</td>
+                            <td style={{ fontWeight: 800 }}>{r.release_date}</td>
+                            <td style={{ fontWeight: 800, color: days < 0 ? '#b91c1c' : days <= 30 ? '#b45309' : '#1e293b' }}>
+                              {days < 0 ? `متأخر ${Math.abs(days)} يوم` : `${days} يوم`}
+                            </td>
+                            <td>{Number(r.client_retention_unreleased).toLocaleString('ar-SA')} ر.س</td>
+                            <td>{Number(r.sub_retention_unreleased).toLocaleString('ar-SA')} ر.س</td>
+                            <td style={{ fontWeight: 900, color: '#d97706' }}>
+                              {Number(r.total_retention_unreleased).toLocaleString('ar-SA')} ر.س
+                            </td>
+                            <td>{statusBadge}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* TAB 4: SYSTEM ALERTS & PG_CRON */}
+        {/* =================================================================== */}
+        {activeTab === 'alerts' && (
+          <div>
+            <div className={styles.tableContainer} style={{ marginTop: 0, padding: '1.5rem' }}>
+              <h3 style={{ margin: '0 0 0.5rem 0', fontWeight: 800, fontSize: '1.25rem' }}>
+                محرك الفحص الدوري والجدولة التلقائية (pg_cron Engine)
+              </h3>
+              <p style={{ margin: '0 0 1.5rem 0', color: '#64748b', fontSize: '0.875rem' }}>
+                يقوم النظام بإجراء فحص أوتوماتيكي يومي في تمام الساعة 6:00 صباحاً عبر دالة قاعدة البيانات <code>rawasi_private.run_daily_health_and_expiry_scans()</code>،
+                مع منع تكرار الإشعارات لنفس السجل المفتوح كل يوم لضمان عدم إزعاج المستخدمين.
+              </p>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div className={styles.radarCard} style={{ padding: '1.25rem' }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Calendar size={18} color="#d97706" /> موعد الفحص الدوري
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                    يومياً الساعة 06:00 صباحاً بتوقيت المملكة العربية السعودية عبر ملحق <code>pg_cron</code>
+                  </p>
+                </div>
+
+                <div className={styles.radarCard} style={{ padding: '1.25rem' }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <CheckCircle2 size={18} color="#16a34a" /> منع التكرار الذكي (Deduplication)
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                    بصمة موحدة <code>dedup_key</code> لكل وثيقة أو مطالبة متأخرة تمنع توليد إشعار مكرر يومياً طول فترة بقائها مفتوحة.
+                  </p>
+                </div>
+
+                <div className={styles.radarCard} style={{ padding: '1.25rem' }}>
+                  <h4 style={{ margin: '0 0 0.5rem 0', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <Building2 size={18} color="#2563eb" /> عزل الإشعارات بين الشركات
+                  </h4>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                    كل تنبيه يتم وسمه بـ <code>company_id</code> ويصل فقط للأعضاء المعتمدين النشطين في نفس الشركة.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-start', gap: '1rem' }}>
+                <button
+                  className={`${styles.btn} ${styles.btnPrimary}`}
+                  onClick={handleRunDailyScan}
+                  disabled={runningScan}
+                >
+                  <RefreshCw size={16} className={runningScan ? 'spin' : ''} />
+                  {runningScan ? 'جارٍ تشغيل الفحص الشامل...' : 'تشغيل الفحص اليومي الآن (محاكاة pg_cron)'}
+                </button>
+                <Link href="/notifications" className={`${styles.btn} ${styles.btnSecondary}`}>
+                  <Bell size={16} />
+                  فتح مركز الإشعارات المستلمة
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* MODAL: ADD COMPANY DOCUMENT */}
+        {/* =================================================================== */}
+        {showAddModal && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent}>
+              <div className={styles.modalHeader}>
+                <h2>تسجيل وثيقة أو ترخيص جديد</h2>
+                <button className={styles.closeBtn} onClick={() => setShowAddModal(false)}>×</button>
+              </div>
+
+              <form onSubmit={handleSaveDocument}>
+                <div className={styles.modalBody}>
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label>رقم المستند / الوثيقة *</label>
+                      <input
+                        className={styles.formInput}
+                        value={form.document_number}
+                        onChange={e => setForm({ ...form, document_number: e.target.value })}
+                        placeholder="مثال: 2451980012 أو LIC-4410"
+                        required
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>نوع المستند *</label>
+                      <select
+                        className={styles.formSelect}
+                        value={form.doc_type}
+                        onChange={e => setForm({ ...form, doc_type: e.target.value })}
+                      >
+                        <option value="worker_iqama">إقامة عامل / موظف</option>
+                        <option value="municipality_license">رخصة بلدية</option>
+                        <option value="asset_insurance">تأمين معدة / مركبة</option>
+                        <option value="letter_of_guarantee">خطاب ضمان بنكي</option>
+                        <option value="project_contract">عقد مشروع</option>
+                        <option value="commercial_registration">سجل تجاري</option>
+                        <option value="tax_certificate">شهادة الزكاة والضريبة</option>
+                        <option value="other">أخرى</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>عنوان ووصف المستند *</label>
+                    <input
+                      className={styles.formInput}
+                      value={form.title}
+                      onChange={e => setForm({ ...form, title: e.target.value })}
+                      placeholder="مثال: إقامة المهندس أحمد أو تأمين شاحنة أكتروس"
+                      required
+                    />
+                  </div>
+
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label>تاريخ الانتهاء *</label>
+                      <input
+                        type="date"
+                        className={styles.formInput}
+                        value={form.expiry_date}
+                        onChange={e => setForm({ ...form, expiry_date: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>تاريخ الإصدار (اختياري)</label>
+                      <input
+                        type="date"
+                        className={styles.formInput}
+                        value={form.issue_date}
+                        onChange={e => setForm({ ...form, issue_date: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label>تنبيه قبل الانتهاء بـ (أيام)</label>
+                      <input
+                        type="number"
+                        min="1"
+                        className={styles.formInput}
+                        value={form.alert_days_before}
+                        onChange={e => setForm({ ...form, alert_days_before: Number(e.target.value) })}
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>الموظف / الشريك المرتبط (اختياري)</label>
+                      <select
+                        className={styles.formSelect}
+                        value={form.partner_id}
+                        onChange={e => setForm({ ...form, partner_id: e.target.value })}
+                      >
+                        <option value="">-- بدون ارتباط --</option>
+                        {partners.map(p => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.formRow}>
+                    <div className={styles.formGroup}>
+                      <label>المشروع المرتبط (اختياري)</label>
+                      <select
+                        className={styles.formSelect}
+                        value={form.project_id}
+                        onChange={e => setForm({ ...form, project_id: e.target.value })}
+                      >
+                        <option value="">-- بدون ارتباط --</option>
+                        {projects.map(pr => (
+                          <option key={pr.id} value={pr.id}>{pr.Property}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label>المعدة / الأصل المرتبط (اختياري)</label>
+                      <select
+                        className={styles.formSelect}
+                        value={form.asset_id}
+                        onChange={e => setForm({ ...form, asset_id: e.target.value })}
+                      >
+                        <option value="">-- بدون ارتباط --</option>
+                        {assets.map(a => (
+                          <option key={a.id} value={a.id}>{a.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label>ملاحظات إضافية</label>
+                    <textarea
+                      rows={2}
+                      className={styles.formTextarea}
+                      value={form.notes}
+                      onChange={e => setForm({ ...form, notes: e.target.value })}
+                      placeholder="أي ملاحظات حول التجديد أو متطلبات الفحص..."
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.modalFooter}>
+                  <button
+                    type="button"
+                    className={`${styles.btn} ${styles.btnSecondary}`}
+                    onClick={() => setShowAddModal(false)}
+                    disabled={savingDoc}
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    className={`${styles.btn} ${styles.btnPrimary}`}
+                    disabled={savingDoc}
+                  >
+                    {savingDoc ? 'جارٍ الحفظ...' : 'حفظ الوثيقة'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* MODAL: RENEW DOCUMENT */}
+        {/* =================================================================== */}
+        {showRenewModal && selectedDoc && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent} style={{ maxWidth: 500 }}>
+              <div className={styles.modalHeader}>
+                <h2>تجديد / تمديد صلاحية المستند</h2>
+                <button className={styles.closeBtn} onClick={() => setShowRenewModal(false)}>×</button>
+              </div>
+
+              <div className={styles.modalBody}>
+                <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontWeight: 800 }}>{selectedDoc.title}</div>
+                  <div style={{ fontSize: '0.8125rem', color: '#64748b' }}>
+                    رقم الوثيقة: {selectedDoc.document_number} | الصلاحية السابقة: {selectedDoc.expiry_date}
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label>تاريخ الانتهاء الجديد (تمديد الصلاحية)</label>
+                  <input
+                    type="date"
+                    className={styles.formInput}
+                    value={newExpiryDate}
+                    onChange={e => setNewExpiryDate(e.target.value)}
+                  />
+                  <small style={{ color: '#64748b', fontSize: '0.75rem' }}>
+                    إذا تركت التاريخ فارغاً، سيتم تعليم المستند كـ "مجدد" بتاريخ اليوم فقط.
+                  </small>
+                </div>
+              </div>
+
+              <div className={styles.modalFooter}>
+                <button
+                  type="button"
+                  className={`${styles.btn} ${styles.btnSecondary}`}
+                  onClick={() => setShowRenewModal(false)}
+                  disabled={savingDoc}
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.btn} ${styles.btnSuccess}`}
+                  onClick={handleRenewDocument}
+                  disabled={savingDoc}
+                >
+                  {savingDoc ? 'جارٍ التحديث...' : 'تأكيد التجديد'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </MasterPage>
+  );
 }
