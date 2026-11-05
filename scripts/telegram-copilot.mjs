@@ -43,14 +43,105 @@ if (!GEMINI_API_KEY) {
 
 console.log('🤖 بدء تشغيل المساعد الذكي لنظام فاي تك (PHI TECH Telegram Copilot)...');
 
-const SYSTEM_PROMPT = `
-أنت المساعد الذكي لمنظومة فاي تك (PHI TECH) لإدارة المشروعات والمقاولات والمحاسبة المالية.
-تتحدث باللغة العربية بأسلوب هندسي ومحاسبي محترف وودود وواضح، وتستخدم الإيموجي المناسب.
+const KNOWLEDGE_PATH = path.join(rootDir, 'config', 'copilot_knowledge.md');
+const MEMORY_PATH = path.join(rootDir, 'config', 'copilot_memory.json');
+
+// 📚 تحميل دليل المعرفة الثابت من الملف
+function loadKnowledgeBase() {
+  try {
+    if (fs.existsSync(KNOWLEDGE_PATH)) {
+      return fs.readFileSync(KNOWLEDGE_PATH, 'utf8').trim();
+    }
+  } catch (err) {
+    console.error('Error loading knowledge base:', err.message);
+  }
+  return '';
+}
+
+// 🧠 تحميل الذاكرة الديناميكية والقواعد المكتسبة
+function loadMemory() {
+  try {
+    if (fs.existsSync(MEMORY_PATH)) {
+      const parsed = JSON.parse(fs.readFileSync(MEMORY_PATH, 'utf8'));
+      return Array.isArray(parsed?.rules) ? parsed.rules : [];
+    }
+  } catch (err) {
+    console.error('Error loading memory:', err.message);
+  }
+  return [];
+}
+
+// 💾 حفظ قاعدة جديدة في الذاكرة
+function saveRuleToMemory(ruleText, topic = 'تدريب مخصص') {
+  try {
+    const rules = loadMemory();
+    const newRule = {
+      id: String(rules.length + 1),
+      topic,
+      text: ruleText.trim(),
+      added_at: new Date().toISOString(),
+    };
+    rules.push(newRule);
+    const payload = {
+      last_updated: new Date().toISOString(),
+      rules,
+    };
+    fs.mkdirSync(path.dirname(MEMORY_PATH), { recursive: true });
+    fs.writeFileSync(MEMORY_PATH, JSON.stringify(payload, null, 2), 'utf8');
+    return newRule;
+  } catch (err) {
+    console.error('Error saving rule to memory:', err.message);
+    return null;
+  }
+}
+
+// 🗑️ حذف قاعدة من الذاكرة
+function deleteRuleFromMemory(idOrKeyword) {
+  try {
+    const rules = loadMemory();
+    const filtered = rules.filter(
+      (r) => String(r.id) !== String(idOrKeyword) && !r.text.includes(String(idOrKeyword))
+    );
+    if (filtered.length === rules.length) return false;
+    const payload = {
+      last_updated: new Date().toISOString(),
+      rules: filtered.map((r, idx) => ({ ...r, id: String(idx + 1) })),
+    };
+    fs.writeFileSync(MEMORY_PATH, JSON.stringify(payload, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    console.error('Error deleting rule:', err.message);
+    return false;
+  }
+}
+
+// 🧹 تصفير الذاكرة المكتسبة
+function clearAllMemory() {
+  try {
+    const payload = {
+      last_updated: new Date().toISOString(),
+      rules: [],
+    };
+    fs.writeFileSync(MEMORY_PATH, JSON.stringify(payload, null, 2), 'utf8');
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+const BASE_SYSTEM_PROMPT = `
+أنت المساعد الذكي الخبير لمنظومة فاي تك (PHI TECH) لإدارة المشروعات والمقاولات والمحاسبة المالية.
+تتحدث باللغة العربية بأسلوب هندسي ومحاسبي محترف وودود وواضح، وتستخدم الإيموجي المناسب لتنسيق إجاباتك.
+
 أنت خبير في:
-1. محاسبة المقاولات (القيود المزدوجة، مراكز التكلفة للمشاريع، القيود الدائنة والمدينة، العهد، المستخلصات، والمخالفات).
+1. محاسبة المقاولات (القيود المزدوجة المتوازنة، مراكز التكلفة للمشاريع، العهد وتصفيتها، المستخلصات، والمخالفات).
 2. إدارة المواقع والمشروعات (المقايسات BOQ، أوامر الشغل، مخططات الشوب دروينج، زيارات فحص الجودة وعلامات الـ Pins، وتوثيق الكاميرا بالـ GPS قبل وبعد).
 3. المشتريات ومطابقة التوريد الثلاثي (3-Way Matching بين أوامر الشراء، سندات الاستلام، وفواتير الموردين الضريبية).
-أجب باختصار وترتيب، وإذا سألك المستخدم عن بيانات حالية من قاعدة البيانات وكان لديك السياق المرفق أدناه أجب منها بدقة، وإذا كان السؤال هندسياً أو محاسبياً أو في الكود فأجب بخبرة دقيقة.
+4. استخراج الأرقام والإحصائيات الحقيقية من قاعدة بيانات سوبابيز المرفقة بالسياق أدناه بدقة متناهية.
+
+قواعد صارمة:
+- التزم دائماً بالقواعد والمعلومات المكتسبة والخاصة بشركة المستخدم الواردة في قسم (دليل المعرفة والذاكرة المكتسبة).
+- أجب باختصار وترتيب ودقة.
 `;
 
 // Helper to send message to Telegram
@@ -98,11 +189,13 @@ async function fetchDatabaseSummary() {
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
     };
 
-    const [projRes, visitsRes, custRes, posRes] = await Promise.allSettled([
+    const [projRes, visitsRes, custRes, posRes, expRes, partRes] = await Promise.allSettled([
       fetch(`${SUPABASE_URL}/rest/v1/projects?select=id,Property,status,client_name&limit=15`, { headers }).then((r) => r.json()),
       fetch(`${SUPABASE_URL}/rest/v1/project_site_visits?select=title,stage,status,visit_date,inspector_name&order=created_at.desc&limit=10`, { headers }).then((r) => r.json()),
       fetch(`${SUPABASE_URL}/rest/v1/site_custodies?select=title,disbursed_amount,spent_amount,remaining_amount,status&limit=10`, { headers }).then((r) => r.json()),
       fetch(`${SUPABASE_URL}/rest/v1/purchase_orders?select=po_number,total_amount,status&order=created_at.desc&limit=10`, { headers }).then((r) => r.json()),
+      fetch(`${SUPABASE_URL}/rest/v1/expenses?select=description,total_price,exp_date,is_posted&order=created_at.desc&limit=8`, { headers }).then((r) => r.json()),
+      fetch(`${SUPABASE_URL}/rest/v1/partners?select=name,partner_type,phone&limit=10`, { headers }).then((r) => r.json()),
     ]);
 
     let summary = '📊 ملخص البيانات الحالية في النظام:\n';
@@ -122,6 +215,14 @@ async function fetchDatabaseSummary() {
       summary += `\n\n🛒 أحدث أوامر الشراء:\n` +
         posRes.value.map((o) => `- ${o.po_number} (الإجمالي: ${o.total_amount} ر.س - الحالة: ${o.status})`).join('\n');
     }
+    if (expRes.status === 'fulfilled' && Array.isArray(expRes.value)) {
+      summary += `\n\n💸 أحدث المصروفات المسجلة:\n` +
+        expRes.value.map((e) => `- ${e.description} (${Number(e.total_price || 0).toLocaleString()} ر.س - بتاريخ ${e.exp_date})`).join('\n');
+    }
+    if (partRes.status === 'fulfilled' && Array.isArray(partRes.value)) {
+      summary += `\n\n🤝 الشركاء والموردين:\n` +
+        partRes.value.map((pt) => `- ${pt.name} (${pt.partner_type || 'مورد/مقاول'})`).join('\n');
+    }
 
     return summary;
   } catch (err) {
@@ -135,6 +236,27 @@ async function askGemini(userPrompt, dbContext) {
     return '⚠️ مفتاح <code>GEMINI_API_KEY</code> غير مضاف في ملف <code>.env.local</code>.\nيرجى إضافته لتفعيل ردود الذكاء الاصطناعي الذكية.';
   }
 
+  const knowledge = loadKnowledgeBase();
+  const memoryRules = loadMemory();
+
+  let memoryContext = '';
+  if (knowledge) {
+    memoryContext += `\n\n📖 دليل المعرفة وقواعد العمل الرسمية للشركة:\n${knowledge}`;
+  }
+  if (memoryRules.length > 0) {
+    memoryContext += `\n\n🧠 القواعد والمعلومات المكتسبة من التدريب:\n` +
+      memoryRules.map((r, i) => `${i + 1}. [${r.topic}] ${r.text}`).join('\n');
+  }
+
+  const fullPrompt = `${BASE_SYSTEM_PROMPT}
+${memoryContext}
+
+بيانات النظام وقاعدة البيانات الحالية:
+${dbContext}
+
+سؤال المستخدم:
+${userPrompt}`;
+
   const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
   let lastError = null;
 
@@ -145,16 +267,12 @@ async function askGemini(userPrompt, dbContext) {
         contents: [
           {
             role: 'user',
-            parts: [
-              {
-                text: `${SYSTEM_PROMPT}\n\nبيانات النظام وقاعدة البيانات الحالية:\n${dbContext}\n\nسؤال المستخدم:\n${userPrompt}`,
-              },
-            ],
+            parts: [{ text: fullPrompt }],
           },
         ],
         generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 1200,
+          temperature: 0.25,
+          maxOutputTokens: 1400,
         },
       };
 
@@ -212,35 +330,129 @@ async function handleUpdate(update) {
     // Strip bot username mention if mentioned in group
     let cleanText = rawText.replace(/@phitechbot/gi, '').trim();
 
-    // Handle Commands
+    // 1. أمر البداية والمساعدة
     if (cleanText === '/start' || cleanText === '/help') {
       const welcome = `
 👋 أهلاً بك يا <b>${fromName}</b>!
 أنا <b>المساعد الذكي لمنظومة فاي تك (PHI TECH Copilot)</b> 🤖.
 
-يمكنك محادثتي هنا في أي وقت وكأنك داخل بيئة العمل تماماً:
-🔹 <b>اسألني أي سؤال</b> باللغة الطبيعية عن المشروعات، الحسابات، الموردين، أو الكود.
+يمكنك محادثتي وتدريبي هنا في أي وقت وكأنك داخل بيئة العمل تماماً:
+
+🧠 <b>أوامر التدريب والذاكرة:</b>
+🔹 <code>/train المعلومة</code> أو <code>/learn المعلومة</code> — لتدريبي على قاعدة أو معلومة جديدة.
+🔹 <code>/memory</code> — لعرض كل القواعد والمعلومات التي درّبتني عليها.
+🔹 <code>/forget رقم_القاعدة</code> — لمسح معلومة معينة.
+🔹 <code>/reload</code> — لإعادة قراءة ملف المعرفة <code>config/copilot_knowledge.md</code>.
+
+📊 <b>أوامر الاستعلام عن البيانات:</b>
 🔹 <code>/projects</code> — لعرض ملخص فوري بالمشاريع وحالاتها.
 🔹 <code>/visits</code> — لعرض أحدث زيارات وملاحظات الشوب دروينج.
 🔹 <code>/custodies</code> — لعرض العُهد المفتوحة ومتبقياتها.
 🔹 <code>/pos</code> — لعرض أحدث أوامر الشراء وموقف التوريد.
 
-💡 <i>جرّب كتابة أي سؤال وسأجيبك فوراً!</i>
+💡 <i>يمكنك أيضاً تدريبي مباشرة بالكلام العادي، مثلاً: "احفظ عندك أن مهندس الموقع هو م. أحمد وله صلاحية اعتماد الصرف حتى 10 آلاف".</i>
 `;
       await sendTelegramMessage(chatId, welcome, messageId);
       return;
     }
 
+    // 2. أمر تدريب البوت عبر /train أو /learn
+    if (cleanText.startsWith('/train') || cleanText.startsWith('/learn')) {
+      const ruleText = cleanText.replace(/^\/(train|learn)\s*/i, '').trim();
+      if (!ruleText) {
+        await sendTelegramMessage(
+          chatId,
+          '⚠️ يرجى كتابة المعلومة بعد الأمر، مثلاً:\n<code>/train الحد الأقصى للمصروفات النثرية بدون موافقة هو 3000 ريال</code>',
+          messageId
+        );
+        return;
+      }
+      const saved = saveRuleToMemory(ruleText, 'تدريب مباشر من المحادثة');
+      if (saved) {
+        await sendTelegramMessage(
+          chatId,
+          `✅ <b>تم التدريب والحفظ بنجاح!</b> 🧠\n\n📌 <b>القاعدة الجديدة (#${saved.id}):</b>\n"${toTelegramHtml(saved.text)}"\n\n<i>سألتزم بهذه القاعدة وأضعها في اعتباري في جميع الإجابات القادمة.</i>`,
+          messageId
+        );
+      } else {
+        await sendTelegramMessage(chatId, '❌ تعذر حفظ المعلومة في ملف الذاكرة.', messageId);
+      }
+      return;
+    }
+
+    // 3. أمر عرض الذاكرة والقواعد المكتسبة
+    if (cleanText === '/memory' || cleanText === '/rules') {
+      const rules = loadMemory();
+      if (rules.length === 0) {
+        await sendTelegramMessage(
+          chatId,
+          '📭 الذاكرة المكتسبة فارغة حالياً.\nيمكنك تدريبي بكتابة: <code>/train المعلومة</code> أو في ملف <code>config/copilot_knowledge.md</code>.',
+          messageId
+        );
+        return;
+      }
+      let memText = `🧠 <b>القواعد والمعلومات التي تم تدريبي عليها (${rules.length}):</b>\n\n`;
+      rules.forEach((r, idx) => {
+        memText += `<b>${idx + 1}.</b> ${toTelegramHtml(r.text)}\n`;
+      });
+      memText += `\n💡 <i>لحذف أي قاعدة اكتب: <code>/forget رقم_القاعدة</code></i>`;
+      await sendTelegramMessage(chatId, memText, messageId);
+      return;
+    }
+
+    // 4. أمر مسح قاعدة معينة
+    if (cleanText.startsWith('/forget')) {
+      const target = cleanText.replace(/^\/forget\s*/i, '').trim();
+      if (!target) {
+        await sendTelegramMessage(chatId, 'يرجى تحديد رقم القاعدة لمسحها، مثلاً: <code>/forget 1</code>', messageId);
+        return;
+      }
+      const ok = deleteRuleFromMemory(target);
+      if (ok) {
+        await sendTelegramMessage(chatId, `🗑️ تم مسح القاعدة بنجاح وتحديث الذاكرة.`, messageId);
+      } else {
+        await sendTelegramMessage(chatId, `⚠️ لم يتم العثور على قاعدة برقم أو نص: ${target}`, messageId);
+      }
+      return;
+    }
+
+    // 5. أمر إعادة تحميل ملف المعرفة
+    if (cleanText === '/reload') {
+      const k = loadKnowledgeBase();
+      const m = loadMemory();
+      await sendTelegramMessage(
+        chatId,
+        `🔄 تم إعادة تحميل الذاكرة بنجاح!\n📖 حجم دليل المعرفة: ${k.length} حرف\n🧠 عدد القواعد المكتسبة: ${m.length} قاعدة`,
+        messageId
+      );
+      return;
+    }
+
+    // 6. التحقق من العبارات التلقائية للتعلم الطبيعي (مثلاً: "احفظ عندك أن..." أو "تعلم أن...")
+    const naturalLearnMatch = cleanText.match(/^(?:احفظ عندك|تعلم أن|خليك عارف إن|سجل عندك|قاعدة جديدة)\s*[:،,-]?\s*(.+)$/i);
+    if (naturalLearnMatch && naturalLearnMatch[1]) {
+      const learned = naturalLearnMatch[1].trim();
+      const saved = saveRuleToMemory(learned, 'تعلم تلقائي من المحادثة');
+      if (saved) {
+        await sendTelegramMessage(
+          chatId,
+          `✅ <b>فهمت وحفظت هذه القاعدة فوراً!</b> 🧠\n\n📌 "${toTelegramHtml(saved.text)}"\n\n<i>تمت إضافتها لذاكرتي الدائمة، وسأعتمدها في كل حساباتي وردودي.</i>`,
+          messageId
+        );
+        return;
+      }
+    }
+
     await sendChatAction(chatId, 'typing');
 
-    // Handle /projects command directly
+    // 7. أوامر سريعة للاستعلام
     if (cleanText.startsWith('/projects')) {
       const dbSummary = await fetchDatabaseSummary();
       await sendTelegramMessage(chatId, toTelegramHtml(dbSummary), messageId);
       return;
     }
 
-    // Strip /ask if present
+    // إزالة بادئة /ask إن وجدت
     if (cleanText.startsWith('/ask')) {
       cleanText = cleanText.replace(/^\/ask\s*/i, '').trim();
     }
@@ -249,7 +461,7 @@ async function handleUpdate(update) {
       cleanText = rawText;
     }
 
-    // Handle natural questions with Gemini AI
+    // 8. الإجابة الذكية عبر Gemini بالاعتماد على الذاكرة وقاعدة البيانات
     const dbContext = await fetchDatabaseSummary();
     const aiReply = await askGemini(cleanText, dbContext);
     const formattedReply = toTelegramHtml(aiReply);
@@ -300,6 +512,7 @@ process.on('SIGINT', () => {
 });
 
 process.on('SIGTERM', () => {
+  console.log('Stopping bot...');
   isPolling = false;
   process.exit(0);
 });
