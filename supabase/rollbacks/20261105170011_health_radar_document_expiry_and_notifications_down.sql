@@ -69,3 +69,6 @@ DROP INDEX IF EXISTS public.idx_notifications_comp_user_read;
 ALTER TABLE public.notifications
   DROP COLUMN IF EXISTS dedup_key,
   DROP COLUMN IF EXISTS company_id;
+
+ALTER TABLE public.invoices DROP COLUMN IF EXISTS retention_released;
+ALTER TABLE public.sub_claims DROP COLUMN IF EXISTS retention_released;

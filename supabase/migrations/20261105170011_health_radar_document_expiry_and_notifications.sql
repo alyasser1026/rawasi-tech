@@ -62,9 +62,17 @@ ALTER TABLE public.projects
   ADD COLUMN IF NOT EXISTS warranty_period_months integer DEFAULT 12 CHECK (warranty_period_months >= 0),
   ADD COLUMN IF NOT EXISTS retention_release_date date;
 
+ALTER TABLE public.invoices
+  ADD COLUMN IF NOT EXISTS retention_released boolean NOT NULL DEFAULT false;
+
+ALTER TABLE public.sub_claims
+  ADD COLUMN IF NOT EXISTS retention_released boolean NOT NULL DEFAULT false;
+
 COMMENT ON COLUMN public.projects.handover_date IS 'تاريخ الاستلام الابتدائي للمشروع وبدء فترة الضمان';
 COMMENT ON COLUMN public.projects.warranty_period_months IS 'مدة ضمان الأعمال بالشهور (افتراضياً 12 شهراً)';
 COMMENT ON COLUMN public.projects.retention_release_date IS 'تاريخ استحقاق فك المبالغ المحجوزة لضمان الأعمال';
+COMMENT ON COLUMN public.invoices.retention_released IS 'هل تم فك مبالغ ضمان أعمال العميل المحجوزة';
+COMMENT ON COLUMN public.sub_claims.retention_released IS 'هل تم فك مبالغ ضمان أعمال مقاول الباطن المحجوزة';
 
 -- 3. Company Documents Table (تتبع الوثائق والتراخيص والإقامات)
 -- -----------------------------------------------------------------------------
@@ -275,9 +283,8 @@ BEGIN
     ) AS item
     FROM public.receipt_vouchers rv
     WHERE rv.company_id = v_company_id
-      AND (rv.partner_id IS NULL OR (rv.invoice_id IS NULL AND NOT EXISTS (
-        SELECT 1 FROM public.journal_lines jl WHERE jl.reference_id = rv.id AND jl.company_id = v_company_id
-      )))
+      AND rv.partner_id IS NULL
+      AND rv.invoice_id IS NULL
     LIMIT 20
   ) sub;
 
@@ -618,14 +625,14 @@ BEGIN
              (COALESCE(pr.handover_date, pr.actual_completion_date, CURRENT_DATE) + (COALESCE(pr.warranty_period_months, 12) || ' months')::interval)::date
            ) AS release_date,
            COALESCE((
-             SELECT sum(inv.retention_amount)
+             SELECT sum(inv.guarantee_amount)
              FROM public.invoices inv
              WHERE pr.id = ANY(inv.project_ids) AND inv.company_id = v_company_id AND inv.retention_released = false
            ), 0) AS client_retention_unreleased,
            COALESCE((
              SELECT sum(sc.retention_amount)
              FROM public.sub_claims sc
-             WHERE ((sc.project_id = pr.id) OR (sc.project_ids IS NOT NULL AND sc.project_ids ? pr.id::text)) AND sc.company_id = v_company_id AND sc.retention_released = false
+             WHERE ((sc.project_id = pr.id) OR (sc.project_ids IS NOT NULL AND pr.id = ANY(sc.project_ids))) AND sc.company_id = v_company_id AND sc.retention_released = false
            ), 0) AS sub_retention_unreleased
     FROM public.projects pr
     WHERE pr.company_id = v_company_id
@@ -982,9 +989,9 @@ BEGIN
                  (COALESCE(pr.handover_date, pr.actual_completion_date, CURRENT_DATE) + (COALESCE(pr.warranty_period_months, 12) || ' months')::interval)::date
                ) AS release_date,
                (
-                 COALESCE((SELECT sum(inv.retention_amount) FROM public.invoices inv WHERE pr.id = ANY(inv.project_ids) AND inv.company_id = v_comp.id AND inv.retention_released = false), 0)
+                 COALESCE((SELECT sum(inv.guarantee_amount) FROM public.invoices inv WHERE pr.id = ANY(inv.project_ids) AND inv.company_id = v_comp.id AND inv.retention_released = false), 0)
                  +
-                 COALESCE((SELECT sum(sc.retention_amount) FROM public.sub_claims sc WHERE ((sc.project_id = pr.id) OR (sc.project_ids IS NOT NULL AND sc.project_ids ? pr.id::text)) AND sc.company_id = v_comp.id AND sc.retention_released = false), 0)
+                 COALESCE((SELECT sum(sc.retention_amount) FROM public.sub_claims sc WHERE ((sc.project_id = pr.id) OR (sc.project_ids IS NOT NULL AND pr.id = ANY(sc.project_ids))) AND sc.company_id = v_comp.id AND sc.retention_released = false), 0)
                ) AS total_retention
         FROM public.projects pr
         WHERE pr.company_id = v_comp.id
@@ -1063,6 +1070,8 @@ $$;
 
 -- 10. Permissions & Grants
 -- -----------------------------------------------------------------------------
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.company_documents TO authenticated;
+GRANT ALL ON public.company_documents TO service_role;
 GRANT EXECUTE ON FUNCTION public.get_system_health_radar() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.get_document_expiry_alerts(integer) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.upsert_company_document(uuid, text, text, text, date, date, integer, uuid, uuid, uuid, text, text) TO authenticated;
