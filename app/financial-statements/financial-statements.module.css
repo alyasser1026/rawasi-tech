@@ -1,0 +1,351 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  direction: rtl;
+  color: var(--text-primary, #f1f5f9);
+}
+
+.filterCard {
+  background: var(--bg-card, #1e293b);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 12px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.filterRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: flex-end;
+}
+
+.filterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 160px;
+  flex: 1;
+}
+
+.filterLabel {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.inputField {
+  background: var(--bg-input, #0f172a);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-primary, #f1f5f9);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.inputField:focus {
+  border-color: var(--primary-color, #3b82f6);
+}
+
+.presetButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.presetBtn {
+  background: var(--bg-surface, #334155);
+  color: var(--text-secondary, #cbd5e1);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.presetBtn:hover, .presetBtnActive {
+  background: var(--primary-color, #2563eb);
+  color: #ffffff;
+}
+
+.tabsContainer {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 2px solid var(--border-color, #334155);
+  padding-bottom: 0.25rem;
+}
+
+.tabButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.2s;
+}
+
+.tabButton:hover {
+  color: var(--text-primary, #f1f5f9);
+}
+
+.tabActive {
+  color: var(--primary-color, #38bdf8);
+  border-bottom: 3px solid var(--primary-color, #38bdf8);
+  background: rgba(56, 189, 248, 0.08);
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.kpiCard {
+  background: var(--bg-card, #1e293b);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 10px;
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpiLabel {
+  font-size: 0.82rem;
+  color: var(--text-secondary, #94a3b8);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpiValue {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  font-family: monospace, sans-serif;
+  direction: ltr;
+  text-align: right;
+}
+
+.kpiSub {
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.tagPositive {
+  color: #10b981;
+}
+
+.tagNegative {
+  color: #ef4444;
+}
+
+.tagNeutral {
+  color: #38bdf8;
+}
+
+.statementTableCard {
+  background: var(--bg-card, #1e293b);
+  border: 1px solid var(--border-color, #334155);
+  border-radius: 12px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-color, #334155);
+  padding-bottom: 0.75rem;
+}
+
+.sectionTitle {
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.financialTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: right;
+}
+
+.financialTable th {
+  background: var(--bg-table-head, #0f172a);
+  color: var(--text-secondary, #94a3b8);
+  padding: 0.75rem 1rem;
+  border-bottom: 2px solid var(--border-color, #334155);
+  font-weight: 600;
+}
+
+.financialTable td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border-light, #1e293b);
+  color: var(--text-primary, #e2e8f0);
+}
+
+.financialTable tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.amountCell {
+  font-family: monospace, sans-serif;
+  direction: ltr;
+  text-align: left;
+  font-weight: 600;
+}
+
+.totalRow td {
+  background: var(--bg-surface, #1e293b);
+  font-weight: 700;
+  border-top: 2px solid var(--border-color, #475569);
+  border-bottom: 2px solid var(--border-color, #475569);
+  color: var(--text-highlight, #f8fafc);
+}
+
+.subtotalRow td {
+  background: rgba(51, 65, 85, 0.5);
+  font-weight: 600;
+  color: var(--text-primary, #f1f5f9);
+}
+
+.grandTotalRow td {
+  background: rgba(16, 185, 129, 0.12);
+  border-top: 2px solid #10b981;
+  border-bottom: 2px solid #10b981;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #34d399;
+}
+
+.lossTotalRow td {
+  background: rgba(239, 68, 68, 0.12);
+  border-top: 2px solid #ef4444;
+  border-bottom: 2px solid #ef4444;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #f87171;
+}
+
+.balanceBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.88rem;
+  font-weight: 700;
+}
+
+.balanced {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid #10b981;
+}
+
+.unbalanced {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid #ef4444;
+}
+
+.actionsBar {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.btnPrimary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btnPrimary:hover {
+  background: #1d4ed8;
+}
+
+.btnSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bg-surface, #334155);
+  color: var(--text-primary, #f1f5f9);
+  border: 1px solid var(--border-color, #475569);
+  border-radius: 8px;
+  padding: 0.55rem 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btnSecondary:hover {
+  background: #475569;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 4rem 1rem;
+  color: var(--text-secondary, #94a3b8);
+  text-align: center;
+}
+
+@media print {
+  .filterCard, .tabsContainer, .actionsBar {
+    display: none !important;
+  }
+  .container {
+    padding: 0;
+    color: #000;
+  }
+  .statementTableCard {
+    box-shadow: none;
+    border: 1px solid #ccc;
+    break-inside: avoid;
+  }
+}

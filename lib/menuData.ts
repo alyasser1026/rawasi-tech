@@ -56,7 +56,8 @@ export const menuGroups = [
             { id: 'boq_budget', title: 'ميزانية المقايسات', icon: '💼', path: '/boqbudget' },
             { id: 'bulk_budget', title: 'تعديل الموازنات الشامل', icon: '📝', path: '/boqbudget/bulk' },
             { id: 'cost_allocation', title: 'توزيع التكاليف', icon: '🧮', path: '/costallocation' },
-            { id: 'project_ledger', title: 'دفتر التكاليف', icon: '📋', path: '/project-ledger' }
+            { id: 'project_ledger', title: 'دفتر التكاليف', icon: '📋', path: '/project-ledger' },
+            { id: 'project_profitability', title: 'ربحية المشاريع ومطابقة الأستاذ', icon: '💎', path: '/profitability' }
         ] 
     },
     { 
