@@ -1,0 +1,430 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.topBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.partyTabs {
+  display: flex;
+  gap: 0.5rem;
+  background: var(--surface-subcard, rgba(255, 255, 255, 0.04));
+  padding: 0.375rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: var(--fs-sm, 0.875rem);
+  font-weight: 600;
+  color: var(--text-secondary, #94a3b8);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tabBtn:hover {
+  color: var(--text-primary, #f8fafc);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.tabBtnActive {
+  color: #fff !important;
+  background: var(--accent-main, #ea580c) !important;
+  box-shadow: 0 2px 8px rgba(234, 88, 12, 0.35);
+}
+
+.accountBadge {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.375rem;
+  background: rgba(0, 0, 0, 0.2);
+  font-family: monospace;
+}
+
+.actionsGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.dateControl {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--surface-subcard, rgba(255, 255, 255, 0.04));
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.625rem;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  font-size: var(--fs-sm, 0.875rem);
+}
+
+.dateControl input[type="date"] {
+  background: transparent;
+  border: none;
+  color: var(--text-primary, #f8fafc);
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  cursor: pointer;
+}
+
+.reconcileCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0.875rem 1.25rem;
+  border-radius: 0.75rem;
+  font-size: var(--fs-sm, 0.875rem);
+}
+
+.reconciled {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  color: #10b981;
+}
+
+.reconcileWarn {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #ef4444;
+}
+
+.reconcileLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+}
+
+.reconcileValues {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.kpiStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.kpiCard {
+  background: var(--surface-card, #18191c);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 0.75rem;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kpiLabel {
+  color: var(--text-secondary, #94a3b8);
+  font-size: var(--fs-sm, 0.875rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.kpiValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #f8fafc);
+}
+
+.kpiSub {
+  font-size: 0.8125rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.progressBar {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.progressFill {
+  height: 100%;
+  background: #10b981;
+  transition: width 0.3s ease;
+}
+
+.bucketsRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+}
+
+.bucketCard {
+  background: var(--surface-subcard, rgba(255, 255, 255, 0.03));
+  border-radius: 0.625rem;
+  padding: 0.75rem;
+  border-top: 3px solid #6b7280;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.bucketTitle {
+  font-size: 0.75rem;
+  color: var(--text-secondary, #94a3b8);
+}
+
+.bucketAmount {
+  font-size: 1.125rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary, #f8fafc);
+}
+
+.topDebtorsSection {
+  background: var(--surface-card, #18191c);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.875rem;
+}
+
+.sectionTitle {
+  font-size: var(--fs-md, 1rem);
+  font-weight: 700;
+  color: var(--text-primary, #f8fafc);
+  margin: 0;
+}
+
+.debtorsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+}
+
+.debtorItem {
+  background: var(--surface-subcard, rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.06));
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.debtorName {
+  font-weight: 600;
+  font-size: var(--fs-sm, 0.875rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.debtorAmounts {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+}
+
+.tableContainer {
+  background: var(--surface-card, #18191c);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.tableToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+.viewModeSwitch {
+  display: flex;
+  gap: 0.25rem;
+  background: var(--surface-subcard, rgba(255, 255, 255, 0.04));
+  padding: 0.25rem;
+  border-radius: 0.5rem;
+}
+
+.viewModeBtn {
+  border: none;
+  background: transparent;
+  color: var(--text-secondary, #94a3b8);
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.viewModeBtnActive {
+  background: var(--surface-card, #232429);
+  color: var(--text-primary, #f8fafc);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+
+.searchInput {
+  background: var(--surface-subcard, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+  border-radius: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  color: var(--text-primary, #f8fafc);
+  font-size: 0.8125rem;
+  min-width: 200px;
+  outline: none;
+}
+
+.tableScroll {
+  overflow-x: auto;
+  min-width: 100%;
+}
+
+.agingTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-sm, 0.875rem);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.agingTable th {
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text-secondary, #94a3b8);
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+.agingTable td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color, rgba(255, 255, 255, 0.04));
+  font-variant-numeric: tabular-nums;
+}
+
+.agingTable tbody tr:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.partnerNameCell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.toggleDocsBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #94a3b8);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+}
+
+.toggleDocsBtn:hover {
+  color: var(--text-primary, #f8fafc);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.statementLink {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.statementLink:hover {
+  color: var(--accent-main, #ea580c);
+  text-decoration: underline;
+}
+
+.docsDetailRow td {
+  padding: 0 !important;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.docsContainer {
+  padding: 0.875rem 1.25rem;
+  border-bottom: 2px solid var(--border-color, rgba(255, 255, 255, 0.08));
+}
+
+.docBadge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.emptyState {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--text-secondary, #94a3b8);
+}
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+  .topBar, .tableToolbar, .actionsGroup, .toggleDocsBtn {
+    display: none !important;
+  }
+  .page {
+    color: #000 !important;
+    gap: 0.5rem !important;
+  }
+  .kpiCard, .bucketCard, .topDebtorsSection, .tableContainer {
+    background: #fff !important;
+    color: #000 !important;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+  }
+  .kpiLabel, .bucketTitle, .sectionTitle, .agingTable th, .agingTable td {
+    color: #000 !important;
+  }
+  .agingTable th, .agingTable td {
+    padding: 4px 6px !important;
+    font-size: 8pt !important;
+  }
+  .reconcileCard {
+    border: 1px solid #999 !important;
+    background: #f9f9f9 !important;
+    color: #000 !important;
+  }
+}
