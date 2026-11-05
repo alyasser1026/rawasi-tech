@@ -135,7 +135,7 @@ async function askGemini(userPrompt, dbContext) {
     return '⚠️ مفتاح <code>GEMINI_API_KEY</code> غير مضاف في ملف <code>.env.local</code>.\nيرجى إضافته لتفعيل ردود الذكاء الاصطناعي الذكية.';
   }
 
-  const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+  const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
   let lastError = null;
 
   for (const model of models) {
@@ -162,6 +162,7 @@ async function askGemini(userPrompt, dbContext) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal: AbortSignal.timeout(15000),
       });
 
       const json = await res.json();
