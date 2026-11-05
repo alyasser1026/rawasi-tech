@@ -1,13 +1,13 @@
 "use client";
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
 import { formatCurrency } from '@/lib/helpers';
 import { useToast } from '@/lib/toast-context'; 
 import { Plus, Trash2 } from 'lucide-react';
-import { notify } from '@/lib/notify';
 import JobOrderSelector from '@/components/JobOrderSelector';
+import TelegramAttachmentField from '@/components/TelegramAttachmentField';
 
 // 🚀 مصفوفة التصنيفات
 const EXPENSE_CATEGORIES = [
@@ -23,10 +23,11 @@ const EXPENSE_CATEGORIES = [
     "مواد إنشائية"
 ];
 
-// 🚀 مصفوفة أنواع الاستحقاق
+// 🚀 مصفوفة أنواع الاستحقاق (شاملة العهد الميدانية المفتوحة)
 const PAYMENT_METHODS = [
     "آجل",
-    "تسوية داخلية"
+    "تسوية داخلية",
+    "عهدة"
 ];
 
 export default function ExpenseFormModal({ 
@@ -42,49 +43,9 @@ export default function ExpenseFormModal({
     const { showToast } = useToast();
     const [mounted, setMounted] = useState(false);
     
-    const fileInputRef = useRef<HTMLInputElement>(null);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [isCameraOpen, setIsCameraOpen] = useState(false);
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    
-        
     useEffect(() => {
         setMounted(true);
     }, []);
-
-
-    // 📷 دوال التقاط الصور
-    const startCamera = async () => {
-        setIsCameraOpen(true);
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            if (videoRef.current) videoRef.current.srcObject = stream;
-        } catch (err) { 
-            notify("خطأ في تشغيل الكاميرا"); 
-            setIsCameraOpen(false); 
-        }
-    };
-
-    const takePhoto = () => {
-        if (videoRef.current && canvasRef.current) {
-            const context = canvasRef.current.getContext('2d');
-            canvasRef.current.width = videoRef.current.videoWidth;
-            canvasRef.current.height = videoRef.current.videoHeight;
-            context?.drawImage(videoRef.current, 0, 0);
-            const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
-            setImagePreview(imageDataUrl);
-            setRecord({ ...record, invoice_image: imageDataUrl });
-            stopCamera();
-        }
-    };
-
-    const stopCamera = () => {
-        if (videoRef.current?.srcObject) { 
-            (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop()); 
-        }
-        setIsCameraOpen(false);
-    };
 
     // 🧮 الحسابات اللحظية
     let safeAddedLines: any[] = [];
@@ -111,6 +72,7 @@ export default function ExpenseFormModal({
     const finalTotal = finalSubtotal + finalVat - finalDiscount;
 
     const isSettlement = record?.payment_method === 'تسوية داخلية';
+    const isCustody = record?.payment_method === 'عهدة' || Boolean(record?.custody_id);
 
     const handleAddStatement = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -139,17 +101,19 @@ export default function ExpenseFormModal({
         setRecord({ ...record, lines_data: newLines });
     };
 
-    // 🛡️ معترض الحفظ النهائي
+    // 🛡️ معترض الحفظ النهائي (حفظ كمسودة فقط — الترحيل يتطلب اتصالاً بالإنترنت)
     const handleValidateAndSave = () => {
         if (!record.exp_date) return showToast("تاريخ المصروف مطلوب", "warning");
         if (!record.main_category) return showToast("يرجى اختيار التصنيف الرئيسي للمصروف", "warning"); 
         if (!record.creditor_account) return showToast("حساب المصروف المدين مطلوب", "warning");
-        
-        if (!record.payment_account) {
+        if (isCustody && !record.custody_id) {
+            return showToast("يرجى اختيار العهدة المفتوحة المرتبطة بالمصروف", "warning");
+        }
+        if (!isCustody && !record.payment_account) {
             return showToast("يرجى تحديد الحساب الدائن", "warning");
         }
         
-        let finalLinesToSave = safeAddedLines;
+        let finalLinesToSave = safeAddedLines.filter((l: any) => Number(l.unit_price || 0) > 0 || Number(l.total_price || 0) > 0);
 
         if (record.description && currentQty > 0 && currentPrice > 0) {
             finalLinesToSave = [...finalLinesToSave, {
@@ -157,17 +121,18 @@ export default function ExpenseFormModal({
                 quantity: currentQty,
                 unit_price: currentPrice,
                 vat_amount: currentVat,
-                discount_amount: currentDiscount
+                discount_amount: currentDiscount,
+                total_price: (currentQty * currentPrice) + currentVat - currentDiscount
             }];
         }
 
         if (finalLinesToSave.length === 0) {
-            return showToast("يرجى إدخال صنف أو بيان واحد على الأقل للمصروف", "error");
+            return showToast("يرجى إدخال صنف أو بيان واحد على الأقل بسعر أكبر من صفر", "error");
         }
 
         const isSubContractorExpense = record.creditor_account === 'التزام مقاولي الباطن' || !!record.payee_id;
 
-        // Require Job Order for ALL expenses to link with the budget properly
+        // Require Job Order for project expenses to link with the budget properly
         if (!record.job_order_id && record.project_id) {
             return showToast("يرجى تحديد أمر التشغيل لكي يُخصم المصروف من الميزانية بشكل صحيح", "error");
         }
@@ -179,11 +144,14 @@ export default function ExpenseFormModal({
             unit_price: finalSubtotal,
             vat_amount: finalVat,
             discount_amount: finalDiscount,
-            payment_method: record.payment_method || 'آجل',
+            payment_method: isCustody ? 'عهدة' : (record.payment_method || 'آجل'),
+            payment_account: isCustody ? (record.payment_account || '125 - عُهد الموظفين والمواقع') : record.payment_account,
+            custody_id: isCustody ? (record.custody_id || null) : null,
             project_id: record.project_id || null,
             payee_id: record.payee_id || null,
             job_order_id: record.job_order_id || null,
-            is_deducted_from_contractor: isSubContractorExpense
+            is_deducted_from_contractor: isSubContractorExpense,
+            is_posted: false
         });
     };
 
@@ -204,10 +172,15 @@ export default function ExpenseFormModal({
                 .item-row:hover { background: rgba(255, 255, 255, 0.8); }
             `}</style>
 
-            <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ width: '62.5rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl' }}>
+            <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ width: '62.5rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.92)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl' }}>
                 
                 <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.875rem', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'0.9375rem'}}>
-                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>{record?.id ? 'تعديل المصروف' : 'إنشاء مصروف جديد'}</h2>
+                    <div>
+                        <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>{record?.id ? 'تعديل مسودة المصروف' : 'إنشاء مسودة مصروف جديدة'}</h2>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginTop: '0.25rem' }}>
+                            تُحفظ كمسودة غير مرحّلة (تدعم العمل بدون إنترنت ومرفقات Telegram Bot)
+                        </div>
+                    </div>
                     <div style={{ textAlign: 'left' }}>
                         <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
                         <div style={{ color: THEME.accent, fontWeight: 900, fontSize: 'var(--fs-3xl)' }}>{formatCurrency(finalTotal)}</div>
@@ -223,7 +196,7 @@ export default function ExpenseFormModal({
                         <SmartCombo 
                             label="المشروع / العقار" 
                             icon="🏢" 
-                            options={projects || []} 
+                            options={projects && projects.length > 0 ? projects : undefined} 
                             table="projects" 
                             displayCol="Property" 
                             initialDisplay={record?.site_ref} 
@@ -282,18 +255,11 @@ export default function ExpenseFormModal({
                             contractorId={record?.payee_id || null}
                             value={record?.job_order_id || null}
                             onChange={(id, jo) => setRecord((prev: any) => {
-                                let newLines = [...(prev?.lines_data || [])];
-                                if (jo && newLines.length === 0) {
-                                    // أول سطر باسم بند أمر الشغل؛ المبلغ بيتكتب يدوي (المصروف مش قيمة البند كله)
-                                    newLines.push({
-                                        item_name: jo.boq_budget?.work_item || jo.notes || 'بند مصروف',
-                                        quantity: 1,
-                                        unit_price: '',
-                                        total_price: 0,
-                                        boq_id: jo.boq_budget_id
-                                    });
+                                let updates: any = { job_order_id: id };
+                                if (jo && !prev?.description && (!prev?.lines_data || prev.lines_data.length === 0)) {
+                                    updates.description = jo.boq_budget?.work_item || jo.notes || '';
                                 }
-                                return { ...prev, job_order_id: id, lines_data: newLines.length > 0 ? newLines : prev?.lines_data };
+                                return { ...prev, ...updates };
                             })}
                         />
                     </div>
@@ -317,7 +283,15 @@ export default function ExpenseFormModal({
                             icon="⚙️" 
                             options={PAYMENT_METHODS} 
                             initialDisplay={record?.payment_method || 'آجل'} 
-                            onSelect={(val:any) => setRecord({...record, payment_method: typeof val === 'object' && val !== null ? val.name : val})} 
+                            onSelect={(val:any) => {
+                                const method = typeof val === 'object' && val !== null ? val.name : val;
+                                setRecord((prev: any) => ({
+                                    ...prev,
+                                    payment_method: method,
+                                    custody_id: method === 'عهدة' ? prev?.custody_id : null,
+                                    payment_account: method === 'عهدة' ? '125 - عُهد الموظفين والمواقع' : prev?.payment_account,
+                                }));
+                            }} 
                             strict={true} 
                         />
                     </div>
@@ -332,17 +306,45 @@ export default function ExpenseFormModal({
                             strict={true} 
                         />
                     </div>
-                    <div style={{ zIndex: 45, position: 'relative' }}>
-                        <SmartCombo 
-                            label={isSettlement ? "حساب الإيراد / التسوية (الدائن) *" : "الحساب الدائن *"} 
-                            icon={isSettlement ? "📈" : "🤝"} 
-                            table="accounts" 
-                            displayCol="name" 
-                            initialDisplay={record?.payment_account} 
-                            onSelect={(val:any) => setRecord({...record, payment_account: typeof val === 'object' && val !== null ? val.name : val})} 
-                            strict={true} 
-                        />
-                    </div>
+                    {isCustody ? (
+                        <div style={{ zIndex: 45, position: 'relative' }}>
+                            <SmartCombo 
+                                label="العهدة المفتوحة المرتبطة *" 
+                                icon="💼" 
+                                table="site_custodies" 
+                                customFilter="status=eq.open"
+                                searchCols="custody_number,title"
+                                displayCol="title"
+                                value={record?.custody_id || null}
+                                displayFormat={(item: any) => `${item.custody_number || ''} - ${item.title || ''}`}
+                                onSelect={(val: any) => {
+                                    if (val && typeof val === 'object') {
+                                        setRecord((prev: any) => ({
+                                            ...prev,
+                                            custody_id: val.id,
+                                            payment_account: '125 - عُهد الموظفين والمواقع',
+                                            project_id: prev?.project_id || val.project_id || null,
+                                        }));
+                                    } else {
+                                        setRecord((prev: any) => ({ ...prev, custody_id: null }));
+                                    }
+                                }}
+                                strict={true}
+                            />
+                        </div>
+                    ) : (
+                        <div style={{ zIndex: 45, position: 'relative' }}>
+                            <SmartCombo 
+                                label={isSettlement ? "حساب الإيراد / التسوية (الدائن) *" : "الحساب الدائن *"} 
+                                icon={isSettlement ? "📈" : "🤝"} 
+                                table="accounts" 
+                                displayCol="name" 
+                                initialDisplay={record?.payment_account} 
+                                onSelect={(val:any) => setRecord({...record, payment_account: typeof val === 'object' && val !== null ? val.name : val})} 
+                                strict={true} 
+                            />
+                        </div>
+                    )}
                 </div>
                 
                 <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '1.25rem', borderRadius: '14px', marginBottom: '1.5625rem', border: `1px dashed ${THEME.accent}` }}>
@@ -387,7 +389,7 @@ export default function ExpenseFormModal({
                                 <tbody>
                                     {safeAddedLines.map((line: any, idx: number) => (
                                         <tr key={idx} className="item-row">
-                                            <td style={{ padding: '0.75rem', fontWeight: 700, color: '#1e293b', textAlign: 'right' }}>{line.description}</td>
+                                            <td style={{ padding: '0.75rem', fontWeight: 700, color: '#1e293b', textAlign: 'right' }}>{line.description || line.item_name}</td>
                                             <td style={{ padding: '0.75rem', fontWeight: 800 }}>{line.quantity}</td>
                                             <td style={{ padding: '0.75rem', fontWeight: 700 }}>{formatCurrency(line.unit_price)}</td>
                                             <td style={{ padding: '0.75rem', fontWeight: 700 }}>{formatCurrency(line.vat_amount)}</td>
@@ -402,13 +404,18 @@ export default function ExpenseFormModal({
                     )}
                 </div>
 
-                <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.875rem' }}>
-                    <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '1.125rem', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', color: '#475569', transition: '0.2s' }}>إرفاق مستند (صورة / PDF)</button>
-                    <button onClick={isCameraOpen ? takePhoto : startCamera} style={{ flex: 1, padding: '1.125rem', background: '#1e293b', color: 'white', borderRadius: '16px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>{isCameraOpen ? 'التقاط الفاتورة' : 'مسح بالكاميرا'}</button>
+                <div style={{ marginBottom: '1.5625rem' }}>
+                    <TelegramAttachmentField
+                        module={isCustody ? 'custodies' : 'expenses'}
+                        allowOfflineStage={true}
+                        label="صورة الفاتورة أو المستند المرفق (Telegram Bot)"
+                        value={record?.invoice_image || null}
+                        onChange={(url) => setRecord((prev: any) => ({ ...prev, invoice_image: url }))}
+                        stagedAttachment={record?._stagedAttachment || null}
+                        onStagedChange={(att) => setRecord((prev: any) => ({ ...prev, _stagedAttachment: att }))}
+                        caption={record?.description || record?.main_category || 'مصروف'}
+                    />
                 </div>
-                {isCameraOpen && <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '14px', marginBottom: '1.25rem', border: `4px solid ${THEME.accent}` }} />}
-                <canvas ref={canvasRef} style={{ display: 'none' }} />
-                <input type="file" ref={fileInputRef} hidden accept="image/*,.pdf" onChange={(e) => { const file = e.target.files?.[0]; if(file) { const r = new FileReader(); r.onload = () => setImagePreview(r.result as string); r.readAsDataURL(file); } }} />
 
                 <div className="responsive-summary-grid" style={{ marginTop: '1.875rem', padding: '1.5625rem', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9.375rem, 1fr))', gap: '1.25rem', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -431,7 +438,7 @@ export default function ExpenseFormModal({
 
                 <div className="responsive-actions" style={{ display: 'flex', gap: '1.25rem', marginTop: '2.1875rem' }}>
                     <button id="expense-save-button" onClick={handleValidateAndSave} disabled={isSaving} className="btn-glass-save" style={{ flex: 2 }}>
-                        {isSaving ? 'جاري الحفظ...' : 'حفظ واعتماد المصروف'}
+                        {isSaving ? 'جاري الحفظ...' : 'حفظ مسودة المصروف'}
                     </button>
                     <button onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>إغلاق وإلغاء</button>
                 </div>

@@ -78,11 +78,36 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
 
       setUser(session.user);
 
-      const { data: profileData } = await supabase
+      const cacheKey = `phi_cached_profile_${session.user.id}`;
+      let cachedProfile: any = null;
+      try {
+        const raw = localStorage.getItem(cacheKey);
+        if (raw) cachedProfile = JSON.parse(raw);
+      } catch { /* ignore */ }
+
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        if (cachedProfile?.is_active === false) {
+          await supabase.auth.signOut();
+          router.replace("/login");
+          setLoading(false);
+          return;
+        }
+        if (cachedProfile) setProfile(cachedProfile);
+        setLoading(false);
+        return;
+      }
+
+      const { data: profileData, error: profileErr } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
         .single();
+
+      if (profileErr && cachedProfile) {
+        setProfile(cachedProfile);
+        setLoading(false);
+        return;
+      }
 
       if (profileData?.is_active === false) {
         await supabase.auth.signOut();
@@ -92,6 +117,9 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
         return;
       }
 
+      if (profileData) {
+        try { localStorage.setItem(cacheKey, JSON.stringify(profileData)); } catch { /* ignore */ }
+      }
       setProfile(profileData);
       setLoading(false);
     };

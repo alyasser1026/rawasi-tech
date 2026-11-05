@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { isNetworkError } from '@/lib/offline/offlineExecutor';
 import { usePermissions } from '@/lib/PermissionsContext';
 import LoadingScreen from '@/components/LoadingScreen';
 import EnterpriseShell from '@/components/EnterpriseShell';
@@ -20,15 +21,53 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
     const verifyRealUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (cancelled) return;
-      if (!session) { router.replace('/login'); return; }
-      const { data, error } = await supabase.from('profiles').select('id').eq('id', session.user.id).single();
-      if (cancelled) return;
-      if (error || !data) {
-        await supabase.auth.signOut();
-        window.location.href = '/login';
-      } else setIsInitialized(true);
+      if (!session) {
+        router.replace('/login');
+        return;
+      }
+
+      // Offline boot: keep valid local session alive instead of signing out on network drop
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        setIsInitialized(true);
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, is_active')
+          .eq('id', session.user.id)
+          .single();
+        if (cancelled) return;
+
+        if (error) {
+          if (isNetworkError(error)) {
+            setIsInitialized(true);
+            return;
+          }
+          // PGRST116 = profile deleted -> explicit sign out
+          if ((error as any).code === 'PGRST116') {
+            await supabase.auth.signOut();
+            window.location.href = '/login';
+            return;
+          }
+          setIsInitialized(true);
+          return;
+        }
+
+        if (!data || data.is_active === false) {
+          await supabase.auth.signOut();
+          window.location.href = '/login';
+        } else {
+          setIsInitialized(true);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setIsInitialized(true);
+        }
+      }
     };
-    verifyRealUser();
+    void verifyRealUser();
     return () => { cancelled = true; };
   }, [isPublicPage, pathname, router]);
 

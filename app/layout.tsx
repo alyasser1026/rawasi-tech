@@ -29,6 +29,7 @@ import { ConfirmProvider } from '../components/ConfirmContext';
 // 🚀 3. اختصارات التنقل العامة
 import GlobalNavigationShortcuts from '../components/GlobalNavigationShortcuts';
 import { PerformancePreferences } from '@/components/PerformancePreferences';
+import { RealtimeSyncProvider } from '@/lib/useRealtimeSync';
 
 // Cairo is self-hosted in app/phi-fonts.css (app/fonts), so builds never download fonts.
 
@@ -126,15 +127,17 @@ export default function RootLayout({
                                     <AuthGuard> 
                                         <PermissionsProvider>
                                             <CompanyProvider>
-                                                <SidebarProvider>
-                                                    {/* LayoutClient هو المتحكم في حركة السايد بار والصفحة */}
-                                                    <LayoutClient>
-                                                        <GlobalNavigationShortcuts />
-                                                        <div style={{ position: 'relative', zIndex: 1 }}>
-                                                            {children}
-                                                        </div>
-                                                    </LayoutClient>
-                                                </SidebarProvider>
+                                                <RealtimeSyncProvider>
+                                                    <SidebarProvider>
+                                                        {/* LayoutClient هو المتحكم في حركة السايد بار والصفحة */}
+                                                        <LayoutClient>
+                                                            <GlobalNavigationShortcuts />
+                                                            <div style={{ position: 'relative', zIndex: 1 }}>
+                                                                {children}
+                                                            </div>
+                                                        </LayoutClient>
+                                                    </SidebarProvider>
+                                                </RealtimeSyncProvider>
                                             </CompanyProvider>
                                         </PermissionsProvider>
                                     </AuthGuard>

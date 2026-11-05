@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
 import { getActiveCompanyId, supabase } from '@/lib/supabase';
+import { readCachedTableRows, writeCachedTableRows } from '@/lib/offline/referenceCache';
 import { THEME } from '@/lib/theme';
 import { usePermissions } from '@/lib/PermissionsContext'; // 🛡️ استدعاء مركز قيادة الصلاحيات
 import { Clock, Hourglass, Lock } from 'lucide-react';
@@ -159,7 +160,11 @@ export default function SmartCombo({
         if (selected) showValue(selected);
         else if (table) {
             void supabase.from(table).select('*').eq('id', value).maybeSingle().then(({ data, error }) => {
-                if (!error) showValue(data);
+                if (!error && data) showValue(data);
+                else void readCachedTableRows(table).then(rows => {
+                    const cachedRow = rows.find(r => String(r?.id) === String(value));
+                    if (cachedRow) showValue(cachedRow);
+                });
             });
         }
         return () => { cancelled = true; };
@@ -181,6 +186,32 @@ export default function SmartCombo({
             }
 
             if (!table) return;
+            const filterLocalRows = (rows: any[]) => {
+                const activeColumnLocal = filterColumn || filter?.column;
+                const activeValueLocal = filterValue !== undefined ? filterValue : filter?.value;
+                const normQ = normalizeText(query);
+                const cols = searchCols.split(',').map(c => c.trim()).filter(Boolean);
+                return (rows || []).filter((r: any) => {
+                    if (!r) return false;
+                    if (table === 'accounts' && r.is_transactional === false) return false;
+                    if (activeColumnLocal && activeValueLocal && String(r[activeColumnLocal]) !== String(activeValueLocal)) return false;
+                    if (customFilter) {
+                        const m = /^([^=]+)=([a-z]+)\.(.*)$/.exec(customFilter);
+                        if (m) {
+                            const [, col, op, val] = m;
+                            if (op === 'eq' && String(r[col]) !== val) return false;
+                            if (op === 'neq' && String(r[col]) === val) return false;
+                        }
+                    }
+                    if (!normQ) return true;
+                    return cols.some(col => normalizeText(r[col]).includes(normQ)) || normalizeText(r[displayCol] || r.name || '').includes(normQ);
+                }).slice(0, 20);
+            };
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                const cached = await readCachedTableRows(table);
+                setResults(filterLocalRows(cached));
+                return;
+            }
             let q = supabase.from(table).select('*').limit(20); 
             
             if (table === 'accounts') q = q.eq('is_transactional', true);
@@ -206,9 +237,19 @@ export default function SmartCombo({
             }
             
             const { data, error } = await q;
-            if (!error) setResults(data || []);
+            if (!error) {
+                setResults(data || []);
+                if (data && data.length > 0) void writeCachedTableRows(table, data);
+            } else {
+                const cached = await readCachedTableRows(table);
+                setResults(filterLocalRows(cached));
+            }
         } catch (error) {
             console.error("SmartCombo Error:", error);
+            if (table) {
+                const cached = await readCachedTableRows(table);
+                setResults(cached.slice(0, 20));
+            }
         } finally {
             setIsLoading(false);
         }

@@ -140,7 +140,7 @@ export default function LaborLogsDirectory() {
         if (!row) return null;
         return (
           <span className="glass-badge" style={{ backgroundColor: row.is_posted ? '#ecfdf5' : '#fff7ed', color: row.is_posted ? '#059669' : '#d97706' }}>
-            {row.is_posted ? 'معتمد' : 'معلق'}
+            {row._offline_queued ? 'في الطابور' : (row.is_posted ? 'معتمد' : 'معلق')}
           </span>
         );
       }
@@ -333,7 +333,24 @@ export default function LaborLogsDirectory() {
                          key={(logic.currentLog.project_id || 'empty-jo') + '_job_order'} 
                          initialDisplay={logic.currentLog.job_order_id ? `أمر شغل مرتبط` : ''} 
                          onSelect={async (v:any) => {
-                             let updates: any = { job_order_id: v?.id || null };
+                             let updates: any = {
+                                 job_order_id: v?.id || null,
+                                 work_item: v?.boq_budget?.work_item || '',
+                                 unit: v?.boq_budget?.unit || ''
+                             };
+                             if (v?.boq_budget_id && (typeof navigator === 'undefined' || navigator.onLine)) {
+                                 try {
+                                     const { data } = await supabase.from('boq_budget_distinct').select('*').eq('id', v.boq_budget_id).single();
+                                     if (data) {
+                                         updates.work_item = data.work_item || updates.work_item;
+                                         updates.work_item_id = data.boq_item_id;
+                                         updates.unit = data.unit || updates.unit;
+                                         updates.tareeha = data.tareeha ? String(data.tareeha) : logic.currentLog.tareeha;
+                                     }
+                                 } catch { /* offline safe fallback */ }
+                             }
+                             logic.setCurrentLog({ ...logic.currentLog, ...updates });
+                             return;
                              
                              if (v?.boq_budget_id) {
                                  // Fetch the work item details from boq_budget_distinct to auto-fill
@@ -447,7 +464,7 @@ export default function LaborLogsDirectory() {
                {/* أزرار الحفظ */}
                <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '1.25rem' }}>
                  <button onClick={logic.handleSaveLog} disabled={logic.isSaving} className="save-btn" title="يمكنك أيضاً استخدام Ctrl + Enter للحفظ">
-                   {logic.isSaving ? 'جاري الحفظ...' : 'اعتماد السجل'}
+                   {logic.isSaving ? 'جاري الحفظ...' : 'حفظ مسودة اليومية'}
                  </button>
                  <button onClick={() => logic.setIsAddModalOpen(false)} className="cancel-btn">إلغاء</button>
                </div>

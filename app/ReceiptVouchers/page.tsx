@@ -13,6 +13,7 @@ import MasterPage from '@/components/MasterPage';
 import { useSidebar } from '@/lib/SidebarContext';
 import SmartCombo from '@/components/SmartCombo';
 import LoadingScreen from '@/components/LoadingScreen';
+import { AttachmentViewButton } from '@/components/TelegramAttachmentField';
 
 export default function ReceiptVouchersPage() {
     // 💎 نقطة الاستدعاء الواحدة (Single Source of Truth)
@@ -141,6 +142,21 @@ export default function ReceiptVouchersPage() {
             render: (row: any) => {
                 if (!row) return null;
                 return <span style={{ color: THEME.success, fontWeight: 900, fontSize: 'var(--fs-md)' }}>{formatCurrency(row.amount)}</span>;
+            }
+        },
+        {
+            header: 'المرفق',
+            accessor: 'attachment_url',
+            render: (row: any) => {
+                if (!row) return null;
+                if (!row.attachment_url) return <span style={{ color: '#94a3b8', fontSize: 'var(--fs-xs)' }}>—</span>;
+                return (
+                    <AttachmentViewButton
+                        url={row.attachment_url}
+                        label="المرفق"
+                        title={`مرفق سند قبض ${row.receipt_number || ''}`}
+                    />
+                );
             }
         },
         {

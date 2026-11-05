@@ -22,6 +22,26 @@ const CompanyContext = createContext<CompanyContextType | null>(null);
 
 export const COMPANY_CHANGED_EVENT = 'phi:company-changed';
 
+const companiesCacheKey = (uid: string) => `phi_cached_companies_${uid}`;
+
+const readCachedCompanies = (uid: string): Company[] => {
+  try {
+    const raw = localStorage.getItem(companiesCacheKey(uid));
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeCachedCompanies = (uid: string, list: Company[]) => {
+  try {
+    localStorage.setItem(companiesCacheKey(uid), JSON.stringify(list));
+  } catch {
+    /* storage unavailable */
+  }
+};
+
 const storeId = (id: string | null) => {
   try {
     if (id) localStorage.setItem(ACTIVE_COMPANY_STORAGE_KEY, id);
@@ -61,11 +81,33 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
         setError(null);
         return;
       }
+
+      const cachedList = readCachedCompanies(session.user.id);
+      const sentId = getActiveCompanyId();
+
+      // Offline boot: hydrate accessible companies from per-user cache immediately
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        if (cachedList.length > 0) {
+          const picked = pickActive(cachedList, sentId);
+          setCompanies(cachedList);
+          setActiveCompanyId(picked?.id ?? sentId);
+          if (picked?.id && picked.id !== sentId) {
+            sendCompanyWithRequests(picked.id);
+            storeId(picked.id);
+          }
+          setError(null);
+        } else if (sentId) {
+          setActiveCompanyId(sentId);
+        }
+        return;
+      }
+
       const { data, error: rpcError } = await supabase.rpc('get_user_accessible_companies');
       if (current !== requestId.current) return;
       if (rpcError) throw rpcError;
       const list = (data ?? []) as Company[];
-      const sentId = getActiveCompanyId();
+      writeCachedCompanies(session.user.id, list);
+
       const next = pickActive(list, sentId);
       setCompanies(list);
       setError(null);
@@ -74,13 +116,26 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       if ((next?.id ?? null) !== sentId) {
         sendCompanyWithRequests(next?.id ?? null);
         storeId(next?.id ?? null);
-        // Data already loaded on this page came from another company (a stale choice on this device)
-        // or from the database's own fallback. Reload unless that fallback is certainly the same company.
         const fallbackWasSame = sentId === null && (list.length <= 1 || !!next?.is_user_default);
         if (next && !fallbackWasSame) { reloadApp(); return; }
       }
     } catch (err) {
       if (current !== requestId.current) return;
+      // Network failure fallback: restore cached companies instead of leaving activeCompany null
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          const cachedList = readCachedCompanies(session.user.id);
+          if (cachedList.length > 0) {
+            const sentId = getActiveCompanyId();
+            const picked = pickActive(cachedList, sentId);
+            setCompanies(cachedList);
+            setActiveCompanyId(picked?.id ?? sentId);
+            setError(null);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
       console.error('Could not load companies:', err);
       setError('تعذر تحميل قائمة الشركات');
     } finally {
@@ -92,7 +147,6 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     void refreshCompanies();
     const { data: listener } = supabase.auth.onAuthStateChange(event => {
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
-        // Deferred: calling Supabase from inside the auth callback can block the client.
         setTimeout(() => { void refreshCompanies(); }, 0);
       }
     });
@@ -111,21 +165,22 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     storeId(companyId);
     setActiveCompanyId(companyId);
     window.dispatchEvent(new CustomEvent(COMPANY_CHANGED_EVENT, { detail: { company: target, companyId } }));
-    // Also the account's default, so other devices, realtime and requests without the header follow.
-    const { error: saveError } = await supabase.rpc('set_my_default_company', { p_company_id: companyId });
-    if (saveError) console.warn('Could not save the default company:', saveError.message);
+    if (typeof navigator === 'undefined' || navigator.onLine) {
+      const { error: saveError } = await supabase.rpc('set_my_default_company', { p_company_id: companyId });
+      if (saveError) console.warn('Could not save the default company:', saveError.message);
+    }
     reloadApp();
   }, [companies, activeCompanyId]);
 
   const value = useMemo<CompanyContextType>(() => ({
     companies,
     activeCompany,
-    activeCompanyId: activeCompany?.id ?? null,
+    activeCompanyId: activeCompany?.id ?? activeCompanyId ?? null,
     isLoading,
     error,
     switchCompany,
     refreshCompanies,
-  }), [companies, activeCompany, isLoading, error, switchCompany, refreshCompanies]);
+  }), [companies, activeCompany, activeCompanyId, isLoading, error, switchCompany, refreshCompanies]);
 
   return <CompanyContext.Provider value={value}>{children}</CompanyContext.Provider>;
 }

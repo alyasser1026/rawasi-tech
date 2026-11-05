@@ -1,33 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
   Briefcase,
-  Calendar,
-  CheckCircle2,
   ChevronDown,
   ChevronUp,
-  Clock,
-  Coins,
-  FileCheck,
-  FileText,
-  Filter,
-  Layers,
   Plus,
   Printer,
   Receipt,
   RefreshCw,
   Search,
-  User,
   X,
 } from 'lucide-react';
 import MasterPage from '@/components/MasterPage';
 import LoadingScreen from '@/components/LoadingScreen';
+import JobOrderSelector from '@/components/JobOrderSelector';
+import TelegramAttachmentField, { AttachmentViewButton } from '@/components/TelegramAttachmentField';
+import { StagedAttachment } from '@/lib/attachments/telegramAttachments';
 import { useCompany } from '@/lib/CompanyContext';
 import { notify } from '@/lib/notify';
 import { supabase } from '@/lib/supabase';
+import { executeDraftWithOfflineQueue } from '@/lib/offline/offlineExecutor';
+import { readCachedTableRows } from '@/lib/offline/referenceCache';
+import { useOfflineSync } from '@/lib/offline/useOfflineSync';
 import {
   CustodyExpense,
   SETTLEMENT_TYPES,
@@ -40,9 +37,21 @@ import {
 } from './custodiesModel';
 import styles from './custodies.module.css';
 
+const CUSTODY_EXPENSE_CATEGORIES = [
+  'مستهلكات ومواد تشغيل',
+  'محروقات وانتقالات',
+  'إعاشة وتغذية',
+  'عدد ومعدات',
+  'صيانة وإصلاحات',
+  'مواد إنشائية',
+  'مصاريف إدارية',
+  'أدوات نظافة',
+];
+
 export default function CustodiesPage() {
   const queryClient = useQueryClient();
   const { activeCompany } = useCompany();
+  const { items: offlineQueueItems } = useOfflineSync();
 
   // Filters & State
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -56,6 +65,22 @@ export default function CustodiesPage() {
   const [selectedCustodyForSettle, setSelectedCustodyForSettle] = useState<SiteCustody | null>(null);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [selectedCustodyForPrint, setSelectedCustodyForPrint] = useState<SiteCustody | null>(null);
+
+  // Custody Expense Draft Modal State
+  const [isCustExpModalOpen, setIsCustExpModalOpen] = useState(false);
+  const [selectedCustodyForExp, setSelectedCustodyForExp] = useState<SiteCustody | null>(null);
+  const [custExpDate, setCustExpDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [custExpCategory, setCustExpCategory] = useState(CUSTODY_EXPENSE_CATEGORIES[0]);
+  const [custExpAccount, setCustExpAccount] = useState('');
+  const [custExpProjectId, setCustExpProjectId] = useState<string>('');
+  const [custExpJobOrderId, setCustExpJobOrderId] = useState<string | null>(null);
+  const [custExpDesc, setCustExpDesc] = useState('');
+  const [custExpAmount, setCustExpAmount] = useState<number | ''>('');
+  const [custExpVat, setCustExpVat] = useState<number | ''>(0);
+  const [custExpNotes, setCustExpNotes] = useState('');
+  const [custExpAttachmentUrl, setCustExpAttachmentUrl] = useState<string | null>(null);
+  const [custExpStagedAtt, setCustExpStagedAtt] = useState<StagedAttachment | null>(null);
+  const [isSubmittingCustExp, setIsSubmittingCustExp] = useState(false);
 
   // New Custody Form State
   const [newPartnerId, setNewPartnerId] = useState('');
@@ -87,6 +112,9 @@ export default function CustodiesPage() {
   const { data: partners = [] } = useQuery({
     queryKey: ['partners_for_custodies', activeCompany?.id],
     queryFn: async () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        return readCachedTableRows('partners');
+      }
       const { data } = await supabase
         .from('partners')
         .select('id, name, code, partner_type')
@@ -99,6 +127,9 @@ export default function CustodiesPage() {
   const { data: projects = [] } = useQuery({
     queryKey: ['projects_for_custodies', activeCompany?.id],
     queryFn: async () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        return readCachedTableRows('projects');
+      }
       const { data } = await supabase
         .from('projects')
         .select('id, Property')
@@ -111,6 +142,16 @@ export default function CustodiesPage() {
   const { data: safeAccounts = [] } = useQuery({
     queryKey: ['safes_for_custodies', activeCompany?.id],
     queryFn: async () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const cached = await readCachedTableRows('accounts');
+        return cached.filter(
+          (a: any) =>
+            a.is_transactional &&
+            (String(a.code || '').startsWith('121') ||
+              String(a.code || '').startsWith('122') ||
+              String(a.code || '') === '123')
+        );
+      }
       const { data } = await supabase
         .from('accounts')
         .select('id, code, name')
@@ -122,11 +163,138 @@ export default function CustodiesPage() {
     enabled: !!activeCompany?.id,
   });
 
+  const { data: expenseAccounts = [] } = useQuery({
+    queryKey: ['expense_accounts_for_custodies', activeCompany?.id],
+    queryFn: async () => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        const cached = await readCachedTableRows('accounts');
+        return cached.filter(
+          (a: any) => a.is_transactional && String(a.code || '').startsWith('5')
+        );
+      }
+      const { data } = await supabase
+        .from('accounts')
+        .select('id, code, name')
+        .ilike('code', '5%')
+        .eq('is_transactional', true)
+        .order('code');
+      return data || [];
+    },
+    enabled: !!activeCompany?.id,
+  });
+
   const toggleExpand = (id: string) => {
     setExpandedCustodyIds((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  const openCustodyExpenseModal = (custody: SiteCustody) => {
+    setSelectedCustodyForExp(custody);
+    setCustExpDate(new Date().toISOString().slice(0, 10));
+    setCustExpCategory(CUSTODY_EXPENSE_CATEGORIES[0]);
+    setCustExpAccount(expenseAccounts[0]?.name || '');
+    setCustExpProjectId(custody.project_id || '');
+    setCustExpJobOrderId(null);
+    setCustExpDesc('');
+    setCustExpAmount('');
+    setCustExpVat(0);
+    setCustExpNotes('');
+    setCustExpAttachmentUrl(null);
+    setCustExpStagedAtt(null);
+    setIsCustExpModalOpen(true);
+  };
+
+  const handleCustodyExpenseSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustodyForExp) return;
+    const baseAmt = Number(custExpAmount || 0);
+    const vatAmt = Number(custExpVat || 0);
+    if (!custExpDesc.trim() || baseAmt <= 0) {
+      notify('يرجى إدخال بيان المصروف ومبلغ أكبر من صفر', 'error');
+      return;
+    }
+    if (custExpProjectId && !custExpJobOrderId) {
+      notify('يرجى اختيار أمر الشغل المرتبط بالمشروع لربط مصروف العهدة بالميزانية', 'error');
+      return;
+    }
+
+    const selectedProject = (projects as any[]).find(
+      (p) => String(p.id) === String(custExpProjectId)
+    );
+    const totalAmt = baseAmt + vatAmt;
+
+    try {
+      setIsSubmittingCustExp(true);
+      const execRes = await executeDraftWithOfflineQueue({
+        entityType: 'custody_expense_draft',
+        rpcName: 'save_expense_draft',
+        companyId: activeCompany?.id,
+        companyName: activeCompany?.name || 'الشركة الحالية',
+        description: `مصروف عهدة (${selectedCustodyForExp.custody_number}): ${custExpDesc.trim()}`,
+        amount: totalAmt,
+        payload: {
+          exp_date: custExpDate,
+          main_category: custExpCategory,
+          creditor_account: custExpAccount || expenseAccounts[0]?.name || 'مصروفات مواقع عامة',
+          payment_method: 'عهدة',
+          payment_account: '125 - عُهد الموظفين والمواقع',
+          custody_id: selectedCustodyForExp.id,
+          project_id: custExpProjectId || null,
+          site_ref: selectedProject?.Property || selectedCustodyForExp.project_name || null,
+          job_order_id: custExpJobOrderId || null,
+          employee_name: selectedCustodyForExp.partner_name || null,
+          description: custExpDesc.trim(),
+          quantity: 1,
+          unit_price: baseAmt,
+          vat_amount: vatAmt,
+          discount_amount: 0,
+          notes: custExpNotes || null,
+          invoice_image: custExpAttachmentUrl,
+          lines_data: [
+            {
+              description: custExpDesc.trim(),
+              quantity: 1,
+              unit_price: baseAmt,
+              vat_amount: vatAmt,
+              discount_amount: 0,
+              total_price: totalAmt,
+            },
+          ],
+          is_posted: false,
+        },
+        stagedAttachment: custExpStagedAtt,
+        attachmentModule: 'custodies',
+      });
+
+      setExpandedCustodyIds((prev) => ({ ...prev, [selectedCustodyForExp.id]: true }));
+      setIsCustExpModalOpen(false);
+      setSelectedCustodyForExp(null);
+
+      if (execRes.mode === 'queued') {
+        notify(
+          'تم حفظ مسودة مصروف العهدة والمرفق محلياً (أوفلاين)؛ ستُرفع تلقائياً فور عودة الإنترنت',
+          'info'
+        );
+      } else {
+        notify('تم تسجيل مسودة مصروف العهدة بنجاح', 'success');
+        void queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
+        void queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      }
+    } catch (err: any) {
+      notify(err?.message || 'فشل تسجيل مصروف العهدة', 'error');
+    } finally {
+      setIsSubmittingCustExp(false);
+    }
+  };
+
   const openSettleModal = (custody: SiteCustody) => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      notify('تصفية وتسوية العهد تتطلب اتصالاً مباشراً بالإنترنت', 'warning');
+      return;
+    }
+    if ((custody.expenses || []).some((ex) => ex._offline_queued)) {
+      notify('يرجى انتظار مزامنة مسودات المصروفات غير المتصلة على هذه العهدة أولاً قبل التسوية', 'warning');
+      return;
+    }
     setSelectedCustodyForSettle(custody);
     if (custody.remaining_amount <= 0) {
       setSettlementType('cleared');
@@ -141,6 +309,10 @@ export default function CustodiesPage() {
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      notify('صرف عهدة نقدية جديدة وترحيل قيدها يتطلبان اتصالاً بالإنترنت', 'warning');
+      return;
+    }
     if (!newPartnerId || !newTitle || !newAmount || !newSafeAccountId) {
       notify('يرجى ملء جميع الحقول الإلزامية', 'error');
       return;
@@ -161,7 +333,6 @@ export default function CustodiesPage() {
 
       notify('تم صرف العهدة بنجاح وإنشاء سند الصرف والقيد المحاسبي', 'success');
       setIsNewModalOpen(false);
-      // Reset form
       setNewPartnerId('');
       setNewProjectId('');
       setNewTitle('');
@@ -178,6 +349,10 @@ export default function CustodiesPage() {
   const handleSettleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustodyForSettle) return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      notify('تسوية العهدة وإقفال قيودها يتطلبان اتصالاً بالإنترنت', 'warning');
+      return;
+    }
 
     if (
       settlementType === 'cash_return' &&
@@ -219,6 +394,51 @@ export default function CustodiesPage() {
     setIsPrintModalOpen(true);
   };
 
+  // Merge offline queued custody expense drafts into their open custodies
+  const custodiesWithOffline = useMemo(() => {
+    const baseList = summaryData?.custodies || [];
+    if (!activeCompany?.id) return baseList;
+
+    const queuedCustExpenses = offlineQueueItems.filter(
+      (it) =>
+        it.company_id === activeCompany.id &&
+        it.entity_type === 'custody_expense_draft' &&
+        it.payload?.custody_id
+    );
+    if (queuedCustExpenses.length === 0) return baseList;
+
+    return baseList.map((c) => {
+      const matchingQueued = queuedCustExpenses.filter(
+        (q) => String(q.payload?.custody_id) === String(c.id)
+      );
+      if (matchingQueued.length === 0) return c;
+
+      const existingIds = new Set((c.expenses || []).map((ex) => String(ex.id)));
+      const mappedQueued: CustodyExpense[] = matchingQueued
+        .filter((q) => !existingIds.has(String(q.id)))
+        .map((q) => ({
+          id: q.id,
+          exp_date: q.payload?.exp_date || q.created_at.slice(0, 10),
+          description: q.payload?.description || q.description,
+          amount: q.amount,
+          paid_amount: 0,
+          vat_amount: Number(q.payload?.vat_amount || 0),
+          payment_method: 'عهدة',
+          is_posted: false,
+          invoice_image: q.payload?.invoice_image || null,
+          _offline_queued: true,
+        }));
+
+      const addedSpent = mappedQueued.reduce((s, x) => s + Number(x.amount || 0), 0);
+      return {
+        ...c,
+        spent_amount: Number(c.spent_amount || 0) + addedSpent,
+        remaining_amount: Number(c.remaining_amount || 0) - addedSpent,
+        expenses: [...mappedQueued, ...(c.expenses || [])],
+      };
+    });
+  }, [summaryData?.custodies, offlineQueueItems, activeCompany?.id]);
+
   // Filter list
   const kpis = summaryData?.kpis || {
     total_custodies: 0,
@@ -230,16 +450,14 @@ export default function CustodiesPage() {
     total_remaining: 0,
   };
 
-  const filteredCustodies = (summaryData?.custodies || []).filter((c) => {
-    // Project filter
+  const filteredCustodies = custodiesWithOffline.filter((c) => {
     if (selectedProjectId !== 'all' && c.project_id !== selectedProjectId) {
       return false;
     }
-    // Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      const matchNum = c.custody_number.toLowerCase().includes(q);
-      const matchTitle = c.title.toLowerCase().includes(q);
+      const matchNum = (c.custody_number || '').toLowerCase().includes(q);
+      const matchTitle = (c.title || '').toLowerCase().includes(q);
       const matchPartner = (c.partner_name || '').toLowerCase().includes(q);
       const matchProject = (c.project_name || '').toLowerCase().includes(q);
       if (!matchNum && !matchTitle && !matchPartner && !matchProject) return false;
@@ -259,7 +477,7 @@ export default function CustodiesPage() {
               <span className={styles.accountPill}>ح/ 125</span>
             </h1>
             <p className={styles.pageSubtitle}>
-              متابعة صرف العهد النقدية، المصروفات الميدانية المرتبطة بها، وتسويتها مع الخزينة أو الرواتب
+              متابعة صرف العهد النقدية، تسجيل مصروفات العهدة كمسودات (حتى بدون إنترنت)، وتسويتها مع الخزينة أو الرواتب
             </p>
           </div>
 
@@ -273,7 +491,16 @@ export default function CustodiesPage() {
               <RefreshCw size={15} className={isFetching ? 'animate-spin' : ''} />
               تحديث
             </button>
-            <button onClick={() => setIsNewModalOpen(true)} className={styles.btnPrimary}>
+            <button
+              onClick={() => {
+                if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                  notify('صرف عهدة جديدة يتطلب اتصالاً بالإنترنت', 'warning');
+                  return;
+                }
+                setIsNewModalOpen(true);
+              }}
+              className={styles.btnPrimary}
+            >
               <Plus size={16} />
               صرف عهدة جديدة
             </button>
@@ -410,8 +637,8 @@ export default function CustodiesPage() {
                     const hasExpenses = (custody.expenses || []).length > 0;
 
                     return (
-                      <>
-                        <tr key={custody.id} className={styles.tableRow}>
+                      <Fragment key={custody.id}>
+                        <tr className={styles.tableRow}>
                           <td>
                             <button
                               onClick={() => toggleExpand(custody.id)}
@@ -480,13 +707,24 @@ export default function CustodiesPage() {
                           <td>
                             <div className={styles.rowActions} style={{ justifyContent: 'center' }}>
                               {custody.status === 'open' && (
-                                <button
-                                  onClick={() => openSettleModal(custody)}
-                                  className={styles.actionBtnSettle}
-                                  title="تصفية وتسوية العهدة"
-                                >
-                                  تسوية
-                                </button>
+                                <>
+                                  <button
+                                    onClick={() => openCustodyExpenseModal(custody)}
+                                    className={styles.btnSecondary}
+                                    style={{ padding: '0.32rem 0.6rem', fontSize: '0.75rem' }}
+                                    title="تسجيل مصروف عهدة كمسودة (يدعم عدم الاتصال ومرفقات تيليجرام)"
+                                  >
+                                    <Receipt size={13} />
+                                    + مصروف
+                                  </button>
+                                  <button
+                                    onClick={() => openSettleModal(custody)}
+                                    className={styles.actionBtnSettle}
+                                    title="تصفية وتسوية العهدة"
+                                  >
+                                    تسوية
+                                  </button>
+                                </>
                               )}
                               <button
                                 onClick={() => handlePrintSlip(custody)}
@@ -501,7 +739,7 @@ export default function CustodiesPage() {
 
                         {/* Expandable expenses row */}
                         {isExpanded && (
-                          <tr key={`${custody.id}-exp`}>
+                          <tr>
                             <td colSpan={11} style={{ padding: 0 }}>
                               <div className={styles.expandedSection}>
                                 <div className={styles.expandedHeader}>
@@ -525,7 +763,8 @@ export default function CustodiesPage() {
                                         <th>البيان والمصروف</th>
                                         <th>طريقة الصرف</th>
                                         <th>الضريبة</th>
-                                        <th>المبلغ المدفوع</th>
+                                        <th>قيمة المصروف</th>
+                                        <th>المرفق</th>
                                         <th>الحالة المحاسبية</th>
                                       </tr>
                                     </thead>
@@ -537,17 +776,34 @@ export default function CustodiesPage() {
                                           <td>{exp.payment_method || 'عهدة'}</td>
                                           <td>{formatCustodyCurrency(exp.vat_amount || 0)}</td>
                                           <td className="font-semibold text-emerald-400">
-                                            {formatCustodyCurrency(exp.paid_amount)}
+                                            {formatCustodyCurrency(exp.amount ?? exp.paid_amount ?? 0)}
+                                          </td>
+                                          <td>
+                                            {exp.invoice_image ? (
+                                              <AttachmentViewButton
+                                                url={exp.invoice_image}
+                                                label="المرفق"
+                                                title={exp.description}
+                                              />
+                                            ) : (
+                                              <span className="text-xs text-slate-500">—</span>
+                                            )}
                                           </td>
                                           <td>
                                             <span
                                               className={
-                                                exp.is_posted
+                                                exp._offline_queued
+                                                  ? 'text-xs text-sky-400'
+                                                  : exp.is_posted
                                                   ? 'text-xs text-emerald-400'
                                                   : 'text-xs text-amber-400'
                                               }
                                             >
-                                              {exp.is_posted ? 'مرحل للأستاذ العام' : 'مسودة'}
+                                              {exp._offline_queued
+                                                ? 'في طابور المزامنة'
+                                                : exp.is_posted
+                                                ? 'مرحل للأستاذ العام'
+                                                : 'مسودة'}
                                             </span>
                                           </td>
                                         </tr>
@@ -559,7 +815,7 @@ export default function CustodiesPage() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </Fragment>
                     );
                   })}
                 </tbody>
@@ -567,6 +823,211 @@ export default function CustodiesPage() {
             </div>
           )}
         </div>
+
+        {/* Modal: Record Custody Expense Draft (Offline + Telegram Bot Supported) */}
+        {isCustExpModalOpen && selectedCustodyForExp && (
+          <div className={styles.modalOverlay}>
+            <div className={styles.modalContent} style={{ maxWidth: '620px' }}>
+              <div className={styles.modalHeader}>
+                <h3 className={styles.modalTitle}>
+                  تسجيل مصروف عهدة (مسودة) — {selectedCustodyForExp.custody_number}
+                </h3>
+                <button
+                  onClick={() => setIsCustExpModalOpen(false)}
+                  className={styles.modalClose}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <form onSubmit={handleCustodyExpenseSubmit}>
+                <div className={styles.modalBody}>
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '0.875rem',
+                    }}
+                  >
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>تاريخ الفاتورة / المصروف *</label>
+                      <input
+                        type="date"
+                        value={custExpDate}
+                        onChange={(e) => setCustExpDate(e.target.value)}
+                        className={styles.formInput}
+                        required
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>التصنيف *</label>
+                      <select
+                        value={custExpCategory}
+                        onChange={(e) => setCustExpCategory(e.target.value)}
+                        className={styles.formSelect}
+                        required
+                      >
+                        {CUSTODY_EXPENSE_CATEGORIES.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {cat}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>حساب المصروف (المدين) *</label>
+                    <select
+                      value={custExpAccount}
+                      onChange={(e) => setCustExpAccount(e.target.value)}
+                      className={styles.formSelect}
+                      required
+                    >
+                      <option value="">-- اختر حساب المصروف --</option>
+                      {expenseAccounts.map((acc: any) => (
+                        <option key={acc.id} value={acc.name}>
+                          {acc.code} - {acc.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '0.875rem',
+                    }}
+                  >
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>المشروع / العقار</label>
+                      <select
+                        value={custExpProjectId}
+                        onChange={(e) => {
+                          setCustExpProjectId(e.target.value);
+                          setCustExpJobOrderId(null);
+                        }}
+                        className={styles.formSelect}
+                      >
+                        <option value="">-- مصروف عهدة عام --</option>
+                        {projects.map((p: any) => (
+                          <option key={p.id} value={p.id}>
+                            {p.Property}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <JobOrderSelector
+                        projectId={custExpProjectId || null}
+                        value={custExpJobOrderId}
+                        onChange={(id) => setCustExpJobOrderId(id)}
+                        required={Boolean(custExpProjectId)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>بيان الفاتورة / المشتريات *</label>
+                    <input
+                      type="text"
+                      value={custExpDesc}
+                      onChange={(e) => setCustExpDesc(e.target.value)}
+                      placeholder="مثال: شراء مواسير سباكة ومستلزمات تركيب للموقع"
+                      className={styles.formInput}
+                      required
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: '1fr 1fr',
+                      gap: '0.875rem',
+                    }}
+                  >
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>المبلغ قبل الضريبة (ر.س) *</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={custExpAmount}
+                        onChange={(e) =>
+                          setCustExpAmount(e.target.value === '' ? '' : parseFloat(e.target.value))
+                        }
+                        placeholder="0.00"
+                        className={styles.formInput}
+                        required
+                      />
+                    </div>
+
+                    <div className={styles.formGroup}>
+                      <label className={styles.formLabel}>ضريبة القيمة المضافة (ر.س)</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={custExpVat}
+                        onChange={(e) =>
+                          setCustExpVat(e.target.value === '' ? '' : parseFloat(e.target.value))
+                        }
+                        placeholder="0.00"
+                        className={styles.formInput}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <TelegramAttachmentField
+                      module="custodies"
+                      allowOfflineStage={true}
+                      label="صورة فاتورة العهدة (تُحفظ عبر Telegram Bot وتدعم الأوفلاين)"
+                      value={custExpAttachmentUrl}
+                      onChange={setCustExpAttachmentUrl}
+                      stagedAttachment={custExpStagedAtt}
+                      onStagedChange={setCustExpStagedAtt}
+                      caption={`فاتورة عهدة ${selectedCustodyForExp.custody_number} - ${custExpDesc}`}
+                      compact={true}
+                    />
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <label className={styles.formLabel}>ملاحظات إضافية</label>
+                    <input
+                      type="text"
+                      value={custExpNotes}
+                      onChange={(e) => setCustExpNotes(e.target.value)}
+                      placeholder="رقم الفاتورة الورقية أو اسم المورد..."
+                      className={styles.formInput}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.modalFooter}>
+                  <button
+                    type="button"
+                    onClick={() => setIsCustExpModalOpen(false)}
+                    className={styles.btnSecondary}
+                    disabled={isSubmittingCustExp}
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="submit"
+                    className={styles.btnPrimary}
+                    disabled={isSubmittingCustExp}
+                  >
+                    {isSubmittingCustExp ? 'جاري الحفظ...' : 'حفظ مسودة مصروف العهدة'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
 
         {/* Modal: Create Site Custody */}
         {isNewModalOpen && (
@@ -998,7 +1459,7 @@ export default function CustodiesPage() {
                             {formatCustodyCurrency(exp.vat_amount || 0)}
                           </td>
                           <td className="p-1.5 border border-slate-700 font-semibold text-sky-400">
-                            {formatCustodyCurrency(exp.paid_amount)}
+                            {formatCustodyCurrency(exp.amount ?? exp.paid_amount ?? 0)}
                           </td>
                         </tr>
                       ))}

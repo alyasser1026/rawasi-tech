@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useId } from 'react';
 import { supabase } from '@/lib/supabase';
+import { readCachedTableRows, writeCachedTableRows } from '@/lib/offline/referenceCache';
 import { THEME } from '@/lib/theme';
 import { Hourglass } from 'lucide-react';
 
@@ -49,6 +50,33 @@ export default function JobOrderSelector({
 
     useEffect(() => {
         let cancelled = false;
+
+        const applyRawRows = (rawRows: any[]) => {
+            if (cancelled) return;
+            const rows = (rawRows || []).map(row => ({
+                ...row,
+                boq_budget: Array.isArray(row.boq_budget) ? (row.boq_budget[0] || null) : (row.boq_budget || null)
+            })) as JobOrderOption[];
+            const open = rows.filter(jo => !CLOSED_STATUSES.includes(jo.status || '') || jo.id === value);
+            setJobOrders(open);
+
+            if (open.length === 1 && !value) {
+                onChange(open[0].id, open[0]);
+            } else if (value && !open.some(jo => jo.id === value)) {
+                onChange(null, null);
+            }
+        };
+
+        const loadFromOfflineCache = async () => {
+            const cached = await readCachedTableRows('job_orders');
+            const filtered = cached.filter(r => {
+                if (String(r.project_id) !== String(projectId)) return false;
+                if (contractorId && String(r.contractor_id) !== String(contractorId)) return false;
+                return true;
+            });
+            applyRawRows(filtered);
+        };
+
         const fetchJobOrders = async () => {
             if (!projectId) {
                 setJobOrders([]);
@@ -58,6 +86,11 @@ export default function JobOrderSelector({
 
             setIsLoading(true);
             try {
+                if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                    await loadFromOfflineCache();
+                    return;
+                }
+
                 let query = supabase
                     .from('job_orders')
                     .select('id, order_number, status, executor_type, contractor_id, project_id, assigned_qty, retention_percent, unit_price, boq_budget_id, notes, boq_budget:boq_budget_id ( work_item, unit, unit_contract_price, contract_quantity )')
@@ -71,20 +104,13 @@ export default function JobOrderSelector({
                 if (error) throw error;
                 if (cancelled) return;
 
-                const rows = ((data || []) as any[]).map(row => ({
-                    ...row,
-                    boq_budget: Array.isArray(row.boq_budget) ? (row.boq_budget[0] || null) : (row.boq_budget || null)
-                })) as JobOrderOption[];
-                const open = rows.filter(jo => !CLOSED_STATUSES.includes(jo.status || '') || jo.id === value);
-                setJobOrders(open);
-
-                if (open.length === 1 && !value) {
-                    onChange(open[0].id, open[0]);
-                } else if (value && !open.some(jo => jo.id === value)) {
-                    onChange(null, null);
+                if (data && data.length > 0) {
+                    void writeCachedTableRows('job_orders', data);
                 }
+                applyRawRows(data || []);
             } catch (err) {
                 console.error('خطأ أثناء جلب أوامر الشغل:', err);
+                await loadFromOfflineCache();
             } finally {
                 if (!cancelled) setIsLoading(false);
             }

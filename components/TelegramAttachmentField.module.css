@@ -1,0 +1,349 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: var(--fs-sm, 0.85rem);
+  font-weight: 800;
+  color: var(--text-primary, #1e293b);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.telegramTag {
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.14);
+  color: #0284c7;
+  border: 1px solid rgba(14, 165, 233, 0.28);
+  white-space: nowrap;
+}
+
+:global([data-mode="dark"]) .telegramTag {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.14);
+}
+
+.dropBox {
+  border: 1.5px dashed rgba(148, 163, 184, 0.55);
+  border-radius: 12px;
+  padding: 0.75rem;
+  background: rgba(248, 250, 252, 0.65);
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+:global([data-mode="dark"]) .dropBox {
+  background: rgba(15, 23, 42, 0.55);
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+.compactBox {
+  padding: 0.55rem 0.65rem;
+}
+
+.actionsRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 10px;
+  font-size: var(--fs-xs, 0.78rem);
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: #ffffff;
+  color: #0f172a;
+  transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+}
+
+:global([data-mode="dark"]) .actionBtn {
+  background: rgba(30, 41, 59, 0.9);
+  color: #f8fafc;
+  border-color: rgba(148, 163, 184, 0.28);
+}
+
+.actionBtn:hover:not(:disabled) {
+  border-color: #0ea5e9;
+  transform: translateY(-1px);
+}
+
+.actionBtn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cameraBtn {
+  background: rgba(14, 165, 233, 0.12);
+  color: #0369a1;
+  border-color: rgba(14, 165, 233, 0.35);
+}
+
+:global([data-mode="dark"]) .cameraBtn {
+  background: rgba(14, 165, 233, 0.18);
+  color: #7dd3fc;
+}
+
+.previewCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+}
+
+.previewInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.thumb {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  flex-shrink: 0;
+  background: #0f172a;
+}
+
+.fileMeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: var(--fs-xs, 0.78rem);
+  font-weight: 800;
+  color: var(--text-primary, #0f172a);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileSub {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+:global([data-mode="dark"]) .fileSub {
+  color: #34d399;
+}
+
+.previewActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.iconAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+}
+
+:global([data-mode="dark"]) .iconAction {
+  background: rgba(15, 23, 42, 0.85);
+  color: #f8fafc;
+}
+
+.dangerBtn {
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.35);
+  background: rgba(254, 226, 226, 0.65);
+}
+
+:global([data-mode="dark"]) .dangerBtn {
+  color: #fca5a5;
+  background: rgba(127, 29, 29, 0.35);
+}
+
+.hintText {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-weight: 700;
+  margin: 0;
+}
+
+.errorText {
+  font-size: 0.74rem;
+  color: #dc2626;
+  font-weight: 800;
+  margin: 0;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+/* Inline table button */
+.viewPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  border: 1px solid rgba(14, 165, 233, 0.35);
+  background: rgba(14, 165, 233, 0.12);
+  color: #0284c7;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+:global([data-mode="dark"]) .viewPill {
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+}
+
+.viewPill:hover {
+  background: rgba(14, 165, 233, 0.22);
+}
+
+/* Modal Viewer */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  background: rgba(2, 6, 23, 0.78);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modalCard {
+  width: min(92vw, 880px);
+  max-height: 90vh;
+  background: #0f172a;
+  color: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.85rem 1.1rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(15, 23, 42, 0.95);
+}
+
+.modalTitle {
+  font-size: 0.92rem;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modalHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.modalBody {
+  flex: 1;
+  min-height: 280px;
+  max-height: calc(90vh - 64px);
+  overflow: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: #020617;
+}
+
+.fullImage {
+  max-width: 100%;
+  max-height: calc(90vh - 100px);
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.pdfFrame {
+  width: 100%;
+  height: min(76vh, 720px);
+  border: none;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* Camera Live Capture Overlay */
+.videoFrame {
+  width: 100%;
+  max-height: 65vh;
+  border-radius: 10px;
+  background: #000000;
+  object-fit: cover;
+}
+
+.spin {
+  animation: spinAnim 0.9s linear infinite;
+}
+
+@keyframes spinAnim {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

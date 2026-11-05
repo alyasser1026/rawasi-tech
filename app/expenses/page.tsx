@@ -20,6 +20,7 @@ import ExpenseFormModal from './ExpenseFormModal';
 import ExpensePrintModal from './ExpensePrintModal'; 
 import LoadingScreen from '@/components/LoadingScreen';
 import { ChevronUp, ChevronDown, ArrowUpDown, Printer, Banknote } from 'lucide-react';
+import { AttachmentViewButton } from '@/components/TelegramAttachmentField';
 
 const MAIN_CATEGORIES = [
   "إعاشة وتغذية", "محروقات وانتقالات", "عدد ومعدات", "مستهلكات ومواد تشغيل", 
@@ -329,7 +330,7 @@ export default function ExpensesPage() {
         if (!row) return null;
         return row.is_posted ? 
           <span style={{ display: 'inline-block', background: '#ecfdf5', color: '#059669', padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>معتمد</span> : 
-          <span style={{ display: 'inline-block', background: '#fff7ed', color: '#d97706', padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>معلق</span>;
+          <span style={{ display: 'inline-block', background: row._offline_queued ? '#e0f2fe' : '#fff7ed', color: row._offline_queued ? '#0369a1' : '#d97706', padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>{row._offline_queued ? 'في الطابور' : 'معلق'}</span>;
       },
       exportValue: (row: any) => row.is_posted ? 'معتمد' : 'معلق'
     },
@@ -347,6 +348,7 @@ export default function ExpensesPage() {
 
         return (
           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', alignItems: 'center' }}>
+            {row.invoice_image && <AttachmentViewButton url={row.invoice_image} label="المرفق" title="معاينة مرفق الفاتورة" />}
             <button 
               onClick={(e) => { e.stopPropagation(); setPrintData(row); setIsPrintModalOpen(true); }} 
               style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.1)', padding: '0.375rem 0.625rem', borderRadius: '8px', cursor: 'pointer', transition: '0.2s', fontSize: 'var(--fs-md)' }}

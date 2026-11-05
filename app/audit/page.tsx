@@ -35,6 +35,8 @@ import {
   ChevronUp,
 } from 'lucide-react';
 import Link from 'next/link';
+import TelegramAttachmentField, { AttachmentViewButton } from '@/components/TelegramAttachmentField';
+import { useRealtimeTableRefresh } from '@/lib/useRealtimeSync';
 
 export default function ComplianceAndAuditPage() {
   const { showToast } = useToast();
@@ -75,6 +77,7 @@ export default function ComplianceAndAuditPage() {
     partner_id: '',
     project_id: '',
     asset_id: '',
+    attachment_url: '',
     notes: '',
   });
 
@@ -123,6 +126,10 @@ export default function ComplianceAndAuditPage() {
     loadMasterData();
   }, []);
 
+  useRealtimeTableRefresh(['company_documents', 'company_attachments'], () => {
+    void loadExpiry();
+  });
+
   const handleSaveDocument = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.document_number.trim() || !form.title.trim() || !form.expiry_date) {
@@ -142,6 +149,7 @@ export default function ComplianceAndAuditPage() {
         partner_id: form.partner_id || null,
         project_id: form.project_id || null,
         asset_id: form.asset_id || null,
+        attachment_url: form.attachment_url || null,
         notes: form.notes || null,
       });
 
@@ -157,6 +165,7 @@ export default function ComplianceAndAuditPage() {
         partner_id: '',
         project_id: '',
         asset_id: '',
+        attachment_url: '',
         notes: '',
       });
       loadExpiry();
@@ -575,15 +584,20 @@ export default function ComplianceAndAuditPage() {
                             </td>
                             <td>{statusBadge}</td>
                             <td>
-                              <button
-                                className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSmall}`}
-                                onClick={() => {
-                                  setSelectedDoc(doc);
-                                  setShowRenewModal(true);
-                                }}
-                              >
-                                تجديد / تمديد
-                              </button>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                                {doc.attachment_url && (
+                                  <AttachmentViewButton url={doc.attachment_url} label="المرفق" title={doc.title} />
+                                )}
+                                <button
+                                  className={`${styles.btn} ${styles.btnSecondary} ${styles.btnSmall}`}
+                                  onClick={() => {
+                                    setSelectedDoc(doc);
+                                    setShowRenewModal(true);
+                                  }}
+                                >
+                                  تجديد / تمديد
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -867,6 +881,18 @@ export default function ComplianceAndAuditPage() {
                         ))}
                       </select>
                     </div>
+                  </div>
+
+                  <div className={styles.formGroup}>
+                    <TelegramAttachmentField
+                      module="company_documents"
+                      allowOfflineStage={false}
+                      label="نسخة الوثيقة أو الترخيص المرفق (صورة / PDF عبر Telegram Bot)"
+                      value={form.attachment_url || null}
+                      onChange={(url) => setForm({ ...form, attachment_url: url || '' })}
+                      caption={form.title || form.document_number || 'وثيقة شركة'}
+                      compact={true}
+                    />
                   </div>
 
                   <div className={styles.formGroup}>

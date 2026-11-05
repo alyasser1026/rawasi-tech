@@ -1,13 +1,17 @@
 import { supabase } from '@/lib/supabase';
+import { readCachedTableRows } from '@/lib/offline/referenceCache';
 
 export interface CustodyExpense {
   id: string;
   exp_date: string;
   description: string;
-  paid_amount: number;
+  amount?: number;
+  paid_amount?: number;
   vat_amount?: number;
   payment_method?: string;
   is_posted?: boolean;
+  invoice_image?: string | null;
+  _offline_queued?: boolean;
 }
 
 export interface SiteCustody {
@@ -88,6 +92,27 @@ export function formatCustodyCurrency(amount: number | null | undefined): string
 }
 
 export async function fetchSiteCustodies(statusFilter: string = 'all'): Promise<CustodySummaryResponse> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) {
+    const cachedOpen = await readCachedTableRows('site_custodies');
+    const custodies = (cachedOpen || []).map((c: any) => ({
+      ...c,
+      max_days: c.max_days || 30,
+      expenses: [],
+    })) as SiteCustody[];
+    return {
+      kpis: {
+        total_custodies: custodies.length,
+        open_custodies: custodies.filter((c) => c.status === 'open').length,
+        settled_custodies: custodies.filter((c) => c.status === 'settled').length,
+        overdue_custodies: 0,
+        total_disbursed: custodies.reduce((s, c) => s + Number(c.disbursed_amount || 0), 0),
+        total_spent: custodies.reduce((s, c) => s + Number(c.spent_amount || 0), 0),
+        total_remaining: custodies.reduce((s, c) => s + Number(c.remaining_amount || 0), 0),
+      },
+      custodies,
+    };
+  }
+
   const { data, error } = await supabase.rpc('get_site_custodies_summary', {
     p_status: statusFilter,
   });
@@ -96,20 +121,52 @@ export async function fetchSiteCustodies(statusFilter: string = 'all'): Promise<
     throw new Error(error.message || 'فشل استرجاع بيانات العُهد');
   }
 
-  return (
-    (data as CustodySummaryResponse) || {
-      kpis: {
-        total_custodies: 0,
-        open_custodies: 0,
-        settled_custodies: 0,
-        overdue_custodies: 0,
-        total_disbursed: 0,
-        total_spent: 0,
-        total_remaining: 0,
-      },
-      custodies: [],
+  const baseResponse: CustodySummaryResponse = (data as CustodySummaryResponse) || {
+    kpis: {
+      total_custodies: 0,
+      open_custodies: 0,
+      settled_custodies: 0,
+      overdue_custodies: 0,
+      total_disbursed: 0,
+      total_spent: 0,
+      total_remaining: 0,
+    },
+    custodies: [],
+  };
+
+  // Enrich custody expenses with invoice_image, vat_amount & payment_method
+  try {
+    const { data: expDetails } = await supabase
+      .from('expenses')
+      .select('id, custody_id, invoice_image, vat_amount, payment_method, total_price')
+      .not('custody_id', 'is', null);
+
+    if (expDetails && expDetails.length > 0) {
+      const detailMap = new Map<string, any>();
+      for (const ed of expDetails) {
+        detailMap.set(String(ed.id), ed);
+      }
+      baseResponse.custodies = (baseResponse.custodies || []).map((c) => ({
+        ...c,
+        expenses: (c.expenses || []).map((ex) => {
+          const extra = detailMap.get(String(ex.id));
+          return extra
+            ? {
+                ...ex,
+                invoice_image: extra.invoice_image || ex.invoice_image || null,
+                vat_amount: extra.vat_amount ?? ex.vat_amount ?? 0,
+                payment_method: extra.payment_method || ex.payment_method || 'عهدة',
+                amount: ex.amount ?? extra.total_price ?? ex.paid_amount ?? 0,
+              }
+            : ex;
+        }),
+      }));
     }
-  );
+  } catch {
+    /* non-blocking enrichment */
+  }
+
+  return baseResponse;
 }
 
 export async function createSiteCustody(payload: {

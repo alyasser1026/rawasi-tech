@@ -5,6 +5,7 @@ import { formatCurrency } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
 import LoadingScreen from '@/components/LoadingScreen';
 import JobOrderSelector from '@/components/JobOrderSelector';
+import TelegramAttachmentField from '@/components/TelegramAttachmentField';
 
 // =========================================================================
 // 🔍 مكون البحث الذكي المطور (مع دعم السحب الآلي initialDisplay) 💎
@@ -441,6 +442,18 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                     <div style={{ gridColumn: '1 / -1' }}>
                         <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.375rem' }}>البيان / الملاحظات العامة</label>
                         <input type="text" tabIndex={12} placeholder="بيان السند توضيحي..." value={record.notes || ''} onChange={e => setRecord({...record, notes: e.target.value})} className="glass-input" />
+                    </div>
+
+                    <div style={{ gridColumn: '1 / -1' }}>
+                        <TelegramAttachmentField
+                            module="receipt_vouchers"
+                            allowOfflineStage={false}
+                            label="صورة إيصال التحويل أو الشيك المرفق (Telegram Bot)"
+                            value={record.attachment_url || null}
+                            onChange={(url) => setRecord({ ...record, attachment_url: url })}
+                            caption={record.receipt_number || record.notes || 'سند قبض'}
+                            compact={true}
+                        />
                     </div>
 
                     <div style={{ gridColumn: '1 / -1', display: 'flex', gap: '0.9375rem', marginTop: '0.625rem' }}>

@@ -10,6 +10,7 @@ import NotificationsModal from './NotificationsModal';
 import ThemeSwitcher from './ThemeSwitcher';
 import CompanyLogo from './CompanyLogo';
 import CompanySwitcher from './CompanySwitcher';
+import OfflineSyncStatus from './OfflineSyncStatus';
 
 export const OPEN_SEARCH_EVENT = 'phi:open-search';
 export const OPEN_SHORTCUTS_EVENT = 'phi:open-shortcuts';
@@ -42,6 +43,7 @@ export default function AppTopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
         </nav>
       </div>
       <div className="ent-topbar-end">
+        <OfflineSyncStatus />
         <button type="button" className="ent-topbar-search" onClick={() => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT))} aria-label="البحث في الشاشات (Ctrl K)">
           <Search size={15} aria-hidden="true" /><span>بحث في الشاشات</span><kbd dir="ltr">Ctrl K</kbd>
         </button>

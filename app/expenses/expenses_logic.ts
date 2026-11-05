@@ -9,10 +9,15 @@ import { useUniversalPosting } from '@/lib/accounting_engine';
 import { useToast } from '@/lib/toast-context'; 
 import { checkAdminApprovalPrivilege } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
+import { useCompany } from '@/lib/CompanyContext';
+import { executeDraftWithOfflineQueue } from '@/lib/offline/offlineExecutor';
+import { useOfflineSync } from '@/lib/offline/useOfflineSync';
 
 export function useExpensesLogic() {
     const queryClient = useQueryClient();
     const { showToast } = useToast(); 
+    const { activeCompanyId, activeCompany } = useCompany();
+    const { items: offlineQueueItems } = useOfflineSync();
 
     // 🎯 دالة مساعدة لتحديث سطر في الكاش بدقة شديدة
     const updateRowsInCache = (targetIds: any[], updatedFields: any) => {
@@ -49,9 +54,9 @@ export function useExpensesLogic() {
         exp_date: new Date().toISOString().split('T')[0], main_category: '', sub_contractor: '', site_ref: '',       
         creditor_account: '', description: '', payee_name: '', payment_method: 'آجل', payment_account: '', 
         employee_name: '', quantity: 1, unit_price: 0, vat_amount: 0, discount_amount: 0, discount_account: '', 
-        notes: '', invoice_image: null, is_auto_distributed: false,
-        // 👇 الحقول الجديدة الخاصة بالربط مع أوامر التشغيل والمقاولين
-        project_id: null, payee_id: null, job_order_id: null, is_deducted_from_contractor: false 
+        notes: '', invoice_image: null, _stagedAttachment: null, is_auto_distributed: false,
+        // 👇 الحقول الجديدة الخاصة بالربط مع أوامر التشغيل والمقاولين والعهد
+        project_id: null, payee_id: null, job_order_id: null, custody_id: null, is_deducted_from_contractor: false 
     };
     const [currentExpense, setCurrentExpense] = useState<any>(defaultExp);
 
@@ -75,7 +80,53 @@ export function useExpensesLogic() {
         staleTime: 1000 * 60 * 5,
         retry: 1
     });
-    const expenses = expensesQuery.data || [];
+    const serverExpenses = expensesQuery.data || [];
+
+    const queuedExpenses = useMemo(() => {
+        if (!activeCompanyId) return [];
+        const syncedReqIds = new Set(
+            serverExpenses
+                .map((e: any) => e?.client_request_id)
+                .filter(Boolean)
+                .map(String)
+        );
+        return offlineQueueItems
+            .filter(
+                (it) =>
+                    it.company_id === activeCompanyId &&
+                    (it.entity_type === 'expense_draft' || it.entity_type === 'custody_expense_draft') &&
+                    !syncedReqIds.has(String(it.id))
+            )
+            .map((it) => {
+                const p = it.payload || {};
+                const qty = Number(p.quantity ?? 1);
+                const price = Number(p.unit_price ?? 0);
+                const vat = Number(p.vat_amount ?? 0);
+                const disc = Number(p.discount_amount ?? 0);
+                return {
+                    ...p,
+                    id: p.id || it.id,
+                    client_request_id: it.id,
+                    total_price: (qty * price) + vat - disc,
+                    paid_amount: p.payment_method === 'تسوية داخلية' ? (qty * price) + vat - disc : 0,
+                    is_posted: false,
+                    _offline_queued: true,
+                    _offline_status: it.status,
+                    created_at: it.created_at,
+                };
+            });
+    }, [offlineQueueItems, activeCompanyId, serverExpenses]);
+
+    const expenses = useMemo(() => {
+        const map = new Map<string, any>();
+        for (const q of queuedExpenses) {
+            if (q?.id) map.set(String(q.id), q);
+        }
+        for (const e of serverExpenses) {
+            if (e?.id && !map.has(String(e.id))) map.set(String(e.id), e);
+        }
+        return Array.from(map.values());
+    }, [queuedExpenses, serverExpenses]);
 
     // 📥 جلب البيانات المساعدة
     const supportDataQuery = useQuery({
@@ -104,10 +155,28 @@ export function useExpensesLogic() {
 
     useEffect(() => {
         const fetchPerms = async () => {
-            const { data: authData } = await supabase.auth.getUser();
-            if (authData?.user) {
-                const { data: profile } = await supabase.from('profiles').select('role, permissions').eq('id', authData.user.id).single();
-                if (profile) { setUserRole(profile.role); setUserPermissions(profile.permissions || {}); }
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                const uid = session?.user?.id;
+                if (!uid) return;
+
+                if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                    const cachedRaw = localStorage.getItem(`phi_cached_profile_${uid}`);
+                    if (cachedRaw) {
+                        const cached = JSON.parse(cachedRaw);
+                        if (cached.role) setUserRole(cached.role);
+                        if (cached.permissions) setUserPermissions(cached.permissions);
+                    }
+                    return;
+                }
+
+                const { data: profile } = await supabase.from('profiles').select('role, permissions').eq('id', uid).single();
+                if (profile) {
+                    setUserRole(profile.role);
+                    setUserPermissions(profile.permissions || {});
+                }
+            } catch {
+                /* offline safe */
             }
         };
         fetchPerms();
@@ -157,15 +226,15 @@ export function useExpensesLogic() {
 
     const { isProcessing } = useUniversalPosting('expenses', 'expenses', 'post_expenses_bulk');
 
-    // 💾 5. الحفظ المطور والمعتمد كلياً على الـ RPC والتوست الموحد
+    // 💾 5. حفظ مسودة المصروف (يدعم الأوفلاين + مرفقات Telegram Bot + Idempotency)
     const saveMutation = useMutation({
         mutationFn: async (passedRecord: any) => {
             if (!passedRecord || !passedRecord.exp_date) throw new Error("حدث خطأ في استلام البيانات من النافذة، يرجى المحاولة مرة أخرى.");
             
             // 🛡️ فحص صلاحيات التعديل للقيود المعتمدة
             if (editingId) {
-                const existingRecord = expenses.find(e => String(e.id) === String(editingId));
-                if (existingRecord) {
+                const existingRecord = serverExpenses.find(e => String(e.id) === String(editingId));
+                if (existingRecord && (typeof navigator === 'undefined' || navigator.onLine)) {
                     await checkAdminApprovalPrivilege([existingRecord], 'تعديل');
                 }
             }
@@ -176,51 +245,72 @@ export function useExpensesLogic() {
             }
             const finalDescription = generatedDescription && generatedDescription.trim() !== '' ? generatedDescription : 'مصروف عام';
             
-            const payload = {
-                p_id: editingId || null,
-                p_exp_date: passedRecord.exp_date, 
-                p_main_category: passedRecord.main_category, 
-                p_sub_contractor: passedRecord.sub_contractor || null, 
-                p_site_ref: passedRecord.site_ref || null, 
-                p_creditor_account: passedRecord.creditor_account, 
-                p_description: finalDescription, 
-                p_payee_name: passedRecord.payee_name || null, 
-                p_payment_method: passedRecord.payment_method || 'آجل', 
-                p_payment_account: passedRecord.payment_account || null, 
-                p_employee_name: passedRecord.employee_name || null, 
-                p_quantity: Number(passedRecord.quantity) || 1, 
-                p_unit_price: Number(passedRecord.unit_price) || 0, 
-                p_vat_amount: Number(passedRecord.vat_amount) || 0, 
-                p_discount_amount: Number(passedRecord.discount_amount) || 0, 
-                p_discount_account: passedRecord.discount_account || null, 
-                p_notes: passedRecord.notes || null, 
-                p_invoice_image: passedRecord.invoice_image || null, 
-                p_lines_data: passedRecord.lines_data || [], 
-                p_is_auto_distributed: passedRecord.is_auto_distributed || false,
-                
-                // 👇 [التعديل هنا] إرسال الـ IDs الجديدة للـ RPC
-                p_project_id: passedRecord.project_id || null,
-                p_payee_id: passedRecord.payee_id || null,
-                p_job_order_id: passedRecord.job_order_id || null,
-                p_is_deducted_from_contractor: passedRecord.is_deducted_from_contractor || false
+            const qty = Number(passedRecord.quantity) || 1;
+            const unitPrice = Number(passedRecord.unit_price) || 0;
+            const vatAmount = Number(passedRecord.vat_amount) || 0;
+            const discountAmount = Number(passedRecord.discount_amount) || 0;
+            const netAmount = (qty * unitPrice) + vatAmount - discountAmount;
+
+            const draftPayload: Record<string, any> = {
+                id: editingId || undefined,
+                exp_date: passedRecord.exp_date,
+                main_category: passedRecord.main_category || null,
+                sub_contractor: passedRecord.sub_contractor || null,
+                site_ref: passedRecord.site_ref || null,
+                creditor_account: passedRecord.creditor_account || null,
+                description: finalDescription,
+                payee_name: passedRecord.payee_name || null,
+                payment_method: passedRecord.payment_method || 'آجل',
+                payment_account: passedRecord.payment_account || null,
+                employee_name: passedRecord.employee_name || null,
+                quantity: qty,
+                unit_price: unitPrice,
+                vat_amount: vatAmount,
+                discount_amount: discountAmount,
+                discount_account: passedRecord.discount_account || null,
+                notes: passedRecord.notes || null,
+                invoice_image: passedRecord.invoice_image || null,
+                lines_data: passedRecord.lines_data || [],
+                is_auto_distributed: Boolean(passedRecord.is_auto_distributed),
+                project_id: passedRecord.project_id || null,
+                payee_id: passedRecord.payee_id || null,
+                job_order_id: passedRecord.job_order_id || null,
+                custody_id: passedRecord.custody_id || null,
+                is_deducted_from_contractor: Boolean(passedRecord.is_deducted_from_contractor),
+                is_posted: false,
             };
 
-            const { data, error } = await supabase.rpc('save_expense_with_settlement', payload);
-            if (error) throw error;
-            if (data && data.success === false) throw new Error(data.error);
+            const isCustodyDraft = Boolean(passedRecord.custody_id);
+            const execRes = await executeDraftWithOfflineQueue({
+                entityType: isCustodyDraft ? 'custody_expense_draft' : 'expense_draft',
+                rpcName: 'save_expense_draft',
+                companyId: activeCompanyId,
+                companyName: activeCompany?.name || 'الشركة الحالية',
+                description: finalDescription,
+                amount: netAmount,
+                payload: draftPayload,
+                stagedAttachment: passedRecord._stagedAttachment || null,
+                attachmentModule: isCustodyDraft ? 'custodies' : 'expenses',
+            });
 
-            const { data: updatedRecord, error: fetchErr } = await supabase.from('expenses').select('*').eq('id', data.id).single();
-            if (fetchErr) throw fetchErr;
-
-            return { type: editingId ? 'update' : 'insert', data: updatedRecord };
+            return {
+                mode: execRes.mode,
+                type: editingId ? 'update' : 'insert',
+                data: execRes.record,
+                isCustodyDraft,
+            };
         },
         onSuccess: (res) => {
-            showToast('تم حفظ القيد بنجاح', 'success');
+            if (res.mode === 'queued') {
+                showToast('تم حفظ مسودة المصروف محلياً (أوفلاين)؛ ستُرفع مع المرفق تلقائياً فور عودة الإنترنت', 'info');
+            } else {
+                showToast('تم حفظ مسودة المصروف بنجاح', 'success');
+            }
             setIsEditModalOpen(false);
             setEditingId(null);
             setCurrentExpense(defaultExp);
             
-            if (res && res.data) {
+            if (res && res.mode === 'online' && res.data) {
                 queryClient.setQueryData(['expenses'], (oldData: any[]) => {
                     if (!oldData) return [res.data];
                     let parsedData = { ...res.data };
@@ -233,6 +323,9 @@ export function useExpensesLogic() {
                         return [parsedData, ...oldData];
                     }
                 });
+                if (res.isCustodyDraft) {
+                    void queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
+                }
             }
         },
         onError: (err: any) => {
@@ -244,8 +337,10 @@ export function useExpensesLogic() {
     // 🗑️ الحذف المتسلسل
     const deleteMutation = useMutation({
         mutationFn: async () => {
-            // 🛡️ فحص صلاحيات الحذف للقيود المعتمدة
-            const targetExpenses = expenses.filter(e => selectedIds.includes(String(e.id)));
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                throw new Error('حذف السجلات المحفوظة على الخادم يتطلب اتصالاً بالإنترنت؛ يمكنك حذف المسودات غير المتصلة من نافذة الطابور أعلى الشاشة.');
+            }
+            const targetExpenses = serverExpenses.filter(e => selectedIds.includes(String(e.id)));
             await checkAdminApprovalPrivilege(targetExpenses, 'حذف');
 
             const { error } = await supabase.rpc('delete_expenses_bulk', { record_ids: selectedIds });
@@ -265,13 +360,15 @@ export function useExpensesLogic() {
         onError: (err: any) => showToast(`حدث خطأ أثناء الحذف: ${err.message}`, 'error')
     });
 
-    // 💸 6. سداد السطر الواحد (محول لـ Mutation لتجنب المضاعفة)
+    // 💸 6. سداد السطر الواحد (يتطلب اتصالاً بالإنترنت)
     const paymentMutation = useMutation({
         mutationFn: async (paymentData: any) => {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                throw new Error('إصدار سندات الصرف والسداد يتطلب اتصالاً بالإنترنت');
+            }
             const targetId = paymentData.id || paymentData.related_expense_id || paymentData.expense_id;
             if (!targetId) throw new Error("لا يوجد ID للفاتورة مبعوث من المودال!");
 
-            // استخراج الحسابات
             let resolvedDebitId = null, resolvedCreditId = null;
             if (supportData?.accounts_raw) {
                 const foundDebit = supportData.accounts_raw.find((a: any) => `${a.code} - ${a.name}` === paymentData.payment_account || a.name === paymentData.payment_account);
@@ -282,7 +379,6 @@ export function useExpensesLogic() {
                 if (foundCredit) resolvedCreditId = foundCredit.id;
             }
 
-            // 🚀 السحب الحقيقي من الداتابيز لتجنب أخطاء الكاش (Doubling Fix)
             const { data: realExpense, error: fetchErr } = await supabase
                 .from('expenses')
                 .select('paid_amount, description, site_ref')
@@ -311,18 +407,15 @@ export function useExpensesLogic() {
                 created_by: session?.user?.id
             };
             
-            // إنشاء سند الصرف
             const { error: voucherErr } = await supabase.from('payment_vouchers').insert([voucherPayload]);
             if (voucherErr) throw voucherErr;
 
-            // تحديث قيمة السداد في المصروف نفسه
             const { error: expErr } = await supabase.from('expenses').update({ paid_amount: newPaidAmount }).eq('id', targetId);
             if (expErr) throw expErr;
 
             return { targetId, newPaidAmount };
         },
         onSuccess: ({ targetId, newPaidAmount }) => {
-            // تحديث الكاش بهدوء بعد اكتمال العملية
             queryClient.setQueryData(['expenses'], (oldData: any[]) => {
                 if (!oldData) return [];
                 return oldData.map(exp => 
@@ -340,6 +433,10 @@ export function useExpensesLogic() {
 
     // 🔧 التصحيح المجمع
     const handleBulkFixSave = async () => {
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+            showToast('التصحيح المجمع يتطلب اتصالاً بالإنترنت', 'warning');
+            return;
+        }
         if (selectedIds.length === 0 || (!bulkFixAccounts.creditor_account && !bulkFixAccounts.payment_account)) return;
         const updatePayload: any = {};
         if (bulkFixAccounts.creditor_account) updatePayload.creditor_account = bulkFixAccounts.creditor_account;
@@ -370,6 +467,9 @@ export function useExpensesLogic() {
     // الصرف الجماعي
     const bulkDisburseMutation = useMutation({
         mutationFn: async (ids: string[]) => {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                throw new Error('الصرف الجماعي يتطلب اتصالاً بالإنترنت');
+            }
             const { data: { session } } = await supabase.auth.getSession();
             if (!session?.user?.id) throw new Error("يجب تسجيل الدخول أولاً");
 
@@ -426,9 +526,8 @@ export function useExpensesLogic() {
     const canExport = (userRole === 'admin' || userRole === 'super_admin') || userPermissions?.expenses?.print;
 
     return {
-        // 🚀 الـ إخراج المباشر وحل التعليقة النهائي
         isSaving: saveMutation.isPending, 
-        isSavingPayment: paymentMutation.isPending, // 👈 تم إضافة حالة التحميل لزرار السداد لمنع التدبيل
+        isSavingPayment: paymentMutation.isPending,
         isLoading: expensesQuery.isLoading || supportDataQuery.isLoading || isProcessing || deleteMutation.isPending,
         refreshData: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
         
@@ -448,12 +547,15 @@ export function useExpensesLogic() {
             if (data.is_posted) return showToast("لا يمكن تعديل سجل مرحل. يرجى فك الترحيل أولاً.", "error");
             saveMutation.mutate(data);
         },
-        handleSavePayment: (data: any) => paymentMutation.mutate(data), // 👈 استخدام الـ Mutation
+        handleSavePayment: (data: any) => paymentMutation.mutate(data),
         handleAddNew: () => { setCurrentExpense(defaultExp); setEditingId(null); setIsEditModalOpen(true); }, 
         handleEditSelected: () => {
             if (selectedIds.length !== 1) return notify("اختر سجلاً واحداً للتعديل");
             const exp = expenses.find(e => e.id === selectedIds[0]);
-            setCurrentExpense({...exp}); setEditingId(exp.id); setIsEditModalOpen(true);
+            if (exp?._offline_queued) {
+                return showToast("هذه المسودة في طابور عدم الاتصال بانتظار المزامنة التلقائية", "info");
+            }
+            setCurrentExpense({...exp, _stagedAttachment: null}); setEditingId(exp.id); setIsEditModalOpen(true);
         }, 
         exportToExcel: () => {},
         handleDeleteSelected: () => {
@@ -463,7 +565,13 @@ export function useExpensesLogic() {
         },
         
         handlePostSelected: async () => {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                return showToast('الترحيل والاعتماد المحاسبي يتطلبان اتصالاً بالإنترنت', 'warning');
+            }
             if (selectedIds.length === 0) return;
+            if (queuedExpenses.some((q: any) => selectedIds.includes(String(q.id)))) {
+                return showToast('يرجى انتظار مزامنة المسودات المحفوظة في الطابور أولاً قبل ترحيلها', 'warning');
+            }
             const idsToProcess = [...selectedIds];
             await queryClient.cancelQueries({ queryKey: ['expenses'] });
             const previousData = queryClient.getQueryData(['expenses']);
@@ -482,6 +590,9 @@ export function useExpensesLogic() {
         },
         
         handleUnpostSelected: async () => {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                return showToast('فك الترحيل يتطلب اتصالاً بالإنترنت', 'warning');
+            }
             if (selectedIds.length === 0) return;
             const idsToProcess = [...selectedIds];
             await queryClient.cancelQueries({ queryKey: ['expenses'] });
@@ -501,8 +612,11 @@ export function useExpensesLogic() {
         },
         
         handlePostAllUnposted: async () => {
-            const unposted = allFiltered.filter((e:any) => !e.is_posted).map((e:any) => e.id);
-            if (unposted.length === 0) return showToast("لا يوجد سجلات معلقة!", 'info');
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                return showToast('الترحيل والاعتماد المحاسبي يتطلبان اتصالاً بالإنترنت', 'warning');
+            }
+            const unposted = allFiltered.filter((e:any) => !e.is_posted && !e._offline_queued).map((e:any) => e.id);
+            if (unposted.length === 0) return showToast("لا يوجد سجلات معلقة جاهزة للترحيل!", 'info');
             const idsToProcess = [...unposted];
             await queryClient.cancelQueries({ queryKey: ['expenses'] });
             const previousData = queryClient.getQueryData(['expenses']);
@@ -520,6 +634,9 @@ export function useExpensesLogic() {
         },
 
         handleBulkDisburse: () => {
+            if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                return showToast('الصرف الجماعي يتطلب اتصالاً بالإنترنت', 'warning');
+            }
             if (selectedIds.length === 0) return;
             if (confirm(`هل أنت متأكد من إنشاء سندات صرف لـ ${selectedIds.length} سجل؟`)) {
                 bulkDisburseMutation.mutate(selectedIds);

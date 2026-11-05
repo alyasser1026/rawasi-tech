@@ -4,6 +4,27 @@ import { supabase } from './supabase';
 
 const PermissionsContext = createContext<any>(null);
 
+const profileCacheKey = (uid: string) => `phi_cached_profile_${uid}`;
+
+function readCachedProfile(uid: string): any | null {
+    if (typeof window === 'undefined') return null;
+    try {
+        const raw = localStorage.getItem(profileCacheKey(uid));
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        return null;
+    }
+}
+
+function writeCachedProfile(uid: string, profileData: any): void {
+    if (typeof window === 'undefined') return;
+    try {
+        localStorage.setItem(profileCacheKey(uid), JSON.stringify(profileData));
+    } catch {
+        /* ignore */
+    }
+}
+
 export const PermissionsProvider = ({ children }: { children: React.ReactNode }) => {
     const [permissions, setPermissions] = useState<any>(null);
     const [role, setRole] = useState<string>('client');
@@ -12,47 +33,63 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
     const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
-        let isMounted = true; // 🛡️ حماية ضد الـ Memory Leak وتحديث الواجهة وهي مقفولة
+        let isMounted = true;
+
+        const applyProfile = (currentUser: any, data: any) => {
+            const userRole = data.is_admin ? 'super_admin' : (data.role || 'client');
+            setRole(userRole);
+            setPermissions(data.permissions || {});
+            setProfile({ ...data, id: currentUser.id });
+            setUser(currentUser);
+        };
 
         const fetchPerms = async (sessionUser?: any) => {
-            if (!permissions) setLoading(true); 
-            
+            if (!permissions) setLoading(true);
+
             try {
-                // الاعتماد على اليوزر الممرر من الـ Listener لتخفيف الضغط
                 let currentUser = sessionUser;
                 if (!currentUser) {
-                    const { data: { user } } = await supabase.auth.getUser();
-                    currentUser = user;
+                    const { data: { session } } = await supabase.auth.getSession();
+                    currentUser = session?.user ?? null;
                 }
-                
+
                 if (currentUser && isMounted) {
+                    const cached = readCachedProfile(currentUser.id);
+                    if (cached && (!navigator.onLine || !permissions)) {
+                        applyProfile(currentUser, cached);
+                    }
+
+                    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+                        if (!cached) {
+                            setUser(currentUser);
+                            setPermissions({});
+                        }
+                        return;
+                    }
+
                     const { data, error } = await supabase
                         .from('profiles')
-                        .select('id, role, permissions, is_admin, full_name, avatar_url')
+                        .select('id, role, permissions, is_admin, full_name, avatar_url, is_active')
                         .eq('id', currentUser.id)
                         .single();
-                        
-                    if (data && isMounted) {
-                        const userRole = data.is_admin ? 'super_admin' : (data.role || 'client');
-                        setRole(userRole);
-                        setPermissions(data.permissions || {});
-                        setProfile({ ...data, id: currentUser.id });
-                        setUser(currentUser);
+
+                    if (!error && data && isMounted) {
+                        writeCachedProfile(currentUser.id, data);
+                        applyProfile(currentUser, data);
                     }
                 } else if (isMounted) {
-                     setLoading(false);
+                    setLoading(false);
                 }
             } catch (err) {
-                console.error("❌ خطأ في تحميل الصلاحيات:", err);
+                console.error("خطأ في تحميل الصلاحيات:", err);
             } finally {
-                if (isMounted) setLoading(false); 
+                if (isMounted) setLoading(false);
             }
         };
 
-        // 🚀 السحر هنا: نعتمد فقط على الـ Listener لمنع تكرار الطلبات (No Double Fetch)
         const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-                fetchPerms(session?.user);
+                void fetchPerms(session?.user);
             } else if (event === 'SIGNED_OUT') {
                 if (isMounted) {
                     setPermissions(null);
@@ -68,18 +105,19 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
             isMounted = false;
             authListener.subscription.unsubscribe();
         };
-    }, []); // 👈 مصفوفة فارغة لضمان عدم إعادة التشغيل نهائياً
+    }, []);
 
     const can = (moduleName: string, actionName: string) => {
         if (role === 'super_admin' || role === 'admin') return true;
-        return permissions?.[moduleName]?.[actionName] === true;
+        const modPerms = permissions?.[moduleName];
+        if (Array.isArray(modPerms)) return modPerms.includes(actionName);
+        return modPerms?.[actionName] === true;
     };
 
     const value = useMemo(() => ({
         can, role, permissions, loading, profile, user, userId: user?.id || profile?.id
     }), [permissions, role, loading, profile, user]);
 
-    // 🚨 لا تعرض شاشة سوداء طالما الصلاحيات موجودة مسبقاً
     if (loading && !permissions) {
         return (
             <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#f7f7f8" }}>
