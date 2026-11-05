@@ -41,6 +41,7 @@ export const menuGroups = [
             { id: 'fieldops', title: 'رادار الميدان الحي', icon: '📡', path: '/fieldops' },
             { id: 'projects', title: 'غرفة المشاريع', icon: '🏗️', path: '/projects' }, 
             { id: 'purchase_orders', title: 'أوامر الشراء ومطابقة التوريد', icon: '🛒', path: '/purchase-orders' },
+            { id: 'inventory', title: 'المخزون والجرد وكارت الصنف', icon: '📦', path: '/inventory' },
             { id: 'materials', title: 'توريد الخامات', icon: '🧱', path: '/materials' },
             { id: 'materialitems', title: 'أصناف الخامات', icon: '📦', path: '/materialitems' },
             { id: 'material_issues', title: 'صرف الخامات', icon: '📤', path: '/material_issues' },
