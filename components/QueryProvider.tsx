@@ -1,11 +1,39 @@
 "use client";
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { get, set, del } from 'idb-keyval';
 import { getActiveCompanyId } from '@/lib/supabase';
+import { reportTechnicalError } from '@/lib/telegram-alerts';
 
 export const sharedQueryClient = new QueryClient({
+  mutationCache: new MutationCache({
+    onError: (error: any, _variables, _context, mutation) => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+      const mutationKey = mutation?.options?.mutationKey;
+      void reportTechnicalError(error, {
+        category: 'database_error',
+        level: 'error',
+        metadata: {
+          mutationKey: Array.isArray(mutationKey) ? mutationKey.join('/') : String(mutationKey || ''),
+        },
+      });
+    },
+  }),
+  queryCache: new QueryCache({
+    onError: (error: any, query) => {
+      if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+      // Skip benign 401 or auth check failures
+      if (error?.status === 401 || String(error?.message || '').includes('JWT')) return;
+      void reportTechnicalError(error, {
+        category: 'api_failure',
+        level: 'warning',
+        metadata: {
+          queryKey: Array.isArray(query.queryKey) ? query.queryKey.join('/') : String(query.queryKey || ''),
+        },
+      });
+    },
+  }),
   defaultOptions: {
     queries: {
       networkMode: 'offlineFirst',

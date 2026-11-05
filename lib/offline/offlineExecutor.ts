@@ -176,6 +176,153 @@ export async function executeDraftWithOfflineQueue(
       if (isNetworkError(error)) {
         return queueFallback();
       }
+
+      // 🛡️ Graceful fallback if the remote Supabase database does not have Phase 8 RPCs applied yet
+      const isMissingRpc =
+        error.code === 'PGRST202' ||
+        (typeof error.message === 'string' &&
+          (error.message.includes('Could not find the function') ||
+            error.message.includes('schema cache')));
+
+      if (isMissingRpc && input.rpcName === 'save_expense_draft') {
+        // Fallback 1: Try legacy save_expense_with_settlement RPC
+        try {
+          const settlementPayload = {
+            p_id: livePayload.id || null,
+            p_exp_date: livePayload.exp_date || new Date().toISOString().split('T')[0],
+            p_main_category: livePayload.main_category || '',
+            p_sub_contractor: livePayload.sub_contractor || null,
+            p_site_ref: livePayload.site_ref || null,
+            p_creditor_account: livePayload.creditor_account || '',
+            p_description: livePayload.description || 'مصروف عام',
+            p_payee_name: livePayload.payee_name || null,
+            p_payment_method: livePayload.payment_method || 'آجل',
+            p_payment_account: livePayload.payment_account || null,
+            p_employee_name: livePayload.employee_name || null,
+            p_quantity: Number(livePayload.quantity) || 1,
+            p_unit_price: Number(livePayload.unit_price) || 0,
+            p_vat_amount: Number(livePayload.vat_amount) || 0,
+            p_discount_amount: Number(livePayload.discount_amount) || 0,
+            p_discount_account: livePayload.discount_account || null,
+            p_notes: livePayload.notes || null,
+            p_invoice_image: livePayload.invoice_image || null,
+            p_lines_data: Array.isArray(livePayload.lines_data) ? livePayload.lines_data : [],
+            p_is_auto_distributed: Boolean(livePayload.is_auto_distributed),
+            p_user_id: userId || null,
+            p_project_id: livePayload.project_id || null,
+            p_payee_id: livePayload.payee_id || null,
+            p_job_order_id: livePayload.job_order_id || null,
+            p_is_deducted_from_contractor: Boolean(livePayload.is_deducted_from_contractor),
+          };
+
+          const fallbackRes = await supabase.rpc('save_expense_with_settlement', settlementPayload);
+          if (!fallbackRes.error && fallbackRes.data) {
+            const rawParsed = typeof fallbackRes.data === 'string' ? JSON.parse(fallbackRes.data) : fallbackRes.data;
+            const savedId = rawParsed?.id || livePayload.id || clientRequestId;
+
+            if (livePayload.custody_id) {
+              await supabase
+                .from('expenses')
+                .update({ custody_id: livePayload.custody_id, company_id: companyId })
+                .eq('id', savedId);
+            }
+
+            return {
+              mode: 'online',
+              id: String(savedId),
+              clientRequestId,
+              record: {
+                ...livePayload,
+                id: savedId,
+                is_posted: false,
+              },
+            };
+          }
+        } catch {
+          // Fall through to table upsert fallback
+        }
+
+        // Fallback 2: Direct table upsert into public.expenses
+        try {
+          const directRow: Record<string, any> = { ...livePayload, company_id: companyId, is_posted: false };
+          delete directRow._stagedAttachment;
+          delete directRow.action;
+          delete directRow._offline_queued;
+          delete directRow._offline_status;
+
+          let resRecord: any;
+          if (livePayload.id) {
+            const { data: updated, error: uErr } = await supabase
+              .from('expenses')
+              .update(directRow)
+              .eq('id', livePayload.id)
+              .select()
+              .single();
+            if (uErr) throw uErr;
+            resRecord = updated;
+          } else {
+            const { data: inserted, error: iErr } = await supabase
+              .from('expenses')
+              .insert([directRow])
+              .select()
+              .single();
+            if (iErr) throw iErr;
+            resRecord = inserted;
+          }
+
+          if (resRecord) {
+            return {
+              mode: 'online',
+              id: String(resRecord.id),
+              clientRequestId,
+              record: resRecord,
+            };
+          }
+        } catch (tableErr: any) {
+          throw new Error(tableErr?.message || error.message || 'فشل حفظ المصروف على الخادم');
+        }
+      } else if (isMissingRpc && input.rpcName === 'save_labor_log_draft') {
+        // Fallback strategy for labor logs
+        try {
+          const laborRow: Record<string, any> = { ...livePayload, company_id: companyId, is_posted: false };
+          delete laborRow._stagedAttachment;
+          delete laborRow.action;
+          delete laborRow._offline_queued;
+          delete laborRow._offline_status;
+
+          let resLabor: any;
+          if (livePayload.id) {
+            const { data: uLabor, error: uLErr } = await supabase
+              .from('labor_daily_logs')
+              .update(laborRow)
+              .eq('id', livePayload.id)
+              .select()
+              .single();
+            if (uLErr) throw uLErr;
+            resLabor = uLabor;
+          } else {
+            const { data: iLabor, error: iLErr } = await supabase
+              .from('labor_daily_logs')
+              .insert([laborRow])
+              .select()
+              .single();
+            if (iLErr) throw iLErr;
+            resLabor = iLabor;
+          }
+
+          if (resLabor) {
+            return {
+              mode: 'online',
+              id: String(resLabor.id),
+              clientRequestId,
+              record: resLabor,
+            };
+          }
+        } catch (laborErr: any) {
+          throw new Error(laborErr?.message || error.message || 'فشل حفظ سجل العمالة على الخادم');
+        }
+      }
+
       throw new Error(error.message || 'فشل حفظ المسودة على الخادم');
     }
 

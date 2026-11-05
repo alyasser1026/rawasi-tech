@@ -2,15 +2,18 @@
 
 import { useEffect } from 'react';
 import { reportTechnicalError } from '@/lib/telegram-alerts';
+import { notify } from '@/lib/notify';
 
 /**
- * Global component mounted at layout level to capture all unhandled window errors
- * and unhandled promise rejections, dispatching them to Telegram automatically.
+ * Global component mounted at layout level to capture all unhandled window errors,
+ * unhandled promise rejections, console.error calls, and browser alert() triggers,
+ * dispatching them to the Telegram Bot API automatically.
  */
 export default function GlobalErrorReporter() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // 1. Unhandled Window Errors
     const handleError = (event: ErrorEvent) => {
       const err = event.error || event.message;
       void reportTechnicalError(err, {
@@ -19,11 +22,65 @@ export default function GlobalErrorReporter() {
       });
     };
 
+    // 2. Unhandled Promise Rejections
     const handleRejection = (event: PromiseRejectionEvent) => {
       const reason = event.reason;
       void reportTechnicalError(reason, {
         category: 'unhandled_rejection',
       });
+    };
+
+    // 3. Console.error interception
+    const originalConsoleError = console.error;
+    console.error = (...args: any[]) => {
+      try {
+        originalConsoleError.apply(console, args);
+
+        // Find Error object or construct detailed text
+        const errorObj = args.find((a) => a instanceof Error);
+        const textPieces = args.map((a) => {
+          if (a instanceof Error) return a.stack || a.message;
+          if (typeof a === 'object' && a !== null) {
+            try {
+              return JSON.stringify(a);
+            } catch {
+              return String(a);
+            }
+          }
+          return String(a);
+        });
+        const combinedText = textPieces.join(' ').trim();
+
+        // Filter out benign React development / hydration logs
+        if (
+          combinedText &&
+          !combinedText.includes('React will try to recreate this component tree') &&
+          !combinedText.includes('Download the React DevTools') &&
+          !combinedText.includes('ResizeObserver loop') &&
+          !combinedText.includes('The user aborted a request') &&
+          !combinedText.includes('Failed to load resource: net::ERR_BLOCKED_BY_CLIENT')
+        ) {
+          void reportTechnicalError(errorObj || combinedText, {
+            category: 'business_exception',
+            level: 'error',
+            metadata: {
+              rawConsole: combinedText.slice(0, 400),
+            },
+          });
+        }
+      } catch {
+        // Never crash console.error
+      }
+    };
+
+    // 4. Fallback: intercept raw window.alert and route to notify
+    const originalAlert = window.alert;
+    window.alert = (message?: any) => {
+      try {
+        notify(String(message ?? ''));
+      } catch {
+        originalAlert(message);
+      }
     };
 
     window.addEventListener('error', handleError);
@@ -32,6 +89,8 @@ export default function GlobalErrorReporter() {
     return () => {
       window.removeEventListener('error', handleError);
       window.removeEventListener('unhandledrejection', handleRejection);
+      console.error = originalConsoleError;
+      window.alert = originalAlert;
     };
   }, []);
 

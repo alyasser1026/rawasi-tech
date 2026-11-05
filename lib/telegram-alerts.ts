@@ -111,19 +111,14 @@ export async function reportTechnicalError(
       metadata: context?.metadata,
     };
 
-    // Dispatch using fetch with keepalive or sendBeacon
+    // Dispatch using direct fetch with keepalive (reliable and never dropped by sendBeacon blob issues)
     const bodyStr = JSON.stringify(payload);
-    if (navigator.sendBeacon) {
-      const blob = new Blob([bodyStr], { type: 'application/json' });
-      navigator.sendBeacon('/api/telegram-alerts', blob);
-    } else {
-      await fetch('/api/telegram-alerts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: bodyStr,
-        keepalive: true,
-      });
-    }
+    await fetch('/api/telegram-alerts', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: bodyStr,
+      keepalive: true,
+    });
   } catch (loggingErr) {
     // Fail silently to avoid infinite error loops
     console.warn('Could not dispatch error to Telegram alerts:', loggingErr);

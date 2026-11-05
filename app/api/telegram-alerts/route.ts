@@ -53,7 +53,17 @@ export async function POST(req: Request) {
       );
     }
 
-    const payload = (await req.json()) as TechnicalAlertPayload;
+    let payload: TechnicalAlertPayload;
+    try {
+      const rawText = await req.text();
+      if (!rawText || !rawText.trim()) {
+        return NextResponse.json({ ok: false, error: 'Empty request body' }, { status: 400 });
+      }
+      payload = JSON.parse(rawText) as TechnicalAlertPayload;
+    } catch {
+      return NextResponse.json({ ok: false, error: 'Invalid JSON payload' }, { status: 400 });
+    }
+
     if (!payload || !payload.message) {
       return NextResponse.json({ ok: false, error: 'Missing error message' }, { status: 400 });
     }
