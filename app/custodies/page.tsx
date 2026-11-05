@@ -103,7 +103,7 @@ export default function CustodiesPage() {
   const [isSubmittingSettle, setIsSubmittingSettle] = useState(false);
 
   // Queries
-  const { data: summaryData, isLoading, refetch, isFetching } = useQuery({
+  const { data: summaryData, error: summaryError, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['site_custodies_summary', activeCompany?.id, statusFilter],
     queryFn: () => fetchSiteCustodies(statusFilter),
     enabled: !!activeCompany?.id,
@@ -604,6 +604,10 @@ export default function CustodiesPage() {
         <div className={styles.tableCard}>
           {isLoading ? (
             <LoadingScreen />
+          ) : summaryError ? (
+            <div className={styles.emptyState} role="alert">
+              <p>{summaryError.message}</p>
+            </div>
           ) : filteredCustodies.length === 0 ? (
             <div className={styles.emptyState}>
               <Briefcase size={40} className="text-slate-600" />

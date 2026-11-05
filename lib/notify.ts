@@ -3,6 +3,7 @@
 import { createElement } from 'react';
 import { toast } from 'react-hot-toast';
 import { Info, TriangleAlert } from 'lucide-react';
+import { reportTechnicalError } from './telegram-alerts';
 
 export type NotifyType = 'success' | 'error' | 'warning' | 'info';
 
@@ -26,7 +27,10 @@ export function notify(message: unknown, type?: NotifyType): void {
   if (!text) return;
   const kind = type ?? inferNotifyType(raw);
   if (kind === 'success') toast.success(text);
-  else if (kind === 'error') toast.error(text, { duration: 6000 });
+  else if (kind === 'error') {
+    toast.error(text, { duration: 6000 });
+    void reportTechnicalError(raw, { category: 'business_exception' });
+  }
   else if (kind === 'warning') toast(text, { duration: 5000, icon: createElement(TriangleAlert, { size: 18, color: '#b45309', 'aria-hidden': true }) });
   else toast(text, { icon: createElement(Info, { size: 18, color: '#1d4ed8', 'aria-hidden': true }) });
 }

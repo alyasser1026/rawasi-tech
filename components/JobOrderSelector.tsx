@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useId } from 'react';
-import { supabase } from '@/lib/supabase';
-import { readCachedTableRows, writeCachedTableRows } from '@/lib/offline/referenceCache';
+import { getActiveCompanyId, supabase } from '@/lib/supabase';
+import { JOB_ORDER_REFERENCE_SELECT, readCachedTableRows, writeCachedTableRows } from '@/lib/offline/referenceCache';
 import { THEME } from '@/lib/theme';
 import { Hourglass } from 'lucide-react';
 
@@ -50,11 +50,13 @@ export default function JobOrderSelector({
 
     useEffect(() => {
         let cancelled = false;
+        const companyId = getActiveCompanyId();
 
         const applyRawRows = (rawRows: any[]) => {
-            if (cancelled) return;
+            if (cancelled || getActiveCompanyId() !== companyId) return;
             const rows = (rawRows || []).map(row => ({
                 ...row,
+                retention_percent: row.retention_percent ?? null,
                 boq_budget: Array.isArray(row.boq_budget) ? (row.boq_budget[0] || null) : (row.boq_budget || null)
             })) as JobOrderOption[];
             const open = rows.filter(jo => !CLOSED_STATUSES.includes(jo.status || '') || jo.id === value);
@@ -68,7 +70,7 @@ export default function JobOrderSelector({
         };
 
         const loadFromOfflineCache = async () => {
-            const cached = await readCachedTableRows('job_orders');
+            const cached = await readCachedTableRows('job_orders', companyId);
             const filtered = cached.filter(r => {
                 if (String(r.project_id) !== String(projectId)) return false;
                 if (contractorId && String(r.contractor_id) !== String(contractorId)) return false;
@@ -93,19 +95,20 @@ export default function JobOrderSelector({
 
                 let query = supabase
                     .from('job_orders')
-                    .select('id, order_number, status, executor_type, contractor_id, project_id, assigned_qty, retention_percent, unit_price, boq_budget_id, notes, boq_budget:boq_budget_id ( work_item, unit, unit_contract_price, contract_quantity )')
+                    .select(JOB_ORDER_REFERENCE_SELECT)
                     .eq('project_id', projectId);
 
+                if (companyId) query = query.setHeader('x-company-id', companyId);
                 if (contractorId) {
                     query = query.eq('contractor_id', contractorId);
                 }
 
                 const { data, error } = await query.order('created_at', { ascending: false });
                 if (error) throw error;
-                if (cancelled) return;
+                if (cancelled || getActiveCompanyId() !== companyId) return;
 
-                if (data && data.length > 0) {
-                    void writeCachedTableRows('job_orders', data);
+                if (companyId && data && data.length > 0) {
+                    void writeCachedTableRows('job_orders', data, companyId).catch(() => {});
                 }
                 applyRawRows(data || []);
             } catch (err) {

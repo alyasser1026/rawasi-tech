@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sendServerTelegramAlert } from '@/lib/server-telegram-alerts';
 
 export const runtime = 'nodejs';
 
@@ -193,6 +194,13 @@ export async function POST(req: Request) {
       replayed: Boolean(regResult._sync_replayed),
     });
   } catch (err: any) {
+    void sendServerTelegramAlert({
+      level: 'error',
+      category: 'api_failure',
+      route: '/api/attachments [POST]',
+      message: err?.message || 'Unexpected attachment error',
+      stack: err?.stack,
+    });
     return NextResponse.json(
       { error: err?.message || 'حدث خطأ غير متوقع أثناء رفع المرفق' },
       { status: 500 }

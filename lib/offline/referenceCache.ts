@@ -13,6 +13,10 @@ const REFERENCE_TABLES = [
 
 export type CachedReferenceTable = (typeof REFERENCE_TABLES)[number];
 
+// The optional retention column appears automatically once its migration is applied.
+export const JOB_ORDER_REFERENCE_SELECT =
+  '*, boq_budget:boq_budget_id (work_item, unit, unit_contract_price, contract_quantity)';
+
 /**
  * Warms local IndexedDB reference caches for the active company while online so dropdowns
  * (`SmartCombo`, `JobOrderSelector`, `labor_logs`, `expenses`, `custodies`) work seamlessly offline.
@@ -23,22 +27,16 @@ export async function warmCompanyReferenceCache(companyId?: string | null): Prom
   if (!cid) return;
 
   try {
-    const [projRes, joRes, partRes, accRes, custRes] = await Promise.all([
-      supabase.from('projects').select('*').limit(500),
+    const [projRes, joRes, partRes, accRes] = await Promise.all([
+      supabase.from('projects').select('*').setHeader('x-company-id', cid).limit(500),
       supabase
         .from('job_orders')
-        .select(
-          'id, order_number, status, executor_type, contractor_id, project_id, assigned_qty, retention_percent, unit_price, boq_budget_id, notes, created_at, boq_budget:boq_budget_id ( work_item, unit, unit_contract_price, contract_quantity )'
-        )
+        .select(JOB_ORDER_REFERENCE_SELECT)
+        .setHeader('x-company-id', cid)
         .order('created_at', { ascending: false })
         .limit(1000),
-      supabase.from('partners').select('*').limit(1500),
-      supabase.from('accounts').select('*').limit(1000),
-      supabase
-        .from('site_custodies')
-        .select('id, custody_number, title, partner_id, project_id, disbursed_amount, spent_amount, remaining_amount, status, opened_date')
-        .eq('status', 'open')
-        .limit(300),
+      supabase.from('partners').select('*').setHeader('x-company-id', cid).limit(1500),
+      supabase.from('accounts').select('*').setHeader('x-company-id', cid).limit(1000),
     ]);
 
     if (!projRes.error && projRes.data) {
@@ -52,9 +50,6 @@ export async function warmCompanyReferenceCache(companyId?: string | null): Prom
     }
     if (!accRes.error && accRes.data) {
       await saveReferenceTableCache(cid, 'accounts', accRes.data);
-    }
-    if (!custRes.error && custRes.data) {
-      await saveReferenceTableCache(cid, 'site_custodies', custRes.data);
     }
   } catch {
     /* ignore background warm errors */

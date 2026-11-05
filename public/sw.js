@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'phi-shell-v2';
+const CACHE_VERSION = 'phi-shell-v3';
 const SHELL_URLS = [
   '/',
   '/manifest.json',
@@ -34,7 +34,7 @@ self.addEventListener('activate', (event) => {
       .then((keys) =>
         Promise.all(
           keys.map((key) => {
-            if (key !== CACHE_VERSION) {
+            if (key.startsWith('phi-shell-') && key !== CACHE_VERSION) {
               return caches.delete(key);
             }
             return Promise.resolve(false);
@@ -61,6 +61,23 @@ function shouldBypass(url, request) {
   return false;
 }
 
+async function fetchWithCacheCopies(request, keys) {
+  const response = await fetch(request);
+  if (!response.ok) return { response };
+
+  // Take every copy before returning the original response to the browser.
+  const entries = keys.map((key) => [key, response.clone()]);
+  const cacheWrite = caches.open(CACHE_VERSION).then((cache) =>
+    Promise.all(entries.map(([key, copy]) => cache.put(key, copy)))
+  );
+  return { response, cacheWrite };
+}
+
+function respondAndKeepCacheAlive(event, result, onError) {
+  event.waitUntil(result.then(({ cacheWrite }) => cacheWrite).catch(() => {}));
+  event.respondWith(result.then(({ response }) => response).catch(onError));
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   let url;
@@ -85,20 +102,10 @@ self.addEventListener('fetch', (event) => {
     url.pathname.endsWith('.jpeg') ||
     url.pathname === '/manifest.json'
   ) {
-    event.respondWith(
-      caches.match(req).then((cached) => {
-        if (cached) return cached;
-        return fetch(req)
-          .then((res) => {
-            if (res && res.ok) {
-              const copy = res.clone();
-              caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
-            }
-            return res;
-          })
-          .catch(() => cached || Response.error());
-      })
+    const result = caches.match(req).catch(() => undefined).then((cached) =>
+      cached ? { response: cached } : fetchWithCacheCopies(req, [req])
     );
+    respondAndKeepCacheAlive(event, result, () => Response.error());
     return;
   }
 
@@ -107,31 +114,17 @@ self.addEventListener('fetch', (event) => {
   const isRsc = req.headers.get('RSC') === '1' || url.searchParams.has('_rsc');
 
   if (isNavigation || isRsc) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE_VERSION).then((c) => {
-              c.put(req, copy);
-              if (isNavigation) {
-                c.put(url.pathname, res.clone());
-              }
-            });
-          }
-          return res;
-        })
-        .catch(async () => {
-          const exact = await caches.match(req);
-          if (exact) return exact;
-          const byPath = await caches.match(url.pathname);
-          if (byPath) return byPath;
-          if (isNavigation) {
-            const rootFallback = await caches.match('/');
-            if (rootFallback) return rootFallback;
-          }
-          return Response.error();
-        })
-    );
+    const result = fetchWithCacheCopies(req, isNavigation ? [req, url.pathname] : [req]);
+    respondAndKeepCacheAlive(event, result, async () => {
+      const exact = await caches.match(req);
+      if (exact) return exact;
+      if (isNavigation) {
+        const byPath = await caches.match(url.pathname);
+        if (byPath) return byPath;
+        const rootFallback = await caches.match('/');
+        if (rootFallback) return rootFallback;
+      }
+      return Response.error();
+    });
   }
 });

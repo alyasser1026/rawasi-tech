@@ -1,5 +1,6 @@
-import { supabase } from '@/lib/supabase';
+import { getActiveCompanyId, supabase } from '@/lib/supabase';
 import { readCachedTableRows } from '@/lib/offline/referenceCache';
+import { saveReferenceTableCache } from '@/lib/offline/offlineStore';
 
 export interface CustodyExpense {
   id: string;
@@ -92,8 +93,9 @@ export function formatCustodyCurrency(amount: number | null | undefined): string
 }
 
 export async function fetchSiteCustodies(statusFilter: string = 'all'): Promise<CustodySummaryResponse> {
+  const companyId = getActiveCompanyId();
   if (typeof navigator !== 'undefined' && !navigator.onLine) {
-    const cachedOpen = await readCachedTableRows('site_custodies');
+    const cachedOpen = await readCachedTableRows('site_custodies', companyId);
     const custodies = (cachedOpen || []).map((c: any) => ({
       ...c,
       max_days: c.max_days || 30,
@@ -113,11 +115,16 @@ export async function fetchSiteCustodies(statusFilter: string = 'all'): Promise<
     };
   }
 
-  const { data, error } = await supabase.rpc('get_site_custodies_summary', {
+  const summaryRequest = supabase.rpc('get_site_custodies_summary', {
     p_status: statusFilter,
   });
+  if (companyId) summaryRequest.setHeader('x-company-id', companyId);
+  const { data, error } = await summaryRequest;
 
   if (error) {
+    if (error.code === 'PGRST202' || error.code === '42P01') {
+      throw new Error('شاشة العُهد تحتاج تطبيق ميجريشن العُهد على قاعدة البيانات.');
+    }
     throw new Error(error.message || 'فشل استرجاع بيانات العُهد');
   }
 
@@ -133,6 +140,23 @@ export async function fetchSiteCustodies(statusFilter: string = 'all'): Promise<
     },
     custodies: [],
   };
+
+  if (companyId && (statusFilter === 'all' || statusFilter === 'open')) {
+    const openCustodies = baseResponse.custodies.filter((custody) => custody.status === 'open').map((custody) => ({
+      id: custody.id,
+      custody_number: custody.custody_number,
+      title: custody.title,
+      partner_id: custody.partner_id,
+      project_id: custody.project_id,
+      disbursed_amount: custody.disbursed_amount,
+      spent_amount: custody.spent_amount,
+      remaining_amount: custody.remaining_amount,
+      status: custody.status,
+      opened_date: custody.opened_date,
+      max_days: custody.max_days,
+    }));
+    void saveReferenceTableCache(companyId, 'site_custodies', openCustodies).catch(() => {});
+  }
 
   // Enrich custody expenses with invoice_image, vat_amount & payment_method
   try {
