@@ -38,7 +38,7 @@ if (!BOT_TOKEN) {
 }
 
 if (!GEMINI_API_KEY) {
-  console.warn('⚠️ تحذير: GEMINI_API_KEY غير موجود في .env.local. يرجى إضافته لتفعيل محرك الذكاء الاصطناعي.');
+  console.warn('⚠️ تحذير: GEMINI_API_KEY غير موجود في .env.local.');
 }
 
 console.log('🤖 بدء تشغيل المساعد الذكي لنظام فاي تك (PHI TECH Telegram Copilot)...');
@@ -181,19 +181,14 @@ async function askGemini(userPrompt, dbContext) {
 // Format markdown/plain text to Telegram HTML safe
 function toTelegramHtml(text) {
   if (!text) return '';
-  // Basic markdown conversion
   let formatted = text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-  // Bold **text** -> <b>text</b>
   formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-  // Italic *text* -> <i>text</i>
   formatted = formatted.replace(/\*(.*?)\*/g, '<i>$1</i>');
-  // Code `text` -> <code>text</code>
   formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>');
-  // Code blocks ```text``` -> <pre>text</pre>
   formatted = formatted.replace(/```([\s\S]*?)```/g, '<pre>$1</pre>');
 
   return formatted;
@@ -201,19 +196,25 @@ function toTelegramHtml(text) {
 
 // Process incoming Telegram update
 async function handleUpdate(update) {
-  const msg = update.message;
-  if (!msg || !msg.text) return;
+  const msg = update.message || update.channel_post || update.edited_message;
+  if (!msg) return;
 
-  const chatId = msg.chat.id;
-  const userText = msg.text.trim();
+  const chatId = msg.chat?.id;
+  const rawText = (msg.text || msg.caption || '').trim();
   const messageId = msg.message_id;
-  const fromName = msg.from?.first_name || 'صديقي';
+  const fromName = msg.from?.first_name || msg.chat?.title || 'صديقي';
 
-  console.log(`📩 رسالة جديدة من ${fromName} (${chatId}): ${userText}`);
+  if (!rawText) return;
 
-  // Handle Commands
-  if (userText === '/start' || userText === '/help') {
-    const welcome = `
+  console.log(`📩 [${new Date().toLocaleTimeString('ar-SA')}] رسالة من ${fromName} (${chatId}): ${rawText}`);
+
+  try {
+    // Strip bot username mention if mentioned in group
+    let cleanText = rawText.replace(/@phitechbot/gi, '').trim();
+
+    // Handle Commands
+    if (cleanText === '/start' || cleanText === '/help') {
+      const welcome = `
 👋 أهلاً بك يا <b>${fromName}</b>!
 أنا <b>المساعد الذكي لمنظومة فاي تك (PHI TECH Copilot)</b> 🤖.
 
@@ -226,25 +227,39 @@ async function handleUpdate(update) {
 
 💡 <i>جرّب كتابة أي سؤال وسأجيبك فوراً!</i>
 `;
-    await sendTelegramMessage(chatId, welcome, messageId);
-    return;
+      await sendTelegramMessage(chatId, welcome, messageId);
+      return;
+    }
+
+    await sendChatAction(chatId, 'typing');
+
+    // Handle /projects command directly
+    if (cleanText.startsWith('/projects')) {
+      const dbSummary = await fetchDatabaseSummary();
+      await sendTelegramMessage(chatId, toTelegramHtml(dbSummary), messageId);
+      return;
+    }
+
+    // Strip /ask if present
+    if (cleanText.startsWith('/ask')) {
+      cleanText = cleanText.replace(/^\/ask\s*/i, '').trim();
+    }
+
+    if (!cleanText) {
+      cleanText = rawText;
+    }
+
+    // Handle natural questions with Gemini AI
+    const dbContext = await fetchDatabaseSummary();
+    const aiReply = await askGemini(cleanText, dbContext);
+    const formattedReply = toTelegramHtml(aiReply);
+
+    await sendTelegramMessage(chatId, formattedReply, messageId);
+    console.log(`✅ [${new Date().toLocaleTimeString('ar-SA')}] تم إرسال الرد بنجاح إلى ${fromName}`);
+  } catch (err) {
+    console.error('Error handling message:', err);
+    await sendTelegramMessage(chatId, `⚠️ حدث استثناء أثناء معالجة السؤال: ${err.message}`, messageId);
   }
-
-  await sendChatAction(chatId, 'typing');
-
-  // Handle /projects command directly
-  if (userText === '/projects') {
-    const dbSummary = await fetchDatabaseSummary();
-    await sendTelegramMessage(chatId, toTelegramHtml(dbSummary), messageId);
-    return;
-  }
-
-  // Handle natural questions with Gemini AI
-  const dbContext = await fetchDatabaseSummary();
-  const aiReply = await askGemini(userText, dbContext);
-  const formattedReply = toTelegramHtml(aiReply);
-
-  await sendTelegramMessage(chatId, formattedReply, messageId);
 }
 
 // Long-polling loop
@@ -252,10 +267,11 @@ let offset = 0;
 let isPolling = true;
 
 async function pollUpdates() {
+  console.log('📡 بدء الاستماع المباشر لرسائل تيليجرام (Long Polling)...');
   while (isPolling) {
     try {
       const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${offset}&timeout=25`;
-      const res = await fetch(url);
+      const res = await fetch(url, { signal: AbortSignal.timeout(35000) });
       const data = await res.json();
 
       if (data.ok && Array.isArray(data.result)) {
@@ -263,10 +279,15 @@ async function pollUpdates() {
           offset = update.update_id + 1;
           await handleUpdate(update);
         }
+      } else if (!data.ok) {
+        console.warn('Telegram poll notice:', data.description || data);
+        await new Promise((r) => setTimeout(r, 4000));
       }
     } catch (err) {
-      // Sleep 3 seconds on error before retrying
-      await new Promise((r) => setTimeout(r, 3000));
+      if (err.name !== 'TimeoutError') {
+        console.warn('Telegram poll loop notice:', err.message);
+      }
+      await new Promise((r) => setTimeout(r, 2000));
     }
   }
 }
