@@ -73,6 +73,7 @@ export const menuGroups = [
         items: [
             { id: 'reports', title: 'التقارير الشاملة', icon: '📊', path: '/reports' }, 
             { id: 'import', title: 'استيراد البيانات', icon: '📥', path: '/import' },
+            { id: 'companies', title: 'المنشآت والشركات', icon: '🏢', path: '/settings/companies' },
             { id: 'settings', title: 'إعدادات النظام', icon: '⚙️', path: '/settings' }, 
             { id: 'profile', title: 'الملف الشخصي', icon: '👤', path: '/profile' }
         ] 

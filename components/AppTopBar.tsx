@@ -9,6 +9,7 @@ import { usePerformancePreferences } from './PerformancePreferences';
 import NotificationsModal from './NotificationsModal';
 import ThemeSwitcher from './ThemeSwitcher';
 import CompanyLogo from './CompanyLogo';
+import CompanySwitcher from './CompanySwitcher';
 
 export const OPEN_SEARCH_EVENT = 'phi:open-search';
 export const OPEN_SHORTCUTS_EVENT = 'phi:open-shortcuts';
@@ -34,6 +35,7 @@ export default function AppTopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
       <div className="ent-topbar-start">
         <button type="button" className="ent-icon-button ent-topbar-menu" onClick={onOpenMenu} aria-label="فتح قائمة الشاشات"><Menu size={20} /></button>
         <Link href="/" className="ent-topbar-logo" aria-label="فاي تك — الرئيسية"><CompanyLogo /></Link>
+        <CompanySwitcher />
         <nav className="ent-topbar-crumbs" aria-label="مسار الصفحة">
           <Link href="/">مساحة العمل</Link>
           {title && pathname !== '/' && <><ChevronLeft size={14} aria-hidden="true" /><span aria-current="page">{title}</span></>}

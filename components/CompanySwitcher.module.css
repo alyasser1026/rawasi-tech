@@ -1,0 +1,34 @@
+.root { position: relative; flex: 0 1 auto; min-width: 0; max-width: 15rem; }
+.trigger, .company {
+  display: flex; align-items: center; gap: .5rem; text-align: right;
+  font: inherit; color: var(--text-primary); cursor: pointer;
+  border: 0; border-radius: .75rem; background: transparent;
+}
+.trigger { padding: .4rem .6rem; max-width: 15rem; }
+.trigger:hover, .company:hover, .company[aria-pressed="true"] { background: var(--accent-soft, rgba(249, 115, 22, .12)); }
+.trigger:focus-visible, .company:focus-visible, .footer a:focus-visible { outline: 2px solid var(--accent, #f97316); outline-offset: 2px; }
+.trigger > svg, .company > svg { flex-shrink: 0; }
+.identity { display: flex; flex-direction: column; gap: .2rem; min-width: 0; flex: 1; }
+.identity strong { font-size: .75rem; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.identity small, .heading small { font-size: .65rem; color: var(--text-secondary); }
+.mobileCode { display: none; }
+.panel {
+  position: absolute; top: calc(100% + .6rem); right: 0; z-index: 100;
+  width: min(21rem, calc(100vw - 2rem)); overflow: hidden; border-radius: 1rem;
+  color: var(--text-primary); background: var(--surface-card, #191613);
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, .35); border: 1px solid var(--border-color, rgba(142, 142, 147, .2));
+}
+.heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding: 1rem; }
+.heading strong { font-size: .8rem; }
+.list { padding: 0 .5rem .5rem; max-height: 18rem; overflow-y: auto; }
+.company { padding: .7rem; width: 100%; margin-bottom: .2rem; }
+.footer { display: flex; justify-content: space-between; gap: .5rem; padding: .7rem; border-top: 1px solid var(--border-color, rgba(142, 142, 147, .2)); }
+.footer a { display: inline-flex; align-items: center; gap: .3rem; padding: .3rem; color: var(--text-primary); text-decoration: none; font-size: .75rem; border-radius: .4rem; }
+.footer a:hover { color: var(--accent, #f97316); }
+@media (max-width: 800px) {
+  :global(.ent-topbar-start):has(.root) :global(.ent-topbar-logo) { display: none !important; }
+  .trigger { max-width: 5.5rem; padding: .3rem; gap: .3rem; }
+  .trigger .identity, .trigger > svg:last-child { display: none; }
+  .mobileCode { display: inline; max-width: 3rem; overflow: hidden; text-overflow: ellipsis; font-size: .75rem; font-weight: 700; }
+  .panel { position: fixed; top: 4rem; right: 1rem; }
+}

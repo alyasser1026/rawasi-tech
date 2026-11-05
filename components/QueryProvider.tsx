@@ -3,6 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister'; // 🚀 استدعاء المحرك غير التزامني
 import { get, set, del } from 'idb-keyval'; // IndexedDB
+import { getActiveCompanyId } from '@/lib/supabase';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -26,9 +27,12 @@ const persister = createAsyncStoragePersister({
   },
 });
 
+// The saved cache belongs to one company: opening another company discards it instead of showing its data.
+const companyBuster = getActiveCompanyId() ?? '';
+
 export default function QueryProvider({ children }: { children: React.ReactNode }) {
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
+    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, buster: companyBuster }}>
       {children}
     </PersistQueryClientProvider>
   );

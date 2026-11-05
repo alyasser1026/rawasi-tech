@@ -17,6 +17,7 @@ import { SidebarProvider } from '@/lib/SidebarContext';
 import AuthGuard from "../components/authGuard"; 
 import { ToastProvider } from '@/lib/toast-context'; 
 import { PermissionsProvider } from '@/lib/PermissionsContext';
+import { CompanyProvider } from '@/lib/CompanyContext';
 import { ThemeProvider } from '@/lib/ThemeContext';
 
 // 🚀 1. استدعاء محرك الأوفلاين والكاش الجديد (V9)
@@ -124,15 +125,17 @@ export default function RootLayout({
                                 <AutoLogoutWrapper>
                                     <AuthGuard> 
                                         <PermissionsProvider>
-                                            <SidebarProvider> 
-                                                {/* LayoutClient هو المتحكم في حركة السايد بار والصفحة */}
-                                                <LayoutClient>
-                                                    <GlobalNavigationShortcuts />
-                                                    <div style={{ position: 'relative', zIndex: 1 }}>
-                                                        {children}
-                                                    </div>
-                                                </LayoutClient>
-                                            </SidebarProvider> 
+                                            <CompanyProvider>
+                                                <SidebarProvider>
+                                                    {/* LayoutClient هو المتحكم في حركة السايد بار والصفحة */}
+                                                    <LayoutClient>
+                                                        <GlobalNavigationShortcuts />
+                                                        <div style={{ position: 'relative', zIndex: 1 }}>
+                                                            {children}
+                                                        </div>
+                                                    </LayoutClient>
+                                                </SidebarProvider>
+                                            </CompanyProvider>
                                         </PermissionsProvider>
                                     </AuthGuard>
                                 </AutoLogoutWrapper>

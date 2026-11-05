@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getActiveCompanyId, supabase } from '@/lib/supabase';
 import { THEME } from '@/lib/theme';
 import { usePermissions } from '@/lib/PermissionsContext'; // 🛡️ استدعاء مركز قيادة الصلاحيات
 import { Clock, Hourglass, Lock } from 'lucide-react';
@@ -122,7 +122,7 @@ export default function SmartCombo({
     // 👥 جلب History
     useEffect(() => {
         if (showRecent) {
-            const key = `smartcombo_recent_${table || label || 'global'}`;
+            const key = `smartcombo_recent_${getActiveCompanyId() ?? 'none'}_${table || label || 'global'}`;
             const saved = localStorage.getItem(key);
             if (saved) setRecentItems(JSON.parse(saved));
         }
@@ -131,7 +131,7 @@ export default function SmartCombo({
     // 🔄 حفظ في History
     const saveToRecent = (item: any) => {
         if (!showRecent) return;
-        const key = `smartcombo_recent_${table || label || 'global'}`;
+        const key = `smartcombo_recent_${getActiveCompanyId() ?? 'none'}_${table || label || 'global'}`;
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
         const updated = [item, ...existing.filter((i:any) => i.id !== item.id)].slice(0, 5);
         localStorage.setItem(key, JSON.stringify(updated));
