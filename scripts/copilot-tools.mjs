@@ -415,5 +415,173 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         message: `تم إصدار وإرسال كشف حساب العامل ${worker_name} بصيغة PDF بنجاح إلى المحادثة!`,
       };
     },
+
+    // 10. مخالفات الموقع والسلامة المهنية
+    async get_site_violations({ site_name, violation_type }) {
+      let query = 'violations?is_deleted=eq.false&select=id,date,emp_name,site_name,reason,amount,violation_type,image_url,is_posted&order=date.desc&limit=15';
+      if (site_name) {
+        query += `&site_name=ilike.*${encodeURIComponent(site_name.trim())}*`;
+      }
+      if (violation_type) {
+        query += `&violation_type=ilike.*${encodeURIComponent(violation_type.trim())}*`;
+      }
+
+      const { data, error } = await fetchRest(query);
+      if (error) return { success: false, error };
+
+      const totalPenalties = data.reduce((s, v) => s + (Number(v.amount) || 0), 0);
+
+      return {
+        success: true,
+        violations_count: data.length,
+        total_penalties: totalPenalties,
+        violations: data.map(v => ({
+          date: v.date,
+          site: v.site_name || 'موقع عام',
+          responsible: v.emp_name || 'غير محدد',
+          type: v.violation_type || 'غرامة',
+          reason: v.reason || 'مخالفة تعليمات الموقع',
+          penalty_amount: Number(v.amount || 0).toLocaleString() + ' ر.س',
+          has_image: Boolean(v.image_url),
+          is_deducted: v.is_posted,
+        })),
+      };
+    },
+
+    // 11. العهد النثرية وإقفال الصناديق اليومي
+    async get_custodies_and_closings() {
+      const [custRes, closeRes] = await Promise.all([
+        fetchRest('site_custodies?select=id,title,disbursed_amount,spent_amount,remaining_amount,status,notes&order=created_at.desc&limit=10'),
+        fetchRest('daily_cash_closings?select=closing_date,system_balance,counted_cash,difference,status,reconciliation_notes&order=closing_date.desc&limit=5'),
+      ]);
+
+      const openCustodies = (custRes.data || []).map(c => ({
+        title: c.title,
+        disbursed: Number(c.disbursed_amount || 0).toLocaleString() + ' ر.س',
+        spent: Number(c.spent_amount || 0).toLocaleString() + ' ر.س',
+        remaining: Number(c.remaining_amount || 0).toLocaleString() + ' ر.س',
+        status: c.status || 'مفتوحة',
+      }));
+
+      const recentClosings = (closeRes.data || []).map(cl => ({
+        date: cl.closing_date,
+        system_balance: Number(cl.system_balance || 0).toLocaleString() + ' ر.س',
+        actual_cash: Number(cl.counted_cash || 0).toLocaleString() + ' ر.س',
+        diff: Number(cl.difference || 0).toLocaleString() + ' ر.س',
+        status: cl.status || 'معتمد',
+      }));
+
+      return {
+        success: true,
+        open_custodies_count: openCustodies.length,
+        custodies: openCustodies,
+        recent_closings: recentClosings,
+      };
+    },
+
+    // 12. المخازن وجرد المستودع
+    async get_inventory_status({ item_name }) {
+      let query = 'inventory?select=id,item_name,unit,current_stock,avg_price&order=current_stock.asc&limit=25';
+      if (item_name) {
+        query += `&item_name=ilike.*${encodeURIComponent(item_name.trim())}*`;
+      }
+
+      const { data, error } = await fetchRest(query);
+      if (error) return { success: false, error };
+
+      return {
+        success: true,
+        items_count: data.length,
+        inventory_items: data.map(item => ({
+          name: item.item_name,
+          current_stock: `${item.current_stock} ${item.unit || 'وحدة'}`,
+          unit_price: Number(item.avg_price || 0).toLocaleString() + ' ر.س',
+          is_low_stock: (Number(item.current_stock) || 0) <= 5,
+        })),
+      };
+    },
+
+    // 13. الفواتير والضريبة 15%
+    async get_vat_and_invoices_summary() {
+      const { data, error } = await fetchRest(
+        'invoices?select=invoice_number,date,client_name,taxable_amount,tax_amount,total_amount&order=date.desc&limit=10'
+      );
+      if (error) return { success: false, error };
+
+      const totalTaxable = data.reduce((s, i) => s + (Number(i.taxable_amount) || 0), 0);
+      const totalVat = data.reduce((s, i) => s + (Number(i.tax_amount) || 0), 0);
+      const totalBilled = data.reduce((s, i) => s + (Number(i.total_amount) || 0), 0);
+
+      return {
+        success: true,
+        invoices_count: data.length,
+        total_taxable_revenue: totalTaxable.toLocaleString() + ' ر.س',
+        total_vat_collected_15: totalVat.toLocaleString() + ' ر.س',
+        total_invoices_amount: totalBilled.toLocaleString() + ' ر.س',
+        recent_invoices: data.slice(0, 5).map(inv => ({
+          invoice_number: inv.invoice_number,
+          date: inv.date,
+          client: inv.client_name || 'عميل',
+          total: Number(inv.total_amount || 0).toLocaleString() + ' ر.س',
+          vat: Number(inv.tax_amount || 0).toLocaleString() + ' ر.س',
+        })),
+      };
+    },
+
+    // 14. رادار التنبيهات والوثائق
+    async get_company_notifications() {
+      const { data, error } = await fetchRest(
+        'company_documents?select=title,document_type,expiry_date,alert_days_before&order=expiry_date.asc&limit=15'
+      );
+
+      if (error || !data) {
+        return {
+          success: true,
+          notice: 'لا توجد وثائق قاربت على الانتهاء حالياً.',
+          documents: [],
+        };
+      }
+
+      return {
+        success: true,
+        documents_count: data.length,
+        documents: data.map(d => ({
+          title: d.title,
+          type: d.document_type || 'وثيقة عامة',
+          expiry_date: d.expiry_date,
+        })),
+      };
+    },
+
+    // 15. الأصول الثابتة والإهلاك
+    async get_fixed_assets_summary() {
+      const { data, error } = await fetchRest(
+        'fixed_assets?select=asset_name,category,purchase_date,purchase_cost,salvage_value,useful_life_years,accumulated_depreciation,current_book_value&limit=15'
+      );
+
+      if (error || !data) {
+        return {
+          success: true,
+          assets_count: 0,
+          assets: [],
+        };
+      }
+
+      const totalAssetCost = data.reduce((s, a) => s + (Number(a.purchase_cost) || 0), 0);
+      const totalBookValue = data.reduce((s, a) => s + (Number(a.current_book_value) || 0), 0);
+
+      return {
+        success: true,
+        assets_count: data.length,
+        total_purchase_cost: totalAssetCost.toLocaleString() + ' ر.س',
+        total_book_value: totalBookValue.toLocaleString() + ' ر.س',
+        assets: data.map(a => ({
+          name: a.asset_name,
+          category: a.category || 'أصل ثابت',
+          cost: Number(a.purchase_cost || 0).toLocaleString() + ' ر.س',
+          book_value: Number(a.current_book_value || 0).toLocaleString() + ' ر.س',
+        })),
+      };
+    },
   };
 }
