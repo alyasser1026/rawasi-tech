@@ -152,6 +152,9 @@ export function usePaymentVouchersLogic() {
             if (!voucherData.amount || Number(voucherData.amount) <= 0) {
                 throw new Error("تنبيه: يرجى إدخال المبلغ المراد صرفه.");
             }
+            if ((voucherData.project_ids || []).length > 0 && !voucherData.job_order_id) {
+                throw new Error("يرجى اختيار أمر الشغل عشان الصرف يتحمّل عليه");
+            }
 
             let payload = { ...voucherData };
             payload.partner_id = payload.payee_id;

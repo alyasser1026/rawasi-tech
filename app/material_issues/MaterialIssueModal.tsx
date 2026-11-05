@@ -5,6 +5,7 @@ import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
 // 🚀 استدعاء الكمبوننت الذكي المخصص لأوامر الشغل وبنود المشروع
 import ProjectBoqCombo from '@/components/ProjectBoqCombo'; 
+import JobOrderSelector from '@/components/JobOrderSelector';
 import { formatCurrency } from '@/lib/helpers';
 import { Trash2 } from 'lucide-react';
 
@@ -77,7 +78,21 @@ export default function MaterialIssueModal({ isOpen, onClose, logic }: any) {
                             displayCol="Property" 
                             searchCols="Property,project_code" 
                             value={logic.issueData?.project_id}
-                            onSelect={(v: any) => logic.setIssueData({ ...logic.issueData, project_id: v?.id, items: logic.issueData.items.map((i:any) => ({...i, boq_id: null, boq_item_id: null})) })}
+                            onSelect={(v: any) => logic.setIssueData({ ...logic.issueData, project_id: v?.id, job_order_id: null, items: logic.issueData.items.map((i:any) => ({...i, boq_id: null, boq_item_id: null})) })}
+                        />
+                    </div>
+
+                    <div style={{ zIndex: 85, position: 'relative' }}>
+                        {/* الفيلا ← أوامر الشغل بتاعتها؛ في الصرف لمقاول: أوامر المقاول ده بس */}
+                        <JobOrderSelector
+                            projectId={logic.issueData?.project_id || null}
+                            contractorId={logic.issueData?.issue_type === 'صرف لمقاول' ? (logic.issueData?.subcontractor_id || null) : null}
+                            value={logic.issueData?.job_order_id || null}
+                            onChange={(id, jo) => logic.setIssueData((prev: any) => ({
+                                ...prev,
+                                job_order_id: id,
+                                items: (prev?.items || []).map((i: any) => (jo && !i.boq_id) ? { ...i, boq_id: jo.boq_budget_id, boq_item_name: jo.boq_budget?.work_item || i.boq_item_name } : i)
+                            }))}
                         />
                     </div>
                     

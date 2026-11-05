@@ -23,8 +23,9 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
         let updates: any = {};
         let needsUpdate = false;
 
-        if (!record.order_number) {
-            updates.order_number = `JO-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+        // رقم الأمر التسلسلي بيتحدد في قاعدة البيانات لحظة الحفظ (JO-السنة-0001)
+        if (!record.id && !record.defaults_applied) {
+            updates.defaults_applied = true;
             updates.start_date = record.start_date || new Date().toISOString().split('T')[0];
             updates.status = record.status || 'مسودة';
             updates.executor_type = record.executor_type || 'تنفيذ ذاتي';
@@ -118,7 +119,7 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                         {record.id ? 'تعديل أمر التشغيل' : 'إصدار أمر تشغيل جديد'}
                     </h2>
                     <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#64748b', background: 'rgba(255,255,255,0.8)', padding: '0.5rem 1rem', borderRadius: '12px' }}>
-                        رقم الأمر: <span style={{ color: THEME.primary }}>{record.order_number}</span>
+                        رقم الأمر: <span style={{ color: THEME.primary }}>{record.order_number || 'يتحدد عند الحفظ'}</span>
                     </div>
                 </div>
 

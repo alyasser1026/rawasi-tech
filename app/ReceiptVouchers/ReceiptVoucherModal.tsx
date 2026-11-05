@@ -4,6 +4,7 @@ import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
 import LoadingScreen from '@/components/LoadingScreen';
+import JobOrderSelector from '@/components/JobOrderSelector';
 
 // =========================================================================
 // 🔍 مكون البحث الذكي المطور (مع دعم السحب الآلي initialDisplay) 💎
@@ -188,8 +189,15 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
         const userTypedAmount = Number(record.amount || 0);
         const amountToSet = userTypedAmount > 0 ? userTypedAmount : (remainingAmount > 0 ? remainingAmount : 0);
 
+        // أمر الشغل من سطور الفاتورة: لو الفاتورة على أمر شغل واحد بيتحط لوحده
+        const invLines = Array.isArray(inv.lines_data) ? inv.lines_data : [];
+        const invJobOrders = Array.from(new Set(invLines.map((l: any) => l?.job_order_id).filter(Boolean)));
+        const singleLine = invJobOrders.length === 1 ? invLines.find((l: any) => l?.job_order_id === invJobOrders[0]) : null;
+
         setRecord({
             ...record,
+            job_order_id: singleLine ? singleLine.job_order_id : null,
+            jo_project_id: singleLine?.project_id || (projectsData.length === 1 ? projectsData[0].id : null),
             invoice_id: inv.id,
             invoice_number: inv.invoice_number,
             partner_id: inv.partner_id,
@@ -212,12 +220,23 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
             ? current.filter((p: any) => p.id !== proj.id) 
             : [...current, { id: proj.id, Property: proj.Property }];
 
+        const joProjectStillThere = newList.some((p: any) => p.id === record.jo_project_id);
         setRecord({
             ...record,
             selected_projects: newList,
-            project_ids: newList.map((p: any) => p.id)
+            project_ids: newList.map((p: any) => p.id),
+            jo_project_id: joProjectStillThere ? record.jo_project_id : (newList.length === 1 ? newList[0].id : null),
+            job_order_id: joProjectStillThere ? record.job_order_id : null
         });
     };
+
+    // سند قديم عليه أمر شغل: نجيب فيلا الأمر عشان قائمة الأوامر تفتح عليها
+    useEffect(() => {
+        if (!isOpen || !record?.job_order_id || record?.jo_project_id) return;
+        supabase.from('job_orders').select('project_id').eq('id', record.job_order_id).single()
+            .then(({ data }) => { if (data?.project_id) setRecord((prev: any) => ({ ...prev, jo_project_id: data.project_id })); });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isOpen, record?.job_order_id]);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -338,6 +357,25 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                                 </span>
                             ))}
                         </div>
+                    </div>
+
+                    <div style={{ gridColumn: 'span 1', zIndex: 75 }}>
+                        {(record.selected_projects || []).length > 1 && (
+                            <div style={{ marginBottom: '0.625rem' }}>
+                                <label htmlFor="rv-jo-villa" style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.375rem' }}>فيلا أمر الشغل *</label>
+                                <select id="rv-jo-villa" className="glass-input" value={record.jo_project_id || ''} onChange={e => setRecord({ ...record, jo_project_id: e.target.value || null, job_order_id: null })}>
+                                    <option value="">-- اختار الفيلا --</option>
+                                    {(record.selected_projects || []).map((p: any) => <option key={p.id} value={p.id}>{p.Property}</option>)}
+                                </select>
+                            </div>
+                        )}
+                        {/* الفيلا ← أوامر الشغل بتاعتها: التحصيل بيتسجل على أمر الشغل */}
+                        <JobOrderSelector
+                            projectId={record.jo_project_id || ((record.selected_projects || []).length === 1 ? record.selected_projects[0].id : null)}
+                            value={record.job_order_id || null}
+                            onChange={(id) => setRecord((prev: any) => ({ ...prev, job_order_id: id }))}
+                            required={(record.selected_projects || []).length > 0}
+                        />
                     </div>
 
                     <div style={{ gridColumn: 'span 1', zIndex: 70 }}>

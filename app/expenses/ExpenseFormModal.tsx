@@ -5,9 +5,9 @@ import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
 import { formatCurrency } from '@/lib/helpers';
 import { useToast } from '@/lib/toast-context'; 
-import { supabase } from '@/lib/supabase'; 
-import { Hourglass, Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { notify } from '@/lib/notify';
+import JobOrderSelector from '@/components/JobOrderSelector';
 
 // 🚀 مصفوفة التصنيفات
 const EXPENSE_CATEGORIES = [
@@ -48,49 +48,11 @@ export default function ExpenseFormModal({
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     
-    const [jobOrders, setJobOrders] = useState<any[]>([]);
-    const [isLoadingJobOrders, setIsLoadingJobOrders] = useState(false);
         
     useEffect(() => {
         setMounted(true);
     }, []);
 
-    // 🚀 كود ذكي لجلب أوامر التشغيل المتاحة شاملة بيانات البند من جدول المقايسة (boq_budget)
-    useEffect(() => {
-        const fetchJobOrders = async () => {
-            if (record?.project_id && record?.payee_id) {
-                setIsLoadingJobOrders(true);
-                try {
-                    const { data, error } = await supabase
-                        .from('job_orders')
-                        .select('*, boq_budget(*)') // 👈 الجلب المزدوج (Join) لضمان الحصول على البند
-                        .eq('project_id', record.project_id)
-                        .eq('contractor_id', record.payee_id)
-                        .order('created_at', { ascending: false });
-
-                    if (error) throw error;
-                    
-                    if (data) {
-                        setJobOrders(data);
-                        if (data.length === 1) {
-                            setRecord((prev: any) => ({ ...prev, job_order_id: data[0].id }));
-                        } else {
-                            const isStillValid = data.some(jo => jo.id === record?.job_order_id);
-                            if (!isStillValid) setRecord((prev: any) => ({ ...prev, job_order_id: null }));
-                        }
-                    }
-                } catch (err) {
-                    console.error("Error fetching job orders:", err);
-                } finally {
-                    setIsLoadingJobOrders(false);
-                }
-            } else {
-                setJobOrders([]);
-            }
-        };
-
-        fetchJobOrders();
-    }, [record?.project_id, record?.payee_id]);
 
     // 📷 دوال التقاط الصور
     const startCamera = async () => {
@@ -314,72 +276,26 @@ export default function ExpenseFormModal({
                     </div>
                     
                     <div style={{ zIndex: 65, position: 'relative' }}>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.375rem' }}>أمر التشغيل / الشغل *</label>
-                        <select 
-                            className="glass-input-field"
-                            value={record?.job_order_id || ''}
-                            onChange={e => {
-                                const selectedJobOrder = jobOrders.find((jo: any) => jo.id === e.target.value);
-                                
-                                // بناء أول سطر في المصروفات (Line Item) تلقائياً
-                                let newLines = [...(record?.lines_data || [])];
-                                if (selectedJobOrder && newLines.length === 0) {
-                                    const boq = Array.isArray(selectedJobOrder.boq_budget) ? selectedJobOrder.boq_budget[0] : (selectedJobOrder.boq_budget || {});
-                                    const itemName = boq?.item_name || boq?.description || boq?.work_item || selectedJobOrder.notes || 'بند مصروف';
-                                    
+                        {/* الفيلا ← أوامر الشغل بتاعتها (ولو اخترت مقاول: أوامره هو بس) */}
+                        <JobOrderSelector
+                            projectId={record?.project_id || null}
+                            contractorId={record?.payee_id || null}
+                            value={record?.job_order_id || null}
+                            onChange={(id, jo) => setRecord((prev: any) => {
+                                let newLines = [...(prev?.lines_data || [])];
+                                if (jo && newLines.length === 0) {
+                                    // أول سطر باسم بند أمر الشغل؛ المبلغ بيتكتب يدوي (المصروف مش قيمة البند كله)
                                     newLines.push({
-                                        item_name: itemName,
-                                        quantity: selectedJobOrder.assigned_qty || 1,
-                                        unit_price: selectedJobOrder.execution_type === 'تنفيذ ذاتي' ? (selectedJobOrder.unit_price || 0) : '',
-                                        total_price: selectedJobOrder.execution_type === 'تنفيذ ذاتي' ? ((selectedJobOrder.assigned_qty || 1) * (selectedJobOrder.unit_price || 0)) : 0,
-                                        boq_id: selectedJobOrder.boq_budget_id
+                                        item_name: jo.boq_budget?.work_item || jo.notes || 'بند مصروف',
+                                        quantity: 1,
+                                        unit_price: '',
+                                        total_price: 0,
+                                        boq_id: jo.boq_budget_id
                                     });
                                 }
-                                
-                                setRecord({ 
-                                    ...record, 
-                                    job_order_id: e.target.value || null,
-                                    lines_data: newLines.length > 0 ? newLines : record?.lines_data
-                                });
-                            }}
-                            style={{ 
-                                cursor: (record?.project_id && record?.payee_id) ? 'pointer' : 'not-allowed', 
-                                height: '2.9375rem',
-                                opacity: (record?.project_id && record?.payee_id) ? 1 : 0.6,
-                                appearance: 'none',
-                                paddingRight: '1.875rem',
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                                whiteSpace: 'nowrap'
-                            }}
-                            disabled={!record?.project_id || !record?.payee_id || isLoadingJobOrders}
-                        >
-                            <option value="">
-                                {(!record?.project_id || !record?.payee_id) 
-                                    ? 'اختر العقار والمقاول أولاً' 
-                                    : isLoadingJobOrders 
-                                        ? 'جاري التحميل...' 
-                                        : jobOrders.length === 0 
-                                            ? 'لا توجد أوامر شغل' 
-                                            : '-- اختر أمر الشغل --'}
-                            </option>
-                            
-                            {/* 🚀 فك البيانات المدمجة وإظهار الاسم الحقيقي */}
-                            {jobOrders.map((jo) => {
-                                const boq = Array.isArray(jo.boq_budget) ? jo.boq_budget[0] : (jo.boq_budget || {});
-                                const itemName = boq?.item_name || boq?.description || boq?.work_item || jo.notes || '';
-                                const fullText = itemName ? `أمر رقم (${jo.order_number}) - ${itemName}` : `أمر رقم (${jo.order_number})`;
-                                
-                                return (
-                                    <option key={jo.id} value={jo.id} title={fullText}>
-                                        {fullText}
-                                    </option>
-                                );
+                                return { ...prev, job_order_id: id, lines_data: newLines.length > 0 ? newLines : prev?.lines_data };
                             })}
-                        </select>
-                        <div style={{ position: 'absolute', left: '0.9375rem', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
-                            {isLoadingJobOrders ? <span style={{ fontSize: 'var(--fs-sm)', color: THEME.accent }}><Hourglass size={14} aria-hidden="true" /></span> : <span style={{ fontSize: 'var(--fs-sm)', color: THEME.primary }}>▼</span>}
-                        </div>
+                        />
                     </div>
                 </div>
 

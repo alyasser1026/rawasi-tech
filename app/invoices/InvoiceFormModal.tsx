@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/toast-context'; 
 import SmartCombo from '@/components/SmartCombo'; 
 import PhiDialog from '@/components/PhiDialog';
+import JobOrderSelector, { JobOrderOption } from '@/components/JobOrderSelector';
 import { FileText, Landmark, ListPlus, Percent, Plus, ReceiptText, Save, Trash2, X } from 'lucide-react';
 
 // --- [المودال الرئيسي للفاتورة] ---
@@ -19,8 +20,9 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         let needsUpdate = false;
 
         // أ. الفاتورة الجديدة
-        if (!record.invoice_number) {
-            updates.invoice_number = `INV-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+        // الرقم التسلسلي بيتحدد في قاعدة البيانات لحظة الحفظ (INV-السنة-0001)
+        if (!record.id && !record.defaults_applied) {
+            updates.defaults_applied = true;
             updates.date = record.date || new Date().toISOString();
             updates.tax_acc_id = record.tax_acc_id || '990c949c-5f32-40d7-8d36-5fe45a6c892c'; 
             updates.materials_acc_id = record.materials_acc_id || '85e61a6a-8c85-4219-a733-3b2180dfe043';
@@ -58,12 +60,10 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
     // 🚀 2. الحسابات الفورية
     useEffect(() => {
         if (!record) return; 
-        const qty = Number(record.quantity || 0);
-        const price = Number(record.unit_price || 0);
         
-        // 💡 بيجمع السعر المكتوب حالياً + البنود المضافة في الجدول
+        // 💡 الإجمالي من البنود المدرجة في الجدول بس (كل بند مربوط بأمر شغل)
         const linesTotal = (record.lines || []).reduce((sum: number, line: any) => sum + (Number(line.quantity) * Number(line.unit_price)), 0);
-        const lineTotal = (qty * price) + linesTotal;
+        const lineTotal = linesTotal;
         
         const materialsDiscount = Number(record.materials_discount || 0);
         const taxableAmount = lineTotal - materialsDiscount;
@@ -102,6 +102,10 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
     // 🚀 دالة إضافة البيان للجدول
     const handleAddStatement = (e: React.MouseEvent) => {
         e.preventDefault();
+        if (!record.line_job_order_id) {
+            showToast("اختار الفيلا وأمر الشغل الأول", "warning");
+            return;
+        }
         if (!record.description) {
             showToast("يرجى إدخال البيان التفصيلي أولاً", "warning");
             return;
@@ -112,7 +116,11 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         }
 
         const newStatement = {
-            boq_id: record.boq_id || null,
+            job_order_id: record.line_job_order_id,
+            order_number: record.line_order_number || '',
+            project_id: record.line_project_id || null,
+            project_name: record.line_project_name || '',
+            boq_budget_id: record.line_boq_budget_id || null,
             description: record.description,
             quantity: Number(record.quantity),
             unit: record.unit || 'عدد',
@@ -120,15 +128,52 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             total_price: Number(record.quantity) * Number(record.unit_price)
         };
 
+        // فيلا البند بتتضاف لفيلات الفاتورة لو مش موجودة
+        const selected = record.selected_projects || [];
+        const nextProjects = record.line_project_id && !selected.some((c: any) => c.id === record.line_project_id)
+            ? [...selected, { id: record.line_project_id, Property: record.line_project_name }]
+            : selected;
+
         setRecord({
             ...record,
             lines: [...(record.lines || []), newStatement],
-            // تصفير الخانات المكتوبة بعد ما نزلناهم في الجدول
+            selected_projects: nextProjects,
+            project_ids: nextProjects.map((c: any) => c.id),
+            // تصفير خانات البند بعد ما نزل في الجدول (الفيلا بتفضل عشان البند اللي بعده)
             description: '',
             quantity: '',
             unit_price: '',
-            boq_id: null
+            line_job_order_id: null,
+            line_order_number: '',
+            line_boq_budget_id: null
         });
+    };
+
+    // 🚀 اختيار أمر الشغل للبند: الوصف = بند المقايسة، الكمية = المتبقي من الأمر بعد الفواتير التانية، السعر = سعر العقد
+    const pickLineJobOrder = async (id: string | null, jo: JobOrderOption | null) => {
+        if (!id || !jo) {
+            setRecord((prev: any) => ({ ...prev, line_job_order_id: null, line_order_number: '', line_boq_budget_id: null }));
+            return;
+        }
+        let invoicedQty = 0;
+        const { data } = await supabase.from('invoices').select('id, lines_data').contains('lines_data', [{ job_order_id: id }]);
+        (data || []).filter((inv: any) => inv.id !== record.id).forEach((inv: any) => {
+            (Array.isArray(inv.lines_data) ? inv.lines_data : []).forEach((l: any) => { if (l?.job_order_id === id) invoicedQty += Number(l.quantity || 0); });
+        });
+        (record.lines || []).forEach((l: any) => { if (l?.job_order_id === id) invoicedQty += Number(l.quantity || 0); });
+        const assigned = Number(jo.assigned_qty ?? jo.boq_budget?.contract_quantity ?? 0);
+        const remaining = Math.max(assigned - invoicedQty, 0);
+        if (assigned > 0 && remaining === 0) showToast(`أمر الشغل ${jo.order_number} اتفوتر بالكامل (${assigned})`, 'warning');
+        setRecord((prev: any) => ({
+            ...prev,
+            line_job_order_id: id,
+            line_order_number: jo.order_number,
+            line_boq_budget_id: jo.boq_budget_id,
+            description: jo.boq_budget?.work_item || jo.notes || prev.description || '',
+            unit: jo.boq_budget?.unit || prev.unit,
+            quantity: remaining || '',
+            unit_price: jo.boq_budget?.unit_contract_price ?? prev.unit_price
+        }));
     };
 
     // 🚀 دالة حذف البيان من الجدول
@@ -145,6 +190,18 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         }
         if (!record.partner_id) {
             showToast("يرجى اختيار العميل (البارتنر) أولاً", "warning");
+            return;
+        }
+        if ((record.lines || []).length === 0) {
+            showToast("أدرج بند واحد على الأقل (فيلا + أمر شغل) قبل الحفظ", "warning");
+            return;
+        }
+        if ((record.lines || []).some((line: any) => !line.job_order_id)) {
+            showToast("في بنود قديمة من غير أمر شغل؛ احذفها وأدرجها تاني من أمر الشغل", "warning");
+            return;
+        }
+        if (record.line_job_order_id || Number(record.quantity || 0) > 0) {
+            showToast("في بند مكتوب ولسه ما اتدرجش؛ اضغط «إدراج البند في الفاتورة» أو امسحه", "warning");
             return;
         }
         if (Number(record.total_amount) <= 0 && Number(record.line_total) <= 0) {
@@ -183,7 +240,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                 <div className="ent-form-grid cols-3">
                     <div className="ent-form-field"><label htmlFor="inv-date">تاريخ الفاتورة</label><input id="inv-date" type="date" value={record.date?.split('T')[0] ?? ''} onChange={(e) => setRecord({ ...record, date: e.target.value })} /></div>
                     <div className="ent-form-field"><label htmlFor="inv-due">فترة السداد (بالأيام)</label><input id="inv-due" type="number" min="0" placeholder="مثلاً: 30" value={record.due_in_days ?? ''} onChange={(e) => setRecord({ ...record, due_in_days: e.target.value })} />{record.due_date && <span className="ent-field-note">تاريخ الاستحقاق: {new Date(record.due_date).toLocaleDateString('ar-EG')}</span>}</div>
-                    <div className="ent-form-field"><label htmlFor="inv-number">رقم الفاتورة (تلقائي)</label><input id="inv-number" type="text" value={record.invoice_number ?? ''} readOnly dir="ltr" /></div>
+                    <div className="ent-form-field"><label htmlFor="inv-number">رقم الفاتورة (تلقائي)</label><input id="inv-number" type="text" value={record.invoice_number ?? ''} placeholder="يتحدد عند الحفظ" readOnly dir="ltr" /></div>
                     <div className="ent-form-field">
                         <SmartCombo label="العميل" table="partners" searchCols="name,code" displayCol="name"
                             initialDisplay={record.client_name || record.partners?.name || ''}
@@ -211,11 +268,19 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             <section className="ent-form-section">
                 <h3><ListPlus size={17} aria-hidden="true" />بنود الفاتورة <span className="ent-muted">{lines.length.toLocaleString('ar-EG')} بند</span></h3>
                 <div className="ent-form-grid cols-3">
-                    <div className="ent-form-field ent-form-full">
-                        <SmartCombo label="البند من المقايسة (BOQ)" table="boq_items" searchCols="item_name,item_code" displayCol="item_name"
-                            initialDisplay={record.description || ''}
-                            onSelect={(b: any) => setRecord({ ...record, boq_id: b?.id || null, description: b?.item_name || '', unit: b?.unit_of_measure || record.unit, unit_price: b?.price || record.unit_price })}
+                    <div className="ent-form-field">
+                        <SmartCombo key={`line-villa-${record.line_project_id || 'empty'}`} label="الفيلا" table="projects" searchCols="Property,project_name,project_code" displayCol="Property"
+                            initialDisplay={record.line_project_name || ''}
+                            onSelect={(p: any) => setRecord({ ...record, line_project_id: p?.id || null, line_project_name: p?.Property || '', line_job_order_id: null, line_order_number: '', line_boq_budget_id: null })}
                             enableClear={true} />
+                    </div>
+                    <div className="ent-form-field" style={{ gridColumn: 'span 2' }}>
+                        {/* الفيلا ← أوامر الشغل بتاعتها؛ اختيار الأمر بينزّل بنده وكميته المتبقية وسعر العقد */}
+                        <JobOrderSelector
+                            projectId={record.line_project_id || null}
+                            value={record.line_job_order_id || null}
+                            onChange={(id, jo) => pickLineJobOrder(id, jo || null)}
+                        />
                     </div>
                     <div className="ent-form-field ent-form-full"><label htmlFor="inv-desc">البيان التفصيلي</label><textarea id="inv-desc" rows={2} value={record.description ?? ''} onChange={(e) => setRecord({ ...record, description: e.target.value })} /></div>
                     <div className="ent-form-field"><label htmlFor="inv-qty">الكمية</label><input id="inv-qty" type="number" min="0" value={record.quantity ?? ''} onChange={(e) => setRecord({ ...record, quantity: e.target.value })} /></div>
@@ -234,7 +299,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                         <thead><tr><th>م</th><th>البيان</th><th className="is-num">الكمية</th><th>الوحدة</th><th className="is-num">السعر</th><th className="is-num">الإجمالي</th><th><span className="sr-only">إجراء</span></th></tr></thead>
                         <tbody>{lines.map((line: any, idx: number) => <tr key={idx}>
                             <td>{(idx + 1).toLocaleString('ar-EG')}</td>
-                            <td>{line.description}</td>
+                            <td>{line.description}{(line.order_number || line.project_name) && <span className="ent-field-note">{[line.project_name, line.order_number && `أمر ${line.order_number}`].filter(Boolean).join(' · ')}</span>}</td>
                             <td className="is-num">{line.quantity}</td>
                             <td>{line.unit}</td>
                             <td className="is-num">{formatCurrency(line.unit_price)}</td>

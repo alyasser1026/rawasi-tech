@@ -3,6 +3,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Banknote, X, Save, Info, CircleAlert, UserRound, Landmark, FileText } from 'lucide-react';
 import SmartCombo from '@/components/SmartCombo';
+import JobOrderSelector from '@/components/JobOrderSelector';
 import { formatCurrency } from '@/lib/helpers';
 import { useDialogFocus } from '@/hooks/useDialogFocus';
 
@@ -33,8 +34,8 @@ export default function PaymentVoucherModal({ isOpen, onClose, record, setRecord
           <div className="ent-form-divider"/>
           <section className="ent-form-section"><h3><UserRound size={17}/>المستفيد وبيان السداد</h3><div className="ent-form-grid">
             <div className="ent-form-field ent-form-full"><SmartCombo label="المستفيد / المستلم المباشر" table="partners" displayCol="name" initialDisplay={record.payee_name || ''} onSelect={value => setRecord({ ...record, payee_name: value?.name || '', payee_id: value?.id || null })} allowAddNew/></div>
-            <div className="ent-form-field"><SmartCombo label="المشروع / مركز التكلفة" table="projects" displayCol="Property" initialDisplay={record.site_ref || ''} onSelect={value => setRecord({ ...record, site_ref: value?.Property || '' })}/></div>
-            <div className="ent-form-field"><SmartCombo label="أمر الشغل" table="job_orders" displayCol="order_number" searchCols="order_number,notes" initialDisplay={record.job_order_number || ''} customQuery={query => query.select('*, boq_budget:boq_budget_id(work_item), projects:project_id(Property)')} displayFormat={item => `${item.order_number} (${item.projects?.Property || 'مشروع'} - ${item.boq_budget?.work_item || 'بدون بند'})`} onSelect={value => setRecord({ ...record, job_order_id: value?.id || null, job_order_number: value?.order_number || '', site_ref: record.site_ref || value?.projects?.Property || '' })}/></div>
+            <div className="ent-form-field"><SmartCombo label="الفيلا / مركز التكلفة" table="projects" displayCol="Property" initialDisplay={record.site_ref || ''} onSelect={value => setRecord({ ...record, site_ref: value?.Property || '', project_ids: value?.id ? [value.id] : [], job_order_id: null, job_order_number: '' })}/></div>
+            <div className="ent-form-field">{/* الفيلا ← أوامر الشغل بتاعتها: الصرف بيتحمّل على أمر الشغل */}<JobOrderSelector projectId={record.project_ids?.[0] || null} value={record.job_order_id || null} onChange={(jobOrderId, jo) => setRecord((prev: any) => ({ ...prev, job_order_id: jobOrderId, job_order_number: jo?.order_number || '' }))} required={Boolean(record.project_ids?.[0])}/></div>
             <div className="ent-form-field ent-form-full"><label htmlFor={`${id}-description`}>بيان السند</label><textarea id={`${id}-description`} placeholder="اكتب وصفًا واضحًا لسبب الصرف…" value={record.description || ''} onChange={event => setRecord({ ...record, description: event.target.value })}/></div>
           </div>
           {record.payee_id && <div className="ent-balance"><span>رصيد المستفيد قبل الصرف</span>{isBalanceLoading ? <span>جاري الحساب…</span> : <strong>{formatCurrency(Math.abs(partnerBalance))} {partnerBalance > 0 ? '(مستحق له)' : partnerBalance < 0 ? '(مدين — عليه)' : '(رصيد صفر)'}</strong>}{!isBalanceLoading && hasBalance && amount > 0 && <span>نسبة السداد: {percentage.toFixed(1)}%</span>}</div>}

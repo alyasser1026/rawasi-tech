@@ -104,6 +104,9 @@ export function useReceiptVouchersLogic() {
             const amount = Number(record.amount || 0);
             
             if (amount <= 0) throw new Error("يجب أن يكون المبلغ أكبر من صفر");
+            if ((record.project_ids || []).length > 0 && !cleanId(record.job_order_id)) {
+                throw new Error("يرجى اختيار أمر الشغل عشان التحصيل يتسجل عليه");
+            }
 
             const voucherData = {
                 receipt_number: record.receipt_number || `RV-${Date.now()}`, 
@@ -113,6 +116,7 @@ export function useReceiptVouchersLogic() {
                 invoice_id: cleanId(record.invoice_id),
                 partner_id: cleanId(record.partner_id),
                 project_ids: record.project_ids || null,
+                job_order_id: cleanId(record.job_order_id),
                 safe_bank_acc_id: cleanId(record.safe_bank_acc_id),
                 partner_acc_id: cleanId(record.partner_acc_id),
                 reference_number: record.reference_number || null,

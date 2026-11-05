@@ -242,7 +242,8 @@ export function useJobOrdersLogic() {
             }
 
             const cleanId = (id: any) => (id && typeof id === 'string' && id.trim() !== '') ? id : null;
-            const uniqueOrderNumber = record.order_number || `JO-${Math.floor(Date.now() / 1000)}`;
+            // الرقم الجديد بيتحدد في قاعدة البيانات (JO-السنة-0001)؛ الأمر المحفوظ بيفضل برقمه
+            const uniqueOrderNumber = record.order_number || null;
 
             const payload = {
                 order_number: uniqueOrderNumber,

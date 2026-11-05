@@ -39,6 +39,7 @@ export function useMaterialIssuesLogic() {
 
     const initialIssueState = {
         project_id: '',
+        job_order_id: null,
         subcontractor_id: '',
         issue_type: 'صرف لمقاول',
         issue_date: new Date().toISOString().split('T')[0],
@@ -58,7 +59,7 @@ export function useMaterialIssuesLogic() {
                     id, boq_item_id, item_name, quantity, unit, unit_price, total_price, boq_id,
                     boq:boq_budget!material_issue_lines_boq_id_fkey(work_item),
                     issue:material_issues!material_issue_lines_issue_id_fkey (
-                        id, issue_number, issue_date, issue_type, is_posted, notes, project_id, subcontractor_id, contractor_text_name, created_at,
+                        id, issue_number, issue_date, issue_type, is_posted, notes, project_id, job_order_id, subcontractor_id, contractor_text_name, created_at,
                         project:projects!material_issues_project_id_fkey(Property),
                         subcontractor:partners!material_issues_subcontractor_id_fkey(name)
                     )
@@ -84,6 +85,7 @@ export function useMaterialIssuesLogic() {
                 notes: line.issue?.notes,
                 is_posted: line.issue?.is_posted,
                 project_id: line.issue?.project_id,
+                job_order_id: line.issue?.job_order_id,
                 project_name: line.issue?.project?.Property,
                 subcontractor_id: line.issue?.subcontractor_id,
                 subcontractor_name: line.issue?.subcontractor?.name,
@@ -102,6 +104,7 @@ export function useMaterialIssuesLogic() {
             const master = linesToEdit[0];
             setIssueData({
                 project_id: master.project_id,
+                job_order_id: master.job_order_id || null,
                 subcontractor_id: master.subcontractor_id,
                 issue_type: master.issue_type,
                 issue_date: master.issue_date,
@@ -170,6 +173,7 @@ export function useMaterialIssuesLogic() {
                 }
             }
             if (!issueData.project_id) throw new Error("يرجى اختيار المشروع الصارف");
+            if (!issueData.job_order_id) throw new Error("يرجى اختيار أمر الشغل عشان الخامات تتحمّل عليه");
             if (issueData.issue_type === 'صرف لمقاول' && !issueData.subcontractor_id) throw new Error("يرجى اختيار المقاول المستلم");
 
             for (const item of issueData.items) {
@@ -190,6 +194,7 @@ export function useMaterialIssuesLogic() {
                 
                 const { error: hErr } = await supabase.from('material_issues').update({
                     project_id: issueData.project_id,
+                    job_order_id: issueData.job_order_id || null,
                     subcontractor_id: issueData.issue_type === 'صرف لمقاول' ? issueData.subcontractor_id : null,
                     issue_date: issueData.issue_date,
                     issue_type: issueData.issue_type,
@@ -202,6 +207,7 @@ export function useMaterialIssuesLogic() {
                 const { data: head, error: hErr } = await supabase.from('material_issues').insert([{
                     issue_number: `ISS-${Date.now().toString().slice(-6)}`,
                     project_id: issueData.project_id,
+                    job_order_id: issueData.job_order_id || null,
                     subcontractor_id: issueData.issue_type === 'صرف لمقاول' ? issueData.subcontractor_id : null,
                     issue_date: issueData.issue_date,
                     issue_type: issueData.issue_type,
@@ -224,7 +230,7 @@ export function useMaterialIssuesLogic() {
                 total_price: Number(i.total_price) || 0,
                 boq_id: i.boq_id || null,
                 boq_item_id: i.boq_item_id || null, // 🚀
-                job_order_id: i.job_order_id || null
+                job_order_id: issueData.job_order_id || i.job_order_id || null
             }));
             const { error: lErr } = await supabase.from('material_issue_lines').insert(lines);
             if (lErr) throw lErr;

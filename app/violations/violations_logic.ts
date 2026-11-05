@@ -146,18 +146,22 @@ export function useViolationsLogic() {
             }
             const { partner, project, debit_acc, credit_acc, ...cleanPayload } = payload;
             
-            // حساب المدين ثابت دايماً: (رواتب وأجور مستحقة)
-            const FIXED_DEBIT_ID = '39f878cd-dc58-4a2a-a199-50f6fca983d4'; 
-            
-            // تحديد حساب الدائن حسب نوع الحركة
-            let dynamicCreditId = '25998af5-dca4-4512-8f1a-3d0f9c6b8e98'; // الافتراضي: إيراد خصومات وجزاءات (46)
-            
-            if (cleanPayload.violation_type === 'استقطاع سكن') {
-                dynamicCreditId = 'dd728251-aec7-4d2f-939a-4985d93f2966'; // إيرادات استرداد مصاريف السكن (45)
-            } else if (cleanPayload.violation_type === 'سداد سلفة عمالة') {
-                dynamicCreditId = 'bcf3c593-4058-400e-8ee9-f38255d405b9'; // سلف عمالة الموقع (127)
-            } else if (cleanPayload.violation_type === 'سداد سلفة موظفين') {
-                dynamicCreditId = '31c9923a-3629-4f3f-b661-b86df51c8e09'; // سلف موظفين الشركة (128)
+            if (cleanPayload.project_id && !cleanPayload.job_order_id) {
+                throw new Error("يرجى اختيار أمر الشغل عشان الجزاء يتحمّل عليه");
+            }
+
+            // الحسابات بالكود جوه الشركة المفتوحة (مش أرقام ثابتة من شركة واحدة):
+            // المدين دايماً 216 (رواتب وأجور مستحقة)، والدائن حسب نوع الحركة
+            const creditCode = cleanPayload.violation_type === 'استقطاع سكن' ? '45'      // إيرادات استرداد مصاريف السكن
+                : cleanPayload.violation_type === 'سداد سلفة عمالة' ? '127'             // سلف عمالة الموقع
+                : cleanPayload.violation_type === 'سداد سلفة موظفين' ? '128'            // سلف موظفين الشركة
+                : '46';                                                                 // إيراد خصومات وجزاءات
+            const { data: accs, error: accErr } = await supabase.from('accounts').select('id, code').in('code', ['216', creditCode]);
+            if (accErr) throw accErr;
+            const FIXED_DEBIT_ID = accs?.find((a: any) => a.code === '216')?.id;
+            const dynamicCreditId = accs?.find((a: any) => a.code === creditCode)?.id;
+            if (!FIXED_DEBIT_ID || !dynamicCreditId) {
+                throw new Error(`الحساب رقم ${!FIXED_DEBIT_ID ? '216' : creditCode} مش موجود في دليل حسابات الشركة المفتوحة`);
             }
 
             const finalPayload = {

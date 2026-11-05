@@ -7,6 +7,7 @@ import { formatCurrency } from '@/lib/helpers';
 import { usePermissions } from '@/lib/PermissionsContext'; 
 import SecureAction from '@/components/SecureAction';      
 import SmartCombo from '@/components/SmartCombo'; 
+import JobOrderSelector from '@/components/JobOrderSelector';
 import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import RawasiSmartTable from '@/components/rawasismarttable';
@@ -286,9 +287,18 @@ export default function ViolationsPage() {
                     table="projects"
                     displayCol="Property"
                     initialDisplay={logic.state.editingRecord.site_name} 
-                    onSelect={(v:any) => logic.state.setEditingRecord({...logic.state.editingRecord, site_name: v?.Property, project_id: v?.id})} 
+                    onSelect={(v:any) => logic.state.setEditingRecord({...logic.state.editingRecord, site_name: v?.Property, project_id: v?.id, job_order_id: null})} 
                 />
               </div>
+            </div>
+
+            <div style={{ marginBottom: '1.25rem', position: 'relative', zIndex: 80 }}>
+              {/* الفيلا ← أوامر الشغل بتاعتها: الجزاء بيتحمّل على أمر الشغل */}
+              <JobOrderSelector
+                  projectId={logic.state.editingRecord.project_id || null}
+                  value={logic.state.editingRecord.job_order_id || null}
+                  onChange={(id) => logic.state.setEditingRecord((prev: any) => ({ ...prev, job_order_id: id }))}
+              />
             </div>
 
             <div style={{ marginBottom: '1.25rem' }}>

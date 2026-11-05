@@ -29,12 +29,7 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                 .eq('job_order_id', targetId)
                 .order('trans_date', { ascending: false });
 
-            // 2. جلب المصروفات المباشرة (اللي مربوطة بـ job_order_id مباشرة)
-            const { data: directExpenses } = await supabase
-                .from('expenses')
-                .select('exp_date, description, total_price')
-                .eq('job_order_id', targetId)
-                .eq('is_deleted', false);
+            // 2. المصروفات المربوطة بأمر الشغل جاية من الفيو نفسه (مرة واحدة، من غير المحذوف)
 
             // 3. 🚀 جلب "التحميل المالي" (المصروفات العامة الموزعة) من الفيو الجديد
             const { data: allocatedOverheads } = await supabase
@@ -45,13 +40,6 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
             // دمج كل الداتا في مصفوفة واحدة
             const allLedger = [
                 ...(ledger || []),
-                ...(directExpenses || []).map(e => ({
-                    trans_date: e.exp_date,
-                    trans_desc: e.description,
-                    amount: e.total_price,
-                    trans_type: 'مصروفات نثرية',
-                    qty: 1
-                })),
                 ...(allocatedOverheads || []).map(ao => ({
                     trans_date: ao["تاريخ المصروف الأصلي"],
                     trans_desc: `[تحميل مالي] ${ao["البيان / الوصف"]} (${ao["آلية التوزيع"]})`,
@@ -140,6 +128,8 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
     const materialsTotal = ledgerData.filter(d => d.trans_type === 'خامات مصروفة').reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const expensesTotal = ledgerData.filter(d => d.trans_type === 'مصروفات نثرية').reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const laborTotal = ledgerData.filter(d => d.trans_type === 'يوميات عمالة').reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    // الجزاءات بتنقص التكلفة؛ الفواتير والتحصيل للمتابعة (مش تكلفة)
+    const penaltiesTotal = ledgerData.filter(d => d.trans_type === 'جزاءات').reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const directExpensesTotal = ledgerData.filter(d => d.trans_type === 'مصروفات نثرية' && !String(d.trans_desc).includes('[تحميل مالي]')).reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const allocatedExpensesTotal = ledgerData.filter(d => d.trans_type === 'مصروفات نثرية' && String(d.trans_desc).includes('[تحميل مالي]')).reduce((sum, item) => sum + Number(item.amount || 0), 0);
     
@@ -225,6 +215,9 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
         { id: 'مصروفات نثرية', label: 'مصروفات' },
         { id: 'دفعات مقاولين', label: 'المستخلصات (سداد وخصم)' },
         { id: 'يوميات عمالة', label: 'العمالة' },
+        { id: 'جزاءات', label: 'الجزاءات' },
+        { id: 'فواتير', label: 'الفواتير' },
+        { id: 'سندات قبض', label: 'التحصيل' },
     ];
 
     const modalContent = (
@@ -303,7 +296,7 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                             <div style={{ background: 'rgba(244, 63, 94, 0.1)', padding: '0.9375rem', borderRadius: '15px', border: '1px solid rgba(244, 63, 94, 0.3)', backdropFilter: 'blur(10px)', boxShadow: '0 10px 30px rgba(244, 63, 94, 0.1)' }}>
                                 <div style={{ fontSize: 'var(--fs-xs)', color: '#fda4af', fontWeight: 800 }}>إجمالي التكلفة الحقيقية</div>
                                 <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, marginTop: '0.5rem', color: '#f43f5e' }}>
-                                    {formatCurrency(materialsTotal + directExpensesTotal + allocatedExpensesTotal + (isSubcontractor ? (paymentsTotal + advanceTotal + retentionTotal) : laborTotal))}
+                                    {formatCurrency(materialsTotal + directExpensesTotal + allocatedExpensesTotal + (isSubcontractor ? (paymentsTotal + advanceTotal + retentionTotal) : laborTotal - penaltiesTotal))}
                                 </div>
                             </div>
 
