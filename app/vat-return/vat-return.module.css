@@ -1,0 +1,31 @@
+.page { display: grid; gap: 1rem; min-width: 0; }
+.controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; align-items: end; gap: 0.875rem; padding: var(--space-card, 1rem); }
+.reportHeading { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.25rem; color: var(--text-secondary); font-size: var(--fs-sm); }
+.reportHeading strong { color: var(--text-primary); }
+.reviewNotice { display: flex; align-items: flex-start; gap: 0.625rem; margin: 0; padding: 0.75rem 1rem; border-radius: 0.75rem; background: var(--surface-subcard); color: var(--text-primary); font-size: var(--fs-sm); }
+.reviewNotice svg { color: var(--accent-main); flex: 0 0 auto; }
+.reconciliation { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 0.875rem; padding: var(--space-card, 1rem); margin: 0; }
+.reconciliation div { background: var(--surface-subcard); border-radius: 0.625rem; padding: 0.75rem; }
+.reconciliation dt { color: var(--text-secondary); font-size: var(--fs-sm); }
+.reconciliation dd { margin: 0.375rem 0 0; font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
+.journalDetails { padding: 0 var(--space-card, 1rem) var(--space-card, 1rem); }
+.journalDetails summary { cursor: pointer; font-weight: 700; padding-block: 0.75rem; }
+.boxTable { min-width: 40rem; }
+.auditTable { min-width: 62rem; }
+.auditDetail { display: block; color: var(--text-secondary); margin-block-start: 0.25rem; overflow-wrap: anywhere; min-width: 7rem; }
+.empty { margin: 0; padding: var(--space-card, 1rem); color: var(--text-secondary); }
+
+@media (max-width: 760px) {
+  .controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media print {
+  @page { size: A4 portrait; margin: 10mm; }
+  .page { color: #111; gap: 0.5rem; }
+  .boxTable { min-width: 0; }
+  .boxTable th, .boxTable td { color: #111 !important; font-size: 9pt !important; padding: 4px 5px !important; }
+  .boxTable tr, .reconciliation div { break-inside: avoid; }
+  .reportHeading, .reportHeading strong, .reviewNotice, .reconciliation dt, .reconciliation dd { color: #111; }
+  .reviewNotice, .reconciliation div { border: 1px solid #b7b7b7; background: #fff; }
+  .boxTable span { color: #111 !important; background: transparent !important; white-space: normal; }
+}

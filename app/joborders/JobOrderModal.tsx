@@ -246,6 +246,21 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                         <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.375rem' }}>ملاحظات العمل</label>
                         <textarea value={record.notes ?? ''} onChange={(e) => setRecord({...record, notes: e.target.value})} className="glass-input-field" style={{ height: '4.375rem', resize: 'none' }} placeholder="شروط التنفيذ أو ملاحظات فنية..." />
                     </div>
+
+                    <div>
+                        <label htmlFor="job-order-retention-percent" style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.375rem' }}>نسبة ضمان الأعمال (%)</label>
+                        <input
+                            id="job-order-retention-percent"
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={record.retention_percent ?? ''}
+                            onChange={(e) => setRecord({ ...record, retention_percent: e.target.value })}
+                            className="glass-input-field"
+                            placeholder="غير محددة"
+                        />
+                    </div>
                 </div>
 
                 {/* Summary Grid */}

@@ -5,6 +5,7 @@ import { useInvoicesLogic } from './invoices_logic';
 import { THEME } from '@/lib/theme';
 import { formatCurrency, getInvoiceSummaryAndAging } from '@/lib/helpers'; 
 import { usePermissions } from '@/lib/PermissionsContext'; 
+import { useCompany } from '@/lib/CompanyContext';
 import SecureAction from '@/components/SecureAction';      
 import MasterPage from '@/components/MasterPage';
 
@@ -17,16 +18,19 @@ import SmartCombo from '@/components/SmartCombo';
 // 🎬 المودالز
 import InvoiceFormModal from './InvoiceFormModal';
 import InvoicePrintModal from './InvoicePrintModal';
+import InvoiceAdjustmentModal from './InvoiceAdjustmentModal';
 import ReceiptVoucherModal from '@/app/ReceiptVouchers/ReceiptVoucherModal';
 import LoadingScreen from '@/components/LoadingScreen';
-import { Printer, Banknote } from 'lucide-react';
+import { Printer, Banknote, FilePlus2 } from 'lucide-react';
 
 export default function InvoicesPage() {
   const logic = useInvoicesLogic(); 
   const { can, loading: permsLoading } = usePermissions();
+  const { activeCompanyId } = useCompany();
 
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [printData, setPrintData] = useState(null);
+  const [adjustmentInvoice, setAdjustmentInvoice] = useState<{ invoiceId: string; companyId: string } | null>(null);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -139,12 +143,15 @@ export default function InvoicesPage() {
       label: 'تفاصيل المبالغ (قبل الصافي)',
       render: (row: any) => {
         if (!row) return null;
+        const netAdj = Number(row.net_adjustment || 0);
+        const guarPctLabel = Number(row.guarantee_percent) > 0 ? ` (${row.guarantee_percent}%)` : '';
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: 'var(--fs-xs)', fontWeight: 700, textAlign: 'right' }}>
              <span style={{ color: '#334155' }}>الخاضع: {formatCurrency(row.taxable_amount)}</span>
-             {Number(row.materials_discount) > 0 && <span style={{ color: '#ef4444' }}>خصم مواد: -{formatCurrency(row.materials_discount)}</span>}
              {Number(row.tax_amount) > 0 && <span style={{ color: '#0ea5e9' }}>ضريبة (15%): +{formatCurrency(row.tax_amount)}</span>}
-             {Number(row.guarantee_amount) > 0 && <span style={{ color: '#f59e0b' }}>ضمان ({row.guarantee_percent}%): -{formatCurrency(row.guarantee_amount)}</span>}
+             {Number(row.guarantee_amount) > 0 && <span style={{ color: '#f59e0b' }}>ضمان{guarPctLabel}: -{formatCurrency(row.guarantee_amount)}</span>}
+             {Number(row.materials_discount) > 0 && <span style={{ color: '#ef4444' }}>{row.line_accounting ? 'تسوية خامات' : 'خصم مواد'}: -{formatCurrency(row.materials_discount)}</span>}
+             {netAdj !== 0 && <span style={{ color: netAdj < 0 ? '#dc2626' : '#7c3aed' }}>إشعارات: {netAdj > 0 ? '+' : ''}{formatCurrency(netAdj)}</span>}
           </div>
         );
       }
@@ -153,8 +160,15 @@ export default function InvoicesPage() {
       key: 'total_amount',
       label: 'الإجمالي الصافي', 
       render: (row: any) => {
-        if (!row) return null; 
-        return <span style={{ fontWeight: 900, color: THEME.brand?.gold || '#d97706', fontSize: 'var(--fs-lg)' }}>{formatCurrency(row.total_amount)}</span>;
+        if (!row) return null;
+        const effectiveTotal = row.effective_total != null ? Number(row.effective_total) : Number(row.total_amount || 0);
+        const netAdj = Number(row.net_adjustment || 0);
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            <span style={{ fontWeight: 900, color: THEME.brand?.gold || '#d97706', fontSize: 'var(--fs-lg)' }}>{formatCurrency(effectiveTotal)}</span>
+            {netAdj !== 0 && <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b' }}>الأصل: {formatCurrency(row.total_amount)}</span>}
+          </div>
+        );
       } 
     },
     {
@@ -162,9 +176,9 @@ export default function InvoicesPage() {
       label: 'السداد',
       render: (row: any) => {
         if (!row) return null; 
-        const total = Number(row.total_amount || 0);
-        const paid = Number(row.paid_amount || 0);
-        const remaining = total - paid;
+        const total = row.effective_total != null ? Number(row.effective_total) : Number(row.total_amount || 0);
+        const paid = row.adjusted_paid_amount != null ? Number(row.adjusted_paid_amount) : Number(row.paid_amount || 0);
+        const remaining = row.remaining_amount != null ? Number(row.remaining_amount) : (total - paid);
         
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>
@@ -198,12 +212,15 @@ export default function InvoicesPage() {
       label: 'حالة الدفع',
       render: (row: any) => {
         if (!row) return null; 
-        const total = Number(row.total_amount || 0);
-        const paid = Number(row.paid_amount || 0);
+        const total = row.effective_total != null ? Number(row.effective_total) : Number(row.total_amount || 0);
+        const paid = row.adjusted_paid_amount != null ? Number(row.adjusted_paid_amount) : Number(row.paid_amount || 0);
+        const remaining = row.remaining_amount != null ? Number(row.remaining_amount) : (total - paid);
+        const netAdj = Number(row.net_adjustment || 0);
         
-        // 🚀 حالات الدفع (مكتمل أو بزيادة)
-        if (paid > total && total > 0) return <span className="deadline-badge paid" style={{background: '#e0e7ff', color: '#4f46e5', border: '1px solid #c7d2fe'}}>سداد بزيادة</span>;
-        if (paid === total && total > 0) return <span className="deadline-badge paid">مكتمل</span>;
+        // 🚀 حالات الدفع (مكتمل، ملغى بإشعار دائن، أو بزيادة)
+        if (remaining < 0) return <span className="deadline-badge paid" style={{background: '#e0e7ff', color: '#4f46e5', border: '1px solid #c7d2fe'}}>سداد بزيادة</span>;
+        if (remaining === 0 && total <= 0 && netAdj < 0) return <span className="deadline-badge paid">ملغى بإشعار دائن</span>;
+        if (remaining === 0 && total > 0) return <span className="deadline-badge paid">مكتمل</span>;
         
         if (!row.due_date) return <span style={{color:'#94a3b8', fontWeight: 'bold'}}>---</span>;
         
@@ -224,9 +241,9 @@ export default function InvoicesPage() {
       label: 'الإجراءات',
       render: (row: any) => {
         if (!row) return null; 
-        const total = Number(row.total_amount || 0);
-        const paid = Number(row.paid_amount || 0);
-        const balance = total - paid;
+        const total = row.effective_total != null ? Number(row.effective_total) : Number(row.total_amount || 0);
+        const paid = row.adjusted_paid_amount != null ? Number(row.adjusted_paid_amount) : Number(row.paid_amount || 0);
+        const balance = row.remaining_amount != null ? Number(row.remaining_amount) : (total - paid);
         
         // 🚀 الشرط اللي بيخفي الزرار لو الفاتورة مسددة أو بزيادة
         const needsPayment = balance > 0; 
@@ -236,6 +253,14 @@ export default function InvoicesPage() {
           <div style={{ display: 'flex', gap: '0.625rem', justifyContent: 'center', alignItems: 'center' }}>
             <button onClick={(e) => { e.stopPropagation(); setPrintData(row); setIsPrintModalOpen(true); }} className="btn-glass-print" title="طباعة الفاتورة" style={{ background: 'transparent', border: 'none', cursor: 'pointer', fontSize: 'var(--fs-xl)', transition: '0.2s' }}><Printer size={15} aria-hidden="true" /></button>
             
+            {activeCompanyId && can('invoices', 'view') && (isApproved || ['posted', 'مرحل', 'معتمدة'].includes(row.status)) && (
+              <button type="button" className="ent-icon-button" title="إشعارات الفاتورة" aria-label="عرض الإشعارات الدائنة والمدينة"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  setAdjustmentInvoice({ invoiceId: row.id, companyId: activeCompanyId });
+                }}><FilePlus2 size={16} aria-hidden="true" /></button>
+            )}
+
             {/* 🚀 السحر هنا: دمجنا needsPayment في الشرط عشان يخفي الزرار */}
             {needsPayment && isApproved && logic.handleOpenPaymentModal && (
               <button onClick={(e) => {
@@ -247,7 +272,7 @@ export default function InvoicesPage() {
         );
       }
     }
-  ], [logic.selectedIds, isAllVisibleSelected, currentVisibleIds, logic]);
+  ], [logic.selectedIds, isAllVisibleSelected, currentVisibleIds, logic, activeCompanyId, can]);
 
   // =========================================================================
   // 🎛️ أزرار السايد بار
@@ -388,11 +413,17 @@ export default function InvoicesPage() {
             onClose={() => logic.setIsEditModalOpen(false)} 
             record={logic.currentRecord} 
             setRecord={logic.setCurrentRecord} 
-            onSave={logic.handleSave} 
+            onSave={logic.handleSave}
+            isSaving={logic.isSaving}
             projects={logic.projects} 
           />
       )}
       
+      {mounted && adjustmentInvoice && adjustmentInvoice.companyId === activeCompanyId && (
+        <InvoiceAdjustmentModal key={`${adjustmentInvoice.companyId}-${adjustmentInvoice.invoiceId}`}
+          {...adjustmentInvoice} onClose={() => setAdjustmentInvoice(null)} />
+      )}
+
       {mounted && isPrintModalOpen && (
           <InvoicePrintModal 
             isOpen={true} 

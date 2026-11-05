@@ -219,7 +219,8 @@ export function useJobOrdersLogic() {
         setCurrentRecord({ 
             executor_type: 'تنفيذ ذاتي',
             status: 'مسودة', 
-            start_date: new Date().toISOString().split('T')[0] 
+            start_date: new Date().toISOString().split('T')[0],
+            retention_percent: 10
         }); 
         setIsEditModalOpen(true); 
     };
@@ -241,6 +242,15 @@ export function useJobOrdersLogic() {
                 throw new Error("عفواً، يجب اختيار اسم مقاول الباطن لإتمام الأمر");
             }
 
+            const retentionInput = String(record.retention_percent ?? '').trim();
+            const retentionPercent = retentionInput === '' ? null : Number(retentionInput);
+            if (retentionPercent === null && !record.id) {
+                throw new Error('يرجى إدخال نسبة ضمان الأعمال، أو كتابة صفر إذا لم يوجد ضمان');
+            }
+            if (retentionPercent !== null && (!Number.isFinite(retentionPercent) || retentionPercent < 0 || retentionPercent > 100 || retentionPercent !== Number(retentionPercent.toFixed(2)))) {
+                throw new Error('نسبة ضمان الأعمال يجب أن تكون من 0 إلى 100 وبحد أقصى منزلتين عشريتين');
+            }
+
             const cleanId = (id: any) => (id && typeof id === 'string' && id.trim() !== '') ? id : null;
             // الرقم الجديد بيتحدد في قاعدة البيانات (JO-السنة-0001)؛ الأمر المحفوظ بيفضل برقمه
             const uniqueOrderNumber = record.order_number || null;
@@ -253,6 +263,7 @@ export function useJobOrdersLogic() {
                 contractor_id: record.executor_type === 'مقاول باطن' ? cleanId(record.contractor_id) : null,
                 assigned_qty: qty,
                 unit_price: price,
+                retention_percent: retentionPercent,
                 status: record.status || 'مسودة',
                 start_date: record.start_date || new Date().toISOString().split('T')[0],
                 end_date: record.end_date || null,

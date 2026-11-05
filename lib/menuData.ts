@@ -23,6 +23,7 @@ export const menuGroups = [
             { id: 'revenue', title: 'الإيرادات', icon: '📈', path: '/revenue' }, 
             { id: 'expenses', title: 'المصروفات', icon: '📉', path: '/expenses' }, 
             { id: 'invoices', title: 'الفواتير ومطالبات العملاء', icon: '🧾', path: '/invoices' },
+            { id: 'vat_return', title: 'إقرار ضريبة القيمة المضافة', icon: '📋', path: '/vat-return' },
             { id: 'audit', title: 'المراجعة والتدقيق', icon: '🔍', path: '/audit' },
             { id: 'financialplan', title: 'الخطة المالية', icon: '📅', path: '/financialplan' },
             { id: 'trialbalance', title: 'ميزان المراجعة', icon: '⚖️', path: '/trialbalance' },

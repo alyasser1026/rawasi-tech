@@ -108,6 +108,7 @@ export function useMaterialsLogic() {
         payee_id: '', payee_name: '',
         account_id: '', account_name: '',
         receipt_type: 'توريد شركة',
+        job_order_id: null,
         exp_date: new Date().toISOString().split('T')[0],
         notes: '',
         items: [
@@ -160,6 +161,7 @@ export function useMaterialsLogic() {
                         notes, 
                         status, 
                         receipt_type, 
+                        job_order_id,
                         is_posted, 
                         jv_id, 
                         created_at,
@@ -208,6 +210,7 @@ export function useMaterialsLogic() {
                     status: rec?.status,
                     notes: rec?.notes,
                     receipt_type: rec?.receipt_type, 
+                    job_order_id: rec?.job_order_id,
                     is_posted: isStrictlyPosted, 
                     jv_id: rec?.jv_id 
                 };
@@ -292,16 +295,20 @@ export function useMaterialsLogic() {
         mutationFn: async () => {
             if (invoiceData.id) {
                 const { data: existing } = await supabase.from('material_receipts').select('status, is_posted').eq('id', invoiceData.id).single();
-                if (existing && (existing.status === 'مرحل' || existing.status === 'معتمد' || existing.is_posted)) {
+                if (existing && (existing.status === 'مرحل' || existing.status === 'posted' || existing.is_posted)) {
                     throw new Error("لا يمكن تعديل فاتورة استلام معتمدة. يرجى فك الترحيل أولاً.");
                 }
             }
             const safeProjectId = cleanId(invoiceData.project_id);
             const safePayeeId = cleanId(invoiceData.payee_id);
-            const safeAccountId = cleanId(invoiceData.account_id);
+            const isCustomerReceipt = invoiceData.receipt_type === 'توريد عميل';
+            const safeAccountId = isCustomerReceipt ? null : cleanId(invoiceData.account_id);
+            const safeJobOrderId = isCustomerReceipt ? cleanId(invoiceData.job_order_id) : null;
 
-            if (!safeProjectId || !safePayeeId || !safeAccountId) {
-                throw new Error("يرجى التأكد من اختيار المشروع، المورد، والحساب المالي بشكل صحيح.");
+            if (!safeProjectId || !safePayeeId || (isCustomerReceipt ? !safeJobOrderId : !safeAccountId)) {
+                throw new Error(isCustomerReceipt
+                    ? 'اختار المشروع والعميل وأمر الشغل لاستلام خامات العميل.'
+                    : 'اختار المشروع والمورد والحساب المالي.');
             }
 
             if (!invoiceData.items || invoiceData.items.length === 0) {
@@ -311,8 +318,6 @@ export function useMaterialsLogic() {
             let receiptId = invoiceData.id;
 
             if (receiptId) {
-                await supabase.rpc('rpc_unpost_material', { p_id: receiptId });
-
                 const { error: masterError } = await supabase
                     .from('material_receipts')
                     .update({
@@ -321,6 +326,7 @@ export function useMaterialsLogic() {
                         account_id: safeAccountId,
                         receipt_date: invoiceData.exp_date || new Date().toISOString().split('T')[0],
                         receipt_type: String(invoiceData.receipt_type || 'توريد شركة').trim(),
+                        job_order_id: safeJobOrderId,
                         total_amount: cleanNum(grandTotal),
                         notes: String(invoiceData.notes || 'توريد خامات').trim(),
                         status: 'معتمد',
@@ -329,7 +335,8 @@ export function useMaterialsLogic() {
                     .eq('id', receiptId);
                 if (masterError) throw new Error(`خطأ في تحديث الفاتورة: ${masterError.message}`);
 
-                await supabase.from('material_receipt_lines').delete().eq('receipt_id', receiptId);
+                const { error: deleteLinesError } = await supabase.from('material_receipt_lines').delete().eq('receipt_id', receiptId);
+                if (deleteLinesError) throw deleteLinesError;
 
             } else {
                 const { data: masterData, error: masterError } = await supabase
@@ -341,6 +348,7 @@ export function useMaterialsLogic() {
                         account_id: safeAccountId,
                         receipt_date: invoiceData.exp_date || new Date().toISOString().split('T')[0],
                         receipt_type: String(invoiceData.receipt_type || 'توريد شركة').trim(),
+                        job_order_id: safeJobOrderId,
                         total_amount: cleanNum(grandTotal),
                         notes: String(invoiceData.notes || 'توريد خامات').trim(),
                         status: 'معتمد',
@@ -471,6 +479,7 @@ export function useMaterialsLogic() {
                 account_id: cleanId(first.account?.id) || '',
                 account_name: first.account?.name || '',     
                 receipt_type: first.receipt_type || 'توريد شركة',
+                job_order_id: first.job_order_id || null,
                 exp_date: first.exp_date || new Date().toISOString().split('T')[0],
                 notes: first.notes || '',
                 items: lines.map((l: any) => ({

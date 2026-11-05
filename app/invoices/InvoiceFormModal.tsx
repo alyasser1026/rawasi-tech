@@ -1,16 +1,77 @@
 "use client";
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { formatCurrency } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
+import { useCompany } from '@/lib/CompanyContext';
 import { useToast } from '@/lib/toast-context'; 
 import SmartCombo from '@/components/SmartCombo'; 
 import PhiDialog from '@/components/PhiDialog';
 import JobOrderSelector, { JobOrderOption } from '@/components/JobOrderSelector';
 import { FileText, Landmark, ListPlus, Percent, Plus, ReceiptText, Save, Trash2, X } from 'lucide-react';
 
+type MaterialCredit = { receipt_id: string; receipt_number: string; receipt_date: string; available_amount: number | string };
+const cents = (amount: number) => Math.round((amount + Number.EPSILON) * 100);
+
 // --- [المودال الرئيسي للفاتورة] ---
 export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, onSave, isSaving, projects }: any) {
     const { showToast } = useToast(); 
+    const { activeCompany } = useCompany();
+    const selectionRequest = useRef(0);
+    const lines: any[] = record?.lines || [];
+    const perLine = record?.line_accounting === true;
+    const orderIds = [...new Set<string>(lines.map(line => line.job_order_id).filter(Boolean))].sort();
+    const materialQuery = useQuery({
+        queryKey: ['invoice-customer-materials', activeCompany?.id, record?.partner_id, record?.date, orderIds],
+        enabled: Boolean(isOpen && perLine && record?.partner_id && record?.date && orderIds.length),
+        queryFn: async () => {
+            const { data, error } = await supabase.rpc('get_invoice_customer_materials', {
+                p_job_order_ids: orderIds, p_partner_id: record.partner_id, p_on_date: record.date
+            });
+            if (error) throw error;
+            return (data || []) as MaterialCredit[];
+        }
+    });
+    const lineAmounts = lines.map(line => {
+        const base = cents(Number(line.quantity) * Number(line.unit_price));
+        const tax = record?.skip_zatca ? 0 : Math.round(base * 0.15);
+        const retention = Math.round(base * Number(line.retention_percent ?? 0) / 100);
+        return { base, tax, retention };
+    });
+    const totals = lineAmounts.reduce((sum, line) => ({
+        base: sum.base + line.base, tax: sum.tax + line.tax, retention: sum.retention + line.retention
+    }), { base: 0, tax: 0, retention: 0 });
+    const beforeMaterials = totals.base + totals.tax - totals.retention;
+    const originalMaterials = new Map<string, number>((record?.customer_materials || []).map((row: any) => [row.receipt_id, Number(row.amount)]));
+    const credits = materialQuery.data || [];
+    let remaining = beforeMaterials;
+    const allocations = credits.map(credit => {
+        const available = cents(Number(credit.available_amount));
+        const saved = record?.id && !record.use_available_materials ? originalMaterials.get(credit.receipt_id) ?? 0 : undefined;
+        const input = record?.material_inputs?.[credit.receipt_id] ?? saved ?? (Math.max(0, Math.min(available, remaining)) / 100);
+        const amount = Number(input);
+        const amountInCents = cents(amount);
+        const valid = Number.isFinite(amount) && amount >= 0 && amountInCents <= available
+            && amount === Number(amount.toFixed(2));
+        if (valid) remaining -= amountInCents;
+        return { ...credit, input, amount, amountInCents, valid };
+    });
+    const materials = allocations.reduce((sum, row) => sum + (row.valid ? row.amountInCents : 0), 0);
+    const defaultAccountsQuery = useQuery({
+        queryKey: ['invoice-modal-default-accounts', activeCompany?.id],
+        enabled: Boolean(isOpen && activeCompany?.id),
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('accounts')
+                .select('id, code, name')
+                .in('code', ['123', '124', '215', '217', '41', '411'])
+                .eq('is_transactional', true);
+            if (error) throw error;
+            const byCode: Record<string, { id: string; code: string; name: string }> = {};
+            for (const acc of data || []) byCode[acc.code] = acc;
+            return byCode;
+        }
+    });
 
     // 🚀 1. سحب البيانات بشكل ذكي ومؤكد (العقارات، العميل، والبنود)
     useEffect(() => {
@@ -18,15 +79,28 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
 
         let updates: any = {};
         let needsUpdate = false;
+        const accByCode = defaultAccountsQuery.data;
 
         // أ. الفاتورة الجديدة
         // الرقم التسلسلي بيتحدد في قاعدة البيانات لحظة الحفظ (INV-السنة-0001)
-        if (!record.id && !record.defaults_applied) {
-            updates.defaults_applied = true;
-            updates.date = record.date || new Date().toISOString();
-            updates.tax_acc_id = record.tax_acc_id || '990c949c-5f32-40d7-8d36-5fe45a6c892c'; 
-            updates.materials_acc_id = record.materials_acc_id || '85e61a6a-8c85-4219-a733-3b2180dfe043';
-            updates.guarantee_acc_id = record.guarantee_acc_id || '8bf39cb1-4028-4c9e-817d-27c239873030';
+        if (!record.id && (!record.defaults_applied || (!record.debit_account_id && accByCode))) {
+            updates.date = record.date || new Date().toISOString().split('T')[0];
+            if (accByCode) {
+                const debitAcc = accByCode['123'];
+                const creditAcc = accByCode['41'] || accByCode['411'];
+                updates.defaults_applied = true;
+                if (!record.debit_account_id && debitAcc) {
+                    updates.debit_account_id = debitAcc.id;
+                    updates.debit_account_name = debitAcc.name;
+                }
+                if (!record.credit_account_id && creditAcc) {
+                    updates.credit_account_id = creditAcc.id;
+                    updates.credit_account_name = creditAcc.name;
+                }
+                updates.tax_acc_id = record.tax_acc_id || accByCode['215']?.id || null;
+                updates.materials_acc_id = record.materials_acc_id || accByCode['217']?.id || null;
+                updates.guarantee_acc_id = record.guarantee_acc_id || accByCode['124']?.id || null;
+            }
             needsUpdate = true;
         }
 
@@ -55,11 +129,12 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         if (needsUpdate) {
             setRecord((prev: any) => ({ ...prev, ...updates }));
         }
-    }, [record?.id, projects?.length, isOpen, record?.lines_data, record?.items]); 
+    }, [record?.id, projects?.length, isOpen, record?.lines_data, record?.items, defaultAccountsQuery.data]); 
 
     // 🚀 2. الحسابات الفورية
     useEffect(() => {
         if (!record) return; 
+        if (record.line_accounting) return;
         
         // 💡 الإجمالي من البنود المدرجة في الجدول بس (كل بند مربوط بأمر شغل)
         const linesTotal = (record.lines || []).reduce((sum: number, line: any) => sum + (Number(line.quantity) * Number(line.unit_price)), 0);
@@ -97,7 +172,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                 due_date: dueDateCalculated.toISOString()
             }));
         }
-    }, [record?.quantity, record?.unit_price, record?.materials_discount, record?.guarantee_percent, record?.date, record?.due_in_days, record?.skip_zatca, record?.lines]); 
+    }, [record?.quantity, record?.unit_price, record?.materials_discount, record?.guarantee_percent, record?.date, record?.due_in_days, record?.skip_zatca, record?.lines, record?.line_accounting]); 
 
     // 🚀 دالة إضافة البيان للجدول
     const handleAddStatement = (e: React.MouseEvent) => {
@@ -108,6 +183,10 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         }
         if (!record.description) {
             showToast("يرجى إدخال البيان التفصيلي أولاً", "warning");
+            return;
+        }
+        if (perLine && record.line_retention_percent == null) {
+            showToast('حدّد نسبة ضمان الأعمال في أمر الشغل الأول. اكتب صفر لو مفيش ضمان.', 'warning');
             return;
         }
         if (Number(record.quantity || 0) <= 0 || Number(record.unit_price || 0) <= 0) {
@@ -125,6 +204,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             quantity: Number(record.quantity),
             unit: record.unit || 'عدد',
             unit_price: Number(record.unit_price),
+            retention_percent: record.line_retention_percent,
             total_price: Number(record.quantity) * Number(record.unit_price)
         };
 
@@ -144,6 +224,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             quantity: '',
             unit_price: '',
             line_job_order_id: null,
+            line_retention_percent: null,
             line_order_number: '',
             line_boq_budget_id: null
         });
@@ -151,12 +232,14 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
 
     // 🚀 اختيار أمر الشغل للبند: الوصف = بند المقايسة، الكمية = المتبقي من الأمر بعد الفواتير التانية، السعر = سعر العقد
     const pickLineJobOrder = async (id: string | null, jo: JobOrderOption | null) => {
+        const request = ++selectionRequest.current;
         if (!id || !jo) {
-            setRecord((prev: any) => ({ ...prev, line_job_order_id: null, line_order_number: '', line_boq_budget_id: null }));
+            setRecord((prev: any) => ({ ...prev, line_job_order_id: null, line_order_number: '', line_boq_budget_id: null, line_retention_percent: null }));
             return;
         }
         let invoicedQty = 0;
         const { data } = await supabase.from('invoices').select('id, lines_data').contains('lines_data', [{ job_order_id: id }]);
+        if (request !== selectionRequest.current) return;
         (data || []).filter((inv: any) => inv.id !== record.id).forEach((inv: any) => {
             (Array.isArray(inv.lines_data) ? inv.lines_data : []).forEach((l: any) => { if (l?.job_order_id === id) invoicedQty += Number(l.quantity || 0); });
         });
@@ -168,6 +251,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             ...prev,
             line_job_order_id: id,
             line_order_number: jo.order_number,
+            line_retention_percent: jo.retention_percent,
             line_boq_budget_id: jo.boq_budget_id,
             description: jo.boq_budget?.work_item || jo.notes || prev.description || '',
             unit: jo.boq_budget?.unit || prev.unit,
@@ -204,17 +288,38 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             showToast("في بند مكتوب ولسه ما اتدرجش؛ اضغط «إدراج البند في الفاتورة» أو امسحه", "warning");
             return;
         }
-        if (Number(record.total_amount) <= 0 && Number(record.line_total) <= 0) {
+        const previewNetTotal = perLine ? (beforeMaterials - materials) / 100 : Number(record.total_amount || 0);
+        const previewLineTotal = perLine ? totals.base / 100 : Number(record.line_total || 0);
+        if (previewNetTotal <= 0 && previewLineTotal <= 0) {
             showToast("تنبيه: إجمالي الفاتورة 0، يرجى التأكد من السعر والكمية", "warning");
         }
         
-        onSave(record);
+        if (!perLine) {
+            onSave(record);
+            return;
+        }
+        if (materialQuery.isFetching) {
+            showToast('استنى تحميل رصيد خامات العميل قبل الحفظ.', 'warning');
+            return;
+        }
+        if (materialQuery.isError && originalMaterials.size) {
+            showToast('تعذّر مراجعة رصيد خامات الفاتورة. أعد تحميله قبل الحفظ.', 'error');
+            return;
+        }
+        if (allocations.some(row => !row.valid) || materials > beforeMaterials) {
+            showToast('راجع مبالغ الخامات. التسوية لا تتجاوز رصيد السند أو صافي الفاتورة.', 'warning');
+            return;
+        }
+        const rawDate = String(record.date).split('T')[0];
+        const date = new Date(rawDate + 'T00:00:00Z');
+        date.setUTCDate(date.getUTCDate() + Number(record.due_in_days || 0));
+        onSave({ ...record, date: rawDate, due_date: date.toISOString().slice(0, 10),
+            customer_materials: allocations.filter(row => row.amount > 0).map(row => ({ receipt_id: row.receipt_id, amount: row.amount })) });
     };
 
     if (!isOpen || !record) return null;
 
     const units = ['متر طولي', 'متر مربع', 'متر مكعب', 'مقطوعية', 'عدد'];
-    const lines = record.lines || [];
     const linesTotal = lines.reduce((sum: number, line: any) => sum + Number(line.total_price || 0), 0);
     const removeProject = (id: any) => {
         const next = (record.selected_projects || []).filter((c: any) => c.id !== id);
@@ -230,7 +335,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             title={record.id ? 'تعديل الفاتورة' : 'فاتورة جديدة'}
             subtitle={record.invoice_number ? `رقم الفاتورة: ${record.invoice_number}` : 'أدخل بيانات العميل والبنود ثم احفظ لترحيل القيود'}
             icon={<ReceiptText size={22} />}
-            total={<><small>الصافي النهائي</small><strong>{formatCurrency(record.total_amount ?? 0)}</strong></>}
+            total={<><small>الصافي النهائي</small><strong>{formatCurrency(perLine ? (beforeMaterials - materials) / 100 : (record.total_amount ?? 0))}</strong></>}
             footer={<button type="button" className="ent-button ent-primary" onClick={handleValidateAndSave} disabled={isSaving}><Save size={16} aria-hidden="true" />{isSaving ? 'جاري الحفظ والترحيل…' : 'حفظ الفاتورة وترحيل القيود'}</button>}
         >
             <section className="ent-form-section">
@@ -296,7 +401,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                 </div>
                 {lines.length > 0 && <div className="phi-lines">
                     <table>
-                        <thead><tr><th>م</th><th>البيان</th><th className="is-num">الكمية</th><th>الوحدة</th><th className="is-num">السعر</th><th className="is-num">الإجمالي</th><th><span className="sr-only">إجراء</span></th></tr></thead>
+                        <thead><tr><th>م</th><th>البيان</th><th className="is-num">الكمية</th><th>الوحدة</th><th className="is-num">السعر</th><th className="is-num">الإجمالي</th>{perLine && <><th className="is-num">الضريبة</th><th className="is-num">الضمان</th></>}<th><span className="sr-only">إجراء</span></th></tr></thead>
                         <tbody>{lines.map((line: any, idx: number) => <tr key={idx}>
                             <td>{(idx + 1).toLocaleString('ar-EG')}</td>
                             <td>{line.description}{(line.order_number || line.project_name) && <span className="ent-field-note">{[line.project_name, line.order_number && `أمر ${line.order_number}`].filter(Boolean).join(' · ')}</span>}</td>
@@ -304,9 +409,10 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                             <td>{line.unit}</td>
                             <td className="is-num">{formatCurrency(line.unit_price)}</td>
                             <td className="is-num"><strong>{formatCurrency(line.total_price)}</strong></td>
+                            {perLine && <><td className="is-num">{formatCurrency(lineAmounts[idx].tax / 100)}</td><td className="is-num">{formatCurrency(lineAmounts[idx].retention / 100)} <span className="ent-field-note">{line.retention_percent ?? '—'}٪</span></td></>}
                             <td><button type="button" className="ent-icon-button" onClick={() => handleRemoveLine(idx)} aria-label={`حذف البند ${idx + 1}`}><Trash2 size={15} /></button></td>
                         </tr>)}</tbody>
-                        <tfoot><tr><td colSpan={5}>إجمالي البنود المدرجة</td><td className="is-num">{formatCurrency(linesTotal)}</td><td /></tr></tfoot>
+                        <tfoot><tr><td colSpan={5}>إجمالي البنود المدرجة</td><td className="is-num">{formatCurrency(perLine ? totals.base / 100 : linesTotal)}</td>{perLine && <><td className="is-num">{formatCurrency(totals.tax / 100)}</td><td className="is-num">{formatCurrency(totals.retention / 100)}</td></>}<td /></tr></tfoot>
                     </table>
                 </div>}
             </section>
@@ -321,28 +427,49 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             </section>
 
             <div className="ent-form-divider" />
-            <section className="ent-form-section">
+            {perLine ? <section className="ent-form-section">
+                <h3><Percent size={17} aria-hidden="true" />تسوية خامات العميل</h3>
+                <p className="ent-field-note">تُخصم من المبلغ المطلوب بعد الضريبة والضمان. أي رصيد غير مستخدم يفضل على السند.</p>
+                {materialQuery.isFetching && <p role="status">جاري تحميل سندات الخامات…</p>}
+                {materialQuery.isError && <p role="alert">تعذّر عرض رصيد الخامات. راجع صلاحية عرض الخامات والقيود أو أعد المحاولة.</p>}
+                {materialQuery.isSuccess && !credits.length && <p className="ent-field-note">مفيش رصيد خامات مرحّل لنفس العميل وأوامر الشغل المختارة.</p>}
+                {!!allocations.length && <>
+                    <button type="button" className="ent-button" onClick={() => setRecord((previous: any) => ({ ...previous, use_available_materials: true, material_inputs: {} }))}>استخدم الرصيد المتاح</button>
+                    <div className="ent-form-grid">
+                        {allocations.map(row => <div className="ent-form-field" key={row.receipt_id}>
+                            <label htmlFor={'invoice-material-' + row.receipt_id}>سند {row.receipt_number} · المتاح {formatCurrency(row.available_amount)}</label>
+                            <input id={'invoice-material-' + row.receipt_id} type="number" min="0" max={Number(row.available_amount)} step="0.01"
+                                value={row.input} aria-invalid={!row.valid}
+                                onChange={event => {
+                                    const value = event.target.value;
+                                    setRecord((previous: any) => ({ ...previous, material_inputs: { ...previous.material_inputs, [row.receipt_id]: value } }));
+                                }} />
+                        </div>)}
+                    </div>
+                </>}
+            </section> : <section className="ent-form-section">
                 <h3><Percent size={17} aria-hidden="true" />الخصومات والاستقطاعات <span className="ent-muted">اختياري</span></h3>
                 <div className="ent-form-grid">
                     <div className="ent-form-field"><label htmlFor="inv-mat">خصم خامات العميل</label><input id="inv-mat" type="number" min="0" step="0.01" value={record.materials_discount ?? ''} onChange={(e) => setRecord({ ...record, materials_discount: e.target.value })} /></div>
                     <div className="ent-form-field">{Number(record.materials_discount) > 0 ? <SmartCombo key={`mat-${record.materials_acc_id || 'empty'}`} label="ترحل الخامات إلى حساب" table="accounts" searchCols="name,code" displayCol="name"
-                        placeholder={record.materials_acc_id === '85e61a6a-8c85-4219-a733-3b2180dfe043' ? '[217] مخزون خامات العميل (افتراضي)' : 'اختر حساب...'}
+                        placeholder={record.materials_acc_id && record.materials_acc_id === defaultAccountsQuery.data?.['217']?.id ? '[217] مخزون خامات العميل (افتراضي)' : 'اختر حساب...'}
                         initialDisplay={record.materials_acc_name || record.materials_account?.name || ''}
                         onSelect={(a: any) => setRecord({ ...record, materials_acc_id: a?.id || null, materials_acc_name: a?.name || '' })} /> : <span className="ent-field-note">يظهر حساب ترحيل الخامات عند إدخال خصم.</span>}</div>
                     <div className="ent-form-field"><label htmlFor="inv-guar">نسبة ضمان الأعمال ٪</label><input id="inv-guar" type="number" min="0" max="100" step="0.01" value={record.guarantee_percent ?? ''} onChange={(e) => setRecord({ ...record, guarantee_percent: e.target.value })} /></div>
                     <div className="ent-form-field">{Number(record.guarantee_percent) > 0 ? <SmartCombo key={`guar-${record.guarantee_acc_id || 'empty'}`} label="ترحل استقطاعات الضمان إلى حساب" table="accounts" searchCols="name,code" displayCol="name"
-                        placeholder={record.guarantee_acc_id === '8bf39cb1-4028-4c9e-817d-27c239873030' ? '[124] تأمينات محتجزة لدى الغير (افتراضي)' : 'اختر حساب...'}
+                        placeholder={record.guarantee_acc_id && record.guarantee_acc_id === defaultAccountsQuery.data?.['124']?.id ? '[124] تأمينات محتجزة لدى الغير (افتراضي)' : 'اختر حساب...'}
                         initialDisplay={record.guarantee_acc_name || record.guarantee_account?.name || ''}
                         onSelect={(a: any) => setRecord({ ...record, guarantee_acc_id: a?.id || null, guarantee_acc_name: a?.name || '' })} /> : <span className="ent-field-note">يظهر حساب ترحيل الضمان عند إدخال نسبة.</span>}</div>
                 </div>
-            </section>
+            </section>}
 
             <div className="phi-totals" aria-live="polite">
-                <div className="phi-total"><small>الإجمالي قبل الخصم</small><strong>{formatCurrency(record.line_total ?? 0)}</strong></div>
-                <div className="phi-total"><small>الخاضع للضريبة</small><strong>{formatCurrency(record.taxable_amount ?? 0)}</strong></div>
-                <div className="phi-total"><small>{record.skip_zatca ? 'الضريبة (غير خاضعة)' : 'ضريبة القيمة المضافة 15٪'}</small><strong>{formatCurrency(record.tax_amount ?? 0)}</strong></div>
-                <div className="phi-total is-bad"><small>محتجز ضمان الأعمال</small><strong>{formatCurrency(record.guarantee_amount ?? 0)}</strong></div>
-                <div className="phi-total is-grand"><small>الصافي النهائي</small><strong>{formatCurrency(record.total_amount ?? 0)}</strong></div>
+                <div className="phi-total"><small>إجمالي البنود</small><strong>{formatCurrency(perLine ? totals.base / 100 : record.line_total ?? 0)}</strong></div>
+                {!perLine && <div className="phi-total"><small>الخاضع للضريبة</small><strong>{formatCurrency(record.taxable_amount ?? 0)}</strong></div>}
+                <div className="phi-total"><small>{record.skip_zatca ? 'الضريبة (غير خاضعة)' : 'ضريبة القيمة المضافة 15٪'}</small><strong>{formatCurrency(perLine ? totals.tax / 100 : record.tax_amount ?? 0)}</strong></div>
+                <div className="phi-total is-bad"><small>محتجز ضمان الأعمال</small><strong>{formatCurrency(perLine ? totals.retention / 100 : record.guarantee_amount ?? 0)}</strong></div>
+                {perLine && <div className="phi-total is-bad"><small>تسوية خامات العميل</small><strong>{formatCurrency(materials / 100)}</strong></div>}
+                <div className="phi-total is-grand"><small>الصافي المطلوب</small><strong>{formatCurrency(perLine ? (beforeMaterials - materials) / 100 : record.total_amount ?? 0)}</strong></div>
             </div>
         </PhiDialog>
     );

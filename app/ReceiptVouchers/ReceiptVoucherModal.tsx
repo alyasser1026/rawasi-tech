@@ -155,6 +155,29 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                 }
             }
 
+            // 3. الحسابات الافتراضية للشركة النشطة (بدلاً من المعرفات الثابتة)
+            if (!record.id && (!record.safe_bank_acc_id || !record.partner_acc_id)) {
+                const { data: defAccs } = await supabase
+                    .from('accounts')
+                    .select('id, code, name')
+                    .in('code', ['121', '122', '123'])
+                    .eq('is_transactional', true);
+                if (defAccs && defAccs.length > 0) {
+                    const safeAcc = defAccs.find(a => a.code === '122') || defAccs.find(a => a.code === '121');
+                    const custAcc = defAccs.find(a => a.code === '123');
+                    if (!record.safe_bank_acc_id && safeAcc) {
+                        updates.safe_bank_acc_id = safeAcc.id;
+                        updates.safe_bank_acc_name = safeAcc.name;
+                        needsUpdate = true;
+                    }
+                    if (!record.partner_acc_id && custAcc) {
+                        updates.partner_acc_id = custAcc.id;
+                        updates.partner_acc_name = custAcc.name;
+                        needsUpdate = true;
+                    }
+                }
+            }
+
             if (needsUpdate) {
                 setRecord((prev: any) => ({ ...prev, ...updates }));
             }
@@ -166,8 +189,16 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
     // 🧠 1. سحر السحب الآلي عند اختيار الفاتورة يدوياً من الداخل
     // 🧠 1. سحر السحب الآلي عند اختيار الفاتورة يدوياً من الداخل
     const handleInvoiceSelect = async (inv: any) => {
-        const remainingAmount = Number(inv.total_amount) - Number(inv.paid_amount || 0);
-        const { data: partnerData } = await supabase.from('partners').select('name').eq('id', inv.partner_id).single();
+        let remainingAmount = Number(inv.total_amount || 0) - Number(inv.paid_amount || 0);
+        const { data: adjRows, error: adjErr } = await supabase.rpc('get_invoice_adjustment_balances', { p_invoice_ids: [inv.id] });
+        if (!adjErr && Array.isArray(adjRows) && adjRows[0]) {
+            remainingAmount = Number(adjRows[0].balance || 0);
+        }
+
+        const [{ data: partnerData }, { data: defAccs }] = await Promise.all([
+            inv.partner_id ? supabase.from('partners').select('name').eq('id', inv.partner_id).single() : Promise.resolve({ data: null }),
+            supabase.from('accounts').select('id, code, name').in('code', ['121', '122', '123']).eq('is_transactional', true)
+        ]);
         
         let projectsData: any[] = [];
         if (inv.project_ids && inv.project_ids.length > 0) {
@@ -175,8 +206,11 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
             projectsData = data || [];
         }
 
-        let pAccName = 'العملاء (أصحاب المشاريع)';
-        let pAccId = '4f828d0d-a1f4-4762-83e3-c17dafae802d';
+        const defaultCustomerAcc = (defAccs || []).find((a: any) => a.code === '123');
+        const defaultSafeAcc = (defAccs || []).find((a: any) => a.code === '122') || (defAccs || []).find((a: any) => a.code === '121');
+
+        let pAccName = defaultCustomerAcc?.name || 'العملاء (أصحاب المشاريع)';
+        let pAccId: string | null = defaultCustomerAcc?.id || null;
         
         if (inv.debit_account_id) {
             pAccId = inv.debit_account_id;
@@ -185,9 +219,9 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
         }
 
         // 🚀 الحماية الذكية: لو المستخدم كتب مبلغ بإيده، السيستم يحترمه وميمسحوش!
-        // ولو الخانة كانت فاضية (صفر)، السيستم يسحب رصيد الفاتورة المتبقي.
+        // ولو الخانة كانت فاضية (صفر)، السيستم يسحب رصيد الفاتورة المتبقي بعد الإشعارات.
         const userTypedAmount = Number(record.amount || 0);
-        const amountToSet = userTypedAmount > 0 ? userTypedAmount : (remainingAmount > 0 ? remainingAmount : 0);
+        const amountToSet = userTypedAmount > 0 ? userTypedAmount : (remainingAmount > 0 ? Number(remainingAmount.toFixed(2)) : 0);
 
         // أمر الشغل من سطور الفاتورة: لو الفاتورة على أمر شغل واحد بيتحط لوحده
         const invLines = Array.isArray(inv.lines_data) ? inv.lines_data : [];
@@ -207,8 +241,8 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
             amount: amountToSet, // 🚀 تثبيت المبلغ المكتوب
             partner_acc_id: pAccId, 
             partner_acc_name: pAccName,
-            safe_bank_acc_id: record.safe_bank_acc_id || '21b8a1db-bc9f-4cf8-b741-1efeded0963c',
-            safe_bank_acc_name: record.safe_bank_acc_name || 'الخزينة الرئيسية'
+            safe_bank_acc_id: record.safe_bank_acc_id || defaultSafeAcc?.id || null,
+            safe_bank_acc_name: record.safe_bank_acc_name || defaultSafeAcc?.name || 'الخزينة الرئيسية'
         });
     };
     // 🧠 2. دالة اختيار العقارات

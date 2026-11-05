@@ -7,10 +7,12 @@ import { useToast } from '@/lib/toast-context';
 import ZatcaQRCode from './ZatcaQRCode'; 
 import { QRCodeSVG } from 'qrcode.react'; 
 import { supabase } from '@/lib/supabase'; // 🚀 استدعاء Supabase
+import { useCompany } from '@/lib/CompanyContext';
 
 // --- [المودال الرئيسي لطباعة ومعاينة الفاتورة] ---
 export default function InvoicePrintModal({ isOpen, onClose, record, setRecord = () => {}, onSave, isSaving, projects }: any) {
-    const { showToast } = useToast(); 
+    const { showToast } = useToast();
+    const { activeCompany } = useCompany(); 
     const [mounted, setMounted] = useState(false); 
     const [creatorInfo, setCreatorInfo] = useState<{username: string, fullName: string} | null>(null); 
 
@@ -117,12 +119,8 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
         let updates: any = {};
         let needsUpdate = false;
 
-        if (!record.invoice_number) {
-            updates.invoice_number = `INV-${new Date().getFullYear()}-${Math.floor(10000 + Math.random() * 90000)}`;
+        if (!record.invoice_number && !record.id) {
             updates.date = record.date || new Date().toISOString();
-            updates.tax_acc_id = record.tax_acc_id || '990c949c-5f32-40d7-8d36-5fe45a6c892c'; 
-            updates.materials_acc_id = record.materials_acc_id || '85e61a6a-8c85-4219-a733-3b2180dfe043';
-            updates.guarantee_acc_id = record.guarantee_acc_id || '8bf39cb1-4028-4c9e-817d-27c239873030';
             updates.lines = record.lines || []; 
             needsUpdate = true;
         }
@@ -150,7 +148,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
     }, [record?.id, projects?.length, isOpen, setRecord]); 
 
     useEffect(() => {
-        if (!record) return; 
+        if (!record || record.line_accounting) return; 
         const qty = Number(record.quantity || 0);
         const price = Number(record.unit_price || 0);
         
@@ -221,20 +219,30 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
     
     const amountInWords = tafqeet(Number(record.total_amount || 0));
 
-    // متغير لحساب الترقيم المتسلسل بشكل صحيح
-    const hasMainItem = (Number(record.quantity) > 0 || Number(record.unit_price) > 0 || record.description);
-    const baseLinesCount = (hasMainItem ? 1 : 0) + (record.lines?.length || 0);
+    // دمج البنود بدون تكرار في حالة وجود lines و lines_data معاً
+    const printLines = (Array.isArray(record.lines) && record.lines.length > 0)
+        ? record.lines
+        : (Array.isArray(record.lines_data) ? record.lines_data : []);
+    const hasMainItem = printLines.length === 0 && (Number(record.quantity) > 0 || Number(record.unit_price) > 0 || Boolean(record.description));
 
     // 🚀 استنتاج إجمالي الأعمال لحظياً لضمان عدم ظهوره بـ 0 أثناء الرندر
     const calcQty = Number(record.quantity || 0);
     const calcPrice = Number(record.unit_price || 0);
-    const calcLinesTotal = (record.lines || []).reduce((sum: number, line: any) => sum + (Number(line.quantity) * Number(line.unit_price)), 0);
-    const calcLinesDataTotal = (record.lines_data || []).reduce((sum: number, line: any) => sum + (Number(line.total_price) || (Number(line.quantity || 0) * Number(line.unit_price || 0))), 0);
-    let displayLineTotal = (calcQty * calcPrice) + calcLinesTotal + calcLinesDataTotal;
+    const calcPrintLinesTotal = printLines.reduce((sum: number, line: any) => sum + (Number(line.total_price) || (Number(line.quantity || 0) * Number(line.unit_price || 0))), 0);
+    let displayLineTotal = (hasMainItem ? (calcQty * calcPrice) : 0) + calcPrintLinesTotal;
     
     if (displayLineTotal === 0 && Number(record.taxable_amount) > 0) {
-        displayLineTotal = Number(record.taxable_amount) + Number(record.materials_discount || 0);
+        displayLineTotal = record.line_accounting
+            ? Number(record.taxable_amount)
+            : Number(record.taxable_amount) + Number(record.materials_discount || 0);
     }
+
+    const sellerNameAr = activeCompany?.legal_name || activeCompany?.name || 'شركة فاي تك للمقاولات';
+    const isDefaultCompany = activeCompany?.is_default !== false;
+    const sellerTaxNo = activeCompany?.tax_number || (isDefaultCompany ? '312487477800003' : 'غير مسجل');
+    const sellerCrNo = activeCompany?.cr_number || (isDefaultCompany ? '7051013319' : '');
+    const sellerAddress = activeCompany?.address || (isDefaultCompany ? 'الدمام - حي الفيصليه - شارع السعيره' : '');
+    const sellerEmail = activeCompany?.email || (isDefaultCompany ? 'rawasi.alyusr@gmail.com' : '');
 
     // Custom formatting wrapper to force English numbers
     const formatNumberEn = (num: number) => {
@@ -475,10 +483,10 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                     </div>
 
                     <div className="header-center">
-                        <h1 style={{ fontSize: '18px', fontWeight: 900, color: THEME.primary, margin: '0 0 4px 0' }}>شركة فاي تك للمقاولات</h1>
-                        <h2 style={{ fontSize: '15px', fontWeight: 900, color: THEME.primary, margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Phi Tech Contracting Company</h2>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', fontFamily: 'Arial, sans-serif' }}>الرقم الضريبي (VAT No): 312487477800003</div>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginTop: '2px', fontFamily: 'Arial, sans-serif' }}>الرقم الموحد (Unified No): 7051013319</div>
+                        <h1 style={{ fontSize: '18px', fontWeight: 900, color: THEME.primary, margin: '0 0 4px 0' }}>{sellerNameAr}</h1>
+                        {isDefaultCompany && <h2 style={{ fontSize: '15px', fontWeight: 900, color: THEME.primary, margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Phi Tech Contracting Company</h2>}
+                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', fontFamily: 'Arial, sans-serif' }}>الرقم الضريبي (VAT No): {sellerTaxNo}</div>
+                        {sellerCrNo && <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginTop: '2px', fontFamily: 'Arial, sans-serif' }}>الرقم الموحد (Unified No): {sellerCrNo}</div>}
                     </div>
 
                     <div className="header-logo">
@@ -559,25 +567,14 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                             </tr>
                         )}
                         
-                        {record.lines?.map((line: any, idx: number) => (
-                            <tr key={`line-${idx}`}>
-                                <td>{hasMainItem ? idx + 2 : idx + 1}</td>
-                                <td className="desc" style={{ fontFamily: "'Arial', sans-serif" }}>{line.description}</td>
-                                <td>{line.unit}</td>
-                                <td>{formatNumberEn(line.quantity || 0)}</td>
-                                <td>{formatCurrencyEn(line.unit_price)}</td>
-                                <td style={{ fontWeight: 900, color: '#0f172a' }}>{formatCurrencyEn(line.total_price)}</td>
-                            </tr>
-                        ))}
-
-                        {record.lines_data?.map((line: any, idx: number) => {
-                            const rowNum = baseLinesCount + idx + 1;
+                        {printLines.map((line: any, idx: number) => {
+                            const rowNum = (hasMainItem ? 1 : 0) + idx + 1;
                             const qty = Number(line.quantity || 0);
                             const price = Number(line.unit_price || 0);
-                            const total = Number(line.total_price || (qty * price) || 0);
+                            const total = Number(line.total_price ?? (qty * price));
 
                             return (
-                                <tr key={`ldata-${idx}`}>
+                                <tr key={`pline-${idx}`}>
                                     <td>{rowNum}</td>
                                     <td className="desc" style={{ fontFamily: "'Arial', sans-serif" }}>{line.description || line.item_name || line.name || '---'}</td>
                                     <td>{line.unit || '---'}</td>
@@ -608,38 +605,52 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                     <div className="inv-totals-box" style={{ fontFamily: 'Arial, sans-serif' }}>
                         <div className="inv-total-row">
                             <span style={{ fontFamily: "'Arial', sans-serif" }}>إجمالي الأعمال / Subtotal:</span>
-                            <span>{formatCurrencyEn(record.line_total || displayLineTotal)}</span>
+                            <span>{formatCurrencyEn(record.line_accounting ? record.taxable_amount : (record.line_total || displayLineTotal))}</span>
                         </div>
-                        {Number(record.materials_discount) > 0 && (
+                        {!record.line_accounting && Number(record.materials_discount) > 0 && (
                             <div className="inv-total-row discount">
                                 <span style={{ fontFamily: "'Arial', sans-serif" }}>يخصم (مواد) / Mat. Discount:</span>
                                 <span>{formatCurrencyEn(record.materials_discount)} -</span>
                             </div>
                         )}
-                        <div className="inv-total-row">
-                            <span style={{ fontFamily: "'Arial', sans-serif" }}>الخاضع للضريبة / Taxable:</span>
-                            <span>{formatCurrencyEn(record.taxable_amount)}</span>
-                        </div>
+                        {!record.line_accounting && (
+                            <div className="inv-total-row">
+                                <span style={{ fontFamily: "'Arial', sans-serif" }}>الخاضع للضريبة / Taxable:</span>
+                                <span>{formatCurrencyEn(record.taxable_amount)}</span>
+                            </div>
+                        )}
                         <div className="inv-total-row tax">
-                            <span style={{ fontFamily: "'Arial', sans-serif" }}>الضريبة (15%) / VAT (15%):</span>
+                            <span style={{ fontFamily: "'Arial', sans-serif" }}>{record.skip_zatca ? 'الضريبة (غير خاضعة) / VAT (0%):' : 'الضريبة (15%) / VAT (15%):'}</span>
                             <span>{formatCurrencyEn(record.tax_amount)}</span>
                         </div>
                         {Number(record.guarantee_amount) > 0 && (
                             <div className="inv-total-row discount">
-                                <span style={{ fontFamily: "'Arial', sans-serif" }}>ضمان أعمال / Guarantee ({record.guarantee_percent}%):</span>
+                                <span style={{ fontFamily: "'Arial', sans-serif" }}>ضمان أعمال / Guarantee{Number(record.guarantee_percent) > 0 ? ` (${record.guarantee_percent}%)` : ''}:</span>
                                 <span>{formatCurrencyEn(record.guarantee_amount)} -</span>
+                            </div>
+                        )}
+                        {record.line_accounting && Number(record.materials_discount) > 0 && (
+                            <div className="inv-total-row discount">
+                                <span style={{ fontFamily: "'Arial', sans-serif" }}>تسوية خامات العميل / Customer Materials:</span>
+                                <span>{formatCurrencyEn(record.materials_discount)} -</span>
                             </div>
                         )}
                         <div className="inv-total-row grand-total">
                             <span style={{ fontFamily: "'Arial', sans-serif" }}>الصافي المستحق / Grand Total:</span>
                             <span>{formatCurrencyEn(record.total_amount)}</span>
                         </div>
+                        {Number(record.net_adjustment || 0) !== 0 && (
+                            <div className="inv-total-row">
+                                <span style={{ fontFamily: "'Arial', sans-serif" }}>الرصيد بعد الإشعارات / Adjusted Total:</span>
+                                <span>{formatCurrencyEn(record.effective_total ?? record.total_amount)}</span>
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* 5️⃣ الفوتر الثابت أسفل الصفحة */}
                 <div className="inv-footer-contact">
-                    الدمام - حي الفيصليه - شارع السعيره &nbsp;|&nbsp; rawasi.alyusr@gmail.com &nbsp;|&nbsp;   
+                    {[sellerAddress, sellerEmail, activeCompany?.phone].filter(Boolean).join('  |  ')}
                 </div>
 
             </div>

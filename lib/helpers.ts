@@ -398,10 +398,16 @@ export const getInvoiceSummaryAndAging = (invoices: any[]) => {
   today.setHours(0, 0, 0, 0);
 
   invoices.forEach(inv => {
-    // 🚀 أهم سطر: قراءة الأرقام بشكل صحيح (تأكد من مسميات الحقول عندك)
-    const amount = Number(inv.net_amount || inv.total_amount || 0);
-    const paid = Number(inv.paid_amount || 0);
-    const balance = amount - paid;
+    // 🚀 قراءة الصافي الفعلي بعد الإشعارات الدائنة/المدينة والمدفوعات المرحلة
+    const amount = inv.effective_total != null
+      ? Number(inv.effective_total)
+      : Number(inv.net_amount ?? inv.total_amount ?? 0);
+    const paid = inv.adjusted_paid_amount != null
+      ? Number(inv.adjusted_paid_amount)
+      : Number(inv.paid_amount ?? 0);
+    const balance = inv.remaining_amount != null
+      ? Number(inv.remaining_amount)
+      : (amount - paid);
 
     // 1. حساب الإجماليات (للفواتير المعتمدة فقط أو حسب نظامك)
     if (inv.status !== 'مسودة') {

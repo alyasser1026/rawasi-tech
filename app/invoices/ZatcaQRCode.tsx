@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
-import { QRCodeSVG } from 'qrcode.react'; 
+import { QRCodeSVG } from 'qrcode.react';
+import { useCompany } from '@/lib/CompanyContext'; 
 
 // تم إضافة الثيم عشان الكود ميضربش لو مش متعرف في الملف ده
 const THEME = {
@@ -8,9 +9,13 @@ const THEME = {
 };
 
 export default function ZatcaQRCode({ record }: { record: any }) {
+  const { activeCompany } = useCompany();
   if (!record) return null;
 
-  if (record.is_internal || record.skip_zatca) {
+  const sellerName = activeCompany?.legal_name || activeCompany?.name || 'شركة فاي تك';
+  const sellerTaxNumber = activeCompany?.tax_number?.trim() || (activeCompany?.is_default !== false ? '312487477800003' : '');
+
+  if (record.is_internal || record.skip_zatca || !sellerTaxNumber) {
      return (
         <div style={{ padding: '0.25rem', border: `2px solid ${THEME.ruby}`, borderRadius: '8px', background: 'white', display: 'inline-block' }}>
            <QRCodeSVG value={`INTERNAL-INV-${record.invoice_number}`} size={90} level="H" imageSettings={{ src: "/phitech-symbol.svg", height: 20, width: 20, excavate: true }} />
@@ -30,14 +35,17 @@ export default function ZatcaQRCode({ record }: { record: any }) {
     return btoa(String.fromCharCode(...new Uint8Array(tlvs)));
   };
 
-  // 🚀 القفشة هنا: استخدمنا total_amount بدلاً من net_amount عشان يقرا من الداتابيز صح
-  const invoiceTotal = Number(record.total_amount || 0).toFixed(2);
+  // 🚀 إجمالي الفاتورة شامل الضريبة (Tag 4) وفق مواصفة هيئة الزكاة والضريبة والجمارك
+  const grossWithTax = Number(record.taxable_amount || 0) > 0
+    ? Number(record.taxable_amount || 0) + Number(record.tax_amount || 0)
+    : Number(record.total_amount || 0);
+  const invoiceTotal = grossWithTax.toFixed(2);
   const taxTotal = Number(record.tax_amount || 0).toFixed(2);
 
   return (
     <div style={{ padding: '0.25rem', border: `2px solid ${THEME.primary}`, borderRadius: '8px', background: 'white', display: 'inline-block' }}>
       <QRCodeSVG 
-        value={generateQR("شركة فاي تك", "312487477800003", timestamp, invoiceTotal, taxTotal)}
+        value={generateQR(sellerName, sellerTaxNumber, timestamp, invoiceTotal, taxTotal)}
         size={90} 
         level="H" 
         imageSettings={{ src: "/phitech-symbol.svg", height: 20, width: 20, excavate: true }}

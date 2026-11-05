@@ -13,6 +13,7 @@ export interface JobOrderOption {
     contractor_id: string | null;
     project_id: string;
     assigned_qty: number | null;
+    retention_percent: number | null;
     unit_price: number | null;
     boq_budget_id: string | null;
     notes: string | null;
@@ -59,7 +60,7 @@ export default function JobOrderSelector({
             try {
                 let query = supabase
                     .from('job_orders')
-                    .select('id, order_number, status, executor_type, contractor_id, project_id, assigned_qty, unit_price, boq_budget_id, notes, boq_budget:boq_budget_id ( work_item, unit, unit_contract_price, contract_quantity )')
+                    .select('id, order_number, status, executor_type, contractor_id, project_id, assigned_qty, retention_percent, unit_price, boq_budget_id, notes, boq_budget:boq_budget_id ( work_item, unit, unit_contract_price, contract_quantity )')
                     .eq('project_id', projectId);
 
                 if (contractorId) {

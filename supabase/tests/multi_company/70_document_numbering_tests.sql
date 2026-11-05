@@ -65,3 +65,24 @@ SELECT set_config('request.headers', format('{"x-company-id":"%s"}', :'phi'), fa
 INSERT INTO public.invoices (date, taxable_amount, tax_amount, total_amount, status) VALUES ('2026-04-06', 1, 0, 1, 'مسودة') RETURNING invoice_number AS n5 \gset
 SELECT t.eq('a number already used is skipped', format('select %L', :'n5'), 'INV-2026-0005');
 RESET ROLE;
+
+-- legacy sequential documents with gaps (0001, 0003) advance chronologically to 0004 instead of back-filling 0002
+SELECT set_config('request.jwt.claims', '', false);
+SELECT set_config('app.company_id', :'phi', false);
+INSERT INTO public.invoices (invoice_number, date, taxable_amount, tax_amount, total_amount, status, company_id)
+VALUES ('INV-2028-0001', '2028-01-10', 1, 0, 1, 'مسودة', :'phi'),
+       ('INV-2028-0003', '2028-01-12', 1, 0, 1, 'مسودة', :'phi');
+-- 9999 -> 10000 transition expands cleanly to 5 digits without truncation or infinite loop
+INSERT INTO rawasi_private.document_counters (company_id, doc_type, year, last_number)
+VALUES (:'phi', 'INV', 2029, 9998);
+
+SELECT set_config('request.jwt.claims', '{"sub":"aaaaaaaa-0000-0000-0000-000000000001","role":"authenticated"}', false);
+SET ROLE authenticated;
+SELECT set_config('request.headers', format('{"x-company-id":"%s"}', :'phi'), false);
+INSERT INTO public.invoices (date, taxable_amount, tax_amount, total_amount, status) VALUES ('2028-02-01', 1, 0, 1, 'مسودة') RETURNING invoice_number AS gap_next \gset
+SELECT t.eq('legacy sequential documents with gaps advance past max', format('select %L', :'gap_next'), 'INV-2028-0004');
+INSERT INTO public.invoices (date, taxable_amount, tax_amount, total_amount, status) VALUES ('2029-05-01', 1, 0, 1, 'مسودة') RETURNING invoice_number AS n9999 \gset
+INSERT INTO public.invoices (date, taxable_amount, tax_amount, total_amount, status) VALUES ('2029-05-02', 1, 0, 1, 'مسودة') RETURNING invoice_number AS n10000 \gset
+SELECT t.eq('counter reaches 9999 cleanly', format('select %L', :'n9999'), 'INV-2029-9999');
+SELECT t.eq('9999 -> 10000 expands to 5 digits without truncation', format('select %L', :'n10000'), 'INV-2029-10000');
+RESET ROLE;

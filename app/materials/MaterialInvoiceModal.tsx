@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
+import JobOrderSelector from '@/components/JobOrderSelector';
 // 🚀 استدعاء الكمبوننت الذكي الجديد الخاص ببنود المشروع
 import ProjectBoqCombo from '@/components/ProjectBoqCombo'; 
 import { formatCurrency } from '@/lib/helpers';
@@ -64,6 +65,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
 
     // حساب إجمالي الكميات للملخص السفلي
     const totalQuantity = logic.invoiceData.items.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 0), 0);
+    const customerReceipt = logic.invoiceData.receipt_type === 'توريد عميل';
 
     return createPortal(
         <div className="warm-portal-overlay-fullscreen" onClick={onClose}>
@@ -127,19 +129,37 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                             onSelect={(v: any) => logic.setInvoiceData({ 
                                 ...logic.invoiceData, 
                                 project_id: v?.id,
+                                job_order_id: null,
                                 // 🚀 تصفير البنود لو المشروع اتغير عشان ميحصلش تضارب
                                 items: logic.invoiceData.items.map((i:any) => ({...i, boq_item_id: null, boq_id: null, boq_item: ''})) 
                             })} 
                         />
                     </div>
                     <div style={{ zIndex: 90, position: 'relative' }}>
-                        <SmartCombo label="المورد / التاجر *" icon="👤" table="partners" displayCol="name" searchCols="name" customFilter="partner_type=eq.مورد" value={logic.invoiceData.payee_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, payee_id: v?.id })} />
+                        <label htmlFor="material-receipt-type" style={{ display: 'block', fontWeight: 900, marginBottom: '0.375rem' }}>مصدر الخامات</label>
+                        <select id="material-receipt-type" className="glass-input-field" value={logic.invoiceData.receipt_type}
+                            onChange={e => logic.setInvoiceData({ ...logic.invoiceData, receipt_type: e.target.value,
+                                payee_id: '', payee_name: '', account_id: '', job_order_id: null })}>
+                            <option value="توريد شركة">توريد شركة</option>
+                            <option value="توريد عميل">توريد عميل</option>
+                        </select>
                     </div>
+                    <div style={{ zIndex: 85, position: 'relative' }}>
+                        <SmartCombo key={logic.invoiceData.receipt_type} label={customerReceipt ? 'العميل الذي سلّم الخامات *' : 'المورد / التاجر *'}
+                            icon="👤" table="partners" displayCol="name" searchCols="name"
+                            customFilter={customerReceipt ? 'partner_type=eq.عميل' : 'partner_type=eq.مورد'}
+                            value={logic.invoiceData.payee_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, payee_id: v?.id })} />
+                    </div>
+                    {customerReceipt && <JobOrderSelector projectId={logic.invoiceData.project_id || null}
+                        value={logic.invoiceData.job_order_id || null}
+                        onChange={id => logic.setInvoiceData((current: any) => ({ ...current, job_order_id: id }))} />}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5625rem', background: '#f8fafc', padding: '1.5625rem', borderRadius: '14px', marginBottom: '1.5625rem', border: '1px solid #e2e8f0' }}>
                     <div style={{ zIndex: 80, position: 'relative' }}>
-                        <SmartCombo label="حساب التوجيه المالي (مثال: خامات العملاء) *" icon="💳" table="accounts" displayCol="name" searchCols="name,code" value={logic.invoiceData.account_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, account_id: v?.id })} />
+                        {customerReceipt
+                            ? <p className="ent-field-note">رصيد خامات العميل يُرحّل إلى حساب 217 عند ترحيل السند.</p>
+                            : <SmartCombo label="حساب التوجيه المالي *" icon="💳" table="accounts" displayCol="name" searchCols="name,code" value={logic.invoiceData.account_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, account_id: v?.id })} />}
                     </div>
                     <div>
                         <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.375rem' }}>تاريخ الفاتورة *</label>
