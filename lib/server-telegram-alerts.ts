@@ -1,7 +1,11 @@
+import { formatTelegramErrorDetails, telegramHtml } from './telegram-error-guidance';
+
 export async function sendServerTelegramAlert(payload: {
   level?: 'fatal' | 'error' | 'warning' | 'info';
   category?: 'api_failure' | 'database_error' | 'business_exception';
   message: string;
+  code?: string;
+  status?: number;
   stack?: string;
   route?: string;
   metadata?: Record<string, any>;
@@ -24,15 +28,10 @@ export async function sendServerTelegramAlert(payload: {
     let text = `<b>${header}</b>\n`;
     text += `<b>نظام إدارة المشروعات والمحاسبة — فاي تك</b>\n\n`;
     if (payload.route) {
-      text += `📍 <b>المسار (Route):</b> <code>${payload.route}</code>\n`;
+      text += `📍 <b>المسار (Route):</b> <code>${telegramHtml(payload.route)}</code>\n`;
     }
     text += `🕒 <b>التاريخ والوقت:</b> <code>${dateStr}</code>\n`;
-    text += `❌ <b>رسالة الخطأ:</b>\n<pre>${payload.message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>\n`;
-
-    if (payload.stack) {
-      const cleanStack = payload.stack.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').slice(0, 1500);
-      text += `\n💻 <b>Stack Trace:</b>\n<pre><code>${cleanStack}</code></pre>\n`;
-    }
+    text = formatTelegramErrorDetails(text, { ...payload, source: payload.route });
 
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',

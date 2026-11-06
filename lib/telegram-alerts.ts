@@ -50,6 +50,15 @@ export async function reportTechnicalError(
 
     let message = '';
     let stack = '';
+    let code: string | undefined;
+    let status: number | undefined;
+
+    if (errorOrMessage && typeof errorOrMessage === 'object') {
+      const details = errorOrMessage as { code?: unknown; status?: unknown; statusCode?: unknown };
+      if (typeof details.code === 'string') code = details.code;
+      if (typeof details.status === 'number') status = details.status;
+      else if (typeof details.statusCode === 'number') status = details.statusCode;
+    }
 
     if (errorOrMessage instanceof Error) {
       message = errorOrMessage.message || errorOrMessage.name || 'Unknown Error';
@@ -102,6 +111,8 @@ export async function reportTechnicalError(
       level: context?.level || (category === 'react_crash' ? 'fatal' : 'error'),
       category,
       message,
+      code,
+      status,
       stack,
       componentStack: context?.componentStack,
       url: currentUrl,

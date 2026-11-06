@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { formatTelegramErrorDetails, telegramHtml } from '@/lib/telegram-error-guidance';
 
 export const runtime = 'nodejs';
 
@@ -15,20 +16,12 @@ function cleanRecentCache() {
   }
 }
 
-function escapeHtml(str: string): string {
-  if (!str) return '';
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 export interface TechnicalAlertPayload {
   level?: 'fatal' | 'error' | 'warning' | 'info';
   category?: 'react_crash' | 'uncaught_exception' | 'unhandled_rejection' | 'api_failure' | 'database_error' | 'business_exception';
   message: string;
+  code?: string;
+  status?: number;
   stack?: string;
   componentStack?: string;
   url?: string;
@@ -64,7 +57,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: 'Invalid JSON payload' }, { status: 400 });
     }
 
-    if (!payload || !payload.message) {
+    if (typeof payload?.message !== 'string' || !payload.message.trim()) {
       return NextResponse.json({ ok: false, error: 'Missing error message' }, { status: 400 });
     }
 
@@ -106,47 +99,28 @@ export async function POST(req: Request) {
     const catLabel = categoryLabels[payload.category || 'business_exception'] || 'خطأ تقني عام';
     const dateStr = new Date().toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh' });
 
-    // Truncate technical stack to ensure message fits under Telegram 4096 char limit
-    const cleanStack = (payload.stack || payload.componentStack || '').trim();
-    const maxStackLen = 2200;
-    const truncatedStack =
-      cleanStack.length > maxStackLen ? cleanStack.slice(0, maxStackLen) + '\n... [تم قص بقية الـ Stack Trace لكبر الحجم]' : cleanStack;
-
     let text = `<b>${header}</b>\n`;
     text += `<b>نظام إدارة المشروعات والمحاسبة — فاي تك</b>\n\n`;
-    text += `🏷️ <b>التصنيف:</b> ${escapeHtml(catLabel)}\n`;
-    text += `🕒 <b>التاريخ والوقت:</b> <code>${escapeHtml(dateStr)}</code>\n`;
+    text += `🏷️ <b>التصنيف:</b> ${telegramHtml(catLabel)}\n`;
+    text += `🕒 <b>التاريخ والوقت:</b> <code>${telegramHtml(dateStr)}</code>\n`;
 
     if (payload.url) {
-      text += `📍 <b>الصفحة / المسار:</b> <code>${escapeHtml(payload.url)}</code>\n`;
+      text += `📍 <b>الصفحة / المسار:</b> <code>${telegramHtml(payload.url)}</code>\n`;
     }
 
     if (payload.companyName || payload.companyId) {
-      text += `🏢 <b>الشركة النشطة:</b> ${escapeHtml(payload.companyName || 'غير محددة')} <code>(${escapeHtml(payload.companyId || '')})</code>\n`;
+      text += `🏢 <b>الشركة النشطة:</b> ${telegramHtml(payload.companyName || 'غير محددة')} <code>(${telegramHtml(payload.companyId || '')})</code>\n`;
     }
 
     if (payload.userEmail || payload.userId) {
-      text += `👤 <b>المستخدم:</b> ${escapeHtml(payload.userEmail || '')} <code>(${escapeHtml(payload.userId || '')})</code>\n`;
+      text += `👤 <b>المستخدم:</b> ${telegramHtml(payload.userEmail || '')} <code>(${telegramHtml(payload.userId || '')})</code>\n`;
     }
 
     if (payload.source) {
-      text += `📁 <b>مصدر الملف:</b> <code>${escapeHtml(payload.source)}</code>\n`;
+      text += `📁 <b>مصدر الملف:</b> <code>${telegramHtml(payload.source)}</code>\n`;
     }
 
-    text += `\n❌ <b>رسالة الخطأ:</b>\n<pre>${escapeHtml(payload.message)}</pre>\n`;
-
-    if (truncatedStack) {
-      text += `\n💻 <b>تفاصيل الكود (Stack Trace):</b>\n<pre><code>${escapeHtml(truncatedStack)}</code></pre>\n`;
-    }
-
-    if (payload.metadata && Object.keys(payload.metadata).length > 0) {
-      try {
-        const metaStr = JSON.stringify(payload.metadata, null, 2).slice(0, 500);
-        text += `\n📦 <b>بيانات إضافية:</b>\n<pre><code>${escapeHtml(metaStr)}</code></pre>\n`;
-      } catch {
-        // ignore meta serialization
-      }
-    }
+    text = formatTelegramErrorDetails(text, payload);
 
     // Send to Telegram Bot API
     const telegramEndpoint = `https://api.telegram.org/bot${botToken}/sendMessage`;
