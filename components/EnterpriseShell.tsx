@@ -12,6 +12,7 @@ import { useUnreadCounts } from '@/hooks/useUnreadCounts';
 import { useDisplayName } from '@/hooks/useDisplayName';
 import AppTopBar from './AppTopBar';
 import CompanyLogo from './CompanyLogo';
+import ThemeSwitcher from './ThemeSwitcher';
 
 export default function EnterpriseShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -48,7 +49,7 @@ export default function EnterpriseShell({ children }: { children: React.ReactNod
       <div className="ent-nav-scroll">{navigation(collapsed)}</div>
       <div className="ent-sidebar-footer"><Link href="/profile" className="ent-sidebar-user" title="الملف الشخصي"><span className="ent-avatar">{displayName.initial}</span>{!collapsed && <span><strong>{displayName.name}</strong><small>{['admin', 'super_admin'].includes(role) ? 'إدارة النظام' : 'حساب المستخدم'}</small></span>}</Link><button type="button" className="ent-icon-button ent-logout" onClick={logout} disabled={signingOut} aria-label="تسجيل الخروج" title="تسجيل الخروج"><LogOut size={17}/></button></div>
     </aside>
-    {mobileOpen && <div className="ent-mobile-backdrop no-print" onClick={event => { if (event.target === event.currentTarget) closeMobile(); }}><div className="ent-mobile-panel" ref={mobilePanel} role="dialog" aria-modal="true" aria-label="قائمة الشاشات"><div className="ent-mobile-heading"><CompanyLogo /><button type="button" className="ent-icon-button" onClick={closeMobile} aria-label="إغلاق قائمة الشاشات"><X size={20}/></button></div>{navigation()}<button type="button" className="ent-button ent-mobile-logout" onClick={logout} disabled={signingOut}><LogOut size={17}/>تسجيل الخروج</button></div></div>}
+    {mobileOpen && <div className="ent-mobile-backdrop no-print" onClick={event => { if (event.target === event.currentTarget) closeMobile(); }}><div className="ent-mobile-panel" ref={mobilePanel} role="dialog" aria-modal="true" aria-label="قائمة الشاشات"><div className="ent-mobile-heading"><CompanyLogo /><button type="button" className="ent-icon-button" onClick={closeMobile} aria-label="إغلاق قائمة الشاشات"><X size={20}/></button></div><div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', marginBottom: '0.75rem', background: 'var(--surface-subcard)', borderRadius: '12px' }}><span style={{ fontSize: 'var(--fs-xs)', fontWeight: 700, color: 'var(--text-secondary)' }}>مظهر الواجهة:</span><ThemeSwitcher /></div>{navigation()}<button type="button" className="ent-button ent-mobile-logout" onClick={logout} disabled={signingOut}><LogOut size={17}/>تسجيل الخروج</button></div></div>}
     <main className="ent-workspace"><AppTopBar onOpenMenu={() => setMobileOpen(true)}/><div className="ent-screen-root enterprise-page">{children}</div></main>
   </div>;
 }

@@ -210,8 +210,8 @@ export default function ViolationsPage() {
       </div>
 
       {mounted && logic.state.isEditModalOpen && logic.state.editingRecord && typeof document !== 'undefined' && createPortal(
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 999999, padding: '5vh 1.25rem', overflowY: 'auto' }}>
-          <div style={{ background: 'white', padding: '2.1875rem', borderRadius: '14px', width: '100%', maxWidth: '40.625rem', direction: 'rtl', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', margin: 'auto' }}>
+        <div className="phi-modal-backdrop modal-overlay" style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 999999, padding: '5vh 1.25rem', overflowY: 'auto' }}>
+          <div className="phi-modal-panel cinematic-scroll" style={{ background: 'white', padding: '2.1875rem', borderRadius: '14px', width: '100%', maxWidth: '40.625rem', direction: 'rtl', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', margin: 'auto' }}>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.9375rem', borderBottom: '2px dashed #f1f5f9', gap: '0.625rem', flexWrap: 'wrap' }}>
                 <h3 style={{fontWeight:900, fontSize:'var(--fs-xl)', color: THEME.primary, margin: 0}}>تسجيل حركة خصم / استقطاع</h3>
@@ -321,7 +321,7 @@ export default function ViolationsPage() {
               />
             </div>
 
-            <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '0.625rem' }}>
+            <div className="responsive-actions" style={{ display: 'flex', gap: '0.9375rem', marginTop: '0.625rem' }}>
               <button onClick={logic.actions.handleSave} disabled={logic.isLoading} style={{ flex: 2, background: THEME.ruby, color: 'white', padding: '1.125rem', borderRadius: '16px', border: 'none', fontWeight: 900, opacity: logic.isLoading ? 0.7 : 1 }}>
                   {logic.isLoading ? 'جاري التسجيل...' : 'اعتماد الخصم والتوجيه المحاسبي'}
               </button>

@@ -215,13 +215,71 @@
 }
 
 @media screen and (max-width: 800px) {
-  html:has(.enterprise-shell) :is(.phi-modal-backdrop, .warm-portal-overlay-fullscreen, .modal-overlay) { padding: 0.75rem !important; }
-  html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .profile-modal-box, .modal-content, .modal-box, .warm-portal-overlay-fullscreen > .cinematic-scroll) {
-    width: 100% !important; max-width: 100% !important; max-height: calc(100dvh - 1.5rem) !important; min-width: 0 !important;
+  /* Bottom-Sheet container behavior on mobile devices */
+  html:has(.enterprise-shell) :is(.phi-notifications-backdrop, .phi-blur-modal-backdrop, .phi-confirm-backdrop, .phi-modal-backdrop, .warm-portal-overlay-fullscreen, .modal-overlay) { 
+    align-items: flex-end !important;
+    padding: 0 !important; 
   }
-  html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .warm-portal-overlay-fullscreen > .cinematic-scroll):not(.phi-notifications) { padding: 1.125rem !important; }
+  html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .profile-modal-box, .modal-content, .modal-box, .warm-portal-overlay-fullscreen > .cinematic-scroll) {
+    width: 100% !important; 
+    max-width: 100% !important; 
+    max-height: calc(92dvh - var(--sat)) !important; 
+    min-width: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+    padding: 1.25rem 1rem calc(1.25rem + var(--sab)) !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
   html:has(.enterprise-shell) .phi-modal-frame { width: 100% !important; max-width: 100% !important; padding: 0 !important; overflow: visible !important; }
-  html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .profile-modal-box, .warm-portal-overlay-fullscreen) :is(.glass-input-field, .glass-input, .modal-input):not([type="checkbox"]):not([type="radio"]):not([type="file"]) { font-size: var(--fs-lg) !important; }
+
+  /* Multi-column grid auto-collapse to single column in modals and forms on mobile */
+  :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .modal-content, .modal-box, .warm-portal-overlay-fullscreen, .ent-voucher-dialog)
+    :is([style*="gridTemplateColumns"], [style*="grid-template-columns"], .responsive-form-grid, .ent-form-grid) {
+      grid-template-columns: 1fr !important;
+      gap: 0.75rem !important;
+  }
+
+  /* Reset inline span columns so fields don't overflow the screen width */
+  :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .modal-content, .modal-box, .warm-portal-overlay-fullscreen, .ent-voucher-dialog)
+    :is([style*="span 2"], [style*="span 3"], [style*="span 4"], .ent-form-full) {
+      grid-column: 1 / -1 !important;
+  }
+
+  /* 44px minimum touch target & 16px font-size to prevent iOS Safari auto-zoom */
+  html:has(.enterprise-shell) :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .profile-modal-box, .warm-portal-overlay-fullscreen, .modal-content) 
+    :is(.glass-input-field, .glass-input, .modal-input, input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) { 
+      min-height: 2.75rem !important;
+      font-size: 16px !important; 
+      border-radius: 12px !important;
+      box-sizing: border-box !important;
+  }
+
+  /* Modal headers with title and smart voice button */
+  :is(.phi-modal-panel, .glass-modal-container, .glass-modal, .warm-portal-overlay-fullscreen) > div:first-child,
+  .phi-blur-modal-heading {
+    flex-wrap: wrap !important;
+    gap: 0.625rem !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding-bottom: 0.75rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  /* Responsive bottom action buttons in modals */
+  .responsive-actions,
+  :is(.phi-modal-panel, .glass-modal-container, .warm-portal-overlay-fullscreen) :is(.responsive-actions, [style*="display: flex"][style*="justify-content: flex-end"]) {
+    display: flex !important;
+    flex-direction: column-reverse !important;
+    gap: 0.625rem !important;
+    width: 100% !important;
+    margin-top: 1.25rem !important;
+  }
+  .responsive-actions :is(button, .btn-glass-save, .btn-glass-cancel, .save-btn, .cancel-btn) {
+    width: 100% !important;
+    min-height: 2.875rem !important;
+    justify-content: center !important;
+  }
+
   .phi-notifications-header { padding: 1.125rem; gap: 0.8125rem; }
   .phi-notifications-body { padding: 1rem; }
   .phi-notifications-actions { justify-content: flex-end; flex: 1; }

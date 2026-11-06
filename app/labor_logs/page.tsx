@@ -483,7 +483,7 @@ export default function LaborLogsDirectory() {
                </div>
 
                {/* أزرار الحفظ */}
-               <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '1.25rem' }}>
+               <div className="responsive-actions" style={{ display: 'flex', gap: '0.9375rem', marginTop: '1.25rem' }}>
                  <button onClick={logic.handleSaveLog} disabled={logic.isSaving} className="save-btn" title="يمكنك أيضاً استخدام Ctrl + Enter للحفظ">
                    {logic.isSaving ? 'جاري الحفظ...' : 'حفظ مسودة اليومية'}
                  </button>

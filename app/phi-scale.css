@@ -45,8 +45,20 @@ html {
   /* Control heights. */
   --control-h: 2.5rem;                                      /* 40px */
   --control-h-sm: 2.25rem;                                  /* 36px */
+
+  /* Safe area insets for modern mobile devices (iPhone notch/Dynamic Island, home indicator) */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
 }
 
 @media screen and (max-width: 800px) {
-  :root { --control-h: 2.75rem; }                           /* 44px touch targets */
+  :root {
+    --control-h: 2.75rem;                           /* 44px minimum touch targets */
+    --space-gutter: max(0.75rem, calc(0.5rem + var(--sal)));
+    --space-card: 0.875rem;
+    --space-gap: 0.625rem;
+    --space-section: 1.125rem;
+  }
 }

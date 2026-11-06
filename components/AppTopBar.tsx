@@ -47,20 +47,20 @@ export default function AppTopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
         <button type="button" className="ent-topbar-search" onClick={() => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT))} aria-label="البحث في الشاشات (Ctrl K)">
           <Search size={15} aria-hidden="true" /><span>بحث في الشاشات</span><kbd dir="ltr">Ctrl K</kbd>
         </button>
-        <ThemeSwitcher />
+        <div className="ent-topbar-theme"><ThemeSwitcher /></div>
         <button type="button" className="ent-icon-button ent-topbar-zap" onClick={toggle} disabled={!ready} aria-pressed={fastMode}
           aria-label={fastMode ? 'إيقاف وضع الأداء السريع' : 'تشغيل وضع الأداء السريع'} title={fastMode ? 'وضع الأداء السريع مفعّل' : 'وضع الأداء السريع: تقليل الحركات والظلال'}>
           <Zap size={17} />
         </button>
         <button type="button" className="ent-icon-button ent-topbar-optional" onClick={() => window.dispatchEvent(new Event(OPEN_SHORTCUTS_EVENT))} aria-label="اختصارات لوحة المفاتيح (F1)" title="الاختصارات (F1)"><Keyboard size={17} /></button>
         <span className="ent-topbar-divider" aria-hidden="true" />
-        <button type="button" className="ent-icon-button" onClick={() => router.back()} aria-label="رجوع للصفحة السابقة" title="رجوع"><ArrowRight size={17} /></button>
+        <button type="button" className="ent-icon-button ent-topbar-back" onClick={() => router.back()} aria-label="رجوع للصفحة السابقة" title="رجوع"><ArrowRight size={17} /></button>
         <button type="button" className="ent-icon-button ent-topbar-optional" onClick={() => router.forward()} aria-label="تقدم للصفحة التالية" title="تقدم"><ArrowLeft size={17} /></button>
         <span className="ent-topbar-divider" aria-hidden="true" />
-        <Link href="/messages" className="ent-icon-button" aria-label={`الرسائل${unread_messages ? `: ${unread_messages} غير مقروءة` : ''}`} title="الرسائل">
+        <Link href="/messages" className="ent-icon-button ent-topbar-messages" aria-label={`الرسائل${unread_messages ? `: ${unread_messages} غير مقروءة` : ''}`} title="الرسائل">
           <MessageSquare size={17} />{unread_messages > 0 && <span className="ent-notification-dot" />}
         </Link>
-        <button type="button" className="ent-icon-button" onClick={() => setNotificationsOpen(true)} aria-label={`الإشعارات${unread_notifications ? `: ${unread_notifications} غير مقروءة` : ''}`} title="الإشعارات">
+        <button type="button" className="ent-icon-button ent-topbar-bell" onClick={() => setNotificationsOpen(true)} aria-label={`الإشعارات${unread_notifications ? `: ${unread_notifications} غير مقروءة` : ''}`} title="الإشعارات">
           <Bell size={17} />{unread_notifications > 0 && <span className="ent-notification-dot" />}
         </button>
       </div>

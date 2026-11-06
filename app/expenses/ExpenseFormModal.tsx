@@ -168,9 +168,17 @@ export default function ExpenseFormModal({
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
                 .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
                 .btn-glass-cancel:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
-                .lines-table-container { background: rgba(255, 255, 255, 0.5); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.7); overflow: hidden; margin-top: 0.9375rem; }
+                .lines-table-container { background: rgba(255, 255, 255, 0.5); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.7); overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 0.9375rem; }
                 .item-row { transition: 0.2s; border-bottom: 1px solid rgba(0,0,0,0.05); }
                 .item-row:hover { background: rgba(255, 255, 255, 0.8); }
+                @media (max-width: 768px) {
+                    .responsive-line-entry-grid { grid-template-columns: 1fr 1fr !important; }
+                    .responsive-line-entry-grid > div:first-child { grid-column: 1 / -1 !important; }
+                    .responsive-line-entry-grid > button { grid-column: 1 / -1 !important; min-height: 2.75rem !important; }
+                    .responsive-form-grid { grid-template-columns: 1fr !important; }
+                    .responsive-summary-grid { grid-template-columns: 1fr 1fr !important; gap: 0.625rem !important; padding: 0.875rem !important; }
+                    .responsive-summary-grid > div:last-child { grid-column: 1 / -1 !important; }
+                }
             `}</style>
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ width: '62.5rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.92)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl' }}>
@@ -367,7 +375,7 @@ export default function ExpenseFormModal({
                 
                 <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '1.25rem', borderRadius: '14px', marginBottom: '1.5625rem', border: `1px dashed ${THEME.accent}` }}>
                     <h3 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.brand.coffee, marginBottom: '0.9375rem' }}>إضافة بنود المصروف</h3>
-                    <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 0.5fr', gap: '0.9375rem', alignItems: 'end' }}>
+                    <div className="responsive-line-entry-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 0.5fr', gap: '0.9375rem', alignItems: 'end' }}>
                         <div style={{ zIndex: 40 }}>
                             <SmartCombo label="البيان / الصنف *" icon="🛠️" freeText={true} initialDisplay={record.description} onSelect={(val: any) => setRecord({...record, description: typeof val === 'object' && val !== null ? val.name : val})} options={historicalData?.descriptions || []} />
                         </div>

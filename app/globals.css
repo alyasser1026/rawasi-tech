@@ -844,18 +844,20 @@ td {
 /* 📱 GLOBAL MOBILE RESPONSIVENESS (SMART LAYOUT)            */
 /* ========================================================= */
 @media (max-width: 768px) {
-  /* 1. Base Layout Resets */
-  body, html { overflow-x: hidden !important; width: 100vw !important; }
+  /* 1. Base Layout Resets: Prevent 100vw horizontal overflow scroll */
+  body, html { overflow-x: hidden !important; width: 100% !important; max-width: 100% !important; }
   
   /* 2. Tables & Data Display */
   /* Make all tables horizontally scrollable natively */
-  .table-responsive {
+  .table-responsive, .rawasi-table-scroll, .ent-table-scroll {
       display: block !important;
       width: 100% !important;
       overflow-x: auto !important;
       -webkit-overflow-scrolling: touch !important;
   }
-  table { width: 100% !important; min-width: 37.5rem !important; }
+  :is(.table-responsive, .rawasi-table-scroll, .ent-table-scroll) table { 
+      min-width: 37.5rem !important; 
+  }
   
   /* 3. Sidebars & Layouts */
   /* Convert any flex-row layouts to flex-column */
@@ -876,14 +878,14 @@ td {
   
   /* 4. Glass Containers & Paddings */
   .clean-page {
-      padding: 0.625rem !important;
+      padding: 0.5rem !important;
       margin: 0 !important;
   }
   
   .glass-container, 
   .glass-card,
-  main {
-      padding: 0.9375rem !important;
+  main:not(.ent-workspace) {
+      padding: 0.875rem !important;
       border-radius: 15px !important;
       margin: 0 !important;
       width: 100% !important;
@@ -896,19 +898,13 @@ td {
   .master-header {
       flex-direction: column !important;
       align-items: flex-start !important;
-      gap: 0.9375rem !important;
-      padding: 0.9375rem !important;
+      gap: 0.75rem !important;
+      padding: 0.75rem !important;
   }
   
   .title-area h1 { font-size: var(--fs-xl) !important; }
   
-  /* Ensure buttons don't break flex layout */
-  button {
-      white-space: nowrap !important;
-      flex-shrink: 0 !important;
-  }
-  
-  /* 6. Modals */
+  /* 6. Modals & Dialogs on Mobile */
   .modal-content, .supreme-modal,
   div[style*="width: 500px"], 
   div[style*="width: 600px"], 
@@ -918,12 +914,12 @@ td {
   div[style*="max-width: 550px"],
   div[style*="max-width: 600px"],
   .profile-modal-box {
-      width: 95vw !important;
-      max-width: 95vw !important;
+      width: 100% !important;
+      max-width: 100% !important;
       margin-left: auto !important;
       margin-right: auto !important;
-      padding: 0.9375rem !important;
-      max-height: 90vh !important;
+      padding: 1rem !important;
+      max-height: 92dvh !important;
       overflow-y: auto !important;
       box-sizing: border-box !important;
   }
@@ -936,20 +932,19 @@ td {
     .responsive-summary-grid, 
     .responsive-card-grid {
         grid-template-columns: 1fr !important;
-        gap: 0.9375rem !important;
+        gap: 0.75rem !important;
     }
 
     /* Named dialogs resize without changing unrelated cards and table columns. */
     .modal-content,
     .supreme-modal {
-        width: 95vw !important;
-        max-width: 100vw !important;
+        width: 100% !important;
+        max-width: 100% !important;
         min-width: 0 !important;
         margin-left: auto !important;
         margin-right: auto !important;
-        padding: 0.9375rem !important;
+        padding: 1rem !important;
         overflow-x: hidden !important;
         box-sizing: border-box !important;
     }
-
 }
