@@ -76,7 +76,7 @@ export async function reportTechnicalError(
     message = message.trim();
     if (!message) return;
 
-    // Ignore benign errors (user aborted fetch, resize observer loop, benign hydration, normal auth session expiry)
+    // Ignore benign errors (user aborted fetch, resize observer loop, benign hydration, normal auth session expiry, user permission denials)
     if (
       message.includes('AbortError') ||
       message.includes('ResizeObserver loop') ||
@@ -84,6 +84,11 @@ export async function reportTechnicalError(
       message.includes('Invalid Refresh Token') ||
       message.includes('refresh_token_not_found') ||
       message.includes('JWT expired') ||
+      message.includes('denied permission') ||
+      message.includes('Permission denied') ||
+      message.includes('NotAllowedError') ||
+      message.includes('User denied Geolocation') ||
+      message.includes('Mic access error') ||
       code === 'refresh_token_not_found' ||
       code === 'session_not_found'
     ) {

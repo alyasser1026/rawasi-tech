@@ -77,8 +77,17 @@ export default function VoiceFormTrigger({
         setDuration((prev) => prev + 1);
       }, 1000);
     } catch (err: any) {
-      console.error('Mic access error:', err);
-      notify.error('تعذر الوصول إلى الميكروفون. يرجى السماح بالإذن في المتصفح.');
+      const isPermissionDenied =
+        err?.name === 'NotAllowedError' ||
+        err?.name === 'PermissionDeniedError' ||
+        err?.message?.includes('denied permission') ||
+        err?.message?.includes('Permission denied');
+
+      if (isPermissionDenied) {
+        notify.warning('يرجى السماح بصلاحية الميكروفون من إعدادات المتصفح لاستخدام الإدخال الصوتي.');
+      } else {
+        notify.error('تعذر الوصول إلى الميكروفون. يرجى التأكد من توصيل ميكروفون صالح.');
+      }
     }
   };
 

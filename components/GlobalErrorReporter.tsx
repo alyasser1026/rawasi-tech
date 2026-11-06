@@ -81,7 +81,12 @@ export default function GlobalErrorReporter() {
           !combinedText.includes('Failed to load resource: net::ERR_BLOCKED_BY_CLIENT') &&
           !combinedText.includes('Invalid Refresh Token') &&
           !combinedText.includes('refresh_token_not_found') &&
-          !combinedText.includes('JWT expired')
+          !combinedText.includes('JWT expired') &&
+          !combinedText.includes('denied permission') &&
+          !combinedText.includes('Permission denied') &&
+          !combinedText.includes('NotAllowedError') &&
+          !combinedText.includes('User denied Geolocation') &&
+          !combinedText.includes('Mic access error')
         ) {
           void reportTechnicalError(errorObj || combinedText, {
             category: 'business_exception',
