@@ -1,4 +1,12 @@
-import { generateWorkerStatementPdf } from './pdf-generator.mjs';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { generateWorkerStatementPdf, generateEngineeringChecklistPdf } from './pdf-generator.mjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const rootDir = path.resolve(__dirname, '..');
+const CHECKLIST_DOC_PATH = path.join(rootDir, 'config', 'copilot_engineering_checklists.md');
 
 /**
  * High-performance database query and action tools for Phi Tech Copilot
@@ -582,6 +590,200 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
           book_value: Number(a.current_book_value || 0).toLocaleString() + ' ر.س',
         })),
       };
+    },
+
+    // 16. استعلام عن الاتشك ليست وخطوات التنفيذ ومواصفات البنود هندسياً
+    async get_engineering_checklist_and_specs({ item_name, topic }) {
+      if (!item_name) {
+        return {
+          success: false,
+          error: 'يرجى تحديد اسم البند الهندسي (مثال: صب خرسانة، محارة، عزل حمامات، سباكة، مباني، سيراميك، كهرباء)',
+        };
+      }
+
+      let manualContent = '';
+      try {
+        if (fs.existsSync(CHECKLIST_DOC_PATH)) {
+          manualContent = fs.readFileSync(CHECKLIST_DOC_PATH, 'utf8');
+        }
+      } catch (err) {
+        console.error('Error reading checklist guide:', err);
+      }
+
+      const q = item_name.toLowerCase().trim();
+      let matchedSection = '';
+
+      if (manualContent) {
+        // Find relevant section in the markdown manual
+        const sections = manualContent.split(/\n## /);
+        for (const sec of sections) {
+          if (sec.toLowerCase().includes(q) || (topic && sec.toLowerCase().includes(topic.toLowerCase()))) {
+            matchedSection = '## ' + sec;
+            break;
+          }
+        }
+        if (!matchedSection && sections.length > 1) {
+          // If no direct section match, search by subkeywords
+          if (q.includes('خرسان') || q.includes('صب') || q.includes('عمود') || q.includes('سقف') || q.includes('هبوط') || q.includes('slump')) {
+            matchedSection = '## ' + sections.find(s => s.includes('الخرسانات'));
+          } else if (q.includes('بياض') || q.includes('محار') || q.includes('بؤج') || q.includes('طرطش')) {
+            matchedSection = '## ' + sections.find(s => s.includes('المحارة'));
+          } else if (q.includes('عزل') || q.includes('حمامات') || q.includes('سطح') || q.includes('ممبرين')) {
+            matchedSection = '## ' + sections.find(s => s.includes('العزل'));
+          } else if (q.includes('سباك') || q.includes('صرف') || q.includes('مياه') || q.includes('كبس') || q.includes('بار')) {
+            matchedSection = '## ' + sections.find(s => s.includes('السباكة'));
+          } else if (q.includes('مبان') || q.includes('طوب') || q.includes('قد')) {
+            matchedSection = '## ' + sections.find(s => s.includes('المباني'));
+          } else if (q.includes('سيراميك') || q.includes('بورسلين') || q.includes('رخام') || q.includes('تطبيل')) {
+            matchedSection = '## ' + sections.find(s => s.includes('الأرضيات'));
+          } else if (q.includes('كهرب') || q.includes('أسلاك') || q.includes('برايز') || q.includes('تأريض')) {
+            matchedSection = '## ' + sections.find(s => s.includes('الكهربائية'));
+          } else if (q.includes('دهان') || q.includes('معجون') || q.includes('سيلر')) {
+            matchedSection = '## ' + sections.find(s => s.includes('الدهانات'));
+          } else if (q.includes('ألوميتال') || q.includes('شباك') || q.includes('باب')) {
+            matchedSection = '## ' + sections.find(s => s.includes('الألوميتال'));
+          }
+        }
+      }
+
+      return {
+        success: true,
+        item_searched: item_name,
+        topic: topic || 'شامل (اتشك ليست، خطوات تنفيذ، معدلات استهلاك)',
+        reference_found: Boolean(matchedSection),
+        engineering_guidance: matchedSection || 'راجع الدليل الهندسي لبنود المقاولات المعتمد في فاي تك.',
+      };
+    },
+
+    // 17. إصدار وإرسال استمارة اتشك ليست فحص هندسي رسمية PDF عبر التلجرام
+    async generate_and_send_engineering_checklist_pdf({
+      checklist_title,
+      project_name,
+      stage_name,
+      inspector_name,
+      contractor_name,
+      items,
+      chatId,
+    }) {
+      const title = checklist_title || 'استمارة فحص واستلام أعمال هندسية';
+      const proj = project_name || 'مشروع الفلل السكنية';
+      const stage = stage_name || 'أعمال تنفيذية وميدانية';
+      const inspector = inspector_name || 'مهندس الموقع الفاحص';
+      const contractor = contractor_name || 'مقاول التنفيذ';
+
+      // Default standard inspection items if not passed
+      let inspectionItems = Array.isArray(items) && items.length > 0 ? items : [
+        { title: 'مطابقة الأبعاد والمحاور والمناسيب مع المخططات التنفيذية (Shop Drawings)', status: 'مطابق', notes: 'مطابق للمخطط المعتمد' },
+        { title: 'التأكد من نظافة الموقع والعنصر تماماً من الأتربة والشوائب والمخلفات', status: 'مطابق', notes: 'تم التنظيف والغسيل' },
+        { title: 'مراجعة تثبيت الدعائم والتقويات والشنابر والزراجين هندسياً', status: 'مطابق', notes: 'تقويات قوية وآمنة' },
+        { title: 'فحص التفاوتات المسموح بها وميزان الرأسية والأفقية والتربيع', status: 'مطابق', notes: 'الرأسية والأفقية تامة (0 خطأ)' },
+        { title: 'مطابقة أقطار وأعداد وتراكب حديد التسليح / مواسير التمديد والكفر الخرساني', status: 'مطابق', notes: 'الكفر الخرساني والتراكب محقق' },
+        { title: 'اختبارات الجودة وضغوط الكبس / اختبار الهبوط Slump Test والعزل', status: 'مطابق', notes: 'ناجح في الاختبار الميداني' },
+        { title: 'التأكد من سلامة المعالجة والحماية واتخاذ اشتراطات السلامة المهنية', status: 'مطابق', notes: 'جاهز للاعتماد والمرحلة التالية' },
+      ];
+
+      // توليد ملف الـ PDF عبر Puppeteer
+      const pdfBuffer = await generateEngineeringChecklistPdf({
+        title,
+        projectName: proj,
+        stageName: stage,
+        inspectorName: inspector,
+        contractorName: contractor,
+        items: inspectionItems,
+      });
+
+      // إرسال الـ PDF عبر تليجرام
+      const formData = new FormData();
+      formData.append('chat_id', chatId);
+      formData.append(
+        'document',
+        new Blob([pdfBuffer], { type: 'application/pdf' }),
+        `استمارة_فحص_${stage.replace(/\s+/g, '_')}.pdf`
+      );
+      formData.append(
+        'caption',
+        `📋 <b>${title}</b>\n🏛️ <b>المشروع:</b> ${proj}\n👷‍♂️ <b>المهندس الفاحص:</b> ${inspector}\n📅 <b>التاريخ:</b> ${new Date().toISOString().split('T')[0]}\n\n✓ تم إصدار الاستمارة الرسمية بنجاح للاستلام الميداني والتوقيع.`
+      );
+
+      const sendRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const sendJson = await sendRes.json();
+      if (!sendJson.ok) {
+        return { success: false, error: sendJson.description || 'فشل إرسال ملف الـ PDF عبر تليجرام' };
+      }
+
+      return {
+        success: true,
+        title,
+        project_name: proj,
+        stage_name: stage,
+        inspector_name: inspector,
+        message: `تم إصدار وإرسال استمارة الفحص والاستلام الهندسي "${title}" بصيغة PDF بنجاح إلى المحادثة!`,
+      };
+    },
+
+    // 18. تسجيل زيارة فحص جودة وملاحظات الموقع في جدول project_site_visits
+    async record_site_inspection_visit({
+      project_id,
+      title,
+      stage,
+      inspector_name,
+      notes,
+      status,
+      boq_item_name,
+    }) {
+      if (!title) return { success: false, error: 'يرجى تحديد عنوان زيارة الفحص' };
+
+      // Get project_id if not provided by fetching first project
+      let validProjId = project_id;
+      if (!validProjId) {
+        const { data: projs } = await fetchRest('projects?select=id,Property&limit=1');
+        if (projs && projs.length > 0) validProjId = projs[0].id;
+      }
+
+      if (!validProjId) {
+        return { success: false, error: 'لم يتم العثور على مشروع لربط زيارة الفحص به' };
+      }
+
+      const body = {
+        project_id: validProjId,
+        title: title.trim(),
+        stage: stage || 'أعمال ميدانية',
+        inspector_name: inspector_name || 'مهندس الجودة',
+        notes: notes || 'تمت المعاينة الميدانية ومطابقة معايير الجودة',
+        status: status || 'مفتوحة',
+        boq_item_name: boq_item_name || null,
+        visit_date: getTodayDate(),
+      };
+
+      try {
+        const res = await fetch(`${supabaseUrl}/rest/v1/project_site_visits`, {
+          method: 'POST',
+          headers: {
+            ...headers,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          return { success: false, error: errText };
+        }
+
+        const inserted = await res.json();
+        return {
+          success: true,
+          message: 'تم تسجيل زيارة الفحص وملاحظات الجودة الهندسية بنجاح في قاعدة البيانات',
+          visit_record: inserted?.[0] || body,
+        };
+      } catch (err) {
+        return { success: false, error: err.message };
+      }
     },
   };
 }

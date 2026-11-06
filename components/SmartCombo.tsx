@@ -72,6 +72,7 @@ export default function SmartCombo({
     const [isMobile, setIsMobile] = useState(false); 
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
     const listRef = useRef<HTMLDivElement>(null);
+    const comboRef = useRef<HTMLDivElement>(null);
 
     // 🛡️ [نظام الصلاحيات المركزي]: حماية ذكية للحقل
     let can = (module: string, action: string) => true; 
@@ -269,6 +270,18 @@ export default function SmartCombo({
         // 🚀 تم إضافة ومراقبة filterColumn و filterValue لإعادة السحب فوراً عند تغيير الفيلا
     }, [search, table, options, show, hasFieldAccess, filter, filterColumn, filterValue, customFilter]);
 
+    useEffect(() => {
+        if (!show || disabled) return;
+        const closeOutside = (event: PointerEvent) => {
+            if (event.target instanceof Node && !comboRef.current?.contains(event.target)) {
+                setShow(false);
+                setHighlightedIndex(-1);
+            }
+        };
+        document.addEventListener('pointerdown', closeOutside, true);
+        return () => document.removeEventListener('pointerdown', closeOutside, true);
+    }, [show, disabled]);
+
     // 🖱️ Scroll
     useEffect(() => {
         if (highlightedIndex >= 0 && listRef.current) {
@@ -306,7 +319,8 @@ export default function SmartCombo({
     };
 
     // 🚨 Strict Mode
-    const handleBlur = () => {
+    const handleBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (comboRef.current?.contains(event.relatedTarget)) return;
         if (strict && search && !multi && !freeText && hasFieldAccess) {
             const match = results.find(item => {
                 const isPrimitive = typeof item !== 'object';
@@ -318,7 +332,8 @@ export default function SmartCombo({
                 onSelect('');
             }
         }
-        setTimeout(() => setShow(false), 200); 
+        setShow(false);
+        setHighlightedIndex(-1);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -373,6 +388,7 @@ export default function SmartCombo({
 
         return (
             <div key={`${isRecent ? 'recent' : 'res'}_${isPrimitive ? index : item.id}`} 
+                 onMouseDown={(e) => { if (e.button === 0) e.preventDefault(); }}
                  onClick={(e) => handleItemSelect(item, e)} 
                  className={`smart-drop-item ${isSelected ? 'selected' : ''} ${isHighlighted ? 'highlighted' : ''}`}>
                 
@@ -413,7 +429,7 @@ export default function SmartCombo({
     }
 
     return (
-        <div style={{ position: 'relative', flex: 1, width: '100%' }}>
+        <div ref={comboRef} style={{ position: 'relative', flex: 1, width: '100%' }}>
             <style>{`
                 .smart-combo-input {
                     width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px;
@@ -458,13 +474,13 @@ export default function SmartCombo({
                 />
                 
                 {enableClear && search && !disabled && (
-                    <span onClick={handleClear} style={{ position: 'absolute', left: '2.1875rem', top: isTextArea ? '0.9375rem' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: 'var(--fs-md)', color: '#ef4444', cursor: 'pointer', padding: '0.3125rem', fontWeight: 900, background: '#fee2e2', borderRadius: '50%', width: '1.375rem', height: '1.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="مسح">
+                    <span onMouseDown={e => e.preventDefault()} onClick={handleClear} style={{ position: 'absolute', left: '2.1875rem', top: isTextArea ? '0.9375rem' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: 'var(--fs-md)', color: '#ef4444', cursor: 'pointer', padding: '0.3125rem', fontWeight: 900, background: '#fee2e2', borderRadius: '50%', width: '1.375rem', height: '1.375rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="مسح">
                         ×
                     </span>
                 )}
 
                 {!isTextArea && !disabled && (
-                    <span onClick={() => { if(!disabled) { setShow(!show); if(!show) loadData(search || ''); } }} style={{ position: 'absolute', left: '0.9375rem', fontSize: 'var(--fs-xs)', color: '#64748b', cursor: 'pointer', padding: '0.3125rem', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    <span onMouseDown={e => e.preventDefault()} onClick={() => { if(!disabled) { setShow(!show); if(!show) loadData(search || ''); } }} style={{ position: 'absolute', left: '0.9375rem', fontSize: 'var(--fs-xs)', color: '#64748b', cursor: 'pointer', padding: '0.3125rem', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                         ▼
                     </span>
                 )}
@@ -474,14 +490,14 @@ export default function SmartCombo({
 
             {show && !disabled && (
                 <>
-                    <div onClick={() => setShow(false)} style={{ position: 'fixed', inset: 0, zIndex: 1999, background: (isMobile && isMobileBottomSheet) ? 'rgba(0,0,0,0.5)' : 'transparent', backdropFilter: (isMobile && isMobileBottomSheet) ? 'blur(5px)' : 'none' }} />
+                    {isMobile && isMobileBottomSheet && <div onClick={() => setShow(false)} style={{ position: 'fixed', inset: 0, zIndex: 1999, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)' }} />}
                     <div ref={listRef} className="cinematic-scroll" style={dropdownStyle}>
                         {isMobile && isMobileBottomSheet && <div style={{ width: '2.5rem', height: '0.3125rem', background: '#cbd5e1', borderRadius: '10px', margin: '0 auto 0.9375rem auto' }} />}
                         {(results?.length || 0) === 0 && (search?.length || 0) > 0 && !isLoading && (
                             <div style={{ padding: '0.9375rem', textAlign: 'center' }}>
                                 <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 800, margin: '0 0 0.625rem 0' }}>لا توجد نتائج لـ "<span style={{color: THEME.ruby}}>{search}</span>"</p>
                                 {allowAddNew && onAddNew && hasAddPermission && (
-                                    <button onMouseDown={(e) => { e.preventDefault(); onAddNew(search); setShow(false); }} style={{ background: THEME.success, color: 'white', border: 'none', padding: '0.625rem 1.25rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-sm)', boxShadow: `0 5px 15px ${THEME.success}40`, width: '100%' }}>
+                                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { onAddNew(search); setShow(false); }} style={{ background: THEME.success, color: 'white', border: 'none', padding: '0.625rem 1.25rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-sm)', boxShadow: `0 5px 15px ${THEME.success}40`, width: '100%' }}>
                                         إضافة "{search}" كجديد
                                     </button>
                                 )}

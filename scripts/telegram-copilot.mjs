@@ -56,6 +56,7 @@ console.log('🤖 بدء تشغيل المساعد الذكي لنظام فاي 
 
 const KNOWLEDGE_PATH = path.join(rootDir, 'config', 'copilot_knowledge.md');
 const SCENARIOS_PATH = path.join(rootDir, 'config', 'copilot_page_scenarios.md');
+const CHECKLIST_PATH = path.join(rootDir, 'config', 'copilot_engineering_checklists.md');
 const MEMORY_PATH = path.join(rootDir, 'config', 'copilot_memory.json');
 
 // Initialize database & PDF tools
@@ -65,7 +66,7 @@ const copilotTools = createCopilotTools({
   botToken: BOT_TOKEN,
 });
 
-// 📚 تحميل دليل المعرفة الثابت وسيناريوهات الشاشات
+// 📚 تحميل دليل المعرفة الثابت وسيناريوهات الشاشات والاتشك ليست الهندسية
 function loadKnowledgeBase() {
   let combined = '';
   try {
@@ -74,6 +75,9 @@ function loadKnowledgeBase() {
     }
     if (fs.existsSync(SCENARIOS_PATH)) {
       combined += fs.readFileSync(SCENARIOS_PATH, 'utf8').trim() + '\n\n';
+    }
+    if (fs.existsSync(CHECKLIST_PATH)) {
+      combined += fs.readFileSync(CHECKLIST_PATH, 'utf8').trim() + '\n\n';
     }
   } catch (err) {
     console.error('Error loading knowledge base:', err.message);
@@ -299,35 +303,85 @@ const FUNCTION_DECLARATIONS = [
       properties: {},
     },
   },
+  {
+    name: 'get_engineering_checklist_and_specs',
+    description: 'استعلام واستخراج قوائم الفحص والاستلام الهندسي (Checklist)، خطوات التنفيذ القياسية، معدلات استهلاك المواد ونسب الخلط، ومعايير القبول والرفض لأي بند مقاولات (خرسانات، نجارة، حدادة، صب، slump test، مباني، محارة وبؤج، عزل حمامات وسطح، سباكة وتغذية، اختبار كبس، صرف، كهرباء، سيراميك، دهانات، ألوميتال)',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        item_name: {
+          type: 'STRING',
+          description: 'اسم البند المطلوب (مثال: صب خرسانة، محارة، عزل حمامات، سباكة، مباني، سيراميك، كهرباء، حدادة أعمدة، هبوط الخرسانة)',
+        },
+        topic: {
+          type: 'STRING',
+          description: 'نوع الاستعلام المطلوب (checklist، خطوات تنفيذ، معدلات استهلاك، معايير قبول ورفض)',
+        },
+      },
+      required: ['item_name'],
+    },
+  },
+  {
+    name: 'generate_and_send_engineering_checklist_pdf',
+    description: 'إصدار وتوليد استمارة اتشك ليست فحص واستلام هندسي رسمية ومختومة بصيغة PDF وإرسالها فوراً كمستند تليجرام لطباعتها في الموقع أو توقيعها مع الاستشاري والمقاول',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        checklist_title: { type: 'STRING', description: 'عنوان الاستمارة (مثال: استمارة استلام صب الأعمدة، استمارة استلام بياض المحارة، فحص عزل الحمامات)' },
+        project_name: { type: 'STRING', description: 'اسم المشروع أو رقم الفيلا' },
+        stage_name: { type: 'STRING', description: 'اسم المرحلة أو البند' },
+        inspector_name: { type: 'STRING', description: 'اسم المهندس الفاحص' },
+        contractor_name: { type: 'STRING', description: 'اسم المقاول المنفذ' },
+      },
+    },
+  },
+  {
+    name: 'record_site_inspection_visit',
+    description: 'تسجيل زيارة فحص جودة وملاحظات الاستلام الهندسي في قاعدة بيانات الموقع والمشاريع (project_site_visits)',
+    parameters: {
+      type: 'OBJECT',
+      properties: {
+        title: { type: 'STRING', description: 'عنوان الزيارة أو ملاحظة الفحص (مثال: فحص حدادة سقف فيلا 105)' },
+        stage: { type: 'STRING', description: 'المرحلة الإنشائية' },
+        inspector_name: { type: 'STRING', description: 'اسم المهندس الفاحص' },
+        notes: { type: 'STRING', description: 'ملاحظات وتوصيات الفحص الهندسي' },
+        status: { type: 'STRING', enum: ['مفتوحة', 'قيد المعالجة', 'تم الإنجاز'], description: 'حالة الملاحظة' },
+        boq_item_name: { type: 'STRING', description: 'اسم بند المقايسة المرتبط' },
+      },
+      required: ['title'],
+    },
+  },
 ];
 
 const BASE_SYSTEM_PROMPT = `
-أنت المساعد الذكي الخبير لمنظومة فاي تك (PHI TECH) لإدارة المشروعات والمقاولات والمحاسبة المالية.
-تتحدث باللغة العربية بأسلوب هندسي ومحاسبي محترف وودود وواضح، وتستخدم الإيموجي المناسب لتنسيق إجاباتك.
+أنت المساعد الذكي الخبير لمنظومة فاي تك (PHI TECH) لإدارة المشروعات والمقاولات والمحاسبة المالية وضبط الجودة الهندسية.
+تتحدث باللغة العربية بأسلوب مهندس استشاري وخبير موقع محترف وودود وواضح، وتستخدم الإيموجي المناسب لتنسيق إجاباتك.
 
-أنت مدرب خصيصاً على فهم الأوامر الصوتية والمحادثات الميدانية بلهجات المقاولات المصرية والخليجية ومصطلحات الورش:
-1. فهم الأرقام المنطوقة: ("مية وخمسة" = 105، "ميتين وأربعة" = 204، "سبعمية وخمسين" = 750، "ألفين وسبعمية" = 2700، "نص يوم" = 0.5، "يوم ونص" = 1.5).
-2. مصطلحات الموقع: ("شيكارة" = أسمنت 50 كجم، "نقلة" = رمل/سن م3، "نفر/أنفار" = عمال، "طريحة" = مستهدف الإنتاجية، "عجز/قصر" = نقص الإنتاجية، "سلفة" = دفعة نقدية، "تشوين/تعتيق" = رص وتنزيل الخامات، "مستخلص" = كشف أعمال مقاول باطن).
-3. التوجيه التلقائي للأدوات بناءً على العبارات والأسئلة الصوتية:
-   - "مين قصر في الطريحة" أو "مين عجز النهارده" -> استدعاء get_tareeha_deficits
-   - "في كام نفر اشتغلوا" أو "يوميات النهارده" أو "من تاريخ كذا لتاريخ كذا" -> استدعاء get_labor_daily_logs
-   - "ابعت كشف حساب فلان بي دي إف" أو "طلعلي PDF" -> استدعاء generate_and_send_worker_statement_pdf
-   - "الفيلا ميتين وأربعة" أو "ميزانية فيلا كذا" أو "صرفنا كام على الفيلا" -> استدعاء get_villa_and_budget_details
-   - "كام فيلا نموذج كذا" أو "مواصفات النموذج" -> استدعاء get_model_villas_and_specs
-   - "بند كذا في كام فيلا" أو "الماتيريال اللي استهلكتها الفيلا" -> استدعاء get_boq_and_materials
-   - "المقاولين اللي معاهم شغل" أو "شغالين في الموقع" -> استدعاء get_contractors_summary(filter_type: 'active_work')
-   - "المقاولين اللي ليهم فلوس" أو "مستحقات مقاولين" -> استدعاء get_contractors_summary(filter_type: 'with_balances')
-   - "المستخلصات المعلقة" أو "ما اعتمدتش" -> استدعاء get_pending_subclaims
-   - "تفاصيل عملية مالية أو سند صرف أو قبض" -> استدعاء get_financial_transaction_details
-   - "باقي كام في العهدة" أو "تقفيل الصندوق" -> استدعاء get_custodies_and_closings
+أنت خبير ومدرب على:
+1. قوائم الفحص والاستلام الهندسي (Checklists) لجميع بنود التنفيذ بالموقع:
+   (نجارة وحدادة وصب الخرسانات، اختبارات الهبوط Slump test والمكعبات، أعمال المباني ومدماك القد، بياض المحارة والبؤج والأوتار والطرطشة المسمارية، عزل الحمامات والأسطح واختبارات الغمر 48 ساعة، السباكة وشبكات التغذية واختبار الكبس 15 بار وشبكات الصرف، الكهرباء والتأريض، السيراميك والبورسلين بمادة لاصقة، الدهانات، الألوميتال).
+2. خطوات التنفيذ القياسية (Method Statements) خطوة بخطوة من التحضير والتجهيز إلى الصب والمعالجة والاستلام.
+3. معدلات استهلاك المواد ونسب الخلط الدقيقة (شكاير الأسمنت للمتر المكعب، نسب الرمل والسن، أوزان حديد التسليح، عدد الطوب في المسطح والمكعب، فرد المحارة والسيراميك والدهانات والعوازل).
+4. فهم الأرقام المنطوقة ولهجات الموقع: ("مية وخمسة" = 105، "سبعمية وخمسين" = 750، "شيكارة" = أسمنت، "نقلة" = رمل/سن م3، "نفر" = عامل، "طريحة" = مستهدف الإنتاجية، "عجز/قصر" = لم يحقق الطريحة).
+5. التوجيه التلقائي للأدوات بناءً على أسئلة المهندسين:
+   - "إزاي أستلم صب الأعمدة / النجارة / الحدادة" -> استدعاء get_engineering_checklist_and_specs
+   - "اتشك ليست استلام المحارة / العزل / السباكة" -> استدعاء get_engineering_checklist_and_specs
+   - "خطوات تنفيذ بند كذا" أو "معدلات استهلاك الأسمنت / الخامات" -> استدعاء get_engineering_checklist_and_specs
+   - "اطبعلي أو ابعتلي اتشك ليست PDF" أو "استمارة استلام أعمال بي دي إف" -> استدعاء generate_and_send_engineering_checklist_pdf
+   - "سجل زيارة فحص جودة أو ملاحظة استلام" -> استدعاء record_site_inspection_visit
+   - "مين قصر في الطريحة" -> استدعاء get_tareeha_deficits
+   - "في كام نفر اشتغلوا" أو "يوميات النهارده" -> استدعاء get_labor_daily_logs
+   - "ابعت كشف حساب فلان بي دي إف" -> استدعاء generate_and_send_worker_statement_pdf
+   - "الفيلا ميتين وأربعة" أو "ميزانية فيلا كذا" -> استدعاء get_villa_and_budget_details
+   - "المقاولين اللي معاهم شغل" -> استدعاء get_contractors_summary(filter_type: 'active_work')
+   - "المقاولين اللي ليهم فلوس" -> استدعاء get_contractors_summary(filter_type: 'with_balances')
+   - "المستخلصات المعلقة" -> استدعاء get_pending_subclaims
+   - "تفاصيل عملية مالية أو سند" -> استدعاء get_financial_transaction_details
    - "المخالفات والغرامات" -> استدعاء get_site_violations
-   - "رصيد المخزن أو المستودع" -> استدعاء get_inventory_status
-   - "الضريبة المستحقة أو الإقرار الضريبي" -> استدعاء get_vat_and_invoices_summary
-   - "الرخص والإقامات المنتهية" -> استدعاء get_company_notifications
 
 قواعد صارمة:
-- التزم دائماً بالقواعد والمعلومات المكتسبة والخاصة بشركة المستخدم الواردة في قسم (دليل المعرفة والذاكرة المكتسبة).
-- أجب باختصار وترتيب ودقة وإبراز البيانات في نقاط واضحة.
+- التزم دائماً بالقواعد والمعلومات المكتسبة والخاصة بشركة المستخدم الواردة في دليل المعرفة والاتشك ليست الهندسية.
+- أجب بأسلوب منظم (نقاط واضحة، خطوات متسلسلة، معايير قبول ورفض هندسية صريحة).
 `;
 
 // Helper to send message to Telegram
@@ -429,6 +483,14 @@ ${memoryContext}
       if (functionCall.name === 'generate_and_send_worker_statement_pdf') {
         if (toolOutput.success) {
           return `📄 <b>تم إصدار وإرسال كشف حساب العامل (${toolOutput.worker_name}) بصيغة PDF بنجاح إلى المحادثة أعلاه!</b>\n\n📊 <b>ملخص الكشف:</b>\n- عدد السجلات واليوميات: ${toolOutput.records_count} يومية\n- إجمالي الأجر المستحق: <b>${toolOutput.total_wages.toLocaleString()} ر.س</b>\n\nهل تحتاج إلى الاستعلام عن إنتاجية عامل آخر أو مقارنتها بالطريحة؟`;
+        } else {
+          return `⚠️ تعذر إصدار ملف الـ PDF: ${toolOutput.message || toolOutput.error}`;
+        }
+      }
+
+      if (functionCall.name === 'generate_and_send_engineering_checklist_pdf') {
+        if (toolOutput.success) {
+          return `📋 <b>تم إصدار وإرسال ${toolOutput.title} بصيغة PDF بنجاح إلى المحادثة أعلاه!</b>\n\n🏛️ <b>بيانات الاستمارة:</b>\n- المشروع: <b>${toolOutput.project_name}</b>\n- المرحلة: <b>${toolOutput.stage_name}</b>\n- المهندس الفاحص: <b>${toolOutput.inspector_name}</b>\n\n✓ الاستمارة جاهزة للطباعة بالموقع أو التوقيع الميداني مع الاستشاري والمقاول.`;
         } else {
           return `⚠️ تعذر إصدار ملف الـ PDF: ${toolOutput.message || toolOutput.error}`;
         }
