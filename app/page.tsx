@@ -52,8 +52,10 @@ export default function WelcomeHomePage() {
             try {
                 let currentId = userId || profile?.id;
                 if (!currentId) {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    currentId = session?.user?.id;
+                    try {
+                        const { data } = await supabase.auth.getSession();
+                        currentId = data?.session?.user?.id;
+                    } catch {}
                 }
 
                 if (currentId) {
@@ -71,13 +73,15 @@ export default function WelcomeHomePage() {
                     }
 
                     // 2. فحص بيانات الحساب المحفوظة سحابياً على Supabase (User Metadata)
-                    const { data: { user } } = await supabase.auth.getUser();
-                    const metaFavs = user?.user_metadata?.favorite_pages;
-                    if (Array.isArray(metaFavs) && metaFavs.length > 0) {
-                        setFavorites(metaFavs);
-                        localStorage.setItem(userKey, JSON.stringify(metaFavs));
-                        return;
-                    }
+                    try {
+                        const { data } = await supabase.auth.getUser();
+                        const metaFavs = data?.user?.user_metadata?.favorite_pages;
+                        if (Array.isArray(metaFavs) && metaFavs.length > 0) {
+                            setFavorites(metaFavs);
+                            localStorage.setItem(userKey, JSON.stringify(metaFavs));
+                            return;
+                        }
+                    } catch {}
                 }
 
                 // 3. احتياطي عام في حالة عدم توفر حساب
@@ -109,8 +113,10 @@ export default function WelcomeHomePage() {
         try {
             let currentId = userId || profile?.id;
             if (!currentId) {
-                const { data: { session } } = await supabase.auth.getSession();
-                currentId = session?.user?.id;
+                try {
+                    const { data } = await supabase.auth.getSession();
+                    currentId = data?.session?.user?.id;
+                } catch {}
             }
 
             // 1. حفظ احتياطي عام

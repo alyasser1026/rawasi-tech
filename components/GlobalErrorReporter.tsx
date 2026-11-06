@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { reportTechnicalError } from '@/lib/telegram-alerts';
 import { notify } from '@/lib/notify';
+import { supabase } from '@/lib/supabase';
 
 /**
  * Global component mounted at layout level to capture all unhandled window errors,
@@ -25,6 +26,16 @@ export default function GlobalErrorReporter() {
     // 2. Unhandled Promise Rejections
     const handleRejection = (event: PromiseRejectionEvent) => {
       const reason = event.reason;
+      const reasonText = String(reason?.message || reason || '');
+      if (
+        reasonText.includes('Invalid Refresh Token') ||
+        reasonText.includes('refresh_token_not_found') ||
+        reason?.code === 'refresh_token_not_found'
+      ) {
+        try { void supabase.auth.signOut({ scope: 'local' }); } catch {}
+        return;
+      }
+
       void reportTechnicalError(reason, {
         category: 'unhandled_rejection',
       });
@@ -51,14 +62,26 @@ export default function GlobalErrorReporter() {
         });
         const combinedText = textPieces.join(' ').trim();
 
-        // Filter out benign React development / hydration logs
+        // Stale or revoked auth session: purge local storage so client doesn't loop
+        if (
+          combinedText.includes('Invalid Refresh Token') ||
+          combinedText.includes('refresh_token_not_found')
+        ) {
+          try { void supabase.auth.signOut({ scope: 'local' }); } catch {}
+          return;
+        }
+
+        // Filter out benign React development / hydration logs / normal session expiries
         if (
           combinedText &&
           !combinedText.includes('React will try to recreate this component tree') &&
           !combinedText.includes('Download the React DevTools') &&
           !combinedText.includes('ResizeObserver loop') &&
           !combinedText.includes('The user aborted a request') &&
-          !combinedText.includes('Failed to load resource: net::ERR_BLOCKED_BY_CLIENT')
+          !combinedText.includes('Failed to load resource: net::ERR_BLOCKED_BY_CLIENT') &&
+          !combinedText.includes('Invalid Refresh Token') &&
+          !combinedText.includes('refresh_token_not_found') &&
+          !combinedText.includes('JWT expired')
         ) {
           void reportTechnicalError(errorObj || combinedText, {
             category: 'business_exception',

@@ -178,8 +178,18 @@ export async function POST(req: Request) {
     });
 
     if (regError || !regResult?.id) {
+      const isMissingRpc =
+        regError?.code === 'PGRST202' ||
+        (typeof regError?.message === 'string' &&
+          (regError.message.includes('register_company_attachment') ||
+            regError.message.includes('schema cache')));
+
+      const friendlyError = isMissingRpc
+        ? 'شاشة المرفقات تحتاج تطبيق ميجريشن المرفقات (company_attachments) في قاعدة البيانات.'
+        : regError?.message || 'فشل تسجيل بيانات المرفق في قاعدة البيانات';
+
       return NextResponse.json(
-        { error: regError?.message || 'فشل تسجيل بيانات المرفق في قاعدة البيانات' },
+        { error: friendlyError },
         { status: 403 }
       );
     }

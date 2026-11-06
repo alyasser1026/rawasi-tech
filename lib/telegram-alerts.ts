@@ -76,11 +76,16 @@ export async function reportTechnicalError(
     message = message.trim();
     if (!message) return;
 
-    // Ignore benign errors (user aborted fetch, resize observer loop, benign hydration)
+    // Ignore benign errors (user aborted fetch, resize observer loop, benign hydration, normal auth session expiry)
     if (
       message.includes('AbortError') ||
       message.includes('ResizeObserver loop') ||
-      message.includes('The user aborted a request')
+      message.includes('The user aborted a request') ||
+      message.includes('Invalid Refresh Token') ||
+      message.includes('refresh_token_not_found') ||
+      message.includes('JWT expired') ||
+      code === 'refresh_token_not_found' ||
+      code === 'session_not_found'
     ) {
       return;
     }

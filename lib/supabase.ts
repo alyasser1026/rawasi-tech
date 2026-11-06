@@ -65,22 +65,40 @@ export function createCompanyPinnedClient(companyId: string, accessToken: string
 
 /** Ensures a valid (refreshed if near expiry) access token before online sync or attachment calls. */
 export async function getValidSessionToken(): Promise<{ accessToken: string; userId: string } | null> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) return null;
-
-  const expiresAtMs = (session.expires_at ?? 0) * 1000;
-  if (expiresAtMs > 0 && expiresAtMs - Date.now() < 60_000) {
-    const { data: refreshed, error } = await supabase.auth.refreshSession();
-    if (!error && refreshed.session) {
-      return {
-        accessToken: refreshed.session.access_token,
-        userId: refreshed.session.user.id,
-      };
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    if (error || !session) {
+      if (error?.message?.includes('Refresh Token') || (error as any)?.code === 'refresh_token_not_found') {
+        try { await supabase.auth.signOut({ scope: 'local' }); } catch {}
+      }
+      return null;
     }
-  }
 
-  return {
-    accessToken: session.access_token,
-    userId: session.user.id,
-  };
+    const expiresAtMs = (session.expires_at ?? 0) * 1000;
+    if (expiresAtMs > 0 && expiresAtMs - Date.now() < 60_000) {
+      const { data: refreshed, error: refreshError } = await supabase.auth.refreshSession();
+      if (!refreshError && refreshed.session) {
+        return {
+          accessToken: refreshed.session.access_token,
+          userId: refreshed.session.user.id,
+        };
+      }
+      if (refreshError) {
+        if (refreshError.message?.includes('Refresh Token') || (refreshError as any)?.code === 'refresh_token_not_found') {
+          try { await supabase.auth.signOut({ scope: 'local' }); } catch {}
+        }
+        return null;
+      }
+    }
+
+    return {
+      accessToken: session.access_token,
+      userId: session.user.id,
+    };
+  } catch (err: any) {
+    if (err?.message?.includes('Refresh Token') || err?.code === 'refresh_token_not_found') {
+      try { await supabase.auth.signOut({ scope: 'local' }); } catch {}
+    }
+    return null;
+  }
 }

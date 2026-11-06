@@ -69,7 +69,21 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
     const checkUser = async () => {
       if (!user) setLoading(true);
       
-      const { data: { session } } = await supabase.auth.getSession();
+      let session = null;
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+          if (error.message?.includes('Refresh Token') || (error as any)?.code === 'refresh_token_not_found') {
+            await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+          }
+        } else {
+          session = data?.session ?? null;
+        }
+      } catch (err: any) {
+        if (err?.message?.includes('Refresh Token') || err?.code === 'refresh_token_not_found') {
+          await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+        }
+      }
 
       if (!session) {
         if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
@@ -131,9 +145,13 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
       if (event === "SIGNED_OUT") {
         setUser(null);
         setProfile(null);
-        router.replace("/login");
+        if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
       } else if (session && !user) {
         setUser(session.user);
+      } else if (!session && event === "TOKEN_REFRESHED") {
+        setUser(null);
+        setProfile(null);
+        if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
       }
     });
 

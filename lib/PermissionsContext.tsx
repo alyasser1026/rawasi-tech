@@ -49,8 +49,10 @@ export const PermissionsProvider = ({ children }: { children: React.ReactNode })
             try {
                 let currentUser = sessionUser;
                 if (!currentUser) {
-                    const { data: { session } } = await supabase.auth.getSession();
-                    currentUser = session?.user ?? null;
+                    try {
+                        const { data } = await supabase.auth.getSession();
+                        currentUser = data?.session?.user ?? null;
+                    } catch {}
                 }
 
                 if (currentUser && isMounted) {

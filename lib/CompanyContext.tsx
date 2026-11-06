@@ -73,7 +73,11 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     const current = ++requestId.current;
     setIsLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      let session = null;
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (!error) session = data?.session ?? null;
+      } catch {}
       if (!session) {
         if (current !== requestId.current) return;
         setCompanies([]);
@@ -123,7 +127,8 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       if (current !== requestId.current) return;
       // Network failure fallback: restore cached companies instead of leaving activeCompany null
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data } = await supabase.auth.getSession();
+        const session = data?.session;
         if (session) {
           const cachedList = readCachedCompanies(session.user.id);
           if (cachedList.length > 0) {
