@@ -23,9 +23,9 @@ export default function LoadingScreen({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.6)',
-        backdropFilter: 'blur(15px)',
-        WebkitBackdropFilter: 'blur(15px)',
+        backgroundColor: 'rgba(7, 8, 11, 0.88)',
+        backdropFilter: 'blur(20px)',
+        WebkitBackdropFilter: 'blur(20px)',
         zIndex: 9999,
         direction: 'rtl'
     } : {
@@ -35,56 +35,61 @@ export default function LoadingScreen({
         justifyContent: 'center',
         minHeight: '18.75rem',
         width: '100%',
-        padding: '3.125rem',
-        borderRadius: '14px',
-        backgroundColor: 'rgba(255, 255, 255, 0.4)',
-        backdropFilter: 'blur(10px)',
+        padding: '2.5rem 1.5rem',
+        borderRadius: '16px',
+        backgroundColor: 'transparent', // 🚀 إزالة اللون الرصاصي تماماً ليتناغم مع الكانفاس الداكن والأوبسيديان
+        border: 'none',
+        boxShadow: 'none',
         direction: 'rtl'
     };
 
     return (
-        <div style={containerStyle} className="fade-in">
-            {/* الدائرة المتحركة الاحترافية */}
-            <div style={{ position: 'relative', width: '5rem', height: '5rem', marginBottom: '1.875rem' }}>
+        <div style={containerStyle} className="fade-in rawasi-loading-screen">
+            {/* الدائرة المتحركة الاحترافية بتوهج عنبري ناصع */}
+            <div style={{ position: 'relative', width: '4.5rem', height: '4.5rem', marginBottom: '1.5rem' }}>
                 <div style={{
                     position: 'absolute',
                     top: 0, left: 0, right: 0, bottom: 0,
                     borderRadius: '50%',
-                    border: `4px solid ${THEME.primary}20`,
-                    borderTopColor: THEME.goldAccent,
-                    animation: 'spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite'
+                    border: '3.5px solid rgba(249, 115, 22, 0.15)',
+                    borderTopColor: '#f97316',
+                    animation: 'spin 1.1s cubic-bezier(0.5, 0, 0.5, 1) infinite',
+                    boxShadow: '0 0 20px rgba(249, 115, 22, 0.15)'
                 }} />
                 
-                {/* تأثير النبض في المنتصف */}
+                {/* نقطة النبض المركزية */}
                 <div style={{
                     position: 'absolute',
                     top: '50%', left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    width: '1.875rem', height: '1.875rem',
-                    backgroundColor: THEME.primary,
+                    width: '1.5rem', height: '1.5rem',
+                    backgroundColor: '#f97316',
                     borderRadius: '50%',
-                    animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    boxShadow: '0 0 16px rgba(249, 115, 22, 0.5)',
+                    animation: 'pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite'
                 }} />
             </div>
 
-            {/* النصوص الجمالية */}
+            {/* النصوص الجمالية بتدرج كهرماني ناصع وخط لؤلؤي دافئ */}
             <h2 style={{
-                color: THEME.primary,
+                color: '#f97316',
                 fontWeight: 900,
-                fontSize: '1.5rem',
+                fontSize: '1.35rem',
                 margin: 0,
                 marginBottom: '0.5rem',
-                textShadow: '0 2px 10px rgba(0,0,0,0.05)',
-                letterSpacing: '-0.5px'
+                textShadow: '0 2px 14px rgba(249, 115, 22, 0.25)',
+                letterSpacing: '-0.3px',
+                textAlign: 'center'
             }}>
                 {message}
             </h2>
             <p style={{
-                color: THEME.secondary,
+                color: 'var(--text-secondary, #ede5da)',
                 fontWeight: 600,
-                fontSize: '1rem',
+                fontSize: '0.95rem',
                 margin: 0,
-                opacity: 0.8
+                opacity: 0.85,
+                textAlign: 'center'
             }}>
                 {subMessage}
             </p>
@@ -96,13 +101,13 @@ export default function LoadingScreen({
                 }
                 @keyframes pulse {
                     0%, 100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-                    50% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); }
+                    50% { opacity: 0.45; transform: translate(-50%, -50%) scale(0.8); }
                 }
                 .fade-in {
-                    animation: fadeIn 0.4s ease-out forwards;
+                    animation: fadeIn 0.35s ease-out forwards;
                 }
                 @keyframes fadeIn {
-                    from { opacity: 0; transform: translateY(10px); }
+                    from { opacity: 0; transform: translateY(8px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
             `}</style>
