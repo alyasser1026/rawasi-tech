@@ -124,6 +124,13 @@ export function createCopilotTrainingProposals(filePath) {
         throw queueError('COPILOT_PROPOSAL_QUEUE_FULL', 'قائمة مقترحات التدريب ممتلئة. اسحب مقترحًا قديمًا أو انتظر المراجعة.');
       }
 
+      const duplicate = proposals.find(
+        p => p.telegramUserId === owner && p.companyId === normalizedCompany && p.text === cleaned
+      );
+      if (duplicate) {
+        throw queueError('COPILOT_PROPOSAL_DUPLICATE', 'المقترح ده موجود بالفعل في قائمة الانتظار. مش هينفع تضيفه مرتين.');
+      }
+
       const proposal = {
         id: randomUUID(),
         text: cleaned,

@@ -1,6 +1,8 @@
 const CHECKLIST = 'get_engineering_checklist_and_specs';
 const LABOR = 'get_labor_daily_logs';
+const TAREEHA = 'get_tareeha_deficits';
 const DAY_MS = 86_400_000;
+const TOOLS_ENABLED = process.env.COPILOT_TOOLS_ENABLED !== 'false';
 
 export function getCopilotDate(now = new Date()) {
   const parts = new Intl.DateTimeFormat('en', {
@@ -10,16 +12,32 @@ export function getCopilotDate(now = new Date()) {
   return [part('year'), part('month'), part('day')].join('-');
 }
 
-function canViewModule(access, moduleName) {
+/** Mirrors rawasi_private.can_access: permissions[module] is an action array or an {action: true} map. */
+export function hasModulePermission(access, moduleName, action = 'view') {
   const actions = access?.permissions?.[moduleName];
-  return Array.isArray(actions) ? actions.includes('view') : actions?.view === true;
+  return Array.isArray(actions) ? actions.includes(action) : actions?.[action] === true;
+}
+
+function canViewModule(access, moduleName) {
+  return hasModulePermission(access, moduleName, 'view');
 }
 
 function isEnabled(name, access) {
-  return name === CHECKLIST || (name === LABOR && !!access?.companyId && !!access.userId && canViewModule(access, 'labor_logs'));
+  if (!TOOLS_ENABLED) return false;
+  if (name === CHECKLIST) return true;
+  if (name === LABOR) return !!access?.companyId && !!access.userId && canViewModule(access, 'labor_logs');
+  // Tareeha rows live on labor_daily_logs, so the gate mirrors its RLS module (labor_logs view).
+  if (name === TAREEHA) return !!access?.companyId && !!access.userId && canViewModule(access, 'labor_logs');
+  return false;
+}
+
+/** Same gate the model's tool calls go through — for flows outside the model (e.g. /pdf). */
+export function canUseCopilotTool(name, access) {
+  return isEnabled(name, access);
 }
 
 export function getEnabledCopilotDeclarations(declarations, access) {
+  if (!TOOLS_ENABLED) return [];
   return declarations.filter(({ name }) => isEnabled(name, access));
 }
 
@@ -44,6 +62,13 @@ function getToolArgs(name, supplied, now) {
     return item && (topic || supplied.topic === undefined) ? { item_name: item, ...(topic && { topic }) } : null;
   }
 
+  if (name === TAREEHA) {
+    // لا تقبل أي args من المستخدم — company_id في الـ closure
+    if (Object.keys(supplied).length !== 0) return null;
+    return {};
+  }
+
+  if (name !== LABOR) return null;
   if (Object.keys(supplied).some(key => !['date', 'start_date', 'end_date', 'worker_name'].includes(key))) return null;
   const { date, start_date: start, end_date: end, worker_name: worker } = supplied;
   const workerName = worker === undefined ? null : safeText(worker, 80);
@@ -65,15 +90,16 @@ function getToolArgs(name, supplied, now) {
 }
 
 export async function runEnabledCopilotTool(call, tools, access, now = new Date()) {
+  if (!TOOLS_ENABLED) return 'الأدوات المتقدمة معطّلة حالياً. افتح فاي تك مباشرةً.';
   const name = call?.name;
   if (!isEnabled(name, access) || !Object.hasOwn(tools, name) || typeof tools[name] !== 'function') {
     return 'العملية دي مش متاحة من البوت بالإعدادات والصلاحيات الحالية. افتح الشاشة المختصة في فاي تك.';
   }
   const args = getToolArgs(name, call.args, now);
   if (!args) {
-    return name === LABOR
-      ? 'حدّد تاريخ اليومية، أو تاريخ بداية ونهاية لفترة لا تتجاوز 31 يومًا. ولو عايز عامل معيّن، اذكر اسمه.'
-      : 'اذكر اسم البند الهندسي ونوع الفحص المطلوب.';
+    if (name === LABOR) return 'حدّد تاريخ اليومية، أو تاريخ بداية ونهاية لفترة لا تتجاوز 31 يومًا. ولو عايز عامل معيّن، اذكر اسمه.';
+    if (name === TAREEHA) return 'جرّب تاني — الطلب ده ما بياخدش معطيات إضافية.';
+    return 'اذكر اسم البند الهندسي ونوع الفحص المطلوب.';
   }
 
   let result;
@@ -94,6 +120,23 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
       guidance.slice(0, 1450);
   }
 
+  if (name === TAREEHA) {
+    const companyLabel = safeText(access.companyName, 100) || access.companyId;
+    const period = validDate(result.start_date) && validDate(result.end_date)
+      ? result.start_date + ' إلى ' + result.end_date : 'آخر 30 يوم';
+    const heading = 'عجوزات الطريحة المستحقة\nالشركة: ' + companyLabel + '\nالفترة: ' + period;
+    const count = result.count;
+    if (!Number.isSafeInteger(count) || count < 0) return heading + '\nالمصدر ما رجّعش بيانات صالحة.';
+    const partialNote = result.partial === true ? '\nالنتيجة جزئية (سجلات كتير في الفترة) — العدد ده أقل حد، راجع شاشة اليوميات للعدد الكامل.' : '';
+    if (count === 0) return heading + '\nلا توجد عجوزات مستحقة حالياً.' + partialNote;
+    const lines = Array.isArray(result.deficits) && result.deficits.length > 0
+      ? '\n\nأبرز العجوزات:\n' + result.deficits.slice(0, 5).map(d =>
+          `• ${validDate(d.work_date) ? d.work_date : '—'} — ${safeText(d.worker_name, 60) || '—'} — ${safeText(d.site_ref, 60) || 'غير محدد'} — ${safeText(d.work_item, 60) || '—'} (طريحة: ${Number.isFinite(Number(d.tareeha)) ? Number(d.tareeha) : '—'} / منجز: ${Number.isFinite(Number(d.productivity)) ? Number(d.productivity) : '—'} ${safeText(d.unit, 20) || ''})`
+        ).join('\n')
+      : '';
+    return heading + '\nإجمالي العجوزات: ' + count + partialNote + lines;
+  }
+
   const period = args.date || (args.start_date + ' إلى ' + args.end_date);
   const companyLabel = safeText(access.companyName, 100) || access.companyId;
   const heading = 'يوميات العمالة المحفوظة على الخادم\nالشركة: ' + companyLabel + '\nالفترة: ' + period;
@@ -102,5 +145,12 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     return heading + '\nالمصدر ما رجّعش عدد سجلات صالح.';
   }
   if (result.count_records === 0) return heading + '\nلا توجد سجلات يوميات مطابقة للبحث.';
-  return heading + '\nعدد سجلات اليوميات المطابقة: ' + result.count_records;
+
+  const logLines = Array.isArray(result.logs) && result.logs.length > 0
+    ? '\n\nآخر السجلات:\n' + result.logs.slice(0, 5).map(l =>
+        `• ${l.work_date} — ${safeText(l.worker_name, 60) || '—'} — ${safeText(l.site_ref, 60) || 'غير محدد'} — ${safeText(l.work_item, 60) || 'غير محدد'} (حضور: ${l.attendance_value ?? '—'})`
+      ).join('\n')
+    : '';
+
+  return heading + '\nعدد سجلات اليوميات المطابقة: ' + result.count_records + logLines;
 }
