@@ -8,7 +8,7 @@ import { createCopilotCompanyAccess } from './copilot-company-access.mjs';
 import { createCopilotTrainingProposals } from './copilot-training-proposals.mjs';
 import { canUseCopilotTool, getCopilotDate, getEnabledCopilotDeclarations, runEnabledCopilotTool } from './copilot-tool-policy.mjs';
 import { createCopilotConversation } from './copilot-conversation.mjs';
-import { createTelegramMessageSender } from './copilot-telegram-sender.mjs';
+import { createTelegramDocumentSender, createTelegramMessageSender } from './copilot-telegram-sender.mjs';
 import { createCopilotEntryForms } from './copilot-entry-forms.mjs';
 import { generateWorkerStatementPdf, generateEngineeringChecklistPdf } from './pdf-generator.mjs';
 import {
@@ -16,7 +16,7 @@ import {
   buildModelRequest, buildSystemInstructions, interpretModelParts,
 } from './copilot-prompt.mjs';
 import {
-  PDF_MESSAGES, createPendingPdfRequests, executePdfRequest, parsePdfRequest, pdfConfirmationText,
+  PDF_MESSAGES, createPdfRequestLog, createPendingPdfRequests, executePdfRequest, parsePdfRequest, preparePdfRequest,
 } from './copilot-pdf-requests.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -101,6 +101,8 @@ const entryForms = createCopilotEntryForms();
 // Cleared on /confirm, /cancel, /new, /reset, or TTL expiry (swept every minute below).
 const PDF_PENDING_TTL_MS = 10 * 60 * 1000; // 10 min // TODO: env — COPILOT_PDF_PENDING_TTL_MS
 const pendingPdfRequests = createPendingPdfRequests({ ttlMs: PDF_PENDING_TTL_MS });
+// Durable log of confirmed requests (status + timings only — no file content or worker data).
+const pdfRequestLog = createPdfRequestLog({ filePath: path.join(rootDir, 'work', 'copilot-pdf-requests.json') });
 const resolveCompanyAccess = createCopilotCompanyAccess({
   supabaseUrl: SUPABASE_URL,
   publicKey: SUPABASE_PUBLIC_KEY,
@@ -112,43 +114,24 @@ const resolveCompanyAccess = createCopilotCompanyAccess({
 
 // ─── PDF helpers (parsing/execution live in copilot-pdf-requests.mjs) ────────
 
-/** Sends a PDF buffer as a Telegram document. Returns true on success. */
-async function sendPdfDocument(chatId, pdfBuffer, filename, caption, replyToMessageId) {
-  const form = new FormData();
-  form.append('chat_id', String(chatId));
-  form.append('document', new Blob([pdfBuffer], { type: 'application/pdf' }), filename);
-  if (caption) form.append('caption', caption);
-  if (replyToMessageId) form.append('reply_to_message_id', String(replyToMessageId));
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendDocument`, {
-      method: 'POST',
-      body: form,
-      signal: AbortSignal.timeout(30000),
-    });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
+// Document sends are classified sent / failed / uncertain (see copilot-telegram-sender.mjs).
+const sendTelegramDocument = createTelegramDocumentSender({ botToken: BOT_TOKEN });
 
-/**
- * Executes a confirmed PDF request: fetches any needed data, generates the PDF,
- * and sends it to Telegram. Returns an error string on failure, or null on success.
- */
 /** Runs a confirmed /pdf request: fresh access check at execution time + the shared executor. */
-function runConfirmedPdf(pending, chatId, messageId) {
+function runConfirmedPdf(pending, actor, chatId, messageId) {
   return executePdfRequest(pending, {
+    actor,
+    log: pdfRequestLog,
     resolveAccess: async () => (LIVE_READS_ENABLED ? enrichAccess(await resolveCompanyAccess()) : null),
     createTools: access => createCopilotTools({
       supabaseUrl: SUPABASE_URL,
       supabaseKey: SUPABASE_PUBLIC_KEY,
       accessToken: access?.accessToken,
       companyId: access?.companyId,
-      botToken: BOT_TOKEN,
     }),
     generateWorkerStatementPdf,
     generateEngineeringChecklistPdf,
-    sendDocument: (buffer, filename, caption) => sendPdfDocument(chatId, buffer, filename, caption, messageId),
+    sendDocument: (buffer, filename, caption) => sendTelegramDocument(chatId, buffer, filename, caption, messageId),
     companyNameFallback: setting('COPILOT_COMPANY_NAME') ?? 'فاي تك',
   });
 }
@@ -259,7 +242,6 @@ async function processUserPromptWithGemini(userPrompt, actor) {
         supabaseKey: SUPABASE_PUBLIC_KEY,
         accessToken: verified?.accessToken,
         companyId: verified?.companyId,
-        botToken: BOT_TOKEN,
       });
       return {
         text: await runEnabledCopilotTool(call, tools, verified),
@@ -448,7 +430,7 @@ const handleUpdate = authorizeTelegramMessages(CHAT_ID, async msg => {
       }
       await sendChatAction(chatId, 'upload_document');
       try {
-        const errorText = await runConfirmedPdf(pending, chatId, messageId);
+        const errorText = await runConfirmedPdf(pending, actor, chatId, messageId);
         if (errorText) await sendTelegramMessage(chatId, errorText, messageId, { html: false });
       } catch {
         await sendTelegramMessage(chatId, PDF_MESSAGES.generationFailed, messageId, { html: false });
@@ -463,16 +445,21 @@ const handleUpdate = authorizeTelegramMessages(CHAT_ID, async msg => {
       return;
     }
 
-    // /pdf <type> … → store pending and ask for confirmation
-    const pdfRequest = parsePdfRequest(cleanText);
-    if (pdfRequest?.type === 'invalid') {
-      pendingPdfRequests.delete(actor);
-      await sendTelegramMessage(chatId, pdfRequest.message, messageId, { html: false });
+    // /pdf … → resolve an uncertain send, refuse (invalid / switched off), or store + ask to confirm
+    const pdf = preparePdfRequest(cleanText);
+    if (pdf.kind === 'resolve') {
+      const resolvedId = pdfRequestLog.resolve(actor, pdf.shortId);
+      await sendTelegramMessage(chatId, resolvedId ? PDF_MESSAGES.resolved(resolvedId) : PDF_MESSAGES.resolveNotFound, messageId, { html: false });
       return;
     }
-    if (pdfRequest) {
-      pendingPdfRequests.set(actor, pdfRequest);
-      await sendTelegramMessage(chatId, pdfConfirmationText(pdfRequest), messageId, { html: false });
+    if (pdf.kind === 'invalid' || pdf.kind === 'disabled') {
+      pendingPdfRequests.delete(actor);
+      await sendTelegramMessage(chatId, pdf.message, messageId, { html: false });
+      return;
+    }
+    if (pdf.kind === 'request') {
+      pendingPdfRequests.set(actor, pdf.request);
+      await sendTelegramMessage(chatId, pdf.text, messageId, { html: false });
       return;
     }
 
@@ -602,6 +589,11 @@ async function runPdfMockTest() {
 
 // ─── Cleanup stale PDF pending requests every minute ─────────────────────────
 setInterval(() => pendingPdfRequests.sweep(), 60_000).unref(); // .unref() so it doesn't keep the process alive
+
+// A send interrupted by a crash/restart has no definite answer → mark it uncertain for review.
+const interruptedPdfSends = pdfRequestLog.recoverInterrupted();
+if (interruptedPdfSends) console.warn('PDF sends with an uncertain outcome after restart:', interruptedPdfSends);
+if (!pdfRequestLog.available) console.warn('PDF request log is unreadable — PDF sending stays disabled until it is fixed.');
 
 initKnowledgeBase();
 runPdfMockTest().catch(err => console.error('Mock test error:', err.message));

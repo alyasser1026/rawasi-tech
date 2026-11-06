@@ -3,14 +3,18 @@
  *
  *   node scripts/copilot-eval-run.mjs            # deterministic checks (+ model checks if GEMINI_API_KEY is set)
  *   node scripts/copilot-eval-run.mjs --stub-pdf # use a stub instead of Puppeteer for PDF flow checks
+ *   node scripts/copilot-eval-run.mjs --env-local # take GEMINI_API_KEY (only that line) from .env.local
  *
  * Check kinds per case:
  *   policy   — the expected tool call goes through runEnabledCopilotTool with mocked Supabase (no network)
  *   pdf-flow — /pdf parsing, pending store, /confirm execution with mocked access/tools/sendDocument
  *   model    — live Gemini with the production prompt/declarations (skipped without GEMINI_API_KEY)
- * The key is read from process.env only and never printed. Results → work/copilot-eval-results.json
+ * The key is read from process.env (or, with --env-local, from that single line of .env.local) and is
+ * never printed or written to the results. Per-case flags (preconditions.flags) are applied to
+ * process.env only while that case runs. Results → work/copilot-eval-results.json
  */
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createCopilotTools } from './copilot-tools.mjs';
@@ -21,7 +25,7 @@ import {
   buildModelRequest, buildSystemInstructions, interpretModelParts,
 } from './copilot-prompt.mjs';
 import {
-  PDF_MESSAGES, createPendingPdfRequests, executePdfRequest, parsePdfRequest, pdfConfirmationText,
+  PDF_MESSAGES, createPdfRequestLog, createPendingPdfRequests, executePdfRequest, preparePdfRequest,
 } from './copilot-pdf-requests.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -32,7 +36,37 @@ const KNOWLEDGE_FILES = ['copilot_knowledge.md', 'copilot_page_scenarios.md', 'c
   .map(name => path.join(rootDir, 'config', name));
 
 const STUB_PDF = process.argv.includes('--stub-pdf');
+
+// --env-local: read ONLY the GEMINI_API_KEY line; every other line of the file is ignored.
+if (process.argv.includes('--env-local') && !process.env.GEMINI_API_KEY) {
+  try {
+    const line = fs.readFileSync(path.join(rootDir, '.env.local'), 'utf8').split(/\r?\n/)
+      .find(entry => /^\s*GEMINI_API_KEY\s*=/.test(entry.replace(/^\uFEFF/, '')));
+    const value = line?.slice(line.indexOf('=') + 1).trim().replace(/^(['"])(.*)\1$/, '$2');
+    if (value) process.env.GEMINI_API_KEY = value;
+  } catch {}
+}
 const HAS_GEMINI = typeof process.env.GEMINI_API_KEY === 'string' && process.env.GEMINI_API_KEY.trim().length > 0;
+
+/** Applies a case's flags to process.env for the duration of fn, then restores the previous values. */
+async function withFlags(flags, fn) {
+  const previous = {};
+  for (const [key, value] of Object.entries(flags ?? {})) {
+    previous[key] = Object.hasOwn(process.env, key) ? process.env[key] : undefined;
+    process.env[key] = String(value);
+  }
+  try {
+    return await fn();
+  } finally {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+}
+
+// Kill switches start OFF for every case unless the case turns them on (the shell's values are ignored).
+for (const key of ['COPILOT_PDF_WORKER_ENABLED', 'COPILOT_PDF_CHECKLIST_ENABLED', 'COPILOT_TOOL_TAREEHA_ENABLED']) delete process.env[key];
 
 // ─── Fixtures (synthetic — no real data, no secrets) ─────────────────────────
 const COMPANY = '11111111-1111-4111-8111-111111111111';
@@ -135,57 +169,100 @@ async function runPolicyCheck(testCase, now) {
 async function runPdfFlowCheck(testCase, pdf) {
   const reasons = [];
   let clock = Date.parse('2026-11-06T06:00:00Z');
-  const store = createPendingPdfRequests({ now: () => clock });
+  const now = () => clock;
+  const store = createPendingPdfRequests({ now });
   const scenario = testCase.scenario ?? 'default';
-  const sent = [];
+  const log = scenario === 'log-unavailable' ? corruptedLog(now) : createPdfRequestLog({ now });
+  let sent = [];
   const generated = [];
   const mock = createMockSupabase({ ambiguous: scenario === 'ambiguous-name' });
-  const deps = access => ({
+  let sendResult = { 'send-timeout': { status: 'uncertain' }, 'send-rejected': { status: 'failed' },
+    'send-429': { status: 'failed', retryAfter: 30 } }[scenario] ?? { status: 'sent' };
+  const access = { 'no-wage-permission': ACCESS.noWages, 'no-labor-permission': ACCESS.noLabor, 'no-access': null }[scenario] ?? ACCESS.full;
+  const deps = {
+    actor: ACTOR,
+    log,
     resolveAccess: async () => access,
     createTools: a => mock.tools(a),
     generateWorkerStatementPdf: async input => { generated.push({ type: 'worker', input }); return pdf.generateWorkerStatementPdf(input); },
     generateEngineeringChecklistPdf: async input => { generated.push({ type: 'checklist', input }); return pdf.generateEngineeringChecklistPdf(input); },
-    sendDocument: async (buffer, filename, caption) => { sent.push({ buffer, filename, caption }); return true; },
+    // Records the log status at the moment of sending: it must already be durable as "sending".
+    sendDocument: async (buffer, filename, caption) => {
+      sent.push({ buffer, filename, caption, logStatusAtSend: log.list().at(-1)?.status });
+      return sendResult;
+    },
     companyNameFallback: 'شركة الاختبار',
-  });
+  };
+  // Same path as the bot's /confirm handler.
+  const confirm = async () => {
+    const pending = store.take(ACTOR);
+    if (!pending) return PDF_MESSAGES.noPending;
+    try {
+      return (await executePdfRequest(pending, deps)) ?? '';
+    } catch (error) {
+      reasons.push('executePdfRequest رمى خطأ: ' + error.message);
+      return '';
+    }
+  };
+  // Same path as the bot's /pdf handler.
+  const request = text => {
+    const prepared = preparePdfRequest(text);
+    if (prepared.kind === 'request') store.set(ACTOR, prepared.request);
+    if (prepared.kind === 'resolve') {
+      const id = log.resolve(ACTOR, prepared.shortId);
+      return { prepared, text: id ? PDF_MESSAGES.resolved(id) : PDF_MESSAGES.resolveNotFound };
+    }
+    return { prepared, text: prepared.text ?? prepared.message ?? '' };
+  };
 
-  // Replay history (each prior user message goes through the same parser/store).
-  for (const turn of testCase.history ?? []) {
-    const request = parsePdfRequest(turn.user);
-    if (request && request.type !== 'invalid') store.set(ACTOR, request);
+  // Replay history; scenarios that need an earlier uncertain send run it here first.
+  for (const turn of testCase.history ?? []) request(turn.user);
+  if (scenario === 'retry-after-uncertain' || scenario === 'resolve-after-uncertain') {
+    sendResult = { status: 'uncertain' };
+    await confirm();
+    sendResult = { status: 'sent' };
+    for (const turn of testCase.history ?? []) request(turn.user);
   }
 
+  // The message under test (sent/generated are counted from here on).
+  sent = [];
+  generated.length = 0;
+  const lastId = log.list().at(-1)?.id ?? '';
+  const message = testCase.user_message.replace('{last_id}', lastId.slice(0, 8));
   let text = '';
-  const message = testCase.user_message;
   if (message === '/confirm') {
     if (scenario === 'expired') clock += 11 * 60 * 1000;
-    const pending = store.take(ACTOR);
-    if (!pending) {
-      text = PDF_MESSAGES.noPending;
-    } else {
-      const access = { 'no-wage-permission': ACCESS.noWages, 'no-labor-permission': ACCESS.noLabor, 'no-access': null }[scenario] ?? ACCESS.full;
-      try {
-        text = (await executePdfRequest(pending, deps(access))) ?? '';
-      } catch (error) {
-        reasons.push('executePdfRequest رمى خطأ: ' + error.message);
-      }
-      if (store.take(ACTOR)) reasons.push('الطلب المعلق ما اتمسحش بعد /confirm');
-    }
+    text = await confirm();
+    if (store.take(ACTOR)) reasons.push('الطلب المعلق ما اتمسحش بعد /confirm');
   } else {
-    const request = parsePdfRequest(message);
-    if (!request) reasons.push('parsePdfRequest رجّع null');
-    else if (request.type === 'invalid') text = request.message;
-    else { store.set(ACTOR, request); text = pdfConfirmationText(request); }
-    if (request && request.type !== 'invalid' && !store.has(ACTOR)) reasons.push('الطلب ما اتحفظش في الـ pending store');
+    const result = request(message);
+    text = result.text;
+    if (result.prepared.kind === 'none') reasons.push('الرسالة ما اتعرفتش كأمر /pdf');
+    if (result.prepared.kind === 'request' && !store.has(ACTOR)) reasons.push('الطلب ما اتحفظش في الـ pending store');
+    if (['invalid', 'disabled'].includes(result.prepared.kind) && store.has(ACTOR)) reasons.push('اتحفظ طلب معلق رغم الرفض');
     if (sent.length || generated.length) reasons.push('اتولّد أو اتبعت ملف قبل /confirm');
   }
 
   reasons.push(...checkText(text, testCase));
   const expect = testCase.expect ?? {};
   if (expect.sent !== undefined && sent.length !== expect.sent) reasons.push(`sendDocument اتنادى ${sent.length} مرة (متوقع ${expect.sent})`);
+  if (expect.logStatus) {
+    const status = log.list().at(-1)?.status;
+    if (status !== expect.logStatus) reasons.push(`حالة السجل ${status ?? '—'} (متوقع ${expect.logStatus})`);
+  }
+  if (expect.afterResolveSent !== undefined) {
+    sent = [];
+    for (const turn of testCase.history ?? []) request(turn.user);
+    const again = await confirm();
+    if (sent.length !== expect.afterResolveSent) reasons.push(`بعد المراجعة sendDocument اتنادى ${sent.length} مرة (متوقع ${expect.afterResolveSent}) — ${again.slice(0, 60)}`);
+  }
   for (const doc of sent) {
+    if (doc.logStatusAtSend !== 'sending') reasons.push(`الإرسال بدأ والسجل حالته ${doc.logStatusAtSend ?? '—'} (لازم sending قبل الاتصال بتيليجرام)`);
     if (!(doc.buffer instanceof Uint8Array) || Buffer.from(doc.buffer).subarray(0, 4).toString() !== '%PDF') reasons.push('الملف المرسل مش PDF');
     if (!doc.filename.endsWith('.pdf') || /[\\/:*?"<>|]/.test(doc.filename)) reasons.push('اسم الملف مش متعقّم: ' + doc.filename);
+  }
+  for (const record of log.list()) {
+    if (Object.keys(record).some(key => /name|params|worker|caption|file/i.test(key))) reasons.push('السجل الدائم فيه بيانات تقرير');
   }
   if (expect.showWages !== undefined) {
     const worker = generated.find(g => g.type === 'worker');
@@ -211,6 +288,14 @@ async function runPdfFlowCheck(testCase, pdf) {
     if (url.searchParams.getAll('company_id').join() !== 'eq.' + COMPANY) reasons.push('طلب Supabase من غير company_id المربوطة');
   }
   return { kind: 'pdf-flow', status: reasons.length ? 'fail' : 'pass', reasons, output: text, sent: sent.length };
+}
+
+/** A log whose file is corrupted: it must refuse to work (and never overwrite the file). */
+function corruptedLog(now) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-eval-'));
+  const file = path.join(dir, 'copilot-pdf-requests.json');
+  fs.writeFileSync(file, '{ not json', 'utf8');
+  return createPdfRequestLog({ filePath: file, now });
 }
 
 let knowledgeCache = null;
@@ -304,12 +389,14 @@ const results = [];
 
 for (const testCase of suite.cases) {
   const checks = [];
-  // Deterministic /pdf, /confirm, /cancel messages are handled before the model → pdf-flow.
-  const isPdfFlow = PDF_FLOW_IDS.has(testCase.id) ||
-    (testCase.layer === 'deterministic' && /^\/(pdf|confirm|cancel)\b/i.test(testCase.user_message));
-  if (isPdfFlow) checks.push(await runPdfFlowCheck(testCase, pdf));
-  else if (testCase.expected_tool_call) checks.push(await runPolicyCheck(testCase, fixedNow));
-  if (testCase.layer === 'model') checks.push(await runModelCheck(testCase, fixedNow, fixedDate));
+  await withFlags(testCase.preconditions?.flags, async () => {
+    // Deterministic /pdf, /confirm, /cancel messages are handled before the model → pdf-flow.
+    const isPdfFlow = PDF_FLOW_IDS.has(testCase.id) ||
+      (testCase.layer === 'deterministic' && /^\/(pdf|confirm|cancel)\b/i.test(testCase.user_message));
+    if (isPdfFlow) checks.push(await runPdfFlowCheck(testCase, pdf));
+    else if (testCase.expected_tool_call) checks.push(await runPolicyCheck(testCase, fixedNow));
+    if (testCase.layer === 'model') checks.push(await runModelCheck(testCase, fixedNow, fixedDate));
+  });
 
   const ran = checks.filter(check => check.status !== 'skipped');
   // pass = every check ran and passed; partial = what ran passed but some checks were skipped (e.g. no Gemini key).

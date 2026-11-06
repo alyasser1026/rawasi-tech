@@ -86,3 +86,48 @@ export function createTelegramMessageSender({ botToken, fetchImpl = fetch, onFai
     return { ok: messageIds.length > 0, messageIds };
   };
 }
+
+const DEFINITE_NETWORK_FAILURES = new Set(['ENOTFOUND', 'EAI_AGAIN', 'ECONNREFUSED']);
+
+/**
+ * Sends a PDF as a Telegram document and classifies the outcome (roadmap phase 4):
+ *   { status: 'sent' }                 — explicit ok:true
+ *   { status: 'failed', retryAfter? }  — explicit rejection (4xx ok:false, long 429) or a connection that never opened
+ *   { status: 'uncertain' }            — Telegram may have received it (timeout, reset, 5xx, unreadable answer):
+ *                                        the caller must stop and ask for a manual check, never auto-resend.
+ * A short 429 (retry_after ≤ maxRetryAfterS) is honoured once.
+ */
+export function createTelegramDocumentSender({
+  botToken, fetchImpl = fetch, timeoutMs = 30000, maxRetryAfterS = 10,
+  sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
+}) {
+  return async function sendTelegramDocument(chatId, buffer, filename, caption, replyToMessageId) {
+    for (let attempt = 0; ; attempt++) {
+      const form = new FormData();
+      form.append('chat_id', String(chatId));
+      form.append('document', new Blob([buffer], { type: 'application/pdf' }), filename);
+      if (caption) form.append('caption', caption);
+      if (Number.isSafeInteger(replyToMessageId) && replyToMessageId > 0) form.append('reply_to_message_id', String(replyToMessageId));
+      let response;
+      try {
+        response = await fetchImpl('https://api.telegram.org/bot' + botToken + '/sendDocument', {
+          method: 'POST', body: form, redirect: 'error', signal: AbortSignal.timeout(timeoutMs),
+        });
+      } catch (error) {
+        return { status: DEFINITE_NETWORK_FAILURES.has(error?.cause?.code ?? error?.code) ? 'failed' : 'uncertain' };
+      }
+      const data = await response.json().catch(() => null);
+      if (response.ok && data?.ok === true) return { status: 'sent' };
+      if (response.status === 429 || data?.error_code === 429) {
+        const retryAfter = Number(data?.parameters?.retry_after);
+        if (attempt === 0 && Number.isFinite(retryAfter) && retryAfter > 0 && retryAfter <= maxRetryAfterS) {
+          await sleep(retryAfter * 1000); // Telegram explicitly refused, so a retry can't duplicate the file
+          continue;
+        }
+        return { status: 'failed', retryAfter: Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter : undefined };
+      }
+      if (data?.ok === false && response.status >= 400 && response.status < 500) return { status: 'failed' };
+      return { status: 'uncertain' };
+    }
+  };
+}

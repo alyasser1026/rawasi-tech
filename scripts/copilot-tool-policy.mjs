@@ -1,3 +1,5 @@
+import { TOOL_STATUS, isToolFlagEnabled, registryEntry } from './copilot-tool-registry.mjs';
+
 const CHECKLIST = 'get_engineering_checklist_and_specs';
 const LABOR = 'get_labor_daily_logs';
 const TAREEHA = 'get_tareeha_deficits';
@@ -18,22 +20,31 @@ export function hasModulePermission(access, moduleName, action = 'view') {
   return Array.isArray(actions) ? actions.includes(action) : actions?.[action] === true;
 }
 
-function canViewModule(access, moduleName) {
-  return hasModulePermission(access, moduleName, 'view');
+/** Registry-driven gate: status, own flag, company scope and module permission (= the table's RLS module). */
+function passesGates(entry, access) {
+  if (!entry || !isToolFlagEnabled(entry)) return false;
+  if (!entry.requiresCompany && !entry.permission) return true;
+  if (!access?.companyId || !access.userId) return false;
+  return !entry.permission || hasModulePermission(access, entry.permission.module, entry.permission.action);
 }
 
 function isEnabled(name, access) {
   if (!TOOLS_ENABLED) return false;
-  if (name === CHECKLIST) return true;
-  if (name === LABOR) return !!access?.companyId && !!access.userId && canViewModule(access, 'labor_logs');
-  // Tareeha rows live on labor_daily_logs, so the gate mirrors its RLS module (labor_logs view).
-  if (name === TAREEHA) return !!access?.companyId && !!access.userId && canViewModule(access, 'labor_logs');
-  return false;
+  const entry = registryEntry(name);
+  const declared = entry?.declaration && (entry.status === TOOL_STATUS.ACTIVE || entry.status === TOOL_STATUS.PILOT);
+  return Boolean(declared) && passesGates(entry, access);
 }
 
-/** Same gate the model's tool calls go through — for flows outside the model (e.g. /pdf). */
+/** Same gate the model's tool calls go through — for flows outside the model. */
 export function canUseCopilotTool(name, access) {
   return isEnabled(name, access);
+}
+
+/** Gate for internal (never declared) tools used by server-side flows such as /pdf. */
+export function canUseInternalTool(name, access) {
+  if (!TOOLS_ENABLED) return false;
+  const entry = registryEntry(name);
+  return entry?.status === TOOL_STATUS.INTERNAL && passesGates(entry, access);
 }
 
 export function getEnabledCopilotDeclarations(declarations, access) {

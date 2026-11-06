@@ -4,48 +4,16 @@
  * reply is interpreted. Shared by telegram-copilot.mjs and copilot-eval-run.mjs so the eval
  * measures exactly the production prompt.
  */
+import { DECLARED_TOOLS } from './copilot-tool-registry.mjs';
 
 export const GEMINI_GENERATE_URL =
   'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
 export const GENERATION_CONFIG = Object.freeze({ temperature: 0.1, maxOutputTokens: 1200 });
 export const MODEL_TIMEOUT_MS = 15000;
 
-// Only vetted pilot operations are declared to the model.
-export const FUNCTION_DECLARATIONS = [
-  {
-    name: 'get_labor_daily_logs',
-    description: 'عدد سجلات يوميات العمالة المطابقة لتاريخ أو فترة محددة في الشركة المربوطة، من غير حساب الأجور أو عدد الأفراد الفريدين.',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        date: { type: 'STRING', description: 'يوم محدد بصيغة YYYY-MM-DD أو today لو المستخدم قال النهارده' },
-        start_date: { type: 'STRING', description: 'بداية الفترة YYYY-MM-DD' },
-        end_date: { type: 'STRING', description: 'نهاية الفترة YYYY-MM-DD. الفترة لا تتجاوز 31 يومًا.' },
-        worker_name: { type: 'STRING', description: 'اسم عامل كامل عند طلب تصفية سجلاته' },
-      },
-    },
-  },
-  {
-    name: 'get_engineering_checklist_and_specs',
-    description: 'استرجاع إرشادات قائمة فحص هندسية من دليل فاي تك، للمراجعة مقابل مواصفة المشروع المعتمدة.',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        item_name: { type: 'STRING', description: 'اسم البند الهندسي' },
-        topic: { type: 'STRING', description: 'الجانب المطلوب، مثل الفحص أو خطوات التنفيذ' },
-      },
-      required: ['item_name'],
-    },
-  },
-  {
-    name: 'get_tareeha_deficits',
-    description: 'عرض عجوزات الطريحة المستحقة للشركة المربوطة خلال آخر 30 يوم — السجلات اللي إنتاجيتها أقل من الطريحة المحددة.',
-    parameters: {
-      type: 'OBJECT',
-      properties: {},
-    },
-  },
-];
+// Declarations come from the tool registry (active + pilot). The policy still filters them per
+// access and per tool flag before each request.
+export const FUNCTION_DECLARATIONS = DECLARED_TOOLS;
 
 export const BASE_SYSTEM_PROMPT = `
 أنت مساعد فاي تك لإدارة المقاولات والمحاسبة. أجب بالعربي بخطوات مختصرة وواضحة.

@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "description": "Gold-standard eval cases لبوت فاي تك على تيليجرام — مبنية على السلوك الفعلي في telegram-copilot.mjs و copilot-tool-policy.mjs",
   "test_context": {
     "fixed_now": "2026-11-06T09:00:00+03:00",
@@ -11,7 +11,7 @@
     },
     "global_excludes_note": "أي رد فيه error/undefined/company_id/stack يعتبر تسريب تفاصيل داخلية"
   },
-  "total": 25,
+  "total": 35,
   "cases": [
     {
       "id": "gs-001",
@@ -222,7 +222,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_TOOL_TAREEHA_ENABLED": "true"
+        }
       },
       "user_message": "مين عنده عجز في الطريحة؟",
       "expected_tool_call": {
@@ -253,7 +256,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
       },
       "user_message": "/pdf worker أحمد محمد 2026-10-01 2026-10-07",
       "expected_tool_call": null,
@@ -285,7 +291,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
       },
       "history": [
         {
@@ -308,7 +317,8 @@
       "notes": "النجاح = sendDocument مرة واحدة بملف PDF واسم متعقّم، والـ pending يتمسح (take ذري — /confirm التاني مايولّدش تاني). مع صلاحية payroll الأجر بيتطلب ويتعرض (مجموع daily_wage زي كشف الرواتب).",
       "expect": {
         "sent": 1,
-        "showWages": true
+        "showWages": true,
+        "logStatus": "sent"
       }
     },
     {
@@ -320,7 +330,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_CHECKLIST_ENABLED": "true"
+        }
       },
       "user_message": "/pdf checklist استلام المحارة",
       "expected_tool_call": null,
@@ -471,7 +484,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_TOOL_TAREEHA_ENABLED": "true"
+        }
       },
       "history": [
         {
@@ -626,7 +642,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
       },
       "history": [
         {
@@ -661,7 +680,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
       },
       "history": [
         {
@@ -696,7 +718,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
       },
       "history": [
         {
@@ -731,7 +756,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
       },
       "history": [
         {
@@ -766,7 +794,10 @@
         "companyId": "set",
         "userId": "set",
         "LIVE_READS_ENABLED": true,
-        "COPILOT_TOOLS_ENABLED": true
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_CHECKLIST_ENABLED": "true"
+        }
       },
       "history": [
         {
@@ -817,6 +848,354 @@
         "/confirm"
       ],
       "notes": "رفض فوري من غير ما يتحفظ طلب معلق."
+    },
+    {
+      "id": "gs-025",
+      "category": "security",
+      "layer": "deterministic",
+      "description": "أداة الطريحة من غير مفتاحها",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "user_message": "مين عنده عجز في الطريحة؟",
+      "expected_tool_call": {
+        "name": "get_tareeha_deficits",
+        "args": {}
+      },
+      "expected_response_contains": [
+        "مش متاحة"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "get_tareeha_deficits حالتها pilot ووراء COPILOT_TOOL_TAREEHA_ENABLED المقفول افتراضيًا (roadmap المرحلة 3). مفيش طلب لـ Supabase.",
+      "expect_requests": 0
+    },
+    {
+      "id": "gs-026",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "كشف العامل والمفتاح بتاعه مقفول",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "user_message": "/pdf worker أحمد محمد 2026-10-01 2026-10-07",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "كشف العامل مقفول حاليًا"
+      ],
+      "expected_response_excludes": [
+        "/confirm",
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "COPILOT_PDF_WORKER_ENABLED مش مضبوط → رفض قبل التأكيد، ومفيش طلب معلق."
+    },
+    {
+      "id": "gs-027",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "انقطاع مبهم أثناء الإرسال → غير مؤكد",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "history": [
+        {
+          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+        }
+      ],
+      "scenario": "send-timeout",
+      "user_message": "/confirm",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "«غير مؤكدة»",
+        "/pdf resolve"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "sendDocument رجّع uncertain (timeout/5xx). السجل بيتحول uncertain، والبوت مابيعيدش الإرسال لوحده.",
+      "expect": {
+        "sent": 1,
+        "logStatus": "uncertain"
+      }
+    },
+    {
+      "id": "gs-028",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "طلب نفس المستند بعد محاولة غير مؤكدة",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "history": [
+        {
+          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+        }
+      ],
+      "scenario": "retry-after-uncertain",
+      "user_message": "/confirm",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "محاولة سابقة لنفس المستند"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "roadmap المرحلة 4: اعرض الحالة للمراجعة قبل أي إعادة إرسال. مفيش توليد ولا إرسال.",
+      "expect": {
+        "sent": 0
+      }
+    },
+    {
+      "id": "gs-029",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "/pdf resolve بعد المراجعة بيفك الحظر",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "history": [
+        {
+          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+        }
+      ],
+      "scenario": "resolve-after-uncertain",
+      "user_message": "/pdf resolve {last_id}",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "اتسجّلت مراجعة المحاولة"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "{last_id} بيتبدل بأول 8 حروف من رقم المحاولة. بعد المراجعة طلب نفس المستند بيتبعت عادي.",
+      "expect": {
+        "afterResolveSent": 1
+      }
+    },
+    {
+      "id": "gs-030",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "تيليجرام رفض الملف صراحةً",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "history": [
+        {
+          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+        }
+      ],
+      "scenario": "send-rejected",
+      "user_message": "/confirm",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "تيليجرام رفض إرسال الملف"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "رد صريح ok:false → failed (مش غير مؤكد).",
+      "expect": {
+        "sent": 1,
+        "logStatus": "failed"
+      }
+    },
+    {
+      "id": "gs-031",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "429 بمدة انتظار طويلة",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "history": [
+        {
+          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+        }
+      ],
+      "scenario": "send-429",
+      "user_message": "/confirm",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "تيليجرام طلب الانتظار 30 ثانية"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "retry_after > 10 ثانية → مفيش إعادة محاولة تلقائية، والسجل failed بسبب rate_limited.",
+      "expect": {
+        "sent": 1,
+        "logStatus": "failed"
+      }
+    },
+    {
+      "id": "gs-032",
+      "category": "security",
+      "layer": "deterministic",
+      "description": "سجل الطلبات تالف",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "history": [
+        {
+          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+        }
+      ],
+      "scenario": "log-unavailable",
+      "user_message": "/confirm",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "سجل طلبات الـ PDF مش متاح"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "ملف السجل مش JSON صالح → مايتكتبش فوقه، والإرسال مقفول (fail closed).",
+      "expect": {
+        "sent": 0
+      }
+    },
+    {
+      "id": "gs-033",
+      "category": "security",
+      "layer": "deterministic",
+      "description": "استدعاء أداة متوقفة",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "user_message": "هات تفاصيل العملية المالية 123",
+      "expected_tool_call": {
+        "name": "get_financial_transaction_details",
+        "args": {
+          "search_query": "123"
+        }
+      },
+      "expected_response_contains": [
+        "مش متاحة"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "get_financial_transaction_details حالتها retired: مش معلنة، والـ policy بيرفضها، والـ stub مابيعملش طلب.",
+      "expect_requests": 0
+    },
+    {
+      "id": "gs-034",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "/pdf من غير تفاصيل",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "user_message": "/pdf",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "الأوامر المتاحة"
+      ],
+      "expected_response_excludes": [
+        "/confirm",
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "أمر ناقص → شرح الصيغة بدل ما يروح للموديل."
     }
   ],
   "legacy_cases_note": "الحالات دي من النسخة 1 (schema مختلف). أغلبها أسئلة تشخيص برمجي خارج نطاق البوت الحالي؛ محفوظة كما هي للمراجعة.",

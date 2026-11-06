@@ -310,4 +310,125 @@ await test('نص فيه credential → يترفض', () => {
 // ══════════════════════════════════════════════════════════════════════════════
 // Summary
 // ══════════════════════════════════════════════════════════════════════════════
+// ─── إرسال المستندات: sent / failed / uncertain ───────────────────────────────
+console.log('\n📎 Telegram document sender');
+{
+  const { createTelegramDocumentSender } = await import('./copilot-telegram-sender.mjs');
+  const pdf = Buffer.from('%PDF-1.4 test');
+  const sender = (handlers, extra = {}) => {
+    let calls = 0;
+    const send = createTelegramDocumentSender({
+      botToken: 'test-token', sleep: async () => {}, ...extra,
+      fetchImpl: async () => { const handler = handlers[Math.min(calls, handlers.length - 1)]; calls++; return handler(); },
+    });
+    return { send: () => send(1, pdf, 'a.pdf', 'cap', 2), calls: () => calls };
+  };
+  const json = (status, body) => () => new Response(JSON.stringify(body), { status });
+  const netError = code => () => { const error = new TypeError('fetch failed'); error.cause = { code }; throw error; };
+
+  await test('رد ok:true صريح → sent', async () => {
+    assert.deepEqual(await sender([json(200, { ok: true, result: {} })]).send(), { status: 'sent' });
+  });
+  await test('رفض صريح 400 ok:false → failed', async () => {
+    assert.equal((await sender([json(400, { ok: false, error_code: 400 })]).send()).status, 'failed');
+  });
+  await test('429 قصير → انتظار ومحاولة واحدة → sent', async () => {
+    const s = sender([json(429, { ok: false, error_code: 429, parameters: { retry_after: 3 } }), json(200, { ok: true })]);
+    assert.equal((await s.send()).status, 'sent');
+    assert.equal(s.calls(), 2);
+  });
+  await test('429 طويل → failed مع retryAfter ومن غير إعادة', async () => {
+    const s = sender([json(429, { ok: false, error_code: 429, parameters: { retry_after: 30 } })]);
+    assert.deepEqual(await s.send(), { status: 'failed', retryAfter: 30 });
+    assert.equal(s.calls(), 1);
+  });
+  await test('timeout أثناء الإرسال → uncertain (مفيش إعادة)', async () => {
+    const s = sender([() => { throw new DOMException('timed out', 'TimeoutError'); }]);
+    assert.equal((await s.send()).status, 'uncertain');
+    assert.equal(s.calls(), 1);
+  });
+  await test('502 من البوابة → uncertain', async () => {
+    assert.equal((await sender([() => new Response('bad gateway', { status: 502 })]).send()).status, 'uncertain');
+  });
+  await test('DNS/اتصال مرفوض قبل الإرسال → failed', async () => {
+    assert.equal((await sender([netError('ENOTFOUND')]).send()).status, 'failed');
+    assert.equal((await sender([netError('ECONNRESET')]).send()).status, 'uncertain');
+  });
+}
+
+// ─── السجل الدائم لطلبات الـ PDF ──────────────────────────────────────────────
+console.log('\n🗂️ PDF request log');
+{
+  const fsm = await import('node:fs');
+  const { createPdfRequestLog } = await import('./copilot-pdf-requests.mjs');
+  const dir = fsm.mkdtempSync(join(tmpdir(), 'copilot-pdf-log-'));
+  const file = join(dir, 'copilot-pdf-requests.json');
+  const actor = { chatId: 10, userId: 20 };
+  const request = { type: 'worker_statement', params: { workerName: 'عامل اصطناعي', startDate: '2026-10-01', endDate: '2026-10-07' } };
+
+  await test('sending بيتكتب على الديسك قبل الاتصال، وبيتحول uncertain بعد إعادة التشغيل', () => {
+    const log = createPdfRequestLog({ filePath: file });
+    const started = log.begin(actor, request);
+    assert.equal(started.ok, true);
+    assert.equal(log.mark(started.id, 'sending'), true);
+    const onDisk = JSON.parse(fsm.readFileSync(file, 'utf8')).records.at(-1);
+    assert.equal(onDisk.status, 'sending');
+    // "crash" → new process reads the same file
+    const restarted = createPdfRequestLog({ filePath: file });
+    assert.equal(restarted.recoverInterrupted(), 1);
+    assert.equal(restarted.get(started.id).status, 'uncertain');
+    assert.equal(restarted.begin(actor, request).reason, 'uncertain');
+    assert.ok(restarted.resolve(actor, started.id.slice(0, 8)));
+    assert.equal(restarted.begin(actor, request).ok, true);
+  });
+  await test('السجل مافيهوش اسم العامل ولا معاملات التقرير', () => {
+    const text = fsm.readFileSync(file, 'utf8');
+    assert.doesNotMatch(text, /عامل اصطناعي|2026-10-01|workerName|params/);
+  });
+  await test('ملف سجل تالف → unavailable ومايتكتبش فوقه', () => {
+    const bad = join(dir, 'bad.json');
+    fsm.writeFileSync(bad, '{ broken', 'utf8');
+    const log = createPdfRequestLog({ filePath: bad });
+    assert.equal(log.available, false);
+    assert.equal(log.begin(actor, request).reason, 'unavailable');
+    assert.equal(fsm.readFileSync(bad, 'utf8'), '{ broken');
+  });
+  await test('التقليم بيحتفظ بالمحاولات غير المحسومة', () => {
+    const log = createPdfRequestLog({ maxRecords: 3 });
+    const first = log.begin(actor, request);
+    log.mark(first.id, 'sending'); log.mark(first.id, 'uncertain');
+    for (let i = 0; i < 6; i++) {
+      const other = log.begin({ chatId: 10, userId: 30 + i }, request);
+      log.mark(other.id, 'sent');
+    }
+    assert.equal(log.list().length, 3);
+    assert.equal(log.get(first.id)?.status, 'uncertain');
+  });
+}
+
+// ─── سجل الأدوات ──────────────────────────────────────────────────────────────
+console.log('\n🧭 Tool registry');
+{
+  const { TOOL_REGISTRY, RETIRED_TOOL_NAMES, DECLARED_TOOLS } = await import('./copilot-tool-registry.mjs');
+  const { FUNCTION_DECLARATIONS } = await import('./copilot-prompt.mjs');
+  const { createCopilotTools } = await import('./copilot-tools.mjs');
+  let requests = 0;
+  const tools = createCopilotTools({ fetchImpl: async () => { requests++; return Response.json([]); } });
+
+  await test('كل أداة في createCopilotTools متسجلة، وكل أداة متسجلة ليها تنفيذ', () => {
+    const names = new Set(TOOL_REGISTRY.map(entry => entry.name));
+    for (const name of Object.keys(tools)) assert.ok(names.has(name), 'مش متسجلة: ' + name);
+    for (const name of names) assert.equal(typeof tools[name], 'function', 'مالهاش تنفيذ: ' + name);
+  });
+  await test('الأدوات المتوقفة بترفض ومابتعملش أي طلب', async () => {
+    for (const name of RETIRED_TOOL_NAMES) assert.equal((await tools[name]({ search_query: 'x', chatId: 1 })).success, false);
+    assert.equal(requests, 0);
+  });
+  await test('تعريفات Gemini = الأدوات active/pilot في السجل بس', () => {
+    assert.deepEqual(FUNCTION_DECLARATIONS.map(d => d.name), DECLARED_TOOLS.map(d => d.name));
+    assert.ok(FUNCTION_DECLARATIONS.every(d => !RETIRED_TOOL_NAMES.includes(d.name)));
+    assert.ok(!FUNCTION_DECLARATIONS.some(d => d.name === 'get_worker_statement_rows'));
+  });
+}
+
 summary();
