@@ -29,7 +29,7 @@ export function useRevenueLogic() {
             while (hasMore) {
                 const { data, error } = await supabase
                     .from('invoices')
-                    .select('*, partners(name)')
+                    .select('*, partners:partners!invoices_partner_id_company_fkey(name)')
                     .eq('status', 'معتمد') // الميثاق: الإيراد يُحسب فقط للفواتير المعتمدة
                     .range(start, start + step - 1)
                     .order('date', { ascending: false });
