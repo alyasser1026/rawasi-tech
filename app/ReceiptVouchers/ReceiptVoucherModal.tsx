@@ -128,8 +128,6 @@ const SmartCombo = ({ label, table, onSelect, placeholder, searchCols = 'name,co
 // 📝 المودال الرئيسي (سند القبض) - مطابق للميثاق الماسي V9
 // =========================================================================
 export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord, onSave }: any) {
-    if (!isOpen) return null;
-
     // 🚀 المراقبة الذكية لجلب الأسماء عند الضغط من الخارج
     useEffect(() => {
         const syncNames = async () => {
@@ -277,6 +275,8 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
         e.preventDefault();
         onSave(record);
     };
+
+    if (!isOpen || !record) return null;
 
     return (
         <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>

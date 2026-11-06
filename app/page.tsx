@@ -30,6 +30,7 @@ const DEFAULT_FAVORITES = ['global_summary', 'dashboard', 'journal', 'accounts',
 
 export default function WelcomeHomePage() {
     const { role, can, loading: permsLoading, profile, userId } = usePermissions();
+    const displayName = useDisplayName();
     const [greeting, setGreeting] = useState('');
     const [quote, setQuote] = useState('');
     const [favorites, setFavorites] = useState<string[]>(DEFAULT_FAVORITES);
@@ -146,7 +147,6 @@ export default function WelcomeHomePage() {
         return <LoadingScreen message="جاري تحضير مساحة العمل..." fullScreen={false} />;
     }
 
-    const displayName = useDisplayName();
     const firstNameOnly = displayName.firstName;
     const roleTitle = role === 'super_admin' ? 'المدير العام' : role === 'admin' ? 'مدير النظام' : 'مستخدم النظام';
 

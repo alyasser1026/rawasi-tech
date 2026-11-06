@@ -136,9 +136,6 @@ export default function JournalMaintenancePage() {
 // 🍏 مكون القسم الذكي (AuditSection) - ميثاق فاي تك الماسي V11
 // ==========================================================
 function AuditSection({ logic, data, title, color, icon, actionText, onAction, secondaryAction, secondaryActionText }: any) {
-    // 🛡️ حارس رندر إلزامي: منع معالجة المصفوفات الفارغة أو غير المعرفة
-    if (!data || data.length === 0) return null;
-
     const columns = useMemo(() => [
         {
             key: 'id',
@@ -232,6 +229,8 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
             }
         }
     ], [color, actionText, secondaryActionText, onAction, secondaryAction]);
+
+    if (!data || data.length === 0) return null;
 
     return (
         <GlassContainer>
