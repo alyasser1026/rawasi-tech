@@ -24,8 +24,8 @@ export function useCashFlowsLogic() {
                     .select(`
                         *,
                         project:projects!cash_flows_project_id_company_fkey(Property),
-                        partner:partners(name),
-                        account:accounts(name)
+                        partner:partners!cash_flows_partner_id_company_fkey(name),
+                        account:accounts!cash_flows_account_id_company_fkey(name)
                     `)
                     .order('transaction_date', { ascending: false })
                     .order('id', { ascending: true }) // ⚓ حسم الترتيب بالـ id الفريد لمنع انزلاق السطور
