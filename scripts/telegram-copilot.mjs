@@ -1,7 +1,12 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createClient } from '@supabase/supabase-js';
 import { createCopilotTools } from './copilot-tools.mjs';
+import { authorizeTelegramMessages, normalizeTelegramChatId } from './copilot-telegram-auth.mjs';
+import { createCopilotCompanyAccess } from './copilot-company-access.mjs';
+import { createCopilotTrainingProposals } from './copilot-training-proposals.mjs';
+import { getCopilotDate, getEnabledCopilotDeclarations, runEnabledCopilotTool } from './copilot-tool-policy.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -27,24 +32,24 @@ function loadEnvLocal() {
 }
 
 const env = loadEnvLocal();
-const BOT_TOKEN = env.TELEGRAM_BOT_TOKEN || process.env.TELEGRAM_BOT_TOKEN;
-const CHAT_ID = env.TELEGRAM_CHAT_ID || process.env.TELEGRAM_CHAT_ID;
-const GEMINI_API_KEY = env.GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+const setting = name => process.env[name] ?? env[name];
+const BOT_TOKEN = setting('TELEGRAM_BOT_TOKEN');
+const CHAT_ID = normalizeTelegramChatId(setting('TELEGRAM_COPILOT_CHAT_ID') ?? setting('TELEGRAM_CHAT_ID'));
+const GEMINI_API_KEY = setting('GEMINI_API_KEY');
 const SUPABASE_URL =
-  env.SUPABASE_URL ||
-  env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env.SUPABASE_URL ||
-  process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  process.env['\uFEFFNEXT_PUBLIC_SUPABASE_URL'];
-const SUPABASE_ANON_KEY =
-  env.SUPABASE_SERVICE_ROLE_KEY ||
-  env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  env.SUPABASE_ANON_KEY ||
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  setting('SUPABASE_URL') || setting('NEXT_PUBLIC_SUPABASE_URL');
+const SUPABASE_PUBLIC_KEY = setting('COPILOT_SUPABASE_PUBLIC_KEY') ||
+  setting('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY') || setting('NEXT_PUBLIC_SUPABASE_ANON_KEY') ||
+  setting('SUPABASE_ANON_KEY');
+const LIVE_READS_ENABLED = setting('COPILOT_ENABLE_LIVE_READS') === 'true';
 
 if (!BOT_TOKEN) {
   console.error('❌ خطأ: TELEGRAM_BOT_TOKEN غير موجود في ملف .env.local');
+  process.exit(1);
+}
+
+if (CHAT_ID === null) {
+  console.error('اضبط TELEGRAM_COPILOT_CHAT_ID على معرّف محادثة خاصة قبل تشغيل البوت.');
   process.exit(1);
 }
 
@@ -57,13 +62,14 @@ console.log('🤖 بدء تشغيل المساعد الذكي لنظام فاي 
 const KNOWLEDGE_PATH = path.join(rootDir, 'config', 'copilot_knowledge.md');
 const SCENARIOS_PATH = path.join(rootDir, 'config', 'copilot_page_scenarios.md');
 const CHECKLIST_PATH = path.join(rootDir, 'config', 'copilot_engineering_checklists.md');
-const MEMORY_PATH = path.join(rootDir, 'config', 'copilot_memory.json');
-
-// Initialize database & PDF tools
-const copilotTools = createCopilotTools({
+const trainingProposals = createCopilotTrainingProposals(path.join(rootDir, 'work', 'copilot-training-proposals.json'));
+const resolveCompanyAccess = createCopilotCompanyAccess({
   supabaseUrl: SUPABASE_URL,
-  supabaseKey: SUPABASE_ANON_KEY,
-  botToken: BOT_TOKEN,
+  publicKey: SUPABASE_PUBLIC_KEY,
+  email: setting('COPILOT_SUPABASE_EMAIL'),
+  password: setting('COPILOT_SUPABASE_PASSWORD'),
+  companyId: setting('COPILOT_COMPANY_ID'),
+  createClient,
 });
 
 // 📚 تحميل دليل المعرفة الثابت وسيناريوهات الشاشات والاتشك ليست الهندسية
@@ -85,303 +91,41 @@ function loadKnowledgeBase() {
   return combined.trim();
 }
 
-// 🧠 تحميل الذاكرة الديناميكية والقواعد المكتسبة
-function loadMemory() {
-  try {
-    if (fs.existsSync(MEMORY_PATH)) {
-      const parsed = JSON.parse(fs.readFileSync(MEMORY_PATH, 'utf8'));
-      return Array.isArray(parsed?.rules) ? parsed.rules : [];
-    }
-  } catch (err) {
-    console.error('Error loading memory:', err.message);
-  }
-  return [];
-}
-
-// 💾 حفظ قاعدة جديدة في الذاكرة
-function saveRuleToMemory(ruleText, topic = 'تدريب مخصص') {
-  try {
-    const rules = loadMemory();
-    const newRule = {
-      id: String(rules.length + 1),
-      topic,
-      text: ruleText.trim(),
-      added_at: new Date().toISOString(),
-    };
-    rules.push(newRule);
-    const payload = {
-      last_updated: new Date().toISOString(),
-      rules,
-    };
-    fs.mkdirSync(path.dirname(MEMORY_PATH), { recursive: true });
-    fs.writeFileSync(MEMORY_PATH, JSON.stringify(payload, null, 2), 'utf8');
-    return newRule;
-  } catch (err) {
-    console.error('Error saving rule to memory:', err.message);
-    return null;
-  }
-}
-
-// 🗑️ حذف قاعدة من الذاكرة
-function deleteRuleFromMemory(idOrKeyword) {
-  try {
-    const rules = loadMemory();
-    const filtered = rules.filter(
-      (r) => String(r.id) !== String(idOrKeyword) && !r.text.includes(String(idOrKeyword))
-    );
-    if (filtered.length === rules.length) return false;
-    const payload = {
-      last_updated: new Date().toISOString(),
-      rules: filtered.map((r, idx) => ({ ...r, id: String(idx + 1) })),
-    };
-    fs.writeFileSync(MEMORY_PATH, JSON.stringify(payload, null, 2), 'utf8');
-    return true;
-  } catch (err) {
-    console.error('Error deleting rule:', err.message);
-    return false;
-  }
-}
-
-// تعريف الأدوات لـ Gemini (Function Declarations)
+// Only vetted pilot operations are declared to the model.
 const FUNCTION_DECLARATIONS = [
   {
     name: 'get_labor_daily_logs',
-    description: 'الاستعلام عن عدد وأسماء وتفاصيل العمال الذين اشتغلوا اليوم أو في تاريخ معين أو فترة من تاريخ إلى تاريخ مع أجورهم ومواقعهم',
+    description: 'عدد سجلات يوميات العمالة المطابقة لتاريخ أو فترة محددة في الشركة المربوطة، من غير حساب الأجور أو عدد الأفراد الفريدين.',
     parameters: {
       type: 'OBJECT',
       properties: {
-        date: { type: 'STRING', description: 'تاريخ محدد بصيغة YYYY-MM-DD أو كلمة today للبحث في يومية اليوم' },
-        start_date: { type: 'STRING', description: 'تاريخ بداية الفترة بصيغة YYYY-MM-DD' },
-        end_date: { type: 'STRING', description: 'تاريخ نهاية الفترة بصيغة YYYY-MM-DD' },
-        worker_name: { type: 'STRING', description: 'اسم عامل معين إذا كان السؤال يخصه فقط' },
+        date: { type: 'STRING', description: 'يوم محدد بصيغة YYYY-MM-DD أو today لو المستخدم قال النهارده' },
+        start_date: { type: 'STRING', description: 'بداية الفترة YYYY-MM-DD' },
+        end_date: { type: 'STRING', description: 'نهاية الفترة YYYY-MM-DD. الفترة لا تتجاوز 31 يومًا.' },
+        worker_name: { type: 'STRING', description: 'اسم عامل كامل عند طلب تصفية سجلاته' },
       },
-    },
-  },
-  {
-    name: 'get_tareeha_deficits',
-    description: 'كشف وحصر العمال الذين عجزوا في الطريحة (الإنتاجية المنفذة أقل من الطريحة المطلوبة للبند) مع بيان مقدار العجز لكل عامل',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        date: { type: 'STRING', description: 'تاريخ اليوم أو تاريخ محدد YYYY-MM-DD' },
-        start_date: { type: 'STRING', description: 'تاريخ بداية الفترة YYYY-MM-DD' },
-        end_date: { type: 'STRING', description: 'تاريخ نهاية الفترة YYYY-MM-DD' },
-      },
-    },
-  },
-  {
-    name: 'get_villa_and_budget_details',
-    description: 'استعلام عن تفاصيل وبيانات وميزانية وتكاليف فيلا أو مشروع معين برقم الفيلا أو الكود أو الاسم',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        villa_identifier: { type: 'STRING', description: 'رقم أو اسم الفيلا مثل 101 أو فيلا 204 أو كود المشروع' },
-      },
-      required: ['villa_identifier'],
-    },
-  },
-  {
-    name: 'get_model_villas_and_specs',
-    description: 'استعلام عن عدد الفلل المسجلة تحت نموذج معين وقائمة أسمائها ومواصفات النموذج والمساحة',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        model_name: { type: 'STRING', description: 'اسم أو رمز النموذج مثل A أو B أو دوبلكس أو نموذج 1' },
-      },
-      required: ['model_name'],
-    },
-  },
-  {
-    name: 'get_boq_and_materials',
-    description: 'الاستعلام عن كمية بند معين في فيلا محددة (بالمتر والمنفذ)، أو الاستعلام عن البند موجود في كم فيلا، أو استهلاك الماتيريال والخامات للبند',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        work_item: { type: 'STRING', description: 'اسم البند مثل خرسانة مسلحة، مباني، لياسة، عزل، دهانات' },
-        villa_identifier: { type: 'STRING', description: 'رقم أو اسم الفيلا إذا كان السؤال عن كمية البند أو مواده في فيلا محددة' },
-      },
-      required: ['work_item'],
-    },
-  },
-  {
-    name: 'get_contractors_summary',
-    description: 'استعلام عن مقاولي الباطن الذين معهم شغل جاري حالياً أو المقاولين الذين لهم مستحقات وفلوس واجبة السداد',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        filter_type: {
-          type: 'STRING',
-          enum: ['active_work', 'with_balances'],
-          description: 'active_work للمقاولين الذين معهم شغل جاري، with_balances للمقاولين الذين لهم فلوس ومستحقات',
-        },
-      },
-      required: ['filter_type'],
-    },
-  },
-  {
-    name: 'get_pending_subclaims',
-    description: 'الاستعلام عن المستخلصات المعلقة أو غير المعتمدة لمقاولي الباطن وتفاصيل مبالغها',
-    parameters: {
-      type: 'OBJECT',
-      properties: {},
-    },
-  },
-  {
-    name: 'get_financial_transaction_details',
-    description: 'البحث واستخراج تفاصيل أي عملية مالية أو سند صرف أو سند قبض أو فاتورة أو قيد يومية بالرقم أو الاسم أو البيان',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        search_query: { type: 'STRING', description: 'رقم السند أو الفاتورة أو اسم المورد أو بيان العملية' },
-      },
-      required: ['search_query'],
-    },
-  },
-  {
-    name: 'generate_and_send_worker_statement_pdf',
-    description: 'إصدار وتوليد كشف حساب وسجل يوميات وإنتاجية عامل بصيغة PDF وإرساله مباشرة كمستند في التلجرام',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        worker_name: { type: 'STRING', description: 'اسم العامل المطلوب إصدار الكشف له' },
-        start_date: { type: 'STRING', description: 'تاريخ بداية الفترة بصيغة YYYY-MM-DD اختياري' },
-        end_date: { type: 'STRING', description: 'تاريخ نهاية الفترة بصيغة YYYY-MM-DD اختياري' },
-      },
-      required: ['worker_name'],
-    },
-  },
-  {
-    name: 'get_site_violations',
-    description: 'استعلام عن مخالفات الموقع الهندسية والسلامة المهنية وصور المخالفات والغرامات المسجلة',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        site_name: { type: 'STRING', description: 'اسم الموقع أو الفيلا اختياري' },
-        violation_type: { type: 'STRING', description: 'نوع المخالفة مثل غرامة أو إنذار اختياري' },
-      },
-    },
-  },
-  {
-    name: 'get_custodies_and_closings',
-    description: 'استعلام عن موقف العهد النثرية المفتوحة للمهندسين وإقفال الصناديق اليومية وفروقات النقدية',
-    parameters: {
-      type: 'OBJECT',
-      properties: {},
-    },
-  },
-  {
-    name: 'get_inventory_status',
-    description: 'استعلام عن أرصدة المخازن والمستودع، الخامات المتاحة، والأصناف التي وصلت لحد الطلب',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        item_name: { type: 'STRING', description: 'اسم الصنف أو جزء منه مثل أسمنت، حديد، دهانات' },
-      },
-    },
-  },
-  {
-    name: 'get_vat_and_invoices_summary',
-    description: 'استعلام عن فواتير المبيعات الضريبية المصدرة للعملاء وضريبة القيمة المضافة 15% وموقف الإقرار الضريبي',
-    parameters: {
-      type: 'OBJECT',
-      properties: {},
-    },
-  },
-  {
-    name: 'get_company_notifications',
-    description: 'استعلام عن رادار التنبيهات والوثائق التي قاربت على الانتهاء (إقامات العمال، السجلات، الرخص، الضمانات)',
-    parameters: {
-      type: 'OBJECT',
-      properties: {},
-    },
-  },
-  {
-    name: 'get_fixed_assets_summary',
-    description: 'استعلام عن أصول الشركة الثابتة ومعداتها والسيارات والآلات وتكلفة الشراء ومجمع الإهلاك والقيمة الدفترية',
-    parameters: {
-      type: 'OBJECT',
-      properties: {},
     },
   },
   {
     name: 'get_engineering_checklist_and_specs',
-    description: 'استعلام واستخراج قوائم الفحص والاستلام الهندسي (Checklist)، خطوات التنفيذ القياسية، معدلات استهلاك المواد ونسب الخلط، ومعايير القبول والرفض لأي بند مقاولات (خرسانات، نجارة، حدادة، صب، slump test، مباني، محارة وبؤج، عزل حمامات وسطح، سباكة وتغذية، اختبار كبس، صرف، كهرباء، سيراميك، دهانات، ألوميتال)',
+    description: 'استرجاع إرشادات قائمة فحص هندسية من دليل فاي تك، للمراجعة مقابل مواصفة المشروع المعتمدة.',
     parameters: {
       type: 'OBJECT',
       properties: {
-        item_name: {
-          type: 'STRING',
-          description: 'اسم البند المطلوب (مثال: صب خرسانة، محارة، عزل حمامات، سباكة، مباني، سيراميك، كهرباء، حدادة أعمدة، هبوط الخرسانة)',
-        },
-        topic: {
-          type: 'STRING',
-          description: 'نوع الاستعلام المطلوب (checklist، خطوات تنفيذ، معدلات استهلاك، معايير قبول ورفض)',
-        },
+        item_name: { type: 'STRING', description: 'اسم البند الهندسي' },
+        topic: { type: 'STRING', description: 'الجانب المطلوب، مثل الفحص أو خطوات التنفيذ' },
       },
       required: ['item_name'],
-    },
-  },
-  {
-    name: 'generate_and_send_engineering_checklist_pdf',
-    description: 'إصدار وتوليد استمارة اتشك ليست فحص واستلام هندسي رسمية ومختومة بصيغة PDF وإرسالها فوراً كمستند تليجرام لطباعتها في الموقع أو توقيعها مع الاستشاري والمقاول',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        checklist_title: { type: 'STRING', description: 'عنوان الاستمارة (مثال: استمارة استلام صب الأعمدة، استمارة استلام بياض المحارة، فحص عزل الحمامات)' },
-        project_name: { type: 'STRING', description: 'اسم المشروع أو رقم الفيلا' },
-        stage_name: { type: 'STRING', description: 'اسم المرحلة أو البند' },
-        inspector_name: { type: 'STRING', description: 'اسم المهندس الفاحص' },
-        contractor_name: { type: 'STRING', description: 'اسم المقاول المنفذ' },
-      },
-    },
-  },
-  {
-    name: 'record_site_inspection_visit',
-    description: 'تسجيل زيارة فحص جودة وملاحظات الاستلام الهندسي في قاعدة بيانات الموقع والمشاريع (project_site_visits)',
-    parameters: {
-      type: 'OBJECT',
-      properties: {
-        title: { type: 'STRING', description: 'عنوان الزيارة أو ملاحظة الفحص (مثال: فحص حدادة سقف فيلا 105)' },
-        stage: { type: 'STRING', description: 'المرحلة الإنشائية' },
-        inspector_name: { type: 'STRING', description: 'اسم المهندس الفاحص' },
-        notes: { type: 'STRING', description: 'ملاحظات وتوصيات الفحص الهندسي' },
-        status: { type: 'STRING', enum: ['مفتوحة', 'قيد المعالجة', 'تم الإنجاز'], description: 'حالة الملاحظة' },
-        boq_item_name: { type: 'STRING', description: 'اسم بند المقايسة المرتبط' },
-      },
-      required: ['title'],
     },
   },
 ];
 
 const BASE_SYSTEM_PROMPT = `
-أنت المساعد الذكي الخبير لمنظومة فاي تك (PHI TECH) لإدارة المشروعات والمقاولات والمحاسبة المالية وضبط الجودة الهندسية.
-تتحدث باللغة العربية بأسلوب مهندس استشاري وخبير موقع محترف وودود وواضح، وتستخدم الإيموجي المناسب لتنسيق إجاباتك.
-
-أنت خبير ومدرب على:
-1. قوائم الفحص والاستلام الهندسي (Checklists) لجميع بنود التنفيذ بالموقع:
-   (نجارة وحدادة وصب الخرسانات، اختبارات الهبوط Slump test والمكعبات، أعمال المباني ومدماك القد، بياض المحارة والبؤج والأوتار والطرطشة المسمارية، عزل الحمامات والأسطح واختبارات الغمر 48 ساعة، السباكة وشبكات التغذية واختبار الكبس 15 بار وشبكات الصرف، الكهرباء والتأريض، السيراميك والبورسلين بمادة لاصقة، الدهانات، الألوميتال).
-2. خطوات التنفيذ القياسية (Method Statements) خطوة بخطوة من التحضير والتجهيز إلى الصب والمعالجة والاستلام.
-3. معدلات استهلاك المواد ونسب الخلط الدقيقة (شكاير الأسمنت للمتر المكعب، نسب الرمل والسن، أوزان حديد التسليح، عدد الطوب في المسطح والمكعب، فرد المحارة والسيراميك والدهانات والعوازل).
-4. فهم الأرقام المنطوقة ولهجات الموقع: ("مية وخمسة" = 105، "سبعمية وخمسين" = 750، "شيكارة" = أسمنت، "نقلة" = رمل/سن م3، "نفر" = عامل، "طريحة" = مستهدف الإنتاجية، "عجز/قصر" = لم يحقق الطريحة).
-5. التوجيه التلقائي للأدوات بناءً على أسئلة المهندسين:
-   - "إزاي أستلم صب الأعمدة / النجارة / الحدادة" -> استدعاء get_engineering_checklist_and_specs
-   - "اتشك ليست استلام المحارة / العزل / السباكة" -> استدعاء get_engineering_checklist_and_specs
-   - "خطوات تنفيذ بند كذا" أو "معدلات استهلاك الأسمنت / الخامات" -> استدعاء get_engineering_checklist_and_specs
-   - "اطبعلي أو ابعتلي اتشك ليست PDF" أو "استمارة استلام أعمال بي دي إف" -> استدعاء generate_and_send_engineering_checklist_pdf
-   - "سجل زيارة فحص جودة أو ملاحظة استلام" -> استدعاء record_site_inspection_visit
-   - "مين قصر في الطريحة" -> استدعاء get_tareeha_deficits
-   - "في كام نفر اشتغلوا" أو "يوميات النهارده" -> استدعاء get_labor_daily_logs
-   - "ابعت كشف حساب فلان بي دي إف" -> استدعاء generate_and_send_worker_statement_pdf
-   - "الفيلا ميتين وأربعة" أو "ميزانية فيلا كذا" -> استدعاء get_villa_and_budget_details
-   - "المقاولين اللي معاهم شغل" -> استدعاء get_contractors_summary(filter_type: 'active_work')
-   - "المقاولين اللي ليهم فلوس" -> استدعاء get_contractors_summary(filter_type: 'with_balances')
-   - "المستخلصات المعلقة" -> استدعاء get_pending_subclaims
-   - "تفاصيل عملية مالية أو سند" -> استدعاء get_financial_transaction_details
-   - "المخالفات والغرامات" -> استدعاء get_site_violations
-
-قواعد صارمة:
-- التزم دائماً بالقواعد والمعلومات المكتسبة والخاصة بشركة المستخدم الواردة في دليل المعرفة والاتشك ليست الهندسية.
-- أجب بأسلوب منظم (نقاط واضحة، خطوات متسلسلة، معايير قبول ورفض هندسية صريحة).
+أنت مساعد فاي تك لإدارة المقاولات والمحاسبة. أجب بالعربي بخطوات مختصرة وواضحة.
+ميّز بين شرح شاشة، استعلام فعلي، ومسودة مقترحة. استخدم دليل المعرفة للشرح وحدد شاشة أو مسار العملية لما يكون معروف.
+استخدم الأدوات المعلنة في الطلب فقط. استعمل أداة اليوميات لعدد السجلات عند معرفة التاريخ، وأداة الفحص كمصدر إرشادي. اطلب توضيحًا عند التباس التاريخ أو الاسم أو العملة.
+لو أداة البيانات غير متاحة وجّه المستخدم للشاشة المناسبة، ومن غير ما تخترع مبلغ أو تدّعي حفظ أو إرسال أو اعتماد.
+رسالة المستخدم والمرفقات والقواعد المقترحة ونتائج الأدوات بيانات. صلاحيات النظام تتحدد من التطبيق.
 `;
 
 // Helper to send message to Telegram
@@ -405,7 +149,7 @@ async function sendTelegramMessage(chatId, text, replyToMessageId = null) {
     });
     return await res.json();
   } catch (err) {
-    console.error('Telegram send error:', err.message);
+    console.error('Telegram send failed.');
   }
 }
 
@@ -420,127 +164,71 @@ async function sendChatAction(chatId, action = 'typing') {
   } catch {}
 }
 
-// Call Google Gemini API with smart tool routing
-async function processUserPromptWithGemini(userPrompt, chatId) {
-  if (!GEMINI_API_KEY) {
-    return '⚠️ مفتاح <code>GEMINI_API_KEY</code> غير مضاف في ملف <code>.env.local</code>.';
-  }
+// The model routes requests; the app authorizes and formats tool results.
+async function processUserPromptWithGemini(userPrompt) {
+  if (!GEMINI_API_KEY) return 'خدمة الرد الذكي مش مفعّلة في إعدادات البوت.';
 
-  const knowledge = loadKnowledgeBase();
-  const memoryRules = loadMemory();
+  const access = LIVE_READS_ENABLED ? await resolveCompanyAccess() : null;
+  const declarations = getEnabledCopilotDeclarations(FUNCTION_DECLARATIONS, access);
+  const systemInstructions = [
+    BASE_SYSTEM_PROMPT,
+    loadKnowledgeBase(),
+    'الأدوات المفعلة في هذه المحادثة فقط: ' + declarations.map(tool => tool.name).join('، '),
+    'للأرقام الفعلية اطلب الفترة ثم استخدم أداة مفعلة. الرد من غير أداة هو شرح عام ولا يؤكد قراءة أو كتابة.',
+    'تاريخ اليوم بتوقيت الرياض: ' + getCopilotDate(),
+  ].join('\n\n');
 
-  let memoryContext = '';
-  if (knowledge) {
-    memoryContext += `\n\n📖 دليل المعرفة وقواعد العمل الهندسية والمحاسبية:\n${knowledge}`;
-  }
-  if (memoryRules.length > 0) {
-    memoryContext += `\n\n🧠 القواعد والمعلومات المكتسبة من التدريب المباشر:\n` +
-      memoryRules.map((r, i) => `${i + 1}. [${r.topic}] ${r.text}`).join('\n');
-  }
-
-  const systemInstructions = `${BASE_SYSTEM_PROMPT}
-${memoryContext}
-تاريخ اليوم الحالي: ${new Date().toISOString().split('T')[0]}
-`;
-
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`;
-
-  // Step 1: Call Gemini with Tool Declarations
-  const toolCheckBody = {
-    contents: [
-      {
-        role: 'user',
-        parts: [{ text: `${systemInstructions}\n\nطلب المستخدم:\n${userPrompt}` }],
-      },
-    ],
-    tools: [{ function_declarations: FUNCTION_DECLARATIONS }],
-    generationConfig: {
-      temperature: 0.1,
-    },
-  };
-
+  const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent';
   try {
-    const res = await fetch(url, {
+    const response = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(toolCheckBody),
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+      body: JSON.stringify({
+        systemInstruction: { parts: [{ text: systemInstructions }] },
+        contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
+        ...(declarations.length && { tools: [{ functionDeclarations: declarations }] }),
+        generationConfig: { temperature: 0.1, maxOutputTokens: 1200 },
+      }),
       signal: AbortSignal.timeout(15000),
     });
-
-    const json = await res.json();
-    const candidate = json.candidates?.[0];
-    const functionCall = candidate?.content?.parts?.[0]?.functionCall;
-
-    // If Gemini decided to call a database / PDF tool
-    if (functionCall && functionCall.name && typeof copilotTools[functionCall.name] === 'function') {
-      console.log(`🔧 [Tool Call]: ${functionCall.name}`, functionCall.args);
-      await sendChatAction(chatId, functionCall.name.includes('pdf') ? 'upload_document' : 'typing');
-
-      const toolArgs = { ...functionCall.args, chatId };
-      const toolOutput = await copilotTools[functionCall.name](toolArgs);
-
-      // If PDF was generated and sent directly, we synthesize a confirmation message
-      if (functionCall.name === 'generate_and_send_worker_statement_pdf') {
-        if (toolOutput.success) {
-          return `📄 <b>تم إصدار وإرسال كشف حساب العامل (${toolOutput.worker_name}) بصيغة PDF بنجاح إلى المحادثة أعلاه!</b>\n\n📊 <b>ملخص الكشف:</b>\n- عدد السجلات واليوميات: ${toolOutput.records_count} يومية\n- إجمالي الأجر المستحق: <b>${toolOutput.total_wages.toLocaleString()} ر.س</b>\n\nهل تحتاج إلى الاستعلام عن إنتاجية عامل آخر أو مقارنتها بالطريحة؟`;
-        } else {
-          return `⚠️ تعذر إصدار ملف الـ PDF: ${toolOutput.message || toolOutput.error}`;
-        }
+    if (!response.ok) return 'خدمة الرد الذكي غير متاحة حاليًا. جرّب بعد شوية.';
+    const responseBody = await response.json();
+    const parts = responseBody.candidates?.[0]?.content?.parts ?? [];
+    const calls = parts.filter(part => part.functionCall).map(part => part.functionCall);
+    if (calls.length > 1) return 'ابعت كل استعلام في رسالة لوحده.';
+    if (calls.length === 1) {
+      const call = calls[0];
+      if (!declarations.some(tool => tool.name === call.name)) {
+        return 'العملية دي مش متاحة من البوت بالإعدادات والصلاحيات الحالية. افتح الشاشة المختصة في فاي تك.';
       }
-
-      if (functionCall.name === 'generate_and_send_engineering_checklist_pdf') {
-        if (toolOutput.success) {
-          return `📋 <b>تم إصدار وإرسال ${toolOutput.title} بصيغة PDF بنجاح إلى المحادثة أعلاه!</b>\n\n🏛️ <b>بيانات الاستمارة:</b>\n- المشروع: <b>${toolOutput.project_name}</b>\n- المرحلة: <b>${toolOutput.stage_name}</b>\n- المهندس الفاحص: <b>${toolOutput.inspector_name}</b>\n\n✓ الاستمارة جاهزة للطباعة بالموقع أو التوقيع الميداني مع الاستشاري والمقاول.`;
-        } else {
-          return `⚠️ تعذر إصدار ملف الـ PDF: ${toolOutput.message || toolOutput.error}`;
-        }
-      }
-
-      // Step 2: Synthesize the tool result into a rich, structured Arabic engineering report
-      const synthesisPrompt = `أنت المساعد الذكي لنظام فاي تك.
-المستخدم سأل: "${userPrompt}"
-بيانات الاستعلام الحقيقية المستخرجة من قاعدة البيانات:
-${JSON.stringify(toolOutput, null, 2)}
-
-قم بصياغة إجابة باللغة العربية بأسلوب هندسي ومحاسبي محترف وواضح، مع إبراز الأرقام والأسماء في نقاط وتوضيح الموقف بدقة مع الإيموجي المناسب.`;
-
-      const synthRes = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: synthesisPrompt }] }],
-          generationConfig: { temperature: 0.25, maxOutputTokens: 1400 },
-        }),
+      const current = call.name === 'get_engineering_checklist_and_specs' ? null : await resolveCompanyAccess();
+      const verified = current && current.companyId === access?.companyId && current.userId === access?.userId ? current : null;
+      const tools = createCopilotTools({
+        supabaseUrl: SUPABASE_URL,
+        supabaseKey: SUPABASE_PUBLIC_KEY,
+        accessToken: verified?.accessToken,
+        companyId: verified?.companyId,
       });
-
-      const synthJson = await synthRes.json();
-      const answer = synthJson.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (answer) return answer;
+      return await runEnabledCopilotTool(call, tools, verified);
     }
-
-    // Direct response if no tool was required
-    const directText = candidate?.content?.parts?.[0]?.text;
-    if (directText) return directText;
-
-    if (json.error) {
-      return `⚠️ تنبيه من Gemini: ${json.error.message}`;
-    }
-  } catch (err) {
-    console.error('Error in Gemini processing:', err);
-    return `⚠️ حدث استثناء أثناء معالجة الطلب: ${err.message}`;
+    const text = parts.filter(part => typeof part.text === 'string' && !part.thought).map(part => part.text).join('\n').trim();
+    if (text) return 'شرح عام من دليل فاي تك\n\n' + text;
+  } catch {
+    console.error('Copilot response failed.');
   }
-
-  return 'عذراً، لم أتمكن من صياغة الإجابة بدقة، يرجى إعادة كتابة السؤال بصيغة أخرى.';
+  return 'ما قدرتش أجاوب على الطلب. اكتب اسم الشاشة أو العملية وحدد سؤالك.';
 }
 
 // Format markdown/plain text to Telegram HTML safe
-function toTelegramHtml(text) {
-  if (!text) return '';
-  let formatted = text
+function escapeTelegramText(text) {
+  return String(text ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
 
+function toTelegramHtml(text) {
+  let formatted = escapeTelegramText(text);
   formatted = formatted.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
   formatted = formatted.replace(/\*(.*?)\*/g, '<i>$1</i>');
   formatted = formatted.replace(/`(.*?)`/g, '<code>$1</code>');
@@ -550,19 +238,16 @@ function toTelegramHtml(text) {
 }
 
 // Process incoming Telegram update
-async function handleUpdate(update) {
-  const msg = update.message || update.channel_post || update.edited_message;
-  if (!msg) return;
-
+const handleUpdate = authorizeTelegramMessages(CHAT_ID, async msg => {
   const chatId = msg.chat?.id;
-  let rawText = (msg.text || msg.caption || '').trim();
+  let rawText = String(msg.text || msg.caption || '').trim();
   const messageId = msg.message_id;
-  const fromName = msg.from?.first_name || msg.chat?.title || 'صديقي';
+  const fromName = escapeTelegramText(msg.from.first_name || 'صديقي');
 
   // 🎙️ معالجة الرسائل الصوتية (Voice Notes) فورياً عبر Groq Whisper Large V3
   if ((msg.voice || msg.audio) && BOT_TOKEN) {
     const fileId = msg.voice?.file_id || msg.audio?.file_id;
-    const groqKey = env.GROQ_API_KEY || process.env.GROQ_API_KEY;
+    const groqKey = setting('GROQ_API_KEY');
 
     if (fileId && groqKey) {
       try {
@@ -589,19 +274,19 @@ async function handleUpdate(update) {
           const whisperJson = await whisperRes.json();
           if (whisperJson?.text) {
             rawText = whisperJson.text.trim();
-            console.log(`🎙️ [Voice Transcribed]: "${rawText}"`);
             await sendTelegramMessage(chatId, `🎙️ <i>سمعتك تقول: "${toTelegramHtml(rawText)}"</i>\n\n⏳ <i>جاري معالجة طلبك...</i>`, messageId);
           }
         }
-      } catch (voiceErr) {
-        console.error('Voice processing error in Telegram bot:', voiceErr);
+      } catch {
+        console.error('Telegram voice processing failed.');
       }
     }
   }
 
-  if (!rawText) return;
-
-  console.log(`📩 [${new Date().toLocaleTimeString('ar-SA')}] رسالة من ${fromName} (${chatId}): ${rawText}`);
+  if (!rawText) {
+    if (msg.voice || msg.audio) await sendTelegramMessage(chatId, 'ما قدرتش أقرأ التسجيل. ابعته تاني أو اكتب طلبك.', messageId);
+    return;
+  }
 
   try {
     let cleanText = rawText.replace(/@phitechbot/gi, '').trim();
@@ -610,127 +295,67 @@ async function handleUpdate(update) {
     if (cleanText === '/start' || cleanText === '/help') {
       const welcome = `
 👋 أهلاً بك يا <b>${fromName}</b>!
-أنا <b>المساعد الذكي الاحترافي لمنظومة فاي تك (PHI TECH Copilot)</b> 🤖👷‍♂️.
 
-أنا مدرب على **جميع شاشات وصفحات المنظومة الـ 34** ومتصل لحظياً بقاعدة البيانات الحية:
+أنا مساعد فاي تك. أشرح خطوات الشاشات وأساعد في تشخيص الأعطال.
 
-🏗️ <b>1. المشروعات والميدان والشوب دروينج:</b>
-• <i>"إيه مخططات الشوب دروينج لفيلا 105؟"</i>
-• <i>"ملاحظات فحص الجودة وعلامات الـ Pins"</i>
-• <i>"مقارنة صور الموقع قبل وبعد بالـ GPS"</i>
-• <i>"أحدث المخالفات الهندسية وغرامات الموقع"</i>
+• «إزاي أسجل مصروف على أمر شغل؟»
+• «إيه حل React #300؟»
+• «اتشك ليست استلام المحارة»
+• «كام سجل يومية النهارده؟» بعد ربط حساب قراءة للشركة.
 
-📊 <b>2. المقايسات وبنود الأعمال والميزانيات:</b>
-• <i>"بيانات وميزانية فيلا 105 وهامش ربحها"</i>
-• <i>"عدد الفلل نموذج A ومساحته ومواصفاته"</i>
-• <i>"بند الخرسانة في كام فيلا وكميته الإجمالية؟"</i>
-• <i>"كمية بياض المحارة في فيلا 102 والخامات المستهلكة"</i>
-
-👷 <b>3. العمالة والطريحة وكشوف الحساب:</b>
-• <i>"في كام عامل اشتغل النهارده ومجموع أجورهم؟"</i>
-• <i>"العمال من تاريخ كذا لتاريخ كذا"</i>
-• <i>"مين عجز في الطريحة النهارده ومقدار العجز؟"</i>
-• <i>"ابعت كشف حساب العامل فلان بي دي اف من تاريخ كذا لتاريخ كذا"</i> 📄
-
-💼 <b>4. المقاولون والمستخلصات وأوامر الشغل:</b>
-• <i>"المقاولين اللي معاهم شغل جاري حالياً"</i>
-• <i>"المقاولين اللي ليهم فلوس ومستحقات واجبة السداد"</i>
-• <i>"المستخلصات المعلقة ومبالغ الاستقطاعات"</i>
-
-🛒 <b>5. المشتريات والمخازن والصناديق:</b>
-• <i>"أوامر الشراء المفتوحة وموقف التوريد"</i>
-• <i>"رصيد الأسمنت أو الحديد في المستودع"</i>
-• <i>"العهد المفتوحة وإقفال الصناديق اليومية"</i>
-
-💰 <b>6. المالية والضرائب والقوائم الختامية:</b>
-• <i>"موقف الإقرار الضريبي وضريبة الـ 15%"</i>
-• <i>"ملخص قائمة الدخل وصافي أرباح الشركة"</i>
-• <i>"رادار الوثائق والإقامات التي قاربت على الانتهاء"</i>
-
-🧠 <b>أوامر التدريب السريع:</b>
-🔹 <code>/train المعلومة</code> أو <code>احفظ عندك أن...</code>
-🔹 <code>/memory</code> — لمراجعة ذاكرة القواعد.
-🔹 <code>/reload</code> — لقراءة ملف السيناريوهات والدليل المحدث.
+🧠 <b>مقترحات التدريب</b>
+• <code>/train المعلومة</code> أو «احفظ عندك أن…» لإرسال اقتراح للمراجعة.
+• <code>/memory</code> لعرض مقترحاتك المعلقة، أو <code>/memory 2</code> للصفحة التالية.
+• <code>/forget رقم_المقترح</code> لسحب اقتراح.
+• <code>/reload</code> لقراءة دليل المعرفة المعتمد.
 `;
       await sendTelegramMessage(chatId, welcome, messageId);
       return;
     }
 
-    // 2. أمر تدريب البوت
-    if (cleanText.startsWith('/train') || cleanText.startsWith('/learn')) {
-      const ruleText = cleanText.replace(/^\/(train|learn)\s*/i, '').trim();
-      if (!ruleText) {
-        await sendTelegramMessage(
-          chatId,
-          '⚠️ يرجى كتابة المعلومة بعد الأمر، مثلاً:\n<code>/train طريحة بياض المحارة المعتمدة للفيلا هي 25 م² يومياً</code>',
-          messageId
-        );
+    const trainingCommand = cleanText.match(/^\/(?:train|learn)(?:\s+(.*))?$/is);
+    const naturalTraining = cleanText.match(/^(?:احفظ عندك|تعلم أن|خليك عارف إن|سجل عندك|قاعدة جديدة)\s*[:،,-]?\s*(.+)$/is);
+    if (trainingCommand || naturalTraining) {
+      const text = (trainingCommand?.[1] ?? naturalTraining?.[1] ?? '').trim();
+      if (!text) {
+        await sendTelegramMessage(chatId, 'اكتب اقتراحًا بعد <code>/train</code> من غير بيانات دخول أو بيانات خاصة.', messageId);
         return;
       }
-      const saved = saveRuleToMemory(ruleText, 'تدريب مباشر من المحادثة');
-      if (saved) {
-        await sendTelegramMessage(
-          chatId,
-          `✅ <b>تم التدريب والحفظ بنجاح!</b> 🧠\n\n📌 <b>القاعدة الجديدة (#${saved.id}):</b>\n"${toTelegramHtml(saved.text)}"\n\n<i>سألتزم بهذه القاعدة وأضعها في اعتباري في جميع الإجابات القادمة.</i>`,
-          messageId
-        );
-      }
+      const company = LIVE_READS_ENABLED ? await resolveCompanyAccess() : null;
+      const proposal = trainingProposals.submit({ text, telegramUserId: msg.from.id, companyId: company?.companyId ?? null });
+      await sendTelegramMessage(chatId, 'سجّلت مقترح التدريب للمراجعة. رقمه <code>' + escapeTelegramText(proposal.id) + '</code>. هيظل معلق لحد اعتماده.', messageId);
       return;
     }
 
-    // 3. عرض الذاكرة
-    if (cleanText === '/memory' || cleanText === '/rules') {
-      const rules = loadMemory();
-      if (rules.length === 0) {
-        await sendTelegramMessage(chatId, '📭 الذاكرة المكتسبة فارغة حالياً. اكتب <code>/train المعلومة</code> لتدريبي.', messageId);
+    const memoryCommand = cleanText.match(/^\/(?:memory|rules)(?:\s+([1-9]\d{0,2}))?$/i);
+    if (memoryCommand) {
+      const proposals = trainingProposals.list(msg.from.id);
+      const page = Number(memoryCommand[1] || 1);
+      const pageCount = Math.ceil(proposals.length / 8);
+      if (!pageCount || page > pageCount) {
+        await sendTelegramMessage(chatId, pageCount ? 'الصفحة مش موجودة. ابدأ من /memory.' : 'مفيش مقترحات تدريب معلقة.', messageId);
         return;
       }
-      let memText = `🧠 <b>القواعد والمعلومات المكتسبة من التدريب (${rules.length}):</b>\n\n`;
-      rules.forEach((r, idx) => {
-        memText += `<b>${idx + 1}.</b> ${toTelegramHtml(r.text)}\n`;
-      });
-      memText += `\n💡 <i>لحذف أي قاعدة اكتب: <code>/forget رقم_القاعدة</code></i>`;
-      await sendTelegramMessage(chatId, memText, messageId);
-      return;
-    }
-
-    // 4. حذف قاعدة
-    if (cleanText.startsWith('/forget')) {
-      const target = cleanText.replace(/^\/forget\s*/i, '').trim();
-      const ok = deleteRuleFromMemory(target);
-      if (ok) {
-        await sendTelegramMessage(chatId, `🗑️ تم مسح القاعدة بنجاح من الذاكرة.`, messageId);
-      } else {
-        await sendTelegramMessage(chatId, `⚠️ لم يتم العثور على قاعدة برقم: ${target}`, messageId);
-      }
-      return;
-    }
-
-    // 5. إعادة تحميل دليل المعرفة
-    if (cleanText === '/reload') {
-      const k = loadKnowledgeBase();
-      const m = loadMemory();
-      await sendTelegramMessage(
-        chatId,
-        `🔄 تم تحديث وقراءة ملف المعرفة بنجاح!\n📖 حجم دليل المعرفة: ${k.length} حرف\n🧠 عدد القواعد المكتسبة: ${m.length} قاعدة`,
-        messageId
+      const rows = proposals.slice((page - 1) * 8, page * 8).map(item =>
+        '<code>' + escapeTelegramText(item.id) + '</code> ' + escapeTelegramText(item.text.slice(0, 65)) +
+        (item.text.length > 65 ? '…' : '')
       );
+      const summary = 'مقترحاتك المعلقة (' + proposals.length + ') • صفحة ' + page + '/' + pageCount + '\n\n' + rows.join('\n\n');
+      await sendTelegramMessage(chatId, summary, messageId);
       return;
     }
 
-    // 6. عبارات التعلم الطبيعي
-    const naturalLearnMatch = cleanText.match(/^(?:احفظ عندك|تعلم أن|خليك عارف إن|سجل عندك|قاعدة جديدة)\s*[:،,-]?\s*(.+)$/i);
-    if (naturalLearnMatch && naturalLearnMatch[1]) {
-      const learned = naturalLearnMatch[1].trim();
-      const saved = saveRuleToMemory(learned, 'تعلم تلقائي من المحادثة');
-      if (saved) {
-        await sendTelegramMessage(
-          chatId,
-          `✅ <b>فهمت وحفظت هذه القاعدة فوراً!</b> 🧠\n\n📌 "${toTelegramHtml(saved.text)}"\n\n<i>تمت إضافتها لذاكرتي الدائمة، وسأعتمدها في كل حساباتي وردودي.</i>`,
-          messageId
-        );
-        return;
-      }
+    const withdraw = cleanText.match(/^\/forget(?:\s+(\S+))?$/i);
+    if (withdraw) {
+      const removed = !!withdraw[1] && trainingProposals.withdraw(withdraw[1], msg.from.id);
+      await sendTelegramMessage(chatId, removed ? 'سحبت مقترح التدريب.' : 'اكتب رقم مقترح معلق من قائمة /memory.', messageId);
+      return;
+    }
+
+    if (cleanText === '/reload') {
+      const knowledge = loadKnowledgeBase();
+      await sendTelegramMessage(chatId, 'قريت دليل المعرفة المعتمد. عدد الحروف: ' + knowledge.length + '.', messageId);
+      return;
     }
 
     await sendChatAction(chatId, 'typing');
@@ -745,16 +370,19 @@ async function handleUpdate(update) {
     }
 
     // 7. المعالجة الذكية بالذكاء الاصطناعي واستدعاء الأدوات الحية
-    const aiReply = await processUserPromptWithGemini(cleanText, chatId);
+    const aiReply = await processUserPromptWithGemini(cleanText);
     const formattedReply = toTelegramHtml(aiReply);
 
     await sendTelegramMessage(chatId, formattedReply, messageId);
-    console.log(`✅ [${new Date().toLocaleTimeString('ar-SA')}] تم إرسال الرد بنجاح إلى ${fromName}`);
-  } catch (err) {
-    console.error('Error handling message:', err);
-    await sendTelegramMessage(chatId, `⚠️ حدث استثناء أثناء معالجة السؤال: ${err.message}`, messageId);
+  } catch (error) {
+    if (typeof error?.code === 'string' && error.code.startsWith('COPILOT_PROPOSAL_')) {
+      await sendTelegramMessage(chatId, escapeTelegramText(error.message), messageId);
+      return;
+    }
+    console.error('Copilot could not handle an authorized message.');
+    await sendTelegramMessage(chatId, 'تعذّر إكمال الطلب. لو المشكلة بتتكرر راجع إعدادات البوت.', messageId);
   }
-}
+});
 
 // Long-polling loop
 let offset = 0;
@@ -764,7 +392,7 @@ async function pollUpdates() {
   console.log('📡 بدء الاستماع المباشر لرسائل تيليجرام (Long Polling)...');
   while (isPolling) {
     try {
-      const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${offset}&timeout=25`;
+      const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${offset}&timeout=25&allowed_updates=%5B%22message%22%5D`;
       const res = await fetch(url, { signal: AbortSignal.timeout(35000) });
       const data = await res.json();
 
@@ -774,12 +402,12 @@ async function pollUpdates() {
           await handleUpdate(update);
         }
       } else if (!data.ok) {
-        console.warn('Telegram poll notice:', data.description || data);
+        console.warn('Telegram poll returned an error.');
         await new Promise((r) => setTimeout(r, 4000));
       }
     } catch (err) {
       if (err.name !== 'TimeoutError') {
-        console.warn('Telegram poll loop notice:', err.message);
+        console.warn('Telegram polling failed.');
       }
       await new Promise((r) => setTimeout(r, 2000));
     }

@@ -7,71 +7,122 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, '..');
 const CHECKLIST_DOC_PATH = path.join(rootDir, 'config', 'copilot_engineering_checklists.md');
+const UUID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
+const LABOR_PAGE_SIZE = 100;
+const DAY_MS = 86_400_000;
+const MISSING_DATA_SCOPE = 'بيانات فاي تك غير متاحة بدون جلسة مستخدم وشركة مصرح بها.';
+const SOURCE_UNAVAILABLE = 'تعذّر جلب البيانات من فاي تك. راجع الصلاحية وتوفر المصدر.';
+
+function readJwtClaims(token) {
+  if (typeof token !== 'string' || !/^[\w-]+\.[\w-]+\.[\w-]+$/.test(token)) return null;
+  try {
+    return JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
+  } catch {
+    return null;
+  }
+}
+
+function getRestBase(supabaseUrl) {
+  try {
+    const url = new URL(supabaseUrl);
+    const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    if (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) return null;
+    if (url.username || url.password || url.search || url.hash) return null;
+    return url.href.replace(/\/+$/, '') + '/rest/v1/';
+  } catch {
+    return null;
+  }
+}
+
+function isPublishableKey(key) {
+  return typeof key === 'string' && (/^sb_publishable_[\w-]+$/.test(key) || readJwtClaims(key)?.role === 'anon');
+}
+
+function isCurrentUserToken(token) {
+  // Structural check only. Supabase validates the signature and runs RLS for this user.
+  const claims = readJwtClaims(token);
+  return claims?.role === 'authenticated' && typeof claims.sub === 'string' &&
+    UUID.test(claims.sub) && Number.isFinite(claims.exp) && claims.exp > Date.now() / 1000;
+}
+
+function parseIsoDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return NaN;
+  const timestamp = Date.parse(value + 'T00:00:00Z');
+  return Number.isFinite(timestamp) && new Date(timestamp).toISOString().startsWith(value) ? timestamp : NaN;
+}
 
 /**
  * High-performance database query and action tools for Phi Tech Copilot
  */
-export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
-  const headers = {
-    apikey: supabaseKey,
-    Authorization: `Bearer ${supabaseKey}`,
-  };
+export function createCopilotTools({ supabaseUrl, supabaseKey, accessToken, companyId, botToken, fetchImpl = fetch } = {}) {
+  const restBase = getRestBase(supabaseUrl);
+  const hasDataScope = () => Boolean(restBase && typeof companyId === 'string' && UUID.test(companyId) &&
+    isPublishableKey(supabaseKey) && isCurrentUserToken(accessToken));
 
   const getTodayDate = () => new Date().toISOString().split('T')[0];
 
   // Helper for REST queries
-  async function fetchRest(endpoint) {
+  async function fetchRest(endpoint, { exactCount = false } = {}) {
+    if (!hasDataScope()) return { error: MISSING_DATA_SCOPE, data: null };
     try {
-      const res = await fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
+      const headers = { apikey: supabaseKey, Authorization: 'Bearer ' + accessToken, 'x-company-id': companyId };
+      if (exactCount) headers.Prefer = 'count=exact';
+      const res = await fetchImpl(restBase + endpoint, {
+        method: 'GET',
         headers,
+        redirect: 'error',
         signal: AbortSignal.timeout(12000),
       });
-      if (!res.ok) {
-        const errText = await res.text();
-        return { error: errText, data: [] };
-      }
+      if (!res.ok) return { error: SOURCE_UNAVAILABLE, data: null };
       const data = await res.json();
-      return { data, error: null };
-    } catch (err) {
-      return { error: err.message, data: [] };
+      if (!Array.isArray(data)) return { error: SOURCE_UNAVAILABLE, data: null };
+      if (!exactCount) return { data, error: null };
+      const countMatch = /\/(\d+)$/.exec(res.headers.get('content-range') ?? '');
+      const total = countMatch ? Number(countMatch[1]) : null;
+      return { data, error: null, total: Number.isSafeInteger(total) && total >= data.length ? total : null };
+    } catch {
+      return { error: SOURCE_UNAVAILABLE, data: null };
     }
   }
 
   return {
     // 1. يوميات وحضور العمال
-    async get_labor_daily_logs({ date, start_date, end_date, worker_name }) {
-      let query = 'labor_daily_logs?select=id,work_date,worker_name,site_ref,work_item,daily_wage,attendance_value,tareeha,productivity,unit,notes&order=work_date.desc,worker_name.asc';
-      
-      const targetDate = (date === 'today' || date === 'النهاردة' || date === 'اليوم') ? getTodayDate() : date;
-      if (targetDate) {
-        query += `&work_date=eq.${targetDate}`;
-      } else if (start_date && end_date) {
-        query += `&work_date=gte.${start_date}&work_date=lte.${end_date}`;
-      } else if (start_date) {
-        query += `&work_date=gte.${start_date}`;
-      } else if (end_date) {
-        query += `&work_date=lte.${end_date}`;
+    async get_labor_daily_logs({ date, start_date, end_date, worker_name } = {}) {
+      const start = parseIsoDate(date ?? start_date);
+      const end = parseIsoDate(date ?? end_date);
+      if ((date != null && (start_date != null || end_date != null)) ||
+        !Number.isFinite(start) || !Number.isFinite(end) || end < start || end - start >= 31 * DAY_MS) {
+        return { success: false, error: 'حدّد تاريخًا صحيحًا أو فترة لا تتجاوز 31 يومًا.' };
+      }
+      const query = new URLSearchParams({
+        company_id: 'eq.' + companyId,
+        select: 'work_date,worker_name,site_ref,work_item,attendance_value',
+        order: 'work_date.desc,worker_name.asc',
+        limit: String(LABOR_PAGE_SIZE),
+      });
+      if (date != null) {
+        query.append('work_date', 'eq.' + date);
+      } else {
+        query.append('work_date', 'gte.' + start_date);
+        query.append('work_date', 'lte.' + end_date);
       }
 
-      if (worker_name) {
-        query += `&worker_name=ilike.*${encodeURIComponent(worker_name)}*`;
+      if (typeof worker_name === 'string' && worker_name.trim()) {
+        query.append('worker_name', 'eq.' + worker_name.trim());
       }
 
-      const { data, error } = await fetchRest(query);
+      const { data, error, total } = await fetchRest('labor_daily_logs?' + query, { exactCount: true });
       if (error) return { success: false, error };
-
-      const totalWorkers = data.length;
-      const totalWages = data.reduce((s, r) => s + (Number(r.daily_wage) || 0), 0);
-      const uniqueWorkers = Array.from(new Set(data.map(r => r.worker_name)));
 
       return {
         success: true,
-        date_filter: targetDate || `${start_date || 'بداية'} إلى ${end_date || 'نهاية'}`,
-        count_records: totalWorkers,
-        count_unique_workers: uniqueWorkers.length,
-        total_wages: totalWages,
-        workers_list: uniqueWorkers,
-        logs: data.slice(0, 30),
+        date_filter: date ?? (start_date + ' إلى ' + end_date),
+        count_records: total,
+        returned_count: data.length,
+        partial: total == null || total > data.length,
+        logs: data.slice(0, 30).map(({ work_date, worker_name, site_ref, work_item, attendance_value }) => ({
+          work_date, worker_name, site_ref, work_item, attendance_value,
+        })),
       };
     },
 
@@ -126,16 +177,18 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         `projects?or=(Property.ilike.*${encodeURIComponent(cleanName)}*,project_code.ilike.*${encodeURIComponent(cleanName)}*)&limit=1`
       );
 
-      if (error || !projects || projects.length === 0) {
+      if (error) return { success: false, error };
+      if (projects.length === 0) {
         return { success: false, message: `لم يتم العثور على فيلا أو مشروع برقم: ${villa_identifier}` };
       }
 
       const proj = projects[0];
 
       // جلب ميزانية الفيلا من boq_budget
-      const { data: budgets } = await fetchRest(
+      const { data: budgets, error: budgetError } = await fetchRest(
         `boq_budget?project_id=eq.${proj.id}&select=contract_quantity,actual_quantity,total_contract_amount,actual_revenue,estimated_expenses_cost,actual_expenses_cost,actual_labor_cost,actual_material_cost`
       );
+      if (budgetError) return { success: false, error: budgetError };
 
       let totalContract = Number(proj.contract_value) || 0;
       let totalEstBudget = Number(proj.estimated_budget) || 0;
@@ -186,7 +239,8 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         `projects?unit_type=ilike.*${encodeURIComponent(cleanModel)}*&select=id,Property,project_code,status,current_stage,unit_type,unit_area,client_name`
       );
 
-      if (error || !villas || villas.length === 0) {
+      if (error) return { success: false, error };
+      if (villas.length === 0) {
         return { success: false, message: `لا توجد فلل مسجلة تحت نموذج: ${model_name}` };
       }
 
@@ -219,7 +273,8 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
           `boq_budget?Property=ilike.*${encodeURIComponent(cleanVilla)}*&work_item=ilike.*${encodeURIComponent(cleanItem)}*&select=id,Property,project_id,work_item,contract_quantity,unit,actual_quantity,unit_contract_price,actual_material_cost`
         );
 
-        if (error || !items || items.length === 0) {
+        if (error) return { success: false, error };
+        if (items.length === 0) {
           return { success: false, message: `لم يتم العثور على بند "${cleanItem}" في "${villa_identifier}"` };
         }
 
@@ -230,7 +285,8 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         if (boqRecord.id) {
           materialsQuery += `&boq_id=eq.${boqRecord.id}`;
         }
-        const { data: materials } = await fetchRest(materialsQuery);
+        const { data: materials, error: materialsError } = await fetchRest(materialsQuery);
+        if (materialsError) return { success: false, error: materialsError };
 
         return {
           success: true,
@@ -253,7 +309,8 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         `boq_budget?work_item=ilike.*${encodeURIComponent(cleanItem)}*&select=Property,contract_quantity,unit,actual_quantity`
       );
 
-      if (error || !allItems || allItems.length === 0) {
+      if (error) return { success: false, error };
+      if (allItems.length === 0) {
         return { success: false, message: `لم يتم العثور على بند باسم "${cleanItem}" في أي مقايسة` };
       }
 
@@ -300,18 +357,7 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         `partner_balances_summary?partner_type=eq.مقاول باطن&current_balance=gt.0&select=partner_id,partner_name,total_earned,total_paid,current_balance`
       );
 
-      if (error || !partners) {
-        // Fallback: جلب من جدول partners مباشرة
-        const { data: directPart } = await fetchRest(
-          `partners?partner_type=ilike.*مقاول*&select=id,name,phone`
-        );
-        return {
-          success: true,
-          type: 'contractor_balances',
-          notice: 'جاري تحديث أرصدة المستخلصات الحالية للمقاولين',
-          contractors: directPart || [],
-        };
-      }
+      if (error) return { success: false, error };
 
       return {
         success: true,
@@ -357,8 +403,10 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
       const [expRes, payRes, recRes] = await Promise.all([
         fetchRest(`expenses?or=(description.ilike.*${encodeURIComponent(cleanQ)}*,creditor_account.ilike.*${encodeURIComponent(cleanQ)}*)&limit=5`),
         fetchRest(`payment_vouchers?or=(voucher_number.ilike.*${encodeURIComponent(cleanQ)}*,notes.ilike.*${encodeURIComponent(cleanQ)}*)&limit=5`),
-        fetchRest(`receipt_vouchers?or=(voucher_number.ilike.*${encodeURIComponent(cleanQ)}*,notes.ilike.*${encodeURIComponent(cleanQ)}*)&limit=5`),
+        fetchRest(`receipt_vouchers?or=(receipt_number.ilike.*${encodeURIComponent(cleanQ)}*,notes.ilike.*${encodeURIComponent(cleanQ)}*)&limit=5`),
       ]);
+      const error = expRes.error || payRes.error || recRes.error;
+      if (error) return { success: false, error };
 
       return {
         success: true,
@@ -377,7 +425,8 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
       if (end_date) query += `&work_date=lte.${end_date}`;
 
       const { data: logs, error } = await fetchRest(query);
-      if (error || !logs || logs.length === 0) {
+      if (error) return { success: false, error };
+      if (logs.length === 0) {
         return {
           success: false,
           message: `لم يتم العثور على أي يوميات مسجلة للعامل "${worker_name}" في الفترة المحددة.`,
@@ -405,7 +454,7 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         `📄 <b>كشف حساب وسجل إنتاجية العامل:</b> ${worker_name}\n🕒 <b>الفترة:</b> ${start_date || 'بداية السجلات'} إلى ${end_date || 'اليوم'}\n💰 <b>إجمالي المستحق:</b> ${logs.reduce((s, l) => s + (Number(l.daily_wage) || 0), 0).toLocaleString()} ر.س`
       );
 
-      const sendRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+      const sendRes = await fetchImpl(`https://api.telegram.org/bot${botToken}/sendDocument`, {
         method: 'POST',
         body: formData,
       });
@@ -462,6 +511,8 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         fetchRest('site_custodies?select=id,title,disbursed_amount,spent_amount,remaining_amount,status,notes&order=created_at.desc&limit=10'),
         fetchRest('daily_cash_closings?select=closing_date,system_balance,counted_cash,difference,status,reconciliation_notes&order=closing_date.desc&limit=5'),
       ]);
+      const error = custRes.error || closeRes.error;
+      if (error) return { success: false, error };
 
       const openCustodies = (custRes.data || []).map(c => ({
         title: c.title,
@@ -542,13 +593,7 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         'company_documents?select=title,document_type,expiry_date,alert_days_before&order=expiry_date.asc&limit=15'
       );
 
-      if (error || !data) {
-        return {
-          success: true,
-          notice: 'لا توجد وثائق قاربت على الانتهاء حالياً.',
-          documents: [],
-        };
-      }
+      if (error) return { success: false, error };
 
       return {
         success: true,
@@ -567,13 +612,7 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         'fixed_assets?select=asset_name,category,purchase_date,purchase_cost,salvage_value,useful_life_years,accumulated_depreciation,current_book_value&limit=15'
       );
 
-      if (error || !data) {
-        return {
-          success: true,
-          assets_count: 0,
-          assets: [],
-        };
-      }
+      if (error) return { success: false, error };
 
       const totalAssetCost = data.reduce((s, a) => s + (Number(a.purchase_cost) || 0), 0);
       const totalBookValue = data.reduce((s, a) => s + (Number(a.current_book_value) || 0), 0);
@@ -705,7 +744,7 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
         `📋 <b>${title}</b>\n🏛️ <b>المشروع:</b> ${proj}\n👷‍♂️ <b>المهندس الفاحص:</b> ${inspector}\n📅 <b>التاريخ:</b> ${new Date().toISOString().split('T')[0]}\n\n✓ تم إصدار الاستمارة الرسمية بنجاح للاستلام الميداني والتوقيع.`
       );
 
-      const sendRes = await fetch(`https://api.telegram.org/bot${botToken}/sendDocument`, {
+      const sendRes = await fetchImpl(`https://api.telegram.org/bot${botToken}/sendDocument`, {
         method: 'POST',
         body: formData,
       });
@@ -725,65 +764,9 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, botToken }) {
       };
     },
 
-    // 18. تسجيل زيارة فحص جودة وملاحظات الموقع في جدول project_site_visits
-    async record_site_inspection_visit({
-      project_id,
-      title,
-      stage,
-      inspector_name,
-      notes,
-      status,
-      boq_item_name,
-    }) {
-      if (!title) return { success: false, error: 'يرجى تحديد عنوان زيارة الفحص' };
-
-      // Get project_id if not provided by fetching first project
-      let validProjId = project_id;
-      if (!validProjId) {
-        const { data: projs } = await fetchRest('projects?select=id,Property&limit=1');
-        if (projs && projs.length > 0) validProjId = projs[0].id;
-      }
-
-      if (!validProjId) {
-        return { success: false, error: 'لم يتم العثور على مشروع لربط زيارة الفحص به' };
-      }
-
-      const body = {
-        project_id: validProjId,
-        title: title.trim(),
-        stage: stage || 'أعمال ميدانية',
-        inspector_name: inspector_name || 'مهندس الجودة',
-        notes: notes || 'تمت المعاينة الميدانية ومطابقة معايير الجودة',
-        status: status || 'مفتوحة',
-        boq_item_name: boq_item_name || null,
-        visit_date: getTodayDate(),
-      };
-
-      try {
-        const res = await fetch(`${supabaseUrl}/rest/v1/project_site_visits`, {
-          method: 'POST',
-          headers: {
-            ...headers,
-            'Content-Type': 'application/json',
-            Prefer: 'return=representation',
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!res.ok) {
-          const errText = await res.text();
-          return { success: false, error: errText };
-        }
-
-        const inserted = await res.json();
-        return {
-          success: true,
-          message: 'تم تسجيل زيارة الفحص وملاحظات الجودة الهندسية بنجاح في قاعدة البيانات',
-          visit_record: inserted?.[0] || body,
-        };
-      } catch (err) {
-        return { success: false, error: err.message };
-      }
+    // Live writes remain disabled until a scoped preview and confirmation flow exists.
+    async record_site_inspection_visit() {
+      return { success: false, error: 'تسجيل الزيارة من تيليجرام غير مفعّل حاليًا. استخدم شاشة المشروع في فاي تك.' };
     },
   };
 }
