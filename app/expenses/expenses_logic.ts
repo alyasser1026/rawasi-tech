@@ -10,14 +10,17 @@ import { useToast } from '@/lib/toast-context';
 import { checkAdminApprovalPrivilege } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
 import { useCompany } from '@/lib/CompanyContext';
+import { useAuth } from '@/components/authGuard';
 import { executeDraftWithOfflineQueue } from '@/lib/offline/offlineExecutor';
 import { useOfflineSync } from '@/lib/offline/useOfflineSync';
 
 export function useExpensesLogic() {
     const queryClient = useQueryClient();
     const { showToast } = useToast(); 
-    const { activeCompanyId, activeCompany } = useCompany();
+    const { activeCompanyId, activeCompany, isLoading: companyLoading } = useCompany();
+    const { user, loading: authLoading, can } = useAuth();
     const { items: offlineQueueItems } = useOfflineSync();
+    const canLoadExpenses = !authLoading && !companyLoading && Boolean(user && activeCompanyId && can('expenses', 'view'));
 
     // 🎯 دالة مساعدة لتحديث سطر في الكاش بدقة شديدة
     const updateRowsInCache = (targetIds: any[], updatedFields: any) => {
@@ -63,8 +66,12 @@ export function useExpensesLogic() {
     // 📥 2. جلب البيانات الأساسية
     const expensesQuery = useQuery({
         queryKey: ['expenses'],
-        queryFn: async () => {
-            const buildQuery = () => supabase.from('expenses').select('*').order('exp_date', { ascending: false });
+        enabled: canLoadExpenses,
+        queryFn: async ({ signal }) => {
+            const buildQuery = () => {
+                signal.throwIfAborted();
+                return supabase.from('expenses').select('*').order('exp_date', { ascending: false }).abortSignal(signal);
+            };
             const allData = await fetchPaginatedData(buildQuery, 'id');
 
             return allData.map(exp => {
@@ -80,10 +87,10 @@ export function useExpensesLogic() {
         staleTime: 1000 * 60 * 5,
         retry: 1
     });
-    const serverExpenses = expensesQuery.data || [];
+    const serverExpenses = canLoadExpenses ? expensesQuery.data || [] : [];
 
     const queuedExpenses = useMemo(() => {
-        if (!activeCompanyId) return [];
+        if (!canLoadExpenses || !activeCompanyId) return [];
         const syncedReqIds = new Set(
             serverExpenses
                 .map((e: any) => e?.client_request_id)
@@ -115,7 +122,7 @@ export function useExpensesLogic() {
                     created_at: it.created_at,
                 };
             });
-    }, [offlineQueueItems, activeCompanyId, serverExpenses]);
+    }, [canLoadExpenses, offlineQueueItems, activeCompanyId, serverExpenses]);
 
     const expenses = useMemo(() => {
         const map = new Map<string, any>();
@@ -131,12 +138,13 @@ export function useExpensesLogic() {
     // 📥 جلب البيانات المساعدة
     const supportDataQuery = useQuery({
         queryKey: ['expenses_support_data'],
-        queryFn: async () => {
+        enabled: canLoadExpenses,
+        queryFn: async ({ signal }) => {
             const [proj, part, acc, boq] = await Promise.all([
-                supabase.from('projects').select('*'),
-                supabase.from('partners').select('name, partner_type'),
-                supabase.from('accounts').select('id, code, name'), 
-                supabase.from('boq_items').select('item_code, item_name').limit(3000)
+                supabase.from('projects').select('*').abortSignal(signal),
+                supabase.from('partners').select('name, partner_type').abortSignal(signal),
+                supabase.from('accounts').select('id, code, name').abortSignal(signal),
+                supabase.from('boq_items').select('item_code, item_name').limit(3000).abortSignal(signal)
             ]);
             const partnersData = part.data || [];
             return {
@@ -151,7 +159,7 @@ export function useExpensesLogic() {
         staleTime: 1000 * 60 * 5,
         retry: 1
     });
-    const supportData = supportDataQuery.data;
+    const supportData = canLoadExpenses ? supportDataQuery.data : undefined;
 
     useEffect(() => {
         const fetchPerms = async () => {
@@ -528,7 +536,7 @@ export function useExpensesLogic() {
     return {
         isSaving: saveMutation.isPending, 
         isSavingPayment: paymentMutation.isPending,
-        isLoading: expensesQuery.isLoading || supportDataQuery.isLoading || isProcessing || deleteMutation.isPending,
+        isLoading: authLoading || companyLoading || expensesQuery.isLoading || supportDataQuery.isLoading || isProcessing || deleteMutation.isPending,
         refreshData: () => queryClient.invalidateQueries({ queryKey: ['expenses'] }),
         
         filteredExpenses: finalFilteredExpenses, totalAmount, totalPages, totalResults: finalFilteredExpenses.length, historicalData,

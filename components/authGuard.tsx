@@ -87,7 +87,9 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
       }
 
       if (!session) {
-        try { sharedQueryClient.cancelQueries(); } catch {}
+        setUser(null);
+        setProfile(null);
+        void sharedQueryClient.cancelQueries();
         if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
         setLoading(false);
         return;
@@ -190,9 +192,11 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
     return can(requiredModule, 'view');
   }, [pathname, profile, loading, user, requiredRoles]);
 
-  if (loading && !user) {
-    if (pathname === '/login' || pathname === '/signup') return <>{children}</>;
-    return <LoadingScreen message="جاري تأمين الاتصال..." subMessage="نتحقق من صلاحيات الدخول الآمن لنظام فاي تك" fullScreen={true} />;
+  if (!user) {
+    if (pathname !== '/login' && pathname !== '/signup') {
+      return <LoadingScreen message="جاري تأمين الاتصال..." subMessage="نتحقق من صلاحيات الدخول الآمن لنظام فاي تك" fullScreen={true} />;
+    }
+    if (loading) return <>{children}</>;
   }
 
   if (!isAuthorized) {
