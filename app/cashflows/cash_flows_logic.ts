@@ -23,7 +23,7 @@ export function useCashFlowsLogic() {
                     .from('cash_flows')
                     .select(`
                         *,
-                        project:projects(Property),
+                        project:projects!cash_flows_project_id_company_fkey(Property),
                         partner:partners(name),
                         account:accounts(name)
                     `)

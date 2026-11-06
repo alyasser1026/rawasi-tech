@@ -39,6 +39,7 @@ export const menuGroups = [
         group: "المشاريع والشركاء", 
         items: [
             { id: 'fieldops', title: 'رادار الميدان الحي', icon: '📡', path: '/fieldops' },
+            { id: 'bim_viewer', title: 'استعراض النماذج ثلاثية الأبعاد (3D BIM)', icon: '🏛️', path: '/bim' },
             { id: 'projects', title: 'غرفة المشاريع', icon: '🏗️', path: '/projects' }, 
             { id: 'purchase_orders', title: 'أوامر الشراء ومطابقة التوريد', icon: '🛒', path: '/purchase-orders' },
             { id: 'inventory', title: 'المخزون والجرد وكارت الصنف', icon: '📦', path: '/inventory' },

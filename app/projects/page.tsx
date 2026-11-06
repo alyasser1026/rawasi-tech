@@ -19,6 +19,7 @@ import MaterialsTab from './MaterialsTab';
 import FinancialsTab from './FinancialsTab';
 import QcTab from './QcTab';
 import ExpensesTab from './ExpensesTab'; // 👈 استدعاء تاب المصروفات الجديد
+import BimTab from './BimTab'; // 👈 استدعاء تاب النماذج ثلاثية الأبعاد BIM
 import LoadingScreen from '@/components/LoadingScreen';
 import { Activity, Building2, CirclePause, Layers, TriangleAlert } from 'lucide-react';
 import KpiStrip from '@/components/KpiStrip';
@@ -301,6 +302,7 @@ export default function AdvancedProjectsPage() {
                   <TabButton active={logic.activeTab === 'materials'} onClick={() => logic.setActiveTab('materials')} text="الخامات المسحوبة" />
                   <TabButton active={logic.activeTab === 'financials'} onClick={() => logic.setActiveTab('financials')} text="المستخلصات والماليات" />
                   <TabButton active={logic.activeTab === 'qc'} onClick={() => logic.setActiveTab('qc')} text="الشوب دروينج والزيارات الميدانية 📐" />
+                  <TabButton active={logic.activeTab === 'bim'} onClick={() => logic.setActiveTab('bim')} text="النموذج الهندسي 3D BIM 🏛️" />
                 </div>
 
                 {/* 🚀 استدعاء المكونات (التابات) بناءً على النشط */}
@@ -310,6 +312,7 @@ export default function AdvancedProjectsPage() {
                 {logic.activeTab === 'materials' && <MaterialsTab logic={logic} />}
                 {logic.activeTab === 'financials' && <FinancialsTab logic={logic} />}
                 {logic.activeTab === 'qc' && <QcTab logic={logic} />}
+                {logic.activeTab === 'bim' && <BimTab logic={logic} />}
 
               </div>
             )}
