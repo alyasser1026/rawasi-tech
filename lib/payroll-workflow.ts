@@ -46,7 +46,9 @@ export function payrollDraftRows(records: PayrollRecord[]) {
     basic_salary: decimalValue(r.base_rate),
     allowances: decimalValue(r.allowances),
     amount_to_pay: decimalValue(r.amount_to_pay),
-    status: r.status || 'غير مدفوع'
+    status: r.status || 'غير مدفوع',
+    absence_days: r.absence_days !== undefined ? Number(r.absence_days) : 0,
+    absence_deduction: r.absence_deduction !== undefined ? decimalValue(r.absence_deduction) : '0'
   }));
 }
 
@@ -59,7 +61,7 @@ export async function savePayrollDrafts(client: RpcClient, month: string, cutoff
 }
 
 export async function postPayroll(client: RpcClient, month: string, cutoffDate: string, records: PayrollRecord[]) {
-  const rows = payrollDraftRows(records).filter(r => Number(decimalSum(r.basic_salary, r.allowances)) > 0);
+  const rows = payrollDraftRows(records).filter(r => Number(decimalSubtract(decimalSum(r.basic_salary, r.allowances), r.absence_deduction)) > 0);
   if (!rows.length) throw new Error('لا توجد رواتب شهرية موجبة وغير مرحلة ضمن الاختيار.');
   const { data, error } = await client.rpc('save_and_post_payroll', { p_month: month, p_cutoff_date: cutoffDate, p_rows: rows });
   if (error) throw new Error(error.message);

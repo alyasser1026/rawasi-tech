@@ -48,6 +48,7 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
   '/employees': 'employees',
   '/team': 'team',
   '/labor_logs': 'labor_logs',
+  '/attendance': 'attendance',
   '/laborcost': 'laborcost',
   '/payroll': 'payroll',
   '/violations': 'violations',

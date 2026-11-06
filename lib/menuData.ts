@@ -66,6 +66,7 @@ export const menuGroups = [
         items: [
             { id: 'team', title: 'إدارة فرق العمل', icon: '👥', path: '/team' },
             { id: 'labor_logs', title: 'يوميات الميدان', icon: '👷', path: '/labor_logs' }, 
+            { id: 'attendance', title: 'حضور وانصراف الموظفين', icon: '📅', path: '/attendance' },
             { id: 'payroll', title: 'مسيرات الرواتب', icon: '💵', path: '/payroll' }, 
             { id: 'violations', title: 'المخالفات والجزاءات', icon: '⚠️', path: '/violations' }
         ] 

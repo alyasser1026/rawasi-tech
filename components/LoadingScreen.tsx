@@ -23,7 +23,7 @@ export default function LoadingScreen({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(7, 8, 11, 0.88)',
+        backgroundColor: 'rgba(7, 8, 11, 0.96)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         zIndex: 9999,

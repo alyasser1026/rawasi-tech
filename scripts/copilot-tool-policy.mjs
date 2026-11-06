@@ -25,7 +25,8 @@ function passesGates(entry, access) {
   if (!entry || !isToolFlagEnabled(entry)) return false;
   if (!entry.requiresCompany && !entry.permission) return true;
   if (!access?.companyId || !access.userId) return false;
-  return !entry.permission || hasModulePermission(access, entry.permission.module, entry.permission.action);
+  const required = [...(entry.permission ? [entry.permission] : []), ...(entry.requiredPermissions ?? [])];
+  return required.every(({ module, action }) => hasModulePermission(access, module, action));
 }
 
 function isEnabled(name, access) {
@@ -139,13 +140,22 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     const count = result.count;
     if (!Number.isSafeInteger(count) || count < 0) return heading + '\nالمصدر ما رجّعش بيانات صالحة.';
     const partialNote = result.partial === true ? '\nالنتيجة جزئية (سجلات كتير في الفترة) — العدد ده أقل حد، راجع شاشة اليوميات للعدد الكامل.' : '';
-    if (count === 0) return heading + '\nلا توجد عجوزات مستحقة حالياً.' + partialNote;
+    if (count === 0) {
+      const unrecordedOnly = Number.isSafeInteger(result.no_productivity) && result.no_productivity > 0
+        ? '\nسجلات فيها طريحة من غير إنتاجية مسجلة (مش محسوبة): ' + result.no_productivity : '';
+      return heading + '\nلا توجد عجوزات مستحقة حالياً.' + partialNote + unrecordedOnly;
+    }
     const lines = Array.isArray(result.deficits) && result.deficits.length > 0
-      ? '\n\nأبرز العجوزات:\n' + result.deficits.slice(0, 5).map(d =>
-          `• ${validDate(d.work_date) ? d.work_date : '—'} — ${safeText(d.worker_name, 60) || '—'} — ${safeText(d.site_ref, 60) || 'غير محدد'} — ${safeText(d.work_item, 60) || '—'} (طريحة: ${Number.isFinite(Number(d.tareeha)) ? Number(d.tareeha) : '—'} / منجز: ${Number.isFinite(Number(d.productivity)) ? Number(d.productivity) : '—'} ${safeText(d.unit, 20) || ''})`
-        ).join('\n')
+      ? '\n\nأبرز العجوزات:\n' + result.deficits.slice(0, 5).map(d => {
+          const num = value => (Number.isFinite(Number(value)) ? Number(value) : '—');
+          const unit = safeText(d.unit, 20) || '';
+          return `• ${validDate(d.work_date) ? d.work_date : '—'} — ${safeText(d.worker_name, 60) || '—'} — ${safeText(d.site_ref, 60) || 'غير محدد'} — ${safeText(d.work_item, 60) || '—'} (المستهدف: ${num(d.expected)} / المنفذ: ${num(d.productivity)} ${unit} — إنجاز ${num(d.achievement)}%)`;
+        }).join('\n')
       : '';
-    return heading + '\nإجمالي العجوزات: ' + count + partialNote + lines;
+    const unrecorded = Number.isSafeInteger(result.no_productivity) && result.no_productivity > 0
+      ? '\nسجلات فيها طريحة من غير إنتاجية مسجلة (مش محسوبة): ' + result.no_productivity : '';
+    return heading + '\nإجمالي العجوزات: ' + count + partialNote + unrecorded +
+      '\nالتعريف: الإنتاجية أقل من الطريحة × الحضور.' + lines;
   }
 
   const period = args.date || (args.start_date + ' إلى ' + args.end_date);

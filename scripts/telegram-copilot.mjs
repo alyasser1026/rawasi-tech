@@ -365,7 +365,7 @@ const handleUpdate = authorizeTelegramMessages(CHAT_ID, async msg => {
 • <code>/reload</code> لقراءة دليل المعرفة المعتمد.
 
 📄 <b>ملفات PDF</b> (بتأكيد قبل الإرسال)
-• <code>/pdf worker الاسم YYYY-MM-DD YYYY-MM-DD</code> لكشف عامل.
+• <code>/pdf worker الاسم YYYY-MM</code> لكشف عامل يومية عن شهر.
 • <code>/pdf checklist البند</code> لاستمارة فحص مسودة.
 • <code>/confirm</code> للتأكيد أو <code>/cancel</code> للإلغاء.
 • <code>/new</code> لبدء محادثة جديدة.
@@ -574,7 +574,7 @@ async function runPdfMockTest() {
 
   // اختبار 3: parsePdfRequest
   const cases = [
-    '/pdf worker أحمد محمد 2026-01-01 2026-01-07',
+    '/pdf worker أحمد محمد 2026-01',
     '/pdf checklist استلام المحارة',
     '/pdf invalid',
     'مش أمر pdf',

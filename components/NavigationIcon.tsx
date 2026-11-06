@@ -7,7 +7,7 @@ export const navigationIcons: Record<string, LucideIcon> = {
   expenses: ReceiptText, invoices: FileText, audit: ShieldCheck, financialplan: CalendarDays, trialbalance: Scale, financial_statements: ChartNoAxesCombined,
   global_summary: ChartPie, financial_center: Landmark, performance: TrendingUp, materials: Package, materialitems: Boxes, material_issues: Package, subclaims: FileText,
   subcontractor_costs: ReceiptText, job_orders: ClipboardList, laborcost: HardHat, boqcatalog: Layers, partners: ContactRound, partner_balances: Wallet,
-  project_ledger: BookOpen, labor_logs: HardHat, payroll: Banknote, violations: ShieldAlert, reports: ChartNoAxesCombined, import: Upload, profile: UserRound,
+  project_ledger: BookOpen, labor_logs: HardHat, attendance: CalendarDays, payroll: Banknote, violations: ShieldAlert, reports: ChartNoAxesCombined, import: Upload, profile: UserRound,
   notifications: Bell, statement: FileText, fieldops: Radar, project_overhead: Building2, boq_budget: Layers, bulk_budget: Layers, cost_allocation: Calculator,
 };
 

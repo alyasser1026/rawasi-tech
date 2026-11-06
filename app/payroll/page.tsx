@@ -136,6 +136,30 @@ export default function PayrollPage() {
       }
     },
     {
+      header: 'خصم غياب (-)', // خصم الغياب الآلي المحسوب من جدول الحضور
+      accessor: 'absence_deduction',
+      render: (row: any) => {
+        if (!row) return null;
+        if (row.type !== 'موظف') {
+          return <span style={{ color: THEME.textMuted, fontSize: 'var(--fs-xs)' }}>-</span>;
+        }
+        const deduction = Number(row.absence_deduction || 0);
+        const days = Number(row.absence_days || 0);
+        return (
+          <div style={{ textAlign: 'center' }}>
+            <span style={{ color: deduction > 0 ? THEME.ruby : THEME.textMuted, fontWeight: 'bold' }}>
+              {deduction > 0 ? `-${deduction.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '0'}
+            </span>
+            {days > 0 && (
+              <div style={{ fontSize: '10px', color: THEME.textMuted }}>
+                ({days} يوم)
+              </div>
+            )}
+          </div>
+        );
+      }
+    },
+    {
       header: 'غرامات وخصم (-)', // توضيح للمحاسب
       accessor: 'deductions',
       render: (row: any) => {
@@ -362,6 +386,7 @@ export default function PayrollPage() {
                   <th style={{width: '20%'}}>اسم الموظف / العامل</th>
                   <th>الأساسي</th>
                   <th>البدلات</th>
+                  <th>خصم غياب</th>
                   <th>غرامات</th>
                   <th>مسحوبات</th>
                   <th>رصيد سابق</th>
@@ -378,6 +403,7 @@ export default function PayrollPage() {
                      <td style={{ fontWeight: 900, textAlign: 'right' }}>{r.name} <br/><span style={{fontSize:'var(--fs-xs)', color: '#555'}}>{r.job_role}</span></td>
                      <td style={{fontWeight: 700}}>{formatCurrency(r.base_rate)}</td>
                      <td style={{fontWeight: 700}}>{formatCurrency(r.allowances)}</td>
+                     <td style={{fontWeight: 700, color: (r.absence_deduction || 0) > 0 ? THEME.ruby : 'inherit'}}>{formatCurrency(r.absence_deduction || 0)}</td>
                      <td style={{fontWeight: 700}}>{formatCurrency(r.deductions)}</td>
                      <td style={{fontWeight: 700, color: r.extended_advances > 0 ? THEME.ruby : 'inherit'}}>{formatCurrency(r.extended_advances)}</td>
                      <td style={{fontWeight: 700}}>{formatCurrency(r.previous_balance)}</td>

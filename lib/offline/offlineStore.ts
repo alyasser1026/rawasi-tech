@@ -3,11 +3,13 @@
 export type OfflineEntityType =
   | 'labor_log_draft'
   | 'expense_draft'
-  | 'custody_expense_draft';
+  | 'custody_expense_draft'
+  | 'attendance_draft';
 
 export type OfflineRpcName =
   | 'save_labor_log_draft'
-  | 'save_expense_draft';
+  | 'save_expense_draft'
+  | 'save_employee_attendance_draft';
 
 export type OfflineItemStatus = 'pending' | 'syncing' | 'failed';
 

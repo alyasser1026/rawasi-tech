@@ -1,4 +1,5 @@
 import puppeteer from 'puppeteer';
+import { assessTareeha, unassessedReason } from './copilot-tareeha.mjs';
 
 function escapeHtml(value) {
   if (value == null) return '';
@@ -148,53 +149,69 @@ export async function closePdfBrowser() {
  */
 export async function generateWorkerStatementPdf({
   workerName,
+  month = null,       // 'YYYY-MM' for the monthly payroll-aligned statement
   startDate,
   endDate,
   logs = [],
-  showWages = true, // false when the requester has no wage permission → wages read «غير متاح»
+  showWages = true,   // false when the requester lacks the wage permissions → wages read «غير متاح»
+  money = null,       // payroll-screen totals (pull_payroll_module_data + previous balance) or null
+  moneyNote = null,   // why the money section is unavailable, if it is
+  unpostedCount = 0,  // draft rows shown in the table but not in the payroll totals
   companyName = 'شركة فاي تك للمقاولات والحلول الهندسية',
 }) {
   assertRows(logs, 'logs');
+  const fmt = value => Number(value).toLocaleString('en-US', { maximumFractionDigits: 2 });
+  const sar = value => fmt(value) + ' ر.س';
   const hasWage = (l) => l.daily_wage != null && l.daily_wage !== '' && Number.isFinite(Number(l.daily_wage));
-  // Total = sum of daily_wage, the same definition payroll uses (save_and_post_payroll).
-  const wagesKnown = showWages && (logs.length === 0 || logs.some(hasWage));
-  const totalWage = logs.reduce((sum, l) => sum + (hasWage(l) ? Number(l.daily_wage) : 0), 0);
   const totalDays = logs.reduce((sum, l) => sum + (Number(l.attendance_value) || 0), 0);
   const totalQty = logs.reduce((sum, l) => sum + (Number(l.productivity) || 0), 0);
-  const tareehaLogs = logs.filter((l) => Number(l.tareeha) > 0);
-  const deficitCount = tareehaLogs.filter((l) => (Number(l.productivity) || 0) < Number(l.tareeha)).length;
-  const avgCompliance = tareehaLogs.length > 0
-    ? Math.round(((tareehaLogs.length - deficitCount) / tareehaLogs.length) * 100)
-    : null; // no tareeha targets in the period → «غير متاح», not 100%
+  // Tareeha per copilot-tareeha.mjs: deficit = productivity < tareeha × attendance.
+  const assessments = logs.map(assessTareeha);
+  const assessed = assessments.filter(Boolean);
+  const metCount = assessed.filter(a => !a.deficit).length;
+  const avgCompliance = assessed.length > 0 ? Math.round((metCount / assessed.length) * 100) : null; // none → «غير متاح»
+  const moneyCell = key => (money && Number.isFinite(Number(money[key])) ? sar(money[key]) : NOT_AVAILABLE);
 
-  const formattedStartDate = startDate || (logs.length > 0 ? logs[logs.length - 1].work_date : 'بداية العمل');
-  const formattedEndDate = endDate || (logs.length > 0 ? logs[0].work_date : new Date().toISOString().split('T')[0]);
+  const formattedStartDate = startDate || (logs.length > 0 ? logs[0].work_date : 'بداية العمل');
+  const formattedEndDate = endDate || (logs.length > 0 ? logs[logs.length - 1].work_date : new Date().toISOString().split('T')[0]);
 
   const rowsHtml = logs.map((l, idx) => {
-    const tareeha = Number(l.tareeha) || 0;
-    const prod = Number(l.productivity) || 0;
-    const isDeficit = tareeha > 0 && prod < tareeha;
-    const statusBadge = tareeha === 0
-      ? '<span style="color:#475569;">يومية عادية</span>'
-      : isDeficit
-        ? `<span style="color:#b91c1c; font-weight:700;">عجز ${(tareeha - prod).toFixed(1)} ${escapeHtml(l.unit) || 'م'}</span>`
-        : '<span style="color:#15803d; font-weight:700;">محقق للطريحة</span>';
+    const a = assessments[idx];
+    const unit = escapeHtml(l.unit) || '';
+    const reason = unassessedReason(l);
+    const absent = Number(l.attendance_value) === 0 && l.attendance_value !== null && l.attendance_value !== '';
+    const statusBadge = a
+      ? a.deficit
+        ? `<span style="color:#b91c1c; font-weight:700;">عجز ${fmt(a.shortfall)} ${unit || 'م'} (إنجاز ${a.achievement}%)</span>`
+        : `<span style="color:#15803d; font-weight:700;">محقق للطريحة (${a.achievement}%)</span>`
+      : absent ? '<span style="color:#475569;">غياب</span>'
+        : reason === 'no_productivity' ? '<span style="color:#b45309;">لم تُسجل إنتاجية</span>'
+          : '<span style="color:#475569;">يومية عادية</span>';
+    const draftTag = l.is_posted === false ? '<div style="font-size:9px; color:#b45309; font-weight:700;">مسودة</div>' : '';
+    const halfDay = Number(l.attendance_value) === 0.5 ? ' <span style="font-size:9px; color:#64748b;">(نص يوم)</span>' : '';
 
     return `
       <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'}; border-bottom:1px solid #e2e8f0;">
         <td style="padding:10px 12px; text-align:center; color:#64748b; font-size:11px;">${idx + 1}</td>
-        <td style="padding:10px 12px; font-weight:600; color:#1e293b;">${escapeHtml(l.work_date) || '-'}</td>
+        <td style="padding:10px 12px; font-weight:600; color:#1e293b;">${escapeHtml(l.work_date) || '-'}${draftTag}</td>
         <td style="padding:10px 12px; color:#334155;">${escapeHtml(l.site_ref) || 'عام'}</td>
         <td style="padding:10px 12px; color:#334155;">${escapeHtml(l.work_item) || 'أعمال مساعدة'}</td>
         <td style="padding:10px 12px; text-align:center; font-weight:600; color:#0f172a;">${escapeHtml(l.attendance_value ?? 1)}</td>
-        <td style="padding:10px 12px; text-align:right; font-weight:700; color:#0f766e;">${!showWages ? NOT_AVAILABLE : hasWage(l) ? Number(l.daily_wage).toLocaleString() + ' ر.س' : '—'}</td>
-        <td style="padding:10px 12px; text-align:center; color:#475569;">${tareeha > 0 ? `${tareeha} ${escapeHtml(l.unit) || ''}` : '-'}</td>
-        <td style="padding:10px 12px; text-align:center; font-weight:600;">${prod > 0 ? `${prod} ${escapeHtml(l.unit) || ''}` : '-'}</td>
+        <td style="padding:10px 12px; text-align:right; font-weight:700; color:#0f766e;">${!showWages ? NOT_AVAILABLE : hasWage(l) ? sar(l.daily_wage) : '—'}</td>
+        <td style="padding:10px 12px; text-align:center; color:#475569;">${a ? `${fmt(a.expected)} ${unit}${halfDay}` : Number(l.tareeha) > 0 ? `${fmt(l.tareeha)} ${unit}` : '-'}</td>
+        <td style="padding:10px 12px; text-align:center; font-weight:600;">${l.productivity != null && l.productivity !== '' ? `${fmt(l.productivity)} ${unit}` : '-'}</td>
         <td style="padding:10px 12px; text-align:center;">${statusBadge}</td>
         <td style="padding:10px 12px; color:#64748b; font-size:11px;">${escapeHtml(l.notes || l.production_desc) || '-'}</td>
       </tr>
     `;
   }).join('');
+
+  const notes = [
+    'الملخص المالي = اليوميات المرحّلة − الجزاءات المرحّلة − سندات الصرف المرحّلة + الرصيد السابق، حتى ' + escapeHtml(formattedEndDate) + ' — نفس حساب شاشة الرواتب.',
+    'الطريحة: المستهدف = الطريحة × الحضور (نص اليوم مستهدفه نص الطريحة)، والعجز لما الإنتاجية تقل عن المستهدف.',
+    ...(moneyNote ? [escapeHtml(moneyNote)] : []),
+    ...(unpostedCount > 0 ? [`سجلات مسودة (غير مرحّلة): ${Number(unpostedCount)} — معروضة في الجدول ومش داخلة في الملخص المالي.`] : []),
+  ];
 
   const htmlContent = `
 <!DOCTYPE html>
@@ -202,7 +219,7 @@ export async function generateWorkerStatementPdf({
 <head>
   <meta charset="utf-8">
   ${PDF_CSP_META}
-  <title>كشف حساب عامل — ${escapeHtml(workerName)}</title>
+  <title>كشف حساب عامل يومية — ${escapeHtml(workerName)}</title>
   <style>
   ${CAIRO_FONT_CSS}
   body {
@@ -302,32 +319,58 @@ export async function generateWorkerStatementPdf({
   <div class="header">
   <div>
     <div class="brand-title">${escapeHtml(companyName)}</div>
-    <div class="doc-title">كشف حساب وسجل يوميات وإنتاجية العامل</div>
+    <div class="doc-title">كشف حساب عامل يومية وسجل الإنتاجية</div>
   </div>
   <div style="text-align:left; font-size:11px; color:#64748b; line-height:1.6;">
     <div><b>العامل:</b> <span style="color:#0f766e; font-weight:700;">${escapeHtml(workerName)}</span></div>
-    <div><b>الفترة:</b> من ${escapeHtml(formattedStartDate)} إلى ${escapeHtml(formattedEndDate)}</div>
+    <div><b>الفترة:</b> ${month ? 'شهر ' + escapeHtml(month) + ' — ' : ''}من ${escapeHtml(formattedStartDate)} إلى ${escapeHtml(formattedEndDate)}</div>
     <div><b>تاريخ التقرير:</b> ${new Date().toLocaleDateString('ar-SA')}</div>
   </div>
   </div>
 
   <div class="info-grid">
   <div class="info-card">
-    <div class="label">إجمالي الأجر المستحق</div>
-    <div class="val ${wagesKnown ? 'val-highlight' : ''}">${wagesKnown ? totalWage.toLocaleString() + ' ر.س' : NOT_AVAILABLE}</div>
-  </div>
-  <div class="info-card">
-    <div class="label">إجمالي أيام الحضور</div>
-    <div class="val">${totalDays} يوم</div>
+    <div class="label">أيام الحضور (كل السجلات)</div>
+    <div class="val">${fmt(totalDays)} يوم</div>
   </div>
   <div class="info-card">
     <div class="label">إجمالي الإنتاجية</div>
-    <div class="val">${totalQty.toLocaleString()} وحدة/متر</div>
+    <div class="val">${fmt(totalQty)} وحدة/متر</div>
   </div>
   <div class="info-card">
     <div class="label">نسبة الالتزام بالطريحة</div>
     <div class="val ${avgCompliance == null ? '' : avgCompliance < 80 ? 'val-danger' : 'val-highlight'}">${avgCompliance == null ? NOT_AVAILABLE : avgCompliance + '%'}</div>
   </div>
+  <div class="info-card">
+    <div class="label">أيام الحضور المرحّلة</div>
+    <div class="val">${money && Number.isFinite(Number(money.days_worked)) ? fmt(money.days_worked) + ' يوم' : NOT_AVAILABLE}</div>
+  </div>
+  </div>
+
+  <div class="info-grid" style="grid-template-columns: repeat(5, 1fr); margin-bottom: 8px;">
+  <div class="info-card">
+    <div class="label">اليوميات المرحّلة</div>
+    <div class="val">${moneyCell('earned')}</div>
+  </div>
+  <div class="info-card">
+    <div class="label">الجزاءات</div>
+    <div class="val ${money ? 'val-danger' : ''}">${moneyCell('violations')}</div>
+  </div>
+  <div class="info-card">
+    <div class="label">سندات الصرف</div>
+    <div class="val">${moneyCell('payments')}</div>
+  </div>
+  <div class="info-card">
+    <div class="label">الرصيد السابق</div>
+    <div class="val">${moneyCell('previous_balance')}</div>
+  </div>
+  <div class="info-card">
+    <div class="label">الصافي المستحق</div>
+    <div class="val ${money ? 'val-highlight' : ''}">${moneyCell('final_net')}</div>
+  </div>
+  </div>
+  <div style="font-size:10px; color:#64748b; line-height:1.7; margin-bottom:18px;">
+    ${notes.map(note => '• ' + note).join('<br>')}
   </div>
 
   <table>
@@ -339,7 +382,7 @@ export async function generateWorkerStatementPdf({
       <th>البند المنفذ</th>
       <th style="text-align:center;">الحضور</th>
       <th style="text-align:right;">اليومية</th>
-      <th style="text-align:center;">الطريحة</th>
+      <th style="text-align:center;">المستهدف</th>
       <th style="text-align:center;">الإنتاجية</th>
       <th style="text-align:center;">موقف الطريحة</th>
       <th>ملاحظات</th>

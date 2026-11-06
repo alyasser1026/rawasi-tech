@@ -427,7 +427,7 @@ console.log('\n🧭 Tool registry');
   await test('تعريفات Gemini = الأدوات active/pilot في السجل بس', () => {
     assert.deepEqual(FUNCTION_DECLARATIONS.map(d => d.name), DECLARED_TOOLS.map(d => d.name));
     assert.ok(FUNCTION_DECLARATIONS.every(d => !RETIRED_TOOL_NAMES.includes(d.name)));
-    assert.ok(!FUNCTION_DECLARATIONS.some(d => d.name === 'get_worker_statement_rows'));
+    assert.ok(!FUNCTION_DECLARATIONS.some(d => d.name === 'get_worker_month_statement'));
   });
 }
 

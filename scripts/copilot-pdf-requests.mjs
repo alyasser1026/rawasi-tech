@@ -7,18 +7,25 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
-import { canUseInternalTool, hasModulePermission } from './copilot-tool-policy.mjs';
+import { canUseInternalTool, getCopilotDate, hasModulePermission } from './copilot-tool-policy.mjs';
+import { registryEntry } from './copilot-tool-registry.mjs';
 
 const PDF_WORKER_NAME_MAX = 80;   // same limit as getToolArgs in copilot-tool-policy.mjs
 const PDF_ITEM_NAME_MAX = 120;    // same limit as the checklist item_name
-const PDF_MAX_RANGE_DAYS = 31;
 const CHECKLIST_MAX_ITEMS = 25;
 const CHECKLIST_ITEM_MAX = 300;
 export const DEFAULT_PDF_PENDING_TTL_MS = 10 * 60 * 1000;
 
-// Wages are shown only with this permission (roadmap phase 2: "صلاحية أجور").
-// Open decision: 'payroll' (wages screen) vs 'laborcost'. Without it the wage cells read «غير متاح».
-export const WAGE_PERMISSION_MODULE = 'payroll';
+// Wage permission chosen by the owner: laborcost (view). The money section of the worker statement
+// also needs every module the payroll RPCs read (see the registry), otherwise it reads «غير متاح».
+export const WAGE_PERMISSION_MODULE = 'laborcost';
+const STATEMENT_TOOL = 'get_worker_month_statement';
+export const MONEY_PERMISSIONS = Object.freeze(registryEntry(STATEMENT_TOOL)?.extraPermissions ?? []);
+
+/** Money modules the requester is missing (empty = the statement may show wages and totals). */
+export function missingMoneyPermissions(access) {
+  return MONEY_PERMISSIONS.filter(({ module, action }) => !hasModulePermission(access, module, action)).map(p => p.module);
+}
 
 // One kill switch per document, OFF unless set to the exact string "true" (roadmap phase 4).
 export const PDF_DOCUMENTS = Object.freeze({
@@ -34,8 +41,8 @@ export function isPdfDocumentEnabled(type, env = process.env) {
 const shortId = id => String(id).slice(0, 8);
 
 export const PDF_MESSAGES = Object.freeze({
-  usage: 'الأوامر المتاحة:\n• /pdf worker <الاسم> <من YYYY-MM-DD> <إلى YYYY-MM-DD>\n• /pdf checklist <البند>',
-  noPending: 'مفيش طلب PDF معلق.\n\nاستخدم:\n• /pdf worker <الاسم> <من YYYY-MM-DD> <إلى YYYY-MM-DD>\n• /pdf checklist <البند>',
+  usage: 'الأوامر المتاحة:\n• /pdf worker <اسم العامل> <الشهر YYYY-MM>\n• /pdf checklist <البند>',
+  noPending: 'مفيش طلب PDF معلق.\n\nاستخدم:\n• /pdf worker <اسم العامل> <الشهر YYYY-MM>\n• /pdf checklist <البند>',
   cancelled: '✖️ ألغيت طلب الـ PDF.',
   disabled: label => `${label} مقفول حاليًا من إعدادات البوت. افتح الشاشة المختصة في فاي تك.`,
   generationFailed: 'مش قادر أولّد الـ PDF دلوقتي.',
@@ -50,7 +57,10 @@ export const PDF_MESSAGES = Object.freeze({
   workerNotAllowed: 'كشف العامل مش متاح من البوت بالإعدادات والصلاحيات الحالية. افتح شاشة اليوميات في فاي تك.',
   workerFetchFailed: 'ما قدرتش أجيب يوميات العامل من فاي تك. راجع الصلاحية والاتصال وجرّب تاني.',
   workerTooMany: 'الفترة فيها سجلات أكتر من اللي يتحط في كشف واحد. قلّل الفترة وجرّب تاني.',
-  workerAmbiguous: 'فيه أكتر من عامل مسجّل بنفس الاسم في الفترة دي. افتح كشف العامل من شاشة اليوميات في فاي تك عشان تختار العامل الصح.',
+  workerAmbiguous: 'فيه أكتر من شريك مسجّل بنفس الاسم. افتح كشف العامل من شاشة الرواتب في فاي تك عشان تختار الشخص الصح.',
+  workerNotFound: 'مالقيتش عامل بالاسم ده في الشركاء. اكتب الاسم زي ما هو مسجّل في فاي تك بالظبط.',
+  workerSalaried: 'ده «موظف» بمرتب شهري — كشفه بيطلع من شاشة الرواتب في فاي تك (الراتب والسلف والجزاءات)، مش من يوميات العمالة.',
+  workerNotWorker: 'الشريك ده مش مسجّل كعامل يومية، فمالوش كشف يوميات.',
   unknownType: 'نوع PDF غير معروف.',
 });
 
@@ -60,24 +70,31 @@ function pdfIsoDate(value) {
 }
 
 /** Parses `/pdf worker …` and `/pdf checklist …`. Returns null for other text. */
-export function parsePdfRequest(text) {
+export function parsePdfRequest(text, now = new Date()) {
   const t = String(text ?? '').trim();
-  const wm = t.match(/^\/pdf\s+worker\s+(.+?)\s+(\d{4}-\d{2}-\d{2})\s+(\d{4}-\d{2}-\d{2})$/i);
+  // Old form (date range) → explain the monthly form, which is what payroll settles on.
+  if (/^\/pdf\s+worker\s+.+\s+\d{4}-\d{2}-\d{2}\s+\d{4}-\d{2}-\d{2}$/i.test(t)) {
+    return { type: 'invalid', message: 'كشف العامل بقى بالشهر زي شاشة الرواتب:\n/pdf worker <اسم العامل> <YYYY-MM>\nمثال: /pdf worker أحمد محمد 2026-10' };
+  }
+  const wm = t.match(/^\/pdf\s+worker\s+(.+?)\s+(\d{4})-(\d{2})$/i);
   if (wm) {
-    const [, rawName, start, end] = wm;
+    const [, rawName, year, monthNumber] = wm;
     const name = rawName.trim();
-    if (name.length > PDF_WORKER_NAME_MAX || !/^[\p{L}\p{M}\p{N} .'’-]+$/u.test(name)) {
+    if (name.length > PDF_WORKER_NAME_MAX || !/^[\p{L}\p{M}\p{N} .'\u2019-]+$/u.test(name)) {
       return { type: 'invalid', message: `اسم العامل لازم يكون حروف وأرقام بس، ومايزيدش عن ${PDF_WORKER_NAME_MAX} حرف.` };
     }
-    const first = pdfIsoDate(start);
-    const last = pdfIsoDate(end);
-    if (!first || !last || last < first || (last - first) / 86_400_000 >= PDF_MAX_RANGE_DAYS) {
-      return { type: 'invalid', message: `اكتب تاريخين صحيحين، والفترة ماتزيدش عن ${PDF_MAX_RANGE_DAYS} يوم.` };
+    const month = `${year}-${monthNumber}`;
+    const first = pdfIsoDate(month + '-01');
+    const today = getCopilotDate(now);
+    if (!first || month + '-01' > today) {
+      return { type: 'invalid', message: 'اكتب شهر صحيح بصيغة YYYY-MM، ومايكونش شهر لسه مابدأش.' };
     }
+    const monthEnd = new Date(Date.UTC(Number(year), Number(monthNumber), 0)).toISOString().slice(0, 10);
+    const cutoff = monthEnd < today ? monthEnd : today; // like the payroll screen's cut-off date
     return {
       type: 'worker_statement',
-      params: { workerName: name, startDate: start, endDate: end },
-      label: `كشف عامل: ${name} | ${start} ← ${end}`,
+      params: { workerName: name, month, cutoffDate: cutoff },
+      label: `كشف عامل يومية: ${name} | شهر ${month}${cutoff < monthEnd ? ' (حتى ' + cutoff + ')' : ''}`,
     };
   }
   const cm = t.match(/^\/pdf\s+checklist\s+(.+)$/i);
@@ -105,11 +122,11 @@ export function pdfConfirmationText(request) {
  *   { kind: 'none' } | { kind: 'invalid', message } | { kind: 'disabled', message }
  *   | { kind: 'resolve', shortId } | { kind: 'request', request, text }
  */
-export function preparePdfRequest(text, env = process.env) {
+export function preparePdfRequest(text, env = process.env, now = new Date()) {
   const t = String(text ?? '').trim();
   const resolve = t.match(/^\/pdf\s+resolve\s+([0-9a-f]{8})$/i);
   if (resolve) return { kind: 'resolve', shortId: resolve[1].toLowerCase() };
-  const request = parsePdfRequest(t);
+  const request = parsePdfRequest(t, now);
   if (!request) return /^\/pdf(?:\s|$)/i.test(t) ? { kind: 'invalid', message: PDF_MESSAGES.usage } : { kind: 'none' };
   if (request.type === 'invalid') return { kind: 'invalid', message: request.message };
   if (!isPdfDocumentEnabled(request.type, env)) return { kind: 'disabled', message: PDF_MESSAGES.disabled(PDF_DOCUMENTS[request.type].label) };
@@ -345,30 +362,38 @@ export async function executePdfRequest(pending, deps) {
     let pdfBuffer, filename, caption;
 
     if (type === 'worker_statement') {
-      // Fresh access + the internal tool's gate (status, flag, company, labor_logs view).
+      // Fresh access + the internal tool's gate (status, flag, company, labor_logs + partners view).
       const access = await deps.resolveAccess();
-      if (!canUseInternalTool('get_worker_statement_rows', access)) return refuse('not_allowed', PDF_MESSAGES.workerNotAllowed);
-      const showWages = hasModulePermission(access, WAGE_PERMISSION_MODULE, 'view');
-      const result = await deps.createTools(access).get_worker_statement_rows({
+      if (!canUseInternalTool(STATEMENT_TOOL, access)) return refuse('not_allowed', PDF_MESSAGES.workerNotAllowed);
+      const showMoney = missingMoneyPermissions(access).length === 0;
+      const result = await deps.createTools(access)[STATEMENT_TOOL]({
         worker_name: params.workerName,
-        start_date: params.startDate,
-        end_date: params.endDate,
-        include_wages: showWages,
+        month: params.month,
+        cutoff_date: params.cutoffDate,
+        include_money: showMoney,
       }).catch(() => null);
       if (result?.success !== true) return refuse('fetch_failed', PDF_MESSAGES.workerFetchFailed);
-      if (result.partial === true) return refuse('too_many_rows', PDF_MESSAGES.workerTooMany);
+      if (result.found === false) return refuse('not_found', PDF_MESSAGES.workerNotFound);
       if (result.ambiguous === true) return refuse('ambiguous_name', PDF_MESSAGES.workerAmbiguous);
+      if (result.salaried === true) return refuse('salaried', PDF_MESSAGES.workerSalaried);
+      if (result.not_worker === true) return refuse('not_worker', PDF_MESSAGES.workerNotWorker);
+      if (result.partial === true) return refuse('too_many_rows', PDF_MESSAGES.workerTooMany);
 
       pdfBuffer = await deps.generateWorkerStatementPdf({
         workerName: params.workerName,
-        startDate: params.startDate,
-        endDate: params.endDate,
+        month: params.month,
+        startDate: params.month + '-01',
+        endDate: params.cutoffDate,
         logs: result.rows,
-        showWages,
+        showWages: showMoney && result.money != null,
+        money: showMoney ? result.money : null,
+        moneyNote: !showMoney ? 'الملخص المالي غير متاح بصلاحيات حساب البوت الحالية.'
+          : result.money == null ? 'تعذّر جلب الملخص المالي من حساب الرواتب.' : null,
+        unpostedCount: result.unposted_count ?? 0,
         companyName: access.companyName ?? deps.companyNameFallback ?? 'فاي تك',
       });
-      filename = safePdfFilename('كشف', params.workerName, params.startDate);
-      caption = `📄 كشف عامل: ${params.workerName}`;
+      filename = safePdfFilename('كشف', params.workerName, params.month);
+      caption = `📄 كشف عامل يومية: ${params.workerName} — ${params.month}`;
     } else {
       // Static draft form: no company data is read. Check points come from the local guide only.
       const guide = await deps.createTools(null).get_engineering_checklist_and_specs({ item_name: params.itemName })

@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "description": "Gold-standard eval cases لبوت فاي تك على تيليجرام — مبنية على السلوك الفعلي في telegram-copilot.mjs و copilot-tool-policy.mjs",
   "test_context": {
     "fixed_now": "2026-11-06T09:00:00+03:00",
@@ -11,7 +11,7 @@
     },
     "global_excludes_note": "أي رد فيه error/undefined/company_id/stack يعتبر تسريب تفاصيل داخلية"
   },
-  "total": 35,
+  "total": 40,
   "cases": [
     {
       "id": "gs-001",
@@ -235,7 +235,9 @@
       "expected_response_contains": [
         "عجوزات الطريحة المستحقة",
         "الشركة:",
-        "الفترة:"
+        "الفترة:",
+        "إجمالي العجوزات: 2",
+        "من غير إنتاجية مسجلة (مش محسوبة): 1"
       ],
       "expected_response_excludes": [
         "error",
@@ -245,13 +247,13 @@
         "Supabase",
         "stack"
       ],
-      "notes": "المصدر labor_daily_logs (مفيش جدول tareeha_deficits): آخر 30 يوم، العجز = productivity < tareeha، والسجلات اللي من غير إنتاجية مابتتحسبش. الصلاحية labor_logs view (نفس RLS). الحالة الفاضية: «لا توجد عجوزات مستحقة حالياً». الرد يعرض أول 5 مع «إجمالي العجوزات»، ولو النتيجة partial بيقول إنها جزئية. أي args من الموديل → «الطلب ده ما بياخدش معطيات إضافية»."
+      "notes": "التعريف (copilot-tareeha.mjs): العجز = الإنتاجية < الطريحة × الحضور. في البيانات الوهمية: 15 من 20 عجز، 25 من 20 محقق، نص يوم 10 من 20 محقق (المستهدف 10)، نص يوم 8 من 20 عجز، سجل من غير إنتاجية بيتعد لوحده، والغياب مش محسوب."
     },
     {
       "id": "gs-008",
       "category": "pdf",
       "layer": "deterministic",
-      "description": "طلب PDF كشف عامل — مرحلة التأكيد",
+      "description": "طلب كشف عامل يومية عن شهر — مرحلة التأكيد",
       "preconditions": {
         "companyId": "set",
         "userId": "set",
@@ -261,12 +263,11 @@
           "COPILOT_PDF_WORKER_ENABLED": "true"
         }
       },
-      "user_message": "/pdf worker أحمد محمد 2026-10-01 2026-10-07",
+      "user_message": "/pdf worker أحمد محمد 2026-10",
       "expected_tool_call": null,
       "expected_response_contains": [
-        "كشف عامل: أحمد محمد",
-        "2026-10-01",
-        "2026-10-07",
+        "كشف عامل يومية: أحمد محمد",
+        "شهر 2026-10",
         "/confirm",
         "/cancel"
       ],
@@ -280,7 +281,7 @@
         "تم إرسال",
         "اتبعت"
       ],
-      "notes": "parsePdfRequest قبل الموديل. مفيش توليد قبل /confirm. الطلب يتحفظ في pendingPdfRequests مع createdAt."
+      "notes": "الصيغة بالشهر زي شاشة الرواتب. مفيش توليد قبل /confirm. cut-off = آخر الشهر أو النهارده لو الشهر لسه شغال."
     },
     {
       "id": "gs-009",
@@ -298,7 +299,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "user_message": "/confirm",
@@ -314,10 +315,11 @@
         "Supabase",
         "stack"
       ],
-      "notes": "النجاح = sendDocument مرة واحدة بملف PDF واسم متعقّم، والـ pending يتمسح (take ذري — /confirm التاني مايولّدش تاني). مع صلاحية payroll الأجر بيتطلب ويتعرض (مجموع daily_wage زي كشف الرواتب).",
+      "notes": "مع laborcost + violations + payments + journal: الملخص المالي = نفس شاشة الرواتب (اليوميات المرحّلة 375 − جزاءات 50 − سندات صرف 200 = 125، + رصيد سابق 100 = 225). السجلات متفلترة بـ worker_partner_id الثابت.",
       "expect": {
         "sent": 1,
         "showWages": true,
+        "money": "payroll",
         "logStatus": "sent"
       }
     },
@@ -649,7 +651,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "expired",
@@ -675,7 +677,7 @@
       "id": "gs-020",
       "category": "pdf",
       "layer": "deterministic",
-      "description": "كشف عامل من غير صلاحية أجور",
+      "description": "كشف عامل من غير صلاحيات الفلوس",
       "preconditions": {
         "companyId": "set",
         "userId": "set",
@@ -687,7 +689,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "no-wage-permission",
@@ -703,10 +705,11 @@
         "stack",
         "مش متاح"
       ],
-      "notes": "صلاحية labor_logs بس (من غير payroll): الكشف يتولّد، بس daily_wage مايتطلبش من Supabase والأجر يظهر «غير متاح» بدل 0.",
+      "notes": "labor_logs + partners بس: الكشف يتولّد بالسجلات، والأجور والملخص «غير متاح»، ومابيتنادوش دوال الرواتب ولا بيتطلب daily_wage.",
       "expect": {
         "sent": 1,
-        "showWages": false
+        "showWages": false,
+        "money": null
       }
     },
     {
@@ -725,14 +728,14 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "ambiguous-name",
       "user_message": "/confirm",
       "expected_tool_call": null,
       "expected_response_contains": [
-        "أكتر من عامل مسجّل بنفس الاسم"
+        "أكتر من شريك مسجّل بنفس الاسم"
       ],
       "expected_response_excludes": [
         "error",
@@ -742,7 +745,7 @@
         "Supabase",
         "stack"
       ],
-      "notes": "roadmap المرحلة 2: «اختبر اسمين متطابقين». سجلات بنفس الاسم وworker_partner_id مختلف → رفض بدل دمج الكشفين.",
+      "notes": "roadmap المرحلة 2: «اختبر اسمين متطابقين». شريكين بنفس الاسم في partners → رفض بدل ما نخمّن.",
       "expect": {
         "sent": 0
       }
@@ -763,7 +766,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "no-labor-permission",
@@ -833,7 +836,7 @@
         "LIVE_READS_ENABLED": true,
         "COPILOT_TOOLS_ENABLED": true
       },
-      "user_message": "/pdf worker أحمد<script> 2026-10-01 2026-10-07",
+      "user_message": "/pdf worker أحمد<script> 2026-10",
       "expected_tool_call": null,
       "expected_response_contains": [
         "اسم العامل لازم يكون حروف وأرقام بس"
@@ -890,7 +893,7 @@
         "LIVE_READS_ENABLED": true,
         "COPILOT_TOOLS_ENABLED": true
       },
-      "user_message": "/pdf worker أحمد محمد 2026-10-01 2026-10-07",
+      "user_message": "/pdf worker أحمد محمد 2026-10",
       "expected_tool_call": null,
       "expected_response_contains": [
         "كشف العامل مقفول حاليًا"
@@ -922,7 +925,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "send-timeout",
@@ -962,7 +965,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "retry-after-uncertain",
@@ -1000,7 +1003,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "resolve-after-uncertain",
@@ -1038,7 +1041,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "send-rejected",
@@ -1077,7 +1080,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "send-429",
@@ -1116,7 +1119,7 @@
       },
       "history": [
         {
-          "user": "/pdf worker أحمد محمد 2026-10-01 2026-10-07"
+          "user": "/pdf worker أحمد محمد 2026-10"
         }
       ],
       "scenario": "log-unavailable",
@@ -1196,6 +1199,180 @@
         "stack"
       ],
       "notes": "أمر ناقص → شرح الصيغة بدل ما يروح للموديل."
+    },
+    {
+      "id": "gs-035",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "كشف لموظف بمرتب",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "history": [
+        {
+          "user": "/pdf worker أحمد محمد 2026-10"
+        }
+      ],
+      "scenario": "salaried",
+      "user_message": "/confirm",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "ده «موظف» بمرتب شهري"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "partner_type = موظف → كشفه من شاشة الرواتب (payroll_slips)، مش من اليوميات.",
+      "expect": {
+        "sent": 0
+      }
+    },
+    {
+      "id": "gs-036",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "اسم مش موجود في الشركاء",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "history": [
+        {
+          "user": "/pdf worker أحمد محمد 2026-10"
+        }
+      ],
+      "scenario": "not-found",
+      "user_message": "/confirm",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "مالقيتش عامل بالاسم ده"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "مفيش شريك بالاسم ده في الشركة → رفض.",
+      "expect": {
+        "sent": 0
+      }
+    },
+    {
+      "id": "gs-037",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "الصيغة القديمة بالتواريخ",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "user_message": "/pdf worker أحمد محمد 2026-10-01 2026-10-07",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "كشف العامل بقى بالشهر"
+      ],
+      "expected_response_excludes": [
+        "/confirm",
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "الصيغة القديمة بتشرح الصيغة الجديدة ومابتحفظش طلب."
+    },
+    {
+      "id": "gs-038",
+      "category": "pdf",
+      "layer": "deterministic",
+      "description": "شهر لسه مابدأش",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "user_message": "/pdf worker أحمد محمد 2099-01",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "لسه مابدأش"
+      ],
+      "expected_response_excludes": [
+        "/confirm",
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "شهر في المستقبل → رفض."
+    },
+    {
+      "id": "gs-039",
+      "category": "security",
+      "layer": "deterministic",
+      "description": "كشف عامل من غير صلاحية الشركاء",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_PDF_WORKER_ENABLED": "true"
+        }
+      },
+      "history": [
+        {
+          "user": "/pdf worker أحمد محمد 2026-10"
+        }
+      ],
+      "scenario": "no-partners-permission",
+      "user_message": "/confirm",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "كشف العامل مش متاح من البوت"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "هوية العامل الثابتة من partners؛ من غير partners view الأداة الداخلية مقفولة.",
+      "expect": {
+        "sent": 0
+      }
     }
   ],
   "legacy_cases_note": "الحالات دي من النسخة 1 (schema مختلف). أغلبها أسئلة تشخيص برمجي خارج نطاق البوت الحالي؛ محفوظة كما هي للمراجعة.",

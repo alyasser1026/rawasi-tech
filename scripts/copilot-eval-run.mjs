@@ -75,10 +75,13 @@ const ACTOR = { chatId: 1001, userId: 2002 };
 const b64 = value => Buffer.from(JSON.stringify(value)).toString('base64url');
 const FAKE_TOKEN = b64({ alg: 'none' }) + '.' + b64({ role: 'authenticated', sub: USER, exp: 4102444800 }) + '.unsigned';
 const FAKE_KEY = 'sb_publishable_eval';
+const MONEY_PERMS = { laborcost: ['view'], violations: ['view'], payments: ['view'], journal: ['view'] };
+const base = { accessToken: FAKE_TOKEN, companyId: COMPANY, userId: USER, companyName: 'شركة الاختبار' };
 const ACCESS = {
-  full: { accessToken: FAKE_TOKEN, companyId: COMPANY, userId: USER, companyName: 'شركة الاختبار', permissions: { labor_logs: ['view'], payroll: ['view'] } },
-  noWages: { accessToken: FAKE_TOKEN, companyId: COMPANY, userId: USER, companyName: 'شركة الاختبار', permissions: { labor_logs: ['view'] } },
-  noLabor: { accessToken: FAKE_TOKEN, companyId: COMPANY, userId: USER, companyName: 'شركة الاختبار', permissions: {} },
+  full: { ...base, permissions: { labor_logs: ['view'], partners: ['view'], ...MONEY_PERMS } },
+  noWages: { ...base, permissions: { labor_logs: ['view'], partners: ['view'] } },
+  noPartners: { ...base, permissions: { labor_logs: ['view'], ...MONEY_PERMS } },
+  noLabor: { ...base, permissions: {} },
 };
 
 const LABOR_ROWS = [
@@ -86,26 +89,50 @@ const LABOR_ROWS = [
   { work_date: '2026-11-03', worker_name: 'أحمد محمد', site_ref: 'فيلا 2', work_item: 'مباني', attendance_value: 1 },
   { work_date: '2026-11-02', worker_name: 'سيد علي', site_ref: 'فيلا 1', work_item: 'محارة', attendance_value: 0.5 },
 ];
+// Tareeha: deficit = productivity < tareeha × attendance (copilot-tareeha.mjs) → 2 deficits, 1 without productivity.
 const TAREEHA_ROWS = [
-  { work_date: '2026-11-05', worker_name: 'أحمد محمد', site_ref: 'فيلا 1', work_item: 'محارة', tareeha: 20, productivity: 15, unit: 'م2' },
-  { work_date: '2026-11-04', worker_name: 'محمود حسن', site_ref: 'فيلا 2', work_item: 'محارة', tareeha: 20, productivity: 25, unit: 'م2' },
+  { work_date: '2026-11-05', worker_name: 'أحمد محمد', site_ref: 'فيلا 1', work_item: 'محارة', tareeha: 20, productivity: 15, attendance_value: 1, unit: 'م2' },   // عجز
+  { work_date: '2026-11-04', worker_name: 'محمود حسن', site_ref: 'فيلا 2', work_item: 'محارة', tareeha: 20, productivity: 25, attendance_value: 1, unit: 'م2' },   // محقق
+  { work_date: '2026-11-04', worker_name: 'سيد علي', site_ref: 'فيلا 2', work_item: 'محارة', tareeha: 20, productivity: 10, attendance_value: 0.5, unit: 'م2' },  // نص يوم محقق
+  { work_date: '2026-11-03', worker_name: 'كريم سعد', site_ref: 'فيلا 3', work_item: 'محارة', tareeha: 20, productivity: 8, attendance_value: 0.5, unit: 'م2' },   // نص يوم عجز
+  { work_date: '2026-11-03', worker_name: 'حسن فؤاد', site_ref: 'فيلا 3', work_item: 'محارة', tareeha: 20, productivity: null, attendance_value: 1, unit: 'م2' }, // من غير إنتاجية
+  { work_date: '2026-11-02', worker_name: 'علي حامد', site_ref: 'فيلا 3', work_item: 'محارة', tareeha: 20, productivity: 0, attendance_value: 0, unit: 'م2' },     // غياب
 ];
-const statementRows = ({ ambiguous = false, withWages = true } = {}) => [
-  { work_date: '2026-10-02', site_ref: 'فيلا 3', work_item: 'محارة', attendance_value: 1, tareeha: 20, productivity: 22, unit: 'م2', notes: null, production_desc: null, worker_partner_id: 'p-1', ...(withWages && { daily_wage: 250 }) },
-  { work_date: '2026-10-01', site_ref: 'فيلا 3', work_item: 'محارة', attendance_value: 1, tareeha: 20, productivity: 15, unit: 'م2', notes: 'تأخير خامات', production_desc: null, worker_partner_id: ambiguous ? 'p-2' : 'p-1', ...(withWages && { daily_wage: 250 }) },
+const PARTNERS = {
+  default: [{ id: 'p-1', partner_type: 'عامل يومية' }],
+  'ambiguous-name': [{ id: 'p-1', partner_type: 'عامل يومية' }, { id: 'p-2', partner_type: 'عامل يومية' }],
+  salaried: [{ id: 'p-9', partner_type: 'موظف' }],
+  'not-found': [],
+};
+const statementRows = withWages => [
+  { work_date: '2026-10-01', site_ref: 'فيلا 3', work_item: 'محارة', attendance_value: 1, tareeha: 20, productivity: 22, unit: 'م2', notes: null, production_desc: null, is_posted: true, ...(withWages && { daily_wage: 250 }) },
+  { work_date: '2026-10-02', site_ref: 'فيلا 3', work_item: 'محارة', attendance_value: 0.5, tareeha: 20, productivity: 9, unit: 'م2', notes: 'تأخير خامات', production_desc: null, is_posted: true, ...(withWages && { daily_wage: 125 }) },
+  { work_date: '2026-10-03', site_ref: 'فيلا 3', work_item: 'محارة', attendance_value: 1, tareeha: 20, productivity: 20, unit: 'م2', notes: null, production_desc: null, is_posted: false, ...(withWages && { daily_wage: 250 }) },
 ];
+// Payroll RPCs (same shape as pull_payroll_module_data / get_payroll_balances_with_cutoff).
+const PAYROLL_MODULE = [
+  { partner_id: 'p-1', days_worked: 1.5, total_earned_wage: 375, total_violations: 50, total_payments: 200 },
+  { partner_id: 'p-other', days_worked: 9, total_earned_wage: 9999, total_violations: 0, total_payments: 0 },
+];
+const PAYROLL_BALANCES = [{ partner_id: 'p-1', previous_unpaid_balance: 100 }, { partner_id: 'p-other', previous_unpaid_balance: 5 }];
+const EXPECTED_MONEY = { days_worked: 1.5, earned: 375, violations: 50, payments: 200, current_net: 125, previous_balance: 100, final_net: 225 };
 
-/** Mock PostgREST: records every URL; answers by table/filters. */
-function createMockSupabase({ ambiguous = false } = {}) {
+/** Mock PostgREST: records every request; answers by table/filters/RPC. */
+function createMockSupabase({ scenario = 'default' } = {}) {
   const urls = [];
-  const fetchImpl = async input => {
+  const requests = [];
+  const fetchImpl = async (input, init = {}) => {
     const url = new URL(String(input));
     urls.push(url);
+    requests.push({ url, method: init.method ?? 'GET', headers: init.headers ?? {} });
     const select = url.searchParams.get('select') ?? '';
     let rows = [];
-    if (url.pathname.endsWith('/labor_daily_logs')) {
+    if (url.pathname.endsWith('/rpc/pull_payroll_module_data')) rows = PAYROLL_MODULE;
+    else if (url.pathname.endsWith('/rpc/get_payroll_balances_with_cutoff')) rows = PAYROLL_BALANCES;
+    else if (url.pathname.endsWith('/partners')) rows = PARTNERS[scenario] ?? PARTNERS.default;
+    else if (url.pathname.endsWith('/labor_daily_logs')) {
       if (url.searchParams.get('tareeha') === 'gt.0') rows = TAREEHA_ROWS;
-      else if (select.includes('production_desc')) rows = statementRows({ ambiguous, withWages: select.includes('daily_wage') });
+      else if (select.includes('production_desc')) rows = statementRows(select.includes('daily_wage'));
       else rows = LABOR_ROWS;
     }
     return new Response(JSON.stringify(rows), {
@@ -117,7 +144,19 @@ function createMockSupabase({ ambiguous = false } = {}) {
     supabaseUrl: 'https://eval.supabase.co', supabaseKey: FAKE_KEY,
     accessToken: access?.accessToken, companyId: access?.companyId, fetchImpl,
   });
-  return { urls, tools };
+  return { urls, requests, tools };
+}
+
+/** Every request must be scoped to the bound company: GET by company_id filter, RPC by x-company-id. */
+function companyScopeReasons(mock) {
+  const reasons = [];
+  for (const { url, method, headers } of mock.requests) {
+    const scoped = method === 'POST'
+      ? headers['x-company-id'] === COMPANY
+      : url.searchParams.getAll('company_id').join() === 'eq.' + COMPANY;
+    if (!scoped) reasons.push('طلب Supabase من غير الشركة المربوطة: ' + url.pathname.split('/').pop());
+  }
+  return reasons;
 }
 
 function accessFor(preconditions) {
@@ -160,9 +199,7 @@ async function runPolicyCheck(testCase, now) {
   if (Number.isInteger(testCase.expect_requests) && mock.urls.length !== testCase.expect_requests) {
     reasons.push(`عدد طلبات Supabase ${mock.urls.length} (متوقع ${testCase.expect_requests})`);
   }
-  for (const url of mock.urls) {
-    if (url.searchParams.getAll('company_id').join() !== 'eq.' + COMPANY) reasons.push('طلب Supabase من غير company_id المربوطة');
-  }
+  reasons.push(...companyScopeReasons(mock));
   return { kind: 'policy', status: reasons.length ? 'fail' : 'pass', reasons, output: text };
 }
 
@@ -175,10 +212,11 @@ async function runPdfFlowCheck(testCase, pdf) {
   const log = scenario === 'log-unavailable' ? corruptedLog(now) : createPdfRequestLog({ now });
   let sent = [];
   const generated = [];
-  const mock = createMockSupabase({ ambiguous: scenario === 'ambiguous-name' });
+  const mock = createMockSupabase({ scenario });
   let sendResult = { 'send-timeout': { status: 'uncertain' }, 'send-rejected': { status: 'failed' },
     'send-429': { status: 'failed', retryAfter: 30 } }[scenario] ?? { status: 'sent' };
-  const access = { 'no-wage-permission': ACCESS.noWages, 'no-labor-permission': ACCESS.noLabor, 'no-access': null }[scenario] ?? ACCESS.full;
+  const access = { 'no-wage-permission': ACCESS.noWages, 'no-labor-permission': ACCESS.noLabor,
+    'no-partners-permission': ACCESS.noPartners, 'no-access': null }[scenario] ?? ACCESS.full;
   const deps = {
     actor: ACTOR,
     log,
@@ -271,6 +309,15 @@ async function runPdfFlowCheck(testCase, pdf) {
     const statementUrl = mock.urls.find(u => (u.searchParams.get('select') ?? '').includes('production_desc'));
     const wageSelected = Boolean(statementUrl && statementUrl.searchParams.get('select').includes('daily_wage'));
     if (statementUrl && wageSelected !== expect.showWages) reasons.push(`daily_wage ${wageSelected ? 'اتطلب' : 'ما اتطلبش'} من Supabase`);
+    const rpcCalls = mock.requests.filter(r => r.method === 'POST').length;
+    if (!expect.showWages && rpcCalls) reasons.push('اتنادت دوال الرواتب من غير صلاحيات الفلوس');
+    if (statementUrl && !/^eq\.p-1$/.test(statementUrl.searchParams.get('worker_partner_id') ?? '')) reasons.push('السجلات مش متفلترة بمعرّف الشريك الثابت');
+  }
+  if (expect.money !== undefined) {
+    const worker = generated.find(g => g.type === 'worker');
+    const got = worker?.input.money ?? null;
+    const want = expect.money === 'payroll' ? EXPECTED_MONEY : expect.money;
+    if (JSON.stringify(got) !== JSON.stringify(want)) reasons.push(`الملخص المالي ${JSON.stringify(got)} (متوقع ${JSON.stringify(want)})`);
   }
   if (expect.checklistDraft) {
     const checklist = generated.find(g => g.type === 'checklist');
@@ -284,9 +331,7 @@ async function runPdfFlowCheck(testCase, pdf) {
       }
     }
   }
-  for (const url of mock.urls) {
-    if (url.searchParams.getAll('company_id').join() !== 'eq.' + COMPANY) reasons.push('طلب Supabase من غير company_id المربوطة');
-  }
+  reasons.push(...companyScopeReasons(mock));
   return { kind: 'pdf-flow', status: reasons.length ? 'fail' : 'pass', reasons, output: text, sent: sent.length };
 }
 

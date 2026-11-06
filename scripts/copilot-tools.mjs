@@ -3,6 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { RETIRED_TOOL_NAMES } from './copilot-tool-registry.mjs';
 import { getCopilotDate } from './copilot-tool-policy.mjs';
+import { assessTareeha, unassessedReason } from './copilot-tareeha.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +14,11 @@ const LABOR_PAGE_SIZE = 100;
 const TAREEHA_WINDOW_DAYS = 30;   // deficits are computed over the last 30 days (Riyadh date)
 const TAREEHA_SCAN_LIMIT = 500;   // rows with a tareeha target scanned per request
 const STATEMENT_MAX_ROWS = 500;   // matches MAX_PDF_ROWS in pdf-generator.mjs
+const DAILY_WORKER_TYPES = new Set(['عامل', 'عامل يومية']); // payroll treats these as daily-wage workers
+const SALARIED_TYPE = 'موظف';
+// The only RPCs a tool may call: the payroll screen's own calculations (security invoker → RLS applies).
+const RPC_ALLOWLIST = new Set(['pull_payroll_module_data', 'get_payroll_balances_with_cutoff']);
+const cents = value => Math.round((Number(value) || 0) * 100);
 const WORKER_NAME = /^[\p{L}\p{M}\p{N} .'\u2019-]{1,80}$/u;
 const DAY_MS = 86_400_000;
 const MISSING_DATA_SCOPE = 'بيانات فاي تك غير متاحة بدون جلسة مستخدم وشركة مصرح بها.';
@@ -91,6 +97,29 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, accessToken, comp
     }
   }
 
+  // Helper for allow-listed RPCs (same identity headers as fetchRest; RLS + x-company-id scope them).
+  async function postRpc(name, body) {
+    if (!hasDataScope()) return { error: MISSING_DATA_SCOPE, data: null };
+    if (!RPC_ALLOWLIST.has(name)) return { error: SOURCE_UNAVAILABLE, data: null };
+    try {
+      const res = await fetchImpl(restBase + 'rpc/' + name, {
+        method: 'POST',
+        headers: {
+          apikey: supabaseKey, Authorization: 'Bearer ' + accessToken, 'x-company-id': companyId,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+        redirect: 'error',
+        signal: AbortSignal.timeout(12000),
+      });
+      if (!res.ok) return { error: SOURCE_UNAVAILABLE, data: null };
+      const data = await res.json();
+      return Array.isArray(data) ? { data, error: null } : { error: SOURCE_UNAVAILABLE, data: null };
+    } catch {
+      return { error: SOURCE_UNAVAILABLE, data: null };
+    }
+  }
+
   return {
     // 1. يوميات وحضور العمال
     async get_labor_daily_logs({ date, start_date, end_date, worker_name } = {}) {
@@ -132,9 +161,8 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, accessToken, comp
       };
     },
 
-    // 2. عجوزات الطريحة المستحقة
-    // No tareeha_deficits table exists: the tareeha target and the achieved productivity
-    // live on labor_daily_logs (RLS module: labor_logs). A deficit = productivity < tareeha.
+    // 2. عجوزات الطريحة — التعريف في copilot-tareeha.mjs (الإنتاجية < الطريحة × الحضور).
+    // Source: labor_daily_logs (RLS module labor_logs). No tareeha_deficits table exists.
     async get_tareeha_deficits() {
       const end = getCopilotDate();
       const start = new Date(Date.parse(end + 'T00:00:00Z') - (TAREEHA_WINDOW_DAYS - 1) * DAY_MS).toISOString().slice(0, 10);
@@ -142,8 +170,7 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, accessToken, comp
       const query = new URLSearchParams({
         company_id: 'eq.' + companyId,
         tareeha: 'gt.0',
-        productivity: 'not.is.null', // rows without recorded productivity are unknown, not deficits
-        select: 'work_date,worker_name,site_ref,work_item,tareeha,productivity,unit',
+        select: 'work_date,worker_name,site_ref,work_item,tareeha,productivity,attendance_value,unit',
         order: 'work_date.desc,worker_name.asc',
         limit: String(TAREEHA_SCAN_LIMIT),
       });
@@ -151,53 +178,103 @@ export function createCopilotTools({ supabaseUrl, supabaseKey, accessToken, comp
       query.append('work_date', 'lte.' + end);
       const { data, error, total } = await fetchRest('labor_daily_logs?' + query, { exactCount: true });
       if (error) return { success: false, error };
-      const deficits = data.filter(row => {
-        const target = Number(row.tareeha);
-        const done = Number(row.productivity);
-        return Number.isFinite(target) && Number.isFinite(done) && done < target;
-      });
+      const deficits = [];
+      let assessed = 0;
+      let noProductivity = 0;
+      for (const row of data) {
+        const result = assessTareeha(row);
+        if (result) {
+          assessed++;
+          if (result.deficit) deficits.push({ ...row, ...result });
+        } else if (unassessedReason(row) === 'no_productivity') {
+          noProductivity++;
+        }
+      }
       return {
         success: true,
         start_date: start,
         end_date: end,
         count: deficits.length,
+        assessed,
+        no_productivity: noProductivity,
         partial: total == null || total > data.length,
         deficits: deficits.slice(0, 20),
       };
     },
 
-    // 2b. صفوف كشف العامل (للـ PDF فقط — مش معلنة للموديل).
-    // Exact worker name + bounded period + company from the closure. Wages only when include_wages.
-    async get_worker_statement_rows({ worker_name, start_date, end_date, include_wages = false } = {}) {
+    // 2b. كشف عامل يومية لشهر (للـ PDF فقط — مش معلنة للموديل).
+    // Identity = the partner record (stable id, exact name, same company). Rows = that partner's daily
+    // logs up to the cut-off. Money = the payroll screen's own RPCs, so the totals match it exactly:
+    //   earned (posted daily_wage) − violations (posted) − payment vouchers (posted) + previous balance.
+    async get_worker_month_statement({ worker_name, month, cutoff_date, include_money = false } = {}) {
       const name = typeof worker_name === 'string' ? worker_name.trim() : '';
-      const start = parseIsoDate(start_date);
-      const end = parseIsoDate(end_date);
-      if (!WORKER_NAME.test(name) || !Number.isFinite(start) || !Number.isFinite(end) ||
-        end < start || end - start >= 31 * DAY_MS) {
-        return { success: false, error: 'حدّد اسم العامل وفترة صحيحة لا تتجاوز 31 يومًا.' };
+      const monthMatch = typeof month === 'string' ? month.match(/^(\d{4})-(0[1-9]|1[0-2])$/) : null;
+      const first = monthMatch ? month + '-01' : '';
+      if (!WORKER_NAME.test(name) || !monthMatch || !Number.isFinite(parseIsoDate(cutoff_date)) ||
+        !String(cutoff_date).startsWith(month + '-') || cutoff_date < first) {
+        return { success: false, error: 'حدّد اسم العامل وشهر صحيح.' };
       }
+
+      // 1) Identity from partners (company from the closure).
+      const partnerQuery = new URLSearchParams({
+        company_id: 'eq.' + companyId, name: 'eq.' + name, select: 'id,partner_type', limit: '3',
+      });
+      const partners = await fetchRest('partners?' + partnerQuery);
+      if (partners.error) return { success: false, error: partners.error };
+      if (partners.data.length === 0) return { success: true, found: false };
+      if (partners.data.length > 1) return { success: true, found: true, ambiguous: true };
+      const partner = partners.data[0];
+      if (partner.partner_type === SALARIED_TYPE) return { success: true, found: true, salaried: true };
+      if (!DAILY_WORKER_TYPES.has(partner.partner_type)) return { success: true, found: true, not_worker: true };
+
+      // 2) That partner's daily logs for the month up to the cut-off.
       const columns = ['work_date', 'site_ref', 'work_item', 'attendance_value', 'tareeha', 'productivity', 'unit',
-        'notes', 'production_desc', 'worker_partner_id', ...(include_wages === true ? ['daily_wage'] : [])];
-      const query = new URLSearchParams({
+        'notes', 'production_desc', 'is_posted', ...(include_money === true ? ['daily_wage'] : [])];
+      const rowsQuery = new URLSearchParams({
         company_id: 'eq.' + companyId,
-        worker_name: 'eq.' + name,
+        worker_partner_id: 'eq.' + partner.id,
         select: columns.join(','),
-        order: 'work_date.desc',
+        order: 'work_date.asc',
         limit: String(STATEMENT_MAX_ROWS + 1),
       });
-      query.append('work_date', 'gte.' + start_date);
-      query.append('work_date', 'lte.' + end_date);
-      const { data, error, total } = await fetchRest('labor_daily_logs?' + query, { exactCount: true });
-      if (error) return { success: false, error };
-      const partnerIds = new Set(data.map(row => row.worker_partner_id).filter(Boolean));
-      return {
+      rowsQuery.append('work_date', 'gte.' + first);
+      rowsQuery.append('work_date', 'lte.' + cutoff_date);
+      const logs = await fetchRest('labor_daily_logs?' + rowsQuery, { exactCount: true });
+      if (logs.error) return { success: false, error: logs.error };
+      const result = {
         success: true,
-        total,
-        partial: total == null || total > STATEMENT_MAX_ROWS || data.length > STATEMENT_MAX_ROWS,
-        // Two workers sharing a name → refuse instead of merging their statements.
-        ambiguous: partnerIds.size > 1,
-        rows: data.slice(0, STATEMENT_MAX_ROWS).map(({ worker_partner_id, ...row }) => row),
+        found: true,
+        partial: logs.total == null || logs.total > STATEMENT_MAX_ROWS || logs.data.length > STATEMENT_MAX_ROWS,
+        rows: logs.data.slice(0, STATEMENT_MAX_ROWS),
+        unposted_count: logs.data.filter(row => row.is_posted !== true).length,
+        money: null,
       };
+      if (include_money !== true) return result;
+
+      // 3) Money exactly like the payroll screen (payroll_logic.ts): same RPCs, same formula.
+      const args = { p_month: Number(monthMatch[2]), p_year: Number(monthMatch[1]), p_cutoff_date: cutoff_date };
+      const [moduleData, balances] = await Promise.all([
+        postRpc('pull_payroll_module_data', args),
+        postRpc('get_payroll_balances_with_cutoff', args),
+      ]);
+      const mine = moduleData.data?.find(row => row.partner_id === partner.id);
+      const balance = balances.data?.find(row => row.partner_id === partner.id);
+      if (moduleData.error || balances.error || !mine || !balance) return { ...result, money_error: true };
+      const earned = cents(mine.total_earned_wage);
+      const violations = cents(mine.total_violations);
+      const payments = cents(mine.total_payments);
+      const previous = cents(balance.previous_unpaid_balance);
+      const currentNet = earned - violations - payments;
+      result.money = {
+        days_worked: Number(mine.days_worked) || 0,
+        earned: earned / 100,
+        violations: violations / 100,
+        payments: payments / 100,
+        current_net: currentNet / 100,
+        previous_balance: previous / 100,
+        final_net: (currentNet + previous) / 100,
+      };
+      return result;
     },
 
     // 16. استعلام عن الاتشك ليست وخطوات التنفيذ ومواصفات البنود هندسياً

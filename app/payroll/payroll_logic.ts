@@ -55,6 +55,20 @@ export function usePayrollLogic() {
             if (requestVersion !== fetchVersionRef.current) return;
             const targetMonthSlips = savedSlips.filter((s: any) => s.month === targetMonthStr);
 
+            // جلب ملخص الحضور والغياب للموظفين لحساب خصم الغياب آلياً
+            let attendanceEmployees: any[] = [];
+            try {
+                const { data: attData } = await supabase.rpc('get_company_monthly_attendance', {
+                    p_month: targetMonthStr,
+                    p_cutoff_date: cutoffDate
+                });
+                if (attData && Array.isArray((attData as any).employees)) {
+                    attendanceEmployees = (attData as any).employees;
+                }
+            } catch (attErr) {
+                console.warn('Attendance summary not loaded for payroll:', attErr);
+            }
+
             setEmployees(filteredEmpData || []);
 
             const initialPayroll = (filteredEmpData || []).map(emp => {
@@ -64,6 +78,8 @@ export function usePayrollLogic() {
 
                 const moduleData = (syncData || []).find((d: any) => d.partner_id === emp.id);
                 const savedSlipObj = (targetMonthSlips || []).find((s: any) => s.emp_id === emp.id);
+                const attEmp = attendanceEmployees.find((a: any) => a.id === emp.id);
+                const attSummary = attEmp?.summary;
                 
                 let baseRate = 0;
                 let daysWorked = moduleData ? Number(moduleData.days_worked || 0) : 0;
@@ -73,6 +89,8 @@ export function usePayrollLogic() {
                 let amountToPay = 0;
                 let status = 'غير مدفوع';
                 let prevUnpaid = 0;
+                let absenceDays = 0;
+                let absenceDeduction = 0;
 
                 if (savedSlipObj && emp.partner_type === 'موظف') {
                     // 🛡️ لو المسير محفوظ قبل كده، نقرأ البيانات المحفوظة بالكامل عشان الرصيد ما يضربش
@@ -80,6 +98,8 @@ export function usePayrollLogic() {
                     allowances = savedSlipObj.allowances || 0;
                     amountToPay = savedSlipObj.amount_to_pay || 0;
                     status = savedSlipObj.status || 'غير مدفوع';
+                    absenceDays = Number(savedSlipObj.absence_days || 0);
+                    absenceDeduction = Number(savedSlipObj.absence_deduction || 0);
                     
                     // Opening balances come from the same posted partner ledger.
                     prevUnpaid = livePrevUnpaid;
@@ -88,7 +108,9 @@ export function usePayrollLogic() {
                     if (emp.partner_type !== 'موظف') {
                         baseRate = moduleData?.total_earned_wage || 0;
                     } else {
-                        baseRate = 0; 
+                        baseRate = attSummary?.basic_salary ? Number(attSummary.basic_salary) : 0;
+                        absenceDays = attSummary?.total_penalty_days ? Number(attSummary.total_penalty_days) : 0;
+                        absenceDeduction = attSummary?.absence_deduction ? Number(attSummary.absence_deduction) : 0;
                     }
                     prevUnpaid = livePrevUnpaid; // الرصيد الحي
                 }
@@ -97,7 +119,9 @@ export function usePayrollLogic() {
                 if (emp.partner_type !== 'موظف') baseRate = moduleData?.total_earned_wage || 0;
                 deductions = moduleData?.total_violations || 0;
                 extendedAdvances = moduleData?.total_payments || 0;
-                const currentNet = decimalSubtract(decimalSum(baseRate, allowances), deductions, extendedAdvances);
+                const currentNet = emp.partner_type === 'موظف'
+                    ? decimalSubtract(decimalSum(baseRate, allowances), absenceDeduction, deductions, extendedAdvances)
+                    : decimalSubtract(decimalSum(baseRate, allowances), deductions, extendedAdvances);
                 const finalNet = decimalSum(currentNet, prevUnpaid);
 
                 return {
@@ -110,6 +134,8 @@ export function usePayrollLogic() {
                     base_rate: baseRate,               
                     days_worked: daysWorked,            
                     allowances: allowances,    
+                    absence_days: absenceDays,
+                    absence_deduction: absenceDeduction,
                     deductions: deductions,            
                     advances: 0,        
                     previous_balance: prevUnpaid,      
@@ -151,13 +177,15 @@ export function usePayrollLogic() {
     const updateRecord = (id: string, field: string, value: string | number) => {
         setPayrollRecords(prev => prev.map(rec => {
             if (rec.id === id) {
-                if (rec.type !== 'موظف' || rec.is_posted || !['base_rate', 'allowances', 'amount_to_pay', 'status'].includes(field)) return rec;
+                if (rec.type !== 'موظف' || rec.is_posted || !['base_rate', 'allowances', 'amount_to_pay', 'status', 'absence_deduction'].includes(field)) return rec;
                 const numericValue = field === 'status' ? String(value) : value;
                 const updated = { ...rec, [field]: numericValue };
                 
                 if (field !== 'amount_to_pay') {
                     try {
-                        updated.current_month_net = decimalSubtract(decimalSum(updated.base_rate, updated.allowances), updated.deductions, updated.advances, updated.extended_advances);
+                        updated.current_month_net = updated.type === 'موظف'
+                            ? decimalSubtract(decimalSum(updated.base_rate, updated.allowances), updated.absence_deduction || 0, updated.deductions, updated.advances, updated.extended_advances)
+                            : decimalSubtract(decimalSum(updated.base_rate, updated.allowances), updated.deductions, updated.advances, updated.extended_advances);
                         updated.net_salary = decimalSum(updated.current_month_net, updated.previous_balance);
                     } catch {
                         return rec;
@@ -189,6 +217,7 @@ export function usePayrollLogic() {
     const totals = useMemo(() => {
         const sum = (key: string) => Number(decimalSum(...filteredRecords.map(row => row[key] || 0)));
         return { allowances: sum('allowances'), deductions: sum('deductions'), advances: sum('advances'),
+            absence_deductions: sum('absence_deduction'),
             extended_advances: sum('extended_advances'), previous_balances: sum('previous_balance'),
             current_net: sum('current_month_net'), net: sum('net_salary'), amount_to_pay: sum('amount_to_pay') };
     }, [filteredRecords]);
@@ -214,6 +243,7 @@ export function usePayrollLogic() {
                 "الأساسي": Number(r.base_rate) || 0,
                 "أيام العمل": Number(r.days_worked) || 0,
                 "البدلات": Number(r.allowances) || 0,
+                "خصم غياب": Number(r.absence_deduction) || 0,
                 "الغرامات": Number(r.deductions) || 0,
                 "المسحوبات": Number(r.extended_advances) || 0,
                 "رصيد سابق": Number(r.previous_balance) || 0,

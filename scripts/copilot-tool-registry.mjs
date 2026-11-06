@@ -68,31 +68,39 @@ export const TOOL_REGISTRY = Object.freeze([
       description: 'عرض عجوزات الطريحة المستحقة للشركة المربوطة خلال آخر 30 يوم — السجلات اللي إنتاجيتها أقل من الطريحة المحددة.',
       parameters: { type: 'OBJECT', properties: {} },
     },
-    source: { kind: 'table', name: 'labor_daily_logs', columns: ['work_date', 'worker_name', 'site_ref', 'work_item', 'tareeha', 'productivity', 'unit'] },
+    source: { kind: 'table', name: 'labor_daily_logs', columns: ['work_date', 'worker_name', 'site_ref', 'work_item', 'tareeha', 'productivity', 'attendance_value', 'unit'] },
     permission: { module: 'labor_logs', action: 'view' },
     requiresCompany: true,
-    // Roadmap phase 3: the new pilot read tool sits behind its own flag, off by default,
-    // until its definition is matched against the daily-logs screen.
+    // Pilot read tool behind its own flag (off by default) — the owner turns it on for the trial.
     flag: { env: 'COPILOT_TOOL_TAREEHA_ENABLED', default: false },
+    definition: 'copilot-tareeha.mjs: العجز = الإنتاجية < الطريحة × الحضور (نص يوم = نص المستهدف). الغياب والسجلات من غير إنتاجية مش عجز وبتتعد لوحدها. (حدده صاحب المشروع: «كما تشوفه مناسب»)',
     limits: 'آخر 30 يوم، فحص حتى 500 سجل فيها طريحة، عرض أول 20',
-    output: 'عدد العجوزات (productivity < tareeha) + أول 5. السجلات اللي من غير إنتاجية مسجلة مابتتحسبش. لو النتيجة جزئية بيقول كده.',
-    openDecisions: ['مطابقة تعريف العجز مع شاشة اليوميات قبل تشغيل المفتاح'],
+    output: 'عدد العجوزات + أول 5 (المستهدف/المنفذ/نسبة الإنجاز) + عدد السجلات من غير إنتاجية. لو النتيجة جزئية بيقول كده.',
   },
   {
-    name: 'get_worker_statement_rows',
+    name: 'get_worker_month_statement',
     status: TOOL_STATUS.INTERNAL,
-    usedBy: '/pdf worker (copilot-pdf-requests.mjs)',
+    usedBy: '/pdf worker <الاسم> <YYYY-MM> (copilot-pdf-requests.mjs)',
     source: {
-      kind: 'table', name: 'labor_daily_logs',
-      columns: ['work_date', 'site_ref', 'work_item', 'attendance_value', 'tareeha', 'productivity', 'unit', 'notes', 'production_desc', 'worker_partner_id', 'daily_wage*'],
+      kind: 'table+rpc',
+      name: 'partners (الهوية) + labor_daily_logs (السجلات) + rpc pull_payroll_module_data / get_payroll_balances_with_cutoff (الفلوس)',
+      columns: ['partners.id', 'partners.partner_type', 'work_date', 'site_ref', 'work_item', 'attendance_value', 'tareeha', 'productivity', 'unit', 'notes', 'production_desc', 'is_posted', 'daily_wage*'],
     },
     permission: { module: 'labor_logs', action: 'view' },
-    extraPermissions: [{ module: 'payroll', action: 'view', for: 'daily_wage (الأجور)' }],
+    requiredPermissions: [{ module: 'partners', action: 'view', for: 'هوية العامل الثابتة (partners.id)' }],
+    // Money section only with ALL of these: the wage permission chosen by the owner (laborcost) + every
+    // module the payroll RPCs read. Missing one would make RLS return zeros silently, so it shows «غير متاح».
+    extraPermissions: [
+      { module: 'laborcost', action: 'view', for: 'الأجور (اختيار صاحب المشروع)' },
+      { module: 'violations', action: 'view', for: 'الجزاءات' },
+      { module: 'payments', action: 'view', for: 'سندات الصرف' },
+      { module: 'journal', action: 'view', for: 'الترحيل والرصيد السابق' },
+    ],
     requiresCompany: true,
     flag: { env: 'COPILOT_PDF_WORKER_ENABLED', default: false },
-    limits: 'اسم مطابق تمامًا، فترة ≤ 31 يوم، حد 500 سجل (أكتر = رفض)',
-    output: 'صفوف الكشف. daily_wage بيتطلب بس مع صلاحية الأجور. أكتر من worker_partner_id لنفس الاسم = رفض.',
-    openDecisions: ['صلاحية الأجور: payroll ولا laborcost', 'تعريف الإجمالي: مجموع daily_wage (الرواتب) مقابل الأجر × الحضور (الداشبورد)'],
+    definition: 'عامل يومية: صافي الشهر = اليوميات المرحّلة − الجزاءات المرحّلة − سندات الصرف المرحّلة، + الرصيد السابق — نفس شاشة الرواتب (payroll_logic.ts). الموظف بمرتب كشفه من شاشة الرواتب.',
+    limits: 'شهر واحد حتى تاريخ اليوم، اسم مطابق تمامًا لشريك واحد، حد 500 سجل (أكتر = رفض)',
+    output: 'صفوف الشهر + ملخص مالي من دوال الرواتب. أكتر من شريك بنفس الاسم = رفض. «موظف» = تحويل لشاشة الرواتب.',
   },
 
   // ─── Retired (implementation removed; stubs make no request) ───────────────
