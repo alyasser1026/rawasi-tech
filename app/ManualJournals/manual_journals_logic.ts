@@ -30,8 +30,8 @@ export function useManualJournalsLogic() {
                     *,
                     debit_account:accounts!manual_journals_debit_account_id_fkey(name),
                     credit_account:accounts!manual_journals_credit_account_id_fkey(name),
-                    partner:partners(name),
-                    project:projects(Property)
+                    partner:partners!manual_journals_partner_id_company_fkey(name),
+                    project:projects!manual_journals_project_id_company_fkey(Property)
                 `)
                 .order('entry_date', { ascending: false })
                 .order('created_at', { ascending: false });

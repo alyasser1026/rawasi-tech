@@ -46,7 +46,7 @@ export function useReceiptVouchersLogic() {
         queryFn: async () => {
             const buildQuery = () => supabase
                 .from('receipt_vouchers')
-                .select(`*, partners(name), invoices(invoice_number)`)
+                .select(`*, partners:partners!receipt_vouchers_partner_id_company_fkey(name), invoices:invoices!receipt_vouchers_invoice_id_company_fkey(invoice_number)`)
                 .order('date', { ascending: false })
                 .order('created_at', { ascending: false });
 

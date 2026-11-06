@@ -25,9 +25,9 @@ export function useLedgerLogic() {
         .from('journal_lines')
         .select(`
           id, debit, credit, item_name, notes,
-          journal_headers (entry_date, description),
-          projects (name),
-          partners (name)
+          journal_headers:journal_headers!journal_lines_header_id_company_fkey (entry_date, description),
+          projects:projects!journal_lines_project_id_company_fkey (Property),
+          partners:partners!journal_lines_partner_id_company_fkey (name)
         `)
         .eq('account_id', selectedAccountId)
         .order('id', { ascending: true }); // better for pagination stability
