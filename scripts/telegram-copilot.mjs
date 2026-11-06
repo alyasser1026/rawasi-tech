@@ -479,9 +479,49 @@ async function handleUpdate(update) {
   if (!msg) return;
 
   const chatId = msg.chat?.id;
-  const rawText = (msg.text || msg.caption || '').trim();
+  let rawText = (msg.text || msg.caption || '').trim();
   const messageId = msg.message_id;
   const fromName = msg.from?.first_name || msg.chat?.title || 'صديقي';
+
+  // 🎙️ معالجة الرسائل الصوتية (Voice Notes) فورياً عبر Groq Whisper Large V3
+  if ((msg.voice || msg.audio) && BOT_TOKEN) {
+    const fileId = msg.voice?.file_id || msg.audio?.file_id;
+    const groqKey = env.GROQ_API_KEY || process.env.GROQ_API_KEY;
+
+    if (fileId && groqKey) {
+      try {
+        await sendChatAction(chatId, 'record_voice');
+        const fileInfoRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${fileId}`);
+        const fileInfo = await fileInfoRes.json();
+
+        if (fileInfo.ok && fileInfo.result?.file_path) {
+          const downloadUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileInfo.result.file_path}`;
+          const audioRes = await fetch(downloadUrl);
+          const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+
+          const whisperForm = new FormData();
+          whisperForm.append('file', new Blob([audioBuffer], { type: 'audio/ogg' }), 'telegram_voice.oga');
+          whisperForm.append('model', 'whisper-large-v3-turbo');
+          whisperForm.append('language', 'ar');
+
+          const whisperRes = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${groqKey}` },
+            body: whisperForm,
+          });
+
+          const whisperJson = await whisperRes.json();
+          if (whisperJson?.text) {
+            rawText = whisperJson.text.trim();
+            console.log(`🎙️ [Voice Transcribed]: "${rawText}"`);
+            await sendTelegramMessage(chatId, `🎙️ <i>سمعتك تقول: "${toTelegramHtml(rawText)}"</i>\n\n⏳ <i>جاري معالجة طلبك...</i>`, messageId);
+          }
+        }
+      } catch (voiceErr) {
+        console.error('Voice processing error in Telegram bot:', voiceErr);
+      }
+    }
+  }
 
   if (!rawText) return;
 

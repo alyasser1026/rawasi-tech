@@ -11,6 +11,7 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import { supabase } from '@/lib/supabase';
 import LoadingScreen from '@/components/LoadingScreen';
+import VoiceFormTrigger from '@/components/voice/VoiceFormTrigger';
 
 export default function LaborLogsDirectory() {
   const logic = useLaborLogsLogic();
@@ -282,9 +283,29 @@ export default function LaborLogsDirectory() {
       {mounted && logic.isAddModalOpen && createPortal(
         <div className="phi-modal-backdrop" style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(39,39,42, 0.5)', backdropFilter: 'blur(12px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', paddingTop: '5vh', paddingBottom: '5vh', overflowY: 'auto' }} onClick={() => logic.setIsAddModalOpen(false)}>
           <div className="cinematic-scroll phi-modal-panel" onClick={(e) => e.stopPropagation()} style={{ background: 'white', padding: '2.1875rem', borderRadius: '14px', width: '100%', maxWidth: '56.25rem', direction: 'rtl', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', margin: 'auto' }}>
-            <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, marginBottom: '1.5625rem', fontSize: 'var(--fs-2xl)', borderBottom: `2px dashed ${THEME.goldAccent}`, paddingBottom: '0.9375rem' }}>
-              {logic.editingId ? 'تعديل بيانات اليومية' : 'إضافة يومية جديدة'}
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5625rem', borderBottom: `2px dashed ${THEME.goldAccent}`, paddingBottom: '0.9375rem' }}>
+              <h2 style={{ fontWeight: 900, color: THEME.coffeeDark, margin: 0, fontSize: 'var(--fs-2xl)' }}>
+                {logic.editingId ? 'تعديل بيانات اليومية' : 'إضافة يومية جديدة'}
+              </h2>
+              <VoiceFormTrigger
+                modalType="labor_log"
+                onFieldsParsed={(fields) => {
+                  logic.setCurrentLog((prev: any) => ({
+                    ...prev,
+                    ...fields,
+                    work_date: fields.work_date || prev.work_date,
+                    worker_name: fields.worker_name || prev.worker_name,
+                    site_ref: fields.site_ref || prev.site_ref,
+                    work_item: fields.work_item || prev.work_item,
+                    daily_wage: fields.daily_wage !== undefined ? Number(fields.daily_wage) : prev.daily_wage,
+                    tareeha: fields.tareeha !== undefined ? Number(fields.tareeha) : prev.tareeha,
+                    productivity: fields.productivity !== undefined ? Number(fields.productivity) : prev.productivity,
+                    unit: fields.unit || prev.unit,
+                    notes: fields.notes || prev.notes,
+                  }));
+                }}
+              />
+            </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                
