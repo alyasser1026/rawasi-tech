@@ -96,6 +96,16 @@ export async function reportTechnicalError(
     }
 
     const currentUrl = window.location.href;
+    const isAuthPage =
+      typeof window !== 'undefined' &&
+      (window.location.pathname === '/login' || window.location.pathname === '/signup');
+    if (
+      isAuthPage &&
+      (message.includes('permission denied') || status === 401 || status === 403 || code === '42501')
+    ) {
+      return;
+    }
+
     const category = context?.category || 'business_exception';
 
     // Deduplication check

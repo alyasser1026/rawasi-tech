@@ -5,6 +5,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 import { supabase } from "@/lib/supabase";
 import { OctagonX } from 'lucide-react';
 import { notify } from '@/lib/notify';
+import { sharedQueryClient } from '@/components/QueryProvider';
 
 const AuthContext = createContext<{
   user: any;
@@ -86,6 +87,7 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
       }
 
       if (!session) {
+        try { sharedQueryClient.cancelQueries(); } catch {}
         if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
         setLoading(false);
         return;
@@ -145,12 +147,14 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
       if (event === "SIGNED_OUT") {
         setUser(null);
         setProfile(null);
+        try { sharedQueryClient.clear(); } catch {}
         if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
       } else if (session && !user) {
         setUser(session.user);
       } else if (!session && event === "TOKEN_REFRESHED") {
         setUser(null);
         setProfile(null);
+        try { sharedQueryClient.clear(); } catch {}
         if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
       }
     });

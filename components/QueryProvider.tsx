@@ -10,6 +10,12 @@ export const sharedQueryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error: any, _variables, _context, mutation) => {
       if (typeof navigator !== 'undefined' && !navigator.onLine) return;
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (path === '/login' || path === '/signup') return;
+      }
+      const msg = String(error?.message || '');
+      if (error?.status === 401 || error?.status === 403 || msg.includes('JWT') || msg.includes('permission denied')) return;
       const mutationKey = mutation?.options?.mutationKey;
       void reportTechnicalError(error, {
         category: 'database_error',
@@ -23,8 +29,27 @@ export const sharedQueryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error: any, query) => {
       if (typeof navigator !== 'undefined' && !navigator.onLine) return;
-      // Skip benign 401 or auth check failures
-      if (error?.status === 401 || String(error?.message || '').includes('JWT')) return;
+
+      // Skip auth failures or permission denied when unauthenticated or on login/signup page
+      if (typeof window !== 'undefined') {
+        const path = window.location.pathname;
+        if (path === '/login' || path === '/signup') return;
+      }
+
+      const msg = String(error?.message || '');
+      const code = String(error?.code || '');
+      if (
+        error?.status === 401 ||
+        error?.status === 403 ||
+        code === '42501' ||
+        code === 'PGRST301' ||
+        msg.includes('JWT') ||
+        msg.includes('permission denied') ||
+        msg.includes('Not authorized')
+      ) {
+        return;
+      }
+
       void reportTechnicalError(error, {
         category: 'api_failure',
         level: 'warning',
