@@ -1,6 +1,8 @@
 -- Migration: 20261105170007_custodies_and_cash_closings.sql
 -- Description: Phase 3 - Site Custodies (حساب 125), Custody Settlements, and Daily Cash Closings with GL 527 reconciliations
 
+BEGIN;
+
 SET LOCAL lock_timeout = '10s';
 SET LOCAL statement_timeout = '120s';
 
@@ -9,21 +11,13 @@ BEGIN
   IF to_regclass('public.companies') IS NULL THEN
     RAISE EXCEPTION 'Multi-company system is required before Phase 3';
   END IF;
-  IF to_regclass('public.site_custodies') IS NOT NULL THEN
-    RAISE EXCEPTION 'public.site_custodies already exists';
-  END IF;
-  IF to_regclass('public.daily_cash_closings') IS NOT NULL THEN
-    RAISE EXCEPTION 'public.daily_cash_closings already exists';
-  END IF;
 END;
 $preflight$;
-
-BEGIN;
 
 -- =============================================================================
 -- 1. SITE CUSTODIES TABLE (عُهد المواقع والموظفين - حساب 125)
 -- =============================================================================
-CREATE TABLE public.site_custodies (
+CREATE TABLE IF NOT EXISTS public.site_custodies (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   custody_number text NOT NULL DEFAULT '',
@@ -54,7 +48,7 @@ COMMENT ON TABLE public.site_custodies IS 'سجل عُهد المواقع وال
 -- =============================================================================
 -- 2. DAILY CASH CLOSINGS TABLE (إقفال الخزينة اليومي ومحاضر الجرد)
 -- =============================================================================
-CREATE TABLE public.daily_cash_closings (
+CREATE TABLE IF NOT EXISTS public.daily_cash_closings (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   account_id uuid NOT NULL REFERENCES public.accounts(id) ON DELETE RESTRICT,

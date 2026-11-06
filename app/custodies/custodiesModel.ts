@@ -55,6 +55,7 @@ export interface CustodyKPIs {
 export interface CustodySummaryResponse {
   kpis: CustodyKPIs;
   custodies: SiteCustody[];
+  migrationRequired?: boolean;
 }
 
 export const SETTLEMENT_TYPES: Record<string, { label: string; desc: string }> = {
@@ -122,8 +123,20 @@ export async function fetchSiteCustodies(statusFilter: string = 'all'): Promise<
   const { data, error } = await summaryRequest;
 
   if (error) {
-    if (error.code === 'PGRST202' || error.code === '42P01') {
-      throw new Error('شاشة العُهد تحتاج تطبيق ميجريشن العُهد على قاعدة البيانات.');
+    if (error.code === 'PGRST202' || error.code === '42P01' || error.code === 'PGRST205') {
+      return {
+        kpis: {
+          total_custodies: 0,
+          open_custodies: 0,
+          settled_custodies: 0,
+          overdue_custodies: 0,
+          total_disbursed: 0,
+          total_spent: 0,
+          total_remaining: 0,
+        },
+        custodies: [],
+        migrationRequired: true,
+      };
     }
     throw new Error(error.message || 'فشل استرجاع بيانات العُهد');
   }

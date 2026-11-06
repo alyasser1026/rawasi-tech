@@ -604,6 +604,21 @@ export default function CustodiesPage() {
         <div className={styles.tableCard}>
           {isLoading ? (
             <LoadingScreen />
+          ) : summaryData?.migrationRequired ? (
+            <div className={styles.emptyState} role="alert" style={{ textAlign: 'center', padding: '2.5rem 1.5rem' }}>
+              <div style={{ width: '48px', height: '48px', margin: '0 auto 1rem auto', borderRadius: '50%', background: 'rgba(245, 158, 11, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <AlertTriangle size={26} color="#f59e0b" />
+              </div>
+              <h3 style={{ margin: '0 0 0.5rem 0', fontWeight: 900, color: '#fefcf9', fontSize: 'var(--fs-lg, 16px)' }}>
+                شاشة العُهد بانتظار تطبيق الميجريشن في Supabase
+              </h3>
+              <p style={{ margin: '0 auto 1.25rem auto', maxWidth: '520px', fontSize: 'var(--fs-xs, 12px)', color: '#ede5da', lineHeight: 1.6 }}>
+                جداول وإجراءات عُهد المواقع (حساب 125) وإقفال الصناديق اليومية جاهزة بالكامل في ملف الميجريشن. يرجى تشغيل الملف في الـ SQL Editor لتفعيل الميزة فورياً.
+              </p>
+              <div style={{ display: 'inline-flex', padding: '0.5rem 1rem', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '10px', fontSize: '11px', color: '#fbbf24', fontFamily: 'monospace' }}>
+                supabase/migrations/20261105170007_custodies_and_cash_closings.sql
+              </div>
+            </div>
           ) : summaryError ? (
             <div className={styles.emptyState} role="alert">
               <p>{summaryError.message}</p>
