@@ -53,6 +53,18 @@ function getGuidance(error: ErrorDetails): Guidance {
       action: 'تحقّق من وجود public.site_custodies ومن سجل ميجريشن 20261105170007_custodies_and_cash_closings. لو الجدول موجود، راجع إتاحته في Data API وكاش المخطط.',
     };
   }
+  if (matchesCode('PGRST201') || /could not embed because more than one relationship was found/i.test(evidence)) {
+    if (/['"]partners['"]\s+and\s+['"]accounts['"]/i.test(evidence)) {
+      return {
+        cause: 'استعلام الشركاء بيطلب الحساب من جدول accounts من غير ما يحدد العلاقة. قاعدة البيانات فيها رابط قديم ورابط يقيّد الحساب بالشركة.',
+        action: 'في استعلام صفحة الشركاء استخدم account:accounts!partners_account_id_company_fkey(name). بعد النشر، افتح الصفحة وتحقق من اسم الحساب للشريك المرتبط ومن ظهور «غير مربوط» للباقي.',
+      };
+    }
+    return {
+      cause: 'الاستعلام بيضم جدولًا مرتبطًا، وPostgREST لقى أكتر من مفتاح خارجي ينفع للربط.',
+      action: 'راجع العلاقات في تفاصيل رد PostgREST. حدّد المفتاح المقصود في select بصيغة table!foreign_key(columns)، واختبر ظهور البيانات في الشركة المفتوحة.',
+    };
+  }
   if (missingTable || missingColumn || matchesCode('PGRST202') ||
     /could not find the function .+ in the schema cache/i.test(evidence)) {
     return {

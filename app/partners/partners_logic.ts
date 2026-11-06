@@ -42,7 +42,7 @@ export function usePartnersLogic() {
     setIsLoading(true);
     // 🚀 تحديث الاستعلام لسحب اسم الحساب من جدول accounts
     try {
-      const data = await fetchAllSupabaseData(supabase, 'partners', '*, account:accounts(name)', 'code', true);
+      const data = await fetchAllSupabaseData(supabase, 'partners', '*, account:accounts!partners_account_id_company_fkey(name)', 'code', true);
       
       const formattedData = data.map((p: any) => ({
         id: p.id,
