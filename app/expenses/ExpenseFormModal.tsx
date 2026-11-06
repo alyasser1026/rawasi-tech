@@ -8,6 +8,7 @@ import { useToast } from '@/lib/toast-context';
 import { Plus, Trash2 } from 'lucide-react';
 import JobOrderSelector from '@/components/JobOrderSelector';
 import TelegramAttachmentField from '@/components/TelegramAttachmentField';
+import VoiceFormTrigger from '@/components/voice/VoiceFormTrigger';
 
 // 🚀 مصفوفة التصنيفات
 const EXPENSE_CATEGORIES = [
@@ -174,16 +175,33 @@ export default function ExpenseFormModal({
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ width: '62.5rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.92)', backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl' }}>
                 
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.875rem', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'0.9375rem'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.875rem', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'0.9375rem', gap: '1rem', flexWrap: 'wrap'}}>
                     <div>
                         <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>{record?.id ? 'تعديل مسودة المصروف' : 'إنشاء مسودة مصروف جديدة'}</h2>
                         <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, marginTop: '0.25rem' }}>
-                            تُحفظ كمسودة غير مرحّلة (تدعم العمل بدون إنترنت ومرفقات Telegram Bot)
+                            تُحفظ كمسودة غير مرحّلة (تدعم العمل بدون إنترنت والإدخال الصوتي الذكي)
                         </div>
                     </div>
-                    <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
-                        <div style={{ color: THEME.accent, fontWeight: 900, fontSize: 'var(--fs-3xl)' }}>{formatCurrency(finalTotal)}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+                        <VoiceFormTrigger
+                            modalType="expense"
+                            label="تسجيل صوتي للمصروف"
+                            onFieldsParsed={(fields) => {
+                                setRecord((prev: any) => ({
+                                    ...prev,
+                                    ...fields,
+                                    description: fields.description || prev.description,
+                                    category: fields.main_category || fields.category || prev.category,
+                                    unit_price: fields.amount !== undefined ? Number(fields.amount) : prev.unit_price,
+                                    quantity: 1,
+                                    notes: fields.notes || prev.notes,
+                                }));
+                            }}
+                        />
+                        <div style={{ textAlign: 'left' }}>
+                            <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
+                            <div style={{ color: THEME.accent, fontWeight: 900, fontSize: 'var(--fs-3xl)' }}>{formatCurrency(finalTotal)}</div>
+                        </div>
                     </div>
                 </div>
 

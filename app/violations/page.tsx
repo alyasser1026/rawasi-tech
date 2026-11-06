@@ -15,6 +15,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 import { Pencil } from 'lucide-react';
 import TelegramAttachmentField, { AttachmentViewButton } from '@/components/TelegramAttachmentField';
 import { notify } from '@/lib/notify';
+import VoiceFormTrigger from '@/components/voice/VoiceFormTrigger';
 
 export default function ViolationsPage() {
   const logic = useViolationsLogic();
@@ -212,9 +213,24 @@ export default function ViolationsPage() {
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh', backgroundColor: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', zIndex: 999999, padding: '5vh 1.25rem', overflowY: 'auto' }}>
           <div style={{ background: 'white', padding: '2.1875rem', borderRadius: '14px', width: '100%', maxWidth: '40.625rem', direction: 'rtl', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', margin: 'auto' }}>
             
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.9375rem', borderBottom: '2px dashed #f1f5f9' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.9375rem', borderBottom: '2px dashed #f1f5f9', gap: '0.625rem', flexWrap: 'wrap' }}>
                 <h3 style={{fontWeight:900, fontSize:'var(--fs-xl)', color: THEME.primary, margin: 0}}>تسجيل حركة خصم / استقطاع</h3>
-                <button onClick={() => { logic.state.setIsEditModalOpen(false); }} style={{ background: '#f1f5f9', border: 'none', width: '2.1875rem', height: '2.1875rem', borderRadius: '50%', cursor: 'pointer', fontWeight: 900, color: '#64748b' }}>✕</button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <VoiceFormTrigger
+                        modalType="violation"
+                        label="تسجيل مخالفة بالصوت"
+                        onFieldsParsed={(fields) => {
+                            logic.state.setEditingRecord((prev: any) => ({
+                                ...prev,
+                                ...fields,
+                                amount: fields.amount !== undefined ? Number(fields.amount) : prev.amount,
+                                reason: fields.reason || fields.description || prev.reason,
+                                notes: fields.notes || prev.notes,
+                            }));
+                        }}
+                    />
+                    <button onClick={() => { logic.state.setIsEditModalOpen(false); }} style={{ background: '#f1f5f9', border: 'none', width: '2.1875rem', height: '2.1875rem', borderRadius: '50%', cursor: 'pointer', fontWeight: 900, color: '#64748b' }}>✕</button>
+                </div>
             </div>
             
             {/* 🎯 أزرار اختيار نوع الحركة (تم إزالة السلف) */}
