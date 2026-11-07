@@ -122,8 +122,8 @@
     border-radius: 10px;
   }
   .enterprise-page .ent-page-tools .filter-btn.active {
-    background: var(--accent-gradient);
-    color: #fff;
+    background: var(--action-fill);
+    color: var(--action-ink);
     border: none !important;
     border-radius: 10px;
     box-shadow: 0 4px 14px var(--accent-glow);
@@ -164,7 +164,7 @@
     box-shadow: var(--shadow-sunken), 0 0 0 2px var(--accent-glow) !important;
   }
   .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input):disabled { opacity: 0.5; cursor: not-allowed; }
-  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input) option { color: var(--text-primary); background: var(--surface-card); }
+  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input) option { color: var(--text-primary); background-color: var(--surface-flat); }
   .enterprise-page.enterprise-page .custom-checkbox { accent-color: var(--accent-main); }
 
   /* Glossy Buttons */
@@ -185,9 +185,9 @@
   }
   .enterprise-page.enterprise-page :is(.btn-premium-gold, .btn-glass-save, .btn-gold-pro),
   .enterprise-page.enterprise-page .btn-main-glass.gold {
-    background: var(--accent-gradient) !important;
+    background: var(--action-fill) !important;
     border: none !important;
-    color: #fff !important;
+    color: var(--action-ink) !important;
     box-shadow: 0 10px 24px -4px var(--accent-glow) !important;
   }
   .enterprise-page.enterprise-page .btn-main-glass.white,
@@ -202,10 +202,10 @@
     background: var(--surface-card-hover) !important;
     color: var(--text-primary) !important;
   }
-  .enterprise-page.enterprise-page .btn-main-glass.blue { color: #38bdf8; background: rgba(56, 189, 248, 0.12); border: none !important; box-shadow: none; }
-  .enterprise-page.enterprise-page .btn-main-glass.green { color: #34d399; background: rgba(16, 185, 129, 0.12); border: none !important; box-shadow: none; }
-  .enterprise-page.enterprise-page .btn-main-glass.red { color: #fb7185; background: rgba(244, 63, 94, 0.12); border: none !important; box-shadow: none; }
-  .enterprise-page.enterprise-page .btn-main-glass.yellow { color: #fbbf24; background: rgba(245, 158, 11, 0.12); border: none !important; box-shadow: none; }
+  .enterprise-page.enterprise-page .btn-main-glass.blue { color: var(--status-info); background: rgba(56, 189, 248, 0.12); border: none !important; box-shadow: none; }
+  .enterprise-page.enterprise-page .btn-main-glass.green { color: var(--status-positive); background: rgba(16, 185, 129, 0.12); border: none !important; box-shadow: none; }
+  .enterprise-page.enterprise-page .btn-main-glass.red { color: var(--status-negative); background: rgba(244, 63, 94, 0.12); border: none !important; box-shadow: none; }
+  .enterprise-page.enterprise-page .btn-main-glass.yellow { color: var(--status-warning); background: rgba(245, 158, 11, 0.12); border: none !important; box-shadow: none; }
   .enterprise-page.enterprise-page :is(.btn-main-glass, .btn-premium-gold, .btn-glass-save, .btn-glass-cancel):disabled { opacity: .5; cursor: not-allowed; }
   .enterprise-page .ent-page-actions .btn-premium-gold { width: auto; }
 
@@ -397,5 +397,5 @@
 @media screen {
   html.low-graphics-mode .enterprise-page { --ent-card-gloss: var(--surface-card); --ent-card-elevation: none; --ent-card-hover: none; }
   html.low-graphics-mode .enterprise-page.enterprise-page :is(.project-card, .site-card, .module-card, .premium-card, .mini-stat-card, .summary-card, .kpi-card):hover { transform: none; }
-  html.low-graphics-mode .enterprise-page.enterprise-page :is(.btn-premium-gold, .btn-glass-save, .btn-gold-pro, .btn-main-glass.gold) { background: var(--accent-gradient); }
+  html.low-graphics-mode .enterprise-page.enterprise-page :is(.btn-premium-gold, .btn-glass-save, .btn-gold-pro, .btn-main-glass.gold) { background: var(--action-fill); }
 }

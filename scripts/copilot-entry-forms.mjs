@@ -44,6 +44,19 @@ const forms = {
     ],
     finish: 'في الشاشة اختار المستفيد من بيانات الشركة، وراجع الحسابات واحفظ السند كمسودة.',
   },
+  labor: {
+    label: 'يومية عامل', path: '/labor_logs', button: 'تسجيل يومية عامل',
+    fields: [
+      date,
+      { key: 'worker_name', label: 'اسم العامل', prompt: 'اكتب اسم العامل الرباعي أو الثنائي.' },
+      project,
+      { key: 'work_item', label: 'البند المنفذ', prompt: 'اكتب اسم البند، مثل جبس تجليد أو محارة أو مباني.' },
+      { key: 'tareeha', label: 'الطريحة المستهدفة', prompt: 'اكتب الطريحة المطلوبة بالأرقام (مثل 50)، أو تخطّى.', optional: true },
+      { key: 'productivity', label: 'الإنتاجية المنفذة', prompt: 'اكتب الكمية الفعلية اللي أنجزها العامل (مثل 35)، أو تخطّى.', optional: true },
+      { ...amount, label: 'الأجر اليومي (ريال)', prompt: 'اكتب يومية العامل بالريال، مثل 200.' },
+    ],
+    finish: 'تقدر كمان تكتب في الشات مباشرة: «ضيفلي يومية عامل [الاسم] بند [البند] طريحة [العدد] عمل [المنفذ] يومية [المبلغ]» عشان البوت يسجلها كمسودة فوراً في شاشة يوميات العمالة.',
+  },
 };
 
 const normalize = value => value.replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').replace(/ى/g, 'ي').toLowerCase().trim();
@@ -54,13 +67,14 @@ function keyboard(rows) {
 }
 
 function formType(value) {
+  if (value === 'يوميه') return 'labor';
   return Object.keys(forms).find(key => value === key || value === normalize(forms[key].label) || value === normalize(forms[key].label + ' جديد'));
 }
 
 function startCommand(value) {
   const command = value.match(/^\/add(?:\s+(.*))?$/);
   if (command) return command[1] ?? '';
-  return value.match(/^(?:اضافه|اضف|اضيف|ضيف|عاوز اضيف|عايز اضيف)\s+(عمليه|مستند|مصروف|سند قبض|سند صرف)$/)?.[1];
+  return value.match(/^(?:اضافه|اضف|اضيف|ضيف|عاوز اضيف|عايز اضيف)\s+(عمليه|مستند|مصروف|سند قبض|سند صرف|يوميه عامل|يوميه)$/)?.[1];
 }
 
 function readValue(field, input, now) {
@@ -90,7 +104,9 @@ function visibleFields(form, values) {
 function show(session, notice = '') {
   if (!session.type) {
     return { text: notice + 'اختار نوع العملية عشان تبدأ تجهيز المسودة.', replyMarkup: keyboard([
-      Object.values(forms).map(form => form.label), [CANCEL],
+      ['مصروف', 'سند قبض', 'سند صرف'],
+      ['يومية عامل'],
+      [CANCEL],
     ]) };
   }
 

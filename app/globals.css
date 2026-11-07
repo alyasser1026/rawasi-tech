@@ -21,11 +21,20 @@
    -------------------------------------------------------------------------- */
 :root,
 html[data-mode="dark"] {
-  --bg-canvas: #07080b;
-  --bg-canvas-secondary: #0a0c0f;
+  color-scheme: dark;
+  --native-color-scheme: dark;
+  --bg-canvas: #0c0907;
+  --bg-canvas-secondary: #100c09;
   --text-primary: #fefcf9;
   --text-secondary: #ede5da;
   --text-muted: #b8aea2;
+  --accent-ink: var(--accent-bright);
+  --status-positive: #6ee7b7;
+  --status-negative: #fda4af;
+  --status-info: #7dd3fc;
+  --status-warning: #fcd34d;
+  --control-edge: #84654c;
+  --modal-scrim: rgba(20, 11, 6, 0.8);
 
   /* Elevated Card Layered Gradients (Warm Obsidian Deep Surfaces - Zero Dull Gray) */
   --surface-card: linear-gradient(180deg, #181512 0%, #120f0d 52%, #0b0908 100%);
@@ -33,6 +42,7 @@ html[data-mode="dark"] {
   --surface-header: linear-gradient(135deg, #191613 0%, #120f0d 55%, #090807 100%);
   --surface-sidebar: linear-gradient(180deg, #161310 0%, #100e0b 60%, #090807 100%);
   --surface-subcard: linear-gradient(180deg, rgba(249, 115, 22, 0.07) 0%, rgba(20, 16, 13, 0.92) 100%);
+  --surface-flat: #17120e;
   
   /* Sunken Wells (Inputs, Search, Pill Tracks) - Borderless Inner Depth */
   --surface-sunken: #090807;
@@ -60,9 +70,8 @@ html[data-mode="dark"] {
   --accent: #f97316;
   --accent-light: rgba(249, 115, 22, 0.15);
   --white: #ffffff;
-  --bg-main: #07080b;
+  --bg-main: var(--bg-canvas);
   --text-main: #fefcf9;
-  --text-muted: #ede5da;
   --glass-surface: linear-gradient(180deg, #181512 0%, #120f0d 52%, #0b0908 100%);
   --glass-border: transparent;
   --input-bg: #090807;
@@ -89,6 +98,8 @@ html[data-mode="dark"][data-accent="cyan"] {
   --surface-card: linear-gradient(180deg, #111722 0%, #0c1119 52%, #070a10 100%);
   --surface-card-hover: linear-gradient(180deg, #182230 0%, #101824 52%, #090e15 100%);
   --surface-subcard: linear-gradient(180deg, rgba(14, 165, 233, 0.08) 0%, rgba(12, 17, 25, 0.95) 100%);
+  --surface-flat: #111722;
+  --control-edge: #58738a;
   --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.9), 0 12px 32px -10px rgba(56, 189, 248, 0.12);
 }
 html[data-mode="dark"][data-accent="emerald"] {
@@ -98,6 +109,8 @@ html[data-mode="dark"][data-accent="emerald"] {
   --surface-card: linear-gradient(180deg, #101813 0%, #0b120e 52%, #060a08 100%);
   --surface-card-hover: linear-gradient(180deg, #16241b 0%, #0f1a13 52%, #080f0b 100%);
   --surface-subcard: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(11, 18, 14, 0.95) 100%);
+  --surface-flat: #101813;
+  --control-edge: #52725f;
   --shadow-ambient: 0 26px 54px -15px rgba(0, 0, 0, 0.9), 0 12px 32px -10px rgba(16, 185, 129, 0.12);
 }
 
@@ -105,36 +118,45 @@ html[data-mode="dark"][data-accent="emerald"] {
    LIGHT MODE (الوضع النهاري: لؤلؤي سيراميكي متدرّج جلوسي بدون إطارات)
    -------------------------------------------------------------------------- */
 html[data-mode="light"] {
-  --bg-canvas: #e8eef5;
-  --bg-canvas-secondary: #dde5ef;
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  color-scheme: light;
+  --native-color-scheme: light;
+  --bg-canvas: #f7eee2;
+  --bg-canvas-secondary: #efe0ce;
+  --text-primary: #281a11;
+  --text-secondary: #523928;
+  --text-muted: #6a5040;
+  --accent-ink: #9a3412;
+  --status-positive: #065f46;
+  --status-negative: #9f1239;
+  --status-info: #075985;
+  --status-warning: #854d0e;
+  --control-edge: #9a775c;
+  --modal-scrim: rgba(63, 34, 15, 0.64);
 
-  --surface-card: linear-gradient(180deg, #ffffff 0%, #f9fbfd 58%, #f1f5f9 100%);
-  --surface-card-hover: linear-gradient(180deg, #ffffff 0%, #fcfdff 65%, #f5f8fc 100%);
-  --surface-header: linear-gradient(135deg, #ffffff 0%, #f8fafd 55%, #eef3f9 100%);
-  --surface-sidebar: linear-gradient(180deg, #ffffff 0%, #f7faff 60%, #edf2f8 100%);
-  --surface-subcard: linear-gradient(180deg, #f3f6fa 0%, #eaeff6 100%);
+  --surface-card: linear-gradient(180deg, #fffdf8 0%, #fff8ed 58%, #f9efdf 100%);
+  --surface-card-hover: linear-gradient(180deg, #fffdf8 0%, #fff8ee 65%, #fff0db 100%);
+  --surface-header: linear-gradient(135deg, #fffdf8 0%, #fff7ec 55%, #f8ebd8 100%);
+  --surface-sidebar: linear-gradient(180deg, #fffdf8 0%, #fff7ea 60%, #f7ead8 100%);
+  --surface-subcard: linear-gradient(180deg, #fcf1df 0%, #f4e5d0 100%);
+  --surface-flat: #fff8ed;
 
-  --surface-sunken: #dfe6ef;
-  --shadow-sunken: inset 0 2px 5px rgba(15, 23, 42, 0.08), inset 0 -1px 0px rgba(255, 255, 255, 0.9);
+  --surface-sunken: #fff5e7;
+  --shadow-sunken: inset 0 2px 5px rgba(106, 66, 36, 0.11), inset 0 -1px 0 rgba(255, 253, 248, 0.9);
 
-  --gloss-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.35) 45%, rgba(203, 213, 225, 0.18) 100%);
+  --gloss-sheen: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 252, 244, 0.35) 45%, rgba(221, 180, 133, 0.18) 100%);
   --gloss-button: linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0.06) 50%, rgba(0, 0, 0, 0.12) 100%);
   --specular-beam: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 1) 50%, transparent 100%);
   --specular-beam-soft: linear-gradient(90deg, transparent 5%, rgba(255, 255, 255, 0.9) 50%, transparent 95%);
 
-  --table-head-bg: rgba(15, 23, 42, 0.035);
-  --table-zebra-bg: rgba(15, 23, 42, 0.02);
-  --table-row-hover: linear-gradient(90deg, rgba(15, 23, 42, 0.045) 0%, rgba(15, 23, 42, 0.008) 100%);
+  --table-head-bg: rgba(106, 66, 36, 0.06);
+  --table-zebra-bg: rgba(106, 66, 36, 0.035);
+  --table-row-hover: linear-gradient(90deg, rgba(164, 90, 38, 0.11) 0%, rgba(164, 90, 38, 0.035) 100%);
 
   --shadow-elevation: 0 20px 42px -12px rgba(15, 23, 42, 0.08), 0 6px 16px -4px rgba(15, 23, 42, 0.04);
   --chart-grid: rgba(15, 23, 42, 0.05);
 
   --bg-main: var(--bg-canvas);
   --text-main: var(--text-primary);
-  --text-muted: var(--text-secondary);
   --glass-surface: var(--surface-card);
   --input-bg: var(--surface-sunken);
   --card-shadow: var(--shadow-ambient);
@@ -145,9 +167,11 @@ html[data-mode="light"]:not([data-accent]) {
   --shadow-ambient: 0 22px 46px -12px rgba(15, 23, 42, 0.085), 0 10px 26px -8px rgba(249, 115, 22, 0.09);
 }
 html[data-mode="light"][data-accent="cyan"] {
+  --accent-ink: #075985;
   --shadow-ambient: 0 22px 46px -12px rgba(15, 23, 42, 0.085), 0 10px 26px -8px rgba(14, 165, 233, 0.09);
 }
 html[data-mode="light"][data-accent="emerald"] {
+  --accent-ink: #065f46;
   --shadow-ambient: 0 22px 46px -12px rgba(15, 23, 42, 0.085), 0 10px 26px -8px rgba(16, 185, 129, 0.09);
 }
 
@@ -160,6 +184,8 @@ html:not([data-accent]) {
   --accent-main: #f97316;
   --accent-bright: #fb923c;
   --accent-deep: #ea580c;
+  --action-fill: var(--accent-gradient);
+  --action-ink: #fff;
   --accent-soft-bg: rgba(249, 115, 22, 0.13);
   --accent-glow: rgba(249, 115, 22, 0.35);
   --accent-gradient: linear-gradient(180deg, #fb923c 0%, #f97316 55%, #d9460f 100%);
@@ -171,6 +197,8 @@ html[data-accent="cyan"] {
   --accent-main: #0ea5e9;
   --accent-bright: #38bdf8;
   --accent-deep: #0284c7;
+  --action-fill: linear-gradient(180deg, #075985 0%, #06456a 100%);
+  --action-ink: #fff;
   --accent-soft-bg: rgba(56, 189, 248, 0.13);
   --accent-glow: rgba(56, 189, 248, 0.35);
   --accent-gradient: linear-gradient(180deg, #38bdf8 0%, #0ea5e9 55%, #0369a1 100%);
@@ -182,6 +210,8 @@ html[data-accent="emerald"] {
   --accent-main: #10b981;
   --accent-bright: #34d399;
   --accent-deep: #059669;
+  --action-fill: linear-gradient(180deg, #066249 0%, #064a39 100%);
+  --action-ink: #fff;
   --accent-soft-bg: rgba(16, 185, 129, 0.13);
   --accent-glow: rgba(16, 185, 129, 0.35);
   --accent-gradient: linear-gradient(180deg, #34d399 0%, #10b981 55%, #047857 100%);

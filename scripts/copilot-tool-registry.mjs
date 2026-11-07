@@ -20,23 +20,25 @@ export const TOOL_REGISTRY = Object.freeze([
     status: TOOL_STATUS.ACTIVE,
     declaration: {
       name: 'get_labor_daily_logs',
-      description: 'عدد سجلات يوميات العمالة المطابقة لتاريخ أو فترة محددة في الشركة المربوطة، من غير حساب الأجور أو عدد الأفراد الفريدين.',
+      description: 'الاستعلام عن سجلات يوميات العمالة والعمال الذين نزلوا واشتغلوا اليوم أو في تاريخ أو فترة محددة في الشركة المربوطة.',
       parameters: {
         type: 'OBJECT',
         properties: {
-          date: { type: 'STRING', description: 'يوم محدد بصيغة YYYY-MM-DD أو today لو المستخدم قال النهارده' },
+          date: { type: 'STRING', description: 'يوم محدد بصيغة YYYY-MM-DD أو today لو المستخدم قال النهارده أو اليوم' },
           start_date: { type: 'STRING', description: 'بداية الفترة YYYY-MM-DD' },
           end_date: { type: 'STRING', description: 'نهاية الفترة YYYY-MM-DD. الفترة لا تتجاوز 31 يومًا.' },
           worker_name: { type: 'STRING', description: 'اسم عامل كامل عند طلب تصفية سجلاته' },
+          site_ref: { type: 'STRING', description: 'اسم أو رقم الفيلا / الموقع اختياري' },
         },
       },
     },
-    source: { kind: 'table', name: 'labor_daily_logs', columns: ['work_date', 'worker_name', 'site_ref', 'work_item', 'attendance_value'] },
+    source: { kind: 'table', name: 'labor_daily_logs', columns: ['work_date', 'worker_name', 'site_ref', 'work_item', 'attendance_value', 'daily_wage*', 'tareeha', 'productivity', 'unit', 'is_posted'] },
     permission: { module: 'labor_logs', action: 'view' }, // = RLS policy module_view on labor_daily_logs
+    extraPermissions: [{ module: 'laborcost', action: 'view', for: 'الأجور اليومية وإجمالي الأجور (daily_wage / total_wages)' }],
     requiresCompany: true,
     flag: null, // gated by COPILOT_ENABLE_LIVE_READS + verified access
     limits: 'يوم واحد أو فترة ≤ 31 يوم (توقيت الرياض)، صفحة 100 سجل مع عدّ دقيق',
-    output: 'عدد السجلات + أول 5 سجلات (تاريخ/اسم/موقع/بند/حضور). من غير أجور. يفرّق بين صفر موثوق ونتيجة جزئية ومصدر متعطل.',
+    output: 'عدد السجلات وتفاصيل العمال واليوميات المسجلة (الأجور مشروطة بصلاحية laborcost). يفرّق بين صفر موثوق ونتيجة جزئية ومصدر متعطل.',
   },
   {
     name: 'get_engineering_checklist_and_specs',
@@ -71,11 +73,121 @@ export const TOOL_REGISTRY = Object.freeze([
     source: { kind: 'table', name: 'labor_daily_logs', columns: ['work_date', 'worker_name', 'site_ref', 'work_item', 'tareeha', 'productivity', 'attendance_value', 'unit'] },
     permission: { module: 'labor_logs', action: 'view' },
     requiresCompany: true,
-    // Pilot read tool behind its own flag (off by default) — the owner turns it on for the trial.
     flag: { env: 'COPILOT_TOOL_TAREEHA_ENABLED', default: false },
-    definition: 'copilot-tareeha.mjs: العجز = الإنتاجية < الطريحة × الحضور (نص يوم = نص المستهدف). الغياب والسجلات من غير إنتاجية مش عجز وبتتعد لوحدها. (حدده صاحب المشروع: «كما تشوفه مناسب»)',
+    definition: 'copilot-tareeha.mjs: العجز = الإنتاجية < الطريحة × الحضور (نص يوم = نص المستهدف). الغياب والسجلات من غير إنتاجية مش عجز وبتتعد لوحدها.',
     limits: 'آخر 30 يوم، فحص حتى 500 سجل فيها طريحة، عرض أول 20',
-    output: 'عدد العجوزات + أول 5 (المستهدف/المنفذ/نسبة الإنجاز) + عدد السجلات من غير إنتاجية. لو النتيجة جزئية بيقول كده.',
+    output: 'عدد العجوزات + أول 5 (المستهدف/المنفذ/نسبة الإنجاز) + عدد السجلات من غير إنتاجية.',
+  },
+  {
+    name: 'get_all_projects_and_villas',
+    status: TOOL_STATUS.PILOT,
+    declaration: {
+      name: 'get_all_projects_and_villas',
+      description: 'استعلام عن المشاريع والفلل الموجودة كلها في الشركة، أو المشاريع والفلل التي اشتغلناها اليوم أو في تاريخ معين («المشاريع اللي موجودة كلها»، «المشاريع اللي اشتغلناها النهارده كلها»، «امال ايه البروجكت فيها ايه»، «الفلل اللي شغالة»).',
+      parameters: {
+        type: 'OBJECT',
+        properties: {
+          filter_mode: {
+            type: 'STRING',
+            enum: ['all', 'worked_today', 'active_only'],
+            description: 'all لكل المشاريع الموجودة، worked_today للمشاريع التي اشتغلناها في التاريخ المحدد، active_only للمشاريع الجارية قيد التنفيذ',
+          },
+          date: { type: 'STRING', description: 'تاريخ بصيغة YYYY-MM-DD أو today (الافتراضي today)' },
+        },
+      },
+    },
+    source: { kind: 'table', name: 'projects + labor_daily_logs + expenses + material_issues + job_orders' },
+    permission: { module: 'projects', action: 'view' },
+    requiresCompany: true,
+    flag: { env: 'COPILOT_LIVE_FIELD_OPS_ENABLED', default: false },
+    limits: 'حتى 100 مشروع مع ملخص نشاط اليوم',
+    output: 'قائمة المشاريع والفلل المسجلة كلها وحالتها ومرحلتها الحالية والمشاريع التي تم العمل عليها اليوم.',
+  },
+  {
+    name: 'get_daily_comprehensive_report',
+    status: TOOL_STATUS.PILOT,
+    declaration: {
+      name: 'get_daily_comprehensive_report',
+      description: 'التقرير اليومي المفصل والشامل عن اليوم أو تاريخ محدد، ويشمل 7 أقسام: (1) العمالة اللي نزلت النهارده، (2) الفلل والمشاريع اللي اشتغلناها، (3) المصروفات، (4) اللي اتصرف للعمالة، (5) الخامات اللي اتصرفت، (6) المقاولين اللي اتسلمت وأوامر الشغل والمستخلصات، (7) الركوستات والاستلامات اللي خلصت.',
+      parameters: {
+        type: 'OBJECT',
+        properties: {
+          date: { type: 'STRING', description: 'تاريخ التقرير بصيغة YYYY-MM-DD أو today لتقرير النهارده (الافتراضي today)' },
+          villa_filter: { type: 'STRING', description: 'اختياري: اسم أو رقم فيلا معينة لتصفية التقرير عليها' },
+        },
+      },
+    },
+    source: { kind: 'table', name: 'labor_daily_logs + projects + expenses + payment_vouchers + material_issues + sub_claims + job_orders + user_requests' },
+    permission: null,
+    extraPermissions: [
+      { module: 'labor_logs', action: 'view', for: 'قسم العمالة اليومية' },
+      { module: 'laborcost', action: 'view', for: 'أجور العمالة والمنصرف للعمالة' },
+      { module: 'projects', action: 'view', for: 'قسم الفلل والمشاريع' },
+      { module: 'expenses', action: 'view', for: 'قسم المصروفات' },
+      { module: 'payments', action: 'view', for: 'سندات الصرف' },
+    ],
+    requiresCompany: true,
+    flag: { env: 'COPILOT_LIVE_FIELD_OPS_ENABLED', default: false },
+    limits: 'تقرير يوم محدد بتوقيت الرياض لجميع الأقسام السبعة (كل قسم يتحقق من صلاحيته ومصدره، والناقص يظهر غير متاح)',
+    output: 'تقرير يومي مفصل من 7 أقسام للعمالة والفلل والمصروفات والمنصرف للعمالة والخامات والمقاولين والركوستات المنجزة.',
+  },
+  {
+    name: 'add_labor_daily_log_draft',
+    status: TOOL_STATUS.PILOT,
+    declaration: {
+      name: 'add_labor_daily_log_draft',
+      description: 'إضافة وتسجيل مسودة يومية عامل جديدة في قاعدة البيانات (labor_daily_logs) عندما يقول المستخدم «ضيفلي يومية عامل...» أو «سجل يومية...» مع اسم العامل والبند والطريحة والإنتاجية (عمل كام) واليومية (الأجر اليومي) والفيلا.',
+      parameters: {
+        type: 'OBJECT',
+        properties: {
+          worker_name: { type: 'STRING', description: 'اسم العامل (مثال: محمد مطيز)' },
+          work_item: { type: 'STRING', description: 'اسم البند المنفذ (مثال: جبس تجليد، محارة، مباني)' },
+          daily_wage: { type: 'NUMBER', description: 'الأجر اليومي بالريال (مثال: 200)' },
+          tareeha: { type: 'NUMBER', description: 'الطريحة المستهدفة لليومية (مثال: 50)' },
+          productivity: { type: 'NUMBER', description: 'الإنتاجية الفعلية المنفذة / عمل كام (مثال: 35)' },
+          unit: { type: 'STRING', description: 'وحدة القياس مثل م2 أو م3 أو متر طولي (الافتراضي م2)' },
+          attendance_value: { type: 'NUMBER', description: 'قيمة الحضور: 1 يوم كامل، 0.5 نصف يوم (الافتراضي 1)' },
+          site_ref: { type: 'STRING', description: 'اسم أو رقم الفيلا / المشروع (مثال: فيلا 657)' },
+          work_date: { type: 'STRING', description: 'تاريخ اليومية YYYY-MM-DD أو today (الافتراضي today)' },
+          sub_contractor: { type: 'STRING', description: 'اسم مقاول الباطن إن وجد' },
+          notes: { type: 'STRING', description: 'ملاحظات إضافية' },
+        },
+        required: ['worker_name'],
+      },
+    },
+    source: { kind: 'table', name: 'labor_daily_logs' },
+    permission: { module: 'labor_logs', action: 'view' },
+    requiresCompany: true,
+    flag: { env: 'COPILOT_LIVE_FIELD_OPS_ENABLED', default: false },
+    limits: 'حفظ مسودة غير مرحّلة (is_posted = false) مرتبطة بالشركة',
+    output: 'تأكيد حفظ مسودة اليومية مع حساب نسبة إنجاز الطريحة والعجز.',
+  },
+  {
+    name: 'add_expense_draft',
+    status: TOOL_STATUS.PILOT,
+    declaration: {
+      name: 'add_expense_draft',
+      description: 'إضافة وتسجيل مسودة مصروف جديدة في جدول المصروفات (expenses) عندما يقول المستخدم «ضيف مصروف...» أو «سجل مصروف...» مع البيان والمبلغ والفيلا/المشروع.',
+      parameters: {
+        type: 'OBJECT',
+        properties: {
+          description: { type: 'STRING', description: 'بيان أو سبب المصروف' },
+          total_price: { type: 'NUMBER', description: 'إجمالي المبلغ بالريال' },
+          site_ref: { type: 'STRING', description: 'اسم أو رقم الفيلا / المشروع' },
+          payee_name: { type: 'STRING', description: 'اسم المستفيد' },
+          main_category: { type: 'STRING', description: 'التصنيف الرئيسي للمصروف' },
+          payment_method: { type: 'STRING', description: 'طريقة القيد: آجل، عهدة، تسوية داخلية' },
+          exp_date: { type: 'STRING', description: 'تاريخ المصروف YYYY-MM-DD أو today' },
+        },
+        required: ['description', 'total_price'],
+      },
+    },
+    source: { kind: 'table', name: 'expenses' },
+    permission: { module: 'expenses', action: 'view' },
+    requiresCompany: true,
+    flag: { env: 'COPILOT_LIVE_FIELD_OPS_ENABLED', default: false },
+    limits: 'حفظ مسودة مصروف غير مرحّلة (is_posted = false)',
+    output: 'تأكيد حفظ مسودة المصروف في قاعدة بيانات الشركة.',
   },
   {
     name: 'get_worker_month_statement',
@@ -88,8 +200,6 @@ export const TOOL_REGISTRY = Object.freeze([
     },
     permission: { module: 'labor_logs', action: 'view' },
     requiredPermissions: [{ module: 'partners', action: 'view', for: 'هوية العامل الثابتة (partners.id)' }],
-    // Money section only with ALL of these: the wage permission chosen by the owner (laborcost) + every
-    // module the payroll RPCs read. Missing one would make RLS return zeros silently, so it shows «غير متاح».
     extraPermissions: [
       { module: 'laborcost', action: 'view', for: 'الأجور (اختيار صاحب المشروع)' },
       { module: 'violations', action: 'view', for: 'الجزاءات' },
@@ -143,3 +253,7 @@ export const RETIRED_TOOL_NAMES = Object.freeze(TOOL_REGISTRY.filter(e => e.stat
 export const DECLARED_TOOLS = Object.freeze(
   TOOL_REGISTRY.filter(e => e.declaration && (e.status === TOOL_STATUS.ACTIVE || e.status === TOOL_STATUS.PILOT)).map(e => e.declaration),
 );
+
+export const COPILOT_TOOL_REGISTRY = TOOL_REGISTRY;
+export const COPILOT_FUNCTION_DECLARATIONS = DECLARED_TOOLS;
+export const COPILOT_TOOL_BY_NAME = byName;

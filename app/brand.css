@@ -18,7 +18,6 @@
   --accent-light: var(--accent-soft-bg);
   --bg-main: var(--bg-canvas, #07080b);
   --text-main: var(--text-primary, #fefcf9);
-  --text-muted: var(--text-secondary, #ede5da);
   --glass-surface: var(--surface-card);
   --glass-border: transparent;
   --input-bg: var(--surface-sunken, #090807);
@@ -35,7 +34,7 @@ html.phi-brand body {
   accent-color: var(--accent-main) !important;
 }
 
-html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
+html.phi-brand ::selection { background: var(--accent-ink); color: var(--bg-canvas); }
 .phi-brand :is(button, a, input, select, textarea):focus-visible { outline: 2px solid var(--accent-main); outline-offset: 3px; }
 
 /* 🌟 Master Header: سطح فحم جلوسي بدون إطارات صلبة */
@@ -66,7 +65,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   background: var(--accent-soft-bg) !important; 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 8px 20px -4px var(--accent-glow) !important; 
   border: none !important; 
-  color: var(--accent-bright) !important;
+  color: var(--accent-ink) !important;
 }
 
 .phi-brand .imperial-trigger { 
@@ -97,7 +96,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 }
 .phi-brand .nav-btn-glass:hover { 
   background: var(--accent-soft-bg); 
-  color: var(--accent-bright);
+  color: var(--accent-ink);
   box-shadow: 0 4px 15px var(--accent-glow); 
 }
 
@@ -150,7 +149,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 }
 .phi-brand .filter-toggle-tab-v3:hover { 
   background: var(--accent-soft-bg) !important; 
-  color: var(--accent-bright) !important;
+  color: var(--accent-ink) !important;
 }
 .phi-brand .sidebar-logo-container { border: none; }
 .phi-brand .sidebar-logo-img { filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5)) !important; }
@@ -164,7 +163,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   background: var(--surface-sunken) !important; 
   border: none !important; 
   color: var(--text-primary) !important; 
-  color-scheme: dark; 
+  color-scheme: var(--native-color-scheme);
   box-shadow: var(--shadow-sunken) !important;
 }
 .phi-brand .filter-input::placeholder,
@@ -200,7 +199,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 }
 .phi-brand .fab-logo { filter: brightness(0) invert(1); }
 .phi-brand .overlay-screen { background: rgba(9, 10, 13, 0.95); backdrop-filter: blur(15px); }
-.phi-brand .group-header { color: #f3f4f6; border-bottom: none; text-shadow: none; }
+.phi-brand .group-header { color: var(--text-primary); border-bottom: none; text-shadow: none; }
 
 /* كروت التنقل الداخلية */
 .phi-brand .nav-card { 
@@ -227,7 +226,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 }
 .phi-brand .nav-card .icon-wrapper { 
   background: var(--accent-soft-bg); 
-  color: var(--accent-bright); 
+  color: var(--accent-ink);
   border: none; 
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1); 
 }
@@ -276,7 +275,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   background: var(--accent-soft-bg); 
   border: none; 
   border-radius: 18px; 
-  color: var(--accent-bright); 
+  color: var(--accent-ink);
 }
 .phi-brand .module-card:hover .module-icon { 
   background: var(--accent-main); 
@@ -284,7 +283,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 }
 
 .phi-brand .add-fav-card { 
-  color: var(--accent-bright); 
+  color: var(--accent-ink);
   background: var(--accent-soft-bg); 
   border: none; 
   box-shadow: inset 0 0 0 1px var(--accent-glow); 
@@ -295,7 +294,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   box-shadow: inset 0 0 0 1px var(--accent-main); 
   transform: translateY(-3px); 
 }
-.phi-brand .add-fav-title { color: var(--accent-bright); }
+.phi-brand .add-fav-title { color: var(--accent-ink); }
 
 /* أزرار الإجراءات الذهبية والعنبرية */
 .phi-brand .btn-gold-pro, 
@@ -355,7 +354,7 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
 }
 .phi-brand .workspace-button[aria-pressed="true"] { 
   background: var(--accent-soft-bg); 
-  color: var(--accent-bright); 
+  color: var(--accent-ink);
   box-shadow: 0 4px 15px var(--accent-glow); 
 }
 .phi-brand .workspace-search-trigger { 
@@ -390,19 +389,24 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   border-radius: 24px;
   box-shadow: var(--shadow-ambient); 
 }
-.phi-brand .login-wrapper .cinematic-title { color: #ffffff; text-shadow: none; }
+.phi-brand .login-wrapper .cinematic-title { color: var(--text-primary); text-shadow: none; }
 .phi-brand .login-wrapper .cinematic-subtitle, 
 .phi-brand .login-wrapper .toggle-btn, 
 .phi-brand .login-wrapper .glass-card > div:last-child p { color: var(--phi-muted) !important; }
+.phi-brand .login-wrapper .floating-label { color: var(--text-secondary); }
+.phi-brand .login-wrapper .cinematic-input:-webkit-autofill {
+  -webkit-text-fill-color: var(--text-primary) !important;
+  box-shadow: inset 0 0 0 1000px var(--surface-sunken) !important;
+}
 
 .phi-brand .login-wrapper .submit-btn { 
-  background: var(--accent-gradient); 
-  color: white; 
+  background: var(--action-fill);
+  color: var(--action-ink);
   box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35); 
   border-radius: 14px; 
 }
 .phi-brand .login-wrapper .submit-btn:hover:not(:disabled) { 
-  background: var(--accent-gradient); filter: brightness(1.08); 
+  background: var(--action-fill); filter: brightness(1.08);
 }
 
 .phi-brand .phi-signup { background: var(--phi-background) !important; }
@@ -412,12 +416,12 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   border-radius: 24px; 
   box-shadow: var(--shadow-ambient); 
 }
-.phi-brand .phi-signup .signup-card h2 { color: #ffffff !important; }
+.phi-brand .phi-signup .signup-card h2 { color: var(--text-primary) !important; }
 .phi-brand .phi-signup .signup-card p { color: var(--phi-muted) !important; }
 .phi-brand .phi-signup .input-label { color: var(--text-secondary); }
 .phi-brand .phi-signup .signup-btn { 
-  background: var(--accent-gradient); 
-  color: white; 
+  background: var(--action-fill);
+  color: var(--action-ink);
   border-radius: 14px; 
   box-shadow: 0 10px 30px rgba(249, 115, 22, 0.35); 
 }
@@ -430,26 +434,47 @@ html.phi-brand ::selection { background: var(--accent-main); color: #ffffff; }
   border-radius: 20px;
   box-shadow: var(--card-shadow); 
 }
-.phi-brand .phi-light-form h1 { color: #ffffff !important; }
+.phi-brand .phi-light-form h1 { color: var(--text-primary) !important; }
 .phi-brand .phi-light-form .standard-input option { background: var(--surface-sunken); color: var(--text-primary); }
 .phi-brand .phi-light-form .floating-label, .phi-brand .phi-light-form .input-group label { color: var(--phi-muted); }
 .phi-brand .phi-light-form :is(.forced-float, .standard-input:focus ~ .floating-label, .standard-input:not(:placeholder-shown) ~ .floating-label) { 
   background: var(--surface-sunken) !important; 
-  color: #fb923c !important; 
+  color: var(--accent-ink) !important;
 }
 .phi-brand .phi-light-form .btn-submit, .phi-brand .phi-light-form .btn-save { 
-  background: var(--accent-gradient); 
-  color: white; 
+  background: var(--action-fill);
+  color: var(--action-ink);
   border-radius: 12px;
 }
-.phi-brand .phi-light-form .btn-add { 
-  background: rgba(255, 255, 255, 0.05); 
+.phi-brand .phi-light-form .btn-add {
+  background: var(--surface-subcard);
   border: none; 
-  color: #f3f4f6; 
+  color: var(--text-primary);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-.phi-brand .phi-light-form .phi-back-button { color: #f3f4f6 !important; border: none !important; background: rgba(255, 255, 255, 0.05); }
+.phi-brand .phi-light-form .phi-back-button { color: var(--text-primary) !important; border: none !important; background: var(--surface-subcard); }
 .phi-brand .phi-light-form .summary-box { background: var(--surface-subcard); border-radius: 16px; }
+
+@media screen {
+  /* Native pickers must use the same scheme as the field, including legacy forms. */
+  html.phi-brand input:is([type="date"], [type="datetime-local"], [type="month"], [type="week"], [type="time"]) {
+    color-scheme: var(--native-color-scheme) !important;
+    background: var(--surface-sunken) !important;
+    color: var(--text-primary) !important;
+    -webkit-text-fill-color: currentColor;
+    min-inline-size: 0;
+    max-inline-size: 100%;
+    outline: 1px solid var(--control-edge);
+    outline-offset: -1px;
+  }
+
+  html.phi-brand input:is([type="date"], [type="datetime-local"], [type="month"], [type="week"], [type="time"]):focus-visible {
+    outline-color: var(--accent-ink);
+    outline-width: 2px;
+  }
+
+  html.phi-brand input::-webkit-calendar-picker-indicator { opacity: 1; cursor: pointer; }
+}
 
 /* Responsive Adjustments (الأبعاد كما هي تماماً) */
 @media (max-width: 768px) {
