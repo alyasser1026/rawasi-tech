@@ -66,7 +66,7 @@ async function withFlags(flags, fn) {
 }
 
 // Kill switches start OFF for every case unless the case turns them on (the shell's values are ignored).
-for (const key of ['COPILOT_PDF_WORKER_ENABLED', 'COPILOT_PDF_CHECKLIST_ENABLED', 'COPILOT_TOOL_TAREEHA_ENABLED']) delete process.env[key];
+for (const key of ['COPILOT_PDF_WORKER_ENABLED', 'COPILOT_PDF_CHECKLIST_ENABLED', 'COPILOT_TOOL_TAREEHA_ENABLED', 'COPILOT_LIVE_FIELD_OPS_ENABLED']) delete process.env[key];
 
 // ─── Fixtures (synthetic — no real data, no secrets) ─────────────────────────
 const COMPANY = '11111111-1111-4111-8111-111111111111';
@@ -78,11 +78,15 @@ const FAKE_KEY = 'sb_publishable_eval';
 const MONEY_PERMS = { laborcost: ['view'], violations: ['view'], payments: ['view'], journal: ['view'] };
 const base = { accessToken: FAKE_TOKEN, companyId: COMPANY, userId: USER, companyName: 'شركة الاختبار' };
 const ACCESS = {
-  full: { ...base, permissions: { labor_logs: ['view'], partners: ['view'], ...MONEY_PERMS } },
-  noWages: { ...base, permissions: { labor_logs: ['view'], partners: ['view'] } },
+  full: { ...base, fullCompanyAccess: true, permissions: { labor_logs: ['view'], partners: ['view'], projects: ['view'], expenses: ['view'], inventory: ['view'], sub_claims: ['view'], ...MONEY_PERMS } },
+  noWages: { ...base, permissions: { labor_logs: ['view'], partners: ['view'], projects: ['view'] } },
   noPartners: { ...base, permissions: { labor_logs: ['view'], ...MONEY_PERMS } },
   noLabor: { ...base, permissions: {} },
 };
+
+const PROJECT_ROWS = [
+  { id: 'proj-1', project_code: 'PRJ-638', Property: 'فيلا 638', project_name: 'فيلا 638', status: 'قيد التنفيذ', current_stage: 'المرحلة الخامسة: اللياسة والجبس', unit_type: 'D', unit_area: 277, engineer_in_charge: 'م. أحمد', project_manager: 'م. محمد', contract_value: 500000 },
+];
 
 const LABOR_ROWS = [
   { work_date: '2026-11-03', worker_name: 'محمود حسن', site_ref: 'فيلا 1', work_item: 'محارة', attendance_value: 1 },
@@ -130,6 +134,7 @@ function createMockSupabase({ scenario = 'default' } = {}) {
     if (url.pathname.endsWith('/rpc/pull_payroll_module_data')) rows = PAYROLL_MODULE;
     else if (url.pathname.endsWith('/rpc/get_payroll_balances_with_cutoff')) rows = PAYROLL_BALANCES;
     else if (url.pathname.endsWith('/partners')) rows = PARTNERS[scenario] ?? PARTNERS.default;
+    else if (url.pathname.endsWith('/projects')) rows = PROJECT_ROWS;
     else if (url.pathname.endsWith('/labor_daily_logs')) {
       if (url.searchParams.get('tareeha') === 'gt.0') rows = TAREEHA_ROWS;
       else if (select.includes('production_desc')) rows = statementRows(select.includes('daily_wage'));
@@ -364,7 +369,13 @@ async function runModelCheck(testCase, now, fixedDate) {
       ...(turn.tool ? { toolName: turn.tool } : { modelText: turn.model ?? 'تم.' }) });
   });
   const context = conversation.getContext({ ...ACTOR, scope });
-  const systemInstructions = buildSystemInstructions({ knowledge: loadKnowledge(), declarations, referenceMissing: false, date: fixedDate });
+  const systemInstructions = buildSystemInstructions({
+    knowledge: loadKnowledge(),
+    declarations,
+    referenceMissing: Boolean(testCase.quoted_message) || Boolean(context.referenceMissing),
+    quotedMessageText: testCase.quoted_message ?? null,
+    date: fixedDate,
+  });
 
   let parts;
   try {

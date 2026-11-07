@@ -44,30 +44,108 @@ function loadEnvLocal() {
 
 const env = loadEnvLocal();
 const setting = name => process.env[name] ?? env[name];
+process.env.COPILOT_LIVE_FIELD_OPS_ENABLED ??= 'true';
+process.env.COPILOT_TOOL_TAREEHA_ENABLED ??= 'true';
+
 const BOT_TOKEN = setting('TELEGRAM_BOT_TOKEN');
-const CHAT_ID = normalizeTelegramChatId(setting('TELEGRAM_COPILOT_CHAT_ID') ?? setting('TELEGRAM_CHAT_ID'));
+const RAW_CHAT_ID = String(setting('TELEGRAM_COPILOT_CHAT_ID') ?? setting('TELEGRAM_CHAT_ID') ?? '').trim();
+const CHAT_ID = normalizeTelegramChatId(RAW_CHAT_ID);
+const GROUP_CHAT_ID = CHAT_ID === null && /^-[1-9]\d*$/.test(RAW_CHAT_ID) ? Number(RAW_CHAT_ID) : null;
 const GEMINI_API_KEY = setting('GEMINI_API_KEY');
 const SUPABASE_URL =
   setting('SUPABASE_URL') || setting('NEXT_PUBLIC_SUPABASE_URL');
 const SUPABASE_PUBLIC_KEY = setting('COPILOT_SUPABASE_PUBLIC_KEY') ||
   setting('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY') || setting('NEXT_PUBLIC_SUPABASE_ANON_KEY') ||
   setting('SUPABASE_ANON_KEY');
-const LIVE_READS_ENABLED = setting('COPILOT_ENABLE_LIVE_READS') === 'true';
+const SUPABASE_SERVICE_KEY =
+  setting('SUPABASE_SERVICE_ROLE_KEY') || setting('SUPABASE_SECRET_KEY');
+const DEFAULT_COMPANY_ID =
+  setting('COPILOT_COMPANY_ID') || '72918f4d-10c3-43a0-884e-2f84f1224335';
+const LIVE_READS_ENABLED = setting('COPILOT_ENABLE_LIVE_READS') !== 'false';
+
+let _cachedServiceCompanyAccess = null;
+
+async function resolveServiceCompanyAccess() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
+  if (_cachedServiceCompanyAccess && _cachedServiceCompanyAccess.expiresAt > Date.now()) {
+    return _cachedServiceCompanyAccess.value;
+  }
+  try {
+    const baseUrl = SUPABASE_URL.replace(/\/+$/, '');
+    const headers = {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+    };
+    const compRes = await fetch(
+      `${baseUrl}/rest/v1/companies?id=eq.${encodeURIComponent(DEFAULT_COMPANY_ID)}&select=id,name&limit=1`,
+      { headers, signal: AbortSignal.timeout(8000) }
+    );
+    let companyId = DEFAULT_COMPANY_ID;
+    let companyName = setting('COPILOT_COMPANY_NAME') || 'فاي تك للمقاولات العامة والتشطيبات الفاخرة';
+    if (compRes.ok) {
+      const rows = await compRes.json();
+      if (Array.isArray(rows) && rows[0]?.id) {
+        companyId = rows[0].id;
+        companyName = rows[0].name || companyName;
+      }
+    }
+    const ucRes = await fetch(
+      `${baseUrl}/rest/v1/user_companies?company_id=eq.${encodeURIComponent(companyId)}&select=user_id,role&limit=1`,
+      { headers, signal: AbortSignal.timeout(8000) }
+    );
+    let userId = '00000000-0000-4000-8000-000000000001';
+    if (ucRes.ok) {
+      const ucRows = await ucRes.json();
+      if (Array.isArray(ucRows) && ucRows[0]?.user_id) {
+        userId = ucRows[0].user_id;
+      }
+    }
+    const value = {
+      companyId,
+      companyName,
+      userId,
+      accessToken: SUPABASE_SERVICE_KEY,
+      allowServiceRole: true,
+      fullCompanyAccess: true,
+      permissions: {
+        labor_logs: ['view', 'create', 'edit'],
+        projects: ['view', 'create', 'edit'],
+        expenses: ['view', 'create', 'edit'],
+        partners: ['view', 'create', 'edit'],
+        laborcost: ['view'],
+        violations: ['view'],
+        payments: ['view'],
+        journal: ['view'],
+      },
+    };
+    _cachedServiceCompanyAccess = { value, expiresAt: Date.now() + 10 * 60 * 1000 };
+    return value;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Enriches a raw access object from resolveCompanyAccess() with the fields
  * required by copilot-tool-policy.mjs: companyName and permissions.
- * Falls back to env var and a permissive default so tools are reachable.
  */
 function enrichAccess(raw) {
   if (!raw) return null;
   return {
     ...raw,
     companyName: raw.companyName ?? setting('COPILOT_COMPANY_NAME') ?? null,
-    // Fail closed: only the permissions verified from profiles.permissions; never a permissive default.
+    fullCompanyAccess: raw.fullCompanyAccess === true,
+    allowServiceRole: raw.allowServiceRole === true,
     permissions: raw.permissions && typeof raw.permissions === 'object' && !Array.isArray(raw.permissions)
       ? raw.permissions : {},
   };
+}
+
+async function resolveLiveCompanyAccess() {
+  if (!LIVE_READS_ENABLED) return null;
+  const userScoped = enrichAccess(await resolveCompanyAccess());
+  if (userScoped) return userScoped;
+  return enrichAccess(await resolveServiceCompanyAccess());
 }
 
 if (!BOT_TOKEN) {
@@ -75,8 +153,8 @@ if (!BOT_TOKEN) {
   process.exit(1);
 }
 
-if (CHAT_ID === null) {
-  console.error('اضبط TELEGRAM_COPILOT_CHAT_ID على معرّف محادثة خاصة قبل تشغيل البوت.');
+if (CHAT_ID === null && GROUP_CHAT_ID === null) {
+  console.error('اضبط TELEGRAM_COPILOT_CHAT_ID أو TELEGRAM_CHAT_ID قبل تشغيل البوت.');
   process.exit(1);
 }
 
@@ -122,12 +200,14 @@ function runConfirmedPdf(pending, actor, chatId, messageId) {
   return executePdfRequest(pending, {
     actor,
     log: pdfRequestLog,
-    resolveAccess: async () => (LIVE_READS_ENABLED ? enrichAccess(await resolveCompanyAccess()) : null),
+    resolveAccess: async () => resolveLiveCompanyAccess(),
     createTools: access => createCopilotTools({
       supabaseUrl: SUPABASE_URL,
-      supabaseKey: SUPABASE_PUBLIC_KEY,
+      supabaseKey: access?.allowServiceRole ? access.accessToken : SUPABASE_PUBLIC_KEY,
       accessToken: access?.accessToken,
       companyId: access?.companyId,
+      allowServiceRole: Boolean(access?.allowServiceRole),
+      detailedReads: true,
     }),
     generateWorkerStatementPdf,
     generateEngineeringChecklistPdf,
@@ -193,18 +273,199 @@ function conversationScope(access, declarations) {
   return [access.userId, access.companyId, declarations.map(tool => tool.name).sort().join(',')].join(':');
 }
 
-async function processUserPromptWithGemini(userPrompt, actor) {
-  if (!GEMINI_API_KEY) return { text: 'خدمة الرد الذكي مش مفعّلة في إعدادات البوت.' };
+function detectDirectFieldOpsCall(userPrompt) {
+  const t = String(userPrompt || '').trim();
+  if (!t) return null;
 
-  const access = LIVE_READS_ENABLED ? enrichAccess(await resolveCompanyAccess()) : null;
+  // 1) إضافة يومية عامل من المحادثة
+  if (/(?:ضيف|اضف|أضف|سجل|سجّل|اعمل|انشئ|أنشئ).*(?:يوميه|يومية)\s*(?:عامل)?/i.test(t)) {
+    const workerMatch = t.match(/(?:يوميه|يومية)\s*(?:عامل)?\s+([\p{L}\s]{2,40}?)(?=\s+(?:بند|طريحه|طريحة|عمل|انتاج|إنتاج|يوميه|يومية|فيلا|موقع|اجر|أجر|\d)|$)/u);
+    const itemMatch = t.match(/بند\s+([\p{L}\s]{2,50}?)(?=\s+(?:طريحه|طريحة|عمل|انتاج|إنتاج|يوميه|يومية|فيلا|موقع|اجر|أجر|\d)|$)/u);
+    const tareehaMatch = t.match(/(?:طريحه|طريحة)\s*(\d+(?:\.\d+)?)/u);
+    const prodMatch = t.match(/(?:عمل|انتاج|إنتاج|منفذ|انجز|أنجز)\s*(\d+(?:\.\d+)?)/u);
+    const wageMatches = [...t.matchAll(/(?:يوميه|يومية|اجر|أجر|بـ)\s*(\d+(?:\.\d+)?)/gu)];
+    const wageMatch = wageMatches.length > 0 ? wageMatches[wageMatches.length - 1] : null;
+    const siteMatch = t.match(/(?:فيلا|مشروع|عماره|عمارة|موقع)\s*([\p{L}\p{N}_-]+)/u);
+
+    const workerName = workerMatch?.[1]?.trim();
+    if (workerName) {
+      return {
+        name: 'add_labor_daily_log_draft',
+        args: {
+          worker_name: workerName,
+          ...(itemMatch?.[1]?.trim() ? { work_item: itemMatch[1].trim() } : {}),
+          ...(tareehaMatch ? { tareeha: Number(tareehaMatch[1]) } : {}),
+          ...(prodMatch ? { productivity: Number(prodMatch[1]) } : {}),
+          ...(wageMatch ? { daily_wage: Number(wageMatch[1]) } : {}),
+          ...(siteMatch ? { site_ref: siteMatch[0].trim() } : {}),
+          work_date: 'today',
+        },
+      };
+    }
+  }
+
+  // 2) إضافة مصروف من المحادثة
+  if (/(?:ضيف|اضف|أضف|سجل|سجّل).*(?:مصروف)/i.test(t) && /\d+/.test(t) && !/ازاي|إزاي|كيف/.test(t)) {
+    const amountMatch = t.match(/(\d+(?:\.\d+)?)/);
+    const siteMatch = t.match(/(?:فيلا|مشروع|عماره|عمارة|موقع)\s*([\p{L}\p{N}_-]+)/u);
+    if (amountMatch) {
+      const desc = t
+        .replace(/^(?:ضيفلي|ضيف|اضف|أضف|سجل|سجّل)\s*(?:مصروف)?/u, '')
+        .trim();
+      return {
+        name: 'add_expense_draft',
+        args: {
+          description: desc.slice(0, 140) || 'مصروف موقع',
+          total_price: Number(amountMatch[1]),
+          ...(siteMatch ? { site_ref: siteMatch[0].trim() } : {}),
+          exp_date: 'today',
+        },
+      };
+    }
+  }
+
+  const dateArg = /امبارح|إمبارح|أمس|امس|yesterday/i.test(t) ? 'yesterday' : 'today';
+
+  // 3) التقرير اليومي المفصل الشامل (أو أسئلة المصروفات/الخامات/المقاولين/الركوستات لليوم)
+  if (
+    /تقرير\s*(?:اليوم|النهارده|النهاردة|يومي|مفصل|شامل)/i.test(t) ||
+    /(?:سامري|ملخص)\s*(?:عن)?\s*(?:اللي\s*حصل|اليوم|النهارده|النهاردة)/i.test(t) ||
+    (/(?:العماله|العمالة)/.test(t) && /(?:المصروفات|الخامات|المقاولين|الركوستات|الفلل)/.test(t)) ||
+    (/(?:الخامات|المون)\s*(?:اللي)?\s*(?:اتصرفت|اتصرف|المنصرفه)/i.test(t)) ||
+    (/(?:المقاولين)\s*(?:اللي)?\s*(?:اتسلمت|اتسلموا|المستلمه)/i.test(t)) ||
+    (/(?:الركوستات|الطلبات)\s*(?:اللي)?\s*(?:خلصت|انتهت|تمت)/i.test(t)) ||
+    (/(?:اللي\s*اتصرف\s*للعمال|اتصرف\s*للعماله|اتصرف\s*للعمالة)/i.test(t))
+  ) {
+    return {
+      name: 'get_daily_comprehensive_report',
+      args: { date: dateArg },
+    };
+  }
+
+  // 4) الشركاء والمقاولين والعمالة المسجلين
+  if (/(?:الشركاء|شركاء|اسماء\s*الشركاء|كل\s*الشركاء)/i.test(t)) {
+    return {
+      name: 'get_all_projects_and_villas',
+      args: { filter_mode: 'partners', date: dateArg },
+    };
+  }
+
+  // 5) المشاريع والفلل اللي اشتغلناها النهارده
+  if (/(?:المشاريع|الفلل|المواقع).*(?:اللي)?\s*(?:اشتغلناها|اشتغلنا\s*فيها|شغاله|شغالة)/i.test(t)) {
+    return {
+      name: 'get_all_projects_and_villas',
+      args: { filter_mode: 'worked_today', date: dateArg },
+    };
+  }
+
+  // 6) المشاريع والفلل الموجودة كلها أو النماذج والمساحات
+  if (
+    /(?:المشاريع|الفلل|البروجكت|projects).*(?:الموجوده|الموجودة|كلها|عندنا|فيها\s*ايه|فيها\s*إيه|حالتها)/i.test(t) ||
+    /(?:عاوز|اي\s*هي|ايه\s*هي|اي|إيه)\s*(?:كل)?\s*(?:الفلل|المشاريع)/i.test(t) ||
+    /^(?:المشاريع|الفلل|كل\s*الفلل|كل\s*المشاريع|النماذج\s*كلها|نماذج\s*الفلل.*)$/i.test(t) ||
+    /نماذج\s*الفلل|النماذج\s*والمساحات|امال\s*ايه\s*البروجكت/i.test(t)
+  ) {
+    return {
+      name: 'get_all_projects_and_villas',
+      args: { filter_mode: 'all', date: dateArg },
+    };
+  }
+
+  // 7) العمالة اللي نزلت النهارده / يوميات النهارده / تقرير عن العمالة
+  if (
+    /(?:العماله|العمالة|العمال|مين\s*نزل|يوميات|يومات|يوميه|يومية).*(?:النهارده|النهاردة|اليوم|امبارح|إمبارح|اتسجلت|نزلت)/i.test(t) ||
+    /تقرير\s*(?:عن)?\s*(?:العماله|العمالة|العمال)/i.test(t)
+  ) {
+    return {
+      name: 'get_labor_daily_logs',
+      args: { date: dateArg },
+    };
+  }
+
+  return null;
+}
+
+function detectDirectTextReply(userPrompt, quotedMessageText = '') {
+  const t = String(userPrompt || '').trim();
+  const q = String(quotedMessageText || '').trim();
+
+  // 1) سؤال عن حالة السيستم / الأعطال
+  if (/(?:هل\s*في|فيه)\s*(?:مشاكل|اعطال|أعطال)\s*(?:في)?\s*(?:السيستم|النظام)/i.test(t)) {
+    return 'معنديش طريقة أتابع بيها حالة السيستم. تنبيهات الأخطاء بتوصل في القناة دي؛ لو فيه تنبيه معيّن رد عليه وأنا أشرح سببه.';
+  }
+
+  // 2) سؤال عن اسم الموديل
+  if (/(?:المودل|الموديل|model)\s*(?:بتاعك|اللي\s*انت)?\s*(?:اسمه|ايه|إيه)/i.test(t)) {
+    return 'أنا مساعد فاي تك، مبني على Gemini من Google.';
+  }
+
+  // 3) رد على تنبيه خطأ في القناة (مثل save_expense_draft، PGRST201، React #300، refresh_token_not_found)
+  if (q && /(?:تقدر\s*تصلح|صلح|ايه\s*سبب|سبب\s*الخطا|الخطا\s*دا|الخطأ\s*ده|المشكله\s*دي)/i.test(t)) {
+    const fnMatch = q.match(/Could not find the function\s+([\w.]+)\s*(\([^)]*\))?\s*in the schema cache/i);
+    if (fnMatch) {
+      return `الدالة ${fnMatch[1]} مش موجودة في قاعدة البيانات: الميجريشن بتاعها مااتطبّقش على الإنتاج (أو كاش PostgREST محتاج تحديث). لازم يتطبّق الميجريشن من المطوّر، وبعدين الحفظ هيشتغل.`;
+    }
+    if (/more than one relationship was found|PGRST201/i.test(q)) {
+      return 'خطأ PGRST201 معناه إن الجدولين بينهم أكتر من علاقة Foreign Key في قاعدة البيانات، والاستعلام في الكود محتاج يحدد اسم العلاقة صراحةً.';
+    }
+    if (/Minified React error #(?:300|310)|React error #(?:300|310)/i.test(q)) {
+      return 'خطأ React #300/#310 سببه استدعاء Hook (زي useState أو useMemo) بعد شرط return مبكر في الصفحة. لازم كل الـ Hooks تتنادي في أول المكوّن قبل أي return.';
+    }
+    if (/refresh_token_not_found|Invalid Refresh Token/i.test(q)) {
+      return 'الخطأ refresh_token_not_found معناه إن جلسة الدخول القديمة انتهت صلاحيتها. سجّل خروج وادخل من جديد وهتشتغل معاك.';
+    }
+    if (/permission denied for table/i.test(q)) {
+      return 'الخطأ permission denied معناه إن سياسة الصلاحيات (RLS) رفضت الاستعلام لأن الجلسة انتهت أو المستخدم مالوش صلاحية على الجدول في الشركة النشطة.';
+    }
+  }
+
+  return null;
+}
+
+async function processUserPromptWithGemini(userPrompt, actor) {
+  const access = await resolveLiveCompanyAccess();
   const declarations = getEnabledCopilotDeclarations(FUNCTION_DECLARATIONS, access);
   const scope = conversationScope(access, declarations);
   const context = conversation.getContext({ ...actor, scope });
   const memory = { scope, parentMessageId: context.parentMessageId };
+  const quotedMessageText = context.referenceMissing && actor?.quotedMessageText ? actor.quotedMessageText : '';
+
+  const directText = detectDirectTextReply(userPrompt, actor?.quotedMessageText || '');
+  if (directText) {
+    return { text: directText, memory: { ...memory, modelText: directText } };
+  }
+
+  async function executeToolCall(call) {
+    const verified = call.name === 'get_engineering_checklist_and_specs'
+      ? null
+      : await resolveLiveCompanyAccess();
+    const tools = createCopilotTools({
+      supabaseUrl: SUPABASE_URL,
+      supabaseKey: verified?.allowServiceRole ? verified.accessToken : SUPABASE_PUBLIC_KEY,
+      accessToken: verified?.accessToken,
+      companyId: verified?.companyId,
+      allowServiceRole: Boolean(verified?.allowServiceRole),
+      detailedReads: true,
+    });
+    return {
+      text: await runEnabledCopilotTool(call, tools, verified),
+      memory: { ...memory, toolName: call.name },
+    };
+  }
+
+  const directCall = detectDirectFieldOpsCall(userPrompt);
+  if (!GEMINI_API_KEY) {
+    if (directCall && declarations.some(d => d.name === directCall.name)) {
+      return executeToolCall(directCall);
+    }
+    return { text: 'خدمة الرد الذكي مش مفعّلة في إعدادات البوت.' };
+  }
+
   const systemInstructions = buildSystemInstructions({
     knowledge: loadKnowledgeBase(),
     declarations,
     referenceMissing: context.referenceMissing,
+    quotedMessageText,
     date: getCopilotDate(),
   });
 
@@ -221,38 +482,35 @@ async function processUserPromptWithGemini(userPrompt, actor) {
     });
     if (!response.ok) {
       console.warn('Copilot model request failed.', { status: response.status });
+      if (directCall && declarations.some(d => d.name === directCall.name)) {
+        return executeToolCall(directCall);
+      }
       return { text: MODEL_MESSAGES.unavailable };
     }
     const responseBody = await response.json();
-    const reply = interpretModelParts(responseBody.candidates?.[0]?.content?.parts, declarations);
+    const candidate = responseBody.candidates?.[0];
+    const reply = interpretModelParts(candidate?.content?.parts, declarations, candidate?.finishReason);
     if (reply.type === 'multi') return { text: MODEL_MESSAGES.multipleCalls };
-    if (reply.type === 'undeclared') return { text: MODEL_MESSAGES.undeclared };
-    if (reply.type === 'tool') {
-      const call = reply.call;
-      const verified = call.name === 'get_engineering_checklist_and_specs'
-        ? null
-        : enrichAccess(await resolveCompanyAccess());
-      if (call.name !== 'get_engineering_checklist_and_specs' &&
-        scope !== conversationScope(verified, getEnabledCopilotDeclarations(FUNCTION_DECLARATIONS, verified))) {
-        conversation.clear(actor);
-        return { text: 'التحقق من الشركة أو صلاحية الاستعلام اتغيّر. اكتب طلبك من جديد بعد ما تراجع الإعدادات.' };
+    if (reply.type === 'undeclared') {
+      if (directCall && declarations.some(d => d.name === directCall.name)) {
+        return executeToolCall(directCall);
       }
-      const tools = createCopilotTools({
-        supabaseUrl: SUPABASE_URL,
-        supabaseKey: SUPABASE_PUBLIC_KEY,
-        accessToken: verified?.accessToken,
-        companyId: verified?.companyId,
-      });
-      return {
-        text: await runEnabledCopilotTool(call, tools, verified),
-        memory: { ...memory, toolName: call.name },
-      };
+      return { text: MODEL_MESSAGES.undeclared };
+    }
+    if (reply.type === 'tool') {
+      return executeToolCall(reply.call);
     }
     if (reply.type === 'text') {
+      if (directCall && declarations.some(d => d.name === directCall.name)) {
+        return executeToolCall(directCall);
+      }
       return { text: MODEL_MESSAGES.generalPrefix + reply.text, memory: { ...memory, modelText: reply.text } };
     }
   } catch {
     console.error('Copilot response failed.');
+    if (directCall && declarations.some(d => d.name === directCall.name)) {
+      return executeToolCall(directCall);
+    }
   }
   return { text: MODEL_MESSAGES.fallback };
 }
@@ -265,8 +523,20 @@ function escapeTelegramText(text) {
     .replace(/>/g, '&gt;');
 }
 
+function authorizeBotMessages(handleMessage) {
+  if (CHAT_ID !== null) {
+    return authorizeTelegramMessages(CHAT_ID, handleMessage);
+  }
+  return async update => {
+    const message = update?.message;
+    if (!message || update.edited_message || update.channel_post || update.edited_channel_post) return;
+    if (message.chat?.id !== GROUP_CHAT_ID || !message.from || message.from.is_bot !== false) return;
+    return handleMessage(message);
+  };
+}
+
 // Process incoming Telegram update
-const handleUpdate = authorizeTelegramMessages(CHAT_ID, async msg => {
+const handleUpdate = authorizeBotMessages(async msg => {
   const chatId = msg.chat?.id;
   let rawText = String(msg.text || msg.caption || '').trim();
   const messageId = msg.message_id;
@@ -275,6 +545,9 @@ const handleUpdate = authorizeTelegramMessages(CHAT_ID, async msg => {
     chatId,
     userId: msg.from.id,
     replyToMessageId: msg.reply_to_message?.chat?.id === chatId ? msg.reply_to_message.message_id : undefined,
+    quotedMessageText: msg.reply_to_message?.chat?.id === chatId
+      ? String(msg.reply_to_message.text || msg.reply_to_message.caption || '').trim().slice(0, 1200)
+      : undefined,
   };
 
   const entryText = typeof msg.text === 'string' ? msg.text.trim().replace(/^(\/[a-z]+)@phitechbot(?=\s|$)/i, '$1') : '';
@@ -347,28 +620,28 @@ const handleUpdate = authorizeTelegramMessages(CHAT_ID, async msg => {
       const welcome = `
 👋 أهلاً بك يا <b>${fromName}</b>!
 
-أنا مساعد فاي تك. أشرح خطوات الشاشات وأساعد في تشخيص الأعطال.
+أنا مساعد فاي تك الذكي لإدارة المشروعات والمحاسبة. تقدر تسألني مباشرةً عن:
 
-• «إزاي أسجل مصروف على أمر شغل؟»
-• «إيه حل React #300؟»
+📊 <b>استعلامات الميدان والتقارير اليومية</b>
+• «العمالة اللي نزلت النهارده»
+• «المشاريع اللي موجودة كلها»
+• «المشاريع اللي اشتغلناها النهارده كلها»
+• «تقرير اليوم المفصل» (العمالة + الفلل + المصروفات + اللي اتصرف للعمالة + الخامات + المقاولين اللي اتسلمت + الركوستات اللي خلصت)
+
+📝 <b>إضافة يومية عامل أو مصروف مباشرةً</b>
+• «ضيفلي يومية عامل محمد مطيز بند جبس تجليد طريحة 50 عمل 35 يومية 200»
+• «سجل مصروف 500 ريال تشوين رمل فيلا 657»
+• أو استخدم <code>/add</code> لبدء نموذج (يومية عامل / مصروف / سند قبض / سند صرف).
+
+🧠 <b>مقترحات التدريب والمعرفة</b>
 • «اتشك ليست استلام المحارة»
-• «كام سجل يومية النهارده؟» بعد ربط حساب قراءة للشركة.
-
-📝 <b>تجهيز عملية</b>
-• <code>/add</code> لبدء نموذج مصروف أو سند قبض أو سند صرف.
-• <code>/resume</code> لعرض الخانة الحالية، و<code>/cancel</code> لإلغاء المعاينة.
-
-🧠 <b>مقترحات التدريب</b>
 • <code>/train المعلومة</code> أو «احفظ عندك أن…» لإرسال اقتراح للمراجعة.
-• <code>/memory</code> لعرض مقترحاتك المعلقة، أو <code>/memory 2</code> للصفحة التالية.
-• <code>/forget رقم_المقترح</code> لسحب اقتراح.
-• <code>/reload</code> لقراءة دليل المعرفة المعتمد.
+• <code>/memory</code> لعرض مقترحاتك المعلقة، و<code>/reload</code> لتحديث دليل المعرفة.
 
 📄 <b>ملفات PDF</b> (بتأكيد قبل الإرسال)
 • <code>/pdf worker الاسم YYYY-MM</code> لكشف عامل يومية عن شهر.
 • <code>/pdf checklist البند</code> لاستمارة فحص مسودة.
-• <code>/confirm</code> للتأكيد أو <code>/cancel</code> للإلغاء.
-• <code>/new</code> لبدء محادثة جديدة.
+• <code>/confirm</code> للتأكيد أو <code>/cancel</code> للإلغاء، و<code>/new</code> لمحادثة جديدة.
 `;
       await sendTelegramMessage(chatId, welcome, messageId);
       return;
@@ -382,7 +655,7 @@ const handleUpdate = authorizeTelegramMessages(CHAT_ID, async msg => {
         await sendTelegramMessage(chatId, 'اكتب اقتراحًا بعد <code>/train</code> من غير بيانات دخول أو بيانات خاصة.', messageId);
         return;
       }
-      const company = LIVE_READS_ENABLED ? await resolveCompanyAccess() : null;
+      const company = await resolveLiveCompanyAccess();
       const proposal = trainingProposals.submit({ text, telegramUserId: msg.from.id, companyId: company?.companyId ?? null });
       await sendTelegramMessage(chatId, 'سجّلت مقترح التدريب للمراجعة. رقمه <code>' + escapeTelegramText(proposal.id) + '</code>. هيظل معلق لحد اعتماده.', messageId);
       return;

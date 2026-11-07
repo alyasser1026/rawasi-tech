@@ -11,7 +11,7 @@
     },
     "global_excludes_note": "أي رد فيه error/undefined/company_id/stack يعتبر تسريب تفاصيل داخلية"
   },
-  "total": 40,
+  "total": 47,
   "cases": [
     {
       "id": "gs-001",
@@ -1373,6 +1373,259 @@
       "expect": {
         "sent": 0
       }
+    },
+    {
+      "id": "gs-040",
+      "category": "daily-report",
+      "layer": "model",
+      "description": "تقرير اليوم الشامل (من سجل المحادثات الفعلي)",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_LIVE_FIELD_OPS_ENABLED": "true"
+        }
+      },
+      "user_message": "اديني سامري عن اللي حصل النهارده",
+      "expected_tool_call": {
+        "name": "get_daily_comprehensive_report",
+        "args": {
+          "date": "today"
+        }
+      },
+      "expected_response_contains": [
+        "التقرير اليومي المفصل الشامل",
+        "1️⃣ العمالة اللي نزلت",
+        "2️⃣ الفلل والمشاريع",
+        "4️⃣ اللي اتصرف للعمالة"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack",
+        "success: false"
+      ],
+      "notes": "من رسايل القناة الحقيقية: يستدعي get_daily_comprehensive_report ويعرض الـ 7 أقسام بوضوح."
+    },
+    {
+      "id": "gs-041",
+      "category": "projects-villas",
+      "layer": "model",
+      "description": "قايمة الفلل والمشاريع (من سجل المحادثات الفعلي)",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true,
+        "flags": {
+          "COPILOT_LIVE_FIELD_OPS_ENABLED": "true"
+        }
+      },
+      "user_message": "اي هي الفلل اللي موجودة عندك",
+      "expected_tool_call": {
+        "name": "get_all_projects_and_villas",
+        "args": {
+          "filter_mode": "all"
+        }
+      },
+      "expected_response_contains": [
+        "بيان المشاريع والفلل ونماذج المساحات",
+        "إجمالي المشاريع المسجلة",
+        "فيلا 638"
+      ],
+      "expected_response_excludes": [
+        "all",
+        "success: false",
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "من رسايل القناة الحقيقية: يستدعي get_all_projects_and_villas بـ filter_mode=all وممنوع يظهر all أو success: false."
+    },
+    {
+      "id": "gs-042",
+      "category": "system-health",
+      "layer": "model",
+      "description": "السؤال عن صحة السيستم (ممنوع ادعاء عدم وجود أعطال)",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "user_message": "هل في مشاكل في السيستم",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "تنبيه"
+      ],
+      "expected_response_excludes": [
+        "بكفاءة",
+        "لا توجد أي أعطال",
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "مفيش أداة لمراقبة حالة السيستم؛ ممنوع يقول شغال بكفاءة أو مفيش أعطال."
+    },
+    {
+      "id": "gs-043",
+      "category": "partners-list",
+      "layer": "model",
+      "description": "قايمة الشركاء من غير أداة",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "user_message": "ابعتلي كل الشركاء",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "الشركاء"
+      ],
+      "expected_response_excludes": [
+        "متوازنة",
+        "0 شريك",
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "لما أداة المشاريع/الشركاء الميدانية تكون مقفولة، يوجّه لشاشة الشركاء وممنوع يختلق أرقام أو يقول متوازنة."
+    },
+    {
+      "id": "gs-044",
+      "category": "expenses-no-tool",
+      "layer": "model",
+      "description": "سؤال عن مصروفات النهارده من غير أداة التقرير اليومي",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "user_message": "مصروفات النهارده كام",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "المصروفات"
+      ],
+      "expected_response_excludes": [
+        "لا توجد أي مصروفات",
+        "0.00",
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "من غير أداة التقرير اليومي: ممنوع يقول لا توجد أي مصروفات من غير استعلام."
+    },
+    {
+      "id": "gs-045",
+      "category": "follow-up-number",
+      "layer": "model",
+      "description": "متابعة برقم اختيار «2» بعد قايمة اختيارات",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "history": [
+        {
+          "user": "عايز أعرف تفاصيل بنود التشطيب",
+          "model": "اختار البند اللي عايز فحصه:\n1. المباني\n2. بياض المحارة\n3. الدهانات"
+        }
+      ],
+      "user_message": "2",
+      "expected_tool_call": {
+        "name": "get_engineering_checklist_and_specs",
+        "args": {
+          "item_name": "المحارة"
+        }
+      },
+      "allow_no_tool_call": true,
+      "expected_response_contains": [
+        "المحارة"
+      ],
+      "expected_response_excludes": [
+        "أهلاً يا باشمهندس",
+        "منور منظومة فاي تك",
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "لما المستخدم يرد برقم اختيار من آخر رد، ينفّذ الاختيار التاني (المحارة) من غير ما يبدأ من الأول."
+    },
+    {
+      "id": "gs-046",
+      "category": "error-alert-reply",
+      "layer": "model",
+      "description": "رد على تنبيه خطأ save_expense_draft",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "quoted_message": "🚨 [خطأ تقني - ERROR]\nفشل الحفظ: Could not find the function public.save_expense_draft(p_data) in the schema cache",
+      "user_message": "تقدر تصلح الخطا دا",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "ميجريشن"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "يقرأ نص التنبيه المقتبس (save_expense_draft) ويشرح إن الدالة ناقصة بسبب ميجريشن لم يُطبّق على الإنتاج."
+    },
+    {
+      "id": "gs-047",
+      "category": "model-identity",
+      "layer": "model",
+      "description": "السؤال عن اسم الموديل",
+      "preconditions": {
+        "companyId": "set",
+        "userId": "set",
+        "LIVE_READS_ENABLED": true,
+        "COPILOT_TOOLS_ENABLED": true
+      },
+      "user_message": "انت المودل بتاعك اسمه ايه",
+      "expected_tool_call": null,
+      "expected_response_contains": [
+        "Gemini"
+      ],
+      "expected_response_excludes": [
+        "error",
+        "undefined",
+        "null",
+        "company_id",
+        "Supabase",
+        "stack"
+      ],
+      "notes": "يرد بوضوح: أنا مساعد فاي تك، مبني على Gemini من Google."
     }
   ],
   "legacy_cases_note": "الحالات دي من النسخة 1 (schema مختلف). أغلبها أسئلة تشخيص برمجي خارج نطاق البوت الحالي؛ محفوظة كما هي للمراجعة.",

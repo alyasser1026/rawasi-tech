@@ -17,17 +17,23 @@ export interface TechnicalErrorContext {
   skipDedupe?: boolean;
 }
 
-// Client-side deduplication map (prevents repetitive reports within 30 seconds)
-const clientDedupeMap = new Map<string, number>();
-const CLIENT_DEDUPE_MS = 30 * 1000;
+// Client-side deduplication map (prevents repetitive reports on the same page within 60 seconds and tracks repeat counts)
+const clientDedupeMap = new Map<string, { timestamp: number; count: number }>();
+const CLIENT_DEDUPE_MS = 60 * 1000;
 
 function cleanClientDedupe() {
   const now = Date.now();
-  for (const [key, timestamp] of clientDedupeMap.entries()) {
-    if (now - timestamp > CLIENT_DEDUPE_MS) {
+  for (const [key, entry] of clientDedupeMap.entries()) {
+    if (now - entry.timestamp > CLIENT_DEDUPE_MS * 2) {
       clientDedupeMap.delete(key);
     }
   }
+}
+
+function normalizeErrorSignature(message: string): string {
+  const reactMinified = message.match(/Minified React error #(\d+)/i);
+  if (reactMinified) return `react_minified_${reactMinified[1]}`;
+  return message.replace(/\s+/g, ' ').trim().slice(0, 100);
 }
 
 /**
@@ -107,16 +113,22 @@ export async function reportTechnicalError(
     }
 
     const category = context?.category || 'business_exception';
+    const pagePath = typeof window !== 'undefined' ? window.location.pathname : currentUrl;
 
-    // Deduplication check
-    const dedupeKey = `${category}|${currentUrl}|${message.slice(0, 100)}`;
+    // Deduplication check across all categories on the same page within 60 seconds
+    const dedupeKey = `${pagePath}|${code || ''}|${normalizeErrorSignature(message)}`;
     const now = Date.now();
+    let repeatCount = 1;
     if (!context?.skipDedupe) {
-      const lastSent = clientDedupeMap.get(dedupeKey);
-      if (lastSent && now - lastSent < CLIENT_DEDUPE_MS) {
+      const existing = clientDedupeMap.get(dedupeKey);
+      if (existing && now - existing.timestamp < CLIENT_DEDUPE_MS) {
+        existing.count += 1;
         return;
       }
-      clientDedupeMap.set(dedupeKey, now);
+      if (existing && existing.count > 1) {
+        repeatCount = existing.count;
+      }
+      clientDedupeMap.set(dedupeKey, { timestamp: now, count: 1 });
     }
 
     // Try reading active company ID from storage
@@ -126,6 +138,11 @@ export async function reportTechnicalError(
     } catch {
       // storage disabled
     }
+
+    const mergedMetadata = {
+      ...(context?.metadata || {}),
+      ...(repeatCount > 1 ? { aggregatedOccurrences: repeatCount } : {}),
+    };
 
     const payload = {
       level: context?.level || (category === 'react_crash' ? 'fatal' : 'error'),
@@ -139,7 +156,7 @@ export async function reportTechnicalError(
       source: context?.source,
       userAgent: navigator.userAgent,
       companyId,
-      metadata: context?.metadata,
+      metadata: Object.keys(mergedMetadata).length > 0 ? mergedMetadata : undefined,
     };
 
     // Dispatch using direct fetch with keepalive (reliable and never dropped by sendBeacon blob issues)

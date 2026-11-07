@@ -3,17 +3,33 @@ import { formatTelegramErrorDetails, telegramHtml } from '@/lib/telegram-error-g
 
 export const runtime = 'nodejs';
 
-// In-memory rate limiting & deduplication cache (60 seconds per error signature)
-const recentAlertsCache = new Map<string, number>();
+// In-memory rate limiting & deduplication cache (60 seconds per page + error signature, with occurrence counter)
+const recentAlertsCache = new Map<string, { timestamp: number; count: number }>();
 const DEDUPLICATION_WINDOW_MS = 60 * 1000; // 1 minute
 
 function cleanRecentCache() {
   const now = Date.now();
-  for (const [key, timestamp] of recentAlertsCache.entries()) {
-    if (now - timestamp > DEDUPLICATION_WINDOW_MS) {
+  for (const [key, entry] of recentAlertsCache.entries()) {
+    if (now - entry.timestamp > DEDUPLICATION_WINDOW_MS * 2) {
       recentAlertsCache.delete(key);
     }
   }
+}
+
+function normalizeUrlPage(rawUrl?: string): string {
+  if (!rawUrl) return '';
+  try {
+    const parsed = new URL(rawUrl);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return rawUrl.split('?')[0].split('#')[0];
+  }
+}
+
+function normalizeAlertSignature(message: string): string {
+  const reactMinified = message.match(/Minified React error #(\d+)/i);
+  if (reactMinified) return `react_minified_${reactMinified[1]}`;
+  return message.replace(/\s+/g, ' ').trim().slice(0, 150);
 }
 
 export interface TechnicalAlertPayload {
@@ -63,20 +79,23 @@ export async function POST(req: Request) {
 
     cleanRecentCache();
 
-    // Deduplication key based on message, url and category
-    const dedupeKey = `${payload.category || 'error'}|${payload.url || ''}|${payload.message.trim().slice(0, 150)}`;
+    // Deduplication key based on normalized page URL, code, and error signature (across categories on same page)
+    const dedupeKey = `${normalizeUrlPage(payload.url)}|${payload.code || ''}|${normalizeAlertSignature(payload.message)}`;
     const now = Date.now();
-    const lastSent = recentAlertsCache.get(dedupeKey);
+    const existing = recentAlertsCache.get(dedupeKey);
 
-    if (lastSent && now - lastSent < DEDUPLICATION_WINDOW_MS) {
+    if (existing && now - existing.timestamp < DEDUPLICATION_WINDOW_MS) {
+      existing.count += 1;
       return NextResponse.json({
         ok: true,
         throttled: true,
+        occurrences: existing.count,
         message: 'Alert throttled (identical error already dispatched within last 60s)',
       });
     }
 
-    recentAlertsCache.set(dedupeKey, now);
+    const previousOccurrences = existing && existing.count > 1 ? existing.count : Number(payload.metadata?.aggregatedOccurrences || 1);
+    recentAlertsCache.set(dedupeKey, { timestamp: now, count: 1 });
 
     // Format Alert Header
     const levelIcons: Record<string, string> = {
@@ -106,6 +125,9 @@ export async function POST(req: Request) {
 
     if (payload.url) {
       text += `📍 <b>الصفحة / المسار:</b> <code>${telegramHtml(payload.url)}</code>\n`;
+    }
+    if (previousOccurrences > 1) {
+      text += `🔁 <b>عدد التكرارات المجمّعة (خلال دقيقة):</b> <code>${previousOccurrences}</code>\n`;
     }
 
     if (payload.companyName || payload.companyId) {
