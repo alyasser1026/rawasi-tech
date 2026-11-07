@@ -148,7 +148,7 @@ export function prepareSpeechText(rawText) {
 }
 
 async function synthesizeWithEdge(text, settings, createEdgeTts, workReply) {
-  for (let attempt = 0; attempt < 2; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     const tts = createEdgeTts({ connectionTimeoutMs: 12000, synthesisTimeoutMs: 30000 });
     const deadline = AbortSignal.timeout(35000);
     try {
@@ -167,13 +167,13 @@ async function synthesizeWithEdge(text, settings, createEdgeTts, workReply) {
         return { buffer: audio, mimeType: 'audio/mpeg', fileName: 'salma_reply.mp3' };
       }
     } catch (err) {
-      if (attempt === 0 && !err?.message?.includes('offline')) {
-        await new Promise(r => setTimeout(r, 200));
+      if (attempt < 2 && !err?.message?.includes('offline')) {
+        await new Promise(r => setTimeout(r, 350 * (attempt + 1)));
         continue;
       }
       return null;
     } finally {
-      tts.close();
+      try { tts.close(); } catch {}
     }
   }
   return null;
@@ -274,5 +274,6 @@ export async function synthesizeArabicSpeech(rawText, {
   }
   const edge = await synthesizeWithEdge(text, voiceSettings, createEdgeTts, workReply).catch(() => null);
   if (edge || prefersGeminiPro || !geminiApiKey) return edge;
+  if (voiceSettings.mozzaModeEnabled) return null;
   return synthesizeWithGemini(text, voiceSettings, geminiApiKey, fetchImpl).catch(() => null);
 }
