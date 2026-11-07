@@ -525,17 +525,18 @@ function escapeTelegramText(text) {
 
 function authorizeBotMessages(handleMessage) {
   return async update => {
-    const message = update?.message;
-    if (!message || update.edited_message || update.channel_post || update.edited_channel_post) return;
+    const message = update?.message || update?.channel_post;
+    if (!message) return;
     if (message.from?.is_bot) return;
 
     const isGroup = GROUP_CHAT_ID && message.chat?.id === GROUP_CHAT_ID;
     const isPrivate = message.chat?.type === 'private';
-    const isAllowedChat = (CHAT_ID && message.chat?.id === CHAT_ID) || isGroup || isPrivate;
+    const isChannel = message.chat?.id === GROUP_CHAT_ID || message.chat?.type === 'channel';
+    const isAllowedChat = isPrivate || isGroup || isChannel || (CHAT_ID && message.chat?.id === CHAT_ID);
 
-    const senderName = message.from?.first_name || 'مستخدم';
-    const senderUser = message.from?.username ? `@${message.from.username}` : `ID:${message.from?.id}`;
-    const textSnippet = (message.text || message.caption || (message.voice ? '[بصمة صوتية]' : '[مرفق]')).slice(0, 50);
+    const senderName = message.from?.first_name || message.sender_chat?.title || 'مستخدم';
+    const senderUser = message.from?.username ? `@${message.from.username}` : `ID:${message.from?.id || message.chat?.id}`;
+    const textSnippet = String(message.text || message.caption || (message.voice ? '[بصمة صوتية]' : '[مرفق]')).slice(0, 50);
     console.log(`📩 [Telegram Update] من: ${senderName} (${senderUser}) | شات: ${message.chat?.id} (${message.chat?.type}) | نص: "${textSnippet}"`);
 
     if (!isAllowedChat) {
@@ -551,10 +552,10 @@ const handleUpdate = authorizeBotMessages(async msg => {
   const chatId = msg.chat?.id;
   let rawText = String(msg.text || msg.caption || '').trim();
   const messageId = msg.message_id;
-  const fromName = escapeTelegramText(msg.from.first_name || 'صديقي');
+  const fromName = escapeTelegramText(msg.from?.first_name || msg.sender_chat?.title || 'صديقي');
   const actor = {
     chatId,
-    userId: msg.from.id,
+    userId: msg.from?.id || msg.sender_chat?.id || 0,
     replyToMessageId: msg.reply_to_message?.chat?.id === chatId ? msg.reply_to_message.message_id : undefined,
     quotedMessageText: msg.reply_to_message?.chat?.id === chatId
       ? String(msg.reply_to_message.text || msg.reply_to_message.caption || '').trim().slice(0, 1200)
@@ -783,11 +784,12 @@ async function pollUpdates() {
   console.log('📡 بدء الاستماع المباشر لرسائل تيليجرام (Long Polling)...');
   while (isPolling) {
     try {
-      const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${offset}&timeout=25&allowed_updates=%5B%22message%22%5D`;
+      const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${offset}&timeout=25`;
       const res = await fetch(url, { signal: AbortSignal.timeout(35000) });
       const data = await res.json();
 
-      if (data.ok && Array.isArray(data.result)) {
+      if (data.ok && Array.isArray(data.result) && data.result.length > 0) {
+        console.log(`📥 [Telegram Poll] تم استلام ${data.result.length} تحديث جديد.`);
         for (const update of data.result) {
           offset = update.update_id + 1;
           await handleUpdate(update);
