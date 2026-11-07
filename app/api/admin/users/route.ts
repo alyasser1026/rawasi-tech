@@ -14,6 +14,27 @@ const getSupabaseAdmin = () => createClient(
     }
 );
 
+// دالة مساعدة لتحويل رقم الجوال لصيغة E.164 العالمية المقبولة في Supabase Auth
+function toE164(phone: string | null | undefined): string | null {
+    if (!phone) return null;
+    let digits = String(phone).replace(/[\s\-().]/g, '');
+    if (digits.startsWith('+')) digits = digits.slice(1);
+    if (!/^\d+$/.test(digits)) return null;
+    if (digits.startsWith('00')) digits = digits.slice(2);
+    else if (digits.startsWith('0')) {
+        // مصر: 010, 011, 012, 015
+        if (/^01[0125]\d{8}$/.test(digits)) {
+            digits = '20' + digits.slice(1);
+        } else if (/^05\d{8}$/.test(digits)) {
+            // السعودية: 05...
+            digits = '966' + digits.slice(1);
+        } else {
+            digits = '20' + digits.slice(1);
+        }
+    }
+    return /^[1-9]\d{9,14}$/.test(digits) ? `+${digits}` : null;
+}
+
 // 1. إضافة مستخدم جديد (POST)
 export async function POST(req: Request) {
     try {
@@ -24,16 +45,31 @@ export async function POST(req: Request) {
         const { email, password, phone, full_name, role, linked_partner_id, permissions, is_active } = body;
 
         // 1️⃣ إنشاء الحساب في المصادقة (Auth)
-        const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+        const e164 = toE164(phone);
+        const createParams: any = {
             email,
             password,
-            phone: phone || undefined,
             email_confirm: true,
-            phone_confirm: !!phone
-        });
+        };
+        if (e164) {
+            createParams.phone = e164;
+            createParams.phone_confirm = true;
+        }
 
-        if (authError) {
-            return NextResponse.json({ error: authError.message }, { status: 400 });
+        let { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser(createParams);
+
+        // إذا فشل بسبب تنسيق الهاتف في Auth، نعيد المحاولة بدون تمرير الهاتف لـ Auth مع الاحتفاظ به في البروفايل
+        if (authError && authError.message?.toLowerCase().includes('phone')) {
+            console.warn('Retrying user creation without Auth phone:', authError.message);
+            delete createParams.phone;
+            delete createParams.phone_confirm;
+            const retry = await supabaseAdmin.auth.admin.createUser(createParams);
+            authData = retry.data;
+            authError = retry.error;
+        }
+
+        if (authError || !authData?.user) {
+            return NextResponse.json({ error: authError?.message || 'تعذر إنشاء المستخدم' }, { status: 400 });
         }
 
         const userId = authData.user.id;
@@ -48,7 +84,7 @@ export async function POST(req: Request) {
             .update({
                 full_name,
                 email, // مزامنة الإيميل
-                phone_number: phone || null, // مزامنة الجوال
+                phone_number: phone || null, // مزامنة الجوال كما كتبه المستخدم
                 role,
                 linked_partner_id: linked_partner_id || null,
                 permissions,
@@ -58,8 +94,6 @@ export async function POST(req: Request) {
             .eq('id', userId);
 
         if (profileError) {
-            // في حالة فشل تحديث البروفايل يمكن محاولة مسح اليوزر لمنع بقاء بيانات ناقصة
-            // await getSupabaseAdmin().auth.admin.deleteUser(userId);
             return NextResponse.json({ error: profileError.message }, { status: 400 });
         }
 
@@ -85,7 +119,12 @@ export async function PUT(req: Request) {
         const updateParams: any = {};
         if (email) updateParams.email = email;
         if (password) updateParams.password = password;
-        if (phone !== undefined) updateParams.phone = phone || null; // يمكن تفريغ الرقم
+        if (phone !== undefined) {
+            const e164 = toE164(phone);
+            if (e164) {
+                updateParams.phone = e164;
+            }
+        }
         
         // إيقاف أو تشغيل الحساب على مستوى Auth نفسه لزيادة الأمان
         if (is_active === false) {
@@ -95,7 +134,18 @@ export async function PUT(req: Request) {
         }
 
         if (Object.keys(updateParams).length > 0) {
-            const { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, updateParams);
+            let { error: authError } = await supabaseAdmin.auth.admin.updateUserById(userId, updateParams);
+            if (authError && authError.message?.toLowerCase().includes('phone')) {
+                // إذا كان الخطأ بسبب صيغة الهاتف في Auth، نزيل الهاتف من بارامترات Auth ونعيد التحديث
+                console.warn('Retrying updateUserById without Auth phone:', authError.message);
+                delete updateParams.phone;
+                if (Object.keys(updateParams).length > 0) {
+                    const retry = await supabaseAdmin.auth.admin.updateUserById(userId, updateParams);
+                    authError = retry.error;
+                } else {
+                    authError = null;
+                }
+            }
             if (authError) return NextResponse.json({ error: authError.message }, { status: 400 });
         }
 
