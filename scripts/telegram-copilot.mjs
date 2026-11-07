@@ -562,12 +562,12 @@ async function processTelegramMessage(msg) {
     return;
   }
 
-  // 🎙️ معالجة الرسائل الصوتية (Voice Notes) فورياً عبر Groq Whisper Large V3
+  // 🎙️ معالجة الرسائل الصوتية (Voice Notes) فورياً عبر Groq Whisper Large V3 (مع بديل Gemini الصوتي)
   if ((msg.voice || msg.audio) && BOT_TOKEN) {
     const fileId = msg.voice?.file_id || msg.audio?.file_id;
     const groqKey = setting('GROQ_API_KEY');
 
-    if (fileId && groqKey) {
+    if (fileId && (groqKey || GEMINI_API_KEY)) {
       try {
         await sendChatAction(chatId, 'record_voice');
         const fileInfoRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${encodeURIComponent(fileId)}`, { signal: AbortSignal.timeout(12000) });
@@ -579,26 +579,57 @@ async function processTelegramMessage(msg) {
           if (!audioRes.ok) throw new Error('Telegram audio unavailable');
           const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
 
-          const whisperForm = new FormData();
-          whisperForm.append('file', new Blob([audioBuffer], { type: 'audio/ogg' }), 'telegram_voice.oga');
-          whisperForm.append('model', 'whisper-large-v3-turbo');
-          whisperForm.append('language', 'ar');
+          if (groqKey) {
+            const whisperForm = new FormData();
+            whisperForm.append('file', new Blob([audioBuffer], { type: 'audio/ogg' }), 'telegram_voice.ogg');
+            whisperForm.append('model', 'whisper-large-v3-turbo');
+            whisperForm.append('language', 'ar');
+            whisperForm.append('prompt', 'فاي تك، تقرير اليوم، يومية عامل، مصروف، قيد محاسبي، أمر شغل، فيلا، طريحة، محارة، جبس، سباكة، ريال');
 
-          const whisperRes = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${groqKey}` },
-            body: whisperForm,
-            signal: AbortSignal.timeout(25000),
-          });
+            const whisperRes = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${groqKey}` },
+              body: whisperForm,
+              signal: AbortSignal.timeout(25000),
+            });
 
-          const whisperJson = await whisperRes.json();
-          if (whisperJson?.text) {
-            rawText = whisperJson.text.trim();
+            const whisperJson = await whisperRes.json();
+            if (whisperJson?.text) {
+              rawText = whisperJson.text.trim();
+            } else {
+              console.warn('Groq Whisper response had no text:', whisperRes.status, whisperJson?.error?.message || '');
+            }
+          }
+
+          // بديل احتياطي عبر Gemini Multimodal إذا لم ينجح Groq
+          if (!rawText && GEMINI_API_KEY) {
+            const geminiAudioRes = await fetch(GEMINI_GENERATE_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+              body: JSON.stringify({
+                contents: [{
+                  role: 'user',
+                  parts: [
+                    { text: 'فرّغ هذا التسجيل الصوتي باللغة العربية بدقة كما قيل تماماً دون أي شرح إضافي:' },
+                    { inlineData: { mimeType: 'audio/ogg', data: audioBuffer.toString('base64') } },
+                  ],
+                }],
+              }),
+              signal: AbortSignal.timeout(20000),
+            });
+            if (geminiAudioRes.ok) {
+              const geminiAudioJson = await geminiAudioRes.json();
+              const transcribed = geminiAudioJson?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+              if (transcribed) rawText = transcribed;
+            }
+          }
+
+          if (rawText) {
             await sendTelegramMessage(chatId, `🎙️ <i>سمعتك تقول: "${escapeTelegramText(rawText.slice(0, 600))}"</i>\n\n⏳ <i>جاري معالجة طلبك...</i>`, messageId);
           }
         }
-      } catch {
-        console.error('Telegram voice processing failed.');
+      } catch (err) {
+        console.error('Telegram voice processing failed:', err?.message);
       }
     }
   }
