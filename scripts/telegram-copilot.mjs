@@ -18,6 +18,9 @@ import {
 import {
   PDF_MESSAGES, createPdfRequestLog, createPendingPdfRequests, executePdfRequest, parsePdfRequest, preparePdfRequest,
 } from './copilot-pdf-requests.mjs';
+import {
+  addLearnedRule, detectAutoLearningTrigger, formatLearnedRulesForPrompt,
+} from './copilot-auto-learning.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -150,6 +153,8 @@ function loadKnowledgeBase(forceReload = false) {
     if (fs.existsSync(CHECKLIST_PATH)) {
       combined += fs.readFileSync(CHECKLIST_PATH, 'utf8').trim() + '\n\n';
     }
+    // 🧠 دمج القواعد المكتسبة والمستندات التدريبية المخصصة
+    combined += formatLearnedRulesForPrompt() + '\n\n';
   } catch (err) {
     console.warn('Error loading knowledge base:', err.message);
     if (_cachedKnowledgeBase !== null) return _cachedKnowledgeBase; // keep old cache on error
@@ -614,7 +619,19 @@ async function processTelegramMessage(msg) {
 
     if (cleanText === '/reload') {
       const knowledge = loadKnowledgeBase(true); // force-reload cache
-      await sendTelegramMessage(chatId, 'قريت دليل المعرفة المعتمد. عدد الحروف: ' + knowledge.length + '.', messageId);
+      await sendTelegramMessage(chatId, 'قريت دليل المعرفة المعتمد والمستندات التدريبية. عدد الحروف: ' + knowledge.length + '.', messageId);
+      return;
+    }
+
+    // 🧠 كاشف التعلم الذاتي التلقائي (Auto-Learning Memory)
+    const ruleToLearn = detectAutoLearningTrigger(cleanText);
+    if (ruleToLearn) {
+      const res = addLearnedRule(ruleToLearn, fromName);
+      const knowledge = loadKnowledgeBase(true); // force reload knowledge cache
+      const confirmMsg = res?.alreadyExists
+        ? `💡 <b>أنا متذكر هذه المعلومة بالفعل في ذاكرتي:</b>\n«${escapeTelegramText(ruleToLearn)}»\nوهي مفعلة ومطبقة في كافة الحسابات والعمليات.`
+        : `🧠 <b>تم حفظ هذه القاعدة بنجاح في ذاكرتي الدائمة:</b>\n«${escapeTelegramText(ruleToLearn)}»\n\n✅ سأقوم بتطبيقها وتذكرها تلقائياً على كل العمليات والاستفسارات القادمة!\n📚 (إجمالي المعرفة المحمّلة: ${knowledge.length} حرف)`;
+      await sendTelegramMessage(chatId, confirmMsg, messageId, { html: true });
       return;
     }
 
