@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -8,17 +9,21 @@ const rootDir = path.resolve(__dirname, '..');
 
 const SETTINGS_FILE_PATH = path.join(rootDir, 'config', 'copilot_bot_settings.json');
 const OPERATIONS_INDEX_PATH = path.join(rootDir, 'work', 'copilot_operations_index.json');
+const GEMINI_TTS_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
 
 export const DEFAULT_BOT_SETTINGS = Object.freeze({
-  botName: 'م. سليم',
-  botTitle: 'المساعد الهندسي والمحاسبي الذكي — فاي تك',
+  botName: 'م. سلمى',
+  botTitle: 'المساعدة الهندسية والمحاسبية الذكية — فاي تك',
   introEnabled: true,
-  introTemplate: '👋 أهلاً بك! معك {botName} ({botTitle}).',
+  introTemplate: '👋 أهلاً بيك يا باشمهندس! معاك {botName} ({botTitle}). تحت أمرك في أي استعلام أو تسجيل عملية النهارده!',
   inactivityCloseEnabled: true,
   inactivityTimeoutMinutes: 3,
   inactivityCloseMessage:
-    '⏳ نظراً لعدم وجود رد أو استفسار جديد، تم إنهاء الجلسة الحالية وحفظ السياق.\nأنا ({botName}) موجود دائماً في خدمتك وقتما تبعث رسالة جديدة! 👋',
+    '⏳ علشان مفيش استفسارات جديدة دلوقتي يا باشمهندس، قفلت المحادثة دي وحفظتلك كل حاجة.\nأنا ({botName}) موجودة معاك في أي وقت تبعتلي فيه رسالة جديدة! 👋',
   voiceReplyMode: 'always', // 'always' | 'on_voice_or_request' | 'off'
+  voiceGender: 'female',
+  voiceDialect: 'ar-EG',
+  voiceName: 'Aoede',
   voiceSpeed: 'normal',
   autoDailyReportEnabled: true,
   autoDailyReportTime: '20:00',
@@ -69,6 +74,9 @@ export function saveBotSettings(partial = {}) {
     ...(typeof partial.voiceReplyMode === 'string' && ['always', 'on_voice_or_request', 'off'].includes(partial.voiceReplyMode)
       ? { voiceReplyMode: partial.voiceReplyMode }
       : {}),
+    ...(typeof partial.voiceName === 'string' && ['Aoede', 'Kore', 'Leda', 'Zephyr'].includes(partial.voiceName)
+      ? { voiceName: partial.voiceName }
+      : {}),
     ...(typeof partial.autoDailyReportEnabled === 'boolean' ? { autoDailyReportEnabled: partial.autoDailyReportEnabled } : {}),
     ...(typeof partial.autoDailyReportTime === 'string' && /^\d{2}:\d{2}$/.test(partial.autoDailyReportTime.trim())
       ? { autoDailyReportTime: partial.autoDailyReportTime.trim() }
@@ -105,7 +113,6 @@ function saveOperationsStore(store) {
  */
 export function registerOperation({ operationType, recordId, recordCode, summary = '', siteRef = '', amount = null } = {}) {
   const store = loadOperationsStore();
-  // إذا كانت العملية مسجلة مسبقاً بنفس الـ recordId أو recordCode نعيد رقمها الحالي
   const existing = store.operations.find(
     op => (recordId && op.recordId === String(recordId)) || (recordCode && op.recordCode === String(recordCode))
   );
@@ -141,7 +148,6 @@ export function resolveOperationByNumberOrCode(identifier) {
   const raw = String(identifier).trim();
   const store = loadOperationsStore();
 
-  // فحص ما إذا كان المعرف رقماً تسلسلياً مثل 101 أو #101 أو OP-101 أو عمليه 101
   const numMatch = raw.match(/^(?:#|OP-|عملية|عمليه)?\s*(\d{1,6})$/i);
   if (numMatch) {
     const targetNum = Number(numMatch[1]);
@@ -149,7 +155,6 @@ export function resolveOperationByNumberOrCode(identifier) {
     if (foundByNum) return foundByNum;
   }
 
-  // أو مطابقة بالكود المرجعي أو الـ UUID
   const upper = raw.toUpperCase();
   const foundByCode = store.operations.find(
     op =>
@@ -220,38 +225,170 @@ export function updateOperationStatusInIndex(identifier, newStatus) {
 }
 
 /**
- * تنظيف وتجهيز النص العربي لتحويله إلى كلام صوتي واضح ومختصر (TTS)
+ * تحويل النص أو كارت العملية إلى سكريبت منطوق بالعامية المصرية الاحترافية بصوت المهندسة سلمى
  */
-export function prepareSpeechText(rawText, botName = 'م. سليم') {
+export function prepareSpeechText(rawText, botName = 'م. سلمى') {
   if (!rawText) return '';
-  let text = String(rawText)
+  const raw = String(rawText);
+
+  // 1) إذا كان كارت تعديل عملية
+  const editMatch = raw.match(/إشعار تعديل عملية.*العملية رقم \[#?(\d+)\]/);
+  if (editMatch) {
+    const opNum = editMatch[1];
+    const summaryMatch = raw.match(/البيان الحالي:\s*([^\n]+)/);
+    const changesLines = [...raw.matchAll(/🔸\s*([^\n]+)/g)].map(m => m[1].replace(/⬅️/g, ' بقى '));
+    const changesSpoken = changesLines.slice(0, 2).join(' ، و');
+    return `تمام يا باشمهندس، معاك ${botName}. عدلتلك العملية رقم ${opNum}${summaryMatch ? ` الخاصة بـ ${summaryMatch[1].trim()}` : ''}، ${changesSpoken || 'وحفظت التعديلات في السيستم'}.`;
+  }
+
+  // 2) إذا كان كارت تسجيل عملية جديدة (مصروف / يومية / قيد / أمر شغل)
+  const createMatch = raw.match(/(?:تم تسجيل|قيد محاسبي جديد|أمر تشغيل جديد).*العملية رقم \[#?(\d+)\]/);
+  if (createMatch) {
+    const opNum = createMatch[1];
+    const amountMatch = raw.match(/(?:المبلغ الإجمالي|المبلغ|الإجمالي|اليومية \(الأجر\)):\s*([\d,.]+)/);
+    const siteMatch = raw.match(/(?:الفيلا \/ الموقع|المشروع):\s*([^\n]+)/);
+    const descMatch = raw.match(/(?:البيان|البند|اسم العامل):\s*([^\n]+)/);
+    const parts = [`تمام يا باشمهندس، سجلتلك العملية رقم ${opNum}`];
+    if (descMatch) parts.push(`بخصوص ${descMatch[1].trim()}`);
+    if (siteMatch && !/غير محدد/.test(siteMatch[1])) parts.push(`في ${siteMatch[1].trim()}`);
+    if (amountMatch) parts.push(`بقيمة ${amountMatch[1].replace(/,/g, '')} ريال`);
+    parts.push('وتقدر تعتمدها أو ترفق ليها صورة من الزراير اللي تحت الرسالة.');
+    return parts.join(' ، ');
+  }
+
+  // 3) إذا كان التقرير اليومي الشامل
+  if (/التقرير اليومي المفصل الشامل/.test(raw)) {
+    const dateMatch = raw.match(/التاريخ:\s*([\d-]+)/);
+    const workersMatch = raw.match(/عدد العمال:\s*(\d+)/);
+    const expMatch = raw.match(/إجمالي المصروفات:\s*([\d,.]+)/);
+    return `أهلاً بيك يا باشمهندس، معاك ${botName}. بعتلك دلوقتي التقرير اليومي المفصل${dateMatch ? ` لتاريخ ${dateMatch[1]}` : ''}${workersMatch ? `، إجمالي العمالة المسجلة ${workersMatch[1]} عامل` : ''}${expMatch ? `، وإجمالي المصروفات ${expMatch[1].replace(/,/g, '')} ريال` : ''}. كل التفاصيل قدامك في الرسالة.`;
+  }
+
+  // 4) تنظيف عام وتحويل للمصطلحات المصرية المنطوقة السلسة
+  let text = raw
     .replace(/<[^>]+>/g, ' ')
-    .replace(/━+/g, ' ، ')
-    .replace(/[✅❌⚠️🚨📌🔢🆔📅🏢👷🔨📐📊💵💰💳🏷️📝🎙️⏳👋🧠💡📄•*`_~]/gu, ' ')
+    .replace(/━+|─+/g, ' ، ')
+    .replace(/💡\s*للتعديل.*$/gm, '')
+    .replace(/🆔\s*[^\n]+/g, '')
+    .replace(/[✅❌⚠️🚨📌🔢🆔📅🏢👷🔨📐📊💵💰💳🏷️📝🎙️⏳👋🧠💡📄🔸🟢🔴🏗️📦🔄🗑️📎•*`_~]/gu, ' ')
     .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '')
     .replace(/https?:\/\/\S+/g, '')
     .replace(/#(\d+)/g, ' رقم $1 ')
-    .replace(/ر\.س/g, ' ريال سعودي ')
+    .replace(/ر\.س/g, ' ريال ')
+    .replace(/⬅️/g, ' بقى ')
+    .replace(/أهلاً بك/g, 'أهلاً بيك يا باشمهندس')
+    .replace(/تم تسجيل/g, 'سجلتلك')
+    .replace(/بنجاح/g, 'خلاص')
     .replace(/\s+/g, ' ')
     .trim();
 
-  if (text.length > 420) {
-    text = text.slice(0, 420);
+  if (text.length > 340) {
+    text = text.slice(0, 340);
     const lastStop = Math.max(text.lastIndexOf('،'), text.lastIndexOf('.'), text.lastIndexOf(' '));
-    if (lastStop > 150) text = text.slice(0, lastStop);
-    text += ' . التفاصيل الكاملة موضحة في الرسالة النصية.';
+    if (lastStop > 120) text = text.slice(0, lastStop);
+    text += ' ، والتفاصيل الكاملة قدامك في الرسالة يا باشمهندس.';
   }
   return text;
 }
 
+function pcm16ToWav(pcmBuffer, sampleRate = 24000, numChannels = 1) {
+  const byteRate = sampleRate * numChannels * 2;
+  const blockAlign = numChannels * 2;
+  const dataSize = pcmBuffer.length;
+  const header = Buffer.alloc(44);
+  header.write('RIFF', 0);
+  header.writeUInt32LE(36 + dataSize, 4);
+  header.write('WAVE', 8);
+  header.write('fmt ', 12);
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(numChannels, 22);
+  header.writeUInt32LE(sampleRate, 24);
+  header.writeUInt32LE(byteRate, 28);
+  header.writeUInt16LE(blockAlign, 32);
+  header.writeUInt16LE(16, 34);
+  header.write('data', 36);
+  header.writeUInt32LE(dataSize, 40);
+  return Buffer.concat([header, pcmBuffer]);
+}
+
+function convertPcmToOggOpus(pcmBuffer) {
+  try {
+    const ff = spawnSync(
+      'ffmpeg',
+      [
+        '-hide_banner',
+        '-loglevel', 'error',
+        '-f', 's16le',
+        '-ar', '24000',
+        '-ac', '1',
+        '-i', 'pipe:0',
+        '-c:a', 'libopus',
+        '-b:a', '48k',
+        '-vbr', 'on',
+        '-application', 'voip',
+        '-f', 'ogg',
+        'pipe:1',
+      ],
+      { input: pcmBuffer, maxBuffer: 12 * 1024 * 1024 }
+    );
+    if (ff.status === 0 && ff.stdout && ff.stdout.length > 0) {
+      return { buffer: ff.stdout, mimeType: 'audio/ogg', fileName: 'salma_reply.ogg' };
+    }
+  } catch {}
+  return { buffer: pcm16ToWav(pcmBuffer, 24000, 1), mimeType: 'audio/wav', fileName: 'salma_reply.wav' };
+}
+
 /**
- * تقسيم النص إلى جمل قصيرة (<= 165 حرف) وتوليد ملف صوتي عربي موحد (MP3 Buffer)
+ * توليد ملف صوتي باللهجة العامية المصرية الاحترافية بصوت نسائي طبيعي (المهندسة سلمى)
  */
-export async function synthesizeArabicSpeech(rawText, { botName = 'م. سليم' } = {}) {
+export async function synthesizeArabicSpeech(rawText, { botName = 'م. سلمى', geminiApiKey = '' } = {}) {
   const clean = prepareSpeechText(rawText, botName);
   if (!clean) return null;
 
-  // تقسيم إلى مقاطع لا تتجاوز 165 حرفاً
+  const settings = getBotSettings();
+  const voiceName = settings.voiceName || 'Aoede';
+  const apiKey = geminiApiKey || process.env.GEMINI_API_KEY || '';
+
+  // 1) المحرك الأساسي: Gemini 2.5 Flash TTS بصوت نسائي مصري طبيعي (Aoede)
+  if (apiKey) {
+    try {
+      const promptText = `انطقي الرسالة التالية باللهجة العامية المصرية الاحترافية الهادئة والودودة بصوت مهندسة مصرية محترفة (${botName}):\n${clean}`;
+      const res = await fetch(GEMINI_TTS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName },
+              },
+            },
+          },
+        }),
+        signal: AbortSignal.timeout(18000),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const inline = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+        if (inline?.data) {
+          const pcmBuffer = Buffer.from(inline.data, 'base64');
+          const converted = convertPcmToOggOpus(pcmBuffer);
+          return converted.buffer;
+        }
+      }
+    } catch (err) {
+      console.warn('Gemini Egyptian female TTS fallback triggered:', err?.message);
+    }
+  }
+
+  // 2) المحرك الاحتياطي السريع عند غياب المفتاح أو انقطاع الخدمة
   const words = clean.split(' ');
   const chunks = [];
   let current = '';
@@ -280,5 +417,25 @@ export async function synthesizeArabicSpeech(rawText, { botName = 'م. سليم'
   }
 
   if (buffers.length === 0) return null;
-  return Buffer.concat(buffers);
+  const mp3Buffer = Buffer.concat(buffers);
+  try {
+    const ff = spawnSync(
+      'ffmpeg',
+      [
+        '-hide_banner',
+        '-loglevel', 'error',
+        '-i', 'pipe:0',
+        '-c:a', 'libopus',
+        '-b:a', '48k',
+        '-vbr', 'on',
+        '-f', 'ogg',
+        'pipe:1',
+      ],
+      { input: mp3Buffer, maxBuffer: 8 * 1024 * 1024 }
+    );
+    if (ff.status === 0 && ff.stdout?.length > 0) {
+      return ff.stdout;
+    }
+  } catch {}
+  return mp3Buffer;
 }

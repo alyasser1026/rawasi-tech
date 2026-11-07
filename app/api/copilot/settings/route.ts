@@ -7,15 +7,16 @@ const MEMORY_FILE = path.join(process.cwd(), 'config', 'copilot_learned_memory.j
 const OPERATIONS_FILE = path.join(process.cwd(), 'work', 'copilot_operations_index.json');
 
 const DEFAULT_SETTINGS = {
-  botName: 'م. سليم',
-  botTitle: 'المساعد الهندسي والمحاسبي الذكي — فاي تك',
+  botName: 'م. سلمى',
+  botTitle: 'المساعدة الهندسية والمحاسبية الذكية — فاي تك',
   introEnabled: true,
-  introTemplate: '👋 أهلاً بك! معك {botName} ({botTitle}).',
+  introTemplate: '👋 أهلاً بيك يا باشمهندس! معاك {botName} ({botTitle}). تحت أمرك في أي استعلام أو تسجيل عملية النهارده!',
   inactivityCloseEnabled: true,
   inactivityTimeoutMinutes: 3,
   inactivityCloseMessage:
-    '⏳ نظراً لعدم وجود رد أو استفسار جديد، تم إنهاء الجلسة الحالية وحفظ السياق.\nأنا ({botName}) موجود دائماً في خدمتك وقتما تبعث رسالة جديدة! 👋',
+    '⏳ علشان مفيش استفسارات جديدة دلوقتي يا باشمهندس، قفلت المحادثة دي وحفظتلك كل حاجة.\nأنا ({botName}) موجودة معاك في أي وقت تبعتلي فيه رسالة جديدة! 👋',
   voiceReplyMode: 'always',
+  voiceName: 'Aoede',
   autoDailyReportEnabled: true,
   autoDailyReportTime: '20:00',
   operationSeqStart: 101,
@@ -91,6 +92,9 @@ export async function POST(req: NextRequest) {
           : {}),
         ...(typeof payload.voiceReplyMode === 'string' && ['always', 'on_voice_or_request', 'off'].includes(payload.voiceReplyMode)
           ? { voiceReplyMode: payload.voiceReplyMode }
+          : {}),
+        ...(typeof payload.voiceName === 'string' && ['Aoede', 'Kore', 'Leda', 'Zephyr'].includes(payload.voiceName)
+          ? { voiceName: payload.voiceName }
           : {}),
         ...(typeof payload.autoDailyReportEnabled === 'boolean'
           ? { autoDailyReportEnabled: payload.autoDailyReportEnabled }

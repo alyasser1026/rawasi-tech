@@ -475,7 +475,7 @@ function formatAddLaborReply(result, companyLabel) {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `LAB-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
   return [
-    `✅ تم تسجيل مسودة يومية العامل بنجاح | العملية رقم [${opTag}]`,
+    `✅ تمام يا باشمهندس، سجلتلك مسودة يومية العامل | العملية رقم [${opTag}]`,
     `🔢 رقم العملية للتعديل السريع: ${opTag}`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -486,9 +486,9 @@ function formatAddLaborReply(result, companyLabel) {
     `• اليومية (الأجر): ${r.daily_wage} ر.س (حضور: ${r.attendance_value} يوم)`,
     r.tareeha != null ? `• الطريحة: ${r.tareeha} ${r.unit} | الإنتاجية المنفذة: ${r.productivity ?? 0} ${r.unit} (${r.completion_percentage || '—'})` : null,
     r.tareeha != null ? `• موقف الطريحة: ${r.tareeha_deficit}` : null,
-    `• الحالة: مسودة غير مرحّلة (بانتظار الاعتماد من شاشة يوميات العمالة).`,
+    `• الحالة: مسودة جاهزة للمراجعة والاعتماد من شاشة يوميات العمالة أو من الزرار تحت.`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 للتعديل اكتب أو قل صوتياً: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل رد (Reply) على الرسالة.`,
+    `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
   ].filter(Boolean).join('\n');
 }
 
@@ -496,7 +496,7 @@ function formatAddExpenseReply(result, companyLabel) {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `EXP-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
   return [
-    `✅ تم تسجيل مسودة المصروف بنجاح | العملية رقم [${opTag}]`,
+    `✅ تمام يا باشمهندس، سجلتلك مسودة المصروف | العملية رقم [${opTag}]`,
     `🔢 رقم العملية للتعديل السريع: ${opTag}`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -506,9 +506,9 @@ function formatAddExpenseReply(result, companyLabel) {
     `• الفيلا / الموقع: ${r.site_ref}`,
     `• التصنيف: ${r.main_category} | طريقة الدفع: ${r.payment_method}`,
     r.payee_name && r.payee_name !== '—' ? `• المستفيد: ${r.payee_name}` : null,
-    `• الحالة: مسودة غير مرحّلة (بانتظار المراجعة والاعتماد من شاشة المصروفات).`,
+    `• الحالة: مسودة جاهزة للمراجعة والاعتماد من شاشة المصروفات أو من الزرار تحت.`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 للتعديل اكتب أو قل صوتياً: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل رد (Reply) على الرسالة.`,
+    `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
   ].filter(Boolean).join('\n');
 }
 
@@ -516,7 +516,7 @@ function formatAddJournalReply(result, companyLabel) {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.entry_number || '#');
   return [
-    `📋 قيد محاسبي جديد مسجل | العملية رقم [${opTag}]`,
+    `📋 تمام يا باشمهندس، سجلتلك قيد محاسبي جديد | العملية رقم [${opTag}]`,
     `🔢 رقم العملية للتعديل السريع: ${opTag} (الكود: ${r.entry_number || '—'})`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -528,7 +528,7 @@ function formatAddJournalReply(result, companyLabel) {
     `🏗️ المشروع: ${r.site_ref}`,
     `📌 الحالة: ${r.status}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 للتعديل اكتب أو قل صوتياً: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل رد (Reply) على الرسالة.`,
+    `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
   ].filter(Boolean).join('\n');
 }
 
@@ -536,7 +536,7 @@ function formatAddJobOrderReply(result, companyLabel) {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.order_number || '#');
   return [
-    `🔨 أمر تشغيل جديد مسجل | العملية رقم [${opTag}]`,
+    `🔨 تمام يا باشمهندس، سجلتلك أمر تشغيل جديد | العملية رقم [${opTag}]`,
     `🔢 رقم العملية للتعديل السريع: ${opTag} (الكود: ${r.order_number || '—'})`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -548,7 +548,7 @@ function formatAddJobOrderReply(result, companyLabel) {
     `💵 الإجمالي: ${r.total_amount} ر.س`,
     `📌 الحالة: ${r.status}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 للتعديل اكتب أو قل صوتياً: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل رد (Reply) على الرسالة.`,
+    `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
   ].filter(Boolean).join('\n');
 }
 
@@ -567,11 +567,11 @@ function formatUpdateOperationReply(result, companyLabel) {
     `🏢 الشركة: ${companyLabel}`,
     `🕒 وقت التعديل: ${nowStr}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `🔄 سجل التعديلات المنفذة (قبل ⬅️ بعد):`,
+    `🔄 التعديلات اللي نفذتهالك يا باشمهندس (قبل ⬅️ بعد):`,
     changesList,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `✅ تم تحديث السجل فوراً في قاعدة بيانات فاي تك.`,
-    `💡 للتعديل مجدداً أو إرفاق مستند: اكتب «عدل العملية ${u.op_number || opTag} ...» أو اضغط أزرار التحكم بالأسفل.`,
+    `✅ خلاص حدثتلك السجل فوراً في قاعدة بيانات فاي تك.`,
+    `💡 لو محتاج تعدل حاجة تانية أو ترفق مستند: اكتب «عدل العملية ${u.op_number || opTag} ...» أو دوس على الزراير اللي تحت.`,
   ].filter(Boolean).join('\n');
 }
 

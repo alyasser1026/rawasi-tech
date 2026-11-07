@@ -265,16 +265,16 @@ async function sendChatAction(chatId, action = 'typing') {
   } catch {}
 }
 
-// 🔊 إرسال رد صوتي (Voice Reply TTS) عبر تيليجرام
-async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, botName = 'م. سليم') {
+// 🔊 إرسال رد صوتي (Voice Reply TTS) عبر تيليجرام بصوت نسائي مصري احترافي (م. سلمى)
+async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, botName = 'م. سلمى') {
   try {
     await sendChatAction(chatId, 'record_voice');
-    const audioBuffer = await synthesizeArabicSpeech(textToSpeak, { botName });
+    const audioBuffer = await synthesizeArabicSpeech(textToSpeak, { botName, geminiApiKey: GEMINI_API_KEY });
     if (!audioBuffer || audioBuffer.length === 0) return false;
 
     const form = new FormData();
     form.append('chat_id', String(chatId));
-    form.append('voice', new Blob([audioBuffer], { type: 'audio/mpeg' }), 'copilot_reply.ogg');
+    form.append('voice', new Blob([audioBuffer], { type: 'audio/ogg' }), 'salma_reply.ogg');
     if (replyToMessageId) {
       form.append('reply_to_message_id', String(replyToMessageId));
       form.append('allow_sending_without_reply', 'true');
@@ -283,7 +283,7 @@ async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, bot
     const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVoice`, {
       method: 'POST',
       body: form,
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(22000),
     });
     return res.ok;
   } catch (err) {
@@ -509,9 +509,9 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
   }
 
   // 2) سؤال عن اسم الموديل أو تعريف البوت لنفسه
-  if (/(?:المودل|الموديل|model)\s*(?:بتاعك|اللي\s*انت)?\s*(?:اسمه|ايه|إيه)/i.test(t) || /^(?:انت\s*مين|إنت\s*مين|مين\s*معايا|اسمك\s*ايه|اسمك\s*إيه|عرف\s*نفسك|عرّف\s*نفسك)$/i.test(t)) {
+  if (/(?:المودل|الموديل|model)\s*(?:بتاعك|اللي\s*انت)?\s*(?:اسمه|ايه|إيه)/i.test(t) || /^(?:انت\s*مين|إنت\s*مين|انتي\s*مين|إنتي\s*مين|مين\s*معايا|اسمك\s*ايه|اسمك\s*إيه|عرف\s*نفسك|عرّف\s*نفسك|عرفي\s*نفسك)$/i.test(t)) {
     const s = getBotSettings();
-    return `أهلاً بك! أنا «${s.botName}» — ${s.botTitle}، مبني على تقنيات Gemini الذكية ومربوط مباشرةً بقاعدة بيانات فاي تك لخدمتك بالصوت والنص.`;
+    return `أهلاً بيك يا باشمهندس! معاك «${s.botName}» — ${s.botTitle}، مبنية على تقنيات Gemini الذكية ومربوطة مباشرةً بقاعدة بيانات فاي تك عشان أساعدك في كل الحسابات والمشاريع بالصوت والنص.`;
   }
 
   // 3) رد على تنبيه خطأ في القناة (مثل save_expense_draft، PGRST201، React #300، refresh_token_not_found)
@@ -746,7 +746,7 @@ async function processTelegramMessage(msg) {
           }
 
           if (rawText) {
-            await sendTelegramMessage(chatId, `🎙️ <i>سمعتك تقول: "${escapeTelegramText(rawText.slice(0, 600))}"</i>\n\n⏳ <i>جاري معالجة طلبك...</i>`, messageId);
+            await sendTelegramMessage(chatId, `🎙️ <i>سمعتك بتقول يا باشمهندس: "${escapeTelegramText(rawText.slice(0, 600))}"</i>\n\n⏳ <i>ثواني بجهزلك الطلب...</i>`, messageId);
           }
         }
       } catch (err) {
@@ -784,14 +784,14 @@ async function processTelegramMessage(msg) {
       const opTag = attachedOp?.opNumber ? `#${attachedOp.opNumber}` : (targetOpNum ? `#${targetOpNum}` : 'الأخيرة');
       const totalAtt = Array.isArray(attachedOp?.attachments) ? attachedOp.attachments.length : 1;
       const attachReply = [
-        `📎 تم إرفاق ${hasPhoto ? 'الصورة' : hasVideo ? 'الفيديو' : 'المستند'} بنجاح بالعملية رقم [${opTag}]`,
+        `📎 تمام يا باشمهندس، ربطتلك ${hasPhoto ? 'الصورة' : hasVideo ? 'الفيديو' : 'المستند'} بالعملية رقم [${opTag}]`,
         `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
         `🔢 رقم العملية: ${opTag} (${attachedOp?.recordCode || '—'})`,
         `📄 اسم الملف المرفق: ${fileName}`,
         `🏷️ نوع المرفق: ${hasPhoto ? 'صورة 📸' : hasVideo ? 'فيديو 🎥' : 'مستند رسمي 📄'} (${mimeType})`,
-        `🗂️ إجمالي المرفقات على هذه العملية: ${totalAtt} مرفق`,
+        `🗂️ إجمالي المرفقات على العملية دي: ${totalAtt} مرفق`,
         `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-        `✅ تم حفظ المرفق وربطه بسجل العملية في سحابة فاي تك.`,
+        `✅ خلاص اتحفظ واتربط بسجل العملية في سحابة فاي تك.`,
       ].join('\n');
       await sendTelegramMessage(chatId, attachReply, messageId, {
         html: false,
@@ -834,7 +834,7 @@ async function processTelegramMessage(msg) {
               const extracted = visionJson?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
               if (extracted) {
                 rawText = extracted;
-                await sendTelegramMessage(chatId, `📸 <i>تمت قراءة الصورة/الفاتورة بالذكاء البصري:</i>\n«${escapeTelegramText(extracted.slice(0, 400))}»`, messageId);
+                await sendTelegramMessage(chatId, `📸 <i>قريتلك الصورة/الفاتورة بالذكاء البصري يا باشمهندس:</i>\n«${escapeTelegramText(extracted.slice(0, 400))}»`, messageId);
               }
             }
           }
@@ -847,8 +847,8 @@ async function processTelegramMessage(msg) {
 
   if (!rawText) {
     await sendTelegramMessage(chatId, msg.voice || msg.audio
-      ? 'ما قدرتش أقرأ التسجيل. ابعته تاني أو اكتب طلبك.'
-      : 'ابعت سؤالك كنص أو تسجيل صوتي عشان أقدر أساعدك.', messageId);
+      ? 'معلش يا باشمهندس ما قدرتش أسمع التسجيل كويس، ابعته تاني أو اكتبلي طلبك.'
+      : 'ابعتلي سؤالك كتابة أو فويس يا باشمهندس وأنا تحت أمرك.', messageId);
     return;
   }
 
@@ -861,7 +861,7 @@ async function processTelegramMessage(msg) {
       conversation.clear(actor);
       entryForms.clear(actor);
       const s = getBotSettings();
-      await sendTelegramMessage(chatId, `بدأنا محادثة جديدة. معك ${s.botName}، ابعت سؤالك أو طلبك.`, messageId, { replyMarkup: { remove_keyboard: true } });
+      await sendTelegramMessage(chatId, `فتحنا محادثة جديدة يا باشمهندس! معاك ${s.botName}، قولّي أقدر أساعدك في إيه النهارده؟`, messageId, { replyMarkup: { remove_keyboard: true } });
       return;
     }
 
@@ -874,28 +874,28 @@ async function processTelegramMessage(msg) {
     if (['/start', '/help'].includes(cleanText.toLowerCase())) {
       const s = getBotSettings();
       const welcome = `
-👋 أهلاً بك يا <b>${fromName}</b>!
-🤖 معك <b>${escapeTelegramText(s.botName)}</b> (${escapeTelegramText(s.botTitle)}).
+👋 أهلاً بيك يا باشمهندس <b>${fromName}</b>!
+👩‍💼 معاك <b>${escapeTelegramText(s.botName)}</b> (${escapeTelegramText(s.botTitle)}).
 
-تقدر تسألني أو تكلمني صوتياً مباشرةً عن:
+تقدر تكلمني كتابة أو تبعتلي فويس في أي وقت، وأنا هرد عليك بصوتي وبالنص في:
 
-📊 <b>استعلامات الميدان والتقارير اليومية</b>
-• «ابعت تقرير» أو «تقرير اليوم المفصل»
+📊 <b>تقارير الموقع والحسابات</b>
+• «ابعت تقرير» أو «تقرير النهارده المفصل»
 • «العمالة اللي نزلت النهارده»
-• «المشاريع اللي موجودة كلها»
+• «المشاريع والفلل اللي عندنا كلها»
 
-📝 <b>إضافة عمليات متعددة في رسالة واحدة (برقم مستقل لكل عملية)</b>
+📝 <b>تسجيل أكتر من عملية في رسالة واحدة (كل عملية برقم مستقل)</b>
 • «سجل قيد شراء أسمنت 3000 فيلا 10 وقيد نقل 500 فيلا 12»
 • «اعمل أمر شغل محارة 200 متر بسعر 45 لمقاول أحمد فيلا 5»
 • «ضيفلي يومية عامل محمد مطيز بند جبس طريحة 50 عمل 35 يومية 200»
 • «سجل مصروف 500 ريال تشوين رمل فيلا 657»
 
-✏️ <b>التعديل برقم العملية أو بالرد (Reply)</b>
-• كل عملية بتاخد رقم تسلسلي واضح (مثل <code>#101</code>).
-• قل أو اكتب: «عدل العملية رقم 101 خلي المبلغ 4500 والفيلا 12».
+✏️ <b>التعديل السريع برقم العملية أو بالـ Reply</b>
+• كل عملية بتاخد رقم تسلسلي واضح (زي <code>#101</code>).
+• قولّي أو اكتب: «عدل العملية رقم 101 خلي المبلغ 4500 والفيلا 12».
 
-🔊 <b>الرد الصوتي والذاكرة الذكية</b>
-• أرد عليك بالنص وبالصوت، وأتعلم تلقائياً لما تقولي «احفظ عندك أن...».
+📸 <b>قراءة الفواتير وإرفاق الصور والمستندات</b>
+• ابعت صورة أي فاتورة وهقرأها وأسجلهالك فوراً، أو دوس على زرار الإرفاق تحت أي عملية.
 `;
       await sendTelegramMessage(chatId, welcome, messageId);
       return;
@@ -1016,8 +1016,8 @@ async function processTelegramMessage(msg) {
     // 7. المعالجة الذكية بالذكاء الاصطناعي واستدعاء الأدوات الحية
     const botSettings = getBotSettings();
     const introHeader = isNewSession && botSettings.introEnabled
-      ? `${(botSettings.introTemplate || '👋 أهلاً بك! معك {botName} ({botTitle}).')
-          .replace(/\{botName\}/g, botSettings.botName || 'م. سليم')
+      ? `${(botSettings.introTemplate || '👋 أهلاً بيك يا باشمهندس! معاك {botName} ({botTitle}).')
+          .replace(/\{botName\}/g, botSettings.botName || 'م. سلمى')
           .replace(/\{botTitle\}/g, botSettings.botTitle || '')}\n━━━━━━━━━━━━━━━━━━━━\n`
       : '';
 

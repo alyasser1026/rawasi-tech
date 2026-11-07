@@ -15,6 +15,7 @@ interface BotSettings {
   inactivityTimeoutMinutes: number;
   inactivityCloseMessage: string;
   voiceReplyMode: 'always' | 'on_voice_or_request' | 'off';
+  voiceName?: string;
   autoDailyReportEnabled?: boolean;
   autoDailyReportTime?: string;
 }
@@ -38,15 +39,16 @@ interface OperationEntry {
 
 export default function BotSettingsManager() {
   const [settings, setSettings] = useState<BotSettings>({
-    botName: 'م. سليم',
-    botTitle: 'المساعد الهندسي والمحاسبي الذكي — فاي تك',
+    botName: 'م. سلمى',
+    botTitle: 'المساعدة الهندسية والمحاسبية الذكية — فاي تك',
     introEnabled: true,
-    introTemplate: '👋 أهلاً بك! معك {botName} ({botTitle}).',
+    introTemplate: '👋 أهلاً بيك يا باشمهندس! معاك {botName} ({botTitle}). تحت أمرك في أي استعلام أو تسجيل عملية النهارده!',
     inactivityCloseEnabled: true,
     inactivityTimeoutMinutes: 3,
     inactivityCloseMessage:
-      '⏳ نظراً لعدم وجود رد أو استفسار جديد، تم إنهاء الجلسة الحالية وحفظ السياق.\nأنا ({botName}) موجود دائماً في خدمتك وقتما تبعث رسالة جديدة! 👋',
+      '⏳ علشان مفيش استفسارات جديدة دلوقتي يا باشمهندس، قفلت المحادثة دي وحفظتلك كل حاجة.\nأنا ({botName}) موجودة معاك في أي وقت تبعتلي فيه رسالة جديدة! 👋',
     voiceReplyMode: 'always',
+    voiceName: 'Aoede',
     autoDailyReportEnabled: true,
     autoDailyReportTime: '20:00',
   });
@@ -261,6 +263,22 @@ export default function BotSettingsManager() {
                 <option value="always">🔊 دائماً (إرسال بصمة صوتية مع كل رد)</option>
                 <option value="on_voice_or_request">🎙️ ذكي (عند إرسال بصمة صوتية أو طلب رد صوتي)</option>
                 <option value="off">🔇 إيقاف الرد الصوتي (نص فقط)</option>
+              </select>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#334155', marginBottom: '0.375rem' }}>
+                نبرة الصوت النسائي المصري (Gemini Neural Voice)
+              </label>
+              <select
+                value={settings.voiceName || 'Aoede'}
+                onChange={e => setSettings({ ...settings, voiceName: e.target.value })}
+                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: 'var(--fs-sm)', background: 'white' }}
+              >
+                <option value="Aoede">👩‍💼 م. سلمى — دافئ وتنفيذي (Aoede - مستحسن)</option>
+                <option value="Kore">👩‍💼 نبرة واضحة ورسمية (Kore)</option>
+                <option value="Leda">👩‍💼 نبرة هادئة وسلسة (Leda)</option>
+                <option value="Zephyr">👩‍💼 نبرة حيوية وسريعة (Zephyr)</option>
               </select>
             </div>
 

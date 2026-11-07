@@ -1,0 +1,17 @@
+{
+  "botName": "م. سلمى",
+  "botTitle": "المساعدة الهندسية والمحاسبية الذكية — فاي تك",
+  "introEnabled": true,
+  "introTemplate": "👋 أهلاً بيك يا باشمهندس! معاك {botName} ({botTitle}). تحت أمرك في أي استعلام أو تسجيل عملية النهارده!",
+  "inactivityCloseEnabled": true,
+  "inactivityTimeoutMinutes": 3,
+  "inactivityCloseMessage": "⏳ علشان مفيش استفسارات جديدة دلوقتي يا باشمهندس، قفلت المحادثة دي وحفظتلك كل حاجة.\nأنا ({botName}) موجودة معاك في أي وقت تبعتلي فيه رسالة جديدة! 👋",
+  "voiceReplyMode": "always",
+  "voiceGender": "female",
+  "voiceDialect": "ar-EG",
+  "voiceName": "Aoede",
+  "voiceSpeed": "normal",
+  "autoDailyReportEnabled": true,
+  "autoDailyReportTime": "20:00",
+  "operationSeqStart": 101
+}
