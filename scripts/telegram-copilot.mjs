@@ -3,10 +3,10 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import { createCopilotTools } from './copilot-tools.mjs';
-import { authorizeTelegramMessages, normalizeTelegramChatId } from './copilot-telegram-auth.mjs';
+import { authorizeTelegramMessages, getSharedTelegramCommand, normalizeTelegramChatId, normalizeTelegramSharedChatId } from './copilot-telegram-auth.mjs';
 import { createCopilotCompanyAccess } from './copilot-company-access.mjs';
 import { createCopilotTrainingProposals } from './copilot-training-proposals.mjs';
-import { canUseCopilotTool, getCopilotDate, getEnabledCopilotDeclarations, runEnabledCopilotTool } from './copilot-tool-policy.mjs';
+import { getCopilotDate, getEnabledCopilotDeclarations, runEnabledCopilotTool } from './copilot-tool-policy.mjs';
 import { createCopilotConversation } from './copilot-conversation.mjs';
 import { createTelegramDocumentSender, createTelegramMessageSender } from './copilot-telegram-sender.mjs';
 import { createCopilotEntryForms } from './copilot-entry-forms.mjs';
@@ -35,7 +35,7 @@ function loadEnvLocal() {
     const eqIdx = trimmed.indexOf('=');
     if (eqIdx > 0) {
       const key = trimmed.slice(0, eqIdx).trim().replace(/^\uFEFF/, '');
-      const val = trimmed.slice(eqIdx + 1).trim();
+      const val = trimmed.slice(eqIdx + 1).trim().replace(/^(['"])(.*)\1$/, '$2');
       env[key] = val;
     }
   }
@@ -44,108 +44,27 @@ function loadEnvLocal() {
 
 const env = loadEnvLocal();
 const setting = name => process.env[name] ?? env[name];
-process.env.COPILOT_LIVE_FIELD_OPS_ENABLED ??= 'true';
-process.env.COPILOT_TOOL_TAREEHA_ENABLED ??= 'true';
+for (const flag of ['COPILOT_LIVE_FIELD_OPS_ENABLED', 'COPILOT_TOOL_TAREEHA_ENABLED']) {
+  const value = setting(flag);
+  if (value === 'true' || value === 'false') process.env[flag] = value;
+}
 
-const BOT_TOKEN = setting('TELEGRAM_BOT_TOKEN');
-const RAW_CHAT_ID = String(setting('TELEGRAM_COPILOT_CHAT_ID') ?? setting('TELEGRAM_CHAT_ID') ?? '').trim();
-const CHAT_ID = normalizeTelegramChatId(RAW_CHAT_ID);
-const GROUP_CHAT_ID = CHAT_ID === null && /^-[1-9]\d*$/.test(RAW_CHAT_ID) ? Number(RAW_CHAT_ID) : null;
+const BOT_TOKEN = setting('TELEGRAM_BOT_TOKEN')?.trim();
+const configuredChatId = setting('TELEGRAM_COPILOT_CHAT_ID')?.trim() || setting('TELEGRAM_CHAT_ID');
+const CHAT_ID = normalizeTelegramChatId(configuredChatId);
+const SHARED_CHAT_ID = normalizeTelegramSharedChatId(configuredChatId);
+let botUsername = setting('TELEGRAM_BOT_USERNAME')?.trim().replace(/^@/, '');
 const GEMINI_API_KEY = setting('GEMINI_API_KEY');
 const SUPABASE_URL =
   setting('SUPABASE_URL') || setting('NEXT_PUBLIC_SUPABASE_URL');
 const SUPABASE_PUBLIC_KEY = setting('COPILOT_SUPABASE_PUBLIC_KEY') ||
   setting('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY') || setting('NEXT_PUBLIC_SUPABASE_ANON_KEY') ||
   setting('SUPABASE_ANON_KEY');
-const SUPABASE_SERVICE_KEY =
-  setting('SUPABASE_SERVICE_ROLE_KEY') || setting('SUPABASE_SECRET_KEY');
-const DEFAULT_COMPANY_ID =
-  setting('COPILOT_COMPANY_ID') || '72918f4d-10c3-43a0-884e-2f84f1224335';
-const LIVE_READS_ENABLED = setting('COPILOT_ENABLE_LIVE_READS') !== 'false';
+const LIVE_READS_ENABLED = setting('COPILOT_ENABLE_LIVE_READS') === 'true';
 
-let _cachedServiceCompanyAccess = null;
-
-async function resolveServiceCompanyAccess() {
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
-  if (_cachedServiceCompanyAccess && _cachedServiceCompanyAccess.expiresAt > Date.now()) {
-    return _cachedServiceCompanyAccess.value;
-  }
-  try {
-    const baseUrl = SUPABASE_URL.replace(/\/+$/, '');
-    const headers = {
-      apikey: SUPABASE_SERVICE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
-    };
-    const compRes = await fetch(
-      `${baseUrl}/rest/v1/companies?id=eq.${encodeURIComponent(DEFAULT_COMPANY_ID)}&select=id,name&limit=1`,
-      { headers, signal: AbortSignal.timeout(8000) }
-    );
-    let companyId = DEFAULT_COMPANY_ID;
-    let companyName = setting('COPILOT_COMPANY_NAME') || 'فاي تك للمقاولات العامة والتشطيبات الفاخرة';
-    if (compRes.ok) {
-      const rows = await compRes.json();
-      if (Array.isArray(rows) && rows[0]?.id) {
-        companyId = rows[0].id;
-        companyName = rows[0].name || companyName;
-      }
-    }
-    const ucRes = await fetch(
-      `${baseUrl}/rest/v1/user_companies?company_id=eq.${encodeURIComponent(companyId)}&select=user_id,role&limit=1`,
-      { headers, signal: AbortSignal.timeout(8000) }
-    );
-    let userId = '00000000-0000-4000-8000-000000000001';
-    if (ucRes.ok) {
-      const ucRows = await ucRes.json();
-      if (Array.isArray(ucRows) && ucRows[0]?.user_id) {
-        userId = ucRows[0].user_id;
-      }
-    }
-    const value = {
-      companyId,
-      companyName,
-      userId,
-      accessToken: SUPABASE_SERVICE_KEY,
-      allowServiceRole: true,
-      fullCompanyAccess: true,
-      permissions: {
-        labor_logs: ['view', 'create', 'edit'],
-        projects: ['view', 'create', 'edit'],
-        expenses: ['view', 'create', 'edit'],
-        partners: ['view', 'create', 'edit'],
-        laborcost: ['view'],
-        violations: ['view'],
-        payments: ['view'],
-        journal: ['view'],
-      },
-    };
-    _cachedServiceCompanyAccess = { value, expiresAt: Date.now() + 10 * 60 * 1000 };
-    return value;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Enriches a raw access object from resolveCompanyAccess() with the fields
- * required by copilot-tool-policy.mjs: companyName and permissions.
- */
-function enrichAccess(raw) {
-  if (!raw) return null;
-  return {
-    ...raw,
-    companyName: raw.companyName ?? setting('COPILOT_COMPANY_NAME') ?? null,
-    fullCompanyAccess: raw.fullCompanyAccess === true,
-    allowServiceRole: raw.allowServiceRole === true,
-    permissions: raw.permissions && typeof raw.permissions === 'object' && !Array.isArray(raw.permissions)
-      ? raw.permissions : {},
-  };
-}
-
-async function resolveLiveCompanyAccess() {
-  if (!LIVE_READS_ENABLED) return null;
-  const userScoped = enrichAccess(await resolveCompanyAccess());
-  if (userScoped) return userScoped;
-  return enrichAccess(await resolveServiceCompanyAccess());
+async function resolveLiveCompanyAccess(actor) {
+  if (!LIVE_READS_ENABLED || CHAT_ID === null || actor?.chatId !== CHAT_ID || actor?.userId !== CHAT_ID) return null;
+  return resolveCompanyAccess();
 }
 
 if (!BOT_TOKEN) {
@@ -153,7 +72,7 @@ if (!BOT_TOKEN) {
   process.exit(1);
 }
 
-if (CHAT_ID === null && GROUP_CHAT_ID === null) {
+if (CHAT_ID === null && SHARED_CHAT_ID === null) {
   console.error('اضبط TELEGRAM_COPILOT_CHAT_ID أو TELEGRAM_CHAT_ID قبل تشغيل البوت.');
   process.exit(1);
 }
@@ -200,13 +119,12 @@ function runConfirmedPdf(pending, actor, chatId, messageId) {
   return executePdfRequest(pending, {
     actor,
     log: pdfRequestLog,
-    resolveAccess: async () => resolveLiveCompanyAccess(),
+    resolveAccess: () => resolveLiveCompanyAccess(actor),
     createTools: access => createCopilotTools({
       supabaseUrl: SUPABASE_URL,
-      supabaseKey: access?.allowServiceRole ? access.accessToken : SUPABASE_PUBLIC_KEY,
+      supabaseKey: SUPABASE_PUBLIC_KEY,
       accessToken: access?.accessToken,
       companyId: access?.companyId,
-      allowServiceRole: Boolean(access?.allowServiceRole),
       detailedReads: true,
     }),
     generateWorkerStatementPdf,
@@ -242,8 +160,8 @@ function loadKnowledgeBase(forceReload = false) {
 }
 
 function initKnowledgeBase() {
-  loadKnowledgeBase(true);
-  console.log('📚 Knowledge base loaded:', _cachedKnowledgeBase.length, 'chars');
+  const knowledge = loadKnowledgeBase(true);
+  console.log('📚 Knowledge base loaded:', knowledge.length, 'chars');
 }
 
 // FUNCTION_DECLARATIONS and the system prompt live in copilot-prompt.mjs (shared with the eval runner).
@@ -423,12 +341,17 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
 }
 
 async function processUserPromptWithGemini(userPrompt, actor) {
-  const access = await resolveLiveCompanyAccess();
+  const access = await resolveLiveCompanyAccess(actor);
   const declarations = getEnabledCopilotDeclarations(FUNCTION_DECLARATIONS, access);
   const scope = conversationScope(access, declarations);
   const context = conversation.getContext({ ...actor, scope });
   const memory = { scope, parentMessageId: context.parentMessageId };
-  const quotedMessageText = context.referenceMissing && actor?.quotedMessageText ? actor.quotedMessageText : '';
+  const quotedMessageText = actor?.quotedMessageText ? actor.quotedMessageText.trim().slice(0, 1200) : '';
+
+  let effectivePrompt = userPrompt;
+  if (quotedMessageText) {
+    effectivePrompt = `[الرسالة السابقة المقتبسة التي يقوم المستخدم بالرد عليها]:\n"""\n${quotedMessageText}\n"""\n\n[طلب أو تعديل المستخدم]:\n${userPrompt}`;
+  }
 
   const directText = detectDirectTextReply(userPrompt, actor?.quotedMessageText || '');
   if (directText) {
@@ -438,13 +361,12 @@ async function processUserPromptWithGemini(userPrompt, actor) {
   async function executeToolCall(call) {
     const verified = call.name === 'get_engineering_checklist_and_specs'
       ? null
-      : await resolveLiveCompanyAccess();
+      : await resolveLiveCompanyAccess(actor);
     const tools = createCopilotTools({
       supabaseUrl: SUPABASE_URL,
-      supabaseKey: verified?.allowServiceRole ? verified.accessToken : SUPABASE_PUBLIC_KEY,
+      supabaseKey: SUPABASE_PUBLIC_KEY,
       accessToken: verified?.accessToken,
       companyId: verified?.companyId,
-      allowServiceRole: Boolean(verified?.allowServiceRole),
       detailedReads: true,
     });
     return {
@@ -475,7 +397,7 @@ async function processUserPromptWithGemini(userPrompt, actor) {
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
       body: JSON.stringify(buildModelRequest({
         systemInstructions,
-        contents: [...context.contents, { role: 'user', parts: [{ text: userPrompt }] }],
+        contents: [...context.contents, { role: 'user', parts: [{ text: effectivePrompt }] }],
         declarations,
       })),
       signal: AbortSignal.timeout(MODEL_TIMEOUT_MS),
@@ -490,6 +412,18 @@ async function processUserPromptWithGemini(userPrompt, actor) {
     const responseBody = await response.json();
     const candidate = responseBody.candidates?.[0];
     const reply = interpretModelParts(candidate?.content?.parts, declarations, candidate?.finishReason);
+    if (reply.type === 'multi_tools') {
+      const messages = [];
+      for (const call of reply.calls) {
+        const res = await executeToolCall(call);
+        if (res?.text) messages.push(res.text);
+      }
+      return {
+        type: 'multi_messages',
+        messages: messages.length > 0 ? messages : ['تم تنفيذ العمليات بنجاح.'],
+        memory: { ...memory, toolCalls: reply.calls.map(c => c.name) }
+      };
+    }
     if (reply.type === 'multi') return { text: MODEL_MESSAGES.multipleCalls };
     if (reply.type === 'undeclared') {
       if (directCall && declarations.some(d => d.name === directCall.name)) {
@@ -523,32 +457,12 @@ function escapeTelegramText(text) {
     .replace(/>/g, '&gt;');
 }
 
-function authorizeBotMessages(handleMessage) {
-  return async update => {
-    const message = update?.message || update?.channel_post;
-    if (!message) return;
-    if (message.from?.is_bot) return;
-
-    const isGroup = GROUP_CHAT_ID && message.chat?.id === GROUP_CHAT_ID;
-    const isPrivate = message.chat?.type === 'private';
-    const isChannel = message.chat?.id === GROUP_CHAT_ID || message.chat?.type === 'channel';
-    const isAllowedChat = isPrivate || isGroup || isChannel || (CHAT_ID && message.chat?.id === CHAT_ID);
-
-    const senderName = message.from?.first_name || message.sender_chat?.title || 'مستخدم';
-    const senderUser = message.from?.username ? `@${message.from.username}` : `ID:${message.from?.id || message.chat?.id}`;
-    const textSnippet = String(message.text || message.caption || (message.voice ? '[بصمة صوتية]' : '[مرفق]')).slice(0, 50);
-    console.log(`📩 [Telegram Update] من: ${senderName} (${senderUser}) | شات: ${message.chat?.id} (${message.chat?.type}) | نص: "${textSnippet}"`);
-
-    if (!isAllowedChat) {
-      console.warn(`⚠️ تم تجاهل الرسالة: شات غير مصرح (${message.chat?.id})`);
-      return;
-    }
-    return handleMessage(message);
-  };
+function privateCommandText(text) {
+  return text.trim().replace(/^(\/[a-z][a-z0-9_]*)(?:@[a-z0-9_]+)(?=\s|$)/i, '$1');
 }
 
 // Process incoming Telegram update
-const handleUpdate = authorizeBotMessages(async msg => {
+async function processTelegramMessage(msg) {
   const chatId = msg.chat?.id;
   let rawText = String(msg.text || msg.caption || '').trim();
   const messageId = msg.message_id;
@@ -562,7 +476,7 @@ const handleUpdate = authorizeBotMessages(async msg => {
       : undefined,
   };
 
-  const entryText = typeof msg.text === 'string' ? msg.text.trim().replace(/^(\/[a-z]+)@phitechbot(?=\s|$)/i, '$1') : '';
+  const entryText = typeof msg.text === 'string' ? privateCommandText(msg.text) : '';
   const entry = entryForms.handle(actor, entryText);
   if (entry) {
     await sendTelegramMessage(chatId, entry.text, messageId, { html: false, replyMarkup: entry.replyMarkup });
@@ -618,7 +532,7 @@ const handleUpdate = authorizeBotMessages(async msg => {
   }
 
   try {
-    let cleanText = rawText.replace(/@phitechbot/gi, '').trim();
+    let cleanText = privateCommandText(rawText);
     if (['/new', '/reset'].includes(cleanText.toLowerCase())) {
       pendingPdfRequests.delete(actor);
       conversation.clear(actor);
@@ -667,7 +581,7 @@ const handleUpdate = authorizeBotMessages(async msg => {
         await sendTelegramMessage(chatId, 'اكتب اقتراحًا بعد <code>/train</code> من غير بيانات دخول أو بيانات خاصة.', messageId);
         return;
       }
-      const company = await resolveLiveCompanyAccess();
+      const company = await resolveLiveCompanyAccess(actor);
       const proposal = trainingProposals.submit({ text, telegramUserId: msg.from.id, companyId: company?.companyId ?? null });
       await sendTelegramMessage(chatId, 'سجّلت مقترح التدريب للمراجعة. رقمه <code>' + escapeTelegramText(proposal.id) + '</code>. هيظل معلق لحد اعتماده.', messageId);
       return;
@@ -761,10 +675,17 @@ const handleUpdate = authorizeBotMessages(async msg => {
 
     // 7. المعالجة الذكية بالذكاء الاصطناعي واستدعاء الأدوات الحية
     const reply = await processUserPromptWithGemini(cleanText, actor);
-    const delivery = await sendTelegramMessage(chatId, reply.text, messageId, { html: false });
-    if (delivery.ok && reply.memory) {
-      conversation.remember({ ...actor, ...reply.memory, userMessageId: messageId,
-        botMessageIds: delivery.messageIds, userText: cleanText });
+    if (reply.type === 'multi_messages' && Array.isArray(reply.messages)) {
+      for (const msgItem of reply.messages) {
+        await sendTelegramMessage(chatId, msgItem, messageId, { html: false });
+        await new Promise(r => setTimeout(r, 200));
+      }
+    } else {
+      const delivery = await sendTelegramMessage(chatId, reply.text, messageId, { html: false });
+      if (delivery.ok && reply.memory) {
+        conversation.remember({ ...actor, ...reply.memory, userMessageId: messageId,
+          botMessageIds: delivery.messageIds, userText: cleanText });
+      }
     }
   } catch (error) {
     if (typeof error?.code === 'string' && error.code.startsWith('COPILOT_PROPOSAL_')) {
@@ -774,17 +695,51 @@ const handleUpdate = authorizeBotMessages(async msg => {
     console.error('Copilot could not handle an authorized message.');
     await sendTelegramMessage(chatId, 'تعذّر إكمال الطلب. لو المشكلة بتتكرر راجع إعدادات البوت.', messageId);
   }
-});
+}
+
+async function handleUpdate(update) {
+  const message = update?.message || update?.channel_post;
+  if (!message) return;
+  if (message.from?.is_bot) return;
+
+  const isPrivate = message.chat?.type === 'private';
+  const isTargetChat = (SHARED_CHAT_ID && message.chat?.id === SHARED_CHAT_ID) ||
+    (CHAT_ID && message.chat?.id === CHAT_ID) ||
+    (GROUP_CHAT_ID && message.chat?.id === GROUP_CHAT_ID) ||
+    (RAW_CHAT_ID && String(message.chat?.id) === RAW_CHAT_ID);
+
+  console.log(`📩 [Telegram Update] من: ${message.from?.first_name || ''} (@${message.from?.username || message.from?.id}) | شات: ${message.chat?.id} (${message.chat?.type}) | نص: "${String(message.text || message.caption || (message.voice ? '[بصمة صوتية]' : '[مرفق]')).slice(0, 40)}"`);
+
+  if (isPrivate || isTargetChat) {
+    return processTelegramMessage(message);
+  }
+}
 
 // Long-polling loop
 let offset = 0;
 let isPolling = true;
 
+async function loadBotUsername() {
+  if (botUsername) return;
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`, { signal: AbortSignal.timeout(5000) });
+    const data = await res.json();
+    if (res.ok && data?.ok === true && typeof data.result?.username === 'string') {
+      botUsername = data.result.username;
+    }
+  } catch {
+    console.warn('Telegram bot username could not be verified. Tagged commands require TELEGRAM_BOT_USERNAME.');
+  }
+}
+
 async function pollUpdates() {
+  if (SHARED_CHAT_ID !== null) await loadBotUsername();
+  const allowedUpdates = ['message', 'channel_post', 'callback_query'];
   console.log('📡 بدء الاستماع المباشر لرسائل تيليجرام (Long Polling)...');
   while (isPolling) {
     try {
-      const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${offset}&timeout=25`;
+      const query = new URLSearchParams({ offset: String(offset), timeout: '25', allowed_updates: JSON.stringify(allowedUpdates) });
+      const url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?${query}`;
       const res = await fetch(url, { signal: AbortSignal.timeout(35000) });
       const data = await res.json();
 
@@ -797,6 +752,11 @@ async function pollUpdates() {
       } else if (!data.ok) {
         const errorCode = Number.isSafeInteger(data.error_code) ? data.error_code : undefined;
         console.warn('Telegram poll returned an error.', { status: res.status, errorCode });
+        if ([401, 404].includes(errorCode ?? res.status)) {
+          console.error('Telegram rejected the bot token. Check the TELEGRAM_BOT_TOKEN setting on the worker.');
+          process.exitCode = 1;
+          return;
+        }
         if (errorCode === 409) console.warn('Check for another running copilot worker or a webhook using this bot.');
         await new Promise((r) => setTimeout(r, 4000));
       }

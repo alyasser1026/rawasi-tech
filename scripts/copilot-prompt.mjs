@@ -25,13 +25,17 @@ export const BASE_SYSTEM_PROMPT = `
 `;
 
 const FIELD_OPS_ROUTING_INSTRUCTIONS = `
-قواعد توجيه استعلامات الميدان والتقارير اليومية والإضافة المباشرة (تُطبّق عند توفر الأدوات المعلنة):
+قواعد توجيه استعلامات الميدان والتقارير اليومية والإضافة المباشرة والتعديل (تُطبّق عند توفر الأدوات المعلنة):
 1) إذا سأل المستخدم عن «العمالة اللي نزلت النهارده» أو «مين نزل النهارده» أو «فيه يوميات اتسجلت النهارده» أو «يوميات العمال اليوم»: استدعِ فوراً get_labor_daily_logs مع date="today".
 2) إذا سأل المستخدم عن «المشاريع اللي موجودة كلها» أو «إيه المشاريع اللي عندنا» أو «امال ايه البروجكت فيها ايه» أو «كل الفلل والمشاريع»: استدعِ فوراً get_all_projects_and_villas مع filter_mode="all" و date="today".
 3) إذا سأل المستخدم عن «المشاريع اللي اشتغلناها النهارده كلها» أو «الفلل اللي شغالة النهارده»: استدعِ فوراً get_all_projects_and_villas مع filter_mode="worked_today" و date="today".
 4) إذا طلب المستخدم «تقرير اليوم» أو «تقرير يومي مفصل» أو سأل في رسالة واحدة عن (العمالة + الفلل + المصروفات + اللي اتصرف للعمالة + الخامات اللي اتصرفت + المقاولين اللي اتسلمت + الركوستات اللي خلصت) أو سأل عن المصروفات/الخامات/المقاولين/الركوستات لليوم: استدعِ فوراً get_daily_comprehensive_report مع date="today".
 5) إذا طلب المستخدم إضافة أو تسجيل يومية عامل في المحادثة (مثال: «ضيفلي يومية عامل محمد مطيز بند جبس تجليد طريحة 50 عمل 35 يومية 200»): استدعِ فوراً add_labor_daily_log_draft بالبيانات المستخرجة (worker_name, work_item, tareeha, productivity, daily_wage, site_ref).
 6) إذا طلب المستخدم إضافة أو تسجيل مصروف في المحادثة (مثال: «سجل مصروف 500 ريال تشوين رمل فيلا 657»): استدعِ فوراً add_expense_draft بالبيانات المستخرجة (description, total_price, site_ref).
+7) إذا طلب المستخدم تسجيل قيد محاسبي أو قيد يومية (مثال: «سجل قيد من الصندوق للبنك 5000» أو «قيد إثبات شراء أسمنت 3000 لفيلا 10»): استدعِ فوراً add_journal_entry_draft بالبيانات (description, amount, debit_account, credit_account, site_ref).
+8) إذا طلب المستخدم عمل أمر شغل أو أمر تشغيل لمقاول (مثال: «اعمل امر شغل محارة لفيلا 5 كمية 200 متر بسعر 45 لمقاول أحمد»): استدعِ فوراً add_job_order_draft بالبيانات (contractor_name, work_item, assigned_qty, unit_price, site_ref, executor_type).
+9) العمليات المتعددة في رسالة واحدة: إذا ذكر المستخدم أكثر من قيد، أو أكثر من أمر شغل، أو أكثر من مصروف، أو مزيج منهم في رسالة واحدة: استدعِ الأداة المناسبة لكل عملية على حدة كاستدعاءات متوازية (Multiple Function Calls) في نفس الرد، بحيث يُنشأ كل قيد وكل أمر شغل بشكل منفصل ومستقل.
+10) التعديل عبر الرد على رسالة (Reply): إذا قام المستخدم بالرد على رسالة سابقة لعملية ما وطلب تعديلها (مثال: «التعديل: غير المبلغ لـ 7000» أو «عدل المشروع لفيلا 12» أو «غير اسم المقاول لـ خالد»): استخرج كود العملية من نص الرسالة المقتبسة واستدعِ update_operation_draft بالتعديلات المحددة.
 `;
 
 export const MODEL_MESSAGES = Object.freeze({
@@ -93,7 +97,16 @@ function sanitizeTruncatedText(text) {
 export function interpretModelParts(parts, declarations, finishReason = null) {
   const list = Array.isArray(parts) ? parts : [];
   const calls = list.filter(part => part?.functionCall).map(part => part.functionCall);
-  if (calls.length > 1) return { type: 'multi' };
+  if (calls.length > 1) {
+    const validCalls = calls.filter(call => declarations.some(tool => tool.name === call.name));
+    if (validCalls.length > 1) {
+      return { type: 'multi_tools', calls: validCalls };
+    }
+    if (validCalls.length === 1) {
+      return { type: 'tool', call: validCalls[0] };
+    }
+    return { type: 'multi' };
+  }
   if (calls.length === 1) {
     const call = calls[0];
     return declarations.some(tool => tool.name === call.name) ? { type: 'tool', call } : { type: 'undeclared', call };

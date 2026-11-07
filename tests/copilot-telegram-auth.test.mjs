@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { authorizeTelegramMessages, isAuthorizedTelegramUpdate, normalizeTelegramChatId } from '../scripts/copilot-telegram-auth.mjs';
+import { authorizeTelegramMessages, getSharedTelegramCommand, isAuthorizedTelegramUpdate, normalizeTelegramChatId, normalizeTelegramSharedChatId } from '../scripts/copilot-telegram-auth.mjs';
 
 const allowedId = 3123456789012;
 const privateChat = { type: 'private', id: allowedId };
@@ -58,4 +58,33 @@ test('blocks unauthorized voice and training before the message handler runs', a
   assert.deepEqual(messages, []);
   await handle({ message });
   assert.deepEqual(messages, [message]);
+});
+
+test('only accepts commands for this bot in the configured shared chat', () => {
+  const sharedId = -10012345;
+  const chat = { id: sharedId, type: 'supergroup' };
+  const update = { message: { chat, from: human, message_id: 7, text: '/ask@Phi_Test_Bot اشرح الشاشة' } };
+  assert.equal(normalizeTelegramSharedChatId('  -10012345 '), sharedId);
+  assert.equal(normalizeTelegramSharedChatId('-9007199254740992'), null);
+  assert.equal(normalizeTelegramSharedChatId(123), null);
+  assert.deepEqual(getSharedTelegramCommand(update, sharedId, 'phi_test_bot'), {
+    chatId: sharedId, messageId: 7, command: 'ask', text: 'اشرح الشاشة',
+  });
+  assert.equal(getSharedTelegramCommand(update, sharedId, 'other_bot'), null);
+  assert.equal(getSharedTelegramCommand(update, sharedId), null);
+  assert.equal(getSharedTelegramCommand(update, sharedId - 1, 'phi_test_bot'), null);
+  assert.equal(getSharedTelegramCommand({ message: { ...update.message, text: 'رسالة عادية' } }, sharedId), null);
+  assert.equal(getSharedTelegramCommand({ message: { ...update.message, from: { ...human, is_bot: true } } }, sharedId, 'phi_test_bot'), null);
+  assert.equal(getSharedTelegramCommand({ edited_message: update.message }, sharedId, 'phi_test_bot'), null);
+});
+
+test('requires the configured channel and a command on a channel post', () => {
+  const chatId = -10012345;
+  const post = { chat: { id: chatId, type: 'channel' }, message_id: 5, text: '/help' };
+  assert.deepEqual(getSharedTelegramCommand({ channel_post: post }, chatId), {
+    chatId, messageId: 5, command: 'help', text: '',
+  });
+  assert.equal(getSharedTelegramCommand({ message: post }, chatId), null);
+  assert.equal(getSharedTelegramCommand({ channel_post: post }, chatId - 1), null);
+  assert.equal(getSharedTelegramCommand({ channel_post: { ...post, text: 'تنبيه فاي تك' } }, chatId), null);
 });

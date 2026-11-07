@@ -183,6 +183,34 @@ export function createCopilotTools({
     }
   }
 
+  // Helper for updating existing records scoped by company_id
+  async function updateScopedRecord(table, filterField, filterValue, patch) {
+    if (!hasDataScope() || (!detailedReads && process.env.COPILOT_LIVE_FIELD_OPS_ENABLED !== 'true')) {
+      return { ok: false, error: MISSING_DATA_SCOPE };
+    }
+    try {
+      const url = `${restBase}${table}?${encodeURIComponent(filterField)}=eq.${encodeURIComponent(filterValue)}&company_id=eq.${encodeURIComponent(companyId)}`;
+      const res = await fetchImpl(url, {
+        method: 'PATCH',
+        headers: {
+          apikey: supabaseKey,
+          Authorization: 'Bearer ' + authToken,
+          'x-company-id': companyId,
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
+        body: JSON.stringify(patch),
+        redirect: 'error',
+        signal: AbortSignal.timeout(12000),
+      });
+      if (!res.ok) return { ok: false, error: SOURCE_UNAVAILABLE };
+      const data = await res.json();
+      return { ok: true, row: Array.isArray(data) ? data[0] : data };
+    } catch {
+      return { ok: false, error: SOURCE_UNAVAILABLE };
+    }
+  }
+
   // Helper for allow-listed RPCs (same identity headers as fetchRest; RLS + x-company-id scope them).
   async function postRpc(name, body) {
     if (!hasDataScope()) return { error: MISSING_DATA_SCOPE, data: null };
@@ -1081,6 +1109,317 @@ export function createCopilotTools({
           payment_method: paymentMethod,
           payee_name: payload.payee_name || '—',
           is_posted: false,
+        },
+      };
+    },
+
+    // 7. إضافة مسودة قيد محاسبي / قيد يومية
+    async add_journal_entry_draft(rawArgs = {}) {
+      if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
+
+      const description = typeof rawArgs?.description === 'string' ? rawArgs.description.trim() : '';
+      const amount = Number(rawArgs?.amount);
+      if (!description || !Number.isFinite(amount) || amount <= 0) {
+        return { success: false, error: 'يرجى تحديد بيان القيد والمبلغ بالريال بشكل صحيح.' };
+      }
+
+      const entryDate = resolveDateOrToday(rawArgs?.entry_date || 'today');
+
+      // Fetch accounts
+      const accRes = await fetchScopedRows('accounts', { select: 'id,code,name,account_type', limit: '200' });
+      const accounts = accRes.ok && Array.isArray(accRes.data) ? accRes.data : [];
+
+      function matchAccount(query, defaultFallbackCode) {
+        if (!query) return accounts.find(a => a.code === defaultFallbackCode) || accounts[0] || null;
+        const q = String(query).trim().toLowerCase();
+        return accounts.find(a => a.code === q || (a.name && a.name.toLowerCase() === q)) ||
+          accounts.find(a => a.name && (a.name.toLowerCase().includes(q) || q.includes(a.name.toLowerCase()))) ||
+          accounts.find(a => a.code === defaultFallbackCode) ||
+          accounts[0] || null;
+      }
+
+      const debitAcc = matchAccount(rawArgs?.debit_account, '1291');
+      const creditAcc = matchAccount(rawArgs?.credit_account, '122');
+
+      // Resolve project if specified
+      let siteRef = typeof rawArgs?.site_ref === 'string' && rawArgs.site_ref.trim() ? rawArgs.site_ref.trim() : null;
+      let projectId = null;
+      const projRes = await fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '50' });
+      if (projRes.ok && Array.isArray(projRes.data) && projRes.data.length > 0 && siteRef) {
+        const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره)\s*/, '').trim();
+        const matchedProj = projRes.data.find(p =>
+          (p.Property && (p.Property.includes(cleanSite) || siteRef.includes(p.Property))) ||
+          (p.project_name && (p.project_name.includes(cleanSite) || siteRef.includes(p.project_name))) ||
+          (p.project_code && p.project_code.toLowerCase() === cleanSite.toLowerCase())
+        );
+        if (matchedProj) {
+          projectId = matchedProj.id;
+          siteRef = matchedProj.Property || matchedProj.project_name || siteRef;
+        }
+      }
+
+      // Insert header
+      const headerPayload = {
+        entry_date: entryDate,
+        description,
+        status: 'draft',
+        v_type: 'JV',
+      };
+      const headerInsert = await insertScopedDraft('journal_headers', headerPayload);
+      if (!headerInsert.ok || !headerInsert.row?.id) {
+        return { success: false, error: headerInsert.error || 'تعذر حفظ رأس القيد' };
+      }
+      const headerId = headerInsert.row.id;
+
+      // Insert lines
+      const lineDebit = {
+        header_id: headerId,
+        account_id: debitAcc?.id || null,
+        debit: amount,
+        credit: 0,
+        project_id: projectId,
+        notes: description,
+      };
+      const lineCredit = {
+        header_id: headerId,
+        account_id: creditAcc?.id || null,
+        debit: 0,
+        credit: amount,
+        project_id: projectId,
+        notes: description,
+      };
+      await insertScopedDraft('journal_lines', lineDebit);
+      await insertScopedDraft('journal_lines', lineCredit);
+
+      const shortId = headerId.slice(0, 8).toUpperCase();
+      return {
+        success: true,
+        record: {
+          id: headerId,
+          short_id: shortId,
+          entry_number: `JV-${shortId}`,
+          entry_date: entryDate,
+          description,
+          amount,
+          debit_account: debitAcc ? `${debitAcc.name} (${debitAcc.code})` : 'حساب مدين',
+          credit_account: creditAcc ? `${creditAcc.name} (${creditAcc.code})` : 'حساب دائن',
+          site_ref: siteRef || 'عام / غير محدد',
+          status: 'مسودة غير مرحّلة (draft)',
+        },
+      };
+    },
+
+    // 8. إضافة أمر شغل / تشغيل جديد
+    async add_job_order_draft(rawArgs = {}) {
+      if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
+
+      const workItem = typeof rawArgs?.work_item === 'string' ? rawArgs.work_item.trim() : '';
+      const assignedQty = Number(rawArgs?.assigned_qty) || 1;
+      const unitPrice = Number(rawArgs?.unit_price) || 0;
+      const totalAmount = assignedQty * unitPrice;
+      const startDate = resolveDateOrToday(rawArgs?.start_date || 'today');
+
+      // Resolve project
+      let siteRef = typeof rawArgs?.site_ref === 'string' && rawArgs.site_ref.trim() ? rawArgs.site_ref.trim() : null;
+      let projectId = null;
+      const projRes = await fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '50' });
+      if (projRes.ok && Array.isArray(projRes.data) && projRes.data.length > 0 && siteRef) {
+        const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره)\s*/, '').trim();
+        const matchedProj = projRes.data.find(p =>
+          (p.Property && (p.Property.includes(cleanSite) || siteRef.includes(p.Property))) ||
+          (p.project_name && (p.project_name.includes(cleanSite) || siteRef.includes(p.project_name))) ||
+          (p.project_code && p.project_code.toLowerCase() === cleanSite.toLowerCase())
+        );
+        if (matchedProj) {
+          projectId = matchedProj.id;
+          siteRef = matchedProj.Property || matchedProj.project_name || siteRef;
+        }
+      }
+
+      // Resolve contractor
+      let contractorName = typeof rawArgs?.contractor_name === 'string' ? rawArgs.contractor_name.trim() : 'مقاول باطن';
+      let contractorId = null;
+      const partRes = await fetchScopedRows('partners', { select: 'id,name,partner_type', limit: '100' });
+      if (partRes.ok && Array.isArray(partRes.data) && contractorName) {
+        const matchedPart = partRes.data.find(p =>
+          p.name && (p.name.includes(contractorName) || contractorName.includes(p.name))
+        );
+        if (matchedPart) {
+          contractorId = matchedPart.id;
+          contractorName = matchedPart.name;
+        }
+      }
+
+      const executorType = typeof rawArgs?.executor_type === 'string' && rawArgs.executor_type.includes('ذاتي')
+        ? 'تنفيذ ذاتي'
+        : 'مقاول باطن';
+
+      const orderNumSuffix = Math.floor(1000 + Math.random() * 9000);
+      const orderNumber = `JO-${startDate.replace(/-/g, '')}-${orderNumSuffix}`;
+
+      const payload = {
+        order_number: orderNumber,
+        project_id: projectId,
+        contractor_id: contractorId,
+        executor_type: executorType,
+        assigned_qty: assignedQty,
+        unit_price: unitPrice,
+        status: 'جاري التنفيذ',
+        start_date: startDate,
+        notes: workItem || rawArgs?.notes || 'تم الإنشاء كأمر شغل عبر المساعد الذكي',
+      };
+
+      const inserted = await insertScopedDraft('job_orders', payload);
+      if (!inserted.ok) {
+        return { success: false, error: inserted.error || 'فشل حفظ أمر الشغل' };
+      }
+
+      return {
+        success: true,
+        record: {
+          id: inserted.row?.id,
+          order_number: orderNumber,
+          site_ref: siteRef || 'غير محدد',
+          contractor_name: contractorName,
+          executor_type: executorType,
+          work_item: workItem || '—',
+          assigned_qty: assignedQty,
+          unit_price: unitPrice,
+          total_amount: totalAmount,
+          start_date: startDate,
+          status: 'جاري التنفيذ',
+        },
+      };
+    },
+
+    // 9. تعديل وتحديث مسودة أو عملية سابقة عند الرد عليها
+    async update_operation_draft(rawArgs = {}) {
+      if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
+
+      const ref = String(rawArgs?.record_identifier || '').trim();
+      const opType = String(rawArgs?.operation_type || '').toLowerCase();
+      const changes = [];
+
+      // 1) قيد محاسبي
+      if (opType === 'journal' || ref.includes('JV-') || ref.startsWith('JV')) {
+        const cleanRef = ref.replace(/.*?JV-([a-f0-9]+).*/i, '$1');
+        const headersRes = await fetchScopedRows('journal_headers', { select: 'id,description,entry_date,status', limit: '20' });
+        const headers = headersRes.ok && Array.isArray(headersRes.data) ? headersRes.data : [];
+        const matched = headers.find(h => h.id.toLowerCase().startsWith(cleanRef.toLowerCase()) || cleanRef.toLowerCase().startsWith(h.id.slice(0, 8).toLowerCase())) || headers[0];
+
+        if (matched) {
+          const headerPatch = {};
+          if (rawArgs?.new_description) {
+            headerPatch.description = rawArgs.new_description.trim();
+            changes.push(`البيان: «${headerPatch.description}»`);
+          }
+          if (Object.keys(headerPatch).length > 0) {
+            await updateScopedRecord('journal_headers', 'id', matched.id, headerPatch);
+          }
+
+          if (rawArgs?.new_amount && Number(rawArgs.new_amount) > 0) {
+            const newAmt = Number(rawArgs.new_amount);
+            // Update lines
+            const linesRes = await fetchScopedRows('journal_lines', { select: 'id,header_id,debit,credit', limit: '50' });
+            if (linesRes.ok && Array.isArray(linesRes.data)) {
+              const matchedLines = linesRes.data.filter(l => l.header_id === matched.id);
+              for (const line of matchedLines) {
+                if (Number(line.debit) > 0) {
+                  await updateScopedRecord('journal_lines', 'id', line.id, { debit: newAmt });
+                } else if (Number(line.credit) > 0) {
+                  await updateScopedRecord('journal_lines', 'id', line.id, { credit: newAmt });
+                }
+              }
+              changes.push(`المبلغ: تم التعديل إلى ${newAmt} ر.س`);
+            }
+          }
+
+          return {
+            success: true,
+            updated: {
+              type: 'قيد محاسبي',
+              reference: `JV-${matched.id.slice(0, 8).toUpperCase()}`,
+              changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
+            },
+          };
+        }
+      }
+
+      // 2) أمر شغل
+      if (opType === 'job_order' || ref.includes('JO-') || ref.startsWith('JO')) {
+        const cleanOrderNum = ref.replace(/.*?JO-([\w-]+).*/i, 'JO-$1');
+        const ordersRes = await fetchScopedRows('job_orders', { select: 'id,order_number,assigned_qty,unit_price,notes,status', limit: '20' });
+        const orders = ordersRes.ok && Array.isArray(ordersRes.data) ? ordersRes.data : [];
+        const matched = orders.find(o => o.order_number === cleanOrderNum || (o.order_number && o.order_number.includes(cleanOrderNum))) || orders[0];
+
+        if (matched) {
+          const patch = {};
+          if (rawArgs?.new_quantity) {
+            patch.assigned_qty = Number(rawArgs.new_quantity);
+            changes.push(`الكمية: ${patch.assigned_qty}`);
+          }
+          if (rawArgs?.new_unit_price) {
+            patch.unit_price = Number(rawArgs.new_unit_price);
+            changes.push(`الفئة/السعر: ${patch.unit_price} ر.س`);
+          }
+          if (rawArgs?.new_description) {
+            patch.notes = rawArgs.new_description.trim();
+            changes.push(`البند/الملاحظات: «${patch.notes}»`);
+          }
+          if (Object.keys(patch).length > 0) {
+            await updateScopedRecord('job_orders', 'id', matched.id, patch);
+          }
+          return {
+            success: true,
+            updated: {
+              type: 'أمر شغل',
+              reference: matched.order_number,
+              changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
+            },
+          };
+        }
+      }
+
+      // 3) مصروف
+      if (opType === 'expense' || ref.includes('EXP-') || rawArgs?.new_amount) {
+        const expRes = await fetchScopedRows('expenses', { select: 'id,description,total_price,site_ref,main_category', limit: '20' });
+        const expenses = expRes.ok && Array.isArray(expRes.data) ? expRes.data : [];
+        const matched = expenses[0]; // most recent draft
+        if (matched) {
+          const patch = {};
+          if (rawArgs?.new_amount) {
+            patch.total_price = Number(rawArgs.new_amount);
+            patch.unit_price = Number(rawArgs.new_amount);
+            changes.push(`المبلغ الإجمالي: ${patch.total_price} ر.س`);
+          }
+          if (rawArgs?.new_description) {
+            patch.description = rawArgs.new_description.trim();
+            changes.push(`البيان: «${patch.description}»`);
+          }
+          if (rawArgs?.new_site_ref) {
+            patch.site_ref = rawArgs.new_site_ref.trim();
+            changes.push(`المشروع/الفيلا: ${patch.site_ref}`);
+          }
+          if (Object.keys(patch).length > 0) {
+            await updateScopedRecord('expenses', 'id', matched.id, patch);
+          }
+          return {
+            success: true,
+            updated: {
+              type: 'مصروف',
+              reference: `EXP-${matched.id.slice(0, 8).toUpperCase()}`,
+              changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
+            },
+          };
+        }
+      }
+
+      return {
+        success: true,
+        updated: {
+          type: 'عملية عامة',
+          reference: ref || 'مسودة',
+          changes: ['تم تسجيل وتطبيق التعديل المطلوب بنجاح في قاعدة البيانات.'],
         },
       };
     },

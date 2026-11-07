@@ -7,6 +7,9 @@ const PROJECTS = 'get_all_projects_and_villas';
 const DAILY_REPORT = 'get_daily_comprehensive_report';
 const ADD_LABOR = 'add_labor_daily_log_draft';
 const ADD_EXPENSE = 'add_expense_draft';
+const ADD_JOURNAL = 'add_journal_entry_draft';
+const ADD_JOB_ORDER = 'add_job_order_draft';
+const UPDATE_OPERATION = 'update_operation_draft';
 const DAY_MS = 86_400_000;
 const TOOLS_ENABLED = process.env.COPILOT_TOOLS_ENABLED !== 'false';
 
@@ -156,6 +159,55 @@ function getToolArgs(name, supplied, now) {
       ...(safeText(supplied.payee_name, 80) ? { payee_name: safeText(supplied.payee_name, 80) } : {}),
       ...(safeText(supplied.payment_method, 40) ? { payment_method: safeText(supplied.payment_method, 40) } : {}),
       ...(safeText(supplied.notes, 200) ? { notes: safeText(supplied.notes, 200) } : {}),
+    };
+  }
+
+  if (name === ADD_JOURNAL) {
+    const description = safeText(supplied.description, 200);
+    const amount = Number(supplied.amount);
+    if (!description || !Number.isFinite(amount) || amount <= 0) return null;
+    const entryDate = supplied.entry_date !== undefined ? resolveDateToken(supplied.entry_date, now) : getCopilotDate(now);
+    return {
+      description,
+      amount,
+      entry_date: entryDate || getCopilotDate(now),
+      ...(safeText(supplied.debit_account, 100) ? { debit_account: safeText(supplied.debit_account, 100) } : {}),
+      ...(safeText(supplied.credit_account, 100) ? { credit_account: safeText(supplied.credit_account, 100) } : {}),
+      ...(safeText(supplied.site_ref, 100) ? { site_ref: safeText(supplied.site_ref, 100) } : {}),
+    };
+  }
+
+  if (name === ADD_JOB_ORDER) {
+    const workItem = safeText(supplied.work_item, 200);
+    const assignedQty = Number(supplied.assigned_qty);
+    if (!workItem || !Number.isFinite(assignedQty) || assignedQty <= 0) return null;
+    const startDate = supplied.start_date !== undefined ? resolveDateToken(supplied.start_date, now) : getCopilotDate(now);
+    return {
+      work_item: workItem,
+      assigned_qty: assignedQty,
+      start_date: startDate || getCopilotDate(now),
+      ...(Number.isFinite(Number(supplied.unit_price)) ? { unit_price: Number(supplied.unit_price) } : {}),
+      ...(safeText(supplied.contractor_name, 100) ? { contractor_name: safeText(supplied.contractor_name, 100) } : {}),
+      ...(safeText(supplied.site_ref, 100) ? { site_ref: safeText(supplied.site_ref, 100) } : {}),
+      ...(safeText(supplied.executor_type, 50) ? { executor_type: safeText(supplied.executor_type, 50) } : {}),
+      ...(safeText(supplied.notes, 200) ? { notes: safeText(supplied.notes, 200) } : {}),
+    };
+  }
+
+  if (name === UPDATE_OPERATION) {
+    const recordIdentifier = safeText(supplied.record_identifier, 100);
+    if (!recordIdentifier) return null;
+    return {
+      record_identifier: recordIdentifier,
+      ...(safeText(supplied.operation_type, 50) ? { operation_type: safeText(supplied.operation_type, 50) } : {}),
+      ...(Number.isFinite(Number(supplied.new_amount)) ? { new_amount: Number(supplied.new_amount) } : {}),
+      ...(Number.isFinite(Number(supplied.new_quantity)) ? { new_quantity: Number(supplied.new_quantity) } : {}),
+      ...(Number.isFinite(Number(supplied.new_unit_price)) ? { new_unit_price: Number(supplied.new_unit_price) } : {}),
+      ...(safeText(supplied.new_site_ref, 100) ? { new_site_ref: safeText(supplied.new_site_ref, 100) } : {}),
+      ...(safeText(supplied.new_description, 200) ? { new_description: safeText(supplied.new_description, 200) } : {}),
+      ...(safeText(supplied.new_account, 100) ? { new_account: safeText(supplied.new_account, 100) } : {}),
+      ...(safeText(supplied.new_contractor, 100) ? { new_contractor: safeText(supplied.new_contractor, 100) } : {}),
+      ...(safeText(supplied.new_notes, 200) ? { new_notes: safeText(supplied.new_notes, 200) } : {}),
     };
   }
 
@@ -450,6 +502,58 @@ function formatAddExpenseReply(result, companyLabel) {
   ].filter(Boolean).join('\n');
 }
 
+function formatAddJournalReply(result, companyLabel) {
+  const r = result.record || {};
+  return [
+    `📋 <b>قيد محاسبي جديد مسجل [${r.entry_number || '#'}]</b>`,
+    `الشركة: <b>${companyLabel}</b>`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `📅 <b>التاريخ:</b> ${r.entry_date}`,
+    `📝 <b>البيان:</b> ${r.description}`,
+    `💰 <b>المبلغ:</b> ${r.amount} ر.س`,
+    `🟢 <b>المدين (+):</b> ${r.debit_account}`,
+    `🔴 <b>الدائن (-):</b> ${r.credit_account}`,
+    `🏗️ <b>المشروع:</b> ${r.site_ref}`,
+    `📌 <b>الحالة:</b> ${r.status}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `💡 <i>للتعديل: اضغط "رد" (Reply) على هذه الرسالة واكتب تعديلك.</i>`,
+  ].filter(Boolean).join('\n');
+}
+
+function formatAddJobOrderReply(result, companyLabel) {
+  const r = result.record || {};
+  return [
+    `🔨 <b>أمر تشغيل جديد مسجل [${r.order_number || '#'}]</b>`,
+    `الشركة: <b>${companyLabel}</b>`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `📅 <b>التاريخ:</b> ${r.start_date}`,
+    `🏗️ <b>المشروع:</b> ${r.site_ref}`,
+    `👷 <b>المقاول / المنفذ:</b> ${r.contractor_name} (${r.executor_type})`,
+    `📦 <b>البند:</b> ${r.work_item}`,
+    `📐 <b>الكمية:</b> ${r.assigned_qty} | <b>الفئة:</b> ${r.unit_price} ر.س`,
+    `💵 <b>الإجمالي:</b> ${r.total_amount} ر.س`,
+    `📌 <b>الحالة:</b> ${r.status}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `💡 <i>للتعديل: اضغط "رد" (Reply) على هذه الرسالة واكتب تعديلك.</i>`,
+  ].filter(Boolean).join('\n');
+}
+
+function formatUpdateOperationReply(result, companyLabel) {
+  const u = result.updated || {};
+  const changesList = Array.isArray(u.changes) ? u.changes.map(c => `• ${c}`).join('\n') : '• تم حفظ التعديلات بنجاح';
+  return [
+    `✏️ <b>تم تعديل العملية بنجاح! [${u.reference || '#'}]</b>`,
+    `الشركة: <b>${companyLabel}</b>`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `📝 <b>نوع العملية:</b> ${u.type || 'عملية مسجلة'}`,
+    `🔄 <b>التعديلات التي تم تطبيقها:</b>`,
+    changesList,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `✅ <i>تم حفظ التعديلات وتحديث السجلات في قاعدة البيانات بنجاح.</i>`,
+    `💡 <i>للتعديل مرة أخرى: اضغط "رد" (Reply) على هذه الرسالة.</i>`,
+  ].filter(Boolean).join('\n');
+}
+
 export async function runEnabledCopilotTool(call, tools, access, now = new Date()) {
   if (!TOOLS_ENABLED) return 'الأدوات المتقدمة معطّلة حالياً. افتح فاي تك مباشرةً.';
   const name = call?.name;
@@ -463,6 +567,9 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     if (name === TAREEHA) return 'جرّب تاني — الطلب ده ما بياخدش معطيات إضافية.';
     if (name === ADD_LABOR) return 'اذكر اسم العامل والبند واليومية لتسجيل مسودة اليومية.';
     if (name === ADD_EXPENSE) return 'اذكر بيان المصروف والمبلغ بالريال لتسجيل مسودة المصروف.';
+    if (name === ADD_JOURNAL) return 'اذكر بيان القيد والمبلغ بالريال لتسجيل قيد اليومية.';
+    if (name === ADD_JOB_ORDER) return 'اذكر بند العمل والكمية وسعر الوحدة والمقاول لتسجيل أمر الشغل.';
+    if (name === UPDATE_OPERATION) return 'اذكر كود أو تفاصيل العملية والتعديل المطلوب.';
     if (name === PROJECTS || name === DAILY_REPORT) return 'حدّد التاريخ بصيغة YYYY-MM-DD أو اكتب «النهارده».';
     return 'اذكر اسم البند الهندسي ونوع الفحص المطلوب.';
   }
@@ -516,6 +623,15 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
   }
   if (name === ADD_EXPENSE) {
     return formatAddExpenseReply(result, companyLabel);
+  }
+  if (name === ADD_JOURNAL) {
+    return formatAddJournalReply(result, companyLabel);
+  }
+  if (name === ADD_JOB_ORDER) {
+    return formatAddJobOrderReply(result, companyLabel);
+  }
+  if (name === UPDATE_OPERATION) {
+    return formatUpdateOperationReply(result, companyLabel);
   }
 
   if (name === TAREEHA) {
