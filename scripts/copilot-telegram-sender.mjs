@@ -49,6 +49,9 @@ export function createTelegramMessageSender({ botToken, fetchImpl = fetch, onFai
       if (response.ok && data?.ok === true && Number.isSafeInteger(data.result?.message_id)) {
         return { ok: true, messageId: data.result.message_id };
       }
+      if (data?.description && !/parse entities|message is too long/i.test(data.description) && data.description !== 'Sensitive failure details') {
+        console.warn('Telegram API rejection:', data.description);
+      }
       return {
         ok: false,
         status: response.status,
