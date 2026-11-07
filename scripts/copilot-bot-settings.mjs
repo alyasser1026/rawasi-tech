@@ -25,6 +25,8 @@ export const DEFAULT_BOT_SETTINGS = Object.freeze({
   voiceDialect: 'ar-EG',
   voiceName: 'Aoede',
   voiceSpeed: 'normal',
+  mozzaModeEnabled: false,
+  mozzaNickname: 'يا حبيبي',
   autoDailyReportEnabled: true,
   autoDailyReportTime: '20:00',
   operationSeqStart: 101,
@@ -76,6 +78,10 @@ export function saveBotSettings(partial = {}) {
       : {}),
     ...(typeof partial.voiceName === 'string' && ['Aoede', 'Kore', 'Leda', 'Zephyr'].includes(partial.voiceName)
       ? { voiceName: partial.voiceName }
+      : {}),
+    ...(typeof partial.mozzaModeEnabled === 'boolean' ? { mozzaModeEnabled: partial.mozzaModeEnabled } : {}),
+    ...(typeof partial.mozzaNickname === 'string' && partial.mozzaNickname.trim()
+      ? { mozzaNickname: partial.mozzaNickname.trim().slice(0, 40) }
       : {}),
     ...(typeof partial.autoDailyReportEnabled === 'boolean' ? { autoDailyReportEnabled: partial.autoDailyReportEnabled } : {}),
     ...(typeof partial.autoDailyReportTime === 'string' && /^\d{2}:\d{2}$/.test(partial.autoDailyReportTime.trim())
@@ -225,11 +231,15 @@ export function updateOperationStatusInIndex(identifier, newStatus) {
 }
 
 /**
- * تحويل النص أو كارت العملية إلى سكريبت منطوق بالعامية المصرية الاحترافية بصوت المهندسة سلمى
+ * تحويل النص أو كارت العملية إلى سكريبت منطوق بالعامية المصرية بصوت سلمى (رسمي أو وضع الموزة)
  */
 export function prepareSpeechText(rawText, botName = 'م. سلمى') {
   if (!rawText) return '';
   const raw = String(rawText);
+  const settings = getBotSettings();
+  const isMozza = Boolean(settings.mozzaModeEnabled);
+  const petName = settings.mozzaNickname || 'يا حبيبي';
+  const addressAs = isMozza ? petName : 'يا باشمهندس';
 
   // 1) إذا كان كارت تعديل عملية
   const editMatch = raw.match(/إشعار تعديل عملية.*العملية رقم \[#?(\d+)\]/);
@@ -238,21 +248,24 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     const summaryMatch = raw.match(/البيان الحالي:\s*([^\n]+)/);
     const changesLines = [...raw.matchAll(/🔸\s*([^\n]+)/g)].map(m => m[1].replace(/⬅️/g, ' بقى '));
     const changesSpoken = changesLines.slice(0, 2).join(' ، و');
+    if (isMozza) {
+      return `عيوني ليك ${petName}! عدلتلك العملية رقم ${opNum}${summaryMatch ? ` بتاعة ${summaryMatch[1].trim()}` : ''} زي ما طلبت مني بالظبط، ${changesSpoken || 'وحفظتلك كل حاجة في السيستم يا روحي'}.`;
+    }
     return `تمام يا باشمهندس، معاك ${botName}. عدلتلك العملية رقم ${opNum}${summaryMatch ? ` الخاصة بـ ${summaryMatch[1].trim()}` : ''}، ${changesSpoken || 'وحفظت التعديلات في السيستم'}.`;
   }
 
   // 2) إذا كان كارت تسجيل عملية جديدة (مصروف / يومية / قيد / أمر شغل)
-  const createMatch = raw.match(/(?:تم تسجيل|قيد محاسبي جديد|أمر تشغيل جديد).*العملية رقم \[#?(\d+)\]/);
+  const createMatch = raw.match(/(?:تم تسجيل|سجلتلك|قيد محاسبي جديد|أمر تشغيل جديد).*العملية رقم \[#?(\d+)\]/);
   if (createMatch) {
     const opNum = createMatch[1];
     const amountMatch = raw.match(/(?:المبلغ الإجمالي|المبلغ|الإجمالي|اليومية \(الأجر\)):\s*([\d,.]+)/);
     const siteMatch = raw.match(/(?:الفيلا \/ الموقع|المشروع):\s*([^\n]+)/);
     const descMatch = raw.match(/(?:البيان|البند|اسم العامل):\s*([^\n]+)/);
-    const parts = [`تمام يا باشمهندس، سجلتلك العملية رقم ${opNum}`];
+    const parts = [isMozza ? `من عيوني ${petName}، سجلتلك العملية رقم ${opNum}` : `تمام يا باشمهندس، سجلتلك العملية رقم ${opNum}`];
     if (descMatch) parts.push(`بخصوص ${descMatch[1].trim()}`);
     if (siteMatch && !/غير محدد/.test(siteMatch[1])) parts.push(`في ${siteMatch[1].trim()}`);
     if (amountMatch) parts.push(`بقيمة ${amountMatch[1].replace(/,/g, '')} ريال`);
-    parts.push('وتقدر تعتمدها أو ترفق ليها صورة من الزراير اللي تحت الرسالة.');
+    parts.push(isMozza ? 'ربنا يقويك ويديك الصحة يا قلبي، وتقدر تعتمدها من الزرار اللي تحت.' : 'وتقدر تعتمدها أو ترفق ليها صورة من الزراير اللي تحت الرسالة.');
     return parts.join(' ، ');
   }
 
@@ -261,6 +274,9 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     const dateMatch = raw.match(/التاريخ:\s*([\d-]+)/);
     const workersMatch = raw.match(/عدد العمال:\s*(\d+)/);
     const expMatch = raw.match(/إجمالي المصروفات:\s*([\d,.]+)/);
+    if (isMozza) {
+      return `أحلى تقرير لأحلى باشمهندس في الدنيا ${petName}! جمعتلك تقرير النهارده${dateMatch ? ` يوم ${dateMatch[1]}` : ''}${workersMatch ? `، نزل معانا ${workersMatch[1]} عامل` : ''}${expMatch ? `، والمصروفات كانت ${expMatch[1].replace(/,/g, '')} ريال` : ''}. شوف التفاصيل في الرسالة وقولي لو محتاج أي حاجة تانية يا روحي.`;
+    }
     return `أهلاً بيك يا باشمهندس، معاك ${botName}. بعتلك دلوقتي التقرير اليومي المفصل${dateMatch ? ` لتاريخ ${dateMatch[1]}` : ''}${workersMatch ? `، إجمالي العمالة المسجلة ${workersMatch[1]} عامل` : ''}${expMatch ? `، وإجمالي المصروفات ${expMatch[1].replace(/,/g, '')} ريال` : ''}. كل التفاصيل قدامك في الرسالة.`;
   }
 
@@ -269,14 +285,15 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     .replace(/<[^>]+>/g, ' ')
     .replace(/━+|─+/g, ' ، ')
     .replace(/💡\s*للتعديل.*$/gm, '')
+    .replace(/💌\s*لو عايزني.*$/gm, '')
     .replace(/🆔\s*[^\n]+/g, '')
-    .replace(/[✅❌⚠️🚨📌🔢🆔📅🏢👷🔨📐📊💵💰💳🏷️📝🎙️⏳👋🧠💡📄🔸🟢🔴🏗️📦🔄🗑️📎•*`_~]/gu, ' ')
+    .replace(/[✅❌⚠️🚨📌🔢🆔📅🏢👷🔨📐📊💵💰💳🏷️📝🎙️⏳👋🧠💡📄🔸🟢🔴🏗️📦🔄🗑️📎💖💌🥰😘🌹🙈😉•*`_~]/gu, ' ')
     .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '')
     .replace(/https?:\/\/\S+/g, '')
     .replace(/#(\d+)/g, ' رقم $1 ')
     .replace(/ر\.س/g, ' ريال ')
     .replace(/⬅️/g, ' بقى ')
-    .replace(/أهلاً بك/g, 'أهلاً بيك يا باشمهندس')
+    .replace(/أهلاً بك/g, `أهلاً بيك ${addressAs}`)
     .replace(/تم تسجيل/g, 'سجلتلك')
     .replace(/بنجاح/g, 'خلاص')
     .replace(/\s+/g, ' ')
@@ -286,7 +303,7 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     text = text.slice(0, 340);
     const lastStop = Math.max(text.lastIndexOf('،'), text.lastIndexOf('.'), text.lastIndexOf(' '));
     if (lastStop > 120) text = text.slice(0, lastStop);
-    text += ' ، والتفاصيل الكاملة قدامك في الرسالة يا باشمهندس.';
+    text += isMozza ? ` ، والتفاصيل كلها قدامك في الرسالة ${petName}.` : ' ، والتفاصيل الكاملة قدامك في الرسالة يا باشمهندس.';
   }
   return text;
 }
@@ -353,7 +370,9 @@ export async function synthesizeArabicSpeech(rawText, { botName = 'م. سلمى'
   // 1) المحرك الأساسي: Gemini 2.5 Flash TTS بصوت نسائي مصري طبيعي (Aoede)
   if (apiKey) {
     try {
-      const promptText = `انطقي الرسالة التالية باللهجة العامية المصرية الاحترافية الهادئة والودودة بصوت مهندسة مصرية محترفة (${botName}):\n${clean}`;
+      const promptText = settings.mozzaModeEnabled
+        ? `انطقي الرسالة التالية باللهجة العامية المصرية بصوت بنوتة مصرية دلوعة وحنينة ورقيقة جداً (${botName}) بتكلم حبيبها بدلع واهتمام وحب:\n${clean}`
+        : `انطقي الرسالة التالية باللهجة العامية المصرية الاحترافية الهادئة والودودة بصوت مهندسة مصرية محترفة (${botName}):\n${clean}`;
       const res = await fetch(GEMINI_TTS_URL, {
         method: 'POST',
         headers: {

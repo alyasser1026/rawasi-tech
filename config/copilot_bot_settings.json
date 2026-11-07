@@ -11,6 +11,8 @@
   "voiceDialect": "ar-EG",
   "voiceName": "Aoede",
   "voiceSpeed": "normal",
+  "mozzaModeEnabled": true,
+  "mozzaNickname": "يا حبيبي",
   "autoDailyReportEnabled": true,
   "autoDailyReportTime": "20:00",
   "operationSeqStart": 101

@@ -1,4 +1,5 @@
 import { TOOL_STATUS, isToolFlagEnabled, registryEntry } from './copilot-tool-registry.mjs';
+import { getBotSettings } from './copilot-bot-settings.mjs';
 
 const CHECKLIST = 'get_engineering_checklist_and_specs';
 const LABOR = 'get_labor_daily_logs';
@@ -474,8 +475,13 @@ function formatComprehensiveReportReply(result, companyLabel) {
 function formatAddLaborReply(result, companyLabel) {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `LAB-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا حبيبي';
   return [
-    `✅ تمام يا باشمهندس، سجلتلك مسودة يومية العامل | العملية رقم [${opTag}]`,
+    isMozza
+      ? `💖 عيوني ليك ${pet}، سجلتلك مسودة يومية العامل | العملية رقم [${opTag}]`
+      : `✅ تمام يا باشمهندس، سجلتلك مسودة يومية العامل | العملية رقم [${opTag}]`,
     `🔢 رقم العملية للتعديل السريع: ${opTag}`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -488,15 +494,22 @@ function formatAddLaborReply(result, companyLabel) {
     r.tareeha != null ? `• موقف الطريحة: ${r.tareeha_deficit}` : null,
     `• الحالة: مسودة جاهزة للمراجعة والاعتماد من شاشة يوميات العمالة أو من الزرار تحت.`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
+    isMozza
+      ? `💌 لو عايزني أعدل فيها أي حاجة يا روحي قولّي بس: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» وأنا أعملهالك فوراً!`
+      : `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
   ].filter(Boolean).join('\n');
 }
 
 function formatAddExpenseReply(result, companyLabel) {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `EXP-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا حبيبي';
   return [
-    `✅ تمام يا باشمهندس، سجلتلك مسودة المصروف | العملية رقم [${opTag}]`,
+    isMozza
+      ? `💖 من عيوني ${pet}، سجلتلك مسودة المصروف | العملية رقم [${opTag}]`
+      : `✅ تمام يا باشمهندس، سجلتلك مسودة المصروف | العملية رقم [${opTag}]`,
     `🔢 رقم العملية للتعديل السريع: ${opTag}`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -508,15 +521,22 @@ function formatAddExpenseReply(result, companyLabel) {
     r.payee_name && r.payee_name !== '—' ? `• المستفيد: ${r.payee_name}` : null,
     `• الحالة: مسودة جاهزة للمراجعة والاعتماد من شاشة المصروفات أو من الزرار تحت.`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
+    isMozza
+      ? `💌 لو عايزني أعدل فيها أي حاجة يا روحي قولّي بس: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» وأنا أعملهالك فوراً!`
+      : `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
   ].filter(Boolean).join('\n');
 }
 
 function formatAddJournalReply(result, companyLabel) {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.entry_number || '#');
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا حبيبي';
   return [
-    `📋 تمام يا باشمهندس، سجلتلك قيد محاسبي جديد | العملية رقم [${opTag}]`,
+    isMozza
+      ? `💖 عيوني ليك ${pet}، سجلتلك قيد محاسبي جديد | العملية رقم [${opTag}]`
+      : `📋 تمام يا باشمهندس، سجلتلك قيد محاسبي جديد | العملية رقم [${opTag}]`,
     `🔢 رقم العملية للتعديل السريع: ${opTag} (الكود: ${r.entry_number || '—'})`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -528,15 +548,22 @@ function formatAddJournalReply(result, companyLabel) {
     `🏗️ المشروع: ${r.site_ref}`,
     `📌 الحالة: ${r.status}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
+    isMozza
+      ? `💌 لو عايزني أعدل فيها أي حاجة يا روحي قولّي بس: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» وأنا أعملهالك فوراً!`
+      : `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
   ].filter(Boolean).join('\n');
 }
 
 function formatAddJobOrderReply(result, companyLabel) {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.order_number || '#');
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا حبيبي';
   return [
-    `🔨 تمام يا باشمهندس، سجلتلك أمر تشغيل جديد | العملية رقم [${opTag}]`,
+    isMozza
+      ? `💖 من عيوني ${pet}، سجلتلك أمر تشغيل جديد | العملية رقم [${opTag}]`
+      : `🔨 تمام يا باشمهندس، سجلتلك أمر تشغيل جديد | العملية رقم [${opTag}]`,
     `🔢 رقم العملية للتعديل السريع: ${opTag} (الكود: ${r.order_number || '—'})`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -548,7 +575,9 @@ function formatAddJobOrderReply(result, companyLabel) {
     `💵 الإجمالي: ${r.total_amount} ر.س`,
     `📌 الحالة: ${r.status}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
+    isMozza
+      ? `💌 لو عايزني أعدل فيها أي حاجة يا روحي قولّي بس: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» وأنا أعملهالك فوراً!`
+      : `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
   ].filter(Boolean).join('\n');
 }
 
@@ -557,6 +586,9 @@ function formatUpdateOperationReply(result, companyLabel) {
   const opTag = u.op_number ? `#${u.op_number}` : (u.reference || '#');
   const nowStr = new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' });
   const changesList = Array.isArray(u.changes) ? u.changes.map(c => `  🔸 ${c}`).join('\n') : '  🔸 تم حفظ التعديلات بنجاح';
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا حبيبي';
   return [
     `🔔 إشعار تعديل عملية معتمد | العملية رقم [${opTag}]`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
@@ -567,10 +599,14 @@ function formatUpdateOperationReply(result, companyLabel) {
     `🏢 الشركة: ${companyLabel}`,
     `🕒 وقت التعديل: ${nowStr}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `🔄 التعديلات اللي نفذتهالك يا باشمهندس (قبل ⬅️ بعد):`,
+    isMozza
+      ? `💖 التعديلات اللي عملتهالك ${pet} (قبل ⬅️ بعد):`
+      : `🔄 التعديلات اللي نفذتهالك يا باشمهندس (قبل ⬅️ بعد):`,
     changesList,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `✅ خلاص حدثتلك السجل فوراً في قاعدة بيانات فاي تك.`,
+    isMozza
+      ? `✅ خلاص يا روحي حدثتلك السجل فوراً في قاعدة بيانات فاي تك.`
+      : `✅ خلاص حدثتلك السجل فوراً في قاعدة بيانات فاي تك.`,
     `💡 لو محتاج تعدل حاجة تانية أو ترفق مستند: اكتب «عدل العملية ${u.op_number || opTag} ...» أو دوس على الزراير اللي تحت.`,
   ].filter(Boolean).join('\n');
 }

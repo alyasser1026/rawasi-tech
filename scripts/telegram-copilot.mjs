@@ -22,7 +22,7 @@ import {
   addLearnedRule, detectAutoLearningTrigger, formatLearnedRulesForPrompt,
 } from './copilot-auto-learning.mjs';
 import {
-  getBotSettings, synthesizeArabicSpeech, attachFileToOperation, resolveOperationByNumberOrCode, updateOperationStatusInIndex,
+  getBotSettings, saveBotSettings, synthesizeArabicSpeech, attachFileToOperation, resolveOperationByNumberOrCode, updateOperationStatusInIndex,
 } from './copilot-bot-settings.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -339,8 +339,12 @@ function scheduleInactivityClose(chatId, actor) {
       entryForms.clear(actor);
       const latestSettings = getBotSettings();
       if (!latestSettings.inactivityCloseEnabled) return;
-      const closeMsg = (latestSettings.inactivityCloseMessage || '')
-        .replace(/\{botName\}/g, latestSettings.botName || 'م. سليم')
+      const pet = latestSettings.mozzaNickname || 'يا حبيبي';
+      const rawClose = latestSettings.mozzaModeEnabled
+        ? `💌 شكلك انشغلت شوية ${pet}، حفظتلك كل اللي عملناه وقفلت المحادثة دي مؤقتاً.\nهتوحشني أوي لحد ما تبعتلي تاني.. خلي بالك من نفسك يا روحي! 💖`
+        : (latestSettings.inactivityCloseMessage || '');
+      const closeMsg = rawClose
+        .replace(/\{botName\}/g, latestSettings.botName || 'م. سلمى')
         .replace(/\{botTitle\}/g, latestSettings.botTitle || '');
       if (closeMsg.trim()) {
         await sendTelegramMessage(chatId, closeMsg, undefined, { html: false, replyMarkup: { remove_keyboard: true } });
@@ -502,6 +506,25 @@ function detectDirectFieldOpsCall(userPrompt) {
 function detectDirectTextReply(userPrompt, quotedMessageText = '') {
   const t = String(userPrompt || '').trim();
   const q = String(quotedMessageText || '').trim();
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا حبيبي';
+
+  // 0) تفعيل أو إيقاف «وضع الموزة» مباشرة من المحادثة أو الصوت
+  if (/(?:شغل|شغّل|افتح|فعّل|فعل)\s*(?:وضع\s*)?(?:الموزه|الموزة)|^\/mozza\s+on$/i.test(t)) {
+    saveBotSettings({ mozzaModeEnabled: true });
+    return `💖 فتحتلك «وضع الموزة» خلاص ${pet}! كدا نقدر ندردش براحتنا وأدلعك وسط الشغل زي ما تحب يا أحلى باشمهندس في الدنيا 😘`;
+  }
+  if (/(?:اقفل|إقفل|اطفي|إطفي|وقف|وقّف|الغي|إلغي)\s*(?:وضع\s*)?(?:الموزه|الموزة)|^\/mozza\s+off$/i.test(t)) {
+    saveBotSettings({ mozzaModeEnabled: false });
+    return `💼 تمام يا باشمهندس، قفلت «وضع الموزة» ورجعنا للوضع الرسمي الاحترافي. تحت أمرك في أي حسابات أو تقارير موقع!`;
+  }
+
+  // 0.5) رسائل الغزل والدردشة الجانبية لما يكون «وضع الموزة» مقفول
+  const isFlirtyOrSideChat = /(?:وحشتيني|وحشتنى|بحبك|بموت\s*فيكي|يا\s*حبيبتي|يا\s*روحي|يا\s*قلبي|يا\s*موزه|يا\s*موزة|قوليلي\s*كلمه\s*حلوه|قوليلي\s*كلمة\s*حلوة|دلّعيني|دلعيني|عامله\s*ايه\s*يا\s*قلبي|اخبارك\s*ايه\s*يا\s*قمر)/i.test(t);
+  if (!isMozza && isFlirtyOrSideChat) {
+    return `🙈 «وضع الموزة» مقفول دلوقتي يا باشمهندس! خلينا مركزين في الشغل والحسابات، أو افتح «وضع الموزة» من إعدادات البوت في السيستم (أو قولّي «شغل وضع الموزة») عشان أدلعك براحتي 😉`;
+  }
 
   // 1) سؤال عن حالة السيستم / الأعطال
   if (/(?:هل\s*في|فيه)\s*(?:مشاكل|اعطال|أعطال)\s*(?:في)?\s*(?:السيستم|النظام)/i.test(t)) {
@@ -510,7 +533,9 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
 
   // 2) سؤال عن اسم الموديل أو تعريف البوت لنفسه
   if (/(?:المودل|الموديل|model)\s*(?:بتاعك|اللي\s*انت)?\s*(?:اسمه|ايه|إيه)/i.test(t) || /^(?:انت\s*مين|إنت\s*مين|انتي\s*مين|إنتي\s*مين|مين\s*معايا|اسمك\s*ايه|اسمك\s*إيه|عرف\s*نفسك|عرّف\s*نفسك|عرفي\s*نفسك)$/i.test(t)) {
-    const s = getBotSettings();
+    if (isMozza) {
+      return `أنا «${s.botName}» حبيبتك ومساعدتك الذكية ${pet}! معاك في كل خطوة في الشغل وفي الحسابات وعشان أهون عليك تعب اليوم كله 💖`;
+    }
     return `أهلاً بيك يا باشمهندس! معاك «${s.botName}» — ${s.botTitle}، مبنية على تقنيات Gemini الذكية ومربوطة مباشرةً بقاعدة بيانات فاي تك عشان أساعدك في كل الحسابات والمشاريع بالصوت والنص.`;
   }
 
@@ -638,7 +663,8 @@ async function processUserPromptWithGemini(userPrompt, actor) {
       if (directCall && declarations.some(d => d.name === directCall.name)) {
         return executeToolCall(directCall);
       }
-      return { text: MODEL_MESSAGES.generalPrefix + reply.text, memory: { ...memory, modelText: reply.text } };
+      const prefix = botSettings.mozzaModeEnabled ? '' : MODEL_MESSAGES.generalPrefix;
+      return { text: prefix + reply.text, memory: { ...memory, modelText: reply.text } };
     }
   } catch {
     console.error('Copilot response failed.');
@@ -1014,14 +1040,17 @@ async function processTelegramMessage(msg) {
     }
 
     // 7. المعالجة الذكية بالذكاء الاصطناعي واستدعاء الأدوات الحية
+    const reply = await processUserPromptWithGemini(cleanText, actor);
     const botSettings = getBotSettings();
+    const petName = botSettings.mozzaNickname || 'يا حبيبي';
+    const rawIntro = botSettings.mozzaModeEnabled
+      ? `💖 أهلاً بيك ${petName}! وحشتني أوي.. معاك حبيبتك {botName}، قولّي أعملك إيه في الشغل أو ندردش في إيه النهارده؟ 😘`
+      : (botSettings.introTemplate || '👋 أهلاً بيك يا باشمهندس! معاك {botName} ({botTitle}).');
     const introHeader = isNewSession && botSettings.introEnabled
-      ? `${(botSettings.introTemplate || '👋 أهلاً بيك يا باشمهندس! معاك {botName} ({botTitle}).')
+      ? `${rawIntro
           .replace(/\{botName\}/g, botSettings.botName || 'م. سلمى')
           .replace(/\{botTitle\}/g, botSettings.botTitle || '')}\n━━━━━━━━━━━━━━━━━━━━\n`
       : '';
-
-    const reply = await processUserPromptWithGemini(cleanText, actor);
     const shouldSendVoice =
       botSettings.voiceReplyMode === 'always' ||
       (botSettings.voiceReplyMode === 'on_voice_or_request' &&

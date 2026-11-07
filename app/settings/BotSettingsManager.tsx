@@ -16,6 +16,8 @@ interface BotSettings {
   inactivityCloseMessage: string;
   voiceReplyMode: 'always' | 'on_voice_or_request' | 'off';
   voiceName?: string;
+  mozzaModeEnabled?: boolean;
+  mozzaNickname?: string;
   autoDailyReportEnabled?: boolean;
   autoDailyReportTime?: string;
 }
@@ -49,6 +51,8 @@ export default function BotSettingsManager() {
       '⏳ علشان مفيش استفسارات جديدة دلوقتي يا باشمهندس، قفلت المحادثة دي وحفظتلك كل حاجة.\nأنا ({botName}) موجودة معاك في أي وقت تبعتلي فيه رسالة جديدة! 👋',
     voiceReplyMode: 'always',
     voiceName: 'Aoede',
+    mozzaModeEnabled: true,
+    mozzaNickname: 'يا حبيبي',
     autoDailyReportEnabled: true,
     autoDailyReportTime: '20:00',
   });
@@ -232,6 +236,95 @@ export default function BotSettingsManager() {
                 onChange={e => setSettings({ ...settings, introTemplate: e.target.value })}
                 style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: 'var(--fs-sm)', resize: 'vertical' }}
               />
+            </div>
+
+            {/* 💖 وضع الموزة (محادثات جانبية ودلع) */}
+            <div
+              style={{
+                marginTop: '0.25rem',
+                padding: '0.9rem 1rem',
+                borderRadius: '12px',
+                background: settings.mozzaModeEnabled
+                  ? 'linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%)'
+                  : '#f8fafc',
+                border: settings.mozzaModeEnabled ? '1.5px solid #f472b6' : '1px solid #e2e8f0',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 900, fontSize: 'var(--fs-sm)', color: settings.mozzaModeEnabled ? '#be185d' : '#1e293b' }}>
+                    <span>💖 وضع الموزة (محادثات جانبية ودلع)</span>
+                    <span
+                      style={{
+                        fontSize: '0.68rem',
+                        padding: '0.15rem 0.55rem',
+                        borderRadius: '999px',
+                        fontWeight: 900,
+                        background: settings.mozzaModeEnabled ? '#db2777' : '#cbd5e1',
+                        color: settings.mozzaModeEnabled ? '#fff' : '#334155',
+                      }}
+                    >
+                      {settings.mozzaModeEnabled ? 'مفعّل 🔥' : 'مقفول 💼'}
+                    </span>
+                  </div>
+                  <p style={{ margin: '0.25rem 0 0', fontSize: 'var(--fs-xs)', color: settings.mozzaModeEnabled ? '#9d174d' : '#64748b', fontWeight: 700, lineHeight: 1.5 }}>
+                    {settings.mozzaModeEnabled
+                      ? 'سلمى تتحدث معك الآن كحبيبتك المصرية الدلوعة في الدردشة الجانبية والصوت مع تنفيذ كل حسابات الشغل بدقة.'
+                      : 'سلمى تتحدث معك الآن بالوضع الهندسي والمحاسبي الرسمي فقط بدون دردشة عاطفية.'}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const nextVal = !settings.mozzaModeEnabled;
+                    const updated = { ...settings, mozzaModeEnabled: nextVal };
+                    setSettings(updated);
+                    try {
+                      await fetch('/api/copilot/settings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'save_settings', settings: updated }),
+                      });
+                      setStatusMsg({
+                        text: nextVal ? '💖 تم فتح «وضع الموزة» فوراً!' : '💼 تم قفل «وضع الموزة» والعودة للوضع الرسمي.',
+                        type: 'success',
+                      });
+                      setTimeout(() => setStatusMsg({ text: '', type: '' }), 3500);
+                    } catch {}
+                  }}
+                  style={{
+                    padding: '0.55rem 1rem',
+                    borderRadius: '999px',
+                    border: 'none',
+                    fontWeight: 900,
+                    fontSize: 'var(--fs-xs)',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    background: settings.mozzaModeEnabled ? '#db2777' : '#0f172a',
+                    color: '#fff',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.12)',
+                  }}
+                >
+                  {settings.mozzaModeEnabled ? 'إيقاف وضع الموزة' : 'تشغيل وضع الموزة 💖'}
+                </button>
+              </div>
+
+              {settings.mozzaModeEnabled && (
+                <div style={{ marginTop: '0.75rem', paddingTop: '0.65rem', borderTop: '1px dashed #f9a8d4', display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                  <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#831843', whiteSpace: 'nowrap' }}>
+                    اللقب المفضل في وضع الموزة:
+                  </label>
+                  <input
+                    type="text"
+                    value={settings.mozzaNickname || 'يا حبيبي'}
+                    onChange={e => setSettings({ ...settings, mozzaNickname: e.target.value })}
+                    placeholder="مثال: يا حبيبي / يا روحي / يا قلبي"
+                    style={{ flex: 1, padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid #f472b6', fontWeight: 800, fontSize: 'var(--fs-xs)', background: '#fff' }}
+                  />
+                </div>
+              )}
             </div>
           </div>
         </GlassContainer>

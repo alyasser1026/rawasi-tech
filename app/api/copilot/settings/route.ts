@@ -17,6 +17,8 @@ const DEFAULT_SETTINGS = {
     '⏳ علشان مفيش استفسارات جديدة دلوقتي يا باشمهندس، قفلت المحادثة دي وحفظتلك كل حاجة.\nأنا ({botName}) موجودة معاك في أي وقت تبعتلي فيه رسالة جديدة! 👋',
   voiceReplyMode: 'always',
   voiceName: 'Aoede',
+  mozzaModeEnabled: false,
+  mozzaNickname: 'يا حبيبي',
   autoDailyReportEnabled: true,
   autoDailyReportTime: '20:00',
   operationSeqStart: 101,
@@ -95,6 +97,12 @@ export async function POST(req: NextRequest) {
           : {}),
         ...(typeof payload.voiceName === 'string' && ['Aoede', 'Kore', 'Leda', 'Zephyr'].includes(payload.voiceName)
           ? { voiceName: payload.voiceName }
+          : {}),
+        ...(typeof payload.mozzaModeEnabled === 'boolean'
+          ? { mozzaModeEnabled: payload.mozzaModeEnabled }
+          : {}),
+        ...(typeof payload.mozzaNickname === 'string' && payload.mozzaNickname.trim()
+          ? { mozzaNickname: payload.mozzaNickname.trim().slice(0, 40) }
           : {}),
         ...(typeof payload.autoDailyReportEnabled === 'boolean'
           ? { autoDailyReportEnabled: payload.autoDailyReportEnabled }
