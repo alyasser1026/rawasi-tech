@@ -524,13 +524,24 @@ function escapeTelegramText(text) {
 }
 
 function authorizeBotMessages(handleMessage) {
-  if (CHAT_ID !== null) {
-    return authorizeTelegramMessages(CHAT_ID, handleMessage);
-  }
   return async update => {
     const message = update?.message;
     if (!message || update.edited_message || update.channel_post || update.edited_channel_post) return;
-    if (message.chat?.id !== GROUP_CHAT_ID || !message.from || message.from.is_bot !== false) return;
+    if (message.from?.is_bot) return;
+
+    const isGroup = GROUP_CHAT_ID && message.chat?.id === GROUP_CHAT_ID;
+    const isPrivate = message.chat?.type === 'private';
+    const isAllowedChat = (CHAT_ID && message.chat?.id === CHAT_ID) || isGroup || isPrivate;
+
+    const senderName = message.from?.first_name || 'مستخدم';
+    const senderUser = message.from?.username ? `@${message.from.username}` : `ID:${message.from?.id}`;
+    const textSnippet = (message.text || message.caption || (message.voice ? '[بصمة صوتية]' : '[مرفق]')).slice(0, 50);
+    console.log(`📩 [Telegram Update] من: ${senderName} (${senderUser}) | شات: ${message.chat?.id} (${message.chat?.type}) | نص: "${textSnippet}"`);
+
+    if (!isAllowedChat) {
+      console.warn(`⚠️ تم تجاهل الرسالة: شات غير مصرح (${message.chat?.id})`);
+      return;
+    }
     return handleMessage(message);
   };
 }
