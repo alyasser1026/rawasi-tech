@@ -282,7 +282,7 @@ function formatProjectsReply(result, companyLabel) {
 
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
-  const pet = s.mozzaNickname || 'يا حبيبي';
+  const pet = s.mozzaNickname || 'يا محاميحو';
   const lines = [
     ...(isMozza ? [`💖 من عيوني ${pet}! جمعتلك بيان المشاريع والفلل كلها أهو:`] : []),
     `🏗️ بيان المشاريع والفلل ونماذج المساحات — ${companyLabel}`,
@@ -342,7 +342,7 @@ function formatComprehensiveReportReply(result, companyLabel) {
 
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
-  const pet = s.mozzaNickname || 'يا حبيبي';
+  const pet = s.mozzaNickname || 'يا محاميحو';
   const lines = [
     ...(isMozza ? [`💖 عيوني ليك ${pet}! ده التقرير اليومي المفصل لكل الشغل والحسابات النهارده:`] : []),
     `📊 التقرير اليومي المفصل الشامل — ${companyLabel}`,
@@ -485,7 +485,7 @@ function formatAddLaborReply(result, companyLabel) {
   const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `LAB-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
-  const pet = s.mozzaNickname || 'يا حبيبي';
+  const pet = s.mozzaNickname || 'يا محاميحو';
   return [
     isMozza
       ? `💖 عيوني ليك ${pet}، سجلتلك مسودة يومية العامل | العملية رقم [${opTag}]`
@@ -513,7 +513,7 @@ function formatAddExpenseReply(result, companyLabel) {
   const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `EXP-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
-  const pet = s.mozzaNickname || 'يا حبيبي';
+  const pet = s.mozzaNickname || 'يا محاميحو';
   return [
     isMozza
       ? `💖 من عيوني ${pet}، سجلتلك مسودة المصروف | العملية رقم [${opTag}]`
@@ -540,7 +540,7 @@ function formatAddJournalReply(result, companyLabel) {
   const opTag = r.op_number ? `#${r.op_number}` : (r.entry_number || '#');
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
-  const pet = s.mozzaNickname || 'يا حبيبي';
+  const pet = s.mozzaNickname || 'يا محاميحو';
   return [
     isMozza
       ? `💖 عيوني ليك ${pet}، سجلتلك قيد محاسبي جديد | العملية رقم [${opTag}]`
@@ -567,7 +567,7 @@ function formatAddJobOrderReply(result, companyLabel) {
   const opTag = r.op_number ? `#${r.op_number}` : (r.order_number || '#');
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
-  const pet = s.mozzaNickname || 'يا حبيبي';
+  const pet = s.mozzaNickname || 'يا محاميحو';
   return [
     isMozza
       ? `💖 من عيوني ${pet}، سجلتلك أمر تشغيل جديد | العملية رقم [${opTag}]`
@@ -596,7 +596,7 @@ function formatUpdateOperationReply(result, companyLabel) {
   const changesList = Array.isArray(u.changes) ? u.changes.map(c => `  🔸 ${c}`).join('\n') : '  🔸 تم حفظ التعديلات بنجاح';
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
-  const pet = s.mozzaNickname || 'يا حبيبي';
+  const pet = s.mozzaNickname || 'يا محاميحو';
   return [
     `🔔 إشعار تعديل عملية معتمد | العملية رقم [${opTag}]`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,

@@ -18,7 +18,7 @@ const DEFAULT_SETTINGS = {
   voiceReplyMode: 'always',
   voiceName: 'Aoede',
   mozzaModeEnabled: false,
-  mozzaNickname: 'يا حبيبي',
+  mozzaNickname: 'يا محاميحو',
   autoDailyReportEnabled: true,
   autoDailyReportTime: '20:00',
   operationSeqStart: 101,

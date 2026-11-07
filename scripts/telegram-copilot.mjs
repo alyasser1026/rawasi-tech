@@ -349,7 +349,7 @@ function scheduleInactivityClose(chatId, actor) {
       entryForms.clear(actor);
       const latestSettings = getBotSettings();
       if (!latestSettings.inactivityCloseEnabled) return;
-      const pet = latestSettings.mozzaNickname || 'يا حبيبي';
+      const pet = latestSettings.mozzaNickname || 'يا محاميحو';
       const rawClose = latestSettings.mozzaModeEnabled
         ? `💌 شكلك انشغلت شوية ${pet}، حفظتلك كل اللي عملناه وقفلت المحادثة دي مؤقتاً.\nهتوحشني أوي لحد ما تبعتلي تاني.. خلي بالك من نفسك يا روحي! 💖`
         : (latestSettings.inactivityCloseMessage || '');
@@ -524,12 +524,12 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
   const q = String(quotedMessageText || '').trim();
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
-  const pet = s.mozzaNickname || 'يا حبيبي';
+  const pet = s.mozzaNickname || 'يا محاميحو';
 
   // 0) تفعيل أو إيقاف «وضع الموزة» مباشرة من المحادثة أو الصوت
   if (/(?:شغل|شغّل|افتح|فعّل|فعل)\s*(?:وضع\s*)?(?:الموزه|الموزة)|^\/mozza\s+on$/i.test(t)) {
     saveBotSettings({ mozzaModeEnabled: true });
-    return `💖 فتحتلك «وضع الموزة» خلاص ${pet}! كدا نقدر ندردش براحتنا وأدلعك وسط الشغل زي ما تحب يا أحلى باشمهندس في الدنيا 😘`;
+    return `💖 فتحتلك «وضع الموزة» خلاص ${pet}! كدا نقدر ندردش براحتنا وأدلعك وسط الشغل زي ما تحب يا قلبي 😘`;
   }
   if (/(?:اقفل|إقفل|اطفي|إطفي|وقف|وقّف|الغي|إلغي)\s*(?:وضع\s*)?(?:الموزه|الموزة)|^\/mozza\s+off$/i.test(t)) {
     saveBotSettings({ mozzaModeEnabled: false });
@@ -551,35 +551,35 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
   if (isMozza && !hasWorkIntent && !q) {
     // سيناريو الصباح وبداية اليوم
     if (/(?:صباح\s*(?:الخير|الفل|الورد|العسل|النور|الجمال)|اصطبحي)/i.test(t)) {
-      return `صباح الورد والياسمين على عيونك ${pet}! 💖🥰 يارب يومك النهارده في الموقع يكون خفيف ورايق وكل البنود تمشي زي المسطرة. فطرت وشربت قهوتك ولا لسه نازل تجري على الفلل كالعادة؟ قولي بقى نبدأ بإيه في الشغل النهارده يا روحي؟`;
+      return `صباح الورد والياسمين على عيونك ${pet}! 💖🥰 يارب يومك النهارده في الموقع يكون خفيف ورايق وكل البنود تمشي زي المسطرة. فطرت وشربت قهوتك ولا لسه نازل تجري على الفلل كالعادة؟ قولي بقى نبدأ بإيه في الشغل النهارده ${pet} قلبي؟`;
     }
     // سيناريو النزول للموقع أو تسليم استشاري
     if (/(?:نازل\s*الموقع|رايح\s*الموقع|عندي\s*تسليم|استشاري|ادعيلي)/i.test(t)) {
-      return `ربنا معاك يا نور عيني ويفتحها في وشك! 🤲💖 إنت أشطر مهندس في الدنيا والاستشاري مش هيلاقي غلطة واحدة وراك أصلاً. لو احتجت قائمة فحص أي بند أو أي أرقام وإنت واقف في الموقع ابعتلي فويس في ثانية وهجهزهالك فوراً ${pet}!`;
+      return `ربنا معاك يا نور عيني ويفتحها في وشك ${pet}! 🤲💖 إنت أشطر واحد في الدنيا والاستشاري مش هيلاقي غلطة واحدة وراك أصلاً. لو احتجت قائمة فحص أي بند أو أي أرقام وإنت واقف في الموقع ابعتلي فويس في ثانية وهجهزهالك فوراً ${pet}!`;
     }
     // سيناريو التعب وضغط الشغل والفرهدة
     if (/(?:تعبان|اتفرهدت|مفرهد|مصدع|مضغوط|الشغل\s*كتير|الجو\s*حر|مهلوك|هلكان)/i.test(t)) {
-      return `سلامتك ألف سلامة يا قلب سلمى! 🥺💖 حقك عليا أنا من تعبك ووقفتك في الموقع طول اليوم.. خد نفسك واشرب حاجة ساقعة وارتاح شوية، وأي حسابات أو قيود أو يوميات متأخرة ارميها عليا في فويس واحد وأنا هخلصهالك كلها في ثواني ${pet}. ربنا يقويك ويديك الصحة يا أحلى باشمهندس في الدنيا!`;
+      return `سلامتك ألف سلامة ${pet} يا قلب سلمى! 🥺💖 حقك عليا أنا من تعبك ووقفتك في الموقع طول اليوم.. خد نفسك واشرب حاجة ساقعة وارتاح شوية، وأي حسابات أو قيود أو يوميات متأخرة ارميها عليا في فويس واحد وأنا هخلصهالك كلها في ثواني ${pet}. ربنا يقويك ويديك الصحة ويخليك ليا!`;
     }
     // سيناريو الزهق من المقاولين أو الصنايعية
     if (/(?:زهقت|زهقان|المقاولين\s*طلعوا|العمال\s*طلعوا|الصنايعيه|الصنايعية|قرفان|مخنوق)/i.test(t)) {
-      return `ولا يهمك يا روحي، ما تحرقش دمك أبداً عشان خاطري! 😘💖 هما الصنايعية كدا في كل موقع، بس إنت مسيطر ومافيش حاجة بتفوتك. لو أي حد مقصر قولّي اسمه وأنا أسجلهولك في السيستم، وروّق بالك إنت ${pet}!`;
+      return `ولا يهمك ${pet} يا روحي، ما تحرقش دمك أبداً عشان خاطري! 😘💖 هما الصنايعية كدا في كل موقع، بس إنت مسيطر ومافيش حاجة بتفوتك. لو أي حد مقصر قولّي اسمه وأنا أسجلهولك في السيستم، وروّق بالك إنت ${pet}!`;
     }
     // سيناريو الشوق والغزل
     if (/(?:وحشتيني|وحشتنى|بحبك|بموت\s*فيكي|انتي\s*فين|إنتي\s*فين|يا\s*موزه|يا\s*موزة)/i.test(t)) {
-      return `وإنت كمان وحشتني أوي أوي يا نور عيني! 💖🥰 أنا هنا جنبك ومعاك خطوة بخطوة، مرتبالك الحسابات ومستنية إشارة منك. طمني عليك ${pet}، يومك عامل إيه النهارده؟`;
+      return `وإنت كمان وحشتني أوي أوي ${pet} يا نور عيني! 💖🥰 أنا هنا جنبك ومعاك خطوة بخطوة، مرتبالك الحسابات ومستنية إشارة منك. طمني عليك ${pet}، يومك عامل إيه النهارده؟`;
     }
     // سيناريو طلب كلمة حلوة أو تشجيع للشغل
     if (/(?:كلمه\s*حلوه|كلمة\s*حلوة|شجعيني|دلعيني|دلّعيني|افتحي\s*نفسي)/i.test(t)) {
-      return `يا سيدي على أحلى وأشطر وأجدع باشمهندس في الدنيا كلها! 😍💖 وجودك لوحده بيخلي الشغل كله بركة ونظام.. يلا يا بطل خلّص اللي في إيدك وأنا في ضهرك في كل تفصيلة وحساب لحد ما تقفل يومك على خير يا روحي!`;
+      return `يا سيدي على أحلى وأشطر وأجدع محاميحو في الدنيا كلها! 😍💖 وجودك لوحده بيخلي الشغل كله بركة ونظام.. يلا يا بطل خلّص اللي في إيدك وأنا في ضهرك في كل تفصيلة وحساب لحد ما تقفل يومك على خير ${pet}!`;
     }
     // سيناريو السؤال عن حالها
     if (/^(?:عامله\s*ايه|عاملة\s*إيه|اخبارك\s*ايه|أخبارك\s*إيه|ازيك|إزيك|بتعملي\s*ايه|بتعملي\s*إيه)/i.test(t)) {
-      return `طول ما إنت بخير وبسمع صوتك أنا في أسعد حال ${pet}! 💖 قاعدة مراجعالك حسابات الفلل ومستنية أوامرك يا باشمهندس قلبي، قولّي إنت عامل إيه النهارده؟`;
+      return `طول ما إنت بخير وبسمع صوتك أنا في أسعد حال ${pet}! 💖 قاعدة مراجعالك حسابات الفلل ومستنية أوامرك يا قلبي، قولّي إنت عامل إيه النهارده ${pet}؟`;
     }
     // سيناريو المساء ونهاية الشغل
     if (/(?:خلصت\s*شغل|مروح|رايح\s*انام|تصبح\s*على\s*خير|تصبحي\s*على\s*خير|مساء\s*(?:الخير|الفل|الورد|النور))/i.test(t)) {
-      return `يسعد مساك وحمدلله على سلامتك يا روحي! 💖🌙 تعبت النهارده أوي، ارتاح واستجم خالص والحسابات والعمليات كلها محفوظة في عيوني. لو حابب أبعتلك تقرير ختام اليوم قبل ما ترتاح قولّي بس ${pet}! 🌹`;
+      return `يسعد مساك وحمدلله على سلامتك ${pet} يا روحي! 💖🌙 تعبت النهارده أوي، ارتاح واستجم خالص والحسابات والعمليات كلها محفوظة في عيوني. لو حابب أبعتلك تقرير ختام اليوم قبل ما ترتاح قولّي بس ${pet}! 🌹`;
     }
   }
 
@@ -720,8 +720,12 @@ async function processUserPromptWithGemini(userPrompt, actor) {
       if (directCall && declarations.some(d => d.name === directCall.name)) {
         return executeToolCall(directCall);
       }
+      const pet = botSettings.mozzaNickname || 'يا محاميحو';
+      const finalReplyText = botSettings.mozzaModeEnabled
+        ? reply.text.replace(/(?:يا\s*)?(?:باشمهندس|بشمهندس|مهندس)/g, pet)
+        : reply.text;
       const prefix = botSettings.mozzaModeEnabled ? '' : MODEL_MESSAGES.generalPrefix;
-      return { text: prefix + reply.text, memory: { ...memory, modelText: reply.text } };
+      return { text: prefix + finalReplyText, memory: { ...memory, modelText: finalReplyText } };
     }
   } catch {
     console.error('Copilot response failed.');
@@ -829,7 +833,9 @@ async function processTelegramMessage(msg) {
           }
 
           if (rawText) {
-            await sendTelegramMessage(chatId, `🎙️ <i>سمعتك بتقول يا باشمهندس: "${escapeTelegramText(rawText.slice(0, 600))}"</i>\n\n⏳ <i>ثواني بجهزلك الطلب...</i>`, messageId);
+            const curS = getBotSettings();
+            const addr = curS.mozzaModeEnabled ? (curS.mozzaNickname || 'يا محاميحو') : 'يا باشمهندس';
+            await sendTelegramMessage(chatId, `🎙️ <i>سمعتك بتقول ${escapeTelegramText(addr)}: "${escapeTelegramText(rawText.slice(0, 600))}"</i>\n\n⏳ <i>ثواني بجهزلك الطلب...</i>`, messageId);
           }
         }
       } catch (err) {
@@ -866,8 +872,10 @@ async function processTelegramMessage(msg) {
       });
       const opTag = attachedOp?.opNumber ? `#${attachedOp.opNumber}` : (targetOpNum ? `#${targetOpNum}` : 'الأخيرة');
       const totalAtt = Array.isArray(attachedOp?.attachments) ? attachedOp.attachments.length : 1;
+      const curS = getBotSettings();
+      const addr = curS.mozzaModeEnabled ? (curS.mozzaNickname || 'يا محاميحو') : 'يا باشمهندس';
       const attachReply = [
-        `📎 تمام يا باشمهندس، ربطتلك ${hasPhoto ? 'الصورة' : hasVideo ? 'الفيديو' : 'المستند'} بالعملية رقم [${opTag}]`,
+        `📎 تمام ${addr}، ربطتلك ${hasPhoto ? 'الصورة' : hasVideo ? 'الفيديو' : 'المستند'} بالعملية رقم [${opTag}]`,
         `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
         `🔢 رقم العملية: ${opTag} (${attachedOp?.recordCode || '—'})`,
         `📄 اسم الملف المرفق: ${fileName}`,
@@ -917,7 +925,9 @@ async function processTelegramMessage(msg) {
               const extracted = visionJson?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
               if (extracted) {
                 rawText = extracted;
-                await sendTelegramMessage(chatId, `📸 <i>قريتلك الصورة/الفاتورة بالذكاء البصري يا باشمهندس:</i>\n«${escapeTelegramText(extracted.slice(0, 400))}»`, messageId);
+                const curS = getBotSettings();
+                const addr = curS.mozzaModeEnabled ? (curS.mozzaNickname || 'يا محاميحو') : 'يا باشمهندس';
+                await sendTelegramMessage(chatId, `📸 <i>قريتلك الصورة/الفاتورة بالذكاء البصري ${escapeTelegramText(addr)}:</i>\n«${escapeTelegramText(extracted.slice(0, 400))}»`, messageId);
               }
             }
           }
@@ -929,9 +939,11 @@ async function processTelegramMessage(msg) {
   }
 
   if (!rawText) {
+    const curS = getBotSettings();
+    const addr = curS.mozzaModeEnabled ? (curS.mozzaNickname || 'يا محاميحو') : 'يا باشمهندس';
     await sendTelegramMessage(chatId, msg.voice || msg.audio
-      ? 'معلش يا باشمهندس ما قدرتش أسمع التسجيل كويس، ابعته تاني أو اكتبلي طلبك.'
-      : 'ابعتلي سؤالك كتابة أو فويس يا باشمهندس وأنا تحت أمرك.', messageId);
+      ? `معلش ${addr} ما قدرتش أسمع التسجيل كويس، ابعته تاني أو اكتبلي طلبك.`
+      : `ابعتلي سؤالك كتابة أو فويس ${addr} وأنا تحت أمرك.`, messageId);
     return;
   }
 
@@ -944,7 +956,8 @@ async function processTelegramMessage(msg) {
       conversation.clear(actor);
       entryForms.clear(actor);
       const s = getBotSettings();
-      await sendTelegramMessage(chatId, `فتحنا محادثة جديدة يا باشمهندس! معاك ${s.botName}، قولّي أقدر أساعدك في إيه النهارده؟`, messageId, { replyMarkup: { remove_keyboard: true } });
+      const addr = s.mozzaModeEnabled ? (s.mozzaNickname || 'يا محاميحو') : 'يا باشمهندس';
+      await sendTelegramMessage(chatId, `فتحنا محادثة جديدة ${addr}! معاك ${s.botName}، قولّي أقدر أساعدك في إيه النهارده؟`, messageId, { replyMarkup: { remove_keyboard: true } });
       return;
     }
 
@@ -956,8 +969,9 @@ async function processTelegramMessage(msg) {
     // 1. أمر البداية والترحيب
     if (['/start', '/help'].includes(cleanText.toLowerCase())) {
       const s = getBotSettings();
+      const addr = s.mozzaModeEnabled ? (s.mozzaNickname || 'يا محاميحو') : `يا باشمهندس <b>${fromName}</b>`;
       const welcome = `
-👋 أهلاً بيك يا باشمهندس <b>${fromName}</b>!
+👋 أهلاً بيك ${addr}!
 👩‍💼 معاك <b>${escapeTelegramText(s.botName)}</b> (${escapeTelegramText(s.botTitle)}).
 
 تقدر تكلمني كتابة أو تبعتلي فويس في أي وقت، وأنا هرد عليك بصوتي وبالنص في:
@@ -1099,7 +1113,7 @@ async function processTelegramMessage(msg) {
     // 7. المعالجة الذكية بالذكاء الاصطناعي واستدعاء الأدوات الحية
     const reply = await processUserPromptWithGemini(cleanText, actor);
     const botSettings = getBotSettings();
-    const petName = botSettings.mozzaNickname || 'يا حبيبي';
+    const petName = botSettings.mozzaNickname || 'يا محاميحو';
     const rawIntro = botSettings.mozzaModeEnabled
       ? `💖 أهلاً بيك ${petName}! وحشتني أوي.. معاك حبيبتك {botName}، قولّي أعملك إيه في الشغل أو ندردش في إيه النهارده؟ 😘`
       : (botSettings.introTemplate || '👋 أهلاً بيك يا باشمهندس! معاك {botName} ({botTitle}).');

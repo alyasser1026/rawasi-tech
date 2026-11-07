@@ -52,7 +52,7 @@ export default function BotSettingsManager() {
     voiceReplyMode: 'always',
     voiceName: 'Aoede',
     mozzaModeEnabled: true,
-    mozzaNickname: 'يا حبيبي',
+    mozzaNickname: 'يا محاميحو',
     autoDailyReportEnabled: true,
     autoDailyReportTime: '20:00',
   });
@@ -318,9 +318,9 @@ export default function BotSettingsManager() {
                   </label>
                   <input
                     type="text"
-                    value={settings.mozzaNickname || 'يا حبيبي'}
+                    value={settings.mozzaNickname || 'يا محاميحو'}
                     onChange={e => setSettings({ ...settings, mozzaNickname: e.target.value })}
-                    placeholder="مثال: يا حبيبي / يا روحي / يا قلبي"
+                    placeholder="مثال: يا محاميحو / يا روحي / يا قلبي"
                     style={{ flex: 1, padding: '0.45rem 0.75rem', borderRadius: '8px', border: '1px solid #f472b6', fontWeight: 800, fontSize: 'var(--fs-xs)', background: '#fff' }}
                   />
                 </div>

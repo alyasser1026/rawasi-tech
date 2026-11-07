@@ -26,7 +26,7 @@ export const DEFAULT_BOT_SETTINGS = Object.freeze({
   voiceName: 'Aoede',
   voiceSpeed: 'normal',
   mozzaModeEnabled: false,
-  mozzaNickname: 'يا حبيبي',
+  mozzaNickname: 'يا محاميحو',
   autoDailyReportEnabled: true,
   autoDailyReportTime: '20:00',
   operationSeqStart: 101,
@@ -238,7 +238,7 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
   const raw = String(rawText);
   const settings = getBotSettings();
   const isMozza = Boolean(settings.mozzaModeEnabled);
-  const petName = settings.mozzaNickname || 'يا حبيبي';
+  const petName = settings.mozzaNickname || 'يا محاميحو';
   const addressAs = isMozza ? petName : 'يا باشمهندس';
 
   // 1) إذا كان كارت تعديل عملية
@@ -251,7 +251,7 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     if (isMozza) {
       return `عيوني ليك ${petName}! عدلتلك العملية رقم ${opNum}${summaryMatch ? ` بتاعة ${summaryMatch[1].trim()}` : ''} زي ما طلبت مني بالظبط، ${changesSpoken || 'وحفظتلك كل حاجة في السيستم يا روحي'}.`;
     }
-    return `تمام يا باشمهندس، معاك ${botName}. عدلتلك العملية رقم ${opNum}${summaryMatch ? ` الخاصة بـ ${summaryMatch[1].trim()}` : ''}، ${changesSpoken || 'وحفظت التعديلات في السيستم'}.`;
+    return `تمام يا باشمهندس، معاك ${botName}. عدلتلك العملية رقم ${opNum}${summaryMatch ? ` بتاعة ${summaryMatch[1].trim()}` : ''}، ${changesSpoken || 'وحفظت التعديلات في السيستم'}.`;
   }
 
   // 2) إذا كان كارت تسجيل عملية جديدة (مصروف / يومية / قيد / أمر شغل)
@@ -264,8 +264,8 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     const parts = [isMozza ? `من عيوني ${petName}، سجلتلك العملية رقم ${opNum}` : `تمام يا باشمهندس، سجلتلك العملية رقم ${opNum}`];
     if (descMatch) parts.push(`بخصوص ${descMatch[1].trim()}`);
     if (siteMatch && !/غير محدد/.test(siteMatch[1])) parts.push(`في ${siteMatch[1].trim()}`);
-    if (amountMatch) parts.push(`بقيمة ${amountMatch[1].replace(/,/g, '')} ريال`);
-    parts.push(isMozza ? 'ربنا يقويك ويديك الصحة يا قلبي، وتقدر تعتمدها من الزرار اللي تحت.' : 'وتقدر تعتمدها أو ترفق ليها صورة من الزراير اللي تحت الرسالة.');
+    if (amountMatch) parts.push(`بمبلغ ${amountMatch[1].replace(/,/g, '')} ريال`);
+    parts.push(isMozza ? `ربنا يقويك ويديك الصحة ${petName}، وتقدر تعتمدها من الزرار اللي تحت.` : 'وتقدر تعتمدها أو ترفق ليها صورة من الزراير اللي تحت الرسالة.');
     return parts.join(' ، ');
   }
 
@@ -275,9 +275,9 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     const workersMatch = raw.match(/عدد العمال:\s*(\d+)/);
     const expMatch = raw.match(/إجمالي المصروفات:\s*([\d,.]+)/);
     if (isMozza) {
-      return `أحلى تقرير لأحلى باشمهندس في الدنيا ${petName}! جمعتلك تقرير النهارده${dateMatch ? ` يوم ${dateMatch[1]}` : ''}${workersMatch ? `، نزل معانا ${workersMatch[1]} عامل` : ''}${expMatch ? `، والمصروفات كانت ${expMatch[1].replace(/,/g, '')} ريال` : ''}. شوف التفاصيل في الرسالة وقولي لو محتاج أي حاجة تانية يا روحي.`;
+      return `أحلى تقرير لعيونك ${petName}! جمعتلك تقرير النهارده${dateMatch ? ` يوم ${dateMatch[1]}` : ''}${workersMatch ? `، نزل معانا ${workersMatch[1]} عامل` : ''}${expMatch ? `، والمصروفات كانت ${expMatch[1].replace(/,/g, '')} ريال` : ''}. شوف التفاصيل في الرسالة وقولي لو محتاج أي حاجة تانية يا قلبي.`;
     }
-    return `أهلاً بيك يا باشمهندس، معاك ${botName}. بعتلك دلوقتي التقرير اليومي المفصل${dateMatch ? ` لتاريخ ${dateMatch[1]}` : ''}${workersMatch ? `، إجمالي العمالة المسجلة ${workersMatch[1]} عامل` : ''}${expMatch ? `، وإجمالي المصروفات ${expMatch[1].replace(/,/g, '')} ريال` : ''}. كل التفاصيل قدامك في الرسالة.`;
+    return `أهلاً بيك يا باشمهندس، معاك ${botName}. بعتلك دلوقتي التقرير اليومي المفصل${dateMatch ? ` ليوم ${dateMatch[1]}` : ''}${workersMatch ? `، إجمالي العمالة اللي نزلت ${workersMatch[1]} عامل` : ''}${expMatch ? `، وإجمالي المصروفات ${expMatch[1].replace(/,/g, '')} ريال` : ''}. كل التفاصيل قدامك في الرسالة.`;
   }
 
   // 4) تنظيف عام وتحويل للمصطلحات المصرية المنطوقة السلسة
@@ -298,6 +298,10 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     .replace(/بنجاح/g, 'خلاص')
     .replace(/\s+/g, ' ')
     .trim();
+
+  if (isMozza) {
+    text = text.replace(/(?:يا\s*)?(?:باشمهندس|بشمهندس|مهندس)/g, petName);
+  }
 
   if (text.length > 340) {
     text = text.slice(0, 340);
