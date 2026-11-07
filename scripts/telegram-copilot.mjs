@@ -283,8 +283,8 @@ const sendTelegramVoice = createTelegramVoiceSender({ botToken: BOT_TOKEN });
 async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, settings) {
   void sendChatAction(chatId, 'record_voice');
   const audio = await synthesizeArabicSpeech(textToSpeak, {
-    settings,
-    geminiApiKey: GEMINI_API_KEY,
+    settings: { ...settings, onlySalmaVoice: true },
+    geminiApiKey: COPILOT_VOICE_PROVIDER === 'gemini' ? GEMINI_API_KEY : '',
     voiceProvider: COPILOT_VOICE_PROVIDER,
     geminiVoice: COPILOT_GEMINI_TTS_VOICE,
   });

@@ -21,8 +21,9 @@ export const DEFAULT_BOT_SETTINGS = Object.freeze({
   voiceReplyMode: 'always', // 'always' | 'on_voice_or_request' | 'off'
   voiceGender: 'female',
   voiceDialect: 'ar-EG',
-  voiceName: 'Aoede',
+  voiceName: 'ar-EG-SalmaNeural',
   voiceSpeed: 'normal',
+  onlySalmaVoice: true,
   mozzaModeEnabled: false,
   mozzaNickname: 'يا محاميحو',
   autoDailyReportEnabled: true,
@@ -74,9 +75,10 @@ export function saveBotSettings(partial = {}) {
     ...(typeof partial.voiceReplyMode === 'string' && ['always', 'on_voice_or_request', 'off'].includes(partial.voiceReplyMode)
       ? { voiceReplyMode: partial.voiceReplyMode }
       : {}),
-    ...(typeof partial.voiceName === 'string' && ['Aoede', 'Kore', 'Leda', 'Zephyr'].includes(partial.voiceName)
+    ...(typeof partial.voiceName === 'string' && ['ar-EG-SalmaNeural', 'Aoede', 'Kore', 'Leda', 'Zephyr'].includes(partial.voiceName)
       ? { voiceName: partial.voiceName }
       : {}),
+    ...(typeof partial.onlySalmaVoice === 'boolean' ? { onlySalmaVoice: partial.onlySalmaVoice } : {}),
     ...(typeof partial.mozzaModeEnabled === 'boolean' ? { mozzaModeEnabled: partial.mozzaModeEnabled } : {}),
     ...(typeof partial.mozzaNickname === 'string' && partial.mozzaNickname.trim()
       ? { mozzaNickname: partial.mozzaNickname.trim().slice(0, 40) }

@@ -274,6 +274,6 @@ export async function synthesizeArabicSpeech(rawText, {
   }
   const edge = await synthesizeWithEdge(text, voiceSettings, createEdgeTts, workReply).catch(() => null);
   if (edge || prefersGeminiPro || !geminiApiKey) return edge;
-  if (voiceSettings.mozzaModeEnabled) return null;
+  if (voiceSettings.onlySalmaVoice || voiceSettings.mozzaModeEnabled) return null;
   return synthesizeWithGemini(text, voiceSettings, geminiApiKey, fetchImpl).catch(() => null);
 }

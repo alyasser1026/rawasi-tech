@@ -9,12 +9,13 @@
   "voiceReplyMode": "always",
   "voiceGender": "female",
   "voiceDialect": "ar-EG",
-  "voiceName": "Aoede",
+  "voiceName": "ar-EG-SalmaNeural",
+  "onlySalmaVoice": true,
   "voiceSpeed": "normal",
   "mozzaModeEnabled": true,
   "mozzaNickname": "يا يسور",
   "autoDailyReportEnabled": true,
   "autoDailyReportTime": "20:00",
   "operationSeqStart": 101,
-  "updatedAt": "2026-11-07T16:10:03.074Z"
+  "updatedAt": "2026-11-07T16:39:39.691Z"
 }
