@@ -6,6 +6,7 @@ import { useRestoreLogic } from './restore_logic';
 import PermissionsMatrix from './PermissionsMatrix';
 import SystemHealthRadar from './SystemHealthRadar';
 import AuditLogs from './AuditLogs';
+import BotSettingsManager from './BotSettingsManager';
 
 import RawasiSidebarManager from '@/components/RawasiSidebarManager'; 
 import MasterPage from '@/components/MasterPage';
@@ -186,6 +187,7 @@ export default function SettingsPage() {
           <button className={`tab-btn ${activeTab === 'health' ? 'active' : ''}`} onClick={() => setActiveTab('health')}>
             فحص الاتصال والتخزين
           </button>
+          <button className={`tab-btn ${activeTab === 'bot' ? 'active' : ''}`} onClick={() => setActiveTab('bot')}>🤖 إعدادات البوت الذكي</button>
           <button className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => setActiveTab('audit')}>
             سجل المراقبة
           </button>
@@ -196,6 +198,8 @@ export default function SettingsPage() {
         {activeTab === 'health' && <SystemHealthRadar />}
 
         {activeTab === 'audit' && <AuditLogs />}
+
+        {activeTab === 'bot' && <BotSettingsManager />}
 
         {activeTab === 'backup' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'minmax(18.75rem, 2fr) minmax(15.625rem, 1fr)', gap: '1.875rem', alignItems: 'start' }}>

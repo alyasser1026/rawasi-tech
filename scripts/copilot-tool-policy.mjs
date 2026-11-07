@@ -473,9 +473,12 @@ function formatComprehensiveReportReply(result, companyLabel) {
 
 function formatAddLaborReply(result, companyLabel) {
   const r = result.record || {};
+  const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `LAB-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
   return [
-    `✅ تم تسجيل مسودة يومية العامل بنجاح في فاي تك`,
+    `✅ تم تسجيل مسودة يومية العامل بنجاح | العملية رقم [${opTag}]`,
+    `🔢 رقم العملية للتعديل السريع: ${opTag}`,
     `الشركة: ${companyLabel}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
     `• اسم العامل: ${r.worker_name}`,
     `• التاريخ: ${r.work_date}`,
     `• الفيلا / الموقع: ${r.site_ref}`,
@@ -484,14 +487,19 @@ function formatAddLaborReply(result, companyLabel) {
     r.tareeha != null ? `• الطريحة: ${r.tareeha} ${r.unit} | الإنتاجية المنفذة: ${r.productivity ?? 0} ${r.unit} (${r.completion_percentage || '—'})` : null,
     r.tareeha != null ? `• موقف الطريحة: ${r.tareeha_deficit}` : null,
     `• الحالة: مسودة غير مرحّلة (بانتظار الاعتماد من شاشة يوميات العمالة).`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `💡 للتعديل اكتب أو قل صوتياً: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل رد (Reply) على الرسالة.`,
   ].filter(Boolean).join('\n');
 }
 
 function formatAddExpenseReply(result, companyLabel) {
   const r = result.record || {};
+  const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `EXP-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
   return [
-    `✅ تم تسجيل مسودة المصروف بنجاح في فاي تك`,
+    `✅ تم تسجيل مسودة المصروف بنجاح | العملية رقم [${opTag}]`,
+    `🔢 رقم العملية للتعديل السريع: ${opTag}`,
     `الشركة: ${companyLabel}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
     `• البيان: ${r.description}`,
     `• المبلغ الإجمالي: ${r.total_price} ر.س`,
     `• التاريخ: ${r.exp_date}`,
@@ -499,58 +507,66 @@ function formatAddExpenseReply(result, companyLabel) {
     `• التصنيف: ${r.main_category} | طريقة الدفع: ${r.payment_method}`,
     r.payee_name && r.payee_name !== '—' ? `• المستفيد: ${r.payee_name}` : null,
     `• الحالة: مسودة غير مرحّلة (بانتظار المراجعة والاعتماد من شاشة المصروفات).`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `💡 للتعديل اكتب أو قل صوتياً: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل رد (Reply) على الرسالة.`,
   ].filter(Boolean).join('\n');
 }
 
 function formatAddJournalReply(result, companyLabel) {
   const r = result.record || {};
+  const opTag = r.op_number ? `#${r.op_number}` : (r.entry_number || '#');
   return [
-    `📋 <b>قيد محاسبي جديد مسجل [${r.entry_number || '#'}]</b>`,
-    `الشركة: <b>${companyLabel}</b>`,
+    `📋 قيد محاسبي جديد مسجل | العملية رقم [${opTag}]`,
+    `🔢 رقم العملية للتعديل السريع: ${opTag} (الكود: ${r.entry_number || '—'})`,
+    `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `📅 <b>التاريخ:</b> ${r.entry_date}`,
-    `📝 <b>البيان:</b> ${r.description}`,
-    `💰 <b>المبلغ:</b> ${r.amount} ر.س`,
-    `🟢 <b>المدين (+):</b> ${r.debit_account}`,
-    `🔴 <b>الدائن (-):</b> ${r.credit_account}`,
-    `🏗️ <b>المشروع:</b> ${r.site_ref}`,
-    `📌 <b>الحالة:</b> ${r.status}`,
+    `📅 التاريخ: ${r.entry_date}`,
+    `📝 البيان: ${r.description}`,
+    `💰 المبلغ: ${r.amount} ر.س`,
+    `🟢 المدين (+): ${r.debit_account}`,
+    `🔴 الدائن (-): ${r.credit_account}`,
+    `🏗️ المشروع: ${r.site_ref}`,
+    `📌 الحالة: ${r.status}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 <i>للتعديل: اضغط "رد" (Reply) على هذه الرسالة واكتب تعديلك.</i>`,
+    `💡 للتعديل اكتب أو قل صوتياً: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل رد (Reply) على الرسالة.`,
   ].filter(Boolean).join('\n');
 }
 
 function formatAddJobOrderReply(result, companyLabel) {
   const r = result.record || {};
+  const opTag = r.op_number ? `#${r.op_number}` : (r.order_number || '#');
   return [
-    `🔨 <b>أمر تشغيل جديد مسجل [${r.order_number || '#'}]</b>`,
-    `الشركة: <b>${companyLabel}</b>`,
+    `🔨 أمر تشغيل جديد مسجل | العملية رقم [${opTag}]`,
+    `🔢 رقم العملية للتعديل السريع: ${opTag} (الكود: ${r.order_number || '—'})`,
+    `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `📅 <b>التاريخ:</b> ${r.start_date}`,
-    `🏗️ <b>المشروع:</b> ${r.site_ref}`,
-    `👷 <b>المقاول / المنفذ:</b> ${r.contractor_name} (${r.executor_type})`,
-    `📦 <b>البند:</b> ${r.work_item}`,
-    `📐 <b>الكمية:</b> ${r.assigned_qty} | <b>الفئة:</b> ${r.unit_price} ر.س`,
-    `💵 <b>الإجمالي:</b> ${r.total_amount} ر.س`,
-    `📌 <b>الحالة:</b> ${r.status}`,
+    `📅 التاريخ: ${r.start_date}`,
+    `🏗️ المشروع: ${r.site_ref}`,
+    `👷 المقاول / المنفذ: ${r.contractor_name} (${r.executor_type})`,
+    `📦 البند: ${r.work_item}`,
+    `📐 الكمية: ${r.assigned_qty} | الفئة: ${r.unit_price} ر.س`,
+    `💵 الإجمالي: ${r.total_amount} ر.س`,
+    `📌 الحالة: ${r.status}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `💡 <i>للتعديل: اضغط "رد" (Reply) على هذه الرسالة واكتب تعديلك.</i>`,
+    `💡 للتعديل اكتب أو قل صوتياً: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل رد (Reply) على الرسالة.`,
   ].filter(Boolean).join('\n');
 }
 
 function formatUpdateOperationReply(result, companyLabel) {
   const u = result.updated || {};
+  const opTag = u.op_number ? `#${u.op_number}` : (u.reference || '#');
   const changesList = Array.isArray(u.changes) ? u.changes.map(c => `• ${c}`).join('\n') : '• تم حفظ التعديلات بنجاح';
   return [
-    `✏️ <b>تم تعديل العملية بنجاح! [${u.reference || '#'}]</b>`,
-    `الشركة: <b>${companyLabel}</b>`,
+    `✏️ تم تعديل العملية رقم [${opTag}] بنجاح!`,
+    `🔢 رقم العملية: ${opTag} | المرجع: ${u.reference || '—'}`,
+    `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `📝 <b>نوع العملية:</b> ${u.type || 'عملية مسجلة'}`,
-    `🔄 <b>التعديلات التي تم تطبيقها:</b>`,
+    `📝 نوع العملية: ${u.type || 'عملية مسجلة'}`,
+    `🔄 التعديلات التي تم تطبيقها:`,
     changesList,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `✅ <i>تم حفظ التعديلات وتحديث السجلات في قاعدة البيانات بنجاح.</i>`,
-    `💡 <i>للتعديل مرة أخرى: اضغط "رد" (Reply) على هذه الرسالة.</i>`,
+    `✅ تم حفظ التعديلات وتحديث السجلات في قاعدة البيانات بنجاح.`,
+    `💡 للتعديل مرة أخرى: اذكر «عدل العملية رقم ${u.op_number || opTag} ...» أو اضغط "رد" (Reply) على هذه الرسالة.`,
   ].filter(Boolean).join('\n');
 }
 

@@ -21,6 +21,9 @@ import {
 import {
   addLearnedRule, detectAutoLearningTrigger, formatLearnedRulesForPrompt,
 } from './copilot-auto-learning.mjs';
+import {
+  getBotSettings, synthesizeArabicSpeech,
+} from './copilot-bot-settings.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -262,6 +265,77 @@ async function sendChatAction(chatId, action = 'typing') {
   } catch {}
 }
 
+// 🔊 إرسال رد صوتي (Voice Reply TTS) عبر تيليجرام
+async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, botName = 'م. سليم') {
+  try {
+    await sendChatAction(chatId, 'record_voice');
+    const audioBuffer = await synthesizeArabicSpeech(textToSpeak, { botName });
+    if (!audioBuffer || audioBuffer.length === 0) return false;
+
+    const form = new FormData();
+    form.append('chat_id', String(chatId));
+    form.append('voice', new Blob([audioBuffer], { type: 'audio/mpeg' }), 'copilot_reply.ogg');
+    if (replyToMessageId) {
+      form.append('reply_to_message_id', String(replyToMessageId));
+      form.append('allow_sending_without_reply', 'true');
+    }
+
+    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVoice`, {
+      method: 'POST',
+      body: form,
+      signal: AbortSignal.timeout(20000),
+    });
+    return res.ok;
+  } catch (err) {
+    console.warn('Voice reply failed:', err?.message);
+    return false;
+  }
+}
+
+// ⏳ إدارة الجلسات النشطة وإغلاق المحادثة تلقائياً عند عدم الرد
+const activeSessionTimers = new Map();
+const activeSessionOpened = new Set();
+
+function clearInactivityTimer(chatId) {
+  const key = String(chatId);
+  const existing = activeSessionTimers.get(key);
+  if (existing) {
+    clearTimeout(existing);
+    activeSessionTimers.delete(key);
+  }
+}
+
+function scheduleInactivityClose(chatId, actor) {
+  clearInactivityTimer(chatId);
+  const settings = getBotSettings();
+  if (!settings.inactivityCloseEnabled) return;
+
+  const timeoutMs = Math.max(1, Number(settings.inactivityTimeoutMinutes) || 3) * 60 * 1000;
+  const key = String(chatId);
+  const timer = setTimeout(async () => {
+    activeSessionTimers.delete(key);
+    activeSessionOpened.delete(key);
+    try {
+      pendingPdfRequests.delete(actor);
+      conversation.clear(actor);
+      entryForms.clear(actor);
+      const latestSettings = getBotSettings();
+      if (!latestSettings.inactivityCloseEnabled) return;
+      const closeMsg = (latestSettings.inactivityCloseMessage || '')
+        .replace(/\{botName\}/g, latestSettings.botName || 'م. سليم')
+        .replace(/\{botTitle\}/g, latestSettings.botTitle || '');
+      if (closeMsg.trim()) {
+        await sendTelegramMessage(chatId, closeMsg, undefined, { html: false, replyMarkup: { remove_keyboard: true } });
+      }
+    } catch (err) {
+      console.warn('Failed to send inactivity close message:', err?.message);
+    }
+  }, timeoutMs);
+
+  if (typeof timer.unref === 'function') timer.unref();
+  activeSessionTimers.set(key, timer);
+}
+
 // The model gets recent turns in this identity scope, never database tool results.
 function conversationScope(access, declarations) {
   if (!access) return 'general';
@@ -271,6 +345,32 @@ function conversationScope(access, declarations) {
 function detectDirectFieldOpsCall(userPrompt) {
   const t = String(userPrompt || '').trim();
   if (!t) return null;
+
+  // 0) تعديل عملية مباشرة برقمها المختصر (مثال: «عدل على العملية رقم 101 خلي المبلغ 5000 والفيلا 657»)
+  const editByNumMatch = t.match(/(?:عدل|عدّل|تعديل|غير|غيّر|حدث|حدّث)\s*(?:على|في)?\s*(?:العمليه|العملية|العمليات|قيد|أمر|امر|مصروف|يومية|يوميه)?\s*(?:رقم|#)?\s*#?(\d{2,6}|(?:JV|JO|EXP|LAB)-[\w-]+)/i);
+  if (editByNumMatch) {
+    const recordIdentifier = editByNumMatch[1].trim();
+    const afterRef = t.slice(editByNumMatch.index + editByNumMatch[0].length);
+    const amountMatch = afterRef.match(/(?:المبلغ|السعر|القيمه|القيمة|اليوميه|اليومية|بـ|لـ|الى|إلى|خليها|خليه)\s*(\d+(?:\.\d+)?)/i) || afterRef.match(/\b(\d{3,7}(?:\.\d+)?)\b/);
+    const qtyMatch = afterRef.match(/(?:الكميه|الكمية|الطريحه|الطريحة|المنفذ|انتاج|إنتاج|عمل)\s*(?:لـ|الى|إلى|خليها|خليه)?\s*(\d+(?:\.\d+)?)/i);
+    const unitPriceMatch = afterRef.match(/(?:الفئه|الفئة|سعر\s*الوحده|سعر\s*الوحدة|بسعر)\s*(?:لـ|الى|إلى)?\s*(\d+(?:\.\d+)?)/i);
+    const siteMatch = afterRef.match(/(?:فيلا|مشروع|عماره|عمارة|موقع)\s*([\p{L}\p{N}_-]+)/u);
+    const descMatch = afterRef.match(/(?:البيان|البند|الوصف)\s*(?:لـ|الى|إلى|خليه|خليها)?\s*([\p{L}\p{N}\s]{2,60})/u);
+    const contractorMatch = afterRef.match(/(?:المقاول|العامل|اسم\s*العامل|اسم\s*المقاول)\s*(?:لـ|الى|إلى|خليه)?\s*([\p{L}\s]{2,40})/u);
+
+    return {
+      name: 'update_operation_draft',
+      args: {
+        record_identifier: recordIdentifier,
+        ...(amountMatch ? { new_amount: Number(amountMatch[1]) } : {}),
+        ...(qtyMatch ? { new_quantity: Number(qtyMatch[1]) } : {}),
+        ...(unitPriceMatch ? { new_unit_price: Number(unitPriceMatch[1]) } : {}),
+        ...(siteMatch ? { new_site_ref: siteMatch[0].trim() } : {}),
+        ...(descMatch ? { new_description: descMatch[1].trim() } : {}),
+        ...(contractorMatch ? { new_contractor: contractorMatch[1].trim() } : {}),
+      },
+    };
+  }
 
   // 1) إضافة يومية عامل من المحادثة
   if (/(?:ضيف|اضف|أضف|سجل|سجّل|اعمل|انشئ|أنشئ).*(?:يوميه|يومية)\s*(?:عامل)?/i.test(t)) {
@@ -390,9 +490,10 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
     return 'معنديش طريقة أتابع بيها حالة السيستم. تنبيهات الأخطاء بتوصل في القناة دي؛ لو فيه تنبيه معيّن رد عليه وأنا أشرح سببه.';
   }
 
-  // 2) سؤال عن اسم الموديل
-  if (/(?:المودل|الموديل|model)\s*(?:بتاعك|اللي\s*انت)?\s*(?:اسمه|ايه|إيه)/i.test(t)) {
-    return 'أنا مساعد فاي تك، مبني على Gemini من Google.';
+  // 2) سؤال عن اسم الموديل أو تعريف البوت لنفسه
+  if (/(?:المودل|الموديل|model)\s*(?:بتاعك|اللي\s*انت)?\s*(?:اسمه|ايه|إيه)/i.test(t) || /^(?:انت\s*مين|إنت\s*مين|مين\s*معايا|اسمك\s*ايه|اسمك\s*إيه|عرف\s*نفسك|عرّف\s*نفسك)$/i.test(t)) {
+    const s = getBotSettings();
+    return `أهلاً بك! أنا «${s.botName}» — ${s.botTitle}، مبني على تقنيات Gemini الذكية ومربوط مباشرةً بقاعدة بيانات فاي تك لخدمتك بالصوت والنص.`;
   }
 
   // 3) رد على تنبيه خطأ في القناة (مثل save_expense_draft، PGRST201، React #300، refresh_token_not_found)
@@ -462,12 +563,14 @@ async function processUserPromptWithGemini(userPrompt, actor) {
     return { text: 'خدمة الرد الذكي مش مفعّلة في إعدادات البوت.' };
   }
 
+  const botSettings = getBotSettings();
   const systemInstructions = buildSystemInstructions({
     knowledge: loadKnowledgeBase(),
     declarations,
     referenceMissing: context.referenceMissing,
     quotedMessageText,
     date: getCopilotDate(),
+    botPersona: botSettings,
   });
 
   try {
@@ -644,40 +747,47 @@ async function processTelegramMessage(msg) {
   try {
     let cleanText = privateCommandText(rawText);
     if (['/new', '/reset'].includes(cleanText.toLowerCase())) {
+      clearInactivityTimer(chatId);
+      activeSessionOpened.delete(String(chatId));
       pendingPdfRequests.delete(actor);
       conversation.clear(actor);
       entryForms.clear(actor);
-      await sendTelegramMessage(chatId, 'بدأنا محادثة جديدة. ابعت سؤالك.', messageId, { replyMarkup: { remove_keyboard: true } });
+      const s = getBotSettings();
+      await sendTelegramMessage(chatId, `بدأنا محادثة جديدة. معك ${s.botName}، ابعت سؤالك أو طلبك.`, messageId, { replyMarkup: { remove_keyboard: true } });
       return;
     }
 
+    // جدولة مؤقت إنهاء المحادثة عند عدم الرد
+    const isNewSession = !activeSessionOpened.has(String(chatId));
+    activeSessionOpened.add(String(chatId));
+    scheduleInactivityClose(chatId, actor);
+
     // 1. أمر البداية والترحيب
     if (['/start', '/help'].includes(cleanText.toLowerCase())) {
+      const s = getBotSettings();
       const welcome = `
 👋 أهلاً بك يا <b>${fromName}</b>!
+🤖 معك <b>${escapeTelegramText(s.botName)}</b> (${escapeTelegramText(s.botTitle)}).
 
-أنا مساعد فاي تك الذكي لإدارة المشروعات والمحاسبة. تقدر تسألني مباشرةً عن:
+تقدر تسألني أو تكلمني صوتياً مباشرةً عن:
 
 📊 <b>استعلامات الميدان والتقارير اليومية</b>
+• «ابعت تقرير» أو «تقرير اليوم المفصل»
 • «العمالة اللي نزلت النهارده»
 • «المشاريع اللي موجودة كلها»
-• «المشاريع اللي اشتغلناها النهارده كلها»
-• «تقرير اليوم المفصل» (العمالة + الفلل + المصروفات + اللي اتصرف للعمالة + الخامات + المقاولين اللي اتسلمت + الركوستات اللي خلصت)
 
-📝 <b>إضافة يومية عامل أو مصروف مباشرةً</b>
-• «ضيفلي يومية عامل محمد مطيز بند جبس تجليد طريحة 50 عمل 35 يومية 200»
+📝 <b>إضافة عمليات متعددة في رسالة واحدة (برقم مستقل لكل عملية)</b>
+• «سجل قيد شراء أسمنت 3000 فيلا 10 وقيد نقل 500 فيلا 12»
+• «اعمل أمر شغل محارة 200 متر بسعر 45 لمقاول أحمد فيلا 5»
+• «ضيفلي يومية عامل محمد مطيز بند جبس طريحة 50 عمل 35 يومية 200»
 • «سجل مصروف 500 ريال تشوين رمل فيلا 657»
-• أو استخدم <code>/add</code> لبدء نموذج (يومية عامل / مصروف / سند قبض / سند صرف).
 
-🧠 <b>مقترحات التدريب والمعرفة</b>
-• «اتشك ليست استلام المحارة»
-• <code>/train المعلومة</code> أو «احفظ عندك أن…» لإرسال اقتراح للمراجعة.
-• <code>/memory</code> لعرض مقترحاتك المعلقة، و<code>/reload</code> لتحديث دليل المعرفة.
+✏️ <b>التعديل برقم العملية أو بالرد (Reply)</b>
+• كل عملية بتاخد رقم تسلسلي واضح (مثل <code>#101</code>).
+• قل أو اكتب: «عدل العملية رقم 101 خلي المبلغ 4500 والفيلا 12».
 
-📄 <b>ملفات PDF</b> (بتأكيد قبل الإرسال)
-• <code>/pdf worker الاسم YYYY-MM</code> لكشف عامل يومية عن شهر.
-• <code>/pdf checklist البند</code> لاستمارة فحص مسودة.
-• <code>/confirm</code> للتأكيد أو <code>/cancel</code> للإلغاء، و<code>/new</code> لمحادثة جديدة.
+🔊 <b>الرد الصوتي والذاكرة الذكية</b>
+• أرد عليك بالنص وبالصوت، وأتعلم تلقائياً لما تقولي «احفظ عندك أن...».
 `;
       await sendTelegramMessage(chatId, welcome, messageId);
       return;
@@ -796,17 +906,39 @@ async function processTelegramMessage(msg) {
     }
 
     // 7. المعالجة الذكية بالذكاء الاصطناعي واستدعاء الأدوات الحية
+    const botSettings = getBotSettings();
+    const introHeader = isNewSession && botSettings.introEnabled
+      ? `${(botSettings.introTemplate || '👋 أهلاً بك! معك {botName} ({botTitle}).')
+          .replace(/\{botName\}/g, botSettings.botName || 'م. سليم')
+          .replace(/\{botTitle\}/g, botSettings.botTitle || '')}\n━━━━━━━━━━━━━━━━━━━━\n`
+      : '';
+
     const reply = await processUserPromptWithGemini(cleanText, actor);
+    const shouldSendVoice =
+      botSettings.voiceReplyMode === 'always' ||
+      (botSettings.voiceReplyMode === 'on_voice_or_request' &&
+        (Boolean(msg.voice || msg.audio) || /(?:رد\s*صوت|بصوت|صوتيا|صوتياً|فويس|voice)/i.test(cleanText)));
+
     if (reply.type === 'multi_messages' && Array.isArray(reply.messages)) {
+      if (introHeader) {
+        await sendTelegramMessage(chatId, introHeader.trim(), messageId, { html: false });
+      }
       for (const msgItem of reply.messages) {
         await sendTelegramMessage(chatId, msgItem, messageId, { html: false });
         await new Promise(r => setTimeout(r, 200));
       }
+      if (shouldSendVoice) {
+        await sendTelegramVoiceReply(chatId, reply.messages.join(' . '), messageId, botSettings.botName);
+      }
     } else {
-      const delivery = await sendTelegramMessage(chatId, reply.text, messageId, { html: false });
+      const fullReplyText = introHeader + (reply.text || '');
+      const delivery = await sendTelegramMessage(chatId, fullReplyText, messageId, { html: false });
       if (delivery.ok && reply.memory) {
         conversation.remember({ ...actor, ...reply.memory, userMessageId: messageId,
           botMessageIds: delivery.messageIds, userText: cleanText });
+      }
+      if (shouldSendVoice && reply.text) {
+        await sendTelegramVoiceReply(chatId, reply.text, messageId, botSettings.botName);
       }
     }
   } catch (error) {

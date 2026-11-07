@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { RETIRED_TOOL_NAMES } from './copilot-tool-registry.mjs';
 import { getCopilotDate } from './copilot-tool-policy.mjs';
 import { assessTareeha, unassessedReason } from './copilot-tareeha.mjs';
+import { registerOperation, resolveOperationByNumberOrCode } from './copilot-bot-settings.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1016,10 +1017,21 @@ export function createCopilotTools({
         return { success: false, error: inserted.error };
       }
 
+      const labShortId = inserted.row?.id ? inserted.row.id.slice(0, 8).toUpperCase() : 'NEW';
+      const opNumber = registerOperation({
+        operationType: 'labor_log',
+        recordId: inserted.row?.id,
+        recordCode: `LAB-${labShortId}`,
+        summary: `يومية عامل: ${workerName} (${workItem || 'عام'})`,
+        siteRef: siteRef || 'غير محدد',
+        amount: dailyWage,
+      });
+
       return {
         success: true,
         record: {
           id: inserted.row?.id,
+          op_number: opNumber,
           work_date: workDate,
           worker_name: workerName,
           site_ref: siteRef || 'غير محدد',
@@ -1097,10 +1109,21 @@ export function createCopilotTools({
         return { success: false, error: inserted.error };
       }
 
+      const expShortId = inserted.row?.id ? inserted.row.id.slice(0, 8).toUpperCase() : 'NEW';
+      const opNumber = registerOperation({
+        operationType: 'expense',
+        recordId: inserted.row?.id,
+        recordCode: `EXP-${expShortId}`,
+        summary: `مصروف: ${description}`,
+        siteRef: siteRef || 'عام',
+        amount: totalPrice,
+      });
+
       return {
         success: true,
         record: {
           id: inserted.row?.id,
+          op_number: opNumber,
           exp_date: expDate,
           description,
           total_price: totalPrice,
@@ -1192,10 +1215,19 @@ export function createCopilotTools({
       await insertScopedDraft('journal_lines', lineCredit);
 
       const shortId = headerId.slice(0, 8).toUpperCase();
+      const opNumber = registerOperation({
+        operationType: 'journal',
+        recordId: headerId,
+        recordCode: `JV-${shortId}`,
+        summary: `قيد يومية: ${description}`,
+        siteRef: siteRef || 'عام',
+        amount,
+      });
       return {
         success: true,
         record: {
           id: headerId,
+          op_number: opNumber,
           short_id: shortId,
           entry_number: `JV-${shortId}`,
           entry_date: entryDate,
@@ -1274,10 +1306,20 @@ export function createCopilotTools({
         return { success: false, error: inserted.error || 'فشل حفظ أمر الشغل' };
       }
 
+      const opNumber = registerOperation({
+        operationType: 'job_order',
+        recordId: inserted.row?.id,
+        recordCode: orderNumber,
+        summary: `أمر شغل: ${workItem || contractorName}`,
+        siteRef: siteRef || 'غير محدد',
+        amount: totalAmount,
+      });
+
       return {
         success: true,
         record: {
           id: inserted.row?.id,
+          op_number: opNumber,
           order_number: orderNumber,
           site_ref: siteRef || 'غير محدد',
           contractor_name: contractorName,
@@ -1292,20 +1334,26 @@ export function createCopilotTools({
       };
     },
 
-    // 9. تعديل وتحديث مسودة أو عملية سابقة عند الرد عليها
+    // 9. تعديل وتحديث مسودة أو عملية سابقة عبر رقم العملية المختصر (#101) أو الكود أو الرد
     async update_operation_draft(rawArgs = {}) {
       if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
 
-      const ref = String(rawArgs?.record_identifier || '').trim();
-      const opType = String(rawArgs?.operation_type || '').toLowerCase();
+      const rawRef = String(rawArgs?.record_identifier || '').trim();
+      const indexedOp = resolveOperationByNumberOrCode(rawRef);
+      const ref = indexedOp?.recordCode || indexedOp?.recordId || rawRef;
+      const opType = String(indexedOp?.operationType || rawArgs?.operation_type || '').toLowerCase();
+      const opNumber = indexedOp?.opNumber || null;
       const changes = [];
 
       // 1) قيد محاسبي
       if (opType === 'journal' || ref.includes('JV-') || ref.startsWith('JV')) {
         const cleanRef = ref.replace(/.*?JV-([a-f0-9]+).*/i, '$1');
-        const headersRes = await fetchScopedRows('journal_headers', { select: 'id,description,entry_date,status', limit: '20' });
+        const headersRes = await fetchScopedRows('journal_headers', { select: 'id,description,entry_date,status', limit: '30' });
         const headers = headersRes.ok && Array.isArray(headersRes.data) ? headersRes.data : [];
-        const matched = headers.find(h => h.id.toLowerCase().startsWith(cleanRef.toLowerCase()) || cleanRef.toLowerCase().startsWith(h.id.slice(0, 8).toLowerCase())) || headers[0];
+        const matched =
+          (indexedOp?.recordId && headers.find(h => h.id === indexedOp.recordId)) ||
+          headers.find(h => h.id.toLowerCase().startsWith(cleanRef.toLowerCase()) || cleanRef.toLowerCase().startsWith(h.id.slice(0, 8).toLowerCase())) ||
+          headers[0];
 
         if (matched) {
           const headerPatch = {};
@@ -1319,7 +1367,6 @@ export function createCopilotTools({
 
           if (rawArgs?.new_amount && Number(rawArgs.new_amount) > 0) {
             const newAmt = Number(rawArgs.new_amount);
-            // Update lines
             const linesRes = await fetchScopedRows('journal_lines', { select: 'id,header_id,debit,credit', limit: '50' });
             if (linesRes.ok && Array.isArray(linesRes.data)) {
               const matchedLines = linesRes.data.filter(l => l.header_id === matched.id);
@@ -1337,6 +1384,7 @@ export function createCopilotTools({
           return {
             success: true,
             updated: {
+              op_number: opNumber,
               type: 'قيد محاسبي',
               reference: `JV-${matched.id.slice(0, 8).toUpperCase()}`,
               changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
@@ -1348,9 +1396,12 @@ export function createCopilotTools({
       // 2) أمر شغل
       if (opType === 'job_order' || ref.includes('JO-') || ref.startsWith('JO')) {
         const cleanOrderNum = ref.replace(/.*?JO-([\w-]+).*/i, 'JO-$1');
-        const ordersRes = await fetchScopedRows('job_orders', { select: 'id,order_number,assigned_qty,unit_price,notes,status', limit: '20' });
+        const ordersRes = await fetchScopedRows('job_orders', { select: 'id,order_number,assigned_qty,unit_price,notes,status', limit: '30' });
         const orders = ordersRes.ok && Array.isArray(ordersRes.data) ? ordersRes.data : [];
-        const matched = orders.find(o => o.order_number === cleanOrderNum || (o.order_number && o.order_number.includes(cleanOrderNum))) || orders[0];
+        const matched =
+          (indexedOp?.recordId && orders.find(o => o.id === indexedOp.recordId)) ||
+          orders.find(o => o.order_number === cleanOrderNum || (o.order_number && o.order_number.includes(cleanOrderNum))) ||
+          orders[0];
 
         if (matched) {
           const patch = {};
@@ -1362,6 +1413,10 @@ export function createCopilotTools({
             patch.unit_price = Number(rawArgs.new_unit_price);
             changes.push(`الفئة/السعر: ${patch.unit_price} ر.س`);
           }
+          if (rawArgs?.new_amount && !rawArgs?.new_unit_price) {
+            patch.unit_price = Number(rawArgs.new_amount);
+            changes.push(`السعر/القيمة: ${patch.unit_price} ر.س`);
+          }
           if (rawArgs?.new_description) {
             patch.notes = rawArgs.new_description.trim();
             changes.push(`البند/الملاحظات: «${patch.notes}»`);
@@ -1372,6 +1427,7 @@ export function createCopilotTools({
           return {
             success: true,
             updated: {
+              op_number: opNumber,
               type: 'أمر شغل',
               reference: matched.order_number,
               changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
@@ -1380,11 +1436,62 @@ export function createCopilotTools({
         }
       }
 
-      // 3) مصروف
-      if (opType === 'expense' || ref.includes('EXP-') || rawArgs?.new_amount) {
-        const expRes = await fetchScopedRows('expenses', { select: 'id,description,total_price,site_ref,main_category', limit: '20' });
+      // 3) يومية عامل
+      if (opType === 'labor_log' || ref.includes('LAB-') || ref.startsWith('LAB')) {
+        const labRes = await fetchScopedRows('labor_daily_logs', { select: 'id,worker_name,work_item,daily_wage,tareeha,productivity,site_ref', limit: '30' });
+        const logs = labRes.ok && Array.isArray(labRes.data) ? labRes.data : [];
+        const cleanLab = ref.replace(/.*?LAB-([a-f0-9]+).*/i, '$1');
+        const matched =
+          (indexedOp?.recordId && logs.find(l => l.id === indexedOp.recordId)) ||
+          logs.find(l => l.id.toLowerCase().startsWith(cleanLab.toLowerCase())) ||
+          logs[0];
+
+        if (matched) {
+          const patch = {};
+          if (rawArgs?.new_amount) {
+            patch.daily_wage = Number(rawArgs.new_amount);
+            changes.push(`اليومية/الأجر: ${patch.daily_wage} ر.س`);
+          }
+          if (rawArgs?.new_quantity) {
+            patch.productivity = Number(rawArgs.new_quantity);
+            changes.push(`الإنتاجية/المنفذ: ${patch.productivity}`);
+          }
+          if (rawArgs?.new_contractor) {
+            patch.worker_name = rawArgs.new_contractor.trim();
+            changes.push(`اسم العامل: ${patch.worker_name}`);
+          }
+          if (rawArgs?.new_description) {
+            patch.work_item = rawArgs.new_description.trim();
+            changes.push(`البند: «${patch.work_item}»`);
+          }
+          if (rawArgs?.new_site_ref) {
+            patch.site_ref = rawArgs.new_site_ref.trim();
+            changes.push(`المشروع/الفيلا: ${patch.site_ref}`);
+          }
+          if (Object.keys(patch).length > 0) {
+            await updateScopedRecord('labor_daily_logs', 'id', matched.id, patch);
+          }
+          return {
+            success: true,
+            updated: {
+              op_number: opNumber,
+              type: 'يومية عامل',
+              reference: `LAB-${matched.id.slice(0, 8).toUpperCase()}`,
+              changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
+            },
+          };
+        }
+      }
+
+      // 4) مصروف
+      if (opType === 'expense' || ref.includes('EXP-') || rawArgs?.new_amount || rawArgs?.new_description || rawArgs?.new_site_ref) {
+        const expRes = await fetchScopedRows('expenses', { select: 'id,description,total_price,site_ref,main_category', limit: '30' });
         const expenses = expRes.ok && Array.isArray(expRes.data) ? expRes.data : [];
-        const matched = expenses[0]; // most recent draft
+        const cleanExp = ref.replace(/.*?EXP-([a-f0-9]+).*/i, '$1');
+        const matched =
+          (indexedOp?.recordId && expenses.find(e => e.id === indexedOp.recordId)) ||
+          expenses.find(e => e.id.toLowerCase().startsWith(cleanExp.toLowerCase())) ||
+          expenses[0];
         if (matched) {
           const patch = {};
           if (rawArgs?.new_amount) {
@@ -1406,6 +1513,7 @@ export function createCopilotTools({
           return {
             success: true,
             updated: {
+              op_number: opNumber,
               type: 'مصروف',
               reference: `EXP-${matched.id.slice(0, 8).toUpperCase()}`,
               changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
@@ -1417,6 +1525,7 @@ export function createCopilotTools({
       return {
         success: true,
         updated: {
+          op_number: opNumber,
           type: 'عملية عامة',
           reference: ref || 'مسودة',
           changes: ['تم تسجيل وتطبيق التعديل المطلوب بنجاح في قاعدة البيانات.'],

@@ -35,7 +35,7 @@ const FIELD_OPS_ROUTING_INSTRUCTIONS = `
 7) إذا طلب المستخدم تسجيل قيد محاسبي أو قيد يومية (مثال: «سجل قيد من الصندوق للبنك 5000» أو «قيد إثبات شراء أسمنت 3000 لفيلا 10»): استدعِ فوراً add_journal_entry_draft بالبيانات (description, amount, debit_account, credit_account, site_ref).
 8) إذا طلب المستخدم عمل أمر شغل أو أمر تشغيل لمقاول (مثال: «اعمل امر شغل محارة لفيلا 5 كمية 200 متر بسعر 45 لمقاول أحمد»): استدعِ فوراً add_job_order_draft بالبيانات (contractor_name, work_item, assigned_qty, unit_price, site_ref, executor_type).
 9) العمليات المتعددة في رسالة واحدة: إذا ذكر المستخدم أكثر من قيد، أو أكثر من أمر شغل، أو أكثر من مصروف، أو مزيج منهم في رسالة واحدة: استدعِ الأداة المناسبة لكل عملية على حدة كاستدعاءات متوازية (Multiple Function Calls) في نفس الرد، بحيث يُنشأ كل قيد وكل أمر شغل بشكل منفصل ومستقل.
-10) التعديل عبر الرد على رسالة (Reply): إذا قام المستخدم بالرد على رسالة سابقة لعملية ما وطلب تعديلها (مثال: «التعديل: غير المبلغ لـ 7000» أو «عدل المشروع لفيلا 12» أو «غير اسم المقاول لـ خالد»): استخرج كود العملية من نص الرسالة المقتبسة واستدعِ update_operation_draft بالتعديلات المحددة.
+10) التعديل برقم العملية أو بالرد على الرسالة (Reply): إذا قال المستخدم «عدل على العملية رقم 101 وعدل فيها كذا...» أو «عدل العملية 102 خلي المبلغ 7000 والفيلا 12» أو قام بالرد (Reply) على رسالة عملية سابقة وطلب تعديلها: استدعِ فوراً update_operation_draft مع وضع رقم العملية المختصر (مثل "101") أو الكود المرجعي (مثل "JV-..." أو "JO-..." أو "EXP-...") في record_identifier وتمرير كل الحقول المراد تعديلها (new_amount, new_quantity, new_unit_price, new_site_ref, new_description, new_contractor, new_account).
 `;
 
 export const MODEL_MESSAGES = Object.freeze({
@@ -47,13 +47,17 @@ export const MODEL_MESSAGES = Object.freeze({
 });
 
 /** System instructions for one turn — identical for the bot and the eval runner. */
-export function buildSystemInstructions({ knowledge = '', declarations = [], referenceMissing = false, quotedMessageText = '', date }) {
+export function buildSystemInstructions({ knowledge = '', declarations = [], referenceMissing = false, quotedMessageText = '', date, botPersona = null }) {
   const hasFieldOps = declarations.some(t =>
     ['get_all_projects_and_villas', 'get_daily_comprehensive_report', 'add_labor_daily_log_draft', 'add_expense_draft'].includes(t.name)
   );
   const cleanQuoted = typeof quotedMessageText === 'string' ? quotedMessageText.trim().slice(0, 1200) : '';
+  const personaLine = botPersona?.botName
+    ? `هويتك واسمك التعريفي في المحادثة: اسمك هو «${botPersona.botName}» (${botPersona.botTitle || 'المساعد الذكي لفاي تك'}). عرّف نفسك بهذا الاسم دائماً بلطف واحترافية عند الترحيب أو بدء الحديث أو عند سؤالك عن اسمك.`
+    : '';
   return [
     BASE_SYSTEM_PROMPT,
+    ...(personaLine ? [personaLine] : []),
     ...(hasFieldOps ? [FIELD_OPS_ROUTING_INSTRUCTIONS.trim()] : []),
     knowledge,
     'الأدوات المفعلة في هذه المحادثة فقط: ' + declarations.map(tool => tool.name).join('، '),
