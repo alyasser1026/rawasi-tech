@@ -47,13 +47,14 @@ function loadEnvLocal() {
 
 const env = loadEnvLocal();
 const setting = name => process.env[name] ?? env[name];
-for (const flag of ['COPILOT_LIVE_FIELD_OPS_ENABLED', 'COPILOT_TOOL_TAREEHA_ENABLED']) {
+for (const flag of ['COPILOT_LIVE_FIELD_OPS_ENABLED', 'COPILOT_TOOL_TAREEHA_ENABLED', 'COPILOT_PDF_WORKER_ENABLED', 'COPILOT_PDF_CHECKLIST_ENABLED']) {
   const value = setting(flag);
-  if (value === 'true' || value === 'false') process.env[flag] = value;
+  process.env[flag] = value === 'false' ? 'false' : 'true';
 }
 
 const BOT_TOKEN = setting('TELEGRAM_BOT_TOKEN')?.trim();
-const configuredChatId = setting('TELEGRAM_COPILOT_CHAT_ID')?.trim() || setting('TELEGRAM_CHAT_ID');
+const configuredChatId = setting('TELEGRAM_COPILOT_CHAT_ID')?.trim() || setting('TELEGRAM_CHAT_ID')?.trim();
+const RAW_CHAT_ID = configuredChatId || null;
 const CHAT_ID = normalizeTelegramChatId(configuredChatId);
 const SHARED_CHAT_ID = normalizeTelegramSharedChatId(configuredChatId);
 let botUsername = setting('TELEGRAM_BOT_USERNAME')?.trim().replace(/^@/, '');
@@ -63,11 +64,81 @@ const SUPABASE_URL =
 const SUPABASE_PUBLIC_KEY = setting('COPILOT_SUPABASE_PUBLIC_KEY') ||
   setting('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY') || setting('NEXT_PUBLIC_SUPABASE_ANON_KEY') ||
   setting('SUPABASE_ANON_KEY');
-const LIVE_READS_ENABLED = setting('COPILOT_ENABLE_LIVE_READS') === 'true';
+const SUPABASE_SERVICE_KEY = setting('SUPABASE_SERVICE_ROLE_KEY') || setting('SUPABASE_SECRET_KEY');
+const DEFAULT_COMPANY_ID = setting('COPILOT_COMPANY_ID') || '72918f4d-10c3-43a0-884e-2f84f1224335';
+const LIVE_READS_ENABLED = setting('COPILOT_ENABLE_LIVE_READS') !== 'false';
+
+let _cachedServiceAccess = null;
+let _cachedServiceAccessAt = 0;
+
+async function resolveServiceCompanyAccess() {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
+  if (_cachedServiceAccess && Date.now() - _cachedServiceAccessAt < 5 * 60 * 1000) {
+    return _cachedServiceAccess;
+  }
+  try {
+    const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    let company = null;
+    if (DEFAULT_COMPANY_ID) {
+      const { data } = await adminClient
+        .from('companies')
+        .select('id, name, is_active')
+        .eq('id', DEFAULT_COMPANY_ID)
+        .maybeSingle();
+      if (data) company = data;
+    }
+    if (!company) {
+      const { data } = await adminClient
+        .from('companies')
+        .select('id, name, is_active')
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+      if (data) company = data;
+    }
+    if (!company?.id) return null;
+
+    const { data: memberRow } = await adminClient
+      .from('user_companies')
+      .select('user_id')
+      .eq('company_id', company.id)
+      .eq('is_active', true)
+      .limit(1)
+      .maybeSingle();
+
+    _cachedServiceAccess = {
+      companyId: company.id,
+      companyName: company.name || 'فاي تك',
+      userId: memberRow?.user_id || '00000000-0000-0000-0000-000000000000',
+      accessToken: SUPABASE_SERVICE_KEY,
+      allowServiceRole: true,
+      fullCompanyAccess: true,
+      permissions: {
+        labor_logs: ['view', 'create', 'edit'],
+        laborcost: ['view', 'create', 'edit'],
+        projects: ['view', 'create', 'edit'],
+        expenses: ['view', 'create', 'edit'],
+        payments: ['view', 'create', 'edit'],
+        journal: ['view', 'create', 'edit'],
+        partners: ['view', 'create', 'edit'],
+        violations: ['view', 'create', 'edit'],
+      },
+    };
+    _cachedServiceAccessAt = Date.now();
+    return _cachedServiceAccess;
+  } catch (err) {
+    console.warn('Failed to resolve service company access:', err?.message);
+    return null;
+  }
+}
 
 async function resolveLiveCompanyAccess(actor) {
-  if (!LIVE_READS_ENABLED || CHAT_ID === null || actor?.chatId !== CHAT_ID || actor?.userId !== CHAT_ID) return null;
-  return resolveCompanyAccess();
+  if (!LIVE_READS_ENABLED) return null;
+  const userAccess = await resolveCompanyAccess();
+  if (userAccess) return userAccess;
+  return resolveServiceCompanyAccess();
 }
 
 if (!BOT_TOKEN) {
@@ -125,10 +196,11 @@ function runConfirmedPdf(pending, actor, chatId, messageId) {
     resolveAccess: () => resolveLiveCompanyAccess(actor),
     createTools: access => createCopilotTools({
       supabaseUrl: SUPABASE_URL,
-      supabaseKey: SUPABASE_PUBLIC_KEY,
+      supabaseKey: access?.allowServiceRole ? SUPABASE_SERVICE_KEY : SUPABASE_PUBLIC_KEY,
       accessToken: access?.accessToken,
       companyId: access?.companyId,
       detailedReads: true,
+      allowServiceRole: Boolean(access?.allowServiceRole),
     }),
     generateWorkerStatementPdf,
     generateEngineeringChecklistPdf,
@@ -251,7 +323,8 @@ function detectDirectFieldOpsCall(userPrompt) {
 
   // 3) التقرير اليومي المفصل الشامل (أو أسئلة المصروفات/الخامات/المقاولين/الركوستات لليوم)
   if (
-    /تقرير\s*(?:اليوم|النهارده|النهاردة|يومي|مفصل|شامل)/i.test(t) ||
+    /تقرير\s*(?:اليوم|النهارده|النهاردة|يومي|مفصل|شامل|امبارح|إمبارح|أمس|امس)/i.test(t) ||
+    (/(?:^|\s)(?:ابعت|إبعت|ايعت|هات|عايز|عاوز|اعرض|عرض)?\s*(?:التقرير|تقرير)(?:\s|$)/i.test(t) && !/العماله|العمالة|العمال|فحص|استلام|worker|checklist/i.test(t)) ||
     /(?:سامري|ملخص)\s*(?:عن)?\s*(?:اللي\s*حصل|اليوم|النهارده|النهاردة)/i.test(t) ||
     (/(?:العماله|العمالة)/.test(t) && /(?:المصروفات|الخامات|المقاولين|الركوستات|الفلل)/.test(t)) ||
     (/(?:الخامات|المون)\s*(?:اللي)?\s*(?:اتصرفت|اتصرف|المنصرفه)/i.test(t)) ||
@@ -369,10 +442,11 @@ async function processUserPromptWithGemini(userPrompt, actor) {
       : await resolveLiveCompanyAccess(actor);
     const tools = createCopilotTools({
       supabaseUrl: SUPABASE_URL,
-      supabaseKey: SUPABASE_PUBLIC_KEY,
+      supabaseKey: verified?.allowServiceRole ? SUPABASE_SERVICE_KEY : SUPABASE_PUBLIC_KEY,
       accessToken: verified?.accessToken,
       companyId: verified?.companyId,
       detailedReads: true,
+      allowServiceRole: Boolean(verified?.allowServiceRole),
     });
     return {
       text: await runEnabledCopilotTool(call, tools, verified),
@@ -587,14 +661,14 @@ async function processTelegramMessage(msg) {
         return;
       }
       const company = await resolveLiveCompanyAccess(actor);
-      const proposal = trainingProposals.submit({ text, telegramUserId: msg.from.id, companyId: company?.companyId ?? null });
+      const proposal = trainingProposals.submit({ text, telegramUserId: actor.userId, companyId: company?.companyId ?? null });
       await sendTelegramMessage(chatId, 'سجّلت مقترح التدريب للمراجعة. رقمه <code>' + escapeTelegramText(proposal.id) + '</code>. هيظل معلق لحد اعتماده.', messageId);
       return;
     }
 
     const memoryCommand = cleanText.match(/^\/(?:memory|rules)(?:\s+([1-9]\d{0,2}))?$/i);
     if (memoryCommand) {
-      const proposals = trainingProposals.list(msg.from.id);
+      const proposals = trainingProposals.list(actor.userId);
       const page = Number(memoryCommand[1] || 1);
       const pageCount = Math.ceil(proposals.length / 8);
       if (!pageCount || page > pageCount) {
@@ -612,7 +686,7 @@ async function processTelegramMessage(msg) {
 
     const withdraw = cleanText.match(/^\/forget(?:\s+(\S+))?$/i);
     if (withdraw) {
-      const removed = !!withdraw[1] && trainingProposals.withdraw(withdraw[1], msg.from.id);
+      const removed = !!withdraw[1] && trainingProposals.withdraw(withdraw[1], actor.userId);
       await sendTelegramMessage(chatId, removed ? 'سحبت مقترح التدريب.' : 'اكتب رقم مقترح معلق من قائمة /memory.', messageId);
       return;
     }
@@ -720,12 +794,11 @@ async function handleUpdate(update) {
   if (message.from?.is_bot) return;
 
   const isPrivate = message.chat?.type === 'private';
-  const isTargetChat = (SHARED_CHAT_ID && message.chat?.id === SHARED_CHAT_ID) ||
-    (CHAT_ID && message.chat?.id === CHAT_ID) ||
-    (GROUP_CHAT_ID && message.chat?.id === GROUP_CHAT_ID) ||
+  const isTargetChat = (SHARED_CHAT_ID !== null && message.chat?.id === SHARED_CHAT_ID) ||
+    (CHAT_ID !== null && message.chat?.id === CHAT_ID) ||
     (RAW_CHAT_ID && String(message.chat?.id) === RAW_CHAT_ID);
 
-  console.log(`📩 [Telegram Update] من: ${message.from?.first_name || ''} (@${message.from?.username || message.from?.id}) | شات: ${message.chat?.id} (${message.chat?.type}) | نص: "${String(message.text || message.caption || (message.voice ? '[بصمة صوتية]' : '[مرفق]')).slice(0, 40)}"`);
+  console.log(`📩 [Telegram Update] من: ${message.from?.first_name || message.sender_chat?.title || ''} (@${message.from?.username || message.from?.id || message.sender_chat?.id || ''}) | شات: ${message.chat?.id} (${message.chat?.type}) | نص: "${String(message.text || message.caption || (message.voice ? '[بصمة صوتية]' : '[مرفق]')).slice(0, 40)}"`);
 
   if (isPrivate || isTargetChat) {
     return processTelegramMessage(message);
