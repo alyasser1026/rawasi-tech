@@ -8,8 +8,9 @@ import { createCopilotCompanyAccess } from './copilot-company-access.mjs';
 import { createCopilotTrainingProposals } from './copilot-training-proposals.mjs';
 import { getCopilotDate, getEnabledCopilotDeclarations, runEnabledCopilotTool } from './copilot-tool-policy.mjs';
 import { createCopilotConversation } from './copilot-conversation.mjs';
-import { createTelegramDocumentSender, createTelegramMessageSender } from './copilot-telegram-sender.mjs';
+import { createTelegramDocumentSender, createTelegramMessageSender, createTelegramVoiceSender } from './copilot-telegram-sender.mjs';
 import { createCopilotEntryForms } from './copilot-entry-forms.mjs';
+import { synthesizeArabicSpeech } from './copilot-voice.mjs';
 import { generateWorkerStatementPdf, generateEngineeringChecklistPdf } from './pdf-generator.mjs';
 import {
   FUNCTION_DECLARATIONS, GEMINI_GENERATE_URL, MODEL_MESSAGES, MODEL_TIMEOUT_MS,
@@ -22,7 +23,7 @@ import {
   addLearnedRule, detectAutoLearningTrigger, formatLearnedRulesForPrompt,
 } from './copilot-auto-learning.mjs';
 import {
-  getBotSettings, saveBotSettings, synthesizeArabicSpeech, attachFileToOperation, resolveOperationByNumberOrCode, updateOperationStatusInIndex,
+  getBotSettings, saveBotSettings, attachFileToOperation, resolveOperationByNumberOrCode, updateOperationStatusInIndex,
 } from './copilot-bot-settings.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -275,31 +276,18 @@ async function sendChatAction(chatId, action = 'typing') {
   } catch {}
 }
 
-// 🔊 إرسال رد صوتي (Voice Reply TTS) عبر تيليجرام بصوت نسائي مصري احترافي (م. سلمى)
-async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, botName = 'م. سلمى') {
-  try {
-    await sendChatAction(chatId, 'record_voice');
-    const audioBuffer = await synthesizeArabicSpeech(textToSpeak, { botName, geminiApiKey: GEMINI_API_KEY });
-    if (!audioBuffer || audioBuffer.length === 0) return false;
+const sendTelegramVoice = createTelegramVoiceSender({ botToken: BOT_TOKEN });
 
-    const form = new FormData();
-    form.append('chat_id', String(chatId));
-    form.append('voice', new Blob([audioBuffer], { type: 'audio/ogg' }), 'salma_reply.ogg');
-    if (replyToMessageId) {
-      form.append('reply_to_message_id', String(replyToMessageId));
-      form.append('allow_sending_without_reply', 'true');
-    }
-
-    const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendVoice`, {
-      method: 'POST',
-      body: form,
-      signal: AbortSignal.timeout(22000),
-    });
-    return res.ok;
-  } catch (err) {
-    console.warn('Voice reply failed:', err?.message);
+async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, settings) {
+  void sendChatAction(chatId, 'record_voice');
+  const audio = await synthesizeArabicSpeech(textToSpeak, { settings, geminiApiKey: GEMINI_API_KEY });
+  if (!audio) {
+    console.warn('Voice synthesis unavailable. The text reply was sent separately.');
     return false;
   }
+  const sent = await sendTelegramVoice(chatId, audio, replyToMessageId);
+  if (!sent) console.warn('Telegram did not confirm voice delivery.');
+  return sent;
 }
 
 // ⏳ إدارة الجلسات النشطة وإغلاق المحادثة تلقائياً عند عدم الرد
@@ -359,7 +347,7 @@ function scheduleInactivityClose(chatId, actor) {
       if (closeMsg.trim()) {
         await sendTelegramMessage(chatId, closeMsg, undefined, { html: false, replyMarkup: { remove_keyboard: true } });
         if (latestSettings.voiceReplyMode === 'always') {
-          await sendTelegramVoiceReply(chatId, closeMsg, undefined, latestSettings.botName);
+          await sendTelegramVoiceReply(chatId, closeMsg, undefined, latestSettings);
         }
       }
     } catch (err) {
@@ -1142,7 +1130,10 @@ async function processTelegramMessage(msg) {
         await new Promise(r => setTimeout(r, 200));
       }
       if (shouldSendVoice) {
-        await sendTelegramVoiceReply(chatId, reply.messages.join(' . '), messageId, botSettings.botName);
+        const speech = reply.messages.length === 1
+          ? reply.messages[0]
+          : 'نتيجة كل عملية موجودة في رسالتها. راجع الرسائل المكتوبة للتفاصيل.';
+        await sendTelegramVoiceReply(chatId, speech, messageId, botSettings);
       }
     } else {
       const fullReplyText = introHeader + (reply.text || '');
@@ -1155,7 +1146,7 @@ async function processTelegramMessage(msg) {
           botMessageIds: delivery.messageIds, userText: cleanText });
       }
       if (shouldSendVoice && reply.text) {
-        await sendTelegramVoiceReply(chatId, reply.text, messageId, botSettings.botName);
+        await sendTelegramVoiceReply(chatId, reply.text, messageId, botSettings);
       }
     }
   } catch (error) {
@@ -1423,7 +1414,7 @@ function startDailyReportScheduler() {
         const header = `⏰ <b>التقرير اليومي التلقائي المجدول (${targetTime}) — معك ${escapeTelegramText(s.botName)}</b>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
         await sendTelegramMessage(targetChat, header + escapeTelegramText(reportText), undefined, { html: true });
         if (s.voiceReplyMode !== 'off') {
-          await sendTelegramVoiceReply(targetChat, reportText, undefined, s.botName);
+          await sendTelegramVoiceReply(targetChat, reportText, undefined, s);
         }
       }
     } catch (err) {

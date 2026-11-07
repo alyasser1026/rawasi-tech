@@ -89,6 +89,29 @@ export function createTelegramMessageSender({ botToken, fetchImpl = fetch, onFai
 
 const DEFINITE_NETWORK_FAILURES = new Set(['ENOTFOUND', 'EAI_AGAIN', 'ECONNREFUSED']);
 
+export function createTelegramVoiceSender({ botToken, fetchImpl = fetch }) {
+  return async function sendTelegramVoice(chatId, audio, replyToMessageId) {
+    if (!audio?.buffer?.length) return false;
+    const form = new FormData();
+    form.append('chat_id', String(chatId));
+    form.append('voice', new Blob([audio.buffer], { type: audio.mimeType }), audio.fileName);
+    if (Number.isSafeInteger(replyToMessageId) && replyToMessageId > 0) {
+      form.append('reply_parameters', JSON.stringify({
+        message_id: replyToMessageId, allow_sending_without_reply: true,
+      }));
+    }
+
+    try {
+      const response = await fetchImpl('https://api.telegram.org/bot' + botToken + '/sendVoice', {
+        method: 'POST', body: form, redirect: 'error', signal: AbortSignal.timeout(22000),
+      });
+      return response.ok && (await response.json())?.ok === true;
+    } catch {
+      return false;
+    }
+  };
+}
+
 /**
  * Sends a PDF as a Telegram document and classifies the outcome (roadmap phase 4):
  *   { status: 'sent' }                 — explicit ok:true
