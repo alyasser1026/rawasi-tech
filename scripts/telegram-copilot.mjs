@@ -285,7 +285,7 @@ async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, set
   const audio = await synthesizeArabicSpeech(textToSpeak, {
     settings: { ...settings, onlyGeminiVoice: true },
     geminiApiKey: GEMINI_API_KEY,
-    voiceProvider: COPILOT_VOICE_PROVIDER || 'gemini',
+    voiceProvider: 'gemini',
     geminiVoice: COPILOT_GEMINI_TTS_VOICE,
   });
   if (!audio) {
