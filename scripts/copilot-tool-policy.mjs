@@ -280,7 +280,11 @@ function formatProjectsReply(result, companyLabel) {
     return pLines.join('\n');
   }
 
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا حبيبي';
   const lines = [
+    ...(isMozza ? [`💖 من عيوني ${pet}! جمعتلك بيان المشاريع والفلل كلها أهو:`] : []),
     `🏗️ بيان المشاريع والفلل ونماذج المساحات — ${companyLabel}`,
     `التاريخ المرجعي: ${dateChecked}`,
     `إجمالي المشاريع المسجلة: ${result.total_existing_projects ?? allProjects.length} مشروع (منها ${result.active_in_progress_count ?? 0} قيد التنفيذ)`,
@@ -336,7 +340,11 @@ function formatComprehensiveReportReply(result, companyLabel) {
   const s6 = result.section_6_contractors_delivered || {};
   const s7 = result.section_7_completed_requests || {};
 
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا حبيبي';
   const lines = [
+    ...(isMozza ? [`💖 عيوني ليك ${pet}! ده التقرير اليومي المفصل لكل الشغل والحسابات النهارده:`] : []),
     `📊 التقرير اليومي المفصل الشامل — ${companyLabel}`,
     `📅 التاريخ: ${result.report_date} | النطاق: ${result.villa_filter || 'جميع المشاريع والفلل'}`,
     '────────────────────────────',

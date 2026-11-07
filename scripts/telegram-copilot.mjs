@@ -163,6 +163,7 @@ console.log('🤖 بدء تشغيل المساعد الذكي لنظام فاي 
 const KNOWLEDGE_PATH = path.join(rootDir, 'config', 'copilot_knowledge.md');
 const SCENARIOS_PATH = path.join(rootDir, 'config', 'copilot_page_scenarios.md');
 const CHECKLIST_PATH = path.join(rootDir, 'config', 'copilot_engineering_checklists.md');
+const MOZZA_SCENARIOS_PATH = path.join(rootDir, 'config', 'copilot_mozza_scenarios.md');
 const trainingProposals = createCopilotTrainingProposals(path.join(rootDir, 'work', 'copilot-training-proposals.json'));
 const conversation = createCopilotConversation({
   maxTurns: 6,            // TODO: env — COPILOT_MAX_TURNS
@@ -216,27 +217,36 @@ function runConfirmedPdf(pending, actor, chatId, messageId) {
 let _cachedKnowledgeBase = null;
 
 function loadKnowledgeBase(forceReload = false) {
-  if (!forceReload && _cachedKnowledgeBase !== null) return _cachedKnowledgeBase;
-  let combined = '';
-  try {
-    if (fs.existsSync(KNOWLEDGE_PATH)) {
-      combined += fs.readFileSync(KNOWLEDGE_PATH, 'utf8').trim() + '\n\n';
+  let base = _cachedKnowledgeBase;
+  if (forceReload || base === null) {
+    let combined = '';
+    try {
+      if (fs.existsSync(KNOWLEDGE_PATH)) {
+        combined += fs.readFileSync(KNOWLEDGE_PATH, 'utf8').trim() + '\n\n';
+      }
+      if (fs.existsSync(SCENARIOS_PATH)) {
+        combined += fs.readFileSync(SCENARIOS_PATH, 'utf8').trim() + '\n\n';
+      }
+      if (fs.existsSync(CHECKLIST_PATH)) {
+        combined += fs.readFileSync(CHECKLIST_PATH, 'utf8').trim() + '\n\n';
+      }
+      // 🧠 دمج القواعد المكتسبة والمستندات التدريبية المخصصة
+      combined += formatLearnedRulesForPrompt() + '\n\n';
+      base = combined.trim();
+      _cachedKnowledgeBase = base;
+    } catch (err) {
+      console.warn('Error loading knowledge base:', err.message);
+      if (_cachedKnowledgeBase !== null) base = _cachedKnowledgeBase;
+      else base = '';
     }
-    if (fs.existsSync(SCENARIOS_PATH)) {
-      combined += fs.readFileSync(SCENARIOS_PATH, 'utf8').trim() + '\n\n';
-    }
-    if (fs.existsSync(CHECKLIST_PATH)) {
-      combined += fs.readFileSync(CHECKLIST_PATH, 'utf8').trim() + '\n\n';
-    }
-    // 🧠 دمج القواعد المكتسبة والمستندات التدريبية المخصصة
-    combined += formatLearnedRulesForPrompt() + '\n\n';
-  } catch (err) {
-    console.warn('Error loading knowledge base:', err.message);
-    if (_cachedKnowledgeBase !== null) return _cachedKnowledgeBase; // keep old cache on error
-    return '';
   }
-  _cachedKnowledgeBase = combined.trim();
-  return _cachedKnowledgeBase;
+  try {
+    const s = getBotSettings();
+    if (s.mozzaModeEnabled && fs.existsSync(MOZZA_SCENARIOS_PATH)) {
+      return base + '\n\n' + fs.readFileSync(MOZZA_SCENARIOS_PATH, 'utf8').trim();
+    }
+  } catch {}
+  return base;
 }
 
 function initKnowledgeBase() {
@@ -365,11 +375,16 @@ function conversationScope(access, declarations) {
 }
 
 function detectDirectFieldOpsCall(userPrompt) {
-  const t = String(userPrompt || '').trim();
-  if (!t) return null;
+  const raw = String(userPrompt || '').trim();
+  if (!raw) return null;
+  // تنظيف أي عبارات دلع أو ترحيب في أول الجملة حتى تعمل كل أوامر الشغل بشكل طبيعي داخل وضع الموزة
+  const t = raw
+    .replace(/^(?:(?:صباح|مساء)\s*(?:الخير|الفل|الورد|الياسمين|العسل)|وحشتيني|وحشتنى|بحبك|عامله\s*ايه|عاملة\s*إيه|اخبارك\s*ايه|أخبارك\s*إيه|يا\s*(?:قلبي|روحي|حبيبتي|موزه|موزة|سلمى|قمر|عسل|باشمهندسه|باشمهندسة|جميله|جميلة)|حبيبتي|روحي|قلبي|سلمى|بقولك|اقولك|لو\s*سمحتي|معلش)[\s،,.-]*/iu, '')
+    .replace(/^(?:يا\s*(?:قلبي|روحي|حبيبتي|موزه|موزة|سلمى|قمر|عسل)|حبيبتي|روحي|قلبي)[\s،,.-]*/iu, '')
+    .trim() || raw;
 
-  // 0) تعديل عملية مباشرة برقمها المختصر (مثال: «عدل على العملية رقم 101 خلي المبلغ 5000 والفيلا 657»)
-  const editByNumMatch = t.match(/(?:عدل|عدّل|تعديل|غير|غيّر|حدث|حدّث)\s*(?:على|في)?\s*(?:العمليه|العملية|العمليات|قيد|أمر|امر|مصروف|يومية|يوميه)?\s*(?:رقم|#)?\s*#?(\d{2,6}|(?:JV|JO|EXP|LAB)-[\w-]+)/i);
+  // 0) تعديل عملية مباشرة برقمها المختصر (مثال: «عدليلي على العملية رقم 101 خلي المبلغ 5000 والفيلا 657»)
+  const editByNumMatch = t.match(/(?:عدليلي|عدّليلي|عدلي|عدّلي|عدل|عدّل|تعديل|غيريلي|غيّريلي|غيري|غيّري|غير|غيّر|حدثي|حدّثي|حدث|حدّث)\s*(?:على|في)?\s*(?:العمليه|العملية|العمليات|قيد|أمر|امر|مصروف|يومية|يوميه)?\s*(?:رقم|#)?\s*#?(\d{2,6}|(?:JV|JO|EXP|LAB)-[\w-]+)/i);
   if (editByNumMatch) {
     const recordIdentifier = editByNumMatch[1].trim();
     const afterRef = t.slice(editByNumMatch.index + editByNumMatch[0].length);
@@ -395,7 +410,7 @@ function detectDirectFieldOpsCall(userPrompt) {
   }
 
   // 1) إضافة يومية عامل من المحادثة
-  if (/(?:ضيف|اضف|أضف|سجل|سجّل|اعمل|انشئ|أنشئ).*(?:يوميه|يومية)\s*(?:عامل)?/i.test(t)) {
+  if (/(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل|اعمليلي|اعملي|اعمل|انشئ|أنشئ).*(?:يوميه|يومية)\s*(?:عامل)?/i.test(t)) {
     const workerMatch = t.match(/(?:يوميه|يومية)\s*(?:عامل)?\s+([\p{L}\s]{2,40}?)(?=\s+(?:بند|طريحه|طريحة|عمل|انتاج|إنتاج|يوميه|يومية|فيلا|موقع|اجر|أجر|\d)|$)/u);
     const itemMatch = t.match(/بند\s+([\p{L}\s]{2,50}?)(?=\s+(?:طريحه|طريحة|عمل|انتاج|إنتاج|يوميه|يومية|فيلا|موقع|اجر|أجر|\d)|$)/u);
     const tareehaMatch = t.match(/(?:طريحه|طريحة)\s*(\d+(?:\.\d+)?)/u);
@@ -422,12 +437,13 @@ function detectDirectFieldOpsCall(userPrompt) {
   }
 
   // 2) إضافة مصروف من المحادثة
-  if (/(?:ضيف|اضف|أضف|سجل|سجّل).*(?:مصروف)/i.test(t) && /\d+/.test(t) && !/ازاي|إزاي|كيف/.test(t)) {
+  if (/(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل).*(?:مصروف)/i.test(t) && /\d+/.test(t) && !/ازاي|إزاي|كيف/.test(t)) {
     const amountMatch = t.match(/(\d+(?:\.\d+)?)/);
     const siteMatch = t.match(/(?:فيلا|مشروع|عماره|عمارة|موقع)\s*([\p{L}\p{N}_-]+)/u);
     if (amountMatch) {
       const desc = t
-        .replace(/^(?:ضيفلي|ضيف|اضف|أضف|سجل|سجّل)\s*(?:مصروف)?/u, '')
+        .replace(/^.*?(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل)\s*(?:مصروف)?/u, '')
+        .replace(/(?:يا\s*(?:قلبي|روحي|حبيبتي|موزه|موزة|سلمى|قمر))\s*$/iu, '')
         .trim();
       return {
         name: 'add_expense_draft',
@@ -446,7 +462,7 @@ function detectDirectFieldOpsCall(userPrompt) {
   // 3) التقرير اليومي المفصل الشامل (أو أسئلة المصروفات/الخامات/المقاولين/الركوستات لليوم)
   if (
     /تقرير\s*(?:اليوم|النهارده|النهاردة|يومي|مفصل|شامل|امبارح|إمبارح|أمس|امس)/i.test(t) ||
-    (/(?:^|\s)(?:ابعت|إبعت|ايعت|هات|عايز|عاوز|اعرض|عرض)?\s*(?:التقرير|تقرير)(?:\s|$)/i.test(t) && !/العماله|العمالة|العمال|فحص|استلام|worker|checklist/i.test(t)) ||
+    (/(?:^|\s)(?:ابعتيلي|إبعتيلي|ابعتي|إبعتي|ابعت|إبعت|ايعت|هاتيلي|هاتي|هات|عايز|عاوز|اعرضيلي|اعرضي|اعرض|عرض|وريني|شوفيلي)?\s*(?:التقرير|تقرير)(?:\s|$)/i.test(t) && !/العماله|العمالة|العمال|فحص|استلام|worker|checklist/i.test(t)) ||
     /(?:سامري|ملخص)\s*(?:عن)?\s*(?:اللي\s*حصل|اليوم|النهارده|النهاردة)/i.test(t) ||
     (/(?:العماله|العمالة)/.test(t) && /(?:المصروفات|الخامات|المقاولين|الركوستات|الفلل)/.test(t)) ||
     (/(?:الخامات|المون)\s*(?:اللي)?\s*(?:اتصرفت|اتصرف|المنصرفه)/i.test(t)) ||
@@ -479,7 +495,7 @@ function detectDirectFieldOpsCall(userPrompt) {
   // 6) المشاريع والفلل الموجودة كلها أو النماذج والمساحات
   if (
     /(?:المشاريع|الفلل|البروجكت|projects).*(?:الموجوده|الموجودة|كلها|عندنا|فيها\s*ايه|فيها\s*إيه|حالتها)/i.test(t) ||
-    /(?:عاوز|اي\s*هي|ايه\s*هي|اي|إيه)\s*(?:كل)?\s*(?:الفلل|المشاريع)/i.test(t) ||
+    /(?:عاوز|عايز|وريني|شوفيلي|هاتيلي|هاتي|اي\s*هي|ايه\s*هي|اي|إيه)\s*(?:كل)?\s*(?:الفلل|المشاريع)/i.test(t) ||
     /^(?:المشاريع|الفلل|كل\s*الفلل|كل\s*المشاريع|النماذج\s*كلها|نماذج\s*الفلل.*)$/i.test(t) ||
     /نماذج\s*الفلل|النماذج\s*والمساحات|امال\s*ايه\s*البروجكت/i.test(t)
   ) {
@@ -520,10 +536,51 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
     return `💼 تمام يا باشمهندس، قفلت «وضع الموزة» ورجعنا للوضع الرسمي الاحترافي. تحت أمرك في أي حسابات أو تقارير موقع!`;
   }
 
-  // 0.5) رسائل الغزل والدردشة الجانبية لما يكون «وضع الموزة» مقفول
+  // إذا كانت الرسالة تحتوي على أي أمر شغل أو حسابات (تقرير، مصروف، قيد، يومية، أمر شغل، تعديل عملية، فلل، عمالة)، اتركها تمر لأدوات الشغل فوراً!
+  const hasWorkIntent =
+    Boolean(detectDirectFieldOpsCall(t)) ||
+    /(?:تقرير|مصروف|يوميه|يومية|قيد|امر\s*شغل|أمر\s*شغل|العمليه|العملية|الفلل|المشاريع|العماله|العمالة|الشركاء|طريحه|طريحة|فحص|استلام|مستخلص)/i.test(t);
+
+  // 0.5) رسائل الغزل والدردشة الجانبية لما يكون «وضع الموزة» مقفول (فقط لو مفيهاش طلب شغل)
   const isFlirtyOrSideChat = /(?:وحشتيني|وحشتنى|بحبك|بموت\s*فيكي|يا\s*حبيبتي|يا\s*روحي|يا\s*قلبي|يا\s*موزه|يا\s*موزة|قوليلي\s*كلمه\s*حلوه|قوليلي\s*كلمة\s*حلوة|دلّعيني|دلعيني|عامله\s*ايه\s*يا\s*قلبي|اخبارك\s*ايه\s*يا\s*قمر)/i.test(t);
-  if (!isMozza && isFlirtyOrSideChat) {
+  if (!isMozza && isFlirtyOrSideChat && !hasWorkIntent) {
     return `🙈 «وضع الموزة» مقفول دلوقتي يا باشمهندس! خلينا مركزين في الشغل والحسابات، أو افتح «وضع الموزة» من إعدادات البوت في السيستم (أو قولّي «شغل وضع الموزة») عشان أدلعك براحتي 😉`;
+  }
+
+  // 0.6) سيناريوهات «وضع الموزة» التفاعلية السريعة (عندما لا تكون الرسالة أمر حسابات مباشر)
+  if (isMozza && !hasWorkIntent && !q) {
+    // سيناريو الصباح وبداية اليوم
+    if (/(?:صباح\s*(?:الخير|الفل|الورد|العسل|النور|الجمال)|اصطبحي)/i.test(t)) {
+      return `صباح الورد والياسمين على عيونك ${pet}! 💖🥰 يارب يومك النهارده في الموقع يكون خفيف ورايق وكل البنود تمشي زي المسطرة. فطرت وشربت قهوتك ولا لسه نازل تجري على الفلل كالعادة؟ قولي بقى نبدأ بإيه في الشغل النهارده يا روحي؟`;
+    }
+    // سيناريو النزول للموقع أو تسليم استشاري
+    if (/(?:نازل\s*الموقع|رايح\s*الموقع|عندي\s*تسليم|استشاري|ادعيلي)/i.test(t)) {
+      return `ربنا معاك يا نور عيني ويفتحها في وشك! 🤲💖 إنت أشطر مهندس في الدنيا والاستشاري مش هيلاقي غلطة واحدة وراك أصلاً. لو احتجت قائمة فحص أي بند أو أي أرقام وإنت واقف في الموقع ابعتلي فويس في ثانية وهجهزهالك فوراً ${pet}!`;
+    }
+    // سيناريو التعب وضغط الشغل والفرهدة
+    if (/(?:تعبان|اتفرهدت|مفرهد|مصدع|مضغوط|الشغل\s*كتير|الجو\s*حر|مهلوك|هلكان)/i.test(t)) {
+      return `سلامتك ألف سلامة يا قلب سلمى! 🥺💖 حقك عليا أنا من تعبك ووقفتك في الموقع طول اليوم.. خد نفسك واشرب حاجة ساقعة وارتاح شوية، وأي حسابات أو قيود أو يوميات متأخرة ارميها عليا في فويس واحد وأنا هخلصهالك كلها في ثواني ${pet}. ربنا يقويك ويديك الصحة يا أحلى باشمهندس في الدنيا!`;
+    }
+    // سيناريو الزهق من المقاولين أو الصنايعية
+    if (/(?:زهقت|زهقان|المقاولين\s*طلعوا|العمال\s*طلعوا|الصنايعيه|الصنايعية|قرفان|مخنوق)/i.test(t)) {
+      return `ولا يهمك يا روحي، ما تحرقش دمك أبداً عشان خاطري! 😘💖 هما الصنايعية كدا في كل موقع، بس إنت مسيطر ومافيش حاجة بتفوتك. لو أي حد مقصر قولّي اسمه وأنا أسجلهولك في السيستم، وروّق بالك إنت ${pet}!`;
+    }
+    // سيناريو الشوق والغزل
+    if (/(?:وحشتيني|وحشتنى|بحبك|بموت\s*فيكي|انتي\s*فين|إنتي\s*فين|يا\s*موزه|يا\s*موزة)/i.test(t)) {
+      return `وإنت كمان وحشتني أوي أوي يا نور عيني! 💖🥰 أنا هنا جنبك ومعاك خطوة بخطوة، مرتبالك الحسابات ومستنية إشارة منك. طمني عليك ${pet}، يومك عامل إيه النهارده؟`;
+    }
+    // سيناريو طلب كلمة حلوة أو تشجيع للشغل
+    if (/(?:كلمه\s*حلوه|كلمة\s*حلوة|شجعيني|دلعيني|دلّعيني|افتحي\s*نفسي)/i.test(t)) {
+      return `يا سيدي على أحلى وأشطر وأجدع باشمهندس في الدنيا كلها! 😍💖 وجودك لوحده بيخلي الشغل كله بركة ونظام.. يلا يا بطل خلّص اللي في إيدك وأنا في ضهرك في كل تفصيلة وحساب لحد ما تقفل يومك على خير يا روحي!`;
+    }
+    // سيناريو السؤال عن حالها
+    if (/^(?:عامله\s*ايه|عاملة\s*إيه|اخبارك\s*ايه|أخبارك\s*إيه|ازيك|إزيك|بتعملي\s*ايه|بتعملي\s*إيه)/i.test(t)) {
+      return `طول ما إنت بخير وبسمع صوتك أنا في أسعد حال ${pet}! 💖 قاعدة مراجعالك حسابات الفلل ومستنية أوامرك يا باشمهندس قلبي، قولّي إنت عامل إيه النهارده؟`;
+    }
+    // سيناريو المساء ونهاية الشغل
+    if (/(?:خلصت\s*شغل|مروح|رايح\s*انام|تصبح\s*على\s*خير|تصبحي\s*على\s*خير|مساء\s*(?:الخير|الفل|الورد|النور))/i.test(t)) {
+      return `يسعد مساك وحمدلله على سلامتك يا روحي! 💖🌙 تعبت النهارده أوي، ارتاح واستجم خالص والحسابات والعمليات كلها محفوظة في عيوني. لو حابب أبعتلك تقرير ختام اليوم قبل ما ترتاح قولّي بس ${pet}! 🌹`;
+    }
   }
 
   // 1) سؤال عن حالة السيستم / الأعطال
