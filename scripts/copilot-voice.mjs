@@ -159,7 +159,7 @@ async function synthesizeWithEdge(text, settings, createEdgeTts, workReply) {
     const escaped = pronunciation.replace(/[&<>]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character]);
     const { audioStream } = tts.toStream(escaped, {
       pitch: settings.mozzaModeEnabled ? '+8%' : '+0Hz',
-      rate: workReply ? '-12%' : settings.mozzaModeEnabled ? '-4%' : '-6%',
+      rate: settings.mozzaModeEnabled ? '-4%' : (workReply ? '-12%' : '-6%'),
     });
     const audio = await buffer(addAbortSignal(deadline, audioStream));
     return audio.length ? { buffer: audio, mimeType: 'audio/mpeg', fileName: 'salma_reply.mp3' } : null;
@@ -255,7 +255,7 @@ export async function synthesizeArabicSpeech(rawText, {
   const { text, workReply } = prepareSpeech(rawText);
   if (!text) return null;
 
-  const voiceSettings = workReply ? { ...settings, mozzaModeEnabled: false } : settings;
+  const voiceSettings = settings;
   const prefersGeminiPro = voiceProvider === GEMINI_PRO_VOICE_MODEL;
   if (prefersGeminiPro && geminiApiKey) {
     const audio = await synthesizeWithGeminiPro(text, voiceSettings, geminiApiKey, geminiVoice, fetchImpl).catch(() => null);

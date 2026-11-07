@@ -86,7 +86,7 @@ test('keeps the count, total and halalas distinct in the work voice even when th
     'إجمالي المصروفات، ألف وَخُمْسُمِيَّة ريال سعودي، وخمسة وعشرين هَلَلَة.',
     'باقي التفاصيل في الرسالة.',
   ].join('\n'));
-  assert.deepEqual(request[1], { pitch: '+0Hz', rate: '-12%' });
+  assert.deepEqual(request[1], { pitch: '+8%', rate: '-4%' });
 });
 
 test('keeps precision and preserves currencies or ambiguous formats it cannot expand', () => {
