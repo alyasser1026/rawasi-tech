@@ -36,6 +36,7 @@ html[data-mode="dark"] {
   --status-positive-soft: rgba(16, 185, 129, 0.14);
   --status-negative-soft: rgba(244, 63, 94, 0.14);
   --status-info-soft: rgba(14, 165, 233, 0.14);
+  --status-warning-soft: rgba(245, 158, 11, 0.14);
   --control-edge: #84654c;
   --modal-scrim: rgba(20, 11, 6, 0.8);
 
@@ -482,7 +483,7 @@ thead th {
   -webkit-backdrop-filter: blur(20px);
   padding: 1.125rem 1rem;
   font-weight: 900;
-  color: var(--accent-main);
+  color: var(--text-primary);
   font-size: var(--fs-sm);
   border-bottom: 1px solid var(--table-zebra-bg);
 }

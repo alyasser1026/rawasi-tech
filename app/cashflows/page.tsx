@@ -2,7 +2,6 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import MasterPage from '@/components/MasterPage';
 import { formatCurrency } from '@/lib/helpers';
-import { THEME } from '@/lib/theme';
 import { useCashFlowsLogic } from './cash_flows_logic';
 import * as XLSX from 'xlsx';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -12,7 +11,7 @@ import { notify } from '@/lib/notify';
 // =========================================================================
 // 🧩 مكون ذكي للقائمة المنسدلة متعددة الاختيارات
 // =========================================================================
-const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, accentColor }: any) => {
+const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title }: any) => {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState('');
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -39,11 +38,11 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
 
     return (
         <div ref={dropdownRef} style={{ position: 'relative', flex: 1, minWidth: '12.5rem' }}>
-            <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, marginBottom: '0.375rem', color: '#64748b', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, marginBottom: '0.375rem', color: 'var(--text-secondary)', display: 'flex', justifyContent: 'space-between' }}>
                 <span>{title}</span>
                 {selected.length > 0 && (
                     <span 
-                        style={{ color: '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xs)', background: '#fef2f2', padding: '2px 0.375rem', borderRadius: '4px' }} 
+                        style={{ color: 'var(--status-negative)', cursor: 'pointer', fontSize: 'var(--fs-xs)', background: 'color-mix(in srgb, var(--status-negative) 10%, var(--surface-flat))', padding: '2px 0.375rem', borderRadius: '4px' }}
                         onClick={() => onChange([])}
                     >
                         إلغاء ({selected.length})
@@ -53,48 +52,48 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
             
             <div 
                 onClick={() => setIsOpen(!isOpen)}
-                style={{ background: 'white', padding: '0.75rem 0.9375rem', borderRadius: '10px', border: `2px solid #e2e8f0`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.2s', height: '3rem' }}
+                style={{ background: 'var(--surface-flat)', padding: '0.75rem 0.9375rem', borderRadius: '10px', border: '1px solid var(--control-edge)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.2s', height: '3rem' }}
             >
-                <span style={{ fontWeight: 800, color: selected.length ? '#334155' : '#94a3b8', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontWeight: 800, color: selected.length ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selected.length > 0 ? selected.join('، ') : placeholder}
                 </span>
-                <span style={{ color: '#94a3b8', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }}>▼</span>
+                <span style={{ color: 'var(--text-muted)', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }}>▼</span>
             </div>
             
             {isOpen && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: `1px solid #e2e8f0`, borderRadius: '12px', marginTop: '0.5rem', zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-                    <div style={{ padding: '0.625rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface-flat)', border: '1px solid var(--control-edge)', borderRadius: '12px', marginTop: '0.5rem', zIndex: 50, boxShadow: 'var(--shadow-elevation)', overflow: 'hidden' }}>
+                    <div style={{ padding: '0.625rem', background: 'var(--surface-subcard)', borderBottom: '1px solid var(--control-edge)' }}>
                         <input 
                             type="text" 
                             placeholder="بحث سريع..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
+                            style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--control-edge)', borderRadius: '6px', color: 'var(--text-primary)', background: 'var(--surface-sunken)', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
                         />
                     </div>
-                    <div className="custom-scrollbar" style={{ maxHeight: '13.75rem', overflowY: 'auto', padding: '0.3125rem' }}>
+                    <div className="cashflows-dropdown-scroll" style={{ maxHeight: '13.75rem', overflowY: 'auto', padding: '0.3125rem' }}>
                         {filteredOptions.length > 0 ? filteredOptions.map((opt: string) => (
-                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.625rem', cursor: 'pointer', borderRadius: '6px', background: selected.includes(opt) ? `${accentColor}15` : 'transparent', transition: '0.2s' }}>
+                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.625rem', cursor: 'pointer', borderRadius: '6px', background: selected.includes(opt) ? 'var(--accent-soft-bg)' : 'transparent', transition: '0.2s' }}>
                                 <input 
                                     type="checkbox" 
                                     checked={selected.includes(opt)} 
                                     onChange={() => handleToggle(opt)} 
-                                    style={{ accentColor: accentColor, transform: 'scale(1.2)', cursor: 'pointer' }}
+                                    style={{ accentColor: 'var(--accent-main)', transform: 'scale(1.2)', cursor: 'pointer' }}
                                 />
-                                <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: selected.includes(opt) ? accentColor : '#334155' }}>{opt}</span>
+                                <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: selected.includes(opt) ? 'var(--accent-ink)' : 'var(--text-primary)' }}>{opt}</span>
                             </label>
                         )) : (
-                            <div style={{ padding: '0.9375rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد نتائج مطابقة</div>
+                            <div style={{ padding: '0.9375rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: 'var(--text-muted)', fontWeight: 700 }}>لا توجد نتائج مطابقة</div>
                         )}
                     </div>
                 </div>
             )}
             <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 0.375rem; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+                .cashflows-dropdown-scroll::-webkit-scrollbar { width: 0.375rem; }
+                .cashflows-dropdown-scroll::-webkit-scrollbar-track { background: var(--surface-sunken); border-radius: 4px; }
+                .cashflows-dropdown-scroll::-webkit-scrollbar-thumb { background: var(--control-edge); border-radius: 4px; }
+                .cashflows-dropdown-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent-ink); }
             `}</style>
         </div>
     );
@@ -300,76 +299,74 @@ export default function CashFlowsPage() {
     }, [treeGroupedData, currentPage, rowsPerPage]);
 
     return (
-        <div className="clean-page" style={{ background: '#f8fafc', minHeight: '100vh', paddingBottom: '3.125rem' }}>
+        <div className="clean-page cashflows-register" style={{ minHeight: '100vh', paddingBottom: '3.125rem' }}>
             <MasterPage title="التدفقات النقدية (Cash Flows)" subtitle="مراقبة حركات السيولة، المقبوضات، والمدفوعات بشكل لحظي وتجميعي">
                 
                 <style>{`
-                    .summary-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(20px); border-radius: 14px; padding: 1.5625rem; flex: 1; border: 1px solid rgba(255,255,255,0.9); position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.03); transition: all 0.3s ease; }
-                    .summary-card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.06); }
-                    .summary-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 0.3125rem; }
-                    .summary-card.inflow::after { background: linear-gradient(90deg, #10b981, #34d399); }
-                    .summary-card.outflow::after { background: linear-gradient(90deg, #ef4444, #f87171); }
-                    .summary-card.net::after { background: linear-gradient(90deg, #c2410c, #fcd34d); }
-                    
-                    .summary-label { font-size: var(--fs-md); font-weight: 900; color: #64748b; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
-                    .summary-val { font-size: var(--fs-3xl); font-weight: 900; color: #0f172a; text-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+                    .cashflows-register .summary-card { background: var(--surface-card); border-radius: 14px; padding: 1.5625rem; flex: 1 1 13rem; border: 1px solid var(--control-edge); position: relative; overflow: hidden; }
+                    .cashflows-register .summary-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 0.3125rem; }
+                    .cashflows-register .summary-card.inflow::after { background: var(--status-positive); }
+                    .cashflows-register .summary-card.outflow::after { background: var(--status-negative); }
+                    .cashflows-register .summary-card.net::after { background: var(--action-fill); }
 
-                    .source-breakdown-card { background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); padding: 1.25rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: space-between; flex: 1; min-width: 13.75rem; box-shadow: 0 5px 20px rgba(0,0,0,0.02); transition: all 0.3s ease; }
-                    .source-breakdown-card:hover { transform: translateY(-3px); }
-                    .source-breakdown-title { font-size: var(--fs-sm); font-weight: 900; color: #64748b; margin-bottom: 0.5rem; }
-                    .source-breakdown-val { font-size: var(--fs-xl); font-weight: 900; }
-                    
-                    .filter-input { width: 100%; padding: 0.75rem 0.9375rem; border-radius: 12px; border: 1px solid #e2e8f0; outline: none; font-weight: 800; color: #334155; transition: 0.2s; height: 3.125rem; background: rgba(255,255,255,0.9); }
-                    .filter-input:focus { border-color: #c2410c; box-shadow: 0 0 0 3px rgba(194,65,12, 0.1); }
+                    .cashflows-register .summary-label { font-size: var(--fs-md); font-weight: 900; color: var(--text-primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+                    .cashflows-register .summary-val { font-size: var(--fs-3xl); font-weight: 900; color: var(--text-primary); }
 
-                    .tree-table { width: 100%; border-collapse: separate; border-spacing: 0; text-align: center; background: transparent; }
-                    .tree-thead { background: ${THEME.gradients.primary}; color: ${THEME.white}; border-radius: 16px 16px 0 0; }
-                    .tree-thead th { padding: 1.25rem 0.9375rem; font-size: var(--fs-lg); font-weight: 900; border: none; }
-                    .tree-thead th:first-child { border-top-right-radius: 16px; }
-                    .tree-thead th:last-child { border-top-left-radius: 16px; }
-                    
-                    .master-group-row { cursor: pointer; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); transition: 0.3s; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
-                    .master-group-row:hover { background: #ffffff; transform: scale(1.002); z-index: 10; position: relative; box-shadow: 0 5px 20px rgba(0,0,0,0.05); }
-                    .master-group-row td { padding: 1.25rem 1rem; font-size: var(--fs-lg); font-weight: 900; border-bottom: 1px solid #f1f5f9; }
+                    .cashflows-register .source-breakdown-card { background: var(--surface-card); padding: 1.25rem; border-radius: 16px; border: 1px solid var(--control-edge); display: flex; align-items: center; justify-content: space-between; flex: 1 1 13.75rem; position: relative; }
+                    .cashflows-register .source-breakdown-card::before { content: ''; position: absolute; inset-block: 1rem; inset-inline-start: 0; width: 4px; border-radius: 4px; }
+                    .cashflows-register .source-breakdown-card.inflow::before { background: var(--status-positive); }
+                    .cashflows-register .source-breakdown-card.outflow::before { background: var(--status-negative); }
+                    .cashflows-register .source-breakdown-title { font-size: var(--fs-sm); font-weight: 900; color: var(--text-primary); margin-bottom: 0.5rem; }
+                    .cashflows-register .source-breakdown-val { font-size: var(--fs-xl); font-weight: 900; }
 
-                    .child-tree-container { background: rgba(248, 250, 252, 0.9); padding: 1.25rem 2.5rem; border-bottom: 2px solid ${THEME.border}; backdrop-filter: blur(5px); }
-                    .child-table { width: 100%; border-collapse: collapse; background: #ffffff; border-radius: 14px; border: 1px solid ${THEME.border}; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.03); }
-                    .child-table th { background: linear-gradient(135deg, #fafafa, #f3eedf); color: ${THEME.brand.coffee}; padding: 0.9375rem; font-size: var(--fs-sm); font-weight: 900; border-bottom: 2px solid ${THEME.brand.goldLight}; }
-                    .child-table td { padding: 0.9375rem 0.75rem; border-bottom: 1px solid #f1f5f9; font-size: var(--fs-sm); font-weight: 800; color: #334155; transition: 0.2s; }
-                    .child-table tr:hover td { background: rgba(194,65,12, 0.02); }
-                    
-                    .arrow-icon { display: inline-block; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); margin-left: 0.75rem; color: #c2410c; font-size: var(--fs-lg); background: rgba(194,65,12, 0.1); width: 1.75rem; height: 1.75rem; line-height: 1.75rem; text-align: center; border-radius: 50%; }
-                    .arrow-expanded { transform: rotate(90deg); background: #c2410c; color: white; }
+                    .cashflows-register .filter-input { width: 100%; padding: 0.75rem; border-radius: 12px; border: 1px solid var(--control-edge); font-weight: 800; color: var(--text-primary); height: 3.125rem; background: var(--surface-sunken); }
+                    .cashflows-register .filter-input:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
 
-                    .view-toggle-btn { flex: 1; padding: 0.75rem; font-size: var(--fs-md); font-weight: 900; border: none; cursor: pointer; transition: 0.3s; }
-                    .view-toggle-btn.active { background: #c2410c; color: white; }
-                    .view-toggle-btn:not(.active) { background: transparent; color: #64748b; }
-                    .view-toggle-btn:not(.active):hover { background: rgba(194,65,12, 0.05); color: #1e293b; }
+                    .cashflows-register .tree-scroll { overflow-x: auto; border: 1px solid var(--control-edge); border-radius: 16px; background: var(--surface-card); }
+                    .cashflows-register .tree-table { width: 100%; min-width: 42rem; border-collapse: separate; border-spacing: 0; text-align: center; color: var(--text-primary); }
+                    .cashflows-register .tree-thead th { padding: 1.25rem 0.9375rem; font-size: var(--fs-lg); font-weight: 900; border: none; }
+
+                    .cashflows-register .master-group-row { cursor: pointer; }
+                    .cashflows-register .master-group-row:hover { background: var(--table-row-hover); }
+                    .cashflows-register .master-group-row td { padding: 1.25rem 1rem; font-size: var(--fs-lg); font-weight: 900; border-bottom: 1px solid var(--control-edge); }
+
+                    .cashflows-register .child-tree-container { background: var(--surface-subcard); padding: 1.25rem clamp(0.75rem, 3vw, 2.5rem); border-bottom: 1px solid var(--control-edge); }
+                    .cashflows-register .child-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface-flat); border-radius: 14px; border: 1px solid var(--control-edge); overflow: hidden; }
+                    .cashflows-register .child-table th { background: var(--table-head-bg); color: var(--text-primary); padding: 0.9375rem; font-size: var(--fs-sm); font-weight: 900; border-bottom: 1px solid var(--control-edge); }
+                    .cashflows-register .child-table td { padding: 0.9375rem 0.75rem; border-bottom: 1px solid var(--table-zebra-bg); font-size: var(--fs-sm); font-weight: 800; color: var(--text-primary); }
+                    .cashflows-register .child-table tr:hover { background: var(--table-row-hover); }
+
+                    .cashflows-register .arrow-icon { display: inline-block; transition: transform 0.3s; margin-inline-end: 0.75rem; color: var(--accent-ink); font-size: var(--fs-lg); background: var(--accent-soft-bg); width: 1.75rem; height: 1.75rem; line-height: 1.75rem; text-align: center; border-radius: 50%; }
+                    .cashflows-register .arrow-expanded { transform: rotate(90deg); background: var(--action-fill); color: var(--action-ink); }
+
+                    .cashflows-register .view-toggle-btn { flex: 1; padding: 0.75rem; font-size: var(--fs-md); font-weight: 900; border: none; cursor: pointer; transition: 0.3s; background: transparent; color: var(--text-primary); }
+                    .cashflows-register .view-toggle-btn.active { background: var(--action-fill); color: var(--action-ink); }
+                    .cashflows-register .view-toggle-btn:not(.active):hover { background: var(--accent-soft-bg); }
                 `}</style>
 
                 {/* 📊 بطاقات الملخص الرئيسية */}
                 <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '0.9375rem', flexWrap: 'wrap' }}>
                     <div className="summary-card inflow">
                         <div className="summary-label"><span><Download size={16} aria-hidden="true" /></span> إجمالي الوارد (المقبوضات)</div>
-                        <div className="summary-val" style={{ color: '#059669' }}>{formatCurrency(summaryStats.totalIn)}</div>
+                        <div className="summary-val" style={{ color: 'var(--status-positive)' }}>{formatCurrency(summaryStats.totalIn)}</div>
                     </div>
                     
                     <div className="summary-card outflow">
                         <div className="summary-label"><span><Upload size={16} aria-hidden="true" /></span> إجمالي المنصرف (المدفوعات)</div>
-                        <div className="summary-val" style={{ color: '#e11d48' }}>{formatCurrency(summaryStats.totalOut)}</div>
+                        <div className="summary-val" style={{ color: 'var(--status-negative)' }}>{formatCurrency(summaryStats.totalOut)}</div>
                     </div>
 
                     <div className="summary-card net">
                         <div className="summary-label"><span><Scale size={16} aria-hidden="true" /></span> صافي التدفق النقدي (Net)</div>
-                        <div className="summary-val" style={{ color: summaryStats.netCash >= 0 ? '#047857' : '#be123c' }}>
+                        <div className="summary-val" style={{ color: summaryStats.netCash >= 0 ? 'var(--status-positive)' : 'var(--status-negative)' }}>
                             {summaryStats.netCash > 0 ? '+' : ''}{formatCurrency(summaryStats.netCash)}
                         </div>
                     </div>
 
                     {/* 🎛️ أزرار طرق العرض - مدمجة في صف السامري */}
-                    <div className="summary-card" style={{ flex: '1.2', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div className="summary-card" style={{ flex: '1.2 1 13rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                         <div className="summary-label"><span><Eye size={16} aria-hidden="true" /></span> طريقة التجميع والعرض</div>
-                        <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', flex: 1 }}>
+                        <div style={{ display: 'flex', background: 'var(--surface-subcard)', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--control-edge)', flex: 1 }}>
                             <button 
                                 className={`view-toggle-btn ${groupBy === 'partner' ? 'active' : ''}`} 
                                 onClick={() => {setGroupBy('partner'); setExpandedGroups([]);}}
@@ -388,31 +385,31 @@ export default function CashFlowsPage() {
 
                 {/* 🔍 تفاصيل المصادر (Breakdown) */}
                 <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.5625rem', flexWrap: 'wrap', padding: '0.3125rem' }}>
-                    <div className="source-breakdown-card" style={{ borderRight: '4px solid #10b981' }}>
+                    <div className="source-breakdown-card inflow">
                         <div>
                             <div className="source-breakdown-title">مقبوضات من (سندات القبض)</div>
-                            <div className="source-breakdown-val" style={{ color: '#059669' }}>{formatCurrency(summaryStats.receiptVouchersTotal)}</div>
+                            <div className="source-breakdown-val" style={{ color: 'var(--status-positive)' }}>{formatCurrency(summaryStats.receiptVouchersTotal)}</div>
                         </div>
                     </div>
 
-                    <div className="source-breakdown-card" style={{ borderRight: '4px solid #ef4444' }}>
+                    <div className="source-breakdown-card outflow">
                         <div>
                             <div className="source-breakdown-title">مدفوعات من (سندات الصرف)</div>
-                            <div className="source-breakdown-val" style={{ color: '#e11d48' }}>{formatCurrency(summaryStats.paymentVouchersTotal)}</div>
+                            <div className="source-breakdown-val" style={{ color: 'var(--status-negative)' }}>{formatCurrency(summaryStats.paymentVouchersTotal)}</div>
                         </div>
                     </div>
 
-                    <div className="source-breakdown-card" style={{ borderRight: '4px solid #34d399' }}>
+                    <div className="source-breakdown-card inflow">
                         <div>
                             <div className="source-breakdown-title">إيداعات من (مصادر أخرى)</div>
-                            <div className="source-breakdown-val" style={{ color: '#059669' }}>{formatCurrency(summaryStats.otherInflowsTotal)}</div>
+                            <div className="source-breakdown-val" style={{ color: 'var(--status-positive)' }}>{formatCurrency(summaryStats.otherInflowsTotal)}</div>
                         </div>
                     </div>
 
-                    <div className="source-breakdown-card" style={{ borderRight: '4px solid #fb7185' }}>
+                    <div className="source-breakdown-card outflow">
                         <div>
                             <div className="source-breakdown-title">سحوبات من (مصادر أخرى)</div>
-                            <div className="source-breakdown-val" style={{ color: '#e11d48' }}>{formatCurrency(summaryStats.otherOutflowsTotal)}</div>
+                            <div className="source-breakdown-val" style={{ color: 'var(--status-negative)' }}>{formatCurrency(summaryStats.otherOutflowsTotal)}</div>
                         </div>
                     </div>
                 </div>
@@ -420,10 +417,10 @@ export default function CashFlowsPage() {
 
 
                 {/* 🔍 شريط الفلاتر */}
-                <div style={{ display: 'flex', gap: '0.9375rem', marginBottom: '1.875rem', background: 'rgba(255,255,255,0.8)', padding: '1.5625rem', borderRadius: '14px', boxShadow: '0 5px 20px rgba(0,0,0,0.02)', border: `1px solid rgba(255,255,255,0.9)`, flexWrap: 'wrap', alignItems: 'flex-end', backdropFilter: 'blur(10px)' }}>
+                <div style={{ display: 'flex', gap: '0.9375rem', marginBottom: '1.875rem', background: 'var(--surface-card)', padding: 'clamp(0.875rem, 3vw, 1.5625rem)', borderRadius: '14px', border: '1px solid var(--control-edge)', flexWrap: 'wrap', alignItems: 'flex-end' }}>
                     
                     <div style={{ flex: '1', minWidth: '11.25rem' }}>
-                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '0.375rem', display: 'block' }}>بحث عام</label>
+                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--text-secondary)', marginBottom: '0.375rem', display: 'block' }}>بحث عام</label>
                         <input 
                             type="text" 
                             className="filter-input"
@@ -439,7 +436,6 @@ export default function CashFlowsPage() {
                         options={uniqueProjects}
                         selected={selectedProjects}
                         onChange={setSelectedProjects}
-                        accentColor={THEME.primary || '#2563eb'}
                     />
 
                     <MultiSelectDropdown 
@@ -448,11 +444,10 @@ export default function CashFlowsPage() {
                         options={uniquePartners}
                         selected={selectedPartners}
                         onChange={setSelectedPartners}
-                        accentColor="#8b5cf6" 
                     />
                     
-                    <div style={{ width: '8.125rem' }}>
-                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '0.375rem', display: 'block' }}>نوع الحركة</label>
+                    <div style={{ width: '9.5rem' }}>
+                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--text-secondary)', marginBottom: '0.375rem', display: 'block' }}>نوع الحركة</label>
                         <select className="filter-input" value={logic.filterType} onChange={(e) => logic.setFilterType(e.target.value)}>
                             <option value="all">كل الحركات</option>
                             <option value="inflow">وارد (مقبوضات)</option>
@@ -460,19 +455,19 @@ export default function CashFlowsPage() {
                         </select>
                     </div>
 
-                    <div style={{ width: '8.125rem' }}>
-                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '0.375rem', display: 'block' }}>من تاريخ</label>
+                    <div style={{ width: '9.5rem' }}>
+                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--text-secondary)', marginBottom: '0.375rem', display: 'block' }}>من تاريخ</label>
                         <input type="date" className="filter-input" value={logic.dateFrom} onChange={(e) => logic.setDateFrom(e.target.value)} />
                     </div>
 
-                    <div style={{ width: '8.125rem' }}>
-                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#64748b', marginBottom: '0.375rem', display: 'block' }}>إلى تاريخ</label>
+                    <div style={{ width: '9.5rem' }}>
+                        <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--text-secondary)', marginBottom: '0.375rem', display: 'block' }}>إلى تاريخ</label>
                         <input type="date" className="filter-input" value={logic.dateTo} onChange={(e) => logic.setDateTo(e.target.value)} />
                     </div>
 
                     <button 
                         onClick={handleExportExcel}
-                        style={{ padding: '0 0.9375rem', background: 'linear-gradient(135deg, #1e293b, #0f172a)', border: 'none', borderRadius: '12px', color: '#fff', fontWeight: 900, cursor: 'pointer', transition: '0.2s', height: '3.125rem', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
+                        style={{ padding: '0 0.9375rem', background: 'var(--action-fill)', border: 'none', borderRadius: '12px', color: 'var(--action-ink)', fontWeight: 900, cursor: 'pointer', transition: '0.2s', height: '3.125rem', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
                     >
                         Excel
                     </button>
@@ -482,6 +477,7 @@ export default function CashFlowsPage() {
                 {logic.isLoading ? (
                     <LoadingScreen message="جاري تحميل شجرة التدفقات النقدية..." fullScreen={false} />
                 ) : (
+                    <div className="tree-scroll">
                     <table className="tree-table">
                         <thead className="tree-thead">
                             <tr>
@@ -502,17 +498,17 @@ export default function CashFlowsPage() {
                                 return (
                                     <React.Fragment key={group.name}>
                                         <tr className="master-group-row" onClick={() => toggleGroup(group.name)}>
-                                            <td style={{ textAlign: 'right', color: '#1e293b', paddingRight: '1.25rem' }}>
+                                            <td style={{ textAlign: 'right', color: 'var(--text-primary)', paddingRight: '1.25rem' }}>
                                                 <span className={`arrow-icon ${isExpanded ? 'arrow-expanded' : ''}`}>◀</span>
                                                 {group.name}
                                             </td>
-                                            <td style={{ color: '#059669' }}>{formatCurrency(group.totalIn)}</td>
-                                            <td style={{ color: '#dc2626' }}>{formatCurrency(group.totalOut)}</td>
-                                            <td style={{ color: netGroupAmount >= 0 ? '#10b981' : '#ef4444', fontWeight: 900 }}>
+                                            <td style={{ color: 'var(--status-positive)' }}>{formatCurrency(group.totalIn)}</td>
+                                            <td style={{ color: 'var(--status-negative)' }}>{formatCurrency(group.totalOut)}</td>
+                                            <td style={{ color: netGroupAmount >= 0 ? 'var(--status-positive)' : 'var(--status-negative)', fontWeight: 900 }}>
                                                 {netGroupAmount > 0 ? '+' : ''}{formatCurrency(netGroupAmount)}
                                             </td>
                                             <td>
-                                                <span style={{ background: '#f1f5f9', padding: '0.375rem 0.9375rem', borderRadius: '14px', fontSize: 'var(--fs-sm)', color: '#475569' }}>
+                                                <span style={{ background: 'var(--surface-subcard)', padding: '0.375rem 0.9375rem', borderRadius: '14px', fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>
                                                     {group.items.length} حركة
                                                 </span>
                                             </td>
@@ -542,25 +538,25 @@ export default function CashFlowsPage() {
                                                                         <tr key={item.id}>
                                                                             <td>{item.transaction_date ? String(item.transaction_date).substring(0, 10) : '---'}</td>
                                                                             <td>
-                                                                                <span style={{ color: isChildInflow ? '#059669' : '#e11d48', fontSize: 'var(--fs-xs)', fontWeight: 900, background: isChildInflow ? '#ecfdf5' : '#fff1f2', padding: '0.25rem 0.5rem', borderRadius: '6px' }}>
+                                                                                <span style={{ color: isChildInflow ? 'var(--status-positive)' : 'var(--status-negative)', fontSize: 'var(--fs-xs)', fontWeight: 900, background: isChildInflow ? 'color-mix(in srgb, var(--status-positive) 10%, var(--surface-flat))' : 'color-mix(in srgb, var(--status-negative) 10%, var(--surface-flat))', padding: '0.25rem 0.5rem', borderRadius: '6px' }}>
                                                                                     {isChildInflow ? 'إيداع / قبض' : 'صرف / مدفوعات'}
                                                                                 </span>
                                                                             </td>
-                                                                            <td style={{ fontWeight: 900, color: isChildInflow ? '#059669' : '#e11d48' }}>
+                                                                            <td style={{ fontWeight: 900, color: isChildInflow ? 'var(--status-positive)' : 'var(--status-negative)' }}>
                                                                                 {isChildInflow ? '+' : '-'}{formatCurrency(itemAmount)}
                                                                             </td>
-                                                                            <td style={{ textAlign: 'right', fontWeight: 800, color: '#2563eb' }}>
+                                                                            <td style={{ textAlign: 'right', fontWeight: 800, color: 'var(--status-info)' }}>
                                                                                 {item.project?.Property ? `${item.project.Property}` : '---'}
                                                                             </td>
                                                                             <td style={{ textAlign: 'right' }}>
-                                                                                <div style={{ fontWeight: 800, color: '#1e293b' }}>{item.sub_category}</div>
-                                                                                <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '2px' }}>
+                                                                                <div style={{ fontWeight: 800, color: 'var(--text-primary)' }}>{item.sub_category}</div>
+                                                                                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginTop: '2px' }}>
                                                                                     {item.payment_method} {item.reference_number ? `| مرجع: ${item.reference_number}` : ''}
                                                                                 </div>
-                                                                                {item.description && <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', marginTop: '0.25rem' }}>{item.description}</div>}
+                                                                                {item.description && <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{item.description}</div>}
                                                                             </td>
                                                                             <td>
-                                                                                <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#c2410c' }}>
+                                                                                <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--accent-ink)' }}>
                                                                                     {item.account?.name || 'حساب عام'}
                                                                                 </span>
                                                                             </td>
@@ -578,36 +574,37 @@ export default function CashFlowsPage() {
                             })}
                             
                             {treeGroupedData.length > 0 && (
-                                <tr style={{ background: 'rgba(194,65,12, 0.1)', backdropFilter: 'blur(5px)' }}>
-                                    <td style={{ padding: '1.5625rem', fontWeight: 900, color: '#1e293b', textAlign: 'left' }}>الإجمالي الكلي للصفحة والفلتر:</td>
-                                    <td style={{ fontWeight: 900, color: '#059669', fontSize: 'var(--fs-xl)' }}>{formatCurrency(summaryStats.totalIn)}</td>
-                                    <td style={{ fontWeight: 900, color: '#dc2626', fontSize: 'var(--fs-xl)' }}>{formatCurrency(summaryStats.totalOut)}</td>
-                                    <td style={{ fontWeight: 900, color: summaryStats.netCash >= 0 ? '#059669' : '#dc2626', fontSize: 'var(--fs-xl)' }}>{formatCurrency(summaryStats.netCash)}</td>
+                                <tr style={{ background: 'var(--accent-soft-bg)', backdropFilter: 'blur(5px)' }}>
+                                    <td style={{ padding: '1.5625rem', fontWeight: 900, color: 'var(--text-primary)', textAlign: 'left' }}>الإجمالي الكلي للصفحة والفلتر:</td>
+                                    <td style={{ fontWeight: 900, color: 'var(--status-positive)', fontSize: 'var(--fs-xl)' }}>{formatCurrency(summaryStats.totalIn)}</td>
+                                    <td style={{ fontWeight: 900, color: 'var(--status-negative)', fontSize: 'var(--fs-xl)' }}>{formatCurrency(summaryStats.totalOut)}</td>
+                                    <td style={{ fontWeight: 900, color: summaryStats.netCash >= 0 ? 'var(--status-positive)' : 'var(--status-negative)', fontSize: 'var(--fs-xl)' }}>{formatCurrency(summaryStats.netCash)}</td>
                                     <td></td>
                                 </tr>
                             )}
 
                             {treeGroupedData.length === 0 && (
                                 <tr>
-                                    <td colSpan={5} style={{ padding: '2.5rem', color: '#94a3b8', fontWeight: 900, background: 'rgba(255,255,255,0.8)' }}>لا توجد أي تدفقات نقدية مطابقة للفلاتر الحالية</td>
+                                    <td colSpan={5} style={{ padding: '2.5rem', color: 'var(--text-muted)', fontWeight: 900, background: 'var(--surface-card)' }}>لا توجد أي تدفقات نقدية مطابقة للفلاتر الحالية</td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
+                    </div>
                 )}
 
                 {/* 🔢 تقسيم الصفحات */}
                 {!logic.isLoading && treeGroupedData.length > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', padding: '1.25rem', background: 'rgba(255,255,255,0.8)', borderRadius: '16px', border: `1px solid rgba(255,255,255,0.9)`, backdropFilter: 'blur(10px)', boxShadow: '0 5px 20px rgba(0,0,0,0.02)' }}>
-                        <div style={{ fontSize: 'var(--fs-md)', color: '#334155', fontWeight: 900 }}>
-                            إجمالي الـ {groupBy === 'partner' ? 'الشركاء' : 'أيام الحركة'}: <b style={{ color: '#c2410c', fontSize: 'var(--fs-xl)' }}>{treeGroupedData.length}</b>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.25rem', padding: '1.25rem', background: 'var(--surface-card)', borderRadius: '16px', border: '1px solid var(--control-edge)' }}>
+                        <div style={{ fontSize: 'var(--fs-md)', color: 'var(--text-primary)', fontWeight: 900 }}>
+                            إجمالي الـ {groupBy === 'partner' ? 'الشركاء' : 'أيام الحركة'}: <b style={{ color: 'var(--accent-ink)', fontSize: 'var(--fs-xl)' }}>{treeGroupedData.length}</b>
                         </div>
                         
-                        <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center', flexWrap: 'wrap' }}>
                             <select 
                                 value={rowsPerPage} 
                                 onChange={(e) => {setRowsPerPage(Number(e.target.value)); setCurrentPage(1);}} 
-                                style={{ padding: '0.625rem 0.9375rem', borderRadius: '10px', border: `1px solid #e2e8f0`, outline: 'none', fontWeight: 900, cursor: 'pointer', background: 'white' }}
+                                style={{ padding: '0.625rem 0.9375rem', borderRadius: '10px', border: '1px solid var(--control-edge)', fontWeight: 900, cursor: 'pointer', background: 'var(--surface-sunken)', color: 'var(--text-primary)' }}
                             >
                                 <option value={10}>عرض 10 عناصر</option>
                                 <option value={50}>عرض 50 عنصر</option>
@@ -619,17 +616,17 @@ export default function CashFlowsPage() {
                                 <button 
                                     disabled={currentPage === 1} 
                                     onClick={() => setCurrentPage(p => p - 1)} 
-                                    style={{ padding: '0.625rem 1.25rem', borderRadius: '10px', border: 'none', background: currentPage === 1 ? '#f8fafc' : '#1e293b', color: currentPage === 1 ? '#94a3b8' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                    style={{ padding: '0.625rem 1.25rem', borderRadius: '10px', border: 'none', background: currentPage === 1 ? 'var(--surface-sunken)' : 'var(--surface-subcard)', color: currentPage === 1 ? 'var(--text-muted)' : 'var(--text-primary)', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
                                 >
                                     السابق
                                 </button>
-                                <span style={{ padding: '0.625rem 1.25rem', background: 'white', borderRadius: '10px', fontWeight: 900, border: `1px solid #e2e8f0` }}>
+                                <span style={{ padding: '0.625rem 1.25rem', background: 'var(--surface-sunken)', borderRadius: '10px', fontWeight: 900, border: '1px solid var(--control-edge)' }}>
                                     {currentPage} / {totalPages}
                                 </span>
                                 <button 
                                     disabled={currentPage >= totalPages} 
                                     onClick={() => setCurrentPage(p => p + 1)} 
-                                    style={{ padding: '0.625rem 1.25rem', borderRadius: '10px', border: 'none', background: currentPage >= totalPages ? '#f8fafc' : '#1e293b', color: currentPage >= totalPages ? '#94a3b8' : 'white', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                    style={{ padding: '0.625rem 1.25rem', borderRadius: '10px', border: 'none', background: currentPage >= totalPages ? 'var(--surface-sunken)' : 'var(--surface-subcard)', color: currentPage >= totalPages ? 'var(--text-muted)' : 'var(--text-primary)', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
                                 >
                                     التالي
                                 </button>

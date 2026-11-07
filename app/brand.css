@@ -198,7 +198,7 @@ html.phi-brand ::selection { background: var(--accent-ink); color: var(--bg-canv
   animation: none; 
 }
 .phi-brand .fab-logo { filter: brightness(0) invert(1); }
-.phi-brand .overlay-screen { background: rgba(9, 10, 13, 0.95); backdrop-filter: blur(15px); }
+.phi-brand .overlay-screen { background: var(--bg-canvas); backdrop-filter: blur(15px); }
 .phi-brand .group-header { color: var(--text-primary); border-bottom: none; text-shadow: none; }
 
 /* كروت التنقل الداخلية */
@@ -299,15 +299,15 @@ html.phi-brand ::selection { background: var(--accent-ink); color: var(--bg-canv
 /* أزرار الإجراءات الذهبية والعنبرية */
 .phi-brand .btn-gold-pro, 
 .phi-brand .btn-main-glass.gold { 
-  background: var(--accent-gradient); 
-  color: white; 
+  background: var(--action-fill);
+  color: var(--action-ink);
   border: none; 
   box-shadow: 0 8px 25px rgba(249, 115, 22, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25); 
   border-radius: 14px; 
 }
 .phi-brand .btn-gold-pro:hover, 
 .phi-brand .btn-main-glass.gold:hover { 
-  background: var(--accent-gradient); filter: brightness(1.08); 
+  background: var(--action-fill); filter: brightness(1.08);
   box-shadow: 0 10px 30px rgba(249, 115, 22, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35); 
   filter: none; 
   transform: none; 
@@ -487,6 +487,21 @@ html.phi-brand ::selection { background: var(--accent-ink); color: var(--bg-canv
 }
 
 @media print {
+  html.phi-brand[data-mode] {
+    color-scheme: light;
+    --text-primary: #000;
+    --text-secondary: #201913;
+    --text-muted: #524236;
+    --surface-card: #fff;
+    --surface-flat: #fff;
+    --surface-subcard: #f9f4ed;
+    --surface-sunken: #fff;
+    --accent-ink: #9a3412;
+    --status-positive: #065f46;
+    --status-negative: #9f1239;
+    --status-info: #075985;
+    --status-warning: #854d0e;
+  }
   html.phi-brand body, .phi-brand .glass-container, .phi-brand .master-header { background: white !important; color: black !important; box-shadow: none !important; }
   .phi-brand :is(.hero-glass-card, .module-card, .nav-card) { background: white !important; color: black !important; box-shadow: none !important; transform: none !important; }
   .phi-brand .rawasi-printable-table tbody tr[data-selected="true"], .phi-brand .rawasi-printable-table tbody tr:hover { background: white !important; }

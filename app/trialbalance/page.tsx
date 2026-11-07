@@ -188,12 +188,12 @@ export default function TrialBalancePage() {
 
               {/* مؤشر اتزان الميزان */}
               <div className="tb-balance-status" style={{ color: isBalanced ? 'var(--status-positive)' : 'var(--status-negative)' }}>
-                    <span>
-                      {isBalanced ? 'الميزان متزن تماماً (لا توجد فروق)' : 'يوجد فرق في الميزان! يرجى مراجعة قيود اليومية.'}
-                    </span>
-                    {!isBalanced && (
-                      <span style={{ color: 'var(--status-negative)', fontSize: 'var(--fs-lg)' }}>قيمة الفرق: {formatCurrency(Math.abs(logic.totals.end_debit - logic.totals.end_credit))}</span>
-                    )}
+                <span>
+                  {isBalanced ? 'الميزان متزن تماماً (لا توجد فروق)' : 'يوجد فرق في الميزان! يرجى مراجعة قيود اليومية.'}
+                </span>
+                {!isBalanced && (
+                  <span style={{ fontSize: 'var(--fs-lg)' }}>قيمة الفرق: {formatCurrency(Math.abs(logic.totals.end_debit - logic.totals.end_credit))}</span>
+                )}
               </div>
             </>
           )}

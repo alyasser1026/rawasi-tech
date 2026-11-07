@@ -6,7 +6,6 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import BimViewer3D, { BimElementData } from '@/components/bim/BimViewer3D';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
 import LoadingScreen from '@/components/LoadingScreen';
 import { 
@@ -45,7 +44,7 @@ export default function StandaloneBimPage() {
 
   const sidebarContent = (
     <div className="summary-glass-card">
-      <h4 style={{ color: THEME.coffeeDark, margin: '0 0 0.9375rem 0', fontSize: 'var(--fs-md)' }}>
+      <h4 style={{ color: 'var(--text-primary)', margin: '0 0 0.9375rem 0', fontSize: 'var(--fs-md)' }}>
         🏛️ استوديو BIM 3D
       </h4>
       <div style={styles.sideStat}>
@@ -54,14 +53,14 @@ export default function StandaloneBimPage() {
       </div>
       <div style={styles.sideStat}>
         <span>المحرك الهندسي</span>
-        <strong style={{ color: '#0284c7' }}>Three.js WebGL</strong>
+        <strong style={{ color: 'var(--status-info)' }}>Three.js WebGL</strong>
       </div>
       <div style={styles.sideStat}>
         <span>تكلفة التراخيص</span>
-        <strong style={{ color: '#16a34a' }}>0.00 ريال (مجاني)</strong>
+        <strong style={{ color: 'var(--status-positive)' }}>0.00 ريال (مجاني)</strong>
       </div>
-      <div style={{ marginTop: '1.25rem', padding: '0.75rem', background: 'rgba(194, 65, 12, 0.1)', borderRadius: '10px', border: '1px solid rgba(194, 65, 12, 0.2)', fontSize: 'var(--fs-xs, 12px)', color: '#9a3412', lineHeight: 1.5 }}>
-        💡 <strong>بديل Autodesk المجاني:</strong> يدعم استعراض الموديلات دون اشتراكات Forge، مع فحص التسليح، القطاعات الرأسية، وحصر كميات الخرسانات.
+      <div style={{ marginTop: '1.25rem', padding: '0.75rem', background: 'var(--surface-subcard)', borderRadius: '10px', border: '1px solid var(--table-zebra-bg)', fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+        💡 <strong style={{ color: 'var(--accent-ink)' }}>بديل Autodesk المجاني:</strong> يدعم استعراض الموديلات دون اشتراكات Forge، مع فحص التسليح، القطاعات الرأسية، وحصر كميات الخرسانات.
       </div>
     </div>
   );
@@ -78,18 +77,18 @@ export default function StandaloneBimPage() {
         />
 
         <style>{`
-          .summary-glass-card { background: rgba(255, 255, 255, 0.1); padding: 1.25rem; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); }
-          .bim-select-bar { display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(15px); padding: 0.9375rem 1.25rem; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.8); margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
-          .bim-select-input { padding: 0.625rem 1rem; border-radius: 12px; border: 1px solid #cbd5e1; background: #fff; font-weight: 800; font-size: var(--fs-sm, 14px); color: #1e293b; outline: none; cursor: pointer; min-width: 260px; }
+          .bim-select-bar { display: flex; justify-content: space-between; align-items: center; padding: 0.9375rem 1.25rem; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
+          .bim-select-input { padding: 0.625rem 1rem; border-radius: 12px; border: 1px solid var(--control-edge); background: var(--surface-sunken); font-weight: 800; font-size: var(--fs-sm, 14px); color: var(--text-primary); cursor: pointer; min-width: min(260px, 100%); max-width: 100%; }
         `}</style>
 
         {/* Project Selector Bar */}
-        <div className="bim-select-bar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <span style={{ fontSize: 'var(--fs-sm, 14px)', fontWeight: 900, color: THEME.coffeeDark }}>
+        <div className="ent-panel bim-select-bar">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', maxWidth: '100%' }}>
+            <label htmlFor="bim-project-select" style={{ fontSize: 'var(--fs-sm, 14px)', fontWeight: 900, color: 'var(--text-primary)' }}>
               اختر المشروع أو النموذج الهندسي:
-            </span>
+            </label>
             <select 
+              id="bim-project-select"
               className="bim-select-input"
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
@@ -104,22 +103,7 @@ export default function StandaloneBimPage() {
           </div>
 
           {currentProject && (
-            <button 
-              onClick={() => router.push('/projects')}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                background: THEME.coffeeDark,
-                color: THEME.goldAccent,
-                border: 'none',
-                padding: '8px 14px',
-                borderRadius: '10px',
-                fontWeight: 800,
-                fontSize: 'var(--fs-xs, 12px)',
-                cursor: 'pointer'
-              }}
-            >
+            <button className="ent-button ent-primary" onClick={() => router.push('/projects')}>
               <Building2 size={15} />
               غرفة عمليات {currentProject.Property}
             </button>
@@ -143,36 +127,36 @@ export default function StandaloneBimPage() {
         <div 
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(18rem, 100%), 1fr))',
             gap: '1.25rem'
           }}
         >
-          <div style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(15px)', borderRadius: '16px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.8)' }}>
+          <div className="ent-panel" style={{ padding: '1.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <span style={{ fontSize: '18px' }}>🏗️</span>
-              <h4 style={{ margin: 0, fontWeight: 900, color: THEME.coffeeDark }}>شجرة الطبقات الإنشائية (Layers)</h4>
+              <h4 style={{ margin: 0, fontWeight: 900, color: 'var(--text-primary)' }}>شجرة الطبقات الإنشائية (Layers)</h4>
             </div>
-            <p style={{ margin: 0, fontSize: 'var(--fs-xs, 12px)', color: '#64748b', lineHeight: 1.6 }}>
+            <p style={styles.featureDescription}>
               عزل وتحكم كامل في عناصر المشروع: القواعد المنفصلة، رقاب الأعمدة، الميدات، أعمدة الأدوار، الأسقف المسلحة، السلالم الخرسانية، المباني، والواجهات المعمارية.
             </p>
           </div>
 
-          <div style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(15px)', borderRadius: '16px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.8)' }}>
+          <div className="ent-panel" style={{ padding: '1.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <span style={{ fontSize: '18px' }}>⚡</span>
-              <h4 style={{ margin: 0, fontWeight: 900, color: THEME.coffeeDark }}>أشعة سينية X-Ray للحديد</h4>
+              <h4 style={{ margin: 0, fontWeight: 900, color: 'var(--text-primary)' }}>أشعة سينية X-Ray للحديد</h4>
             </div>
-            <p style={{ margin: 0, fontSize: 'var(--fs-xs, 12px)', color: '#64748b', lineHeight: 1.6 }}>
+            <p style={styles.featureDescription}>
               تشفيف الحوائط والتشطيبات الخارجية بضغطة زر واحدة لمعاينة الهيكل الخرساني الحامل من الداخل والتأكد من استمرارية الأعمدة والميدات دون تعارض.
             </p>
           </div>
 
-          <div style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(15px)', borderRadius: '16px', padding: '1.25rem', border: '1px solid rgba(255,255,255,0.8)' }}>
+          <div className="ent-panel" style={{ padding: '1.25rem' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <span style={{ fontSize: '18px' }}>📂</span>
-              <h4 style={{ margin: 0, fontWeight: 900, color: THEME.coffeeDark }}>دعم صيغ الـ 3D الخارجية</h4>
+              <h4 style={{ margin: 0, fontWeight: 900, color: 'var(--text-primary)' }}>دعم صيغ الـ 3D الخارجية</h4>
             </div>
-            <p style={{ margin: 0, fontSize: 'var(--fs-xs, 12px)', color: '#64748b', lineHeight: 1.6 }}>
+            <p style={styles.featureDescription}>
               إمكانية سحب وإفلات أو رفع أي ملف ثلاثي الأبعاد بصيغ GLB أو GLTF أو OBJ مباشرة من جهازك وعرضه وتدويره ومطابقته فورياً.
             </p>
           </div>
@@ -187,12 +171,18 @@ const styles = {
     display: 'flex', 
     justifyContent: 'space-between', 
     alignItems: 'center', 
-    background: '#f3f5f8', 
+    background: 'var(--surface-subcard)',
     padding: '0.75rem', 
     borderRadius: '12px', 
     marginBottom: '0.625rem', 
     fontSize: 'var(--fs-sm)', 
-    color: THEME.coffeeDark, 
+    color: 'var(--text-primary)',
     fontWeight: 700 
+  },
+  featureDescription: {
+    margin: 0,
+    fontSize: 'var(--fs-xs, 12px)',
+    color: 'var(--text-secondary)',
+    lineHeight: 1.6,
   }
 };

@@ -68,19 +68,19 @@ export default function SignaturePad({ userId, currentSignature, onSaved }: { us
   };
 
   return (
-    <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '15px', border: `1px solid ${THEME.border}`, maxWidth: '500px', margin: '0 auto', width: '100%' }}>
-      <h3 style={{ margin: '0 0 15px 0', color: THEME.primary, textAlign: 'center' }}>لوحة التوقيع الإلكتروني</h3>
+    <div style={{ background: 'var(--surface-subcard)', color: 'var(--text-primary)', padding: '20px', borderRadius: '15px', maxWidth: '500px', margin: '0 auto', width: '100%' }}>
+      <h3 style={{ margin: '0 0 15px 0', color: 'var(--text-primary)', textAlign: 'center' }}>لوحة التوقيع الإلكتروني</h3>
       
       {/* لو عنده توقيع قديم بنعرضهوله كمعاينة */}
       {currentSignature && (
         <div style={{ marginBottom: '15px', textAlign: 'center' }}>
-          <p style={{ fontSize: 'var(--fs-sm)', color: '#64748b', margin: '0 0 5px 0' }}>توقيعك الحالي المعتمد:</p>
-          <img src={currentSignature} alt="Current Signature" style={{ maxHeight: '60px', background: 'white', padding: '5px', borderRadius: '8px', border: '1px dashed #cbd5e1' }} />
+          <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', margin: '0 0 5px 0' }}>توقيعك الحالي المعتمد:</p>
+          <img src={currentSignature} alt="Current Signature" style={{ maxHeight: '60px', background: 'var(--surface-sunken)', padding: '5px', borderRadius: '8px', border: '1px dashed var(--control-edge)' }} />
         </div>
       )}
 
       {/* الـ Canvas اللي بيترسم فيه */}
-      <div style={{ border: '2px dashed #cbd5e1', borderRadius: '10px', background: 'white', overflow: 'hidden', marginBottom: '15px', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ border: '2px dashed var(--control-edge)', borderRadius: '10px', background: 'var(--surface-sunken)', overflow: 'hidden', marginBottom: '15px', display: 'flex', justifyContent: 'center' }}>
         <SignatureCanvas 
           ref={sigCanvas}
           penColor={THEME.primary}
@@ -88,13 +88,13 @@ export default function SignaturePad({ userId, currentSignature, onSaved }: { us
         />
       </div>
 
-      {message && <p style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: 'var(--fs-sm)', fontWeight: 'bold', color: messageType === 'success' ? THEME.success : THEME.ruby }}>{message}</p>}
+      {message && <p style={{ textAlign: 'center', margin: '0 0 15px 0', fontSize: 'var(--fs-sm)', fontWeight: 'bold', color: messageType === 'success' ? 'var(--status-positive)' : 'var(--status-negative)' }}>{message}</p>}
 
       <div style={{ display: 'flex', gap: '10px' }}>
-        <button onClick={save} disabled={isSaving} style={{ flex: 2, background: THEME.primary, color: 'white', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
+        <button onClick={save} disabled={isSaving} style={{ flex: 2, background: 'var(--action-fill)', color: 'var(--action-ink)', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
           {isSaving ? 'جاري الحفظ...' : 'اعتماد التوقيع'}
         </button>
-        <button onClick={clear} style={{ flex: 1, background: '#e2e8f0', color: '#475569', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
+        <button onClick={clear} style={{ flex: 1, background: 'var(--surface-flat)', color: 'var(--text-primary)', padding: '10px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>
           مسح
         </button>
       </div>

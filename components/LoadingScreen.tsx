@@ -1,6 +1,5 @@
 "use client";
 import React from 'react';
-import { THEME } from '@/lib/theme';
 
 interface LoadingScreenProps {
     message?: string;
@@ -23,7 +22,7 @@ export default function LoadingScreen({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(7, 8, 11, 0.96)',
+        backgroundColor: 'var(--bg-canvas)',
         backdropFilter: 'blur(20px)',
         WebkitBackdropFilter: 'blur(20px)',
         zIndex: 9999,
@@ -52,7 +51,7 @@ export default function LoadingScreen({
                     top: 0, left: 0, right: 0, bottom: 0,
                     borderRadius: '50%',
                     border: '3.5px solid rgba(249, 115, 22, 0.15)',
-                    borderTopColor: '#f97316',
+                    borderTopColor: 'var(--accent-main)',
                     animation: 'spin 1.1s cubic-bezier(0.5, 0, 0.5, 1) infinite',
                     boxShadow: '0 0 20px rgba(249, 115, 22, 0.15)'
                 }} />
@@ -63,7 +62,7 @@ export default function LoadingScreen({
                     top: '50%', left: '50%',
                     transform: 'translate(-50%, -50%)',
                     width: '1.5rem', height: '1.5rem',
-                    backgroundColor: '#f97316',
+                    backgroundColor: 'var(--accent-main)',
                     borderRadius: '50%',
                     boxShadow: '0 0 16px rgba(249, 115, 22, 0.5)',
                     animation: 'pulse 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite'
@@ -72,7 +71,7 @@ export default function LoadingScreen({
 
             {/* النصوص الجمالية بتدرج كهرماني ناصع وخط لؤلؤي دافئ */}
             <h2 style={{
-                color: '#f97316',
+                color: 'var(--text-primary)',
                 fontWeight: 900,
                 fontSize: '1.35rem',
                 margin: 0,

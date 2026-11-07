@@ -90,11 +90,14 @@ export default function AccountLedger() {
           padding: clamp(2.5rem, 8vw, 6.25rem) 1rem;
           font-weight: 900;
         }
+        @media print {
+          .ledger-movements .rawasi-printable-table :is(th, td, td *) { color: #000 !important; }
+        }
       `}</style>
 
       {/* 🎯 لوحة التحكم المركزية */}
       <div className="ledger-control-panel no-print">
-        <div style={{ flex: "1 1 16rem", minWidth: 0 }}>
+        <div style={{ flex: '1 1 16rem', minWidth: 0 }}>
           <SmartCombo 
             label="ابحث واختر الحساب المالي للمراجعة"
             table="accounts"
@@ -108,7 +111,7 @@ export default function AccountLedger() {
           onClick={() => window.print()}
           style={{ 
             padding: '0.875rem 1.5625rem', borderRadius: '14px', border: 'none', 
-            background: 'var(--action-fill)', color: 'var(--action-ink)', 
+            background: 'var(--action-fill)', color: 'var(--action-ink)',
             fontWeight: 900, cursor: 'pointer', height: '3.25rem'
           }}
         >
@@ -122,12 +125,14 @@ export default function AccountLedger() {
              يرجى اختيار حساب من القائمة أعلاه لعرض كشف الحساب.
           </div>
       ) : (
-          <RawasiSmartTable 
-            data={logic.entries}
-            columns={columns}
-            isLoading={logic.isLoading}
-            enableExport={true}
-          />
+          <div className="ledger-movements">
+            <RawasiSmartTable
+              data={logic.entries}
+              columns={columns}
+              isLoading={logic.isLoading}
+              enableExport={true}
+            />
+          </div>
       )}
 
     </MasterPage>

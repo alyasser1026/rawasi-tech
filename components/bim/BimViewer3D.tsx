@@ -457,9 +457,8 @@ export default function BimViewer3D({
     const width = container.clientWidth || 800;
     const heightPx = container.clientHeight || 600;
 
-    // 1. Scene
+    // 1. Scene. The transparent canvas shows the viewer's themed background.
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a0c10);
     sceneRef.current = scene;
 
     // 2. Camera
@@ -832,19 +831,18 @@ export default function BimViewer3D({
         height: isFullscreen ? '100vh' : height,
         borderRadius: isFullscreen ? '0px' : '18px',
         overflow: 'hidden',
-        border: '1px solid rgba(255, 255, 255, 0.15)',
-        boxShadow: '0 15px 45px rgba(0, 0, 0, 0.3)',
-        background: '#0a0c10',
+        border: '1px solid var(--table-zebra-bg)',
+        boxShadow: 'var(--shadow-ambient)',
+        background: 'var(--surface-flat)',
         zIndex: isFullscreen ? 9999 : 'auto',
         fontFamily: 'inherit'
       }}
     >
       <style>{`
         .bim-tool-btn {
-          background: rgba(18, 20, 26, 0.88);
-          backdrop-filter: blur(14px);
-          color: #f1f5f9;
-          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: var(--surface-subcard), var(--surface-flat);
+          color: var(--text-primary);
+          border: 1px solid var(--control-edge);
           padding: 8px 12px;
           border-radius: 10px;
           font-size: var(--fs-xs, 12px);
@@ -856,21 +854,20 @@ export default function BimViewer3D({
           transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .bim-tool-btn:hover {
-          background: rgba(194, 65, 12, 0.9);
-          border-color: #f97316;
-          color: #fff;
+          background: var(--surface-card-hover);
+          border-color: var(--accent-ink);
+          color: var(--accent-ink);
           transform: translateY(-1px);
         }
         .bim-tool-btn.active {
-          background: #c2410c;
-          border-color: #ea580c;
-          color: #fff;
-          box-shadow: 0 4px 12px rgba(194, 65, 12, 0.35);
+          background: var(--action-fill);
+          border-color: transparent;
+          color: var(--action-ink);
         }
         .layer-toggle-chip {
-          background: rgba(28, 25, 23, 0.85);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: #cbd5e1;
+          background: var(--surface-sunken);
+          border: 1px solid var(--control-edge);
+          color: var(--text-primary);
           padding: 5px 10px;
           border-radius: 8px;
           font-size: 11px;
@@ -882,9 +879,13 @@ export default function BimViewer3D({
           transition: 0.2s;
         }
         .layer-toggle-chip.active {
-          background: #0369a1;
-          border-color: #38bdf8;
-          color: #fff;
+          background: var(--surface-subcard), var(--surface-flat);
+          border-color: var(--accent-ink);
+          color: var(--accent-ink);
+        }
+        .bim-tool-btn:focus-visible, .layer-toggle-chip:focus-visible {
+          outline: 2px solid var(--accent-ink);
+          outline-offset: 2px;
         }
       `}</style>
 
@@ -910,12 +911,11 @@ export default function BimViewer3D({
           position: 'absolute',
           top: '14px',
           right: '16px',
-          background: 'rgba(15, 17, 23, 0.85)',
-          backdropFilter: 'blur(16px)',
+          background: 'var(--surface-flat)',
           padding: '8px 16px',
           borderRadius: '12px',
-          border: '1px solid rgba(255, 255, 255, 0.12)',
-          color: '#fff',
+          border: '1px solid var(--table-zebra-bg)',
+          color: 'var(--text-primary)',
           zIndex: 10,
           pointerEvents: 'none'
         }}
@@ -924,10 +924,10 @@ export default function BimViewer3D({
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span style={{ fontSize: '15px' }}>🏛️</span>
           <div>
-            <div style={{ fontSize: '13px', fontWeight: 900, color: '#ea580c' }}>
+            <div style={{ fontSize: '13px', fontWeight: 900, color: 'var(--accent-ink)' }}>
               {loadedFileName ? `نموذج مستورد: ${loadedFileName}` : projectTitle}
             </div>
-            <div style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700 }}>
+            <div style={{ fontSize: '10px', color: 'var(--text-secondary)', fontWeight: 700 }}>
               مستعرض BIM الهندسي مفتوح المصدر (بديل Autodesk المجاني)
             </div>
           </div>
@@ -999,11 +999,10 @@ export default function BimViewer3D({
           left: '16px',
           display: 'flex',
           gap: '4px',
-          background: 'rgba(12, 14, 18, 0.8)',
-          backdropFilter: 'blur(10px)',
+          background: 'var(--surface-flat)',
           padding: '4px',
           borderRadius: '10px',
-          border: '1px solid rgba(255, 255, 255, 0.08)',
+          border: '1px solid var(--table-zebra-bg)',
           zIndex: 10
         }}
       >
@@ -1031,12 +1030,11 @@ export default function BimViewer3D({
             position: 'absolute',
             top: '110px',
             left: '16px',
-            background: 'rgba(15, 17, 23, 0.92)',
-            backdropFilter: 'blur(14px)',
+            background: 'var(--surface-flat)',
             padding: '10px 14px',
             borderRadius: '12px',
-            border: '1px solid #c2410c',
-            color: '#fff',
+            border: '1px solid var(--control-edge)',
+            color: 'var(--text-primary)',
             zIndex: 10,
             width: '240px'
           }}
@@ -1044,7 +1042,7 @@ export default function BimViewer3D({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 800, marginBottom: '6px' }}>
             <span>ارتفاع القطاع الأفقي:</span>
-            <span style={{ color: '#ea580c' }}>{clipHeight.toFixed(1)} م</span>
+            <span style={{ color: 'var(--accent-ink)' }}>{clipHeight.toFixed(1)} م</span>
           </div>
           <input 
             type="range" 
@@ -1053,9 +1051,9 @@ export default function BimViewer3D({
             step="0.2" 
             value={clipHeight} 
             onChange={(e) => setClipHeight(parseFloat(e.target.value))} 
-            style={{ width: '100%', accentColor: '#ea580c', cursor: 'pointer' }} 
+            style={{ width: '100%', accentColor: 'var(--accent-ink)', cursor: 'pointer' }}
           />
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: '#94a3b8', marginTop: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9px', color: 'var(--text-secondary)', marginTop: '4px' }}>
             <span>الأساسات (0م)</span>
             <span>الدور الأرضي (4م)</span>
             <span>السطح (8م+)</span>
@@ -1082,11 +1080,10 @@ export default function BimViewer3D({
           style={{
             display: 'flex',
             gap: '6px',
-            background: 'rgba(15, 17, 23, 0.85)',
-            backdropFilter: 'blur(16px)',
+            background: 'var(--surface-flat)',
             padding: '6px 12px',
             borderRadius: '14px',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
+            border: '1px solid var(--table-zebra-bg)',
             pointerEvents: 'auto',
             flexWrap: 'wrap',
             justifyContent: 'center'
@@ -1138,73 +1135,73 @@ export default function BimViewer3D({
             position: 'absolute',
             bottom: '70px',
             right: '16px',
-            width: '320px',
-            background: 'rgba(18, 20, 26, 0.95)',
-            backdropFilter: 'blur(20px)',
+            width: 'min(20rem, calc(100% - 2rem))',
+            background: 'var(--surface-flat)',
             borderRadius: '16px',
-            border: '1.5px solid #ea580c',
-            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.5)',
+            border: '1px solid var(--control-edge)',
+            boxShadow: 'var(--shadow-ambient)',
             padding: '16px',
-            color: '#fff',
+            color: 'var(--text-primary)',
             zIndex: 20
           }}
           dir="rtl"
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', borderBottom: '1px solid var(--table-zebra-bg)', paddingBottom: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '16px' }}>🔍</span>
-              <strong style={{ fontSize: '13px', color: '#ea580c' }}>بيانات العنصر الإنشائي (BIM)</strong>
+              <strong style={{ fontSize: '13px', color: 'var(--accent-ink)' }}>بيانات العنصر الإنشائي (BIM)</strong>
             </div>
             <button 
               onClick={() => setSelectedElement(null)}
-              style={{ background: 'transparent', border: 'none', color: '#94a3b8', fontSize: '14px', cursor: 'pointer', fontWeight: 900 }}
+              aria-label="إغلاق بيانات العنصر"
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', fontSize: '14px', cursor: 'pointer', fontWeight: 900 }}
             >
               ✕
             </button>
           </div>
 
-          <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 900, color: '#f8fafc' }}>
+          <h4 style={{ margin: '0 0 6px 0', fontSize: '14px', fontWeight: 900 }}>
             {selectedElement.name}
           </h4>
 
           <div style={{ display: 'flex', gap: '6px', marginBottom: '12px', flexWrap: 'wrap' }}>
-            <span style={{ background: '#27272a', color: '#38bdf8', fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px' }}>
+            <span style={{ background: 'var(--surface-subcard)', color: 'var(--status-info)', fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px' }}>
               {selectedElement.category}
             </span>
-            <span style={{ background: '#27272a', color: '#fb923c', fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px' }}>
+            <span style={{ background: 'var(--surface-subcard)', color: 'var(--accent-ink)', fontSize: '10px', fontWeight: 800, padding: '2px 8px', borderRadius: '6px' }}>
               {selectedElement.level}
             </span>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px', color: '#cbd5e1' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px', color: 'var(--text-secondary)' }}>
             {selectedElement.dimensions && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(255,255,255,0.08)', paddingBottom: '4px' }}>
-                <span style={{ color: '#94a3b8' }}>الأبعاد:</span>
-                <strong style={{ color: '#f8fafc' }}>{selectedElement.dimensions}</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--table-zebra-bg)', paddingBottom: '4px' }}>
+                <span>الأبعاد:</span>
+                <strong style={{ color: 'var(--text-primary)' }}>{selectedElement.dimensions}</strong>
               </div>
             )}
             {selectedElement.volume_m3 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(255,255,255,0.08)', paddingBottom: '4px' }}>
-                <span style={{ color: '#94a3b8' }}>الحجم الهندسي:</span>
-                <strong style={{ color: '#38bdf8' }}>{selectedElement.volume_m3} م³</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--table-zebra-bg)', paddingBottom: '4px' }}>
+                <span>الحجم الهندسي:</span>
+                <strong style={{ color: 'var(--status-info)' }}>{selectedElement.volume_m3} م³</strong>
               </div>
             )}
             {selectedElement.rebar_weight_kg && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed rgba(255,255,255,0.08)', paddingBottom: '4px' }}>
-                <span style={{ color: '#94a3b8' }}>حديد التسليح التقديري:</span>
-                <strong style={{ color: '#fbbf24' }}>{selectedElement.rebar_weight_kg} كجم</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px dashed var(--table-zebra-bg)', paddingBottom: '4px' }}>
+                <span>حديد التسليح التقديري:</span>
+                <strong style={{ color: 'var(--status-warning)' }}>{selectedElement.rebar_weight_kg} كجم</strong>
               </div>
             )}
             {selectedElement.boq_item && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', background: 'rgba(0,0,0,0.3)', padding: '6px 8px', borderRadius: '8px' }}>
-                <span style={{ color: '#94a3b8', fontSize: '10px' }}>بند المقايسة المرتبط (BOQ):</span>
-                <strong style={{ color: '#fdba74', fontSize: '11px' }}>{selectedElement.boq_item}</strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', marginTop: '4px', background: 'var(--surface-subcard)', padding: '6px 8px', borderRadius: '8px' }}>
+                <span style={{ fontSize: '10px' }}>بند المقايسة المرتبط (BOQ):</span>
+                <strong style={{ color: 'var(--text-primary)', fontSize: '11px' }}>{selectedElement.boq_item}</strong>
               </div>
             )}
             {selectedElement.unit_rate && selectedElement.volume_m3 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', background: 'rgba(194, 65, 12, 0.2)', padding: '6px 8px', borderRadius: '8px', border: '1px solid rgba(194, 65, 12, 0.4)' }}>
-                <span style={{ color: '#fdba74', fontWeight: 800 }}>التكلفة التقديرية للبند:</span>
-                <strong style={{ color: '#f97316', fontWeight: 900 }}>{formatCurrency(selectedElement.unit_rate * selectedElement.volume_m3)}</strong>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', background: 'var(--surface-subcard)', padding: '6px 8px', borderRadius: '8px', border: '1px solid var(--table-zebra-bg)' }}>
+                <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>التكلفة التقديرية للبند:</span>
+                <strong style={{ color: 'var(--accent-ink)', fontWeight: 900 }}>{formatCurrency(selectedElement.unit_rate * selectedElement.volume_m3)}</strong>
               </div>
             )}
           </div>
@@ -1217,17 +1214,16 @@ export default function BimViewer3D({
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'rgba(10, 12, 16, 0.85)',
-            backdropFilter: 'blur(8px)',
+            background: 'var(--surface-flat)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 50,
-            color: '#fff'
+            color: 'var(--text-primary)'
           }}
         >
-          <RotateCw size={36} className="animate-spin" color="#ea580c" />
+          <RotateCw size={36} className="animate-spin" color="var(--accent-ink)" />
           <div style={{ marginTop: '14px', fontSize: '14px', fontWeight: 800 }}>
             جاري معالجة وبناء النموذج الهندسي 3D...
           </div>
