@@ -6,10 +6,19 @@ import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { egyptianNumberWords, formatEgyptianRiyals } from './copilot-spoken-money.mjs';
 
 const GEMINI_TTS_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
+const GEMINI_INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
+const GEMINI_PRO_VOICE_MODEL = 'gemini-3.8-flash-tts';
 const MAX_SPEECH_LENGTH = 380;
 const DETAILS_IN_TEXT = 'باقي التفاصيل في الرسالة.';
 const sentenceSegmenter = new Intl.Segmenter('ar-EG', { granularity: 'sentence' });
 const spokenMonth = new Intl.DateTimeFormat('ar-EG', { month: 'long', timeZone: 'UTC' });
+const pronunciationHints = {
+  'اتسجّل': 'اِتْسَجَّل',
+  'عمّال': 'عُمَّال',
+  'خمسمية': 'خُمْسُمِيَّة',
+  'وخمسمية': 'وَخُمْسُمِيَّة',
+  'هللة': 'هَلَلَة',
+};
 
 function speakIsoDate(iso) {
   const date = new Date(iso + 'T00:00:00Z');
@@ -66,12 +75,17 @@ function narrateOperation(lines) {
   const where = site && !/^(?:عام|غير محدد|مش متحدد|—)$/.test(site)
     ? (/^فيلا\s/.test(site) ? ' ل' + site : ' في ' + site)
     : '';
-  const value = amount ? '، بمبلغ ' + amount : (wage ? '، بأجر يومي ' + wage : '');
+  const value = amount ? 'المبلغ، ' + amount : (wage ? 'الأجر اليومي، ' + wage : '');
   const state = isDraft ? subject + ' لسه مسودة'
     : (status ? subject + ' حالته ' + status : '');
+  const context = (detail ? ' ' + detail : '') + where;
+  const includeContext = context.length <= 110;
   return [
-    intro + (detail ? ' ' + detail : '') + where + value,
-    state ? state + '، ورقم العملية ' + reference : 'رقم العملية ' + reference,
+    intro + (includeContext ? context : ''),
+    ...(value ? [value] : []),
+    ...(state ? [state] : []),
+    'رقم العملية، ' + reference,
+    ...(includeContext ? [] : [DETAILS_IN_TEXT]),
   ];
 }
 
@@ -84,11 +98,11 @@ function narrateDailyReport(lines) {
   const amount = expenses?.match(/بمبلغ إجمالي\s+(.+?)\s*\)/)?.[1];
   const facts = [
     workers ? narrateWorkers(workers) : (labor?.includes('غير متاح') ? 'بيانات العمالة مش متاحة' : ''),
-    amount ? 'المصروفات كانت ' + amount : (expenses?.includes('غير متاح') ? 'بيانات المصروفات مش متاحة' : ''),
+    amount ? 'إجمالي المصروفات، ' + amount : (expenses?.includes('غير متاح') ? 'بيانات المصروفات مش متاحة' : ''),
   ].filter(Boolean);
   return [
     'ده ملخّص الشغل' + (date ? ' ليوم ' + date : ''),
-    ...(facts.length ? [facts.join('، و')] : []),
+    ...facts,
     DETAILS_IN_TEXT,
   ];
 }
@@ -133,15 +147,19 @@ export function prepareSpeechText(rawText) {
   return prepareSpeech(rawText).text;
 }
 
-async function synthesizeWithEdge(text, settings, createEdgeTts) {
+async function synthesizeWithEdge(text, settings, createEdgeTts, workReply) {
   const tts = createEdgeTts({ connectionTimeoutMs: 4500, synthesisTimeoutMs: 6000 });
   const deadline = AbortSignal.timeout(10000);
   try {
     await tts.setMetadata('ar-EG-SalmaNeural', OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
-    const escaped = text.replace(/[&<>]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character]);
+    const pronunciation = workReply
+      ? text.replace(/(?<![\p{L}\p{M}\p{N}_-])(?:اتسجّل|عمّال|و?خمسمية|هللة)(?![\p{L}\p{M}\p{N}_-])/gu,
+        word => pronunciationHints[word])
+      : text;
+    const escaped = pronunciation.replace(/[&<>]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character]);
     const { audioStream } = tts.toStream(escaped, {
       pitch: settings.mozzaModeEnabled ? '+8%' : '+0Hz',
-      rate: settings.mozzaModeEnabled ? '-4%' : '-6%',
+      rate: workReply ? '-12%' : settings.mozzaModeEnabled ? '-4%' : '-6%',
     });
     const audio = await buffer(addAbortSignal(deadline, audioStream));
     return audio.length ? { buffer: audio, mimeType: 'audio/mpeg', fileName: 'salma_reply.mp3' } : null;
@@ -164,12 +182,19 @@ async function convertPcmToOpus(pcm) {
     : null;
 }
 
+function encodeGeminiAudio(data, mimeType) {
+  if (typeof data !== 'string' || !/^audio\/L16(?:;|$)/i.test(mimeType ?? '')) return null;
+  const pcm = Buffer.from(data, 'base64');
+  if (!pcm.length || pcm.length % 2 !== 0 || pcm.length > 5 * 1024 * 1024) return null;
+  return convertPcmToOpus(pcm);
+}
+
 async function synthesizeWithGemini(text, settings, apiKey, fetchImpl) {
   const delivery = settings.mozzaModeEnabled ? 'warm and relaxed' : 'calm, clear and professional';
   const prompt = [
     'Read the transcript verbatim in natural Egyptian Arabic, in an adult female voice.',
     `Use a ${delivery} tone at a measured conversational pace. Pause briefly between sentences.`,
-    'Read numbers, dates, and currencies accurately. Do not add words or read the directions aloud.',
+    'Articulate each word and read every number, date, and unit in full. Leave a short pause after each sentence. Do not add words or read the directions aloud.',
     'Transcript:', text,
   ].join('\n');
   const response = await fetchImpl(GEMINI_TTS_URL, {
@@ -187,21 +212,56 @@ async function synthesizeWithGemini(text, settings, apiKey, fetchImpl) {
   if (!response.ok) return null;
   const data = await response.json();
   const audio = data?.candidates?.[0]?.content?.parts?.find(part => part.inlineData?.data)?.inlineData;
-  if (!/^audio\/L16(?:;|$)/i.test(audio?.mimeType ?? '')) return null;
-  const pcm = Buffer.from(audio.data, 'base64');
-  if (!pcm.length || pcm.length % 2 !== 0 || pcm.length > 5 * 1024 * 1024) return null;
-  return convertPcmToOpus(pcm);
+  return encodeGeminiAudio(audio?.data, audio?.mimeType);
+}
+
+async function synthesizeWithGeminiPro(text, settings, apiKey, voice, fetchImpl) {
+  const tone = settings.mozzaModeEnabled ? 'warm and conversational' : 'calm and professional';
+  const style = 'Natural Cairene Egyptian Arabic with an adult female voice. ' +
+    'Speak at a measured pace and clearly articulate every digit, date and currency unit. ' +
+    'Use a ' + tone + ' tone.';
+  // Reserve angle-bracket tags for the pauses inserted here.
+  const transcript = text.replace(/</g, ' أقل من ').replace(/>/g, ' أكبر من ').replace(/\n/g, ' <short pause> ');
+  const response = await fetchImpl(GEMINI_INTERACTIONS_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+    body: JSON.stringify({
+      model: GEMINI_PRO_VOICE_MODEL,
+      store: false,
+      input: [{
+        type: 'user_input',
+        content: [{ type: 'text', text: transcript, annotations: [{ type: 'speech_metadata', style }] }],
+      }],
+      response_format: { type: 'audio', mime_type: 'audio/l16', sample_rate: 24000 },
+      generation_config: { speech_config: [{ voice: voice || settings.voiceName || 'Aoede' }] },
+    }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) return null;
+  const result = await response.json();
+  if (result?.status !== 'completed' || !Array.isArray(result.steps)) return null;
+  const audio = result.steps
+    .filter(step => step.type === 'model_output')
+    .flatMap(step => step.content ?? [])
+    .findLast(part => part.type === 'audio' && part.data);
+  if ((audio?.sample_rate ?? 24000) !== 24000 || (audio?.channels ?? 1) !== 1) return null;
+  return encodeGeminiAudio(audio?.data, audio?.mime_type);
 }
 
 export async function synthesizeArabicSpeech(rawText, {
-  settings = {}, geminiApiKey = '', fetchImpl = fetch, createEdgeTts = options => new MsEdgeTTS(options),
+  settings = {}, geminiApiKey = '', voiceProvider = '', geminiVoice = '',
+  fetchImpl = fetch, createEdgeTts = options => new MsEdgeTTS(options),
 } = {}) {
   const { text, workReply } = prepareSpeech(rawText);
   if (!text) return null;
 
   const voiceSettings = workReply ? { ...settings, mozzaModeEnabled: false } : settings;
-  const edge = await synthesizeWithEdge(text, voiceSettings, createEdgeTts).catch(() => null);
-  if (edge) return edge;
-  if (!geminiApiKey) return null;
+  const prefersGeminiPro = voiceProvider === GEMINI_PRO_VOICE_MODEL;
+  if (prefersGeminiPro && geminiApiKey) {
+    const audio = await synthesizeWithGeminiPro(text, voiceSettings, geminiApiKey, geminiVoice, fetchImpl).catch(() => null);
+    if (audio) return audio;
+  }
+  const edge = await synthesizeWithEdge(text, voiceSettings, createEdgeTts, workReply).catch(() => null);
+  if (edge || prefersGeminiPro || !geminiApiKey) return edge;
   return synthesizeWithGemini(text, voiceSettings, geminiApiKey, fetchImpl).catch(() => null);
 }

@@ -63,6 +63,8 @@ const CHAT_ID = normalizeTelegramChatId(configuredChatId);
 const SHARED_CHAT_ID = normalizeTelegramSharedChatId(configuredChatId);
 let botUsername = setting('TELEGRAM_BOT_USERNAME')?.trim().replace(/^@/, '');
 const GEMINI_API_KEY = setting('GEMINI_API_KEY');
+const COPILOT_VOICE_PROVIDER = setting('COPILOT_VOICE_PROVIDER')?.trim();
+const COPILOT_GEMINI_TTS_VOICE = setting('COPILOT_GEMINI_TTS_VOICE')?.trim();
 const SUPABASE_URL =
   setting('SUPABASE_URL') || setting('NEXT_PUBLIC_SUPABASE_URL');
 const SUPABASE_PUBLIC_KEY = setting('COPILOT_SUPABASE_PUBLIC_KEY') ||
@@ -280,7 +282,12 @@ const sendTelegramVoice = createTelegramVoiceSender({ botToken: BOT_TOKEN });
 
 async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, settings) {
   void sendChatAction(chatId, 'record_voice');
-  const audio = await synthesizeArabicSpeech(textToSpeak, { settings, geminiApiKey: GEMINI_API_KEY });
+  const audio = await synthesizeArabicSpeech(textToSpeak, {
+    settings,
+    geminiApiKey: GEMINI_API_KEY,
+    voiceProvider: COPILOT_VOICE_PROVIDER,
+    geminiVoice: COPILOT_GEMINI_TTS_VOICE,
+  });
   if (!audio) {
     console.warn('Voice synthesis unavailable. The text reply was sent separately.');
     return false;

@@ -17,8 +17,10 @@ test('narrates an expense in Egyptian sentences with the exact amount and draft 
   ].join('\n'));
 
   assert.equal(spoken, [
-    'سجلتلك مصروف نقل خامات لفيلا ٦٥٧، بمبلغ ألف وخمسمية ريال سعودي وخمسة وعشرين هللة.',
-    'المصروف لسه مسودة، ورقم العملية 101.',
+    'سجلتلك مصروف نقل خامات لفيلا ٦٥٧.',
+    'المبلغ، ألف وخمسمية ريال سعودي، وخمسة وعشرين هللة.',
+    'المصروف لسه مسودة.',
+    'رقم العملية، 101.',
   ].join('\n'));
 });
 
@@ -41,7 +43,8 @@ test('speaks the date and confirmed report facts once, and distinguishes missing
   ].join('\n'));
   assert.equal(spoken, [
     'ده ملخّص الشغل ليوم ستة نوفمبر ألفين وستة وعشرين.',
-    'مفيش عمال اتسجلوا في اليوم ده، وبيانات المصروفات مش متاحة.',
+    'مفيش عمال اتسجلوا في اليوم ده.',
+    'بيانات المصروفات مش متاحة.',
     'باقي التفاصيل في الرسالة.',
   ].join('\n'));
 });
@@ -53,16 +56,16 @@ test('keeps nonnumeric operation references and does not infer an approval', () 
     '📦 البند: محارة',
     '💵 الإجمالي: 1,000 ر.س',
   ].join('\n'));
-  assert.equal(spoken, 'سجلتلك أمر شغل محارة، بمبلغ ألف ريال سعودي.\nرقم العملية JO-2026-11-07.');
+  assert.equal(spoken, 'سجلتلك أمر شغل محارة.\nالمبلغ، ألف ريال سعودي.\nرقم العملية، JO-2026-11-07.');
 });
 
-test('speaks a work report professionally even when the casual voice is enabled', async () => {
+test('keeps the count, total and halalas distinct in the work voice even when the casual voice is enabled', async () => {
   const report = [
     '💖 عيوني ليك يا حبيبي! ده التقرير اليومي المفصل لكل الشغل النهارده',
     '📊 التقرير اليومي المفصل الشامل — شركة الاختبار',
     '📅 ليوم: 2026-11-08 | الفلل: كل المشاريع والفلل',
     '1️⃣ العمالة اللي نزلت النهارده (5 يومية / 5 عامل):',
-    '3️⃣ المصروفات المسجلة النهارده (0 عملية بمبلغ إجمالي 0 ر.س):',
+    '3️⃣ المصروفات المسجلة النهارده (1 عملية بمبلغ إجمالي 1500.25 ر.س):',
   ].join('\n');
   let request;
   await synthesizeArabicSpeech(report, {
@@ -79,15 +82,27 @@ test('speaks a work report professionally even when the casual voice is enabled'
 
   assert.equal(request[0], [
     'ده ملخّص الشغل ليوم تمانية نوفمبر ألفين وستة وعشرين.',
-    'اتسجّل خمسة عمّال، والمصروفات كانت صفر ريال سعودي.',
+    'اِتْسَجَّل خمسة عُمَّال.',
+    'إجمالي المصروفات، ألف وَخُمْسُمِيَّة ريال سعودي، وخمسة وعشرين هَلَلَة.',
     'باقي التفاصيل في الرسالة.',
   ].join('\n'));
-  assert.deepEqual(request[1], { pitch: '+0Hz', rate: '-6%' });
+  assert.deepEqual(request[1], { pitch: '+0Hz', rate: '-12%' });
 });
 
 test('keeps precision and preserves currencies or ambiguous formats it cannot expand', () => {
   assert.equal(prepareSpeechText('۱۲۳٫۵ ر.س\n7.005 ر.س\n٥٠٠ جنيه مصري\nالمرجع EXP-500 ر.س'),
-    'مية وتلاتة وعشرين ريال سعودي وخمسين هللة.\n7.005 ريال سعودي.\n٥٠٠ جنيه مصري.\nالمرجع EXP-500 ريال سعودي.');
+    'مية وتلاتة وعشرين ريال سعودي، وخمسين هللة.\n7.005 ريال سعودي.\n٥٠٠ جنيه مصري.\nالمرجع EXP-500 ريال سعودي.');
+});
+
+test('keeps the amount and reference audible even when an operation description exceeds the speech budget', () => {
+  const spoken = prepareSpeechText([
+    '✅ سجلتلك مسودة المصروف | العملية رقم [#101]',
+    '🔢 رقم العملية للتعديل السريع: #101',
+    '• البيان: ' + 'وصف عملية طويل '.repeat(35),
+    '• المبلغ الإجمالي: 500.25 ر.س',
+  ].join('\n'));
+  assert.match(spoken, /المبلغ، خمسمية ريال سعودي، وخمسة وعشرين هللة\.\n/);
+  assert.match(spoken, /\nرقم العملية، 101\./);
 });
 
 test('shortens speech only between complete sentences', () => {
@@ -143,6 +158,44 @@ test('when Edge fails, requests the configured fallback voice with verbatim deli
   assert.match(calls[0].url, /generativelanguage\.googleapis\.com/);
   assert.equal(calls[0].body.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName, 'Leda');
   assert.match(calls[0].body.contents[0].parts[0].text, /verbatim[\s\S]*Transcript:\nالإجمالي 500 ريال\.$/);
+});
+
+test('tries the opt-in Gemini speech API first and falls back instead of sending incomplete audio', async () => {
+  const calls = [];
+  const edgeAudio = Buffer.from('synthetic edge audio');
+  const audio = await synthesizeArabicSpeech('إجمالي المصروفات 500.25 ر.س\nرقم العملية 101', {
+    geminiApiKey: 'synthetic-key',
+    voiceProvider: 'gemini-3.8-flash-tts',
+    geminiVoice: 'voice_example',
+    fetchImpl: async (url, init) => {
+      calls.push({ url, body: JSON.parse(init.body) });
+      return Response.json({
+        status: 'incomplete',
+        steps: [{ type: 'model_output', content: [{ type: 'audio', mime_type: 'audio/l16', data: 'AAAA' }] }],
+      });
+    },
+    createEdgeTts: () => {
+      calls.push('edge');
+      return {
+        setMetadata() {},
+        toStream: () => ({ audioStream: Readable.from([edgeAudio]) }),
+        close() {},
+      };
+    },
+  });
+
+  assert.equal(calls.length, 2);
+  const [request, fallback] = calls;
+  assert.match(request.url, /\/v1beta\/interactions$/);
+  assert.equal(request.body.model, 'gemini-3.8-flash-tts');
+  assert.equal(request.body.store, false);
+  assert.deepEqual(request.body.response_format, { type: 'audio', mime_type: 'audio/l16', sample_rate: 24000 });
+  assert.deepEqual(request.body.generation_config.speech_config, [{ voice: 'voice_example' }]);
+  const [speech] = request.body.input[0].content;
+  assert.match(speech.annotations[0].style, /Cairene Egyptian Arabic/);
+  assert.equal(speech.text, 'إجمالي المصروفات خمسمية ريال سعودي، وخمسة وعشرين هللة. <short pause> رقم العملية 101.');
+  assert.equal(fallback, 'edge');
+  assert.deepEqual(audio.buffer, edgeAudio);
 });
 
 test('uploads each supported voice format with its real name and MIME type as a threaded reply', async () => {

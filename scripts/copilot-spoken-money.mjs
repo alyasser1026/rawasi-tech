@@ -71,7 +71,7 @@ export function formatEgyptianRiyals(text) {
       const spoken = riyals || !halalas ? [riyalWords(riyals)] : [];
       if (halalas) spoken.push(halalaWords(halalas));
       const prefix = sign === '+' ? 'زائد ' : sign && (riyals || halalas) ? 'ناقص ' : '';
-      return prefix + spoken.join(' و');
+      return prefix + spoken.join('، و');
     },
   );
 }
