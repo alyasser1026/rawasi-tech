@@ -6,15 +6,10 @@ import LoadingScreen from '@/components/LoadingScreen';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import { formatCurrency } from '@/lib/helpers';
 
-const THEME = {
-  primary: '#0f172a',    
-  accent: '#c2410c',
-  success: '#059669',    // اللون الأخضر للمدين
-  ruby: '#e11d48',       // اللون الأحمر للدائن
-  slate: '#f8fafc',
-  border: '#e2e8f0',
-  textMain: '#000000',   
-  textMuted: '#64748b'
+const PRINT_THEME = {
+  primary: '#0f172a',
+  success: '#059669',
+  ruby: '#e11d48'
 };
 
 export default function TrialBalancePage() {
@@ -27,7 +22,7 @@ export default function TrialBalancePage() {
     <button 
       key="print_tb"
       onClick={() => window.print()}
-      style={{ padding: '0.75rem', borderRadius: '8px', border: `1px solid ${THEME.border}`, background: THEME.slate, color: THEME.textMain, fontWeight: '900', cursor: 'pointer', width: '100%', marginBottom: '0.5rem' }}
+      style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--control-edge)', background: 'var(--surface-subcard)', color: 'var(--text-primary)', fontWeight: '900', cursor: 'pointer', width: '100%', marginBottom: '0.5rem' }}
     >
       طباعة الميزان الرسمي
     </button>,
@@ -35,7 +30,7 @@ export default function TrialBalancePage() {
     <button 
       key="export_excel"
       onClick={logic.exportToExcel}
-      style={{ padding: '0.75rem', borderRadius: '8px', border: 'none', background: THEME.success, color: '#ffffff', fontWeight: '900', cursor: 'pointer', width: '100%' }}
+      style={{ padding: '0.75rem', borderRadius: '8px', border: 'none', background: 'var(--action-fill)', color: 'var(--action-ink)', fontWeight: '900', cursor: 'pointer', width: '100%' }}
     >
       تصدير Excel
     </button>
@@ -48,17 +43,50 @@ export default function TrialBalancePage() {
     >
       <style>{`
         /* تنسيقات الشاشة الأساسية */
-        .tb-table { width: 100%; border-collapse: collapse; text-align: center; background: #ffffff; }
-        .tb-table th, .tb-table td { border: 1px solid #cbd5e1; padding: 0.625rem 0.5rem; font-size: var(--fs-md); }
-        
-        .tb-table thead th { color: #000000 !important; font-weight: 900; }
-        .tb-table tbody td { color: #000000; } 
-        .tb-table tbody tr:hover { background-color: #f1f5f9; }
+        .trial-balance-filters {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 0.9375rem;
+          align-items: center;
+          background: var(--surface-card);
+          color: var(--text-primary);
+          padding: 0.9375rem 1.25rem;
+          border: 1px solid var(--control-edge);
+          border-radius: 12px;
+          margin-bottom: 1.25rem;
+        }
+        .trial-balance-date { display: flex; align-items: center; gap: 0.625rem; font-weight: 900; font-size: var(--fs-sm); }
+        .trial-balance-date input {
+          padding: 0.375rem 0.625rem;
+          border-radius: 6px;
+          border: 1px solid var(--control-edge);
+          color: var(--text-primary);
+          background: var(--surface-sunken);
+          font-weight: 900;
+        }
+        .trial-balance-date input:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+        .trial-balance-scroll { overflow-x: auto; border: 1px solid var(--control-edge); border-radius: 12px; }
+        .tb-table { width: 100%; border-collapse: collapse; text-align: center; background: var(--surface-card); color: var(--text-primary); }
+        .tb-table th, .tb-table td { border: 1px solid var(--control-edge); padding: 0.625rem 0.5rem; font-size: var(--fs-md); }
+        .tb-table thead th { background: var(--table-head-bg); color: var(--text-primary); font-weight: 900; }
+        .tb-table tbody tr:hover { background: var(--table-row-hover); }
         .tb-table tbody td.text-right { text-align: right; font-weight: 900; }
         .tb-table tbody td.number { font-family: monospace; font-size: var(--fs-sm); font-weight: 900; }
-        
-        .tb-totals { font-weight: 900 !important; }
-        .tb-totals td { border-top: 3px double #94a3b8 !important; font-size: var(--fs-lg); }
+        .tb-table .tb-period { background: var(--table-zebra-bg); }
+        .tb-table .tb-totals { background: var(--surface-subcard); font-weight: 900; }
+        .tb-table .tb-totals td { border-top: 3px double var(--control-edge); font-size: var(--fs-lg); }
+        .tb-balance-status {
+          background: color-mix(in srgb, currentColor 9%, var(--surface-flat));
+          border: 1px solid currentColor;
+          border-radius: 8px;
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          gap: 0.5rem 1rem;
+          margin-top: 0.9375rem;
+          padding: 0.9375rem;
+          font-weight: 900;
+        }
 
         /* تنسيقات الطباعة المعزولة */
         @media print {
@@ -78,31 +106,29 @@ export default function TrialBalancePage() {
       <div style={{ display: 'flex', gap: '1.25rem' }} className="no-print">
         
         {/* منطقة المحتوى الرئيسي */}
-        <div style={{ flex: 1, overflowX: 'auto' }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
           
           {/* لوحة الفلاتر */}
-          <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center', background: '#ffffff', padding: '0.9375rem 1.25rem', borderRadius: '12px', marginBottom: '1.25rem', border: `1px solid ${THEME.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: 'var(--fs-lg)', minWidth: '6.25rem' }}>فترة الميزان:</div>
+          <div className="trial-balance-filters">
+            <div style={{ fontWeight: '900', fontSize: 'var(--fs-lg)', minWidth: '6.25rem' }}>فترة الميزان:</div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', background: THEME.slate, padding: '0.3125rem 0.9375rem', borderRadius: '8px' }}>
-              <label style={{ fontSize: 'var(--fs-sm)', color: THEME.textMain, fontWeight: '900' }}>من:</label>
+            <label className="trial-balance-date">
+              <span>من:</span>
               <input 
                 type="date" 
                 value={logic.startDate} 
-                onChange={e => logic.setStartDate(e.target.value)} 
-                style={{ padding: '0.375rem 0.625rem', borderRadius: '6px', border: `1px solid ${THEME.border}`, fontWeight: '900', outline: 'none', color: '#000000', backgroundColor: '#ffffff' }} 
+                onChange={e => logic.setStartDate(e.target.value)}
               />
-            </div>
+            </label>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', background: THEME.slate, padding: '0.3125rem 0.9375rem', borderRadius: '8px' }}>
-              <label style={{ fontSize: 'var(--fs-sm)', color: THEME.textMain, fontWeight: '900' }}>إلى:</label>
+            <label className="trial-balance-date">
+              <span>إلى:</span>
               <input 
                 type="date" 
                 value={logic.endDate} 
-                onChange={e => logic.setEndDate(e.target.value)} 
-                style={{ padding: '0.375rem 0.625rem', borderRadius: '6px', border: `1px solid ${THEME.border}`, fontWeight: '900', outline: 'none', color: '#000000', backgroundColor: '#ffffff' }} 
+                onChange={e => logic.setEndDate(e.target.value)}
               />
-            </div>
+            </label>
           </div>
 
           {/* الجدول والشاشة */}
@@ -110,23 +136,23 @@ export default function TrialBalancePage() {
             <LoadingScreen message="جاري إعداد ميزان المراجعة وتجميع القيود..." fullScreen={false} />
           ) : (
             <>
-              <div style={{ overflowX: 'auto', borderRadius: '12px', border: `1px solid ${THEME.border}` }}>
+              <div className="trial-balance-scroll">
                 <table className="tb-table">
                   <thead>
                     <tr>
-                      <th rowSpan={2} style={{ width: '10%', background: '#e2e8f0' }}>رقم الحساب</th>
-                      <th rowSpan={2} style={{ width: '30%', background: '#e2e8f0' }}>اسم الحساب</th>
-                      <th colSpan={2} style={{ background: '#f1f5f9' }}>الرصيد الافتتاحي</th>
-                      <th colSpan={2} style={{ background: '#e2e8f0' }}>حركة الفترة</th>
-                      <th colSpan={2} style={{ background: '#cbd5e1' }}>الرصيد الختامي</th>
+                      <th rowSpan={2} style={{ width: '10%' }}>رقم الحساب</th>
+                      <th rowSpan={2} style={{ width: '30%' }}>اسم الحساب</th>
+                      <th colSpan={2}>الرصيد الافتتاحي</th>
+                      <th colSpan={2}>حركة الفترة</th>
+                      <th colSpan={2}>الرصيد الختامي</th>
                     </tr>
                     <tr>
-                      <th style={{ background: '#f8fafc', color: THEME.success }}>مدين</th>
-                      <th style={{ background: '#f8fafc', color: THEME.ruby }}>دائن</th>
-                      <th style={{ background: '#f1f5f9', color: THEME.success }}>مدين</th>
-                      <th style={{ background: '#f1f5f9', color: THEME.ruby }}>دائن</th>
-                      <th style={{ background: '#e2e8f0', color: THEME.success }}>مدين</th>
-                      <th style={{ background: '#e2e8f0', color: THEME.ruby }}>دائن</th>
+                      <th style={{ color: 'var(--status-positive)' }}>مدين</th>
+                      <th style={{ color: 'var(--status-negative)' }}>دائن</th>
+                      <th style={{ color: 'var(--status-positive)' }}>مدين</th>
+                      <th style={{ color: 'var(--status-negative)' }}>دائن</th>
+                      <th style={{ color: 'var(--status-positive)' }}>مدين</th>
+                      <th style={{ color: 'var(--status-negative)' }}>دائن</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -135,41 +161,39 @@ export default function TrialBalancePage() {
                         <td className="number">{r.account_code}</td>
                         <td className="text-right">{r.account_name}</td>
                         
-                        <td className="number" style={{ color: r.opening_debit > 0 ? THEME.success : '#94a3b8' }}>{r.opening_debit > 0 ? formatCurrency(r.opening_debit) : '-'}</td>
-                        <td className="number" style={{ color: r.opening_credit > 0 ? THEME.ruby : '#94a3b8' }}>{r.opening_credit > 0 ? formatCurrency(r.opening_credit) : '-'}</td>
+                        <td className="number" style={{ color: r.opening_debit > 0 ? 'var(--status-positive)' : 'var(--text-muted)' }}>{r.opening_debit > 0 ? formatCurrency(r.opening_debit) : '-'}</td>
+                        <td className="number" style={{ color: r.opening_credit > 0 ? 'var(--status-negative)' : 'var(--text-muted)' }}>{r.opening_credit > 0 ? formatCurrency(r.opening_credit) : '-'}</td>
                         
-                        <td className="number" style={{ color: r.period_debit > 0 ? THEME.success : '#94a3b8', background: '#f8fafc' }}>{r.period_debit > 0 ? formatCurrency(r.period_debit) : '-'}</td>
-                        <td className="number" style={{ color: r.period_credit > 0 ? THEME.ruby : '#94a3b8', background: '#f8fafc' }}>{r.period_credit > 0 ? formatCurrency(r.period_credit) : '-'}</td>
+                        <td className="number tb-period" style={{ color: r.period_debit > 0 ? 'var(--status-positive)' : 'var(--text-muted)' }}>{r.period_debit > 0 ? formatCurrency(r.period_debit) : '-'}</td>
+                        <td className="number tb-period" style={{ color: r.period_credit > 0 ? 'var(--status-negative)' : 'var(--text-muted)' }}>{r.period_credit > 0 ? formatCurrency(r.period_credit) : '-'}</td>
                         
-                        <td className="number" style={{ color: r.ending_debit > 0 ? THEME.success : '#94a3b8' }}>{r.ending_debit > 0 ? formatCurrency(r.ending_debit) : '-'}</td>
-                        <td className="number" style={{ color: r.ending_credit > 0 ? THEME.ruby : '#94a3b8' }}>{r.ending_credit > 0 ? formatCurrency(r.ending_credit) : '-'}</td>
+                        <td className="number" style={{ color: r.ending_debit > 0 ? 'var(--status-positive)' : 'var(--text-muted)' }}>{r.ending_debit > 0 ? formatCurrency(r.ending_debit) : '-'}</td>
+                        <td className="number" style={{ color: r.ending_credit > 0 ? 'var(--status-negative)' : 'var(--text-muted)' }}>{r.ending_credit > 0 ? formatCurrency(r.ending_credit) : '-'}</td>
                       </tr>
                     ))}
                     
                     {/* صف الإجماليات */}
-                    <tr className="tb-totals" style={{ backgroundColor: isBalanced ? '#e2e8f0' : '#fee2e2' }}>
-                      <td colSpan={2} style={{ textAlign: 'left', paddingLeft: '1.25rem', color: '#000000' }}>الإجمـــالي الكـــلي:</td>
-                      <td className="number" style={{ color: THEME.success }}>{formatCurrency(logic.totals.op_debit)}</td>
-                      <td className="number" style={{ color: THEME.ruby }}>{formatCurrency(logic.totals.op_credit)}</td>
-                      <td className="number" style={{ color: THEME.success }}>{formatCurrency(logic.totals.per_debit)}</td>
-                      <td className="number" style={{ color: THEME.ruby }}>{formatCurrency(logic.totals.per_credit)}</td>
-                      <td className="number" style={{ color: THEME.success }}>{formatCurrency(logic.totals.end_debit)}</td>
-                      <td className="number" style={{ color: THEME.ruby }}>{formatCurrency(logic.totals.end_credit)}</td>
+                    <tr className="tb-totals">
+                      <td colSpan={2} style={{ textAlign: 'left', paddingLeft: '1.25rem' }}>الإجمـــالي الكـــلي:</td>
+                      <td className="number" style={{ color: 'var(--status-positive)' }}>{formatCurrency(logic.totals.op_debit)}</td>
+                      <td className="number" style={{ color: 'var(--status-negative)' }}>{formatCurrency(logic.totals.op_credit)}</td>
+                      <td className="number" style={{ color: 'var(--status-positive)' }}>{formatCurrency(logic.totals.per_debit)}</td>
+                      <td className="number" style={{ color: 'var(--status-negative)' }}>{formatCurrency(logic.totals.per_credit)}</td>
+                      <td className="number" style={{ color: 'var(--status-positive)' }}>{formatCurrency(logic.totals.end_debit)}</td>
+                      <td className="number" style={{ color: 'var(--status-negative)' }}>{formatCurrency(logic.totals.end_credit)}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
               {/* مؤشر اتزان الميزان */}
-              <div style={{ marginTop: '0.9375rem', display: 'flex', gap: '1.25rem' }}>
-                  <div style={{ flex: 1, padding: '0.9375rem', borderRadius: '8px', background: isBalanced ? '#ecfdf5' : '#fff1f2', border: `2px solid ${isBalanced ? THEME.success : THEME.ruby}`, display: 'flex', justifyContent: 'space-between', fontWeight: '900' }}>
-                    <span style={{ color: isBalanced ? THEME.success : THEME.ruby }}>
+              <div className="tb-balance-status" style={{ color: isBalanced ? 'var(--status-positive)' : 'var(--status-negative)' }}>
+                    <span>
                       {isBalanced ? 'الميزان متزن تماماً (لا توجد فروق)' : 'يوجد فرق في الميزان! يرجى مراجعة قيود اليومية.'}
                     </span>
                     {!isBalanced && (
-                      <span style={{ color: THEME.ruby, fontSize: 'var(--fs-lg)' }}>قيمة الفرق: {formatCurrency(Math.abs(logic.totals.end_debit - logic.totals.end_credit))}</span>
+                      <span style={{ color: 'var(--status-negative)', fontSize: 'var(--fs-lg)' }}>قيمة الفرق: {formatCurrency(Math.abs(logic.totals.end_debit - logic.totals.end_credit))}</span>
                     )}
-                  </div>
               </div>
             </>
           )}
@@ -180,7 +204,7 @@ export default function TrialBalancePage() {
 
       {/* مساحة الطباعة */}
       <div className="print-area" style={{ display: 'none' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '0.9375rem', marginBottom: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${PRINT_THEME.primary}`, paddingBottom: '0.9375rem', marginBottom: '1.25rem' }}>
             <div>
                 
                 <p style={{ margin: '0.5rem 0 0 0', fontWeight: 700, fontSize: 'var(--fs-md)', color: '#000000' }}>شركة فاي تك للمقاولات</p>
@@ -199,12 +223,12 @@ export default function TrialBalancePage() {
                 <th colSpan={2} style={{ background: '#cbd5e1' }}>الرصيد الختامي</th>
               </tr>
               <tr>
-                <th style={{ background: '#f8fafc', color: THEME.success }}>مدين</th>
-                <th style={{ background: '#f8fafc', color: THEME.ruby }}>دائن</th>
-                <th style={{ background: '#f1f5f9', color: THEME.success }}>مدين</th>
-                <th style={{ background: '#f1f5f9', color: THEME.ruby }}>دائن</th>
-                <th style={{ background: '#e2e8f0', color: THEME.success }}>مدين</th>
-                <th style={{ background: '#e2e8f0', color: THEME.ruby }}>دائن</th>
+                <th style={{ background: '#f8fafc', color: PRINT_THEME.success }}>مدين</th>
+                <th style={{ background: '#f8fafc', color: PRINT_THEME.ruby }}>دائن</th>
+                <th style={{ background: '#f1f5f9', color: PRINT_THEME.success }}>مدين</th>
+                <th style={{ background: '#f1f5f9', color: PRINT_THEME.ruby }}>دائن</th>
+                <th style={{ background: '#e2e8f0', color: PRINT_THEME.success }}>مدين</th>
+                <th style={{ background: '#e2e8f0', color: PRINT_THEME.ruby }}>دائن</th>
               </tr>
             </thead>
             <tbody>
@@ -213,24 +237,24 @@ export default function TrialBalancePage() {
                   <td className="number">{r.account_code}</td>
                   <td className="text-right">{r.account_name}</td>
                   
-                  <td className="number" style={{ color: r.opening_debit > 0 ? THEME.success : '#94a3b8' }}>{r.opening_debit > 0 ? formatCurrency(r.opening_debit) : '-'}</td>
-                  <td className="number" style={{ color: r.opening_credit > 0 ? THEME.ruby : '#94a3b8' }}>{r.opening_credit > 0 ? formatCurrency(r.opening_credit) : '-'}</td>
+                  <td className="number" style={{ color: r.opening_debit > 0 ? PRINT_THEME.success : '#94a3b8' }}>{r.opening_debit > 0 ? formatCurrency(r.opening_debit) : '-'}</td>
+                  <td className="number" style={{ color: r.opening_credit > 0 ? PRINT_THEME.ruby : '#94a3b8' }}>{r.opening_credit > 0 ? formatCurrency(r.opening_credit) : '-'}</td>
                   
-                  <td className="number" style={{ color: r.period_debit > 0 ? THEME.success : '#94a3b8' }}>{r.period_debit > 0 ? formatCurrency(r.period_debit) : '-'}</td>
-                  <td className="number" style={{ color: r.period_credit > 0 ? THEME.ruby : '#94a3b8' }}>{r.period_credit > 0 ? formatCurrency(r.period_credit) : '-'}</td>
+                  <td className="number" style={{ color: r.period_debit > 0 ? PRINT_THEME.success : '#94a3b8' }}>{r.period_debit > 0 ? formatCurrency(r.period_debit) : '-'}</td>
+                  <td className="number" style={{ color: r.period_credit > 0 ? PRINT_THEME.ruby : '#94a3b8' }}>{r.period_credit > 0 ? formatCurrency(r.period_credit) : '-'}</td>
                   
-                  <td className="number" style={{ color: r.ending_debit > 0 ? THEME.success : '#94a3b8' }}>{r.ending_debit > 0 ? formatCurrency(r.ending_debit) : '-'}</td>
-                  <td className="number" style={{ color: r.ending_credit > 0 ? THEME.ruby : '#94a3b8' }}>{r.ending_credit > 0 ? formatCurrency(r.ending_credit) : '-'}</td>
+                  <td className="number" style={{ color: r.ending_debit > 0 ? PRINT_THEME.success : '#94a3b8' }}>{r.ending_debit > 0 ? formatCurrency(r.ending_debit) : '-'}</td>
+                  <td className="number" style={{ color: r.ending_credit > 0 ? PRINT_THEME.ruby : '#94a3b8' }}>{r.ending_credit > 0 ? formatCurrency(r.ending_credit) : '-'}</td>
                 </tr>
               ))}
               <tr className="print-totals" style={{ backgroundColor: isBalanced ? '#cbd5e1' : '#fecaca' }}>
                 <td colSpan={2} style={{ textAlign: 'left', paddingLeft: '1.25rem', color: '#000000' }}>الإجمـــالي الكـــلي:</td>
-                <td className="number" style={{ color: THEME.success }}>{formatCurrency(logic.totals.op_debit)}</td>
-                <td className="number" style={{ color: THEME.ruby }}>{formatCurrency(logic.totals.op_credit)}</td>
-                <td className="number" style={{ color: THEME.success }}>{formatCurrency(logic.totals.per_debit)}</td>
-                <td className="number" style={{ color: THEME.ruby }}>{formatCurrency(logic.totals.per_credit)}</td>
-                <td className="number" style={{ color: THEME.success }}>{formatCurrency(logic.totals.end_debit)}</td>
-                <td className="number" style={{ color: THEME.ruby }}>{formatCurrency(logic.totals.end_credit)}</td>
+                <td className="number" style={{ color: PRINT_THEME.success }}>{formatCurrency(logic.totals.op_debit)}</td>
+                <td className="number" style={{ color: PRINT_THEME.ruby }}>{formatCurrency(logic.totals.op_credit)}</td>
+                <td className="number" style={{ color: PRINT_THEME.success }}>{formatCurrency(logic.totals.per_debit)}</td>
+                <td className="number" style={{ color: PRINT_THEME.ruby }}>{formatCurrency(logic.totals.per_credit)}</td>
+                <td className="number" style={{ color: PRINT_THEME.success }}>{formatCurrency(logic.totals.end_debit)}</td>
+                <td className="number" style={{ color: PRINT_THEME.ruby }}>{formatCurrency(logic.totals.end_credit)}</td>
               </tr>
             </tbody>
           </table>
