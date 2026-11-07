@@ -148,24 +148,35 @@ export function prepareSpeechText(rawText) {
 }
 
 async function synthesizeWithEdge(text, settings, createEdgeTts, workReply) {
-  const tts = createEdgeTts({ connectionTimeoutMs: 4500, synthesisTimeoutMs: 6000 });
-  const deadline = AbortSignal.timeout(10000);
-  try {
-    await tts.setMetadata('ar-EG-SalmaNeural', OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
-    const pronunciation = workReply
-      ? text.replace(/(?<![\p{L}\p{M}\p{N}_-])(?:اتسجّل|عمّال|و?خمسمية|هللة)(?![\p{L}\p{M}\p{N}_-])/gu,
-        word => pronunciationHints[word])
-      : text;
-    const escaped = pronunciation.replace(/[&<>]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character]);
-    const { audioStream } = tts.toStream(escaped, {
-      pitch: settings.mozzaModeEnabled ? '+8%' : '+0Hz',
-      rate: settings.mozzaModeEnabled ? '-4%' : (workReply ? '-12%' : '-6%'),
-    });
-    const audio = await buffer(addAbortSignal(deadline, audioStream));
-    return audio.length ? { buffer: audio, mimeType: 'audio/mpeg', fileName: 'salma_reply.mp3' } : null;
-  } finally {
-    tts.close();
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const tts = createEdgeTts({ connectionTimeoutMs: 12000, synthesisTimeoutMs: 30000 });
+    const deadline = AbortSignal.timeout(35000);
+    try {
+      await tts.setMetadata('ar-EG-SalmaNeural', OUTPUT_FORMAT.AUDIO_24KHZ_96KBITRATE_MONO_MP3);
+      const pronunciation = workReply
+        ? text.replace(/(?<![\p{L}\p{M}\p{N}_-])(?:اتسجّل|عمّال|و?خمسمية|هللة)(?![\p{L}\p{M}\p{N}_-])/gu,
+          word => pronunciationHints[word])
+        : text;
+      const escaped = pronunciation.replace(/[&<>]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[character]);
+      const { audioStream } = tts.toStream(escaped, {
+        pitch: settings.mozzaModeEnabled ? '+8%' : '+0Hz',
+        rate: settings.mozzaModeEnabled ? '-4%' : (workReply ? '-12%' : '-6%'),
+      });
+      const audio = await buffer(addAbortSignal(deadline, audioStream));
+      if (audio.length) {
+        return { buffer: audio, mimeType: 'audio/mpeg', fileName: 'salma_reply.mp3' };
+      }
+    } catch (err) {
+      if (attempt === 0 && !err?.message?.includes('offline')) {
+        await new Promise(r => setTimeout(r, 200));
+        continue;
+      }
+      return null;
+    } finally {
+      tts.close();
+    }
   }
+  return null;
 }
 
 async function convertPcmToOpus(pcm) {

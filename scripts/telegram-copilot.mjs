@@ -534,6 +534,15 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
     return `💼 تمام يا باشمهندس، قفلت «وضع الموزة» ورجعنا للوضع الرسمي الاحترافي. تحت أمرك في أي حسابات أو تقارير موقع!`;
   }
 
+  // تغيير اسم الدلع مباشرة من المحادثة (مثل: قوليلي يا يسور / ناديني يا محاميحو)
+  const nickMatch = t.match(/^(?:قوليلي|ناديني|دلعيني|سميني)(?:\s+يا|\s+بـ|\s+ب)?\s*([^\n.!؟]+)$/i);
+  if (nickMatch && !hasWorkIntent) {
+    const rawNick = nickMatch[1].trim();
+    const newNick = rawNick.startsWith('يا ') ? rawNick : `يا ${rawNick}`;
+    saveBotSettings({ mozzaNickname: newNick, mozzaModeEnabled: true });
+    return `من عيوني الاتنين يا روحي! 💖 من هنا ورايح مش هناديك غير بـ «${newNick}» يا سكر قلبي 😘`;
+  }
+
   // إذا كانت الرسالة تحتوي على أي أمر شغل أو حسابات (تقرير، مصروف، قيد، يومية، أمر شغل، تعديل عملية، فلل، عمالة)، اتركها تمر لأدوات الشغل فوراً!
   const hasWorkIntent =
     Boolean(detectDirectFieldOpsCall(t)) ||
