@@ -15,6 +15,8 @@ interface BotSettings {
   inactivityTimeoutMinutes: number;
   inactivityCloseMessage: string;
   voiceReplyMode: 'always' | 'on_voice_or_request' | 'off';
+  autoDailyReportEnabled?: boolean;
+  autoDailyReportTime?: string;
 }
 
 interface LearnedRule {
@@ -45,6 +47,8 @@ export default function BotSettingsManager() {
     inactivityCloseMessage:
       '⏳ نظراً لعدم وجود رد أو استفسار جديد، تم إنهاء الجلسة الحالية وحفظ السياق.\nأنا ({botName}) موجود دائماً في خدمتك وقتما تبعث رسالة جديدة! 👋',
     voiceReplyMode: 'always',
+    autoDailyReportEnabled: true,
+    autoDailyReportTime: '20:00',
   });
   const [learnedRules, setLearnedRules] = useState<LearnedRule[]>([]);
   const [recentOperations, setRecentOperations] = useState<OperationEntry[]>([]);
@@ -296,6 +300,29 @@ export default function BotSettingsManager() {
                 onChange={e => setSettings({ ...settings, inactivityCloseMessage: e.target.value })}
                 style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: 'var(--fs-sm)', resize: 'vertical' }}
               />
+            </div>
+
+            <div style={{ borderTop: '1px dashed #e2e8f0', paddingTop: '0.875rem' }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)', color: '#0f172a', background: '#f0fdf4', padding: '0.75rem', borderRadius: '10px', border: '1px solid #bbf7d0', marginBottom: '0.6rem' }}>
+                <input
+                  type="checkbox"
+                  checked={settings.autoDailyReportEnabled !== false}
+                  onChange={e => setSettings({ ...settings, autoDailyReportEnabled: e.target.checked })}
+                  style={{ width: '1.1rem', height: '1.1rem', cursor: 'pointer' }}
+                />
+                <span>⏰ إرسال التقرير اليومي الشامل تلقائياً كل يوم (نص + ملخص صوتي)</span>
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#334155' }}>
+                  موعد إرسال التقرير اليومي (بتوقيت الرياض):
+                </label>
+                <input
+                  type="time"
+                  value={settings.autoDailyReportTime || '20:00'}
+                  onChange={e => setSettings({ ...settings, autoDailyReportTime: e.target.value })}
+                  style={{ padding: '0.45rem 0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 900, fontSize: 'var(--fs-sm)' }}
+                />
+              </div>
             </div>
 
             <button

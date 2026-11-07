@@ -20,6 +20,8 @@ export const DEFAULT_BOT_SETTINGS = Object.freeze({
     '⏳ نظراً لعدم وجود رد أو استفسار جديد، تم إنهاء الجلسة الحالية وحفظ السياق.\nأنا ({botName}) موجود دائماً في خدمتك وقتما تبعث رسالة جديدة! 👋',
   voiceReplyMode: 'always', // 'always' | 'on_voice_or_request' | 'off'
   voiceSpeed: 'normal',
+  autoDailyReportEnabled: true,
+  autoDailyReportTime: '20:00',
   operationSeqStart: 101,
 });
 
@@ -66,6 +68,10 @@ export function saveBotSettings(partial = {}) {
       : {}),
     ...(typeof partial.voiceReplyMode === 'string' && ['always', 'on_voice_or_request', 'off'].includes(partial.voiceReplyMode)
       ? { voiceReplyMode: partial.voiceReplyMode }
+      : {}),
+    ...(typeof partial.autoDailyReportEnabled === 'boolean' ? { autoDailyReportEnabled: partial.autoDailyReportEnabled } : {}),
+    ...(typeof partial.autoDailyReportTime === 'string' && /^\d{2}:\d{2}$/.test(partial.autoDailyReportTime.trim())
+      ? { autoDailyReportTime: partial.autoDailyReportTime.trim() }
       : {}),
     updatedAt: new Date().toISOString(),
   };
@@ -160,6 +166,57 @@ export function listRecentOperations(limit = 30) {
     nextSeq: store.nextSeq,
     operations: store.operations.slice(0, limit),
   };
+}
+
+/**
+ * إرفاق صورة أو مستند أو فيديو بعملية مسجلة عبر رقمها المختصر (#101) أو كودها
+ */
+export function attachFileToOperation(identifier, { fileId, fileName, mimeType, fileType = 'document' } = {}) {
+  const store = loadOperationsStore();
+  const raw = String(identifier || '').trim();
+  const numMatch = raw.match(/^(?:#|OP-|عملية|عمليه)?\s*(\d{1,6})$/i);
+  const targetNum = numMatch ? Number(numMatch[1]) : null;
+  const upper = raw.toUpperCase();
+
+  const idx = store.operations.findIndex(op =>
+    (targetNum !== null && op.opNumber === targetNum) ||
+    (op.recordCode && op.recordCode.toUpperCase() === upper) ||
+    (op.recordId && op.recordId.toUpperCase() === upper)
+  );
+  const targetOp = idx >= 0 ? store.operations[idx] : store.operations[0];
+  if (!targetOp) return null;
+
+  if (!Array.isArray(targetOp.attachments)) {
+    targetOp.attachments = [];
+  }
+  targetOp.attachments.push({
+    fileId: String(fileId || ''),
+    fileName: String(fileName || 'attachment'),
+    mimeType: String(mimeType || 'application/octet-stream'),
+    fileType: String(fileType || 'document'),
+    attachedAt: new Date().toISOString(),
+  });
+  saveOperationsStore(store);
+  return targetOp;
+}
+
+export function updateOperationStatusInIndex(identifier, newStatus) {
+  const store = loadOperationsStore();
+  const raw = String(identifier || '').trim();
+  const numMatch = raw.match(/^(?:#|OP-|عملية|عمليه)?\s*(\d{1,6})$/i);
+  const targetNum = numMatch ? Number(numMatch[1]) : null;
+  const upper = raw.toUpperCase();
+
+  const op = store.operations.find(item =>
+    (targetNum !== null && item.opNumber === targetNum) ||
+    (item.recordCode && item.recordCode.toUpperCase() === upper) ||
+    (item.recordId && item.recordId.toUpperCase() === upper)
+  );
+  if (!op) return null;
+  op.status = newStatus;
+  op.updatedAt = new Date().toISOString();
+  saveOperationsStore(store);
+  return op;
 }
 
 /**

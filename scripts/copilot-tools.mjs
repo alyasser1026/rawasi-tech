@@ -1356,10 +1356,11 @@ export function createCopilotTools({
           headers[0];
 
         if (matched) {
+          const oldDesc = matched.description || '—';
           const headerPatch = {};
           if (rawArgs?.new_description) {
             headerPatch.description = rawArgs.new_description.trim();
-            changes.push(`البيان: «${headerPatch.description}»`);
+            changes.push(`📝 البيان: «${oldDesc}» ⬅️ «${headerPatch.description}»`);
           }
           if (Object.keys(headerPatch).length > 0) {
             await updateScopedRecord('journal_headers', 'id', matched.id, headerPatch);
@@ -1368,16 +1369,18 @@ export function createCopilotTools({
           if (rawArgs?.new_amount && Number(rawArgs.new_amount) > 0) {
             const newAmt = Number(rawArgs.new_amount);
             const linesRes = await fetchScopedRows('journal_lines', { select: 'id,header_id,debit,credit', limit: '50' });
+            let oldAmt = indexedOp?.amount || '—';
             if (linesRes.ok && Array.isArray(linesRes.data)) {
               const matchedLines = linesRes.data.filter(l => l.header_id === matched.id);
               for (const line of matchedLines) {
                 if (Number(line.debit) > 0) {
+                  oldAmt = Number(line.debit);
                   await updateScopedRecord('journal_lines', 'id', line.id, { debit: newAmt });
                 } else if (Number(line.credit) > 0) {
                   await updateScopedRecord('journal_lines', 'id', line.id, { credit: newAmt });
                 }
               }
-              changes.push(`المبلغ: تم التعديل إلى ${newAmt} ر.س`);
+              changes.push(`💰 المبلغ: ${oldAmt} ر.س ⬅️ ${newAmt} ر.س`);
             }
           }
 
@@ -1387,7 +1390,8 @@ export function createCopilotTools({
               op_number: opNumber,
               type: 'قيد محاسبي',
               reference: `JV-${matched.id.slice(0, 8).toUpperCase()}`,
-              changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
+              summary: rawArgs?.new_description || matched.description || indexedOp?.summary || '',
+              changes: changes.length > 0 ? changes : ['تم تحديث بيانات القيد المحاسبي بنجاح'],
             },
           };
         }
@@ -1407,19 +1411,19 @@ export function createCopilotTools({
           const patch = {};
           if (rawArgs?.new_quantity) {
             patch.assigned_qty = Number(rawArgs.new_quantity);
-            changes.push(`الكمية: ${patch.assigned_qty}`);
+            changes.push(`📐 الكمية: ${matched.assigned_qty ?? '—'} ⬅️ ${patch.assigned_qty}`);
           }
           if (rawArgs?.new_unit_price) {
             patch.unit_price = Number(rawArgs.new_unit_price);
-            changes.push(`الفئة/السعر: ${patch.unit_price} ر.س`);
+            changes.push(`💵 الفئة/سعر الوحدة: ${matched.unit_price ?? '—'} ر.س ⬅️ ${patch.unit_price} ر.س`);
           }
           if (rawArgs?.new_amount && !rawArgs?.new_unit_price) {
             patch.unit_price = Number(rawArgs.new_amount);
-            changes.push(`السعر/القيمة: ${patch.unit_price} ر.س`);
+            changes.push(`💵 السعر/القيمة: ${matched.unit_price ?? '—'} ر.س ⬅️ ${patch.unit_price} ر.س`);
           }
           if (rawArgs?.new_description) {
             patch.notes = rawArgs.new_description.trim();
-            changes.push(`البند/الملاحظات: «${patch.notes}»`);
+            changes.push(`📦 البند/الملاحظات: «${matched.notes || '—'}» ⬅️ «${patch.notes}»`);
           }
           if (Object.keys(patch).length > 0) {
             await updateScopedRecord('job_orders', 'id', matched.id, patch);
@@ -1430,7 +1434,8 @@ export function createCopilotTools({
               op_number: opNumber,
               type: 'أمر شغل',
               reference: matched.order_number,
-              changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
+              summary: patch.notes || matched.notes || '',
+              changes: changes.length > 0 ? changes : ['تم تحديث بيانات أمر الشغل بنجاح'],
             },
           };
         }
@@ -1450,23 +1455,23 @@ export function createCopilotTools({
           const patch = {};
           if (rawArgs?.new_amount) {
             patch.daily_wage = Number(rawArgs.new_amount);
-            changes.push(`اليومية/الأجر: ${patch.daily_wage} ر.س`);
+            changes.push(`💰 اليومية/الأجر: ${matched.daily_wage ?? '—'} ر.س ⬅️ ${patch.daily_wage} ر.س`);
           }
           if (rawArgs?.new_quantity) {
             patch.productivity = Number(rawArgs.new_quantity);
-            changes.push(`الإنتاجية/المنفذ: ${patch.productivity}`);
+            changes.push(`📐 الإنتاجية المنفذة: ${matched.productivity ?? '—'} ⬅️ ${patch.productivity}`);
           }
           if (rawArgs?.new_contractor) {
             patch.worker_name = rawArgs.new_contractor.trim();
-            changes.push(`اسم العامل: ${patch.worker_name}`);
+            changes.push(`👷 اسم العامل: ${matched.worker_name || '—'} ⬅️ ${patch.worker_name}`);
           }
           if (rawArgs?.new_description) {
             patch.work_item = rawArgs.new_description.trim();
-            changes.push(`البند: «${patch.work_item}»`);
+            changes.push(`🔨 البند: «${matched.work_item || '—'}» ⬅️ «${patch.work_item}»`);
           }
           if (rawArgs?.new_site_ref) {
             patch.site_ref = rawArgs.new_site_ref.trim();
-            changes.push(`المشروع/الفيلا: ${patch.site_ref}`);
+            changes.push(`🏗️ المشروع/الفيلا: ${matched.site_ref || '—'} ⬅️ ${patch.site_ref}`);
           }
           if (Object.keys(patch).length > 0) {
             await updateScopedRecord('labor_daily_logs', 'id', matched.id, patch);
@@ -1477,7 +1482,8 @@ export function createCopilotTools({
               op_number: opNumber,
               type: 'يومية عامل',
               reference: `LAB-${matched.id.slice(0, 8).toUpperCase()}`,
-              changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
+              summary: `${patch.worker_name || matched.worker_name || ''} — ${patch.work_item || matched.work_item || ''}`,
+              changes: changes.length > 0 ? changes : ['تم تحديث يومية العامل بنجاح'],
             },
           };
         }
@@ -1497,15 +1503,15 @@ export function createCopilotTools({
           if (rawArgs?.new_amount) {
             patch.total_price = Number(rawArgs.new_amount);
             patch.unit_price = Number(rawArgs.new_amount);
-            changes.push(`المبلغ الإجمالي: ${patch.total_price} ر.س`);
+            changes.push(`💰 المبلغ الإجمالي: ${matched.total_price ?? '—'} ر.س ⬅️ ${patch.total_price} ر.س`);
           }
           if (rawArgs?.new_description) {
             patch.description = rawArgs.new_description.trim();
-            changes.push(`البيان: «${patch.description}»`);
+            changes.push(`📝 البيان: «${matched.description || '—'}» ⬅️ «${patch.description}»`);
           }
           if (rawArgs?.new_site_ref) {
             patch.site_ref = rawArgs.new_site_ref.trim();
-            changes.push(`المشروع/الفيلا: ${patch.site_ref}`);
+            changes.push(`🏗️ المشروع/الفيلا: ${matched.site_ref || 'عام'} ⬅️ ${patch.site_ref}`);
           }
           if (Object.keys(patch).length > 0) {
             await updateScopedRecord('expenses', 'id', matched.id, patch);
@@ -1516,7 +1522,8 @@ export function createCopilotTools({
               op_number: opNumber,
               type: 'مصروف',
               reference: `EXP-${matched.id.slice(0, 8).toUpperCase()}`,
-              changes: changes.length > 0 ? changes : ['تم حفظ التعديلات بنجاح'],
+              summary: patch.description || matched.description || '',
+              changes: changes.length > 0 ? changes : ['تم تحديث المصروف بنجاح'],
             },
           };
         }

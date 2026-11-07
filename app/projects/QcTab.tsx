@@ -46,6 +46,57 @@ export interface ProjectDrawing {
   created_at: string;
 }
 
+export interface VisitPhotoPin {
+  id: string;
+  pinNumber: number;
+  x: number;
+  y: number;
+  label: string;
+  photoUrl?: string | null;
+  videoUrl?: string | null;
+}
+
+export interface VisitExtendedMeta {
+  videoUrl?: string | null;
+  docUrl?: string | null;
+  customDrawingUrl?: string | null;
+  photoPins?: VisitPhotoPin[];
+}
+
+const VISIT_META_MARKER = '\n<!--VISIT_META_JSON:';
+
+function parseVisitNotesAndMeta(rawNotes?: string | null): { cleanNotes: string; meta: VisitExtendedMeta } {
+  if (!rawNotes) return { cleanNotes: '', meta: { photoPins: [] } };
+  const idx = rawNotes.indexOf(VISIT_META_MARKER);
+  if (idx === -1) return { cleanNotes: rawNotes, meta: { photoPins: [] } };
+  const cleanNotes = rawNotes.slice(0, idx).trim();
+  const jsonPart = rawNotes.slice(idx + VISIT_META_MARKER.length).replace(/-->\s*$/, '').trim();
+  try {
+    const parsed = JSON.parse(jsonPart);
+    return {
+      cleanNotes,
+      meta: {
+        videoUrl: parsed?.videoUrl || null,
+        docUrl: parsed?.docUrl || null,
+        customDrawingUrl: parsed?.customDrawingUrl || null,
+        photoPins: Array.isArray(parsed?.photoPins) ? parsed.photoPins : [],
+      },
+    };
+  } catch {
+    return { cleanNotes, meta: { photoPins: [] } };
+  }
+}
+
+function serializeVisitNotesWithMeta(cleanNotes: string, meta: VisitExtendedMeta): string {
+  const hasMeta =
+    Boolean(meta.videoUrl) ||
+    Boolean(meta.docUrl) ||
+    Boolean(meta.customDrawingUrl) ||
+    (Array.isArray(meta.photoPins) && meta.photoPins.length > 0);
+  if (!hasMeta) return cleanNotes.trim();
+  return `${cleanNotes.trim()}${VISIT_META_MARKER}${JSON.stringify(meta)}-->`;
+}
+
 export interface ProjectSiteVisit {
   id: string;
   company_id: string;
@@ -113,6 +164,12 @@ export default function QcTab({ logic }: { logic: any }) {
   const [visitDrawingId, setVisitDrawingId] = useState<string | null>(null);
   const [visitPinX, setVisitPinX] = useState<number | null>(null);
   const [visitPinY, setVisitPinY] = useState<number | null>(null);
+  const [visitVideoUrl, setVisitVideoUrl] = useState<string | null>(null);
+  const [visitDocUrl, setVisitDocUrl] = useState<string | null>(null);
+  const [visitCustomDrawingUrl, setVisitCustomDrawingUrl] = useState<string | null>(null);
+  const [visitPhotoPins, setVisitPhotoPins] = useState<VisitPhotoPin[]>([]);
+  const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
+  const modalDrawingImgRef = useRef<HTMLImageElement | null>(null);
   const [isSubmittingVisit, setIsSubmittingVisit] = useState(false);
 
   // 1. Fetch Drawings
@@ -243,27 +300,97 @@ export default function QcTab({ logic }: { logic: any }) {
     setVisitStatus('مفتوحة');
     setVisitPhotoBefore(null);
     setVisitPhotoAfter(null);
+    setVisitVideoUrl(null);
+    setVisitDocUrl(null);
+    setVisitCustomDrawingUrl(null);
     setVisitDrawingId(drawingId ?? activeDrawing?.id ?? null);
     setVisitPinX(pinX ?? null);
     setVisitPinY(pinY ?? null);
+    if (pinX != null && pinY != null) {
+      const firstPin: VisitPhotoPin = {
+        id: 'pin-' + Date.now(),
+        pinNumber: 1,
+        x: pinX,
+        y: pinY,
+        label: 'نقطة فحص #1',
+        photoUrl: null,
+        videoUrl: null,
+      };
+      setVisitPhotoPins([firstPin]);
+      setSelectedPinId(firstPin.id);
+    } else {
+      setVisitPhotoPins([]);
+      setSelectedPinId(null);
+    }
     setShowVisitModal(true);
   };
 
   // Open modal to edit existing visit
   const openEditVisitModal = (visit: ProjectSiteVisit) => {
+    const { cleanNotes, meta } = parseVisitNotesAndMeta(visit.notes);
     setEditingVisit(visit);
     setVisitTitle(visit.title);
     setVisitStage(visit.stage || visit.boq_item_name || '');
     setVisitDate(visit.visit_date);
     setVisitInspector(visit.inspector_name || '');
-    setVisitNotes(visit.notes || '');
+    setVisitNotes(cleanNotes);
     setVisitStatus(visit.status);
     setVisitPhotoBefore(visit.photo_before_url || null);
     setVisitPhotoAfter(visit.photo_after_url || null);
-    setVisitDrawingId(visit.drawing_id || null);
+    setVisitVideoUrl(meta.videoUrl || null);
+    setVisitDocUrl(meta.docUrl || null);
+    setVisitCustomDrawingUrl(meta.customDrawingUrl || null);
+    setVisitDrawingId(visit.drawing_id || activeDrawing?.id || null);
     setVisitPinX(visit.pin_x ?? null);
     setVisitPinY(visit.pin_y ?? null);
+
+    let pins = Array.isArray(meta.photoPins) ? meta.photoPins : [];
+    if (pins.length === 0 && visit.pin_x != null && visit.pin_y != null) {
+      pins = [
+        {
+          id: 'pin-main',
+          pinNumber: 1,
+          x: Number(visit.pin_x),
+          y: Number(visit.pin_y),
+          label: visit.title || 'نقطة فحص #1',
+          photoUrl: visit.photo_before_url || null,
+          videoUrl: meta.videoUrl || null,
+        },
+      ];
+    }
+    setVisitPhotoPins(pins);
+    setSelectedPinId(pins[0]?.id || null);
     setShowVisitModal(true);
+  };
+
+  // النقر على مخطط الشوب دروينج داخل نافذة الزيارة لإضافة نقطة صورة/فيديو جديدة
+  const handleModalDrawingClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!modalDrawingImgRef.current) return;
+    const rect = modalDrawingImgRef.current.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickY = e.clientY - rect.top;
+    if (clickX < 0 || clickY < 0 || clickX > rect.width || clickY > rect.height) return;
+
+    const pctX = Math.round(((clickX / rect.width) * 100) * 100) / 100;
+    const pctY = Math.round(((clickY / rect.height) * 100) * 100) / 100;
+
+    const nextNum = visitPhotoPins.length + 1;
+    const newPin: VisitPhotoPin = {
+      id: 'pin-' + Date.now() + '-' + nextNum,
+      pinNumber: nextNum,
+      x: pctX,
+      y: pctY,
+      label: `نقطة تصوير #${nextNum}`,
+      photoUrl: null,
+      videoUrl: null,
+    };
+    const updated = [...visitPhotoPins, newPin];
+    setVisitPhotoPins(updated);
+    setSelectedPinId(newPin.id);
+    if (visitPinX === null || visitPinY === null) {
+      setVisitPinX(pctX);
+      setVisitPinY(pctY);
+    }
   };
 
   // Save Site Visit (Insert / Update)
@@ -276,6 +403,17 @@ export default function QcTab({ logic }: { logic: any }) {
 
     setIsSubmittingVisit(true);
     try {
+      const primaryPin = visitPhotoPins[0];
+      const finalPinX = visitPinX !== null ? Number(visitPinX) : primaryPin ? Number(primaryPin.x) : null;
+      const finalPinY = visitPinY !== null ? Number(visitPinY) : primaryPin ? Number(primaryPin.y) : null;
+      const finalPhotoBefore = visitPhotoBefore || primaryPin?.photoUrl || null;
+      const combinedNotes = serializeVisitNotesWithMeta(visitNotes, {
+        videoUrl: visitVideoUrl,
+        docUrl: visitDocUrl,
+        customDrawingUrl: visitCustomDrawingUrl,
+        photoPins: visitPhotoPins,
+      });
+
       const payload: Partial<ProjectSiteVisit> = {
         project_id: projectId,
         drawing_id: visitDrawingId || null,
@@ -284,12 +422,12 @@ export default function QcTab({ logic }: { logic: any }) {
         boq_item_name: visitStage.trim() || null,
         visit_date: visitDate,
         inspector_name: visitInspector.trim() || null,
-        notes: visitNotes.trim() || null,
+        notes: combinedNotes || null,
         status: visitStatus,
-        photo_before_url: visitPhotoBefore || null,
+        photo_before_url: finalPhotoBefore,
         photo_after_url: visitPhotoAfter || null,
-        pin_x: visitPinX !== null ? Number(visitPinX) : null,
-        pin_y: visitPinY !== null ? Number(visitPinY) : null,
+        pin_x: finalPinX,
+        pin_y: finalPinY,
       };
 
       if (editingVisit) {
@@ -666,6 +804,10 @@ export default function QcTab({ logic }: { logic: any }) {
                   : styles.resolved;
 
               const hasBothPhotos = Boolean(visit.photo_before_url && visit.photo_after_url);
+              const { cleanNotes: cardCleanNotes, meta: cardMeta } = parseVisitNotesAndMeta(visit.notes);
+              const cardPinCount = Array.isArray(cardMeta.photoPins) && cardMeta.photoPins.length > 0
+                ? cardMeta.photoPins.length
+                : (visit.pin_x !== null && visit.pin_y !== null ? 1 : 0);
 
               return (
                 <div key={visit.id} className={styles.visitCard}>
@@ -691,12 +833,39 @@ export default function QcTab({ logic }: { logic: any }) {
                       {visit.inspector_name && (
                         <span>👷 الفاحص: <strong>{visit.inspector_name}</strong></span>
                       )}
-                      {visit.pin_x !== null && visit.pin_y !== null && (
-                        <span style={{ color: '#0284c7' }}>📍 مثبت على المخطط</span>
+                      {cardPinCount > 0 && (
+                        <span style={{ color: '#0284c7', fontWeight: 900 }}>
+                          📍 {cardPinCount} {cardPinCount === 1 ? 'نقطة مصورة على الشوب دروينج' : 'نقاط مصورة على الشوب دروينج'}
+                        </span>
+                      )}
+                      {cardMeta.videoUrl && (
+                        <span style={{ color: '#7c3aed', fontWeight: 900 }}>🎥 فيديو مرفق</span>
+                      )}
+                      {cardMeta.docUrl && (
+                        <span style={{ color: '#059669', fontWeight: 900 }}>📄 مستند مرفق</span>
                       )}
                     </div>
 
-                    {visit.notes && <div className={styles.visitNotes}>{visit.notes}</div>}
+                    {cardCleanNotes && <div className={styles.visitNotes}>{cardCleanNotes}</div>}
+
+                    {(cardMeta.videoUrl || cardMeta.docUrl) && (
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '0.6rem' }}>
+                        {cardMeta.videoUrl && (
+                          <AttachmentViewButton
+                            url={cardMeta.videoUrl}
+                            label="🎥 تشغيل فيديو الزيارة"
+                            title={`فيديو الزيارة: ${visit.title}`}
+                          />
+                        )}
+                        {cardMeta.docUrl && (
+                          <AttachmentViewButton
+                            url={cardMeta.docUrl}
+                            label="📄 عرض المستند المرفق"
+                            title={`مستند الزيارة: ${visit.title}`}
+                          />
+                        )}
+                      </div>
+                    )}
 
                     {/* Photos Preview: Before & After */}
                     <div className={styles.photosComparisonRow}>
@@ -766,6 +935,16 @@ export default function QcTab({ logic }: { logic: any }) {
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <button
+                        type="button"
+                        className={styles.compareBtn}
+                        style={{ background: '#0284c7', color: '#fff', border: 'none' }}
+                        onClick={() => openEditVisitModal(visit)}
+                        title="فتح الزيارة ومخطط الشوب دروينج ونقاط الصور والفيديو"
+                      >
+                        <MapPin size={13} />
+                        <span>فتح الزيارة والشوب دروينج</span>
+                      </button>
                       <button
                         type="button"
                         className={styles.actionIconBtn}
@@ -1027,13 +1206,220 @@ export default function QcTab({ logic }: { logic: any }) {
                   />
                 </div>
 
-                {/* 📸 Before & After Photos with Camera Stamp */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                {/* 🗺️ مخطط الشوب دروينج التفاعلي داخل الزيارة لتوقيع نقاط الصور والفيديوهات */}
+                <div
+                  style={{
+                    background: '#0f172a',
+                    color: '#f8fafc',
+                    borderRadius: '14px',
+                    padding: '1rem',
+                    marginBottom: '1rem',
+                    border: '1px solid #334155',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <Compass size={18} color="#38bdf8" />
+                      <strong style={{ fontSize: '0.92rem' }}>
+                        مخطط الشوب دروينج للزيارة — اضغط على المخطط لوضع نقاط الصور التي التقطتها 📍
+                      </strong>
+                    </div>
+                    <span style={{ background: '#0284c7', color: '#fff', padding: '0.2rem 0.65rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 900 }}>
+                      {visitPhotoPins.length} نقاط مصورة على المخطط
+                    </span>
+                  </div>
+
+                  {(() => {
+                    const selectedDrawingObj = drawings.find(d => d.id === visitDrawingId) || activeDrawing;
+                    const drawingImgSrc = selectedDrawingObj?.drawing_url || visitCustomDrawingUrl;
+
+                    if (!drawingImgSrc) {
+                      return (
+                        <div style={{ background: '#1e293b', borderRadius: '10px', padding: '1rem', textAlign: 'center' }}>
+                          <p style={{ margin: '0 0 0.75rem', fontSize: '0.82rem', color: '#cbd5e1', fontWeight: 700 }}>
+                            ارفع صورة الشوب دروينج لهذه الزيارة لتتمكن من وضع نقاط الصور والفيديوهات عليها مباشرةً:
+                          </p>
+                          <TelegramAttachmentField
+                            module="project_drawings"
+                            value={visitCustomDrawingUrl}
+                            onChange={setVisitCustomDrawingUrl}
+                            label="صورة مخطط الشوب دروينج للزيارة"
+                            allowStamp={false}
+                          />
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div>
+                        <div
+                          style={{
+                            position: 'relative',
+                            width: '100%',
+                            maxHeight: '380px',
+                            overflow: 'auto',
+                            borderRadius: '10px',
+                            border: '2px solid #38bdf8',
+                            background: '#020617',
+                            cursor: 'crosshair',
+                          }}
+                          onClick={handleModalDrawingClick}
+                        >
+                          <img
+                            ref={modalDrawingImgRef}
+                            src={drawingImgSrc}
+                            alt="مخطط الشوب دروينج"
+                            style={{ width: '100%', display: 'block', userSelect: 'none' }}
+                          />
+                          {visitPhotoPins.map((pin) => {
+                            const isSelected = pin.id === selectedPinId;
+                            return (
+                              <div
+                                key={pin.id}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedPinId(pin.id);
+                                }}
+                                title={`${pin.label} (اضغط لفتح أو تعديل صورة/فيديو النقطة)`}
+                                style={{
+                                  position: 'absolute',
+                                  left: `${pin.x}%`,
+                                  top: `${pin.y}%`,
+                                  transform: 'translate(-50%, -50%)',
+                                  width: isSelected ? '32px' : '26px',
+                                  height: isSelected ? '32px' : '26px',
+                                  borderRadius: '50%',
+                                  background: pin.photoUrl || pin.videoUrl ? '#10b981' : '#ef4444',
+                                  color: '#ffffff',
+                                  fontWeight: 900,
+                                  fontSize: '0.78rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  border: isSelected ? '3px solid #facc15' : '2px solid #ffffff',
+                                  boxShadow: '0 4px 12px rgba(0,0,0,0.45)',
+                                  cursor: 'pointer',
+                                  zIndex: isSelected ? 10 : 5,
+                                }}
+                              >
+                                {pin.pinNumber}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* قائمة نقاط الصور الموضوعة على الشوب دروينج */}
+                        {visitPhotoPins.length > 0 && (
+                          <div style={{ marginTop: '0.85rem', background: '#1e293b', borderRadius: '10px', padding: '0.85rem' }}>
+                            <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
+                              {visitPhotoPins.map((pin) => (
+                                <button
+                                  key={pin.id}
+                                  type="button"
+                                  onClick={() => setSelectedPinId(pin.id)}
+                                  style={{
+                                    padding: '0.35rem 0.7rem',
+                                    borderRadius: '8px',
+                                    border: pin.id === selectedPinId ? '2px solid #38bdf8' : '1px solid #475569',
+                                    background: pin.id === selectedPinId ? '#0284c7' : '#0f172a',
+                                    color: '#fff',
+                                    fontWeight: 800,
+                                    fontSize: '0.76rem',
+                                    cursor: 'pointer',
+                                  }}
+                                >
+                                  📍 نقطة #{pin.pinNumber}: {pin.label} {pin.photoUrl ? '📸' : ''} {pin.videoUrl ? '🎥' : ''}
+                                </button>
+                              ))}
+                            </div>
+
+                            {(() => {
+                              const currentPin = visitPhotoPins.find(p => p.id === selectedPinId) || visitPhotoPins[0];
+                              if (!currentPin) return null;
+                              return (
+                                <div style={{ background: '#ffffff', color: '#0f172a', borderRadius: '10px', padding: '0.85rem' }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', marginBottom: '0.65rem' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
+                                      <span style={{ background: '#0284c7', color: '#fff', padding: '0.2rem 0.55rem', borderRadius: '6px', fontWeight: 900, fontSize: '0.75rem' }}>
+                                        نقطة #{currentPin.pinNumber} (X:{currentPin.x}%, Y:{currentPin.y}%)
+                                      </span>
+                                      <input
+                                        type="text"
+                                        value={currentPin.label}
+                                        onChange={(e) => {
+                                          const val = e.target.value;
+                                          setVisitPhotoPins(prev =>
+                                            prev.map(p => (p.id === currentPin.id ? { ...p, label: val } : p))
+                                          );
+                                        }}
+                                        placeholder="وصف النقطة (مثال: عمود C4 أو حمام الدور الأول)"
+                                        className={styles.inputField}
+                                        style={{ flex: 1, padding: '0.4rem 0.65rem' }}
+                                      />
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const remaining = visitPhotoPins
+                                          .filter(p => p.id !== currentPin.id)
+                                          .map((p, idx) => ({ ...p, pinNumber: idx + 1 }));
+                                        setVisitPhotoPins(remaining);
+                                        setSelectedPinId(remaining[0]?.id || null);
+                                      }}
+                                      style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '8px', padding: '0.4rem 0.65rem', cursor: 'pointer', fontWeight: 800, fontSize: '0.75rem' }}
+                                    >
+                                      حذف النقطة
+                                    </button>
+                                  </div>
+
+                                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+                                    <TelegramAttachmentField
+                                      module="site_visits"
+                                      value={currentPin.photoUrl || null}
+                                      onChange={(url) => {
+                                        setVisitPhotoPins(prev =>
+                                          prev.map(p => (p.id === currentPin.id ? { ...p, photoUrl: url } : p))
+                                        );
+                                      }}
+                                      label={`📸 صورة النقطة #${currentPin.pinNumber} (${currentPin.label})`}
+                                      caption={`نقطة #${currentPin.pinNumber} (${currentPin.label}) - ${visitTitle}`}
+                                      allowStamp={true}
+                                      stampContext={{
+                                        buildingName: project?.Property || '',
+                                        boqItem: `${visitStage || 'زيارة موقع'} - ${currentPin.label}`,
+                                        capturedBy: visitInspector || '',
+                                      }}
+                                    />
+                                    <TelegramAttachmentField
+                                      module="site_visits"
+                                      value={currentPin.videoUrl || null}
+                                      onChange={(url) => {
+                                        setVisitPhotoPins(prev =>
+                                          prev.map(p => (p.id === currentPin.id ? { ...p, videoUrl: url } : p))
+                                        );
+                                      }}
+                                      label={`🎥 فيديو النقطة #${currentPin.pinNumber} (اختياري)`}
+                                      caption={`فيديو نقطة #${currentPin.pinNumber} (${currentPin.label})`}
+                                      allowStamp={false}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* 📸 Before & After Photos + Video + Document with Camera Stamp */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem' }}>
                   <TelegramAttachmentField
                     module="site_visits"
                     value={visitPhotoBefore}
                     onChange={setVisitPhotoBefore}
-                    label="صورة الملاحظة قبل المعالجة (Before)"
+                    label="📸 صورة الملاحظة قبل المعالجة (Before)"
                     caption={`ملاحظة قبل: ${visitTitle} - مشروع ${project?.Property || ''}`}
                     allowStamp={true}
                     stampContext={{
@@ -1047,7 +1433,7 @@ export default function QcTab({ logic }: { logic: any }) {
                     module="site_visits"
                     value={visitPhotoAfter}
                     onChange={setVisitPhotoAfter}
-                    label="صورة المعالجة والإنهاء (After)"
+                    label="📸 صورة المعالجة والإنهاء (After)"
                     caption={`معالجة بعد: ${visitTitle} - مشروع ${project?.Property || ''}`}
                     allowStamp={true}
                     stampContext={{
@@ -1055,6 +1441,24 @@ export default function QcTab({ logic }: { logic: any }) {
                       boqItem: visitStage || 'معالجة فحص موقع',
                       capturedBy: visitInspector || '',
                     }}
+                  />
+
+                  <TelegramAttachmentField
+                    module="site_visits"
+                    value={visitVideoUrl}
+                    onChange={setVisitVideoUrl}
+                    label="🎥 فيديو الزيارة الميدانية (تصوير أو إرفاق فيديو)"
+                    caption={`فيديو زيارة: ${visitTitle} - مشروع ${project?.Property || ''}`}
+                    allowStamp={false}
+                  />
+
+                  <TelegramAttachmentField
+                    module="site_visits"
+                    value={visitDocUrl}
+                    onChange={setVisitDocUrl}
+                    label="📄 مستند / محضر فحص مرفق (PDF / Word / Excel)"
+                    caption={`مستند زيارة: ${visitTitle} - مشروع ${project?.Property || ''}`}
+                    allowStamp={false}
                   />
                 </div>
               </div>

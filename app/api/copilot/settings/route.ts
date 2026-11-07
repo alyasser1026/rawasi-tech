@@ -16,6 +16,8 @@ const DEFAULT_SETTINGS = {
   inactivityCloseMessage:
     '⏳ نظراً لعدم وجود رد أو استفسار جديد، تم إنهاء الجلسة الحالية وحفظ السياق.\nأنا ({botName}) موجود دائماً في خدمتك وقتما تبعث رسالة جديدة! 👋',
   voiceReplyMode: 'always',
+  autoDailyReportEnabled: true,
+  autoDailyReportTime: '20:00',
   operationSeqStart: 101,
 };
 
@@ -89,6 +91,12 @@ export async function POST(req: NextRequest) {
           : {}),
         ...(typeof payload.voiceReplyMode === 'string' && ['always', 'on_voice_or_request', 'off'].includes(payload.voiceReplyMode)
           ? { voiceReplyMode: payload.voiceReplyMode }
+          : {}),
+        ...(typeof payload.autoDailyReportEnabled === 'boolean'
+          ? { autoDailyReportEnabled: payload.autoDailyReportEnabled }
+          : {}),
+        ...(typeof payload.autoDailyReportTime === 'string' && /^\d{2}:\d{2}$/.test(payload.autoDailyReportTime.trim())
+          ? { autoDailyReportTime: payload.autoDailyReportTime.trim() }
           : {}),
         updatedAt: new Date().toISOString(),
       };

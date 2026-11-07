@@ -22,7 +22,7 @@ import {
   addLearnedRule, detectAutoLearningTrigger, formatLearnedRulesForPrompt,
 } from './copilot-auto-learning.mjs';
 import {
-  getBotSettings, synthesizeArabicSpeech,
+  getBotSettings, synthesizeArabicSpeech, attachFileToOperation, resolveOperationByNumberOrCode, updateOperationStatusInIndex,
 } from './copilot-bot-settings.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -295,6 +295,24 @@ async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, bot
 // ⏳ إدارة الجلسات النشطة وإغلاق المحادثة تلقائياً عند عدم الرد
 const activeSessionTimers = new Map();
 const activeSessionOpened = new Set();
+const pendingAttachmentForChat = new Map(); // chatId -> opNumber
+
+function buildOperationInlineMarkup(cardText) {
+  const match = String(cardText || '').match(/العملية رقم \[#(\d{1,6})\]/);
+  if (!match) return undefined;
+  const opNum = match[1];
+  return {
+    inline_keyboard: [
+      [
+        { text: `✅ اعتماد وترحيل #${opNum}`, callback_data: `op_approve:${opNum}` },
+        { text: `📎 إرفاق صورة/مستند #${opNum}`, callback_data: `op_attach:${opNum}` },
+      ],
+      [
+        { text: `🗑️ إلغاء المسودة #${opNum}`, callback_data: `op_delete:${opNum}` },
+      ],
+    ],
+  };
+}
 
 function clearInactivityTimer(chatId) {
   const key = String(chatId);
@@ -737,6 +755,96 @@ async function processTelegramMessage(msg) {
     }
   }
 
+  // 📎📸 معالجة إرفاق الصور والمستندات والفيديوهات + قراءة الفواتير بالذكاء البصري (OCR Vision)
+  const hasPhoto = Array.isArray(msg.photo) && msg.photo.length > 0;
+  const hasDocument = Boolean(msg.document);
+  const hasVideo = Boolean(msg.video);
+
+  if ((hasPhoto || hasDocument || hasVideo) && BOT_TOKEN) {
+    const largestPhoto = hasPhoto ? msg.photo[msg.photo.length - 1] : null;
+    const fileId = largestPhoto?.file_id || msg.document?.file_id || msg.video?.file_id;
+    const fileName = msg.document?.file_name || msg.video?.file_name || (hasPhoto ? `photo_${Date.now()}.jpg` : 'attachment');
+    const mimeType = msg.document?.mime_type || msg.video?.mime_type || (hasPhoto ? 'image/jpeg' : 'application/octet-stream');
+    const fileType = hasPhoto ? 'photo' : hasVideo ? 'video' : 'document';
+
+    // هل يريد المستخدم إرفاق الملف بعملية معينة؟ (عبر زر الإرفاق أو الرد على بطاقة العملية أو ذكر رقم العملية)
+    const quotedOpMatch = actor.quotedMessageText?.match(/#(\d{2,6})/);
+    const captionOpMatch = rawText.match(/(?:ارفق|إرفاق|مرفق|ربط|تبع|للعمليه|للعملية|العمليه|العملية)\s*(?:رقم|#)?\s*#?(\d{2,6})/i);
+    const pendingOpNum = pendingAttachmentForChat.get(String(chatId));
+    const targetOpNum = captionOpMatch?.[1] || quotedOpMatch?.[1] || pendingOpNum || null;
+
+    if (targetOpNum || hasDocument || hasVideo) {
+      pendingAttachmentForChat.delete(String(chatId));
+      const attachedOp = attachFileToOperation(targetOpNum || 'latest', {
+        fileId,
+        fileName,
+        mimeType,
+        fileType,
+      });
+      const opTag = attachedOp?.opNumber ? `#${attachedOp.opNumber}` : (targetOpNum ? `#${targetOpNum}` : 'الأخيرة');
+      const totalAtt = Array.isArray(attachedOp?.attachments) ? attachedOp.attachments.length : 1;
+      const attachReply = [
+        `📎 تم إرفاق ${hasPhoto ? 'الصورة' : hasVideo ? 'الفيديو' : 'المستند'} بنجاح بالعملية رقم [${opTag}]`,
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+        `🔢 رقم العملية: ${opTag} (${attachedOp?.recordCode || '—'})`,
+        `📄 اسم الملف المرفق: ${fileName}`,
+        `🏷️ نوع المرفق: ${hasPhoto ? 'صورة 📸' : hasVideo ? 'فيديو 🎥' : 'مستند رسمي 📄'} (${mimeType})`,
+        `🗂️ إجمالي المرفقات على هذه العملية: ${totalAtt} مرفق`,
+        `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+        `✅ تم حفظ المرفق وربطه بسجل العملية في سحابة فاي تك.`,
+      ].join('\n');
+      await sendTelegramMessage(chatId, attachReply, messageId, {
+        html: false,
+        replyMarkup: buildOperationInlineMarkup(`العملية رقم [${opTag}]`),
+      });
+      return;
+    }
+
+    // قراءة صورة الفاتورة / الإيصال تلقائياً عبر Gemini Vision OCR إذا أرسل المستخدم صورة
+    if (hasPhoto && GEMINI_API_KEY && fileId) {
+      try {
+        await sendChatAction(chatId, 'typing');
+        const fileInfoRes = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${encodeURIComponent(fileId)}`, { signal: AbortSignal.timeout(12000) });
+        const fileInfo = await fileInfoRes.json();
+        if (fileInfo.ok && fileInfo.result?.file_path) {
+          const downloadUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileInfo.result.file_path}`;
+          const imgRes = await fetch(downloadUrl, { signal: AbortSignal.timeout(12000) });
+          if (imgRes.ok) {
+            const imgBuffer = Buffer.from(await imgRes.arrayBuffer());
+            const visionPrompt = rawText
+              ? `حلل هذه الصورة المرفقة مع ملاحظة المستخدم ("${rawText}"). إذا كانت فاتورة أو إيصال أو سند، حوّلها إلى أمر نصي مباشر لتسجيل مصروف أو قيد بالمبلغ والبيان والمورد والمشروع، وإلا اشرح محتواها باختصار:`
+              : `اقرأ هذه الصورة بدقة. إذا كانت فاتورة أو إيصال شراء أو سند، استخرج منها البيان والمبلغ الإجمالي بالريال واسم المورد واكتبها في جملة تبدأ بـ: "سجل مصروف [المبلغ] ريال [البيان]".`;
+
+            const visionRes = await fetch(GEMINI_GENERATE_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
+              body: JSON.stringify({
+                contents: [{
+                  role: 'user',
+                  parts: [
+                    { text: visionPrompt },
+                    { inlineData: { mimeType: 'image/jpeg', data: imgBuffer.toString('base64') } },
+                  ],
+                }],
+              }),
+              signal: AbortSignal.timeout(20000),
+            });
+            if (visionRes.ok) {
+              const visionJson = await visionRes.json();
+              const extracted = visionJson?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+              if (extracted) {
+                rawText = extracted;
+                await sendTelegramMessage(chatId, `📸 <i>تمت قراءة الصورة/الفاتورة بالذكاء البصري:</i>\n«${escapeTelegramText(extracted.slice(0, 400))}»`, messageId);
+              }
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Telegram photo OCR failed:', err?.message);
+      }
+    }
+  }
+
   if (!rawText) {
     await sendTelegramMessage(chatId, msg.voice || msg.audio
       ? 'ما قدرتش أقرأ التسجيل. ابعته تاني أو اكتب طلبك.'
@@ -924,7 +1032,10 @@ async function processTelegramMessage(msg) {
         await sendTelegramMessage(chatId, introHeader.trim(), messageId, { html: false });
       }
       for (const msgItem of reply.messages) {
-        await sendTelegramMessage(chatId, msgItem, messageId, { html: false });
+        await sendTelegramMessage(chatId, msgItem, messageId, {
+          html: false,
+          replyMarkup: buildOperationInlineMarkup(msgItem),
+        });
         await new Promise(r => setTimeout(r, 200));
       }
       if (shouldSendVoice) {
@@ -932,7 +1043,10 @@ async function processTelegramMessage(msg) {
       }
     } else {
       const fullReplyText = introHeader + (reply.text || '');
-      const delivery = await sendTelegramMessage(chatId, fullReplyText, messageId, { html: false });
+      const delivery = await sendTelegramMessage(chatId, fullReplyText, messageId, {
+        html: false,
+        replyMarkup: buildOperationInlineMarkup(reply.text || ''),
+      });
       if (delivery.ok && reply.memory) {
         conversation.remember({ ...actor, ...reply.memory, userMessageId: messageId,
           botMessageIds: delivery.messageIds, userText: cleanText });
@@ -951,7 +1065,77 @@ async function processTelegramMessage(msg) {
   }
 }
 
+async function handleCallbackQuery(cb) {
+  if (!cb?.id) return;
+  const chatId = cb.message?.chat?.id;
+  const messageId = cb.message?.message_id;
+  const data = String(cb.data || '');
+
+  const answerCb = async (text) => {
+    try {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callback_query_id: cb.id, text }),
+        signal: AbortSignal.timeout(5000),
+      });
+    } catch {}
+  };
+
+  const m = data.match(/^(op_approve|op_attach|op_delete):(\d{1,6})$/);
+  if (!m || !chatId) {
+    await answerCb('تم استلام الإجراء');
+    return;
+  }
+
+  const [, action, opNum] = m;
+  const op = resolveOperationByNumberOrCode(opNum);
+
+  if (action === 'op_attach') {
+    pendingAttachmentForChat.set(String(chatId), Number(opNum));
+    await answerCb(`جاهز لإرفاق ملف بالعملية #${opNum}`);
+    await sendTelegramMessage(
+      chatId,
+      `📎 أرسل الآن الصورة أو المستند (PDF / Word / Excel) أو الفيديو في المحادثة، وسأقوم بربطه فوراً بالعملية رقم [#${opNum}].`,
+      messageId,
+      { html: false }
+    );
+    return;
+  }
+
+  if (action === 'op_approve') {
+    updateOperationStatusInIndex(opNum, 'معتمد ومرحّل');
+    await answerCb(`تم اعتماد وترحيل العملية #${opNum}`);
+    const nowStr = new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' });
+    const msg = [
+      `✅ إشعار اعتماد وترحيل رسمي | العملية رقم [#${opNum}]`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `🔢 رقم العملية: #${opNum} (${op?.recordCode || '—'})`,
+      `📌 البيان: ${op?.summary || 'عملية مسجلة'}`,
+      `🕒 وقت الاعتماد: ${nowStr}`,
+      `🟢 الحالة الجديدة: معتمد ومرحّل نهائياً`,
+    ].join('\n');
+    await sendTelegramMessage(chatId, msg, messageId, { html: false });
+    return;
+  }
+
+  if (action === 'op_delete') {
+    updateOperationStatusInIndex(opNum, 'ملغاة');
+    await answerCb(`تم إلغاء المسودة #${opNum}`);
+    await sendTelegramMessage(
+      chatId,
+      `🗑️ تم إلغاء وإيقاف مسودة العملية رقم [#${opNum}] (${op?.recordCode || '—'}) بنجاح.`,
+      messageId,
+      { html: false }
+    );
+    return;
+  }
+}
+
 async function handleUpdate(update) {
+  if (update?.callback_query) {
+    return handleCallbackQuery(update.callback_query);
+  }
   const message = update?.message || update?.channel_post;
   if (!message) return;
   if (message.from?.is_bot) return;
@@ -1094,7 +1278,59 @@ const interruptedPdfSends = pdfRequestLog.recoverInterrupted();
 if (interruptedPdfSends) console.warn('PDF sends with an uncertain outcome after restart:', interruptedPdfSends);
 if (!pdfRequestLog.available) console.warn('PDF request log is unreadable — PDF sending stays disabled until it is fixed.');
 
+// ⏰ جدولة التقرير اليومي التلقائي (Scheduled Daily Digest) بتوقيت الرياض
+let _lastAutoReportSentDate = '';
+function startDailyReportScheduler() {
+  const targetChat = SHARED_CHAT_ID ?? CHAT_ID ?? RAW_CHAT_ID;
+  if (!targetChat) return;
+
+  setInterval(async () => {
+    try {
+      const s = getBotSettings();
+      if (!s.autoDailyReportEnabled) return;
+      const targetTime = (s.autoDailyReportTime || '20:00').trim();
+      const now = new Date();
+      const todayStr = getCopilotDate(now);
+      if (_lastAutoReportSentDate === todayStr) return;
+
+      const riyadhHHMM = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Riyadh',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).format(now);
+
+      if (riyadhHHMM === targetTime) {
+        _lastAutoReportSentDate = todayStr;
+        const verified = await resolveLiveCompanyAccess({ chatId: targetChat, userId: 0 });
+        if (!verified) return;
+        const tools = createCopilotTools({
+          supabaseUrl: SUPABASE_URL,
+          supabaseKey: verified.allowServiceRole ? SUPABASE_SERVICE_KEY : SUPABASE_PUBLIC_KEY,
+          accessToken: verified.accessToken,
+          companyId: verified.companyId,
+          detailedReads: true,
+          allowServiceRole: Boolean(verified.allowServiceRole),
+        });
+        const reportText = await runEnabledCopilotTool(
+          { name: 'get_daily_comprehensive_report', args: { date: 'today' } },
+          tools,
+          verified
+        );
+        const header = `⏰ <b>التقرير اليومي التلقائي المجدول (${targetTime}) — معك ${escapeTelegramText(s.botName)}</b>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
+        await sendTelegramMessage(targetChat, header + escapeTelegramText(reportText), undefined, { html: true });
+        if (s.voiceReplyMode !== 'off') {
+          await sendTelegramVoiceReply(targetChat, reportText, undefined, s.botName);
+        }
+      }
+    } catch (err) {
+      console.warn('Auto daily report scheduler error:', err?.message);
+    }
+  }, 45_000).unref();
+}
+
 initKnowledgeBase();
+startDailyReportScheduler();
 runPdfMockTest().catch(err => console.error('Mock test error:', err.message));
 // Polling timeout=25s (long-poll standard). AbortSignal is 35s. // TODO: env — COPILOT_POLL_TIMEOUT_S
 pollUpdates();

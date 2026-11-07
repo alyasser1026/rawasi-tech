@@ -92,8 +92,13 @@ export function AttachmentViewerModal({
   const isPdf =
     resolved?.mimeType?.toLowerCase().includes('pdf') ||
     resolved?.fileName?.toLowerCase().endsWith('.pdf');
+  const isVideo =
+    !isPdf &&
+    (resolved?.mimeType?.toLowerCase().startsWith('video/') ||
+      /\.(mp4|mov|webm|ogg|mkv|avi)$/i.test(resolved?.fileName || ''));
   const isImage =
     !isPdf &&
+    !isVideo &&
     (resolved?.mimeType?.toLowerCase().startsWith('image/') ||
       /\.(jpe?g|png|webp|gif|bmp)$/i.test(resolved?.fileName || ''));
 
@@ -145,6 +150,14 @@ export function AttachmentViewerModal({
               className={styles.fullImage}
             />
           )}
+          {!loading && !error && resolved && isVideo && (
+            <video
+              src={resolved.objectUrl}
+              controls
+              autoPlay
+              style={{ maxWidth: '100%', maxHeight: '72vh', borderRadius: '12px', background: '#000' }}
+            />
+          )}
           {!loading && !error && resolved && isPdf && (
             <iframe
               src={resolved.objectUrl}
@@ -152,7 +165,7 @@ export function AttachmentViewerModal({
               className={styles.pdfFrame}
             />
           )}
-          {!loading && !error && resolved && !isImage && !isPdf && (
+          {!loading && !error && resolved && !isImage && !isVideo && !isPdf && (
             <div style={{ textAlign: 'center', padding: '2rem' }}>
               <FileText size={42} style={{ marginBottom: '0.75rem', color: '#38bdf8' }} />
               <p style={{ margin: '0 0 1rem', fontWeight: 800 }}>{resolved.fileName}</p>
@@ -250,6 +263,7 @@ export default function TelegramAttachmentField({
 }: TelegramAttachmentFieldProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const mobileCameraInputRef = useRef<HTMLInputElement | null>(null);
+  const mobileVideoInputRef = useRef<HTMLInputElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
@@ -497,7 +511,7 @@ export default function TelegramAttachmentField({
         <input
           ref={fileInputRef}
           type="file"
-          accept="image/*,application/pdf,.pdf"
+          accept="image/*,video/*,application/pdf,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.mp4,.mov,.webm"
           className={styles.hiddenInput}
           onChange={(e) => void handleSelectedFile(e.target.files?.[0])}
           disabled={disabled || isUploading}
@@ -511,9 +525,18 @@ export default function TelegramAttachmentField({
           onChange={(e) => void handleSelectedFile(e.target.files?.[0])}
           disabled={disabled || isUploading}
         />
+        <input
+          ref={mobileVideoInputRef}
+          type="file"
+          accept="video/*"
+          capture="environment"
+          className={styles.hiddenInput}
+          onChange={(e) => void handleSelectedFile(e.target.files?.[0])}
+          disabled={disabled || isUploading}
+        />
 
         {!hasAttachment && (
-          <div className={styles.actionsRow}>
+          <div className={styles.actionsRow} style={{ flexWrap: 'wrap' }}>
             <button
               type="button"
               className={styles.actionBtn}
@@ -525,7 +548,7 @@ export default function TelegramAttachmentField({
               ) : (
                 <Paperclip size={15} />
               )}
-              <span>{isUploading ? 'جاري الرفع إلى تيليجرام...' : 'اختيار صورة أو PDF'}</span>
+              <span>{isUploading ? 'جاري الرفع إلى تيليجرام...' : 'صورة / فيديو / مستند (PDF-Word-Excel)'}</span>
             </button>
 
             <button
@@ -536,6 +559,17 @@ export default function TelegramAttachmentField({
             >
               <Camera size={15} />
               <span>تصوير بالكاميرا</span>
+            </button>
+
+            <button
+              type="button"
+              className={styles.actionBtn}
+              style={{ background: '#7c3aed', color: '#fff', borderColor: '#6d28d9' }}
+              disabled={disabled || isUploading}
+              onClick={() => mobileVideoInputRef.current?.click()}
+            >
+              <Camera size={15} />
+              <span>🎥 تصوير/إرفاق فيديو</span>
             </button>
           </div>
         )}

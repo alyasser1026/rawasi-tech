@@ -555,18 +555,23 @@ function formatAddJobOrderReply(result, companyLabel) {
 function formatUpdateOperationReply(result, companyLabel) {
   const u = result.updated || {};
   const opTag = u.op_number ? `#${u.op_number}` : (u.reference || '#');
-  const changesList = Array.isArray(u.changes) ? u.changes.map(c => `• ${c}`).join('\n') : '• تم حفظ التعديلات بنجاح';
+  const nowStr = new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' });
+  const changesList = Array.isArray(u.changes) ? u.changes.map(c => `  🔸 ${c}`).join('\n') : '  🔸 تم حفظ التعديلات بنجاح';
   return [
-    `✏️ تم تعديل العملية رقم [${opTag}] بنجاح!`,
-    `🔢 رقم العملية: ${opTag} | المرجع: ${u.reference || '—'}`,
-    `الشركة: ${companyLabel}`,
-    `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `📝 نوع العملية: ${u.type || 'عملية مسجلة'}`,
-    `🔄 التعديلات التي تم تطبيقها:`,
+    `🔔 إشعار تعديل عملية معتمد | العملية رقم [${opTag}]`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🔢 رقم العملية السريع: ${opTag}`,
+    `🆔 الكود المرجعي بالنظام: ${u.reference || '—'}`,
+    `📂 تصنيف العملية: ${u.type || 'عملية مسجلة'}`,
+    u.summary ? `📌 البيان الحالي: ${u.summary}` : null,
+    `🏢 الشركة: ${companyLabel}`,
+    `🕒 وقت التعديل: ${nowStr}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🔄 سجل التعديلات المنفذة (قبل ⬅️ بعد):`,
     changesList,
-    `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `✅ تم حفظ التعديلات وتحديث السجلات في قاعدة البيانات بنجاح.`,
-    `💡 للتعديل مرة أخرى: اذكر «عدل العملية رقم ${u.op_number || opTag} ...» أو اضغط "رد" (Reply) على هذه الرسالة.`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `✅ تم تحديث السجل فوراً في قاعدة بيانات فاي تك.`,
+    `💡 للتعديل مجدداً أو إرفاق مستند: اكتب «عدل العملية ${u.op_number || opTag} ...» أو اضغط أزرار التحكم بالأسفل.`,
   ].filter(Boolean).join('\n');
 }
 
