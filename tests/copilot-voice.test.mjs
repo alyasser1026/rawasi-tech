@@ -117,6 +117,7 @@ test('uses the original Edge MP3 with measured pacing and escapes text for SSML'
   const mp3 = Buffer.from('synthetic mp3 fixture');
   const audio = await synthesizeArabicSpeech('بنود A & B\nالتفاصيل جاهزة', {
     geminiApiKey: 'synthetic-key',
+    voiceProvider: 'edge',
     fetchImpl: () => assert.fail('Gemini must not be used when Edge returns audio'),
     createEdgeTts: () => ({
       setMetadata: (...args) => { metadata = args; },

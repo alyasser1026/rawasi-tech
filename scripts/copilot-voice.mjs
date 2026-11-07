@@ -218,7 +218,7 @@ async function synthesizeWithGemini(text, settings, apiKey, fetchImpl) {
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: settings.voiceName || 'Aoede' } } },
       },
     }),
-    signal: AbortSignal.timeout(10000),
+    signal: AbortSignal.timeout(25000),
   });
   if (!response.ok) return null;
   const data = await response.json();
@@ -272,8 +272,16 @@ export async function synthesizeArabicSpeech(rawText, {
     const audio = await synthesizeWithGeminiPro(text, voiceSettings, geminiApiKey, geminiVoice, fetchImpl).catch(() => null);
     if (audio) return audio;
   }
+  // 1) إعطاء الأولوية دائماً لصوت Gemini قبل Edge TTS
+  if (geminiApiKey && voiceProvider !== 'edge' && !prefersGeminiPro) {
+    const geminiAudio = await synthesizeWithGemini(text, voiceSettings, geminiApiKey, fetchImpl).catch(() => null);
+    if (geminiAudio) return geminiAudio;
+    if (voiceSettings.onlyGeminiVoice) return null;
+  }
+
+  if (voiceSettings.onlyGeminiVoice) return null;
+
+  // 2) محرك Edge TTS كبديل أو عند طلبه صراحة
   const edge = await synthesizeWithEdge(text, voiceSettings, createEdgeTts, workReply).catch(() => null);
-  if (edge || prefersGeminiPro || !geminiApiKey) return edge;
-  if (voiceSettings.onlySalmaVoice || voiceSettings.mozzaModeEnabled) return null;
-  return synthesizeWithGemini(text, voiceSettings, geminiApiKey, fetchImpl).catch(() => null);
+  return edge;
 }
