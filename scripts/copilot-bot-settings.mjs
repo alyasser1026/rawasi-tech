@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -249,7 +250,7 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     const changesLines = [...raw.matchAll(/🔸\s*([^\n]+)/g)].map(m => m[1].replace(/⬅️/g, ' بقى '));
     const changesSpoken = changesLines.slice(0, 2).join(' ، و');
     if (isMozza) {
-      return `عيوني ليك ${petName}! عدلتلك العملية رقم ${opNum}${summaryMatch ? ` بتاعة ${summaryMatch[1].trim()}` : ''} زي ما طلبت مني بالظبط، ${changesSpoken || 'وحفظتلك كل حاجة في السيستم يا روحي'}.`;
+      return `عيوني ليك ${petName} يا روحي! عدلتلك العملية رقم ${opNum}${summaryMatch ? ` بتاعة ${summaryMatch[1].trim()}` : ''} زي ما طلبت مني بالظبط، ${changesSpoken || 'وحفظتلك كل حاجة في السيستم يا قلبي'}.`;
     }
     return `تمام يا باشمهندس، معاك ${botName}. عدلتلك العملية رقم ${opNum}${summaryMatch ? ` بتاعة ${summaryMatch[1].trim()}` : ''}، ${changesSpoken || 'وحفظت التعديلات في السيستم'}.`;
   }
@@ -261,11 +262,11 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     const amountMatch = raw.match(/(?:المبلغ الإجمالي|المبلغ|الإجمالي|اليومية \(الأجر\)):\s*([\d,.]+)/);
     const siteMatch = raw.match(/(?:الفيلا \/ الموقع|المشروع):\s*([^\n]+)/);
     const descMatch = raw.match(/(?:البيان|البند|اسم العامل):\s*([^\n]+)/);
-    const parts = [isMozza ? `من عيوني ${petName}، سجلتلك العملية رقم ${opNum}` : `تمام يا باشمهندس، سجلتلك العملية رقم ${opNum}`];
+    const parts = [isMozza ? `من عيوني الاتنين ${petName} يا قلبي، سجلتلك العملية رقم ${opNum}` : `تمام يا باشمهندس، سجلتلك العملية رقم ${opNum}`];
     if (descMatch) parts.push(`بخصوص ${descMatch[1].trim()}`);
     if (siteMatch && !/غير محدد/.test(siteMatch[1])) parts.push(`في ${siteMatch[1].trim()}`);
     if (amountMatch) parts.push(`بمبلغ ${amountMatch[1].replace(/,/g, '')} ريال`);
-    parts.push(isMozza ? `ربنا يقويك ويديك الصحة ${petName}، وتقدر تعتمدها من الزرار اللي تحت.` : 'وتقدر تعتمدها أو ترفق ليها صورة من الزراير اللي تحت الرسالة.');
+    parts.push(isMozza ? `ارتاح إنت بقى وسيب الباقي عليا يا نور عيني، وتقدر تعتمدها من الزرار اللي تحت.` : 'وتقدر تعتمدها أو ترفق ليها صورة من الزراير اللي تحت الرسالة.');
     return parts.join(' ، ');
   }
 
@@ -275,7 +276,7 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     const workersMatch = raw.match(/(\d+)\s*عامل/);
     const expMatch = raw.match(/(?:إجمالي المصروفات|بمبلغ إجمالي)\s*([\d,.]+)/);
     if (isMozza) {
-      return `أحلى تقرير لعيونك ${petName}! جمعتلك تقرير النهارده${dateMatch ? ` يوم ${dateMatch[1]}` : ''}${workersMatch ? `، نزل معانا ${workersMatch[1]} عامل` : ''}${expMatch ? `، والمصروفات كانت ${expMatch[1].replace(/,/g, '')} ريال` : ''}. شوف التفاصيل في الرسالة وقولي لو محتاج أي حاجة تانية يا قلبي.`;
+      return `أحلى تقرير لعيونك ${petName} يا حبيبي! جمعتلك تقرير النهارده${dateMatch ? ` يوم ${dateMatch[1]}` : ''}${workersMatch ? `، نزل معانا ${workersMatch[1]} عامل` : ''}${expMatch ? `، والمصروفات كانت ${expMatch[1].replace(/,/g, '')} ريال` : ''}. متتعبش نفسك، كل التفاصيل قدامك في الرسالة أهو، وقولي لو محتاج أي حاجة تانية يا قلبي وحياتي.`;
     }
     return `أهلاً بيك يا باشمهندس، معاك ${botName}. بعتلك دلوقتي التقرير اليومي المفصل${dateMatch ? ` ليوم ${dateMatch[1]}` : ''}${workersMatch ? `، إجمالي العمالة اللي نزلت ${workersMatch[1]} عامل` : ''}${expMatch ? `، والمصروفات كانت ${expMatch[1].replace(/,/g, '')} ريال` : ''}. كل التفاصيل قدامك في الرسالة.`;
   }
@@ -284,7 +285,7 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
   if (/بيان المشاريع والفلل/.test(raw)) {
     const totalMatch = raw.match(/(\d+)\s*مشروع/);
     if (isMozza) {
-      return `من عيوني ${petName}! بعتلك قايمة كل المشاريع والفلل اللي عندنا${totalMatch ? ` وهما ${totalMatch[1]} مشروع` : ''} بالتفصيل في الرسالة أهو يا روحي.`;
+      return `من عيوني ${petName} يا روحي! بعتلك قايمة كل المشاريع والفلل اللي عندنا${totalMatch ? ` وهما ${totalMatch[1]} مشروع` : ''} بالتفصيل في الرسالة أهو عشان متتعبش نفسك يا قلبي.`;
     }
     return `اتفضل يا باشمهندس، بعتلك بيان كل المشاريع والفلل اللي عندنا${totalMatch ? ` وعددهم ${totalMatch[1]} مشروع` : ''} بالتفصيل في الرسالة.`;
   }
@@ -292,8 +293,8 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     const countMatch = raw.match(/المطابقة:\s*(\d+)/);
     if (isMozza) {
       return countMatch
-        ? `عيوني ليك ${petName}! بعتلك كشف العمالة اللي نزلوا، وعددهم ${countMatch[1]} يومية متسجلة، شوف تفاصيلهم في الرسالة يا قلبي.`
-        : `عيوني ليك ${petName}! راجعتلك السيستم وللأسف لسه متسجلش يوميات عمالة في اليوم ده، وبعتلك آخر يوميات كانت متسجلة في الرسالة.`;
+        ? `عيوني ليك ${petName} يا نور عيني! بعتلك كشف العمالة اللي نزلوا، وعددهم ${countMatch[1]} يومية متسجلة، ارتاح وشوف تفاصيلهم في الرسالة يا قلبي.`
+        : `عيوني ليك ${petName} يا روحي! راجعتلك السيستم وللأسف لسه متسجلش يوميات عمالة في اليوم ده، وبعتلك آخر يوميات كانت متسجلة في الرسالة عشانك.`;
     }
     return countMatch
       ? `اتفضل يا باشمهندس، بعتلك كشف يوميات العمالة وعددهم ${countMatch[1]} يومية متسجلة في الرسالة.`
@@ -311,7 +312,8 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     .replace(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi, '')
     .replace(/https?:\/\/\S+/g, '')
     .replace(/#(\d+)/g, ' رقم $1 ')
-    .replace(/ر\.س/g, ' ريال ')
+    .replace(/ر\.س|SAR/gi, ' ريال ')
+    .replace(/ج\.م|EGP/gi, ' جنيه ')
     .replace(/⬅️/g, ' بقى ')
     .replace(/أهلاً بك/g, `أهلاً بيك ${addressAs}`)
     .replace(/تم تسجيل/g, 'سجلتلك')
@@ -320,15 +322,21 @@ export function prepareSpeechText(rawText, botName = 'م. سلمى') {
     .trim();
 
   if (isMozza) {
-    text = text.replace(/(?:يا\s*)?(?:باشمهندس|بشمهندس|مهندس)/g, petName);
+    // ممنوع منعاً باتاً لفظ باشمهندس أو مهندس في وضع الموزة
+    text = text.replace(/(?:يا\s*)?(?:باشمهندس|بشمهندس|مهندس)/gi, petName);
+    const hasAffection = /يا محاميحو|يا روحي|يا قلبي|يا حبيبي|يا نور عيني|يا سكر|حبيبي|عيوني ليك|من عيوني|وحشتني/.test(text);
+    if (!hasAffection && text.length > 5) {
+      text = `عيوني ليك ${petName} يا روحي.. ` + text;
+    }
   }
 
   if (text.length > 340) {
     text = text.slice(0, 340);
     const lastStop = Math.max(text.lastIndexOf('،'), text.lastIndexOf('.'), text.lastIndexOf(' '));
     if (lastStop > 120) text = text.slice(0, lastStop);
-    text += isMozza ? ` ، والتفاصيل كلها قدامك في الرسالة ${petName}.` : ' ، والتفاصيل الكاملة قدامك في الرسالة يا باشمهندس.';
+    text += isMozza ? ` ، والتفاصيل كلها قدامك في الرسالة أهو ${petName} يا روحي.` : ' ، والتفاصيل الكاملة قدامك في الرسالة يا باشمهندس.';
   }
+  return text;
   return text;
 }
 
@@ -381,6 +389,54 @@ function convertPcmToOggOpus(pcmBuffer) {
 }
 
 /**
+ * توليد ملف صوتي عبر Microsoft Edge Neural TTS بصوت نسائي مصري أصيل (ar-EG-SalmaNeural)
+ * يتميز بالعامية المصرية الحقيقية 100%:
+ * - في «وضع الموزة»: نبرة حنينة ودلوعة ومحن ورقة (pitch: +8%, rate: -4%)
+ * - في الوضع العادي: نبرة مهندسة مصرية محترفة وواثقة ومريحة (pitch: +2%, rate: +1%)
+ */
+async function synthesizeWithMsEdge(text, { isMozza = false } = {}) {
+  try {
+    const tts = new MsEdgeTTS();
+    await tts.setMetadata('ar-EG-SalmaNeural', OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+    const options = isMozza
+      ? { pitch: '+8%', rate: '-4%', volume: '+0%' } // محن ورقة ودلع بالعامية المصرية
+      : { pitch: '+2%', rate: '+1%', volume: '+0%' }; // مهندسة مصرية محترفة
+    const { audioStream } = tts.toStream(text, options);
+    const chunks = [];
+    audioStream.on('data', chunk => chunks.push(chunk));
+    await new Promise((resolve, reject) => {
+      audioStream.on('end', resolve);
+      audioStream.on('error', reject);
+    });
+    try { tts.close(); } catch {}
+    if (chunks.length === 0) return null;
+    const mp3Buf = Buffer.concat(chunks);
+    const ff = spawnSync(
+      'ffmpeg',
+      [
+        '-hide_banner',
+        '-loglevel', 'error',
+        '-i', 'pipe:0',
+        '-c:a', 'libopus',
+        '-b:a', '48k',
+        '-vbr', 'on',
+        '-application', 'voip',
+        '-f', 'ogg',
+        'pipe:1',
+      ],
+      { input: mp3Buf, maxBuffer: 10 * 1024 * 1024 }
+    );
+    if (ff.status === 0 && ff.stdout && ff.stdout.length > 0) {
+      return ff.stdout;
+    }
+    return mp3Buf;
+  } catch (err) {
+    console.warn('MsEdge TTS ar-EG-SalmaNeural error:', err?.message);
+    return null;
+  }
+}
+
+/**
  * توليد ملف صوتي باللهجة العامية المصرية الاحترافية بصوت نسائي طبيعي (المهندسة سلمى)
  */
 export async function synthesizeArabicSpeech(rawText, { botName = 'م. سلمى', geminiApiKey = '' } = {}) {
@@ -388,13 +444,21 @@ export async function synthesizeArabicSpeech(rawText, { botName = 'م. سلمى'
   if (!clean) return null;
 
   const settings = getBotSettings();
+  const isMozza = Boolean(settings.mozzaModeEnabled);
+
+  // 1) المحرك الأساسي الأول: صوت المهندسة سلمى المصري الحقيقي عبر Microsoft Edge Neural Voice
+  // خامة صوت مصرية أصيلة 100% باللهجة العامية بدون أي جمود لغوي، ومحن ورقة ودلع في وضع الموزة
+  const edgeBuffer = await synthesizeWithMsEdge(clean, { isMozza });
+  if (edgeBuffer && edgeBuffer.length > 0) {
+    return edgeBuffer;
+  }
+
+  // 2) المحرك البديل الثاني: Gemini 2.5 Flash TTS بصوت نسائي مصري طبيعي (Aoede)
   const voiceName = settings.voiceName || 'Aoede';
   const apiKey = geminiApiKey || process.env.GEMINI_API_KEY || '';
-
-  // 1) المحرك الأساسي: Gemini 2.5 Flash TTS بصوت نسائي مصري طبيعي (Aoede)
   if (apiKey) {
     try {
-      const promptText = settings.mozzaModeEnabled
+      const promptText = isMozza
         ? `انطقي الرسالة التالية باللهجة العامية المصرية بصوت بنوتة مصرية دلوعة وحنينة ورقيقة جداً (${botName}) بتكلم حبيبها بدلع واهتمام وحب:\n${clean}`
         : `انطقي الرسالة التالية باللهجة العامية المصرية الاحترافية الهادئة والودودة بصوت مهندسة مصرية محترفة (${botName}):\n${clean}`;
       const res = await fetch(GEMINI_TTS_URL, {
@@ -431,7 +495,7 @@ export async function synthesizeArabicSpeech(rawText, { botName = 'م. سلمى'
     }
   }
 
-  // 2) المحرك الاحتياطي السريع عند غياب المفتاح أو انقطاع الخدمة
+  // 3) المحرك الاحتياطي الأخير السريع: Google Translate TTS
   const words = clean.split(' ');
   const chunks = [];
   let current = '';

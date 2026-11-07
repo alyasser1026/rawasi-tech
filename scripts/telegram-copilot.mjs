@@ -358,6 +358,9 @@ function scheduleInactivityClose(chatId, actor) {
         .replace(/\{botTitle\}/g, latestSettings.botTitle || '');
       if (closeMsg.trim()) {
         await sendTelegramMessage(chatId, closeMsg, undefined, { html: false, replyMarkup: { remove_keyboard: true } });
+        if (latestSettings.voiceReplyMode === 'always') {
+          await sendTelegramVoiceReply(chatId, closeMsg, undefined, latestSettings.botName);
+        }
       }
     } catch (err) {
       console.warn('Failed to send inactivity close message:', err?.message);
