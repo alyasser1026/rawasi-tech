@@ -5,7 +5,8 @@ import { buffer } from 'node:stream/consumers';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { egyptianNumberWords, formatEgyptianRiyals } from './copilot-spoken-money.mjs';
 
-const GEMINI_TTS_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent';
+const GEMINI_TTS_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-lite-tts:generateContent';
+const GEMINI_TTS_FALLBACK_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent';
 const GEMINI_INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 const GEMINI_PRO_VOICE_MODEL = 'gemini-3.8-flash-tts';
 const MAX_SPEECH_LENGTH = 380;
@@ -179,14 +180,14 @@ async function synthesizeWithEdge(text, settings, createEdgeTts, workReply) {
   return null;
 }
 
-async function convertPcmToOpus(pcm) {
-  const encoder = spawn('ffmpeg', [
-    '-hide_banner', '-loglevel', 'error', '-f', 's16le', '-ar', '24000', '-ac', '1',
-    '-i', 'pipe:0', '-c:a', 'libopus', '-b:a', '48k', '-application', 'voip', '-f', 'ogg', 'pipe:1',
-  ], { windowsHide: true, signal: AbortSignal.timeout(5000), stdio: ['pipe', 'pipe', 'ignore'] });
+async function convertAudioToOpus(buf, isWav) {
+  const args = isWav
+    ? ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-c:a', 'libopus', '-b:a', '48k', '-application', 'voip', '-f', 'ogg', 'pipe:1']
+    : ['-hide_banner', '-loglevel', 'error', '-f', 's16le', '-ar', '24000', '-ac', '1', '-i', 'pipe:0', '-c:a', 'libopus', '-b:a', '48k', '-application', 'voip', '-f', 'ogg', 'pipe:1'];
+  const encoder = spawn('ffmpeg', args, { windowsHide: true, signal: AbortSignal.timeout(5000), stdio: ['pipe', 'pipe', 'ignore'] });
   encoder.stdin.on('error', () => {});
   const result = Promise.all([buffer(encoder.stdout), once(encoder, 'close')]);
-  encoder.stdin.end(pcm);
+  encoder.stdin.end(buf);
   const [audio, [exitCode]] = await result;
   return exitCode === 0 && audio.length
     ? { buffer: audio, mimeType: 'audio/ogg', fileName: 'salma_reply.ogg' }
@@ -194,10 +195,13 @@ async function convertPcmToOpus(pcm) {
 }
 
 function encodeGeminiAudio(data, mimeType) {
-  if (typeof data !== 'string' || !/^audio\/L16(?:;|$)/i.test(mimeType ?? '')) return null;
-  const pcm = Buffer.from(data, 'base64');
-  if (!pcm.length || pcm.length % 2 !== 0 || pcm.length > 5 * 1024 * 1024) return null;
-  return convertPcmToOpus(pcm);
+  if (typeof data !== 'string') return null;
+  const isL16 = /^audio\/L16(?:;|$)/i.test(mimeType ?? '');
+  const isWav = /^audio\/wav(?:;|$)/i.test(mimeType ?? '');
+  if (!isL16 && !isWav) return null;
+  const rawBytes = Buffer.from(data, 'base64');
+  if (!rawBytes.length || rawBytes.length > 5 * 1024 * 1024) return null;
+  return convertAudioToOpus(rawBytes, isWav);
 }
 
 async function synthesizeWithGemini(text, settings, apiKey, fetchImpl) {
@@ -208,22 +212,34 @@ async function synthesizeWithGemini(text, settings, apiKey, fetchImpl) {
     'Articulate each word and read every number, date, and unit in full. Leave a short pause after each sentence. Do not add words or read the directions aloud.',
     'Transcript:', text,
   ].join('\n');
-  const response = await fetchImpl(GEMINI_TTS_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseModalities: ['AUDIO'],
-        speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: settings.voiceName || 'Aoede' } } },
-      },
-    }),
-    signal: AbortSignal.timeout(25000),
-  });
-  if (!response.ok) return null;
-  const data = await response.json();
-  const audio = data?.candidates?.[0]?.content?.parts?.find(part => part.inlineData?.data)?.inlineData;
-  return encodeGeminiAudio(audio?.data, audio?.mimeType);
+  const urls = [GEMINI_TTS_URL, GEMINI_TTS_FALLBACK_URL];
+  for (const url of urls) {
+    try {
+      const response = await fetchImpl(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: settings.voiceName || 'Aoede' } } },
+          },
+        }),
+        signal: AbortSignal.timeout(25000),
+      });
+      if (!response.ok) {
+        if (response.status === 404 && urls.length > 1 && url === urls[0]) continue;
+        return null;
+      }
+      const data = await response.json();
+      const audio = data?.candidates?.[0]?.content?.parts?.find(part => part.inlineData?.data)?.inlineData;
+      const res = await encodeGeminiAudio(audio?.data, audio?.mimeType);
+      if (res) return res;
+    } catch {
+      continue;
+    }
+  }
+  return null;
 }
 
 async function synthesizeWithGeminiPro(text, settings, apiKey, voice, fetchImpl) {
