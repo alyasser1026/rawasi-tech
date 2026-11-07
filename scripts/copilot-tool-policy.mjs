@@ -256,17 +256,23 @@ function formatProjectsReply(result, companyLabel) {
   const allProjects = Array.isArray(result.all_projects) ? result.all_projects : [];
   const workedToday = Array.isArray(result.worked_today_projects) ? result.worked_today_projects : [];
   const partners = Array.isArray(result.partners_list) ? result.partners_list : [];
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا محاميحو';
+  const addr = isMozza ? pet : 'يا باشمهندس';
 
   if (mode === 'partners') {
     const byType = {};
     for (const pt of partners) {
-      const t = pt.partner_type || 'غير محدد';
+      const t = pt.partner_type || 'مش متحدد';
       if (!byType[t]) byType[t] = [];
       byType[t].push(pt);
     }
     const pLines = [
-      `👥 قائمة الشركاء والمقاولين والعمالة المسجلين — ${companyLabel}`,
-      `إجمالي السجلات المسجلة: ${result.partners_count ?? partners.length}`,
+      isMozza
+        ? `💖 من عيوني ${pet}! دي قايمة كل الشركاء والمقاولين والعمالة اللي متسجلين عندنا في ${companyLabel}:`
+        : `👥 قايمة الشركاء والمقاولين والعمالة المتسجلين عندنا — ${companyLabel}`,
+      `إجمالي الأسماء المتسجلة: ${result.partners_count ?? partners.length}`,
     ];
     for (const [typeLabel, list] of Object.entries(byType)) {
       pLines.push(`\n🔹 ${typeLabel} (${list.length}):`);
@@ -275,57 +281,55 @@ function formatProjectsReply(result, companyLabel) {
         const phoneTxt = item.phone && item.phone !== '—' ? ` (📱 ${item.phone})` : '';
         pLines.push(`  • ${item.name}${roleTxt}${phoneTxt}`);
       }
-      if (list.length > 35) pLines.push(`  ... وعدد ${list.length - 35} آخرين في نفس التصنيف.`);
+      if (list.length > 35) pLines.push(`  ... وفيه كمان ${list.length - 35} اسم في نفس القسم.`);
     }
     return pLines.join('\n');
   }
 
-  const s = getBotSettings();
-  const isMozza = Boolean(s.mozzaModeEnabled);
-  const pet = s.mozzaNickname || 'يا محاميحو';
   const lines = [
-    ...(isMozza ? [`💖 من عيوني ${pet}! جمعتلك بيان المشاريع والفلل كلها أهو:`] : []),
-    `🏗️ بيان المشاريع والفلل ونماذج المساحات — ${companyLabel}`,
-    `التاريخ المرجعي: ${dateChecked}`,
-    `إجمالي المشاريع المسجلة: ${result.total_existing_projects ?? allProjects.length} مشروع (منها ${result.active_in_progress_count ?? 0} قيد التنفيذ)`,
-    `المشاريع التي تم العمل عليها في هذا اليوم (${dateChecked}): ${workedToday.length} مشروع`,
+    ...(isMozza
+      ? [`💖 من عيوني ${pet}! جمعتلك كل المشاريع والفلل اللي عندنا أهو:`]
+      : [`🏗️ بص ${addr}، ده بيان المشاريع والفلل والمساحات اللي عندنا — ${companyLabel}`]),
+    `📅 تاريخ اليوم: ${dateChecked}`,
+    `• كل المشاريع المتسجلة عندنا: ${result.total_existing_projects ?? allProjects.length} مشروع (منهم ${result.active_in_progress_count ?? 0} شغالين دلوقتي)`,
+    `• الفلل والمشاريع اللي اشتغلنا فيها النهارده (${dateChecked}): ${workedToday.length} مشروع`,
   ];
 
   if (mode === 'worked_today') {
     if (workedToday.length === 0) {
-      lines.push('\n⚠️ لم يتم تسجيل حركات عمل (يوميات عمالة أو مصروفات أو صرف خامات) على أي فيلا بتاريخ ' + dateChecked + '.');
+      lines.push(`\n⚠️ لسه متسجلش أي شغل النهارده (لا عمالة ولا مصروفات ولا خامات) على أي فيلا في يوم ${dateChecked} ${addr}.`);
     } else {
-      lines.push('\n📌 الفلل والمشاريع التي اشتغلناها في هذا اليوم:');
+      lines.push('\n📌 الفلل والمشاريع اللي اشتغلنا فيها النهارده:');
       for (const p of workedToday) {
         const act = p.today_activity || {};
-        const wagePart = act.wages_available ? ` بإجمالي ${act.labor_wages || 0} ر.س` : '';
+        const wagePart = act.wages_available ? ` بحساب ${act.labor_wages || 0} ر.س` : '';
         lines.push(
-          `• ${p.name} (${p.status} — المرحلة: ${p.current_stage})` +
+          `• ${p.name} (${p.status} — واقفين في مرحلة: ${p.current_stage})` +
           `\n  - المهندس المسؤول: ${p.engineer_in_charge} | مدير المشروع: ${p.project_manager}` +
-          `\n  - حركة اليوم: عمالة (${act.workers_count || 0})${wagePart} | مصروفات (${act.expenses_count || 0}) بإجمالي ${act.expenses_total || 0} ر.س | خامات منصرفة (${act.material_issues_count || 0}) بإجمالي ${act.material_issues_total || 0} ر.س`
+          `\n  - اللي تم النهارده: عمالة (${act.workers_count || 0})${wagePart} | مصروفات (${act.expenses_count || 0}) بمبلغ ${act.expenses_total || 0} ر.س | خامات اتصرفت (${act.material_issues_count || 0}) بمبلغ ${act.material_issues_total || 0} ر.س`
         );
       }
     }
   }
 
   if (allProjects.length > 0) {
-    lines.push('\n📋 قائمة المشاريع والفلل ونماذجها ومساحاتها:');
+    lines.push('\n📋 كل المشاريع والفلل ونماذجها ومساحاتها:');
     for (const p of allProjects) {
       const act = p.today_activity || {};
       const todayBadge = p.worked_on_date
-        ? `✅ اشتغلناها (${act.workers_count || 0} عامل / مصروفات ${act.expenses_total || 0} ر.س)`
-        : '➖ لا توجد حركات مسجلة بهذا التاريخ';
+        ? `✅ اشتغلنا فيها النهارده (${act.workers_count || 0} عامل / مصروفات ${act.expenses_total || 0} ر.س)`
+        : '➖ مفيش شغل اتسجل عليها في اليوم ده';
       lines.push(
-        `• ${p.name} [كود: ${p.project_code}] — الحالة: ${p.status}` +
+        `• ${p.name} [كود: ${p.project_code}] — حالتها: ${p.status}` +
         `\n  - النموذج: ${p.unit_type} | المساحة: ${p.unit_area}` +
-        `\n  - المرحلة الحالية: ${p.current_stage}` +
+        `\n  - المرحلة اللي شغالة دلوقتي: ${p.current_stage}` +
         `\n  - المهندس المسؤول: ${p.engineer_in_charge} | مدير المشروع: ${p.project_manager}` +
-        (p.contract_value > 0 ? `\n  - قيمة التعاقد: ${p.contract_value.toLocaleString('en-US')} ر.س` : '') +
-        `\n  - موقف اليوم (${dateChecked}): ${todayBadge}`
+        (p.contract_value > 0 ? `\n  - قيمة العقد: ${p.contract_value.toLocaleString('en-US')} ر.س` : '') +
+        `\n  - أخبارها النهارده (${dateChecked}): ${todayBadge}`
       );
     }
   } else {
-    lines.push('\nلا توجد مشاريع مسجلة حالياً.');
+    lines.push('\nمفيش أي مشاريع متسجلة دلوقتي.');
   }
 
   return lines.join('\n');
@@ -343,30 +347,33 @@ function formatComprehensiveReportReply(result, companyLabel) {
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
   const pet = s.mozzaNickname || 'يا محاميحو';
+  const addr = isMozza ? pet : 'يا باشمهندس';
   const lines = [
-    ...(isMozza ? [`💖 عيوني ليك ${pet}! ده التقرير اليومي المفصل لكل الشغل والحسابات النهارده:`] : []),
+    ...(isMozza
+      ? [`💖 عيوني ليك ${pet}! ده التقرير اليومي المفصل لكل الشغل والحسابات النهارده:`]
+      : [`📊 اتفضل ${addr}، ده التقرير اليومي المفصل الشامل — ${companyLabel}`]),
     `📊 التقرير اليومي المفصل الشامل — ${companyLabel}`,
-    `📅 التاريخ: ${result.report_date} | النطاق: ${result.villa_filter || 'جميع المشاريع والفلل'}`,
+    `📅 ليوم: ${result.report_date} | الفلل: ${result.villa_filter || 'كل المشاريع والفلل'}`,
     '────────────────────────────',
   ];
 
   // 1) العمالة
   if (s1.available === false) {
-    lines.push(`1️⃣ العمالة اللي نزلت: غير متاح (راجع صلاحية يوميات العمالة labor_logs أو المصدر).`);
+    lines.push(`1️⃣ العمالة اللي نزلت: غير متاح (محتاج صلاحية يوميات العمالة labor_logs).`);
   } else {
-    lines.push(`1️⃣ العمالة اللي نزلت (${s1.records_count ?? 0} سجل / ${s1.unique_workers_count ?? 0} عامل):`);
+    lines.push(`1️⃣ العمالة اللي نزلت النهارده (${s1.records_count ?? 0} يومية / ${s1.unique_workers_count ?? 0} عامل):`);
     if (Array.isArray(s1.workers) && s1.workers.length > 0) {
       const wageSummary = s1.wages_available === false
         ? 'غير متاح (يتطلب صلاحية laborcost)'
         : `${s1.total_daily_wages ?? 0} ر.س`;
-      lines.push(`• إجمالي أيام الحضور: ${s1.total_attendance_days ?? 0} يوم | إجمالي اليوميات المستحقة: ${wageSummary}`);
+      lines.push(`• إجمالي أيام الحضور: ${s1.total_attendance_days ?? 0} يوم | حساب اليوميات كلها: ${wageSummary}`);
       for (const w of s1.workers.slice(0, 15)) {
-        const tareehaTxt = w.tareeha != null ? ` | طريحة: ${w.tareeha} منفذ: ${w.productivity ?? 0} (${w.completion_percentage || '—'})` : '';
-        const wageTxt = s1.wages_available === false ? '' : ` | يومية: ${w.daily_wage ?? 0} ر.س`;
-        lines.push(`  - ${w.worker_name} | ${w.site_ref} | بند: ${w.work_item}${wageTxt} (${w.status})${tareehaTxt}`);
+        const tareehaTxt = w.tareeha != null ? ` | طريحته: ${w.tareeha} وعمل: ${w.productivity ?? 0} (${w.completion_percentage || '—'})` : '';
+        const wageTxt = s1.wages_available === false ? '' : ` | يوميته: ${w.daily_wage ?? 0} ر.س`;
+        lines.push(`  - ${w.worker_name} | ${w.site_ref} | شغال في بند: ${w.work_item}${wageTxt} (${w.status})${tareehaTxt}`);
       }
     } else {
-      lines.push('• لم يتم تسجيل يوميات عمالة في هذا التاريخ حتى الآن.');
+      lines.push(`• لسه متسجلش أي يوميات عمالة النهارده لحد دلوقتي ${addr}.`);
     }
   }
 
@@ -375,16 +382,16 @@ function formatComprehensiveReportReply(result, companyLabel) {
   if (s2.available === false) {
     lines.push(`2️⃣ الفلل والمشاريع: غير متاح (راجع صلاحية المشاريع projects أو المصدر).`);
   } else {
-    lines.push(`2️⃣ الفلل والمشاريع (${s2.worked_today_count ?? 0} اشتغلناها اليوم من أصل ${s2.total_company_projects ?? 0} مشاريع بالشركة):`);
+    lines.push(`2️⃣ الفلل والمشاريع (${s2.worked_today_count ?? 0} فيلا اشتغلنا فيهم النهارده من أصل ${s2.total_company_projects ?? 0} مشاريع عندنا):`);
     if (Array.isArray(s2.worked_today_villas) && s2.worked_today_villas.length > 0) {
-      lines.push(`• الفلل النشطة اليوم: ${s2.worked_today_villas.join(' ، ')}`);
+      lines.push(`• الفلل اللي كان فيها شغل النهارده: ${s2.worked_today_villas.join(' ، ')}`);
     } else {
-      lines.push('• لا توجد حركات مسجلة على فلل محددة في هذا التاريخ.');
+      lines.push('• مفيش شغل اتسجل على فلل معينة في اليوم ده.');
     }
     if (Array.isArray(s2.all_company_projects) && s2.all_company_projects.length > 0) {
-      lines.push('• موقف المشاريع المسجلة بالشركة:');
+      lines.push('• حالة الفلل والمشاريع اللي عندنا:');
       for (const p of s2.all_company_projects.slice(0, 10)) {
-        lines.push(`  - ${p.name} (${p.status}): المرحلة «${p.current_stage}» | نموذج ${p.unit_type} (${p.unit_area}) | م/ ${p.engineer_in_charge}`);
+        lines.push(`  - ${p.name} (${p.status}): واقفة في مرحلة «${p.current_stage}» | نموذج ${p.unit_type} (${p.unit_area}) | م/ ${p.engineer_in_charge}`);
       }
     }
   }
@@ -394,13 +401,13 @@ function formatComprehensiveReportReply(result, companyLabel) {
   if (s3.available === false) {
     lines.push(`3️⃣ المصروفات المسجلة: غير متاح (راجع صلاحية المصروفات expenses أو المصدر).`);
   } else {
-    lines.push(`3️⃣ المصروفات المسجلة (${s3.expenses_count ?? 0} حركة بإجمالي ${s3.total_expenses_amount ?? 0} ر.س):`);
+    lines.push(`3️⃣ المصروفات المسجلة النهارده (${s3.expenses_count ?? 0} عملية بمبلغ إجمالي ${s3.total_expenses_amount ?? 0} ر.س):`);
     if (Array.isArray(s3.expenses_list) && s3.expenses_list.length > 0) {
       for (const e of s3.expenses_list.slice(0, 10)) {
-        lines.push(`  - ${e.description}: ${e.total_price} ر.س | ${e.site_ref} | التصنيف: ${e.main_category} (${e.status})`);
+        lines.push(`  - ${e.description}: ${e.total_price} ر.س | ${e.site_ref} | قسم: ${e.main_category} (${e.status})`);
       }
     } else {
-      lines.push('• لا توجد مصروفات مسجلة في هذا التاريخ.');
+      lines.push('• مفيش أي مصروفات اتسجلت في اليوم ده.');
     }
   }
 
@@ -410,11 +417,11 @@ function formatComprehensiveReportReply(result, companyLabel) {
     lines.push(`4️⃣ اللي اتصرف للعمالة: غير متاح (يتطلب صلاحيات تكلفة العمالة والمصروفات وسندات الصرف).`);
   } else {
     lines.push(
-      `4️⃣ اللي اتصرف للعمالة (مستحقات ومنصرف العمالة):`,
-      `• إجمالي أجور يوميات العمالة المسجلة: ${s4.wages_available === false ? 'غير متاح (صلاحية laborcost)' : `${s4.daily_logs_wages_total ?? 0} ر.س`}`,
-      `• مصروفات بنود عمالة مباشرة: ${s4.expenses_available === false ? 'غير متاح (صلاحية expenses)' : `${s4.labor_expenses_total ?? 0} ر.س`}`,
-      `• سندات صرف نقدية/تحويل للعمالة: ${s4.vouchers_available === false ? 'غير متاح (صلاحية payments)' : `${s4.labor_payment_vouchers_total ?? 0} ر.س`}`,
-      `• الإجمالي الكلي للعمالة: ${s4.total_spent_or_accrued_for_labor === null || s4.total_spent_or_accrued_for_labor === undefined ? 'غير متاح بالكامل (بعض المصادر غير متاحة)' : `${s4.total_spent_or_accrued_for_labor} ر.س`}`
+      `4️⃣ اللي اتصرف للعمالة النهارده (حسابات ومنصرف العمال):`,
+      `• حساب يوميات العمال اللي نزلوا: ${s4.wages_available === false ? 'غير متاح (صلاحية laborcost)' : `${s4.daily_logs_wages_total ?? 0} ر.س`}`,
+      `• مصروفات عمالة مباشرة: ${s4.expenses_available === false ? 'غير متاح (صلاحية expenses)' : `${s4.labor_expenses_total ?? 0} ر.س`}`,
+      `• سندات صرف كاش أو تحويل للعمال: ${s4.vouchers_available === false ? 'غير متاح (صلاحية payments)' : `${s4.labor_payment_vouchers_total ?? 0} ر.س`}`,
+      `• إجمالي اللي رايح للعمالة كله: ${s4.total_spent_or_accrued_for_labor === null || s4.total_spent_or_accrued_for_labor === undefined ? 'غير متاح بالكامل' : `${s4.total_spent_or_accrued_for_labor} ر.س`}`
     );
   }
 
@@ -423,13 +430,13 @@ function formatComprehensiveReportReply(result, companyLabel) {
   if (s5.available === false) {
     lines.push(`5️⃣ الخامات اللي اتصرفت من المخازن: غير متاح (راجع صلاحية المخازن وصرف الخامات).`);
   } else {
-    lines.push(`5️⃣ الخامات اللي اتصرفت من المخازن (${s5.issues_count_today ?? 0} إذن صرف بإجمالي ${s5.total_materials_cost_today ?? 0} ر.س):`);
+    lines.push(`5️⃣ الخامات اللي اتصرفت من المخازن (${s5.issues_count_today ?? 0} إذن صرف بمبلغ ${s5.total_materials_cost_today ?? 0} ر.س):`);
     if (Array.isArray(s5.items_issued) && s5.items_issued.length > 0) {
       for (const item of s5.items_issued.slice(0, 10)) {
-        lines.push(`  - ${item.item_name}: الكمية ${item.quantity} ${item.unit} (إجمالي ${item.total_price} ر.س)`);
+        lines.push(`  - ${item.item_name}: سحبنا ${item.quantity} ${item.unit} (بحساب ${item.total_price} ر.س)`);
       }
     } else {
-      lines.push('• لم يتم تسجيل أذون صرف خامات في هذا التاريخ.');
+      lines.push('• مفيش خامات اتسحبت أو اتصرفت من المخزن في اليوم ده.');
     }
   }
 
@@ -440,17 +447,17 @@ function formatComprehensiveReportReply(result, companyLabel) {
   } else {
     lines.push(
       `6️⃣ المقاولين اللي اتسلمت والمستخلصات وأوامر الشغل:`,
-      `• أوامر شغل مكتملة/مستلمة: ${s6.orders_available === false ? 'غير متاح' : (s6.delivered_job_orders_count ?? 0)} | أوامر شغل جارية: ${s6.orders_available === false ? 'غير متاح' : (s6.active_job_orders_count ?? 0)}`,
-      `• مستخلصات معتمدة: ${s6.claims_available === false ? 'غير متاح' : (s6.approved_subclaims_count ?? 0)} | مستخلصات معلقة للمراجعة: ${s6.claims_available === false ? 'غير متاح' : (s6.pending_subclaims_count ?? 0)}`
+      `• أوامر شغل خلصت واتسلمت: ${s6.orders_available === false ? 'غير متاح' : (s6.delivered_job_orders_count ?? 0)} | أوامر شغل لسه شغالة: ${s6.orders_available === false ? 'غير متاح' : (s6.active_job_orders_count ?? 0)}`,
+      `• مستخلصات اتعتمدت: ${s6.claims_available === false ? 'غير متاح' : (s6.approved_subclaims_count ?? 0)} | مستخلصات مستنية المراجعة: ${s6.claims_available === false ? 'غير متاح' : (s6.pending_subclaims_count ?? 0)}`
     );
     if (Array.isArray(s6.delivered_job_orders) && s6.delivered_job_orders.length > 0) {
       for (const o of s6.delivered_job_orders.slice(0, 5)) {
-        lines.push(`  - أمر شغل مستلم #${o.order_number}: ${o.contractor_name} | ${o.villa} (${o.status})`);
+        lines.push(`  - أمر شغل اتسلم #${o.order_number}: المقاول ${o.contractor_name} | ${o.villa} (${o.status})`);
       }
     }
     if (Array.isArray(s6.subclaims_summary) && s6.subclaims_summary.length > 0) {
       for (const c of s6.subclaims_summary.slice(0, 5)) {
-        lines.push(`  - مستخلص ${c.claim_number}: ${c.contractor_name} | ${c.projects} | الصافي: ${c.net_amount} ر.س (${c.status})`);
+        lines.push(`  - مستخلص ${c.claim_number}: المقاول ${c.contractor_name} | ${c.projects} | الصافي بتاعه: ${c.net_amount} ر.س (${c.status})`);
       }
     }
   }
@@ -462,20 +469,27 @@ function formatComprehensiveReportReply(result, companyLabel) {
   } else {
     lines.push(
       `7️⃣ الركوستات والطلبات والمهام اللي خلصت:`,
-      `• الركوستات المكتملة/المعتمدة: ${s7.completed_user_requests_count ?? 0} من أصل ${s7.total_user_requests_count ?? 0}`,
-      `• المهام المكتملة: ${s7.completed_tasks_count ?? 0} من أصل ${s7.total_tasks_count ?? 0}`
+      `• الركوستات اللي خلصت واتعتمدت: ${s7.completed_user_requests_count ?? 0} من أصل ${s7.total_user_requests_count ?? 0}`,
+      `• التاسكات والمهام اللي خلصت: ${s7.completed_tasks_count ?? 0} من أصل ${s7.total_tasks_count ?? 0}`
     );
     if (Array.isArray(s7.completed_requests) && s7.completed_requests.length > 0) {
       for (const r of s7.completed_requests.slice(0, 5)) {
-        lines.push(`  - طلب مكتمل [${r.type || 'طلب'}]: ${r.subject || r.category} (${r.status})`);
+        lines.push(`  - طلب خلصان [${r.type || 'طلب'}]: ${r.subject || r.category} (${r.status})`);
       }
     } else if (Array.isArray(s7.all_recent_requests) && s7.all_recent_requests.length > 0) {
-      lines.push('• أحدث الطلبات المسجلة:');
+      lines.push('• آخر الطلبات المتسجلة عندنا:');
       for (const r of s7.all_recent_requests.slice(0, 5)) {
-        lines.push(`  - [${r.type || 'طلب'}]: ${r.subject || 'بدون عنوان'} — الحالة: ${r.status}`);
+        lines.push(`  - [${r.type || 'طلب'}]: ${r.subject || 'من غير عنوان'} — حالته: ${r.status}`);
       }
     }
   }
+
+  lines.push('────────────────────────────');
+  lines.push(
+    isMozza
+      ? `💌 ده كل اللي تم النهارده بالتفصيل ${pet}! لو عايزني أعدل أي حاجة أو أسجلك عملية جديدة شاور بس يا روحي 😘`
+      : `💡 ده ملخص كل اللي تم النهارده ${addr}، لو محتاج تفاصيل أي بند أو تعديل أي عملية قولّي فوراً.`
+  );
 
   return lines.join('\n');
 }
@@ -724,9 +738,16 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
       '\nالتعريف: الإنتاجية أقل من الطريحة × الحضور.' + lines;
   }
 
-  const period = args.date || (args.start_date + ' إلى ' + args.end_date);
-  const heading = 'يوميات العمالة المحفوظة على الخادم\nالشركة: ' + companyLabel + '\nالفترة: ' + period;
-  if (result.partial === true) return heading + '\nالنتيجة جزئية، لذلك مش ممكن أعرض إجماليًا موثوقًا. جرّب فترة أقصر أو راجع شاشة اليوميات.';
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا محاميحو';
+  const addr = isMozza ? pet : 'يا باشمهندس';
+  const period = args.date || (args.start_date + ' لحد ' + args.end_date);
+  const introLine = isFieldOpsMode
+    ? (isMozza ? `💖 عيوني ليك ${pet}! ده كشف العمالة واليوميات اللي طلبته:\n` : `👷 بص ${addr}، ده كشف العمالة واليوميات المتسجلة:\n`)
+    : '';
+  const heading = introLine + 'يوميات العمالة المتسجلة على السيستم\nالشركة: ' + companyLabel + '\nالفترة: ' + period;
+  if (result.partial === true) return heading + '\nالنتيجة جزئية عشان السجلات كتير، جرب فترة أقصر أو افتح شاشة اليوميات.';
   if (!Number.isSafeInteger(result.count_records) || result.count_records < 0) {
     return heading + '\nالمصدر ما رجّعش عدد سجلات صالح.';
   }
@@ -734,34 +755,34 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     let hintText = '';
     if (isFieldOpsMode && result.latest_recorded_hint?.last_work_date) {
       const samples = Array.isArray(result.latest_recorded_hint.recent_samples)
-        ? result.latest_recorded_hint.recent_samples.map(s => {
-            const wageTxt = canViewWages && s.daily_wage !== undefined ? ` — يومية: ${s.daily_wage ?? 0} ر.س` : '';
-            return `  - ${s.work_date}: ${s.worker_name} (${s.site_ref || 'غير محدد'} — ${s.work_item || '—'}${wageTxt})`;
+        ? result.latest_recorded_hint.recent_samples.map(item => {
+            const wageTxt = canViewWages && item.daily_wage !== undefined ? ` — يوميته: ${item.daily_wage ?? 0} ر.س` : '';
+            return `  - ${item.work_date}: ${item.worker_name} (${item.site_ref || 'مش متحدد'} — شغال في: ${item.work_item || '—'}${wageTxt})`;
           }).join('\n')
         : '';
-      hintText = `\n\n💡 تنبيه: آخر يوميات مسجلة في النظام كانت بتاريخ ${result.latest_recorded_hint.last_work_date}:\n${samples}`;
+      hintText = `\n\n💡 بس خلي بالك ${addr}، آخر يوميات اتسجلت على السيستم كانت يوم ${result.latest_recorded_hint.last_work_date}:\n${samples}`;
     }
-    return heading + '\nلا توجد سجلات يوميات مطابقة للبحث.' + hintText;
+    return heading + `\nمفيش يوميات عمالة اتسجلت في اليوم ده (لا توجد سجلات مطابقة).` + hintText;
   }
 
   const wageHeader = canViewWages && result.total_wages !== null && result.total_wages !== undefined
-    ? `إجمالي الأجور اليومية: ${result.total_wages ?? 0} ر.س`
+    ? `حساب اليوميات كلها: ${result.total_wages ?? 0} ر.س`
     : 'إجمالي الأجور اليومية: غير متاح (تتطلب صلاحية laborcost)';
   const summaryStats = isFieldOpsMode && result.count_unique_workers !== undefined
-    ? `\nإجمالي العمال: ${result.count_unique_workers ?? result.count_records} عامل | إجمالي أيام الحضور: ${result.total_attendance_days ?? 0} | ${wageHeader} (مرحّل: ${result.posted_records ?? 0} / مسودة: ${result.draft_records ?? 0})`
+    ? `\nعدد العمال اللي نزلوا: ${result.count_unique_workers ?? result.count_records} عامل | إجمالي أيام الحضور: ${result.total_attendance_days ?? 0} | ${wageHeader} (معتمد: ${result.posted_records ?? 0} / مسودة: ${result.draft_records ?? 0})`
     : '';
 
   const logLines = Array.isArray(result.logs) && result.logs.length > 0
-    ? '\n\nآخر السجلات:\n' + result.logs.slice(0, isFieldOpsMode ? 15 : 5).map(l => {
+    ? '\n\nتفاصيل العمال اللي نزلوا:\n' + result.logs.slice(0, isFieldOpsMode ? 15 : 5).map(l => {
         const wagePart = isFieldOpsMode && canViewWages && l.daily_wage !== undefined
-          ? ` | اليومية: ${l.daily_wage ?? 0} ر.س`
+          ? ` | يوميته: ${l.daily_wage ?? 0} ر.س`
           : '';
         const extra = isFieldOpsMode
           ? wagePart +
-            (l.tareeha != null ? ` | طريحة: ${l.tareeha} منفذ: ${l.productivity ?? 0} ${l.unit || ''}` : '') +
-            (l.is_posted !== undefined ? ` (${l.is_posted ? 'مرحّل' : 'مسودة'})` : '')
+            (l.tareeha != null ? ` | طريحته: ${l.tareeha} وعمل: ${l.productivity ?? 0} ${l.unit || ''}` : '') +
+            (l.is_posted !== undefined ? ` (${l.is_posted ? 'معتمد' : 'مسودة'})` : '')
           : '';
-        return `• ${l.work_date} — ${safeText(l.worker_name, 60) || '—'} — ${safeText(l.site_ref, 60) || 'غير محدد'} — ${safeText(l.work_item, 60) || 'غير محدد'} (حضور: ${l.attendance_value ?? '—'})${extra}`;
+        return `• ${l.work_date} — ${safeText(l.worker_name, 60) || '—'} — ${safeText(l.site_ref, 60) || 'مش متحدد'} — شغال في: ${safeText(l.work_item, 60) || 'مش متحدد'} (حضور: ${l.attendance_value ?? '—'})${extra}`;
       }).join('\n')
     : '';
 
