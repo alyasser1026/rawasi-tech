@@ -22,7 +22,7 @@ export function useProjectsLogic() {
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   
   const [projectDetails, setProjectDetails] = useState<any>({
-    stages: [], boq: [], expenses: [], ledger: [], invoices: [], inspections: [], laborStats: null, materials: [], contractorAssignments: []
+    stages: [], boq: [], expenses: [], ledger: [], invoices: [], inspections: [], laborStats: null, materials: [], contractorAssignments: [], milestones: [], siteVisits: [], receiptVouchers: []
   });
   
   const [isLoading, setIsLoading] = useState(true);
@@ -414,9 +414,23 @@ export function useProjectsLogic() {
         totalLaborCost: laborLogs.reduce((sum: number, l: any) => sum + Number(l.amount || 0), 0),
       };
 
+      // جلب دفعات العميل وسجل الزيارات وسندات القبض للربط
+      const [
+        { data: milestonesData },
+        { data: siteVisitsData },
+        { data: receiptsData }
+      ] = await Promise.all([
+        supabase.from('project_payment_milestones').select('*').eq('project_id', project.id).order('milestone_number', { ascending: true }),
+        supabase.from('project_site_visits').select('*').eq('project_id', project.id).order('visit_date', { ascending: false }),
+        supabase.from('receipt_vouchers').select('id, receipt_number, date, amount, payment_method, notes, partner_id, project_ids').order('date', { ascending: false })
+      ]);
+
       setProjectDetails({
         stages: [], boq: finalBoqData, expenses: expensesData, ledger: [], materials: materialsData,
-        invoices: [...processedInvoices, ...processedSubClaims], laborStats, contractorAssignments: contractorAssignmentsData, inspections: [] 
+        invoices: [...processedInvoices, ...processedSubClaims], laborStats, contractorAssignments: contractorAssignmentsData, inspections: [],
+        milestones: milestonesData || [],
+        siteVisits: siteVisitsData || [],
+        receiptVouchers: receiptsData || []
       });
 
     } catch (err: any) {
@@ -498,8 +512,144 @@ export function useProjectsLogic() {
     };
   }, [selectedProject, projectDetails]);
 
+  // 💳 حفظ وتحديث دفعة مجدولة للعميل
+  const saveMilestoneMutation = useMutation({
+    mutationFn: async (record: any) => {
+      if (!selectedProject) throw new Error('لم يتم تحديد مشروع');
+      const payload: any = {
+        project_id: selectedProject.id,
+        milestone_number: Number(record.milestone_number) || 1,
+        title: record.title || 'دفعة تعاقدية',
+        due_date: record.due_date || null,
+        expected_amount: Number(record.expected_amount) || 0,
+        received_amount: Number(record.received_amount) || 0,
+        receipt_voucher_id: record.receipt_voucher_id || null,
+        receipt_number: record.receipt_number || null,
+        receipt_date: record.receipt_date || null,
+        status: record.status || 'مستحقة',
+        notes: record.notes || null
+      };
+      if (record.id) {
+        const { error } = await supabase.from('project_payment_milestones').update(payload).eq('id', record.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('project_payment_milestones').insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      showToast('تم حفظ دفعة العميل بنجاح', 'success');
+      if (selectedProject) loadProjectDetails(selectedProject);
+    },
+    onError: (err: any) => showToast(`خطأ في حفظ الدفعة: ${err.message}`, 'error')
+  });
+
+  const deleteMilestoneMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('project_payment_milestones').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      showToast('تم حذف الدفعة بنجاح', 'success');
+      if (selectedProject) loadProjectDetails(selectedProject);
+    },
+    onError: (err: any) => showToast(`خطأ في حذف الدفعة: ${err.message}`, 'error')
+  });
+
+  // 🦺 حفظ وتحديث زيارة ميدانية هندسية
+  const saveSiteVisitMutation = useMutation({
+    mutationFn: async (record: any) => {
+      if (!selectedProject) throw new Error('لم يتم تحديد مشروع');
+      const payload: any = {
+        project_id: selectedProject.id,
+        title: record.title || 'زيارة إشراف موقع',
+        stage: record.stage || null,
+        boq_item_name: record.boq_item_name || null,
+        visit_date: record.visit_date || new Date().toISOString().split('T')[0],
+        inspector_name: record.inspector_name || 'المهندس المشرف',
+        notes: record.notes || '',
+        status: record.status || 'معتمدة',
+        photo_before_url: record.photo_before_url || null,
+        photo_after_url: record.photo_after_url || null
+      };
+      if (record.id) {
+        const { error } = await supabase.from('project_site_visits').update(payload).eq('id', record.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('project_site_visits').insert(payload);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      showToast('تم تسجيل الزيارة الميدانية بنجاح', 'success');
+      if (selectedProject) loadProjectDetails(selectedProject);
+    },
+    onError: (err: any) => showToast(`خطأ في حفظ الزيارة: ${err.message}`, 'error')
+  });
+
+  const deleteSiteVisitMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from('project_site_visits').delete().eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      showToast('تم حذف الزيارة بنجاح', 'success');
+      if (selectedProject) loadProjectDetails(selectedProject);
+    },
+    onError: (err: any) => showToast(`خطأ في حذف الزيارة: ${err.message}`, 'error')
+  });
+
+  // 🪄 توليد تلقائي لجدول دفعات العميل الذكي
+  const autoGenerateMilestones = async () => {
+    if (!selectedProject) return;
+    const contractVal = Number(selectedProject.contract_value) || 0;
+    if (contractVal <= 0) {
+      showToast('يرجى تحديد قيمة التعاقد في بيانات المشروع أولاً لتوليد الدفعات', 'error');
+      return;
+    }
+    const defaultSplits = [
+      { num: 1, title: 'الدفعة الأولى: مقدمة التعاقد وتجهيز الموقع', pct: 0.10, daysOffset: 0 },
+      { num: 2, title: 'الدفعة الثانية: انتهاء أعمال الحفر والأساسات واللبشة', pct: 0.25, daysOffset: 30 },
+      { num: 3, title: 'الدفعة الثالثة: إتمام صب أعمدة وسقف البدروم والأرضي', pct: 0.25, daysOffset: 60 },
+      { num: 4, title: 'الدفعة الرابعة: إتمام الهيكل الخرساني بالكامل', pct: 0.20, daysOffset: 90 },
+      { num: 5, title: 'الدفعة الخامسة: إتمام أعمال المباني والتشطيبات الأولية', pct: 0.10, daysOffset: 120 },
+      { num: 6, title: 'الدفعة السادسة: التسليم النهائي للمشروع ومخالصة الاستلام', pct: 0.10, daysOffset: 150 }
+    ];
+
+    const baseDate = selectedProject.start_date ? new Date(selectedProject.start_date) : new Date();
+    const rows = defaultSplits.map(s => {
+      const d = new Date(baseDate);
+      d.setDate(d.getDate() + s.daysOffset);
+      return {
+        project_id: selectedProject.id,
+        milestone_number: s.num,
+        title: s.title,
+        due_date: d.toISOString().split('T')[0],
+        expected_amount: Math.round(contractVal * s.pct),
+        received_amount: 0,
+        status: 'مستحقة',
+        notes: `تم التوليد التلقائي بنسبة ${Math.round(s.pct * 100)}% من قيمة التعاقد`
+      };
+    });
+
+    const { error } = await supabase.from('project_payment_milestones').insert(rows);
+    if (error) {
+      showToast('فشل التوليد: ' + error.message, 'error');
+    } else {
+      showToast('تم توليد جدول الدفعات الذكي بنجاح!', 'success');
+      loadProjectDetails(selectedProject);
+    }
+  };
+
   return {
-    projects: filteredProjects, clients, selectedProject, setSelectedProject, projectDetails, kpis, 
+    projects: filteredProjects, clients, selectedProject, setSelectedProject, projectDetails, kpis,
+    saveMilestone: (rec: any) => saveMilestoneMutation.mutate(rec),
+    deleteMilestone: (id: string) => deleteMilestoneMutation.mutate(id),
+    isSavingMilestone: saveMilestoneMutation.isPending,
+    saveSiteVisit: (rec: any) => saveSiteVisitMutation.mutate(rec),
+    deleteSiteVisit: (id: string) => deleteSiteVisitMutation.mutate(id),
+    isSavingSiteVisit: saveSiteVisitMutation.isPending,
+    autoGenerateMilestones, 
     isLoading, isDetailsLoading, loadProjectDetails, activeTab, setActiveTab,
     isFilterOpen, setIsFilterOpen, searchQuery, setSearchQuery, filterStatus, setFilterStatus, filterClient, setFilterClient, filterStage, setFilterStage, availableStages, dateFrom, setDateFrom, dateTo, setDateTo, runDiagnostics, resetFilters, updateRecommendations, updateProjectStatus,
     isAddProjectModalOpen, setIsAddProjectModalOpen, currentProjectRecord, setCurrentProjectRecord, handleSaveProject, isSavingProject: saveProjectMutation.isPending, deleteProjectMutation,
