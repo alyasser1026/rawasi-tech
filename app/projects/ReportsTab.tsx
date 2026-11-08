@@ -6,7 +6,8 @@ import {
   Calendar, DollarSign, CheckCircle2, Clock, AlertTriangle, 
   FileText, Plus, Trash2, Edit3, Printer, Sparkles, 
   Link2, ShieldAlert, TrendingUp, HardHat, Camera, 
-  ChevronRight, ArrowUpRight, Check, X, Search, Layers
+  ChevronRight, ArrowUpRight, Check, X, Search, Layers,
+  Building2, Sliders
 } from 'lucide-react';
 import SecureAction from '@/components/SecureAction';
 
@@ -21,6 +22,20 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
   const [editingVisit, setEditingVisit] = useState<any>(null);
   const [isPrintDossierOpen, setIsPrintDossierOpen] = useState(false);
+  const [isPrintOptionsModalOpen, setIsPrintOptionsModalOpen] = useState(false);
+  const [printOptions, setPrintOptions] = useState({
+    projectInfo: true,
+    clientMilestones: true,
+    scheduleTimeline: true,
+    ganttChart: false,
+    siteVisits: true,
+    sitePhotos: true,
+    costVarianceEVM: false,
+    subcontractors: false,
+    signatures: true
+  });
+  const [customReportTitle, setCustomReportTitle] = useState('التقرير التنفيذي الشامل للمشروع (Project Executive Dossier)');
+  const [customReportNotes, setCustomReportNotes] = useState('');
   const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string | null>(null);
   const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
   const [excludeZeroAmount, setExcludeZeroAmount] = useState(true);
@@ -386,9 +401,9 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
           </button>
         </div>
 
-        {/* زر فتح مودال التقرير التنفيذي الشامل للطباعة */}
+        {/* زر فتح مودال خيارات طباعة التقرير المجمع */}
         <button
-          onClick={() => setIsPrintDossierOpen(true)}
+          onClick={() => setIsPrintOptionsModalOpen(true)}
           style={{
             padding: '0.625rem 1.25rem',
             borderRadius: '12px',
@@ -405,7 +420,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
           }}
         >
           <Printer size={16} />
-          طباعة التقرير الهندسي والتنفيذي الشامل
+          خيارات وطباعة التقرير المجمع 🖨️
         </button>
       </div>
 
@@ -1942,6 +1957,556 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
       )}
 
       {/* =====================================================================
+          مودال تخصيص واختيار محتويات التقرير المجمع للطباعة (Print Options Modal)
+          ===================================================================== */}
+      {isPrintOptionsModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(8px)',
+          direction: 'rtl'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            width: '90%',
+            maxWidth: '50rem',
+            padding: '2rem',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.3)',
+            maxHeight: '92vh',
+            overflowY: 'auto'
+          }}>
+            {/* ترويسة المودال */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ padding: '8px', background: '#eff6ff', borderRadius: '10px', color: THEME.primary }}>
+                  <Printer size={22} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, color: '#0f172a', fontWeight: 900, fontSize: 'var(--fs-lg)' }}>
+                    خيارات وتخصيص التقرير المجمع للطباعة
+                  </h3>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                    حدد التقارير والأقسام التي ترغب في طباعتها أو تصديرها كملف PDF رسمي
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsPrintOptionsModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* قوالب التحديد السريع */}
+            <div style={{ marginBottom: '1.25rem' }}>
+              <span style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: '6px' }}>
+                ⚡ قوالب جاهزة سريعة للتحديد:
+              </span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPrintOptions({
+                      projectInfo: true,
+                      clientMilestones: true,
+                      scheduleTimeline: true,
+                      ganttChart: false,
+                      siteVisits: true,
+                      sitePhotos: true,
+                      costVarianceEVM: false,
+                      subcontractors: false,
+                      signatures: true
+                    });
+                    setCustomReportTitle('تقرير المتابعة التنفيذي لمالك المشروع');
+                  }}
+                  style={{
+                    backgroundColor: '#f0fdf4',
+                    color: '#166534',
+                    border: '1px solid #bbf7d0',
+                    padding: '5px 12px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  🌟 تقرير المالك والعميل التنفيذي
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPrintOptions({
+                      projectInfo: true,
+                      clientMilestones: false,
+                      scheduleTimeline: true,
+                      ganttChart: true,
+                      siteVisits: true,
+                      sitePhotos: true,
+                      costVarianceEVM: false,
+                      subcontractors: false,
+                      signatures: true
+                    });
+                    setCustomReportTitle('تقرير الإشراف الهندسي والمتابعة الميدانية');
+                  }}
+                  style={{
+                    backgroundColor: '#eff6ff',
+                    color: '#1d4ed8',
+                    border: '1px solid #bfdbfe',
+                    padding: '5px 12px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  🏗️ تقرير الموقع والإشراف الميداني
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPrintOptions({
+                      projectInfo: true,
+                      clientMilestones: true,
+                      scheduleTimeline: true,
+                      ganttChart: false,
+                      siteVisits: false,
+                      sitePhotos: false,
+                      costVarianceEVM: true,
+                      subcontractors: true,
+                      signatures: true
+                    });
+                    setCustomReportTitle('تقرير الرقابة المالية وإدارة التكاليف (EVM & ABC)');
+                  }}
+                  style={{
+                    backgroundColor: '#faf5ff',
+                    color: '#7e22ce',
+                    border: '1px solid #e9d5ff',
+                    padding: '5px 12px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  💰 تقرير الرقابة والتحليل المالي
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPrintOptions({
+                      projectInfo: true,
+                      clientMilestones: true,
+                      scheduleTimeline: true,
+                      ganttChart: true,
+                      siteVisits: true,
+                      sitePhotos: true,
+                      costVarianceEVM: true,
+                      subcontractors: true,
+                      signatures: true
+                    });
+                  }}
+                  style={{
+                    backgroundColor: '#f8fafc',
+                    color: '#334155',
+                    border: '1px solid #cbd5e1',
+                    padding: '5px 12px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  📑 تحديد جميع الأقسام
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPrintOptions({
+                      projectInfo: false,
+                      clientMilestones: false,
+                      scheduleTimeline: false,
+                      ganttChart: false,
+                      siteVisits: false,
+                      sitePhotos: false,
+                      costVarianceEVM: false,
+                      subcontractors: false,
+                      signatures: false
+                    });
+                  }}
+                  style={{
+                    backgroundColor: '#fff1f2',
+                    color: '#be123c',
+                    border: '1px solid #fecdd3',
+                    padding: '5px 12px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  🔄 إلغاء التحديد
+                </button>
+              </div>
+            </div>
+
+            {/* شبكة خيارات الأقسام */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(21rem, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              
+              {/* 1. بيانات المشروع والـ KPIs */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.projectInfo ? '#93c5fd' : '#e2e8f0'}`,
+                background: printOptions.projectInfo ? '#eff6ff' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.projectInfo}
+                  onChange={(e) => setPrintOptions({ ...printOptions, projectInfo: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Building2 size={15} style={{ color: THEME.primary }} />
+                    بيانات المشروع ومؤشرات الأداء العامة
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    اسم المشروع، العميل، المهندس، القيمة التعاقدية، وتلخيص الإنجاز والسيولة.
+                  </div>
+                </div>
+              </label>
+
+              {/* 2. جدول دفعات العميل وسندات القبض */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.clientMilestones ? '#86efac' : '#e2e8f0'}`,
+                background: printOptions.clientMilestones ? '#f0fdf4' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.clientMilestones}
+                  onChange={(e) => setPrintOptions({ ...printOptions, clientMilestones: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <DollarSign size={15} style={{ color: '#16a34a' }} />
+                    جدول دفعات العميل وسندات القبض
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    مواعيد الاستحقاق، مبالغ الدفعات، وأرقام وتواريخ سندات القبض والمحصل والمتبقي.
+                  </div>
+                </div>
+              </label>
+
+              {/* 3. الجدول الزمني التنفيذي */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.scheduleTimeline ? '#93c5fd' : '#e2e8f0'}`,
+                background: printOptions.scheduleTimeline ? '#eff6ff' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.scheduleTimeline}
+                  onChange={(e) => setPrintOptions({ ...printOptions, scheduleTimeline: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Calendar size={15} style={{ color: '#2563eb' }} />
+                    الجدول الزمني التنفيذي ومراحل الإنجاز
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    تواريخ بداية ونهاية كل بند بالمقايسة والمدد الزمنية المحددة بالأيام.
+                  </div>
+                </div>
+              </label>
+
+              {/* 4. مخطط جانت الزمني البصري */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.ganttChart ? '#c4b5fd' : '#e2e8f0'}`,
+                background: printOptions.ganttChart ? '#faf5ff' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.ganttChart}
+                  onChange={(e) => setPrintOptions({ ...printOptions, ganttChart: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <TrendingUp size={15} style={{ color: '#7c3aed' }} />
+                    مخطط جانت الزمني البصري (Gantt Chart)
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    رسم بياني زمني ملون لأشرطة البنود التنفيذية مع مؤشر تاريخ اليوم.
+                  </div>
+                </div>
+              </label>
+
+              {/* 5. سجل الزيارات الميدانية والإشراف */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.siteVisits ? '#fde68a' : '#e2e8f0'}`,
+                background: printOptions.siteVisits ? '#fffbeb' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.siteVisits}
+                  onChange={(e) => setPrintOptions({ ...printOptions, siteVisits: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <HardHat size={15} style={{ color: '#d97706' }} />
+                    سجل محاضر الزيارات الميدانية والإشراف الهندسي
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    سجل توثيق الاستلامات الخرسانية، المهندس الفاحص، والملاحظات الفنية.
+                  </div>
+                </div>
+              </label>
+
+              {/* 6. صور الموقع والمعاينات */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.sitePhotos ? '#fbcfe8' : '#e2e8f0'}`,
+                background: printOptions.sitePhotos ? '#fdf2f8' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.sitePhotos}
+                  onChange={(e) => setPrintOptions({ ...printOptions, sitePhotos: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Camera size={15} style={{ color: '#db2777' }} />
+                    معرض صور الموقع والمعاينات التوثيقية
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    صور المعاينة الميدانية (قبل وبعد) المرفقة بمحاضر الزيارات.
+                  </div>
+                </div>
+              </label>
+
+              {/* 7. تحليل الانحراف والقيمة المكتسبة EVM */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.costVarianceEVM ? '#93c5fd' : '#e2e8f0'}`,
+                background: printOptions.costVarianceEVM ? '#eff6ff' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.costVarianceEVM}
+                  onChange={(e) => setPrintOptions({ ...printOptions, costVarianceEVM: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <TrendingUp size={15} style={{ color: '#0284c7' }} />
+                    تحليل الانحراف المالي والقيمة المكتسبة (EVM)
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    مقارنة الميزانية المعتمدة بالتكاليف الفعلية وتوزيعات ABC ومؤشر CPI.
+                  </div>
+                </div>
+              </label>
+
+              {/* 8. عقود مقاولي الباطن */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.subcontractors ? '#fed7aa' : '#e2e8f0'}`,
+                background: printOptions.subcontractors ? '#fff7ed' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.subcontractors}
+                  onChange={(e) => setPrintOptions({ ...printOptions, subcontractors: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Layers size={15} style={{ color: '#ea580c' }} />
+                    عقود والتزامات مقاولي الباطن
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    تفصيل ميزانيات مقاولي الحدادة وصب الخرسانة وباقي المقاولين ومستخلصاتهم.
+                  </div>
+                </div>
+              </label>
+
+              {/* 9. صناديق التوقيع والاعتماد */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.signatures ? '#cbd5e1' : '#e2e8f0'}`,
+                background: printOptions.signatures ? '#f8fafc' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.signatures}
+                  onChange={(e) => setPrintOptions({ ...printOptions, signatures: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <CheckCircle2 size={15} style={{ color: '#475569' }} />
+                    صناديق التوقيع والاعتماد الرسمي
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    خانات توقيع مهندس الموقع، مدير إدارة المشروعات، والمدير المالي.
+                  </div>
+                </div>
+              </label>
+
+            </div>
+
+            {/* تخصيص العنوان والملاحظات */}
+            <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>
+                  عنوان التقرير المطبوع في الترويسة:
+                </label>
+                <input
+                  type="text"
+                  value={customReportTitle}
+                  onChange={(e) => setCustomReportTitle(e.target.value)}
+                  placeholder="مثال: التقرير التنفيذي الشامل للمشروع"
+                  style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: '13px', background: 'white' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>
+                  ملاحظات أو توجيهات إدارية ختامية (تظهر في تذييل التقرير - اختياري):
+                </label>
+                <textarea
+                  rows={2}
+                  value={customReportNotes}
+                  onChange={(e) => setCustomReportNotes(e.target.value)}
+                  placeholder="اكتب أي ملاحظات أو توصيات للمالك أو الإدارة الهندسية..."
+                  style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '12px', background: 'white', lineHeight: 1.5 }}
+                />
+              </div>
+            </div>
+
+            {/* أزرار الإجراء */}
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPrintOptionsModalOpen(false);
+                  setIsPrintDossierOpen(true);
+                }}
+                style={{
+                  flex: 1,
+                  backgroundColor: THEME.primary,
+                  color: 'white',
+                  padding: '0.875rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  fontWeight: 900,
+                  fontSize: 'var(--fs-sm)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 15px rgba(37, 99, 235, 0.3)'
+                }}
+              >
+                <Printer size={16} />
+                معاينة وطباعة التقرير المخصص الآن 🚀
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsPrintOptionsModalOpen(false)}
+                style={{
+                  flex: 1,
+                  backgroundColor: '#f1f5f9',
+                  color: '#475569',
+                  padding: '0.875rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  fontWeight: 900,
+                  fontSize: 'var(--fs-sm)',
+                  cursor: 'pointer'
+                }}
+              >
+                إلغاء
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* =====================================================================
           مودال التقرير التنفيذي الشامل القابل للطباعة (Print Executive Dossier)
           ===================================================================== */}
       {isPrintDossierOpen && (
@@ -1987,7 +2552,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
               background: '#f8fafc'
             }}>
               <div>
-                <h3 style={{ margin: 0, color: '#0f172a', fontWeight: 900 }}>معاينة التقرير الهندسي والتنفيذي الشامل</h3>
+                <h3 style={{ margin: 0, color: '#0f172a', fontWeight: 900 }}>معاينة التقرير المجمع للطباعة</h3>
                 <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>جاهز للطباعة على ورق A4 Landscape أو الحفظ كـ PDF رسمي</p>
               </div>
 
@@ -2008,6 +2573,26 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   }}
                 >
                   <Printer size={16} /> طباعة الآن
+                </button>
+                <button
+                  onClick={() => {
+                    setIsPrintDossierOpen(false);
+                    setIsPrintOptionsModalOpen(true);
+                  }}
+                  style={{
+                    backgroundColor: '#eff6ff',
+                    color: '#1d4ed8',
+                    border: '1px solid #bfdbfe',
+                    padding: '0.5rem 1.25rem',
+                    borderRadius: '8px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem'
+                  }}
+                >
+                  <Sliders size={15} /> تعديل خيارات التقرير
                 </button>
                 <button
                   onClick={() => setIsPrintDossierOpen(false)}
@@ -2033,7 +2618,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
               <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `3px solid ${THEME.primary}`, paddingBottom: '1rem', marginBottom: '1.5rem' }}>
                 <div>
                   <h1 style={{ margin: 0, color: '#0f172a', fontWeight: 900, fontSize: '24px' }}>
-                    التقرير التنفيذي الشامل للمشروع (Project Executive Dossier)
+                    {customReportTitle || 'التقرير التنفيذي الشامل للمشروع (Project Executive Dossier)'}
                   </h1>
                   <p style={{ margin: '4px 0 0 0', color: '#64748b', fontWeight: 800 }}>
                     تاريخ الإصدار: {new Date().toLocaleDateString('en-GB')}
@@ -2045,122 +2630,309 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 </div>
               </div>
 
-              {/* بيانات المشروع الأساسية */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', border: '1px solid #e2e8f0', fontSize: '13px' }}>
-                <div><strong style={{ color: '#64748b' }}>اسم المشروع:</strong> <span style={{ fontWeight: 900 }}>{project.Property}</span></div>
-                <div><strong style={{ color: '#64748b' }}>العميل المالك:</strong> <span style={{ fontWeight: 900 }}>{project.client?.name || 'غير محدد'}</span></div>
-                <div><strong style={{ color: '#64748b' }}>قيمة التعاقد:</strong> <span style={{ fontWeight: 900, color: THEME.primary }}>{formatCurrency(project.contract_value)}</span></div>
-                <div><strong style={{ color: '#64748b' }}>المهندس المشرف:</strong> <span style={{ fontWeight: 900 }}>{project.engineer_in_charge || 'غير محدد'}</span></div>
-              </div>
+              {/* بيانات المشروع الأساسية والـ KPIs */}
+              {printOptions.projectInfo && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem', border: '1px solid #e2e8f0', fontSize: '13px' }}>
+                    <div><strong style={{ color: '#64748b' }}>اسم المشروع:</strong> <span style={{ fontWeight: 900 }}>{project.Property}</span></div>
+                    <div><strong style={{ color: '#64748b' }}>العميل المالك:</strong> <span style={{ fontWeight: 900 }}>{project.client?.name || 'غير محدد'}</span></div>
+                    <div><strong style={{ color: '#64748b' }}>قيمة التعاقد:</strong> <span style={{ fontWeight: 900, color: THEME.primary }}>{formatCurrency(project.contract_value)}</span></div>
+                    <div><strong style={{ color: '#64748b' }}>المهندس المشرف:</strong> <span style={{ fontWeight: 900 }}>{project.engineer_in_charge || 'غير محدد'}</span></div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
+                    <div style={{ padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 800 }}>المجدول من الدفعات</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(paymentStats.totalScheduled)}</div>
+                    </div>
+                    <div style={{ padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#166534', fontWeight: 800 }}>المحصل بسندات قبض</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#15803d' }}>{formatCurrency(paymentStats.totalReceived)} ({paymentStats.collectionRate}%)</div>
+                    </div>
+                    <div style={{ padding: '8px 12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#991b1b', fontWeight: 800 }}>المتبقي للتحصيل</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#dc2626' }}>{formatCurrency(paymentStats.totalRemaining)}</div>
+                    </div>
+                    <div style={{ padding: '8px 12px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#1e40af', fontWeight: 800 }}>مدة المشروع والمنقضي</div>
+                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#2563eb' }}>{scheduleData.elapsedDays} / {scheduleData.totalDays} يوم ({scheduleData.timeProgress}%)</div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-              {/* 1. ملخص جدول دفعات العميل وسندات القبض */}
-              <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '16px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px' }}>
-                1. جدول دفعات العميل وسندات القبض المحررة
-              </h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1.5rem', fontSize: '11px', textAlign: 'right' }}>
-                <thead>
-                  <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
-                    <th style={{ padding: '6px' }}>#</th>
-                    <th style={{ padding: '6px' }}>بيان الدفعة</th>
-                    <th style={{ padding: '6px' }}>تاريخ الاستحقاق</th>
-                    <th style={{ padding: '6px' }}>القيمة المتوقعة</th>
-                    <th style={{ padding: '6px' }}>رقم سند القبض</th>
-                    <th style={{ padding: '6px' }}>المحصل فعلياً</th>
-                    <th style={{ padding: '6px' }}>المتبقي</th>
-                    <th style={{ padding: '6px' }}>الحالة</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {milestones.map((m: any, idx: number) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{m.milestone_number || idx + 1}</td>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{m.title}</td>
-                      <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{formatDate(m.due_date)}</td>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{formatCurrency(m.expected_amount)}</td>
-                      <td style={{ padding: '6px' }}>{m.receipt_number || '---'}</td>
-                      <td style={{ padding: '6px', fontWeight: 800, color: '#16a34a' }}>{formatCurrency(m.received_amount)}</td>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{formatCurrency(Math.max(0, (Number(m.expected_amount) || 0) - (Number(m.received_amount) || 0)))}</td>
-                      <td style={{ padding: '6px' }}>{m.status || 'مستحقة'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {/* 1. جدول دفعات العميل وسندات القبض */}
+              {printOptions.clientMilestones && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <DollarSign size={16} /> جدول دفعات العميل وسندات القبض ومواعيد الاستحقاق
+                  </h3>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'right' }}>
+                    <thead>
+                      <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
+                        <th style={{ padding: '6px' }}>#</th>
+                        <th style={{ padding: '6px' }}>بيان الدفعة ومرحلة الصرف</th>
+                        <th style={{ padding: '6px' }}>تاريخ الاستحقاق</th>
+                        <th style={{ padding: '6px' }}>القيمة المتوقعة</th>
+                        <th style={{ padding: '6px' }}>رقم سند القبض</th>
+                        <th style={{ padding: '6px' }}>تاريخ السند</th>
+                        <th style={{ padding: '6px' }}>المحصل فعلياً</th>
+                        <th style={{ padding: '6px' }}>المتبقي</th>
+                        <th style={{ padding: '6px' }}>الحالة</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {milestones.map((m: any, idx: number) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{m.milestone_number || idx + 1}</td>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{m.title}</td>
+                          <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{formatDate(m.due_date)}</td>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{formatCurrency(m.expected_amount)}</td>
+                          <td style={{ padding: '6px' }}>{m.receipt_number || '---'}</td>
+                          <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right', color: '#64748b' }}>{formatDate(m.receipt_date)}</td>
+                          <td style={{ padding: '6px', fontWeight: 800, color: '#16a34a' }}>{formatCurrency(m.received_amount)}</td>
+                          <td style={{ padding: '6px', fontWeight: 800, color: Number(m.expected_amount) - Number(m.received_amount) > 0 ? '#dc2626' : '#64748b' }}>
+                            {formatCurrency(Math.max(0, (Number(m.expected_amount) || 0) - (Number(m.received_amount) || 0)))}
+                          </td>
+                          <td style={{ padding: '6px' }}>{m.status || 'مستحقة'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
-              {/* 2. ملخص الجدول الزمني ومراحل التنفيذ */}
-              <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '16px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px' }}>
-                2. خطة الجدول الزمني التنفيذي ومراحل الإنجاز
-              </h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '1.5rem', fontSize: '11px', textAlign: 'right' }}>
-                <thead>
-                  <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
-                    <th style={{ padding: '6px' }}>#</th>
-                    <th style={{ padding: '6px' }}>البند والمرحلة</th>
-                    <th style={{ padding: '6px' }}>تاريخ البداية</th>
-                    <th style={{ padding: '6px' }}>تاريخ النهاية</th>
-                    <th style={{ padding: '6px' }}>المدة بالأيام</th>
-                    <th style={{ padding: '6px' }}>الحالة الزمنية</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {scheduleData.items.slice(0, 10).map((it: any, idx: number) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{idx + 1}</td>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{it.work_item}</td>
-                      <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{formatDate(it.start_date)}</td>
-                      <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{formatDate(it.end_date)}</td>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{it.durationDays} يوم</td>
-                      <td style={{ padding: '6px' }}>{it.statusText}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {/* 2. خطة الجدول الزمني التنفيذي */}
+              {printOptions.scheduleTimeline && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Calendar size={16} /> خطة الجدول الزمني التنفيذي ومراحل الإنجاز
+                  </h3>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'right' }}>
+                    <thead>
+                      <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
+                        <th style={{ padding: '6px' }}>#</th>
+                        <th style={{ padding: '6px' }}>البند الإنشائي / المرحلة</th>
+                        <th style={{ padding: '6px' }}>التصنيف</th>
+                        <th style={{ padding: '6px' }}>تاريخ البداية</th>
+                        <th style={{ padding: '6px' }}>تاريخ النهاية</th>
+                        <th style={{ padding: '6px' }}>المدة بالأيام</th>
+                        <th style={{ padding: '6px' }}>الحالة الزمنية</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {scheduleData.items.map((it: any, idx: number) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{idx + 1}</td>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{it.work_item}</td>
+                          <td style={{ padding: '6px', color: '#64748b' }}>{it.main_category || 'عام'}</td>
+                          <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{formatDate(it.start_date)}</td>
+                          <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{formatDate(it.end_date)}</td>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{it.durationDays} يوم</td>
+                          <td style={{ padding: '6px' }}>{it.statusText}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
-              {/* 3. ملخص الزيارات الميدانية وضبط الجودة */}
-              <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '16px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px' }}>
-                3. ملخص محاضر الإشراف الهندسي والزيارات الميدانية
-              </h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '2rem', fontSize: '11px', textAlign: 'right' }}>
-                <thead>
-                  <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
-                    <th style={{ padding: '6px' }}>#</th>
-                    <th style={{ padding: '6px' }}>عنوان المحضر</th>
-                    <th style={{ padding: '6px' }}>المرحلة</th>
-                    <th style={{ padding: '6px' }}>تاريخ المعاينة</th>
-                    <th style={{ padding: '6px' }}>المهندس المشرف</th>
-                    <th style={{ padding: '6px' }}>الحالة الهندسية</th>
-                    <th style={{ padding: '6px' }}>الملاحظات والتوجيهات</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {siteVisits.map((v: any, idx: number) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{idx + 1}</td>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{v.title}</td>
-                      <td style={{ padding: '6px' }}>{v.stage || 'عام'}</td>
-                      <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{formatDate(v.visit_date)}</td>
-                      <td style={{ padding: '6px' }}>{v.inspector_name}</td>
-                      <td style={{ padding: '6px', fontWeight: 800 }}>{v.status}</td>
-                      <td style={{ padding: '6px' }}>{v.notes || 'معتمد'}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              {/* 3. مخطط جانت الزمني البصري */}
+              {printOptions.ganttChart && scheduleData.items.length > 0 && (
+                <div style={{ marginBottom: '1.5rem', pageBreakInside: 'avoid' }}>
+                  <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <TrendingUp size={16} /> مخطط جانت الزمني البصري لمراحل التنفيذ
+                  </h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', padding: '10px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    {scheduleData.items.map((it: any, idx: number) => (
+                      <div key={idx} style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: '10px', alignItems: 'center', fontSize: '10px' }}>
+                        <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 800 }}>{it.work_item}</div>
+                        <div style={{ position: 'relative', height: '18px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                          <div style={{ position: 'absolute', left: `${it.leftPct}%`, width: `${it.widthPct}%`, top: 0, bottom: 0, background: it.barBg, borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '9px' }}>
+                            {it.durationDays} يوم
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 4. سجل محاضر الإشراف الهندسي والزيارات */}
+              {printOptions.siteVisits && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <HardHat size={16} /> سجل محاضر الإشراف الهندسي والزيارات الميدانية
+                  </h3>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'right' }}>
+                    <thead>
+                      <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
+                        <th style={{ padding: '6px' }}>#</th>
+                        <th style={{ padding: '6px' }}>عنوان المحضر</th>
+                        <th style={{ padding: '6px' }}>المرحلة</th>
+                        <th style={{ padding: '6px' }}>تاريخ المعاينة</th>
+                        <th style={{ padding: '6px' }}>المهندس المشرف</th>
+                        <th style={{ padding: '6px' }}>الحالة الهندسية</th>
+                        <th style={{ padding: '6px' }}>الملاحظات والتوجيهات</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {siteVisits.map((v: any, idx: number) => (
+                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{idx + 1}</td>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{v.title}</td>
+                          <td style={{ padding: '6px' }}>{v.stage || 'عام'}</td>
+                          <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{formatDate(v.visit_date)}</td>
+                          <td style={{ padding: '6px' }}>{v.inspector_name}</td>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{v.status}</td>
+                          <td style={{ padding: '6px' }}>{v.notes || 'معتمد'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* 5. معرض صور الموقع التوثيقية */}
+              {printOptions.sitePhotos && siteVisits.some(v => v.photo_before_url || v.photo_after_url) && (
+                <div style={{ marginBottom: '1.5rem', pageBreakInside: 'avoid' }}>
+                  <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Camera size={16} /> معرض صور الموقع والمعاينات التوثيقية
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                    {siteVisits.filter(v => v.photo_before_url || v.photo_after_url).map((v: any, idx: number) => (
+                      <React.Fragment key={idx}>
+                        {v.photo_before_url && (
+                          <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', background: '#f8fafc', padding: '6px' }}>
+                            <img src={v.photo_before_url} alt="قبل" style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
+                            <div style={{ fontSize: '10px', fontWeight: 800, marginTop: '4px', color: '#0f172a' }}>{v.title} (قبل)</div>
+                            <div style={{ fontSize: '9px', color: '#64748b' }}>{formatDate(v.visit_date)}</div>
+                          </div>
+                        )}
+                        {v.photo_after_url && (
+                          <div style={{ border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', background: '#f8fafc', padding: '6px' }}>
+                            <img src={v.photo_after_url} alt="بعد" style={{ width: '100%', height: '100px', objectFit: 'cover', borderRadius: '4px' }} />
+                            <div style={{ fontSize: '10px', fontWeight: 800, marginTop: '4px', color: '#0f172a' }}>{v.title} (بعد)</div>
+                            <div style={{ fontSize: '9px', color: '#64748b' }}>{formatDate(v.visit_date)}</div>
+                          </div>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 6. تقرير تحليل الانحراف المالي والقيمة المكتسبة EVM */}
+              {printOptions.costVarianceEVM && (
+                <div style={{ marginBottom: '1.5rem', pageBreakInside: 'avoid' }}>
+                  <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <TrendingUp size={16} /> تحليل الانحراف المالي وإدارة القيمة المكتسبة (EVM Analysis)
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>الميزانية المخططة (PV)</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900 }}>{formatCurrency(evmData.plannedValue)}</div>
+                    </div>
+                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>التكلفة الفعلية (AC)</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: evmData.isCostOverrun ? '#dc2626' : '#16a34a' }}>{formatCurrency(evmData.actualCost)}</div>
+                    </div>
+                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>القيمة المكتسبة (EV)</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900 }}>{formatCurrency(evmData.earnedValue)}</div>
+                    </div>
+                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>مؤشر أداء التكلفة (CPI)</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: Number(evmData.cpi) >= 1 ? '#16a34a' : '#dc2626' }}>{evmData.cpi}</div>
+                    </div>
+                  </div>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', textAlign: 'right' }}>
+                    <thead>
+                      <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
+                        <th style={{ padding: '5px' }}>البند بالميزانية</th>
+                        <th style={{ padding: '5px' }}>سعر البيع</th>
+                        <th style={{ padding: '5px' }}>الميزانية المقدرة</th>
+                        <th style={{ padding: '5px' }}>الفعلي المباشر</th>
+                        <th style={{ padding: '5px' }}>توزيعات ABC</th>
+                        <th style={{ padding: '5px' }}>إجمالي الفعلي</th>
+                        <th style={{ padding: '5px' }}>الانحراف</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {evmData.leafItems.slice(0, 15).map((it: any, idx: number) => {
+                        const bgt = Number(it.estimated_labor_cost || 0) + Number(it.estimated_subcontractor_cost || 0) + Number(it.estimated_material_cost || 0) + Number(it.estimated_expenses_cost || 0);
+                        const dir = Number(it.actual_labor_cost || 0) + Number(it.actual_material_cost || 0) + Number(it.actual_expenses_cost || 0);
+                        const abc = Number(it.allocated_expenses || 0);
+                        const tot = dir + abc;
+                        const vr = bgt - tot;
+                        return (
+                          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '5px', fontWeight: 800 }}>{it.work_item}</td>
+                            <td style={{ padding: '5px' }}>{formatCurrency(it.total_contract_amount || 0)}</td>
+                            <td style={{ padding: '5px' }}>{formatCurrency(bgt)}</td>
+                            <td style={{ padding: '5px' }}>{formatCurrency(dir)}</td>
+                            <td style={{ padding: '5px' }}>{formatCurrency(abc)}</td>
+                            <td style={{ padding: '5px', fontWeight: 800 }}>{formatCurrency(tot)}</td>
+                            <td style={{ padding: '5px', fontWeight: 800, color: vr < 0 ? '#dc2626' : '#16a34a' }}>{vr > 0 ? '+' : ''}{formatCurrency(vr)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* 7. عقود مقاولي الباطن */}
+              {printOptions.subcontractors && (
+                <div style={{ marginBottom: '1.5rem', pageBreakInside: 'avoid' }}>
+                  <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Layers size={16} /> عقود والتزامات مقاولي الباطن
+                  </h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>مقاول حدادة</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#0284c7' }}>{formatCurrency(subContractorStats.rebarTotal)}</div>
+                    </div>
+                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>مقاول صب خرسانة</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#d97706' }}>{formatCurrency(subContractorStats.concreteTotal)}</div>
+                    </div>
+                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>مقاول بنود أخرى</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#8b5cf6' }}>{formatCurrency(subContractorStats.otherTotal)}</div>
+                    </div>
+                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#64748b' }}>إجمالي مقاولي الباطن</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(subContractorStats.totalBudget)}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ملاحظات وتوجيهات الإدارة */}
+              {customReportNotes.trim() !== '' && (
+                <div style={{ marginBottom: '1.5rem', background: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid #e2e8f0', pageBreakInside: 'avoid' }}>
+                  <strong style={{ color: '#0f172a', display: 'block', marginBottom: '4px', fontSize: '12px' }}>ملاحظات وتوجيهات الإدارة الهندسية:</strong>
+                  <p style={{ margin: 0, fontSize: '11px', color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{customReportNotes}</p>
+                </div>
+              )}
 
               {/* صناديق التوقيع والاعتماد */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', textAlign: 'center', marginTop: '2.5rem' }}>
-                <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.75rem' }}>
-                  <div style={{ fontWeight: 900 }}>المهندس المشرف على الموقع</div>
-                  <div style={{ marginTop: '2rem', color: '#94a3b8' }}>التوقيع: ..........................</div>
+              {printOptions.signatures && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', textAlign: 'center', marginTop: '2.5rem', pageBreakInside: 'avoid' }}>
+                  <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.75rem' }}>
+                    <div style={{ fontWeight: 900, fontSize: '13px' }}>المهندس المشرف على الموقع</div>
+                    <div style={{ marginTop: '2rem', color: '#94a3b8', fontSize: '11px' }}>التوقيع: ..........................</div>
+                  </div>
+                  <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.75rem' }}>
+                    <div style={{ fontWeight: 900, fontSize: '13px' }}>مدير إدارة المشروعات</div>
+                    <div style={{ marginTop: '2rem', color: '#94a3b8', fontSize: '11px' }}>التوقيع: ..........................</div>
+                  </div>
+                  <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.75rem' }}>
+                    <div style={{ fontWeight: 900, fontSize: '13px' }}>المدير المالي والاعتماد</div>
+                    <div style={{ marginTop: '2rem', color: '#94a3b8', fontSize: '11px' }}>التوقيع: ..........................</div>
+                  </div>
                 </div>
-                <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.75rem' }}>
-                  <div style={{ fontWeight: 900 }}>مدير إدارة المشروعات</div>
-                  <div style={{ marginTop: '2rem', color: '#94a3b8' }}>التوقيع: ..........................</div>
-                </div>
-                <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.75rem' }}>
-                  <div style={{ fontWeight: 900 }}>المدير المالي والاعتماد</div>
-                  <div style={{ marginTop: '2rem', color: '#94a3b8' }}>التوقيع: ..........................</div>
-                </div>
-              </div>
+              )}
 
             </div>
           </div>
