@@ -6,7 +6,8 @@ import { formatCurrency, tafqeet } from '@/lib/helpers';
 import { useToast } from '@/lib/toast-context'; 
 import ZatcaQRCode from './ZatcaQRCode'; 
 import { QRCodeSVG } from 'qrcode.react'; 
-import { supabase } from '@/lib/supabase'; // 🚀 استدعاء Supabase
+import { supabase } from '@/lib/supabase';
+import ReportContactFooter from '@/components/ReportContactFooter'; // 🚀 استدعاء Supabase
 import { useCompany } from '@/lib/CompanyContext';
 
 // --- [المودال الرئيسي لطباعة ومعاينة الفاتورة] ---
@@ -242,7 +243,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
     const sellerTaxNo = activeCompany?.tax_number || (isDefaultCompany ? '312487477800003' : 'غير مسجل');
     const sellerCrNo = activeCompany?.cr_number || (isDefaultCompany ? '7051013319' : '');
     const sellerAddress = activeCompany?.address || (isDefaultCompany ? 'الدمام - حي الفيصليه - شارع السعيره' : '');
-    const sellerEmail = activeCompany?.email || (isDefaultCompany ? 'rawasi.alyusr@gmail.com' : '');
+    const sellerEmail = activeCompany?.email || (isDefaultCompany ? 'phi.tech.eg@gmail.com' : '');
 
     // Custom formatting wrapper to force English numbers
     const formatNumberEn = (num: number) => {
@@ -649,9 +650,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                 </div>
 
                 {/* 5️⃣ الفوتر الثابت أسفل الصفحة */}
-                <div className="inv-footer-contact">
-                    {[sellerAddress, sellerEmail, activeCompany?.phone].filter(Boolean).join('  |  ')}
-                </div>
+                <ReportContactFooter qrSize={56} customAddress={sellerAddress} style={{ marginTop: 'auto', paddingTop: '15px' }} />
 
             </div>
         </div>

@@ -2,6 +2,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatCurrency, formatDate } from '@/lib/helpers';
+import ReportContactFooter from '@/components/ReportContactFooter';
 import { THEME } from '@/lib/theme';
 
 interface StatementPrintModalProps {
@@ -185,6 +186,9 @@ export default function StatementPrintModal({
                         <div className="sig-box"><p>المدير المالي</p><div className="sig-line"></div></div>
                         <div className="sig-box"><p>توقيع المقاول / الشريك</p><div className="sig-line"></div></div>
                     </div>
+
+                    {/* 📱 فوتر جهات الاتصال الرسمية مع باركود vCard الذكي */}
+                    <ReportContactFooter qrSize={56} style={{ marginTop: '25px' }} />
                 </div>
             </div>
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/helpers';
+import ReportContactFooter from '@/components/ReportContactFooter';
 import LoadingScreen from '@/components/LoadingScreen';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
 
@@ -219,6 +220,9 @@ export default function PrintStatement() {
                     <div className="sig-line"></div>
                 </div>
             </div>
+
+            {/* 📱 فوتر جهات الاتصال الرسمية مع باركود vCard الذكي */}
+            <ReportContactFooter qrSize={56} style={{ marginTop: '30px' }} />
         </div>
     );
 }

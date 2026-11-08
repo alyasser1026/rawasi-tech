@@ -5,6 +5,7 @@ import { THEME } from '@/lib/theme';
 import { formatCurrency, tafqeet } from '@/lib/helpers'; 
 import { QRCodeSVG } from 'qrcode.react'; 
 import { supabase } from '@/lib/supabase';
+import ReportContactFooter from '@/components/ReportContactFooter';
 
 export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
     const [mounted, setMounted] = useState(false); 
@@ -154,9 +155,7 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
                     </div>
                 </div>
 
-                <div className="inv-footer-contact">
-                    الدمام - حي الفيصليه - شارع السعيره &nbsp;|&nbsp; rawasi.alyusr@gmail.com &nbsp;|&nbsp; 0547606876
-                </div>
+                <ReportContactFooter qrSize={56} style={{ marginTop: 'auto', paddingTop: '15px' }} />
             </div>
         </div>
     );

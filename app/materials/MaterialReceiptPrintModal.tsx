@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '@/lib/helpers';
+import ReportContactFooter from '@/components/ReportContactFooter';
 import { THEME } from '@/lib/theme';
 
 export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, receiptId }: any) {
@@ -164,6 +165,8 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
                     </div>
                 </div>
 
+                {/* 📱 فوتر جهات الاتصال الرسمية مع باركود vCard الذكي */}
+                <ReportContactFooter qrSize={56} style={{ marginTop: '24px' }} />
             </div>
         </div>,
         document.body

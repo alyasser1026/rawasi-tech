@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '@/lib/helpers';
+import ReportContactFooter from '@/components/ReportContactFooter';
 
 export default function PrintClaimModal({ isOpen, onClose, claim, contractorName, assignments = [], deductions = [] }: any) {
     const [mounted, setMounted] = useState(false);
@@ -386,6 +387,9 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                             <div className="sig-line"></div>
                         </div>
                     </div>
+
+                    {/* 📱 فوتر جهات الاتصال الرسمية مع باركود vCard الذكي */}
+                    <ReportContactFooter qrSize={56} style={{ marginTop: '25px' }} />
 
                 </div>
             </div>

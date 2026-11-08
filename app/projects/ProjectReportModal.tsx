@@ -2,6 +2,7 @@ import React from 'react';
 import { formatCurrency } from '@/lib/helpers';
 import { THEME } from '@/lib/theme';
 import { Printer } from 'lucide-react';
+import ReportContactFooter from '@/components/ReportContactFooter';
 
 export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, flatBoqData }: any) {
   if (!isOpen) return null;
@@ -157,6 +158,9 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
               <div style={{ borderBottom: '1px solid #94a3b8' }}></div>
             </div>
           </div>
+
+          {/* 📱 فوتر جهات الاتصال الرسمية مع باركود vCard الذكي */}
+          <ReportContactFooter style={{ marginTop: '2.5rem' }} />
 
         </div>
       </div>

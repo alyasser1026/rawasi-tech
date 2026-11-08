@@ -10,6 +10,7 @@ import {
   Building2, Sliders
 } from 'lucide-react';
 import SecureAction from '@/components/SecureAction';
+import ReportContactFooter from '@/components/ReportContactFooter';
 
 interface ReportsTabProps {
   logic: any;
@@ -2933,6 +2934,9 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   </div>
                 </div>
               )}
+
+              {/* 📱 فوتر جهات الاتصال الرسمية مع باركود vCard الذكي */}
+              <ReportContactFooter style={{ marginTop: '2.5rem' }} />
 
             </div>
           </div>
