@@ -73,11 +73,19 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
                         <SmartCombo 
                             label="وصف الأعمال (اختر البند الرئيسي للربط) *" icon="📋" table="boq_items" searchCols="item_name" displayCol="item_name" 
                             initialDisplay={record.work_item || ''} 
-                            onSelect={(item: any) => setRecord({
-                                ...record, 
-                                boq_item_id: item?.id || null, 
-                                work_item: item?.item_name || ''
-                            })} 
+                            onSelect={(item: any) => {
+                                const isObj = typeof item === 'object' && item !== null;
+                                setRecord({
+                                    ...record, 
+                                    boq_item_id: isObj ? item.id : null, 
+                                    work_item: isObj ? item.item_name : (item || ''),
+                                    unit: isObj && item.unit_of_measure ? item.unit_of_measure : (record.unit || 'مقطوعية'),
+                                    unit_contract_price: isObj && item.default_unit_price != null ? Number(item.default_unit_price) : (record.unit_contract_price ?? 0),
+                                    estimated_labor_cost: isObj && item.default_labor_price != null ? Number(item.default_labor_price) : (record.estimated_labor_cost ?? 0),
+                                    estimated_material_cost: isObj && item.default_material_price != null ? Number(item.default_material_price) : (record.estimated_material_cost ?? 0),
+                                    main_category: isObj ? item.main_category : record.main_category
+                                });
+                            }} 
                         />
                     </div>
 
@@ -172,10 +180,10 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
                 </div>
 
                 <div style={{ display: 'flex', gap: '1.25rem', marginTop: '2.1875rem' }}>
-                    <button onClick={handleValidateAndSave} disabled={isSaving} className="btn-glass-save" style={{ flex: 2 }}>
+                    <button type="button" onClick={handleValidateAndSave} disabled={isSaving} className="btn-glass-save" style={{ flex: 2 }}>
                         {isSaving ? 'جاري الحفظ والتزامن التلقائي...' : 'حفظ البند'}
                     </button>
-                    <button onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>
+                    <button type="button" onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>
                         إلغاء وإغلاق
                     </button>
                 </div>

@@ -303,13 +303,34 @@ export function useJobOrdersLogic() {
                 notes: record.notes
             };
 
-            if (record.id) {
-                const { error } = await supabase.from('job_orders').update(payload).eq('id', record.id);
-                if (error) throw error;
-            } else {
-                const { error } = await supabase.from('job_orders').insert([payload]);
-                if (error) throw error;
-            }
+            const saveWithFallback = async (dataPayload: any) => {
+                const isRetentionError = (err: any) => 
+                    err && (String(err.message).includes('retention_percent') || err.code === 'PGRST204' || err.code === '42703' || String(err.details).includes('retention_percent'));
+
+                if (record.id) {
+                    let { error } = await supabase.from('job_orders').update(dataPayload).eq('id', record.id);
+                    if (isRetentionError(error)) {
+                        console.warn('retention_percent column missing in schema cache, retrying without it...');
+                        const fallbackPayload = { ...dataPayload };
+                        delete fallbackPayload.retention_percent;
+                        const retry = await supabase.from('job_orders').update(fallbackPayload).eq('id', record.id);
+                        error = retry.error;
+                    }
+                    if (error) throw error;
+                } else {
+                    let { error } = await supabase.from('job_orders').insert([dataPayload]);
+                    if (isRetentionError(error)) {
+                        console.warn('retention_percent column missing in schema cache, retrying without it...');
+                        const fallbackPayload = { ...dataPayload };
+                        delete fallbackPayload.retention_percent;
+                        const retry = await supabase.from('job_orders').insert([fallbackPayload]);
+                        error = retry.error;
+                    }
+                    if (error) throw error;
+                }
+            };
+
+            await saveWithFallback(payload);
         },
         onSuccess: () => {
             setIsEditModalOpen(false);

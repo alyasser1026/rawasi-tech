@@ -283,7 +283,6 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
                 isOpen={logic.isBoqModalOpen} onClose={() => logic.setIsBoqModalOpen(false)}
                 record={logic.currentBoqRecord} setRecord={logic.setCurrentBoqRecord}
                 onSave={logic.handleSaveBoq} projectBoq={logic.projectDetails.boq}
-                onImport={logic.importFromLibrary}
                 isSaving={logic.isSavingBoq}
             />
         )}

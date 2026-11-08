@@ -155,8 +155,11 @@ export default function ProjectProfitabilityPage() {
     document.body.removeChild(link);
   };
 
-  const isReconciled = profitabilityData?.reconciliation?.is_reconciled;
   const glVariance = Number(profitabilityData?.reconciliation?.variance || 0);
+  const isReconciled = Boolean(
+    profitabilityData?.reconciliation?.is_reconciled ||
+    (profitabilityData?.reconciliation && Math.abs(glVariance) < 0.01)
+  );
 
   return (
     <div className="clean-page enterprise-page">

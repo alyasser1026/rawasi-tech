@@ -5,30 +5,38 @@ export function useUnreadCounts() {
     const [counts, setCounts] = useState({ unread_messages: 0, unread_notifications: 0 });
 
     useEffect(() => {
-        const fetchCounts = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (!session) return;
+        let isMounted = true;
 
-            const { data, error } = await supabase
-                .from('vw_unread_counts')
-                .select('*')
-                .eq('user_id', session.user.id)
-                .single();
-            
-            if (data && !error) {
-                setCounts({
-                    unread_messages: Number(data.unread_messages || 0),
-                    unread_notifications: Number(data.unread_notifications || 0)
-                });
+        const fetchCounts = async () => {
+            try {
+                const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+                if (sessionErr || !session || !isMounted) return;
+
+                const { data, error } = await supabase
+                    .from('vw_unread_counts')
+                    .select('*')
+                    .eq('user_id', session.user.id)
+                    .maybeSingle();
+                
+                if (data && !error && isMounted) {
+                    setCounts({
+                        unread_messages: Number(data.unread_messages || 0),
+                        unread_notifications: Number(data.unread_notifications || 0)
+                    });
+                }
+            } catch {
+                // Silently ignore transient network disconnects (ERR_CONNECTION_CLOSED)
             }
         };
 
         fetchCounts();
 
-        // Optional: you can add an interval or realtime subscription to refresh it
         const interval = setInterval(fetchCounts, 60000); // refresh every minute
 
-        return () => clearInterval(interval);
+        return () => {
+            isMounted = false;
+            clearInterval(interval);
+        };
     }, []);
 
     return counts;

@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useCompany } from '@/lib/CompanyContext';
 
+// Flag to prevent spamming 404 queries if daily_cash_closings table is not yet migrated
+let hasDailyCashClosingsTable = true;
+
 export interface AuditPendingCounts {
   manualJournals: number;
   paymentVouchers: number;
@@ -86,12 +89,26 @@ export function useAuditPendingCounts() {
         .eq('company_id', activeCompanyId)
         .eq('is_posted', false);
 
-      // 7. Accounting adjustments (daily cash closings pending)
-      const ccPromise = supabase
-        .from('daily_cash_closings')
-        .select('id', { count: 'exact', head: true })
-        .eq('company_id', activeCompanyId)
-        .eq('status', 'pending');
+      // 7. Accounting adjustments (daily cash closings pending if table exists)
+      const ccPromise = hasDailyCashClosingsTable
+        ? (async () => {
+            try {
+              const res = await supabase
+                .from('daily_cash_closings')
+                .select('id', { count: 'exact', head: true })
+                .eq('company_id', activeCompanyId)
+                .eq('status', 'pending');
+              if (res.error && (res.error.code === '42P01' || res.error.code === 'PGRST205' || res.error.code === 'PGRST204' || (res.error as any).status === 404 || String(res.error.message).includes('404'))) {
+                hasDailyCashClosingsTable = false;
+                return { count: 0, error: null };
+              }
+              return res;
+            } catch {
+              hasDailyCashClosingsTable = false;
+              return { count: 0, error: null };
+            }
+          })()
+        : Promise.resolve({ count: 0, error: null });
 
       const [mjRes, pvRes, rvRes, invRes, expRes, miRes, ccRes] = await Promise.all([
         mjPromise,

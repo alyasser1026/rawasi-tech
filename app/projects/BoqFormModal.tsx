@@ -53,38 +53,31 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             displayCol="item_name" 
                             initialDisplay={record.work_item}
                             freeText={true} 
-                            onSelect={async (b: any) => {
+                            onSelect={(b: any) => {
                                 const isObj = typeof b === 'object' && b !== null;
 
-                                // 1. استدعاء الـ Import التلقائي المباشر للسيرفر إن وجد
-                                if (isObj && onImport) {
-                                    await onImport(b);
-                                    onClose();
-                                    return;
-                                }
-
-                                // 2. التسكين الذكي التلقائي للـ parent_id بناءً على شجرة الدليل الموحد
+                                // التسكين الذكي التلقائي للـ parent_id بناءً على شجرة الدليل الموحد دون إغلاق المودال أو الحفظ المفاجئ
                                 let suggestedParentId = record.parent_id;
-                                if (isObj) {
-                                    const existingPhase = projectBoq?.find((item: any) => item.item_type === 'رئيسي' && item.work_item === b.main_category);
+                                if (isObj && projectBoq?.length) {
+                                    const existingPhase = projectBoq.find((item: any) => 
+                                        item.item_type === 'رئيسي' && (item.work_item === b.main_category || item.main_category === b.main_category)
+                                    );
                                     if (existingPhase) suggestedParentId = existingPhase.id;
                                 }
-
-                                // 🚀 ربط الحقل باسم العمود الصريح في قاعدة البيانات عندك 'tareeha'
-                                const fetchedTarget = isObj ? (b.tareeha ?? b.daily_target ?? b.tariha ?? 0) : 0;
 
                                 setRecord({
                                     ...record, 
                                     boq_item_id: isObj ? b.id : null,
-                                    work_item: isObj ? b.item_name : b, 
+                                    work_item: isObj ? b.item_name : (b || ''), 
                                     item_type: isObj ? 'فرعي' : (record.item_type || 'رئيسي'), 
                                     parent_id: suggestedParentId, 
-                                    main_category: isObj ? b.main_category : 'بند عام',
-                                    sub_category: isObj ? b.sub_category : 'مرحلة عامة',
-                                    unit: isObj ? b.unit_of_measure : record.unit || 'مقطوعية',
-                                    unit_contract_price: isObj && b.default_unit_price ? b.default_unit_price : record.unit_contract_price,
-                                    estimated_labor_cost: isObj && b.default_labor_price ? b.default_labor_price : record.estimated_labor_cost,
-                                    estimated_material_cost: isObj && b.default_material_price ? b.default_material_price : record.estimated_material_cost
+                                    main_category: isObj ? (b.main_category || 'بند عام') : (record.main_category || 'بند عام'),
+                                    sub_category: isObj ? (b.sub_category || 'مرحلة عامة') : (record.sub_category || 'مرحلة عامة'),
+                                    unit: isObj && b.unit_of_measure ? b.unit_of_measure : (record.unit || 'مقطوعية'),
+                                    unit_contract_price: isObj && b.default_unit_price != null ? Number(b.default_unit_price) : (record.unit_contract_price ?? 0),
+                                    estimated_labor_cost: isObj && b.default_labor_price != null ? Number(b.default_labor_price) : (record.estimated_labor_cost ?? 0),
+                                    estimated_material_cost: isObj && b.default_material_price != null ? Number(b.default_material_price) : (record.estimated_material_cost ?? 0),
+                                    contract_quantity: record.contract_quantity && Number(record.contract_quantity) > 0 ? record.contract_quantity : 1
                                 });
                             }} 
                         />
@@ -166,10 +159,10 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
 
                 {/* أزرار التحكم والاعتماد */}
                 <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '2.1875rem' }}>
-                    <button onClick={handleSave} disabled={isSaving} style={{ flex: 2, background: isSaving ? '#94a3b8' : THEME.success, color: 'white', border: 'none', padding: '1rem', borderRadius: '16px', fontWeight: 900, cursor: isSaving ? 'not-allowed' : 'pointer', fontSize: 'var(--fs-lg)', boxShadow: isSaving ? 'none' : `0 10px 20px ${THEME.success}40` }}>
+                    <button type="button" onClick={handleSave} disabled={isSaving} style={{ flex: 2, background: isSaving ? '#94a3b8' : THEME.success, color: 'white', border: 'none', padding: '1rem', borderRadius: '16px', fontWeight: 900, cursor: isSaving ? 'not-allowed' : 'pointer', fontSize: 'var(--fs-lg)', boxShadow: isSaving ? 'none' : `0 10px 20px ${THEME.success}40` }}>
                         {isSaving ? 'جاري الحفظ...' : 'حفظ وتسكين البند في شجرة المشروع'}
                     </button>
-                    <button onClick={onClose} disabled={isSaving} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '1rem', borderRadius: '16px', fontWeight: 900, cursor: isSaving ? 'not-allowed' : 'pointer', fontSize: 'var(--fs-lg)' }}>إلغاء</button>
+                    <button type="button" onClick={onClose} disabled={isSaving} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '1rem', borderRadius: '16px', fontWeight: 900, cursor: isSaving ? 'not-allowed' : 'pointer', fontSize: 'var(--fs-lg)' }}>إلغاء</button>
                 </div>
             </div>
         </div>,

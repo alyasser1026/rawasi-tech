@@ -172,7 +172,7 @@ export default function QcTab({ logic }: { logic: any }) {
   const modalDrawingImgRef = useRef<HTMLImageElement | null>(null);
   const [isSubmittingVisit, setIsSubmittingVisit] = useState(false);
 
-  // 1. Fetch Drawings
+  // 1. Fetch Drawings (مع المعالجة المرنة في حال عدم توفر الجدول بقاعدة البيانات 404/PGRST205)
   const {
     data: drawings = [],
     isLoading: isLoadingDrawings,
@@ -187,15 +187,19 @@ export default function QcTab({ logic }: { logic: any }) {
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
       if (error) {
-        console.error('Error fetching drawings:', error);
-        throw error;
+        const isNotFound = error.code === '42P01' || error.code === 'PGRST205' || error.code === 'PGRST204' || (error as any).status === 404 || String(error.message).includes('404');
+        if (!isNotFound) {
+          console.warn('Notice fetching drawings:', error.message || error);
+        }
+        return [] as ProjectDrawing[];
       }
       return (data || []) as ProjectDrawing[];
     },
     enabled: Boolean(projectId),
+    retry: false,
   });
 
-  // 2. Fetch Site Visits
+  // 2. Fetch Site Visits (مع المعالجة المرنة في حال عدم توفر الجدول بقاعدة البيانات 404/PGRST205)
   const {
     data: visits = [],
     isLoading: isLoadingVisits,
@@ -210,12 +214,16 @@ export default function QcTab({ logic }: { logic: any }) {
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
       if (error) {
-        console.error('Error fetching visits:', error);
-        throw error;
+        const isNotFound = error.code === '42P01' || error.code === 'PGRST205' || error.code === 'PGRST204' || (error as any).status === 404 || String(error.message).includes('404');
+        if (!isNotFound) {
+          console.warn('Notice fetching visits:', error.message || error);
+        }
+        return [] as ProjectSiteVisit[];
       }
       return (data || []) as ProjectSiteVisit[];
     },
     enabled: Boolean(projectId),
+    retry: false,
   });
 
   // Automatically select the first drawing if none selected

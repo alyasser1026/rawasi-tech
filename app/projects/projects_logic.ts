@@ -133,9 +133,36 @@ export function useProjectsLogic() {
     mutationFn: async (record: any) => {
         if (!record.work_item) throw new Error("يرجى إدخال اسم البند!");
 
+        let parentId = record.parent_id || null;
+        if (record.item_type === 'فرعي' && !parentId && record.main_category) {
+            const existingPhase = projectDetails.boq?.find(
+                (b: any) => b.item_type === 'رئيسي' && (b.work_item === record.main_category || b.main_category === record.main_category)
+            );
+            if (existingPhase) {
+                parentId = existingPhase.id;
+            } else {
+                const { data: newPhase, error: phaseErr } = await supabase
+                    .from('boq_budget')
+                    .insert({
+                        project_id: selectedProject.id,
+                        item_type: 'رئيسي',
+                        work_item: record.main_category,
+                        main_category: record.main_category,
+                        sub_category: 'عام',
+                        start_date: null, 
+                        end_date: null 
+                    })
+                    .select()
+                    .single();
+                if (!phaseErr && newPhase) {
+                    parentId = newPhase.id;
+                }
+            }
+        }
+
         const payload: any = {
             project_id: selectedProject.id,
-            parent_id: record.item_type === 'فرعي' ? record.parent_id : null,
+            parent_id: record.item_type === 'فرعي' ? parentId : null,
             item_type: record.item_type || 'رئيسي',
             work_item: record.work_item,
             unit: record.unit || 'مقطوعية',

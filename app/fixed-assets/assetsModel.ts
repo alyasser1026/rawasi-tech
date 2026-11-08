@@ -194,6 +194,9 @@ export async function createFixedAsset(payload: {
   });
 
   if (error) {
+    if (error.code === 'PGRST202' || error.message?.includes('schema cache') || error.message?.includes('create_fixed_asset')) {
+      throw new Error('دالة إضافة الأصول الثابتة غير مفعلة على السيرفر بعد. يرجى تشغيل ميجريشن الأصول 20261105170008_fixed_assets_and_depreciation.sql في Supabase SQL Editor');
+    }
     throw new Error(error.message || 'فشل إضافة الأصل الجديد');
   }
 
