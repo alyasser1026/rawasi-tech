@@ -1,0 +1,419 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 998;
+  background: transparent;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 999;
+  width: 360px;
+  max-width: calc(100vw - 20px);
+  background: #ffffff;
+  border-radius: 18px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 16px 40px -10px rgba(0, 0, 0, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.04);
+  padding: 14px 16px;
+  direction: rtl;
+  animation: popIn 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
+}
+
+:global([data-theme="dark"]) .panel {
+  background: var(--surface-card, #16181f);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 48px -10px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 900;
+  color: #92400e;
+  letter-spacing: -0.2px;
+}
+
+:global([data-theme="dark"]) .headerTitle {
+  color: #f59e0b;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.refreshBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+  padding: 0;
+}
+
+.refreshBtn:hover {
+  background: #1d4ed8;
+}
+
+.refreshBtn:active {
+  transform: scale(0.92);
+}
+
+.spin {
+  animation: spinAnim 0.7s linear infinite;
+}
+
+@keyframes spinAnim {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pendingPill {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+:global([data-theme="dark"]) .pendingPill {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 10px 0 12px;
+}
+
+:global([data-theme="dark"]) .divider {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.itemsList {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.15s ease, transform 0.1s ease;
+  box-sizing: border-box;
+}
+
+.itemRow:hover,
+.itemRowActive {
+  background: #fbf5ee;
+}
+
+:global([data-theme="dark"]) .itemRow:hover,
+:global([data-theme="dark"]) .itemRowActive {
+  background: rgba(245, 158, 11, 0.09);
+}
+
+.itemContent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.itemIcon {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+}
+
+.itemLabel {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+:global([data-theme="dark"]) .itemLabel {
+  color: #ede5da;
+}
+
+.zeroBadge {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #059669;
+  min-width: 20px;
+  text-align: center;
+}
+
+:global([data-theme="dark"]) .zeroBadge {
+  color: #34d399;
+}
+
+.countPill {
+  background: #fef3c7;
+  color: #d97706;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 900;
+  min-width: 24px;
+  text-align: center;
+}
+
+:global([data-theme="dark"]) .countPill {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.notificationsCard {
+  margin-top: 10px;
+  padding: 10px 14px;
+  border: 1.5px dashed #cbd5e1;
+  border-radius: 14px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.notificationsCard:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+}
+
+:global([data-theme="dark"]) .notificationsCard {
+  border-color: rgba(255, 255, 255, 0.16);
+}
+
+:global([data-theme="dark"]) .notificationsCard:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.notificationsCardLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+:global([data-theme="dark"]) .notificationsCardLabel {
+  color: #f1f5f9;
+}
+
+.notifBadge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* Notifications Subview */
+.notifHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.backBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #2563eb;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.backBtn:hover {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+:global([data-theme="dark"]) .backBtn {
+  color: #60a5fa;
+}
+
+.markAllBtn {
+  font-size: 12px;
+  font-weight: 700;
+  color: #059669;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+}
+
+.markAllBtn:hover {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.notifList {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.notifItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #1e293b;
+  position: relative;
+}
+
+:global([data-theme="dark"]) .notifItem {
+  background: rgba(255, 255, 255, 0.04);
+  color: #e2e8f0;
+}
+
+.notifItemUnread {
+  border-inline-start: 3px solid #2563eb;
+  background: #f0f7ff;
+}
+
+:global([data-theme="dark"]) .notifItemUnread {
+  background: rgba(37, 99, 235, 0.12);
+  border-inline-start-color: #60a5fa;
+}
+
+.notifMeta {
+  flex: 1;
+  min-width: 0;
+}
+
+.notifMessage {
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.notifTime {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.notifEmpty {
+  text-align: center;
+  padding: 24px 12px;
+  color: #64748b;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+:global([data-theme="dark"]) .notifEmpty {
+  color: #94a3b8;
+}
+
+.notifFooter {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+:global([data-theme="dark"]) .notifFooter {
+  border-top-color: rgba(255, 255, 255, 0.08);
+}
+
+.notifFooterLink {
+  font-size: 12px;
+  font-weight: 800;
+  color: #d97706;
+  text-decoration: none;
+}
+
+.notifFooterLink:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 800px) {
+  .panel {
+    position: fixed;
+    top: 4.25rem;
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    max-width: 24rem;
+    margin: 0 auto;
+  }
+}

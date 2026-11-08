@@ -5,8 +5,9 @@ import { usePathname, useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Bell, ChevronLeft, Keyboard, Menu, MessageSquare, Search, Zap } from 'lucide-react';
 import { menuGroups } from '@/lib/menuData';
 import { useUnreadCounts } from '@/hooks/useUnreadCounts';
+import { useAuditPendingCounts } from '@/hooks/useAuditPendingCounts';
 import { usePerformancePreferences } from './PerformancePreferences';
-import NotificationsModal from './NotificationsModal';
+import AuditPendingCenter from './AuditPendingCenter';
 import ThemeSwitcher from './ThemeSwitcher';
 import CompanyLogo from './CompanyLogo';
 import CompanySwitcher from './CompanySwitcher';
@@ -28,8 +29,10 @@ export default function AppTopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
   const router = useRouter();
   const { fastMode, ready, toggle } = usePerformancePreferences();
   const { unread_messages, unread_notifications } = useUnreadCounts();
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const { counts: auditCounts } = useAuditPendingCounts();
+  const [auditCenterOpen, setAuditCenterOpen] = useState(false);
   const title = pageTitle(pathname);
+  const hasNotificationsOrPending = unread_notifications > 0 || auditCounts.totalPending > 0;
 
   return <>
     <header className="ent-topbar no-print">
@@ -60,12 +63,20 @@ export default function AppTopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
         <Link href="/messages" className="ent-icon-button ent-topbar-messages" aria-label={`الرسائل${unread_messages ? `: ${unread_messages} غير مقروءة` : ''}`} title="الرسائل">
           <MessageSquare size={17} />{unread_messages > 0 && <span className="ent-notification-dot" />}
         </Link>
-        <button type="button" className="ent-icon-button ent-topbar-bell" onClick={() => setNotificationsOpen(true)} aria-label={`الإشعارات${unread_notifications ? `: ${unread_notifications} غير مقروءة` : ''}`} title="الإشعارات">
-          <Bell size={17} />{unread_notifications > 0 && <span className="ent-notification-dot" />}
-        </button>
+        <div style={{ position: 'relative', display: 'inline-flex' }}>
+          <button
+            type="button"
+            className="ent-icon-button ent-topbar-bell"
+            onClick={() => setAuditCenterOpen(open => !open)}
+            aria-label={`مركز التدقيق والمعلقات${auditCounts.totalPending ? `: ${auditCounts.totalPending} معلق` : ''}${unread_notifications ? `، ${unread_notifications} إشعار` : ''}`}
+            title="مركز التدقيق والمعلقات"
+            aria-expanded={auditCenterOpen}
+          >
+            <Bell size={17} />{hasNotificationsOrPending && <span className="ent-notification-dot" />}
+          </button>
+          {auditCenterOpen && <AuditPendingCenter isOpen={auditCenterOpen} onClose={() => setAuditCenterOpen(false)} />}
+        </div>
       </div>
     </header>
-    {/* Mounted only while open: the modal loads (and marks read) notifications and opens a realtime channel. */}
-    {notificationsOpen && <NotificationsModal isOpen onClose={() => setNotificationsOpen(false)} />}
   </>;
 }
