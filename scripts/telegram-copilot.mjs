@@ -657,6 +657,9 @@ function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
         const codeMatch = t.match(/(?:و?(?:كوده|كود))\s*([A-Za-z0-9_-]{2,20})/i);
         const code = codeMatch ? codeMatch[1].trim() : undefined;
 
+        const wageMatch = t.match(/(?:و?(?:يوميه|يومية|يوميته|أجره|اجره|أجر|اجر|راتب|راتبه|متفق\s*عليها|بسعر|بـ|ب))\s*[:=]?\s*(\d+(?:\.\d+)?)/u);
+        const dailyWage = wageMatch ? Number(wageMatch[1]) : undefined;
+
         return {
           name: 'add_partner',
           args: {
@@ -664,6 +667,7 @@ function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
             ...(pType ? { partner_type: pType } : {}),
             ...(phone ? { phone } : {}),
             ...(jobRole ? { job_role: jobRole } : {}),
+            ...(dailyWage ? { daily_wage: dailyWage } : {}),
             ...(code ? { code } : {}),
           },
         };
@@ -1087,6 +1091,90 @@ function privateCommandText(text) {
   return text.trim().replace(/^(\/[a-z][a-z0-9_]*)(?:@[a-z0-9_]+)(?=\s|$)/i, '$1');
 }
 
+// 📇 إدارة كروت الاتصال المشتركة (Shared Contact Sessions) لإضافة الشركاء
+const pendingContactSessions = new Map(); // chatId -> { fullName, phone, timestamp }
+
+function parsePartnerDetails(text) {
+  const t = String(text || '').trim();
+  if (!t) return { job_role: null, daily_wage: null, partner_type: null };
+
+  const wageMatch = t.match(/(?:يوميه|يومية|يوميته|اجره|أجره|اجر|أجر|راتب|راتبه|متفق\s*عليها|بسعر|بـ|ب)\s*(?:كذا\s*)?(\d+(?:\.\d+)?)/u) ||
+                    t.match(/(\d+(?:\.\d+)?)\s*(?:ريال|ر\.س|جنية|جنيه|ج\.م)/u) ||
+                    t.match(/\b(\d{2,4})\b/);
+  const dailyWage = wageMatch ? Number(wageMatch[1]) : null;
+
+  const tradePattern = '(?:(?:فني|صنايعي|معلم)\\s+)?(?:محارة|محاره|حدادة\\s*مسلحة|حدادة|حداده|نجارة\\s*مسلحة|نجارة|نجاره|سباكة|سباكه|كهرباء|نقاشة|نقاشه|دهانات|سيراميك|رخام|مباني|عزل|تكييف|ألوميتال|الوميتال|جبس|حداد\\s*مسلح|حداد|نجار\\s*مسلح|نجار|سباك|كهربائي|نقاش|دهان|مبلط|بناء|مليس|مساعد|عامل\\s*عادي|عامل|مشرف\\s*موقع|مشرف|مهندس\\s*موقع|مهندس)';
+  const tradeMatch = t.match(new RegExp(tradePattern, 'u'));
+
+  let jobRole = null;
+  if (tradeMatch) {
+    jobRole = tradeMatch[0].trim();
+  } else {
+    const roleClean = t
+      .replace(/(?:مهنته|شغال|وظيفته|وظيفه|وظيفة|هو)\s*/u, '')
+      .replace(/(?:و?يوميه|و?يومية|و?يوميته|و?اجره|و?أجره|و?اجر|و?أجر|و?متفق\s*عليها|و?بسعر|و?بـ|و?ب)\s*(?:كذا\s*)?\d+(?:\.\d+)?/gu, '')
+      .replace(/\d+\s*(?:ريال|ر\.س|جنية|جنيه|ج\.م)/gu, '')
+      .replace(/\b\d{2,4}\b/g, '')
+      .trim();
+    if (roleClean.length >= 2 && roleClean.length <= 40) {
+      jobRole = roleClean;
+    }
+  }
+
+  let partnerType = 'عامل يومية';
+  if (/مهندس|مشرف|محاسب|مدير|اداري|إداري/u.test(jobRole || t)) {
+    partnerType = 'موظف';
+  } else if (/مقاول/u.test(jobRole || t)) {
+    partnerType = 'مقاول';
+  } else if (/مورد|شركة/u.test(jobRole || t)) {
+    partnerType = 'مورد';
+  }
+
+  return {
+    job_role: jobRole,
+    daily_wage: dailyWage,
+    partner_type: partnerType,
+  };
+}
+
+async function handleAddPartnerFromContact(actor, fullName, phone, details, messageId) {
+  const verified = await verifyTelegramAuth(actor);
+  if (!verified.ok) {
+    await sendTelegramMessage(actor.chatId, verified.error, messageId);
+    return;
+  }
+
+  const access = await checkUserCompanyAccess(verified.user.id, verified.companyId);
+  if (!access.ok) {
+    await sendTelegramMessage(actor.chatId, 'لا توجد صلاحية للشركة الحالية.', messageId);
+    return;
+  }
+
+  const tools = createCopilotTools({
+    companyId: verified.companyId,
+    authToken: verified.sessionToken,
+    supabaseKey: SUPABASE_ANON_KEY,
+    restBase: REST_BASE,
+  });
+
+  const addRes = await tools.add_partner({
+    name: fullName,
+    phone: phone,
+    job_role: details.job_role || 'صنايعي',
+    daily_wage: details.daily_wage || null,
+    partner_type: details.partner_type || 'عامل يومية',
+  });
+
+  const s = getBotSettings();
+  const activeComp = getActiveCompany(s);
+  const replyText = formatAddPartnerReply(addRes, activeComp?.name || 'فاي تك');
+
+  await sendTelegramMessage(actor.chatId, replyText, messageId, { html: false });
+  if (s.voiceReplyMode === 'always') {
+    await sendTelegramVoiceReply(actor.chatId, replyText, messageId, s);
+  }
+}
+
 // Process incoming Telegram update
 async function processTelegramMessage(msg) {
   const chatId = msg.chat?.id;
@@ -1107,6 +1195,60 @@ async function processTelegramMessage(msg) {
   if (entry) {
     await sendTelegramMessage(chatId, entry.text, messageId, { html: false, replyMarkup: entry.replyMarkup });
     return;
+  }
+
+  // 📇 معالجة كارت الاتصال المشترك (Shared Contact Card) لإضافة شريك جديد
+  if (msg.contact) {
+    const contact = msg.contact;
+    const firstName = contact.first_name || '';
+    const lastName = contact.last_name || '';
+    const fullName = [firstName, lastName].filter(Boolean).join(' ').trim() || 'شريك جديد';
+    let phone = String(contact.phone_number || '').trim();
+    if (phone && !phone.startsWith('+') && !phone.startsWith('00')) {
+      phone = '+' + phone;
+    }
+
+    const caption = String(msg.caption || '').trim();
+    const parsedCaption = parsePartnerDetails(caption);
+
+    if (parsedCaption.job_role || parsedCaption.daily_wage) {
+      return await handleAddPartnerFromContact(actor, fullName, phone, parsedCaption, messageId);
+    } else {
+      pendingContactSessions.set(actor.chatId, {
+        fullName,
+        phone,
+        timestamp: Date.now(),
+      });
+
+      const s = getBotSettings();
+      const isMozza = Boolean(s.mozzaModeEnabled);
+      const pet = s.mozzaNickname || 'يا باشمهندس';
+      const promptMsg = isMozza
+        ? `📥 يا روحي ${pet}، استلمت كارت الاتصال بنجاح!
+` +
+          `👤 الاسم: ${fullName}
+` +
+          `📱 الجوال: ${phone}
+
+` +
+          `قولّي بقى في رسالة أو فويس: إيه مهنته واليومية المتفق عليها كام؟
+(مثال: «فني محارة ويوميته 250»)`
+        : `📥 تم استلام كارت الاتصال بنجاح يا فندم!
+` +
+          `👤 الاسم: ${fullName}
+` +
+          `📱 رقم الجوال: ${phone}
+
+` +
+          `من فضلك اكتبلي أو ابعتلي فويس بمهنته واليومية المتفق عليها:
+(مثال: «فني محارة ويوميته 250» أو «حداد مسلح يومية 200»)`;
+
+      await sendTelegramMessage(chatId, promptMsg, messageId, { html: false });
+      if (s.voiceReplyMode === 'always') {
+        await sendTelegramVoiceReply(chatId, promptMsg, messageId, s);
+      }
+      return;
+    }
   }
 
   // 🎙️ معالجة الرسائل الصوتية (Voice Notes & Audio) فورياً عبر Groq Whisper Large V3 مع بديل Gemini الصوتي
@@ -1200,6 +1342,28 @@ async function processTelegramMessage(msg) {
       } catch (err) {
         console.error('Telegram voice processing failed:', err?.message);
       }
+    }
+  }
+
+  // 📇 التحقق هل هناك كارت اتصال معلق بانتظار تحديد المهنة واليومية؟
+  if (pendingContactSessions.has(actor.chatId) && rawText) {
+    const pending = pendingContactSessions.get(actor.chatId);
+    const ageMs = Date.now() - pending.timestamp;
+
+    if (ageMs <= 15 * 60 * 1000) {
+      if (/^(?:كنسل|الغاء|إلغاء|\/cancel)$/i.test(rawText.trim())) {
+        pendingContactSessions.delete(actor.chatId);
+        await sendTelegramMessage(chatId, 'تم إلغاء إضافة الشريك.', messageId);
+        return;
+      }
+
+      const parsed = parsePartnerDetails(rawText);
+      if (parsed.job_role || parsed.daily_wage) {
+        pendingContactSessions.delete(actor.chatId);
+        return await handleAddPartnerFromContact(actor, pending.fullName, pending.phone, parsed, messageId);
+      }
+    } else {
+      pendingContactSessions.delete(actor.chatId);
     }
   }
 

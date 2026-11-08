@@ -263,6 +263,7 @@ export const TOOL_REGISTRY = Object.freeze([
           },
           job_role: { type: 'STRING', description: 'المهنة أو الوظيفة أو التخصص (مثال: حداد مسلح، نجار، سباك، دهانات، توريد خرسانة)' },
           phone: { type: 'STRING', description: 'رقم الهاتف أو الجوال' },
+          daily_wage: { type: 'NUMBER', description: 'اليومية أو الأجر اليومي المتفق عليه بالريال (مثال: 250)' },
           code: { type: 'STRING', description: 'كود الشريك في النظام (اختياري)' },
           identity_number: { type: 'STRING', description: 'رقم الهوية الوطنية أو الإقامة أو السجل التجاري' },
           vat_number: { type: 'STRING', description: 'الرقم الضريبي للمنشأة' },

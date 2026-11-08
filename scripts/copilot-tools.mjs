@@ -1030,6 +1030,10 @@ export function createCopilotTools({
         });
         if (matchedTech) {
           workerPartnerId = matchedTech.id;
+          if (!dailyWage && matchedTech.job_role) {
+            const wageInRole = matchedTech.job_role.match(/(?:يومية|يوميه|اجر|أجر)[\s:=]*(\d+(?:\.\d+)?)/u);
+            if (wageInRole) dailyWage = Number(wageInRole[1]);
+          }
         }
 
         if (helperName) {
@@ -1675,7 +1679,15 @@ export function createCopilotTools({
         code = `${prefix}-${count}`;
       }
 
-      const jobRole = typeof rawArgs?.job_role === 'string' && rawArgs.job_role.trim() ? rawArgs.job_role.trim() : null;
+      let jobRole = typeof rawArgs?.job_role === 'string' && rawArgs.job_role.trim() ? rawArgs.job_role.trim() : null;
+      const dailyWage = Number(rawArgs?.daily_wage) > 0 ? Number(rawArgs.daily_wage) : null;
+      if (dailyWage && jobRole) {
+        if (!jobRole.includes('يومية')) {
+          jobRole = `${jobRole} (يومية: ${dailyWage} ر.س)`;
+        }
+      } else if (dailyWage && !jobRole) {
+        jobRole = `عامل (يومية: ${dailyWage} ر.س)`;
+      }
       const phone = typeof rawArgs?.phone === 'string' && rawArgs.phone.trim() ? rawArgs.phone.trim() : null;
       const idNumber = typeof rawArgs?.identity_number === 'string' && rawArgs.identity_number.trim() ? rawArgs.identity_number.trim() : null;
       const vatNumber = typeof rawArgs?.vat_number === 'string' && rawArgs.vat_number.trim() ? rawArgs.vat_number.trim() : null;
@@ -1735,6 +1747,7 @@ export function createCopilotTools({
             partner_type: partnerType,
             job_role: jobRole,
             phone,
+            daily_wage: dailyWage,
             op_number: opNumber,
           },
         };

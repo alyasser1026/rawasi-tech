@@ -213,6 +213,7 @@ function getToolArgs(name, supplied, now) {
       ...(safeText(supplied.partner_type, 50) ? { partner_type: safeText(supplied.partner_type, 50) } : {}),
       ...(safeText(supplied.job_role, 80) ? { job_role: safeText(supplied.job_role, 80) } : {}),
       ...(safeText(supplied.phone, 40) ? { phone: safeText(supplied.phone, 40) } : {}),
+      ...(Number.isFinite(Number(supplied.daily_wage)) ? { daily_wage: Number(supplied.daily_wage) } : {}),
       ...(safeText(supplied.code, 40) ? { code: safeText(supplied.code, 40) } : {}),
       ...(safeText(supplied.identity_number, 50) ? { identity_number: safeText(supplied.identity_number, 50) } : {}),
       ...(safeText(supplied.vat_number, 50) ? { vat_number: safeText(supplied.vat_number, 50) } : {}),
@@ -723,6 +724,7 @@ function formatAddPartnerReply(result, companyLabel) {
     `🔢 كود الشريك: ${rec.code}`,
     rec.job_role ? `💼 المهنة / التخصص: ${rec.job_role}` : null,
     rec.phone ? `📱 رقم الهاتف: ${rec.phone}` : null,
+    rec.daily_wage ? `💰 اليومية المتفق عليها: ${rec.daily_wage} ر.س` : null,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
     `⚡ الشريك نشط وجاهز فوراً لربط اليوميات والمصروفات وأوامر الشغل وسندات الصرف والقبض.`,
     isMozza
