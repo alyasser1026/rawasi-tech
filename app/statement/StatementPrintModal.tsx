@@ -70,7 +70,7 @@ export default function StatementPrintModal({
                         </div>
                         <div className="report-title">
                             <h2>كشف حساب تفصيلي</h2>
-                            <span className="date-issued">تاريخ الإصدار: {new Date().toLocaleDateString('ar-SA')}</span>
+                            <span className="date-issued">تاريخ الإصدار: {new Date().toLocaleDateString('en-GB')}</span>
                         </div>
                     </div>
 

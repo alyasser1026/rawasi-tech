@@ -465,7 +465,7 @@ export default function TelegramAttachmentField({
       // السطر الثاني: الموقع الجغرافي + المهندس الملتقط + التاريخ والوقت
       ctx.font = `600 ${Math.round(baseFontSize * 0.82)}px Cairo, system-ui, sans-serif`;
       ctx.fillStyle = '#fbbf24';
-      const l2 = `📍 الموقع: ${stampLocation || 'إحداثيات الموقع'}   |   👷 الملتقط: ${stampInspector || 'مهندس الموقع'}   |   🕒 ${new Date().toLocaleString('ar-SA')}`;
+      const l2 = `📍 الموقع: ${stampLocation || 'إحداثيات الموقع'}   |   👷 الملتقط: ${stampInspector || 'مهندس الموقع'}   |   🕒 ${new Date().toLocaleString('en-US')}`;
       ctx.fillText(l2, width - paddingX, line2Y);
     }
 

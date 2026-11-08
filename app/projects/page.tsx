@@ -144,10 +144,10 @@ export default function AdvancedProjectsPage() {
                   ]} />
               ) : (
                   <KpiStrip compact items={[
-                      { label: 'المشاريع المعروضة', value: logic.projects.length.toLocaleString('ar-EG'), tone: 'brand', icon: <Building2 /> },
-                      { label: 'قيد التنفيذ', value: logic.projects.filter((p: any) => p.status === 'قيد التنفيذ').length.toLocaleString('ar-EG'), tone: 'success', icon: <Activity /> },
-                      { label: 'قيد الدراسة', value: logic.projects.filter((p: any) => p.status === 'قيد الدراسة').length.toLocaleString('ar-EG'), tone: 'info', icon: <Layers /> },
-                      { label: 'متوقف أو منتهي', value: logic.projects.filter((p: any) => ['متوقف', 'متوقف مؤقتا', 'منتهي'].includes(p.status)).length.toLocaleString('ar-EG'), tone: 'neutral', icon: <CirclePause /> },
+                      { label: 'المشاريع المعروضة', value: logic.projects.length.toLocaleString('en-US'), tone: 'brand', icon: <Building2 /> },
+                      { label: 'قيد التنفيذ', value: logic.projects.filter((p: any) => p.status === 'قيد التنفيذ').length.toLocaleString('en-US'), tone: 'success', icon: <Activity /> },
+                      { label: 'قيد الدراسة', value: logic.projects.filter((p: any) => p.status === 'قيد الدراسة').length.toLocaleString('en-US'), tone: 'info', icon: <Layers /> },
+                      { label: 'متوقف أو منتهي', value: logic.projects.filter((p: any) => ['متوقف', 'متوقف مؤقتا', 'منتهي'].includes(p.status)).length.toLocaleString('en-US'), tone: 'neutral', icon: <CirclePause /> },
                   ]} />
               )}
               actions={sidebarActions}

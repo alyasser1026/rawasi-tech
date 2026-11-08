@@ -65,11 +65,11 @@ export default function PaymentVouchersPage() {
     <MasterPage enterprise icon={<Banknote/>} title="سندات الصرف" subtitle="إدارة المدفوعات، مراجعة السندات والتوجيه المحاسبي">
       <div className="ent-summary-grid">
         <div className="ent-summary-card"><div className="ent-summary-top"><span>قيمة السندات المعروضة</span><div className="ent-summary-icon"><Banknote size={19}/></div></div><strong>{formatCurrency(logic.totals.totalAmount)}</strong><small>ضمن البحث والفترة المحددين</small></div>
-        <div className="ent-summary-card"><div className="ent-summary-top"><span>سندات معتمدة</span><div className="ent-summary-icon green"><CircleCheck size={19}/></div></div><strong>{postedCount.toLocaleString('ar-EG')}</strong><small>ضمن السندات المعروضة</small></div>
-        <div className="ent-summary-card"><div className="ent-summary-top"><span>بانتظار الترحيل</span><div className="ent-summary-icon blue"><Clock3 size={19}/></div></div><strong>{(logic.data.length - postedCount).toLocaleString('ar-EG')}</strong><small>سندات معلّقة ضمن التصفية الحالية</small></div>
+        <div className="ent-summary-card"><div className="ent-summary-top"><span>سندات معتمدة</span><div className="ent-summary-icon green"><CircleCheck size={19}/></div></div><strong>{postedCount.toLocaleString('en-US')}</strong><small>ضمن السندات المعروضة</small></div>
+        <div className="ent-summary-card"><div className="ent-summary-top"><span>بانتظار الترحيل</span><div className="ent-summary-icon blue"><Clock3 size={19}/></div></div><strong>{(logic.data.length - postedCount).toLocaleString('en-US')}</strong><small>سندات معلّقة ضمن التصفية الحالية</small></div>
       </div>
       <section className="ent-panel" aria-label="سجل سندات الصرف">
-        <div className="ent-panel-heading"><div className="ent-panel-title"><h2>سجل المدفوعات</h2><small>{logic.data.length.toLocaleString('ar-EG')} سند</small></div><div className="ent-panel-actions no-print">
+        <div className="ent-panel-heading"><div className="ent-panel-title"><h2>سجل المدفوعات</h2><small>{logic.data.length.toLocaleString('en-US')} سند</small></div><div className="ent-panel-actions no-print">
           <button type="button" className="ent-button" onClick={exportRows} disabled={!logic.data.length || logic.isLoading}><Download size={16}/>تصدير Excel</button>
           {can('payments', 'create') && <button type="button" className="ent-button ent-primary" onClick={actions.handleAddNew} disabled={logic.isLoading}><Plus size={17}/>سند صرف جديد</button>}
         </div></div>

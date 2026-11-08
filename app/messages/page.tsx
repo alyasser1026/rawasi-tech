@@ -136,7 +136,7 @@ export default function MessagesPage() {
                                                 </div>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.3125rem', justifyContent: isMine ? 'flex-start' : 'flex-end', padding: '0 0.3125rem', position: 'relative' }}>
                                                     <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 600 }}>
-                                                        {new Date(msg.created_at).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                                                        {new Date(msg.created_at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}
                                                     </span>
                                                     {isMine && (
                                                         <span style={{ fontSize: 'var(--fs-xs)', color: msg.is_read ? '#3b82f6' : '#94a3b8' }}>
@@ -157,11 +157,11 @@ export default function MessagesPage() {
                                                         <div style={{ position: 'absolute', top: '100%', right: isMine ? '0' : 'auto', left: isMine ? 'auto' : '0', marginTop: '0.3125rem', background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.625rem', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', zIndex: 10, minWidth: '11.25rem', fontSize: 'var(--fs-xs)', color: '#475569', display: 'flex', flexDirection: 'column', gap: '0.3125rem' }}>
                                                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                                                                 <span style={{ fontWeight: 800 }}>وقت الإرسال:</span>
-                                                                <span>{new Date(msg.created_at).toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                                                                <span>{new Date(msg.created_at).toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                                                             </div>
                                                             <div style={{ display: 'flex', justifyContent: 'space-between', color: msg.is_read ? '#10b981' : '#94a3b8' }}>
                                                                 <span style={{ fontWeight: 800 }}>وقت القراءة:</span>
-                                                                <span>{msg.read_at ? new Date(msg.read_at).toLocaleString('ar-EG', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'لم تُقرأ بعد'}</span>
+                                                                <span>{msg.read_at ? new Date(msg.read_at).toLocaleString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'لم تُقرأ بعد'}</span>
                                                             </div>
                                                         </div>
                                                     )}

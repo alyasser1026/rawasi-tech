@@ -260,7 +260,7 @@ export function useStatementLogic() {
                                 </div>
                                 <div style="text-align: left;">
                                     <h2 style="margin: 0 0 5px 0; font-size: 26px; color: #c2410c; font-weight: bold; border-bottom: 3px solid #c2410c; padding-bottom: 5px;">كشف حساب تفصيلي</h2>
-                                    <span style="font-size: 12px; color: #8a7a6b; font-weight: bold;">تاريخ الإصدار: ${new Date().toLocaleDateString('ar-SA')}</span>
+                                    <span style="font-size: 12px; color: #8a7a6b; font-weight: bold;">تاريخ الإصدار: ${new Date().toLocaleDateString('en-GB')}</span>
                                 </div>
                             </div>
                             <div style="height: 4px; background: #c2410c; margin-bottom: 25px; border-radius: 4px;"></div>

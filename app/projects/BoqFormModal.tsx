@@ -4,14 +4,24 @@ import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
 import { notify } from '@/lib/notify';
-import { formatCurrency } from '@/lib/helpers';
-import { Users, HardHat, FileText, Calendar, DollarSign, Calculator, ShieldCheck } from 'lucide-react';
+import { Users, HardHat, Calendar, DollarSign } from 'lucide-react';
+
+// دالة تنسيق المبالغ بأرقام إنجليزية ولاتينية واضحة
+const formatMoneyEn = (val: number | string | null | undefined): string => {
+    const n = Number(val || 0);
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ر.س';
+};
+
+const formatNumberEn = (val: number | string | null | undefined): string => {
+    const n = Number(val || 0);
+    return n.toLocaleString('en-US');
+};
 
 export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSave, projectBoq = [], onImport, isSaving }: any) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => { setMounted(true); }, []);
 
-    // ⏳ حساب مدة التنفيذ أوتوماتيكياً بالأيام
+    // ⏳ حساب مدة التنفيذ أوتوماتيكياً بالأيام (بالأرقام الإنجليزية)
     const durationDays = useMemo(() => {
         if (record.start_date && record.end_date) {
             const start = new Date(record.start_date);
@@ -105,6 +115,15 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
         onSave(finalRecord);
     };
 
+    // ستايل موحد لجميع خانات الأرقام لضمان ظهورها بالإنجليزي
+    const numInputStyle: React.CSSProperties = {
+        direction: 'ltr',
+        fontFamily: 'Inter, system-ui, -apple-system, sans-serif',
+        fontVariantNumeric: 'tabular-nums',
+        textAlign: 'center',
+        fontWeight: 900
+    };
+
     return createPortal(
         <div style={{ position: 'fixed', inset: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(30, 20, 10, 0.85)', backdropFilter: 'blur(15px)', direction: 'rtl', padding: '1rem' }}>
             <div style={{ position: 'fixed', inset: 0 }} onClick={onClose} />
@@ -186,19 +205,19 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             </h3>
                             {durationDays > 0 && (
                                 <span style={{ background: '#166534', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>
-                                    المدة المحسوبة: {durationDays} يوماً
+                                    المدة المحسوبة: <span dir="ltr">{durationDays}</span> يوماً
                                 </span>
                             )}
                         </div>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.9375rem' }}>
                             <div>
                                 <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#14532d', display: 'block', marginBottom: '0.375rem' }}>تاريخ البدء المتوقع</label>
-                                <input type="date" style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: `1px solid #86efac`, outline: 'none', fontWeight: 800, color: '#14532d' }} 
+                                <input type="date" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '10px', border: `1px solid #86efac`, outline: 'none', color: '#14532d' }} 
                                        value={record.start_date || ''} onChange={e => setRecord({...record, start_date: e.target.value})} />
                             </div>
                             <div>
                                 <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#14532d', display: 'block', marginBottom: '0.375rem' }}>تاريخ الانتهاء المستهدف</label>
-                                <input type="date" style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: `1px solid #86efac`, outline: 'none', fontWeight: 800, color: '#14532d' }} 
+                                <input type="date" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '10px', border: `1px solid #86efac`, outline: 'none', color: '#14532d' }} 
                                        value={record.end_date || ''} onChange={e => setRecord({...record, end_date: e.target.value})} />
                             </div>
                         </div>
@@ -218,13 +237,13 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             
                             <div>
                                 <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '0.375rem' }}>الكمية التعاقدية</label>
-                                <input type="number" step="any" style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 900, textAlign: 'center', outline: 'none' }} 
+                                <input type="number" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '10px', border: '1px solid #cbd5e1', outline: 'none' }} 
                                        value={record.contract_quantity || ''} onChange={e => setRecord({...record, contract_quantity: e.target.value})} placeholder="0" />
                             </div>
                             
                             <div>
                                 <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '0.375rem', color: THEME.coffeeDark }}>سعر فئة البيع للعميل</label>
-                                <input type="number" step="any" style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: `2px solid ${THEME.coffeeDark}`, fontWeight: 900, textAlign: 'center', color: THEME.coffeeDark, outline: 'none' }} 
+                                <input type="number" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '10px', border: `2px solid ${THEME.coffeeDark}`, color: THEME.coffeeDark, outline: 'none' }} 
                                        value={record.unit_contract_price || ''} onChange={e => setRecord({...record, unit_contract_price: e.target.value})} placeholder="0.00" />
                             </div>
 
@@ -232,20 +251,25 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.375rem' }}>
                                     <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#b45309' }}>نسبة ضمان الأعمال (%)</label>
-                                    <span style={{ fontSize: '10px', color: '#92400e', fontWeight: 700 }}>الديفولت: 0%</span>
+                                    <span style={{ fontSize: '10px', color: '#92400e', fontWeight: 700 }} dir="ltr">0%</span>
                                 </div>
                                 <input 
                                     type="number" 
                                     min="0" 
                                     max="100" 
                                     step="0.5" 
-                                    style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: '2px solid #f59e0b', fontWeight: 900, textAlign: 'center', outline: 'none', color: '#b45309', background: '#fff' }} 
+                                    dir="ltr"
+                                    style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '10px', border: '2px solid #f59e0b', outline: 'none', color: '#b45309', background: '#fff' }} 
                                     value={record.retention_percentage !== undefined && record.retention_percentage !== null ? record.retention_percentage : 0} 
                                     onChange={e => setRecord({...record, retention_percentage: e.target.value})} 
                                     placeholder="0" 
                                 />
                                 <div style={{ fontSize: '10px', color: '#78350f', marginTop: '3px', fontWeight: 700 }}>
-                                    {retentionPercent > 0 ? `المحتجز المسترد: ${formatCurrency(retentionAmount)}` : 'بدون احتجاز ضمان أعمال'}
+                                    {retentionPercent > 0 ? (
+                                        <span>المحتجز: <strong dir="ltr">{formatMoneyEn(retentionAmount)}</strong></span>
+                                    ) : (
+                                        'بدون احتجاز ضمان أعمال'
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -259,7 +283,7 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             </h3>
                             <div style={{ display: 'flex', gap: '0.5rem' }}>
                                 <span style={{ background: '#0284c7', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>
-                                    إجمالي اليومية: {formatCurrency(totalDailyLabor)}
+                                    إجمالي اليومية: <span dir="ltr">{formatMoneyEn(totalDailyLabor)}</span>
                                 </span>
                             </div>
                         </div>
@@ -269,17 +293,17 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             <div style={{ background: '#ffffff', padding: '0.9375rem', borderRadius: '12px', border: '1px solid #e0f2fe' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                     <strong style={{ fontSize: 'var(--fs-xs)', color: '#0369a1' }}>👷 الفنيين (صنايعية)</strong>
-                                    <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 800 }}>إجمالي يومية: {formatCurrency(totalTechDaily)}</span>
+                                    <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 800 }} dir="ltr">{formatMoneyEn(totalTechDaily)}</span>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>عدد الفنيين</label>
-                                        <input type="number" min="0" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 800, textAlign: 'center' }}
+                                        <input type="number" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.tech_count || ''} onChange={e => handleLaborChange({ tech_count: e.target.value })} placeholder="0" />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>اليومية (ر.س)</label>
-                                        <input type="number" min="0" step="any" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 800, textAlign: 'center' }}
+                                        <input type="number" min="0" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.tech_daily_wage || ''} onChange={e => handleLaborChange({ tech_daily_wage: e.target.value })} placeholder="0.00" />
                                     </div>
                                 </div>
@@ -289,17 +313,17 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             <div style={{ background: '#ffffff', padding: '0.9375rem', borderRadius: '12px', border: '1px solid #e0f2fe' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                                     <strong style={{ fontSize: 'var(--fs-xs)', color: '#0369a1' }}>🤝 المساعدين (عمال)</strong>
-                                    <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 800 }}>إجمالي يومية: {formatCurrency(totalHelperDaily)}</span>
+                                    <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 800 }} dir="ltr">{formatMoneyEn(totalHelperDaily)}</span>
                                 </div>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>عدد المساعدين</label>
-                                        <input type="number" min="0" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 800, textAlign: 'center' }}
+                                        <input type="number" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.helper_count || ''} onChange={e => handleLaborChange({ helper_count: e.target.value })} placeholder="0" />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>اليومية (ر.س)</label>
-                                        <input type="number" min="0" step="any" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 800, textAlign: 'center' }}
+                                        <input type="number" min="0" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.helper_daily_wage || ''} onChange={e => handleLaborChange({ helper_daily_wage: e.target.value })} placeholder="0.00" />
                                     </div>
                                 </div>
@@ -310,17 +334,17 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: '0.5rem' }}>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#0369a1', fontWeight: 800, display: 'block' }}>أيام العمل</label>
-                                        <input type="number" min="0" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 900, textAlign: 'center' }}
+                                        <input type="number" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.labor_days || (durationDays > 0 ? durationDays : '')} onChange={e => handleLaborChange({ labor_days: e.target.value })} placeholder={durationDays > 0 ? String(durationDays) : "1"} />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#0369a1', fontWeight: 900, display: 'block' }}>ميزانية العمالة (ر.س)</label>
-                                        <input type="number" step="any" style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '2px solid #0284c7', fontWeight: 900, textAlign: 'center', color: '#0284c7' }}
+                                        <input type="number" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '2px solid #0284c7', color: '#0284c7' }}
                                                value={record.estimated_labor_cost || ''} onChange={e => setRecord({ ...record, estimated_labor_cost: e.target.value })} placeholder="0.00" />
                                     </div>
                                 </div>
-                                <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px', textAlign: 'center' }}>
-                                    (يومية فني {totalTechDaily} + يومية مساعد {totalHelperDaily} = {totalDailyLabor} × {effectiveDays || 1} يوم)
+                                <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px', textAlign: 'center' }} dir="ltr">
+                                    ({formatNumberEn(totalTechDaily)} + {formatNumberEn(totalHelperDaily)} = {formatNumberEn(totalDailyLabor)} × {effectiveDays || 1} d)
                                 </div>
                             </div>
                         </div>
@@ -333,26 +357,26 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                                 <HardHat size={16} /> عقود مقاولي الباطن (Subcontractors Breakdown)
                             </h3>
                             <span style={{ background: '#7e22ce', color: 'white', padding: '0.2rem 0.6rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>
-                                إجمالي عقود الباطن: {formatCurrency(totalSubcontractors)}
+                                إجمالي عقود الباطن: <span dir="ltr">{formatMoneyEn(totalSubcontractors)}</span>
                             </span>
                         </div>
 
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, 1fr))', gap: '0.9375rem' }}>
                             <div style={{ background: '#ffffff', padding: '0.75rem', borderRadius: '10px', border: '1px solid #f3e8ff' }}>
                                 <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#6b21a8', display: 'block', marginBottom: '0.375rem' }}>عقد مقاول حدادة</label>
-                                <input type="number" step="any" min="0" style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #d8b4fe', fontWeight: 900, textAlign: 'center', outline: 'none', color: '#6b21a8' }}
+                                <input type="number" step="any" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #d8b4fe', outline: 'none', color: '#6b21a8' }}
                                        value={record.subcontractor_rebar_cost || ''} onChange={e => handleSubcontractorChange({ subcontractor_rebar_cost: e.target.value })} placeholder="0.00" />
                             </div>
 
                             <div style={{ background: '#ffffff', padding: '0.75rem', borderRadius: '10px', border: '1px solid #f3e8ff' }}>
                                 <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#6b21a8', display: 'block', marginBottom: '0.375rem' }}>عقد مقاول صب خرسانة</label>
-                                <input type="number" step="any" min="0" style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #d8b4fe', fontWeight: 900, textAlign: 'center', outline: 'none', color: '#6b21a8' }}
+                                <input type="number" step="any" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #d8b4fe', outline: 'none', color: '#6b21a8' }}
                                        value={record.subcontractor_concrete_cost || ''} onChange={e => handleSubcontractorChange({ subcontractor_concrete_cost: e.target.value })} placeholder="0.00" />
                             </div>
 
                             <div style={{ background: '#ffffff', padding: '0.75rem', borderRadius: '10px', border: '1px solid #f3e8ff' }}>
                                 <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#6b21a8', display: 'block', marginBottom: '0.375rem' }}>عقود مقاولي بنود أخرى</label>
-                                <input type="number" step="any" min="0" style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #d8b4fe', fontWeight: 900, textAlign: 'center', outline: 'none', color: '#6b21a8' }}
+                                <input type="number" step="any" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #d8b4fe', outline: 'none', color: '#6b21a8' }}
                                        value={record.subcontractor_other_cost || ''} onChange={e => handleSubcontractorChange({ subcontractor_other_cost: e.target.value })} placeholder="0.00" />
                             </div>
                         </div>
@@ -362,17 +386,17 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.9375rem', background: '#f8fafc', padding: '1.25rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
                         <div>
                             <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.goldAccent, display: 'block', marginBottom: '0.375rem' }}>ميزانية المواد والخامات (توريدات)</label>
-                            <input type="number" step="any" style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: `2px solid ${THEME.goldAccent}60`, outline: 'none', fontWeight: 900, textAlign: 'center', color: THEME.goldAccent }} 
+                            <input type="number" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '10px', border: `2px solid ${THEME.goldAccent}60`, outline: 'none', color: THEME.goldAccent }} 
                                    value={record.estimated_material_cost || ''} onChange={e => setRecord({...record, estimated_material_cost: e.target.value})} placeholder="0.00" />
                         </div>
                         <div>
                             <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#ea580c', display: 'block', marginBottom: '0.375rem' }}>ميزانية النثريات والمصاريف المباشرة</label>
-                            <input type="number" step="any" style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: `2px solid #ea580c60`, outline: 'none', fontWeight: 900, textAlign: 'center', color: '#ea580c' }} 
+                            <input type="number" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.625rem', borderRadius: '10px', border: `2px solid #ea580c60`, outline: 'none', color: '#ea580c' }} 
                                    value={record.estimated_expenses_cost || ''} onChange={e => setRecord({...record, estimated_expenses_cost: e.target.value})} placeholder="0.00" />
                         </div>
                     </div>
 
-                    {/* 7️⃣ شريط الرقابة والتحليل المالي اللحظي للبند (Live Profitability Summary) */}
+                    {/* 7️⃣ شريط الرقابة والتحليل المالي اللحظي للبند (Live Profitability Summary) بأرقام إنجليزية */}
                     <div style={{ 
                         background: isLoss ? '#fef2f2' : '#f0fdf4', 
                         padding: '1rem 1.25rem', 
@@ -385,26 +409,26 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                     }}>
                         <div>
                             <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 800, display: 'block' }}>إجمالي البيع التعاقدي</span>
-                            <strong style={{ fontSize: 'var(--fs-md)', color: THEME.coffeeDark, fontWeight: 900 }}>{formatCurrency(totalContractAmount)}</strong>
+                            <strong style={{ fontSize: 'var(--fs-md)', color: THEME.coffeeDark, fontWeight: 900 }} dir="ltr">{formatMoneyEn(totalContractAmount)}</strong>
                         </div>
 
                         <div>
                             <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 800, display: 'block' }}>إجمالي التكلفة المقدرة</span>
-                            <strong style={{ fontSize: 'var(--fs-md)', color: '#0f172a', fontWeight: 900 }}>{formatCurrency(totalEstimatedBudget)}</strong>
+                            <strong style={{ fontSize: 'var(--fs-md)', color: '#0f172a', fontWeight: 900 }} dir="ltr">{formatMoneyEn(totalEstimatedBudget)}</strong>
                         </div>
 
                         <div>
                             <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 800, display: 'block' }}>ضمان الأعمال المحتجز</span>
-                            <strong style={{ fontSize: 'var(--fs-md)', color: '#b45309', fontWeight: 900 }}>{formatCurrency(retentionAmount)} ({retentionPercent}%)</strong>
+                            <strong style={{ fontSize: 'var(--fs-md)', color: '#b45309', fontWeight: 900 }} dir="ltr">{formatMoneyEn(retentionAmount)} ({retentionPercent}%)</strong>
                         </div>
 
                         <div>
                             <span style={{ fontSize: '11px', color: isLoss ? THEME.danger : '#166534', fontWeight: 800, display: 'flex', justifyContent: 'space-between' }}>
                                 <span>{isLoss ? 'خسارة متوقعة' : 'صافي ربح متوقع'}</span>
-                                <span style={{ direction: 'ltr' }}>{profitMargin}%</span>
+                                <span dir="ltr">{profitMargin}%</span>
                             </span>
-                            <strong style={{ fontSize: 'var(--fs-md)', color: isLoss ? THEME.danger : THEME.success, fontWeight: 900 }}>
-                                {expectedProfit > 0 ? '+' : ''}{formatCurrency(expectedProfit)}
+                            <strong style={{ fontSize: 'var(--fs-md)', color: isLoss ? THEME.danger : THEME.success, fontWeight: 900 }} dir="ltr">
+                                {expectedProfit > 0 ? '+' : ''}{formatMoneyEn(expectedProfit)}
                             </strong>
                         </div>
                     </div>

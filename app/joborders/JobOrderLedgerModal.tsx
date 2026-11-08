@@ -357,7 +357,7 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                             <tbody style={{ background: 'rgba(255,255,255,0.5)' }}>
                                 {tableRows.length > 0 ? tableRows.map((row: any, i: number) => (
                                     <tr key={i} style={{ borderBottom: '1px solid rgba(0,0,0,0.05)', fontSize: 'var(--fs-md)', fontWeight: 800, color: '#1e293b', transition: 'all 0.3s' }} onMouseOver={e => { e.currentTarget.style.background='rgba(194,65,12, 0.05)'; e.currentTarget.style.transform='scale(1.005)'; }} onMouseOut={e => { e.currentTarget.style.background='transparent'; e.currentTarget.style.transform='scale(1)'; }}>
-                                        <td style={{ padding: '1.125rem 1.25rem' }}>{new Date(row.trans_date).toLocaleDateString('ar-EG')}</td>
+                                        <td style={{ padding: '1.125rem 1.25rem' }}>{new Date(row.trans_date).toLocaleDateString('en-GB')}</td>
                                         <td style={{ padding: '1.125rem 1.25rem' }}>{row.trans_desc}</td>
                                         <td style={{ padding: '1.125rem 1.25rem' }}>{row.qty || '-'}</td>
                                         <td style={{ padding: '1.125rem 1.25rem', color: '#1e293b', fontWeight: 900 }}>{formatCurrency(row.amount)}</td>

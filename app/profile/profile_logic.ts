@@ -211,7 +211,7 @@ export function useProfileLogic() {
                 monthName = "أرصدة وفترات سابقة";
                 isAccumulated = true;
             } else {
-                monthName = date.toLocaleString('ar-EG', { month: 'long', year: 'numeric' });
+                monthName = date.toLocaleString('en-US', { month: 'long', year: 'numeric' });
             }
 
             if (!monthlyAttendance[monthName]) {
@@ -288,7 +288,7 @@ export function useProfileLogic() {
             itemBreakdown,
             attendanceBreakdown,
             expectedDays,
-            monthName: now.toLocaleString('ar-EG', { month: 'long' }) 
+            monthName: now.toLocaleString('en-US', { month: 'long' }) 
         };
     }, [recentLogs]);
 

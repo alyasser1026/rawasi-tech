@@ -150,7 +150,7 @@ export default function AuditPendingCenter({ isOpen, onClose }: Props) {
                   <RefreshCw size={13} className={isRefreshing ? styles.spin : undefined} />
                 </button>
                 <div className={styles.pendingPill}>
-                  {counts.totalPending.toLocaleString('ar-EG')} معلق
+                  {counts.totalPending.toLocaleString('en-US')} معلق
                 </div>
               </div>
             </div>
@@ -182,7 +182,7 @@ export default function AuditPendingCenter({ isOpen, onClose }: Props) {
                         <span className={styles.zeroBadge}>0</span>
                       ) : (
                         <span className={styles.countPill}>
-                          {count.toLocaleString('ar-EG')}
+                          {count.toLocaleString('en-US')}
                         </span>
                       )}
                     </div>
@@ -279,7 +279,7 @@ export default function AuditPendingCenter({ isOpen, onClose }: Props) {
                       <div className={styles.notifMeta}>
                         <div className={styles.notifMessage}>{notif.message || notif.content}</div>
                         <div className={styles.notifTime}>
-                          {new Date(notif.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}
+                          {new Date(notif.created_at).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
                         </div>
                       </div>
                     </div>

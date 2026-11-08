@@ -207,7 +207,7 @@ export default function AdvancedExpenseAllocation() {
         <div style={{ textAlign: 'center', padding: '1.25rem', borderBottom: '2px solid #334155', marginBottom: '1.875rem' }}>
           <h1 style={{ margin: '0 0 0.625rem 0', color: '#1e293b', fontWeight: 900 }}>شركة فاي تك للمقاولات والاستثمار العقاري</h1>
           <h2 style={{ margin: 0, color: '#475569', fontSize: 'var(--fs-xl)' }}>تقرير توزيع وتحميل المصروفات العامة غير المباشرة على الفلل والمشاريع</h2>
-          <small style={{ color: '#94a3b8', display: 'block', marginTop: '0.625rem' }}>تاريخ استخراج التقرير: {new Date().toLocaleDateString('ar-EG')}</small>
+          <small style={{ color: '#94a3b8', display: 'block', marginTop: '0.625rem' }}>تاريخ استخراج التقرير: {new Date().toLocaleDateString('en-GB')}</small>
         </div>
       </div>
 

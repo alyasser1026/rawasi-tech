@@ -126,7 +126,7 @@ export type AgingReport = {
 
 export function formatAgingCurrency(amount: number | null | undefined): string {
   if (amount == null || isNaN(amount)) return '0.00 ر.س';
-  return Number(amount).toLocaleString('ar-SA', {
+  return Number(amount).toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }) + ' ر.س';

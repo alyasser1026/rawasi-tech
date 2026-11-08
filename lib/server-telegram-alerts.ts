@@ -41,7 +41,7 @@ export async function sendServerTelegramAlert(payload: {
     };
 
     const header = levelIcons[payload.level || 'error'] || '🚨 [خطأ تقني في الخادم - SERVER ERROR]';
-    const dateStr = new Date().toLocaleString('ar-SA', { timeZone: 'Asia/Riyadh' });
+    const dateStr = new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh' });
 
     let text = `<b>${header}</b>\n`;
     text += `<b>نظام إدارة المشروعات والمحاسبة — فاي تك</b>\n\n`;

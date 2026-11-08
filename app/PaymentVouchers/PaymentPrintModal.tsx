@@ -47,8 +47,8 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
 
     const finalFullName = creatorInfo?.fullName || 'المحاسب المعتمد';
     const creationDateObj = record?.created_at ? new Date(record.created_at) : (record?.date ? new Date(record.date) : new Date());
-    const creationTime = creationDateObj.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
-    const creationDate = creationDateObj.toLocaleDateString('ar-EG');
+    const creationTime = creationDateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    const creationDate = creationDateObj.toLocaleDateString('en-GB');
     
     const signatureData = `تم الاعتماد إلكترونياً\nتاريخ الإصدار: ${creationDate}\nوقت الإصدار: ${creationTime}\nبواسطة: ${finalFullName}`;
     const amountInWords = tafqeet(Number(record.amount || 0));

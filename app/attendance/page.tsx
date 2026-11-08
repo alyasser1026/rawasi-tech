@@ -205,7 +205,7 @@ export default function AttendancePage() {
                 إجمالي خصومات المسير
               </div>
               <div style={{ fontSize: 'var(--fs-2xl, 1.5rem)', fontWeight: 900, color: 'var(--text-primary, #1e293b)' }}>
-                {kpis.totalDeduction.toLocaleString('ar-EG', {
+                {kpis.totalDeduction.toLocaleString('en-US', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}{' '}
@@ -603,7 +603,7 @@ export default function AttendancePage() {
                           }}
                         >
                           <div style={{ fontWeight: 800, color: 'var(--text-primary, #1e293b)' }}>
-                            {Number(s.basic_salary).toLocaleString('ar-EG')}
+                            {Number(s.basic_salary).toLocaleString('en-US')}
                           </div>
                           <div style={{ fontSize: 'var(--fs-xs, 0.72rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 600 }}>
                             {Number(s.daily_rate).toFixed(1)} /يوم
@@ -704,7 +704,7 @@ export default function AttendancePage() {
                             borderBottom: '1px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.04))',
                           }}
                         >
-                          {Number(s.absence_deduction).toLocaleString('ar-EG', {
+                          {Number(s.absence_deduction).toLocaleString('en-US', {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}

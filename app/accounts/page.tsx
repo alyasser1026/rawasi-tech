@@ -139,7 +139,7 @@ export default function HierarchicalLedgerPage() {
                   <body>
                       <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #ddd; padding-bottom: 15px;">
                           <h2>ميزان المراجعة الشجري</h2>
-                          <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}</p>
+                          <p>تاريخ التقرير: ${new Date().toLocaleDateString('en-GB')}</p>
                           ${startDate ? `<p>من: ${startDate} | إلى: ${endDate}</p>` : ''}
                       </div>
                       <table>

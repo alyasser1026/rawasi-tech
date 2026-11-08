@@ -303,7 +303,7 @@ export default function OfflineSyncStatus() {
 
                     <div className={styles.itemBottom}>
                       <span>
-                        {new Date(item.created_at).toLocaleString('ar-SA')} ·{' '}
+                        {new Date(item.created_at).toLocaleString('en-US')} ·{' '}
                         {item.status === 'syncing'
                           ? 'جاري الرفع...'
                           : item.status === 'failed'

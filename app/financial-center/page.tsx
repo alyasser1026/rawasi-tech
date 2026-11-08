@@ -12,7 +12,7 @@ import { formatCurrency } from '@/lib/helpers';
 type Movement = { created_at: string; kind: 'expense' | 'journal'; description?: string | null; amount: number; side: 'in' | 'out' };
 type Totals = { totalIn: number; totalOut: number; netCash: number; liquidityIndex: number; syncedAt: Date };
 
-const formatDateTime = (value: string | Date) => new Date(value).toLocaleString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const formatDateTime = (value: string | Date) => new Date(value).toLocaleString('en-US', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 export default function FinancialCenter() {
   const router = useRouter();
@@ -72,7 +72,7 @@ export default function FinancialCenter() {
     { label: 'صافي النقدية', amount: totals.netCash, tone: totals.netCash >= 0 ? 'success' : 'danger', icon: <Landmark />, hint: 'المقبوضات ناقص المصروفات' },
     { label: 'إجمالي المقبوضات', amount: totals.totalIn, tone: 'info', icon: <ArrowDownLeft />, hint: 'الجانب الدائن في قيود اليومية' },
     { label: 'إجمالي المصروفات', amount: totals.totalOut, tone: 'warning', icon: <ArrowUpRight />, hint: 'كل المصروفات المسجلة' },
-    { label: 'مؤشر السيولة', value: `${totals.liquidityIndex.toLocaleString('ar-EG')}٪`, tone: totals.liquidityIndex >= 0 ? 'brand' : 'danger', icon: <Droplets />, hint: 'صافي النقدية ÷ المقبوضات' },
+    { label: 'مؤشر السيولة', value: `${totals.liquidityIndex.toLocaleString('en-US')}٪`, tone: totals.liquidityIndex >= 0 ? 'brand' : 'danger', icon: <Droplets />, hint: 'صافي النقدية ÷ المقبوضات' },
   ]} />, [totals]);
 
   const actions = useMemo(() => <>
@@ -86,9 +86,9 @@ export default function FinancialCenter() {
       {loading ? <LoadingScreen message="جاري تحميل المركز المالي..." fullScreen={false} /> : (
         <section className="ent-panel" aria-label="آخر الحركات المالية">
           <div className="ent-panel-heading">
-            <div className="ent-panel-title"><h2>آخر الحركات المالية</h2><small>أحدث {movements.length.toLocaleString('ar-EG')} حركة</small></div>
+            <div className="ent-panel-title"><h2>آخر الحركات المالية</h2><small>أحدث {movements.length.toLocaleString('en-US')} حركة</small></div>
             <div className="ent-panel-actions">
-              {totals && <small className="ent-muted">آخر تحديث: {totals.syncedAt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}</small>}
+              {totals && <small className="ent-muted">آخر تحديث: {totals.syncedAt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })}</small>}
               <span className="phi-badge is-live">مباشر</span>
             </div>
           </div>

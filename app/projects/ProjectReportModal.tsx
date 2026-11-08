@@ -8,7 +8,7 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
 
   const project = logic.selectedProject || {};
   const expenses = logic.projectDetails?.expenses || []; 
-  const today = new Date().toLocaleDateString('ar-EG');
+  const today = new Date().toLocaleDateString('en-GB');
 
   // حساب إجمالي المصروفات الفعلية لتذييل الجدول
   const totalActualExpenses = expenses.reduce((sum: number, exp: any) => sum + Number(exp.amount || 0), 0);

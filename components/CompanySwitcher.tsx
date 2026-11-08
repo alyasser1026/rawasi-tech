@@ -41,7 +41,7 @@ export default function CompanySwitcher() {
       <ChevronDown size={14} aria-hidden="true" style={{ transform: isOpen ? 'rotate(180deg)' : undefined }} />
     </button>
     {isOpen && <div id="company-picker" className={styles.panel} role="group" aria-label="اختيار الشركة">
-      <div className={styles.heading}><strong>اختر الشركة للعمل عليها</strong><small>{companies.length.toLocaleString('ar-EG')} شركات</small></div>
+      <div className={styles.heading}><strong>اختر الشركة للعمل عليها</strong><small>{companies.length.toLocaleString('en-US')} شركات</small></div>
       <div className={styles.list}>
         {companies.map(company => <button type="button" key={company.id} className={styles.company}
           aria-pressed={company.id === activeCompanyId}

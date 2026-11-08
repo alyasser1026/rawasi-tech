@@ -53,7 +53,7 @@ export default function SystemHealthRadar() {
         aria-pressed={filter === status} onClick={() => setFilter(status)}>{STATUS[status].label}</button>)}
     </div>
     <div aria-live="polite" aria-atomic="true" className="workspace-hint" style={{ marginBottom: '0.875rem' }}>
-      {running ? 'الفحص جارٍ؛ النتائج السابقة تبقى ظاهرة حتى اكتماله.' : checkedAt ? `آخر فحص: ${checkedAt.toLocaleTimeString('ar-EG')} · غير المتاح يعني أن الفحص لم يكتمل أو أن المتصفح لا يدعمه.` : 'لم يكتمل الفحص.'}
+      {running ? 'الفحص جارٍ؛ النتائج السابقة تبقى ظاهرة حتى اكتماله.' : checkedAt ? `آخر فحص: ${checkedAt.toLocaleTimeString('en-GB')} · غير المتاح يعني أن الفحص لم يكتمل أو أن المتصفح لا يدعمه.` : 'لم يكتمل الفحص.'}
     </div>
     {results.filter(result => filter === 'all' || result.status === filter).map(result => <article className="diagnostics-result" key={result.id}>
       <div className="diagnostics-result-heading"><h3>{result.title}</h3><span className="diagnostics-result-tag" style={{ color: STATUS[result.status].color }}>{STATUS[result.status].label}</span></div>

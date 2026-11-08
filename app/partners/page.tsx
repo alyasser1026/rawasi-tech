@@ -108,10 +108,10 @@ export default function PartnersDirectory() {
 
   const summaryStats = (
     <KpiStrip compact items={[
-      { label: 'إجمالي الشركاء', value: Number(stats.total || 0).toLocaleString('ar-EG'), tone: 'brand', icon: <Users />, hint: 'كيان مسجل' },
-      { label: 'موظفون وجهات داخلية', value: Number(stats.employees || 0).toLocaleString('ar-EG'), tone: 'info', icon: <Building2 /> },
-      { label: 'مقاولون وموردون', value: Number(stats.contractors || 0).toLocaleString('ar-EG'), tone: 'warning', icon: <Truck /> },
-      { label: 'عمالة يومية', value: Number(stats.labor || 0).toLocaleString('ar-EG'), tone: 'success', icon: <HardHat /> },
+      { label: 'إجمالي الشركاء', value: Number(stats.total || 0).toLocaleString('en-US'), tone: 'brand', icon: <Users />, hint: 'كيان مسجل' },
+      { label: 'موظفون وجهات داخلية', value: Number(stats.employees || 0).toLocaleString('en-US'), tone: 'info', icon: <Building2 /> },
+      { label: 'مقاولون وموردون', value: Number(stats.contractors || 0).toLocaleString('en-US'), tone: 'warning', icon: <Truck /> },
+      { label: 'عمالة يومية', value: Number(stats.labor || 0).toLocaleString('en-US'), tone: 'success', icon: <HardHat /> },
     ]} />
   );
 
@@ -250,7 +250,7 @@ export default function PartnersDirectory() {
             </tbody>
           </table>
           <div style={{ height: '3.125rem' }}></div>
-          <div className="print-footer"><span className="page-num"></span><span style={{ marginRight: '2.5rem' }}>تقرير رسمي - فاي تك للمقاولات - {new Date().toLocaleDateString('ar-SA')}</span></div>
+          <div className="print-footer"><span className="page-num"></span><span style={{ marginRight: '2.5rem' }}>تقرير رسمي - فاي تك للمقاولات - {new Date().toLocaleDateString('en-GB')}</span></div>
         </div>
 
       </MasterPage>

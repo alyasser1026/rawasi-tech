@@ -336,8 +336,8 @@ export default function MaterialsPage() {
                     summary={
                         <KpiStrip compact items={[
                             { label: 'قيمة الخامات (حسب التصفية)', amount: filteredTotalCost, tone: 'brand', icon: <Package /> },
-                            { label: 'الفواتير المعروضة', value: groupedData.length.toLocaleString('ar-EG'), tone: 'info', icon: <FileText /> },
-                            { label: 'المحدد للصرف', value: (logic.selectedLineItems?.length || 0).toLocaleString('ar-EG'), tone: 'neutral', icon: <ListChecks />, hint: 'سطور خامات' },
+                            { label: 'الفواتير المعروضة', value: groupedData.length.toLocaleString('en-US'), tone: 'info', icon: <FileText /> },
+                            { label: 'المحدد للصرف', value: (logic.selectedLineItems?.length || 0).toLocaleString('en-US'), tone: 'neutral', icon: <ListChecks />, hint: 'سطور خامات' },
                         ]} />
                     }
                     customFilters={

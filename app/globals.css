@@ -373,9 +373,26 @@ html[data-mode="dark"] .text-accent {
   margin: 0;
   padding: 0;
   font-family: var(--font-ar);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "tnum" 1, "ss01" 0;
+  font-feature-settings: "tnum" 1, "ss01" 0;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 🔢 فرض الأرقام والتواريخ بالإنجليزية في كامل النظام */
+input, textarea, select, table, th, td, .num-cell, [data-num] {
+  font-variant-numeric: tabular-nums;
+  -webkit-font-feature-settings: "tnum" 1;
+  font-feature-settings: "tnum" 1;
+}
+
+input[type="number"], input[type="date"], input[type="datetime-local"], input[type="time"] {
+  direction: ltr;
+  text-align: right;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
 }
 
 html, body {

@@ -234,7 +234,7 @@ export default function VatReturnPage() {
               <span>الفترة من <bdi>{report.period.from}</bdi> إلى <bdi>{report.period.to}</bdi></span>
             </div>
             <p className={styles.reviewNotice}><TriangleAlert size={18} aria-hidden="true" />
-              <span><strong>مسودة مراجعة داخلية.</strong> {reviewCount ? `${reviewCount.toLocaleString('ar-SA')} مستند يحتاج مراجعة. ` : ''}أكمل الخانات اليدوية وراجع الفروق قبل استخدام الأرقام في الإقرار.</span>
+              <span><strong>مسودة مراجعة داخلية.</strong> {reviewCount ? `${reviewCount.toLocaleString('en-US')} مستند يحتاج مراجعة. ` : ''}أكمل الخانات اليدوية وراجع الفروق قبل استخدام الأرقام في الإقرار.</span>
             </p>
             <section className="ent-panel" aria-labelledby="vat-boxes-title">
               <div className="ent-panel-heading">
@@ -264,7 +264,7 @@ export default function VatReturnPage() {
                 <div><dt>فرق الأستاذ عن المؤكدة</dt><dd>{formatVatAmount(rec.variance_confirmed)}</dd></div>
               </dl>
               <details className={`no-print ${styles.journalDetails}`}>
-                <summary>تفاصيل حركة الأستاذ ({rec.lines.length.toLocaleString('ar-SA')})</summary>
+                <summary>تفاصيل حركة الأستاذ ({rec.lines.length.toLocaleString('en-US')})</summary>
                 {rec.lines.length ? <div className="ent-table-scroll" tabIndex={0} role="region" aria-label="تفاصيل القيود المرحّلة">
                   <table className={`ent-table ${styles.boxTable}`}>
                     <thead><tr><th scope="col">التاريخ</th><th scope="col">النوع</th><th scope="col">البيان</th><th scope="col">معرّف القيد</th><th scope="col">الحركة</th></tr></thead>

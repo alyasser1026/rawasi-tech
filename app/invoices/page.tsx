@@ -115,7 +115,7 @@ export default function InvoicesPage() {
         if (!row) return null;
         return (
           <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#0284c7', background: 'rgba(2, 132, 199, 0.1)', padding: '0.25rem 0.625rem', borderRadius: '8px', border: '1px solid rgba(2, 132, 199, 0.2)' }}>
-            {row.date ? new Date(row.date).toLocaleDateString('ar-EG') : '---'}
+            {row.date ? new Date(row.date).toLocaleDateString('en-GB') : '---'}
           </span> 
         );
       }

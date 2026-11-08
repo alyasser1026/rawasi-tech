@@ -275,11 +275,11 @@ export default function JournalPage() {
   const summary = useMemo(() => <KpiStrip compact items={[
     { label: 'إجمالي المدين', amount: logic.totals.totalDebit, tone: 'success', icon: <ArrowDownLeft /> },
     { label: 'إجمالي الدائن', amount: logic.totals.totalCredit, tone: 'danger', icon: <ArrowUpRight /> },
-    { label: logic.isFiltered ? 'صافي رصيد التصفية' : (balanced ? 'الدفتر متزن' : (logic.totals.balance > 0 ? 'رصيد مدين' : 'رصيد دائن')), amount: Math.abs(logic.totals.balance), tone: balanced ? 'success' : 'warning', icon: <Scale />, hint: `${logic.totals.count.toLocaleString('ar-EG')} سطر` },
+    { label: logic.isFiltered ? 'صافي رصيد التصفية' : (balanced ? 'الدفتر متزن' : (logic.totals.balance > 0 ? 'رصيد مدين' : 'رصيد دائن')), amount: Math.abs(logic.totals.balance), tone: balanced ? 'success' : 'warning', icon: <Scale />, hint: `${logic.totals.count.toLocaleString('en-US')} سطر` },
   ]} />, [logic.totals, logic.isFiltered, balanced]);
 
   const sidebarActions = useMemo(() => logic.selectedIds.length > 0 ? <>
-    <p>تم تحديد {logic.selectedIds.length.toLocaleString('ar-EG')} سطر</p>
+    <p>تم تحديد {logic.selectedIds.length.toLocaleString('en-US')} سطر</p>
     <SecureAction module="journal" action="delete">
       <button type="button" className="ent-button ent-danger" onClick={logic.handleDeleteHeaders}><Trash2 size={15} aria-hidden="true" />حذف القيود المحددة</button>
     </SecureAction>
@@ -335,7 +335,7 @@ export default function JournalPage() {
               />
               {logic.totals.count > 0 && (
                 <div className="ent-table-footer">
-                  <span>صفحة <b>{logic.currentPage.toLocaleString('ar-EG')}</b> من <b>{logic.totalPages.toLocaleString('ar-EG')}</b> · إجمالي <b>{logic.totals.count.toLocaleString('ar-EG')}</b> سطر</span>
+                  <span>صفحة <b>{logic.currentPage.toLocaleString('en-US')}</b> من <b>{logic.totalPages.toLocaleString('en-US')}</b> · إجمالي <b>{logic.totals.count.toLocaleString('en-US')}</b> سطر</span>
                   <div className="phi-pager">
                     <label>عدد الصفوف
                       <select value={logic.rowsPerPage} onChange={(e) => logic.setRowsPerPage(Number(e.target.value))}>

@@ -269,7 +269,7 @@ export default function CompaniesSettingsPage() {
 
   const activeCount = rows.filter(c => c.is_active).length;
   const summary = useMemo(() => <KpiStrip items={[
-    { label: 'الشركات', value: rows.length.toLocaleString('ar-EG'), tone: 'brand', icon: <Building2 />, hint: `${activeCount.toLocaleString('ar-EG')} نشطة` },
+    { label: 'الشركات', value: rows.length.toLocaleString('en-US'), tone: 'brand', icon: <Building2 />, hint: `${activeCount.toLocaleString('en-US')} نشطة` },
     { label: 'الشركة الحالية', value: activeCompany?.code ?? '—', tone: 'info', icon: <CircleCheck />, hint: activeCompany?.name ?? 'لا توجد شركة مفتوحة' },
     { label: 'صلاحيتك', value: isPlatformAdmin ? 'مدير النظام' : roleById.get(activeCompanyId ?? '') === 'admin' ? 'مدير الشركة' : 'عضو', tone: 'neutral', icon: <ShieldCheck />, hint: isPlatformAdmin ? 'تدير كل الشركات' : 'حسب عضويتك في كل شركة' },
     { label: 'فصل البيانات', value: 'مفعّل', tone: 'success', icon: <Landmark />, hint: 'كل شركة لها حساباتها وقيودها' },
@@ -287,7 +287,7 @@ export default function CompaniesSettingsPage() {
       {loading ? <LoadingScreen message="جاري تحميل الشركات..." fullScreen={false} /> : (
         <section className="ent-panel" aria-labelledby="companies-title">
           <div className="ent-panel-heading">
-            <div className="ent-panel-title"><h2 id="companies-title">الشركات المسجلة</h2><small>{rows.length.toLocaleString('ar-EG')} شركة</small></div>
+            <div className="ent-panel-title"><h2 id="companies-title">الشركات المسجلة</h2><small>{rows.length.toLocaleString('en-US')} شركة</small></div>
           </div>
           <p className="ent-field-note" style={{ margin: '0 1rem 0.75rem', display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
             <Info size={16} aria-hidden="true" style={{ flexShrink: 0, marginTop: '0.15rem' }} />
@@ -413,7 +413,7 @@ export default function CompaniesSettingsPage() {
         </section>
         <div className="ent-form-divider" />
         <section className="ent-form-section">
-          <h3><Users size={17} aria-hidden="true" />الأعضاء <span className="ent-muted">{members.filter(m => m.is_active).length.toLocaleString('ar-EG')}</span></h3>
+          <h3><Users size={17} aria-hidden="true" />الأعضاء <span className="ent-muted">{members.filter(m => m.is_active).length.toLocaleString('en-US')}</span></h3>
           {membersLoading ? <p className="ent-muted">جاري التحميل…</p> : members.length ? <div className="ent-table-scroll"><table className="ent-table">
             <thead><tr><th>الاسم</th><th>الصلاحية في الشركة</th><th>الحالة</th><th><span className="sr-only">إجراءات</span></th></tr></thead>
             <tbody>{members.map(m => <tr key={m.user_id}>

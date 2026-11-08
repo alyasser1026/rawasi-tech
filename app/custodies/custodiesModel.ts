@@ -85,7 +85,7 @@ export const STATUS_MAP: Record<string, { label: string; className: string }> = 
 
 export function formatCustodyCurrency(amount: number | null | undefined): string {
   if (amount == null || isNaN(amount)) return '0.00 ر.س';
-  return new Intl.NumberFormat('ar-SA', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'SAR',
     minimumFractionDigits: 2,

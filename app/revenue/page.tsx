@@ -23,7 +23,7 @@ export default function RevenuePage() {
         },
         { 
             header: 'التاريخ', 
-            render: (row: any) => row ? <span style={{ fontWeight: 800, color: 'var(--text-secondary)' }}>{new Date(row.date).toLocaleDateString('ar-EG')}</span> : null 
+            render: (row: any) => row ? <span style={{ fontWeight: 800, color: 'var(--text-secondary)' }}>{new Date(row.date).toLocaleDateString('en-GB')}</span> : null 
         },
         { 
             header: 'خصم الخامات', 

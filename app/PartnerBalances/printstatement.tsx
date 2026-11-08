@@ -119,7 +119,7 @@ export default function PrintStatement() {
                 <div className="company-info">
                     <h1>إدارة الحسابات العامة</h1>
                     <p>نظام إدارة العقود والمقاولات الذكي</p>
-                    <p>تاريخ الكشف: {new Date().toLocaleDateString('ar-EG')}</p>
+                    <p>تاريخ الكشف: {new Date().toLocaleDateString('en-GB')}</p>
                 </div>
                 <div className="doc-badge">كشف حساب تفصيلي</div>
             </div>

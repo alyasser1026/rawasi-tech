@@ -148,7 +148,7 @@ export default function PayrollPage() {
         return (
           <div style={{ textAlign: 'center' }}>
             <span style={{ color: deduction > 0 ? THEME.ruby : THEME.textMuted, fontWeight: 'bold' }}>
-              {deduction > 0 ? `-${deduction.toLocaleString('ar-EG', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '0'}
+              {deduction > 0 ? `-${deduction.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '0'}
             </span>
             {days > 0 && (
               <div style={{ fontSize: '10px', color: THEME.textMuted }}>

@@ -155,7 +155,7 @@ export const checkAdminApprovalPrivilege = async (
 /** Short currency for tight spaces, e.g. "١٫٣ مليون ر.س."; pair it with the full value (title/tooltip). */
 export const formatCompactCurrency = (amount: number | string | null | undefined): string => {
   const num = Number(amount) || 0;
-  return new Intl.NumberFormat('ar-SA', {
+  return new Intl.NumberFormat('ar-SA-u-nu-latn', {
     style: 'currency',
     currency: 'SAR',
     notation: 'compact',
@@ -166,7 +166,7 @@ export const formatCompactCurrency = (amount: number | string | null | undefined
 
 export const formatCurrency = (amount: number | string | null | undefined): string => {
   const num = Number(amount) || 0;
-  return new Intl.NumberFormat('ar-SA', {
+  return new Intl.NumberFormat('ar-SA-u-nu-latn', {
     style: 'currency',
     currency: 'SAR',
     minimumFractionDigits: 2,
@@ -181,12 +181,12 @@ export const formatDate = (dateString: string, showTime: boolean = false): strin
   
   const options: Intl.DateTimeFormatOptions = {
     year: 'numeric',
-    month: 'long',
+    month: 'short',
     day: 'numeric',
     ...(showTime && { hour: '2-digit', minute: '2-digit', hour12: true })
   };
   
-  return new Intl.DateTimeFormat('ar-EG', options).format(date);
+  return new Intl.DateTimeFormat('en-GB', options).format(date);
 };
 
 export const calculateVAT = (amount: number, isInclusive: boolean = false, vatRate: number = 0.15) => {

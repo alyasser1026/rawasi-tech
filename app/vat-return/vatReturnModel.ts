@@ -94,7 +94,7 @@ export const categoryLabels: Record<string, string> = {
 export const salesCategories = ['standard_sales', 'zero_sales', 'export_sales', 'exempt_sales', 'outside_scope'];
 export const purchaseCategories = ['standard_purchases', 'imports_paid', 'zero_purchases', 'exempt_purchases', 'outside_scope', 'noncompliant_purchase'];
 
-const money = new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', minimumFractionDigits: 2 });
+const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'SAR', minimumFractionDigits: 2 });
 export const formatVatAmount = (amount: VatAmount | undefined) => amount == null ? '—' : money.format(Number(amount));
 
 export function currentTaxMonth() {

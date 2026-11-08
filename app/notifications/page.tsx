@@ -63,7 +63,7 @@ export default function NotificationsPage() {
                                         {notif.message || notif.content}
                                     </h4>
                                     <span style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                                        {new Date(notif.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}
+                                        {new Date(notif.created_at).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}
                                     </span>
                                 </div>
                                 {!notif.is_read && (

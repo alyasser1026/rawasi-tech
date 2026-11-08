@@ -344,7 +344,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                 </h3>
                 <div className="ent-form-grid cols-3">
                     <div className="ent-form-field"><label htmlFor="inv-date">تاريخ الفاتورة</label><input id="inv-date" type="date" value={record.date?.split('T')[0] ?? ''} onChange={(e) => setRecord({ ...record, date: e.target.value })} /></div>
-                    <div className="ent-form-field"><label htmlFor="inv-due">فترة السداد (بالأيام)</label><input id="inv-due" type="number" min="0" placeholder="مثلاً: 30" value={record.due_in_days ?? ''} onChange={(e) => setRecord({ ...record, due_in_days: e.target.value })} />{record.due_date && <span className="ent-field-note">تاريخ الاستحقاق: {new Date(record.due_date).toLocaleDateString('ar-EG')}</span>}</div>
+                    <div className="ent-form-field"><label htmlFor="inv-due">فترة السداد (بالأيام)</label><input id="inv-due" type="number" min="0" placeholder="مثلاً: 30" value={record.due_in_days ?? ''} onChange={(e) => setRecord({ ...record, due_in_days: e.target.value })} />{record.due_date && <span className="ent-field-note">تاريخ الاستحقاق: {new Date(record.due_date).toLocaleDateString('en-GB')}</span>}</div>
                     <div className="ent-form-field"><label htmlFor="inv-number">رقم الفاتورة (تلقائي)</label><input id="inv-number" type="text" value={record.invoice_number ?? ''} placeholder="يتحدد عند الحفظ" readOnly dir="ltr" /></div>
                     <div className="ent-form-field">
                         <SmartCombo label="العميل" table="partners" searchCols="name,code" displayCol="name"
@@ -371,7 +371,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
 
             <div className="ent-form-divider" />
             <section className="ent-form-section">
-                <h3><ListPlus size={17} aria-hidden="true" />بنود الفاتورة <span className="ent-muted">{lines.length.toLocaleString('ar-EG')} بند</span></h3>
+                <h3><ListPlus size={17} aria-hidden="true" />بنود الفاتورة <span className="ent-muted">{lines.length.toLocaleString('en-US')} بند</span></h3>
                 <div className="ent-form-grid cols-3">
                     <div className="ent-form-field">
                         <SmartCombo key={`line-villa-${record.line_project_id || 'empty'}`} label="الفيلا" table="projects" searchCols="Property,project_name,project_code" displayCol="Property"
@@ -403,7 +403,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                     <table>
                         <thead><tr><th>م</th><th>البيان</th><th className="is-num">الكمية</th><th>الوحدة</th><th className="is-num">السعر</th><th className="is-num">الإجمالي</th>{perLine && <><th className="is-num">الضريبة</th><th className="is-num">الضمان</th></>}<th><span className="sr-only">إجراء</span></th></tr></thead>
                         <tbody>{lines.map((line: any, idx: number) => <tr key={idx}>
-                            <td>{(idx + 1).toLocaleString('ar-EG')}</td>
+                            <td>{(idx + 1).toLocaleString('en-US')}</td>
                             <td>{line.description}{(line.order_number || line.project_name) && <span className="ent-field-note">{[line.project_name, line.order_number && `أمر ${line.order_number}`].filter(Boolean).join(' · ')}</span>}</td>
                             <td className="is-num">{line.quantity}</td>
                             <td>{line.unit}</td>

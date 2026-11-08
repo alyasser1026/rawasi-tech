@@ -1439,7 +1439,7 @@ export default function CustodiesPage() {
                   <div className="flex justify-between items-center text-xs text-slate-400 mt-2 px-4">
                     <span>رقم العهدة: {selectedCustodyForPrint.custody_number}</span>
                     <span>تاريخ الصرف: {selectedCustodyForPrint.opened_date}</span>
-                    <span>تاريخ المحضر: {new Date().toLocaleDateString('ar-SA')}</span>
+                    <span>تاريخ المحضر: {new Date().toLocaleDateString('en-GB')}</span>
                   </div>
                 </div>
 

@@ -237,7 +237,7 @@ export default function CashFlowsPage() {
                 groupName = row.partner?.name || 'حركات عامة (بدون شريك محدد)';
             } else if (groupBy === 'date') {
                 groupName = row.transaction_date 
-                    ? new Date(row.transaction_date).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' })
+                    ? new Date(row.transaction_date).toLocaleDateString('en-GB', { year: 'numeric', month: 'long', day: 'numeric' })
                     : 'تاريخ غير محدد';
             }
 

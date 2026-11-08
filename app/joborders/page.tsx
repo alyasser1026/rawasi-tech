@@ -87,10 +87,10 @@ export default function JobOrdersPage() {
       <RawasiSidebarManager 
         summary={
           <KpiStrip compact items={[
-            { label: 'إجمالي الأوامر', value: logic.kpis.total.toLocaleString('ar-EG'), tone: 'brand', icon: <ClipboardList /> },
-            { label: 'جاري التنفيذ', value: logic.kpis.running.toLocaleString('ar-EG'), tone: 'info', icon: <Activity /> },
-            { label: 'موقوف', value: logic.kpis.suspended.toLocaleString('ar-EG'), tone: 'danger', icon: <CirclePause /> },
-            { label: 'مكتمل', value: logic.kpis.completed.toLocaleString('ar-EG'), tone: 'success', icon: <CircleCheck /> },
+            { label: 'إجمالي الأوامر', value: logic.kpis.total.toLocaleString('en-US'), tone: 'brand', icon: <ClipboardList /> },
+            { label: 'جاري التنفيذ', value: logic.kpis.running.toLocaleString('en-US'), tone: 'info', icon: <Activity /> },
+            { label: 'موقوف', value: logic.kpis.suspended.toLocaleString('en-US'), tone: 'danger', icon: <CirclePause /> },
+            { label: 'مكتمل', value: logic.kpis.completed.toLocaleString('en-US'), tone: 'success', icon: <CircleCheck /> },
           ]} />
         }
         actions={sidebarActions}
@@ -279,7 +279,7 @@ export default function JobOrdersPage() {
                       </div>
                       <div>
                         <b style={{ color: '#8b5cf6', fontSize: 'var(--fs-lg)', fontWeight: 900 }}>#{row.order_number}</b>
-                        <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '2px' }}>{row.start_date ? new Date(row.start_date).toLocaleDateString('ar-EG') : '---'}</div>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '2px' }}>{row.start_date ? new Date(row.start_date).toLocaleDateString('en-GB') : '---'}</div>
                       </div>
                     </div>
                     <div style={{

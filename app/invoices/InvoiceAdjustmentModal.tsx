@@ -52,9 +52,9 @@ type IssuedNote = {
 };
 
 const noteLabels: Record<NoteType, string> = { credit: 'إشعار دائن', debit: 'إشعار مدين' };
-const currency = new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', minimumFractionDigits: 2 });
+const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'SAR', minimumFractionDigits: 2 });
 const formatAmount = (amount: Amount) => currency.format(Number(amount));
-const dateFormat = new Intl.DateTimeFormat('ar-SA', { calendar: 'gregory', timeZone: 'Asia/Riyadh', dateStyle: 'medium', timeStyle: 'short' });
+const dateFormat = new Intl.DateTimeFormat('en-GB', { calendar: 'gregory', timeZone: 'Asia/Riyadh', dateStyle: 'medium', timeStyle: 'short' });
 const taxDay = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Riyadh', year: 'numeric', month: '2-digit', day: '2-digit' });
 const lineKey = (line: AdjustmentLine) => line.id ?? `legacy-${line.line_index}`;
 

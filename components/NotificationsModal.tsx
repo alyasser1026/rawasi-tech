@@ -59,7 +59,7 @@ export default function NotificationsModal({ isOpen, onClose }: Props) {
                                         <div className="phi-notification-content">
                                             <div className="phi-notification-meta">
                                                 <h3>{notification.message || notification.content}</h3>
-                                                <time dateTime={notification.created_at}>{new Date(notification.created_at).toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' })}</time>
+                                                <time dateTime={notification.created_at}>{new Date(notification.created_at).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' })}</time>
                                             </div>
                                             {!notification.is_read && <button type="button" className="phi-mark-read" onClick={() => markAsRead(notification.id)}>علامة كمقروء</button>}
                                         </div>
