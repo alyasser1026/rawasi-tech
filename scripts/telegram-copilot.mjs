@@ -534,27 +534,54 @@ function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
     };
   }
 
-  // 1) إضافة يومية عامل من المحادثة
-  if (/(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل|اعمليلي|اعملي|اعمل|انشئ|أنشئ).*(?:يوميه|يومية)\s*(?:عامل)?/i.test(t)) {
-    const workerMatch = t.match(/(?:يوميه|يومية)\s*(?:عامل)?\s+([\p{L}\s]{2,40}?)(?=\s+(?:بند|طريحه|طريحة|عمل|انتاج|إنتاج|يوميه|يومية|فيلا|موقع|اجر|أجر|\d)|$)/u);
-    const itemMatch = t.match(/بند\s+([\p{L}\s]{2,50}?)(?=\s+(?:طريحه|طريحة|عمل|انتاج|إنتاج|يوميه|يومية|فيلا|موقع|اجر|أجر|\d)|$)/u);
-    const tareehaMatch = t.match(/(?:طريحه|طريحة)\s*(\d+(?:\.\d+)?)/u);
-    const prodMatch = t.match(/(?:عمل|انتاج|إنتاج|منفذ|انجز|أنجز)\s*(\d+(?:\.\d+)?)/u);
-    const wageMatches = [...t.matchAll(/(?:يوميه|يومية|اجر|أجر|بـ)\s*(\d+(?:\.\d+)?)/gu)];
-    const wageMatch = wageMatches.length > 0 ? wageMatches[wageMatches.length - 1] : null;
-    const siteMatch = t.match(/(?:فيلا|مشروع|عماره|عمارة|موقع)\s*([\p{L}\p{N}_-]+)/u);
+  // 1) إضافة يومية عامل أو فني أو فني ومساعد من المحادثة
+  if (/(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل|اعمليلي|اعملي|اعمل|انشئ|أنشئ).*(?:يوميه|يومية|فني|عامل)/iu.test(t)) {
+    const boundary = '(?=\\s+(?:و?العامل|و?عامل|و?المساعد|و?مساعد|و?الفيلا|و?فيلا|و?المشروع|و?مشروع|و?العماره|و?عماره|و?العمارة|و?عمارة|و?الموقع|و?موقع|و?البند|و?بند|و?امر\\s*شغل|و?أمر\\s*شغل|و?امر|و?أمر|و?انتاجيته|و?إنتاجيته|و?انتاجية|و?إنتاجية|و?انتاج|و?إنتاج|و?عمل|و?طريحه|و?طريحة|و?يوميه|و?يومية|و?اجر|و?أجر|و?ملاحظات|و?ملاحظة|و?ملاحظه|و?بيان|\\d)|$)';
 
-    const workerName = workerMatch?.[1]?.trim();
+    const techMatch = t.match(new RegExp(`(?:للفني|فني)\\s*(?:واسمه|اسمه)?\\s+([\\p{L}\\s]{2,30}?)${boundary}`, 'u'));
+    const helperMatch = t.match(new RegExp(`(?:و?العامل|و?عامل|و?المساعد|و?مساعد)\\s*(?:واسمه|اسمه)?\\s+([\\p{L}\\s]{2,30}?)${boundary}`, 'u'));
+
+    let workerName = techMatch?.[1]?.trim();
+    let helperName = helperMatch?.[1]?.trim();
+
+    if (!workerName && helperName) {
+      if (!/(?:فني|صنايعي)/u.test(t)) {
+        workerName = helperName;
+        helperName = undefined;
+      }
+    }
+
+    if (!workerName) {
+      const singleMatch = t.match(new RegExp(`(?:يوميه|يومية)\\s*(?:عامل\\s+)?([\\p{L}\\s]{2,30}?)${boundary}`, 'u'));
+      workerName = singleMatch?.[1]?.trim();
+    }
+
+    const itemMatch = t.match(new RegExp(`(?:و?البند|و?بند)\\s+([\\p{L}\\s]{2,40}?)${boundary}`, 'u'));
+    const siteMatch = t.match(/(?:و?الفيلا|و?فيلا|و?المشروع|و?مشروع|و?العماره|و?عماره|و?العمارة|و?عمارة|و?الموقع|و?موقع)s*([p{L}p{N}_-]+)/u);
+    const prodMatch = t.match(/(?:و?انتاجيته|و?إنتاجيته|و?انتاجية|و?إنتاجية|و?انتاج|و?إنتاج|و?عمل|و?منفذ|و?انجز|و?أنجز)s*(?:كذاs*)?(d+(?:.d+)?)/u);
+    const tareehaMatch = t.match(/(?:و?طريحه|و?طريحة)s*(?:كذاs*)?(d+(?:.d+)?)/u);
+    const wageMatches = [...t.matchAll(/(?:و?يوميه|و?يومية|و?اجر|و?أجر|بـ)s*(?:كذاs*)?(d+(?:.d+)?)/gu)];
+    const joMatch = t.match(/(?:و?امرs*شغل|و?أمرs*شغل|و?امر|و?أمر)s*(?:رقمs*)?#?([a-zA-Z0-9_-]+)/u);
+    const notesMatch = t.match(/(?:و?ملاحظات|و?ملاحظة|و?ملاحظه|و?بيان)s+([p{L}p{N}s]{2,100})/u);
+
+    const dailyWage = wageMatches.length > 0 ? Number(wageMatches[0][1]) : undefined;
+    const helperWage = wageMatches.length > 1 ? Number(wageMatches[1][1]) : undefined;
+
     if (workerName) {
       return {
         name: 'add_labor_daily_log_draft',
         args: {
           worker_name: workerName,
+          ...(helperName ? { helper_name: helperName } : {}),
+          ...(techMatch ? { skill_level: 'فني' } : {}),
           ...(itemMatch?.[1]?.trim() ? { work_item: itemMatch[1].trim() } : {}),
-          ...(tareehaMatch ? { tareeha: Number(tareehaMatch[1]) } : {}),
-          ...(prodMatch ? { productivity: Number(prodMatch[1]) } : {}),
-          ...(wageMatch ? { daily_wage: Number(wageMatch[1]) } : {}),
           ...(siteMatch ? { site_ref: siteMatch[0].trim() } : {}),
+          ...(prodMatch ? { productivity: Number(prodMatch[1]) } : {}),
+          ...(tareehaMatch ? { tareeha: Number(tareehaMatch[1]) } : {}),
+          ...(dailyWage ? { daily_wage: dailyWage } : {}),
+          ...(helperWage ? { helper_wage: helperWage } : {}),
+          ...(joMatch ? { job_order: joMatch[1].trim() } : {}),
+          ...(notesMatch ? { notes: notesMatch[1].trim() } : {}),
           work_date: 'today',
         },
       };

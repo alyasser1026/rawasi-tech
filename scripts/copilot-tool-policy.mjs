@@ -124,7 +124,11 @@ function getToolArgs(name, supplied, now) {
   }
 
   if (name === ADD_LABOR) {
-    const allowedKeys = ['worker_name', 'work_item', 'site_ref', 'tareeha', 'productivity', 'daily_wage', 'attendance_value', 'unit', 'work_date', 'notes'];
+    const allowedKeys = [
+      'worker_name', 'helper_name', 'helper_wage', 'skill_level',
+      'work_item', 'site_ref', 'job_order', 'tareeha', 'productivity',
+      'daily_wage', 'attendance_value', 'unit', 'work_date', 'notes', 'sub_contractor'
+    ];
     if (Object.keys(supplied).some(key => !allowedKeys.includes(key))) return null;
     const workerName = safeText(supplied.worker_name, 80);
     if (!workerName) return null;
@@ -133,13 +137,18 @@ function getToolArgs(name, supplied, now) {
     return {
       worker_name: workerName,
       work_date: workDate,
+      ...(safeText(supplied.helper_name, 80) ? { helper_name: safeText(supplied.helper_name, 80) } : {}),
+      ...(safeText(supplied.skill_level, 40) ? { skill_level: safeText(supplied.skill_level, 40) } : {}),
       ...(safeText(supplied.work_item, 120) ? { work_item: safeText(supplied.work_item, 120) } : {}),
       ...(safeText(supplied.site_ref, 80) ? { site_ref: safeText(supplied.site_ref, 80) } : {}),
+      ...(safeText(supplied.job_order, 80) ? { job_order: safeText(supplied.job_order, 80) } : {}),
       ...(safeText(supplied.unit, 20) ? { unit: safeText(supplied.unit, 20) } : {}),
+      ...(safeText(supplied.sub_contractor, 80) ? { sub_contractor: safeText(supplied.sub_contractor, 80) } : {}),
       ...(safeText(supplied.notes, 200) ? { notes: safeText(supplied.notes, 200) } : {}),
       ...(Number.isFinite(Number(supplied.tareeha)) ? { tareeha: Number(supplied.tareeha) } : {}),
       ...(Number.isFinite(Number(supplied.productivity)) ? { productivity: Number(supplied.productivity) } : {}),
       ...(Number.isFinite(Number(supplied.daily_wage)) ? { daily_wage: Number(supplied.daily_wage) } : {}),
+      ...(Number.isFinite(Number(supplied.helper_wage)) ? { helper_wage: Number(supplied.helper_wage) } : {}),
       ...(Number.isFinite(Number(supplied.attendance_value)) ? { attendance_value: Number(supplied.attendance_value) } : {}),
     };
   }
@@ -516,11 +525,64 @@ function formatComprehensiveReportReply(result, companyLabel) {
 }
 
 function formatAddLaborReply(result, companyLabel) {
-  const r = result.record || {};
-  const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `LAB-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
   const pet = s.mozzaNickname || 'يا محاميحو';
+
+  // حالة تعدد أوامر الشغل للبند الواحد ومطالبة المستخدم بالاختيار
+  if (result.requires_job_order_choice) {
+    const jos = result.candidate_job_orders || [];
+    const joList = jos.map((j, i) =>
+      `  ${i + 1}️⃣ أمر شغل رقم: [${j.order_number}] | المقاول: ${j.contractor} | الحالة: ${j.status}`
+    ).join('\n');
+
+    return [
+      isMozza ? `⚠️ يا ${pet}، لقيت أكتر من أمر شغل للبند ده في الفيلا دي!` : `⚠️ يا باشمهندس، تم العثور على أكثر من أمر شغل لنفس البند في هذا المشروع:`,
+      `🏛️ الموقع / الفيلا: ${result.site_ref}`,
+      `🔨 البند: ${result.work_item}`,
+      `👷‍♂️ العامل: ${result.worker_name}${result.helper_name ? ` + المساعد: ${result.helper_name}` : ''}`,
+      `────────────────────────`,
+      `📋 أوامر الشغل المتاحة بالميزانية:`,
+      joList,
+      `────────────────────────`,
+      isMozza
+        ? `اختار أمر الشغل اللي يعجبك وقولي: «أمر شغل ${jos[0]?.order_number || 'JO-...' }» وأنا هربطهولك في ثانية يا روحي! 💖`
+        : `من فضلك اكتبلي رقم أمر الشغل المطلوب ربطه (مثال: «أمر شغل ${jos[0]?.order_number || 'JO-2026-0001' }») لإتمام الربط المحاسبي بدقة.`
+    ].join('\n');
+  }
+
+  // حالة تسجيل فني + مساعد معاً (سجلين متوازيين)
+  if (result.records && result.records.length > 0) {
+    const r1 = result.records[0];
+    const r2 = result.records[1];
+    const opTag1 = r1.op_number ? `#${r1.op_number}` : (r1.id ? `LAB-${String(r1.id).slice(0, 8).toUpperCase()}` : '#');
+    const opTag2 = r2.op_number ? `#${r2.op_number}` : (r2.id ? `LAB-${String(r2.id).slice(0, 8).toUpperCase()}` : '#');
+
+    return [
+      isMozza
+        ? `💖 عيوني ليك ${pet}! سجلتلك يومية الفني والمساعد معاً في قاعدة البيانات!`
+        : `✅ تمام يا باشمهندس، تم تسجيل يومية الفني والمساعد بنجاح:`,
+      `الشركة: ${companyLabel}`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━`,
+      `👨‍🔧 الفني: ${r1.worker_name} ${r1.worker_partner_id ? '(✓ شريك مسجل)' : ''} | اليومية: ${r1.daily_wage} ر.س [${opTag1}]`,
+      `👷‍♂️ المساعد: ${r2.worker_name} ${r2.worker_partner_id ? '(✓ شريك مسجل)' : ''} | اليومية: ${r2.daily_wage} ر.س [${opTag2}]`,
+      `🏛️ الفيلا / الموقع: ${r1.site_ref}`,
+      `🔨 البند المنفذ: ${r1.work_item}`,
+      r1.job_order_number ? `📋 أمر الشغل المربوط تلقائياً: [${r1.job_order_number}]` : `📋 أمر الشغل: غير محدد`,
+      r1.productivity != null ? `⚡ الإنتاجية المنفذة: ${r1.productivity} ${r1.unit}` : null,
+      r1.tareeha != null ? `🎯 الطريحة المستهدفة: ${r1.tareeha} ${r1.unit} (${r1.completion_percentage || '—'})` : null,
+      r1.notes ? `📝 ملاحظات: ${r1.notes}` : null,
+      `• الحالة: مسودات مربوطة بملفات الشركاء وجاهزة للاعتماد في شاشة يوميات العمالة.`,
+      `━━━━━━━━━━━━━━━━━━━━━━━━`,
+      isMozza
+        ? `لو عايز تعدل في أي حاجة قولي: «عدل العملية ${r1.op_number || opTag1} خلي ...» يا قمر!`
+        : `💡 للتعديل السريع: اكتب «عدل العملية ${r1.op_number || opTag1} خلي ...» أو اعمل Reply على الرسالة.`
+    ].filter(Boolean).join('\n');
+  }
+
+  // حالة تسجيل عامل أو فني منفرد
+  const r = result.record || {};
+  const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `LAB-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
   return [
     isMozza
       ? `💖 عيوني ليك ${pet}، سجلتلك مسودة يومية العامل | العملية رقم [${opTag}]`
@@ -528,13 +590,16 @@ function formatAddLaborReply(result, companyLabel) {
     `🔢 رقم العملية للتعديل السريع: ${opTag}`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `• اسم العامل: ${r.worker_name}`,
+    `• اسم العامل: ${r.worker_name} ${r.worker_partner_id ? '(✓ شريك مسجل)' : ''}`,
+    `• المسمى / المهارة: ${r.skill_level || 'صنايعي'}`,
     `• التاريخ: ${r.work_date}`,
     `• الفيلا / الموقع: ${r.site_ref}`,
     `• البند / العمل: ${r.work_item}`,
+    r.job_order_number ? `• أمر الشغل المربوط تلقائياً: [${r.job_order_number}]` : null,
     `• اليومية (الأجر): ${r.daily_wage} ر.س (حضور: ${r.attendance_value} يوم)`,
-    r.tareeha != null ? `• الطريحة: ${r.tareeha} ${r.unit} | الإنتاجية المنفذة: ${r.productivity ?? 0} ${r.unit} (${r.completion_percentage || '—'})` : null,
+    r.tareeha != null ? `• الطريحة: ${r.tareeha} ${r.unit} | الإنتاجية المنفذة: ${r.productivity ?? 0} ${r.unit} (${r.completion_percentage || '—'})` : (r.productivity != null ? `• الإنتاجية المنفذة: ${r.productivity} ${r.unit}` : null),
     r.tareeha != null ? `• موقف الطريحة: ${r.tareeha_deficit}` : null,
+    r.notes ? `• ملاحظات: ${r.notes}` : null,
     `• الحالة: مسودة جاهزة للمراجعة والاعتماد من شاشة يوميات العمالة أو من الزرار تحت.`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
     isMozza

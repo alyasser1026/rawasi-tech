@@ -944,15 +944,20 @@ export function createCopilotTools({
 
       const workerName = typeof rawArgs?.worker_name === 'string' ? rawArgs.worker_name.trim() : '';
       if (!workerName) {
-        return { success: false, error: 'يرجى تحديد اسم العامل لتسجيل اليومية.' };
+        return { success: false, error: 'يرجى تحديد اسم العامل أو الفني لتسجيل اليومية.' };
       }
 
+      const helperName = typeof rawArgs?.helper_name === 'string' && rawArgs.helper_name.trim() ? rawArgs.helper_name.trim() : null;
+      const helperWage = Number(rawArgs?.helper_wage) > 0 ? Number(rawArgs.helper_wage) : null;
+      const explicitSkillLevel = typeof rawArgs?.skill_level === 'string' && rawArgs.skill_level.trim() ? rawArgs.skill_level.trim() : null;
+      const explicitJobOrder = typeof rawArgs?.job_order === 'string' && rawArgs.job_order.trim() ? rawArgs.job_order.trim() : null;
+
       const workDate = resolveDateOrToday(rawArgs?.work_date || 'today');
-      const workItem = typeof rawArgs?.work_item === 'string' ? rawArgs.work_item.trim() : null;
-      const unit = typeof rawArgs?.unit === 'string' && rawArgs.unit.trim() ? rawArgs.unit.trim() : 'م2';
+      let workItem = typeof rawArgs?.work_item === 'string' && rawArgs.work_item.trim() ? rawArgs.work_item.trim() : null;
+      let unit = typeof rawArgs?.unit === 'string' && rawArgs.unit.trim() ? rawArgs.unit.trim() : 'م2';
       const dailyWage = Number(rawArgs?.daily_wage) > 0 ? Number(rawArgs.daily_wage) : 0;
       const attendanceValue = Number(rawArgs?.attendance_value) > 0 ? Number(rawArgs.attendance_value) : 1;
-      const tareeha = rawArgs?.tareeha !== undefined && rawArgs?.tareeha !== null && Number(rawArgs.tareeha) > 0 ? Number(rawArgs.tareeha) : null;
+      let tareeha = rawArgs?.tareeha !== undefined && rawArgs?.tareeha !== null && Number(rawArgs.tareeha) > 0 ? Number(rawArgs.tareeha) : null;
       const productivity = rawArgs?.productivity !== undefined && rawArgs?.productivity !== null && Number(rawArgs.productivity) >= 0 ? Number(rawArgs.productivity) : null;
       const completionPercentage = tareeha && productivity !== null ? Math.round((productivity / tareeha) * 100) : null;
       const deficit = tareeha && productivity !== null && productivity < tareeha ? Number((tareeha - productivity).toFixed(2)) : 0;
@@ -960,19 +965,40 @@ export function createCopilotTools({
       let siteRef = typeof rawArgs?.site_ref === 'string' && rawArgs.site_ref.trim() ? rawArgs.site_ref.trim() : null;
       let projectId = null;
       let workerPartnerId = null;
+      let helperPartnerId = null;
+      let matchedBoqId = null;
+      let workItemId = null;
+      let jobOrderId = null;
+      let jobOrderNumber = null;
+      let subContractor = typeof rawArgs?.sub_contractor === 'string' ? rawArgs.sub_contractor.trim() : null;
+      let subContractorId = null;
 
+      // دالة توحيد وتطبيع النصوص العربية لمطابقة ذكية عالية الدقة
+      const normalizeArabic = (s) => (s || '').toString().toLowerCase().trim()
+        .replace(/[أإآءئؤ]/g, 'ا')
+        .replace(/ة/g, 'ه')
+        .replace(/ى/g, 'ي')
+        .replace(/[\u064B-\u065F\u0670]/g, '')
+        .replace(/\s+/g, ' ');
+
+      // 1. سحب المشاريع (projects) والشركاء (partners)
       const [projRes, partRes] = await Promise.all([
-        fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '50' }),
-        fetchScopedRows('partners', { select: 'id,name,partner_type', limit: '200' }),
+        fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '100' }),
+        fetchScopedRows('partners', { select: 'id,name,partner_type,code,job_role,phone', limit: '300' }),
       ]);
 
-      if (projRes.ok && projRes.data.length > 0) {
+      // أ) مطابقة الفيلا / المشروع من جدول projects
+      if (projRes.ok && Array.isArray(projRes.data) && projRes.data.length > 0) {
         if (siteRef) {
-          const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره)\s*/, '').trim();
-          const matchedProj = projRes.data.find(p =>
-            (p.Property && (p.Property.includes(cleanSite) || siteRef.includes(p.Property))) ||
-            (p.project_code && p.project_code.toLowerCase() === cleanSite.toLowerCase())
-          );
+          const cleanSite = siteRef.replace(/^(?:الفيلا|فيلا|المشروع|مشروع|العماره|عماره|العمارة|عمارة|الموقع|موقع)\s*/u, '').trim();
+          const normCleanSite = normalizeArabic(cleanSite);
+          const matchedProj = projRes.data.find(p => {
+            const pProp = normalizeArabic(p.Property);
+            const pCode = (p.project_code || '').toLowerCase();
+            const pName = normalizeArabic(p.project_name);
+            return pProp === normCleanSite || pProp.includes(normCleanSite) || normCleanSite.includes(pProp) ||
+                   pCode === normCleanSite || pName.includes(normCleanSite);
+          });
           if (matchedProj) {
             projectId = matchedProj.id;
             siteRef = matchedProj.Property || siteRef;
@@ -986,21 +1012,8 @@ export function createCopilotTools({
         }
       }
 
-      if (partRes.ok && partRes.data.length > 0) {
-        const normWorker = workerName.toLowerCase().trim()
-          .replace(/[أإآءئؤ]/g, 'ا')
-          .replace(/ة/g, 'ه')
-          .replace(/ى/g, 'ي')
-          .replace(/[\u064B-\u065F\u0670]/g, '')
-          .replace(/\s+/g, ' ');
-
-        const normalizeP = (n) => (n || '').toString().toLowerCase().trim()
-          .replace(/[أإآءئؤ]/g, 'ا')
-          .replace(/ة/g, 'ه')
-          .replace(/ى/g, 'ي')
-          .replace(/[\u064B-\u065F\u0670]/g, '')
-          .replace(/\s+/g, ' ');
-
+      // ب) مطابقة العمال من جدول partners مع تفضيل فئات العمالة (عامل يومية / موظف)
+      if (partRes.ok && Array.isArray(partRes.data) && partRes.data.length > 0) {
         const workersFirst = [...partRes.data].sort((a, b) => {
           const isWorkerA = (a.partner_type || '').includes('عامل') || (a.partner_type || '').includes('موظف');
           const isWorkerB = (b.partner_type || '').includes('عامل') || (b.partner_type || '').includes('موظف');
@@ -1009,36 +1022,273 @@ export function createCopilotTools({
           return 0;
         });
 
-        const matchedPartner = workersFirst.find(p => {
+        const normWorker = normalizeArabic(workerName);
+        const matchedTech = workersFirst.find(p => {
           if (!p?.name) return false;
-          const pNorm = normalizeP(p.name);
+          const pNorm = normalizeArabic(p.name);
           return pNorm === normWorker || pNorm.includes(normWorker) || normWorker.includes(pNorm);
         });
+        if (matchedTech) {
+          workerPartnerId = matchedTech.id;
+        }
 
-        if (matchedPartner) {
-          workerPartnerId = matchedPartner.id;
+        if (helperName) {
+          const normHelper = normalizeArabic(helperName);
+          const matchedH = workersFirst.find(p => {
+            if (!p?.name) return false;
+            const pNorm = normalizeArabic(p.name);
+            return pNorm === normHelper || pNorm.includes(normHelper) || normHelper.includes(pNorm);
+          });
+          if (matchedH) {
+            helperPartnerId = matchedH.id;
+          }
         }
       }
 
+      // ج) استعلام بنود الميزانية (boq_budget) وأوامر الشغل (job_orders) الخاصة بالمشروع
+      if (projectId) {
+        const [boqRes, joRes] = await Promise.all([
+          fetchScopedRows('boq_budget', { select: 'id,work_item,unit,tareeha,project_id,boq_item_id', limit: '150' }),
+          fetchScopedRows('job_orders', { select: 'id,order_number,project_id,boq_budget_id,status,contractor_id,contractor_name,executor_type,notes', limit: '150' })
+        ]);
+
+        const projectBoqRows = boqRes.ok && Array.isArray(boqRes.data)
+          ? boqRes.data.filter(b => b.project_id === projectId)
+          : [];
+
+        if (workItem && projectBoqRows.length > 0) {
+          const normItem = normalizeArabic(workItem);
+          const matchedBoq = projectBoqRows.find(b => {
+            const bItem = normalizeArabic(b.work_item);
+            return bItem === normItem || bItem.includes(normItem) || normItem.includes(bItem);
+          });
+          if (matchedBoq) {
+            matchedBoqId = matchedBoq.id;
+            workItem = matchedBoq.work_item;
+            workItemId = matchedBoq.boq_item_id || matchedBoq.id;
+            if (matchedBoq.unit) unit = matchedBoq.unit;
+            if (matchedBoq.tareeha && !tareeha) tareeha = Number(matchedBoq.tareeha);
+          }
+        }
+
+        // د) مطابقة وربط أمر الشغل (job_orders)
+        const projectJOs = joRes.ok && Array.isArray(joRes.data)
+          ? joRes.data.filter(j => j.project_id === projectId && j.status !== 'ملغي' && j.status !== 'مكتمل')
+          : [];
+
+        if (explicitJobOrder) {
+          // المستخدم حدد رقم أمر الشغل صراحة (مثال: JO-2026-0001 أو 101)
+          const normExplicitJo = explicitJobOrder.toLowerCase().replace(/^(?:jo-)?/i, '');
+          const matchedJo = projectJOs.find(j =>
+            (j.order_number && j.order_number.toLowerCase().includes(normExplicitJo)) ||
+            (j.id && j.id.toLowerCase().startsWith(normExplicitJo))
+          );
+          if (matchedJo) {
+            jobOrderId = matchedJo.id;
+            jobOrderNumber = matchedJo.order_number;
+            if (!subContractor && matchedJo.contractor_name) {
+              subContractor = matchedJo.contractor_name;
+              subContractorId = matchedJo.contractor_id;
+            }
+          }
+        } else if (matchedBoqId || workItem) {
+          // البحث عن أوامر الشغل المرتبطة بهذا البند
+          const matchingJOs = projectJOs.filter(j =>
+            (matchedBoqId && j.boq_budget_id === matchedBoqId) ||
+            (j.notes && normalizeArabic(j.notes).includes(normalizeArabic(workItem)))
+          );
+
+          if (matchingJOs.length === 1) {
+            // أمر شغل واحد فقط مطابق -> ربط تلقائي فوري
+            jobOrderId = matchingJOs[0].id;
+            jobOrderNumber = matchingJOs[0].order_number;
+            if (!subContractor && matchingJOs[0].contractor_name) {
+              subContractor = matchingJOs[0].contractor_name;
+              subContractorId = matchingJOs[0].contractor_id;
+            }
+          } else if (matchingJOs.length > 1) {
+            // "ولو في اكتر من امر شغل للبند يقولي اختار امر الشغل منهم"
+            return {
+              success: true,
+              requires_job_order_choice: true,
+              candidate_job_orders: matchingJOs.map(j => ({
+                id: j.id,
+                order_number: j.order_number,
+                contractor: j.contractor_name || j.executor_type || 'تنفيذ ذاتي',
+                status: j.status || 'ساري',
+                notes: j.notes || '—'
+              })),
+              site_ref: siteRef || 'غير محدد',
+              work_item: workItem || '—',
+              worker_name: workerName,
+              helper_name: helperName,
+              daily_wage: dailyWage,
+              productivity,
+              tareeha,
+              unit,
+              work_date: workDate,
+            };
+          } else if (projectJOs.length === 1) {
+            // لو المشروع كله له أمر شغل واحد نشط
+            jobOrderId = projectJOs[0].id;
+            jobOrderNumber = projectJOs[0].order_number;
+            if (!subContractor && projectJOs[0].contractor_name) {
+              subContractor = projectJOs[0].contractor_name;
+              subContractorId = projectJOs[0].contractor_id;
+            }
+          }
+        }
+      }
+
+      const notesText = typeof rawArgs?.notes === 'string' && rawArgs.notes.trim()
+        ? rawArgs.notes.trim()
+        : 'تم الإدخال كمسودة عبر مساعد تيليجرام الذكي';
+
+      // هـ) حفظ المسودة أو المسودات (لو فني + مساعد معاً)
+      if (helperName) {
+        // إنشاء سجلين متوازيين: سجل للفني + سجل للمساعد
+        const techSkill = explicitSkillLevel || 'فني';
+        const helperSkill = 'مساعد';
+        const helperActualWage = helperWage || (dailyWage > 0 ? Math.round(dailyWage * 0.6) : 0) || dailyWage;
+
+        const techPayload = {
+          work_date: workDate,
+          worker_name: workerName,
+          site_ref: siteRef,
+          project_id: projectId,
+          worker_partner_id: workerPartnerId,
+          job_order_id: jobOrderId,
+          work_item: workItem,
+          work_item_id: workItemId,
+          production_desc: workItem,
+          unit,
+          skill_level: techSkill,
+          daily_wage: dailyWage,
+          attendance_value: attendanceValue,
+          tareeha,
+          productivity,
+          completion_percentage: completionPercentage,
+          sub_contractor: subContractor,
+          sub_contractor_id: subContractorId,
+          notes: notesText + ' (فني)',
+        };
+
+        const helperPayload = {
+          work_date: workDate,
+          worker_name: helperName,
+          site_ref: siteRef,
+          project_id: projectId,
+          worker_partner_id: helperPartnerId,
+          job_order_id: jobOrderId,
+          work_item: workItem,
+          work_item_id: workItemId,
+          production_desc: workItem,
+          unit,
+          skill_level: helperSkill,
+          daily_wage: helperActualWage,
+          attendance_value: attendanceValue,
+          tareeha,
+          productivity,
+          completion_percentage: completionPercentage,
+          sub_contractor: subContractor,
+          sub_contractor_id: subContractorId,
+          notes: notesText + ' (مساعد)',
+        };
+
+        const [insTech, insHelper] = await Promise.all([
+          insertScopedDraft('labor_daily_logs', techPayload),
+          insertScopedDraft('labor_daily_logs', helperPayload)
+        ]);
+
+        if (!insTech.ok) return { success: false, error: insTech.error };
+
+        const techShortId = insTech.row?.id ? insTech.row.id.slice(0, 8).toUpperCase() : 'NEW1';
+        const helperShortId = insHelper.row?.id ? insHelper.row.id.slice(0, 8).toUpperCase() : 'NEW2';
+
+        const opNumberTech = registerOperation({
+          operationType: 'labor_log',
+          recordId: insTech.row?.id,
+          recordCode: `LAB-${techShortId}`,
+          summary: `يومية فني: ${workerName} (${workItem || 'عام'})`,
+          siteRef: siteRef || 'غير محدد',
+          amount: dailyWage,
+        });
+
+        const opNumberHelper = insHelper.ok ? registerOperation({
+          operationType: 'labor_log',
+          recordId: insHelper.row?.id,
+          recordCode: `LAB-${helperShortId}`,
+          summary: `يومية مساعد: ${helperName} (${workItem || 'عام'})`,
+          siteRef: siteRef || 'غير محدد',
+          amount: helperActualWage,
+        }) : null;
+
+        return {
+          success: true,
+          records: [
+            {
+              id: insTech.row?.id,
+              op_number: opNumberTech,
+              work_date: workDate,
+              worker_name: workerName,
+              worker_partner_id: workerPartnerId,
+              skill_level: techSkill,
+              site_ref: siteRef || 'غير محدد',
+              work_item: workItem || '—',
+              job_order_number: jobOrderNumber,
+              unit,
+              tareeha,
+              productivity,
+              completion_percentage: completionPercentage !== null ? `${completionPercentage}%` : null,
+              daily_wage: dailyWage,
+              attendance_value: attendanceValue,
+              notes: notesText,
+              is_posted: false,
+            },
+            {
+              id: insHelper.row?.id,
+              op_number: opNumberHelper,
+              work_date: workDate,
+              worker_name: helperName,
+              worker_partner_id: helperPartnerId,
+              skill_level: helperSkill,
+              site_ref: siteRef || 'غير محدد',
+              work_item: workItem || '—',
+              job_order_number: jobOrderNumber,
+              unit,
+              tareeha,
+              productivity,
+              completion_percentage: completionPercentage !== null ? `${completionPercentage}%` : null,
+              daily_wage: helperActualWage,
+              attendance_value: attendanceValue,
+              notes: notesText,
+              is_posted: false,
+            }
+          ]
+        };
+      }
+
+      // تسجيل يومية فردية لعامل أو فني
       const payload = {
         work_date: workDate,
         worker_name: workerName,
         site_ref: siteRef,
         project_id: projectId,
         worker_partner_id: workerPartnerId,
+        job_order_id: jobOrderId,
         work_item: workItem,
+        work_item_id: workItemId,
         production_desc: workItem,
         unit,
-        skill_level: 'صنايعي',
+        skill_level: explicitSkillLevel || 'صنايعي',
         daily_wage: dailyWage,
         attendance_value: attendanceValue,
         tareeha,
         productivity,
         completion_percentage: completionPercentage,
-        sub_contractor: typeof rawArgs?.sub_contractor === 'string' ? rawArgs.sub_contractor.trim() : null,
-        notes: typeof rawArgs?.notes === 'string' && rawArgs.notes.trim()
-          ? rawArgs.notes.trim()
-          : 'تم الإدخال كمسودة عبر مساعد تيليجرام الذكي',
+        sub_contractor: subContractor,
+        sub_contractor_id: subContractorId,
+        notes: notesText,
       };
 
       const inserted = await insertScopedDraft('labor_daily_logs', payload);
@@ -1063,8 +1313,11 @@ export function createCopilotTools({
           op_number: opNumber,
           work_date: workDate,
           worker_name: workerName,
+          worker_partner_id: workerPartnerId,
+          skill_level: explicitSkillLevel || 'صنايعي',
           site_ref: siteRef || 'غير محدد',
           work_item: workItem || '—',
+          job_order_number: jobOrderNumber,
           unit,
           tareeha,
           productivity,
@@ -1072,6 +1325,7 @@ export function createCopilotTools({
           tareeha_deficit: deficit > 0 ? `${deficit} ${unit}` : 'لا يوجد عجز (حقق الطريحة)',
           daily_wage: dailyWage,
           attendance_value: attendanceValue,
+          notes: notesText,
           is_posted: false,
         },
       };
