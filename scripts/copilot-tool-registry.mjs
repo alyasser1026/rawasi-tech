@@ -244,6 +244,37 @@ export const TOOL_REGISTRY = Object.freeze([
     output: 'تأكيد حفظ أمر الشغل مع رقم الأمر والتكلفة الإجمالية واسم المقاول والفيلا.',
   },
   {
+    name: 'add_partner',
+    status: TOOL_STATUS.PILOT,
+    declaration: {
+      name: 'add_partner',
+      description: 'إضافة وتسجيل شريك جديد (عامل يومية، مقاول باطن، مورد، عميل، موظف، استشاري، تأجير معدات) في جدول الشركاء (partners) في فاي تك فوراً عند طلب المستخدم «ضيف بارتنر...»، «سجل مقاول...»، «ضيف مورد...»، «سجل شريك...» مع الاسم والنوع والمهنة ورقم التليفون والكود.',
+      parameters: {
+        type: 'OBJECT',
+        properties: {
+          name: { type: 'STRING', description: 'اسم الشريك أو المؤسسة أو المقاول أو العامل (إلزامي)' },
+          partner_type: {
+            type: 'STRING',
+            description: 'نوع الشريك (عامل يومية، مقاول، مورد، عميل، موظف، استشاري، تأجير معدات، جهة حكومية). الافتراضي: عامل يومية أو مقاول حسب السياق',
+          },
+          job_role: { type: 'STRING', description: 'المهنة أو الوظيفة أو التخصص (مثال: حداد مسلح، نجار، سباك، دهانات، توريد خرسانة)' },
+          phone: { type: 'STRING', description: 'رقم الهاتف أو الجوال' },
+          code: { type: 'STRING', description: 'كود الشريك في النظام (اختياري)' },
+          identity_number: { type: 'STRING', description: 'رقم الهوية الوطنية أو الإقامة أو السجل التجاري' },
+          vat_number: { type: 'STRING', description: 'الرقم الضريبي للمنشأة' },
+          address: { type: 'STRING', description: 'العنوان أو الموقع' },
+        },
+        required: ['name'],
+      },
+    },
+    source: { kind: 'table', name: 'partners' },
+    permission: { module: 'partners', action: 'view' },
+    requiresCompany: true,
+    flag: { env: 'COPILOT_LIVE_FIELD_OPS_ENABLED', default: false },
+    limits: 'إضافة شريك جديد نشط مرتبط بالشركة مع التحقق من عدم التكرار',
+    output: 'تأكيد تسجيل الشريك مع بياناته والكود المخصص.',
+  },
+  {
     name: 'update_operation_draft',
     status: TOOL_STATUS.PILOT,
     declaration: {

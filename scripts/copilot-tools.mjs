@@ -1334,6 +1334,132 @@ export function createCopilotTools({
       };
     },
 
+    // 8.5 إضافة وتسجيل شريك جديد (عامل، مقاول، مورد، عميل، موظف)
+    async add_partner(rawArgs = {}) {
+      if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
+
+      const name = typeof rawArgs?.name === 'string' ? rawArgs.name.trim() : '';
+      if (!name) {
+        return { success: false, error: 'يرجى تحديد اسم الشريك أو المقاول أو العامل.' };
+      }
+
+      // 1. فحص هل يوجد شريك بنفس الاسم مسبقاً في الشركة الحالية (تفادي التكرار)
+      const existingRes = await fetchScopedRows('partners', {
+        name: 'ilike.' + name,
+        select: 'id,code,name,partner_type,phone,job_role',
+        limit: '3',
+      });
+      if (existingRes.ok && Array.isArray(existingRes.data) && existingRes.data.length > 0) {
+        return {
+          success: true,
+          already_exists: true,
+          record: existingRes.data[0],
+        };
+      }
+
+      // 2. تحديد وتطبيع نوع الشريك partner_type
+      let partnerType = typeof rawArgs?.partner_type === 'string' ? rawArgs.partner_type.trim() : '';
+      if (!partnerType) {
+        if (/مقاول|مقاولات|باطن/i.test(name)) partnerType = 'مقاول';
+        else if (/مورد|توريد|خامات|شركة|مؤسسة|مصنع/i.test(name)) partnerType = 'مورد';
+        else if (/عميل|مالك|فيلا|صاحب/i.test(name)) partnerType = 'عميل';
+        else if (/مهندس|مشرف|محاسب|مدير|موظف/i.test(name)) partnerType = 'موظف';
+        else partnerType = 'عامل يومية';
+      } else {
+        if (/عامل|يوميه|يومية|صنايعي|فني/i.test(partnerType)) partnerType = 'عامل يومية';
+        else if (/مقاول/i.test(partnerType)) partnerType = 'مقاول';
+        else if (/مورد|توريد|خامات/i.test(partnerType)) partnerType = 'مورد';
+        else if (/عميل|مالك/i.test(partnerType)) partnerType = 'عميل';
+        else if (/موظف/i.test(partnerType)) partnerType = 'موظف';
+        else if (/معدات|تأجير/i.test(partnerType)) partnerType = 'تأجير معدات';
+        else if (/استشاري/i.test(partnerType)) partnerType = 'استشاري';
+        else if (/حكوم/i.test(partnerType)) partnerType = 'جهة حكومية';
+        else if (/داخل/i.test(partnerType)) partnerType = 'جهة داخلية';
+      }
+
+      // 3. تحديد كود الشريك
+      let code = typeof rawArgs?.code === 'string' && rawArgs.code.trim() ? rawArgs.code.trim() : null;
+      if (!code) {
+        const countRes = await fetchScopedRows('partners', { select: 'id', limit: '1' });
+        const count = countRes.ok && typeof countRes.totalCount === 'number' ? countRes.totalCount + 1 : Math.floor(Math.random() * 900) + 100;
+        const prefix =
+          partnerType === 'عامل يومية' ? 'WRK'
+          : partnerType === 'مقاول' ? 'CNT'
+          : partnerType === 'مورد' ? 'SUP'
+          : partnerType === 'عميل' ? 'CLI'
+          : partnerType === 'موظف' ? 'EMP'
+          : 'PRT';
+        code = `${prefix}-${count}`;
+      }
+
+      const jobRole = typeof rawArgs?.job_role === 'string' && rawArgs.job_role.trim() ? rawArgs.job_role.trim() : null;
+      const phone = typeof rawArgs?.phone === 'string' && rawArgs.phone.trim() ? rawArgs.phone.trim() : null;
+      const idNumber = typeof rawArgs?.identity_number === 'string' && rawArgs.identity_number.trim() ? rawArgs.identity_number.trim() : null;
+      const vatNumber = typeof rawArgs?.vat_number === 'string' && rawArgs.vat_number.trim() ? rawArgs.vat_number.trim() : null;
+      const address = typeof rawArgs?.address === 'string' && rawArgs.address.trim() ? rawArgs.address.trim() : null;
+
+      const payload = {
+        code,
+        name,
+        partner_type: partnerType,
+        job_role: jobRole,
+        phone,
+        identity_number: idNumber,
+        vat_number: vatNumber,
+        address,
+        is_active: true,
+        company_id: companyId,
+      };
+
+      try {
+        const res = await fetchImpl(restBase + 'partners', {
+          method: 'POST',
+          headers: {
+            apikey: supabaseKey,
+            Authorization: 'Bearer ' + authToken,
+            'x-company-id': companyId,
+            'Content-Type': 'application/json',
+            Prefer: 'return=representation',
+          },
+          body: JSON.stringify(payload),
+          redirect: 'error',
+          signal: AbortSignal.timeout(12000),
+        });
+
+        if (!res.ok) {
+          return { success: false, error: 'تعذر حفظ الشريك في قاعدة البيانات.' };
+        }
+
+        const data = await res.json();
+        const created = Array.isArray(data) ? data[0] : data;
+
+        const opNumber = registerOperation({
+          operationType: 'partner',
+          recordId: created?.id,
+          recordCode: created?.code || code,
+          summary: `شريك: ${name} (${partnerType})`,
+          siteRef: 'عام',
+          amount: 0,
+        });
+
+        return {
+          success: true,
+          created: true,
+          record: {
+            id: created?.id,
+            code: created?.code || code,
+            name,
+            partner_type: partnerType,
+            job_role: jobRole,
+            phone,
+            op_number: opNumber,
+          },
+        };
+      } catch (err) {
+        return { success: false, error: 'فشل الاتصال بقاعدة البيانات لحفظ الشريك.' };
+      }
+    },
+
     // 9. تعديل وتحديث مسودة أو عملية سابقة عبر رقم العملية المختصر (#101) أو الكود أو الرد
     async update_operation_draft(rawArgs = {}) {
       if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };

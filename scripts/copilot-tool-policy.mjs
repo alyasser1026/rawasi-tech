@@ -10,6 +10,7 @@ const ADD_LABOR = 'add_labor_daily_log_draft';
 const ADD_EXPENSE = 'add_expense_draft';
 const ADD_JOURNAL = 'add_journal_entry_draft';
 const ADD_JOB_ORDER = 'add_job_order_draft';
+const ADD_PARTNER = 'add_partner';
 const UPDATE_OPERATION = 'update_operation_draft';
 const DAY_MS = 86_400_000;
 const TOOLS_ENABLED = process.env.COPILOT_TOOLS_ENABLED !== 'false';
@@ -192,6 +193,21 @@ function getToolArgs(name, supplied, now) {
       ...(safeText(supplied.site_ref, 100) ? { site_ref: safeText(supplied.site_ref, 100) } : {}),
       ...(safeText(supplied.executor_type, 50) ? { executor_type: safeText(supplied.executor_type, 50) } : {}),
       ...(safeText(supplied.notes, 200) ? { notes: safeText(supplied.notes, 200) } : {}),
+    };
+  }
+
+  if (name === ADD_PARTNER) {
+    const partnerName = safeText(supplied.name, 120);
+    if (!partnerName) return null;
+    return {
+      name: partnerName,
+      ...(safeText(supplied.partner_type, 50) ? { partner_type: safeText(supplied.partner_type, 50) } : {}),
+      ...(safeText(supplied.job_role, 80) ? { job_role: safeText(supplied.job_role, 80) } : {}),
+      ...(safeText(supplied.phone, 40) ? { phone: safeText(supplied.phone, 40) } : {}),
+      ...(safeText(supplied.code, 40) ? { code: safeText(supplied.code, 40) } : {}),
+      ...(safeText(supplied.identity_number, 50) ? { identity_number: safeText(supplied.identity_number, 50) } : {}),
+      ...(safeText(supplied.vat_number, 50) ? { vat_number: safeText(supplied.vat_number, 50) } : {}),
+      ...(safeText(supplied.address, 150) ? { address: safeText(supplied.address, 150) } : {}),
     };
   }
 
@@ -608,6 +624,48 @@ function formatAddJobOrderReply(result, companyLabel) {
   ].filter(Boolean).join('\n');
 }
 
+function formatAddPartnerReply(result, companyLabel) {
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا محاميحو';
+  const addr = isMozza ? pet : 'يا باشمهندس';
+
+  if (result.already_exists) {
+    const rec = result.record || {};
+    return [
+      `⚠️ تنبيه ${addr}!`,
+      `الشريك «${rec.name}» مسجّل بالفعل في سيستم الشركة (${companyLabel}):`,
+      `• الكود: ${rec.code || '—'}`,
+      `• النوع: ${rec.partner_type || '—'}`,
+      rec.phone ? `• التليفون: ${rec.phone}` : null,
+      rec.job_role ? `• المهنة / التخصص: ${rec.job_role}` : null,
+      `\nلو عايز تعدل بياناته أو تسجل له يومية أو مصروف، اطلب مني في أي وقت!`,
+    ].filter(Boolean).join('\n');
+  }
+
+  const rec = result.record || {};
+  const opTag = rec.op_number ? `#${rec.op_number}` : (rec.code || '#');
+  const intro = isMozza
+    ? `💖 من عيوني يا روحي ${pet}! سجلتلك الشريك الجديد في السيستم | العملية رقم [${opTag}]:`
+    : `✅ تم تسجيل الشريك الجديد بنجاح في سيستم فاي تك ${addr} | العملية رقم [${opTag}]:`;
+
+  return [
+    intro,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🏢 الشركة: ${companyLabel}`,
+    `👤 اسم الشريك: ${rec.name}`,
+    `🏷️ نوع الشريك: ${rec.partner_type}`,
+    `🔢 كود الشريك: ${rec.code}`,
+    rec.job_role ? `💼 المهنة / التخصص: ${rec.job_role}` : null,
+    rec.phone ? `📱 رقم الهاتف: ${rec.phone}` : null,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `⚡ الشريك نشط وجاهز فوراً لربط اليوميات والمصروفات وأوامر الشغل وسندات الصرف والقبض.`,
+    isMozza
+      ? `💌 لو عايزني أعدل في بياناته يا روحي قولّي: «عدل العملية رقم ${rec.op_number || opTag} وخلي ...»!`
+      : `💡 لتعديل بياناته مستقبلاً قولّي: «عدل العملية رقم ${rec.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
+  ].filter(Boolean).join('\n');
+}
+
 function formatUpdateOperationReply(result, companyLabel) {
   const u = result.updated || {};
   const opTag = u.op_number ? `#${u.op_number}` : (u.reference || '#');
@@ -713,6 +771,9 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
   }
   if (name === ADD_JOB_ORDER) {
     return formatAddJobOrderReply(result, companyLabel);
+  }
+  if (name === ADD_PARTNER) {
+    return formatAddPartnerReply(result, companyLabel);
   }
   if (name === UPDATE_OPERATION) {
     return formatUpdateOperationReply(result, companyLabel);

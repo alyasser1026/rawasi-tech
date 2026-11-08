@@ -498,7 +498,7 @@ function conversationScope(access, declarations) {
   return [access.userId, access.companyId, declarations.map(tool => tool.name).sort().join(',')].join(':');
 }
 
-function detectDirectFieldOpsCall(userPrompt) {
+function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
   const raw = String(userPrompt || '').trim();
   if (!raw) return null;
   // تنظيف أي عبارات دلع أو ترحيب في أول الجملة حتى تعمل كل أوامر الشغل بشكل طبيعي داخل وضع الموزة
@@ -581,6 +581,68 @@ function detectDirectFieldOpsCall(userPrompt) {
     }
   }
 
+  // 2.5) إضافة شريك / مقاول / مورد / عميل / عامل جديد من المحادثة
+  if (
+    /(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل|اعمليلي|اعملي|اعمل|انشئ|أنشئ|تسجيل|إضافة|اضافة)\s*(?:لي)?\s*(?:بارتنر|شريك|مقاول|مورد|عميل|عامل|صنايعي|فني|موظف)/i.test(t) ||
+    (quotedMessageText && /اخترت نوع|اسم الشريك|شريك جديد|بارتنر جديد/i.test(quotedMessageText) && /(?:اسمه|اسم)/i.test(t))
+  ) {
+    if (!/ازاي|إزاي|كيف|عرض|هات|وريني|اسماء|كل\s*الشركاء|كشف|حساب/i.test(t)) {
+      const nameMatch =
+        t.match(/(?:اسمه|اسم)\s+([\p{L}\s]{2,40}?)(?=\s+و?(?:نوعه|تليفون|تلفون|موبايل|جوال|رقم|رقمه|مهنته|وظيفته|كود|كوده|شغال|بمهنة|فيلا|موقع)|$)/u) ||
+        t.match(/(?:بارتنر|شريك|مقاول|مورد|عميل|عامل|صنايعي|موظف)\s+(?:جديد\s+)?([\p{L}\s]{2,40}?)(?=\s+و?(?:نوعه|تليفون|تلفون|موبايل|جوال|رقم|رقمه|مهنته|وظيفته|كود|كوده|شغال)|$)/u);
+
+      const rawName = nameMatch?.[1]
+        ? nameMatch[1]
+            .replace(/^(?:جديد\s+)?(?:اسمه|اسم)\s+/u, '')
+            .replace(/^(?:جديد|باطن|خامات|يومية|يوميه)\s+/u, '')
+            .replace(/^(?:اسمه|اسم)\s+/u, '')
+            .trim()
+        : null;
+
+      if (rawName && rawName.length >= 2 && !/^(?:بارتنر|شريك|مقاول|مورد|عميل|عامل|موظف|جديد)$/i.test(rawName)) {
+        let pType = null;
+        const typeExplicitMatch = t.match(/نوعه\s+([\p{L}\s]{2,30}?)(?=\s+و?(?:اسمه|تليفون|تلفون|رقم|رقمه|مهنته|وظيفته|كود)|$)/u);
+        if (typeExplicitMatch) {
+          pType = typeExplicitMatch[1].trim();
+        } else if (/مقاول/i.test(t) || (quotedMessageText && /مقاول/i.test(quotedMessageText))) {
+          pType = 'مقاول';
+        } else if (/مورد|خامات/i.test(t) || (quotedMessageText && /مورد/i.test(quotedMessageText))) {
+          pType = 'مورد';
+        } else if (/عميل|مالك/i.test(t) || (quotedMessageText && /عميل/i.test(quotedMessageText))) {
+          pType = 'عميل';
+        } else if (/موظف/i.test(t) || (quotedMessageText && /موظف/i.test(quotedMessageText))) {
+          pType = 'موظف';
+        } else if (/عامل|صنايعي|فني|يومية|يوميه/i.test(t) || (quotedMessageText && /عامل/i.test(quotedMessageText))) {
+          pType = 'عامل يومية';
+        }
+
+        const phoneMatch =
+          t.match(/(?:و?(?:تليفون|تلفون|موبايل|جوال|رقم|رقمه))\s*[:=]?\s*([+\d\s-]{8,15})/i) ||
+          t.match(/\b(05\d{8}|01\d{9}|\+?\d{9,14})\b/);
+        const phone = phoneMatch ? (phoneMatch[1] || phoneMatch[0]).replace(/\s+/g, '') : undefined;
+
+        const roleMatch =
+          t.match(/(?:و?(?:مهنته|وظيفته|شغال|تخصصه|صناعته|بمهنة))\s+([\p{L}\s]{2,30}?)(?=\s+و?(?:نوعه|تليفون|تلفون|رقم|رقمه|كود)|$)/u) ||
+          t.match(/\b(حداد مسلح|حداد|نجار مسلح|نجار|مبيض محارة|محار|سباك|كهربائي|دهان|نقاش|بناء|مليس|مبلط|سيراميك|عامل عادي|فورمان|مهندس موقع)\b/u);
+        const jobRole = roleMatch ? (roleMatch[1] || roleMatch[0]).trim() : undefined;
+
+        const codeMatch = t.match(/(?:و?(?:كوده|كود))\s*([A-Za-z0-9_-]{2,20})/i);
+        const code = codeMatch ? codeMatch[1].trim() : undefined;
+
+        return {
+          name: 'add_partner',
+          args: {
+            name: rawName,
+            ...(pType ? { partner_type: pType } : {}),
+            ...(phone ? { phone } : {}),
+            ...(jobRole ? { job_role: jobRole } : {}),
+            ...(code ? { code } : {}),
+          },
+        };
+      }
+    }
+  }
+
   const dateArg = /امبارح|إمبارح|أمس|امس|yesterday/i.test(t) ? 'yesterday' : 'today';
 
   // 3) التقرير اليومي المفصل الشامل (أو أسئلة المصروفات/الخامات/المقاولين/الركوستات لليوم)
@@ -652,7 +714,7 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
 
   // إذا كانت الرسالة تحتوي على أي أمر شغل أو حسابات (تقرير، مصروف، قيد، يومية، أمر شغل، تعديل عملية، فلل، عمالة)، اتركها تمر لأدوات الشغل فوراً!
   const hasWorkIntent =
-    Boolean(detectDirectFieldOpsCall(t)) ||
+    Boolean(detectDirectFieldOpsCall(t, q)) ||
     /(?:تقرير|مصروف|يوميه|يومية|قيد|امر\s*شغل|أمر\s*شغل|العمليه|العملية|الفلل|المشاريع|العماله|العمالة|الشركاء|طريحه|طريحة|فحص|استلام|مستخلص)/i.test(t);
 
   // 0) تفعيل أو إيقاف «وضع الموزة» مباشرة من المحادثة أو الصوت
@@ -780,6 +842,36 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
     }
   }
 
+  // 0.3) طلب إضافة شريك جديد بدون تفاصيل (توجيه تفاعلي فوري مع أزرار اختيار نوع الشريك)
+  if (
+    /^(?:(?:ضيف|ضفي|سجل|سجّل|اضافة|إضافة|اضف|أضف|اعمل|عايز\s*اضيف|عاوز\s*اضيف|محتاج\s*اضيف)\s*(?:لي)?\s*(?:بارتنر|شريك|شريك\s*جديد|بارتنر\s*جديد|مقاول|مورد|عميل|عامل))$/i.test(t) ||
+    /^(?:بارتنر\s*جديد|شريك\s*جديد|اضافة\s*بارتنر|اضافة\s*شريك)$/i.test(t)
+  ) {
+    const intro = isMozza
+      ? `💖 من عيوني يا روحي ${pet}! تحب تسجل شريك من أي نوع؟\nاختار من الأزرار تحت، أو اكتبلي بياناته مباشرة، مثلاً:\n«ضيف مقاول جديد اسمه شركة النور وتليفونه 0501234567»\n«سجل مورد خامات اسمه مصنع اليمامة»\n«ضيف عامل يومية جديد اسمه حسين الحداد مهنته حداد مسلح»`
+      : `👷 من عيوني يا باشمهندس! تحب تسجل شريك من أي نوع؟\nاختر نوع الشريك من الأزرار أدناه، أو اكتب بياناته مباشرة في رسالة:\n• «ضيف مقاول باطن جديد اسمه شركة النور وتليفونه 0501234567»\n• «سجل مورد خامات اسمه مصنع اليمامة»\n• «ضيف عامل يومية جديد اسمه حسين الحداد مهنته حداد مسلح»\n• «ضيف عميل جديد اسمه شركة الفرسان»`;
+
+    return {
+      text: intro,
+      replyMarkup: {
+        inline_keyboard: [
+          [
+            { text: '👷 عامل يومية', callback_data: 'partner_type:عامل يومية' },
+            { text: '🏗️ مقاول باطن', callback_data: 'partner_type:مقاول' },
+          ],
+          [
+            { text: '📦 مورد خامات', callback_data: 'partner_type:مورد' },
+            { text: '🏢 عميل / مالك', callback_data: 'partner_type:عميل' },
+          ],
+          [
+            { text: '👤 موظف', callback_data: 'partner_type:موظف' },
+            { text: '🚜 تأجير معدات', callback_data: 'partner_type:تأجير معدات' },
+          ],
+        ],
+      },
+    };
+  }
+
   // 1) سؤال عن حالة السيستم / الأعطال
   if (/(?:هل\s*في|فيه)\s*(?:مشاكل|اعطال|أعطال)\s*(?:في)?\s*(?:السيستم|النظام)/i.test(t)) {
     return 'معنديش طريقة أتابع بيها حالة السيستم. تنبيهات الأخطاء بتوصل في القناة دي؛ لو فيه تنبيه معيّن رد عليه وأنا أشرح سببه.';
@@ -855,7 +947,7 @@ async function processUserPromptWithGemini(userPrompt, actor) {
     };
   }
 
-  const directCall = detectDirectFieldOpsCall(userPrompt);
+  const directCall = detectDirectFieldOpsCall(userPrompt, actor?.quotedMessageText || '');
   if (!GEMINI_API_KEY) {
     if (directCall && declarations.some(d => d.name === directCall.name)) {
       return executeToolCall(directCall);
@@ -1471,6 +1563,17 @@ async function handleCallbackQuery(cb) {
       });
     } catch {}
   };
+
+  if (data.startsWith('partner_type:')) {
+    const selectedType = data.split(':')[1];
+    await answerCb(`تم اختيار: ${selectedType}`);
+    await sendTelegramMessage(
+      chatId,
+      `👍 تمام يا باشمهندس، اخترت نوع «${selectedType}».\nاكتب لي اسمه وتليفونه دلوقتي وسأسجله فوراً، مثلاً:\n«اسمه أحمد الشناوي وتليفونه 0501234567»`,
+      messageId
+    );
+    return;
+  }
 
   if (data === 'switch_company:1' || data === 'switch_company:2') {
     const target = setActiveCompany(data === 'switch_company:1' ? 1 : 2);
