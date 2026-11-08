@@ -987,8 +987,37 @@ export function createCopilotTools({
       }
 
       if (partRes.ok && partRes.data.length > 0) {
-        const matchedPartner = partRes.data.find(p => p.name && (p.name === workerName || p.name.includes(workerName)));
-        if (matchedPartner) workerPartnerId = matchedPartner.id;
+        const normWorker = workerName.toLowerCase().trim()
+          .replace(/[أإآءئؤ]/g, 'ا')
+          .replace(/ة/g, 'ه')
+          .replace(/ى/g, 'ي')
+          .replace(/[\u064B-\u065F\u0670]/g, '')
+          .replace(/\s+/g, ' ');
+
+        const normalizeP = (n) => (n || '').toString().toLowerCase().trim()
+          .replace(/[أإآءئؤ]/g, 'ا')
+          .replace(/ة/g, 'ه')
+          .replace(/ى/g, 'ي')
+          .replace(/[\u064B-\u065F\u0670]/g, '')
+          .replace(/\s+/g, ' ');
+
+        const workersFirst = [...partRes.data].sort((a, b) => {
+          const isWorkerA = (a.partner_type || '').includes('عامل') || (a.partner_type || '').includes('موظف');
+          const isWorkerB = (b.partner_type || '').includes('عامل') || (b.partner_type || '').includes('موظف');
+          if (isWorkerA && !isWorkerB) return -1;
+          if (!isWorkerA && isWorkerB) return 1;
+          return 0;
+        });
+
+        const matchedPartner = workersFirst.find(p => {
+          if (!p?.name) return false;
+          const pNorm = normalizeP(p.name);
+          return pNorm === normWorker || pNorm.includes(normWorker) || normWorker.includes(pNorm);
+        });
+
+        if (matchedPartner) {
+          workerPartnerId = matchedPartner.id;
+        }
       }
 
       const payload = {

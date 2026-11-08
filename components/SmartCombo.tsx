@@ -177,10 +177,14 @@ export default function SmartCombo({
         try {
             if (options && options.length > 0) {
                 const normQuery = normalizeText(query);
+                const cols = searchCols.split(',').map(c => c.trim()).filter(Boolean);
                 const filtered = options.filter((o: any) => {
-                    const textToSearch = typeof o === 'object' ? (o[displayCol] || o.item_name || o.Property || o.name || o.description || '') : o;
-                    return normalizeText(textToSearch).includes(normQuery);
-                }).slice(0, 20); 
+                    if (!normQuery) return true;
+                    if (typeof o !== 'object') return normalizeText(o).includes(normQuery);
+                    const matchDisplay = normalizeText(o[displayCol] || o.item_name || o.Property || o.name || o.description || '').includes(normQuery);
+                    if (matchDisplay) return true;
+                    return cols.some(c => o[c] && normalizeText(o[c]).includes(normQuery));
+                }).slice(0, 30); 
                 setResults(filtered);
                 return;
             }
@@ -317,20 +321,29 @@ export default function SmartCombo({
         }
     };
 
-    // 🚨 Strict Mode
+    // 🚨 Strict Mode & Auto-match for IDs
     const handleBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (comboRef.current?.contains(event.relatedTarget)) return;
-        if (strict && search && !multi && !freeText && hasFieldAccess) {
-            const match = results.find(item => {
+
+        // 🚀 مطابقة ذكية عند مغادرة الحقل لربط كائن الشريك بـ ID بدلاً من تركه نصاً مجرداً
+        if (search && !multi && hasFieldAccess) {
+            const pool = (options && options.length > 0) ? options : results;
+            const normSearch = normalizeText(search);
+            const matched = pool.find((item: any) => {
+                if (!item) return false;
                 const isPrimitive = typeof item !== 'object';
-                const lbl = isPrimitive ? item : (displayFormat ? displayFormat(item) : (item[displayCol] || item.Property || item.name || item.description));
-                return normalizeText(lbl) === normalizeText(search);
+                const lbl = isPrimitive ? String(item) : String(item[displayCol] || item.name || item.Property || item.description || '');
+                return normalizeText(lbl) === normSearch || lbl.trim().toLowerCase() === search.trim().toLowerCase();
             });
-            if (!match) {
+
+            if (matched && typeof matched === 'object') {
+                handleItemSelect(matched);
+            } else if (strict && !freeText) {
                 setSearch('');
                 onSelect('');
             }
         }
+
         setShow(false);
         setHighlightedIndex(-1);
     };
@@ -349,6 +362,16 @@ export default function SmartCombo({
                 e.preventDefault();
                 if (highlightedIndex >= 0 && results[highlightedIndex]) {
                     handleItemSelect(results[highlightedIndex]);
+                } else if (results.length > 0 && search.trim()) {
+                    const normSearch = normalizeText(search);
+                    const matched = results.find(item => {
+                        const lbl = typeof item === 'object' ? (item[displayCol] || item.name || '') : String(item);
+                        return normalizeText(lbl) === normSearch || normalizeText(lbl).startsWith(normSearch);
+                    }) || results[0];
+                    if (matched && typeof matched === 'object') {
+                        handleItemSelect(matched);
+                    }
+                    setShow(false);
                 } else if (freeText) {
                     setShow(false);
                 } else if (allowAddNew && results.length === 0 && search.length > 0 && onAddNew && hasAddPermission) {
@@ -394,11 +417,26 @@ export default function SmartCombo({
                 {multi && <input type="checkbox" checked={isSelected} readOnly style={{ width: '1.125rem', height: '1.125rem', accentColor: 'var(--status-positive)', cursor: 'pointer', flexShrink: 0 }} />}
                 {showAvatar && !isPrimitive && <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${displayName}&background=random`} alt="avatar" style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', flexShrink: 0, border: 'none', boxShadow: 'var(--shadow-elevation)' }} />}
                 
-                <div style={{ wordBreak: 'break-word', flex: 1 }}>
-                    <span style={{ fontWeight: 900, color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)', marginLeft: displayCode ? '0.3125rem' : '0' }}>
-                        {displayCode ? `[${isSensitive ? applyMask(displayCode) : displayCode}] ` : ''}
-                    </span> 
-                    {isSensitive ? applyMask(displayName) : displayName}
+                <div style={{ wordBreak: 'break-word', flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                    <div>
+                        <span style={{ fontWeight: 900, color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)', marginLeft: displayCode ? '0.3125rem' : '0' }}>
+                            {displayCode ? `[${isSensitive ? applyMask(displayCode) : displayCode}] ` : ''}
+                        </span> 
+                        <span style={{ fontWeight: 800 }}>{isSensitive ? applyMask(displayName) : displayName}</span>
+                    </div>
+                    {!isPrimitive && (item.partner_type || item.job_role) && (
+                        <span style={{
+                            fontSize: '10px',
+                            fontWeight: 800,
+                            padding: '2px 8px',
+                            borderRadius: '6px',
+                            backgroundColor: item.partner_type === 'عامل يومية' ? '#DCFCE7' : (item.partner_type === 'موظف' ? '#E0F2FE' : 'var(--surface-sunken)'),
+                            color: item.partner_type === 'عامل يومية' ? '#166534' : (item.partner_type === 'موظف' ? '#0369A1' : 'var(--text-secondary)'),
+                            whiteSpace: 'nowrap'
+                        }}>
+                            {item.partner_type || ''}{item.job_role ? ` • ${item.job_role}` : ''}
+                        </span>
+                    )}
                 </div>
                 
                 {isRecent && <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}><Clock size={14} aria-hidden="true" /></span>}
@@ -467,7 +505,26 @@ export default function SmartCombo({
                     disabled={disabled}
                     placeholder={placeholder || (isLoading ? 'جاري البحث...' : 'ابحث هنا...')}
                     value={search ?? ''} 
-                    onChange={(e: any) => { setSearch(e.target.value); setShow(true); setHighlightedIndex(-1); if(freeText) onSelect(e.target.value); }}
+                    onChange={(e: any) => { 
+                        const val = e.target.value;
+                        setSearch(val); 
+                        setShow(true); 
+                        setHighlightedIndex(-1); 
+                        if(freeText) {
+                            const pool = (options && options.length > 0) ? options : results;
+                            const normVal = normalizeText(val);
+                            const matched = pool.find((item: any) => {
+                                if (!item) return false;
+                                const lbl = typeof item !== 'object' ? String(item) : String(item[displayCol] || item.name || '');
+                                return normalizeText(lbl) === normVal || lbl.trim().toLowerCase() === val.trim().toLowerCase();
+                            });
+                            if (matched && typeof matched === 'object') {
+                                onSelect(matched);
+                            } else {
+                                onSelect(val);
+                            }
+                        }
+                    }}
                     onFocus={() => { if (!disabled) { setShow(true); loadData(search || ''); } }}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown} 

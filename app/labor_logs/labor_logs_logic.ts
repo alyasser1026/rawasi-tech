@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect, useDeferredValue } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; 
 import { supabase } from '@/lib/supabase';
 import * as XLSX from 'xlsx-js-style';
-import { fetchAllSupabaseData, formatCurrency, formatDate } from '@/lib/helpers'; 
+import { fetchAllSupabaseData, formatCurrency, formatDate, normalizeArabicText } from '@/lib/helpers'; 
 import { useToast } from '@/lib/toast-context'; 
 import { useCompany } from '@/lib/CompanyContext';
 import { executeDraftWithOfflineQueue } from '@/lib/offline/offlineExecutor';
@@ -61,10 +61,24 @@ export function useLaborLogsLogic() {
     const { data: partners = [], isLoading: isPartnersLoading } = useQuery({
         queryKey: ['partners'],
         queryFn: () => fetchAllSupabaseData(supabase, 'partners'),
-        staleTime: 1000 * 60 * 60, 
+        staleTime: 1000 * 60 * 2, // دقيقتان للحفاظ على تزامن العمال الجدد من صفحة الشركاء
     });
 
-    const workersList = useMemo(() => partners.filter((p: any) => p.partner_type === 'عامل يومية' || p.partner_type === 'موظف'), [partners]);
+    const workersList = useMemo(() => {
+        const workerRoles = ['عامل يومية', 'موظف', 'عامل'];
+        return partners
+            .filter((p: any) => {
+                if (!p || !p.name) return false;
+                const pType = (p.partner_type || '').trim();
+                return workerRoles.includes(pType) || pType.includes('عامل') || pType.includes('موظف');
+            })
+            .sort((a: any, b: any) => {
+                const rankA = a.partner_type === 'عامل يومية' ? 1 : (a.partner_type === 'موظف' ? 2 : 3);
+                const rankB = b.partner_type === 'عامل يومية' ? 1 : (b.partner_type === 'موظف' ? 2 : 3);
+                if (rankA !== rankB) return rankA - rankB;
+                return (a.name || '').localeCompare(b.name || '', 'ar');
+            });
+    }, [partners]);
     const sitesList = useMemo(() => partners.filter((p: any) => p.partner_type === 'جهة داخلية' || p.partner_type === 'عميل' || p.partner_type === 'مقاول'), [partners]);
 
     useEffect(() => {
@@ -204,6 +218,24 @@ export function useLaborLogsLogic() {
         if (!currentLog.worker_name) return showToast('يجب إدخال اسم العامل!', 'error');
         if (!currentLog.job_order_id && currentLog.project_id) return showToast('يرجى تحديد أمر الشغل للموقع لربطه بالميزانية بشكل صحيح', 'error');
 
+        // 🚀 تحقق وتأكيد ربط العامل بمعرف الشريك worker_partner_id تلقائياً
+        let resolvedWorkerPartnerId = currentLog.worker_partner_id;
+        if (!resolvedWorkerPartnerId && currentLog.worker_name) {
+            const normWorker = normalizeArabicText(currentLog.worker_name);
+            const foundWorker = workersList.find((p: any) => {
+                if (!p || !p.name) return false;
+                const normP = normalizeArabicText(p.name);
+                return normP === normWorker || normP.includes(normWorker) || normWorker.includes(normP);
+            }) || partners.find((p: any) => {
+                if (!p || !p.name) return false;
+                const normP = normalizeArabicText(p.name);
+                return normP === normWorker;
+            });
+            if (foundWorker) {
+                resolvedWorkerPartnerId = foundWorker.id;
+            }
+        }
+
         let finalPercentage = currentLog.completion_percentage;
         const t = parseFloat(currentLog.tareeha);
         const p = parseFloat(currentLog.productivity);
@@ -228,7 +260,7 @@ export function useLaborLogsLogic() {
             daily_wage: Number(currentLog.daily_wage) || 0,
             attendance_value: Number(currentLog.attendance_value ?? 1), 
             notes: currentLog.notes || null,
-            worker_partner_id: currentLog.worker_partner_id || null,
+            worker_partner_id: resolvedWorkerPartnerId || null,
             project_id: currentLog.project_id || null,
             work_item_id: currentLog.work_item_id || null,
             sub_contractor: currentLog.sub_contractor || null,
@@ -435,8 +467,18 @@ export function useLaborLogsLogic() {
                 showToast('هذه المسودة في طابور عدم الاتصال بانتظار المزامنة التلقائية', 'info');
                 return;
             }
+            let partnerId = log.worker_partner_id;
+            if (!partnerId && log.worker_name) {
+                const normWorker = normalizeArabicText(log.worker_name);
+                const foundWorker = workersList.find((p: any) => {
+                    if (!p || !p.name) return false;
+                    const normP = normalizeArabicText(p.name);
+                    return normP === normWorker || normP.includes(normWorker) || normWorker.includes(normP);
+                });
+                if (foundWorker) partnerId = foundWorker.id;
+            }
             setEditingId(log.id);
-            setCurrentLog({ ...log });
+            setCurrentLog({ ...log, worker_partner_id: partnerId || '' });
             setIsAddModalOpen(true);
         }, 
         handleDelete: (id: string) => { if (confirm('تأكيد الحذف؟')) deleteMutation.mutate([id]); }, 

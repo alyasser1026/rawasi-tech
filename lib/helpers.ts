@@ -520,4 +520,15 @@ export const canUser = (profile: any, module: string, action: string): boolean =
   return Array.isArray(moduleActions) && moduleActions.includes(action);
 };
 
-
+// 🔍 دالة توحيد ومطابقة النصوص العربية لرفع حساسية البحث والربط التلقائي
+export const normalizeArabicText = (text: any): string => {
+  if (!text) return '';
+  return String(text)
+    .trim()
+    .toLowerCase()
+    .replace(/[أإآءئؤ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/[\u064B-\u065F\u0670]/g, '')
+    .replace(/\s+/g, ' ');
+};

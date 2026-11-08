@@ -10,6 +10,7 @@ import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import { supabase } from '@/lib/supabase';
+import { normalizeArabicText } from '@/lib/helpers';
 import LoadingScreen from '@/components/LoadingScreen';
 import VoiceFormTrigger from '@/components/voice/VoiceFormTrigger';
 
@@ -102,7 +103,52 @@ export default function LaborLogsDirectory() {
         return <span style={{ color: THEME.goldAccent, fontWeight: 900 }}>{row.work_date}</span>
       }
     },
-    { key: 'worker_name', label: 'اسم العامل', render: (row: any) => row ? <b style={{ color: THEME.primary }}>{row.worker_name}</b> : null },
+    { 
+      key: 'worker_name', 
+      label: 'اسم العامل', 
+      render: (row: any) => {
+        if (!row) return null;
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <b style={{ color: THEME.primary }}>{row.worker_name}</b>
+            {row.worker_partner_id ? (
+              <span 
+                title={`معرف الشريك: ${row.worker_partner_id}`}
+                style={{ 
+                  fontSize: '10px', 
+                  fontWeight: 900, 
+                  padding: '1px 6px', 
+                  borderRadius: '4px', 
+                  backgroundColor: '#DCFCE7', 
+                  color: '#166534',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '2px',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                ✓ ID
+              </span>
+            ) : (
+              <span 
+                title="اسم فقط بدون ربط بملف شريك مسجل"
+                style={{ 
+                  fontSize: '10px', 
+                  fontWeight: 800, 
+                  padding: '1px 6px', 
+                  borderRadius: '4px', 
+                  backgroundColor: '#FEF3C7', 
+                  color: '#B45309',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                اسم فقط
+              </span>
+            )}
+          </div>
+        );
+      }
+    },
     { key: 'site_ref', label: 'الموقع', render: (row: any) => row?.site_ref || '-' },
     { key: 'work_item', label: 'البند', render: (row: any) => row?.work_item || '-' },
     { key: 'unit', label: 'الوحدة', render: (row: any) => row?.unit || '-' },
@@ -290,11 +336,26 @@ export default function LaborLogsDirectory() {
               <VoiceFormTrigger
                 modalType="labor_log"
                 onFieldsParsed={(fields) => {
+                  let matchedPartnerId = null;
+                  let matchedSkill = undefined;
+                  if (fields.worker_name) {
+                    const normVoiceName = normalizeArabicText(fields.worker_name);
+                    const matched = logic.workersList.find((w: any) => {
+                      const normW = normalizeArabicText(w.name);
+                      return normW === normVoiceName || normW.includes(normVoiceName) || normVoiceName.includes(normW);
+                    });
+                    if (matched) {
+                      matchedPartnerId = matched.id;
+                      matchedSkill = matched.job_role;
+                    }
+                  }
                   logic.setCurrentLog((prev: any) => ({
                     ...prev,
                     ...fields,
                     work_date: fields.work_date || prev.work_date,
                     worker_name: fields.worker_name || prev.worker_name,
+                    worker_partner_id: matchedPartnerId || prev.worker_partner_id,
+                    skill_level: matchedSkill || fields.skill_level || prev.skill_level,
                     site_ref: fields.site_ref || prev.site_ref,
                     work_item: fields.work_item || prev.work_item,
                     daily_wage: fields.daily_wage !== undefined ? Number(fields.daily_wage) : prev.daily_wage,
@@ -315,7 +376,51 @@ export default function LaborLogsDirectory() {
                     <label className="modal-label">التاريخ</label>
                     <input type="date" value={logic.currentLog.work_date || ''} onChange={e => logic.setCurrentLog({...logic.currentLog, work_date: e.target.value})} className="modal-input" />
                  </div>
-                 <SmartCombo label="اسم العامل" table="partners" displayCol="name" freeText={true} initialDisplay={logic.currentLog.worker_name} onSelect={(v:any)=>logic.setCurrentLog({...logic.currentLog, worker_name: v?.name || v, worker_partner_id: v?.id || null})} />
+                 <div>
+                    <SmartCombo 
+                      label="اسم العامل (ربط بملف الشريك) *" 
+                      options={logic.workersList}
+                      displayCol="name" 
+                      searchCols="name,code,job_role,phone"
+                      placeholder="اختر العامل من قائمة الشركاء أو اكتب الاسم..."
+                      freeText={true} 
+                      initialDisplay={logic.currentLog.worker_name} 
+                      onSelect={(v: any) => {
+                        if (!v) {
+                          logic.setCurrentLog({ ...logic.currentLog, worker_name: '', worker_partner_id: null });
+                          return;
+                        }
+                        if (typeof v === 'object') {
+                          logic.setCurrentLog({
+                            ...logic.currentLog,
+                            worker_name: v.name || '',
+                            worker_partner_id: v.id || null,
+                            skill_level: v.job_role || logic.currentLog.skill_level || 'صنايعي',
+                          });
+                        } else {
+                          const normStr = normalizeArabicText(v);
+                          const matched = logic.workersList.find((w: any) => normalizeArabicText(w.name) === normStr);
+                          logic.setCurrentLog({
+                            ...logic.currentLog,
+                            worker_name: v,
+                            worker_partner_id: matched?.id || null,
+                            skill_level: matched?.job_role || logic.currentLog.skill_level,
+                          });
+                        }
+                      }} 
+                    />
+                    <div style={{ marginTop: '4px', fontSize: '11px', fontWeight: 800 }}>
+                      {logic.currentLog.worker_partner_id ? (
+                        <span style={{ color: '#166534', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span>✓</span> تم ربط العامل بملف الشريك (ID: {String(logic.currentLog.worker_partner_id).slice(0, 8)}...)
+                        </span>
+                      ) : logic.currentLog.worker_name ? (
+                        <span style={{ color: '#b45309', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          <span>⚠️</span> اسم غير مربوط بمعرف شريك مسجل في صفحة الشركاء
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
                </div>
 
                {/* الصف الثاني المطور 🚀 */}
