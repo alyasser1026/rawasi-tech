@@ -499,6 +499,171 @@ function conversationScope(access, declarations) {
   return [access.userId, access.companyId, declarations.map(tool => tool.name).sort().join(',')].join(':');
 }
 
+function parseBatchLaborLogs(userPrompt) {
+  const text = String(userPrompt || '').trim();
+  if (!text) return null;
+
+  // 1. فحص نية تسجيل يوميات أو عمالة
+  const hasLaborIntent = /(?:يوميات|يومية|يوميه|عمال|العمال|شغل|تشغيل)/iu.test(text) &&
+                        /(?:ضيف|اضف|أضف|سجل|سجّل|اعمل|انشئ|أنشئ|عاوز|عايز|محتاج)/iu.test(text);
+
+  if (!hasLaborIntent) return null;
+
+  // 2. استخراج الشركة المستهدفة إن ذُكرت
+  let targetCompany = null;
+  if (/(?:شرك[ةه]\s*(?:رقم\s*)?(?:2|اتنين|تنين|التانيه|الثانيه|الثانية|مصر)|phi-tech-egy|awa)/iu.test(text)) {
+    targetCompany = 2;
+  } else if (/(?:شرك[ةه]\s*(?:رقم\s*)?(?:1|واحد|الاولى|الأولى|السعوديه|السعودية)|phi)/iu.test(text)) {
+    targetCompany = 1;
+  }
+
+  // 3. استخراج التاريخ إن وُجد
+  let workDate = undefined;
+  const dateMatch = text.match(/(?:بتاريخ|تاريخ|يوم)\s*(\d{4}[-/]\d{1,2}[-/]\d{1,2})/);
+  if (dateMatch) {
+    workDate = dateMatch[1].replace(/\//g, '-');
+  } else if (/(?:امبارح|أمس)/u.test(text)) {
+    const d = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    workDate = d.toISOString().slice(0, 10);
+  }
+
+  // 4. استخراج المشروع / الفيلا
+  const projectMatch = text.match(/(?:في\s+)?(?:مشروع|فيلا|عماره|عمارة|موقع)\s+([^\n\r,،]+?)(?=\s+(?:بند|وامر|وأمر|امر|أمر|يومية|يوميات|للعمال|$))/iu);
+  let siteRef = projectMatch ? projectMatch[1].trim() : null;
+  if (!siteRef) {
+    const inlineSite = text.match(/(?:برج\s+[\p{L}\p{N}]+|فيلا\s+[\p{L}\p{N}_-]+)/u);
+    if (inlineSite) siteRef = inlineSite[0].trim();
+  }
+
+  // 5. استخراج البند
+  const itemMatch = text.match(/(?:بند)\s+([^\n\r,،]+?)(?=\s+(?:وامر|وأمر|امر|أمر|مشروع|فيلا|للعمال|$))/iu);
+  let workItem = itemMatch ? itemMatch[1].trim() : null;
+  if (!workItem) {
+    const knownItemMatch = text.match(/(?:الاستراوس|خمرة\s*الاستراوس|كمرة\s*الاستراوس|محارة|سباكة|نجارة|حدادة|مباني|دهانات|سيراميك|عزل|جبس)/iu);
+    if (knownItemMatch) workItem = knownItemMatch[0].trim();
+  }
+
+  // 6. استخراج أمر الشغل المحدد صراحة
+  const joMatch = text.match(/(?:وامر\s*شغل|وأمر\s*شغل|امر\s*شغل|أمر\s*شغل)\s*(?:رقم\s*)?#?([a-zA-Z0-9_-]+)/iu);
+  const explicitJobOrder = joMatch && !/(?:اللي|اللى|مربوط|مربوطة|خاص)/iu.test(joMatch[1]) ? joMatch[1].trim() : null;
+
+  // تنظيف النص العام من عبارات المشروع والبند وأمر الشغل والأسئلة
+  let cleanText = text
+    .replace(/(?:في\s+)?مشروع\s+[^\n\r,،]+/gi, '')
+    .replace(/بند\s+[^\n\r,،]+/gi, '')
+    .replace(/(?:وامر|وأمر|امر|أمر)\s*شغل[^\n\r,،]*/gi, '')
+    .replace(/ليه\s+اليوميات[^\n\r]*/gi, '')
+    .replace(/المفروض\s+البوت[^\n\r]*/gi, '');
+
+  const rawLines = cleanText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  const lines = [];
+
+  for (let i = 0; i < rawLines.length; i++) {
+    let line = rawLines[i];
+    if (/^(?:(?:في\s*شركة\s*(?:رقم\s*)?[12]\s*)?(?:عاوز|عايز|محتاج|سجل|سجّل|ضيف|أضف|اضف))/iu.test(line)) {
+      line = line.replace(/^(?:.*?(?:دي|دول|الاتية|الآتية|التالية)\s*:?\s*|.*?(?:للعمال|للعامل|للعمالة)\s*:?\s*)/iu, '').trim();
+    }
+    if (line) lines.push(line);
+  }
+
+  const workers = [];
+  let currentWorker = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (/^(?:غير\s+مربوط|ينتهي|عامل\s+يومية|---)/iu.test(line)) {
+      continue;
+    }
+
+    const codeMatch = line.match(/\b(WRK-\d+|[0-9]{3,5})\b/i);
+    const phoneMatch = line.match(/^(\+?[0-9]{10,14})$/);
+    const roleWageMatch = line.match(/^([\p{L}\s]+?)\s*\((?:يومية|يوميه)[\s:]*(\d+(?:\.\d+)?)\s*(?:ر\.س|ريال|جنيه|ج\.م)?\)$/u) ||
+                          line.match(/(?:يومية|يوميه)[\s:]*(\d+(?:\.\d+)?)/u);
+
+    if (codeMatch && !line.includes(' ')) {
+      if (currentWorker) {
+        currentWorker.code = codeMatch[1];
+      } else {
+        currentWorker = { code: codeMatch[1] };
+      }
+      continue;
+    }
+
+    if (phoneMatch) {
+      if (currentWorker) {
+        currentWorker.phone = phoneMatch[1];
+      } else {
+        currentWorker = { phone: phoneMatch[1] };
+      }
+      continue;
+    }
+
+    if (roleWageMatch) {
+      if (!currentWorker) currentWorker = {};
+      if (roleWageMatch[1] && isNaN(Number(roleWageMatch[1]))) {
+        currentWorker.skill_level = roleWageMatch[1].trim();
+      }
+      const wageVal = roleWageMatch[2] || (roleWageMatch[1] && !isNaN(Number(roleWageMatch[1])) ? roleWageMatch[1] : null);
+      if (wageVal) currentWorker.daily_wage = Number(wageVal);
+      continue;
+    }
+
+    // اسم الشخص (1 إلى 4 كلمات بدون كلمات النظام)
+    if (/^[\p{L}\s]{2,40}$/u.test(line) &&
+        !/(?:مشروع|فيلا|بند|شركة|يومية|يوميات|استراوس|كابيتال|مربوط|عامل)/iu.test(line)) {
+      if (currentWorker?.name) {
+        workers.push(currentWorker);
+        currentWorker = {};
+      }
+      if (!currentWorker) currentWorker = {};
+      currentWorker.name = line.trim();
+    }
+  }
+
+  if (currentWorker?.name) {
+    workers.push(currentWorker);
+  }
+
+  // إذا لم نجد عمالاً بالطريقة الرأسية، نبحث بالنمط الأفقي (مثل: إبراهيم النجار 700 ومحمد بهلول 700)
+  if (workers.length === 0) {
+    const inlineMatches = [...text.matchAll(/([\p{L}\s]{2,30}?)\s*(?:نجار\s*مسلح|مساعد|حداد\s*مسلح|بناء|مليس|صنايعي|فني)?\s*(?:يومية|يوميته|أجر|اجر|بـ)?\s*(\d{2,4})\s*(?:ر\.س|ريال|جنيه|ج\.م)?/gu)];
+    for (const m of inlineMatches) {
+      const rawName = m[1].replace(/.*(?:للعمال|للعامل|يوميات|يومية)\s*/iu, '').replace(/^(?:و?العمال|و?العامل|و?الفني|و?دي|و?منهم|و)\s*/iu, '').trim();
+      if (rawName.length >= 2 && !/(?:مشروع|فيلا|بند|شركة|يوميات)/iu.test(rawName)) {
+        workers.push({
+          name: rawName,
+          daily_wage: Number(m[2]),
+        });
+      }
+    }
+  }
+
+  if (workers.length === 0) return null;
+
+  const calls = workers.map(w => ({
+    name: 'add_labor_daily_log_draft',
+    args: {
+      worker_name: w.name,
+      ...(w.daily_wage ? { daily_wage: w.daily_wage } : {}),
+      ...(w.skill_level ? { skill_level: w.skill_level } : {}),
+      ...(siteRef ? { site_ref: siteRef } : {}),
+      ...(workItem ? { work_item: workItem } : {}),
+      ...(explicitJobOrder ? { job_order: explicitJobOrder } : {}),
+      ...(workDate ? { work_date: workDate } : {}),
+    },
+  }));
+
+  return {
+    type: 'multi_tools',
+    targetCompany,
+    calls,
+    workersCount: workers.length,
+    siteRef,
+    workItem,
+  };
+}
+
 function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
   const raw = String(userPrompt || '').trim();
   if (!raw) return null;
@@ -507,6 +672,12 @@ function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
     .replace(/^(?:(?:صباح|مساء)\s*(?:الخير|الفل|الورد|الياسمين|العسل)|وحشتيني|وحشتنى|بحبك|عامله\s*ايه|عاملة\s*إيه|اخبارك\s*ايه|أخبارك\s*إيه|يا\s*(?:قلبي|روحي|حبيبتي|موزه|موزة|سلمى|قمر|عسل|باشمهندسه|باشمهندسة|جميله|جميلة)|حبيبتي|روحي|قلبي|سلمى|بقولك|اقولك|لو\s*سمحتي|معلش)[\s،,.-]*/iu, '')
     .replace(/^(?:يا\s*(?:قلبي|روحي|حبيبتي|موزه|موزة|سلمى|قمر|عسل)|حبيبتي|روحي|قلبي)[\s،,.-]*/iu, '')
     .trim() || raw;
+
+  // 0.0) كشف وإضافة قائمة يوميات مجمعة لعدة عمال بدقة وحساسية هندسية فائقة
+  const batchLabor = parseBatchLaborLogs(t);
+  if (batchLabor && Array.isArray(batchLabor.calls) && batchLabor.calls.length > 0) {
+    return batchLabor;
+  }
 
   // 0) تعديل عملية مباشرة برقمها المختصر (مثال: «عدليلي على العملية رقم 101 خلي المبلغ 5000 والفيلا 657»)
   const editByNumMatch = t.match(/(?:عدليلي|عدّليلي|عدلي|عدّلي|عدل|عدّل|تعديل|غيريلي|غيّريلي|غيري|غيّري|غير|غيّر|حدثي|حدّثي|حدث|حدّث)\s*(?:على|في)?\s*(?:العمليه|العملية|العمليات|قيد|أمر|امر|مصروف|يومية|يوميه)?\s*(?:رقم|#)?\s*#?(\d{2,6}|(?:JV|JO|EXP|LAB)-[\w-]+)/i);
@@ -767,7 +938,7 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
   const isDisableVoiceCommand =
     /^\/(?:voice\s*(?:off|disable|stop|mute|0)|voice_off|mute|silent|silence)$/i.test(t) ||
     /^(?:صامت|وضع\s*صامت|ميوت|كتم|كتم\s*الصوت|نص\s*بس|كتابة\s*بس|كتابه\s*بس|شات\s*بس|نص\s*فقط|كتابة\s*فقط|كتابه\s*فقط|بدون\s*صوت|من\s*غير\s*صوت|بلاش\s*صوت|بلاش\s*فويس)$/i.test(t) ||
-    new RegExp(`(?:\${disableVoicePrefix.source})(?:\\s+[\\w\\u0600-\\u06FF]+){0,3}\\s*(?:\${voiceNouns.source})`, 'i').test(t) ||
+    new RegExp(`(?:${disableVoicePrefix.source})(?:\\s+[\\w\\u0600-\\u06FF]+){0,3}\\s*(?:${voiceNouns.source})`, 'i').test(t) ||
     /(?:كتابة|كتابه|نص|شات)\s*(?:بس|فقط|مش\s*صوت|من\s*غير\s*صوت|بدون\s*صوت)/i.test(t);
 
   if (isDisableVoiceCommand) {
@@ -785,7 +956,7 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
 
   const isEnableVoiceCommand =
     /^\/(?:voice\s*(?:on|enable|start|unmute|1)|voice_on|unmute)$/i.test(t) ||
-    new RegExp(`(?:\${enableVoicePrefix.source})(?:\\s+[\\w\\u0600-\\u06FF]+){0,3}\\s*(?:\${voiceNouns.source})`, 'i').test(t);
+    new RegExp(`(?:${enableVoicePrefix.source})(?:\\s+[\\w\\u0600-\\u06FF]+){0,3}\\s*(?:${voiceNouns.source})`, 'i').test(t);
 
   if (isEnableVoiceCommand) {
     saveBotSettings({ voiceReplyMode: 'always' });
@@ -994,10 +1165,34 @@ async function processUserPromptWithGemini(userPrompt, actor) {
   }
 
   const directCall = detectDirectFieldOpsCall(userPrompt, actor?.quotedMessageText || '');
-  if (!GEMINI_API_KEY) {
-    if (directCall && declarations.some(d => d.name === directCall.name)) {
+  if (directCall) {
+    if (directCall.type === 'multi_tools' && Array.isArray(directCall.calls)) {
+      if (directCall.targetCompany) {
+        setActiveCompany(directCall.targetCompany);
+        _cachedServiceAccess = null;
+        _cachedServiceCompanyId = null;
+      }
+      const messages = [];
+      for (const call of directCall.calls) {
+        const res = await executeToolCall(call);
+        if (res?.text) messages.push(res.text);
+      }
+      return {
+        type: 'multi_messages',
+        messages: messages.length > 0 ? messages : ['تم تنفيذ كافة اليوميات بنجاح.'],
+        memory: { ...memory, toolCalls: directCall.calls.map(c => c.name) }
+      };
+    }
+    if (declarations.some(d => d.name === directCall.name)) {
+      if (directCall.targetCompany) {
+        setActiveCompany(directCall.targetCompany);
+        _cachedServiceAccess = null;
+        _cachedServiceCompanyId = null;
+      }
       return executeToolCall(directCall);
     }
+  }
+  if (!GEMINI_API_KEY) {
     return { text: 'خدمة الرد الذكي مش مفعّلة في إعدادات البوت.' };
   }
 
@@ -1493,6 +1688,21 @@ async function processTelegramMessage(msg) {
     const COMPANY_1_REGEX = /^(?:افتح|إفتح|شغل|شغّل|حول|حوّل|وديني|اختار|إختار|ادخل|إدخل|هات|غير|غيّر|بدل|بدّل|عايز|عاوز|روح|خلينا\s*في)\s*(?:على|إلى|الي|لي|لى)?\s*(?:(?:ال)?شرك[ةه]\s*)?(?:واحد|1|الاولى|الأولى|الاولانيه|الأولانيه|فاي\s*تك|الاساسيه|الأساسية|السعوديه|السعودية)$|^(?:(?:ال)?شرك[ةه]\s*)?(?:واحد|1|الاولى|الأولى|الاولانيه|الأولانيه|فاي\s*تك)$|^\/company\s*1$/i;
     const COMPANY_2_REGEX = /^(?:افتح|إفتح|شغل|شغّل|حول|حوّل|وديني|اختار|إختار|ادخل|إدخل|هات|غير|غيّر|بدل|بدّل|عايز|عاوز|روح|خلينا\s*في)\s*(?:على|إلى|الي|لي|لى)?\s*(?:(?:ال)?شرك[ةه]\s*)?(?:اتنين|تنين|2|التانيه|الثانيه|الثانية|التانية|مصر|egy|phi-tech-egy|awa)$|^(?:(?:ال)?شرك[ةه]\s*)?(?:اتنين|تنين|2|التانيه|الثانيه|الثانية|التانية|مصر|egy|phi-tech-egy)$|^\/company\s*2$/i;
     const LIST_COMPANIES_REGEX = /^(?:إيه|ايه|عرض|قائمة|قايمة|وريني|ماهي|ما هي)\s*الشركات$|^\/companies$|^\/company$/i;
+
+    // فحص بادئات التبديل المباشر المضمنة في أول الرسالة
+    const inlineComp2 = /^(?:في\s*)?(?:شرك[ةه]\s*(?:رقم\s*)?2|phi-tech-egy|awa)\s*[:،,-]?\s*(.+)$/is.exec(cleanText);
+    const inlineComp1 = /^(?:في\s*)?(?:شرك[ةه]\s*(?:رقم\s*)?1|فاي\s*تك|السعودية)\s*[:،,-]?\s*(.+)$/is.exec(cleanText);
+    if (inlineComp2) {
+      setActiveCompany(2);
+      _cachedServiceAccess = null;
+      _cachedServiceCompanyId = null;
+      cleanText = inlineComp2[1].trim();
+    } else if (inlineComp1) {
+      setActiveCompany(1);
+      _cachedServiceAccess = null;
+      _cachedServiceCompanyId = null;
+      cleanText = inlineComp1[1].trim();
+    }
 
     const isComp1 = COMPANY_1_REGEX.test(cleanText);
     const isComp2 = COMPANY_2_REGEX.test(cleanText);

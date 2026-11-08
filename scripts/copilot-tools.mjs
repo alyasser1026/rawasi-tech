@@ -1051,9 +1051,10 @@ export function createCopilotTools({
 
       // ج) استعلام بنود الميزانية (boq_budget) وأوامر الشغل (job_orders) الخاصة بالمشروع
       if (projectId) {
+        const partnerMap = new Map((partRes.data || []).map(p => [p.id, p.name]));
         const [boqRes, joRes] = await Promise.all([
-          fetchScopedRows('boq_budget', { select: 'id,work_item,unit,tareeha,project_id,boq_item_id', limit: '150' }),
-          fetchScopedRows('job_orders', { select: 'id,order_number,project_id,boq_budget_id,status,contractor_id,contractor_name,executor_type,notes', limit: '150' })
+          fetchScopedRows('boq_budget', { select: 'id,work_item,unit,project_id,boq_item_id', limit: '150' }),
+          fetchScopedRows('job_orders', { select: 'id,order_number,project_id,boq_budget_id,status,contractor_id,executor_type,notes', limit: '150' })
         ]);
 
         const projectBoqRows = boqRes.ok && Array.isArray(boqRes.data)
@@ -1090,8 +1091,8 @@ export function createCopilotTools({
           if (matchedJo) {
             jobOrderId = matchedJo.id;
             jobOrderNumber = matchedJo.order_number;
-            if (!subContractor && matchedJo.contractor_name) {
-              subContractor = matchedJo.contractor_name;
+            if (!subContractor && partnerMap.get(matchedJo.contractor_id)) {
+              subContractor = partnerMap.get(matchedJo.contractor_id);
               subContractorId = matchedJo.contractor_id;
             }
           }
@@ -1106,8 +1107,8 @@ export function createCopilotTools({
             // أمر شغل واحد فقط مطابق -> ربط تلقائي فوري
             jobOrderId = matchingJOs[0].id;
             jobOrderNumber = matchingJOs[0].order_number;
-            if (!subContractor && matchingJOs[0].contractor_name) {
-              subContractor = matchingJOs[0].contractor_name;
+            if (!subContractor && partnerMap.get(matchingJOs[0].contractor_id)) {
+              subContractor = partnerMap.get(matchingJOs[0].contractor_id);
               subContractorId = matchingJOs[0].contractor_id;
             }
           } else if (matchingJOs.length > 1) {
@@ -1118,7 +1119,7 @@ export function createCopilotTools({
               candidate_job_orders: matchingJOs.map(j => ({
                 id: j.id,
                 order_number: j.order_number,
-                contractor: j.contractor_name || j.executor_type || 'تنفيذ ذاتي',
+                contractor: partnerMap.get(j.contractor_id) || j.executor_type || 'تنفيذ ذاتي',
                 status: j.status || 'ساري',
                 notes: j.notes || '—'
               })),
@@ -1136,8 +1137,8 @@ export function createCopilotTools({
             // لو المشروع كله له أمر شغل واحد نشط
             jobOrderId = projectJOs[0].id;
             jobOrderNumber = projectJOs[0].order_number;
-            if (!subContractor && projectJOs[0].contractor_name) {
-              subContractor = projectJOs[0].contractor_name;
+            if (!subContractor && partnerMap.get(projectJOs[0].contractor_id)) {
+              subContractor = partnerMap.get(projectJOs[0].contractor_id);
               subContractorId = projectJOs[0].contractor_id;
             }
           }
