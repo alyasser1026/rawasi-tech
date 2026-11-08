@@ -103,7 +103,7 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
                     </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: 'var(--surface-sunken)', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
                     <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.9375rem' }}>التوجيه المحاسبي العام للمجموعة *</label>
                     <div style={{ display: 'flex', gap: '1.25rem', marginBottom: formData.issue_type === 'صرف لمقاول' ? '0.9375rem' : '0' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>
@@ -128,7 +128,7 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
                 </div>
 
                 {/* 📋 جدول الخامات المحددة */}
-                <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', marginBottom: '1.5625rem' }}>
+                <div style={{ background: 'var(--surface-card)', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-elevation)', overflow: 'hidden', marginBottom: '1.5625rem' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
                         <thead style={{ background: THEME.coffeeDark, color: 'white' }}>
                             <tr>

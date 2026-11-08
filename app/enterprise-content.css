@@ -142,7 +142,7 @@
   .ent-page-custom-filters .ent-search input[type=search]:not([type=checkbox]):not([type=radio]) { padding-inline-start: 2.375rem !important; }
 
   /* Sunken Borderless Form Fields */
-  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input) {
+  .enterprise-page.enterprise-page :is(.glass-input, .glass-input-field, .sidebar-input, .filter-input, .styled-input, .ent-page-period input, .ent-search input, .ent-page-custom-filters input, .ent-page-custom-filters select, input[type="date"], select) {
     width: 100%;
     min-height: 2.625rem;
     padding: 0.625rem 0.75rem;

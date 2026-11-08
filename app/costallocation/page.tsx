@@ -122,7 +122,7 @@ export default function CostAllocationPage() {
                     border: 1px solid rgba(255,255,255,0.3); color: #1e293b; font-weight: 700; font-size: var(--fs-sm); outline: none; cursor: pointer;
                 }
                 .glass-dropdown option { background: white; color: #1e293b; }
-                .badge-month { background: #f1f5f9; color: #334155; padding: 2px 0.375rem; border-radius: 4px; font-weight: 900; font-size: var(--fs-xs); border: 1px solid #cbd5e1; }
+                .badge-month { background: var(--surface-sunken); color: var(--text-primary); padding: 2px 0.375rem; border-radius: 6px; font-weight: 800; font-size: var(--fs-xs); border: none; box-shadow: var(--shadow-sunken); }
                 .badge-mechanism { background: #eff6ff; color: #2563eb; padding: 0.25rem 0.5rem; border-radius: 6px; font-weight: 800; font-size: var(--fs-xs); border: 1px solid #bfdbfe; word-break: break-all; }
             `}</style>
 

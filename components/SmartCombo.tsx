@@ -375,7 +375,7 @@ export default function SmartCombo({
 
     const dropdownStyle: React.CSSProperties = (isMobile && isMobileBottomSheet) 
         ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 99999, background: 'var(--surface-flat)', color: 'var(--text-primary)', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '1.25rem 0.9375rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--shadow-elevation)', animation: 'slideUp 0.3s ease-out' }
-        : { position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2000, maxHeight: '15.625rem', overflowY: 'auto', background: 'var(--surface-flat)', color: 'var(--text-primary)', borderRadius: '16px', padding: '0.5rem', boxShadow: 'var(--shadow-elevation)', border: '1px solid var(--control-edge)', marginTop: '0.3125rem' };
+        : { position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2000, maxHeight: '15.625rem', overflowY: 'auto', background: 'var(--surface-card)', color: 'var(--text-primary)', borderRadius: '16px', padding: '0.5rem', boxShadow: 'var(--shadow-elevation)', border: 'none', marginTop: '0.3125rem' };
 
     const renderListItem = (item: any, index: number, isRecent = false) => {
         const isPrimitive = typeof item !== 'object';
@@ -392,7 +392,7 @@ export default function SmartCombo({
                  className={`smart-drop-item ${isSelected ? 'selected' : ''} ${isHighlighted ? 'highlighted' : ''}`}>
                 
                 {multi && <input type="checkbox" checked={isSelected} readOnly style={{ width: '1.125rem', height: '1.125rem', accentColor: 'var(--status-positive)', cursor: 'pointer', flexShrink: 0 }} />}
-                {showAvatar && !isPrimitive && <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${displayName}&background=random`} alt="avatar" style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', flexShrink: 0, border: '1px solid var(--control-edge)' }} />}
+                {showAvatar && !isPrimitive && <img src={item.avatar_url || `https://ui-avatars.com/api/?name=${displayName}&background=random`} alt="avatar" style={{ width: '1.75rem', height: '1.75rem', borderRadius: '50%', flexShrink: 0, border: 'none', boxShadow: 'var(--shadow-elevation)' }} />}
                 
                 <div style={{ wordBreak: 'break-word', flex: 1 }}>
                     <span style={{ fontWeight: 900, color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)', marginLeft: displayCode ? '0.3125rem' : '0' }}>
@@ -417,7 +417,7 @@ export default function SmartCombo({
                 )}
                 <div className="smart-combo-input disabled" style={{ 
                     background: 'var(--surface-subcard)', cursor: 'not-allowed', color: 'var(--text-muted)',
-                    border: '1px dashed var(--control-edge)', minHeight: isTextArea ? '5.625rem' : 'auto',
+                    border: 'none', boxShadow: 'var(--shadow-sunken)', minHeight: isTextArea ? '5.625rem' : 'auto',
                     display: 'flex', alignItems: isTextArea ? 'flex-start' : 'center',
                     padding: '0.875rem 0.9375rem'
                 }}>
@@ -431,14 +431,17 @@ export default function SmartCombo({
         <div ref={comboRef} style={{ position: 'relative', flex: 1, width: '100%' }}>
             <style>{`
                 .smart-combo-input {
-                    width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px;
+                    width: 100%; padding: 0.75rem 1rem; border-radius: 12px;
                     background: var(--surface-sunken);
-                    border: 1px solid var(--control-edge); outline: none;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                    border: none !important; outline: none;
+                    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
                     font-weight: 800; color: var(--text-primary); font-size: var(--fs-sm);
                     font-family: inherit; box-shadow: var(--shadow-sunken);
                 }
-                .smart-combo-input:focus { border-color: var(--accent-ink); box-shadow: var(--shadow-sunken), 0 0 0 2px var(--accent-glow); }
+                .smart-combo-input:focus-visible, .smart-combo-input:focus {
+                    outline: 2px solid var(--accent-main);
+                    outline-offset: 1px;
+                }
                 .smart-combo-input::placeholder { color: var(--text-muted); opacity: 1; font-weight: 600; }
                 .smart-combo-input.disabled { background: var(--surface-subcard); cursor: not-allowed; color: var(--text-secondary); }
                 .smart-drop-item { padding: 0.625rem; cursor: pointer; border-radius: 10px; font-size: var(--fs-sm); transition: all 0.1s; display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary); }
@@ -491,12 +494,12 @@ export default function SmartCombo({
                 <>
                     {isMobile && isMobileBottomSheet && <div onClick={() => setShow(false)} style={{ position: 'fixed', inset: 0, zIndex: 1999, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)' }} />}
                     <div ref={listRef} className="smart-combo-dropdown cinematic-scroll" style={dropdownStyle}>
-                        {isMobile && isMobileBottomSheet && <div style={{ width: '2.5rem', height: '0.3125rem', background: 'var(--control-edge)', borderRadius: '10px', margin: '0 auto 0.9375rem auto' }} />}
+                        {isMobile && isMobileBottomSheet && <div style={{ width: '2.5rem', height: '0.3125rem', background: 'var(--table-zebra-bg)', borderRadius: '10px', margin: '0 auto 0.9375rem auto' }} />}
                         {(results?.length || 0) === 0 && (search?.length || 0) > 0 && !isLoading && (
                             <div style={{ padding: '0.9375rem', textAlign: 'center' }}>
                                 <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 800, margin: '0 0 0.625rem 0' }}>لا توجد نتائج لـ "<span style={{color: 'var(--status-negative)'}}>{search}</span>"</p>
                                 {allowAddNew && onAddNew && hasAddPermission && (
-                                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { onAddNew(search); setShow(false); }} style={{ background: 'var(--surface-subcard)', color: 'var(--status-positive)', border: '1px solid var(--control-edge)', padding: '0.625rem 1.25rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-sm)', boxShadow: 'var(--shadow-elevation)', width: '100%' }}>
+                                    <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { onAddNew(search); setShow(false); }} style={{ background: 'var(--surface-subcard)', color: 'var(--status-positive)', border: 'none', padding: '0.625rem 1.25rem', borderRadius: '12px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-sm)', boxShadow: 'var(--shadow-elevation)', width: '100%' }}>
                                         إضافة "{search}" كجديد
                                     </button>
                                 )}
@@ -506,7 +509,7 @@ export default function SmartCombo({
                             <div>
                                 <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 900, marginBottom: '0.5rem', padding: '0 0.625rem' }}>آخر الاختيارات</div>
                                 {recentItems.map((item, index) => renderListItem(item, index, true))}
-                                <div style={{ height: '1px', background: 'var(--control-edge)', margin: '0.625rem 0' }} />
+                                <div style={{ height: '1px', background: 'var(--table-zebra-bg)', margin: '0.625rem 0' }} />
                             </div>
                         )}
                         {results.length > 0 && results.map((item, index) => renderListItem(item, index, false))}

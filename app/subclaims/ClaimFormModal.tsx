@@ -39,9 +39,9 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                     .from('contractor_assignments')
                     .select(`
                         id, assigned_qty, unit_price, job_order_id, project_id,
-                        job_orders ( order_number ),
-                        projects ( Property ),
-                        boq_budget ( work_item, unit )
+                        job_orders:job_orders!job_order_id ( order_number ),
+                        projects:projects!contractor_assignments_project_id_fkey ( Property ),
+                        boq_budget:boq_budget_id ( work_item, unit )
                     `)
                     .in('id', assignmentIds);
 
@@ -217,9 +217,9 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                 <div style={{ marginBottom: '1.5625rem' }}>
                     <h3 style={{ color: THEME.primary, fontWeight: 900, fontSize: 'var(--fs-lg)', marginBottom: '0.625rem' }}>أوامر التشغيل المعتمدة في هذا المستخلص</h3>
                     {enrichedAssignments.length > 0 ? (
-                        <div style={{ background: 'white', borderRadius: '15px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                        <div style={{ background: 'var(--surface-card)', borderRadius: '15px', border: 'none', boxShadow: 'var(--shadow-elevation)', overflow: 'hidden' }}>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
-                                <thead style={{ background: '#f8fafc', color: '#64748b', fontSize: 'var(--fs-sm)' }}>
+                                <thead style={{ background: 'var(--table-head-bg, var(--surface-sunken))', color: 'var(--text-secondary)', fontSize: 'var(--fs-sm)' }}>
                                     <tr>
                                         <th style={{ padding: '0.75rem', borderBottom: '1px solid #e2e8f0' }}>أمر التشغيل</th>
                                         <th style={{ padding: '0.75rem', borderBottom: '1px solid #e2e8f0' }}>البند / الموقع</th>

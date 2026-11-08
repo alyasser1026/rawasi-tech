@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { RETIRED_TOOL_NAMES } from './copilot-tool-registry.mjs';
 import { getCopilotDate } from './copilot-tool-policy.mjs';
 import { assessTareeha, unassessedReason } from './copilot-tareeha.mjs';
-import { registerOperation, resolveOperationByNumberOrCode } from './copilot-bot-settings.mjs';
+import { registerOperation, resolveOperationByNumberOrCode, setActiveCompany, getActiveCompany } from './copilot-bot-settings.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1537,6 +1537,20 @@ export function createCopilotTools({
           reference: ref || 'مسودة',
           changes: ['تم تسجيل وتطبيق التعديل المطلوب بنجاح في قاعدة البيانات.'],
         },
+      };
+    },
+
+    // 15. التبديل بين الشركات (شركة 1 / شركة 2)
+    async switch_company(rawArgs = {}) {
+      const ident = rawArgs?.company_identifier || '1';
+      const target = setActiveCompany(ident);
+      const isOne = target.index === 1 || target.id === '72918f4d-10c3-43a0-884e-2f84f1224335';
+      return {
+        success: true,
+        switched_to: target.name,
+        company_code: target.code,
+        company_number: target.index,
+        message: `🏢 تم فتح ${isOne ? 'الشركة الأولى' : 'الشركة الثانية'} بنجاح (${target.name}) كود [${target.code}]. جميع الاستعلامات والعمليات القادمة بقت متصلة بهذه الشركة مباشرة.`,
       };
     },
 

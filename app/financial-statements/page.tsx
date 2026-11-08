@@ -187,7 +187,12 @@ export default function FinancialStatementsPage() {
       title="القوائم المالية والمركز المالي"
       subtitle="قائمة الدخل الدقيقة بفترة، والمركز المالي المتزن آلياً، ومؤشرات السيولة"
     >
-      <div className={styles.container}>
+      <div className={`clean-page enterprise-page ${styles.container}`}>
+        <style>{`
+          .clean-page.enterprise-page input[type="date"] {
+            color-scheme: light;
+          }
+        `}</style>
         {/* Filter Card */}
         <div className={styles.filterCard}>
           <div className={styles.filterRow}>
@@ -224,6 +229,7 @@ export default function FinancialStatementsPage() {
                 id="comparePrev"
                 checked={comparePrev}
                 onChange={e => setComparePrev(e.target.checked)}
+                style={{ accentColor: 'var(--accent-main)', width: '1.125rem', height: '1.125rem', cursor: 'pointer' }}
               />
               <label htmlFor="comparePrev" className={styles.filterLabel} style={{ cursor: 'pointer' }}>
                 مقارنة بالفترة السابقة
@@ -251,7 +257,7 @@ export default function FinancialStatementsPage() {
           </div>
 
           <div className={styles.presetButtons}>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>فترات سريعة:</span>
+            <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary)' }}>فترات سريعة:</span>
             <button type="button" className={styles.presetBtn} onClick={() => applyPreset('ytd')}>السنة الحالية (YTD)</button>
             <button type="button" className={styles.presetBtn} onClick={() => applyPreset('mtd')}>هذا الشهر (MTD)</button>
             <button type="button" className={styles.presetBtn} onClick={() => applyPreset('last_month')}>الشهر الماضي</button>
@@ -264,7 +270,7 @@ export default function FinancialStatementsPage() {
           <div className={styles.kpiCard}>
             <div className={styles.kpiLabel}>
               <span>إجمالي الإيرادات (Revenues)</span>
-              <TrendingUp size={16} color="#38bdf8" />
+              <TrendingUp size={16} color="var(--accent-ink)" />
             </div>
             <div className={styles.kpiValue}>{formatCurrency(incomeData?.summary?.total_revenue || 0)}</div>
             {comparePrev && incomeData?.previous_period && (
@@ -278,7 +284,7 @@ export default function FinancialStatementsPage() {
           <div className={styles.kpiCard}>
             <div className={styles.kpiLabel}>
               <span>مجمل الربح (Gross Profit)</span>
-              <Percent size={16} color="#10b981" />
+              <Percent size={16} color="var(--status-positive)" />
             </div>
             <div className={styles.kpiValue}>{formatCurrency(incomeData?.summary?.gross_profit || 0)}</div>
             <div className={`${styles.kpiSub} ${incomeData?.summary?.gross_profit >= 0 ? styles.tagPositive : styles.tagNegative}`}>
@@ -289,9 +295,9 @@ export default function FinancialStatementsPage() {
           <div className={styles.kpiCard}>
             <div className={styles.kpiLabel}>
               <span>صافي الدخل (Net Income)</span>
-              <Scale size={16} color={incomeData?.summary?.net_income >= 0 ? '#10b981' : '#ef4444'} />
+              <Scale size={16} color={incomeData?.summary?.net_income >= 0 ? 'var(--status-positive)' : 'var(--status-negative)'} />
             </div>
-            <div className={styles.kpiValue} style={{ color: incomeData?.summary?.net_income >= 0 ? '#34d399' : '#f87171' }}>
+            <div className={styles.kpiValue} style={{ color: incomeData?.summary?.net_income >= 0 ? 'var(--status-positive)' : 'var(--status-negative)' }}>
               {formatCurrency(incomeData?.summary?.net_income || 0)}
             </div>
             <div className={`${styles.kpiSub} ${incomeData?.summary?.net_income >= 0 ? styles.tagPositive : styles.tagNegative}`}>
@@ -302,7 +308,7 @@ export default function FinancialStatementsPage() {
           <div className={styles.kpiCard}>
             <div className={styles.kpiLabel}>
               <span>توازن المركز المالي (Balance Sheet)</span>
-              {isBalanced ? <CheckCircle size={16} color="#10b981" /> : <AlertTriangle size={16} color="#ef4444" />}
+              {isBalanced ? <CheckCircle size={16} color="var(--status-positive)" /> : <AlertTriangle size={16} color="var(--status-negative)" />}
             </div>
             <div className={styles.kpiValue} style={{ fontSize: '1.1rem' }}>
               {isBalanced ? (
@@ -311,7 +317,7 @@ export default function FinancialStatementsPage() {
                 <span className={styles.tagNegative}>فرق: {formatCurrency(balanceDiff)}</span>
               )}
             </div>
-            <div className={styles.kpiSub} style={{ color: '#94a3b8' }}>
+            <div className={styles.kpiSub} style={{ color: 'var(--text-secondary)' }}>
               إجمالي الأصول: {formatCurrency(balanceData?.summary?.total_assets || 0)}
             </div>
           </div>
@@ -354,10 +360,10 @@ export default function FinancialStatementsPage() {
               <div className={styles.statementTableCard}>
                 <div className={styles.sectionHeader}>
                   <div className={styles.sectionTitle}>
-                    <TrendingUp size={20} color="#38bdf8" />
+                    <TrendingUp size={20} color="var(--accent-ink)" />
                     قائمة الدخل عن الفترة من {incomeData.period?.start_date} إلى {incomeData.period?.end_date}
                   </div>
-                  <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                  <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary)' }}>
                     عدد الأيام: {incomeData.period?.duration_days} يوم
                   </span>
                 </div>
@@ -398,7 +404,7 @@ export default function FinancialStatementsPage() {
                           <td>{c.code}</td>
                           <td>
                             {c.name}
-                            <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginRight: '0.5rem' }}>
+                            <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', marginRight: '0.5rem' }}>
                               ({c.cost_category === 'materials' ? 'خامات' :
                                 c.cost_category === 'labor' ? 'عمالة مباشرة' :
                                 c.cost_category === 'subcontractors' ? 'مقاولو باطن' :
@@ -417,10 +423,10 @@ export default function FinancialStatementsPage() {
                       </tr>
 
                       {/* Gross Profit Row */}
-                      <tr className={styles.subtotalRow} style={{ background: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8' }}>
+                      <tr className={styles.subtotalRow} style={{ background: 'var(--accent-soft-bg)', color: 'var(--accent-ink)' }}>
                         <td>—</td>
                         <td>مجمل الربح (Gross Profit) — الهامش: {incomeData.summary?.gross_margin_pct}%</td>
-                        <td className={styles.amountCell} style={{ color: '#38bdf8' }}>{formatCurrency(incomeData.summary?.gross_profit || 0)}</td>
+                        <td className={styles.amountCell} style={{ color: 'var(--accent-ink)' }}>{formatCurrency(incomeData.summary?.gross_profit || 0)}</td>
                       </tr>
 
                       {/* Section 3: Admin & General Expenses */}
@@ -462,7 +468,7 @@ export default function FinancialStatementsPage() {
               <div className={styles.statementTableCard}>
                 <div className={styles.sectionHeader}>
                   <div className={styles.sectionTitle}>
-                    <Landmark size={20} color="#10b981" />
+                    <Landmark size={20} color="var(--status-positive)" />
                     قائمة المركز المالي كما في {balanceData.as_of_date}
                   </div>
                   <div className={`${styles.balanceBadge} ${isBalanced ? styles.balanced : styles.unbalanced}`}>
@@ -521,9 +527,9 @@ export default function FinancialStatementsPage() {
                           <td>{a.code}</td>
                           <td>
                             {a.name}
-                            {a.is_contra && <span style={{ fontSize: '0.75rem', color: '#f87171', marginRight: '0.5rem' }}>(مجمع إهلاك - بند مخصوم)</span>}
+                            {a.is_contra && <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--status-negative)', marginRight: '0.5rem' }}>(مجمع إهلاك - بند مخصوم)</span>}
                           </td>
-                          <td className={styles.amountCell} style={{ color: a.is_contra ? '#f87171' : 'inherit' }}>
+                          <td className={styles.amountCell} style={{ color: a.is_contra ? 'var(--status-negative)' : 'inherit' }}>
                             {formatCurrency(a.balance)}
                           </td>
                         </tr>
@@ -616,7 +622,7 @@ export default function FinancialStatementsPage() {
                       <tr>
                         <td>—</td>
                         <td>صافي ربح / (خسارة) الفترة الحالية</td>
-                        <td className={styles.amountCell} style={{ color: Number(balanceData.summary?.current_period_net_income || 0) >= 0 ? '#34d399' : '#f87171' }}>
+                        <td className={styles.amountCell} style={{ color: Number(balanceData.summary?.current_period_net_income || 0) >= 0 ? 'var(--status-positive)' : 'var(--status-negative)' }}>
                           {formatCurrency(balanceData.summary?.current_period_net_income || 0)}
                         </td>
                       </tr>
@@ -627,7 +633,7 @@ export default function FinancialStatementsPage() {
                       </tr>
 
                       {/* Total Liabilities & Equity Row */}
-                      <tr className={styles.grandTotalRow} style={{ background: isBalanced ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)', color: isBalanced ? '#34d399' : '#f87171' }}>
+                      <tr className={styles.grandTotalRow} style={{ background: isBalanced ? 'radial-gradient(ellipse 90% 70% at 50% -20%, color-mix(in srgb, var(--status-positive) 14%, transparent), transparent 75%), var(--surface-subcard)' : 'radial-gradient(ellipse 90% 70% at 50% -20%, color-mix(in srgb, var(--status-negative) 14%, transparent), transparent 75%), var(--surface-subcard)', color: isBalanced ? 'var(--status-positive)' : 'var(--status-negative)' }}>
                         <td>—</td>
                         <td>إجمالي الالتزامات وحقوق الملكية (Total Liabilities & Equity)</td>
                         <td className={styles.amountCell}>{formatCurrency(balanceData.summary?.total_liabilities_and_equity || 0)}</td>
@@ -645,7 +651,7 @@ export default function FinancialStatementsPage() {
                 <div className={styles.statementTableCard}>
                   <div className={styles.sectionHeader}>
                     <div className={styles.sectionTitle}>
-                      <Scale size={20} color="#38bdf8" />
+                      <Scale size={20} color="var(--accent-ink)" />
                       مؤشرات السيولة والقدرة على الوفاء بالالتزامات (Liquidity Ratios)
                     </div>
                   </div>
@@ -653,14 +659,14 @@ export default function FinancialStatementsPage() {
                     <div className={styles.kpiCard}>
                       <div className={styles.kpiLabel}>نسبة التداول الحالية (Current Ratio)</div>
                       <div className={styles.kpiValue}>{kpiData.liquidity_metrics?.current_ratio || 0}</div>
-                      <div className={styles.kpiSub} style={{ color: Number(kpiData.liquidity_metrics?.current_ratio || 0) >= 1.5 ? '#10b981' : '#f59e0b' }}>
+                      <div className={styles.kpiSub} style={{ color: Number(kpiData.liquidity_metrics?.current_ratio || 0) >= 1.5 ? 'var(--status-positive)' : 'var(--status-warning)' }}>
                         {Number(kpiData.liquidity_metrics?.current_ratio || 0) >= 1.5 ? 'مستوى سيولة آمن ومريح (> 1.5)' : 'مستوى سيولة يستوجب المراقبة'}
                       </div>
                     </div>
                     <div className={styles.kpiCard}>
                       <div className={styles.kpiLabel}>نسبة السيولة السريعة (Quick Ratio)</div>
                       <div className={styles.kpiValue}>{kpiData.liquidity_metrics?.quick_ratio || 0}</div>
-                      <div className={styles.kpiSub} style={{ color: Number(kpiData.liquidity_metrics?.quick_ratio || 0) >= 1.0 ? '#10b981' : '#f59e0b' }}>
+                      <div className={styles.kpiSub} style={{ color: Number(kpiData.liquidity_metrics?.quick_ratio || 0) >= 1.0 ? 'var(--status-positive)' : 'var(--status-warning)' }}>
                         (النقدية + الذمم المدينة) / الالتزامات المتداولة
                       </div>
                     </div>
@@ -676,7 +682,7 @@ export default function FinancialStatementsPage() {
                 <div className={styles.statementTableCard}>
                   <div className={styles.sectionHeader}>
                     <div className={styles.sectionTitle}>
-                      <Percent size={20} color="#10b981" />
+                      <Percent size={20} color="var(--status-positive)" />
                       كفاءة التحصيل وإدارة الذمم المدينة (Collection Rate & DSO)
                     </div>
                   </div>
@@ -702,14 +708,14 @@ export default function FinancialStatementsPage() {
                 <div className={styles.statementTableCard}>
                   <div className={styles.sectionHeader}>
                     <div className={styles.sectionTitle}>
-                      <TrendingUp size={20} color="#f59e0b" />
+                      <TrendingUp size={20} color="var(--accent-ink)" />
                       ترتيب المشاريع حسب مساهمتها في الربحية
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
                     {/* Top Profitable */}
                     <div>
-                      <h4 style={{ color: '#34d399', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <h4 style={{ color: 'var(--status-positive)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <CheckCircle size={16} />
                         أعلى 3 مشاريع ربحية
                       </h4>
@@ -728,12 +734,12 @@ export default function FinancialStatementsPage() {
                               <tr key={p.project_id}>
                                 <td>{p.project_name}</td>
                                 <td className={styles.amountCell}>{formatCurrency(p.revenue)}</td>
-                                <td className={styles.amountCell} style={{ color: '#34d399' }}>{formatCurrency(p.net_profit)}</td>
+                                <td className={styles.amountCell} style={{ color: 'var(--status-positive)' }}>{formatCurrency(p.net_profit)}</td>
                                 <td style={{ fontWeight: 600 }}>{p.margin_pct}%</td>
                               </tr>
                             ))}
                             {(kpiData.project_rankings?.top_profitable || []).length === 0 && (
-                              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#94a3b8' }}>لا توجد بيانات</td></tr>
+                              <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>لا توجد بيانات</td></tr>
                             )}
                           </tbody>
                         </table>
@@ -742,7 +748,7 @@ export default function FinancialStatementsPage() {
 
                     {/* Least Profitable */}
                     <div>
-                      <h4 style={{ color: '#f87171', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                      <h4 style={{ color: 'var(--status-negative)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <AlertTriangle size={16} />
                         المشاريع الأقل ربحية أو الأكثر تعثراً
                       </h4>
@@ -761,14 +767,14 @@ export default function FinancialStatementsPage() {
                               <tr key={p.project_id}>
                                 <td>{p.project_name}</td>
                                 <td className={styles.amountCell}>{formatCurrency(p.costs)}</td>
-                                <td className={styles.amountCell} style={{ color: p.net_profit >= 0 ? '#34d399' : '#f87171' }}>
+                                <td className={styles.amountCell} style={{ color: p.net_profit >= 0 ? 'var(--status-positive)' : 'var(--status-negative)' }}>
                                   {formatCurrency(p.net_profit)}
                                 </td>
                                 <td style={{ fontWeight: 600 }}>{p.margin_pct}%</td>
                               </tr>
                             ))}
                             {(kpiData.project_rankings?.least_profitable || []).length === 0 && (
-                              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#94a3b8' }}>لا توجد بيانات</td></tr>
+                              <tr><td colSpan={4} style={{ textAlign: 'center', color: 'var(--text-muted)' }}>لا توجد بيانات</td></tr>
                             )}
                           </tbody>
                         </table>

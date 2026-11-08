@@ -1209,12 +1209,7 @@ export default function QcTab({ logic }: { logic: any }) {
                 {/* 🗺️ مخطط الشوب دروينج التفاعلي داخل الزيارة لتوقيع نقاط الصور والفيديوهات */}
                 <div
                   style={{
-                    background: '#0f172a',
-                    color: '#f8fafc',
-                    borderRadius: '14px',
-                    padding: '1rem',
-                    marginBottom: '1rem',
-                    border: '1px solid #334155',
+                    background: 'var(--surface-card)', color: 'var(--text-primary)', borderRadius: 'var(--phi-radius-card, 18px)', padding: '1.25rem', marginBottom: '1rem', border: 'none', boxShadow: 'var(--shadow-ambient)',
                   }}
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
@@ -1235,8 +1230,8 @@ export default function QcTab({ logic }: { logic: any }) {
 
                     if (!drawingImgSrc) {
                       return (
-                        <div style={{ background: '#1e293b', borderRadius: '10px', padding: '1rem', textAlign: 'center' }}>
-                          <p style={{ margin: '0 0 0.75rem', fontSize: '0.82rem', color: '#cbd5e1', fontWeight: 700 }}>
+                        <div style={{ background: 'var(--surface-sunken)', borderRadius: '12px', padding: '1rem', textAlign: 'center', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
+                          <p style={{ margin: '0 0 0.75rem', fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 700 }}>
                             ارفع صورة الشوب دروينج لهذه الزيارة لتتمكن من وضع نقاط الصور والفيديوهات عليها مباشرةً:
                           </p>
                           <TelegramAttachmentField
@@ -1310,7 +1305,7 @@ export default function QcTab({ logic }: { logic: any }) {
 
                         {/* قائمة نقاط الصور الموضوعة على الشوب دروينج */}
                         {visitPhotoPins.length > 0 && (
-                          <div style={{ marginTop: '0.85rem', background: '#1e293b', borderRadius: '10px', padding: '0.85rem' }}>
+                          <div style={{ marginTop: '0.85rem', background: 'var(--surface-sunken)', borderRadius: '12px', padding: '0.85rem', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
                             <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '0.75rem' }}>
                               {visitPhotoPins.map((pin) => (
                                 <button
@@ -1321,8 +1316,8 @@ export default function QcTab({ logic }: { logic: any }) {
                                     padding: '0.35rem 0.7rem',
                                     borderRadius: '8px',
                                     border: pin.id === selectedPinId ? '2px solid #38bdf8' : '1px solid #475569',
-                                    background: pin.id === selectedPinId ? '#0284c7' : '#0f172a',
-                                    color: '#fff',
+                                    background: pin.id === selectedPinId ? 'var(--accent-ink)' : 'var(--surface-subcard)', boxShadow: 'var(--shadow-elevation)',
+                                    color: pin.id === selectedPinId ? '#fff' : 'var(--text-primary)',
                                     fontWeight: 800,
                                     fontSize: '0.76rem',
                                     cursor: 'pointer',

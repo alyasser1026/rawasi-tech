@@ -39,14 +39,14 @@ const FilterDropdown = ({ title, options, selectedOptions, setSelectedOptions }:
         <div ref={wrapperRef} style={{ position: 'relative', minWidth: '13.75rem' }}>
             <div 
                 onClick={() => setIsOpen(!isOpen)}
-                style={{ background: 'white', border: '2px solid #e2e8f0', borderRadius: '14px', padding: '0.625rem 0.9375rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 700, fontSize: 'var(--fs-sm)', color: selectedOptions.length > 0 ? THEME.primary : '#64748b' }}
+                style={{ background: 'var(--surface-sunken, #f8fafc)', border: 'none', boxShadow: 'var(--shadow-sunken)', borderRadius: '12px', padding: '0.625rem 0.9375rem', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 800, fontSize: 'var(--fs-sm)', color: selectedOptions.length > 0 ? 'var(--text-primary)' : 'var(--text-secondary)' }}
             >
                 <span>{title} {selectedOptions.length > 0 ? `(${selectedOptions.length})` : ''}</span>
                 <span style={{ fontSize: 'var(--fs-xs)', transition: '0.3s', transform: isOpen ? 'rotate(180deg)' : 'none' }}>▼</span>
             </div>
             
             {isOpen && (
-                <div style={{ position: 'absolute', top: '110%', right: 0, width: '100%', background: 'white', border: '1px solid #e2e8f0', borderRadius: '14px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: '15.625rem', overflowY: 'auto', padding: '0.625rem' }}>
+                <div style={{ position: 'absolute', top: '110%', right: 0, width: '100%', background: 'var(--surface-card, #ffffff)', border: 'none', borderRadius: '16px', boxShadow: 'var(--shadow-ambient), 0 10px 25px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: '15.625rem', overflowY: 'auto', padding: '0.625rem' }}>
                     {options.length === 0 ? <div style={{ padding: '0.625rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8' }}>لا يوجد بيانات</div> : null}
                     {options.map((opt: string, idx: number) => (
                         <label 
@@ -210,8 +210,8 @@ export default function SubContractorClaimsPage() {
                 return (
                     <div style={{ 
                         maxWidth: '12.5rem', whiteSpace: 'normal', lineHeight: '1.6', fontSize: 'var(--fs-xs)', 
-                        fontWeight: 900, color: THEME.primary, background: '#f1f5f9', padding: '0.375rem 0.625rem', 
-                        borderRadius: '8px', textAlign: 'center', border: '1px solid #e2e8f0'
+                        fontWeight: 900, color: 'var(--accent-ink)', padding: '0.375rem 0.625rem', 
+                        borderRadius: '8px', textAlign: 'center', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)'
                     }}>
                         {displayNames}
                     </div>
@@ -305,7 +305,7 @@ export default function SubContractorClaimsPage() {
                             {status.label}
                         </div>
                         {paid > 0 && paid < net && (
-                            <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, background: '#f8fafc', padding: '0.25rem 0.5rem', borderRadius: '6px', border: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 800, background: 'var(--surface-sunken)', padding: '0.25rem 0.5rem', borderRadius: '6px', border: 'none', boxShadow: 'var(--shadow-sunken)', whiteSpace: 'nowrap' }}>
                                 سُدد: <span style={{ color: '#16a34a' }}>{formatCurrency(paid)}</span> | متبقي: <span style={{ color: '#ef4444' }}>{formatCurrency(remaining)}</span>
                             </div>
                         )}
@@ -399,7 +399,7 @@ export default function SubContractorClaimsPage() {
                     
                     .tab-btn { padding: 0.75rem 1.5625rem; border-radius: 15px; border: none; font-weight: 900; cursor: pointer; transition: 0.3s; font-size: var(--fs-md); }
                     .tab-btn.active { background: ${THEME.primary}; color: white; box-shadow: 0 10px 20px ${THEME.primary}40; }
-                    .tab-btn.inactive { background: white; color: #64748b; border: 1px solid #e2e8f0; }
+                    .tab-btn.inactive { background: var(--surface-card); color: var(--text-secondary); border: none; box-shadow: var(--shadow-elevation); }
                     .tab-btn.inactive:hover { background: #f8fafc; }
                     
                     .hover-bg-slate:hover { background: #f1f5f9; }

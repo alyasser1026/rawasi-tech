@@ -250,14 +250,14 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                     direction: rtl; position: relative; z-index: 10; animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                     border: 1px solid rgba(255,255,255,0.2);
                 }
-                .module-card { background: #f8fafc; border-radius: 14px; padding: 1.375rem; margin-bottom: 0.9375rem; border: 1px solid #e2e8f0; transition: 0.3s; }
+                .module-card { background: var(--surface-sunken); border-radius: 14px; padding: 1.375rem; margin-bottom: 0.9375rem; border: none; box-shadow: var(--shadow-sunken); transition: 0.2s; }
                 .module-card:hover { border-color: ${THEME.primary}; background: #ffffff; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
-                .perm-btn { padding: 0.625rem 1.125rem; border-radius: 12px; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; border: 2px solid #e2e8f0; background: white; color: #64748b; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+                .perm-btn { padding: 0.625rem 1.125rem; border-radius: 12px; font-size: var(--fs-sm); font-weight: 800; cursor: pointer; border: none; background: var(--surface-card); box-shadow: var(--shadow-elevation); color: var(--text-secondary); transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
                 .perm-btn:hover { border-color: #cbd5e1; color: #1e293b; }
                 .perm-btn.active { background: ${THEME.primary}; color: white; border-color: ${THEME.primary}; box-shadow: 0 8px 20px ${THEME.primary}40; }
-                .btn-all { font-size: var(--fs-xs); background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; padding: 0.5rem 0.875rem; border-radius: 10px; cursor: pointer; font-weight: 900; transition: 0.2s; }
+                .btn-all { font-size: var(--fs-xs); background: var(--surface-sunken); color: var(--text-primary); border: none; box-shadow: var(--shadow-sunken); padding: 0.5rem 0.875rem; border-radius: 10px; cursor: pointer; font-weight: 800; transition: 0.2s; }
                 .btn-all:hover { background: #e2e8f0; color: #0f172a; border-color: #cbd5e1; }
-                .modal-input { width: 100%; padding: 0.9375rem 1.25rem; border-radius: 16px; border: 2px solid #e2e8f0; font-weight: 800; font-size: var(--fs-md); outline: none; transition: 0.3s; color: #1e293b; background: #f8fafc; }
+                .modal-input { width: 100%; padding: 0.9375rem 1.25rem; border-radius: 16px; border: none; box-shadow: var(--shadow-sunken); font-weight: 800; font-size: var(--fs-md); outline: none; transition: 0.2s; color: var(--text-primary); background: var(--surface-sunken); }
                 .modal-input:focus { border-color: ${THEME.primary}; background: white; box-shadow: 0 0 0 4px ${THEME.primary}15; }
                 .cinematic-scroll::-webkit-scrollbar { width: 0.5rem; }
                 .cinematic-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -279,7 +279,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                 <div className="cinematic-scroll" style={{ overflowY: 'auto', padding: '1.875rem 2.5rem', flex: 1, background: '#ffffff' }}>
                     
                     {/* بيانات المصادقة والملف الشخصي */}
-                    <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '1.875rem' }}>
+                    <div style={{ background: 'var(--surface-sunken)', padding: '1.25rem', borderRadius: '14px', border: 'none', boxShadow: 'var(--shadow-sunken)', marginBottom: '1.875rem' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                             <h3 style={{ margin: 0, fontWeight: 900, color: '#0f172a' }}>بيانات الحساب الأساسية</h3>
                             {!isNewUser && (
@@ -382,7 +382,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                     </button>
                     <button 
                         onClick={onClose} 
-                        style={{ flex: 1, padding: '1.125rem', borderRadius: '14px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)', transition: '0.3s' }}
+                        style={{ flex: 1, padding: '1.125rem', borderRadius: '14px', border: 'none', background: 'var(--surface-subcard)', color: 'var(--text-secondary)', boxShadow: 'var(--shadow-elevation)', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-lg)', transition: '0.2s' }}
                     >
                         إلغاء
                     </button>

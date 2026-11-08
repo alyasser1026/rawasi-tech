@@ -117,7 +117,7 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
                     top: 20px !important; z-index: 1000000000 !important; 
                 }
                 .action-btn { padding: 12px 25px; border-radius: 10px; border: none; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; }
-                .action-btn.print { background: #0f172a; color: white; }
+                .action-btn.print { background: var(--accent-ink); color: white; box-shadow: var(--shadow-elevation); }
                 .action-btn.close { background: #fee2e2; color: #dc2626; }
 
                 .a4-preview-box {

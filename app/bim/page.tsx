@@ -59,14 +59,14 @@ export default function StandaloneBimPage() {
         <span>تكلفة التراخيص</span>
         <strong style={{ color: 'var(--status-positive)' }}>0.00 ريال (مجاني)</strong>
       </div>
-      <div style={{ marginTop: '1.25rem', padding: '0.75rem', background: 'var(--surface-subcard)', borderRadius: '10px', border: '1px solid var(--table-zebra-bg)', fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+      <div style={{ marginTop: '1.25rem', padding: '0.75rem', background: 'var(--surface-subcard)', borderRadius: '10px', border: 'none', boxShadow: 'var(--shadow-sunken)', fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
         💡 <strong style={{ color: 'var(--accent-ink)' }}>بديل Autodesk المجاني:</strong> يدعم استعراض الموديلات دون اشتراكات Forge، مع فحص التسليح، القطاعات الرأسية، وحصر كميات الخرسانات.
       </div>
     </div>
   );
 
   return (
-    <div className="clean-page">
+    <div className="clean-page enterprise-page">
       <MasterPage 
         title="استعراض النماذج ثلاثية الأبعاد (3D BIM)" 
         subtitle="بيئة هندسية تفاعلية مفتوحة المصدر لعرض الهياكل الإنشائية والمعمارية وحصر الكميات"
@@ -78,7 +78,7 @@ export default function StandaloneBimPage() {
 
         <style>{`
           .bim-select-bar { display: flex; justify-content: space-between; align-items: center; padding: 0.9375rem 1.25rem; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 10px; }
-          .bim-select-input { padding: 0.625rem 1rem; border-radius: 12px; border: 1px solid var(--control-edge); background: var(--surface-sunken); font-weight: 800; font-size: var(--fs-sm, 14px); color: var(--text-primary); cursor: pointer; min-width: min(260px, 100%); max-width: 100%; }
+          .bim-select-input { padding: 0.625rem 1rem; border-radius: 12px; border: none !important; box-shadow: var(--shadow-sunken); background: var(--surface-sunken); font-weight: 800; font-size: var(--fs-sm, 14px); color: var(--text-primary); cursor: pointer; min-width: min(260px, 100%); max-width: 100%; }
         `}</style>
 
         {/* Project Selector Bar */}

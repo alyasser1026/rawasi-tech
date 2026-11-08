@@ -256,7 +256,7 @@ export default function LaborLogsDirectory() {
           
           /* أنماط المودال */
           .modal-label { color: ${THEME.coffeeMain}; fontSize: 12px; fontWeight: 900; display: block; marginBottom: 8px; }
-          .modal-input { padding: 0.875rem; border-radius: 12px; border: 2px solid #e2e8f0; width: 100%; fontWeight: 800; outline: none; }
+          .modal-input { padding: 0.875rem; border-radius: 12px; border: none; background: var(--surface-sunken); box-shadow: var(--shadow-sunken); color: var(--text-primary); width: 100%; font-weight: 800; outline: none; }
           .success-text { fontWeight: 900; color: ${THEME.success}; }
           .save-btn { flex: 2; background: ${THEME.coffeeDark}; color: white; padding: 1rem; border-radius: 15px; border: none; fontWeight: 900; cursor: pointer; fontSize: 16px; transition: 0.3s; }
           .cancel-btn { flex: 1; background: #f1f5f9; color: #64748b; padding: 1rem; border-radius: 15px; border: none; fontWeight: 900; cursor: pointer; transition: 0.3s; }

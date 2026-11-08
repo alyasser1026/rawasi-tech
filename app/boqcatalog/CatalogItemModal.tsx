@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
 
 export default function CatalogItemModal({ isOpen, onClose, record, setRecord, onSave, isSaving, uniqueMains, uniqueSubs }: any) {
@@ -13,10 +12,10 @@ export default function CatalogItemModal({ isOpen, onClose, record, setRecord, o
     return createPortal(
         <div className="phi-modal-backdrop" style={{ position: 'fixed', inset: 0, zIndex: 999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(40, 24, 10, 0.85)', backdropFilter: 'blur(15px)', direction: 'rtl', padding: '1.25rem' }}>
             <div style={{ position: 'fixed', inset: 0 }} onClick={onClose} />
-            <div className="cinematic-scroll phi-modal-panel" style={{ background: 'white', borderRadius: '14px', width: '100%', maxWidth: '37.5rem', padding: '2.5rem', position: 'relative', zIndex: 10, boxShadow: '0 50px 100px rgba(0,0,0,0.5)' }}>
+            <div className="cinematic-scroll phi-modal-panel" style={{ background: 'var(--surface-card, #ffffff)', borderRadius: '20px', width: '100%', maxWidth: '37.5rem', padding: '2.5rem', position: 'relative', zIndex: 10, boxShadow: 'var(--shadow-ambient), 0 30px 60px rgba(0,0,0,0.3)', border: 'none' }}>
                 
-                <h2 style={{ margin: '0 0 1.5625rem 0', fontWeight: 900, color: THEME.primary, borderBottom: '2px dashed #eee', paddingBottom: '0.9375rem' }}>
-                    {record.id ? 'تعديل البند' : 'إضافة بند / قسم جديد'}
+                <h2 style={{ margin: '0 0 1.5625rem 0', fontWeight: 800, color: 'var(--text-primary)', borderBottom: 'none', paddingBottom: '0.5rem' }}>
+                    {record.id ? 'تعديل البند القياسي' : 'إضافة بند / قسم جديد'}
                 </h2>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -41,30 +40,52 @@ export default function CatalogItemModal({ isOpen, onClose, record, setRecord, o
                     </div>
 
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.5rem' }}>اسم البند (مثال: توريد ودهان بلاستيك للحوائط)</label>
-                        <textarea style={{ width: '100%', padding: '0.875rem', borderRadius: '12px', border: '1px solid #cbd5e1', outline: 'none', fontWeight: 900, minHeight: '5rem', resize: 'vertical' }} 
-                               value={record.item_name || ''} onChange={e => setRecord({...record, item_name: e.target.value})} />
+                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: 'var(--text-secondary, #475569)', display: 'block', marginBottom: '0.5rem' }}>اسم البند (مثال: توريد ودهان بلاستيك للحوائط)</label>
+                        <textarea 
+                            style={{ width: '100%', padding: '0.875rem', borderRadius: '12px', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', border: 'none', outline: 'none', fontWeight: 700, minHeight: '5rem', resize: 'vertical', color: 'var(--text-primary)' }} 
+                            value={record.item_name || ''} 
+                            onChange={e => setRecord({...record, item_name: e.target.value})} 
+                        />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.9375rem' }}>
                         <div>
-                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>الكود الذكي (اتركه فارغاً للتوليد الآلي)</label>
-                            <input type="text" style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid #cbd5e1', textAlign: 'center', background: '#f8fafc' }} 
-                                   value={record.item_code || ''} onChange={e => setRecord({...record, item_code: e.target.value})} placeholder="مثال: FIN-01-01" />
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: 'var(--text-secondary, #475569)', display: 'block', marginBottom: '0.5rem' }}>الكود الذكي (اتركه فارغاً للتوليد الآلي)</label>
+                            <input 
+                                type="text" 
+                                style={{ width: '100%', height: '2.75rem', padding: '0 0.875rem', borderRadius: '12px', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', border: 'none', textAlign: 'center', color: 'var(--text-primary)' }} 
+                                value={record.item_code || ''} 
+                                onChange={e => setRecord({...record, item_code: e.target.value})} 
+                                placeholder="مثال: FIN-01-01" 
+                            />
                         </div>
                         <div>
-                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>وحدة القياس</label>
-                            <input type="text" style={{ width: '100%', padding: '0.75rem', borderRadius: '12px', border: '1px solid #cbd5e1', textAlign: 'center', fontWeight: 900 }} 
-                                   value={record.unit_of_measure || ''} onChange={e => setRecord({...record, unit_of_measure: e.target.value})} placeholder="مثال: م2, م.ط, عدد" />
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: 'var(--text-secondary, #475569)', display: 'block', marginBottom: '0.5rem' }}>وحدة القياس</label>
+                            <input 
+                                type="text" 
+                                style={{ width: '100%', height: '2.75rem', padding: '0 0.875rem', borderRadius: '12px', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', border: 'none', textAlign: 'center', fontWeight: 800, color: 'var(--text-primary)' }} 
+                                value={record.unit_of_measure || ''} 
+                                onChange={e => setRecord({...record, unit_of_measure: e.target.value})} 
+                                placeholder="مثال: م2, م.ط, عدد" 
+                            />
                         </div>
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '2.1875rem' }}>
-                    <button onClick={() => onSave(record)} disabled={isSaving} style={{ flex: 2, background: THEME.success, color: 'white', border: 'none', padding: '1rem', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)' }}>
+                <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '2rem' }}>
+                    <button 
+                        onClick={() => onSave(record)} 
+                        disabled={isSaving} 
+                        style={{ flex: 2, background: 'linear-gradient(135deg, #10b981, #059669)', color: 'white', border: 'none', padding: '0.875rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-md)', boxShadow: 'var(--shadow-elevation)' }}
+                    >
                         {isSaving ? 'جاري الحفظ...' : 'حفظ في الدليل'}
                     </button>
-                    <button onClick={onClose} style={{ flex: 1, background: '#f1f5f9', color: '#64748b', border: 'none', padding: '1rem', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)' }}>إلغاء</button>
+                    <button 
+                        onClick={onClose} 
+                        style={{ flex: 1, background: 'var(--surface-subcard, #f1f5f9)', color: 'var(--text-primary, #64748b)', border: 'none', padding: '0.875rem', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-md)' }}
+                    >
+                        إلغاء
+                    </button>
                 </div>
             </div>
         </div>,

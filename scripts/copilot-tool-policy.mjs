@@ -212,6 +212,11 @@ function getToolArgs(name, supplied, now) {
     };
   }
 
+  if (name === 'switch_company') {
+    const ident = safeText(supplied?.company_identifier, 100);
+    return { company_identifier: ident || '1' };
+  }
+
   if (name !== LABOR) return null;
   const isFieldOpsMode = process.env.COPILOT_LIVE_FIELD_OPS_ENABLED === 'true';
   const allowedLaborKeys = isFieldOpsMode
@@ -711,6 +716,9 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
   }
   if (name === UPDATE_OPERATION) {
     return formatUpdateOperationReply(result, companyLabel);
+  }
+  if (name === 'switch_company') {
+    return result.message || 'تم التبديل بنجاح.';
   }
 
   if (name === TAREEHA) {

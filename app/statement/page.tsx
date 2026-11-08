@@ -1,7 +1,6 @@
 "use client";
 import React, { useMemo, useEffect, useState } from 'react';
 import { useStatementLogic } from './statement_logic';
-import { THEME } from '@/lib/theme';
 import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import RawasiSmartTable from '@/components/rawasismarttable';
@@ -35,7 +34,7 @@ function PartnerStatementContent() {
             accessor: 'date', 
             render: (row: any) => {
                 if (!row) return null; 
-                return <span style={{fontWeight: 700, color: '#8a7a6b'}}>{row.date === '---' ? '---' : formatDate(row.date)}</span>;
+                return <span style={{fontWeight: 800, color: 'var(--text-secondary)'}}>{row.date === '---' ? '---' : formatDate(row.date)}</span>;
             }
         },
         { 
@@ -61,7 +60,7 @@ function PartnerStatementContent() {
             accessor: 'description', 
             render: (row: any) => {
                 if (!row) return null; 
-                return <span style={{fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#2c221b'}}>{row.description}</span>;
+                return <span style={{fontSize: 'var(--fs-sm)', fontWeight: 800, color: 'var(--text-primary)'}}>{row.description}</span>;
             }
         },
         { 
@@ -69,7 +68,7 @@ function PartnerStatementContent() {
             accessor: 'debit', 
             render: (row: any) => {
                 if (!row) return null; 
-                return row.debit > 0 ? <strong style={{color: THEME.danger}}>{formatCurrency(row.debit)}</strong> : '-';
+                return row.debit > 0 ? <strong style={{color: 'var(--status-negative)', fontVariantNumeric: 'tabular-nums'}}>{formatCurrency(row.debit)}</strong> : '-';
             }
         },
         { 
@@ -77,7 +76,7 @@ function PartnerStatementContent() {
             accessor: 'credit', 
             render: (row: any) => {
                 if (!row) return null; 
-                return row.credit > 0 ? <strong style={{color: THEME.success}}>{formatCurrency(row.credit)}</strong> : '-';
+                return row.credit > 0 ? <strong style={{color: 'var(--status-positive)', fontVariantNumeric: 'tabular-nums'}}>{formatCurrency(row.credit)}</strong> : '-';
             }
         },
         { 
@@ -87,12 +86,18 @@ function PartnerStatementContent() {
                 if (!row) return null; 
                 return (
                     <div style={{
-                        background: 'rgba(194,65,12, 0.1)', border: '1px solid rgba(194,65,12, 0.2)',
-                        padding: '0.3125rem 0.625rem', borderRadius: '8px', fontWeight: 900, textAlign: 'center',
-                        color: row.balance >= 0 ? THEME.success : THEME.danger
+                        background: 'var(--surface-sunken)',
+                        boxShadow: 'var(--shadow-sunken)',
+                        border: 'none',
+                        padding: '0.375rem 0.625rem',
+                        borderRadius: '10px',
+                        fontWeight: 900,
+                        textAlign: 'center',
+                        color: row.balance >= 0 ? 'var(--status-positive)' : 'var(--status-negative)',
+                        fontVariantNumeric: 'tabular-nums'
                     }}>
                         {formatCurrency(Math.abs(row.balance))}
-                        <small style={{marginRight: '0.3125rem', fontSize: 'var(--fs-xs)', color: '#8a7a6b'}}>{row.balance >= 0 ? '(له)' : '(عليه)'}</small>
+                        <small style={{marginRight: '0.375rem', fontSize: 'var(--fs-xs)', color: 'var(--text-muted)'}}>{row.balance >= 0 ? '(له)' : '(عليه)'}</small>
                     </div>
                 );
             }
@@ -112,24 +117,35 @@ function PartnerStatementContent() {
 
     const sidebarActions = useMemo(() => (
         <div style={{display: 'flex', flexDirection: 'column', gap: '0.625rem'}}>
-            <button type="button" onClick={() => setIsPrintOpen(true)} className="btn-main-glass white" disabled={!logic.partnerId}>
+            <button 
+                type="button" 
+                onClick={() => setIsPrintOpen(true)} 
+                className="ent-button" 
+                style={{ background: 'var(--surface-subcard)', color: 'var(--text-primary)', border: 'none', boxShadow: 'var(--shadow-elevation)', borderRadius: '12px', fontWeight: 800 }}
+                disabled={!logic.partnerId}
+            >
                 معاينة وطباعة الكشف
             </button>
             <SecureAction module="statements" action="export">
-                <button type="button" onClick={() => logic.exportToExcel(selectedPartnerName)} className="btn-main-glass gold" disabled={!logic.partnerId}>
+                <button 
+                    type="button" 
+                    onClick={() => logic.exportToExcel(selectedPartnerName)} 
+                    className="ent-button ent-primary" 
+                    style={{ border: 'none', borderRadius: '12px', fontWeight: 900 }}
+                    disabled={!logic.partnerId}
+                >
                     تصدير Excel للشريك
                 </button>
             </SecureAction>
 
-            <hr style={{ borderColor: 'rgba(194,65,12, 0.2)', margin: '0.3125rem 0' }} />
+            <hr style={{ borderColor: 'var(--table-zebra-bg)', margin: '0.3125rem 0' }} />
 
-            {/* 🚀 تم التحديث للدالة الجديدة downloadIndividualWorkerPDFs اللي بتضغط في ملف ZIP */}
             <SecureAction module="statements" action="export">
                 <button 
                     type="button" 
                     onClick={logic.downloadIndividualWorkerPDFs} 
-                    className="btn-main-glass" 
-                    style={{ background: '#0284C7', color: 'white', borderColor: '#0369A1' }}
+                    className="ent-button" 
+                    style={{ background: 'var(--accent-soft-bg)', color: 'var(--accent-ink)', border: 'none', boxShadow: 'var(--shadow-elevation)', borderRadius: '12px', fontWeight: 800 }}
                     disabled={logic.isExportingAll}
                 >
                     {logic.isExportingAll ? 'جاري المعالجة...' : 'تحميل جميع الكشوفات (ملف ZIP)'}
@@ -141,8 +157,8 @@ function PartnerStatementContent() {
     if (!mounted) return null;
 
     return (
-        <div className="clean-page">
-            <MasterPage title="كشف حساب الشركاء" subtitle="تحليل مالي ملكي بنظام فاي تك الماسي">
+        <div className="clean-page enterprise-page">
+            <MasterPage title="كشف حساب الشركاء" subtitle="تحليل مالي متكامل بنظام فاي تك المحاسبي">
                 
                 <RawasiSidebarManager actions={sidebarActions} watchDeps={[logic.partnerId, logic.isExportingAll]} />
 
@@ -170,7 +186,7 @@ function PartnerStatementContent() {
                                 <div className="grid-box red"><small>كل المدين (عليه) {summarySuffix}</small><span>{formatCurrency(logic.totalDebit)}</span></div>
                                 <div className="grid-box blue final-balance">
                                     <small>{netTitle}</small>
-                                    <span style={{ color: logic.periodNet >= 0 ? '#047857' : '#be123c' }}>
+                                    <span style={{ color: logic.periodNet >= 0 ? 'var(--status-positive)' : 'var(--status-negative)' }}>
                                         {formatCurrency(Math.abs(logic.periodNet))}<small style={{fontSize: 'var(--fs-md)', marginLeft: '0.3125rem'}}>{logic.periodNet >= 0 ? '(له)' : '(عليه)'}</small>
                                     </span>
                                     {isPeriodSelected && (
@@ -189,9 +205,14 @@ function PartnerStatementContent() {
                     )}
 
                     {!logic.partnerId ? (
-                        <div className="welcome-placeholder"><div className="icon"><ReceiptText size={26} aria-hidden="true" /></div><h3>يرجى اختيار شريك لعرض كشف الحساب</h3></div>
+                        <div className="welcome-placeholder">
+                            <div className="icon"><ReceiptText size={26} aria-hidden="true" /></div>
+                            <h3>يرجى اختيار شريك لعرض كشف الحساب</h3>
+                        </div>
                     ) : (
-                        <div className="table-wrapper-glass"><RawasiSmartTable data={tableData} columns={columns} isLoading={logic.isLoading} enablePagination={false} /></div>
+                        <div className="table-wrapper-glass">
+                            <RawasiSmartTable data={tableData} columns={columns} isLoading={logic.isLoading} enablePagination={false} />
+                        </div>
                     )}
                 </div>
             </MasterPage>
@@ -211,44 +232,177 @@ function PartnerStatementContent() {
 
             <style>{`
                 .main-content-flow { display: flex; flex-direction: column; gap: 1.25rem; width: 100%; }
-                .glass-panel.summary-container { padding: 1.375rem; color: #202329; }
-                .glass-divider { border: 0; height: 1px; background: #e6e8ec; margin: 1.25rem 0; }
-                .balances-grid { display: grid; gap: 0.875rem; }
-                .grid-box { padding: 1.125rem; border-radius: 12px; text-align: center; background: #fff; border: 1px solid #e3e7ed; display: flex; flex-direction: column; justify-content: center; }
-                .grid-box.green { border-bottom: 3px solid #047857; }
-                .grid-box.green span { color: #047857; }
-                .grid-box.red { border-bottom: 3px solid #be123c; }
-                .grid-box.red span { color: #be123c; }
-                .grid-box.blue { border-bottom: 3px solid #1d4ed8; }
-                .grid-box.gold { border-bottom: 3px solid ${THEME.goldAccent}; background: #fff7ed; }
-                .grid-box small { font-size: var(--fs-sm); color: #687180; font-weight: 800; margin-bottom: 0.5rem; }
-                .grid-box span { font-size: var(--fs-2xl); font-weight: 800; font-variant-numeric: tabular-nums; }
-                .final-balance span { font-size: var(--fs-3xl); }
-                .final-balance .cumulative-balance { margin-top: 0.5rem; font-size: var(--fs-sm); color: #687180; font-weight: 700; border-top: 1px dashed #dce2ea; padding-top: 0.5rem; }
-                .dashboard-stats-grid { display: grid; gap: 0.875rem; }
-                .stat-box { padding: 0.9375rem; border-radius: 12px; text-align: center; background: #f8fafc; border: 1px solid #e3e7ed; display: flex; flex-direction: column; justify-content: center; }
-                .stat-box.cyan-outline { border-bottom: 3px solid #0e7490; }
-                .stat-box.dark-red { border-bottom: 3px solid #be123c; }
-                .stat-box small { font-size: var(--fs-sm); color: #687180; display: block; margin-bottom: 0.5rem; font-weight: 800; }
-                .stat-box span { font-size: var(--fs-xl); font-weight: 800; color: #202329; font-variant-numeric: tabular-nums; }
-                .stat-box.dark-red span { color: #be123c; }
-                .filter-dashboard-glass { background: linear-gradient(180deg, #ffffff, #f8fafc); border: 1px solid #e0e5ed; box-shadow: var(--ent-card-elevation, 0 1px 3px #25344a0a); padding: 1.125rem 1.25rem; border-radius: var(--phi-radius-card, 14px); }
+                
+                /* صندوق الفلاتر الراقي بنظام Obsidian Ceramic */
+                .filter-dashboard-glass {
+                    background: var(--surface-card) !important;
+                    border: none !important;
+                    box-shadow: var(--shadow-ambient) !important;
+                    padding: 1.25rem 1.5rem !important;
+                    border-radius: var(--phi-radius-card, 18px) !important;
+                    position: relative !important;
+                    overflow: hidden !important;
+                }
+                .filter-dashboard-glass::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 8%; right: 8%;
+                    height: 1.5px;
+                    background: var(--specular-beam);
+                    pointer-events: none;
+                    z-index: 5;
+                }
                 .filter-header { margin-bottom: 0.875rem; }
-                .filter-title { font-size: var(--fs-md); font-weight: 800; color: #202329; }
+                .filter-title { font-size: var(--fs-md); font-weight: 800; color: var(--text-primary); }
                 .filters-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.5fr; gap: 1rem; align-items: end; }
-                .filter-col label { font-size: var(--fs-sm); font-weight: 700; color: #657080; margin-bottom: 0.4375rem; display: block; }
-                .glass-input { width: 100%; min-height: 2.625rem; padding: 0.625rem 0.75rem; border-radius: 8px; border: 1px solid #dce2ea; background: #fff; color: #303a48; color-scheme: light; outline: none; transition: border-color 150ms ease, box-shadow 150ms ease; font-size: var(--fs-sm); font-weight: 600; }
-                .glass-input:focus { border-color: ${THEME.goldAccent}; box-shadow: 0 0 0 3px #c2410c14; }
+                .filter-col label { font-size: var(--fs-xs); font-weight: 800; color: var(--text-secondary); margin-bottom: 0.375rem; display: block; }
+                
+                .glass-input {
+                    width: 100%;
+                    height: 2.75rem;
+                    min-height: 2.75rem;
+                    padding: 0 0.875rem;
+                    border-radius: 12px;
+                    border: none !important;
+                    background: var(--surface-sunken) !important;
+                    box-shadow: var(--shadow-sunken) !important;
+                    color: var(--text-primary) !important;
+                    outline: none !important;
+                    font-size: var(--fs-sm);
+                    font-weight: 800;
+                    transition: box-shadow 150ms ease;
+                }
+                .glass-input:focus-visible, .glass-input:focus {
+                    outline: 2px solid var(--accent-main);
+                    outline-offset: 1px;
+                }
+
+                /* بطاقات ملخص الحساب */
+                .glass-panel.summary-container {
+                    background: var(--surface-card) !important;
+                    border: none !important;
+                    box-shadow: var(--shadow-ambient) !important;
+                    border-radius: var(--phi-radius-card, 18px) !important;
+                    position: relative !important;
+                    overflow: hidden !important;
+                    padding: 1.375rem !important;
+                    color: var(--text-primary) !important;
+                }
+                .glass-panel.summary-container::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 8%; right: 8%;
+                    height: 1.5px;
+                    background: var(--specular-beam);
+                    pointer-events: none;
+                    z-index: 5;
+                }
+                .glass-divider { border: 0; height: 1px; background: var(--table-zebra-bg); margin: 1.25rem 0; }
+                .balances-grid { display: grid; gap: 0.875rem; }
+                .grid-box {
+                    padding: 1.125rem;
+                    border-radius: 14px;
+                    text-align: center;
+                    background: var(--surface-subcard) !important;
+                    border: none !important;
+                    box-shadow: var(--shadow-elevation) !important;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    position: relative;
+                    overflow: hidden;
+                }
+                .grid-box.green {
+                    background: radial-gradient(ellipse 90% 70% at 50% -20%, color-mix(in srgb, var(--status-positive) 14%, transparent), transparent 75%), var(--surface-subcard) !important;
+                }
+                .grid-box.green span { color: var(--status-positive) !important; }
+                .grid-box.red {
+                    background: radial-gradient(ellipse 90% 70% at 50% -20%, color-mix(in srgb, var(--status-negative) 14%, transparent), transparent 75%), var(--surface-subcard) !important;
+                }
+                .grid-box.red span { color: var(--status-negative) !important; }
+                .grid-box.blue {
+                    background: radial-gradient(ellipse 90% 70% at 50% -20%, color-mix(in srgb, var(--action-fill) 16%, transparent), transparent 75%), var(--surface-subcard) !important;
+                }
+                .grid-box small { font-size: var(--fs-xs); color: var(--text-secondary); font-weight: 800; margin-bottom: 0.5rem; }
+                .grid-box span { font-size: var(--fs-2xl); font-weight: 900; font-variant-numeric: tabular-nums; }
+                .final-balance span { font-size: var(--fs-3xl); }
+                .final-balance .cumulative-balance { margin-top: 0.5rem; font-size: var(--fs-xs); color: var(--text-secondary); font-weight: 800; border-top: 1px dashed var(--table-zebra-bg); padding-top: 0.5rem; }
+                
+                .dashboard-stats-grid { display: grid; gap: 0.875rem; }
+                .stat-box {
+                    padding: 0.9375rem;
+                    border-radius: 12px;
+                    text-align: center;
+                    background: var(--surface-subcard) !important;
+                    border: none !important;
+                    box-shadow: var(--shadow-elevation) !important;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                }
+                .stat-box small { font-size: var(--fs-xs); color: var(--text-secondary); display: block; margin-bottom: 0.375rem; font-weight: 800; }
+                .stat-box span { font-size: var(--fs-xl); font-weight: 900; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+                .stat-box.dark-red span { color: var(--status-negative) !important; }
+
+                /* حالة عدم اختيار شريك (Empty State) */
+                .welcome-placeholder {
+                    text-align: center;
+                    padding: 4.5rem 1.5rem;
+                    color: var(--text-secondary);
+                    background: var(--surface-card) !important;
+                    border-radius: var(--phi-radius-card, 18px) !important;
+                    border: none !important;
+                    box-shadow: var(--shadow-ambient) !important;
+                    position: relative !important;
+                    overflow: hidden !important;
+                }
+                .welcome-placeholder::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 8%; right: 8%;
+                    height: 1.5px;
+                    background: var(--specular-beam);
+                    pointer-events: none;
+                }
+                .welcome-placeholder .icon {
+                    display: inline-grid;
+                    place-items: center;
+                    width: 3.5rem;
+                    height: 3.5rem;
+                    margin-bottom: 1rem;
+                    border-radius: 16px;
+                    background: var(--accent-soft-bg);
+                    color: var(--accent-ink);
+                    box-shadow: var(--shadow-elevation);
+                }
+                .welcome-placeholder h3 { margin: 0; font-size: var(--fs-lg); font-weight: 800; color: var(--text-primary); }
+
+                /* حاوية الجدول */
+                .table-wrapper-glass {
+                    background: var(--surface-card) !important;
+                    border-radius: var(--phi-radius-card, 18px) !important;
+                    overflow: hidden;
+                    padding: 0.75rem;
+                    border: none !important;
+                    box-shadow: var(--shadow-ambient) !important;
+                    position: relative !important;
+                }
+                .table-wrapper-glass::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 8%; right: 8%;
+                    height: 1.5px;
+                    background: var(--specular-beam);
+                    pointer-events: none;
+                }
+
                 .badge-glass { padding: 0.25rem 0.625rem; border-radius: 8px; font-size: var(--fs-xs); font-weight: 800; display: inline-block; }
-                .badge-glass.red { background: #fff1f2; color: #be123c; }
-                .badge-glass.green { background: #ecfdf5; color: #047857; }
-                .badge-glass.blue { background: #eff6ff; color: #1d4ed8; }
-                .badge-glass.sand { background: #f8fafc; color: #4b5563; border: 1px solid #e3e7ed; }
+                .badge-glass.red { background: rgba(244, 63, 94, 0.12); color: var(--status-negative); }
+                .badge-glass.green { background: rgba(16, 185, 129, 0.12); color: var(--status-positive); }
+                .badge-glass.blue { background: var(--accent-soft-bg); color: var(--accent-ink); }
+                .badge-glass.sand { background: var(--surface-sunken); color: var(--text-secondary); border: none !important; }
                 .btn-main-glass:disabled { opacity: 0.55; cursor: not-allowed; }
-                .welcome-placeholder { text-align: center; padding: 4.5rem 1.5rem; color: #4b5563; background: #fff; border-radius: var(--phi-radius-card, 14px); border: 1px dashed #d6dce5; }
-                .welcome-placeholder .icon { display: inline-grid; place-items: center; width: 3.5rem; height: 3.5rem; margin-bottom: 1rem; border-radius: 14px; background: #fff7ed; color: ${THEME.goldAccent}; }
-                .welcome-placeholder h3 { margin: 0; font-size: var(--fs-lg); font-weight: 700; }
-                .table-wrapper-glass { background: #fff; border-radius: var(--phi-radius-card, 14px); overflow: hidden; padding: 0.625rem; border: 1px solid #e0e5ed; box-shadow: var(--ent-card-elevation, 0 1px 3px #25344a0a); }
+
                 @media (max-width: 900px) {
                     .filters-grid { grid-template-columns: 1fr 1fr; }
                     .balances-grid { grid-template-columns: 1fr !important; }

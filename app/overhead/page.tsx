@@ -116,19 +116,19 @@ export default function ProjectOverheadPage() {
             />
 
             <style>{`
-                .project-accordion { background: white; border-radius: 12px; margin-bottom: 0.75rem; border: 1px solid #e2e8f0; overflow: hidden; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+                .project-accordion { background: var(--surface-card); border-radius: var(--phi-radius-card, 18px); margin-bottom: 0.75rem; border: none; overflow: hidden; transition: all 0.2s ease; box-shadow: var(--shadow-ambient); }
                 .project-accordion.expanded { border-color: #cbd5e1; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 1rem; }
                 
-                .accordion-header { padding: 0.875rem 1.25rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: #f8fafc; transition: all 0.2s ease; }
+                .accordion-header { padding: 0.875rem 1.25rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: var(--surface-card); transition: all 0.2s ease; }
                 .accordion-header:hover { background: #f1f5f9; }
                 
-                .icon-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; width: 2.25rem; height: 2.25rem; display: flex; align-items: center; justify-content: center; font-size: var(--fs-xl); box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+                .icon-box { background: var(--surface-sunken); border: none; box-shadow: var(--shadow-sunken); border-radius: 8px; width: 2.25rem; height: 2.25rem; display: flex; align-items: center; justify-content: center; font-size: var(--fs-xl); }
                 .toggle-arrow { font-size: var(--fs-sm); color: #94a3b8; background: #e2e8f0; width: 1.5rem; height: 1.5rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
                 
-                .accordion-body { padding: 0 1rem 1rem 1rem; background: white; border-top: 1px solid #e2e8f0; overflow-x: auto; zoom: 0.9; }
+                .accordion-body { padding: 0 1rem 1rem 1rem; background: var(--surface-card); border-top: 1px solid var(--table-zebra-bg, rgba(0,0,0,0.04)); overflow-x: auto; zoom: 0.9; }
                 
                 .nested-table { width: 100%; border-collapse: collapse; margin-top: 0.75rem; }
-                .nested-table th { background: #f8fafc; color: #475569; font-weight: 800; font-size: var(--fs-xs); padding: 0.625rem; text-align: right; border-bottom: 2px solid #e2e8f0; white-space: nowrap; }
+                .nested-table th { background: var(--surface-sunken); color: var(--text-secondary); font-weight: 800; font-size: var(--fs-xs); padding: 0.625rem; text-align: right; border-bottom: 1px solid var(--table-zebra-bg, rgba(0,0,0,0.04)); white-space: nowrap; }
                 .nested-table td { padding: 0.625rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
                 .nested-table tr:hover td { background: #f8fafc; }
                 
@@ -155,7 +155,7 @@ export default function ProjectOverheadPage() {
                             <button 
                                 disabled={logic.currentPage === 1} 
                                 onClick={() => logic.setCurrentPage(p => p - 1)}
-                                style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 800 }}
+                                style={{ padding: '0.5rem 1rem', borderRadius: '10px', border: 'none', background: 'var(--surface-subcard)', boxShadow: 'var(--shadow-elevation)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 800 }}
                             >
                                 السابق
                             </button>
@@ -165,7 +165,7 @@ export default function ProjectOverheadPage() {
                             <button 
                                 disabled={logic.currentPage === Math.ceil(logic.groupedProjects.length / logic.rowsPerPage)} 
                                 onClick={() => logic.setCurrentPage(p => p + 1)}
-                                style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 800 }}
+                                style={{ padding: '0.5rem 1rem', borderRadius: '10px', border: 'none', background: 'var(--surface-subcard)', boxShadow: 'var(--shadow-elevation)', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 800 }}
                             >
                                 التالي
                             </button>

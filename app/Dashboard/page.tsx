@@ -364,7 +364,7 @@ export default function DashboardPage() {
         .phi-dashboard .alert-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5625rem; background: white; border-radius: 16px; border: 1px solid #fecaca; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.02); }
         .phi-dashboard .alert-row:hover { transform: translateX(-5px); border-color: #ef4444; box-shadow: 0 8px 20px rgba(239, 68, 68, 0.1); }
         .phi-dashboard .alert-content { display: flex; align-items: center; gap: 0.9375rem; font-size: var(--fs-md); font-weight: 900; color: #1e293b; }
-        .phi-dashboard .action-btn { background: white; border: 2px solid #e2e8f0; padding: 0.625rem 1.25rem; border-radius: 12px; font-size: var(--fs-sm); font-weight: 900; color: #475569; cursor: pointer; transition: 0.2s; }
+        .phi-dashboard .action-btn { background: var(--surface-card); border: none; box-shadow: var(--shadow-elevation); padding: 0.625rem 1.25rem; border-radius: 12px; font-size: var(--fs-sm); font-weight: 800; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
         .phi-dashboard .action-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
         .phi-dashboard .empty-alerts { padding: 1.875rem; text-align: center; background: #f0fdf4; border-radius: 14px; color: #166534; font-weight: 900; border: 2px dashed #bbf7d0; font-size: var(--fs-lg); }
 

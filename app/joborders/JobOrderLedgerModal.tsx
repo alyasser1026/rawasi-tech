@@ -54,7 +54,7 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                 .from('contractor_assignments')
                 .select(`
                     id, assigned_qty, unit_price, claim_id,
-                    sub_claims ( id, claim_number, date, total_amount, net_amount, paid_amount, materials_deduction, other_deductions, advance_payment, retention_amount, status )
+                    sub_claims:sub_claims!claim_id ( id, claim_number, date, total_amount, net_amount, paid_amount, materials_deduction, other_deductions, advance_payment, retention_amount, status )
                 `)
                 .eq('job_order_id', targetId);
 

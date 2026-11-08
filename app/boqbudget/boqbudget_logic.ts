@@ -31,12 +31,23 @@ export function useBOQLogic() {
     const { data: boqItems = [], isLoading: isBoqLoading } = useQuery({
         queryKey: ['boq_budget'],
         queryFn: async () => {
-            // 🚀 التحديث هنا: تم إضافة unit_type عشان يتسحب من جدول projects
-            const { data, error } = await supabase
-                .from('boq_budget')
-                .select(`*, projects(Property, unit_type)`);
-            if (error) throw error;
-            return data || [];
+            try {
+                const { data, error } = await supabase
+                    .from('boq_budget')
+                    .select(`*, projects:projects!boq_budget_project_id_fkey(Property, unit_type)`);
+                if (error) throw error;
+                return data || [];
+            } catch (err: any) {
+                console.warn('Fallback boq_budget query due to relation error:', err?.message);
+                const { data: rawBoq, error: boqErr } = await supabase.from('boq_budget').select('*');
+                if (boqErr) throw boqErr;
+                const { data: rawProjects } = await supabase.from('projects').select('id, Property, unit_type');
+                const pMap = new Map((rawProjects || []).map((p: any) => [p.id, p]));
+                return (rawBoq || []).map((b: any) => ({
+                    ...b,
+                    projects: pMap.get(b.project_id) || null
+                }));
+            }
         }
     });
 

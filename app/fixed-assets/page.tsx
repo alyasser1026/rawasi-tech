@@ -115,6 +115,8 @@ export default function FixedAssetsPage() {
         statusFilter
       ),
     enabled: !!activeCompany?.id,
+    retry: false,
+    staleTime: 60000,
   });
 
   const { data: projects = [] } = useQuery({

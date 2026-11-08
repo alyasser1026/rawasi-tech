@@ -326,11 +326,11 @@ export default function SettingsPage() {
       </div>
 
       <style>{`
-        .tab-btn { padding: 0.75rem 1.5rem; border-radius: 12px; border: 1px solid #e2e8f0; font-weight: 900; font-size: var(--fs-sm); cursor: pointer; transition: 0.3s; background: white; color: #64748b; white-space: nowrap; }
+        .tab-btn { padding: 0.75rem 1.5rem; border-radius: 12px; border: none; box-shadow: var(--shadow-elevation); font-weight: 800; font-size: var(--fs-sm); cursor: pointer; transition: 0.2s; background: var(--surface-card); color: var(--text-secondary); white-space: nowrap; }
         .tab-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
-        .tab-btn.active { background: #0f172a; color: white; border-color: #0f172a; box-shadow: 0 4px 15px rgba(15, 23, 42, 0.2); }
+        .tab-btn.active { background: var(--accent-ink); color: white; border: none; box-shadow: var(--shadow-ambient); }
         .group-card { background: #f8fafc; padding: 0.9375rem; border-radius: 12px; border: 1px solid #f1f5f9; transition: 0.2s; }
-        .table-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; background: white; border-radius: 8px; margin-top: 0.3125rem; border: 1px solid #e2e8f0; transition: 0.2s; }
+        .table-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0.75rem; background: var(--surface-card); border-radius: 8px; margin-top: 0.3125rem; border: none; box-shadow: var(--shadow-elevation); transition: 0.2s; }
         .table-row.selected { border-color: #0ea5e9; background: #f0f9ff; }
         .table-row:hover { border-color: #cbd5e1; }
         .custom-checkbox { width: 1rem; height: 1rem; cursor: pointer; }
@@ -341,9 +341,9 @@ export default function SettingsPage() {
         .premium-dropzone.has-file { background: #f0fdf4; border-color: #10b981; border-style: solid; }
         .premium-dropzone.uploading { pointer-events: none; opacity: 0.8; border-color: #3b82f6; }
         .loading-spinner { font-size: var(--fs-2xl); animation: spin 2s linear infinite; }
-        .btn-premium-upload { background: #0f172a; color: white; padding: 0.875rem; border-radius: 12px; border: none; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.2s; width: 100%; margin-top: 0.9375rem; }
-        .btn-premium-upload:hover { background: #1e293b; transform: translateY(-2px); }
-        .sidebar-summary-glass { background: rgba(255,255,255,0.8); padding: 1.25rem; border-radius: 16px; text-align: center; border: 1px solid #e2e8f0; }
+        .btn-premium-upload { background: var(--accent-ink); color: white; padding: 0.875rem; border-radius: 12px; border: none; font-weight: 800; font-size: var(--fs-md); cursor: pointer; transition: 0.2s; width: 100%; margin-top: 0.9375rem; box-shadow: var(--shadow-elevation); }
+        .btn-premium-upload:hover { filter: brightness(1.1); transform: translateY(-2px); }
+        .sidebar-summary-glass { background: var(--surface-card); padding: 1.25rem; border-radius: 16px; text-align: center; border: none; box-shadow: var(--shadow-ambient); }
         .sidebar-summary-glass .icon-pulse { font-size: var(--fs-3xl); margin-bottom: 0.3125rem; }
         .summary-title { margin: 0; font-size: var(--fs-sm); color: #64748b; font-weight: 900; }
         .summary-value { margin: 0.3125rem 0 0 0; font-weight: 900; font-size: var(--fs-3xl); color: #0f172a; }

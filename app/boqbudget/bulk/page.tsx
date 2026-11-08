@@ -5,118 +5,125 @@ import LoadingScreen from '@/components/LoadingScreen';
 import SecureAction from '@/components/SecureAction';
 import { Building, House } from 'lucide-react';
 
-const THEME = {
-  primary: '#0f172a',
-  accent: '#c2410c',
-  sand: '#f8fafc',
-  border: '#e2e8f0',
-};
-
 export default function BulkBudgetPage() {
   const logic = useBulkBudgetLogic();
 
   return (
-    <div className="clean-page" style={{ direction: 'rtl', padding: '1.25rem' }}>
+    <div className="clean-page enterprise-page print-container" style={{ direction: 'rtl', padding: '1.25rem' }}>
       <style>{`
-        .clean-page { min-height: 100vh; background: linear-gradient(135deg, #f8fafc, #e2e8f0); font-family: 'Cairo', sans-serif; }
         .glass-header {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(15px);
-          border: 1px solid rgba(255,255,255,0.8);
-          border-radius: 14px;
+          background: var(--surface-card, #ffffff);
+          border: none;
+          border-radius: var(--phi-radius-card, 18px);
           padding: 1.25rem;
           margin-bottom: 1.25rem;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+          box-shadow: var(--shadow-ambient);
           display: flex;
           align-items: center;
           gap: 1.25rem;
           flex-wrap: wrap;
         }
-        .header-title { font-size: var(--fs-2xl); font-weight: 800; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 0.625rem; }
+        .header-title { 
+          font-size: var(--fs-xl); 
+          font-weight: 800; 
+          color: var(--text-primary, #0f172a); 
+          margin: 0; 
+          display: flex; 
+          align-items: center; 
+          gap: 0.625rem; 
+        }
         
-        .filters-row { display: flex; gap: 1.25rem; flex: 1; align-items: flex-end; }
-        .filter-group { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-        .filter-group label { font-size: var(--fs-md); font-weight: 700; color: #475569; }
+        .filters-row { display: flex; gap: 1.25rem; flex: 1; align-items: flex-end; flex-wrap: wrap; }
+        .filter-group { display: flex; flex-direction: column; gap: 0.375rem; flex: 1; min-width: 11.25rem; }
+        .filter-group label { font-size: var(--fs-xs); font-weight: 800; color: var(--text-secondary, #475569); }
+        
         .styled-select {
-          padding: 0.75rem 0.9375rem;
+          height: 2.75rem;
+          padding: 0 0.875rem;
           border-radius: 12px;
-          border: 1px solid #cbd5e1;
-          background: rgba(255,255,255,0.8);
-          font-size: var(--fs-lg);
-          color: #1e293b;
+          border: none;
+          background: var(--surface-sunken, #f8fafc);
+          box-shadow: var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06));
+          font-size: var(--fs-sm);
+          font-weight: 700;
+          color: var(--text-primary, #1e293b);
           outline: none;
-          transition: all 0.3s;
+          transition: all 0.2s;
           cursor: pointer;
         }
-        .styled-select:focus { border-color: ${THEME.accent}; box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.2); }
+        .styled-select:focus { 
+          box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.2); 
+        }
 
         .btn-save {
-          background: linear-gradient(135deg, ${THEME.accent}, #a16207);
+          background: linear-gradient(135deg, var(--accent-ink, #c2410c), #a16207);
           color: white;
           border: none;
-          padding: 0.75rem 1.5625rem;
+          height: 2.75rem;
+          padding: 0 1.5rem;
           border-radius: 12px;
-          font-weight: 700;
-          font-size: var(--fs-lg);
+          font-weight: 800;
+          font-size: var(--fs-sm);
           cursor: pointer;
-          transition: all 0.3s;
+          transition: all 0.2s;
           display: flex;
           align-items: center;
           gap: 0.5rem;
-          box-shadow: 0 8px 15px rgba(202, 138, 4, 0.3);
+          box-shadow: var(--shadow-elevation);
         }
-        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 12px 20px rgba(202, 138, 4, 0.4); }
-        .btn-save:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-save:hover { transform: translateY(-1px); filter: brightness(1.1); box-shadow: var(--shadow-ambient); }
+        .btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
         .table-container {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(15px);
-          border-radius: 14px;
-          border: 1px solid rgba(255,255,255,0.8);
-          box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+          background: var(--surface-card, #ffffff);
+          border-radius: var(--phi-radius-card, 18px);
+          border: none;
+          box-shadow: var(--shadow-ambient);
           overflow: hidden;
           overflow-x: auto;
         }
         .bulk-table { width: 100%; border-collapse: collapse; }
         .bulk-table th {
-          background: rgba(15, 23, 42, 0.03);
-          padding: 0.9375rem;
+          background: var(--table-head-bg, var(--surface-card, #ffffff));
+          padding: 0.875rem 1rem;
           text-align: right;
           font-weight: 800;
-          color: #334155;
-          font-size: var(--fs-md);
-          border-bottom: 2px solid ${THEME.border};
+          color: var(--text-secondary, #334155);
+          font-size: var(--fs-sm);
+          border-bottom: 1px solid var(--table-zebra-bg, rgba(0,0,0,0.04));
           white-space: nowrap;
         }
         .bulk-table td {
-          padding: 0.75rem 0.9375rem;
-          border-bottom: 1px solid #f1f5f9;
+          padding: 0.75rem 1rem;
+          border-bottom: 1px solid var(--table-zebra-bg, rgba(0,0,0,0.03));
           vertical-align: middle;
         }
-        .bulk-table tr:hover { background: rgba(255,255,255,0.9); }
+        .bulk-table tr:hover { background: var(--table-hover-bg, rgba(0,0,0,0.015)); }
         
         .styled-input {
           width: 100%;
-          padding: 0.5rem 0.75rem;
-          border-radius: 8px;
-          border: 1px solid #e2e8f0;
-          background: #f8fafc;
-          font-size: var(--fs-md);
+          height: 2.75rem;
+          padding: 0 0.75rem;
+          border-radius: 10px;
+          border: none;
+          background: var(--surface-sunken, #f8fafc);
+          box-shadow: var(--shadow-sunken, inset 0 1px 3px rgba(0,0,0,0.06));
+          font-size: var(--fs-sm);
+          font-weight: 700;
+          color: var(--text-primary, #0f172a);
           transition: all 0.2s;
           text-align: center;
+          outline: none;
         }
         .styled-input:focus {
-          border-color: ${THEME.accent};
-          background: white;
-          outline: none;
-          box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.15);
+          box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.2);
         }
-        .villa-name { font-weight: 700; color: #0f172a; font-size: var(--fs-lg); display: flex; align-items: center; gap: 0.5rem; }
+        .villa-name { font-weight: 800; color: var(--text-primary, #0f172a); font-size: var(--fs-md); display: flex; align-items: center; gap: 0.5rem; }
       `}</style>
 
       <div className="glass-header">
         <h1 className="header-title">
-          <span><Building size={16} aria-hidden="true" /></span> التعديل الجماعي للموازنات
+          <span style={{ color: 'var(--accent-ink, #c2410c)' }}><Building size={20} aria-hidden="true" /></span> التعديل الجماعي للموازنات
         </h1>
         
         <div className="filters-row">
@@ -210,10 +217,10 @@ export default function BulkBudgetPage() {
                 <tr key={b.id}>
                   <td>
                     <div className="villa-name">
-                      <span style={{color: THEME.accent}}><House size={16} aria-hidden="true" /></span> 
+                      <span style={{ color: 'var(--accent-ink, #c2410c)' }}><House size={16} aria-hidden="true" /></span> 
                       {b.projects?.Property || 'بدون فيلا'}
-                      {b.projects?.unit_type && <span style={{ fontSize: 'var(--fs-sm)', background: 'rgba(202, 138, 4, 0.1)', color: THEME.accent, padding: '2px 0.5rem', borderRadius: '10px' }}>{b.projects.unit_type}</span>}
-                      {b._isNew && <span style={{ fontSize: 'var(--fs-xs)', background: '#e2e8f0', color: '#475569', padding: '2px 0.375rem', borderRadius: '10px' }}>غير مسجل</span>}
+                      {b.projects?.unit_type && <span style={{ fontSize: 'var(--fs-xs)', background: 'var(--accent-soft-bg, rgba(202, 138, 4, 0.1))', color: 'var(--accent-ink, #c2410c)', padding: '2px 0.5rem', borderRadius: '8px', fontWeight: 800 }}>{b.projects.unit_type}</span>}
+                      {b._isNew && <span style={{ fontSize: 'var(--fs-xs)', background: 'var(--surface-sunken, #e2e8f0)', color: 'var(--text-secondary, #475569)', padding: '2px 0.375rem', borderRadius: '8px', fontWeight: 800 }}>غير مسجل</span>}
                     </div>
                   </td>
                   <td>
@@ -262,11 +269,11 @@ export default function BulkBudgetPage() {
           </table>
         </div>
       ) : logic.selectedWorkItem ? (
-        <div style={{ textAlign: 'center', padding: '3.125rem', background: 'rgba(255,255,255,0.5)', borderRadius: '14px' }}>
-          <h3>لا توجد موازنات مسجلة لهذا البند في الفلل الحالية.</h3>
+        <div style={{ textAlign: 'center', padding: '3.125rem', background: 'var(--surface-card, #ffffff)', borderRadius: 'var(--phi-radius-card, 18px)', boxShadow: 'var(--shadow-ambient)' }}>
+          <h3 style={{ color: 'var(--text-primary)' }}>لا توجد موازنات مسجلة لهذا البند في الفلل الحالية.</h3>
         </div>
       ) : (
-        <div style={{ textAlign: 'center', padding: '3.125rem', background: 'rgba(255,255,255,0.5)', borderRadius: '14px', color: '#64748b' }}>
+        <div style={{ textAlign: 'center', padding: '3.125rem', background: 'var(--surface-card, #ffffff)', borderRadius: 'var(--phi-radius-card, 18px)', color: 'var(--text-secondary, #64748b)', boxShadow: 'var(--shadow-ambient)' }}>
           <h3>يرجى اختيار نوع البند ثم البند لعرض وتعديل موازنات الفلل</h3>
         </div>
       )}

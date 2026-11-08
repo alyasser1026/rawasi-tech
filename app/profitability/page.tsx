@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
 import LoadingScreen from '@/components/LoadingScreen';
 import styles from './profitability.module.css';
+import { fetchProjectsProfitabilityFallback } from './profitabilityFallback';
 import {
   TrendingUp, TrendingDown, Scale, Printer, RefreshCw,
   FileSpreadsheet, ShieldCheck, AlertTriangle, Building2, CheckCircle
@@ -42,7 +43,7 @@ export default function ProjectProfitabilityPage() {
     }
   }, []);
 
-  // 2. Fetch profitability summary from RPC
+  // 2. Fetch profitability summary from RPC with resilient client fallback
   const fetchProfitability = useCallback(async () => {
     try {
       setLoading(true);
@@ -53,14 +54,29 @@ export default function ProjectProfitabilityPage() {
       });
 
       if (error) {
-        console.error('Profitability RPC error:', error);
-        notify.error('تعذر جلب تقرير ربحية المشاريع');
+        console.warn('Profitability RPC not available in schema cache, using resilient client calculation fallback:', error.message || error);
+        const fallbackData = await fetchProjectsProfitabilityFallback({
+          startDate,
+          endDate,
+          projectId: selectedProjectId === 'all' ? null : selectedProjectId
+        });
+        setProfitabilityData(fallbackData);
       } else {
         setProfitabilityData(data);
       }
     } catch (err: any) {
-      console.error('Unexpected error fetching profitability:', err);
-      notify.error('حدث خطأ أثناء تحميل ربحية المشاريع');
+      console.warn('Attempting client fallback after unexpected error:', err);
+      try {
+        const fallbackData = await fetchProjectsProfitabilityFallback({
+          startDate,
+          endDate,
+          projectId: selectedProjectId === 'all' ? null : selectedProjectId
+        });
+        setProfitabilityData(fallbackData);
+      } catch (fallbackErr: any) {
+        console.error('Failed both RPC and fallback profitability calculation:', fallbackErr);
+        notify.error('تعذر جلب تقرير ربحية المشاريع');
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -143,158 +159,159 @@ export default function ProjectProfitabilityPage() {
   const glVariance = Number(profitabilityData?.reconciliation?.variance || 0);
 
   return (
-    <MasterPage
-      title="ربحية المشاريع ومطابقة الأستاذ العام"
-      subtitle="تحليل تكاليف وإيرادات كل مشروع بمقارنة موازنة المقايسة (BOQ) مع مطابقة 100% للقيود"
-    >
-      <div className={styles.container}>
-        {/* Filter Card */}
-        <div className={styles.filterCard}>
-          <div className={styles.filterRow}>
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>المشروع المستهدف</label>
-              <select
-                className={styles.selectField}
-                value={selectedProjectId}
-                onChange={e => setSelectedProjectId(e.target.value)}
+    <div className="clean-page enterprise-page">
+      <MasterPage
+        title="ربحية المشاريع ومطابقة الأستاذ العام"
+        subtitle="تحليل تكاليف وإيرادات كل مشروع بمقارنة موازنة المقايسة (BOQ) مع مطابقة 100% للقيود"
+      >
+        <div className={styles.container}>
+          {/* Filter Card */}
+          <div className={styles.filterCard}>
+            <div className={styles.filterRow}>
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>المشروع المستهدف</label>
+                <select
+                  className={styles.selectField}
+                  value={selectedProjectId}
+                  onChange={e => setSelectedProjectId(e.target.value)}
+                >
+                  <option value="all">جميع المشاريع النشطة (عرض شامل)</option>
+                  {projectsList.map(p => (
+                    <option key={p.id} value={p.id}>
+                      {p.project_name || p["Property"]} {p.project_code ? `(${p.project_code})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>من تاريخ (بداية الفترة)</label>
+                <input
+                  type="date"
+                  className={styles.inputField}
+                  value={startDate}
+                  onChange={e => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className={styles.filterGroup}>
+                <label className={styles.filterLabel}>إلى تاريخ (نهاية الفترة)</label>
+                <input
+                  type="date"
+                  className={styles.inputField}
+                  value={endDate}
+                  onChange={e => setEndDate(e.target.value)}
+                />
+              </div>
+              <div className={styles.actionsBar} style={{ marginRight: 'auto' }}>
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                >
+                  <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
+                  {refreshing ? 'جاري التحديث...' : 'تحديث التقرير'}
+                </button>
+                <button type="button" className={styles.btnSecondary} onClick={exportToCsv}>
+                  <FileSpreadsheet size={15} />
+                  تصدير إكسل
+                </button>
+                <button type="button" className={styles.btnSecondary} onClick={() => window.print()}>
+                  <Printer size={15} />
+                  طباعة
+                </button>
+              </div>
+            </div>
+
+            <div className={styles.presetButtons}>
+              <span style={{ fontSize: 'var(--fs-xs, 0.8rem)', fontWeight: 800, color: 'var(--text-secondary)' }}>فترات سريعة:</span>
+              <button type="button" className={styles.presetBtn} onClick={() => applyPreset('ytd')}>السنة الحالية (YTD)</button>
+              <button type="button" className={styles.presetBtn} onClick={() => applyPreset('mtd')}>هذا الشهر (MTD)</button>
+              <button type="button" className={styles.presetBtn} onClick={() => applyPreset('last_month')}>الشهر الماضي</button>
+              <button type="button" className={styles.presetBtn} onClick={() => applyPreset('prev_year')}>السنة السابقة كاملة</button>
+            </div>
+          </div>
+
+          {/* Global KPI Strip */}
+          <div className={styles.kpiGrid}>
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiLabel}>
+                <span>إجمالي إيرادات العمليات (Revenues)</span>
+                <TrendingUp size={16} color="var(--accent-ink, #c2410c)" />
+              </div>
+              <div className={styles.kpiValue} style={{ color: 'var(--accent-ink, #c2410c)' }}>
+                {formatCurrency(profitabilityData?.summary?.total_combined_revenue || 0)}
+              </div>
+              <div className={styles.kpiSub}>
+                المشاريع: {formatCurrency(profitabilityData?.summary?.projects_revenue || 0)} | عام: {formatCurrency(profitabilityData?.summary?.unallocated_revenue || 0)}
+              </div>
+            </div>
+
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiLabel}>
+                <span>إجمالي التكاليف المباشرة (Direct Costs)</span>
+                <TrendingDown size={16} color="var(--accent-ink, #c2410c)" />
+              </div>
+              <div className={styles.kpiValue}>
+                {formatCurrency(profitabilityData?.summary?.total_combined_costs || 0)}
+              </div>
+              <div className={styles.kpiSub}>
+                المشاريع: {formatCurrency(profitabilityData?.summary?.projects_costs || 0)} | عام: {formatCurrency(profitabilityData?.summary?.unallocated_costs || 0)}
+              </div>
+            </div>
+
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiLabel}>
+                <span>صافي ربح العمليات (Operating Profit)</span>
+                <Scale size={16} color={Number(profitabilityData?.summary?.total_combined_profit || 0) >= 0 ? 'var(--status-positive, #059669)' : 'var(--status-negative, #dc2626)'} />
+              </div>
+              <div
+                className={styles.kpiValue}
+                style={{ color: Number(profitabilityData?.summary?.total_combined_profit || 0) >= 0 ? 'var(--status-positive, #059669)' : 'var(--status-negative, #dc2626)' }}
               >
-                <option value="all">جميع المشاريع النشطة (عرض شامل)</option>
-                {projectsList.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.project_name || p["Property"]} {p.project_code ? `(${p.project_code})` : ''}
-                  </option>
-                ))}
-              </select>
+                {formatCurrency(profitabilityData?.summary?.total_combined_profit || 0)}
+              </div>
+              <div className={styles.kpiSub} style={{ color: Number(profitabilityData?.summary?.total_combined_profit || 0) >= 0 ? 'var(--status-positive, #059669)' : 'var(--status-negative, #dc2626)' }}>
+                الهامش التشغيلي العام: {profitabilityData?.summary?.overall_margin_pct || 0}%
+              </div>
             </div>
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>من تاريخ (بداية الفترة)</label>
-              <input
-                type="date"
-                className={styles.inputField}
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-              />
-            </div>
-            <div className={styles.filterGroup}>
-              <label className={styles.filterLabel}>إلى تاريخ (نهاية الفترة)</label>
-              <input
-                type="date"
-                className={styles.inputField}
-                value={endDate}
-                onChange={e => setEndDate(e.target.value)}
-              />
-            </div>
-            <div className={styles.actionsBar} style={{ marginRight: 'auto' }}>
-              <button
-                type="button"
-                className={styles.btnPrimary}
-                onClick={handleRefresh}
-                disabled={refreshing}
-              >
-                <RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} />
-                {refreshing ? 'جاري التحديث...' : 'تحديث التقرير'}
-              </button>
-              <button type="button" className={styles.btnSecondary} onClick={exportToCsv}>
-                <FileSpreadsheet size={15} />
-                تصدير إكسل
-              </button>
-              <button type="button" className={styles.btnSecondary} onClick={() => window.print()}>
-                <Printer size={15} />
-                طباعة
-              </button>
+
+            <div className={styles.kpiCard}>
+              <div className={styles.kpiLabel}>
+                <span>عدد المشاريع النشطة بالفترة</span>
+                <Building2 size={16} color="var(--accent-ink, #c2410c)" />
+              </div>
+              <div className={styles.kpiValue}>
+                {profitabilityData?.projects_count || 0} مشروع
+              </div>
+              <div className={styles.kpiSub}>
+                مشاريع ذات حركة مالية مرحلة
+              </div>
             </div>
           </div>
 
-          <div className={styles.presetButtons}>
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>فترات سريعة:</span>
-            <button type="button" className={styles.presetBtn} onClick={() => applyPreset('ytd')}>السنة الحالية (YTD)</button>
-            <button type="button" className={styles.presetBtn} onClick={() => applyPreset('mtd')}>هذا الشهر (MTD)</button>
-            <button type="button" className={styles.presetBtn} onClick={() => applyPreset('last_month')}>الشهر الماضي</button>
-            <button type="button" className={styles.presetBtn} onClick={() => applyPreset('prev_year')}>السنة السابقة كاملة</button>
-          </div>
-        </div>
-
-        {/* Global KPI Strip */}
-        <div className={styles.kpiGrid}>
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiLabel}>
-              <span>إجمالي إيرادات العمليات (Revenues)</span>
-              <TrendingUp size={16} color="#38bdf8" />
+          {/* Reconciliation Status Card */}
+          <div className={styles.reconciliationCard}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+              <span style={{ fontWeight: 800, fontSize: 'var(--fs-sm, 0.95rem)', color: 'var(--text-primary)' }}>حالة مطابقة الأستاذ العام (GL Invariance Check):</span>
+              <div className={isReconciled ? styles.reconciledPill : styles.unreconciledPill}>
+                {isReconciled ? (
+                  <>
+                    <ShieldCheck size={16} />
+                    مطابقة تامة 100% مع الأستاذ العام (حسابات 4 و 51) — الفارق: 0.00 ر.س
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle size={16} />
+                    يوجد فارق عدم مطابقة: {formatCurrency(glVariance)} ر.س
+                  </>
+                )}
+              </div>
             </div>
-            <div className={styles.kpiValue}>
-              {formatCurrency(profitabilityData?.summary?.total_combined_revenue || 0)}
-            </div>
-            <div className={styles.kpiSub} style={{ color: '#94a3b8' }}>
-              المشاريع: {formatCurrency(profitabilityData?.summary?.projects_revenue || 0)} | عام: {formatCurrency(profitabilityData?.summary?.unallocated_revenue || 0)}
-            </div>
-          </div>
-
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiLabel}>
-              <span>إجمالي التكاليف المباشرة (Direct Costs)</span>
-              <TrendingDown size={16} color="#f59e0b" />
-            </div>
-            <div className={styles.kpiValue}>
-              {formatCurrency(profitabilityData?.summary?.total_combined_costs || 0)}
-            </div>
-            <div className={styles.kpiSub} style={{ color: '#94a3b8' }}>
-              المشاريع: {formatCurrency(profitabilityData?.summary?.projects_costs || 0)} | عام: {formatCurrency(profitabilityData?.summary?.unallocated_costs || 0)}
+            <div style={{ fontSize: 'var(--fs-xs, 0.85rem)', fontWeight: 700, color: 'var(--text-secondary)' }}>
+              إجمالي إيراد الأستاذ (4): {formatCurrency(profitabilityData?.reconciliation?.gl_total_revenue || 0)} |
+              إجمالي تكاليف الأستاذ (51): {formatCurrency(profitabilityData?.reconciliation?.gl_total_project_costs || 0)}
             </div>
           </div>
-
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiLabel}>
-              <span>صافي ربح العمليات (Operating Profit)</span>
-              <Scale size={16} color={Number(profitabilityData?.summary?.total_combined_profit || 0) >= 0 ? '#10b981' : '#ef4444'} />
-            </div>
-            <div
-              className={styles.kpiValue}
-              style={{ color: Number(profitabilityData?.summary?.total_combined_profit || 0) >= 0 ? '#34d399' : '#f87171' }}
-            >
-              {formatCurrency(profitabilityData?.summary?.total_combined_profit || 0)}
-            </div>
-            <div className={styles.kpiSub} style={{ color: Number(profitabilityData?.summary?.total_combined_profit || 0) >= 0 ? '#10b981' : '#ef4444' }}>
-              الهامش التشغيلي العام: {profitabilityData?.summary?.overall_margin_pct || 0}%
-            </div>
-          </div>
-
-          <div className={styles.kpiCard}>
-            <div className={styles.kpiLabel}>
-              <span>عدد المشاريع النشطة بالفترة</span>
-              <Building2 size={16} color="#a78bfa" />
-            </div>
-            <div className={styles.kpiValue} style={{ color: '#c4b5fd' }}>
-              {profitabilityData?.projects_count || 0} مشروع
-            </div>
-            <div className={styles.kpiSub} style={{ color: '#94a3b8' }}>
-              مشاريع ذات حركة مالية مرحلة
-            </div>
-          </div>
-        </div>
-
-        {/* Reconciliation Status Card */}
-        <div className={styles.reconciliationCard}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>حالة مطابقة الأستاذ العام (GL Invariance Check):</span>
-            <div className={isReconciled ? styles.reconciledPill : styles.unreconciledPill}>
-              {isReconciled ? (
-                <>
-                  <ShieldCheck size={16} />
-                  مطابقة تامة 100% مع الأستاذ العام (حسابات 4 و 51) — الفارق: 0.00 ر.س
-                </>
-              ) : (
-                <>
-                  <AlertTriangle size={16} />
-                  يوجد فارق عدم مطابقة: {formatCurrency(glVariance)} ر.س
-                </>
-              )}
-            </div>
-          </div>
-          <div style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
-            إجمالي إيراد الأستاذ (4): {formatCurrency(profitabilityData?.reconciliation?.gl_total_revenue || 0)} |
-            إجمالي تكاليف الأستاذ (51): {formatCurrency(profitabilityData?.reconciliation?.gl_total_project_costs || 0)}
-          </div>
-        </div>
 
         {loading ? (
           <LoadingScreen message="جاري تحليل تكاليف المشاريع ومطابقة قيود اليومية..." fullScreen={false} />
@@ -302,10 +319,10 @@ export default function ProjectProfitabilityPage() {
           <div className={styles.matrixCard}>
             <div className={styles.sectionHeader}>
               <div className={styles.sectionTitle}>
-                <Building2 size={20} color="#38bdf8" />
+                <Building2 size={20} color="var(--accent-ink, #c2410c)" />
                 مصفوفة تكاليف وربحية المشاريع ومقارنة الموازنات (BOQ)
               </div>
-              <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+              <span style={{ fontSize: 'var(--fs-xs, 0.85rem)', fontWeight: 700, color: 'var(--text-secondary)' }}>
                 الفترة من {profitabilityData?.period?.start_date} إلى {profitabilityData?.period?.end_date}
               </span>
             </div>
@@ -338,40 +355,40 @@ export default function ProjectProfitabilityPage() {
 
                     return (
                       <tr key={p.project_id}>
-                        <td style={{ fontWeight: 600 }}>{p.project_code || '—'}</td>
+                        <td style={{ fontWeight: 800 }}>{p.project_code || '—'}</td>
                         <td>
-                          <div style={{ fontWeight: 600 }}>{p.project_name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                          <div style={{ fontWeight: 800 }}>{p.project_name}</div>
+                          <div style={{ fontSize: 'var(--fs-xs, 0.75rem)', color: 'var(--text-secondary)' }}>
                             {p.client_name ? `العميل: ${p.client_name}` : ''} {p.project_status ? `• ${p.project_status}` : ''}
                           </div>
                         </td>
-                        <td className={styles.amountCell} style={{ color: '#38bdf8' }}>{formatCurrency(p.revenue)}</td>
+                        <td className={styles.amountCell} style={{ color: 'var(--accent-ink, #c2410c)', fontWeight: 800 }}>{formatCurrency(p.revenue)}</td>
                         <td className={styles.amountCell}>{formatCurrency(p.costs?.materials || 0)}</td>
                         <td className={styles.amountCell}>{formatCurrency(p.costs?.labor || 0)}</td>
                         <td className={styles.amountCell}>{formatCurrency(p.costs?.subcontractors || 0)}</td>
                         <td className={styles.amountCell}>{formatCurrency(equipDeprec)}</td>
                         <td className={styles.amountCell}>{formatCurrency(p.costs?.site_expenses || 0)}</td>
-                        <td className={styles.amountCell} style={{ fontWeight: 700, color: '#f59e0b' }}>
+                        <td className={styles.amountCell} style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
                           {formatCurrency(p.costs?.total || 0)}
                         </td>
                         <td
                           className={styles.amountCell}
                           style={{
-                            fontWeight: 700,
-                            color: Number(p.net_profit || 0) >= 0 ? '#34d399' : '#f87171'
+                            fontWeight: 900,
+                            color: Number(p.net_profit || 0) >= 0 ? 'var(--status-positive, #059669)' : 'var(--status-negative, #dc2626)'
                           }}
                         >
                           {formatCurrency(p.net_profit || 0)}
                         </td>
-                        <td style={{ fontWeight: 700, textAlign: 'center', color: Number(p.net_profit || 0) >= 0 ? '#34d399' : '#f87171' }}>
+                        <td style={{ fontWeight: 800, textAlign: 'center', color: Number(p.net_profit || 0) >= 0 ? 'var(--status-positive, #059669)' : 'var(--status-negative, #dc2626)' }}>
                           {p.margin_pct}%
                         </td>
-                        <td className={styles.amountCell} style={{ color: '#cbd5e1' }}>
+                        <td className={styles.amountCell} style={{ color: 'var(--text-secondary)' }}>
                           {formatCurrency(p.boq_comparison?.estimated_cost || 0)}
                         </td>
                         <td>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: 600, color: isBurnOver ? '#ef4444' : isBurnNear ? '#f59e0b' : '#10b981' }}>
+                            <span style={{ fontSize: 'var(--fs-xs, 0.8rem)', fontWeight: 800, color: isBurnOver ? 'var(--status-negative, #ef4444)' : isBurnNear ? '#f59e0b' : 'var(--status-positive, #10b981)' }}>
                               {burnPct}%
                             </span>
                             <div className={styles.burnProgress}>
@@ -388,7 +405,7 @@ export default function ProjectProfitabilityPage() {
 
                   {(profitabilityData?.projects || []).length === 0 && (
                     <tr>
-                      <td colSpan={13} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                      <td colSpan={13} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-secondary)' }}>
                         لا توجد حركات تكاليف أو إيرادات مسجلة للمشاريع خلال هذه الفترة
                       </td>
                     </tr>
@@ -397,25 +414,25 @@ export default function ProjectProfitabilityPage() {
                   {/* Unallocated Operational Row */}
                   {profitabilityData?.unallocated && (
                     <tr className={styles.unallocatedRow}>
-                      <td style={{ fontWeight: 600 }}>غير محدد</td>
+                      <td style={{ fontWeight: 800 }}>غير محدد</td>
                       <td>
-                        <div style={{ fontWeight: 600 }}>{profitabilityData.unallocated.title_ar}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                        <div style={{ fontWeight: 800 }}>{profitabilityData.unallocated.title_ar}</div>
+                        <div style={{ fontSize: 'var(--fs-xs, 0.75rem)', color: 'var(--text-secondary)' }}>
                           مواد مستودعات مركزية وإهلاك عام غير مرتبط بمشروع معين
                         </div>
                       </td>
-                      <td className={styles.amountCell} style={{ color: '#38bdf8' }}>{formatCurrency(profitabilityData.unallocated.revenue || 0)}</td>
-                      <td className={styles.amountCell} colSpan={5} style={{ textAlign: 'center', color: '#94a3b8' }}>
+                      <td className={styles.amountCell} style={{ color: 'var(--accent-ink, #c2410c)', fontWeight: 800 }}>{formatCurrency(profitabilityData.unallocated.revenue || 0)}</td>
+                      <td className={styles.amountCell} colSpan={5} style={{ textAlign: 'center', color: 'var(--text-secondary)' }}>
                         تكاليف تشغيل عامة موزعة دفترية
                       </td>
-                      <td className={styles.amountCell} style={{ fontWeight: 700, color: '#f59e0b' }}>
+                      <td className={styles.amountCell} style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
                         {formatCurrency(profitabilityData.unallocated.costs || 0)}
                       </td>
                       <td
                         className={styles.amountCell}
                         style={{
-                          fontWeight: 700,
-                          color: Number(profitabilityData.unallocated.net_profit || 0) >= 0 ? '#34d399' : '#f87171'
+                          fontWeight: 900,
+                          color: Number(profitabilityData.unallocated.net_profit || 0) >= 0 ? 'var(--status-positive, #059669)' : 'var(--status-negative, #dc2626)'
                         }}
                       >
                         {formatCurrency(profitabilityData.unallocated.net_profit || 0)}
@@ -429,28 +446,28 @@ export default function ProjectProfitabilityPage() {
                   {/* Grand Combined GL Reconciled Row */}
                   {profitabilityData?.summary && (
                     <tr className={styles.glTotalRow}>
-                      <td colSpan={2} style={{ fontWeight: 800 }}>
+                      <td colSpan={2} style={{ fontWeight: 900 }}>
                         الإجمالي الشامل المطابق للأستاذ العام (100% GL Reconciliation)
                       </td>
-                      <td className={styles.amountCell} style={{ color: '#38bdf8', fontWeight: 800 }}>
+                      <td className={styles.amountCell} style={{ color: 'var(--accent-ink, #c2410c)', fontWeight: 900 }}>
                         {formatCurrency(profitabilityData.summary.total_combined_revenue || 0)}
                       </td>
-                      <td colSpan={5} style={{ textAlign: 'center', color: '#7dd3fc', fontWeight: 600 }}>
+                      <td colSpan={5} style={{ textAlign: 'center', color: 'var(--text-secondary)', fontWeight: 700 }}>
                         إجمالي تكاليف العمليات المباشرة (حساب 51)
                       </td>
-                      <td className={styles.amountCell} style={{ color: '#f59e0b', fontWeight: 800 }}>
+                      <td className={styles.amountCell} style={{ color: 'var(--text-primary)', fontWeight: 900 }}>
                         {formatCurrency(profitabilityData.summary.total_combined_costs || 0)}
                       </td>
                       <td
                         className={styles.amountCell}
                         style={{
-                          fontWeight: 800,
-                          color: Number(profitabilityData.summary.total_combined_profit || 0) >= 0 ? '#34d399' : '#f87171'
+                          fontWeight: 900,
+                          color: Number(profitabilityData.summary.total_combined_profit || 0) >= 0 ? 'var(--status-positive, #059669)' : 'var(--status-negative, #dc2626)'
                         }}
                       >
                         {formatCurrency(profitabilityData.summary.total_combined_profit || 0)}
                       </td>
-                      <td style={{ textAlign: 'center', fontWeight: 800 }}>
+                      <td style={{ textAlign: 'center', fontWeight: 900 }}>
                         {profitabilityData.summary.overall_margin_pct}%
                       </td>
                       <td className={styles.amountCell}>—</td>
@@ -464,5 +481,6 @@ export default function ProjectProfitabilityPage() {
         )}
       </div>
     </MasterPage>
+    </div>
   );
 }

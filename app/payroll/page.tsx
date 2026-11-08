@@ -206,7 +206,7 @@ export default function PayrollPage() {
       render: (row: any) => {
         if (!row) return null;
         return (
-          <div style={{ fontWeight: '900', color: 'white', fontSize: 'var(--fs-md)', background: THEME.primary, padding: '0.25rem 0.5rem', borderRadius: '6px', textAlign: 'center' }}>
+          <div style={{ fontWeight: '900', color: 'var(--text-primary, #1e293b)', fontSize: 'var(--fs-md)', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken)', padding: '0.25rem 0.5rem', borderRadius: '8px', textAlign: 'center' }}>
             {formatCurrency(row.net_salary)}
           </div>
         );
@@ -224,7 +224,7 @@ export default function PayrollPage() {
             value={row.amount_to_pay === 0 ? '' : row.amount_to_pay} 
             disabled={row.type !== 'موظف' || row.is_posted}
             onChange={e => logic.updateRecord(row.id, 'amount_to_pay', e.target.value)}
-            style={{ width: '5.3125rem', textAlign: 'center', color: THEME.success, border: `2px solid ${THEME.success}`, borderRadius: '6px', padding: '0.25rem', fontWeight: '900', background: '#ecfdf5' }}
+            style={{ width: '5.3125rem', textAlign: 'center', color: 'var(--status-positive, #059669)', border: 'none', borderRadius: '8px', padding: '0.35rem 0.5rem', fontWeight: '900', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken)' }}
           />
         );
       }
@@ -294,16 +294,16 @@ export default function PayrollPage() {
         
         <div style={{ flex: 1, overflowX: 'auto' }}>
           
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.9375rem', alignItems: 'center', background: 'white', padding: '0.9375rem 1.25rem', borderRadius: '12px', marginBottom: '1.25rem', border: `1px solid ${THEME.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-            <div style={{ fontWeight: '900', color: THEME.primary, fontSize: 'var(--fs-lg)', minWidth: '8.125rem' }}>خيارات المسير:</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.9375rem', alignItems: 'center', background: 'var(--surface-card, #ffffff)', padding: '1.25rem', borderRadius: 'var(--phi-radius-card, 18px)', marginBottom: '1.25rem', border: 'none', boxShadow: 'var(--shadow-ambient)' }}>
+            <div style={{ fontWeight: '900', color: 'var(--text-primary, #1e293b)', fontSize: 'var(--fs-lg)', minWidth: '8.125rem' }}>خيارات المسير:</div>
             
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', background: THEME.slate, padding: '0.3125rem 0.9375rem', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken)', padding: '0.45rem 0.9375rem', borderRadius: '12px' }}>
               <label style={{ fontSize: 'var(--fs-sm)', color: THEME.textMuted, fontWeight: 'bold' }}>تاريخ قطع المسحوبات:</label>
               <input 
                 type="date" 
                 value={logic.cutoffDate} 
                 onChange={e => logic.setCutoffDate(e.target.value)} 
-                style={{ padding: '0.375rem 0.625rem', borderRadius: '6px', border: `1px solid ${THEME.border}`, fontWeight: 'bold', outline: 'none', color: THEME.ruby }}
+                style={{ padding: '0.375rem 0.625rem', borderRadius: '8px', border: 'none', background: 'transparent', fontWeight: 'bold', outline: 'none', color: 'var(--accent-ink, #c2410c)' }}
               />
             </div>
 
@@ -313,14 +313,10 @@ export default function PayrollPage() {
               style={{
                 padding: '0.5rem 1rem',
                 borderRadius: '8px',
-                border: `1px solid ${logic.filterActiveOnly ? THEME.success : THEME.border}`,
-                background: logic.filterActiveOnly ? THEME.success : 'white',
-                color: logic.filterActiveOnly ? 'white' : THEME.textMain,
-                fontWeight: '900',
-                fontSize: 'var(--fs-sm)',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                boxShadow: logic.filterActiveOnly ? '0 2px 4px rgba(5,150,105,0.2)' : 'none'
+                border: 'none',
+                background: logic.filterActiveOnly ? 'var(--status-positive, #059669)' : 'var(--surface-sunken, #f8fafc)',
+                color: logic.filterActiveOnly ? 'white' : 'var(--text-primary, #1e293b)',
+                boxShadow: 'var(--shadow-elevation)',
               }}
             >
               {logic.filterActiveOnly ? 'عرض العمال النشطين فقط' : 'فلترة العمال النشطين (الذين عملوا)'}
@@ -337,27 +333,27 @@ export default function PayrollPage() {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(9.375rem, 1fr))', gap: '0.9375rem', marginBottom: '1.5625rem' }}>
-            <div className="ent-summary-card" style={{ borderBottom: `4px solid ${THEME.primary}` }}>
-              <div style={{ fontSize: 'var(--fs-sm)', color: THEME.textMuted, fontWeight: 'bold' }}>الكوادر المعروضة</div>
-              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: THEME.primary }}>{logic.filteredRecords.length}</div>
+            <div className="ent-summary-card" style={{ border: 'none', borderRadius: 'var(--phi-radius-card, 18px)', background: 'var(--surface-card, #ffffff)', boxShadow: 'var(--shadow-ambient)' }}>
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #64748b)', fontWeight: 'bold' }}>الكوادر المعروضة</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: 'var(--text-primary, #1e293b)' }}>{logic.filteredRecords.length}</div>
             </div>
-            <div className="ent-summary-card" style={{ borderBottom: `4px solid ${THEME.primary}` }}>
-              <div style={{ fontSize: 'var(--fs-sm)', color: THEME.textMuted, fontWeight: 'bold' }}>إجمالي الاستحقاقات (الأساسي)</div>
-              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: THEME.primary }}>{formatCurrency(logic.totals.current_net + logic.totals.deductions + logic.totals.extended_advances)}</div>
+            <div className="ent-summary-card" style={{ border: 'none', borderRadius: 'var(--phi-radius-card, 18px)', background: 'var(--surface-card, #ffffff)', boxShadow: 'var(--shadow-ambient)' }}>
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #64748b)', fontWeight: 'bold' }}>إجمالي الاستحقاقات (الأساسي)</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: 'var(--text-primary, #1e293b)' }}>{formatCurrency(logic.totals.current_net + logic.totals.deductions + logic.totals.extended_advances)}</div>
             </div>
-            <div className="ent-summary-card" style={{ borderBottom: `4px solid ${THEME.ruby}` }}>
-              <div style={{ fontSize: 'var(--fs-sm)', color: THEME.textMuted, fontWeight: 'bold' }}>إجمالي الخصم والمسحوبات</div>
-              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: THEME.ruby }}>{formatCurrency(logic.totals.deductions + logic.totals.extended_advances)}</div>
+            <div className="ent-summary-card" style={{ border: 'none', borderRadius: 'var(--phi-radius-card, 18px)', background: 'var(--surface-card, #ffffff)', boxShadow: 'var(--shadow-ambient)' }}>
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #64748b)', fontWeight: 'bold' }}>إجمالي الخصم والمسحوبات</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: 'var(--status-negative, #ef4444)' }}>{formatCurrency(logic.totals.deductions + logic.totals.extended_advances)}</div>
             </div>
-            <div className="ent-summary-card ent-payroll-total" style={{ borderBottom: `4px solid ${THEME.accent}` }}>
-              <div style={{ fontSize: 'var(--fs-sm)', color: '#047857', fontWeight: 'bold' }}>إجمالي المراد صرفه فعلياً</div>
-              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900' }}>{formatCurrency(logic.totals.amount_to_pay || 0)}</div>
+            <div className="ent-summary-card ent-payroll-total" style={{ border: 'none', borderRadius: 'var(--phi-radius-card, 18px)', background: 'var(--surface-card, #ffffff)', boxShadow: 'var(--shadow-ambient)' }}>
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--accent-ink, #c2410c)', fontWeight: 'bold' }}>إجمالي المراد صرفه فعلياً</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: 'var(--accent-ink, #c2410c)' }}>{formatCurrency(logic.totals.amount_to_pay || 0)}</div>
             </div>
           </div>
 
           <input type="search" placeholder="ابحث باسم الموظف أو المهنة..." value={logic.globalSearch}
             onChange={e => logic.setGlobalSearch(e.target.value)} aria-label="البحث في المسير"
-            style={{ padding: '0.625rem', width: '100%', marginBottom: '0.75rem', border: `1px solid ${THEME.border}`, borderRadius: '8px' }} />
+            style={{ padding: '0.625rem 0.9375rem', width: '100%', marginBottom: '1.25rem', border: 'none', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken)', borderRadius: '12px', height: '2.75rem', fontWeight: 700, color: 'var(--text-primary)', outline: 'none' }} />
           <RawasiSmartTable 
             data={logic.filteredRecords} 
             columns={columns} 

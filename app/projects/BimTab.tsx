@@ -31,20 +31,40 @@ export default function BimTab({ logic }: BimTabProps) {
     <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
       <style>{`
         .bim-card {
-          background: rgba(255, 255, 255, 0.7);
-          backdrop-filter: blur(15px);
-          border-radius: 16px;
-          border: 1px solid rgba(255, 255, 255, 0.8);
+          background: var(--surface-card);
+          border-radius: var(--phi-radius-card, 18px);
+          border: none !important;
+          box-shadow: var(--shadow-ambient);
           padding: 1.25rem;
           margin-bottom: 1.25rem;
+          position: relative;
+          overflow: hidden;
+        }
+        .bim-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 8%; right: 8%;
+          height: 1.5px;
+          background: var(--specular-beam);
+          pointer-events: none;
         }
         .bim-kpi-card {
-          background: rgba(255, 255, 255, 0.6);
-          backdrop-filter: blur(10px);
+          background: var(--surface-card);
           border-radius: 14px;
-          border: 1px solid rgba(255, 255, 255, 0.7);
+          border: none !important;
+          box-shadow: var(--shadow-elevation);
           padding: 1rem;
           text-align: center;
+          position: relative;
+          overflow: hidden;
+        }
+        .bim-kpi-card::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 8%; right: 8%;
+          height: 1.5px;
+          background: var(--specular-beam);
+          pointer-events: none;
         }
       `}</style>
 
@@ -58,35 +78,35 @@ export default function BimTab({ logic }: BimTabProps) {
         }}
       >
         <div className="bim-kpi-card">
-          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: '#64748b', fontWeight: 800 }}>نموذج الوحدة</div>
+          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', fontWeight: 800 }}>نموذج الوحدة</div>
           <div style={{ fontSize: 'var(--fs-lg, 16px)', fontWeight: 900, color: THEME.primary }}>
             {project.unit_type || 'فيلا سكنية فاخرة'}
           </div>
         </div>
 
         <div className="bim-kpi-card">
-          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: '#64748b', fontWeight: 800 }}>مسطح الدور التقديري</div>
+          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', fontWeight: 800 }}>مسطح الدور التقديري</div>
           <div style={{ fontSize: 'var(--fs-lg, 16px)', fontWeight: 900, color: '#0284c7' }}>
             {project.unit_area ? `${project.unit_area} م²` : '320 م²'}
           </div>
         </div>
 
         <div className="bim-kpi-card">
-          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: '#64748b', fontWeight: 800 }}>إجمالي الخرسانات المسلحة</div>
+          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', fontWeight: 800 }}>إجمالي الخرسانات المسلحة</div>
           <div style={{ fontSize: 'var(--fs-lg, 16px)', fontWeight: 900, color: '#c2410c' }}>
             ~135 م³
           </div>
         </div>
 
         <div className="bim-kpi-card">
-          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: '#64748b', fontWeight: 800 }}>حديد التسليح التقديري</div>
+          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', fontWeight: 800 }}>حديد التسليح التقديري</div>
           <div style={{ fontSize: 'var(--fs-lg, 16px)', fontWeight: 900, color: '#16a34a' }}>
             ~15.2 طن
           </div>
         </div>
 
         <div className="bim-kpi-card">
-          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: '#64748b', fontWeight: 800 }}>الميزانية المعتمدة</div>
+          <div style={{ fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', fontWeight: 800 }}>الميزانية المعتمدة</div>
           <div style={{ fontSize: 'var(--fs-lg, 16px)', fontWeight: 900, color: THEME.goldAccent }}>
             {formatCurrency(project.estimated_budget || 0)}
           </div>
@@ -118,7 +138,7 @@ export default function BimTab({ logic }: BimTabProps) {
               محرك BIM مفتوح المصدر (100% Free)
             </h4>
           </div>
-          <p style={{ margin: 0, fontSize: 'var(--fs-xs, 12px)', color: '#64748b', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
             يعمل مباشرة في المتصفح باستخدام مكتبة Three.js دون أي حاجة لاشتراكات Autodesk Forge أو BIM 360 المكلفة. يدعم استعراض العناصر الإنشائية، تفعيل الأشعة السينية للهيكل، ورفع ملفات GLB / GLTF / OBJ من جهازك فوراً.
           </p>
         </div>
@@ -131,7 +151,7 @@ export default function BimTab({ logic }: BimTabProps) {
               حصر الكميات ومطابقة بنود المقايسة
             </h4>
           </div>
-          <p style={{ margin: 0, fontSize: 'var(--fs-xs, 12px)', color: '#64748b', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
             انقر على أي عمود، سقف، أو قاعدة في النموذج ثلاثي الأبعاد لاستخراج الأبعاد الهندسية، الحجم التقديري بالمتر المكعب، وحساب تكلفة البند الإنشائي فورياً وربطه بجدول الكميات (BOQ).
           </p>
         </div>
@@ -144,7 +164,7 @@ export default function BimTab({ logic }: BimTabProps) {
               القطاعات المستعرضة وفحص الأدوار
             </h4>
           </div>
-          <p style={{ margin: 0, fontSize: 'var(--fs-xs, 12px)', color: '#64748b', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
             استخدم أداة "القطاع الهندسي" لعمل مسح أفقي منسوبي بالارتفاع، والتحكم في إخفاء وإظهار الطبقات الهندسية (أساسات، أعمدة، كمرات، مباني، واجهات) بضغطة زر واحدة.
           </p>
         </div>

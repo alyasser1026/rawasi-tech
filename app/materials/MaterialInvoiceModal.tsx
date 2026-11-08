@@ -155,7 +155,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                         onChange={id => logic.setInvoiceData((current: any) => ({ ...current, job_order_id: id }))} />}
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5625rem', background: '#f8fafc', padding: '1.5625rem', borderRadius: '14px', marginBottom: '1.5625rem', border: '1px solid #e2e8f0' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5625rem', background: 'var(--surface-sunken)', padding: '1.5625rem', borderRadius: '14px', marginBottom: '1.5625rem', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
                     <div style={{ zIndex: 80, position: 'relative' }}>
                         {customerReceipt
                             ? <p className="ent-field-note">رصيد خامات العميل يُرحّل إلى حساب 217 عند ترحيل السند.</p>
@@ -258,7 +258,7 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                     <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '1.125rem', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', color: '#475569', transition: '0.2s' }}>
                         إرفاق مستند (صورة الفاتورة / إذن الاستلام)
                     </button>
-                    <button onClick={isCameraOpen ? takePhoto : startCamera} style={{ flex: 1, padding: '1.125rem', background: '#1e293b', color: 'white', borderRadius: '16px', border: 'none', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' }}>
+                    <button onClick={isCameraOpen ? takePhoto : startCamera} style={{ flex: 1, padding: '1.125rem', background: 'var(--accent-ink)', color: 'white', borderRadius: '16px', border: 'none', fontWeight: 800, cursor: 'pointer', boxShadow: 'var(--shadow-elevation)' }}>
                         {isCameraOpen ? 'التقاط الفاتورة' : 'مسح بالكاميرا'}
                     </button>
                 </div>

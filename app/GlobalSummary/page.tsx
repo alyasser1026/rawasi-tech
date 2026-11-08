@@ -128,19 +128,19 @@ export default function MasterDashboard() {
 
                 {/* العمود الأيسر: الإجراءات والرقابة */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5625rem' }}>
-                    <GlassContainer style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: 'white' }}>
-                        <h3>رادار الرقابة المالية</h3>
+                    <GlassContainer style={{ background: 'var(--surface-card, #ffffff)', color: 'var(--text-primary)', border: 'none', boxShadow: 'var(--shadow-ambient)', borderRadius: 'var(--phi-radius-card, 18px)' }}>
+                        <h3 style={{ color: 'var(--text-primary)' }}>رادار الرقابة المالية</h3>
                         <div style={{ marginTop: '1.25rem' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.625rem 0', borderBottom: '1px solid #334155' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.625rem 0', borderBottom: '1px solid var(--table-zebra-bg, rgba(0,0,0,0.06))' }}>
                                 <span>قيود يتيمة</span>
                                 <span style={{ color: THEME.accent, fontWeight: 900 }}>{summary.audit.orphans}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.625rem 0', borderBottom: '1px solid #334155' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.625rem 0', borderBottom: '1px solid var(--table-zebra-bg, rgba(0,0,0,0.06))' }}>
                                 <span>حركات غير متزنة</span>
                                 <span style={{ color: '#10b981' }}>0</span>
                             </div>
                         </div>
-                        <button className="btn" style={{ width: '100%', marginTop: '1.25rem', background: THEME.accent, color: 'white' }}>فتح غرفة العمليات</button>
+                        <button className="btn" style={{ width: '100%', marginTop: '1.25rem', background: 'linear-gradient(135deg, var(--accent-ink, #c2410c), #b45309)', color: 'white', border: 'none', borderRadius: '12px', boxShadow: 'var(--shadow-elevation)' }}>فتح غرفة العمليات</button>
                     </GlassContainer>
 
                     <GlassContainer>
@@ -189,7 +189,7 @@ function ProgressBar({ label, percentage, color }: any) {
 
 function QuickAction({ icon, label }: any) {
     return (
-        <div className="btn" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: THEME.primary, padding: '0.9375rem', flexDirection: 'column' }}>
+        <div className="btn" style={{ background: 'var(--surface-sunken)', border: 'none', boxShadow: 'var(--shadow-sunken)', color: 'var(--accent-ink)', padding: '0.9375rem', flexDirection: 'column' }}>
             <span style={{ display: 'inline-flex' }}><PhiIcon value={icon} size={20} /></span>
             <span style={{ fontSize: 'var(--fs-sm)' }}>{label}</span>
         </div>

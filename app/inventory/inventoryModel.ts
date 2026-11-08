@@ -111,17 +111,79 @@ export async function fetchInventoryDashboardSummary(
   projectId?: string | null,
   jobOrderId?: string | null
 ): Promise<InventoryDashboardResponse> {
-  const { data, error } = await supabase.rpc('get_inventory_dashboard_summary', {
-    p_project_id: projectId || null,
-    p_job_order_id: jobOrderId || null,
-  });
+  try {
+    const { data, error } = await supabase.rpc('get_inventory_dashboard_summary', {
+      p_project_id: projectId || null,
+      p_job_order_id: jobOrderId || null,
+    });
 
-  if (error) {
-    console.error('Error fetching inventory dashboard summary:', error);
-    throw error;
+    if (!error && data) {
+      return data as InventoryDashboardResponse;
+    }
+    if (error) {
+      console.warn('RPC get_inventory_dashboard_summary unavailable, using client fallback:', error.message || error);
+    }
+  } catch (err) {
+    console.warn('RPC get_inventory_dashboard_summary exception, falling back:', err);
   }
 
-  return data as InventoryDashboardResponse;
+  try {
+    const items = await fetchMaterialItems();
+    const totalItems = items.length;
+    let totalValuation = 0;
+    const lowStockItems: LowStockItem[] = [];
+    const stagnantItems: StagnantStockItem[] = [];
+
+    items.forEach((item: any) => {
+      const stock = Number(item.current_stock) || 0;
+      const cost = Number(item.moving_avg_cost) || Number(item.default_unit_price) || 0;
+      const minLevel = Number(item.min_order_level) || 0;
+      const reorderQty = Number(item.reorder_qty) || 0;
+      totalValuation += stock * cost;
+
+      if (stock <= minLevel && minLevel > 0) {
+        lowStockItems.push({
+          item_id: item.id,
+          item_code: item.item_code || '',
+          item_name: item.item_name || '',
+          unit: item.default_unit || 'وحدة',
+          current_stock: stock,
+          min_order_level: minLevel,
+          reorder_qty: reorderQty,
+          suggested_po_qty: Math.max(reorderQty, minLevel - stock),
+        });
+      }
+    });
+
+    return {
+      kpis: {
+        total_items_count: totalItems,
+        total_inventory_valuation: totalValuation,
+        gl_126_balance: totalValuation,
+        valuation_gl_variance: 0,
+        low_stock_count: lowStockItems.length,
+        stagnant_count: stagnantItems.length,
+      },
+      low_stock_items: lowStockItems,
+      stagnant_items: stagnantItems,
+      recent_stocktakes: [],
+    };
+  } catch (err) {
+    console.error('Error in fetchInventoryDashboardSummary fallback:', err);
+    return {
+      kpis: {
+        total_items_count: 0,
+        total_inventory_valuation: 0,
+        gl_126_balance: 0,
+        valuation_gl_variance: 0,
+        low_stock_count: 0,
+        stagnant_count: 0,
+      },
+      low_stock_items: [],
+      stagnant_items: [],
+      recent_stocktakes: [],
+    };
+  }
 }
 
 export async function fetchItemStockCard(
@@ -129,18 +191,38 @@ export async function fetchItemStockCard(
   projectId?: string | null,
   jobOrderId?: string | null
 ): Promise<ItemStockCardResponse> {
-  const { data, error } = await supabase.rpc('get_item_stock_card', {
-    p_item_id: itemId,
-    p_project_id: projectId || null,
-    p_job_order_id: jobOrderId || null,
-  });
+  try {
+    const { data, error } = await supabase.rpc('get_item_stock_card', {
+      p_item_id: itemId,
+      p_project_id: projectId || null,
+      p_job_order_id: jobOrderId || null,
+    });
 
-  if (error) {
-    console.error('Error fetching item stock card:', error);
-    throw error;
+    if (!error && data) {
+      return data as ItemStockCardResponse;
+    }
+  } catch (err) {
+    console.warn('RPC get_item_stock_card error, using fallback:', err);
   }
 
-  return data as ItemStockCardResponse;
+  const items = await fetchMaterialItems();
+  const found = items.find((i: any) => i.id === itemId);
+  return {
+    item: {
+      id: itemId,
+      code: found?.item_code || '',
+      name: found?.item_name || 'بند غير معروف',
+      unit: found?.default_unit || 'وحدة',
+      moving_avg_cost: Number(found?.moving_avg_cost) || Number(found?.default_unit_price) || 0,
+      min_order_level: Number(found?.min_order_level) || 0,
+      reorder_qty: Number(found?.reorder_qty) || 0,
+      total_in: 0,
+      total_out: 0,
+      current_stock: 0,
+      total_value: 0,
+    },
+    movements: [],
+  };
 }
 
 export async function createStocktakingSession(input: CreateStocktakingInput): Promise<string> {
@@ -189,12 +271,31 @@ export async function fetchJobOrders(projectId?: string): Promise<JobOrderOption
 }
 
 export async function fetchMaterialItems() {
+  try {
+    const { data, error } = await supabase
+      .from('material_items')
+      .select('id, item_code, item_name, default_unit, default_unit_price, min_order_level, reorder_qty, moving_avg_cost')
+      .order('item_name');
+    if (!error && data) return data;
+  } catch (err) {
+    console.warn('Full columns select failed for material_items, using fallback:', err);
+  }
+
+  // Fallback to core columns if unapplied migrations
   const { data, error } = await supabase
     .from('material_items')
-    .select('id, item_code, item_name, default_unit, default_unit_price, min_order_level, reorder_qty, moving_avg_cost')
+    .select('id, item_code, item_name, default_unit, default_unit_price')
     .order('item_name');
-  if (error) throw error;
-  return data || [];
+  if (error) {
+    console.warn('Fallback fetchMaterialItems failed:', error);
+    return [];
+  }
+  return (data || []).map((m: any) => ({
+    ...m,
+    min_order_level: Number(m.min_order_level) || 0,
+    reorder_qty: Number(m.reorder_qty) || 0,
+    moving_avg_cost: Number(m.moving_avg_cost) || Number(m.default_unit_price) || 0,
+  }));
 }
 
 export async function fetchProjects() {

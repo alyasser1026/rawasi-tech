@@ -69,6 +69,14 @@ export async function fetchCashClosingPreview(
   });
 
   if (error) {
+    if (error.code === 'PGRST202' || error.message?.includes('get_cash_closing_preview') || error.message?.includes('404')) {
+      return {
+        book_balance: 0,
+        expected_balance: 0,
+        currency: 'SAR',
+        last_closing_date: null,
+      } as any;
+    }
     throw new Error(error.message || 'فشل استرجاع معاينة الرصيد الدفتري');
   }
 
@@ -121,6 +129,10 @@ export async function fetchCashClosingsHistory(
   });
 
   if (error) {
+    if (error.code === 'PGRST202' || error.message?.includes('get_daily_cash_closings_history') || error.message?.includes('404')) {
+      console.warn('get_daily_cash_closings_history RPC pending migration: 20261105170007_custodies_and_cash_closings.sql');
+      return [];
+    }
     throw new Error(error.message || 'فشل جلب سجل محاضر الإقفال');
   }
 

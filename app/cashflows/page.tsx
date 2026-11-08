@@ -52,7 +52,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title }
             
             <div 
                 onClick={() => setIsOpen(!isOpen)}
-                style={{ background: 'var(--surface-flat)', padding: '0.75rem 0.9375rem', borderRadius: '10px', border: '1px solid var(--control-edge)', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.2s', height: '3rem' }}
+                style={{ background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', padding: '0.75rem 1rem', borderRadius: '12px', border: 'none', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.2s', height: '3.125rem' }}
             >
                 <span style={{ fontWeight: 800, color: selected.length ? 'var(--text-primary)' : 'var(--text-muted)', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selected.length > 0 ? selected.join('، ') : placeholder}
@@ -61,15 +61,15 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title }
             </div>
             
             {isOpen && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface-flat)', border: '1px solid var(--control-edge)', borderRadius: '12px', marginTop: '0.5rem', zIndex: 50, boxShadow: 'var(--shadow-elevation)', overflow: 'hidden' }}>
-                    <div style={{ padding: '0.625rem', background: 'var(--surface-subcard)', borderBottom: '1px solid var(--control-edge)' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface-card)', border: 'none', borderRadius: '14px', marginTop: '0.5rem', zIndex: 50, boxShadow: 'var(--shadow-elevation)', overflow: 'hidden' }}>
+                    <div style={{ padding: '0.625rem', background: 'var(--surface-subcard)', borderBottom: '1px solid var(--table-zebra-bg)' }}>
                         <input 
                             type="text" 
                             placeholder="بحث سريع..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid var(--control-edge)', borderRadius: '6px', color: 'var(--text-primary)', background: 'var(--surface-sunken)', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
+                            style={{ width: '100%', padding: '0.5rem 0.75rem', border: 'none', borderRadius: '8px', color: 'var(--text-primary)', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
                         />
                     </div>
                     <div className="cashflows-dropdown-scroll" style={{ maxHeight: '13.75rem', overflowY: 'auto', padding: '0.3125rem' }}>
@@ -92,7 +92,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title }
             <style>{`
                 .cashflows-dropdown-scroll::-webkit-scrollbar { width: 0.375rem; }
                 .cashflows-dropdown-scroll::-webkit-scrollbar-track { background: var(--surface-sunken); border-radius: 4px; }
-                .cashflows-dropdown-scroll::-webkit-scrollbar-thumb { background: var(--control-edge); border-radius: 4px; }
+                .cashflows-dropdown-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 4px; }
                 .cashflows-dropdown-scroll::-webkit-scrollbar-thumb:hover { background: var(--accent-ink); }
             `}</style>
         </div>
@@ -299,49 +299,166 @@ export default function CashFlowsPage() {
     }, [treeGroupedData, currentPage, rowsPerPage]);
 
     return (
-        <div className="clean-page cashflows-register" style={{ minHeight: '100vh', paddingBottom: '3.125rem' }}>
+        <div className="clean-page enterprise-page cashflows-register" style={{ minHeight: '100vh', paddingBottom: '3.125rem' }}>
             <MasterPage title="التدفقات النقدية (Cash Flows)" subtitle="مراقبة حركات السيولة، المقبوضات، والمدفوعات بشكل لحظي وتجميعي">
                 
                 <style>{`
-                    .cashflows-register .summary-card { background: var(--surface-card); border-radius: 14px; padding: 1.5625rem; flex: 1 1 13rem; border: 1px solid var(--control-edge); position: relative; overflow: hidden; }
-                    .cashflows-register .summary-card::after { content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 0.3125rem; }
-                    .cashflows-register .summary-card.inflow::after { background: var(--status-positive); }
-                    .cashflows-register .summary-card.outflow::after { background: var(--status-negative); }
-                    .cashflows-register .summary-card.net::after { background: var(--action-fill); }
+                    .cashflows-register .summary-card {
+                        background: var(--surface-card);
+                        border-radius: var(--phi-radius-card, 18px);
+                        padding: 1.5625rem;
+                        flex: 1 1 13rem;
+                        border: none !important;
+                        box-shadow: var(--shadow-ambient);
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .cashflows-register .summary-card::before {
+                        content: '';
+                        position: absolute;
+                        top: 0; left: 8%; right: 8%;
+                        height: 1.5px;
+                        background: var(--specular-beam);
+                        pointer-events: none;
+                        z-index: 5;
+                    }
+                    .cashflows-register .summary-card.inflow {
+                        background: radial-gradient(ellipse 100% 60% at 50% -10%, color-mix(in srgb, var(--status-positive) 16%, transparent), transparent 75%), var(--surface-card) !important;
+                    }
+                    .cashflows-register .summary-card.outflow {
+                        background: radial-gradient(ellipse 100% 60% at 50% -10%, color-mix(in srgb, var(--status-negative) 16%, transparent), transparent 75%), var(--surface-card) !important;
+                    }
+                    .cashflows-register .summary-card.net {
+                        background: radial-gradient(ellipse 100% 60% at 50% -10%, color-mix(in srgb, var(--action-fill) 18%, transparent), transparent 75%), var(--surface-card) !important;
+                    }
 
                     .cashflows-register .summary-label { font-size: var(--fs-md); font-weight: 900; color: var(--text-primary); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
                     .cashflows-register .summary-val { font-size: var(--fs-3xl); font-weight: 900; color: var(--text-primary); }
 
-                    .cashflows-register .source-breakdown-card { background: var(--surface-card); padding: 1.25rem; border-radius: 16px; border: 1px solid var(--control-edge); display: flex; align-items: center; justify-content: space-between; flex: 1 1 13.75rem; position: relative; }
-                    .cashflows-register .source-breakdown-card::before { content: ''; position: absolute; inset-block: 1rem; inset-inline-start: 0; width: 4px; border-radius: 4px; }
-                    .cashflows-register .source-breakdown-card.inflow::before { background: var(--status-positive); }
-                    .cashflows-register .source-breakdown-card.outflow::before { background: var(--status-negative); }
+                    .cashflows-register .source-breakdown-card {
+                        background: var(--surface-card);
+                        padding: 1.25rem 1.5rem;
+                        border-radius: 16px;
+                        border: none !important;
+                        box-shadow: var(--shadow-ambient);
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        flex: 1 1 13.75rem;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .cashflows-register .source-breakdown-card.inflow {
+                        background: radial-gradient(ellipse 90% 70% at 0% 50%, color-mix(in srgb, var(--status-positive) 14%, transparent), transparent 80%), var(--surface-card) !important;
+                    }
+                    .cashflows-register .source-breakdown-card.outflow {
+                        background: radial-gradient(ellipse 90% 70% at 0% 50%, color-mix(in srgb, var(--status-negative) 14%, transparent), transparent 80%), var(--surface-card) !important;
+                    }
                     .cashflows-register .source-breakdown-title { font-size: var(--fs-sm); font-weight: 900; color: var(--text-primary); margin-bottom: 0.5rem; }
                     .cashflows-register .source-breakdown-val { font-size: var(--fs-xl); font-weight: 900; }
 
-                    .cashflows-register .filter-input { width: 100%; padding: 0.75rem; border-radius: 12px; border: 1px solid var(--control-edge); font-weight: 800; color: var(--text-primary); height: 3.125rem; background: var(--surface-sunken); }
-                    .cashflows-register .filter-input:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+                    .cashflows-register .filter-card-container {
+                        display: flex;
+                        gap: 0.9375rem;
+                        margin-bottom: 1.875rem;
+                        background: var(--surface-card);
+                        padding: clamp(0.875rem, 3vw, 1.5625rem);
+                        border-radius: var(--phi-radius-card, 18px);
+                        border: none !important;
+                        box-shadow: var(--shadow-ambient);
+                        flex-wrap: wrap;
+                        align-items: flex-end;
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .cashflows-register .filter-card-container::before {
+                        content: '';
+                        position: absolute;
+                        top: 0; left: 8%; right: 8%;
+                        height: 1.5px;
+                        background: var(--specular-beam);
+                        pointer-events: none;
+                    }
 
-                    .cashflows-register .tree-scroll { overflow-x: auto; border: 1px solid var(--control-edge); border-radius: 16px; background: var(--surface-card); }
+                    .cashflows-register .filter-input {
+                        width: 100%;
+                        padding: 0.75rem 1rem;
+                        border-radius: 12px;
+                        border: none !important;
+                        font-weight: 800;
+                        color: var(--text-primary);
+                        height: 3.125rem;
+                        background: var(--surface-sunken);
+                        box-shadow: var(--shadow-sunken);
+                        outline: none;
+                        transition: all 0.2s ease;
+                    }
+                    .cashflows-register .filter-input:focus-visible { outline: 2px solid var(--accent-main); outline-offset: 1px; }
+
+                    .cashflows-register .tree-scroll {
+                        overflow-x: auto;
+                        border: none !important;
+                        border-radius: var(--phi-radius-card, 18px);
+                        background: var(--surface-card);
+                        box-shadow: var(--shadow-ambient);
+                        position: relative;
+                        overflow: hidden;
+                    }
+                    .cashflows-register .tree-scroll::before {
+                        content: '';
+                        position: absolute;
+                        top: 0; left: 8%; right: 8%;
+                        height: 1.5px;
+                        background: var(--specular-beam);
+                        pointer-events: none;
+                    }
                     .cashflows-register .tree-table { width: 100%; min-width: 42rem; border-collapse: separate; border-spacing: 0; text-align: center; color: var(--text-primary); }
                     .cashflows-register .tree-thead th { padding: 1.25rem 0.9375rem; font-size: var(--fs-lg); font-weight: 900; border: none; }
 
                     .cashflows-register .master-group-row { cursor: pointer; }
                     .cashflows-register .master-group-row:hover { background: var(--table-row-hover); }
-                    .cashflows-register .master-group-row td { padding: 1.25rem 1rem; font-size: var(--fs-lg); font-weight: 900; border-bottom: 1px solid var(--control-edge); }
+                    .cashflows-register .master-group-row td { padding: 1.25rem 1rem; font-size: var(--fs-lg); font-weight: 900; border-bottom: 1px solid var(--table-zebra-bg); }
 
-                    .cashflows-register .child-tree-container { background: var(--surface-subcard); padding: 1.25rem clamp(0.75rem, 3vw, 2.5rem); border-bottom: 1px solid var(--control-edge); }
-                    .cashflows-register .child-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface-flat); border-radius: 14px; border: 1px solid var(--control-edge); overflow: hidden; }
-                    .cashflows-register .child-table th { background: var(--table-head-bg); color: var(--text-primary); padding: 0.9375rem; font-size: var(--fs-sm); font-weight: 900; border-bottom: 1px solid var(--control-edge); }
+                    .cashflows-register .child-tree-container { background: var(--surface-subcard); padding: 1.25rem clamp(0.75rem, 3vw, 2.5rem); border-bottom: 1px solid var(--table-zebra-bg); }
+                    .cashflows-register .child-table { width: 100%; border-collapse: separate; border-spacing: 0; background: var(--surface-flat); border-radius: 14px; border: none !important; box-shadow: var(--shadow-elevation); overflow: hidden; }
+                    .cashflows-register .child-table th { background: var(--table-head-bg); color: var(--text-primary); padding: 0.9375rem; font-size: var(--fs-sm); font-weight: 900; border-bottom: 1px solid var(--table-zebra-bg); }
                     .cashflows-register .child-table td { padding: 0.9375rem 0.75rem; border-bottom: 1px solid var(--table-zebra-bg); font-size: var(--fs-sm); font-weight: 800; color: var(--text-primary); }
                     .cashflows-register .child-table tr:hover { background: var(--table-row-hover); }
 
                     .cashflows-register .arrow-icon { display: inline-block; transition: transform 0.3s; margin-inline-end: 0.75rem; color: var(--accent-ink); font-size: var(--fs-lg); background: var(--accent-soft-bg); width: 1.75rem; height: 1.75rem; line-height: 1.75rem; text-align: center; border-radius: 50%; }
                     .cashflows-register .arrow-expanded { transform: rotate(90deg); background: var(--action-fill); color: var(--action-ink); }
 
-                    .cashflows-register .view-toggle-btn { flex: 1; padding: 0.75rem; font-size: var(--fs-md); font-weight: 900; border: none; cursor: pointer; transition: 0.3s; background: transparent; color: var(--text-primary); }
-                    .cashflows-register .view-toggle-btn.active { background: var(--action-fill); color: var(--action-ink); }
-                    .cashflows-register .view-toggle-btn:not(.active):hover { background: var(--accent-soft-bg); }
+                    .cashflows-register .view-toggle-track {
+                        display: flex;
+                        background: var(--surface-sunken);
+                        box-shadow: var(--shadow-sunken);
+                        border-radius: 12px;
+                        padding: 4px;
+                        gap: 4px;
+                        border: none !important;
+                        flex: 1;
+                    }
+                    .cashflows-register .view-toggle-btn {
+                        flex: 1;
+                        padding: 0.625rem 1rem;
+                        font-size: var(--fs-sm);
+                        font-weight: 800;
+                        border: none !important;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        transition: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                        background: transparent;
+                        color: var(--text-secondary);
+                    }
+                    .cashflows-register .view-toggle-btn.active {
+                        background: var(--action-fill) !important;
+                        color: var(--action-ink) !important;
+                        box-shadow: 0 4px 12px -2px var(--accent-glow);
+                    }
+                    .cashflows-register .view-toggle-btn:not(.active):hover {
+                        background: var(--surface-card-hover);
+                        color: var(--text-primary);
+                    }
                 `}</style>
 
                 {/* 📊 بطاقات الملخص الرئيسية */}
@@ -366,7 +483,7 @@ export default function CashFlowsPage() {
                     {/* 🎛️ أزرار طرق العرض - مدمجة في صف السامري */}
                     <div className="summary-card" style={{ flex: '1.2 1 13rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                         <div className="summary-label"><span><Eye size={16} aria-hidden="true" /></span> طريقة التجميع والعرض</div>
-                        <div style={{ display: 'flex', background: 'var(--surface-subcard)', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--control-edge)', flex: 1 }}>
+                        <div className="view-toggle-track">
                             <button 
                                 className={`view-toggle-btn ${groupBy === 'partner' ? 'active' : ''}`} 
                                 onClick={() => {setGroupBy('partner'); setExpandedGroups([]);}}
@@ -417,7 +534,7 @@ export default function CashFlowsPage() {
 
 
                 {/* 🔍 شريط الفلاتر */}
-                <div style={{ display: 'flex', gap: '0.9375rem', marginBottom: '1.875rem', background: 'var(--surface-card)', padding: 'clamp(0.875rem, 3vw, 1.5625rem)', borderRadius: '14px', border: '1px solid var(--control-edge)', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <div className="filter-card-container">
                     
                     <div style={{ flex: '1', minWidth: '11.25rem' }}>
                         <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--text-secondary)', marginBottom: '0.375rem', display: 'block' }}>بحث عام</label>
@@ -467,9 +584,11 @@ export default function CashFlowsPage() {
 
                     <button 
                         onClick={handleExportExcel}
-                        style={{ padding: '0 0.9375rem', background: 'var(--action-fill)', border: 'none', borderRadius: '12px', color: 'var(--action-ink)', fontWeight: 900, cursor: 'pointer', transition: '0.2s', height: '3.125rem', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}
+                        className="ent-button ent-primary"
+                        style={{ height: '3.125rem', padding: '0 1.25rem' }}
                     >
-                        Excel
+                        <Download size={16} aria-hidden="true" />
+                        <span>تصدير Excel</span>
                     </button>
                 </div>
 
@@ -595,7 +714,7 @@ export default function CashFlowsPage() {
 
                 {/* 🔢 تقسيم الصفحات */}
                 {!logic.isLoading && treeGroupedData.length > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.25rem', padding: '1.25rem', background: 'var(--surface-card)', borderRadius: '16px', border: '1px solid var(--control-edge)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginTop: '1.25rem', padding: '1.25rem', background: 'var(--surface-card)', borderRadius: 'var(--phi-radius-card, 18px)', border: 'none', boxShadow: 'var(--shadow-ambient)' }}>
                         <div style={{ fontSize: 'var(--fs-md)', color: 'var(--text-primary)', fontWeight: 900 }}>
                             إجمالي الـ {groupBy === 'partner' ? 'الشركاء' : 'أيام الحركة'}: <b style={{ color: 'var(--accent-ink)', fontSize: 'var(--fs-xl)' }}>{treeGroupedData.length}</b>
                         </div>
@@ -604,7 +723,7 @@ export default function CashFlowsPage() {
                             <select 
                                 value={rowsPerPage} 
                                 onChange={(e) => {setRowsPerPage(Number(e.target.value)); setCurrentPage(1);}} 
-                                style={{ padding: '0.625rem 0.9375rem', borderRadius: '10px', border: '1px solid var(--control-edge)', fontWeight: 900, cursor: 'pointer', background: 'var(--surface-sunken)', color: 'var(--text-primary)' }}
+                                style={{ padding: '0.625rem 0.9375rem', borderRadius: '10px', border: 'none', boxShadow: 'var(--shadow-sunken)', fontWeight: 900, cursor: 'pointer', background: 'var(--surface-sunken)', color: 'var(--text-primary)' }}
                             >
                                 <option value={10}>عرض 10 عناصر</option>
                                 <option value={50}>عرض 50 عنصر</option>
@@ -620,7 +739,7 @@ export default function CashFlowsPage() {
                                 >
                                     السابق
                                 </button>
-                                <span style={{ padding: '0.625rem 1.25rem', background: 'var(--surface-sunken)', borderRadius: '10px', fontWeight: 900, border: '1px solid var(--control-edge)' }}>
+                                <span style={{ padding: '0.625rem 1.25rem', background: 'var(--surface-sunken)', borderRadius: '10px', fontWeight: 900, border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
                                     {currentPage} / {totalPages}
                                 </span>
                                 <button 

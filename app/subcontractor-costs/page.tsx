@@ -91,7 +91,7 @@ export default function SubcontractorCostsPage() {
                   const isProjOpen = expandedProjects[project.name];
 
                   return (
-                    <div key={project.name} style={{ backgroundColor: 'white', borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                    <div key={project.name} style={{ backgroundColor: 'var(--surface-card)', borderRadius: 'var(--phi-radius-card, 18px)', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-ambient)' }}>
                       
                       {/* 1. الفيلا / المشروع */}
                       <div onClick={() => toggleProject(project.name)} style={{ padding: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', backgroundColor: isProjOpen ? '#f8fafc' : 'white', transition: '0.2s' }}>
@@ -114,9 +114,9 @@ export default function SubcontractorCostsPage() {
                             const isItemOpen = expandedItems[itemKey];
 
                             return (
-                              <div key={itemKey} style={{ border: '1px solid #cbd5e1', borderRadius: '12px', overflow: 'hidden', backgroundColor: 'white' }}>
+                              <div key={itemKey} style={{ border: 'none', borderRadius: '12px', overflow: 'hidden', backgroundColor: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)' }}>
                                 {/* رأس البند */}
-                                <div onClick={() => toggleItem(itemKey)} style={{ padding: '0.9375rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', backgroundColor: '#f1f5f9' }}>
+                                <div onClick={() => toggleItem(itemKey)} style={{ padding: '0.9375rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', backgroundColor: 'var(--surface-subcard)' }}>
                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
                                     <span><BrickWall size={16} aria-hidden="true" /></span>
                                     <strong style={{ color: '#334155', fontWeight: 900 }}>{itemNode.name}</strong>

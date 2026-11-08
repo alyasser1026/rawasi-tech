@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from 'react';
 import { useLaborCostsLogic } from './labor_cost_logic';
-import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
 import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
@@ -19,9 +18,9 @@ export default function ProjectLaborCostsPage() {
             
             <RawasiSidebarManager 
                 summary={
-                    <div className="summary-glass-card">
-                        <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي تكلفة الميدان الحية</span>
-                        <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.goldAccent, marginTop:'0.3125rem'}}>
+                    <div className="summary-glass-card" style={{ background: 'var(--surface-card, #ffffff)', padding: '1rem', borderRadius: '14px', boxShadow: 'var(--shadow-elevation)', border: 'none' }}>
+                        <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: 'var(--text-secondary, #64748b)' }}>إجمالي تكلفة الميدان الحية</span>
+                        <div className="val" style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: 'var(--accent-ink, #c2410c)', marginTop: '0.3125rem' }}>
                             {formatCurrency(logic.grandTotalLaborCost)}
                         </div>
                     </div>
@@ -29,18 +28,18 @@ export default function ProjectLaborCostsPage() {
                 actions={
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
                         <div className="filter-group">
-                            <label style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#94a3b8', display:'block', marginBottom:'0.3125rem'}}>تصفية بالمشروع</label>
-                            <select className="combo-glass" value={logic.selectedProject} onChange={(e)=>logic.setSelectedProject(e.target.value)}>
+                            <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary, #94a3b8)', display: 'block', marginBottom: '0.375rem' }}>تصفية بالمشروع</label>
+                            <select className="combo-glass" value={logic.selectedProject} onChange={(e) => logic.setSelectedProject(e.target.value)}>
                                 <option value="">كل المشاريع المتاحة</option>
-                                {logic.uniqueProjects.map((p, i)=><option key={i} value={p}>{p}</option>)}
+                                {logic.uniqueProjects.map((p, i) => <option key={i} value={p}>{p}</option>)}
                             </select>
                         </div>
 
                         <div className="filter-group">
-                            <label style={{fontSize:'var(--fs-xs)', fontWeight:800, color:'#94a3b8', display:'block', marginBottom:'0.3125rem'}}>تصفية بالشهر المالي</label>
-                            <select className="combo-glass" value={logic.selectedMonth} onChange={(e)=>logic.setSelectedMonth(e.target.value)}>
+                            <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary, #94a3b8)', display: 'block', marginBottom: '0.375rem' }}>تصفية بالشهر المالي</label>
+                            <select className="combo-glass" value={logic.selectedMonth} onChange={(e) => logic.setSelectedMonth(e.target.value)}>
                                 <option value="">كل الأشهر</option>
-                                {logic.uniqueMonths.map((m, i)=><option key={i} value={m}>{m}</option>)}
+                                {logic.uniqueMonths.map((m, i) => <option key={i} value={m}>{m}</option>)}
                             </select>
                         </div>
                     </div>
@@ -53,10 +52,10 @@ export default function ProjectLaborCostsPage() {
                 .labor-scroller {
                     width: 100%;
                     overflow-x: auto !important;
-                    border-radius: 16px;
-                    background: white;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-                    border: 1px solid #e2e8f0;
+                    border-radius: var(--phi-radius-card, 18px);
+                    background: var(--surface-card, #ffffff);
+                    box-shadow: var(--shadow-ambient);
+                    border: none;
                     display: flex;
                     flex-direction: column;
                 }
@@ -69,74 +68,110 @@ export default function ProjectLaborCostsPage() {
                 }
                 
                 .labor-scroller th {
-                    padding: 0.75rem 0.625rem !important;
+                    padding: 0.875rem 1rem !important;
                     font-size: var(--fs-sm) !important;
                     white-space: nowrap !important;
-                    font-weight: 900 !important;
-                    color: #334155 !important;
-                    background: #f8fafc !important;
-                    border-bottom: 2px solid #e2e8f0 !important;
+                    font-weight: 800 !important;
+                    color: var(--text-secondary, #475569) !important;
+                    background: var(--table-head-bg, var(--surface-card, #ffffff)) !important;
+                    border-bottom: 1px solid var(--table-zebra-bg, rgba(0,0,0,0.04)) !important;
                     text-align: right;
                 }
                 
                 .labor-scroller td {
-                    padding: 0.625rem 0.625rem !important;
-                    border-bottom: 1px solid #f1f5f9 !important;
+                    padding: 0.875rem 1rem !important;
+                    border-bottom: 1px solid var(--table-zebra-bg, rgba(0,0,0,0.03)) !important;
                     font-size: var(--fs-sm);
                     font-weight: 700;
-                    color: #475569;
+                    color: var(--text-primary, #1e293b);
                     white-space: nowrap;
                 }
 
                 .project-row-head {
-                    background: linear-gradient(90deg, #f8fafc, #ffffff) !important;
+                    background: var(--surface-card, #ffffff) !important;
                     cursor: pointer;
-                    transition: 0.2s;
+                    transition: background 0.15s ease;
                 }
-                .project-row-head:hover { background: #f1f5f9 !important; }
                 
-                .sticky-col-1 { position: sticky !important; right: 0px !important; z-index: 5; background: #fff !important; }
-                .sticky-col-2 { position: sticky !important; right: 11.25rem !important; z-index: 5; background: #fff !important; border-left: 2px solid #cbd5e1 !important; box-shadow: -4px 0 8px rgba(0,0,0,0.05); }
-                th.sticky-col-1, th.sticky-col-2 { background: #f8fafc !important; }
+                .project-row-head:hover { 
+                    background: var(--table-hover-bg, rgba(0,0,0,0.02)) !important; 
+                }
 
-                .combo-glass { width:100%; padding:0.625rem; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); color:white; font-weight:700; outline:none; cursor:pointer; }
-                .combo-glass option { background: #1e1b18; color: white; }
-                
-                /* ستايل أزرار التقليب (Pagination) */
+                .sticky-col-1 { 
+                    position: sticky !important; 
+                    right: 0px !important; 
+                    z-index: 5; 
+                    background: var(--surface-card, #ffffff) !important; 
+                }
+                .sticky-col-2 { 
+                    position: sticky !important; 
+                    right: 11.25rem !important; 
+                    z-index: 5; 
+                    background: var(--surface-card, #ffffff) !important; 
+                    border-left: none !important; 
+                    box-shadow: -4px 0 12px rgba(0,0,0,0.04); 
+                }
+                th.sticky-col-1, th.sticky-col-2 { 
+                    background: var(--table-head-bg, var(--surface-card, #ffffff)) !important; 
+                }
+
+                .combo-glass { 
+                    width: 100%; 
+                    height: 2.75rem;
+                    padding: 0 0.875rem; 
+                    border-radius: 12px; 
+                    background: var(--surface-sunken, #f8fafc); 
+                    border: none; 
+                    box-shadow: var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06));
+                    color: var(--text-primary, #0f172a); 
+                    font-weight: 700; 
+                    outline: none; 
+                    cursor: pointer; 
+                }
+                .combo-glass option { 
+                    background: var(--surface-card, #ffffff); 
+                    color: var(--text-primary, #0f172a); 
+                }
+
                 .pagination-footer {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    padding: 0.75rem 1.25rem;
-                    background: #f8fafc;
-                    border-top: 1px solid #e2e8f0;
-                    position: sticky;
-                    left: 0;
+                    padding: 0.875rem 1.25rem;
+                    background: var(--surface-card, #ffffff);
+                    border-top: 1px solid var(--table-zebra-bg, rgba(0,0,0,0.04));
+                    border-bottom-left-radius: var(--phi-radius-card, 18px);
+                    border-bottom-right-radius: var(--phi-radius-card, 18px);
                 }
+
                 .page-btn {
-                    background: white;
-                    border: 1px solid #cbd5e1;
-                    padding: 0.375rem 1rem;
-                    border-radius: 8px;
+                    background: var(--surface-subcard, #f1f5f9);
+                    border: none;
+                    box-shadow: var(--shadow-elevation, 0 2px 6px rgba(0,0,0,0.06));
+                    padding: 0.5rem 1rem;
+                    border-radius: 10px;
                     font-weight: 800;
-                    font-size: var(--fs-sm);
-                    color: #334155;
+                    font-size: var(--fs-xs);
+                    color: var(--text-primary, #1e293b);
                     cursor: pointer;
-                    transition: 0.2s;
+                    transition: all 0.2s ease;
                 }
+
                 .page-btn:hover:not(:disabled) {
-                    background: #e2e8f0;
-                    transform: scale(1.05);
+                    transform: translateY(-1px);
+                    box-shadow: var(--shadow-elevation, 0 4px 12px rgba(0,0,0,0.12));
                 }
+
                 .page-btn:disabled {
-                    opacity: 0.4;
+                    opacity: 0.45;
                     cursor: not-allowed;
+                    box-shadow: none;
                 }
                 
                 .cinematic-scroll::-webkit-scrollbar { height: 0.4375rem; }
-                .cinematic-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 10px; }
-                .cinematic-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-                .cinematic-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+                .cinematic-scroll::-webkit-scrollbar-track { background: var(--surface-sunken, #f1f5f9); border-radius: 10px; }
+                .cinematic-scroll::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+                .cinematic-scroll::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
             `}</style>
 
             {logic.isLoading ? (
@@ -146,18 +181,18 @@ export default function ProjectLaborCostsPage() {
                     <table>
                         <thead>
                             <tr>
-                                <th className="sticky-col-1" style={{minWidth:'11.25rem'}}>المشروع / الفيلا</th>
-                                <th className="sticky-col-2" style={{minWidth:'7.5rem'}}>تاريخ اليومية</th>
-                                <th style={{minWidth:'6.25rem'}}>الشهر المالي</th>
-                                <th style={{minWidth:'13.75rem'}}>البند المتأثر بالتشغيل</th>
-                                <th style={{minWidth:'6.25rem'}}>عدد العمالة / الأيام</th>
-                                <th style={{minWidth:'9.375rem'}}>التكلفة الفعلية</th>
+                                <th className="sticky-col-1" style={{ minWidth: '11.25rem' }}>المشروع / الفيلا</th>
+                                <th className="sticky-col-2" style={{ minWidth: '7.5rem' }}>تاريخ اليومية</th>
+                                <th style={{ minWidth: '6.25rem' }}>الشهر المالي</th>
+                                <th style={{ minWidth: '13.75rem' }}>البند المتأثر بالتشغيل</th>
+                                <th style={{ minWidth: '6.25rem' }}>عدد العمالة / الأيام</th>
+                                <th style={{ minWidth: '9.375rem' }}>التكلفة الفعلية</th>
                             </tr>
                         </thead>
                         <tbody>
                             {logic.paginatedGroups.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} style={{ textAlign: 'center', padding: '1.875rem', color: '#94a3b8' }}>لا توجد بيانات مطابقة للبحث</td>
+                                    <td colSpan={6} style={{ textAlign: 'center', padding: '1.875rem', color: 'var(--text-secondary, #94a3b8)' }}>لا توجد بيانات مطابقة للبحث</td>
                                 </tr>
                             ) : (
                                 logic.paginatedGroups.map((group, idx) => {
@@ -165,28 +200,33 @@ export default function ProjectLaborCostsPage() {
                                     return (
                                         <React.Fragment key={idx}>
                                             <tr className="project-row-head" onClick={() => setExpandedProject(isExpanded ? null : group.projectName)}>
-                                                <td className="sticky-col-1" style={{fontWeight:900, color: THEME.primary, background: '#f8fafc'}}>
-                                                    {isExpanded ? '▼' : '►'} {group.projectName}
+                                                <td className="sticky-col-1" style={{ fontWeight: 800, color: 'var(--text-primary)' }}>
+                                                    <span style={{ color: 'var(--accent-ink, #c2410c)', marginInlineEnd: '0.5rem', display: 'inline-block' }}>
+                                                        {isExpanded ? '▼' : '►'}
+                                                    </span>
+                                                    {group.projectName}
                                                 </td>
-                                                <td className="sticky-col-2" style={{color:'#94a3b8', background: '#f8fafc'}}>كشف تفصيلي ↳</td>
-                                                <td style={{color:'#94a3b8'}}>--</td>
-                                                <td style={{color:'#64748b', fontSize:'var(--fs-xs)'}}>إجمالي يوميات الموقع</td>
-                                                <td style={{color:'#1e293b'}}>
-                                                    <span style={{background:'#e2e8f0', padding:'0.1875rem 0.5rem', borderRadius:'6px'}}>
+                                                <td className="sticky-col-2" style={{ color: 'var(--text-secondary, #94a3b8)' }}>كشف تفصيلي ↳</td>
+                                                <td style={{ color: 'var(--text-secondary, #94a3b8)' }}>--</td>
+                                                <td style={{ color: 'var(--text-secondary, #64748b)', fontSize: 'var(--fs-xs)' }}>إجمالي يوميات الموقع</td>
+                                                <td style={{ color: 'var(--text-primary, #1e293b)' }}>
+                                                    <span style={{ background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken, inset 0 1px 3px rgba(0,0,0,0.05))', padding: '0.25rem 0.625rem', borderRadius: '8px', fontWeight: 800, display: 'inline-block' }}>
                                                         {Number(group.totalWorkers).toFixed(2).replace(/\.00$/, '')} عامل
                                                     </span>
                                                 </td>
-                                                <td style={{color:'#047857', fontWeight:900, fontSize:'var(--fs-md)', background:'rgba(16, 185, 129, 0.05)'}}>{formatCurrency(group.totalCost)}</td>
+                                                <td style={{ color: 'var(--text-primary)', fontWeight: 900, fontSize: 'var(--fs-md)' }}>
+                                                    {formatCurrency(group.totalCost)}
+                                                </td>
                                             </tr>
 
                                             {isExpanded && group.items.map((item, iIdx) => (
-                                                <tr key={item.id || iIdx} style={{background: 'rgba(248,250,252,0.6)'}}>
-                                                    <td className="sticky-col-1" style={{paddingRight:'2.1875rem', color:'#94a3b8', fontSize:'var(--fs-xs)', background: 'inherit'}}>↳ تابع: {group.projectName}</td>
-                                                    <td className="sticky-col-2" style={{color:'#334155', background: 'inherit'}}>{item["تاريخ اليومية"]}</td>
-                                                    <td style={{color:'#64748b'}}>{item["الشهر المالي"]}</td>
-                                                    <td style={{color: THEME.goldAccent}}>{item["اسم البند المتأثر"] || 'عام / غير محدد'}</td>
-                                                    <td>{Number(item["عدد العمال بالميدان"]).toFixed(2).replace(/\.00$/, '')} عمال</td>
-                                                    <td style={{color:'#22c55e'}}>{formatCurrency(item["تكلفة العمالة الفعلية"])}</td>
+                                                <tr key={item.id || iIdx} style={{ background: 'var(--table-zebra-bg, rgba(0,0,0,0.015))' }}>
+                                                    <td className="sticky-col-1" style={{ paddingRight: '2.1875rem', color: 'var(--text-secondary, #94a3b8)', fontSize: 'var(--fs-xs)', background: 'inherit' }}>↳ تابع: {group.projectName}</td>
+                                                    <td className="sticky-col-2" style={{ color: 'var(--text-primary, #334155)', background: 'inherit' }}>{item["تاريخ اليومية"]}</td>
+                                                    <td style={{ color: 'var(--text-secondary, #64748b)' }}>{item["الشهر المالي"]}</td>
+                                                    <td style={{ color: 'var(--accent-ink, #c2410c)', fontWeight: 700 }}>{item["اسم البند المتأثر"] || 'عام / غير محدد'}</td>
+                                                    <td style={{ color: 'var(--text-primary)' }}>{Number(item["عدد العمال بالميدان"]).toFixed(2).replace(/\.00$/, '')} عمال</td>
+                                                    <td style={{ color: 'var(--text-primary)', fontWeight: 800 }}>{formatCurrency(item["تكلفة العمالة الفعلية"])}</td>
                                                 </tr>
                                             ))}
                                         </React.Fragment>
@@ -196,7 +236,7 @@ export default function ProjectLaborCostsPage() {
                         </tbody>
                     </table>
 
-                    {/* 🚀 جزء التقليب (Pagination) اللي كان ناقص */}
+                    {/* 🚀 جزء التقليب (Pagination) */}
                     {totalPages > 1 && (
                         <div className="pagination-footer">
                             <button 
@@ -207,7 +247,7 @@ export default function ProjectLaborCostsPage() {
                                 ◀ السابق
                             </button>
                             
-                            <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b' }}>
+                            <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: 'var(--text-secondary, #64748b)' }}>
                                 صفحة {logic.currentPage} من {totalPages}
                             </span>
 

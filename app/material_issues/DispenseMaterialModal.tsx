@@ -136,24 +136,24 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     z-index: 999999999 !important;
                 }
                 .glass-input-field {
-                    width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px; background: rgba(255, 255, 255, 0.65); border: 1px solid rgba(255, 255, 255, 0.8);
+                    width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px; background: var(--surface-sunken, #f8fafc); border: none; box-shadow: var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06));
                     outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
                 }
-                .glass-input-field:focus { background: #fff; border-color: ${THEME.goldAccent || '#c2410c'}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
+                .glass-input-field:focus { background: #fff; box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.25); }
                 .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); width: 100%; }
                 .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
             `}</style>
 
             <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
-                width: '43.75rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
-                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', 
+                width: '43.75rem', maxHeight: '95vh',  
+                backdropFilter: 'blur(30px)', borderRadius: '24px', padding: '2.5rem', background: 'var(--surface-card, #ffffff)', 
                 boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
             }}>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5625rem', borderBottom:`2px solid ${THEME.goldAccent || '#c2410c'}50`, paddingBottom:'0.9375rem'}}>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5625rem', borderBottom: 'none', paddingBottom:'0.9375rem'}}>
                     <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>صرف مباشر للموقع</h2>
                 </div>
 
-                <div style={{ background: 'white', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ background: 'white', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: 'none', boxShadow: 'var(--shadow-ambient)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
                         <div style={{ fontWeight: 900, color: '#0f172a', fontSize: 'var(--fs-xl)' }}>{invoiceItem?.item_name}</div>
                         <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginTop: '0.25rem', fontWeight: 800 }}>
@@ -261,7 +261,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: '1px solid #e2e8f0' }}>
+                <div style={{ background: '#f8fafc', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: 'none', boxShadow: 'var(--shadow-ambient)' }}>
                     <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.9375rem' }}>التوجيه المحاسبي (جهة التحميل) *</label>
                     <div style={{ display: 'flex', gap: '1.25rem', marginBottom: formData.issue_type === 'صرف لمقاول' ? '0.9375rem' : '0' }}>
                         <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>
@@ -289,7 +289,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                             />
                         ) : (
                             <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.625rem' }}>
-                                <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#166534', padding: '0.75rem', borderRadius: '12px', textAlign: 'center', fontWeight: 900, border: '1px dashed rgba(34, 197, 94, 0.4)' }}>
+                                <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#166534', padding: '0.75rem', borderRadius: '12px', textAlign: 'center', fontWeight: 900, border: 'none', boxShadow: 'var(--shadow-elevation)' }}>
                                     سيتم تحميل التكلفة مباشرة على حساب تكلفة المشروع
                                 </div>
                             </div>
@@ -297,7 +297,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}20, transparent)`, padding: '0.9375rem 1.25rem', borderRadius: '16px', border: `1px dashed ${THEME.goldAccent || '#c2410c'}`, marginBottom: '1.5625rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}20, transparent)`, padding: '0.9375rem 1.25rem', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-elevation)', marginBottom: '1.5625rem' }}>
                     <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: THEME.coffeeDark }}>إجمالي قيمة الصرف:</div>
                     <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: THEME.goldAccent || '#c2410c' }}>{formatCurrency(totalPrice)}</div>
                 </div>

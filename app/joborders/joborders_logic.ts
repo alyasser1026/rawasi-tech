@@ -37,18 +37,51 @@ export function useJobOrdersLogic() {
     const { data: baseJobOrders = [], isLoading: isJoLoading } = useQuery({
         queryKey: ['job_orders'],
         queryFn: async () => {
-            const data = await fetchAllSupabaseData(supabase, 'job_orders', `
-                *, 
-                projects:project_id(project_name, Property), 
-                partners!job_orders_contractor_id_fkey(name), 
-                boq_budget:boq_budget_id(work_item, budget_code, Property),
-                contractor_assignments(
-                    assigned_qty,
-                    unit_price,
-                    sub_claims ( id, total_amount, net_amount, paid_amount, materials_deduction, other_deductions, advance_payment, retention_amount )
-                )
-            `, 'created_at', false);
-            return data || [];
+            try {
+                const data = await fetchAllSupabaseData(supabase, 'job_orders', `
+                    *, 
+                    projects:project_id(project_name, Property), 
+                    partners!job_orders_contractor_id_fkey(name), 
+                    boq_budget:boq_budget_id(work_item, budget_code, Property),
+                    contractor_assignments:contractor_assignments!contractor_assignments_job_order_id_fkey(
+                        assigned_qty,
+                        unit_price,
+                        sub_claims:sub_claims!contractor_assignments_claim_id_fkey ( id, total_amount, net_amount, paid_amount, materials_deduction, other_deductions, advance_payment, retention_amount )
+                    )
+                `, 'created_at', false);
+                return data || [];
+            } catch (err: any) {
+                console.warn('Fallback job_orders query due to relation ambiguity:', err?.message);
+                const rawJobOrders = await fetchAllSupabaseData(supabase, 'job_orders', `
+                    *, 
+                    projects:project_id(project_name, Property), 
+                    partners!job_orders_contractor_id_fkey(name), 
+                    boq_budget:boq_budget_id(work_item, budget_code, Property)
+                `, 'created_at', false) || [];
+
+                try {
+                    const rawAssignments = await fetchAllSupabaseData(supabase, 'contractor_assignments', `
+                        job_order_id,
+                        assigned_qty,
+                        unit_price,
+                        sub_claims:claim_id ( id, total_amount, net_amount, paid_amount, materials_deduction, other_deductions, advance_payment, retention_amount )
+                    `, 'created_at', false) || [];
+
+                    const asgMap = new Map<string, any[]>();
+                    rawAssignments.forEach((asg: any) => {
+                        if (!asg.job_order_id) return;
+                        if (!asgMap.has(asg.job_order_id)) asgMap.set(asg.job_order_id, []);
+                        asgMap.get(asg.job_order_id)!.push(asg);
+                    });
+
+                    return rawJobOrders.map((jo: any) => ({
+                        ...jo,
+                        contractor_assignments: asgMap.get(jo.id) || []
+                    }));
+                } catch {
+                    return rawJobOrders;
+                }
+            }
         }
     });
 

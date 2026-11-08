@@ -469,7 +469,7 @@ export default function PurchaseOrdersPage() {
 
   return (
     <MasterPage title="أوامر الشراء ومطابقة التوريد (3-Way Matching)">
-      <div className={styles.container}>
+      <div className={`clean-page enterprise-page ${styles.container}`}>
         {/* Top Header */}
         <div className={styles.header}>
           <div className={styles.titleArea}>

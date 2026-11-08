@@ -132,11 +132,6 @@ export default function ExpenseFormModal({
 
         const isSubContractorExpense = record.creditor_account === 'التزام مقاولي الباطن' || !!record.payee_id;
 
-        // Require Job Order for project expenses to link with the budget properly
-        if (!record.job_order_id && record.project_id) {
-            return showToast("يرجى تحديد أمر التشغيل لكي يُخصم المصروف من الميزانية بشكل صحيح", "error");
-        }
-
         onSave({
             ...record,
             lines_data: finalLinesToSave, 
@@ -271,8 +266,10 @@ export default function ExpenseFormModal({
                     </div>
                     
                     <div style={{ zIndex: 65, position: 'relative' }}>
-                        {/* الفيلا ← أوامر الشغل بتاعتها (ولو اخترت مقاول: أوامره هو بس) */}
+                        {/* الفيلا ← أوامر الشغل بتاعتها (اختياري) */}
                         <JobOrderSelector
+                            label="أمر الشغل (اختياري)"
+                            required={false}
                             projectId={record?.project_id || null}
                             contractorId={record?.payee_id || null}
                             value={record?.job_order_id || null}

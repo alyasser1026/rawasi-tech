@@ -278,27 +278,27 @@ export default function AdvancedExpenseAllocation() {
             placeholder="ابحث في أسطر الجدول الحالي..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 700, outline: 'none', fontSize: 'var(--fs-sm)' }}
+            style={{ width: '100%', height: '2.75rem', padding: '0 1rem', borderRadius: '12px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 700, outline: 'none', fontSize: 'var(--fs-sm)' }}
           />
         </div>
 
         <div style={{ flex: '1', minWidth: '8.75rem' }}>
           <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '0.5rem' }}>الشهر المالي</label>
-          <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
+          <select value={filterMonth} onChange={(e) => setFilterMonth(e.target.value)} style={{ width: '100%', height: '2.75rem', padding: '0 1rem', borderRadius: '12px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>
             {monthsOptions.map(m => <option key={m} value={m}>{m}</option>)}
           </select>
         </div>
 
         <div style={{ flex: '1', minWidth: '10rem' }}>
           <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '0.5rem' }}>الفيلا المستهدفة</label>
-          <select value={filterVilla} onChange={(e) => setFilterVilla(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
+          <select value={filterVilla} onChange={(e) => setFilterVilla(e.target.value)} style={{ width: '100%', height: '2.75rem', padding: '0 1rem', borderRadius: '12px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>
             {villasOptions.map(v => <option key={v} value={v}>{v}</option>)}
           </select>
         </div>
 
         <div style={{ flex: '1', minWidth: '10rem' }}>
           <label style={{ display: 'block', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569', marginBottom: '0.5rem' }}>تصنيف المصروف</label>
-          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', fontWeight: 800, backgroundColor: '#fff', fontSize: 'var(--fs-sm)' }}>
+          <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} style={{ width: '100%', height: '2.75rem', padding: '0 1rem', borderRadius: '12px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>
             {categoriesOptions.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>

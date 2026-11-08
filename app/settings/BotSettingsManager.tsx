@@ -20,6 +20,7 @@ interface BotSettings {
   mozzaNickname?: string;
   autoDailyReportEnabled?: boolean;
   autoDailyReportTime?: string;
+  activeCompanyId?: string;
 }
 
 interface LearnedRule {
@@ -55,6 +56,7 @@ export default function BotSettingsManager() {
     mozzaNickname: 'يا محاميحو',
     autoDailyReportEnabled: true,
     autoDailyReportTime: '20:00',
+    activeCompanyId: '72918f4d-10c3-43a0-884e-2f84f1224335',
   });
   const [learnedRules, setLearnedRules] = useState<LearnedRule[]>([]);
   const [recentOperations, setRecentOperations] = useState<OperationEntry[]>([]);
@@ -199,7 +201,7 @@ export default function BotSettingsManager() {
                 value={settings.botName}
                 onChange={e => setSettings({ ...settings, botName: e.target.value })}
                 placeholder="مثال: م. سليم"
-                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: 'var(--fs-sm)' }}
+                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 800, fontSize: 'var(--fs-sm)' }}
               />
             </div>
 
@@ -212,7 +214,7 @@ export default function BotSettingsManager() {
                 value={settings.botTitle}
                 onChange={e => setSettings({ ...settings, botTitle: e.target.value })}
                 placeholder="مثال: المساعد الهندسي والمحاسبي الذكي — فاي تك"
-                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: 'var(--fs-sm)' }}
+                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 800, fontSize: 'var(--fs-sm)' }}
               />
             </div>
 
@@ -234,7 +236,7 @@ export default function BotSettingsManager() {
                 rows={2}
                 value={settings.introTemplate}
                 onChange={e => setSettings({ ...settings, introTemplate: e.target.value })}
-                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: 'var(--fs-sm)', resize: 'vertical' }}
+                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 700, fontSize: 'var(--fs-sm)', resize: 'vertical' }}
               />
             </div>
 
@@ -325,6 +327,85 @@ export default function BotSettingsManager() {
                   />
                 </div>
               )}
+            </div>
+
+            {/* الشركة المفتوحة للبوت (شركة 1 / شركة 2) */}
+            <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '14px', border: '1.5px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div>
+                  <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary }}>
+                    🏢 الشركة المفتوحة في البوت والمساعد الذكي:
+                  </div>
+                  <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 700 }}>
+                    الشركة التي يستعلم عنها البوت ويسجل فيها القيود والمصروفات واليوميات
+                  </div>
+                </div>
+                <span style={{
+                  fontSize: 'var(--fs-xs)',
+                  background: settings.activeCompanyId === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '#ecfdf5' : '#eff6ff',
+                  color: settings.activeCompanyId === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '#047857' : '#1d4ed8',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '10px',
+                  fontWeight: 900,
+                  border: settings.activeCompanyId === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '1px solid #a7f3d0' : '1px solid #bfdbfe',
+                }}>
+                  {settings.activeCompanyId === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? 'شركة 2: PHI-TECH-EGY 🇪🇬' : 'شركة 1: فاي تك للمقاولات 🇸🇦'}
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, activeCompanyId: '72918f4d-10c3-43a0-884e-2f84f1224335' })}
+                  style={{
+                    padding: '0.85rem 1rem',
+                    borderRadius: '12px',
+                    fontWeight: 900,
+                    fontSize: 'var(--fs-xs)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.25rem',
+                    textAlign: 'right',
+                    border: settings.activeCompanyId !== '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                    background: settings.activeCompanyId !== '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '#eff6ff' : '#ffffff',
+                    color: settings.activeCompanyId !== '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '#1d4ed8' : '#64748b',
+                    boxShadow: settings.activeCompanyId !== '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '0 2px 8px rgba(37,99,235,0.15)' : 'none',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>1️⃣ شركة 1: فاي تك (السعودية 🇸🇦)</span>
+                    {settings.activeCompanyId !== '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' && <CheckCircle2 size={16} />}
+                  </div>
+                  <div style={{ fontSize: '11px', opacity: 0.85, fontWeight: 700 }}>فاي تك للمقاولات العامة والتشطيبات الفاخرة (PHI)</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSettings({ ...settings, activeCompanyId: '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' })}
+                  style={{
+                    padding: '0.85rem 1rem',
+                    borderRadius: '12px',
+                    fontWeight: 900,
+                    fontSize: 'var(--fs-xs)',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.25rem',
+                    textAlign: 'right',
+                    border: settings.activeCompanyId === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '2px solid #059669' : '1px solid #cbd5e1',
+                    background: settings.activeCompanyId === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '#ecfdf5' : '#ffffff',
+                    color: settings.activeCompanyId === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '#047857' : '#64748b',
+                    boxShadow: settings.activeCompanyId === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '0 2px 8px rgba(5,150,105,0.15)' : 'none',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <span>2️⃣ شركة 2: PHI-TECH-EGY (مصر 🇪🇬)</span>
+                    {settings.activeCompanyId === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' && <CheckCircle2 size={16} />}
+                  </div>
+                  <div style={{ fontSize: '11px', opacity: 0.85, fontWeight: 700 }}>شركة فاي تك مصر (AWA)</div>
+                </button>
+              </div>
             </div>
           </div>
         </GlassContainer>
@@ -458,7 +539,7 @@ export default function BotSettingsManager() {
               <select
                 value={settings.voiceReplyMode}
                 onChange={e => setSettings({ ...settings, voiceReplyMode: e.target.value as BotSettings['voiceReplyMode'] })}
-                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: 'var(--fs-sm)', background: 'white' }}
+                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 800, fontSize: 'var(--fs-sm)' }}
               >
                 <option value="always">🔊 دائماً (إرسال بصمة صوتية مع كل رد)</option>
                 <option value="on_voice_or_request">🎙️ ذكي (عند إرسال بصمة صوتية أو طلب رد صوتي)</option>
@@ -473,7 +554,7 @@ export default function BotSettingsManager() {
               <select
                 value={settings.voiceName || 'Aoede'}
                 onChange={e => setSettings({ ...settings, voiceName: e.target.value })}
-                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: 'var(--fs-sm)', background: 'white' }}
+                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 800, fontSize: 'var(--fs-sm)' }}
               >
                 <option value="Aoede">👩‍💼 م. سلمى — دافئ وتنفيذي (Aoede - مستحسن)</option>
                 <option value="Kore">👩‍💼 نبرة واضحة ورسمية (Kore)</option>
@@ -516,7 +597,7 @@ export default function BotSettingsManager() {
                 rows={3}
                 value={settings.inactivityCloseMessage}
                 onChange={e => setSettings({ ...settings, inactivityCloseMessage: e.target.value })}
-                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 700, fontSize: 'var(--fs-sm)', resize: 'vertical' }}
+                style={{ width: '100%', padding: '0.65rem 0.875rem', borderRadius: '10px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontWeight: 700, fontSize: 'var(--fs-sm)', resize: 'vertical' }}
               />
             </div>
 
@@ -547,7 +628,7 @@ export default function BotSettingsManager() {
               onClick={handleSaveSettings}
               disabled={saving}
               style={{
-                background: '#0f172a',
+                background: 'var(--accent-ink)',
                 color: 'white',
                 padding: '0.85rem 1.25rem',
                 borderRadius: '12px',
@@ -616,7 +697,7 @@ export default function BotSettingsManager() {
                 >
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      <span style={{ background: '#0f172a', color: 'white', padding: '0.15rem 0.55rem', borderRadius: '6px', fontWeight: 900, fontSize: 'var(--fs-xs)' }}>
+                      <span style={{ background: 'var(--accent-ink)', color: 'white', padding: '0.15rem 0.55rem', borderRadius: '6px', fontWeight: 900, fontSize: 'var(--fs-xs)' }}>
                         #{op.opNumber}
                       </span>
                       <span style={{ fontWeight: 900, fontSize: 'var(--fs-xs)', color: '#0284c7' }}>{opTypeLabel(op.operationType)}</span>
@@ -657,7 +738,7 @@ export default function BotSettingsManager() {
               value={newRuleText}
               onChange={e => setNewRuleText(e.target.value)}
               placeholder="أضف قاعدة دائمة للبوت (مثال: طريحة السيراميك المعتمدة 25 م2 ويومية المبلط 250 ريال)..."
-              style={{ flex: 1, padding: '0.6rem 0.875rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: 'var(--fs-xs)', fontWeight: 700 }}
+              style={{ flex: 1, padding: '0.6rem 0.875rem', borderRadius: '10px', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', color: 'var(--text-primary)', fontSize: 'var(--fs-xs)', fontWeight: 700 }}
             />
             <button
               onClick={handleAddRule}

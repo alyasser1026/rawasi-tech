@@ -319,7 +319,7 @@ export default function UnifiedImportHub() {
         const keys = Object.keys(data[0]).filter(k => !k.startsWith('_'));
         
         return (
-            <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+            <div style={{ overflowX: 'auto', borderRadius: '12px', border: 'none', background: 'var(--surface-card)', boxShadow: 'var(--shadow-elevation)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: 'var(--fs-sm)' }}>
                     <thead>
                         <tr style={{ background: '#f8fafc', color: '#475569' }}>
@@ -440,19 +440,19 @@ export default function UnifiedImportHub() {
 
             <style>{`
                 .btn-action { width: 100%; padding: 0.9375rem; border-radius: 12px; border: none; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 0.5rem; }
-                .btn-action.primary { background: #0f172a; color: white; }
-                .btn-action.primary:hover { background: #1e293b; transform: translateY(-2px); }
+                .btn-action.primary { background: var(--accent-ink); color: white; box-shadow: var(--shadow-elevation); }
+                .btn-action.primary:hover { filter: brightness(1.1); transform: translateY(-2px); }
                 .btn-action.success { background: #10b981; color: white; }
                 .btn-action.success:hover { background: #059669; transform: translateY(-2px); }
-                .btn-action.disabled { background: #f1f5f9; color: #94a3b8; cursor: not-allowed; border: 1px solid #e2e8f0; }
+                .btn-action.disabled { background: var(--surface-sunken); color: var(--text-muted); cursor: not-allowed; border: none; }
                 
                 .upload-dropzone { border: 2px dashed #cbd5e1; background: #f8fafc; padding: 1.25rem; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.2s; font-weight: 900; font-size: var(--fs-md); color: #3b82f6; display: block; }
                 .upload-dropzone:hover { background: #eff6ff; border-color: #3b82f6; }
                 .upload-dropzone.loading { opacity: 0.7; cursor: wait; background: #f1f5f9; border-color: #94a3b8; color: #64748b; }
 
-                .tab-btn { padding: 0.625rem 1.25rem; border-radius: 10px; border: 1px solid #e2e8f0; background: white; color: #64748b; font-weight: 900; font-size: var(--fs-sm); cursor: pointer; transition: 0.2s; white-space: nowrap; }
+                .tab-btn { padding: 0.625rem 1.25rem; border-radius: 10px; border: none; box-shadow: var(--shadow-elevation); background: var(--surface-card); color: var(--text-secondary); font-weight: 800; font-size: var(--fs-sm); cursor: pointer; transition: 0.2s; white-space: nowrap; }
                 .tab-btn:hover { background: #f8fafc; }
-                .tab-btn.active { background: #0f172a; color: white; border-color: #0f172a; box-shadow: 0 4px 10px rgba(15,23,42,0.2); }
+                .tab-btn.active { background: var(--accent-ink); color: white; border: none; box-shadow: var(--shadow-ambient); }
             `}</style>
         </MasterPage>
     );

@@ -43,11 +43,11 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
 
     return (
         <div ref={dropdownRef} className="no-print" style={{ position: 'relative', flex: 1, minWidth: '15.625rem' }}>
-            <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, marginBottom: '0.375rem', color: '#475569', display: 'flex', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, marginBottom: '0.375rem', color: 'var(--text-secondary, #475569)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span>{title}</span>
                 {selected.length > 0 && (
                     <span 
-                        style={{ color: '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xs)', background: '#fef2f2', padding: '2px 0.5rem', borderRadius: '4px' }} 
+                        style={{ color: 'var(--status-negative, #ef4444)', cursor: 'pointer', fontSize: 'var(--fs-xs)', background: 'rgba(239, 68, 68, 0.1)', padding: '2px 0.5rem', borderRadius: '6px', fontWeight: 800 }} 
                         onClick={() => onChange([])}
                     >
                         إلغاء التحديد ({selected.length})
@@ -57,39 +57,39 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
             
             <div 
                 onClick={() => setIsOpen(!isOpen)}
-                style={{ background: 'white', padding: '0.625rem 0.9375rem', borderRadius: '8px', border: `2px solid ${THEME.sandDark || '#e2e8f0'}`, cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: '0.2s' }}
+                style={{ background: 'var(--surface-sunken, #f8fafc)', padding: '0.625rem 0.9375rem', borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '2.75rem', transition: '0.2s' }}
             >
-                <span style={{ fontWeight: 800, color: selected.length ? '#0f172a' : '#94a3b8', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ fontWeight: 800, color: selected.length ? 'var(--text-primary, #0f172a)' : 'var(--text-secondary, #94a3b8)', fontSize: 'var(--fs-sm)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {selected.length > 0 ? selected.join('، ') : placeholder}
                 </span>
-                <span style={{ color: '#94a3b8', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }}>▼</span>
+                <span style={{ color: 'var(--text-secondary, #94a3b8)', transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s', fontSize: 'var(--fs-xs)' }}>▼</span>
             </div>
             
             {isOpen && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: `1px solid ${THEME.sandDark || '#e2e8f0'}`, borderRadius: '12px', marginTop: '0.5rem', zIndex: 50, boxShadow: '0 10px 25px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-                    <div style={{ padding: '0.625rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--surface-card, #ffffff)', border: 'none', borderRadius: '16px', marginTop: '0.5rem', zIndex: 50, boxShadow: 'var(--shadow-ambient, 0 10px 25px rgba(0,0,0,0.1)), 0 20px 40px rgba(0,0,0,0.18)', overflow: 'hidden' }}>
+                    <div style={{ padding: '0.625rem 0.75rem', background: 'var(--surface-card, #ffffff)' }}>
                         <input 
                             type="text" 
                             placeholder="بحث سريع..." 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
+                            style={{ width: '100%', height: '2.5rem', padding: '0 0.75rem', background: 'var(--surface-sunken, #f8fafc)', border: 'none', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', borderRadius: '10px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--text-primary, #0f172a)' }}
                         />
                     </div>
-                    <div className="custom-scrollbar" style={{ maxHeight: '13.75rem', overflowY: 'auto', padding: '0.3125rem' }}>
+                    <div className="custom-scrollbar" style={{ maxHeight: '13.75rem', overflowY: 'auto', padding: '0.375rem' }}>
                         {filteredOptions.length > 0 ? filteredOptions.map((opt: string) => (
-                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.625rem', cursor: 'pointer', borderRadius: '6px', background: selected.includes(opt) ? `${accentColor}15` : 'transparent', transition: '0.2s' }}>
+                            <label key={opt} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.5rem 0.625rem', cursor: 'pointer', borderRadius: '8px', background: selected.includes(opt) ? 'var(--accent-soft-bg, rgba(37,99,235,0.1))' : 'transparent', transition: '0.2s' }}>
                                 <input 
                                     type="checkbox" 
                                     checked={selected.includes(opt)} 
                                     onChange={() => handleToggle(opt)} 
-                                    style={{ accentColor: accentColor, transform: 'scale(1.2)', cursor: 'pointer' }}
+                                    style={{ accentColor: accentColor || 'var(--accent-ink, #c2410c)', transform: 'scale(1.2)', cursor: 'pointer' }}
                                 />
-                                <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: selected.includes(opt) ? accentColor : '#334155' }}>{opt}</span>
+                                <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: selected.includes(opt) ? (accentColor || 'var(--accent-ink, #c2410c)') : 'var(--text-primary, #334155)' }}>{opt}</span>
                             </label>
                         )) : (
-                            <div style={{ padding: '0.9375rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 700 }}>لا توجد نتائج مطابقة</div>
+                            <div style={{ padding: '0.9375rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #94a3b8)', fontWeight: 700 }}>لا توجد نتائج مطابقة</div>
                         )}
                     </div>
                 </div>
@@ -98,9 +98,6 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
     );
 };
 
-// =========================================================================
-// 🚀 الصفحة الرئيسية
-// =========================================================================
 export default function MaterialIssuesPage() {
     const logic = useMaterialIssuesLogic();
     const { showConfirm } = useConfirm();
@@ -256,7 +253,7 @@ export default function MaterialIssuesPage() {
         { 
             header: 'رقم الإذن', 
             render: (row: any) => (
-                <div style={{ fontWeight: 900, color: THEME.coffeeDark || '#2d1a11', background: '#f8fafc', padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-sm)', textAlign: 'center', border: `1px solid #cbd5e1`, minWidth: '5.3125rem' }}>
+                <div style={{ fontWeight: 900, color: 'var(--text-primary, #2d1a11)', background: 'var(--surface-sunken, #f8fafc)', padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-sm)', textAlign: 'center', border: 'none', boxShadow: 'var(--shadow-sunken, inset 0 1px 3px rgba(0,0,0,0.05))', minWidth: '5.3125rem' }}>
                     #{row.issue_number || '---'}
                 </div>
             )
@@ -315,7 +312,7 @@ export default function MaterialIssuesPage() {
     ];
 
     return (
-        <div className="clean-page print-container">
+        <div className="clean-page enterprise-page print-container">
             <MasterPage title="صرف الخامات للمواقع" subtitle="إدارة مسحوبات المقاولين واستهلاك المواد وتوجيه التكاليف للبنود">
                 
                 <RawasiSidebarManager 
@@ -336,7 +333,7 @@ export default function MaterialIssuesPage() {
                                 </>
                             ) : (
                                 <>
-                                    <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.625rem', borderRadius: '8px', textAlign: 'center', color: THEME.goldAccent || '#c2410c', fontWeight: 900, fontSize: 'var(--fs-sm)', border: `1px solid ${THEME.goldAccent || '#c2410c'}50` }}>
+                                    <div style={{ background: 'rgba(255,255,255,0.1)', padding: '0.625rem', borderRadius: '8px', textAlign: 'center', color: THEME.goldAccent || '#c2410c', fontWeight: 900, fontSize: 'var(--fs-sm)', border: 'none', boxShadow: 'var(--shadow-sunken, inset 0 1px 3px rgba(0,0,0,0.1))' }}>
                                         ✓ تم تحديد ({logic.selectedIds.length}) أسطر خامات
                                     </div>
                                     
@@ -420,19 +417,19 @@ export default function MaterialIssuesPage() {
                     
                     .btn-action-glass.edit { background: linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}, #b48a2e); color: white; box-shadow: 0 4px 15px rgba(202, 138, 4, 0.3); }
                     .btn-action-glass.post { background: linear-gradient(135deg, #10b981, #059669); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
-                    .btn-action-glass.unpost { background: rgba(245, 158, 11, 0.2); color: #b45309; border: 1px solid rgba(245, 158, 11, 0.5); }
-                    .btn-action-glass.delete { background: rgba(239, 68, 68, 0.2); color: #b91c1c; border: 1px dashed rgba(239, 68, 68, 0.5); }
+                    .btn-action-glass.unpost { background: rgba(245, 158, 11, 0.15); color: #d97706; border: none; }
+                    .btn-action-glass.delete { background: rgba(239, 68, 68, 0.15); color: #dc2626; border: none; }
 
-                    .summary-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 0.75rem; display: flex; flex-direction: column; justify-content: center; border: 1px solid rgba(255,255,255,0.1); flex: 1; }
+                    .summary-card { background: var(--surface-card, rgba(255,255,255,0.05)); border-radius: 14px; padding: 0.875rem; display: flex; flex-direction: column; justify-content: center; border: none; box-shadow: var(--shadow-elevation, 0 4px 12px rgba(0,0,0,0.08)); flex: 1; }
                     .summary-card .label { font-size: var(--fs-xs); font-weight: 900; opacity: 0.8; margin-bottom: 0.25rem; }
                     .summary-card .value { font-size: var(--fs-xl); font-weight: 900; }
                     .summary-card .value-sm { font-size: var(--fs-sm); font-weight: 900; }
                     
-                    .summary-card.total { background: linear-gradient(135deg, rgba(37,99,235,0.2), rgba(30,64,175,0.2)); color: #60a5fa; border-color: rgba(59,130,246,0.3); }
-                    .summary-card.posted { background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.1)); color: #34d399; border-color: rgba(16,185,129,0.2); }
-                    .summary-card.draft { background: linear-gradient(135deg, rgba(245,158,11,0.1), rgba(180,83,9,0.1)); color: #fbbf24; border-color: rgba(245,158,11,0.2); }
-                    .summary-card.subcontractor { background: linear-gradient(135deg, rgba(225,29,72,0.1), rgba(159,18,57,0.1)); color: #fb7185; border-color: rgba(225,29,72,0.2); }
-                    .summary-card.direct { background: linear-gradient(135deg, rgba(139,92,246,0.1), rgba(91,33,182,0.1)); color: #a78bfa; border-color: rgba(139,92,246,0.2); }
+                    .summary-card.total { background: linear-gradient(135deg, rgba(37,99,235,0.15), rgba(30,64,175,0.15)); color: var(--accent-ink, #60a5fa); border: none; }
+                    .summary-card.posted { background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(5,150,105,0.12)); color: #10b981; border: none; }
+                    .summary-card.draft { background: linear-gradient(135deg, rgba(245,158,11,0.12), rgba(180,83,9,0.12)); color: #f59e0b; border: none; }
+                    .summary-card.subcontractor { background: linear-gradient(135deg, rgba(225,29,72,0.12), rgba(159,18,57,0.12)); color: #f43f5e; border: none; }
+                    .summary-card.direct { background: linear-gradient(135deg, rgba(139,92,246,0.12), rgba(91,33,182,0.12)); color: #8b5cf6; border: none; }
 
                     /* Custom Scrollbar for Dropdowns */
                     .custom-scrollbar::-webkit-scrollbar { width: 0.375rem; }
@@ -452,60 +449,74 @@ export default function MaterialIssuesPage() {
                     }
                 `}</style>
 
-                {/* 🔍 شريط الفلاتر الأساسية والبحث */}
-                <div className="no-print" style={{ display: 'flex', gap: '0.9375rem', marginBottom: '0.9375rem', background: 'white', padding: '0.9375rem', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.03)', border: `1px solid ${THEME.sandDark || '#e2e8f0'}`, flexWrap: 'wrap' }}>
-                    <div style={{ flex: '1', minWidth: '15.625rem' }}>
-                        <input 
-                            type="text" 
-                            placeholder="بحث باسم الخامة، رقم الإذن، المشروع، المقاول..." 
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            style={{ width: '100%', padding: '0.625rem 0.9375rem', borderRadius: '8px', border: `2px solid ${THEME.sandDark || '#e2e8f0'}`, outline: 'none', fontWeight: 700 }}
+                {/* 🔍 أدوات البحث والتصفية المتقدمة */}
+                <div className="no-print enterprise-card" style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                    marginBottom: '1.25rem',
+                    background: 'var(--surface-card, #ffffff)',
+                    padding: '1.25rem',
+                    borderRadius: 'var(--phi-radius-card, 18px)',
+                    boxShadow: 'var(--shadow-ambient)',
+                    border: 'none',
+                    position: 'relative'
+                }}>
+                    {/* الصف الأول: البحث العام والحالات والتوجيه */}
+                    <div style={{ display: 'flex', gap: '0.9375rem', flexWrap: 'wrap' }}>
+                        <div style={{ flex: '1', minWidth: '15.625rem' }}>
+                            <input 
+                                type="text" 
+                                placeholder="بحث باسم الخامة، رقم الإذن، المشروع، المقاول..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{ width: '100%', height: '2.75rem', padding: '0.625rem 0.9375rem', borderRadius: '12px', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', border: 'none', outline: 'none', fontWeight: 700, color: 'var(--text-primary, #0f172a)' }}
+                            />
+                        </div>
+                        <div style={{ width: '12.5rem' }}>
+                            <select 
+                                value={filterStatus} 
+                                onChange={(e) => setFilterStatus(e.target.value)}
+                                style={{ width: '100%', height: '2.75rem', padding: '0 0.9375rem', borderRadius: '12px', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', border: 'none', outline: 'none', fontWeight: 800, color: 'var(--text-primary, #1e293b)' }}
+                            >
+                                <option value="all">كل الحالات المحاسبية</option>
+                                <option value="posted">معتمد</option>
+                                <option value="draft">مسودة قيد المراجعة</option>
+                            </select>
+                        </div>
+                        <div style={{ width: '12.5rem' }}>
+                            <select 
+                                value={filterType} 
+                                onChange={(e) => setFilterType(e.target.value)}
+                                style={{ width: '100%', height: '2.75rem', padding: '0 0.9375rem', borderRadius: '12px', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', border: 'none', outline: 'none', fontWeight: 800, color: 'var(--text-primary, #1e293b)' }}
+                            >
+                                <option value="all">كل أنواع التوجيه</option>
+                                <option value="subcontractor">مسحوبات مقاولين</option>
+                                <option value="direct">استهلاك مباشر</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* الصف الثاني: الفلاتر المتقدمة (Multi-Select Dropdowns) */}
+                    <div style={{ display: 'flex', gap: '0.9375rem', flexWrap: 'wrap' }}>
+                        <MultiSelectDropdown 
+                            title="فلترة بأسماء الفلل والعقارات"
+                            placeholder="اختر الفلل..."
+                            options={uniqueProjects}
+                            selected={selectedProjects}
+                            onChange={setSelectedProjects}
+                            accentColor="#2563eb"
+                        />
+                        
+                        <MultiSelectDropdown 
+                            title="فلترة ببنود الميزانية المربوطة"
+                            placeholder="اختر البنود..."
+                            options={uniqueBoqs}
+                            selected={selectedBoqs}
+                            onChange={setSelectedBoqs}
+                            accentColor="#d97706"
                         />
                     </div>
-                    <div style={{ width: '12.5rem' }}>
-                        <select 
-                            value={filterStatus} 
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            style={{ width: '100%', padding: '0.625rem 0.9375rem', borderRadius: '8px', border: `2px solid ${THEME.sandDark || '#e2e8f0'}`, outline: 'none', fontWeight: 800, color: THEME.coffeeDark || '#1e293b' }}
-                        >
-                            <option value="all">كل الحالات المحاسبية</option>
-                            <option value="posted">معتمد</option>
-                            <option value="draft">مسودة قيد المراجعة</option>
-                        </select>
-                    </div>
-                    <div style={{ width: '12.5rem' }}>
-                        <select 
-                            value={filterType} 
-                            onChange={(e) => setFilterType(e.target.value)}
-                            style={{ width: '100%', padding: '0.625rem 0.9375rem', borderRadius: '8px', border: `2px solid ${THEME.sandDark || '#e2e8f0'}`, outline: 'none', fontWeight: 800, color: THEME.coffeeDark || '#1e293b' }}
-                        >
-                            <option value="all">كل أنواع التوجيه</option>
-                            <option value="subcontractor">مسحوبات مقاولين</option>
-                            <option value="direct">استهلاك مباشر</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* 🚀 الفلاتر المتقدمة الجديدة (Multi-Select Dropdowns) */}
-                <div className="no-print" style={{ display: 'flex', gap: '0.9375rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
-                    <MultiSelectDropdown 
-                        title="فلترة بأسماء الفلل والعقارات"
-                        placeholder="اختر الفلل..."
-                        options={uniqueProjects}
-                        selected={selectedProjects}
-                        onChange={setSelectedProjects}
-                        accentColor="#2563eb"
-                    />
-                    
-                    <MultiSelectDropdown 
-                        title="فلترة ببنود الميزانية المربوطة"
-                        placeholder="اختر البنود..."
-                        options={uniqueBoqs}
-                        selected={selectedBoqs}
-                        onChange={setSelectedBoqs}
-                        accentColor="#d97706"
-                    />
                 </div>
 
                 <RawasiSmartTable 
@@ -515,16 +526,16 @@ export default function MaterialIssuesPage() {
                 />
 
                 {!logic.isLoading && filteredIssues.length > 0 && (
-                    <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.9375rem', padding: '0.9375rem', background: 'white', borderRadius: '12px', border: `1px solid ${THEME.sandDark || '#e2e8f0'}`, boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-                        <div style={{ fontSize: 'var(--fs-sm)', color: THEME.coffeeMain || '#334155', fontWeight: 900 }}>
-                            إجمالي السجلات المفلترة: <b style={{ color: THEME.danger || '#ef4444', fontSize: 'var(--fs-lg)' }}>{filteredIssues.length}</b>
+                    <div className="no-print enterprise-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '1rem 1.25rem', background: 'var(--surface-card, #ffffff)', borderRadius: 'var(--phi-radius-card, 18px)', border: 'none', boxShadow: 'var(--shadow-ambient)' }}>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #334155)', fontWeight: 800 }}>
+                            إجمالي السجلات المفلترة: <b style={{ color: 'var(--status-negative, #ef4444)', fontSize: 'var(--fs-lg)', marginInlineStart: '0.25rem' }}>{filteredIssues.length}</b>
                         </div>
                         
                         <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center' }}>
                             <select 
                                 value={rowsPerPage} 
                                 onChange={(e) => {setRowsPerPage(Number(e.target.value)); setCurrentPage(1);}} 
-                                style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: `2px solid ${THEME.sandDark || '#e2e8f0'}`, outline: 'none', fontWeight: 900, color: THEME.coffeeDark || '#1e293b', cursor: 'pointer' }}
+                                style={{ height: '2.5rem', padding: '0 0.75rem', borderRadius: '10px', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', border: 'none', outline: 'none', fontWeight: 800, color: 'var(--text-primary, #1e293b)', cursor: 'pointer' }}
                             >
                                 <option value={50}>عرض 50 سجل</option>
                                 <option value={100}>عرض 100 سجل</option>
@@ -532,21 +543,21 @@ export default function MaterialIssuesPage() {
                                 <option value={100000}>عرض الكل (للطباعة)</option>
                             </select>
                             
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                                 <button 
                                     disabled={currentPage === 1} 
                                     onClick={() => setCurrentPage(p => p - 1)} 
-                                    style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: currentPage === 1 ? (THEME.sandLight || '#f8fafc') : (THEME.coffeeMain || '#475569'), color: currentPage === 1 ? '#94a3b8' : 'white', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                    style={{ height: '2.5rem', padding: '0 1rem', borderRadius: '10px', border: 'none', background: currentPage === 1 ? 'var(--surface-sunken, #f8fafc)' : 'var(--accent-ink, #475569)', color: currentPage === 1 ? 'var(--text-secondary, #94a3b8)' : '#ffffff', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 800, boxShadow: currentPage === 1 ? 'none' : 'var(--shadow-elevation, 0 4px 12px rgba(0,0,0,0.15))', transition: '0.2s' }}
                                 >
                                     السابق
                                 </button>
-                                <span style={{ padding: '0.5rem 1rem', background: THEME.sandLight || '#f8fafc', borderRadius: '8px', fontWeight: 900, color: THEME.coffeeDark || '#1e293b', border: `1px solid ${THEME.sandDark || '#e2e8f0'}` }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', height: '2.5rem', padding: '0 1rem', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))', borderRadius: '10px', fontWeight: 800, color: 'var(--text-primary, #1e293b)', border: 'none' }}>
                                     {currentPage} / {totalPages}
                                 </span>
                                 <button 
                                     disabled={currentPage >= totalPages} 
                                     onClick={() => setCurrentPage(p => p + 1)} 
-                                    style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', background: currentPage >= totalPages ? (THEME.sandLight || '#f8fafc') : (THEME.coffeeMain || '#475569'), color: currentPage >= totalPages ? '#94a3b8' : 'white', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', fontWeight: 900, transition: '0.2s' }}
+                                    style={{ height: '2.5rem', padding: '0 1rem', borderRadius: '10px', border: 'none', background: currentPage >= totalPages ? 'var(--surface-sunken, #f8fafc)' : 'var(--accent-ink, #475569)', color: currentPage >= totalPages ? 'var(--text-secondary, #94a3b8)' : '#ffffff', cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer', fontWeight: 800, boxShadow: currentPage >= totalPages ? 'none' : 'var(--shadow-elevation, 0 4px 12px rgba(0,0,0,0.15))', transition: '0.2s' }}
                                 >
                                     التالي
                                 </button>

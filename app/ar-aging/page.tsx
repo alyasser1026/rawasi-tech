@@ -54,14 +54,23 @@ export default function ArAgingPage() {
     setExpandedPartners(prev => ({ ...prev, [partnerId]: !prev[partnerId] }));
   };
 
-  const { data: report, isLoading, isError, error, refetch, isFetching } = useQuery<AgingReport>({
+  const [migrationPending, setMigrationPending] = useState(false);
+  const { data: report, isLoading, isError, error, refetch, isFetching } = useQuery<AgingReport | null>({
     queryKey: ['ar-aging', activeCompany?.id, partyType, asOfDate],
+    retry: false,
     queryFn: async () => {
+      setMigrationPending(false);
       const { data, error } = await supabase.rpc('get_aging_report', {
         p_party_type: partyType,
         p_as_of_date: asOfDate,
       });
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (error.code === 'PGRST202' || error.message?.includes('get_aging_report') || error.message?.includes('404')) {
+          setMigrationPending(true);
+          return null;
+        }
+        throw new Error(error.message);
+      }
       return data as AgingReport;
     },
     enabled: Boolean(activeCompany?.id),
@@ -202,8 +211,21 @@ export default function ArAgingPage() {
           </div>
         )}
 
+        {/* Pending Migration Notification */}
+        {migrationPending && (
+          <div style={{ background: 'var(--surface-card)', padding: '1.5rem', borderRadius: 'var(--phi-radius-card, 18px)', boxShadow: 'var(--shadow-ambient)', border: 'none', marginBottom: '1.25rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', top: 0, left: '8%', right: '8%', height: '1.5px', background: 'var(--specular-beam)' }} />
+            <TriangleAlert size={28} style={{ color: 'var(--accent-ink)', margin: '0 auto 0.75rem' }} />
+            <h3 style={{ margin: '0 0 0.5rem', fontSize: 'var(--fs-lg)', fontWeight: 900, color: 'var(--text-primary)' }}>دالة احتساب أعمار الذمم بانتظار التفعيل</h3>
+            <p style={{ margin: '0 0 1rem', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+              لم يتم العثور على دالة <code>get_aging_report</code> في قاعدة بيانات Supabase. يرجى فتح <strong>SQL Editor</strong> وتشغيل ملف الهجرة:
+              <br /><code style={{ background: 'var(--surface-sunken)', padding: '0.25rem 0.625rem', borderRadius: '6px', color: 'var(--accent-ink)', fontWeight: 800 }}>supabase/migrations/20261105170006_ar_aging_reports.sql</code>
+            </p>
+          </div>
+        )}
+
         {/* Error Notification */}
-        {isError && (
+        {isError && !migrationPending && (
           <div className="ent-alert ent-alert-danger">
             <TriangleAlert size={18} />
             <span>{error instanceof Error ? error.message : 'تعذر تحميل تقرير الأعمار'}</span>

@@ -153,12 +153,21 @@ export default function VatReturnPage() {
   const canView = ['vat_return', 'invoices', 'expenses', 'journal'].every(module => can(module, 'view'));
   const canReview = canView && can('vat_return', 'edit');
   const loading = permissionsLoading || companyLoading;
+  const [migrationPending, setMigrationPending] = useState(false);
   const query = useQuery({
     queryKey: ['vat-return', activeCompanyId, period?.from, period?.to],
     enabled: Boolean(!loading && canView && activeCompanyId && period),
+    retry: false,
     queryFn: async () => {
+      setMigrationPending(false);
       const { data, error } = await supabase.rpc('get_vat_return', { p_from: period!.from, p_to: period!.to });
-      if (error) throw new Error(error.message);
+      if (error) {
+        if (error.code === 'PGRST202' || error.message?.includes('get_vat_return') || error.message?.includes('404')) {
+          setMigrationPending(true);
+          return null;
+        }
+        throw new Error(error.message);
+      }
       if (data?.company?.id !== activeCompanyId || !Array.isArray(data?.boxes) || !Array.isArray(data?.transactions) || !Array.isArray(data?.reconciliation?.lines)) {
         throw new Error('تعذر التحقق من بيانات الإقرار للشركة النشطة.');
       }
@@ -206,7 +215,18 @@ export default function VatReturnPage() {
           </div>
           {!period && <p className={styles.reviewNotice} role="alert">أدخل سنة ميلادية من أربع خانات.</p>}
           {period && query.isPending && <LoadingScreen message="جاري إعداد مسودة الإقرار…" fullScreen={false} />}
-          {query.isError && <p className={styles.reviewNotice} role="alert"><TriangleAlert size={17} aria-hidden="true" />{query.error.message}</p>}
+          {migrationPending && (
+            <div style={{ background: 'var(--surface-card)', padding: '1.5rem', borderRadius: 'var(--phi-radius-card, 18px)', boxShadow: 'var(--shadow-ambient)', border: 'none', marginBottom: '1.25rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+              <div style={{ position: 'absolute', top: 0, left: '8%', right: '8%', height: '1.5px', background: 'var(--specular-beam)' }} />
+              <TriangleAlert size={28} style={{ color: 'var(--accent-ink)', margin: '0 auto 0.75rem' }} />
+              <h3 style={{ margin: '0 0 0.5rem', fontSize: 'var(--fs-lg)', fontWeight: 900, color: 'var(--text-primary)' }}>دالة احتساب الإقرار الضريبي الإلكتروني بانتظار التفعيل</h3>
+              <p style={{ margin: '0 0 1rem', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
+                لم يتم العثور على دالة <code>get_vat_return</code> في قاعدة بيانات Supabase. يرجى فتح <strong>SQL Editor</strong> وتشغيل ملف الهجرة:
+                <br /><code style={{ background: 'var(--surface-sunken)', padding: '0.25rem 0.625rem', borderRadius: '6px', color: 'var(--accent-ink)', fontWeight: 800 }}>supabase/migrations/20261105170004_vat_return.sql</code>
+              </p>
+            </div>
+          )}
+          {query.isError && !migrationPending && <p className={styles.reviewNotice} role="alert"><TriangleAlert size={17} aria-hidden="true" />{query.error.message}</p>}
           {report && rec && <>
             <div className={styles.reportHeading}>
               <strong>{report.company.name}</strong>

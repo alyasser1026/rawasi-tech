@@ -296,7 +296,7 @@ export default function JobOrdersPage() {
                   </div>
                   
                   {row.boq_budget?.work_item && (
-                       <span style={{ fontSize: 'var(--fs-xs)', color: '#475569', background: '#f1f5f9', padding: '0.25rem 0.625rem', borderRadius: '8px', width: 'fit-content', border: '1px solid #e2e8f0', fontWeight: 800 }}>
+                       <span style={{ fontSize: 'var(--fs-xs)', background: 'var(--surface-sunken)', color: 'var(--text-secondary)', padding: '0.25rem 0.625rem', borderRadius: '8px', width: 'fit-content', border: 'none', boxShadow: 'var(--shadow-sunken)', fontWeight: 800 }}>
                          {row.boq_budget.work_item}
                        </span>
                   )}
@@ -361,7 +361,7 @@ export default function JobOrdersPage() {
                         value={row.status}
                         onChange={(e) => { e.stopPropagation(); logic.handleUpdateSingleStatus(row.id, e.target.value); }}
                         onClick={(e) => e.stopPropagation()}
-                        style={{ flex: 1, padding: '0.5rem', background: 'rgba(255, 255, 255, 0.8)', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '16px', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
+                        style={{ flex: 1, padding: '0.5rem', background: 'var(--surface-sunken)', color: 'var(--text-primary)', border: 'none', boxShadow: 'var(--shadow-sunken)', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
                     >
                         <option value="مسودة">مسودة</option>
                         <option value="جاري التنفيذ">جاري التنفيذ</option>
@@ -383,11 +383,11 @@ export default function JobOrdersPage() {
             })}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.9375rem', marginTop: '1.875rem', padding: '0.9375rem', background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.9375rem', marginTop: '1.875rem', padding: '0.9375rem', background: 'var(--surface-card)', borderRadius: 'var(--phi-radius-card, 18px)', border: 'none', boxShadow: 'var(--shadow-ambient)' }}>
               <button 
                   onClick={() => logic.setCurrentPage((p:number) => Math.max(1, p - 1))} 
                   disabled={logic.currentPage === 1}
-                  style={{ padding: '0.5rem 0.9375rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: logic.currentPage === 1 ? '#f1f5f9' : 'white', cursor: logic.currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 800 }}
+                  style={{ padding: '0.5rem 0.9375rem', borderRadius: '10px', border: 'none', background: logic.currentPage === 1 ? 'var(--surface-sunken)' : 'var(--surface-subcard)', color: logic.currentPage === 1 ? 'var(--text-muted)' : 'var(--text-primary)', boxShadow: logic.currentPage === 1 ? 'none' : 'var(--shadow-elevation)', cursor: logic.currentPage === 1 ? 'not-allowed' : 'pointer', fontWeight: 800 }}
               >
                   السابق
               </button>
@@ -397,7 +397,7 @@ export default function JobOrdersPage() {
               <button 
                   onClick={() => logic.setCurrentPage((p:number) => Math.min(Math.ceil(logic.allFiltered.length / logic.rowsPerPage), p + 1))} 
                   disabled={logic.currentPage >= Math.ceil(logic.allFiltered.length / logic.rowsPerPage)}
-                  style={{ padding: '0.5rem 0.9375rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: logic.currentPage >= Math.ceil(logic.allFiltered.length / logic.rowsPerPage) ? '#f1f5f9' : 'white', cursor: 'pointer', fontWeight: 800 }}
+                  style={{ padding: '0.5rem 0.9375rem', borderRadius: '10px', border: 'none', background: logic.currentPage >= Math.ceil(logic.allFiltered.length / logic.rowsPerPage) ? 'var(--surface-sunken)' : 'var(--surface-subcard)', color: logic.currentPage >= Math.ceil(logic.allFiltered.length / logic.rowsPerPage) ? 'var(--text-muted)' : 'var(--text-primary)', boxShadow: logic.currentPage >= Math.ceil(logic.allFiltered.length / logic.rowsPerPage) ? 'none' : 'var(--shadow-elevation)', cursor: 'pointer', fontWeight: 800 }}
               >
                   التالي
               </button>

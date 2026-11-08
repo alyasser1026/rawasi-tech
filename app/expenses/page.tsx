@@ -19,7 +19,7 @@ import { supabase } from '@/lib/supabase';
 import ExpenseFormModal from './ExpenseFormModal'; 
 import ExpensePrintModal from './ExpensePrintModal'; 
 import LoadingScreen from '@/components/LoadingScreen';
-import { ChevronUp, ChevronDown, ArrowUpDown, Printer, Banknote } from 'lucide-react';
+import { ChevronUp, ChevronDown, ArrowUpDown, Printer, Banknote, Plus, Download, Edit3, CheckCircle2, RotateCcw, Trash2 } from 'lucide-react';
 import { AttachmentViewButton } from '@/components/TelegramAttachmentField';
 
 const MAIN_CATEGORIES = [
@@ -191,20 +191,20 @@ export default function ExpensesPage() {
     { 
       header: renderSortableHeader('التاريخ', 'exp_date'), 
       accessor: 'exp_date', 
-      render: (row: any) => row ? <span style={{ color: '#64748b', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>{row.exp_date}</span> : null,
+      render: (row: any) => row ? <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', fontWeight: 800, whiteSpace: 'nowrap' }}>{row.exp_date}</span> : null,
       exportValue: (row: any) => row.exp_date || '---' 
     },
     { 
       header: renderSortableHeader('المقاول/المستفيد', 'sub_contractor'), 
       accessor: 'sub_contractor', 
-      render: (row: any) => row ? <b style={{ fontWeight: 900, color: '#1e293b' }}>{row.sub_contractor || row.payee_name || '---'}</b> : null,
+      render: (row: any) => row ? <span style={{ fontWeight: 800, color: 'var(--text-primary)', fontSize: '0.8125rem', maxWidth: '6.5rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block' }} title={row.sub_contractor || row.payee_name || '---'}>{row.sub_contractor || row.payee_name || '---'}</span> : null,
       exportValue: (row: any) => row.sub_contractor || row.payee_name || '---'
     },
     { 
       header: renderSortableHeader('التصنيف', 'main_category'), 
       accessor: 'main_category', 
       render: (row: any) => row ? (
-        <span style={{ fontSize:'var(--fs-xs)', background: '#e0f2fe', padding: '0.25rem 0.625rem', borderRadius: '8px', color: '#0369a1', fontWeight: 900, border: '1px solid #bae6fd', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: '0.6875rem', background: 'var(--accent-soft-bg)', padding: '0.15rem 0.45rem', borderRadius: '6px', color: 'var(--accent-ink)', fontWeight: 800, whiteSpace: 'nowrap', display: 'inline-block' }}>
           {row.main_category || 'غير مصنف'}
         </span>
       ) : null,
@@ -214,7 +214,7 @@ export default function ExpensesPage() {
       header: renderSortableHeader('المشروع', 'site_ref'), 
       accessor: 'site_ref', 
       render: (row: any) => row ? (
-        <span style={{ fontSize:'var(--fs-xs)', background: row.is_auto_distributed ? '#f3e8ff' : '#f1f5f9', padding: '0.25rem 0.625rem', borderRadius: '8px', color: row.is_auto_distributed ? THEME.purple : THEME.brand.coffee, fontWeight: 900 }}>
+        <span style={{ fontSize: '0.6875rem', background: 'var(--surface-sunken)', padding: '0.15rem 0.45rem', borderRadius: '6px', color: 'var(--text-secondary)', fontWeight: 800, whiteSpace: 'nowrap', display: 'inline-block' }}>
           {row.is_auto_distributed ? 'توزيع ذكي' : row.site_ref || 'عام'}
         </span>
       ) : null,
@@ -224,7 +224,7 @@ export default function ExpensesPage() {
       header: renderSortableHeader('المدين', 'creditor_account'), 
       accessor: 'creditor_account', 
       render: (row: any) => row ? (
-        <span style={{ fontSize:'var(--fs-xs)', background: '#f8fafc', padding: '0.25rem 0.625rem', borderRadius: '8px', color: '#475569', fontWeight: 900 }}>
+        <span style={{ fontSize: '0.6875rem', background: 'var(--surface-sunken)', padding: '0.15rem 0.45rem', borderRadius: '6px', color: 'var(--text-primary)', fontWeight: 800, maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block' }} title={row.creditor_account || '---'}>
           {row.creditor_account || '---'}
         </span>
       ) : null,
@@ -234,7 +234,7 @@ export default function ExpensesPage() {
       header: renderSortableHeader('الدائن', 'payment_account'), 
       accessor: 'payment_account', 
       render: (row: any) => row ? (
-        <span style={{ fontSize:'var(--fs-xs)', background: '#f8fafc', padding: '0.25rem 0.625rem', borderRadius: '8px', color: '#475569', fontWeight: 900 }}>
+        <span style={{ fontSize: '0.6875rem', background: 'var(--surface-sunken)', padding: '0.15rem 0.45rem', borderRadius: '6px', color: 'var(--text-primary)', fontWeight: 800, maxWidth: '10rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block' }} title={row.payment_account || '---'}>
           {row.payment_account || '---'}
         </span>
       ) : null,
@@ -249,7 +249,7 @@ export default function ExpensesPage() {
         if ((!displayDesc || displayDesc.trim() === '') && row.lines_data && Array.isArray(row.lines_data) && row.lines_data.length > 0) {
             displayDesc = row.lines_data.map((l: any) => l.description).filter(Boolean).join(' + ');
         }
-        return <span style={{ fontSize:'var(--fs-sm)', maxWidth: '9.375rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block' }} title={displayDesc || '---'}>{displayDesc || '---'}</span>;
+        return <span style={{ fontSize: '0.75rem', maxWidth: '6.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'inline-block', color: 'var(--text-secondary)' }} title={displayDesc || '---'}>{displayDesc || '---'}</span>;
       },
       exportValue: (row: any) => {
         let displayDesc = row.description;
@@ -262,13 +262,13 @@ export default function ExpensesPage() {
     { 
       header: renderSortableHeader('الضريبة', 'vat_amount'), 
       accessor: 'vat_amount', 
-      render: (row: any) => row ? <span style={{fontWeight: 700}}>{Number(row.vat_amount || 0).toLocaleString()}</span> : null,
+      render: (row: any) => row ? <span style={{ fontWeight: 800, fontSize: '0.75rem', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{Number(row.vat_amount || 0).toLocaleString()}</span> : null,
       exportValue: (row: any) => Number(row.vat_amount || 0)
     },
     { 
       header: renderSortableHeader('الخصم', 'discount_amount'), 
       accessor: 'discount_amount', 
-      render: (row: any) => row ? <span style={{ color: THEME.ruby, fontWeight: 700 }}>{Number(row.discount_amount || 0).toLocaleString()}</span> : null,
+      render: (row: any) => row ? <span style={{ color: 'var(--status-negative)', fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{Number(row.discount_amount || 0).toLocaleString()}</span> : null,
       exportValue: (row: any) => Number(row.discount_amount || 0)
     },
     { 
@@ -277,7 +277,7 @@ export default function ExpensesPage() {
       render: (row: any) => {
         if (!row) return null;
         const total = row.total_price || ((Number(row.quantity || 1) * Number(row.unit_price || 0)) + Number(row.vat_amount || 0) - Number(row.discount_amount || 0));
-        return <span style={{ color: THEME.success, fontWeight: 900, fontSize: 'var(--fs-md)' }}>{total.toLocaleString()}</span>;
+        return <span style={{ color: 'var(--status-positive)', fontWeight: 900, fontSize: '0.8125rem', whiteSpace: 'nowrap' }}>{total.toLocaleString()}</span>;
       },
       exportValue: (row: any) => {
         if (row.total_price) return Number(row.total_price);
@@ -299,18 +299,18 @@ export default function ExpensesPage() {
         const total = row.total_price || (Number(row.quantity || 1) * Number(row.unit_price || 0)) + Number(row.vat_amount || 0) - Number(row.discount_amount || 0);
         const paid = Number(row.paid_amount || 0);
         
-        let statusText = ''; let bgColor = ''; let textColor = '';
+        let statusText = 'غير مسدد';
+        let statusColor = 'var(--status-negative)';
+        let statusBg = 'var(--status-negative-soft)';
 
-        if (paid <= 0) {
-            statusText = 'غير مسدد'; bgColor = '#fef2f2'; textColor = '#ef4444';
-        } else if (paid > 0 && paid < total) {
-            statusText = 'مسدد جزئي'; bgColor = '#fffbeb'; textColor = '#f59e0b';
+        if (paid > 0 && paid < total) {
+            statusText = 'مسدد جزئي'; statusColor = 'var(--status-warning)'; statusBg = 'var(--status-warning-soft)';
         } else if (paid >= total) {
-            statusText = 'مسدد'; bgColor = '#ecfdf5'; textColor = '#10b981';
+            statusText = 'مسدد'; statusColor = 'var(--status-positive)'; statusBg = 'var(--status-positive-soft)';
         }
 
         return (
-          <span style={{ display: 'inline-block', background: bgColor, color: textColor, padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900, border: `1px solid ${textColor}30`, whiteSpace: 'nowrap' }}>
+          <span style={{ display: 'inline-block', background: statusBg, color: statusColor, padding: '0.15rem 0.4rem', borderRadius: '6px', fontSize: '0.6875rem', fontWeight: 900, whiteSpace: 'nowrap' }}>
             {statusText}
           </span>
         );
@@ -329,8 +329,8 @@ export default function ExpensesPage() {
       render: (row: any) => {
         if (!row) return null;
         return row.is_posted ? 
-          <span style={{ display: 'inline-block', background: '#ecfdf5', color: '#059669', padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>معتمد</span> : 
-          <span style={{ display: 'inline-block', background: row._offline_queued ? '#e0f2fe' : '#fff7ed', color: row._offline_queued ? '#0369a1' : '#d97706', padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 900 }}>{row._offline_queued ? 'في الطابور' : 'معلق'}</span>;
+          <span style={{ display: 'inline-block', background: 'var(--status-positive-soft)', color: 'var(--status-positive)', padding: '0.15rem 0.4rem', borderRadius: '6px', fontSize: '0.6875rem', fontWeight: 900, whiteSpace: 'nowrap' }}>معتمد</span> : 
+          <span style={{ display: 'inline-block', background: 'var(--status-warning-soft)', color: 'var(--status-warning)', padding: '0.15rem 0.4rem', borderRadius: '6px', fontSize: '0.6875rem', fontWeight: 900, whiteSpace: 'nowrap' }}>{row._offline_queued ? 'في الطابور' : 'معلق'}</span>;
       },
       exportValue: (row: any) => row.is_posted ? 'معتمد' : 'معلق'
     },
@@ -351,7 +351,7 @@ export default function ExpensesPage() {
             {row.invoice_image && <AttachmentViewButton url={row.invoice_image} label="المرفق" title="معاينة مرفق الفاتورة" />}
             <button 
               onClick={(e) => { e.stopPropagation(); setPrintData(row); setIsPrintModalOpen(true); }} 
-              style={{ background: 'rgba(255,255,255,0.5)', border: '1px solid rgba(0,0,0,0.1)', padding: '0.375rem 0.625rem', borderRadius: '8px', cursor: 'pointer', transition: '0.2s', fontSize: 'var(--fs-md)' }}
+              style={{ background: 'var(--surface-sunken)', border: 'none', boxShadow: 'var(--shadow-sunken)', padding: '0.375rem 0.625rem', borderRadius: '8px', cursor: 'pointer', transition: '0.2s', fontSize: 'var(--fs-md)', color: 'var(--text-primary)' }}
               title="طباعة المصروف"
             >
               <Printer size={14} aria-hidden="true" />
@@ -426,102 +426,125 @@ export default function ExpensesPage() {
   ];
 
   const sidebarActions = (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
+    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.625rem' }}>
       <SecureAction module="expenses" action="create">
-        <button className="btn-main-glass gold" onClick={logic.handleAddNew}>إضافة مصروف جديد</button>
+        <button className="ent-button ent-primary" onClick={logic.handleAddNew}>
+          <Plus size={16} aria-hidden="true" />
+          <span>إضافة مصروف جديد</span>
+        </button>
       </SecureAction>
 
       {logic.selectedIds.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.3125rem', paddingTop: '0.9375rem', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <div style={{ textAlign: 'center', marginBottom: '0.3125rem' }}>
-              <p style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 900, margin: 0 }}>الإجراءات على ({logic.selectedIds.length})</p>
-              <button onClick={() => logic.setSelectedIds([])} style={{ background: 'none', border: 'none', color: THEME.primary, fontSize: 'var(--fs-xs)', fontWeight: 900, cursor: 'pointer', textDecoration: 'underline' }}>إلغاء التحديد</button>
+        <div style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.5rem', background: 'var(--surface-sunken)', padding: '0.25rem 0.5rem', borderRadius: '12px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.375rem', padding: '0 0.25rem' }}>
+              <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 800 }}>({logic.selectedIds.length}) محدد</span>
+              <button onClick={() => logic.setSelectedIds([])} style={{ background: 'none', border: 'none', color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)', fontWeight: 800, cursor: 'pointer', textDecoration: 'underline' }}>إلغاء</button>
           </div>
           
           <SecureAction module="expenses" action="edit">
               <button 
-                  className="btn-main-glass green" 
+                  className="ent-button ent-success" 
                   onClick={logic.handleBulkDisburse}
                   disabled={logic.isDisbursing}
               >
-                  {logic.isDisbursing ? 'جاري المعالجة...' : `صرف جماعي (${logic.selectedIds.length})`}
+                  <Banknote size={14} aria-hidden="true" />
+                  <span>{logic.isDisbursing ? 'جاري المعالجة...' : `صرف جماعي (${logic.selectedIds.length})`}</span>
               </button>
           </SecureAction>
 
           <SecureAction module="expenses" action="edit">
-            <button className="btn-main-glass blue" onClick={() => logic.setIsBulkFixModalOpen(true)}>تصحيح مجمع</button>
+            <button className="ent-button" onClick={() => logic.setIsBulkFixModalOpen(true)}>
+              <span>تصحيح مجمع</span>
+            </button>
           </SecureAction>
           {logic.selectedIds.length === 1 && (
             <SecureAction module="expenses" action="edit">
-              <button className="btn-main-glass white" onClick={logic.handleEditSelected}>تعديل السجل</button>
+              <button className="ent-button" onClick={logic.handleEditSelected}>
+                <Edit3 size={14} aria-hidden="true" />
+                <span>تعديل السجل</span>
+              </button>
             </SecureAction>
           )}
           <SecureAction module="expenses" action="post">
-            <button className="btn-main-glass green" onClick={logic.handlePostSelected}>اعتماد وترحيل</button>
+            <button className="ent-button ent-success" onClick={logic.handlePostSelected}>
+              <CheckCircle2 size={14} aria-hidden="true" />
+              <span>اعتماد وترحيل</span>
+            </button>
           </SecureAction>
           <SecureAction module="expenses" action="post">
-            <button className="btn-main-glass yellow" onClick={logic.handleUnpostSelected}>فك الترحيل</button>
+            <button className="ent-button ent-warning" onClick={logic.handleUnpostSelected}>
+              <RotateCcw size={14} aria-hidden="true" />
+              <span>فك الترحيل</span>
+            </button>
           </SecureAction>
           <SecureAction module="expenses" action="delete">
-            <button className="btn-main-glass red" onClick={logic.handleDeleteSelected}>حذف نهائي</button>
+            <button className="ent-button ent-danger" onClick={logic.handleDeleteSelected}>
+              <Trash2 size={14} aria-hidden="true" />
+              <span>حذف نهائي</span>
+            </button>
           </SecureAction>
         </div>
       )}
 
-      <button className="btn-main-glass white" onClick={logic.exportToExcel}>تصدير Excel</button>
+      <button className="ent-button" onClick={logic.exportToExcel}>
+        <Download size={16} aria-hidden="true" />
+        <span>تصدير Excel</span>
+      </button>
     </div>
   );
 
   return (
-    <div className="clean-page">
+    <div className="clean-page enterprise-page">
       <MasterPage title="سجل المصروفات الموحد" subtitle="إدارة التكاليف والمشتريات وتوزيع بنود العمل">
           <RawasiSidebarManager 
             summary={
               <div className="summary-glass-card">
-                <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'#64748b'}}>إجمالي مصروفات الفترة</span>
-                <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: THEME.primary, marginTop:'0.3125rem'}}>{formatCurrency(displayedTotal)}</div>
-                <div style={{fontSize:'var(--fs-xs)', color:'#10b981', fontWeight:800, marginTop:'0.3125rem'}}>إجمالي القيود: {displayedExpenses.length}</div>
+                <span style={{fontSize:'var(--fs-sm)', fontWeight:800, color:'var(--text-secondary)'}}>إجمالي مصروفات الفترة</span>
+                <div className="val" style={{fontSize:'var(--fs-2xl)', fontWeight:900, color: 'var(--accent-ink)', marginTop:'0.3125rem'}}>{formatCurrency(displayedTotal)}</div>
+                <div style={{fontSize:'var(--fs-xs)', color:'var(--status-positive)', fontWeight:800, marginTop:'0.3125rem'}}>إجمالي القيود: {displayedExpenses.length}</div>
               </div>
             }
             actions={sidebarActions}
             customFilters={
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem', marginTop: '0.625rem' }}>
-                <div>
-                  <label style={{color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '0.5rem'}}>تصفية بالتصنيف:</label>
+              <div className="expenses-filter-grid">
+                <div className="expenses-filter-field">
+                  <label className="expenses-filter-label">تصفية بالتصنيف:</label>
                   <select 
-                      style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 800, outline: 'none', cursor: 'pointer', fontSize: 'var(--fs-sm)', appearance: 'auto' }} 
+                      className="expenses-filter-select"
                       value={categoryFilter || "الكل"}
                       onChange={e => {
                         const val = e.target.value;
                         setCategoryFilter(val === 'الكل' ? null : val);
                       }}
                   >
-                    <option value="الكل" style={{color:'#000'}}>كل التصنيفات</option>
-                    {MAIN_CATEGORIES.map(c => <option key={c} value={c} style={{color:'#000'}}>{c}</option>)}
+                    <option value="الكل">كل التصنيفات</option>
+                    {MAIN_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
 
-                <div>
-                  <label style={{color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '0.5rem'}}>عرض السجلات:</label>
+                <div className="expenses-filter-field">
+                  <label className="expenses-filter-label">عرض السجلات:</label>
                   <select 
-                      style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', color: 'white', fontWeight: 800, outline: 'none', cursor: 'pointer', fontSize: 'var(--fs-sm)' }} 
+                      className="expenses-filter-select"
                       value={logic.rowsPerPage} 
                       onChange={e => { logic.setRowsPerPage(Number(e.target.value)); logic.setCurrentPage(1); }}
                   >
-                    <option value="50" style={{color:'#000'}}>50 سجل</option>
-                    <option value="100" style={{color:'#000'}}>100 سجل</option>
-                    <option value="500" style={{color:'#000'}}>500 سجل</option>
+                    <option value="50">50 سجل</option>
+                    <option value="100">100 سجل</option>
+                    <option value="500">500 سجل</option>
                   </select>
                 </div>
                 
-                <div>
-                  <label style={{ color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '0.5rem' }}>تصفية حسب الحالة:</label>
-                  <div style={{ display: 'flex', gap: '0.3125rem' }}>
+                <div className="expenses-filter-field">
+                  <label className="expenses-filter-label">تصفية حسب الحالة:</label>
+                  <div className="expenses-segmented-control" role="group" aria-label="تصفية حسب الحالة">
                     {['الكل', 'معتمد', 'معلق'].map(type => (
                       <button 
                         key={type} 
+                        type="button"
                         onClick={() => logic.setFilterStatus(type)} 
-                        className={`filter-btn ${logic.filterStatus === type ? 'active' : ''}`}
+                        className={`expenses-segment-btn ${logic.filterStatus === type ? 'active' : ''}`}
+                        aria-pressed={logic.filterStatus === type}
                       >
                         {type}
                       </button>
@@ -529,15 +552,16 @@ export default function ExpensesPage() {
                   </div>
                 </div>
 
-                <div>
-                  <label style={{ color: 'white', fontSize: 'var(--fs-xs)', fontWeight: 900, display: 'block', marginBottom: '0.5rem' }}>تصفية حسب السداد:</label>
-                  <div style={{ display: 'flex', gap: '0.3125rem', flexWrap: 'wrap' }}>
+                <div className="expenses-filter-field">
+                  <label className="expenses-filter-label">تصفية حسب السداد:</label>
+                  <div className="expenses-segmented-control" role="group" aria-label="تصفية حسب السداد">
                     {['الكل', 'مسدد', 'مسدد جزئي', 'غير مسدد'].map(type => (
                       <button 
                         key={type} 
+                        type="button"
                         onClick={() => logic.setPaymentFilter(type)} 
-                        className={`filter-btn ${logic.paymentFilter === type ? 'active' : ''}`}
-                        style={{ padding: '0.375rem', fontSize: 'var(--fs-xs)' }}
+                        className={`expenses-segment-btn ${logic.paymentFilter === type ? 'active' : ''}`}
+                        aria-pressed={logic.paymentFilter === type}
                       >
                         {type}
                       </button>
@@ -551,26 +575,173 @@ export default function ExpensesPage() {
           />
 
           <style>{`
-            .table-glass-wrapper { background: rgba(255,255,255,0.5); backdrop-filter: blur(10px); border-radius: 14px; padding: 0.625rem; border: 1px solid rgba(255,255,255,0.7); transition: all 0.3s ease; }
-            .btn-main-glass { width: 100%; padding: 0.875rem; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(15px); font-weight: 900; cursor: pointer; transition: 0.2s; font-size: var(--fs-sm); display: flex; align-items: center; justify-content: center; gap: 0.5rem; }
-            .btn-main-glass.gold { background: linear-gradient(135deg, rgba(194,65,12, 0.9), rgba(194,65,12, 1)); color: white; }
-            .btn-main-glass.blue { background: linear-gradient(135deg, rgba(14, 165, 233, 0.8), rgba(2, 132, 199, 0.9)); color: white; }
-            .btn-main-glass.green { background: linear-gradient(135deg, rgba(34, 197, 94, 0.8), rgba(22, 163, 74, 0.9)); color: white; }
-            .btn-main-glass.yellow { background: linear-gradient(135deg, rgba(245, 158, 11, 0.8), rgba(217, 119, 6, 0.9)); color: white; }
-            .btn-main-glass.white { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255,255,255,0.8); }
-            .btn-main-glass.red { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.2); }
-            .btn-main-glass:hover { transform: translateY(-3px); filter: brightness(1.1); }
-            .summary-glass-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); padding: 1.25rem; border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.2); margin-bottom: 1.5625rem; }
-            .filter-btn { flex: 1; padding: 0.5rem; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; border: none; font-weight: 900; cursor: pointer; font-size: var(--fs-xs); transition: 0.3s; }
-            .filter-btn.active { background: ${THEME.goldAccent}; color: #1e293b; }
-            .custom-checkbox { width: 1.25rem; height: 1.25rem; accent-color: ${THEME.goldAccent}; cursor: pointer; transition: 0.1s; }
+            .expenses-filter-grid {
+              display: grid;
+              grid-column: 1 / -1;
+              grid-template-columns: minmax(13rem, 1.4fr) minmax(9rem, 0.9fr) minmax(12rem, 1.2fr) minmax(16rem, 1.6fr);
+              gap: 1rem 1.25rem;
+              width: 100%;
+              align-items: end;
+            }
+            @media (max-width: 1100px) {
+              .expenses-filter-grid {
+                grid-template-columns: repeat(2, 1fr);
+              }
+            }
+            @media (max-width: 600px) {
+              .expenses-filter-grid {
+                grid-template-columns: 1fr;
+              }
+            }
+            .expenses-filter-field {
+              display: flex;
+              flex-direction: column;
+              gap: 0.375rem;
+              min-width: 0;
+            }
+            .expenses-filter-label {
+              font-size: var(--fs-xs);
+              font-weight: 800;
+              color: var(--text-secondary);
+              margin: 0;
+            }
+            .expenses-filter-select {
+              width: 100%;
+              height: 2.75rem;
+              padding: 0 0.875rem;
+              border-radius: 12px;
+              border: none !important;
+              background: var(--surface-sunken);
+              box-shadow: var(--shadow-sunken);
+              color: var(--text-primary);
+              font-weight: 800;
+              font-size: var(--fs-sm);
+              outline: none;
+              cursor: pointer;
+              appearance: auto;
+              transition: all 0.2s ease;
+            }
+            .expenses-filter-select:focus-visible {
+              outline: 2px solid var(--accent-main);
+              outline-offset: 1px;
+            }
+            .expenses-segmented-control {
+              display: flex;
+              align-items: center;
+              background: var(--surface-sunken);
+              box-shadow: var(--shadow-sunken);
+              border-radius: 12px;
+              padding: 4px;
+              gap: 4px;
+              min-height: 2.75rem;
+              box-sizing: border-box;
+            }
+            .expenses-segment-btn {
+              flex: 1;
+              min-height: 2.25rem;
+              padding: 0 0.5rem;
+              border: none !important;
+              border-radius: 8px;
+              background: transparent;
+              color: var(--text-secondary);
+              font-size: var(--fs-xs);
+              font-weight: 800;
+              cursor: pointer;
+              transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+              white-space: nowrap;
+              display: inline-flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .expenses-segment-btn:hover:not(.active) {
+              background: var(--surface-card-hover);
+              color: var(--text-primary);
+            }
+            .expenses-segment-btn.active {
+              background: var(--action-fill) !important;
+              color: var(--action-ink) !important;
+              box-shadow: 0 4px 12px -2px var(--accent-glow);
+            }
+            .table-glass-wrapper {
+              background: var(--surface-card);
+              border-radius: var(--phi-radius-card, 18px);
+              padding: 0.75rem;
+              border: none !important;
+              box-shadow: var(--shadow-ambient);
+              position: relative;
+              overflow: hidden;
+              transition: all 0.3s ease;
+            }
+            .table-glass-wrapper::before {
+              content: '';
+              position: absolute;
+              top: 0; left: 8%; right: 8%;
+              height: 1.5px;
+              background: var(--specular-beam);
+              pointer-events: none;
+            }
+            .summary-glass-card {
+              background: var(--surface-card);
+              border-radius: var(--phi-radius-card, 18px);
+              padding: 1.25rem 1.5rem;
+              border: none !important;
+              box-shadow: var(--shadow-ambient);
+              position: relative;
+              overflow: hidden;
+            }
+            .summary-glass-card::before {
+              content: '';
+              position: absolute;
+              top: 0; left: 8%; right: 8%;
+              height: 1.5px;
+              background: var(--specular-beam);
+              pointer-events: none;
+            }
+            .custom-checkbox { width: 1.25rem; height: 1.25rem; accent-color: var(--accent-main); cursor: pointer; transition: 0.1s; }
+            .expenses-compact-table {
+              overflow-x: auto;
+            }
+            .expenses-compact-table .rawasi-printable-table {
+              width: 100% !important;
+              font-size: 0.78125rem !important;
+              border-collapse: separate !important;
+              border-spacing: 0 !important;
+            }
+            .expenses-compact-table .rawasi-printable-table thead th {
+              padding: 0.5rem 0.35rem !important;
+              font-size: 0.71875rem !important;
+              font-weight: 800 !important;
+              text-align: center !important;
+              white-space: nowrap !important;
+              letter-spacing: -0.2px;
+            }
+            .expenses-compact-table .rawasi-printable-table tbody td {
+              padding: 0.375rem 0.35rem !important;
+              font-size: 0.78125rem !important;
+              text-align: center !important;
+              white-space: nowrap !important;
+              line-height: 1.25 !important;
+            }
+            .expenses-compact-table .rawasi-printable-table th:first-child,
+            .expenses-compact-table .rawasi-printable-table td:first-child {
+              width: 2rem !important;
+              padding: 0.375rem 0.2rem !important;
+            }
+            .expenses-compact-table .rawasi-table-column-label {
+              justify-content: center !important;
+              gap: 0.2rem !important;
+            }
+            .expenses-compact-table .rawasi-table-sort-indicator {
+              margin-inline-start: 0.15rem !important;
+            }
+
             @keyframes modalEntrance { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
           `}</style>
 
           {(logic.isLoading || permsLoading) ? (
             <LoadingScreen message="جاري المزامنة..." fullScreen={false} />
           ) : (
-            <div className="table-glass-wrapper cinematic-scroll" style={{ overflowX: 'auto' }}>
+            <div className="table-glass-wrapper expenses-compact-table cinematic-scroll" style={{ overflowX: 'auto' }}>
               <RawasiSmartTable 
                 data={sortedExpenses} 
                 columns={expenseColumns} 
@@ -627,7 +798,7 @@ export default function ExpensesPage() {
                 </div>
                 <div style={{ display: 'flex', gap: '0.9375rem', marginTop: '2.5rem' }}>
                   <button onClick={logic.handleBulkFixSave} disabled={logic.isLoading} style={{ flex: 2, padding: '1.125rem', borderRadius: '16px', background: THEME.info, color: 'white', fontWeight: 900, border: 'none', cursor: 'pointer', fontSize: 'var(--fs-lg)', boxShadow: `0 10px 25px ${THEME.info}40` }}>{logic.isLoading ? 'جاري الحفظ...' : 'تطبيق التعديلات'}</button>
-                  <button onClick={()=>logic.setIsBulkFixModalOpen(false)} style={{ flex: 1, padding: '1.125rem', borderRadius: '16px', border: '2px solid #e2e8f0', background: 'white', color: '#64748b', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)' }}>إلغاء</button>
+                  <button onClick={()=>logic.setIsBulkFixModalOpen(false)} style={{ flex: 1, padding: '1.125rem', borderRadius: '16px', border: 'none', background: 'var(--surface-subcard)', color: 'var(--text-primary)', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-lg)', boxShadow: 'var(--shadow-elevation)' }}>إلغاء</button>
                 </div>
               </div>
             </div>,

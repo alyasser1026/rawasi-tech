@@ -244,7 +244,7 @@ export default function EmployeeProfilePage() {
             <style>{`
                 .profile-page .modal-overlay { position: fixed; inset: 0; background: var(--modal-scrim); backdrop-filter: blur(12px); display: flex; justify-content: center; align-items: center; padding: 1rem; z-index: 2000; }
                 .profile-page .modal-box { background: var(--surface-card); color: var(--text-primary); width: min(100%, 37.5rem); padding: clamp(1rem, 6vw, 2.5rem); border-radius: 14px; box-shadow: var(--shadow-elevation); position: relative; max-height: calc(100dvh - 2rem); overflow-y: auto; }
-                .profile-page .sidebar-input { width: 100%; padding: 0.75rem; border-radius: 12px; border: 1px solid var(--control-edge); background: var(--surface-sunken); color: var(--text-primary); margin-bottom: 1.25rem; font-size: var(--fs-sm); }
+                .profile-page .sidebar-input { width: 100%; padding: 0.75rem; border-radius: 12px; border: none !important; box-shadow: var(--shadow-sunken); background: var(--surface-sunken); color: var(--text-primary); margin-bottom: 1.25rem; font-size: var(--fs-sm); }
                 .profile-page .sidebar-input:focus { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
                 .profile-page .tab-btn { padding: 1rem 1.5625rem; border: none; background: transparent; font-size: var(--fs-md); font-weight: 900; color: var(--text-primary); cursor: pointer; transition: 0.3s; white-space: nowrap; border-radius: 16px; }
                 .profile-page .tab-btn.active { color: var(--action-ink); background: var(--action-fill); box-shadow: 0 10px 24px -4px var(--accent-glow); }

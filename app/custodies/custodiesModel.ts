@@ -123,7 +123,13 @@ export async function fetchSiteCustodies(statusFilter: string = 'all'): Promise<
   const { data, error } = await summaryRequest;
 
   if (error) {
-    if (error.code === 'PGRST202' || error.code === '42P01' || error.code === 'PGRST205') {
+    if (
+      error.code === 'PGRST202' ||
+      error.code === '42P01' ||
+      error.code === 'PGRST205' ||
+      error.message?.includes('get_site_custodies_summary') ||
+      error.message?.includes('404')
+    ) {
       return {
         kpis: {
           total_custodies: 0,

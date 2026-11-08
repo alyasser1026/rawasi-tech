@@ -5,7 +5,7 @@ import MasterPage from '@/components/MasterPage';
 import { formatCurrency } from '@/lib/helpers';
 import * as XLSX from 'xlsx-js-style';
 import LoadingScreen from '@/components/LoadingScreen';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus, Download, Printer, Save } from 'lucide-react';
 import { notify } from '@/lib/notify';
 
 const THEME = {
@@ -19,15 +19,21 @@ const THEME = {
   textMuted: '#64748b'
 };
 
-const planControlStyle = {
+const planControlStyle: React.CSSProperties = {
   background: 'var(--surface-sunken)',
   color: 'var(--text-primary)',
-  border: '1px solid var(--control-edge)',
-  borderRadius: '6px',
-  fontWeight: 700,
+  border: 'none',
+  boxShadow: 'var(--shadow-sunken)',
+  borderRadius: '10px',
+  fontWeight: 800,
+  fontSize: 'var(--fs-sm)',
+  height: '2.625rem',
+  padding: '0 0.875rem',
+  outline: 'none',
+  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
 };
 
-const planDivider = '1px solid var(--table-zebra-bg)';
+const planDivider = 'none';
 
 export default function FinancialPlanPage() {
   const logic = useFinancialPlanLogic();
@@ -256,25 +262,26 @@ export default function FinancialPlanPage() {
     const isRevenue = category === 'إيرادات';
     
     return (
-      <div className="ent-panel" style={{ marginBottom: '1.875rem' }}>
-        <div style={{ background: 'var(--surface-subcard)', padding: '0.9375rem 1.25rem', borderBottom: planDivider, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap' }}>
+      <div className="plan-panel">
+        <div style={{ background: 'var(--surface-subcard)', padding: '1rem 1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
           <h2 style={{ margin: 0, color: isRevenue ? 'var(--status-positive)' : 'var(--status-negative)', fontSize: 'var(--fs-xl)', fontWeight: '900' }}>
             {isRevenue ? 'الإيرادات المتوقعة' : 'المصروفات المقدرة'}
           </h2>
-          <button className="ent-button" onClick={() => logic.addNewItem(category)}>
-            + إضافة بند
+          <button className="ent-button ent-primary" onClick={() => logic.addNewItem(category)} style={{ borderRadius: '10px', fontWeight: 800, border: 'none' }}>
+            <Plus size={15} aria-hidden="true" />
+            <span>إضافة بند</span>
           </button>
         </div>
         
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', minWidth: '34rem', borderCollapse: 'collapse', textAlign: 'right' }}>
-            <thead style={{ background: 'var(--surface-flat)', color: 'var(--text-primary)', fontSize: 'var(--fs-md)' }}>
+        <div style={{ overflowX: 'auto', padding: '0.75rem' }}>
+          <table className="plan-table">
+            <thead>
               <tr>
-                <th style={{ padding: '0.75rem 0.9375rem', borderBottom: planDivider }}>اسم البند</th>
-                <th style={{ padding: '0.75rem 0.9375rem', borderBottom: planDivider, width: '9.375rem' }}>المبلغ المخطط (مستهدف)</th>
-                <th style={{ padding: '0.75rem 0.9375rem', borderBottom: planDivider, width: '9.375rem' }}>الفعلي (المنفذ)</th>
-                <th style={{ padding: '0.75rem 0.9375rem', borderBottom: planDivider, width: '9.375rem' }}>نسبة الانحراف</th>
-                <th style={{ padding: '0.75rem 0.9375rem', borderBottom: planDivider, width: '3.75rem' }}></th>
+                <th style={{ minWidth: '14rem', width: '42%' }}>اسم البند</th>
+                <th style={{ width: '9.5rem', textAlign: 'center' }}>المبلغ المخطط (مستهدف)</th>
+                <th style={{ width: '9.5rem', textAlign: 'center' }}>الفعلي (المنفذ)</th>
+                <th style={{ width: '9rem', textAlign: 'center' }}>نسبة الانحراف</th>
+                <th style={{ width: '3.5rem', textAlign: 'center' }}></th>
               </tr>
             </thead>
             <tbody>
@@ -288,21 +295,46 @@ export default function FinancialPlanPage() {
                 if (variance < 0) varianceColor = isRevenue ? 'var(--status-negative)' : 'var(--status-positive)';
 
                 return (
-                  <tr key={r.id} style={{ borderBottom: planDivider }}>
-                    <td style={{ padding: '0.625rem 0.9375rem' }}>
-                      <input type="text" value={r.item_name} onChange={e => logic.updateRecord(r.id, 'item_name', e.target.value)} style={{ ...planControlStyle, width: '100%', padding: '0.5rem' }} />
+                  <tr key={r.id}>
+                    <td>
+                      <input 
+                        type="text" 
+                        className="plan-control" 
+                        value={r.item_name} 
+                        onChange={e => logic.updateRecord(r.id, 'item_name', e.target.value)} 
+                        placeholder="اكتب اسم البند..." 
+                      />
                     </td>
-                    <td style={{ padding: '0.625rem 0.9375rem' }}>
-                      <input type="number" value={r.planned_amount === 0 ? '' : r.planned_amount} onChange={e => logic.updateRecord(r.id, 'planned_amount', e.target.value)} style={{ ...planControlStyle, width: '100%', padding: '0.5rem', textAlign: 'center' }} placeholder="0" />
+                    <td>
+                      <input 
+                        type="number" 
+                        className="plan-control text-center" 
+                        value={r.planned_amount === 0 ? '' : r.planned_amount} 
+                        onChange={e => logic.updateRecord(r.id, 'planned_amount', e.target.value)} 
+                        placeholder="0" 
+                      />
                     </td>
-                    <td style={{ padding: '0.625rem 0.9375rem' }}>
-                      <input type="number" value={r.actual_amount === 0 ? '' : r.actual_amount} onChange={e => logic.updateRecord(r.id, 'actual_amount', e.target.value)} style={{ ...planControlStyle, width: '100%', padding: '0.5rem', textAlign: 'center' }} placeholder="0" />
+                    <td>
+                      <input 
+                        type="number" 
+                        className="plan-control text-center" 
+                        value={r.actual_amount === 0 ? '' : r.actual_amount} 
+                        onChange={e => logic.updateRecord(r.id, 'actual_amount', e.target.value)} 
+                        placeholder="0" 
+                      />
                     </td>
-                    <td style={{ padding: '0.625rem 0.9375rem', fontWeight: '900', color: varianceColor, textAlign: 'center', direction: 'ltr' }}>
+                    <td style={{ fontWeight: '900', color: varianceColor, textAlign: 'center', direction: 'ltr', fontSize: 'var(--fs-sm)' }}>
                       {variance > 0 ? '+' : ''}{formatCurrency(variance)}
                     </td>
-                    <td style={{ padding: '0.625rem 0.9375rem', textAlign: 'center' }}>
-                      <button className="ent-icon-button" aria-label="حذف البند" onClick={() => logic.removeItem(r.id)} style={{ color: 'var(--status-negative)' }}><Trash2 size={14} aria-hidden="true" /></button>
+                    <td style={{ textAlign: 'center' }}>
+                      <button 
+                        type="button"
+                        className="plan-icon-btn" 
+                        aria-label="حذف البند" 
+                        onClick={() => logic.removeItem(r.id)}
+                      >
+                        <Trash2 size={16} aria-hidden="true" />
+                      </button>
                     </td>
                   </tr>
                 );
@@ -333,31 +365,177 @@ export default function FinancialPlanPage() {
       `}</style>
 
       {/* 🖥️ قسم الشاشة التفاعلي الافتراضي (يختفي بالكامل أثناء الطباعة) */}
-      <div className="no-print">
-        <div className="ent-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.9375rem 1.25rem', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.9375rem' }}>
+      <div className="no-print clean-page enterprise-page">
+        <style>{`
+          .plan-table {
+            width: 100% !important;
+            border-collapse: separate !important;
+            border-spacing: 0 0.5rem !important;
+            text-align: right !important;
+            border: none !important;
+          }
+          .plan-table thead th {
+            padding: 0.75rem 0.875rem !important;
+            font-size: var(--fs-xs) !important;
+            font-weight: 800 !important;
+            color: var(--text-secondary) !important;
+            border: none !important;
+            background: transparent !important;
+            white-space: nowrap !important;
+          }
+          .plan-table tbody td {
+            padding: 0.25rem 0.5rem !important;
+            border: none !important;
+            vertical-align: middle !important;
+          }
+          .plan-control {
+            width: 100% !important;
+            height: 2.75rem !important;
+            border-radius: 12px !important;
+            border: 0 !important;
+            outline: none !important;
+            background: var(--surface-sunken) !important;
+            box-shadow: var(--shadow-sunken) !important;
+            color: var(--text-primary) !important;
+            font-weight: 800 !important;
+            font-size: var(--fs-sm) !important;
+            padding: 0 0.875rem !important;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+          }
+          select.plan-control {
+            cursor: pointer !important;
+            border: 0 !important;
+            outline: none !important;
+          }
+          .plan-control.text-center {
+            text-align: center !important;
+            font-family: var(--font-mono, monospace) !important;
+            font-weight: 900 !important;
+          }
+          .plan-control:focus {
+            box-shadow: var(--shadow-sunken), 0 0 0 2px var(--accent-glow) !important;
+          }
+          .plan-panel {
+            background: var(--surface-card) !important;
+            border: none !important;
+            border-radius: var(--phi-radius-card, 18px) !important;
+            box-shadow: var(--shadow-ambient) !important;
+            position: relative !important;
+            overflow: hidden !important;
+            margin-bottom: 1.5rem !important;
+          }
+          .plan-panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 8%; right: 8%;
+            height: 1.5px;
+            background: var(--specular-beam);
+            pointer-events: none;
+          }
+          .plan-summary-card {
+            background: var(--surface-card) !important;
+            border: none !important;
+            border-radius: var(--phi-radius-card, 18px) !important;
+            box-shadow: var(--shadow-ambient) !important;
+            padding: 1.5rem !important;
+            position: sticky !important;
+            top: 1.25rem !important;
+            width: 20rem !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 0.875rem !important;
+          }
+          .plan-summary-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 8%; right: 8%;
+            height: 1.5px;
+            background: var(--specular-beam);
+            pointer-events: none;
+          }
+          .plan-stat-pill {
+            background: var(--surface-sunken) !important;
+            box-shadow: var(--shadow-sunken) !important;
+            padding: 0.875rem 1rem !important;
+            border-radius: 14px !important;
+            border: none !important;
+            transition: all 0.2s ease !important;
+            position: relative !important;
+            overflow: hidden !important;
+          }
+          .plan-stat-pill.rev {
+            background: radial-gradient(ellipse 90% 70% at 0% 50%, color-mix(in srgb, var(--status-positive) 14%, transparent), transparent 80%), var(--surface-sunken) !important;
+          }
+          .plan-stat-pill.exp {
+            background: radial-gradient(ellipse 90% 70% at 0% 50%, color-mix(in srgb, var(--status-negative) 14%, transparent), transparent 80%), var(--surface-sunken) !important;
+          }
+          .plan-stat-pill.net-plan {
+            background: radial-gradient(ellipse 90% 70% at 0% 50%, color-mix(in srgb, var(--action-fill) 16%, transparent), transparent 80%), var(--surface-sunken) !important;
+          }
+          .plan-stat-pill.net-act {
+            background: radial-gradient(ellipse 90% 70% at 0% 50%, color-mix(in srgb, var(--status-info) 14%, transparent), transparent 80%), var(--surface-sunken) !important;
+          }
+          .plan-stat-label {
+            font-size: var(--fs-xs) !important;
+            color: var(--text-secondary) !important;
+            font-weight: 800 !important;
+            display: block !important;
+            margin-bottom: 0.35rem !important;
+          }
+          .plan-stat-val {
+            font-size: var(--fs-xl) !important;
+            font-weight: 900 !important;
+            display: block !important;
+          }
+          .plan-icon-btn {
+            background: var(--status-negative-soft) !important;
+            border: none !important;
+            box-shadow: none !important;
+            color: var(--status-negative) !important;
+            width: 2.25rem !important;
+            height: 2.25rem !important;
+            min-height: 2.25rem !important;
+            border-radius: 8px !important;
+            display: inline-grid !important;
+            place-items: center !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+            margin: 0 auto !important;
+          }
+          .plan-icon-btn:hover {
+            transform: scale(1.08) !important;
+            background: color-mix(in srgb, var(--status-negative) 25%, transparent) !important;
+          }
+        `}</style>
+
+        <div className="plan-panel" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem 1.25rem', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.9375rem' }}>
           <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center', flexWrap: 'wrap' }}>
             <div style={{ fontWeight: '900', color: 'var(--text-primary)', fontSize: 'var(--fs-md)' }}>فترة الخطة:</div>
-            <select aria-label="شهر الخطة" value={logic.selectedMonth} onChange={e => logic.setSelectedMonth(Number(e.target.value))} style={{ ...planControlStyle, padding: '0.5rem 0.75rem' }}>
+            <select aria-label="شهر الخطة" className="plan-control" value={logic.selectedMonth} onChange={e => logic.setSelectedMonth(Number(e.target.value))} style={{ ...planControlStyle, padding: '0 0.875rem' }}>
               {Array.from({length: 12}, (_, i) => i + 1).map(m => <option key={m} value={m}>شهر {m}</option>)}
             </select>
-            <select aria-label="سنة الخطة" value={logic.selectedYear} onChange={e => logic.setSelectedYear(Number(e.target.value))} style={{ ...planControlStyle, padding: '0.5rem 0.75rem' }}>
+            <select aria-label="سنة الخطة" className="plan-control" value={logic.selectedYear} onChange={e => logic.setSelectedYear(Number(e.target.value))} style={{ ...planControlStyle, padding: '0 0.875rem' }}>
               {[2024, 2025, 2026, 2027].map(y => <option key={y} value={y}>سنة {y}</option>)}
             </select>
           </div>
 
           <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
             <button className="ent-button ent-success" onClick={handleExportToExcel}>
-              تصدير إكسيل الاحترافي
+              <Download size={15} aria-hidden="true" />
+              <span>تصدير إكسيل الاحترافي</span>
             </button>
             <button className="ent-button" onClick={() => window.print()}>
-              طباعة التقرير الورقي
+              <Printer size={15} aria-hidden="true" />
+              <span>طباعة التقرير الورقي</span>
             </button>
             <button
               className="ent-button ent-primary"
               onClick={logic.savePlanToDB} 
               disabled={logic.isSaving}
             >
-              {logic.isSaving ? 'جاري الحفظ...' : 'حفظ خطة الموازنة'}
+              <Save size={15} aria-hidden="true" />
+              <span>{logic.isSaving ? 'جاري الحفظ...' : 'حفظ خطة الموازنة'}</span>
             </button>
           </div>
         </div>
@@ -374,35 +552,31 @@ export default function FinancialPlanPage() {
             </div>
 
             {/* 🛡️ كارت المخلص الجانبي (مؤمن ومحمي داخل no-print فلن يظهر في الطباعة أبداً) */}
-            <div className="ent-panel ent-plan-summary" style={{ width: '20rem', padding: '1.25rem', position: 'sticky', top: '1.25rem' }}>
-              <h3 style={{ margin: '0 0 1.25rem 0', borderBottom: planDivider, paddingBottom: '0.625rem', fontWeight: 900, fontSize: 'var(--fs-lg)' }}>ملخص الخطة والمستهدف</h3>
+            <div className="plan-summary-card">
+              <h3 style={{ margin: 0, fontWeight: 900, fontSize: 'var(--fs-lg)', color: 'var(--text-primary)' }}>ملخص الخطة والمستهدف</h3>
               
-              <div style={{ marginBottom: '0.9375rem' }}>
-                <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 700 }}>إجمالي الإيرادات المتوقعة</div>
-                <div style={{ fontSize: 'var(--fs-xl)', fontWeight: '900', color: 'var(--status-positive)' }}>{formatCurrency(logic.totals.totalRevPlanned)}</div>
+              <div className="plan-stat-pill rev">
+                <span className="plan-stat-label">إجمالي الإيرادات المتوقعة</span>
+                <span className="plan-stat-val" style={{ color: 'var(--status-positive)' }}>{formatCurrency(logic.totals.totalRevPlanned)}</span>
               </div>
               
-              <div style={{ marginBottom: '0.9375rem' }}>
-                <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 700 }}>إجمالي المصروفات المقدرة</div>
-                <div style={{ fontSize: 'var(--fs-xl)', fontWeight: '900', color: 'var(--status-negative)' }}>{formatCurrency(logic.totals.totalExpPlanned)}</div>
+              <div className="plan-stat-pill exp">
+                <span className="plan-stat-label">إجمالي المصروفات المقدرة</span>
+                <span className="plan-stat-val" style={{ color: 'var(--status-negative)' }}>{formatCurrency(logic.totals.totalExpPlanned)}</span>
               </div>
 
-              <div style={{ margin: '0.9375rem 0', borderTop: planDivider }}></div>
-
-              <div style={{ marginBottom: '0.9375rem' }}>
-                <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 'bold' }}>صافي الربح التقديري (المخطط)</div>
-                <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: logic.totals.netPlanned >= 0 ? 'var(--status-positive)' : 'var(--status-negative)' }}>
+              <div className="plan-stat-pill net-plan">
+                <span className="plan-stat-label">صافي الربح التقديري (المخطط)</span>
+                <span className="plan-stat-val" style={{ color: logic.totals.netPlanned >= 0 ? 'var(--status-positive)' : 'var(--status-negative)' }}>
                   {formatCurrency(logic.totals.netPlanned)}
-                </div>
+                </span>
               </div>
 
-              <div style={{ margin: '0.9375rem 0', borderTop: planDivider }}></div>
-
-              <div style={{ marginBottom: '0.3125rem' }}>
-                <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 'bold' }}>صافي الربح الفعلي (المحقق الحقيقي)</div>
-                <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: logic.totals.netActual >= 0 ? 'var(--status-info)' : 'var(--status-negative)' }}>
+              <div className="plan-stat-pill net-act">
+                <span className="plan-stat-label">صافي الربح الفعلي (المحقق الحقيقي)</span>
+                <span className="plan-stat-val" style={{ color: logic.totals.netActual >= 0 ? 'var(--status-info)' : 'var(--status-negative)' }}>
                   {formatCurrency(logic.totals.netActual)}
-                </div>
+                </span>
               </div>
             </div>
           </div>

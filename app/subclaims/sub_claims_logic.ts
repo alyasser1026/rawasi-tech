@@ -38,7 +38,7 @@ export function useSubClaimsLogic() {
     const fetchProjectJobOrders = async (projectId: string) => {
         if (!projectId) { setProjectJobOrders([]); return; }
         const { data } = await supabase.from('job_orders')
-            .select('*, boq_budget(unit, work_item)') 
+            .select('*, boq_budget:boq_budget_id(unit, work_item)') 
             .eq('project_id', projectId)
             .is('contractor_id', null); 
         setProjectJobOrders(data || []);
@@ -92,7 +92,7 @@ export function useSubClaimsLogic() {
         enabled: !!selectedContractor,
         queryFn: async () => {
             const buildQuery = () => supabase.from('sub_claims')
-                .select('*, projects(Property)')
+                .select('*, projects:project_id(Property)')
                 .eq('contractor_id', selectedContractor.id)
                 .order('date', { ascending: false })
                 .order('created_at', { ascending: false });
@@ -304,7 +304,7 @@ export function useSubClaimsLogic() {
             type: 'expense', date: e.expense_date || e.created_at, statement: e.notes || 'مصروف محمل', amount: e.amount || e.total_price || 0
         }));
 
-        const { data: materials } = await supabase.from('material_issue_lines').select('*, material_issues(issue_date)').eq('claim_id', claim.id);
+        const { data: materials } = await supabase.from('material_issue_lines').select('*, material_issues:issue_id(issue_date)').eq('claim_id', claim.id);
         const validMaterials = (materials || []).map(m => ({
             type: 'material', date: m.material_issues?.issue_date, statement: `خامة: ${m.item_name} (${m.quantity} ${m.unit})`, amount: m.total_price || 0
         }));

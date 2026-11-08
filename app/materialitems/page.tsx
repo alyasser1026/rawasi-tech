@@ -107,7 +107,7 @@ export default function MaterialCatalogPage() {
         />
 
         <style>{`
-          .material-catalog-field { width: 100%; padding: 0.75rem; border-radius: 12px; background: var(--surface-sunken); border: 1px solid var(--control-edge); font-weight: 700; color: var(--text-primary); }
+          .material-catalog-field { width: 100%; padding: 0.75rem; border-radius: 12px; background: var(--surface-sunken); border: none !important; box-shadow: var(--shadow-sunken); font-weight: 700; color: var(--text-primary); }
           .material-catalog-field::placeholder { color: var(--text-muted); }
           .material-catalog-field:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
           .material-catalog-summary { background: var(--surface-subcard); color: var(--text-primary); padding: 1.25rem; border-radius: 14px; }

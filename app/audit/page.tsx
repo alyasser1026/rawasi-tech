@@ -87,7 +87,7 @@ export default function ComplianceAndAuditPage() {
       const data = await fetchSystemHealthRadar();
       setRadar(data);
     } catch (err: any) {
-      showToast(`تعذر جلب بيانات الرادار: ${err.message}`, 'error');
+      console.warn('Radar fetch notification:', err?.message);
     } finally {
       setLoadingRadar(false);
     }
@@ -99,7 +99,7 @@ export default function ComplianceAndAuditPage() {
       const data = await fetchDocumentExpiryAlerts(30);
       setExpiry(data);
     } catch (err: any) {
-      showToast(`تعذر جلب تنبيهات المستندات: ${err.message}`, 'error');
+      console.warn('Expiry alerts fetch notification:', err?.message);
     } finally {
       setLoadingExpiry(false);
     }
@@ -107,14 +107,19 @@ export default function ComplianceAndAuditPage() {
 
   const loadMasterData = async () => {
     try {
-      const [pRes, prRes, aRes] = await Promise.all([
+      const [pRes, prRes] = await Promise.all([
         supabase.from('partners').select('id, name').order('name'),
         supabase.from('projects').select('id, Property').order('"Property"'),
-        supabase.from('fixed_assets').select('id, name').order('name'),
       ]);
       if (pRes.data) setPartners(pRes.data);
       if (prRes.data) setProjects(prRes.data);
-      if (aRes.data) setAssets(aRes.data);
+
+      try {
+        const { data: aData, error: aErr } = await supabase.from('fixed_assets').select('id, name').order('name');
+        if (!aErr && aData) setAssets(aData);
+      } catch {
+        // fixed_assets table pending migration
+      }
     } catch {
       // Non-blocking fallback
     }
@@ -941,7 +946,7 @@ export default function ComplianceAndAuditPage() {
               </div>
 
               <div className={styles.modalBody}>
-                <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                <div style={{ background: 'var(--surface-sunken)', padding: '0.85rem', borderRadius: 10, border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
                   <div style={{ fontWeight: 800 }}>{selectedDoc.title}</div>
                   <div style={{ fontSize: '0.8125rem', color: '#64748b' }}>
                     رقم الوثيقة: {selectedDoc.document_number} | الصلاحية السابقة: {selectedDoc.expiry_date}

@@ -831,22 +831,23 @@ export default function BimViewer3D({
         height: isFullscreen ? '100vh' : height,
         borderRadius: isFullscreen ? '0px' : '18px',
         overflow: 'hidden',
-        border: '1px solid var(--table-zebra-bg)',
+        border: 'none',
         boxShadow: 'var(--shadow-ambient)',
-        background: 'var(--surface-flat)',
+        background: 'var(--surface-card)',
         zIndex: isFullscreen ? 9999 : 'auto',
         fontFamily: 'inherit'
       }}
     >
       <style>{`
         .bim-tool-btn {
-          background: var(--surface-subcard), var(--surface-flat);
+          background: var(--surface-subcard);
           color: var(--text-primary);
-          border: 1px solid var(--control-edge);
-          padding: 8px 12px;
-          border-radius: 10px;
+          border: none !important;
+          box-shadow: var(--shadow-elevation);
+          padding: 8px 14px;
+          border-radius: 12px;
           font-size: var(--fs-xs, 12px);
-          font-weight: 700;
+          font-weight: 800;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -855,23 +856,24 @@ export default function BimViewer3D({
         }
         .bim-tool-btn:hover {
           background: var(--surface-card-hover);
-          border-color: var(--accent-ink);
           color: var(--accent-ink);
-          transform: translateY(-1px);
+          transform: translateY(-1.5px);
         }
         .bim-tool-btn.active {
           background: var(--action-fill);
-          border-color: transparent;
+          border: none !important;
           color: var(--action-ink);
+          box-shadow: 0 4px 14px -2px var(--accent-glow);
         }
         .layer-toggle-chip {
           background: var(--surface-sunken);
-          border: 1px solid var(--control-edge);
+          border: none !important;
+          box-shadow: var(--shadow-sunken);
           color: var(--text-primary);
-          padding: 5px 10px;
-          border-radius: 8px;
+          padding: 6px 12px;
+          border-radius: 10px;
           font-size: 11px;
-          font-weight: 700;
+          font-weight: 800;
           cursor: pointer;
           display: flex;
           align-items: center;
@@ -879,8 +881,8 @@ export default function BimViewer3D({
           transition: 0.2s;
         }
         .layer-toggle-chip.active {
-          background: var(--surface-subcard), var(--surface-flat);
-          border-color: var(--accent-ink);
+          background: var(--accent-soft-bg);
+          border: none !important;
           color: var(--accent-ink);
         }
         .bim-tool-btn:focus-visible, .layer-toggle-chip:focus-visible {
@@ -911,10 +913,11 @@ export default function BimViewer3D({
           position: 'absolute',
           top: '14px',
           right: '16px',
-          background: 'var(--surface-flat)',
+          background: 'var(--surface-card)',
+          boxShadow: 'var(--shadow-elevation)',
           padding: '8px 16px',
-          borderRadius: '12px',
-          border: '1px solid var(--table-zebra-bg)',
+          borderRadius: '14px',
+          border: 'none',
           color: 'var(--text-primary)',
           zIndex: 10,
           pointerEvents: 'none'
@@ -999,10 +1002,11 @@ export default function BimViewer3D({
           left: '16px',
           display: 'flex',
           gap: '4px',
-          background: 'var(--surface-flat)',
+          background: 'var(--surface-sunken)',
+          boxShadow: 'var(--shadow-sunken)',
           padding: '4px',
-          borderRadius: '10px',
-          border: '1px solid var(--table-zebra-bg)',
+          borderRadius: '12px',
+          border: 'none',
           zIndex: 10
         }}
       >
@@ -1030,10 +1034,11 @@ export default function BimViewer3D({
             position: 'absolute',
             top: '110px',
             left: '16px',
-            background: 'var(--surface-flat)',
-            padding: '10px 14px',
-            borderRadius: '12px',
-            border: '1px solid var(--control-edge)',
+            background: 'var(--surface-card)',
+            boxShadow: 'var(--shadow-elevation)',
+            padding: '12px 16px',
+            borderRadius: '16px',
+            border: 'none',
             color: 'var(--text-primary)',
             zIndex: 10,
             width: '240px'
@@ -1080,10 +1085,11 @@ export default function BimViewer3D({
           style={{
             display: 'flex',
             gap: '6px',
-            background: 'var(--surface-flat)',
+            background: 'var(--surface-card)',
+            boxShadow: 'var(--shadow-elevation)',
             padding: '6px 12px',
-            borderRadius: '14px',
-            border: '1px solid var(--table-zebra-bg)',
+            borderRadius: '16px',
+            border: 'none',
             pointerEvents: 'auto',
             flexWrap: 'wrap',
             justifyContent: 'center'
@@ -1136,9 +1142,9 @@ export default function BimViewer3D({
             bottom: '70px',
             right: '16px',
             width: 'min(20rem, calc(100% - 2rem))',
-            background: 'var(--surface-flat)',
-            borderRadius: '16px',
-            border: '1px solid var(--control-edge)',
+            background: 'var(--surface-card)',
+            borderRadius: '18px',
+            border: 'none',
             boxShadow: 'var(--shadow-ambient)',
             padding: '16px',
             color: 'var(--text-primary)',
@@ -1199,7 +1205,7 @@ export default function BimViewer3D({
               </div>
             )}
             {selectedElement.unit_rate && selectedElement.volume_m3 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', background: 'var(--surface-subcard)', padding: '6px 8px', borderRadius: '8px', border: '1px solid var(--table-zebra-bg)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '6px', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', padding: '6px 10px', borderRadius: '10px', border: 'none' }}>
                 <span style={{ color: 'var(--text-primary)', fontWeight: 800 }}>التكلفة التقديرية للبند:</span>
                 <strong style={{ color: 'var(--accent-ink)', fontWeight: 900 }}>{formatCurrency(selectedElement.unit_rate * selectedElement.volume_m3)}</strong>
               </div>

@@ -74,6 +74,8 @@ export default function CashClosingPage() {
     queryKey: ['cash_closing_preview', activeCompany?.id, currentAccountId, closingDate],
     queryFn: () => fetchCashClosingPreview(currentAccountId, closingDate),
     enabled: !!activeCompany?.id && !!currentAccountId && !!closingDate,
+    retry: false,
+    staleTime: 60000,
   });
 
   const {
@@ -86,6 +88,8 @@ export default function CashClosingPage() {
     queryFn: () =>
       fetchCashClosingsHistory(historyAccountFilter === 'all' ? null : historyAccountFilter, 50),
     enabled: !!activeCompany?.id,
+    retry: false,
+    staleTime: 60000,
   });
 
   // Calculations

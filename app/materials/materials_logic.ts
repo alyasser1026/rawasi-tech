@@ -153,21 +153,20 @@ export function useMaterialsLogic() {
                     total_price,
                     boq_id,
                     boq_item_id, 
-                    boq:boq_budget(work_item), 
-                    receipt:material_receipts (
+                    boq:boq_budget!boq_id(work_item), 
+                    receipt:material_receipts!receipt_id (
                         id,
                         receipt_number,
                         receipt_date, 
                         notes, 
                         status, 
                         receipt_type, 
-                        job_order_id,
                         is_posted, 
                         jv_id, 
                         created_at,
-                        project:projects(Property), 
-                        supplier:partners(id, name), 
-                        account:accounts(id, name)
+                        project:projects!project_id(Property), 
+                        supplier:partners!supplier_id(id, name), 
+                        account:accounts!account_id(id, name)
                     )
                 `)
                 .order('created_at', { ascending: false });
@@ -317,47 +316,55 @@ export function useMaterialsLogic() {
 
             let receiptId = invoiceData.id;
 
+                        const masterPayload: Record<string, any> = {
+                project_id: safeProjectId,
+                supplier_id: safePayeeId,
+                account_id: safeAccountId,
+                receipt_date: invoiceData.exp_date || new Date().toISOString().split('T')[0],
+                receipt_type: String(invoiceData.receipt_type || 'توريد شركة').trim(),
+                total_amount: cleanNum(grandTotal),
+                notes: String(invoiceData.notes || 'توريد خامات').trim(),
+                status: 'معتمد',
+                is_posted: false,
+            };
+            if (safeJobOrderId) {
+                masterPayload.job_order_id = safeJobOrderId;
+            }
+
             if (receiptId) {
-                const { error: masterError } = await supabase
+                let { error: masterError } = await supabase
                     .from('material_receipts')
-                    .update({
-                        project_id: safeProjectId,
-                        supplier_id: safePayeeId,
-                        account_id: safeAccountId,
-                        receipt_date: invoiceData.exp_date || new Date().toISOString().split('T')[0],
-                        receipt_type: String(invoiceData.receipt_type || 'توريد شركة').trim(),
-                        job_order_id: safeJobOrderId,
-                        total_amount: cleanNum(grandTotal),
-                        notes: String(invoiceData.notes || 'توريد خامات').trim(),
-                        status: 'معتمد',
-                        is_posted: false 
-                    })
+                    .update(masterPayload)
                     .eq('id', receiptId);
-                if (masterError) throw new Error(`خطأ في تحديث الفاتورة: ${masterError.message}`);
+                if (masterError && (masterError.message?.includes('job_order_id') || (masterError as any).code === '42703')) {
+                    delete masterPayload.job_order_id;
+                    const retry = await supabase.from('material_receipts').update(masterPayload).eq('id', receiptId);
+                    masterError = retry.error;
+                }
+                if (masterError) throw new Error("خطأ في تحديث الفاتورة: " + masterError.message);
 
                 const { error: deleteLinesError } = await supabase.from('material_receipt_lines').delete().eq('receipt_id', receiptId);
                 if (deleteLinesError) throw deleteLinesError;
 
             } else {
-                const { data: masterData, error: masterError } = await supabase
+                let { data: masterData, error: masterError } = await supabase
                     .from('material_receipts')
                     .insert([{
-                        receipt_number: `MAT-${Date.now().toString().slice(-6)}`,
-                        project_id: safeProjectId,
-                        supplier_id: safePayeeId,
-                        account_id: safeAccountId,
-                        receipt_date: invoiceData.exp_date || new Date().toISOString().split('T')[0],
-                        receipt_type: String(invoiceData.receipt_type || 'توريد شركة').trim(),
-                        job_order_id: safeJobOrderId,
-                        total_amount: cleanNum(grandTotal),
-                        notes: String(invoiceData.notes || 'توريد خامات').trim(),
-                        status: 'معتمد',
-                        is_posted: false 
+                        receipt_number: "MAT-" + Date.now().toString().slice(-6),
+                        ...masterPayload
                     }])
                     .select('id').single();
-
-                if (masterError) throw new Error(`خطأ في إنشاء الفاتورة: ${masterError.message}`);
-                receiptId = masterData.id;
+                if (masterError && (masterError.message?.includes('job_order_id') || (masterError as any).code === '42703')) {
+                    delete masterPayload.job_order_id;
+                    const retry = await supabase.from('material_receipts').insert([{
+                        receipt_number: "MAT-" + Date.now().toString().slice(-6),
+                        ...masterPayload
+                    }]).select('id').single();
+                    masterData = retry.data;
+                    masterError = retry.error;
+                }
+                if (masterError) throw new Error("خطأ في إنشاء الفاتورة: " + masterError.message);
+                receiptId = masterData!.id;
             }
 
             const linesPayload = invoiceData.items.map((item: any) => ({

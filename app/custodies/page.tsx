@@ -107,6 +107,8 @@ export default function CustodiesPage() {
     queryKey: ['site_custodies_summary', activeCompany?.id, statusFilter],
     queryFn: () => fetchSiteCustodies(statusFilter),
     enabled: !!activeCompany?.id,
+    retry: false,
+    staleTime: 60000,
   });
 
   const { data: partners = [] } = useQuery({
@@ -615,7 +617,7 @@ export default function CustodiesPage() {
               <p style={{ margin: '0 auto 1.25rem auto', maxWidth: '520px', fontSize: 'var(--fs-xs, 12px)', color: '#ede5da', lineHeight: 1.6 }}>
                 جداول وإجراءات عُهد المواقع (حساب 125) وإقفال الصناديق اليومية جاهزة بالكامل في ملف الميجريشن. يرجى تشغيل الملف في الـ SQL Editor لتفعيل الميزة فورياً.
               </p>
-              <div style={{ display: 'inline-flex', padding: '0.5rem 1rem', background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '10px', fontSize: '11px', color: '#fbbf24', fontFamily: 'monospace' }}>
+              <div style={{ display: 'inline-flex', padding: '0.5rem 1rem', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', border: 'none', borderRadius: '10px', fontSize: '11px', color: 'var(--accent-ink)', fontFamily: 'monospace', fontWeight: 800 }}>
                 supabase/migrations/20261105170007_custodies_and_cash_closings.sql
               </div>
             </div>

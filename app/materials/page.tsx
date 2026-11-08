@@ -81,7 +81,7 @@ const MultiSelectDropdown = ({ options, selected, onChange, placeholder, title, 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             onClick={(e) => e.stopPropagation()}
-                            style={{ width: '100%', padding: '0.5rem 0.75rem', border: '1px solid #cbd5e1', borderRadius: '6px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700, color: '#1e293b' }}
+                            style={{ width: '100%', height: '2.5rem', padding: '0 0.75rem', border: 'none', background: 'var(--surface-sunken)', boxShadow: 'var(--shadow-sunken)', borderRadius: '10px', outline: 'none', fontSize: 'var(--fs-sm)', fontWeight: 700, color: 'var(--text-primary)' }}
                         />
                     </div>
                     <div className="custom-scrollbar" style={{ maxHeight: '12.5rem', overflowY: 'auto', padding: '0.3125rem' }}>
@@ -418,7 +418,7 @@ export default function MaterialsPage() {
                         padding: 0.625rem 0.75rem; 
                         border-radius: 10px; 
                         background: rgba(255, 255, 255, 0.9); 
-                        border: 1px solid #cbd5e1; 
+                        border: none; box-shadow: var(--shadow-elevation); 
                         outline: none; 
                         font-weight: 700; 
                         color: #1e293b; 
@@ -555,7 +555,7 @@ export default function MaterialsPage() {
                                                                 logic.setPrintReceiptId(group.id); 
                                                                 logic.setIsPrintModalOpen(true); 
                                                             }} 
-                                                            style={{ padding: '0.375rem 0.625rem', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-xs)', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}
+                                                            style={{ padding: '0.375rem 0.625rem', background: 'var(--surface-sunken)', border: 'none', boxShadow: 'var(--shadow-sunken)', borderRadius: '8px', cursor: 'pointer', fontWeight: 800, color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)' }}
                                                         >
                                                             طباعة الفاتورة
                                                         </button>

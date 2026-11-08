@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { createClient } from '@supabase/supabase-js';
 import { createCopilotTools } from './copilot-tools.mjs';
@@ -24,6 +25,7 @@ import {
 } from './copilot-auto-learning.mjs';
 import {
   getBotSettings, saveBotSettings, attachFileToOperation, resolveOperationByNumberOrCode, updateOperationStatusInIndex,
+  KNOWN_COMPANIES, getActiveCompany, setActiveCompany,
 } from './copilot-bot-settings.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -79,10 +81,29 @@ const LIVE_READS_ENABLED = setting('COPILOT_ENABLE_LIVE_READS') !== 'false';
 
 let _cachedServiceAccess = null;
 let _cachedServiceAccessAt = 0;
+let _cachedServiceCompanyId = null;
+
+function convertAudioToWav(inputBuffer) {
+  return new Promise((resolve) => {
+    const proc = spawn('ffmpeg', ['-i', 'pipe:0', '-f', 'wav', '-ar', '16000', '-ac', '1', 'pipe:1'], { stdio: ['pipe', 'pipe', 'ignore'] });
+    const chunks = [];
+    proc.stdout.on('data', c => chunks.push(c));
+    proc.on('close', code => {
+      if (code === 0 && chunks.length) resolve(Buffer.concat(chunks));
+      else resolve(null);
+    });
+    proc.on('error', () => resolve(null));
+    proc.stdin.write(inputBuffer);
+    proc.stdin.end();
+  });
+}
 
 async function resolveServiceCompanyAccess() {
   if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) return null;
-  if (_cachedServiceAccess && Date.now() - _cachedServiceAccessAt < 5 * 60 * 1000) {
+  const activeComp = getActiveCompany();
+  const currentTargetCompanyId = activeComp?.id || DEFAULT_COMPANY_ID;
+
+  if (_cachedServiceAccess && _cachedServiceCompanyId === currentTargetCompanyId && Date.now() - _cachedServiceAccessAt < 5 * 60 * 1000) {
     return _cachedServiceAccess;
   }
   try {
@@ -90,19 +111,20 @@ async function resolveServiceCompanyAccess() {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     let company = null;
-    if (DEFAULT_COMPANY_ID) {
+    if (currentTargetCompanyId) {
       const { data } = await adminClient
         .from('companies')
-        .select('id, name, is_active')
-        .eq('id', DEFAULT_COMPANY_ID)
+        .select('id, name, code, is_active')
+        .eq('id', currentTargetCompanyId)
         .maybeSingle();
       if (data) company = data;
     }
     if (!company) {
       const { data } = await adminClient
         .from('companies')
-        .select('id, name, is_active')
+        .select('id, name, code, is_active')
         .eq('is_active', true)
+        .order('created_at', { ascending: true })
         .limit(1)
         .maybeSingle();
       if (data) company = data;
@@ -119,7 +141,8 @@ async function resolveServiceCompanyAccess() {
 
     _cachedServiceAccess = {
       companyId: company.id,
-      companyName: company.name || 'فاي تك',
+      companyName: company.name || activeComp?.name || 'فاي تك',
+      companyCode: company.code || activeComp?.code || 'PHI',
       userId: memberRow?.user_id || '00000000-0000-0000-0000-000000000000',
       accessToken: SUPABASE_SERVICE_KEY,
       allowServiceRole: true,
@@ -136,6 +159,7 @@ async function resolveServiceCompanyAccess() {
       },
     };
     _cachedServiceAccessAt = Date.now();
+    _cachedServiceCompanyId = company.id;
     return _cachedServiceAccess;
   } catch (err) {
     console.warn('Failed to resolve service company access:', err?.message);
@@ -326,13 +350,48 @@ function buildOperationInlineMarkup(cardText) {
   };
 }
 
+function buildCompanySwitchMarkup(activeId) {
+  const isComp1 = activeId === '72918f4d-10c3-43a0-884e-2f84f1224335';
+  return {
+    inline_keyboard: [
+      [
+        {
+          text: isComp1 ? '🟢 شركة 1: فاي تك (مفعلة)' : '🏢 التبديل لشركة 1: فاي تك',
+          callback_data: 'switch_company:1',
+        },
+        {
+          text: !isComp1 ? '🟢 شركة 2: PHI-TECH-EGY (مفعلة)' : '🏢 التبديل لشركة 2: PHI-TECH-EGY',
+          callback_data: 'switch_company:2',
+        },
+      ],
+    ],
+  };
+}
+
+function buildCompanySwitchedText(targetCompany, botSettings) {
+  const addr = botSettings.mozzaModeEnabled ? (botSettings.mozzaNickname || 'يا يسور') : 'يا باشمهندس';
+  const isOne = targetCompany.index === 1 || targetCompany.id === '72918f4d-10c3-43a0-884e-2f84f1224335';
+  return [
+    `🏢 <b>تمام ${addr}، فتحتلك ${isOne ? 'الشركة الأولى' : 'الشركة الثانية'} بنجاح!</b> ✨`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🏛️ <b>اسم الشركة:</b> ${escapeTelegramText(targetCompany.name)}`,
+    `🏷️ <b>كود الشركة:</b> <code>${targetCompany.code || (isOne ? 'PHI' : 'AWA')}</code>`,
+    `🔢 <b>الرقم:</b> ${isOne ? 'شركة 1 (الرئيسية 🇸🇦)' : 'شركة 2 (مصر 🇪🇬)'}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `✅ كل الاستفسارات والتقارير والعمليات الجديدة (مصروفات، قيود، يوميات، أوامر شغل) بقت متصلة دلوقتي على <b>${isOne ? 'الشركة الأولى' : 'الشركة الثانية'}</b> مباشرة.`,
+  ].join('\n');
+}
+
 function buildSettingsMessageAndMarkup(s = getBotSettings()) {
   const isVoiceOff = s.voiceReplyMode === 'off';
   const isEmergency = s.emergencyVoiceEnabled !== false && s.onlyGeminiVoice !== true;
   const isMozza = Boolean(s.mozzaModeEnabled);
+  const curComp = getActiveCompany(s);
+  const isComp1 = curComp.id === '72918f4d-10c3-43a0-884e-2f84f1224335';
   const text = [
     `⚙️ لوحة إعدادات المساعد الذكي (${s.botName || 'م. سلمى'})`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🏢 الشركة الحالية للبوت: ${curComp.name} (${curComp.code}) ${curComp.flag || ''}`,
     `🎙️ الرسائل الصوتية: ${isVoiceOff ? 'مقفولة ومعطلة بالكامل 🔇 (نص فقط)' : 'مفعلة وشغالة 🔊'}`,
     `1️⃣ الصوت الأساسي الأول: Gemini (Aoede) 🎙️`,
     `2️⃣ الصوت البديل الذكي: ElevenLabs (Sarah / eleven_v4) 🎭`,
@@ -341,11 +400,21 @@ function buildSettingsMessageAndMarkup(s = getBotSettings()) {
     `⏳ إغلاق الجلسة التلقائي: ${s.inactivityCloseEnabled ? `${s.inactivityTimeoutMinutes || 3} دقائق ✅` : 'معطل ❌'}`,
     `📊 التقرير اليومي: ${s.autoDailyReportEnabled ? `مفعّل (${s.autoDailyReportTime || '20:00'}) ✅` : 'معطل ❌'}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
-    `🔄 التسلسل التلقائي للصوت:\nيبدأ دايماً بـ Gemini؛ لو كوتته خلصت ينقل فوراً لـ ElevenLabs بالتنغيم البشري، ولما كوتة جيميني تفتح يرجع لها أوتوماتيك!`,
+    `💡 للتبديل بين الشركات: اضغط على زر الشركة بالأسفل أو قول «افتحلي شركة واحد» أو «افتحلي شركة 2».`,
   ].join('\n');
 
   const markup = {
     inline_keyboard: [
+      [
+        {
+          text: isComp1 ? '🟢 شركة 1: فاي تك' : '🏢 فتح شركة 1: فاي تك',
+          callback_data: 'switch_company:1',
+        },
+        {
+          text: !isComp1 ? '🟢 شركة 2: PHI-TECH-EGY' : '🏢 فتح شركة 2: PHI-TECH-EGY',
+          callback_data: 'switch_company:2',
+        },
+      ],
       [
         {
           text: isVoiceOff ? '🔊 تشغيل الرسائل الصوتية' : '🔇 إغلاق الرسائل الصوتية بالكامل',
@@ -795,13 +864,18 @@ async function processUserPromptWithGemini(userPrompt, actor) {
   }
 
   const botSettings = getBotSettings();
+  const activeComp = getActiveCompany(botSettings);
   const systemInstructions = buildSystemInstructions({
     knowledge: loadKnowledgeBase(),
     declarations,
     referenceMissing: context.referenceMissing,
     quotedMessageText,
     date: getCopilotDate(),
-    botPersona: botSettings,
+    botPersona: {
+      ...botSettings,
+      activeCompanyName: activeComp?.name,
+      activeCompanyCode: activeComp?.code,
+    },
   });
 
   try {
@@ -901,9 +975,10 @@ async function processTelegramMessage(msg) {
     return;
   }
 
-  // 🎙️ معالجة الرسائل الصوتية (Voice Notes) فورياً عبر Groq Whisper Large V3 (مع بديل Gemini الصوتي)
-  if ((msg.voice || msg.audio) && BOT_TOKEN) {
-    const fileId = msg.voice?.file_id || msg.audio?.file_id;
+  // 🎙️ معالجة الرسائل الصوتية (Voice Notes & Audio) فورياً عبر Groq Whisper Large V3 مع بديل Gemini الصوتي
+  const isVoiceUpdate = Boolean(msg.voice || msg.audio || msg.video_note);
+  if (isVoiceUpdate && BOT_TOKEN) {
+    const fileId = msg.voice?.file_id || msg.audio?.file_id || msg.video_note?.file_id;
     const groqKey = setting('GROQ_API_KEY');
 
     if (fileId && (groqKey || GEMINI_API_KEY)) {
@@ -914,58 +989,77 @@ async function processTelegramMessage(msg) {
 
         if (fileInfo.ok && fileInfo.result?.file_path) {
           const downloadUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${fileInfo.result.file_path}`;
-          const audioRes = await fetch(downloadUrl, { signal: AbortSignal.timeout(12000) });
+          const audioRes = await fetch(downloadUrl, { signal: AbortSignal.timeout(15000) });
           if (!audioRes.ok) throw new Error('Telegram audio unavailable');
           const audioBuffer = Buffer.from(await audioRes.arrayBuffer());
+          console.log(`🎙️ [Voice STT] تم استلام بصمة صوتية بحجم ${audioBuffer.length} بايت، جاري المعالجة...`);
 
+          // المحاولة الأولى: Groq Whisper Large V3
           if (groqKey) {
-            const whisperForm = new FormData();
-            whisperForm.append('file', new Blob([audioBuffer], { type: 'audio/ogg' }), 'telegram_voice.ogg');
-            whisperForm.append('model', 'whisper-large-v3-turbo');
-            whisperForm.append('language', 'ar');
-            whisperForm.append('prompt', 'فاي تك، تقرير اليوم، يومية عامل، مصروف، قيد محاسبي، أمر شغل، فيلا، طريحة، محارة، جبس، سباكة، ريال');
+            try {
+              const whisperForm = new FormData();
+              whisperForm.append('file', new Blob([audioBuffer], { type: 'audio/ogg' }), 'telegram_voice.ogg');
+              whisperForm.append('model', 'whisper-large-v3');
+              whisperForm.append('language', 'ar');
+              whisperForm.append('temperature', '0.0');
+              whisperForm.append('prompt', 'فاي تك، افتحلي شركة واحد، افتحلي شركة 2، شركة 1، شركة 2، سجل مصروف، سجل قيد، يومية عامل، أمر شغل، تقرير اليوم، فيلا، طريحة، محارة، جبس، سباكة، ريال، عهدة، مقاول، PHI-TECH-EGY');
 
-            const whisperRes = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
-              method: 'POST',
-              headers: { Authorization: `Bearer ${groqKey}` },
-              body: whisperForm,
-              signal: AbortSignal.timeout(25000),
-            });
+              const whisperRes = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${groqKey}` },
+                body: whisperForm,
+                signal: AbortSignal.timeout(25000),
+              });
 
-            const whisperJson = await whisperRes.json();
-            if (whisperJson?.text) {
-              rawText = whisperJson.text.trim();
-            } else {
-              console.warn('Groq Whisper response had no text:', whisperRes.status, whisperJson?.error?.message || '');
+              const whisperJson = await whisperRes.json();
+              if (whisperJson?.text && whisperJson.text.trim()) {
+                rawText = whisperJson.text.trim();
+                console.log(`🎙️ [Voice STT Groq]: "${rawText}"`);
+              } else {
+                console.warn('Groq Whisper response had no text:', whisperRes.status, whisperJson?.error?.message || '');
+              }
+            } catch (wErr) {
+              console.warn('Groq Whisper attempt failed:', wErr?.message);
             }
           }
 
-          // بديل احتياطي عبر Gemini Multimodal إذا لم ينجح Groq
+          // المحاولة الثانية الاحتياطية: تحويل إلى WAV 16kHz ثم إرسالها لـ Gemini 3.5-flash
           if (!rawText && GEMINI_API_KEY) {
-            const geminiAudioRes = await fetch(GEMINI_GENERATE_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'x-goog-api-key': GEMINI_API_KEY },
-              body: JSON.stringify({
-                contents: [{
-                  role: 'user',
-                  parts: [
-                    { text: 'فرّغ هذا التسجيل الصوتي باللغة العربية بدقة كما قيل تماماً دون أي شرح إضافي:' },
-                    { inlineData: { mimeType: 'audio/ogg', data: audioBuffer.toString('base64') } },
-                  ],
-                }],
-              }),
-              signal: AbortSignal.timeout(20000),
-            });
-            if (geminiAudioRes.ok) {
-              const geminiAudioJson = await geminiAudioRes.json();
-              const transcribed = geminiAudioJson?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-              if (transcribed) rawText = transcribed;
+            try {
+              const wavBuffer = await convertAudioToWav(audioBuffer);
+              if (wavBuffer) {
+                const geminiAudioUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+                const geminiAudioRes = await fetch(geminiAudioUrl, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    contents: [{
+                      role: 'user',
+                      parts: [
+                        { text: 'فرّغ هذا التسجيل الصوتي باللغة العربية بدقة كما قيل تماماً دون أي شرح أو مقدمات إضافية:' },
+                        { inlineData: { mimeType: 'audio/wav', data: wavBuffer.toString('base64') } },
+                      ],
+                    }],
+                  }),
+                  signal: AbortSignal.timeout(25000),
+                });
+                if (geminiAudioRes.ok) {
+                  const geminiAudioJson = await geminiAudioRes.json();
+                  const transcribed = geminiAudioJson?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+                  if (transcribed) {
+                    rawText = transcribed;
+                    console.log(`🎙️ [Voice STT Gemini]: "${rawText}"`);
+                  }
+                }
+              }
+            } catch (gErr) {
+              console.warn('Gemini Audio STT fallback failed:', gErr?.message);
             }
           }
 
           if (rawText) {
             const curS = getBotSettings();
-            const addr = curS.mozzaModeEnabled ? (curS.mozzaNickname || 'يا محاميحو') : 'يا باشمهندس';
+            const addr = curS.mozzaModeEnabled ? (curS.mozzaNickname || 'يا يسور') : 'يا باشمهندس';
             await sendTelegramMessage(chatId, `🎙️ <i>سمعتك بتقول ${escapeTelegramText(addr)}: "${escapeTelegramText(rawText.slice(0, 600))}"</i>\n\n⏳ <i>ثواني بجهزلك الطلب...</i>`, messageId);
           }
         }
@@ -1096,6 +1190,52 @@ async function processTelegramMessage(msg) {
     const isNewSession = !activeSessionOpened.has(String(chatId));
     activeSessionOpened.add(String(chatId));
     scheduleInactivityClose(chatId, actor);
+
+    // 🏢 أوامر التبديل بين الشركات (شركة 1 / شركة 2)
+    const COMPANY_1_REGEX = /^(?:افتح|إفتح|شغل|شغّل|حول|حوّل|وديني|اختار|إختار|ادخل|إدخل|هات|غير|غيّر|بدل|بدّل|عايز|عاوز|روح|خلينا\s*في)\s*(?:على|إلى|الي|لي|لى)?\s*(?:(?:ال)?شرك[ةه]\s*)?(?:واحد|1|الاولى|الأولى|الاولانيه|الأولانيه|فاي\s*تك|الاساسيه|الأساسية|السعوديه|السعودية)$|^(?:(?:ال)?شرك[ةه]\s*)?(?:واحد|1|الاولى|الأولى|الاولانيه|الأولانيه|فاي\s*تك)$|^\/company\s*1$/i;
+    const COMPANY_2_REGEX = /^(?:افتح|إفتح|شغل|شغّل|حول|حوّل|وديني|اختار|إختار|ادخل|إدخل|هات|غير|غيّر|بدل|بدّل|عايز|عاوز|روح|خلينا\s*في)\s*(?:على|إلى|الي|لي|لى)?\s*(?:(?:ال)?شرك[ةه]\s*)?(?:اتنين|تنين|2|التانيه|الثانيه|الثانية|التانية|مصر|egy|phi-tech-egy|awa)$|^(?:(?:ال)?شرك[ةه]\s*)?(?:اتنين|تنين|2|التانيه|الثانيه|الثانية|التانية|مصر|egy|phi-tech-egy)$|^\/company\s*2$/i;
+    const LIST_COMPANIES_REGEX = /^(?:إيه|ايه|عرض|قائمة|قايمة|وريني|ماهي|ما هي)\s*الشركات$|^\/companies$|^\/company$/i;
+
+    const isComp1 = COMPANY_1_REGEX.test(cleanText);
+    const isComp2 = COMPANY_2_REGEX.test(cleanText);
+    const isListComp = LIST_COMPANIES_REGEX.test(cleanText);
+
+    if (isComp1 || isComp2 || isListComp) {
+      if (isComp1 || isComp2) {
+        const target = setActiveCompany(isComp1 ? 1 : 2);
+        _cachedServiceAccess = null;
+        _cachedServiceCompanyId = null;
+        conversation.clear(actor);
+        activeSessionOpened.delete(String(chatId));
+
+        const replyText = buildCompanySwitchedText(target, getBotSettings());
+        const markup = buildCompanySwitchMarkup(target.id);
+        await sendTelegramMessage(chatId, replyText, messageId, {
+          html: true,
+          replyMarkup: markup,
+        });
+        return;
+      }
+      if (isListComp) {
+        const cur = getActiveCompany();
+        const msg = [
+          `🏢 <b>الشركات المتاحة في النظام:</b>`,
+          `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+          `1️⃣ <b>الشركة الأولى:</b> فاي تك للمقاولات العامة والتشطيبات الفاخرة 🇸🇦`,
+          `🏷️ الكود: <code>PHI</code> ${cur.id === '72918f4d-10c3-43a0-884e-2f84f1224335' ? '← [مفعلة حالياً ✅]' : ''}`,
+          ``,
+          `2️⃣ <b>الشركة الثانية:</b> PHI-TECH-EGY 🇪🇬`,
+          `🏷️ الكود: <code>AWA</code> ${cur.id === '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8' ? '← [مفعلة حالياً ✅]' : ''}`,
+          `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+          `💡 قولّي «افتحلي شركة واحد» أو «افتحلي شركة 2» للتبديل السريع في أي وقت!`,
+        ].join('\n');
+        await sendTelegramMessage(chatId, msg, messageId, {
+          html: true,
+          replyMarkup: buildCompanySwitchMarkup(cur.id),
+        });
+        return;
+      }
+    }
 
     // 1. أمر البداية والترحيب
     if (['/start', '/help'].includes(cleanText.toLowerCase())) {
@@ -1331,6 +1471,26 @@ async function handleCallbackQuery(cb) {
       });
     } catch {}
   };
+
+  if (data === 'switch_company:1' || data === 'switch_company:2') {
+    const target = setActiveCompany(data === 'switch_company:1' ? 1 : 2);
+    _cachedServiceAccess = null;
+    _cachedServiceCompanyId = null;
+    const actor = { chatId, userId: cb.from?.id || 0 };
+    conversation.clear(actor);
+    activeSessionOpened.delete(String(chatId));
+
+    await answerCb(`🏢 تم فتح ${target.shortName}`);
+    const updated = buildSettingsMessageAndMarkup(getBotSettings());
+    await editMessage(updated.text, updated.replyMarkup);
+
+    const confirmationText = buildCompanySwitchedText(target, getBotSettings());
+    await sendTelegramMessage(chatId, confirmationText, undefined, {
+      html: true,
+      replyMarkup: buildCompanySwitchMarkup(target.id),
+    });
+    return;
+  }
 
   if (data === 'set_voice_messages:off') {
     saveBotSettings({ voiceReplyMode: 'off' });

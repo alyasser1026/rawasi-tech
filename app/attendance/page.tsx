@@ -92,7 +92,7 @@ export default function AttendancePage() {
         </div>
       }
     >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+      <div className="clean-page enterprise-page" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
         {/* 1. لوحة المؤشرات السريعة (KPI Strip) */}
         <div
           style={{
@@ -104,10 +104,11 @@ export default function AttendancePage() {
           {/* كارت 1: الموظفون */}
           <div
             style={{
-              padding: '1.25rem',
-              borderRadius: '16px',
-              background: 'linear-gradient(145deg, #16120e 0%, #0d0b09 100%)',
-              border: '1px solid rgba(249, 115, 22, 0.18)',
+              padding: '1.25rem 1.5rem',
+              borderRadius: 'var(--phi-radius-card, 18px)',
+              background: 'var(--surface-card, #ffffff)',
+              border: 'none',
+              boxShadow: 'var(--shadow-ambient)',
               display: 'flex',
               alignItems: 'center',
               gap: '1rem',
@@ -118,8 +119,8 @@ export default function AttendancePage() {
                 width: '3rem',
                 height: '3rem',
                 borderRadius: '12px',
-                background: 'rgba(249, 115, 22, 0.12)',
-                color: '#f97316',
+                background: 'var(--accent-soft-bg, rgba(194, 65, 12, 0.08))',
+                color: 'var(--accent-ink, #c2410c)',
                 display: 'grid',
                 placeItems: 'center',
               }}
@@ -127,10 +128,10 @@ export default function AttendancePage() {
               <Users size={24} />
             </div>
             <div>
-              <div style={{ fontSize: '0.85rem', color: '#a8a29e', fontWeight: 600 }}>
+              <div style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>
                 الموظفون المسجلون
               </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#fefcf9' }}>
+              <div style={{ fontSize: 'var(--fs-2xl, 1.5rem)', fontWeight: 900, color: 'var(--text-primary, #1e293b)' }}>
                 {kpis.totalEmployees}
               </div>
             </div>
@@ -139,10 +140,11 @@ export default function AttendancePage() {
           {/* كارت 2: أيام الغياب الإجمالية */}
           <div
             style={{
-              padding: '1.25rem',
-              borderRadius: '16px',
-              background: 'linear-gradient(145deg, #16120e 0%, #0d0b09 100%)',
-              border: '1px solid rgba(239, 68, 68, 0.2)',
+              padding: '1.25rem 1.5rem',
+              borderRadius: 'var(--phi-radius-card, 18px)',
+              background: 'var(--surface-card, #ffffff)',
+              border: 'none',
+              boxShadow: 'var(--shadow-ambient)',
               display: 'flex',
               alignItems: 'center',
               gap: '1rem',
@@ -153,8 +155,8 @@ export default function AttendancePage() {
                 width: '3rem',
                 height: '3rem',
                 borderRadius: '12px',
-                background: 'rgba(239, 68, 68, 0.12)',
-                color: '#ef4444',
+                background: 'rgba(239, 68, 68, 0.1)',
+                color: 'var(--status-negative, #ef4444)',
                 display: 'grid',
                 placeItems: 'center',
               }}
@@ -162,12 +164,12 @@ export default function AttendancePage() {
               <CalendarDays size={24} />
             </div>
             <div>
-              <div style={{ fontSize: '0.85rem', color: '#a8a29e', fontWeight: 600 }}>
+              <div style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>
                 أيام الغياب المحتسبة
               </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#ef4444' }}>
+              <div style={{ fontSize: 'var(--fs-2xl, 1.5rem)', fontWeight: 900, color: 'var(--status-negative, #ef4444)' }}>
                 {kpis.totalAbsenceDays}{' '}
-                <span style={{ fontSize: '0.85rem', color: '#a8a29e', fontWeight: 500 }}>يوم</span>
+                <span style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 700 }}>يوم</span>
               </div>
             </div>
           </div>
@@ -175,10 +177,11 @@ export default function AttendancePage() {
           {/* كارت 3: إجمالي خصم الغياب */}
           <div
             style={{
-              padding: '1.25rem',
-              borderRadius: '16px',
-              background: 'linear-gradient(145deg, #16120e 0%, #0d0b09 100%)',
-              border: '1px solid rgba(245, 158, 11, 0.2)',
+              padding: '1.25rem 1.5rem',
+              borderRadius: 'var(--phi-radius-card, 18px)',
+              background: 'var(--surface-card, #ffffff)',
+              border: 'none',
+              boxShadow: 'var(--shadow-ambient)',
               display: 'flex',
               alignItems: 'center',
               gap: '1rem',
@@ -189,8 +192,8 @@ export default function AttendancePage() {
                 width: '3rem',
                 height: '3rem',
                 borderRadius: '12px',
-                background: 'rgba(245, 158, 11, 0.12)',
-                color: '#f59e0b',
+                background: 'rgba(245, 158, 11, 0.1)',
+                color: '#d97706',
                 display: 'grid',
                 placeItems: 'center',
               }}
@@ -198,15 +201,15 @@ export default function AttendancePage() {
               <AlertCircle size={24} />
             </div>
             <div>
-              <div style={{ fontSize: '0.85rem', color: '#a8a29e', fontWeight: 600 }}>
+              <div style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>
                 إجمالي خصومات المسير
               </div>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#f59e0b' }}>
+              <div style={{ fontSize: 'var(--fs-2xl, 1.5rem)', fontWeight: 900, color: 'var(--text-primary, #1e293b)' }}>
                 {kpis.totalDeduction.toLocaleString('ar-EG', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}{' '}
-                <span style={{ fontSize: '0.85rem', color: '#a8a29e', fontWeight: 500 }}>ر.س</span>
+                <span style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 700 }}>ر.س</span>
               </div>
             </div>
           </div>
@@ -214,16 +217,11 @@ export default function AttendancePage() {
           {/* كارت 4: التنبيه للأيام غير المسجلة */}
           <div
             style={{
-              padding: '1.25rem',
-              borderRadius: '16px',
-              background:
-                kpis.unrecordedEmployees > 0
-                  ? 'linear-gradient(145deg, #241412 0%, #160c0b 100%)'
-                  : 'linear-gradient(145deg, #16120e 0%, #0d0b09 100%)',
-              border:
-                kpis.unrecordedEmployees > 0
-                  ? '1px solid rgba(239, 68, 68, 0.35)'
-                  : '1px solid rgba(16, 185, 129, 0.25)',
+              padding: '1.25rem 1.5rem',
+              borderRadius: 'var(--phi-radius-card, 18px)',
+              background: 'var(--surface-card, #ffffff)',
+              border: 'none',
+              boxShadow: 'var(--shadow-ambient)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
@@ -231,14 +229,14 @@ export default function AttendancePage() {
             }}
           >
             <div>
-              <div style={{ fontSize: '0.85rem', color: '#a8a29e', fontWeight: 600 }}>
+              <div style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>
                 أيام شاغرة (غير مسجلة)
               </div>
               <div
                 style={{
-                  fontSize: '1.4rem',
+                  fontSize: 'var(--fs-lg, 1.3rem)',
                   fontWeight: 900,
-                  color: kpis.unrecordedEmployees > 0 ? '#ef4444' : '#10b981',
+                  color: kpis.unrecordedEmployees > 0 ? 'var(--status-negative, #ef4444)' : 'var(--status-positive, #10b981)',
                 }}
               >
                 {kpis.unrecordedEmployees > 0
@@ -252,15 +250,16 @@ export default function AttendancePage() {
                 onClick={() => void handleMarkUnrecorded('حاضر')}
                 disabled={isSaving}
                 style={{
-                  padding: '0.5rem 0.75rem',
+                  padding: '0.55rem 0.85rem',
                   borderRadius: '10px',
-                  background: 'rgba(16, 185, 129, 0.15)',
-                  border: '1px solid rgba(16, 185, 129, 0.4)',
-                  color: '#10b981',
-                  fontWeight: 700,
-                  fontSize: '0.8rem',
+                  background: 'var(--status-positive, #10b981)',
+                  border: 'none',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: 'var(--fs-xs, 0.8rem)',
                   cursor: 'pointer',
                   whiteSpace: 'nowrap',
+                  boxShadow: 'var(--shadow-elevation)',
                 }}
                 title="تسجيل جميع الأيام الشاغرة حتى تاريخ الإقفال كـ (حاضر)"
               >
@@ -273,10 +272,11 @@ export default function AttendancePage() {
         {/* 2. شريط الأدوات والفلاتر */}
         <div
           style={{
-            padding: '1rem 1.25rem',
-            borderRadius: '16px',
-            background: '#0d0f14',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            padding: '1.25rem 1.5rem',
+            borderRadius: 'var(--phi-radius-card, 18px)',
+            background: 'var(--surface-card, #ffffff)',
+            border: 'none',
+            boxShadow: 'var(--shadow-ambient)',
             display: 'flex',
             flexWrap: 'wrap',
             alignItems: 'center',
@@ -285,9 +285,9 @@ export default function AttendancePage() {
           }}
         >
           {/* اختيار الشهر وتاريخ الإقفال */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem', color: '#a8a29e', fontWeight: 600 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+              <label style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>
                 شهر المسير:
               </label>
               <input
@@ -295,19 +295,23 @@ export default function AttendancePage() {
                 value={selectedMonth}
                 onChange={(e) => handleMonthChange(e.target.value)}
                 style={{
-                  padding: '0.45rem 0.75rem',
-                  borderRadius: '10px',
-                  background: '#161922',
-                  border: '1px solid rgba(255, 255, 255, 0.14)',
-                  color: '#fefcf9',
+                  height: '2.5rem',
+                  padding: '0 0.75rem',
+                  borderRadius: '12px',
+                  background: 'var(--surface-sunken, #f8fafc)',
+                  border: 'none',
+                  boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))',
+                  color: 'var(--text-primary, #1e293b)',
                   fontFamily: 'inherit',
-                  fontSize: '0.9rem',
+                  fontSize: 'var(--fs-sm, 0.9rem)',
+                  fontWeight: 700,
+                  outline: 'none',
                 }}
               />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <label style={{ fontSize: '0.85rem', color: '#a8a29e', fontWeight: 600 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+              <label style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>
                 تاريخ الإقفال:
               </label>
               <input
@@ -315,13 +319,17 @@ export default function AttendancePage() {
                 value={cutoffDate}
                 onChange={(e) => setCutoffDate(e.target.value)}
                 style={{
-                  padding: '0.45rem 0.75rem',
-                  borderRadius: '10px',
-                  background: '#161922',
-                  border: '1px solid rgba(255, 255, 255, 0.14)',
-                  color: '#fefcf9',
+                  height: '2.5rem',
+                  padding: '0 0.75rem',
+                  borderRadius: '12px',
+                  background: 'var(--surface-sunken, #f8fafc)',
+                  border: 'none',
+                  boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))',
+                  color: 'var(--text-primary, #1e293b)',
                   fontFamily: 'inherit',
-                  fontSize: '0.9rem',
+                  fontSize: 'var(--fs-sm, 0.9rem)',
+                  fontWeight: 700,
+                  outline: 'none',
                 }}
               />
             </div>
@@ -329,15 +337,15 @@ export default function AttendancePage() {
 
           {/* محرك البحث السريع ودليل الحالات */}
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.75rem' }}>
-            <div style={{ position: 'relative', minWidth: '14rem' }}>
+            <div style={{ position: 'relative', minWidth: '16rem' }}>
               <Search
                 size={16}
                 style={{
                   position: 'absolute',
                   top: '50%',
-                  right: '0.75rem',
+                  right: '0.85rem',
                   transform: 'translateY(-50%)',
-                  color: '#78716c',
+                  color: 'var(--text-secondary, #94a3b8)',
                 }}
               />
               <input
@@ -347,13 +355,17 @@ export default function AttendancePage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '0.45rem 2.2rem 0.45rem 0.75rem',
-                  borderRadius: '10px',
-                  background: '#161922',
-                  border: '1px solid rgba(255, 255, 255, 0.14)',
-                  color: '#fefcf9',
+                  height: '2.5rem',
+                  padding: '0 2.3rem 0 0.85rem',
+                  borderRadius: '12px',
+                  background: 'var(--surface-sunken, #f8fafc)',
+                  border: 'none',
+                  boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))',
+                  color: 'var(--text-primary, #1e293b)',
                   fontFamily: 'inherit',
-                  fontSize: '0.85rem',
+                  fontSize: 'var(--fs-sm, 0.85rem)',
+                  fontWeight: 700,
+                  outline: 'none',
                 }}
               />
             </div>
@@ -367,11 +379,11 @@ export default function AttendancePage() {
             flexWrap: 'wrap',
             gap: '0.5rem',
             alignItems: 'center',
-            fontSize: '0.8rem',
-            color: '#a8a29e',
+            fontSize: 'var(--fs-xs, 0.8rem)',
+            color: 'var(--text-secondary, #64748b)',
           }}
         >
-          <span style={{ fontWeight: 700, marginInlineEnd: '0.25rem' }}>الحالات:</span>
+          <span style={{ fontWeight: 800, marginInlineEnd: '0.25rem', color: 'var(--text-primary)' }}>الحالات:</span>
           {Object.entries(ATTENDANCE_STATUS_CONFIG).map(([key, cfg]) => (
             <span
               key={key}
@@ -379,12 +391,12 @@ export default function AttendancePage() {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '0.3rem',
-                padding: '0.2rem 0.55rem',
+                padding: '0.25rem 0.6rem',
                 borderRadius: '8px',
                 background: cfg.bg,
                 border: `1px solid ${cfg.border}`,
                 color: cfg.color,
-                fontWeight: 600,
+                fontWeight: 700,
               }}
             >
               <strong style={{ fontSize: '0.9rem' }}>{cfg.short}</strong>
@@ -399,11 +411,12 @@ export default function AttendancePage() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.3rem',
-              padding: '0.2rem 0.55rem',
+              padding: '0.25rem 0.6rem',
               borderRadius: '8px',
-              background: 'rgba(255, 255, 255, 0.04)',
-              border: '1px dashed rgba(255, 255, 255, 0.2)',
-              color: '#d6d3d1',
+              background: 'var(--surface-sunken, #f8fafc)',
+              border: '1px dashed var(--table-zebra-bg, rgba(0, 0, 0, 0.15))',
+              color: 'var(--text-secondary, #64748b)',
+              fontWeight: 700,
             }}
           >
             <strong>-</strong> شاغر (يمنع ترحيل المسير)
@@ -418,27 +431,28 @@ export default function AttendancePage() {
             style={{
               padding: '4rem 1.5rem',
               textAlign: 'center',
-              borderRadius: '16px',
-              background: '#0d0f14',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
+              borderRadius: 'var(--phi-radius-card, 18px)',
+              background: 'var(--surface-card, #ffffff)',
+              border: 'none',
+              boxShadow: 'var(--shadow-ambient)',
             }}
           >
-            <Users size={48} style={{ color: '#78716c', marginBottom: '1rem' }} />
-            <h3 style={{ margin: 0, color: '#fefcf9', fontSize: '1.2rem', fontWeight: 800 }}>
+            <Users size={48} style={{ color: 'var(--text-secondary, #94a3b8)', marginBottom: '1rem' }} />
+            <h3 style={{ margin: 0, color: 'var(--text-primary, #1e293b)', fontSize: 'var(--fs-lg, 1.2rem)', fontWeight: 800 }}>
               لا يوجد موظفون برواتب شهرية
             </h3>
-            <p style={{ color: '#a8a29e', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+            <p style={{ color: 'var(--text-secondary, #64748b)', fontSize: 'var(--fs-sm, 0.9rem)', marginTop: '0.5rem' }}>
               تأكد من تسجيل موظفين بنوع «موظف» في شاشة دليل الشركاء وتحديد رواتبهم السارية.
             </p>
           </div>
         ) : (
           <div
             style={{
-              borderRadius: '16px',
-              background: '#0b0c10',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
+              borderRadius: 'var(--phi-radius-card, 18px)',
+              background: 'var(--surface-card, #ffffff)',
+              border: 'none',
               overflow: 'hidden',
-              boxShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
+              boxShadow: 'var(--shadow-ambient)',
             }}
           >
             <div style={{ overflowX: 'auto', maxHeight: '72vh' }}>
@@ -448,24 +462,26 @@ export default function AttendancePage() {
                   borderCollapse: 'separate',
                   borderSpacing: 0,
                   direction: 'rtl',
-                  fontSize: '0.85rem',
+                  fontSize: 'var(--fs-sm, 0.85rem)',
                   textAlign: 'center',
+                  color: 'var(--text-primary, #1e293b)',
                 }}
               >
                 <thead>
-                  <tr style={{ background: '#12141c', color: '#a8a29e', position: 'sticky', top: 0, zIndex: 20 }}>
+                  <tr style={{ background: 'var(--table-head-bg, var(--surface-card, #ffffff))', color: 'var(--text-primary, #1e293b)', position: 'sticky', top: 0, zIndex: 20 }}>
                     {/* عمود الموظف الثابت */}
                     <th
                       style={{
                         position: 'sticky',
                         right: 0,
                         zIndex: 25,
-                        background: '#12141c',
-                        padding: '0.75rem 1rem',
+                        background: 'var(--surface-card, #ffffff)',
+                        padding: '0.85rem 1rem',
                         textAlign: 'right',
                         minWidth: '200px',
-                        fontWeight: 800,
-                        borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                        fontWeight: 900,
+                        borderBottom: '2px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.06))',
+                        color: 'var(--text-primary, #1e293b)',
                       }}
                     >
                       الموظف
@@ -474,10 +490,11 @@ export default function AttendancePage() {
                     {/* الراتب واليومية */}
                     <th
                       style={{
-                        padding: '0.75rem 0.6rem',
-                        fontWeight: 800,
+                        padding: '0.85rem 0.6rem',
+                        fontWeight: 900,
                         minWidth: '105px',
-                        borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                        borderBottom: '2px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.06))',
+                        color: 'var(--text-primary, #1e293b)',
                       }}
                     >
                       الراتب (÷30)
@@ -490,16 +507,16 @@ export default function AttendancePage() {
                         <th
                           key={day}
                           style={{
-                            padding: '0.4rem 0.25rem',
+                            padding: '0.45rem 0.25rem',
                             minWidth: '40px',
-                            fontWeight: 700,
-                            borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
-                            background: info.isFriday ? 'rgba(249, 115, 22, 0.08)' : undefined,
-                            color: info.isFriday ? '#f97316' : '#a8a29e',
+                            fontWeight: 800,
+                            borderBottom: '2px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.06))',
+                            background: info.isFriday ? 'var(--accent-soft-bg, rgba(194, 65, 12, 0.08))' : undefined,
+                            color: info.isFriday ? 'var(--accent-ink, #c2410c)' : 'var(--text-secondary, #64748b)',
                           }}
                         >
                           <div style={{ fontSize: '0.9rem', fontWeight: 900 }}>{day}</div>
-                          <div style={{ fontSize: '0.7rem', opacity: 0.8 }}>{info.name}</div>
+                          <div style={{ fontSize: '0.7rem', opacity: 0.85 }}>{info.name}</div>
                         </th>
                       );
                     })}
@@ -507,32 +524,33 @@ export default function AttendancePage() {
                     {/* ملخص الخصومات */}
                     <th
                       style={{
-                        padding: '0.75rem 0.6rem',
-                        fontWeight: 800,
+                        padding: '0.85rem 0.6rem',
+                        fontWeight: 900,
                         minWidth: '85px',
-                        color: '#ef4444',
-                        borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                        color: 'var(--status-negative, #ef4444)',
+                        borderBottom: '2px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.06))',
                       }}
                     >
                       الغياب
                     </th>
                     <th
                       style={{
-                        padding: '0.75rem 0.6rem',
-                        fontWeight: 800,
+                        padding: '0.85rem 0.6rem',
+                        fontWeight: 900,
                         minWidth: '100px',
-                        color: '#f59e0b',
-                        borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                        color: '#d97706',
+                        borderBottom: '2px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.06))',
                       }}
                     >
                       خصم الغياب
                     </th>
                     <th
                       style={{
-                        padding: '0.75rem 0.6rem',
-                        fontWeight: 800,
+                        padding: '0.85rem 0.6rem',
+                        fontWeight: 900,
                         minWidth: '75px',
-                        borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
+                        borderBottom: '2px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.06))',
+                        color: 'var(--text-primary, #1e293b)',
                       }}
                     >
                       شاغر
@@ -548,7 +566,7 @@ export default function AttendancePage() {
                     });
 
                     const isEven = empIdx % 2 === 0;
-                    const rowBg = isEven ? '#0b0c10' : '#0e1017';
+                    const rowBg = isEven ? 'var(--surface-card, #ffffff)' : 'var(--table-zebra-bg, rgba(0, 0, 0, 0.015))';
 
                     return (
                       <tr
@@ -567,12 +585,12 @@ export default function AttendancePage() {
                             background: rowBg,
                             padding: '0.75rem 1rem',
                             textAlign: 'right',
-                            fontWeight: 700,
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                            fontWeight: 800,
+                            borderBottom: '1px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.04))',
                           }}
                         >
-                          <div style={{ color: '#fefcf9', fontSize: '0.9rem' }}>{emp.name}</div>
-                          <div style={{ fontSize: '0.75rem', color: '#78716c' }}>
+                          <div style={{ color: 'var(--text-primary, #1e293b)', fontSize: 'var(--fs-sm, 0.9rem)', fontWeight: 800 }}>{emp.name}</div>
+                          <div style={{ fontSize: 'var(--fs-xs, 0.75rem)', color: 'var(--text-secondary, #64748b)' }}>
                             {emp.job_role || 'موظف'}
                           </div>
                         </td>
@@ -581,13 +599,13 @@ export default function AttendancePage() {
                         <td
                           style={{
                             padding: '0.5rem',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                            borderBottom: '1px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.04))',
                           }}
                         >
-                          <div style={{ fontWeight: 800, color: '#fefcf9' }}>
+                          <div style={{ fontWeight: 800, color: 'var(--text-primary, #1e293b)' }}>
                             {Number(s.basic_salary).toLocaleString('ar-EG')}
                           </div>
-                          <div style={{ fontSize: '0.72rem', color: '#a8a29e' }}>
+                          <div style={{ fontSize: 'var(--fs-xs, 0.72rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 600 }}>
                             {Number(s.daily_rate).toFixed(1)} /يوم
                           </div>
                         </td>
@@ -619,8 +637,8 @@ export default function AttendancePage() {
                               }}
                               style={{
                                 padding: '0.25rem',
-                                borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
-                                background: info.isFriday ? 'rgba(249, 115, 22, 0.04)' : undefined,
+                                borderBottom: '1px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.04))',
+                                background: info.isFriday ? 'var(--accent-soft-bg, rgba(194, 65, 12, 0.04))' : undefined,
                                 cursor: 'pointer',
                               }}
                               title={`يوم ${day} (${info.name}): اضغط لتعديل الحالة`}
@@ -653,10 +671,11 @@ export default function AttendancePage() {
                                     width: '32px',
                                     height: '32px',
                                     borderRadius: '8px',
-                                    background: 'rgba(255, 255, 255, 0.03)',
-                                    border: '1px dashed rgba(255, 255, 255, 0.15)',
-                                    color: '#57534e',
+                                    background: 'var(--surface-sunken, #f8fafc)',
+                                    border: '1px dashed rgba(0, 0, 0, 0.12)',
+                                    color: 'var(--text-muted, #94a3b8)',
                                     fontSize: '0.8rem',
+                                    fontWeight: 700,
                                   }}
                                 >
                                   -
@@ -671,8 +690,8 @@ export default function AttendancePage() {
                           style={{
                             padding: '0.5rem',
                             fontWeight: 800,
-                            color: Number(s.total_absence_days) > 0 ? '#ef4444' : '#a8a29e',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                            color: Number(s.total_absence_days) > 0 ? 'var(--status-negative, #ef4444)' : 'var(--text-secondary, #64748b)',
+                            borderBottom: '1px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.04))',
                           }}
                         >
                           {s.total_absence_days}
@@ -681,8 +700,8 @@ export default function AttendancePage() {
                           style={{
                             padding: '0.5rem',
                             fontWeight: 900,
-                            color: Number(s.absence_deduction) > 0 ? '#f59e0b' : '#a8a29e',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                            color: Number(s.absence_deduction) > 0 ? '#d97706' : 'var(--text-secondary, #64748b)',
+                            borderBottom: '1px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.04))',
                           }}
                         >
                           {Number(s.absence_deduction).toLocaleString('ar-EG', {
@@ -694,17 +713,18 @@ export default function AttendancePage() {
                           style={{
                             padding: '0.5rem',
                             fontWeight: 800,
-                            color: Number(s.unrecorded_days) > 0 ? '#ef4444' : '#10b981',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                            color: Number(s.unrecorded_days) > 0 ? 'var(--status-negative, #ef4444)' : 'var(--status-positive, #10b981)',
+                            borderBottom: '1px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.04))',
                           }}
                         >
                           {Number(s.unrecorded_days) > 0 ? (
                             <span
                               style={{
-                                padding: '0.15rem 0.4rem',
+                                padding: '0.2rem 0.5rem',
                                 borderRadius: '6px',
-                                background: 'rgba(239, 68, 68, 0.15)',
-                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                background: 'rgba(239, 68, 68, 0.12)',
+                                color: 'var(--status-negative, #ef4444)',
+                                fontWeight: 800,
                               }}
                             >
                               {s.unrecorded_days}
@@ -732,8 +752,8 @@ export default function AttendancePage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'rgba(7, 8, 11, 0.85)',
-              backdropFilter: 'blur(12px)',
+              background: 'rgba(40, 24, 10, 0.7)',
+              backdropFilter: 'blur(10px)',
               padding: '1rem',
             }}
           >
@@ -742,10 +762,10 @@ export default function AttendancePage() {
                 width: '100%',
                 maxWidth: '440px',
                 borderRadius: '20px',
-                background: '#10121a',
-                border: '1px solid rgba(249, 115, 22, 0.25)',
-                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
-                padding: '1.5rem',
+                background: 'var(--surface-card, #ffffff)',
+                border: 'none',
+                boxShadow: 'var(--shadow-ambient), 0 20px 40px rgba(0, 0, 0, 0.2)',
+                padding: '1.75rem',
                 direction: 'rtl',
               }}
             >
@@ -756,15 +776,15 @@ export default function AttendancePage() {
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   marginBottom: '1.25rem',
-                  borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                  borderBottom: '1px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.06))',
                   paddingBottom: '0.75rem',
                 }}
               >
                 <div>
-                  <h3 style={{ margin: 0, color: '#fefcf9', fontSize: '1.15rem', fontWeight: 800 }}>
+                  <h3 style={{ margin: 0, color: 'var(--text-primary, #1e293b)', fontSize: 'var(--fs-lg, 1.15rem)', fontWeight: 800 }}>
                     تسجيل حضور: {editingModal.employeeName}
                   </h3>
-                  <div style={{ fontSize: '0.8rem', color: '#f97316', fontWeight: 600 }}>
+                  <div style={{ fontSize: 'var(--fs-xs, 0.8rem)', color: 'var(--accent-ink, #c2410c)', fontWeight: 800, marginTop: '0.2rem' }}>
                     تاريخ {editingModal.date} (يوم {editingModal.day})
                   </div>
                 </div>
@@ -774,7 +794,7 @@ export default function AttendancePage() {
                   style={{
                     background: 'transparent',
                     border: 'none',
-                    color: '#a8a29e',
+                    color: 'var(--text-secondary, #64748b)',
                     cursor: 'pointer',
                     padding: '0.25rem',
                   }}
@@ -788,9 +808,9 @@ export default function AttendancePage() {
                 <label
                   style={{
                     display: 'block',
-                    fontSize: '0.85rem',
-                    color: '#a8a29e',
-                    fontWeight: 700,
+                    fontSize: 'var(--fs-xs, 0.85rem)',
+                    color: 'var(--text-secondary, #64748b)',
+                    fontWeight: 800,
                     marginBottom: '0.5rem',
                   }}
                 >
@@ -812,11 +832,11 @@ export default function AttendancePage() {
                           borderRadius: '10px',
                           border: isSelected
                             ? `2px solid ${cfg.color}`
-                            : '1px solid rgba(255, 255, 255, 0.1)',
-                          background: isSelected ? cfg.bg : 'rgba(255, 255, 255, 0.03)',
-                          color: isSelected ? cfg.color : '#d6d3d1',
-                          fontWeight: 700,
-                          fontSize: '0.85rem',
+                            : '1px solid var(--table-zebra-bg, rgba(0, 0, 0, 0.08))',
+                          background: isSelected ? cfg.bg : 'var(--surface-subcard, #f8fafc)',
+                          color: isSelected ? cfg.color : 'var(--text-primary, #1e293b)',
+                          fontWeight: 800,
+                          fontSize: 'var(--fs-xs, 0.85rem)',
                           cursor: 'pointer',
                           display: 'flex',
                           alignItems: 'center',
@@ -825,7 +845,7 @@ export default function AttendancePage() {
                         }}
                       >
                         <span>{cfg.label}</span>
-                        <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                        <span style={{ fontSize: '0.75rem', opacity: 0.85 }}>
                           {cfg.factor > 0 ? `-${cfg.factor}` : '0'}
                         </span>
                       </button>
@@ -847,8 +867,9 @@ export default function AttendancePage() {
                   <label
                     style={{
                       display: 'block',
-                      fontSize: '0.8rem',
-                      color: '#a8a29e',
+                      fontSize: 'var(--fs-xs, 0.8rem)',
+                      color: 'var(--text-secondary, #64748b)',
+                      fontWeight: 700,
                       marginBottom: '0.3rem',
                     }}
                   >
@@ -862,12 +883,15 @@ export default function AttendancePage() {
                     }
                     style={{
                       width: '100%',
-                      padding: '0.45rem',
-                      borderRadius: '8px',
-                      background: '#161922',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      color: '#fefcf9',
-                      fontSize: '0.85rem',
+                      padding: '0.5rem 0.65rem',
+                      borderRadius: '10px',
+                      background: 'var(--surface-sunken, #f8fafc)',
+                      border: 'none',
+                      boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))',
+                      color: 'var(--text-primary, #1e293b)',
+                      fontSize: 'var(--fs-sm, 0.85rem)',
+                      fontWeight: 700,
+                      outline: 'none',
                     }}
                   />
                 </div>
@@ -875,8 +899,9 @@ export default function AttendancePage() {
                   <label
                     style={{
                       display: 'block',
-                      fontSize: '0.8rem',
-                      color: '#a8a29e',
+                      fontSize: 'var(--fs-xs, 0.8rem)',
+                      color: 'var(--text-secondary, #64748b)',
+                      fontWeight: 700,
                       marginBottom: '0.3rem',
                     }}
                   >
@@ -890,12 +915,15 @@ export default function AttendancePage() {
                     }
                     style={{
                       width: '100%',
-                      padding: '0.45rem',
-                      borderRadius: '8px',
-                      background: '#161922',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      color: '#fefcf9',
-                      fontSize: '0.85rem',
+                      padding: '0.5rem 0.65rem',
+                      borderRadius: '10px',
+                      background: 'var(--surface-sunken, #f8fafc)',
+                      border: 'none',
+                      boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))',
+                      color: 'var(--text-primary, #1e293b)',
+                      fontSize: 'var(--fs-sm, 0.85rem)',
+                      fontWeight: 700,
+                      outline: 'none',
                     }}
                   />
                 </div>
@@ -906,8 +934,9 @@ export default function AttendancePage() {
                 <label
                   style={{
                     display: 'block',
-                    fontSize: '0.8rem',
-                    color: '#a8a29e',
+                    fontSize: 'var(--fs-xs, 0.8rem)',
+                    color: 'var(--text-secondary, #64748b)',
+                    fontWeight: 700,
                     marginBottom: '0.3rem',
                   }}
                 >
@@ -922,12 +951,15 @@ export default function AttendancePage() {
                   }
                   style={{
                     width: '100%',
-                    padding: '0.5rem',
-                    borderRadius: '8px',
-                    background: '#161922',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    color: '#fefcf9',
-                    fontSize: '0.85rem',
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: '10px',
+                    background: 'var(--surface-sunken, #f8fafc)',
+                    border: 'none',
+                    boxShadow: 'var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06))',
+                    color: 'var(--text-primary, #1e293b)',
+                    fontSize: 'var(--fs-sm, 0.85rem)',
+                    fontWeight: 700,
+                    outline: 'none',
                   }}
                 />
               </div>
@@ -940,10 +972,10 @@ export default function AttendancePage() {
                   style={{
                     padding: '0.6rem 1.25rem',
                     borderRadius: '10px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    color: '#a8a29e',
-                    fontWeight: 700,
+                    background: 'var(--surface-subcard, #f8fafc)',
+                    border: 'none',
+                    color: 'var(--text-secondary, #64748b)',
+                    fontWeight: 800,
                     cursor: 'pointer',
                   }}
                 >
@@ -967,12 +999,12 @@ export default function AttendancePage() {
                   style={{
                     padding: '0.6rem 1.5rem',
                     borderRadius: '10px',
-                    background: 'linear-gradient(135deg, #f97316, #ea580c)',
+                    background: 'linear-gradient(135deg, var(--accent-ink, #c2410c), #b45309)',
                     border: 'none',
                     color: '#ffffff',
                     fontWeight: 800,
                     cursor: 'pointer',
-                    boxShadow: '0 4px 15px rgba(249, 115, 22, 0.35)',
+                    boxShadow: 'var(--shadow-elevation)',
                   }}
                 >
                   {isSaving ? 'جاري الحفظ...' : 'حفظ الحالة'}

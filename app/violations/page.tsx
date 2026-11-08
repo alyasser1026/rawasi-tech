@@ -193,7 +193,7 @@ export default function ViolationsPage() {
               .btn-glass-print:hover { background: rgba(0,0,0,0.08); transform: translateY(-2px); }
               
               /* Radio Button Styles */
-              .type-selector { display: flex; gap: 0.625rem; background: #f8fafc; padding: 0.625rem; border-radius: 14px; border: 2px solid #e2e8f0; }
+              .type-selector { display: flex; gap: 0.625rem; background: var(--surface-sunken); padding: 0.625rem; border-radius: 14px; border: none; box-shadow: var(--shadow-sunken); }
               .type-radio { flex: 1; position: relative; cursor: pointer; }
               .type-radio input { position: absolute; opacity: 0; cursor: pointer; }
               .type-label { display: block; padding: 0.75rem 0.625rem; text-align: center; border-radius: 10px; font-size: var(--fs-sm); font-weight: 900; color: #64748b; cursor: pointer; transition: 0.2s; border: 2px solid transparent; }
@@ -251,7 +251,7 @@ export default function ViolationsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15.625rem, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
               <div>
                 <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '0.5rem' }}>تاريخ الاستقطاع</label>
-                <input type="date" value={logic.state.editingRecord.date || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, date: e.target.value})} style={{ padding: '0.875rem', borderRadius: '14px', border: '2px solid #e2e8f0', width: '100%', fontWeight: 800, outline: 'none', background: '#f8fafc' }} />
+                <input type="date" value={logic.state.editingRecord.date || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, date: e.target.value})} style={{ padding: '0.875rem', borderRadius: '14px', border: 'none', boxShadow: 'var(--shadow-sunken)', width: '100%', fontWeight: 800, outline: 'none', background: 'var(--surface-sunken)', color: 'var(--text-primary)' }} />
               </div>
               <div style={{ zIndex: 100 }}>
                 <SmartCombo 
@@ -268,7 +268,7 @@ export default function ViolationsPage() {
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15.625rem, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
               <div>
                 <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '0.5rem' }}>المهنة</label>
-                <input type="text" value={logic.state.editingRecord.profession || ''} readOnly style={{ padding: '0.875rem', borderRadius: '14px', border: '2px solid #e2e8f0', width: '100%', fontWeight: 800, outline: 'none', background: '#f8fafc', opacity: 0.7 }} placeholder="تُسحب تلقائياً..." />
+                <input type="text" value={logic.state.editingRecord.profession || ''} readOnly style={{ padding: '0.875rem', borderRadius: '14px', border: 'none', boxShadow: 'var(--shadow-sunken)', width: '100%', fontWeight: 800, outline: 'none', background: 'var(--surface-sunken)', color: 'var(--text-primary)', opacity: 0.7 }} placeholder="تُسحب تلقائياً..." />
               </div>
               <div style={{ zIndex: 90 }}>
                 <SmartCombo 
@@ -292,7 +292,7 @@ export default function ViolationsPage() {
 
             <div style={{ marginBottom: '1.25rem' }}>
                 <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', display: 'block', marginBottom: '0.5rem' }}>البيان الوصفي (السبب)</label>
-                <input type="text" placeholder="مثال: خصم إيجار سكن شهر مايو" value={logic.state.editingRecord.reason || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, reason: e.target.value})} style={{ padding: '0.875rem', borderRadius: '14px', border: '2px solid #e2e8f0', width: '100%', fontWeight: 800, outline: 'none', background: '#f8fafc' }} />
+                <input type="text" placeholder="مثال: خصم إيجار سكن شهر مايو" value={logic.state.editingRecord.reason || ''} onChange={(e) => logic.state.setEditingRecord({...logic.state.editingRecord, reason: e.target.value})} style={{ padding: '0.875rem', borderRadius: '14px', border: 'none', boxShadow: 'var(--shadow-sunken)', width: '100%', fontWeight: 800, outline: 'none', background: 'var(--surface-sunken)', color: 'var(--text-primary)' }} />
             </div>
 
             <div style={{ marginBottom: '1.875rem' }}>

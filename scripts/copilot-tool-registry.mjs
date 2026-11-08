@@ -167,7 +167,7 @@ export const TOOL_REGISTRY = Object.freeze([
     status: TOOL_STATUS.PILOT,
     declaration: {
       name: 'add_expense_draft',
-      description: 'إضافة وتسجيل مسودة مصروف جديدة في جدول المصروفات (expenses) عندما يقول المستخدم «ضيف مصروف...» أو «سجل مصروف...» مع البيان والمبلغ والفيلا/المشروع.',
+      description: 'إضافة وتسجيل مسودة مصروف جديدة في جدول المصروفات (expenses) فوراً عند طلب إضافة أو تسجيل مصروف مع البيان والمبلغ (الفيلا وأمر الشغل اختياريين تماماً ولا يشترطان).',
       parameters: {
         type: 'OBJECT',
         properties: {
@@ -295,6 +295,26 @@ export const TOOL_REGISTRY = Object.freeze([
     definition: 'عامل يومية: صافي الشهر = اليوميات المرحّلة − الجزاءات المرحّلة − سندات الصرف المرحّلة، + الرصيد السابق — نفس شاشة الرواتب (payroll_logic.ts). الموظف بمرتب كشفه من شاشة الرواتب.',
     limits: 'شهر واحد حتى تاريخ اليوم، اسم مطابق تمامًا لشريك واحد، حد 500 سجل (أكتر = رفض)',
     output: 'صفوف الشهر + ملخص مالي من دوال الرواتب. أكتر من شريك بنفس الاسم = رفض. «موظف» = تحويل لشاشة الرواتب.',
+  },
+  {
+    name: 'switch_company',
+    status: TOOL_STATUS.ACTIVE,
+    declaration: {
+      name: 'switch_company',
+      description: 'التبديل بين الشركات المتاحة في النظام (شركة 1: فاي تك للمقاولات العامة والتشطيبات الفاخرة، شركة 2: PHI-TECH-EGY) عندما يطلب المستخدم فتح شركة معينة أو التبديل إليها.',
+      parameters: {
+        type: 'OBJECT',
+        properties: {
+          company_identifier: { type: 'STRING', description: 'رقم أو اسم الشركة المراد التبديل إليها: "1" أو "2" أو "فاي تك" أو "PHI-TECH-EGY"' },
+        },
+        required: ['company_identifier'],
+      },
+    },
+    source: { kind: 'local', name: 'companies' },
+    permission: null,
+    requiresCompany: false,
+    limits: 'التبديل الفوري للشركة النشطة للبوت',
+    output: 'تأكيد التبديل وبيانات الشركة الجديدة',
   },
 
   // ─── Retired (implementation removed; stubs make no request) ───────────────

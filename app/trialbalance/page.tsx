@@ -22,7 +22,7 @@ export default function TrialBalancePage() {
     <button 
       key="print_tb"
       onClick={() => window.print()}
-      style={{ padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--control-edge)', background: 'var(--surface-subcard)', color: 'var(--text-primary)', fontWeight: '900', cursor: 'pointer', width: '100%', marginBottom: '0.5rem' }}
+      style={{ padding: '0.75rem', borderRadius: '12px', border: 'none', background: 'var(--surface-subcard)', color: 'var(--text-primary)', fontWeight: '900', cursor: 'pointer', width: '100%', marginBottom: '0.5rem', boxShadow: 'var(--shadow-elevation)' }}
     >
       طباعة الميزان الرسمي
     </button>,
@@ -30,7 +30,7 @@ export default function TrialBalancePage() {
     <button 
       key="export_excel"
       onClick={logic.exportToExcel}
-      style={{ padding: '0.75rem', borderRadius: '8px', border: 'none', background: 'var(--action-fill)', color: 'var(--action-ink)', fontWeight: '900', cursor: 'pointer', width: '100%' }}
+      style={{ padding: '0.75rem', borderRadius: '12px', border: 'none', background: 'var(--action-fill)', color: 'var(--action-ink)', fontWeight: '900', cursor: 'pointer', width: '100%', boxShadow: 'var(--shadow-elevation)' }}
     >
       تصدير Excel
     </button>
@@ -42,50 +42,99 @@ export default function TrialBalancePage() {
       description="عرض الأرصدة الافتتاحية، حركات الفترة، والأرصدة الختامية لجميع الحسابات"
     >
       <style>{`
-        /* تنسيقات الشاشة الأساسية */
+        /* تنسيقات الشاشة الأساسية - لغة Obsidian Ceramic الخالية من الحواف */
         .trial-balance-filters {
           display: flex;
           flex-wrap: wrap;
           gap: 0.9375rem;
           align-items: center;
-          background: var(--surface-card);
+          background: var(--surface-card) !important;
           color: var(--text-primary);
-          padding: 0.9375rem 1.25rem;
-          border: 1px solid var(--control-edge);
-          border-radius: 12px;
+          padding: 1.125rem 1.5rem !important;
+          border: none !important;
+          box-shadow: var(--shadow-ambient) !important;
+          border-radius: var(--phi-radius-card, 18px) !important;
+          position: relative !important;
+          overflow: hidden !important;
           margin-bottom: 1.25rem;
+        }
+        .trial-balance-filters::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 8%; right: 8%;
+          height: 1.5px;
+          background: var(--specular-beam);
+          pointer-events: none;
         }
         .trial-balance-date { display: flex; align-items: center; gap: 0.625rem; font-weight: 900; font-size: var(--fs-sm); }
         .trial-balance-date input {
-          padding: 0.375rem 0.625rem;
-          border-radius: 6px;
-          border: 1px solid var(--control-edge);
-          color: var(--text-primary);
-          background: var(--surface-sunken);
-          font-weight: 900;
+          height: 2.75rem !important;
+          padding: 0 0.875rem !important;
+          border-radius: 12px !important;
+          border: none !important;
+          outline: none !important;
+          box-shadow: var(--shadow-sunken) !important;
+          color: var(--text-primary) !important;
+          background: var(--surface-sunken) !important;
+          font-weight: 800 !important;
+          font-size: var(--fs-sm) !important;
+          transition: box-shadow 150ms ease;
         }
-        .trial-balance-date input:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
-        .trial-balance-scroll { overflow-x: auto; border: 1px solid var(--control-edge); border-radius: 12px; }
+        .trial-balance-date input:focus-visible { outline: 2px solid var(--accent-main); outline-offset: 1px; }
+        .trial-balance-scroll {
+          overflow-x: auto !important;
+          border: none !important;
+          border-radius: var(--phi-radius-card, 18px) !important;
+          box-shadow: var(--shadow-ambient) !important;
+          background: var(--surface-card) !important;
+          position: relative !important;
+          overflow: hidden !important;
+        }
+        .trial-balance-scroll::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 8%; right: 8%;
+          height: 1.5px;
+          background: var(--specular-beam);
+          pointer-events: none;
+        }
         .tb-table { width: 100%; border-collapse: collapse; text-align: center; background: var(--surface-card); color: var(--text-primary); }
-        .tb-table th, .tb-table td { border: 1px solid var(--control-edge); padding: 0.625rem 0.5rem; font-size: var(--fs-md); }
+        .tb-table th, .tb-table td { border: none !important; border-bottom: 1px solid var(--table-zebra-bg) !important; padding: 0.75rem 0.5rem; font-size: var(--fs-md); }
         .tb-table thead th { background: var(--table-head-bg); color: var(--text-primary); font-weight: 900; }
         .tb-table tbody tr:hover { background: var(--table-row-hover); }
         .tb-table tbody td.text-right { text-align: right; font-weight: 900; }
         .tb-table tbody td.number { font-family: monospace; font-size: var(--fs-sm); font-weight: 900; }
         .tb-table .tb-period { background: var(--table-zebra-bg); }
         .tb-table .tb-totals { background: var(--surface-subcard); font-weight: 900; }
-        .tb-table .tb-totals td { border-top: 3px double var(--control-edge); font-size: var(--fs-lg); }
+        .tb-table .tb-totals td { border-top: none !important; background: var(--surface-subcard) !important; font-size: var(--fs-lg); }
         .tb-balance-status {
-          background: color-mix(in srgb, currentColor 9%, var(--surface-flat));
-          border: 1px solid currentColor;
-          border-radius: 8px;
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: space-between;
-          gap: 0.5rem 1rem;
-          margin-top: 0.9375rem;
-          padding: 0.9375rem;
-          font-weight: 900;
+          background: radial-gradient(ellipse 90% 70% at 0% 50%, color-mix(in srgb, var(--status-positive) 14%, transparent), transparent 80%), var(--surface-card) !important;
+          border: none !important;
+          box-shadow: var(--shadow-ambient) !important;
+          border-radius: var(--phi-radius-card, 18px) !important;
+          display: flex !important;
+          flex-wrap: wrap !important;
+          justify-content: space-between !important;
+          align-items: center !important;
+          gap: 0.5rem 1rem !important;
+          margin-top: 1.25rem !important;
+          padding: 1.25rem 1.5rem !important;
+          font-weight: 900 !important;
+          color: var(--status-positive) !important;
+          position: relative !important;
+          overflow: hidden !important;
+        }
+        .tb-balance-status.unbalanced {
+          background: radial-gradient(ellipse 90% 70% at 0% 50%, color-mix(in srgb, var(--status-negative) 14%, transparent), transparent 80%), var(--surface-card) !important;
+          color: var(--status-negative) !important;
+        }
+        .tb-balance-status::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 8%; right: 8%;
+          height: 1.5px;
+          background: var(--specular-beam);
+          pointer-events: none;
         }
 
         /* تنسيقات الطباعة المعزولة */
@@ -187,7 +236,7 @@ export default function TrialBalancePage() {
               </div>
 
               {/* مؤشر اتزان الميزان */}
-              <div className="tb-balance-status" style={{ color: isBalanced ? 'var(--status-positive)' : 'var(--status-negative)' }}>
+              <div className={`tb-balance-status ${isBalanced ? '' : 'unbalanced'}`}>
                 <span>
                   {isBalanced ? 'الميزان متزن تماماً (لا توجد فروق)' : 'يوجد فرق في الميزان! يرجى مراجعة قيود اليومية.'}
                 </span>

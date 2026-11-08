@@ -30,7 +30,57 @@ export const DEFAULT_BOT_SETTINGS = Object.freeze({
   autoDailyReportEnabled: true,
   autoDailyReportTime: '20:00',
   operationSeqStart: 101,
+  activeCompanyId: '72918f4d-10c3-43a0-884e-2f84f1224335',
 });
+
+export const KNOWN_COMPANIES = Object.freeze([
+  {
+    index: 1,
+    id: '72918f4d-10c3-43a0-884e-2f84f1224335',
+    code: 'PHI',
+    name: 'فاي تك للمقاولات العامة والتشطيبات الفاخرة',
+    shortName: 'فاي تك',
+    country: 'SA',
+    flag: '🇸🇦',
+  },
+  {
+    index: 2,
+    id: '8c90cb59-ffa3-4cd1-8bdc-db80a3c825b8',
+    code: 'AWA',
+    name: 'PHI-TECH-EGY',
+    shortName: 'فاي تك مصر (PHI-TECH-EGY)',
+    country: 'EG',
+    flag: '🇪🇬',
+  },
+]);
+
+export function getActiveCompany(settings = getBotSettings()) {
+  const activeId = settings.activeCompanyId || KNOWN_COMPANIES[0].id;
+  return KNOWN_COMPANIES.find(c => c.id === activeId) || {
+    index: 1,
+    id: activeId,
+    code: 'PHI',
+    name: 'فاي تك',
+    shortName: 'فاي تك',
+    country: 'SA',
+    flag: '🇸🇦',
+  };
+}
+
+export function setActiveCompany(companyIdentifier) {
+  let target = null;
+  const str = String(companyIdentifier ?? '').trim().toLowerCase();
+  if (['1', 'one', 'واحد', 'الأولى', 'الاولى', 'الاولانيه', 'phi', 'sa', 'السعودية', 'السعوديه'].includes(str)) {
+    target = KNOWN_COMPANIES[0];
+  } else if (['2', 'two', 'اتنين', 'تنين', 'الثانية', 'التانية', 'الثانيه', 'التانيه', 'awa', 'egy', 'phi-tech-egy', 'مصر'].includes(str)) {
+    target = KNOWN_COMPANIES[1];
+  } else {
+    target = KNOWN_COMPANIES.find(c => c.id === str || c.code.toLowerCase() === str || c.name.toLowerCase().includes(str));
+  }
+  if (!target) target = KNOWN_COMPANIES[0];
+  saveBotSettings({ activeCompanyId: target.id });
+  return target;
+}
 
 function ensureDir(filePath) {
   const dir = path.dirname(filePath);
@@ -93,6 +143,9 @@ export function saveBotSettings(partial = {}) {
     ...(typeof partial.autoDailyReportEnabled === 'boolean' ? { autoDailyReportEnabled: partial.autoDailyReportEnabled } : {}),
     ...(typeof partial.autoDailyReportTime === 'string' && /^\d{2}:\d{2}$/.test(partial.autoDailyReportTime.trim())
       ? { autoDailyReportTime: partial.autoDailyReportTime.trim() }
+      : {}),
+    ...(typeof partial.activeCompanyId === 'string' && partial.activeCompanyId.trim()
+      ? { activeCompanyId: partial.activeCompanyId.trim() }
       : {}),
     updatedAt: new Date().toISOString(),
   };

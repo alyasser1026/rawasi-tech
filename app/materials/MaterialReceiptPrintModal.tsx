@@ -97,18 +97,18 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
 
                     {/* بيانات الفاتورة المتقدمة */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '35px' }}>
-                        <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ background: 'var(--surface-sunken)', padding: '20px', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
                             <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase' }}>المشروع الموجه له الخامات</p>
                             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#1e293b' }}>{masterData.project?.Property || '---'}</h3>
                         </div>
-                        <div style={{ background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ background: 'var(--surface-sunken)', padding: '20px', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
                             <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase' }}>المورد / جهة التوريد</p>
                             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#1e293b' }}>{masterData.supplier?.name || '---'}</h3>
                         </div>
                     </div>
 
                     {/* جدول الأصناف العصري */}
-                    <div style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0', marginBottom: '35px' }}>
+                    <div style={{ borderRadius: '16px', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-elevation)', marginBottom: '35px' }}>
                         <table className="modern-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
                             <thead>
                                 <tr>
