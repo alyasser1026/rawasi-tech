@@ -22,6 +22,8 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   const [editingVisit, setEditingVisit] = useState<any>(null);
   const [isPrintDossierOpen, setIsPrintDossierOpen] = useState(false);
   const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string | null>(null);
+  const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
+  const [excludeZeroAmount, setExcludeZeroAmount] = useState(true);
 
   const project = logic.selectedProject || {};
   const details = logic.projectDetails || {};
@@ -29,6 +31,13 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   const siteVisits: any[] = details.siteVisits || [];
   const receiptVouchers: any[] = details.receiptVouchers || [];
   const boqList: any[] = details.boq || [];
+
+  // بنود المقايسة المؤهلة لتوليد الدفعات مرتبة بتواريخ البداية
+  const boqEligibleItems = useMemo(() => {
+    return boqList
+      .filter((b: any) => b.start_date && (b.item_type === 'فرعي' || !b.item_type))
+      .sort((a: any, b: any) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+  }, [boqList]);
 
   // =========================================================================
   // 1️⃣ إحصائيات وحسابات جدول دفعات العميل
@@ -507,28 +516,26 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
             </div>
 
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-              {milestones.length === 0 && (
-                <button
-                  onClick={logic.autoGenerateMilestones}
-                  style={{
-                    backgroundColor: '#f59e0b',
-                    color: 'white',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '10px',
-                    border: 'none',
-                    fontWeight: 800,
-                    fontSize: 'var(--fs-xs)',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
-                  }}
-                >
-                  <Sparkles size={14} />
-                  توليد مقترح دفعات ذكي تلقائي
-                </button>
-              )}
+              <button
+                onClick={() => setIsAutoGenerateModalOpen(true)}
+                style={{
+                  backgroundColor: '#f59e0b',
+                  color: 'white',
+                  padding: '0.5rem 1rem',
+                  borderRadius: '10px',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: 'var(--fs-xs)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
+                }}
+              >
+                <Sparkles size={14} />
+                توليد الدفعات من الميزانية (قبل كل بند بأسبوع) 🪄
+              </button>
 
               <button
                 onClick={() => {
@@ -583,7 +590,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   يمكنك إضافة دفعة جديدة يدوياً أو النقر على "توليد مقترح دفعات ذكي تلقائي" لتوزيعها بنسب هندسية قياسية.
                 </p>
                 <button
-                  onClick={logic.autoGenerateMilestones}
+                  onClick={() => setIsAutoGenerateModalOpen(true)}
                   style={{
                     backgroundColor: '#f59e0b',
                     color: 'white',
@@ -595,7 +602,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   }}
                 >
                   <Sparkles size={15} style={{ display: 'inline', marginLeft: '6px' }} />
-                  توليد جدول الدفعات الآن
+                  توليد الدفعات من الميزانية الآن (قبل كل بند بأسبوع)
                 </button>
               </div>
             ) : (
@@ -1521,6 +1528,43 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
               setIsMilestoneModalOpen(false);
             }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               
+              {/* خيار اقتباس وتعبئة من بند بالمقايسة */}
+              <div style={{ backgroundColor: '#eff6ff', padding: '0.75rem', borderRadius: '10px', border: '1px solid #bfdbfe' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#1e40af', marginBottom: '4px' }}>
+                  🪄 اقتباس سريع من بند بالميزانية (يحسب التاريخ قبل البند بـ 7 أيام ويسحب مبلغ العميل):
+                </label>
+                <select
+                  onChange={(e) => {
+                    const selectedId = e.target.value;
+                    const item = boqList.find((b: any) => b.id === selectedId);
+                    if (item) {
+                      let calcDate = '';
+                      if (item.start_date) {
+                        const d = new Date(item.start_date);
+                        d.setDate(d.getDate() - 7);
+                        calcDate = d.toISOString().split('T')[0];
+                      }
+                      const contractAmt = Number(item.total_contract_amount || (Number(item.contract_quantity || 1) * Number(item.unit_contract_price || 0)));
+                      setEditingMilestone({
+                        ...editingMilestone,
+                        title: `دفعة بند: ${item.work_item}`,
+                        due_date: calcDate || editingMilestone.due_date,
+                        expected_amount: contractAmt || editingMilestone.expected_amount,
+                        notes: item.start_date ? `مستحقة قبل أسبوع من بدء العمل (${item.start_date.split('T')[0]})` : ''
+                      });
+                    }
+                  }}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #93c5fd', fontSize: '12px', background: 'white' }}
+                >
+                  <option value="">-- اضغط لاختيار بند من المقايسة لتعبئة التاريخ والمبلغ تلقائياً --</option>
+                  {boqList.filter((b: any) => b.item_type === 'فرعي' || !b.item_type).map((b: any) => (
+                    <option key={b.id} value={b.id}>
+                      {b.work_item} (بدء: {formatDate(b.start_date)} - مبلغ العميل: {formatCurrency(b.total_contract_amount || 0)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '100px 1fr', gap: '0.75rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>رقم الدفعة</label>
@@ -2143,6 +2187,196 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
             alt="معاينة مكبرة"
             style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '12px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}
           />
+        </div>
+      )}
+
+      {/* =====================================================================
+          مودال تأكيد وتوليد الدفعات من بنود الميزانية (قبل موعد كل بند بـ 7 أيام)
+          ===================================================================== */}
+      {isAutoGenerateModalOpen && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 999999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(8px)',
+          direction: 'rtl'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            width: '90%',
+            maxWidth: '44rem',
+            padding: '2rem',
+            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)',
+            maxHeight: '90vh',
+            overflowY: 'auto'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div style={{ padding: '8px', background: '#fef3c7', borderRadius: '10px', color: '#d97706' }}>
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, color: '#0f172a', fontWeight: 900, fontSize: 'var(--fs-lg)' }}>
+                    توليد جدول دفعات العميل مسحوباً من الميزانية
+                  </h3>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                    تاريخ استحقاق الدفعة: قبل بداية العمل بالبند بـ 7 أيام | قيمة الدفعة: مبلغ العميل للبند
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsAutoGenerateModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* تفاصيل الاحتساب الهندسي */}
+            <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.25rem', fontSize: '13px', lineHeight: 1.6, color: '#334155' }}>
+              <div style={{ fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>
+                🏗️ آلية السحب والربط الزمني التلقائي:
+              </div>
+              <ul style={{ margin: 0, paddingRight: '1.25rem', color: '#475569' }}>
+                <li>يتم فحص بنود الميزانية (`boq_budget`) والبحث عن تاريخ بداية العمل في كل بند (`start_date`).</li>
+                <li>يتم جدولة تاريخ استحقاق الدفعة **قبل تاريخ بداية العمل في البند بـ 7 أيام** لتوفير السيولة اللازمة للتشوين والتجهيز.</li>
+                <li>يتم تعيين قيمة الدفعة مساوية **لمبلغ العميل (إجمالي بيع البند)** (`total_contract_amount`).</li>
+              </ul>
+            </div>
+
+            {/* ملخص البنود المكتشفة */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <div style={{ background: '#eff6ff', padding: '0.875rem', borderRadius: '10px', textAlign: 'center', border: '1px solid #bfdbfe' }}>
+                <div style={{ fontSize: '11px', color: '#1e40af', fontWeight: 700 }}>بنود الميزانية المحددة</div>
+                <div style={{ fontSize: '18px', fontWeight: 900, color: '#1d4ed8' }}>
+                  {boqEligibleItems.filter(b => !excludeZeroAmount || Number(b.total_contract_amount || 0) > 0).length} بند
+                </div>
+              </div>
+              <div style={{ background: '#f0fdf4', padding: '0.875rem', borderRadius: '10px', textAlign: 'center', border: '1px solid #bbf7d0' }}>
+                <div style={{ fontSize: '11px', color: '#166534', fontWeight: 700 }}>إجمالي مبالغ الدفعات</div>
+                <div style={{ fontSize: '16px', fontWeight: 900, color: '#15803d' }}>
+                  {formatCurrency(
+                    boqEligibleItems
+                      .filter(b => !excludeZeroAmount || Number(b.total_contract_amount || 0) > 0)
+                      .reduce((sum, b) => sum + Number(b.total_contract_amount || 0), 0)
+                  )}
+                </div>
+              </div>
+              <div style={{ background: '#faf5ff', padding: '0.875rem', borderRadius: '10px', textAlign: 'center', border: '1px solid #e9d5ff' }}>
+                <div style={{ fontSize: '11px', color: '#6b21a8', fontWeight: 700 }}>أول دفعة مستحقة</div>
+                <div style={{ fontSize: '14px', fontWeight: 900, color: '#7e22ce', direction: 'ltr', textAlign: 'center', marginTop: '4px' }}>
+                  {boqEligibleItems.length > 0 ? (() => {
+                    const d = new Date(boqEligibleItems[0].start_date);
+                    d.setDate(d.getDate() - 7);
+                    return formatDate(d.toISOString().split('T')[0]);
+                  })() : '---'}
+                </div>
+              </div>
+            </div>
+
+            {/* خيار استبعاد البنود الصفرية */}
+            <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f8fafc', padding: '0.75rem', borderRadius: '8px' }}>
+              <input
+                type="checkbox"
+                id="excludeZero"
+                checked={excludeZeroAmount}
+                onChange={(e) => setExcludeZeroAmount(e.target.checked)}
+                style={{ width: '16px', height: '16px', cursor: 'pointer' }}
+              />
+              <label htmlFor="excludeZero" style={{ fontSize: '12px', fontWeight: 800, color: '#334155', cursor: 'pointer' }}>
+                استبعاد البنود التي قيمتها التعاقدية صفر (مثال: أعمال الحفر غير المسعرة)
+              </label>
+            </div>
+
+            {/* جدول معاينة سريعة لأول دفعات */}
+            <div style={{ maxHeight: '200px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '10px', marginBottom: '1.25rem' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'right' }}>
+                <thead style={{ background: '#f8fafc', position: 'sticky', top: 0 }}>
+                  <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                    <th style={{ padding: '6px 10px' }}>البند بالميزانية</th>
+                    <th style={{ padding: '6px 10px' }}>تاريخ بدء العمل</th>
+                    <th style={{ padding: '6px 10px' }}>موعد استحقاق الدفعة (قبلها بأسبوع)</th>
+                    <th style={{ padding: '6px 10px' }}>مبلغ العميل</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {boqEligibleItems
+                    .filter(b => !excludeZeroAmount || Number(b.total_contract_amount || 0) > 0)
+                    .map((b: any, idx: number) => {
+                      const startDate = new Date(b.start_date);
+                      const dueDate = new Date(startDate);
+                      dueDate.setDate(dueDate.getDate() - 7);
+                      return (
+                        <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '6px 10px', fontWeight: 800 }}>{b.work_item}</td>
+                          <td style={{ padding: '6px 10px', direction: 'ltr', textAlign: 'right', color: '#64748b' }}>{formatDate(b.start_date)}</td>
+                          <td style={{ padding: '6px 10px', direction: 'ltr', textAlign: 'right', fontWeight: 900, color: '#2563eb' }}>{formatDate(dueDate.toISOString().split('T')[0])}</td>
+                          <td style={{ padding: '6px 10px', fontWeight: 900, color: '#16a34a' }}>{formatCurrency(b.total_contract_amount || 0)}</td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* تنبيه الاستبدال إن وجدت دفعات */}
+            {milestones.length > 0 && (
+              <div style={{ background: '#fef3c7', padding: '0.75rem', borderRadius: '10px', border: '1px solid #fde68a', color: '#92400e', fontSize: '12px', fontWeight: 800, marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <AlertTriangle size={16} />
+                تنبيه: يوجد حالياً ({milestones.length}) دفعات مسجلة. تأكيد التوليد سيقوم بتحديث واستبدال الجدول بالدفعات الجديدة المسحوبة من الميزانية.
+              </div>
+            )}
+
+            {/* أزرار الإجراء */}
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                onClick={() => {
+                  logic.autoGenerateMilestones({ excludeZero: excludeZeroAmount });
+                  setIsAutoGenerateModalOpen(false);
+                }}
+                style={{
+                  flex: 1,
+                  backgroundColor: '#f59e0b',
+                  color: 'white',
+                  padding: '0.75rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  fontWeight: 900,
+                  fontSize: 'var(--fs-sm)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+                }}
+              >
+                <Sparkles size={16} />
+                تأكيد توليد الدفعات الآن
+              </button>
+              <button
+                onClick={() => setIsAutoGenerateModalOpen(false)}
+                style={{
+                  flex: 1,
+                  backgroundColor: '#f1f5f9',
+                  color: '#475569',
+                  padding: '0.75rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  fontWeight: 900,
+                  fontSize: 'var(--fs-sm)',
+                  cursor: 'pointer'
+                }}
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

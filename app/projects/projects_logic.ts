@@ -599,44 +599,75 @@ export function useProjectsLogic() {
     onError: (err: any) => showToast(`خطأ في حذف الزيارة: ${err.message}`, 'error')
   });
 
-  // 🪄 توليد تلقائي لجدول دفعات العميل الذكي
-  const autoGenerateMilestones = async () => {
+  // 🪄 توليد تلقائي لجدول دفعات العميل مسحوباً من بنود الميزانية (قبل موعد كل بند بـ 7 أيام)
+  const autoGenerateMilestones = async (options?: { excludeZero?: boolean }) => {
     if (!selectedProject) return;
-    const contractVal = Number(selectedProject.contract_value) || 0;
-    if (contractVal <= 0) {
-      showToast('يرجى تحديد قيمة التعاقد في بيانات المشروع أولاً لتوليد الدفعات', 'error');
+
+    // فحص بنود المقايسة
+    const boqItems: any[] = projectDetails.boq || [];
+    
+    // سحب البنود الفرعية التي لها تاريخ بداية
+    let validBoqItems = boqItems
+      .filter((b: any) => b.start_date && (b.item_type === 'فرعي' || !b.item_type))
+      .sort((a: any, b: any) => new Date(a.start_date).getTime() - new Date(b.start_date).getTime());
+
+    if (options?.excludeZero !== false) {
+      // افتراضياً استبعاد البنود التي قيمتها صفر
+      const withAmount = validBoqItems.filter((b: any) => {
+        const amt = Number(b.total_contract_amount || (Number(b.contract_quantity || 0) * Number(b.unit_contract_price || 0)));
+        return amt > 0;
+      });
+      if (withAmount.length > 0) {
+        validBoqItems = withAmount;
+      }
+    }
+
+    if (validBoqItems.length === 0) {
+      showToast('لم يتم العثور على بنود ذات تواريخ بداية في المقايسة! يرجى تحديد تاريخ بداية البنود أولاً في شاشة الميزانية.', 'error');
       return;
     }
-    const defaultSplits = [
-      { num: 1, title: 'الدفعة الأولى: مقدمة التعاقد وتجهيز الموقع', pct: 0.10, daysOffset: 0 },
-      { num: 2, title: 'الدفعة الثانية: انتهاء أعمال الحفر والأساسات واللبشة', pct: 0.25, daysOffset: 30 },
-      { num: 3, title: 'الدفعة الثالثة: إتمام صب أعمدة وسقف البدروم والأرضي', pct: 0.25, daysOffset: 60 },
-      { num: 4, title: 'الدفعة الرابعة: إتمام الهيكل الخرساني بالكامل', pct: 0.20, daysOffset: 90 },
-      { num: 5, title: 'الدفعة الخامسة: إتمام أعمال المباني والتشطيبات الأولية', pct: 0.10, daysOffset: 120 },
-      { num: 6, title: 'الدفعة السادسة: التسليم النهائي للمشروع ومخالصة الاستلام', pct: 0.10, daysOffset: 150 }
-    ];
 
-    const baseDate = selectedProject.start_date ? new Date(selectedProject.start_date) : new Date();
-    const rows = defaultSplits.map(s => {
-      const d = new Date(baseDate);
-      d.setDate(d.getDate() + s.daysOffset);
+    // حذف الدفعات القديمة إن وجدت للمشروع لإعادة بنائها بدقة من الميزانية
+    const { error: delErr } = await supabase
+      .from('project_payment_milestones')
+      .delete()
+      .eq('project_id', selectedProject.id);
+
+    if (delErr) {
+      showToast('خطأ أثناء تهيئة الدفعات: ' + delErr.message, 'error');
+      return;
+    }
+
+    // تجهيز صفوف الدفعات: سحب تاريخ بداية العمل في البند وحساب تاريخ الدفعة قبلها بـ 7 أيام ومبلغ العميل للبند
+    const rows = validBoqItems.map((item: any, idx: number) => {
+      const startDate = new Date(item.start_date);
+      const dueDate = new Date(startDate);
+      dueDate.setDate(dueDate.getDate() - 7); // قبل بداية العمل في البند بأسبوع
+
+      const itemContractAmount = Number(
+        item.total_contract_amount || (Number(item.contract_quantity || 1) * Number(item.unit_contract_price || 0))
+      );
+
+      const startDateFormatted = item.start_date.split('T')[0];
+      const dueDateFormatted = dueDate.toISOString().split('T')[0];
+
       return {
         project_id: selectedProject.id,
-        milestone_number: s.num,
-        title: s.title,
-        due_date: d.toISOString().split('T')[0],
-        expected_amount: Math.round(contractVal * s.pct),
+        milestone_number: idx + 1,
+        title: `دفعة بند: ${item.work_item}`,
+        due_date: dueDateFormatted,
+        expected_amount: itemContractAmount,
         received_amount: 0,
         status: 'مستحقة',
-        notes: `تم التوليد التلقائي بنسبة ${Math.round(s.pct * 100)}% من قيمة التعاقد`
+        notes: `مستحقة قبل أسبوع من موعد بدء تنفيذ البند (تاريخ بداية التنفيذ: ${startDateFormatted})`
       };
     });
 
-    const { error } = await supabase.from('project_payment_milestones').insert(rows);
-    if (error) {
-      showToast('فشل التوليد: ' + error.message, 'error');
+    const { error: insErr } = await supabase.from('project_payment_milestones').insert(rows);
+    if (insErr) {
+      showToast('فشل حفظ الدفعات: ' + insErr.message, 'error');
     } else {
-      showToast('تم توليد جدول الدفعات الذكي بنجاح!', 'success');
+      showToast(`تم بنجاح سحب الميزانية وتوليد (${rows.length}) دفعات (قبل بداية كل بند بأسبوع)!`, 'success');
       loadProjectDetails(selectedProject);
     }
   };
