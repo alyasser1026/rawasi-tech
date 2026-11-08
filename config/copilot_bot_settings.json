@@ -10,12 +10,13 @@
   "voiceGender": "female",
   "voiceDialect": "ar-EG",
   "voiceName": "Aoede",
-  "onlyGeminiVoice": true,
   "voiceSpeed": "normal",
+  "onlyGeminiVoice": true,
+  "emergencyVoiceEnabled": false,
   "mozzaModeEnabled": true,
   "mozzaNickname": "يا يسور",
   "autoDailyReportEnabled": true,
   "autoDailyReportTime": "20:00",
   "operationSeqStart": 101,
-  "updatedAt": "2026-11-07T16:39:39.691Z"
+  "updatedAt": "2026-11-07T18:46:43.884Z"
 }

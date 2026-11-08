@@ -7,6 +7,7 @@ import PermissionsMatrix from './PermissionsMatrix';
 import SystemHealthRadar from './SystemHealthRadar';
 import AuditLogs from './AuditLogs';
 import BotSettingsManager from './BotSettingsManager';
+import FactoryResetManager from './FactoryResetManager';
 
 import RawasiSidebarManager from '@/components/RawasiSidebarManager'; 
 import MasterPage from '@/components/MasterPage';
@@ -191,6 +192,13 @@ export default function SettingsPage() {
           <button className={`tab-btn ${activeTab === 'audit' ? 'active' : ''}`} onClick={() => setActiveTab('audit')}>
             سجل المراقبة
           </button>
+          <button
+            className={`tab-btn ${activeTab === 'factory_reset' ? 'active' : ''}`}
+            onClick={() => setActiveTab('factory_reset')}
+            style={activeTab === 'factory_reset' ? { background: '#dc2626', borderColor: '#dc2626', color: 'white', boxShadow: '0 4px 15px rgba(220, 38, 38, 0.3)' } : { color: '#dc2626', borderColor: '#fca5a5' }}
+          >
+            ⚠️ إعادة ضبط المصنع
+          </button>
         </div>
 
         {activeTab === 'permissions' && <PermissionsMatrix />}
@@ -201,8 +209,11 @@ export default function SettingsPage() {
 
         {activeTab === 'bot' && <BotSettingsManager />}
 
+        {activeTab === 'factory_reset' && <FactoryResetManager />}
+
         {activeTab === 'backup' && (
-          <div style={{ display: 'grid', gridTemplateColumns: 'minmax(18.75rem, 2fr) minmax(15.625rem, 1fr)', gap: '1.875rem', alignItems: 'start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.875rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(18.75rem, 2fr) minmax(15.625rem, 1fr)', gap: '1.875rem', alignItems: 'start' }}>
             
             <GlassContainer>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5625rem', borderBottom: '2px solid #f1f5f9', paddingBottom: '0.9375rem', flexWrap: 'wrap', gap: '0.625rem' }}>
@@ -307,7 +318,10 @@ export default function SettingsPage() {
             </GlassContainer>
 
           </div>
-        )}
+
+          <FactoryResetManager />
+        </div>
+      )}
 
       </div>
 

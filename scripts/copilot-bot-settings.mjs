@@ -23,7 +23,8 @@ export const DEFAULT_BOT_SETTINGS = Object.freeze({
   voiceDialect: 'ar-EG',
   voiceName: 'Aoede',
   voiceSpeed: 'normal',
-  onlyGeminiVoice: true,
+  onlyGeminiVoice: false,
+  emergencyVoiceEnabled: true,
   mozzaModeEnabled: false,
   mozzaNickname: 'يا محاميحو',
   autoDailyReportEnabled: true,
@@ -78,7 +79,12 @@ export function saveBotSettings(partial = {}) {
     ...(typeof partial.voiceName === 'string' && ['ar-EG-SalmaNeural', 'Aoede', 'Kore', 'Leda', 'Zephyr'].includes(partial.voiceName)
       ? { voiceName: partial.voiceName }
       : {}),
-    ...(typeof partial.onlyGeminiVoice === 'boolean' ? { onlyGeminiVoice: partial.onlyGeminiVoice } : {}),
+    ...(typeof partial.emergencyVoiceEnabled === 'boolean'
+      ? { emergencyVoiceEnabled: partial.emergencyVoiceEnabled, onlyGeminiVoice: !partial.emergencyVoiceEnabled }
+      : {}),
+    ...(typeof partial.onlyGeminiVoice === 'boolean'
+      ? { onlyGeminiVoice: partial.onlyGeminiVoice, emergencyVoiceEnabled: !partial.onlyGeminiVoice }
+      : {}),
     ...(typeof partial.onlySalmaVoice === 'boolean' ? { onlySalmaVoice: partial.onlySalmaVoice } : {}),
     ...(typeof partial.mozzaModeEnabled === 'boolean' ? { mozzaModeEnabled: partial.mozzaModeEnabled } : {}),
     ...(typeof partial.mozzaNickname === 'string' && partial.mozzaNickname.trim()

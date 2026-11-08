@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GlassContainer from '@/components/GlassContainer';
 import { THEME } from '@/lib/theme';
 import {
-  Bot, Volume2, Clock, Hash, Brain, Save, Plus, Trash2, CheckCircle2, RefreshCw, Sparkles, MessageSquare
+  Bot, Volume2, VolumeX, Clock, Hash, Brain, Save, Plus, Trash2, CheckCircle2, RefreshCw, Sparkles, MessageSquare
 } from 'lucide-react';
 
 interface BotSettings {
@@ -344,6 +344,113 @@ export default function BotSettingsManager() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {/* زر التبديل السريع لإغلاق / تشغيل الرسائل الصوتية */}
+            <div
+              style={{
+                padding: '1rem 1.25rem',
+                borderRadius: '14px',
+                background: settings.voiceReplyMode === 'off'
+                  ? 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)'
+                  : 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+                border: settings.voiceReplyMode === 'off' ? '1.5px solid #fca5a5' : '1.5px solid #86efac',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '1rem',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                transition: 'all 0.3s ease',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                <div
+                  style={{
+                    background: settings.voiceReplyMode === 'off' ? '#fee2e2' : '#dcfce7',
+                    color: settings.voiceReplyMode === 'off' ? '#dc2626' : '#16a34a',
+                    padding: '0.65rem',
+                    borderRadius: '12px',
+                    display: 'flex',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+                  }}
+                >
+                  {settings.voiceReplyMode === 'off' ? <VolumeX size={24} /> : <Volume2 size={24} />}
+                </div>
+                <div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 900, fontSize: 'var(--fs-sm)', color: settings.voiceReplyMode === 'off' ? '#991b1b' : '#166534' }}>
+                    <span>الرسائل الصوتية في البوت</span>
+                    <span
+                      style={{
+                        fontSize: '0.68rem',
+                        padding: '0.15rem 0.6rem',
+                        borderRadius: '999px',
+                        fontWeight: 900,
+                        background: settings.voiceReplyMode === 'off' ? '#dc2626' : '#16a34a',
+                        color: 'white',
+                      }}
+                    >
+                      {settings.voiceReplyMode === 'off' ? 'معطلة بالكامل 🔇' : 'مفعلة وشغالة 🔊'}
+                    </span>
+                  </div>
+                  <p style={{ margin: '0.25rem 0 0', fontSize: 'var(--fs-xs)', color: settings.voiceReplyMode === 'off' ? '#b91c1c' : '#15803d', fontWeight: 700, lineHeight: 1.5 }}>
+                    {settings.voiceReplyMode === 'off'
+                      ? 'البوت سيرد كتابةً فقط بدون أي بصمات صوتية (لتوفير الكوتة والاستخدام الصامت).'
+                      : 'البوت سيرسل بصمة صوتية مصرية واقعية ودافئة مع كل رد أو تقرير.'}
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  const nextMode: BotSettings['voiceReplyMode'] = settings.voiceReplyMode === 'off' ? 'always' : 'off';
+                  const updated = { ...settings, voiceReplyMode: nextMode };
+                  setSettings(updated);
+                  try {
+                    await fetch('/api/copilot/settings', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ action: 'save_settings', settings: updated }),
+                    });
+                    setStatusMsg({
+                      text: nextMode === 'off'
+                        ? '🔇 تم إغلاق الرسائل الصوتية بنجاح! البوت سيرد كتابة فقط.'
+                        : '🔊 تم تشغيل الرسائل الصوتية بنجاح!',
+                      type: 'success',
+                    });
+                    setTimeout(() => setStatusMsg({ text: '', type: '' }), 3500);
+                  } catch {}
+                }}
+                style={{
+                  padding: '0.65rem 1.25rem',
+                  borderRadius: '999px',
+                  border: 'none',
+                  fontWeight: 900,
+                  fontSize: 'var(--fs-xs)',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                  background: settings.voiceReplyMode === 'off' ? '#16a34a' : '#dc2626',
+                  color: '#fff',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  transition: 'transform 0.15s ease',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.transform = 'translateY(-1px)')}
+                onMouseLeave={e => (e.currentTarget.style.transform = 'translateY(0)')}
+              >
+                {settings.voiceReplyMode === 'off' ? (
+                  <>
+                    <Volume2 size={16} /> تشغيل الرسائل الصوتية
+                  </>
+                ) : (
+                  <>
+                    <VolumeX size={16} /> إغلاق الرسائل الصوتية 🔇
+                  </>
+                )}
+              </button>
+            </div>
+
             <div>
               <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#334155', marginBottom: '0.375rem' }}>
                 وضع الرد الصوتي (Voice Reply TTS)

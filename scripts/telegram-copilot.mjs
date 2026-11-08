@@ -50,6 +50,9 @@ function loadEnvLocal() {
 }
 
 const env = loadEnvLocal();
+for (const [k, v] of Object.entries(env)) {
+  if (!process.env[k]) process.env[k] = v;
+}
 const setting = name => process.env[name] ?? env[name];
 for (const flag of ['COPILOT_LIVE_FIELD_OPS_ENABLED', 'COPILOT_TOOL_TAREEHA_ENABLED', 'COPILOT_PDF_WORKER_ENABLED', 'COPILOT_PDF_CHECKLIST_ENABLED']) {
   const value = setting(flag);
@@ -281,12 +284,16 @@ async function sendChatAction(chatId, action = 'typing') {
 const sendTelegramVoice = createTelegramVoiceSender({ botToken: BOT_TOKEN });
 
 async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, settings) {
+  if (settings?.voiceReplyMode === 'off') {
+    return false;
+  }
   void sendChatAction(chatId, 'record_voice');
   const audio = await synthesizeArabicSpeech(textToSpeak, {
-    settings: { ...settings, onlyGeminiVoice: true },
+    settings: { ...settings, onlyGeminiVoice: settings?.onlyGeminiVoice ?? false },
     geminiApiKey: GEMINI_API_KEY,
     voiceProvider: 'gemini',
     geminiVoice: COPILOT_GEMINI_TTS_VOICE,
+    elevenlabsApiKey: setting('ELEVENLABS_API_KEY'),
   });
   if (!audio) {
     console.warn('Voice synthesis unavailable. The text reply was sent separately.');
@@ -317,6 +324,56 @@ function buildOperationInlineMarkup(cardText) {
       ],
     ],
   };
+}
+
+function buildSettingsMessageAndMarkup(s = getBotSettings()) {
+  const isVoiceOff = s.voiceReplyMode === 'off';
+  const isEmergency = s.emergencyVoiceEnabled !== false && s.onlyGeminiVoice !== true;
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const text = [
+    `⚙️ لوحة إعدادات المساعد الذكي (${s.botName || 'م. سلمى'})`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🎙️ الرسائل الصوتية: ${isVoiceOff ? 'مقفولة ومعطلة بالكامل 🔇 (نص فقط)' : 'مفعلة وشغالة 🔊'}`,
+    `1️⃣ الصوت الأساسي الأول: Gemini (Aoede) 🎙️`,
+    `2️⃣ الصوت البديل الذكي: ElevenLabs (Sarah / eleven_v4) 🎭`,
+    `3️⃣ صوت الطوارئ المجاني (Edge): ${isEmergency ? 'شغال كاحتياطي أخير ✅' : 'مقفول ومعطّل ❌'}`,
+    `💖 وضع الموزة: ${isMozza ? `مفعّل (${s.mozzaNickname || 'يا يسور'}) 💖` : 'مغلق (الوضع الرسمي) 💼'}`,
+    `⏳ إغلاق الجلسة التلقائي: ${s.inactivityCloseEnabled ? `${s.inactivityTimeoutMinutes || 3} دقائق ✅` : 'معطل ❌'}`,
+    `📊 التقرير اليومي: ${s.autoDailyReportEnabled ? `مفعّل (${s.autoDailyReportTime || '20:00'}) ✅` : 'معطل ❌'}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `🔄 التسلسل التلقائي للصوت:\nيبدأ دايماً بـ Gemini؛ لو كوتته خلصت ينقل فوراً لـ ElevenLabs بالتنغيم البشري، ولما كوتة جيميني تفتح يرجع لها أوتوماتيك!`,
+  ].join('\n');
+
+  const markup = {
+    inline_keyboard: [
+      [
+        {
+          text: isVoiceOff ? '🔊 تشغيل الرسائل الصوتية' : '🔇 إغلاق الرسائل الصوتية بالكامل',
+          callback_data: isVoiceOff ? 'set_voice_messages:on' : 'set_voice_messages:off',
+        },
+      ],
+      [
+        {
+          text: isEmergency ? '🛑 إيقاف صوت طوارئ Edge' : '✅ تشغيل صوت طوارئ Edge',
+          callback_data: isEmergency ? 'set_emergency_voice:off' : 'set_emergency_voice:on',
+        },
+      ],
+      [
+        {
+          text: isMozza ? '💼 تحويل للوضع الرسمي' : '💖 تفعيل وضع الموزة',
+          callback_data: isMozza ? 'set_mozza:off' : 'set_mozza:on',
+        },
+      ],
+      [
+        {
+          text: '🔄 تحديث الإعدادات',
+          callback_data: 'settings_refresh',
+        },
+      ],
+    ],
+  };
+
+  return { text, replyMarkup: markup };
 }
 
 function clearInactivityTimer(chatId) {
@@ -539,6 +596,65 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
     return `💼 تمام يا باشمهندس، قفلت «وضع الموزة» ورجعنا للوضع الرسمي الاحترافي. تحت أمرك في أي حسابات أو تقارير موقع!`;
   }
 
+  // 0.0) التحكم في الرسائل الصوتية بالكامل (إغلاق / تشغيل)
+  if (/(?:اقفل|إقفل|اطفي|إطفي|وقف|وقّف|الغي|إلغي|عطل|تعطيل|قفل|بلاش|من\s*غير|بدون|كفاية)\s*(?:الرسائل\s*الصوتيه|الرسائل\s*الصوتية|الردود\s*الصوتيه|الردود\s*الصوتية|الرسائل\s*الصوت|الفويس|الفويسات|صوتيات|صوت|الصوت)|^\/voice\s+(?:off|disable|stop|mute)$|^\/mute$/i.test(t)) {
+    saveBotSettings({ voiceReplyMode: 'off' });
+    const replyText = isMozza
+      ? `🔇 من عيوني يا ${pet}! قفلتلك كل الرسائل الصوتية خالص، وهرد عليك كتابة بس من غير أي فويس يا قلبي 😘`
+      : `🔇 تم إغلاق الرسائل الصوتية بالكامل يا باشمهندس. سأرد عليك بالنصوص والتقارير المكتوبة فقط دون أي بصمات صوتية.`;
+    return {
+      text: replyText,
+      replyMarkup: {
+        inline_keyboard: [[{ text: '🔊 إعادة تشغيل الرسائل الصوتية', callback_data: 'set_voice_messages:on' }]],
+      },
+    };
+  }
+
+  if (/(?:شغل|شغّل|افتح|فعّل|فعل|تشغيل|تفعيل|رجع|رجّع|رد\s*بـ?)\s*(?:الرسائل\s*الصوتيه|الرسائل\s*الصوتية|الردود\s*الصوتيه|الردود\s*الصوتية|الرسائل\s*الصوت|الفويس|الفويسات|صوتيات|صوت|الصوت)|^\/voice\s+(?:on|enable|start|unmute)$|^\/unmute$/i.test(t)) {
+    saveBotSettings({ voiceReplyMode: 'always' });
+    const replyText = isMozza
+      ? `🔊 شغلتلك الرسائل الصوتية يا ${pet}! هسمّعك صوتي مع كل رد وتقرير من هنا ورايح يا حبيبي 🥰`
+      : `🔊 تم تفعيل الرسائل الصوتية بنجاح يا باشمهندس. ستصلك البصمات الصوتية مع الردود والتقارير.`;
+    return {
+      text: replyText,
+      replyMarkup: {
+        inline_keyboard: [[{ text: '🔇 إغلاق الرسائل الصوتية', callback_data: 'set_voice_messages:off' }]],
+      },
+    };
+  }
+
+  // 0.1) التحكم في صوت الطوارئ (Edge TTS) مباشرة من المحادثة
+  if (/(?:اقفل|إقفل|اطفي|إطفي|وقف|وقّف|الغي|إلغي|عطل|تعطيل|قفل)\s*(?:صوت\s*)?(?:الطوارئ|طوارئ|البديل)|^\/emergency_voice\s+(?:off|disable|stop)$/i.test(t)) {
+    saveBotSettings({ emergencyVoiceEnabled: false, onlyGeminiVoice: true });
+    const replyText = isMozza
+      ? `🛑 قفلتلك صوت الطوارئ يا ${pet}! مش هيشتغل غير صوت Gemini الناعم بس، ولو كوتة جيميني خلصت الرد هينزل كتابة ومش هيطلع أي صوت طوارئ أبداً 😘`
+      : `🛑 تم إيقاف صوت الطوارئ (Edge TTS) بنجاح يا باشمهندس. الردود الصوتية ستعتمد حصرياً على Gemini، وفي حال نفاد الكوتة اليومية سيصلك الرد نصياً فقط دون صوت طوارئ.`;
+    return {
+      text: replyText,
+      replyMarkup: {
+        inline_keyboard: [[{ text: '✅ إعادة تشغيل صوت الطوارئ', callback_data: 'set_emergency_voice:on' }]],
+      },
+    };
+  }
+
+  if (/(?:شغل|شغّل|افتح|فعّل|فعل|تشغيل|تفعيل)\s*(?:صوت\s*)?(?:الطوارئ|طوارئ|البديل)|^\/emergency_voice\s+(?:on|enable|start)$/i.test(t)) {
+    saveBotSettings({ emergencyVoiceEnabled: true, onlyGeminiVoice: false });
+    const replyText = isMozza
+      ? `✅ شغلتلك صوت الطوارئ يا ${pet}! الأساسي دايماً هيكون صوت Gemini، وصوت الطوارئ هيدخل كبديل أوتوماتيك بس لو كوتة جيميني خلصت عشان ما أسكتش أبداً 🥰`
+      : `✅ تم تفعيل صوت الطوارئ (Edge TTS) بنجاح يا باشمهندس. صوت Gemini هو الأساسي دائماً، وصوت الطوارئ سيعمل كاحتياطي تلقائي عند نفاد الكوتة فقط.`;
+    return {
+      text: replyText,
+      replyMarkup: {
+        inline_keyboard: [[{ text: '🛑 إيقاف صوت الطوارئ', callback_data: 'set_emergency_voice:off' }]],
+      },
+    };
+  }
+
+  // 0.2) عرض لوحة الإعدادات التفاعلية مباشرة في الشات
+  if (/^(?:\/settings|\/config|الإعدادات|الاعدادات|إعدادات|اعدادات|ضبط\s*البوت|اعدادات\s*البوت)$/i.test(t)) {
+    return buildSettingsMessageAndMarkup(s);
+  }
+
   // الرد على ملاحظات الصوت (مثل: صوتك ناشف / ليه صوتك ناشف)
   if (/(?:صوتك\s*(?:ناشف|وحش|غريب|مش مضبوط|مش مظبوط|مش تمام)|مال\s*صوتك|ليه\s*صوتك\s*ناشف)/i.test(t) && !hasWorkIntent) {
     return `حقك عليا أنا يا ${pet}! 💖 ده أنا ما أقدرش على زعلك ولا على الصوت الناشف ده أبداً.. ظبطتلك الصوت المصري الناعم أهو يا روحي وفي قمة الروقان والدلع، قولي إيه رأيك دلوقتي؟ 😘`;
@@ -646,6 +762,9 @@ async function processUserPromptWithGemini(userPrompt, actor) {
 
   const directText = detectDirectTextReply(userPrompt, actor?.quotedMessageText || '');
   if (directText) {
+    if (typeof directText === 'object') {
+      return { ...directText, memory: { ...memory, modelText: directText.text } };
+    }
     return { text: directText, memory: { ...memory, modelText: directText } };
   }
 
@@ -1160,7 +1279,7 @@ async function processTelegramMessage(msg) {
       const fullReplyText = introHeader + (reply.text || '');
       const delivery = await sendTelegramMessage(chatId, fullReplyText, messageId, {
         html: false,
-        replyMarkup: buildOperationInlineMarkup(reply.text || ''),
+        replyMarkup: reply.replyMarkup ?? buildOperationInlineMarkup(reply.text || ''),
       });
       if (delivery.ok && reply.memory) {
         conversation.remember({ ...actor, ...reply.memory, userMessageId: messageId,
@@ -1196,6 +1315,77 @@ async function handleCallbackQuery(cb) {
       });
     } catch {}
   };
+
+  const editMessage = async (text, replyMarkup) => {
+    try {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageText`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          message_id: messageId,
+          text,
+          ...(replyMarkup && { reply_markup: replyMarkup }),
+        }),
+        signal: AbortSignal.timeout(6000),
+      });
+    } catch {}
+  };
+
+  if (data === 'set_voice_messages:off') {
+    saveBotSettings({ voiceReplyMode: 'off' });
+    await answerCb('🔇 تم إغلاق الرسائل الصوتية (نص فقط)');
+    const updated = buildSettingsMessageAndMarkup(getBotSettings());
+    await editMessage(updated.text, updated.replyMarkup);
+    return;
+  }
+
+  if (data === 'set_voice_messages:on') {
+    saveBotSettings({ voiceReplyMode: 'always' });
+    await answerCb('🔊 تم تشغيل الرسائل الصوتية!');
+    const updated = buildSettingsMessageAndMarkup(getBotSettings());
+    await editMessage(updated.text, updated.replyMarkup);
+    return;
+  }
+
+  if (data === 'set_emergency_voice:off') {
+    saveBotSettings({ emergencyVoiceEnabled: false, onlyGeminiVoice: true });
+    await answerCb('🛑 تم إيقاف صوت الطوارئ (Gemini فقط)');
+    const updated = buildSettingsMessageAndMarkup(getBotSettings());
+    await editMessage(updated.text, updated.replyMarkup);
+    return;
+  }
+
+  if (data === 'set_emergency_voice:on') {
+    saveBotSettings({ emergencyVoiceEnabled: true, onlyGeminiVoice: false });
+    await answerCb('✅ تم تشغيل صوت الطوارئ (Edge كبديل)');
+    const updated = buildSettingsMessageAndMarkup(getBotSettings());
+    await editMessage(updated.text, updated.replyMarkup);
+    return;
+  }
+
+  if (data === 'set_mozza:off') {
+    saveBotSettings({ mozzaModeEnabled: false });
+    await answerCb('💼 تم إيقاف وضع الموزة والرجوع للرسمي');
+    const updated = buildSettingsMessageAndMarkup(getBotSettings());
+    await editMessage(updated.text, updated.replyMarkup);
+    return;
+  }
+
+  if (data === 'set_mozza:on') {
+    saveBotSettings({ mozzaModeEnabled: true });
+    await answerCb('💖 تم تفعيل وضع الموزة!');
+    const updated = buildSettingsMessageAndMarkup(getBotSettings());
+    await editMessage(updated.text, updated.replyMarkup);
+    return;
+  }
+
+  if (data === 'settings_refresh') {
+    await answerCb('🔄 تم تحديث الإعدادات');
+    const updated = buildSettingsMessageAndMarkup(getBotSettings());
+    await editMessage(updated.text, updated.replyMarkup);
+    return;
+  }
 
   const m = data.match(/^(op_approve|op_attach|op_delete):(\d{1,6})$/);
   if (!m || !chatId) {

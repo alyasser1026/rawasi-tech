@@ -11,6 +11,7 @@
     "copilot": "node scripts/telegram-copilot.mjs"
   },
   "dependencies": {
+    "@elevenlabs/elevenlabs-js": "^2.77.0",
     "@react-navigation/bottom-tabs": "^7.18.7",
     "@react-navigation/native": "^7.3.7",
     "@supabase/auth-helpers-nextjs": "^0.15.0",

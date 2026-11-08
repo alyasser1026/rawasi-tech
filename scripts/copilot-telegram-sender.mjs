@@ -32,7 +32,7 @@ export function createTelegramMessageSender({ botToken, fetchImpl = fetch, onFai
       text,
       link_preview_options: { is_disabled: true },
       ...(html && { parse_mode: 'HTML' }),
-      ...(replyMarkup && { reply_markup: replyMarkup }),
+      ...(replyMarkup && !(String(chatId).startsWith('-100') && replyMarkup.remove_keyboard) && { reply_markup: replyMarkup }),
       ...(Number.isSafeInteger(replyToMessageId) && replyToMessageId > 0 && {
         reply_parameters: { message_id: replyToMessageId, allow_sending_without_reply: true },
       }),

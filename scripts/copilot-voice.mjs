@@ -4,9 +4,17 @@ import { addAbortSignal } from 'node:stream';
 import { buffer } from 'node:stream/consumers';
 import { MsEdgeTTS, OUTPUT_FORMAT } from 'msedge-tts';
 import { egyptianNumberWords, formatEgyptianRiyals } from './copilot-spoken-money.mjs';
+import { synthesizeWithElevenLabs } from './elevenlabs-client.mjs';
 
-const GEMINI_TTS_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-lite-tts:generateContent';
-const GEMINI_TTS_FALLBACK_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent';
+const GEMINI_TTS_URLS = [
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent',
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-lite-tts:generateContent',
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent',
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash-tts:generateContent',
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro-preview-tts:generateContent',
+];
+const GEMINI_TTS_URL = GEMINI_TTS_URLS[0];
+const GEMINI_TTS_FALLBACK_URL = GEMINI_TTS_URLS[1];
 const GEMINI_INTERACTIONS_URL = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 const GEMINI_PRO_VOICE_MODEL = 'gemini-3.8-flash-tts';
 const MAX_SPEECH_LENGTH = 380;
@@ -182,8 +190,8 @@ async function synthesizeWithEdge(text, settings, createEdgeTts, workReply) {
 
 async function convertAudioToOpus(buf, isWav) {
   const args = isWav
-    ? ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-c:a', 'libopus', '-b:a', '48k', '-application', 'voip', '-f', 'ogg', 'pipe:1']
-    : ['-hide_banner', '-loglevel', 'error', '-f', 's16le', '-ar', '24000', '-ac', '1', '-i', 'pipe:0', '-c:a', 'libopus', '-b:a', '48k', '-application', 'voip', '-f', 'ogg', 'pipe:1'];
+    ? ['-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-af', 'silenceremove=start_periods=1:start_duration=0.05:start_threshold=-45dB', '-c:a', 'libopus', '-b:a', '48k', '-application', 'voip', '-f', 'ogg', 'pipe:1']
+    : ['-hide_banner', '-loglevel', 'error', '-f', 's16le', '-ar', '24000', '-ac', '1', '-i', 'pipe:0', '-af', 'silenceremove=start_periods=1:start_duration=0.05:start_threshold=-45dB', '-c:a', 'libopus', '-b:a', '48k', '-application', 'voip', '-f', 'ogg', 'pipe:1'];
   const encoder = spawn('ffmpeg', args, { windowsHide: true, signal: AbortSignal.timeout(5000), stdio: ['pipe', 'pipe', 'ignore'] });
   encoder.stdin.on('error', () => {});
   const result = Promise.all([buffer(encoder.stdout), once(encoder, 'close')]);
@@ -212,7 +220,7 @@ async function synthesizeWithGemini(text, settings, apiKey, fetchImpl) {
     'Articulate each word and read every number, date, and unit in full. Leave a short pause after each sentence. Do not add words or read the directions aloud.',
     'Transcript:', text,
   ].join('\n');
-  const urls = [GEMINI_TTS_URL, GEMINI_TTS_FALLBACK_URL];
+  const urls = GEMINI_TTS_URLS;
   for (const url of urls) {
     try {
       const response = await fetchImpl(url, {
@@ -228,7 +236,7 @@ async function synthesizeWithGemini(text, settings, apiKey, fetchImpl) {
         signal: AbortSignal.timeout(25000),
       });
       if (!response.ok) {
-        if (response.status === 404 && urls.length > 1 && url === urls[0]) continue;
+        if ((response.status === 404 || response.status === 429) && url !== urls.at(-1)) continue;
         return null;
       }
       const data = await response.json();
@@ -277,27 +285,51 @@ async function synthesizeWithGeminiPro(text, settings, apiKey, voice, fetchImpl)
 
 export async function synthesizeArabicSpeech(rawText, {
   settings = {}, geminiApiKey = '', voiceProvider = '', geminiVoice = '',
-  fetchImpl = fetch, createEdgeTts = options => new MsEdgeTTS(options),
+  elevenlabsApiKey = '', fetchImpl = fetch, createEdgeTts = options => new MsEdgeTTS(options),
+  synthesizeWithElevenLabsImpl = synthesizeWithElevenLabs,
 } = {}) {
   const { text, workReply } = prepareSpeech(rawText);
   if (!text) return null;
 
   const voiceSettings = settings;
+
+  // إذا تم طلب elevenlabs صراحة كـ provider
+  if (voiceProvider === 'elevenlabs' || voiceSettings.voiceProvider === 'elevenlabs') {
+    const elevenAudio = await synthesizeWithElevenLabsImpl(text, {
+      voiceId: voiceSettings.elevenVoiceId || 'EXAVITQu4vr4xnSDxMaL',
+      modelId: 'eleven_v4',
+      apiKey: elevenlabsApiKey,
+    }).catch(() => null);
+    if (elevenAudio) return elevenAudio;
+  }
+
   const prefersGeminiPro = voiceProvider === GEMINI_PRO_VOICE_MODEL;
   if (prefersGeminiPro && geminiApiKey) {
     const audio = await synthesizeWithGeminiPro(text, voiceSettings, geminiApiKey, geminiVoice, fetchImpl).catch(() => null);
     if (audio) return audio;
   }
-  // 1) إعطاء الأولوية دائماً لصوت Gemini قبل Edge TTS
+
+  // 1) الأولوية الأولى دائماً: محرك Gemini (Aoede)
   if (geminiApiKey && voiceProvider !== 'edge' && !prefersGeminiPro) {
     const geminiAudio = await synthesizeWithGemini(text, voiceSettings, geminiApiKey, fetchImpl).catch(() => null);
     if (geminiAudio) return geminiAudio;
-    if (voiceSettings.onlyGeminiVoice) return null;
   }
 
-  if (voiceSettings.onlyGeminiVoice) return null;
+  // 2) الأولوية الثانية عند نفاد كوتة Gemini أو فشلها: محرك ElevenLabs بالذكاء البشري والضحك
+  const activeElevenKey = elevenlabsApiKey || process.env.ELEVENLABS_API_KEY;
+  if (voiceProvider !== 'edge' && activeElevenKey) {
+    const elevenAudio = await synthesizeWithElevenLabsImpl(text, {
+      voiceId: voiceSettings.elevenVoiceId || 'EXAVITQu4vr4xnSDxMaL',
+      modelId: 'eleven_v4',
+      apiKey: activeElevenKey,
+    }).catch(() => null);
+    if (elevenAudio) return elevenAudio;
+  }
 
-  // 2) محرك Edge TTS كبديل أو عند طلبه صراحة
+  const isEmergencyBlocked = voiceSettings.emergencyVoiceEnabled === false || voiceSettings.onlyGeminiVoice === true;
+  if (isEmergencyBlocked) return null;
+
+  // 3) الأولوية الثالثة (طوارئ أخيرة مجانية): Edge TTS
   const edge = await synthesizeWithEdge(text, voiceSettings, createEdgeTts, workReply).catch(() => null);
   return edge;
 }

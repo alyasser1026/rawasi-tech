@@ -218,3 +218,16 @@ test('uploads each supported voice format with its real name and MIME type as a 
   assert.equal(await send(123, { buffer: Buffer.from('opus'), mimeType: 'audio/ogg', fileName: 'reply.ogg' }, 22), false);
   assert.deepEqual(files, [['reply.mp3', 'audio/mpeg', 'mp3'], ['reply.ogg', 'audio/ogg', 'opus']]);
 });
+
+test('voice settings allows toggling voiceReplyMode to off and always', async () => {
+  const { getBotSettings, saveBotSettings } = await import('../scripts/copilot-bot-settings.mjs');
+  const prev = getBotSettings();
+  try {
+    saveBotSettings({ voiceReplyMode: 'off' });
+    assert.equal(getBotSettings().voiceReplyMode, 'off');
+    saveBotSettings({ voiceReplyMode: 'always' });
+    assert.equal(getBotSettings().voiceReplyMode, 'always');
+  } finally {
+    saveBotSettings(prev);
+  }
+});
