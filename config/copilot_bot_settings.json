@@ -6,7 +6,7 @@
   "inactivityCloseEnabled": true,
   "inactivityTimeoutMinutes": 3,
   "inactivityCloseMessage": "⏳ علشان مفيش استفسارات جديدة دلوقتي يا باشمهندس، قفلت المحادثة دي وحفظتلك كل حاجة.\nأنا ({botName}) موجودة معاك في أي وقت تبعتلي فيه رسالة جديدة! 👋",
-  "voiceReplyMode": "always",
+  "voiceReplyMode": "off",
   "voiceGender": "female",
   "voiceDialect": "ar-EG",
   "voiceName": "Aoede",
@@ -19,5 +19,5 @@
   "autoDailyReportTime": "20:00",
   "operationSeqStart": 101,
   "activeCompanyId": "72918f4d-10c3-43a0-884e-2f84f1224335",
-  "updatedAt": "2026-11-08T21:09:30.244Z"
+  "updatedAt": "2026-11-08T21:57:15.690Z"
 }

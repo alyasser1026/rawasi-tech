@@ -308,7 +308,8 @@ async function sendChatAction(chatId, action = 'typing') {
 const sendTelegramVoice = createTelegramVoiceSender({ botToken: BOT_TOKEN });
 
 async function sendTelegramVoiceReply(chatId, textToSpeak, replyToMessageId, settings) {
-  if (settings?.voiceReplyMode === 'off') {
+  const currentSettings = getBotSettings();
+  if (settings?.voiceReplyMode === 'off' || currentSettings?.voiceReplyMode === 'off') {
     return false;
   }
   void sendChatAction(chatId, 'record_voice');
@@ -728,11 +729,21 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
   }
 
   // 0.0) التحكم في الرسائل الصوتية بالكامل (إغلاق / تشغيل)
-  if (/(?:اقفل|إقفل|اطفي|إطفي|وقف|وقّف|الغي|إلغي|عطل|تعطيل|قفل|بلاش|من\s*غير|بدون|كفاية)\s*(?:الرسائل\s*الصوتيه|الرسائل\s*الصوتية|الردود\s*الصوتيه|الردود\s*الصوتية|الرسائل\s*الصوت|الفويس|الفويسات|صوتيات|صوت|الصوت)|^\/voice\s+(?:off|disable|stop|mute)$|^\/mute$/i.test(t)) {
+  const disableVoicePrefix = /(?:اقفل|إقفل|اقفلي|قفل|اطفي|إطفي|اطفيلي|طفي|وقف|وقّف|وقفلي|ايقاف|إيقاف|اوقف|أوقف|الغي|إلغي|الغيلي|الغاء|إلغاء|عطل|تعطيل|عطلي|اغلق|إغلق|اغلاق|إغلاق|كتم|اسكت|اسكتي|بلاش|من\s*غير|بدون|كفاية|مش\s*عايز|مش\s*عاوز|مش\s*حابب|ماتبعتش|ما\s*تبعتش|بلاش\s*تبعت|لا\s*ترسل|ما\s*ترسل|مافيش\s*داعي)/;
+  const enableVoicePrefix = /(?:شغل|شغّل|تشغيل|افتح|إفتح|فتح|فعّل|فعل|تفعيل|رجع|رجّع|ترجيع|استرجع|رد\s*بـ?|ردي\s*بـ?|عاوز\s*(?:اسمع)?|عايز\s*(?:اسمع)?|ابعت|ابعتلي|اسمع|هات|خليه|خليه\s*صوت|خليك)/;
+  const voiceNouns = /(?:الرد\s*الصوتي|الردود\s*الصوتيه|الردود\s*الصوتية|الرد\s*صوتي|رد\s*صوتي|ردود\s*صوتيه|ردود\s*صوتية|الرسائل\s*الصوتيه|الرسائل\s*الصوتية|الرسائل\s*الصوت|الرساله\s*الصوتيه|الرسالة\s*الصوتية|رسائل\s*صوتيه|رسائل\s*صوتية|رسالة\s*صوتية|رساله\s*صوتيه|الفويس|الفويسات|فويسات|فويس|صوتيات|الصوت|صوت)/;
+
+  const isDisableVoiceCommand =
+    /^\/(?:voice\s*(?:off|disable|stop|mute|0)|voice_off|mute|silent|silence)$/i.test(t) ||
+    /^(?:صامت|وضع\s*صامت|ميوت|كتم|كتم\s*الصوت|نص\s*بس|كتابة\s*بس|كتابه\s*بس|شات\s*بس|نص\s*فقط|كتابة\s*فقط|كتابه\s*فقط|بدون\s*صوت|من\s*غير\s*صوت|بلاش\s*صوت|بلاش\s*فويس)$/i.test(t) ||
+    new RegExp(`(?:\${disableVoicePrefix.source})(?:\\s+[\\w\\u0600-\\u06FF]+){0,3}\\s*(?:\${voiceNouns.source})`, 'i').test(t) ||
+    /(?:كتابة|كتابه|نص|شات)\s*(?:بس|فقط|مش\s*صوت|من\s*غير\s*صوت|بدون\s*صوت)/i.test(t);
+
+  if (isDisableVoiceCommand) {
     saveBotSettings({ voiceReplyMode: 'off' });
     const replyText = isMozza
       ? `🔇 من عيوني يا ${pet}! قفلتلك كل الرسائل الصوتية خالص، وهرد عليك كتابة بس من غير أي فويس يا قلبي 😘`
-      : `🔇 تم إغلاق الرسائل الصوتية بالكامل يا باشمهندس. سأرد عليك بالنصوص والتقارير المكتوبة فقط دون أي بصمات صوتية.`;
+      : `🔇 تم إغلاق الرسائل والردود الصوتية بالكامل يا باشمهندس. سأرد عليك بالنصوص والتقارير المكتوبة فقط دون أي بصمات صوتية.`;
     return {
       text: replyText,
       replyMarkup: {
@@ -741,7 +752,11 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
     };
   }
 
-  if (/(?:شغل|شغّل|افتح|فعّل|فعل|تشغيل|تفعيل|رجع|رجّع|رد\s*بـ?)\s*(?:الرسائل\s*الصوتيه|الرسائل\s*الصوتية|الردود\s*الصوتيه|الردود\s*الصوتية|الرسائل\s*الصوت|الفويس|الفويسات|صوتيات|صوت|الصوت)|^\/voice\s+(?:on|enable|start|unmute)$|^\/unmute$/i.test(t)) {
+  const isEnableVoiceCommand =
+    /^\/(?:voice\s*(?:on|enable|start|unmute|1)|voice_on|unmute)$/i.test(t) ||
+    new RegExp(`(?:\${enableVoicePrefix.source})(?:\\s+[\\w\\u0600-\\u06FF]+){0,3}\\s*(?:\${voiceNouns.source})`, 'i').test(t);
+
+  if (isEnableVoiceCommand) {
     saveBotSettings({ voiceReplyMode: 'always' });
     const replyText = isMozza
       ? `🔊 شغلتلك الرسائل الصوتية يا ${pet}! هسمّعك صوتي مع كل رد وتقرير من هنا ورايح يا حبيبي 🥰`
@@ -1486,9 +1501,10 @@ async function processTelegramMessage(msg) {
           .replace(/\{botTitle\}/g, botSettings.botTitle || '')}\n━━━━━━━━━━━━━━━━━━━━\n`
       : '';
     const shouldSendVoice =
-      botSettings.voiceReplyMode === 'always' ||
-      (botSettings.voiceReplyMode === 'on_voice_or_request' &&
-        (Boolean(msg.voice || msg.audio) || /(?:رد\s*صوت|بصوت|صوتيا|صوتياً|فويس|voice)/i.test(cleanText)));
+      botSettings.voiceReplyMode !== 'off' &&
+      (botSettings.voiceReplyMode === 'always' ||
+        (botSettings.voiceReplyMode === 'on_voice_or_request' &&
+          (Boolean(msg.voice || msg.audio) || /(?:رد\s*صوت|بصوت|صوتيا|صوتياً)/i.test(cleanText))));
 
     if (reply.type === 'multi_messages' && Array.isArray(reply.messages)) {
       if (introHeader) {
