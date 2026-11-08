@@ -75,15 +75,19 @@ COMMENT ON TABLE public.daily_cash_closings IS 'محاضر إقفال الخزي
 -- 3. LINK PAYMENT VOUCHERS & EXPENSES TO CUSTODIES
 -- =============================================================================
 ALTER TABLE public.payment_vouchers
-  ADD COLUMN custody_id uuid;
+  ADD COLUMN IF NOT EXISTS custody_id uuid;
 
+ALTER TABLE public.payment_vouchers
+  DROP CONSTRAINT IF EXISTS payment_vouchers_custody_fkey;
 ALTER TABLE public.payment_vouchers
   ADD CONSTRAINT payment_vouchers_custody_fkey
   FOREIGN KEY (custody_id, company_id) REFERENCES public.site_custodies(id, company_id) ON DELETE RESTRICT;
 
 ALTER TABLE public.expenses
-  ADD COLUMN custody_id uuid;
+  ADD COLUMN IF NOT EXISTS custody_id uuid;
 
+ALTER TABLE public.expenses
+  DROP CONSTRAINT IF EXISTS expenses_custody_fkey;
 ALTER TABLE public.expenses
   ADD CONSTRAINT expenses_custody_fkey
   FOREIGN KEY (custody_id, company_id) REFERENCES public.site_custodies(id, company_id) ON DELETE RESTRICT;
@@ -98,23 +102,27 @@ ALTER TABLE public.receipt_vouchers ADD CONSTRAINT receipt_vouchers_payment_meth
 
 -- Register new tables in rawasi_private.company_scoped_tables
 INSERT INTO rawasi_private.company_scoped_tables(table_name)
-VALUES ('site_custodies'), ('daily_cash_closings');
+VALUES ('site_custodies'), ('daily_cash_closings')
+ON CONFLICT (table_name) DO NOTHING;
 
 -- Indexes
-CREATE INDEX site_custodies_company_partner_idx ON public.site_custodies(company_id, partner_id);
-CREATE INDEX site_custodies_company_project_idx ON public.site_custodies(company_id, project_id);
-CREATE INDEX site_custodies_company_status_idx ON public.site_custodies(company_id, status);
-CREATE INDEX daily_cash_closings_acc_date_idx ON public.daily_cash_closings(company_id, account_id, closing_date);
-CREATE INDEX payment_vouchers_custody_idx ON public.payment_vouchers(company_id, custody_id);
-CREATE INDEX expenses_custody_idx ON public.expenses(company_id, custody_id);
+CREATE INDEX IF NOT EXISTS site_custodies_company_partner_idx ON public.site_custodies(company_id, partner_id);
+CREATE INDEX IF NOT EXISTS site_custodies_company_project_idx ON public.site_custodies(company_id, project_id);
+CREATE INDEX IF NOT EXISTS site_custodies_company_status_idx ON public.site_custodies(company_id, status);
+CREATE INDEX IF NOT EXISTS daily_cash_closings_acc_date_idx ON public.daily_cash_closings(company_id, account_id, closing_date);
+CREATE INDEX IF NOT EXISTS payment_vouchers_custody_idx ON public.payment_vouchers(company_id, custody_id);
+CREATE INDEX IF NOT EXISTS expenses_custody_idx ON public.expenses(company_id, custody_id);
 
 -- Triggers for company stamping and document numbering
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.site_custodies;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.site_custodies
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.daily_cash_closings;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.daily_cash_closings
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS trg_custody_number ON public.site_custodies;
 CREATE TRIGGER trg_custody_number BEFORE INSERT ON public.site_custodies
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.assign_document_number('CUST', 'custody_number', 'opened_date');
 
@@ -199,6 +207,7 @@ BEGIN
 END;
 $$;
 
+DROP TRIGGER IF EXISTS trg_sync_custody_spent ON public.expenses;
 CREATE TRIGGER trg_sync_custody_spent
 AFTER INSERT OR UPDATE OF custody_id, is_posted, total_price, vat_amount, discount_amount OR DELETE
 ON public.expenses

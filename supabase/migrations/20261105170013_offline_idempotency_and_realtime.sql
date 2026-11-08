@@ -10,17 +10,6 @@ BEGIN
   IF to_regclass('public.companies') IS NULL OR to_regprocedure('rawasi_private.current_company_id()') IS NULL THEN
     RAISE EXCEPTION 'Multi-company isolation must be applied before Phase 8';
   END IF;
-  IF to_regclass('public.company_attachments') IS NOT NULL THEN
-    RAISE EXCEPTION 'public.company_attachments already exists';
-  END IF;
-  IF EXISTS (
-    SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public'
-      AND table_name IN ('labor_daily_logs', 'expenses')
-      AND column_name = 'client_request_id'
-  ) THEN
-    RAISE EXCEPTION 'client_request_id already exists on labor_daily_logs or expenses';
-  END IF;
 END;
 $preflight$;
 
@@ -30,8 +19,10 @@ BEGIN;
 -- 1. IDEMPOTENCY KEYS ON TARGET DRAFT TABLES (PER-COMPANY UNIQUE)
 -- =============================================================================
 ALTER TABLE public.labor_daily_logs
-  ADD COLUMN client_request_id uuid;
+  ADD COLUMN IF NOT EXISTS client_request_id uuid;
 
+ALTER TABLE public.labor_daily_logs
+  DROP CONSTRAINT IF EXISTS labor_daily_logs_company_client_req_uq;
 ALTER TABLE public.labor_daily_logs
   ADD CONSTRAINT labor_daily_logs_company_client_req_uq
   UNIQUE (company_id, client_request_id);
@@ -40,8 +31,10 @@ COMMENT ON COLUMN public.labor_daily_logs.client_request_id IS
   'معرّف العملية المولّد على جهاز المستخدم لمنع تكرار مسودات اليوميات عند إعادة إرسال طابور الأوفلاين';
 
 ALTER TABLE public.expenses
-  ADD COLUMN client_request_id uuid;
+  ADD COLUMN IF NOT EXISTS client_request_id uuid;
 
+ALTER TABLE public.expenses
+  DROP CONSTRAINT IF EXISTS expenses_company_client_req_uq;
 ALTER TABLE public.expenses
   ADD CONSTRAINT expenses_company_client_req_uq
   UNIQUE (company_id, client_request_id);
@@ -52,7 +45,7 @@ COMMENT ON COLUMN public.expenses.client_request_id IS
 -- =============================================================================
 -- 2. COMPANY ATTACHMENTS REGISTRY (TELEGRAM BOT API METADATA PER COMPANY)
 -- =============================================================================
-CREATE TABLE public.company_attachments (
+CREATE TABLE IF NOT EXISTS public.company_attachments (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   client_request_id uuid,
@@ -83,11 +76,13 @@ COMMENT ON TABLE public.company_attachments IS
   'سجل مرفقات وصور النظام المرتبطة بـ Telegram Bot API مع عزل كامل لكل شركة ومنع تكرار الرفع';
 
 INSERT INTO rawasi_private.company_scoped_tables(table_name)
-VALUES ('company_attachments');
+VALUES ('company_attachments')
+ON CONFLICT (table_name) DO NOTHING;
 
-CREATE INDEX company_attachments_company_module_idx
+CREATE INDEX IF NOT EXISTS company_attachments_company_module_idx
   ON public.company_attachments(company_id, module, created_at DESC);
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.company_attachments;
 CREATE TRIGGER aa_stamp_company_id
   BEFORE INSERT OR UPDATE OF company_id ON public.company_attachments
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
@@ -98,6 +93,7 @@ REVOKE ALL ON public.company_attachments FROM PUBLIC, anon, authenticated, servi
 GRANT SELECT, INSERT, DELETE ON public.company_attachments TO authenticated;
 GRANT ALL ON public.company_attachments TO service_role;
 
+DROP POLICY IF EXISTS company_attachments_read ON public.company_attachments;
 CREATE POLICY company_attachments_read ON public.company_attachments
   FOR SELECT TO authenticated
   USING (
@@ -113,6 +109,7 @@ CREATE POLICY company_attachments_read ON public.company_attachments
     AND company_id = (SELECT rawasi_private.current_company_id())
   );
 
+DROP POLICY IF EXISTS company_attachments_insert ON public.company_attachments;
 CREATE POLICY company_attachments_insert ON public.company_attachments
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -127,6 +124,7 @@ CREATE POLICY company_attachments_insert ON public.company_attachments
     AND company_id = (SELECT rawasi_private.current_company_id())
   );
 
+DROP POLICY IF EXISTS company_attachments_delete ON public.company_attachments;
 CREATE POLICY company_attachments_delete ON public.company_attachments
   FOR DELETE TO authenticated
   USING (

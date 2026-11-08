@@ -9,12 +9,6 @@ BEGIN
   IF to_regclass('public.companies') IS NULL THEN
     RAISE EXCEPTION 'Multi-company system is required before Phase 4';
   END IF;
-  IF to_regclass('public.fixed_assets') IS NOT NULL THEN
-    RAISE EXCEPTION 'public.fixed_assets already exists';
-  END IF;
-  IF to_regclass('public.asset_depreciation_runs') IS NOT NULL THEN
-    RAISE EXCEPTION 'public.asset_depreciation_runs already exists';
-  END IF;
 END;
 $preflight$;
 
@@ -38,7 +32,7 @@ ON CONFLICT (company_id, code) DO NOTHING;
 -- =============================================================================
 -- 2. FIXED ASSETS TABLE (سجل الأصول الثابتة والمعدات)
 -- =============================================================================
-CREATE TABLE public.fixed_assets (
+CREATE TABLE IF NOT EXISTS public.fixed_assets (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   asset_number text NOT NULL DEFAULT '',
@@ -72,7 +66,7 @@ CREATE TABLE public.fixed_assets (
 -- =============================================================================
 -- 3. ASSET TRANSFERS (سجل تنقل الأصل بين المشاريع)
 -- =============================================================================
-CREATE TABLE public.asset_transfers (
+CREATE TABLE IF NOT EXISTS public.asset_transfers (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   transfer_number text NOT NULL DEFAULT '',
@@ -92,7 +86,7 @@ CREATE TABLE public.asset_transfers (
 -- =============================================================================
 -- 4. MONTHLY DEPRECIATION RUNS (سجل تشغيلات الإهلاك الشهري)
 -- =============================================================================
-CREATE TABLE public.asset_depreciation_runs (
+CREATE TABLE IF NOT EXISTS public.asset_depreciation_runs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   run_number text NOT NULL DEFAULT '',
@@ -114,7 +108,7 @@ CREATE TABLE public.asset_depreciation_runs (
 -- =============================================================================
 -- 5. ASSET DEPRECIATION LINES (تفاصيل إهلاك كل أصل في التشغيلة)
 -- =============================================================================
-CREATE TABLE public.asset_depreciation_lines (
+CREATE TABLE IF NOT EXISTS public.asset_depreciation_lines (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   run_id uuid NOT NULL,
@@ -136,44 +130,54 @@ CREATE TABLE public.asset_depreciation_lines (
 -- 6. LINK OPERATIONAL EXPENSES TO ASSETS (وقود، صيانة، إصلاحات)
 -- =============================================================================
 ALTER TABLE public.expenses
-  ADD COLUMN asset_id uuid;
+  ADD COLUMN IF NOT EXISTS asset_id uuid;
 
+ALTER TABLE public.expenses
+  DROP CONSTRAINT IF EXISTS expenses_asset_fkey;
 ALTER TABLE public.expenses
   ADD CONSTRAINT expenses_asset_fkey
   FOREIGN KEY (asset_id, company_id) REFERENCES public.fixed_assets(id, company_id) ON DELETE SET NULL;
 
 -- Register new tables in rawasi_private.company_scoped_tables
 INSERT INTO rawasi_private.company_scoped_tables(table_name)
-VALUES ('fixed_assets'), ('asset_transfers'), ('asset_depreciation_runs'), ('asset_depreciation_lines');
+VALUES ('fixed_assets'), ('asset_transfers'), ('asset_depreciation_runs'), ('asset_depreciation_lines')
+ON CONFLICT (table_name) DO NOTHING;
 
 -- Indexes
-CREATE INDEX fixed_assets_company_type_idx ON public.fixed_assets(company_id, asset_type);
-CREATE INDEX fixed_assets_company_status_idx ON public.fixed_assets(company_id, status);
-CREATE INDEX fixed_assets_company_project_idx ON public.fixed_assets(company_id, current_project_id);
-CREATE INDEX asset_transfers_asset_idx ON public.asset_transfers(company_id, asset_id);
-CREATE INDEX asset_dep_runs_period_idx ON public.asset_depreciation_runs(company_id, period_year, period_month);
-CREATE INDEX asset_dep_lines_run_idx ON public.asset_depreciation_lines(company_id, run_id);
-CREATE INDEX expenses_asset_idx ON public.expenses(company_id, asset_id);
+CREATE INDEX IF NOT EXISTS fixed_assets_company_type_idx ON public.fixed_assets(company_id, asset_type);
+CREATE INDEX IF NOT EXISTS fixed_assets_company_status_idx ON public.fixed_assets(company_id, status);
+CREATE INDEX IF NOT EXISTS fixed_assets_company_project_idx ON public.fixed_assets(company_id, current_project_id);
+CREATE INDEX IF NOT EXISTS asset_transfers_asset_idx ON public.asset_transfers(company_id, asset_id);
+CREATE INDEX IF NOT EXISTS asset_dep_runs_period_idx ON public.asset_depreciation_runs(company_id, period_year, period_month);
+CREATE INDEX IF NOT EXISTS asset_dep_lines_run_idx ON public.asset_depreciation_lines(company_id, run_id);
+CREATE INDEX IF NOT EXISTS expenses_asset_idx ON public.expenses(company_id, asset_id);
 
 -- Triggers for company stamping and document numbering
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.fixed_assets;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.fixed_assets
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.asset_transfers;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.asset_transfers
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.asset_depreciation_runs;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.asset_depreciation_runs
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.asset_depreciation_lines;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.asset_depreciation_lines
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS trg_doc_number ON public.fixed_assets;
 CREATE TRIGGER trg_doc_number BEFORE INSERT ON public.fixed_assets
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.assign_document_number('AST', 'asset_number', 'purchase_date');
 
+DROP TRIGGER IF EXISTS trg_doc_number ON public.asset_transfers;
 CREATE TRIGGER trg_doc_number BEFORE INSERT ON public.asset_transfers
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.assign_document_number('TRF', 'transfer_number', 'transfer_date');
 
+DROP TRIGGER IF EXISTS trg_doc_number ON public.asset_depreciation_runs;
 CREATE TRIGGER trg_doc_number BEFORE INSERT ON public.asset_depreciation_runs
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.assign_document_number('DEP', 'run_number', 'run_date');
 

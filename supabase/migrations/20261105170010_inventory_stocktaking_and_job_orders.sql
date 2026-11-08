@@ -11,9 +11,6 @@ BEGIN
   IF to_regclass('public.purchase_orders') IS NULL THEN
     RAISE EXCEPTION 'Purchase orders system is required before Phase 5 Batch 2';
   END IF;
-  IF to_regclass('public.stocktaking_sessions') IS NOT NULL THEN
-    RAISE EXCEPTION 'public.stocktaking_sessions already exists';
-  END IF;
 END;
 $preflight$;
 
@@ -108,7 +105,7 @@ ALTER TABLE public.material_items
 -- =============================================================================
 -- 3. STOCKTAKING SESSIONS (جلسات الجرد الميداني للمخازن والمواقع)
 -- =============================================================================
-CREATE TABLE public.stocktaking_sessions (
+CREATE TABLE IF NOT EXISTS public.stocktaking_sessions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   session_number text NOT NULL DEFAULT '',
@@ -128,19 +125,22 @@ CREATE TABLE public.stocktaking_sessions (
   CONSTRAINT stocktaking_sessions_company_id_uq UNIQUE (id, company_id)
 );
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.stocktaking_sessions;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.stocktaking_sessions
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS trg_stocktaking_session_number ON public.stocktaking_sessions;
 CREATE TRIGGER trg_stocktaking_session_number BEFORE INSERT ON public.stocktaking_sessions
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.assign_document_number('STK', 'session_number', 'session_date');
 
+DROP TRIGGER IF EXISTS trg_job_order_link_stk ON public.stocktaking_sessions;
 CREATE TRIGGER trg_job_order_link_stk BEFORE INSERT OR UPDATE OF job_order_id, project_id ON public.stocktaking_sessions
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.check_job_order_link('project_id');
 
 -- =============================================================================
 -- 4. STOCKTAKING LINES (بنود الجرد الفعلي والفروق المحاسبية)
 -- =============================================================================
-CREATE TABLE public.stocktaking_lines (
+CREATE TABLE IF NOT EXISTS public.stocktaking_lines (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   session_id uuid NOT NULL,
@@ -159,6 +159,7 @@ CREATE TABLE public.stocktaking_lines (
   CONSTRAINT stocktaking_lines_company_id_uq UNIQUE (id, company_id)
 );
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.stocktaking_lines;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.stocktaking_lines
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
@@ -168,11 +169,11 @@ VALUES ('stocktaking_sessions'), ('stocktaking_lines')
 ON CONFLICT (table_name) DO NOTHING;
 
 -- Indexes
-CREATE INDEX stocktaking_sessions_company_proj_idx ON public.stocktaking_sessions(company_id, project_id);
-CREATE INDEX stocktaking_sessions_company_jo_idx ON public.stocktaking_sessions(company_id, job_order_id);
-CREATE INDEX stocktaking_sessions_company_status_idx ON public.stocktaking_sessions(company_id, status);
-CREATE INDEX stocktaking_lines_session_idx ON public.stocktaking_lines(company_id, session_id);
-CREATE INDEX stocktaking_lines_item_idx ON public.stocktaking_lines(company_id, item_id);
+CREATE INDEX IF NOT EXISTS stocktaking_sessions_company_proj_idx ON public.stocktaking_sessions(company_id, project_id);
+CREATE INDEX IF NOT EXISTS stocktaking_sessions_company_jo_idx ON public.stocktaking_sessions(company_id, job_order_id);
+CREATE INDEX IF NOT EXISTS stocktaking_sessions_company_status_idx ON public.stocktaking_sessions(company_id, status);
+CREATE INDEX IF NOT EXISTS stocktaking_lines_session_idx ON public.stocktaking_lines(company_id, session_id);
+CREATE INDEX IF NOT EXISTS stocktaking_lines_item_idx ON public.stocktaking_lines(company_id, item_id);
 
 -- RLS & Grants
 ALTER TABLE public.stocktaking_sessions ENABLE ROW LEVEL SECURITY;

@@ -544,8 +544,12 @@ $storage$;
 DO $rt$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
-    ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.attendance_devices;
-    ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.attendance_logs;
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'attendance_devices') THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.attendance_devices;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'attendance_logs') THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.attendance_logs;
+    END IF;
   END IF;
 END;
 $rt$;

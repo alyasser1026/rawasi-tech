@@ -904,8 +904,12 @@ $$;
 DO $rt$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
-    ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.partner_salaries;
-    ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.employee_attendance;
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'partner_salaries') THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.partner_salaries;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'employee_attendance') THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.employee_attendance;
+    END IF;
   END IF;
 END;
 $rt$;

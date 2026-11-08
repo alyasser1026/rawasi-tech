@@ -198,6 +198,11 @@ export async function markCompanyDocumentRenewed(documentId: string, newExpiryDa
  */
 export async function runDailyScanManually(): Promise<number> {
   const { data, error } = await supabase.rpc('run_daily_health_and_expiry_scans');
-  if (error) throw error;
+  if (error) {
+    if (error.code === 'PGRST202' || error.message?.includes('schema cache') || error.message?.includes('run_daily_health_and_expiry_scans')) {
+      throw new Error('دالة الفحص الدوري ورادار السلامة غير مفعلة على السيرفر بعد. يرجى تشغيل ميجريشن الحزمة الثانية (PACK_2) في Supabase SQL Editor');
+    }
+    throw error;
+  }
   return typeof data === 'number' ? data : 0;
 }

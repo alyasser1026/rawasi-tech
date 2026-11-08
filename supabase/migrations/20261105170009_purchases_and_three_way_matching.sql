@@ -11,19 +11,13 @@ BEGIN
   IF to_regclass('public.companies') IS NULL THEN
     RAISE EXCEPTION 'Multi-company system is required before Phase 5';
   END IF;
-  IF to_regclass('public.purchase_orders') IS NOT NULL THEN
-    RAISE EXCEPTION 'public.purchase_orders already exists';
-  END IF;
-  IF to_regclass('public.supplier_invoices') IS NOT NULL THEN
-    RAISE EXCEPTION 'public.supplier_invoices already exists';
-  END IF;
 END;
 $preflight$;
 
 -- =============================================================================
 -- 1. PURCHASE ORDERS TABLE (أوامر الشراء للمشاريع)
 -- =============================================================================
-CREATE TABLE public.purchase_orders (
+CREATE TABLE IF NOT EXISTS public.purchase_orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   po_number text NOT NULL DEFAULT '',
@@ -49,7 +43,7 @@ CREATE TABLE public.purchase_orders (
 -- =============================================================================
 -- 2. PURCHASE ORDER LINES TABLE (بنود أمر الشراء)
 -- =============================================================================
-CREATE TABLE public.purchase_order_lines (
+CREATE TABLE IF NOT EXISTS public.purchase_order_lines (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   po_id uuid NOT NULL,
@@ -75,19 +69,25 @@ CREATE TABLE public.purchase_order_lines (
 -- 3. LINK MATERIAL RECEIPTS TO PURCHASE ORDERS
 -- =============================================================================
 ALTER TABLE public.material_receipts
-  ADD COLUMN po_id uuid;
+  ADD COLUMN IF NOT EXISTS po_id uuid;
 
+ALTER TABLE public.material_receipts
+  DROP CONSTRAINT IF EXISTS material_receipts_po_fkey;
 ALTER TABLE public.material_receipts
   ADD CONSTRAINT material_receipts_po_fkey
   FOREIGN KEY (po_id, company_id) REFERENCES public.purchase_orders(id, company_id) ON DELETE SET NULL;
 
 ALTER TABLE public.material_receipt_lines
-  ADD COLUMN po_line_id uuid;
+  ADD COLUMN IF NOT EXISTS po_line_id uuid;
 
+ALTER TABLE public.material_receipt_lines
+  DROP CONSTRAINT IF EXISTS material_receipt_lines_po_line_fkey;
 ALTER TABLE public.material_receipt_lines
   ADD CONSTRAINT material_receipt_lines_po_line_fkey
   FOREIGN KEY (po_line_id, company_id) REFERENCES public.purchase_order_lines(id, company_id) ON DELETE SET NULL;
 
+ALTER TABLE public.material_receipt_lines
+  DROP CONSTRAINT IF EXISTS material_receipt_lines_id_company_key;
 ALTER TABLE public.material_receipt_lines
   ADD CONSTRAINT material_receipt_lines_id_company_key
   UNIQUE (id, company_id);
@@ -95,7 +95,7 @@ ALTER TABLE public.material_receipt_lines
 -- =============================================================================
 -- 4. SUPPLIER INVOICES (فواتير الموردين الضريبية)
 -- =============================================================================
-CREATE TABLE public.supplier_invoices (
+CREATE TABLE IF NOT EXISTS public.supplier_invoices (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   invoice_number text NOT NULL DEFAULT '',
@@ -126,7 +126,7 @@ CREATE TABLE public.supplier_invoices (
 -- =============================================================================
 -- 5. SUPPLIER INVOICE LINES (بنود فاتورة المورد)
 -- =============================================================================
-CREATE TABLE public.supplier_invoice_lines (
+CREATE TABLE IF NOT EXISTS public.supplier_invoice_lines (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE RESTRICT,
   invoice_id uuid NOT NULL,
@@ -149,36 +149,43 @@ CREATE TABLE public.supplier_invoice_lines (
 
 -- Register new tables in rawasi_private.company_scoped_tables
 INSERT INTO rawasi_private.company_scoped_tables(table_name)
-VALUES ('purchase_orders'), ('purchase_order_lines'), ('supplier_invoices'), ('supplier_invoice_lines');
+VALUES ('purchase_orders'), ('purchase_order_lines'), ('supplier_invoices'), ('supplier_invoice_lines')
+ON CONFLICT (table_name) DO NOTHING;
 
 -- Indexes
-CREATE INDEX purchase_orders_company_supplier_idx ON public.purchase_orders(company_id, supplier_id);
-CREATE INDEX purchase_orders_company_project_idx ON public.purchase_orders(company_id, project_id);
-CREATE INDEX purchase_orders_company_status_idx ON public.purchase_orders(company_id, status);
-CREATE INDEX po_lines_po_id_idx ON public.purchase_order_lines(company_id, po_id);
-CREATE INDEX material_receipts_po_idx ON public.material_receipts(company_id, po_id);
-CREATE INDEX material_receipt_lines_po_line_idx ON public.material_receipt_lines(company_id, po_line_id);
-CREATE INDEX supplier_invoices_company_supp_idx ON public.supplier_invoices(company_id, supplier_id);
-CREATE INDEX supplier_invoices_company_po_idx ON public.supplier_invoices(company_id, po_id);
-CREATE INDEX supplier_invoices_company_status_idx ON public.supplier_invoices(company_id, status);
-CREATE INDEX supplier_inv_lines_inv_idx ON public.supplier_invoice_lines(company_id, invoice_id);
+CREATE INDEX IF NOT EXISTS purchase_orders_company_supplier_idx ON public.purchase_orders(company_id, supplier_id);
+CREATE INDEX IF NOT EXISTS purchase_orders_company_project_idx ON public.purchase_orders(company_id, project_id);
+CREATE INDEX IF NOT EXISTS purchase_orders_company_status_idx ON public.purchase_orders(company_id, status);
+CREATE INDEX IF NOT EXISTS po_lines_po_id_idx ON public.purchase_order_lines(company_id, po_id);
+CREATE INDEX IF NOT EXISTS material_receipts_po_idx ON public.material_receipts(company_id, po_id);
+CREATE INDEX IF NOT EXISTS material_receipt_lines_po_line_idx ON public.material_receipt_lines(company_id, po_line_id);
+CREATE INDEX IF NOT EXISTS supplier_invoices_company_supp_idx ON public.supplier_invoices(company_id, supplier_id);
+CREATE INDEX IF NOT EXISTS supplier_invoices_company_po_idx ON public.supplier_invoices(company_id, po_id);
+CREATE INDEX IF NOT EXISTS supplier_invoices_company_status_idx ON public.supplier_invoices(company_id, status);
+CREATE INDEX IF NOT EXISTS supplier_inv_lines_inv_idx ON public.supplier_invoice_lines(company_id, invoice_id);
 
 -- Triggers for company stamping and document numbering
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.purchase_orders;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.purchase_orders
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.purchase_order_lines;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.purchase_order_lines
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.supplier_invoices;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.supplier_invoices
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.supplier_invoice_lines;
 CREATE TRIGGER aa_stamp_company_id BEFORE INSERT OR UPDATE OF company_id ON public.supplier_invoice_lines
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS trg_doc_number ON public.purchase_orders;
 CREATE TRIGGER trg_doc_number BEFORE INSERT ON public.purchase_orders
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.assign_document_number('PO', 'po_number', 'order_date');
 
+DROP TRIGGER IF EXISTS trg_doc_number ON public.supplier_invoices;
 CREATE TRIGGER trg_doc_number BEFORE INSERT ON public.supplier_invoices
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.assign_document_number('SINV', 'invoice_number', 'invoice_date');
 

@@ -83,10 +83,12 @@ CREATE INDEX IF NOT EXISTS project_site_visits_company_proj_idx
 CREATE INDEX IF NOT EXISTS project_site_visits_drawing_idx
   ON public.project_site_visits(company_id, drawing_id);
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.project_drawings;
 CREATE TRIGGER aa_stamp_company_id
   BEFORE INSERT OR UPDATE OF company_id ON public.project_drawings
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.project_site_visits;
 CREATE TRIGGER aa_stamp_company_id
   BEFORE INSERT OR UPDATE OF company_id ON public.project_site_visits
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
@@ -103,36 +105,44 @@ REVOKE ALL ON public.project_site_visits FROM PUBLIC, anon, authenticated, servi
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.project_site_visits TO authenticated;
 GRANT ALL ON public.project_site_visits TO service_role;
 
+DROP POLICY IF EXISTS project_drawings_read ON public.project_drawings;
 CREATE POLICY project_drawings_read ON public.project_drawings
   FOR SELECT TO authenticated
   USING (company_id = rawasi_private.current_company_id());
 
+DROP POLICY IF EXISTS project_drawings_insert ON public.project_drawings;
 CREATE POLICY project_drawings_insert ON public.project_drawings
   FOR INSERT TO authenticated
   WITH CHECK (company_id = rawasi_private.current_company_id());
 
+DROP POLICY IF EXISTS project_drawings_update ON public.project_drawings;
 CREATE POLICY project_drawings_update ON public.project_drawings
   FOR UPDATE TO authenticated
   USING (company_id = rawasi_private.current_company_id())
   WITH CHECK (company_id = rawasi_private.current_company_id());
 
+DROP POLICY IF EXISTS project_drawings_delete ON public.project_drawings;
 CREATE POLICY project_drawings_delete ON public.project_drawings
   FOR DELETE TO authenticated
   USING (company_id = rawasi_private.current_company_id());
 
+DROP POLICY IF EXISTS project_site_visits_read ON public.project_site_visits;
 CREATE POLICY project_site_visits_read ON public.project_site_visits
   FOR SELECT TO authenticated
   USING (company_id = rawasi_private.current_company_id());
 
+DROP POLICY IF EXISTS project_site_visits_insert ON public.project_site_visits;
 CREATE POLICY project_site_visits_insert ON public.project_site_visits
   FOR INSERT TO authenticated
   WITH CHECK (company_id = rawasi_private.current_company_id());
 
+DROP POLICY IF EXISTS project_site_visits_update ON public.project_site_visits;
 CREATE POLICY project_site_visits_update ON public.project_site_visits
   FOR UPDATE TO authenticated
   USING (company_id = rawasi_private.current_company_id())
   WITH CHECK (company_id = rawasi_private.current_company_id());
 
+DROP POLICY IF EXISTS project_site_visits_delete ON public.project_site_visits;
 CREATE POLICY project_site_visits_delete ON public.project_site_visits
   FOR DELETE TO authenticated
   USING (company_id = rawasi_private.current_company_id());
@@ -144,8 +154,12 @@ ALTER TABLE public.project_site_visits REPLICA IDENTITY USING INDEX project_site
 DO $rt$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
-    ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.project_drawings;
-    ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.project_site_visits;
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'project_drawings') THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.project_drawings;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND schemaname = 'public' AND tablename = 'project_site_visits') THEN
+      ALTER PUBLICATION supabase_realtime ADD TABLE ONLY public.project_site_visits;
+    END IF;
   END IF;
 END;
 $rt$;

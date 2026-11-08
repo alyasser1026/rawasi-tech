@@ -76,7 +76,7 @@ COMMENT ON COLUMN public.sub_claims.retention_released IS 'هل تم فك مبا
 
 -- 3. Company Documents Table (تتبع الوثائق والتراخيص والإقامات)
 -- -----------------------------------------------------------------------------
-CREATE TABLE public.company_documents (
+CREATE TABLE IF NOT EXISTS public.company_documents (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   company_id uuid NOT NULL DEFAULT rawasi_private.current_company_id() REFERENCES public.companies(id) ON DELETE CASCADE,
   document_number text NOT NULL,
@@ -113,16 +113,19 @@ INSERT INTO rawasi_private.company_scoped_tables (table_name)
 VALUES ('company_documents')
 ON CONFLICT DO NOTHING;
 
+DROP TRIGGER IF EXISTS aa_stamp_company_id ON public.company_documents;
 CREATE TRIGGER aa_stamp_company_id
   BEFORE INSERT ON public.company_documents
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.stamp_company_id();
 
+DROP TRIGGER IF EXISTS trg_company_documents_touch_updated_at ON public.company_documents;
 CREATE TRIGGER trg_company_documents_touch_updated_at
   BEFORE UPDATE ON public.company_documents
   FOR EACH ROW EXECUTE FUNCTION rawasi_private.touch_updated_at();
 
 ALTER TABLE public.company_documents ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS company_documents_view ON public.company_documents;
 CREATE POLICY company_documents_view ON public.company_documents
   FOR SELECT TO authenticated
   USING (
@@ -130,6 +133,7 @@ CREATE POLICY company_documents_view ON public.company_documents
     AND company_id = (SELECT rawasi_private.current_company_id())
   );
 
+DROP POLICY IF EXISTS company_documents_create ON public.company_documents;
 CREATE POLICY company_documents_create ON public.company_documents
   FOR INSERT TO authenticated
   WITH CHECK (
@@ -137,6 +141,7 @@ CREATE POLICY company_documents_create ON public.company_documents
     AND company_id = (SELECT rawasi_private.current_company_id())
   );
 
+DROP POLICY IF EXISTS company_documents_edit ON public.company_documents;
 CREATE POLICY company_documents_edit ON public.company_documents
   FOR UPDATE TO authenticated
   USING (

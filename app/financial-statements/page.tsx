@@ -27,6 +27,7 @@ export default function FinancialStatementsPage() {
   const [incomeData, setIncomeData] = useState<any>(null);
   const [balanceData, setBalanceData] = useState<any>(null);
   const [kpiData, setKpiData] = useState<any>(null);
+  const [isMigrationPending, setIsMigrationPending] = useState(false);
 
   const fetchAllData = useCallback(async () => {
     try {
@@ -47,9 +48,12 @@ export default function FinancialStatementsPage() {
         })
       ]);
 
+      const isMissingRpc = 
+        incomeRes.error?.code === 'PGRST202' || balanceRes.error?.code === 'PGRST202' || kpiRes.error?.code === 'PGRST202';
+      setIsMigrationPending(Boolean(isMissingRpc));
+
       if (incomeRes.error) {
-        console.error('Income statement RPC error:', incomeRes.error);
-        notify.error('تعذر تحميل بيانات قائمة الدخل');
+        if (!isMissingRpc) console.error('Income statement RPC error:', incomeRes.error);
       } else {
         setIncomeData(incomeRes.data);
       }
@@ -194,6 +198,26 @@ export default function FinancialStatementsPage() {
           }
         `}</style>
         {/* Filter Card */}
+        {isMigrationPending && (
+          <div style={{
+            background: 'rgba(234, 88, 12, 0.08)',
+            border: '1px solid rgba(234, 88, 12, 0.3)',
+            borderRadius: '12px',
+            padding: '1rem 1.25rem',
+            marginBottom: '1rem',
+            color: 'var(--text-primary)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            fontSize: 'var(--fs-sm)',
+            fontWeight: 700
+          }}>
+            <AlertTriangle size={20} color="#ea580c" />
+            <div>
+              <strong>تنبيه:</strong> دوال القوائم المالية وقائمة الدخل غير مفعلة بقاعدة البيانات بعد. لتفعيلها فوراً، يرجى تشغيل ملف الميجريشن <code>PACK_2_ASSETS_INVENTORY_RADAR_PROFITABILITY.sql</code> في <strong>Supabase SQL Editor</strong>.
+            </div>
+          </div>
+        )}
         <div className={styles.filterCard}>
           <div className={styles.filterRow}>
             <div className={styles.filterGroup}>
