@@ -499,19 +499,33 @@ function conversationScope(access, declarations) {
   return [access.userId, access.companyId, declarations.map(tool => tool.name).sort().join(',')].join(':');
 }
 
+function cleanWorkerName(name) {
+  if (!name) return '';
+  let n = name
+    .replace(/^(?:سجل(?:ي(?:لي)?)?|ضيف(?:ي(?:لي)?)?|أضف|اضف|ادخل|دخل|دخله(?:الي)?|مصروفات|مصروف|مصاريف|فاتورة|فواتير|يومية|يوميات|امبارح|أمس|النهارده|النهاردة|اليوم|و|أو|منهم|كشف|بيان)\s+/iu, '')
+    .replace(/\s+(?:في\s*العمال[ةه]|للعمال[ةه]|يومية|يوميات|مصروفات|مصروف)$/iu, '')
+    .trim();
+  if (/(?:مشروع|فيلا|بند|شركة|مصروف|فواتير|فاتورة|سند|صرف|سداد)/iu.test(n) && !/(?:حارس|جرار|ونش|سائق|خفير|عامل|صنايعي|فني|مساعد)/iu.test(n)) {
+    return '';
+  }
+  return n;
+}
+
 function parseBatchLaborLogs(userPrompt) {
   const text = String(userPrompt || '').trim();
   if (!text) return null;
 
-  // استبعاد أوامر الشغل صراحة حتى لا تتداخل مع يوميات العمالة
-  if (/(?:امر\s*شغل|أمر\s*شغل|امر\s*تشغيل|أمر\s*تشغيل)/iu.test(text)) return null;
+  // استبعاد طلبات إنشاء أمر شغل صراحة حتى لا تتداخل مع يوميات العمالة
+  if (/^(?:اعمل|انشئ|أنشئ|سجل|سجّل|ضيف|أضف|اضف)\s+(?:أمر\s*شغل|امر\s*شغل|أمر\s*تشغيل|امر\s*تشغيل)/iu.test(text)) return null;
 
   // إذا كانت الرسالة سطراً واحداً وتصف فريق عمل محدد (فني ومساعد)، نتركها لقاعدة الفريق الفردي
   if (!text.includes('\n') && /(?:للفني|فني)\s+.*(?:و?العامل|و?عامل|و?المساعد|و?مساعد)/iu.test(text)) return null;
 
   // 1. فحص نية تسجيل يوميات أو عمالة
-  const hasLaborIntent = /(?:يوميات|يومية|يوميه|عمال|العمال)/iu.test(text) &&
-                        /(?:ضيف|اضف|أضف|سجل|سجّل|اعمل|انشئ|أنشئ|عاوز|عايز|محتاج)/iu.test(text);
+  const hasLaborIntent =
+    (/(?:يوميات|يومية|يوميه|عمال|العمال|عمالة|العماله|العمالة)/iu.test(text) &&
+     /(?:ضيف|اضف|أضف|سجل|سجّل|اعمل|انشئ|أنشئ|عاوز|عايز|محتاج|دخل|ادخل|دخلهالي)/iu.test(text)) ||
+    /(?:دخله(?:الي)?\s*في\s*العمال[ةه]|في\s*العمال[ةه]|للعمال[ةه])/iu.test(text);
 
   if (!hasLaborIntent) return null;
 
@@ -529,37 +543,47 @@ function parseBatchLaborLogs(userPrompt) {
   if (dateMatch) {
     workDate = dateMatch[1].replace(/\//g, '-');
   } else if (/(?:امبارح|أمس)/u.test(text)) {
-    const d = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    workDate = d.toISOString().slice(0, 10);
+    workDate = 'yesterday';
   }
 
   // 4. استخراج المشروع / الفيلا
-  const projectMatch = text.match(/(?:في\s+)?(?:مشروع|فيلا|عماره|عمارة|موقع)\s+([^\n\r,،]+?)(?=\s+(?:بند|وامر|وأمر|امر|أمر|يومية|يوميات|للعمال|$))/iu);
-  let siteRef = projectMatch ? projectMatch[1].trim() : null;
+  const projectMatch = text.match(/(?:في\s+|لـ?)?(?:مشروع|فيلا|عماره|عمارة|موقع|برج)\s+([^\n\r,،]+?)(?=\s+(?:على|في|بند|وبند|وامر|وأمر|امر|أمر|يومية|يوميات|للعمال|دخلهالي|دخلها|في\s*العمال|$))/iu);
+  let siteRef = projectMatch ? projectMatch[0].replace(/^(?:في\s+|لـ?)/u, '').trim() : null;
+  if (siteRef) {
+    siteRef = siteRef.replace(/\s+(?:على|في|لـ?|بـ?)$/u, '').trim();
+  }
   if (!siteRef) {
-    const inlineSite = text.match(/(?:برج\s+[\p{L}\p{N}]+|فيلا\s+[\p{L}\p{N}_-]+)/u);
-    if (inlineSite) siteRef = inlineSite[0].trim();
+    const inlineSite = text.match(/(?:لـ?|في\s+)?(برج\s+[\p{L}\p{N}]+|فيلا\s+[\p{L}\p{N}_-]+)/u);
+    if (inlineSite) siteRef = (inlineSite[1] || inlineSite[0]).replace(/^(?:في\s+|لـ?)/u, '').trim();
   }
 
   // 5. استخراج البند
-  const itemMatch = text.match(/(?:بند)\s+([^\n\r,،]+?)(?=\s+(?:وامر|وأمر|امر|أمر|مشروع|فيلا|للعمال|$))/iu);
+  const itemMatch = text.match(/(?:بند)\s+([^\n\r,،]+?)(?=\s+(?:وامر|وأمر|امر|أمر|مشروع|فيلا|برج|عماره|عمارة|موقع|للعمال|دخلهالي|دخلها|في\s*العمال|$))/iu);
   let workItem = itemMatch ? itemMatch[1].trim() : null;
+  if (workItem) {
+    workItem = workItem.replace(/(?:دخله(?:الي)?\s*في\s*العمال[ةه]|في\s*العمال[ةه]|للعمال[ةه]).*$/u, '').trim();
+  }
   if (!workItem) {
-    const knownItemMatch = text.match(/(?:الاستراوس|خمرة\s*الاستراوس|كمرة\s*الاستراوس|محارة|سباكة|نجارة|حدادة|مباني|دهانات|سيراميك|عزل|جبس)/iu);
+    const knownItemMatch = text.match(/(?:الاستراوس|خمرة\s*الاستراوس|كمرة\s*الاستراوس|كمر\s*استراوس|كمر\s*ستراوس|محارة|سباكة|نجارة|حدادة|مباني|دهانات|سيراميك|عزل|جبس)/iu);
     if (knownItemMatch) workItem = knownItemMatch[0].trim();
   }
 
   // 6. استخراج أمر الشغل المحدد صراحة
-  const joMatch = text.match(/(?:وامر\s*شغل|وأمر\s*شغل|امر\s*شغل|أمر\s*شغل)\s*(?:رقم\s*)?#?([a-zA-Z0-9_-]+)/iu);
-  const explicitJobOrder = joMatch && !/(?:اللي|اللى|مربوط|مربوطة|خاص)/iu.test(joMatch[1]) ? joMatch[1].trim() : null;
+  const joMatch = text.match(/(?:على\s+)?(?:وامر\s*شغل|وأمر\s*شغل|امر\s*شغل|أمر\s*شغل)\s*(?:رقم\s*)?#?([^\n\r,،]+?)(?=\s+(?:وبند|بند|ومشروع|مشروع|وفيلا|فيلا|وبرج|برج|ودخله|دخله|في\s*العمال[ةه]|$))/iu);
+  let explicitJobOrder = joMatch ? joMatch[1].trim() : null;
+  if (explicitJobOrder) {
+    explicitJobOrder = explicitJobOrder.replace(/^(?:على|في|رقم)\s+/u, '').replace(/(?:اللي|اللى|مربوط|مربوطة|خاص).*$/iu, '').trim();
+  }
 
-  // تنظيف النص العام من عبارات المشروع والبند وأمر الشغل والأسئلة
+  // تنظيف النص العام من عبارات المشروع والبند وأمر الشغل والأسئلة وكلمات الأوامر
   let cleanText = text
-    .replace(/(?:في\s+)?مشروع\s+[^\n\r,،]+/gi, '')
-    .replace(/بند\s+[^\n\r,،]+/gi, '')
-    .replace(/(?:وامر|وأمر|امر|أمر)\s*شغل[^\n\r,،]*/gi, '')
-    .replace(/ليه\s+اليوميات[^\n\r]*/gi, '')
-    .replace(/المفروض\s+البوت[^\n\r]*/gi, '');
+    .replace(/(?:في\s+|لـ?)?(?:مشروع|فيلا|برج|عماره|عمارة|موقع)\s+[^\n\r,،]+/gi, ' ')
+    .replace(/(?:وبند|بند)\s+[^\n\r,،]+/gi, ' ')
+    .replace(/(?:على\s+)?(?:وامر|وأمر|امر|أمر)\s*شغل[^\n\r,،]*/gi, ' ')
+    .replace(/(?:دخله(?:الي)?\s*في\s*العمال[ةه]|في\s*العمال[ةه]|للعمال[ةه])/gi, ' ')
+    .replace(/(?:سجلي|سجل|ضيفي|ضيف|أضف|اضف|ادخل|دخل|اعمل)\s*(?:لي)?\s*(?:مصروفات|مصاريف|مصروف|يوميات|يومية|فواتير|فاتورة)?\s*(?:امبارح|أمس|النهارده|النهاردة|اليوم)?/gi, ' ')
+    .replace(/ليه\s+اليوميات[^\n\r]*/gi, ' ')
+    .replace(/المفروض\s+البوت[^\n\r]*/gi, ' ');
 
   const rawLines = cleanText.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   const lines = [];
@@ -616,14 +640,16 @@ function parseBatchLaborLogs(userPrompt) {
     }
 
     // اسم الشخص (1 إلى 4 كلمات بدون كلمات النظام)
-    if (/^[\p{L}\s]{2,40}$/u.test(line) &&
-        !/(?:مشروع|فيلا|بند|شركة|يومية|يوميات|استراوس|كابيتال|مربوط|عامل)/iu.test(line)) {
-      if (currentWorker?.name) {
-        workers.push(currentWorker);
-        currentWorker = {};
+    if (/^[\p{L}\s]{2,40}$/u.test(line)) {
+      const cleanN = cleanWorkerName(line);
+      if (cleanN && cleanN.length >= 2) {
+        if (currentWorker?.name) {
+          workers.push(currentWorker);
+          currentWorker = {};
+        }
+        if (!currentWorker) currentWorker = {};
+        currentWorker.name = cleanN;
       }
-      if (!currentWorker) currentWorker = {};
-      currentWorker.name = line.trim();
     }
   }
 
@@ -631,16 +657,33 @@ function parseBatchLaborLogs(userPrompt) {
     workers.push(currentWorker);
   }
 
-  // إذا لم نجد عمالاً بالطريقة الرأسية، نبحث بالنمط الأفقي (مثل: إبراهيم النجار 700 ومحمد بهلول 700)
+  // إذا لم نجد عمالاً بالطريقة الرأسية، نبحث بالنمط الأفقي
   if (workers.length === 0) {
-    const inlineMatches = [...text.matchAll(/([\p{L}\s]{2,30}?)\s*(?:نجار\s*مسلح|مساعد|حداد\s*مسلح|بناء|مليس|صنايعي|فني)?\s*(?:يومية|يوميته|أجر|اجر|بـ)?\s*(\d{2,4})\s*(?:ر\.س|ريال|جنيه|ج\.م)?/gu)];
-    for (const m of inlineMatches) {
-      const rawName = m[1].replace(/.*(?:للعمال|للعامل|يوميات|يومية)\s*/iu, '').replace(/^(?:و?العمال|و?العامل|و?الفني|و?دي|و?منهم|و)\s*/iu, '').trim();
-      if (rawName.length >= 2 && !/(?:مشروع|فيلا|بند|شركة|يوميات)/iu.test(rawName)) {
+    // 1) نمط: المبلغ ثم الاسم (مثال: «1000جرار نقل خشب و 100 حارس» أو «1000 جرار و 100 حارس»)
+    const amountFirstMatches = [...cleanText.matchAll(/(\d{2,6})\s*([\p{L}\s]{2,30}?)(?=\s+(?:و\s*\d|\d|$|[،,.]|\r?\n))/gu)];
+    for (const m of amountFirstMatches) {
+      const wage = Number(m[1]);
+      const rawName = cleanWorkerName(m[2]);
+      if (rawName && rawName.length >= 2 && wage > 0) {
         workers.push({
           name: rawName,
-          daily_wage: Number(m[2]),
+          daily_wage: wage,
         });
+      }
+    }
+
+    // 2) نمط: الاسم ثم المبلغ (مثال: «إبراهيم النجار 700 ومحمد بهلول 700»)
+    if (workers.length === 0) {
+      const inlineMatches = [...cleanText.matchAll(/([\p{L}\s]{2,30}?)\s*(?:نجار\s*مسلح|مساعد|حداد\s*مسلح|بناء|مليس|صنايعي|فني)?\s*(?:يومية|يوميته|أجر|اجر|بـ)?\s*(\d{2,5})\s*(?:ر\.س|ريال|جنيه|ج\.م)?(?=\s+(?:و|$)|\r?\n|[،,.])/gu)];
+      for (const m of inlineMatches) {
+        const rawName = cleanWorkerName(m[1]);
+        const wage = Number(m[2]);
+        if (rawName && rawName.length >= 2 && wage > 0) {
+          workers.push({
+            name: rawName,
+            daily_wage: wage,
+          });
+        }
       }
     }
   }
@@ -863,7 +906,9 @@ export function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
   }
 
   // 2) إضافة أو تسجيل مصروف أو فاتورة من المحادثة بحساسية ودقة فائقة (شاشة المصروفات /expenses)
+  const isLaborDirective = /(?:دخله(?:الي)?\s*في\s*العمال[ةه]|في\s*العمال[ةه]|للعمال[ةه])/iu.test(t);
   const isExplicitExpense =
+    !isLaborDirective &&
     !isPaymentVoucherTrigger &&
     !/(?:سند\s*(?:صرف|سداد|دفع)|إيصال\s*صرف|ايصال\s*صرف|سند\s*قبض\s*وصرف|اصرف|إصرف)/iu.test(t) &&
     (/(?:فاتورة|فاتوره|فواتير|مصروف|مصاريف|اشترينا|شراء|توريد|خامات|مواد\s*بناء)/iu.test(t) ||

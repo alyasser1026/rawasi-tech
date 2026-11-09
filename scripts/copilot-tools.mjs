@@ -87,6 +87,20 @@ export const normalizeArabic = (s) => (s || '').toString().toLowerCase().trim()
   .replace(/\s+/g, ' ');
 
 /**
+ * مطابقة ذكية لأسماء البنود وأوامر الشغل مع مراعاة أل التعريف وتعدد الكلمات
+ */
+export function matchItemText(a, b) {
+  if (!a || !b) return false;
+  const normA = normalizeArabic(a).replace(/\bال/g, '');
+  const normB = normalizeArabic(b).replace(/\bال/g, '');
+  if (normA.includes(normB) || normB.includes(normA)) return true;
+  const wordsA = normA.split(/\s+/).filter(w => w.length > 2);
+  const wordsB = normB.split(/\s+/).filter(w => w.length > 2);
+  const common = wordsA.filter(w => wordsB.some(bw => bw.includes(w) || w.includes(bw)));
+  return common.length >= 1 && (common.length >= Math.min(wordsA.length, wordsB.length));
+}
+
+/**
  * التصنيف التلقائي الذكي للمصروفات حسب طبيعة البيان
  * متطابق مع بنود EXPENSE_CATEGORIES في شاشة المصروفات
  */
@@ -1008,7 +1022,11 @@ export function createCopilotTools({
     async add_labor_daily_log_draft(rawArgs = {}) {
       if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
 
-      const workerName = typeof rawArgs?.worker_name === 'string' ? rawArgs.worker_name.trim() : '';
+      let workerName = typeof rawArgs?.worker_name === 'string' ? rawArgs.worker_name.trim() : '';
+      workerName = workerName
+        .replace(/^(?:سجل(?:ي(?:لي)?)?|ضيف(?:ي(?:لي)?)?|أضف|اضف|ادخل|دخل|دخله(?:الي)?|مصروفات|مصروف|مصاريف|فاتورة|فواتير|يومية|يوميات|امبارح|أمس|النهارده|النهاردة|اليوم)\s+/iu, '')
+        .replace(/\s+(?:في\s*العمال[ةه]|للعمال[ةه]|يومية|يوميات)$/iu, '')
+        .trim();
       if (!workerName) {
         return { success: false, error: 'يرجى تحديد اسم العامل أو الفني لتسجيل اليومية.' };
       }
@@ -1136,7 +1154,7 @@ export function createCopilotTools({
       if (projectId) {
         const partnerMap = new Map((partRes.data || []).map(p => [p.id, p.name]));
         const [boqRes, joRes] = await Promise.all([
-          fetchScopedRows('boq_budget', { select: 'id,work_item,unit,project_id,boq_item_id,tareeha', limit: '150' }),
+          fetchScopedRows('boq_budget', { select: 'id,work_item,unit,project_id,boq_item_id', limit: '150' }),
           fetchScopedRows('job_orders', { select: 'id,order_number,project_id,boq_budget_id,status,contractor_id,executor_type,notes', limit: '150' })
         ]);
 
@@ -1148,15 +1166,15 @@ export function createCopilotTools({
           if (projectBoqRows.length > 0) {
             const normItem = normalizeArabic(workItem);
             const matchedBoq = projectBoqRows.find(b => {
+              if (!b.work_item) return false;
               const bItem = normalizeArabic(b.work_item);
-              return bItem === normItem || bItem.includes(normItem) || normItem.includes(bItem);
+              return bItem === normItem || bItem.includes(normItem) || normItem.includes(bItem) || matchItemText(b.work_item, workItem);
             });
             if (matchedBoq) {
               matchedBoqId = matchedBoq.id;
               workItem = matchedBoq.work_item;
               workItemId = matchedBoq.boq_item_id || matchedBoq.id;
               if (matchedBoq.unit) unit = matchedBoq.unit;
-              if (matchedBoq.tareeha && !tareeha) tareeha = Number(matchedBoq.tareeha);
             }
           }
           // التحقق الصارم من معرف البند في المقايسة (BOQ Item ID)
@@ -1174,12 +1192,19 @@ export function createCopilotTools({
           : [];
 
         if (explicitJobOrder) {
-          // المستخدم حدد رقم أمر الشغل صراحة (مثال: JO-2026-0001 أو 101)
-          const normExplicitJo = explicitJobOrder.toLowerCase().replace(/^(?:jo-)?/i, '');
-          const matchedJo = projectJOs.find(j =>
-            (j.order_number && j.order_number.toLowerCase().includes(normExplicitJo)) ||
-            (j.id && j.id.toLowerCase().startsWith(normExplicitJo))
+          // المستخدم حدد رقم أمر الشغل صراحة (مثال: JO-2026-0001 أو 101) أو وصف البند التابع له
+          const normExplicitJo = normalizeArabic(explicitJobOrder.toLowerCase().replace(/^(?:jo-)?/i, ''));
+          let matchedJo = projectJOs.find(j =>
+            (j.order_number && normalizeArabic(j.order_number).toLowerCase().includes(normExplicitJo)) ||
+            (j.id && j.id.toLowerCase().startsWith(normExplicitJo)) ||
+            (j.notes && normalizeArabic(j.notes).includes(normExplicitJo))
           );
+          if (!matchedJo && projectBoqRows && projectBoqRows.length > 0) {
+            const matchedBoqForJo = projectBoqRows.find(b => matchItemText(b.work_item, explicitJobOrder));
+            if (matchedBoqForJo) {
+              matchedJo = projectJOs.find(j => j.boq_budget_id === matchedBoqForJo.id);
+            }
+          }
           if (matchedJo) {
             jobOrderId = matchedJo.id;
             jobOrderNumber = matchedJo.order_number;
@@ -1197,7 +1222,8 @@ export function createCopilotTools({
           // البحث عن أوامر الشغل المرتبطة بهذا البند
           const matchingJOs = projectJOs.filter(j =>
             (matchedBoqId && j.boq_budget_id === matchedBoqId) ||
-            (j.notes && normalizeArabic(j.notes).includes(normalizeArabic(workItem)))
+            (j.notes && normalizeArabic(j.notes).includes(normalizeArabic(workItem))) ||
+            (workItem && matchItemText(j.notes, workItem))
           );
 
           if (matchingJOs.length === 1) {
