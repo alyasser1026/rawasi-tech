@@ -406,7 +406,7 @@ function LoginContent() {
         {/* Back to Website Link */}
         <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
           <a
-            href="/website"
+            href="/"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
