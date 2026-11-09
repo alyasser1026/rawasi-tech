@@ -201,6 +201,35 @@ export const TOOL_REGISTRY = Object.freeze([
     output: 'تأكيد حفظ مسودة المصروف في قاعدة بيانات الشركة.',
   },
   {
+    name: 'add_payment_voucher_draft',
+    status: TOOL_STATUS.PILOT,
+    declaration: {
+      name: 'add_payment_voucher_draft',
+      description: 'إنشاء وتسجيل مسودة سند صرف جديد في جدول سندات الصرف (payment_vouchers) فوراً بدقة وحساسية عالية عند طلب صرف مبالغ أو سداد أو سلفة لعامل أو مقاول أو مورد. إذا كانت الفلوس لعمال يكون المدين حساب العمال (512 - أجور ومرتبات عمالة الموقع) والدائن حساب الخزنة (122 - الخزينة الرئيسية) مع التحقق من الاسم في جدول الشركاء (partners).',
+      parameters: {
+        type: 'OBJECT',
+        properties: {
+          payee_name: { type: 'STRING', description: 'اسم المستفيد (العامل أو المقاول أو المورد) للتحقق منه في سجل الشركاء' },
+          amount: { type: 'NUMBER', description: 'مبلغ سند الصرف بالريال' },
+          payment_method: { type: 'STRING', description: 'طريقة الدفع: نقدي، تحويل بنكي، شيك (افتراضياً نقدي)' },
+          site_ref: { type: 'STRING', description: 'اسم أو رقم الفيلا / مركز التكلفة إن وجد (اختياري)' },
+          description: { type: 'STRING', description: 'بيان وسبب الصرف (مثلاً: أجور عمال، دفعة تحت الحساب، سلفة عمال)' },
+          debit_account: { type: 'STRING', description: 'حساب المدين (افتراضياً للعمال: 512 - أجور ومرتبات عمالة الموقع)' },
+          credit_account: { type: 'STRING', description: 'حساب الدائن (افتراضياً: 122 - الخزينة الرئيسية)' },
+          date: { type: 'STRING', description: 'تاريخ السند YYYY-MM-DD أو today' },
+          reference_no: { type: 'STRING', description: 'رقم المرجع أو الحوالة إن وجد' },
+        },
+        required: ['payee_name', 'amount'],
+      },
+    },
+    source: { kind: 'table', name: 'payment_vouchers' },
+    permission: { module: 'payments', action: 'view' },
+    requiresCompany: true,
+    flag: { env: 'COPILOT_LIVE_FIELD_OPS_ENABLED', default: false },
+    limits: 'حفظ مسودة سند صرف غير مرحّلة (is_posted = false)',
+    output: 'تأكيد حفظ مسودة سند الصرف مع التوجيه المحاسبي والتحقق من الشريك.',
+  },
+  {
     name: 'add_journal_entry_draft',
     status: TOOL_STATUS.PILOT,
     declaration: {

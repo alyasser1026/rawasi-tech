@@ -8,6 +8,7 @@ const PROJECTS = 'get_all_projects_and_villas';
 const DAILY_REPORT = 'get_daily_comprehensive_report';
 const ADD_LABOR = 'add_labor_daily_log_draft';
 const ADD_EXPENSE = 'add_expense_draft';
+const ADD_PAYMENT_VOUCHER = 'add_payment_voucher_draft';
 const ADD_JOURNAL = 'add_journal_entry_draft';
 const ADD_JOB_ORDER = 'add_job_order_draft';
 const ADD_PARTNER = 'add_partner';
@@ -182,6 +183,31 @@ function getToolArgs(name, supplied, now) {
       ...(safeText(supplied.payment_account, 100) ? { payment_account: safeText(supplied.payment_account, 100) } : {}),
       ...(safeText(supplied.payee_name, 80) ? { payee_name: safeText(supplied.payee_name, 80) } : {}),
       ...(safeText(supplied.payment_method, 40) ? { payment_method: safeText(supplied.payment_method, 40) } : {}),
+      ...(safeText(supplied.notes, 200) ? { notes: safeText(supplied.notes, 200) } : {}),
+    };
+  }
+
+  if (name === ADD_PAYMENT_VOUCHER) {
+    const allowedKeys = [
+      'payee_name', 'amount', 'payment_method', 'site_ref',
+      'description', 'debit_account', 'credit_account', 'date',
+      'reference_no', 'notes'
+    ];
+    if (Object.keys(supplied).some(key => !allowedKeys.includes(key))) return null;
+    const payeeName = safeText(supplied.payee_name, 100);
+    const amount = Number(supplied.amount);
+    if (!payeeName || !Number.isFinite(amount) || amount <= 0) return null;
+    const date = supplied.date !== undefined ? resolveDateToken(supplied.date, now) : getCopilotDate(now);
+    return {
+      payee_name: payeeName,
+      amount,
+      date: date || getCopilotDate(now),
+      ...(safeText(supplied.payment_method, 40) ? { payment_method: safeText(supplied.payment_method, 40) } : {}),
+      ...(safeText(supplied.site_ref, 80) ? { site_ref: safeText(supplied.site_ref, 80) } : {}),
+      ...(safeText(supplied.description, 160) ? { description: safeText(supplied.description, 160) } : {}),
+      ...(safeText(supplied.debit_account, 100) ? { debit_account: safeText(supplied.debit_account, 100) } : {}),
+      ...(safeText(supplied.credit_account, 100) ? { credit_account: safeText(supplied.credit_account, 100) } : {}),
+      ...(safeText(supplied.reference_no, 60) ? { reference_no: safeText(supplied.reference_no, 60) } : {}),
       ...(safeText(supplied.notes, 200) ? { notes: safeText(supplied.notes, 200) } : {}),
     };
   }
@@ -634,19 +660,24 @@ function formatAddExpenseReply(result, companyLabel) {
       ? `💖 من عيوني ${pet}، سجلتلك مسودة المصروف | العملية رقم [${opTag}]`
       : `✅ تمام يا باشمهندس، سجلتلك مسودة المصروف | العملية رقم [${opTag}]`,
     `🔢 رقم العملية للتعديل السريع: ${opTag}`,
+    `📁 المكان / الشاشة: شاشة المصروفات والفواتير (/expenses)`,
+    `• نوع الحركة: إثبات استحقاق مصروف / فاتورة خامات ومشتريات`,
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
     `• البيان: ${r.description}`,
     `• الكمية: ${r.quantity || 1} | سعر الوحدة: ${r.unit_price} ر.س`,
     `• المبلغ الإجمالي: ${r.total_price} ر.س`,
     `• الضريبة: ${r.vat_amount > 0 ? `${r.vat_amount} ر.س` : 'غير شامل ضريبة (0 ر.س)'}`,
+    r.is_paid && r.linked_voucher_number
+      ? `• حالة السداد: 🟢 مسدد كاش فورياً - تم إصدار سند صرف مرتبط رقم [${r.linked_voucher_number}] وخصمه من الخزينة`
+      : `• حالة السداد: 🟡 ${r.payment_method || 'آجل'} (استحقاق - لم يُصرف بعد، يتم الصرف من شاشة سندات الصرف)`,
     `• التاريخ: ${r.exp_date}`,
     `• الفيلا / الموقع: ${r.site_ref || 'عام'}`,
     r.job_order_number ? `• أمر الشغل المرتبط: #${r.job_order_number} (${r.job_order_item || '—'})` : (r.work_item ? `• البند المستهدف: ${r.work_item}` : null),
     `• حساب المدين: ${r.creditor_account || '511 - تكلفة مواد وخامات مباشرة'}`,
     `• حساب الدائن: ${r.payment_account || '211 - الموردين (مواد بناء)'}`,
-    `• التصنيف: ${r.main_category} | طريقة القيد: ${r.payment_method || 'آجل'}`,
-    r.payee_name && r.payee_name !== '—' ? `• المستفيد: ${r.payee_name}` : null,
+    `• التصنيف: ${r.main_category}`,
+    r.payee_name && r.payee_name !== '—' ? `• المستفيد / المورد: ${r.payee_name}` : null,
     `• الحالة: مسودة جاهزة للمراجعة والاعتماد من شاشة المصروفات أو الأزرار أدناه.`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
   ];
@@ -662,6 +693,39 @@ function formatAddExpenseReply(result, companyLabel) {
   );
 
   return lines.filter(Boolean).join('\n');
+}
+
+function formatAddPaymentVoucherReply(result, companyLabel) {
+  const r = result.record || {};
+  const opTag = r.op_number ? `#${r.op_number}` : (r.voucher_number || '#');
+  const s = getBotSettings();
+  const isMozza = Boolean(s.mozzaModeEnabled);
+  const pet = s.mozzaNickname || 'يا محاميحو';
+
+  return [
+    isMozza
+      ? `💖 من عيوني ${pet}، أنشأتلك مسودة سند الصرف | العملية رقم [${opTag}]`
+      : `💸 تمام يا باشمهندس، تم تسجيل مسودة سند الصرف | العملية رقم [${opTag}]`,
+    `🔢 رقم السند: ${r.voucher_number || opTag}`,
+    `💸 المكان / الشاشة: شاشة سندات الصرف وسداد المستحقات (/PaymentVouchers)`,
+    `• نوع الحركة: سند صرف ودفع نقدي فعلي (صرفه ودفع تمنه من الخزينة)`,
+    `الشركة: ${companyLabel}`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    `• المستفيد: ${r.payee_name} ${r.partner_verified ? '✅ (مطابق ومسجل في الشركاء)' : '⚠️ (غير مسجل في سجل الشركاء)'}`,
+    `• فئة المستفيد: ${r.partner_type || 'عامل'}`,
+    `• المبلغ المنصرف: ${r.amount} ر.س`,
+    `• طريقة الدفع: ${r.payment_method || 'نقدي'}`,
+    `• حساب المدين (المستلم): ${r.debit_account}`,
+    `• حساب الدائن (الخزينة/المصدر): ${r.credit_account}`,
+    `• التاريخ: ${r.date}`,
+    `• الفيلا / الموقع: ${r.site_ref || 'عام'}`,
+    `• البيان: ${r.description}`,
+    `• الحالة: مسودة جاهزة للاعتماد والترحيل من شاشة سندات الصرف أو الأزرار أدناه.`,
+    `━━━━━━━━━━━━━━━━━━━━━━━━`,
+    isMozza
+      ? `💌 لو عايزني أعدل في السند أي حاجة يا روحي قولّي بس: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» وأنا أعملهالك فوراً!`
+      : `💡 لو حابب تعدل أي حاجة اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
+  ].filter(Boolean).join('\n');
 }
 
 function formatAddJournalReply(result, companyLabel) {
@@ -804,6 +868,7 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     if (name === TAREEHA) return 'جرّب تاني — الطلب ده ما بياخدش معطيات إضافية.';
     if (name === ADD_LABOR) return 'اذكر اسم العامل والبند واليومية لتسجيل مسودة اليومية.';
     if (name === ADD_EXPENSE) return 'اذكر بيان المصروف والمبلغ بالريال لتسجيل مسودة المصروف.';
+    if (name === ADD_PAYMENT_VOUCHER) return 'اذكر اسم المستفيد ومبلغ السند بالريال لتسجيل سند الصرف.';
     if (name === ADD_JOURNAL) return 'اذكر بيان القيد والمبلغ بالريال لتسجيل قيد اليومية.';
     if (name === ADD_JOB_ORDER) return 'اذكر بند العمل والكمية وسعر الوحدة والمقاول لتسجيل أمر الشغل.';
     if (name === UPDATE_OPERATION) return 'اذكر كود أو تفاصيل العملية والتعديل المطلوب.';
@@ -886,6 +951,10 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     }
     return text;
   }
+  if (name === ADD_PAYMENT_VOUCHER) {
+    return formatAddPaymentVoucherReply(result, companyLabel);
+  }
+
   if (name === ADD_JOURNAL) {
     return formatAddJournalReply(result, companyLabel);
   }

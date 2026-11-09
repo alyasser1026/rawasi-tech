@@ -77,6 +77,16 @@ function resolveDateOrToday(val) {
 }
 
 /**
+ * دالة توحيد وتطبيع النصوص العربية لمطابقة ذكية عالية الدقة للكيانات
+ */
+export const normalizeArabic = (s) => (s || '').toString().toLowerCase().trim()
+  .replace(/[أإآءئؤ]/g, 'ا')
+  .replace(/ة/g, 'ه')
+  .replace(/ى/g, 'ي')
+  .replace(/[\u064B-\u065F\u0670]/g, '')
+  .replace(/\s+/g, ' ');
+
+/**
  * التصنيف التلقائي الذكي للمصروفات حسب طبيعة البيان
  * متطابق مع بنود EXPENSE_CATEGORIES في شاشة المصروفات
  */
@@ -1029,18 +1039,11 @@ export function createCopilotTools({
       let subContractor = typeof rawArgs?.sub_contractor === 'string' ? rawArgs.sub_contractor.trim() : null;
       let subContractorId = null;
 
-      // دالة توحيد وتطبيع النصوص العربية لمطابقة ذكية عالية الدقة
-      const normalizeArabic = (s) => (s || '').toString().toLowerCase().trim()
-        .replace(/[أإآءئؤ]/g, 'ا')
-        .replace(/ة/g, 'ه')
-        .replace(/ى/g, 'ي')
-        .replace(/[\u064B-\u065F\u0670]/g, '')
-        .replace(/\s+/g, ' ');
-
-      // 1. سحب المشاريع (projects) والشركاء (partners)
-      const [projRes, partRes] = await Promise.all([
+      // 1. سحب المشاريع (projects) والشركاء (partners) والحسابات (accounts)
+      const [projRes, partRes, accRes] = await Promise.all([
         fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '100' }),
         fetchScopedRows('partners', { select: 'id,name,partner_type,code,job_role,phone', limit: '300' }),
+        fetchScopedRows('accounts', { select: 'id,code,name', limit: '150' }),
       ]);
 
       // أ) مطابقة الفيلا / المشروع من جدول projects
@@ -1068,6 +1071,14 @@ export function createCopilotTools({
         }
       }
 
+      // التحقق الصارم من معرف المشروع (Project ID)
+      if (siteRef && !projectId) {
+        return {
+          success: false,
+          error: `الفيلا أو المشروع «${siteRef}» غير مسجل في قاعدة البيانات (projects). لا يمكن تسجيل اليومية بدون معرف مشروع صحيح (Project ID).`
+        };
+      }
+
       // ب) مطابقة العمال من جدول partners مع تفضيل فئات العمالة (عامل يومية / موظف)
       if (partRes.ok && Array.isArray(partRes.data) && partRes.data.length > 0) {
         const workersFirst = [...partRes.data].sort((a, b) => {
@@ -1086,6 +1097,7 @@ export function createCopilotTools({
         });
         if (matchedTech) {
           workerPartnerId = matchedTech.id;
+          workerName = matchedTech.name;
           if (!dailyWage && matchedTech.job_role) {
             const wageInRole = matchedTech.job_role.match(/(?:يومية|يوميه|اجر|أجر)[\s:=]*(\d+(?:\.\d+)?)/u);
             if (wageInRole) dailyWage = Number(wageInRole[1]);
@@ -1101,15 +1113,30 @@ export function createCopilotTools({
           });
           if (matchedH) {
             helperPartnerId = matchedH.id;
+            helperName = matchedH.name;
           }
         }
+      }
+
+      // التحقق الصارم من معرف الشريك/العامل في قاعدة البيانات (Partner ID)
+      if (!workerPartnerId) {
+        return {
+          success: false,
+          error: `العامل أو الفني «${workerName}» غير مسجل في جدول الشركاء (partners). لا يمكن تسجيل اليومية بدون معرف عامل مسجل (Partner ID). يمكنك تسجيل العامل أولاً عبر البوت («سجل عامل جديد اسمه ${workerName} مهنته ... ويوميته ...») ثم إعادة المحاولة.`
+        };
+      }
+      if (helperName && !helperPartnerId) {
+        return {
+          success: false,
+          error: `المساعد «${helperName}» غير مسجل في جدول الشركاء (partners). لا يمكن تسجيل اليومية بدون معرف شريك مسجل (Partner ID).`
+        };
       }
 
       // ج) استعلام بنود الميزانية (boq_budget) وأوامر الشغل (job_orders) الخاصة بالمشروع
       if (projectId) {
         const partnerMap = new Map((partRes.data || []).map(p => [p.id, p.name]));
         const [boqRes, joRes] = await Promise.all([
-          fetchScopedRows('boq_budget', { select: 'id,work_item,unit,project_id,boq_item_id', limit: '150' }),
+          fetchScopedRows('boq_budget', { select: 'id,work_item,unit,project_id,boq_item_id,tareeha', limit: '150' }),
           fetchScopedRows('job_orders', { select: 'id,order_number,project_id,boq_budget_id,status,contractor_id,executor_type,notes', limit: '150' })
         ]);
 
@@ -1117,18 +1144,27 @@ export function createCopilotTools({
           ? boqRes.data.filter(b => b.project_id === projectId)
           : [];
 
-        if (workItem && projectBoqRows.length > 0) {
-          const normItem = normalizeArabic(workItem);
-          const matchedBoq = projectBoqRows.find(b => {
-            const bItem = normalizeArabic(b.work_item);
-            return bItem === normItem || bItem.includes(normItem) || normItem.includes(bItem);
-          });
-          if (matchedBoq) {
-            matchedBoqId = matchedBoq.id;
-            workItem = matchedBoq.work_item;
-            workItemId = matchedBoq.boq_item_id || matchedBoq.id;
-            if (matchedBoq.unit) unit = matchedBoq.unit;
-            if (matchedBoq.tareeha && !tareeha) tareeha = Number(matchedBoq.tareeha);
+        if (workItem) {
+          if (projectBoqRows.length > 0) {
+            const normItem = normalizeArabic(workItem);
+            const matchedBoq = projectBoqRows.find(b => {
+              const bItem = normalizeArabic(b.work_item);
+              return bItem === normItem || bItem.includes(normItem) || normItem.includes(bItem);
+            });
+            if (matchedBoq) {
+              matchedBoqId = matchedBoq.id;
+              workItem = matchedBoq.work_item;
+              workItemId = matchedBoq.boq_item_id || matchedBoq.id;
+              if (matchedBoq.unit) unit = matchedBoq.unit;
+              if (matchedBoq.tareeha && !tareeha) tareeha = Number(matchedBoq.tareeha);
+            }
+          }
+          // التحقق الصارم من معرف البند في المقايسة (BOQ Item ID)
+          if (!matchedBoqId) {
+            return {
+              success: false,
+              error: `بند الأعمال «${workItem}» غير مسجل في مقايسة وبنود المشروع (boq_budget). لا يمكن تسجيل اليومية بدون معرف بند معتمد (BOQ Item ID).`
+            };
           }
         }
 
@@ -1151,6 +1187,11 @@ export function createCopilotTools({
               subContractor = partnerMap.get(matchedJo.contractor_id);
               subContractorId = matchedJo.contractor_id;
             }
+          } else {
+            return {
+              success: false,
+              error: `أمر الشغل «${explicitJobOrder}» غير مسجل في قاعدة البيانات (job_orders). لا يمكن ربط اليومية برقم أمر شغل غير موجود.`
+            };
           }
         } else if (matchedBoqId || workItem) {
           // البحث عن أوامر الشغل المرتبطة بهذا البند
@@ -1205,6 +1246,11 @@ export function createCopilotTools({
         ? rawArgs.notes.trim()
         : 'تم الإدخال كمسودة عبر مساعد تيليجرام الذكي';
 
+      // حسابات اليوميات: المدين (512 - أجور ومرتبات عمالة الموقع) والدائن (122 - الخزينة الرئيسية)
+      const accs = accRes.ok && Array.isArray(accRes.data) ? accRes.data : [];
+      const laborDebitAcc = accs.find(a => String(a.code) === '512' || (a.name && a.name.includes('أجور ومرتبات عمالة')));
+      const laborCreditAcc = accs.find(a => String(a.code) === '122' || (a.name && (a.name.includes('الخزينة الرئيسية') || a.name.includes('الخزينة'))));
+
       // هـ) حفظ المسودة أو المسودات (لو فني + مساعد معاً)
       if (helperName) {
         // إنشاء سجلين متوازيين: سجل للفني + سجل للمساعد
@@ -1231,6 +1277,8 @@ export function createCopilotTools({
           completion_percentage: completionPercentage,
           sub_contractor: subContractor,
           sub_contractor_id: subContractorId,
+          debit_account_id: laborDebitAcc?.id || null,
+          credit_account_id: laborCreditAcc?.id || null,
           notes: notesText + ' (فني)',
         };
 
@@ -1253,6 +1301,8 @@ export function createCopilotTools({
           completion_percentage: completionPercentage,
           sub_contractor: subContractor,
           sub_contractor_id: subContractorId,
+          debit_account_id: laborDebitAcc?.id || null,
+          credit_account_id: laborCreditAcc?.id || null,
           notes: notesText + ' (مساعد)',
         };
 
@@ -1349,6 +1399,8 @@ export function createCopilotTools({
         completion_percentage: completionPercentage,
         sub_contractor: subContractor,
         sub_contractor_id: subContractorId,
+        debit_account_id: laborDebitAcc?.id || null,
+        credit_account_id: laborCreditAcc?.id || null,
         notes: notesText,
       };
 
@@ -1415,18 +1467,81 @@ export function createCopilotTools({
       let siteRef = typeof rawArgs?.site_ref === 'string' && rawArgs.site_ref.trim() ? rawArgs.site_ref.trim() : null;
       let projectId = null;
 
-      // 1) Match Villa / Project (Optional)
+      // 1) Match Villa / Project (Optional, but if specified must exist in DB)
       const projRes = await fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '100' });
       if (projRes.ok && projRes.data.length > 0 && siteRef) {
         const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره|موقع|برج)\s*/u, '').trim();
-        const matchedProj = projRes.data.find(p =>
-          (p.Property && (p.Property.includes(cleanSite) || siteRef.includes(p.Property))) ||
-          (p.project_name && (p.project_name.includes(cleanSite) || siteRef.includes(p.project_name))) ||
-          (p.project_code && p.project_code.toLowerCase() === cleanSite.toLowerCase())
-        );
+        const normCleanSite = normalizeArabic(cleanSite);
+        const matchedProj = projRes.data.find(p => {
+          const pProp = normalizeArabic(p.Property);
+          const pCode = (p.project_code || '').toLowerCase();
+          const pName = normalizeArabic(p.project_name);
+          return pProp === normCleanSite || pProp.includes(normCleanSite) || normCleanSite.includes(pProp) ||
+                 pCode === normCleanSite || pName.includes(normCleanSite);
+        });
         if (matchedProj) {
           projectId = matchedProj.id;
           siteRef = matchedProj.Property || matchedProj.project_name || siteRef;
+        }
+      }
+
+      // التحقق الصارم من معرف المشروع (Project ID)
+      if (siteRef && !projectId) {
+        return {
+          success: false,
+          error: `الفيلا أو المشروع «${siteRef}» غير مسجل في قاعدة البيانات (projects). لا يمكن تسجيل المصروف بدون معرف مشروع صحيح (Project ID).`
+        };
+      }
+
+      // 1.5) Match BOQ Item (البند) if specified
+      const rawWorkItem = typeof rawArgs?.work_item === 'string' ? rawArgs.work_item.trim() : '';
+      let boqBudgetId = null;
+      if (rawWorkItem) {
+        const boqFilter = projectId ? { project_id: 'eq.' + projectId, select: 'id,work_item,budget_code' } : { select: 'id,work_item,budget_code,project_id', limit: '150' };
+        const boqRes = await fetchScopedRows('boq_budget', boqFilter);
+        if (boqRes.ok && Array.isArray(boqRes.data) && boqRes.data.length > 0) {
+          const normItem = normalizeArabic(rawWorkItem);
+          const matchedBoq = boqRes.data.find(b => {
+            if (!b.work_item) return false;
+            const bNorm = normalizeArabic(b.work_item);
+            return bNorm === normItem || bNorm.includes(normItem) || normItem.includes(bNorm);
+          });
+          if (matchedBoq) {
+            boqBudgetId = matchedBoq.id;
+          }
+        }
+        // التحقق الصارم من معرف البند في المقايسة (BOQ Item ID)
+        if (!boqBudgetId) {
+          return {
+            success: false,
+            error: `بند الأعمال «${rawWorkItem}» غير مسجل في مقايسة وبنود المشروع (boq_budget). لا يمكن تسجيل المصروف بدون معرف بند معتمد (BOQ Item ID).`
+          };
+        }
+      }
+
+      // 1.8) Match Payee / Partner (المورد أو المستفيد) if specified
+      let payeeId = null;
+      let canonicalPayee = typeof rawArgs?.payee_name === 'string' ? rawArgs.payee_name.trim() : null;
+      if (canonicalPayee) {
+        const partRes = await fetchScopedRows('partners', { select: 'id,name,partner_type', limit: '150' });
+        if (partRes.ok && Array.isArray(partRes.data) && partRes.data.length > 0) {
+          const normPayee = normalizeArabic(canonicalPayee);
+          const matchedP = partRes.data.find(p => {
+            if (!p.name) return false;
+            const pNorm = normalizeArabic(p.name);
+            return pNorm === normPayee || pNorm.includes(normPayee) || normPayee.includes(pNorm);
+          });
+          if (matchedP) {
+            payeeId = matchedP.id;
+            canonicalPayee = matchedP.name;
+          }
+        }
+        // التحقق الصارم من معرف الشريك في قاعدة البيانات (Partner ID)
+        if (!payeeId) {
+          return {
+            success: false,
+            error: `المورد أو الشريك «${canonicalPayee}» غير مسجل في جدول الشركاء (partners). لا يمكن تسجيل المصروف بدون معرف شريك مسجل (Partner ID).`
+          };
         }
       }
 
@@ -1438,7 +1553,12 @@ export function createCopilotTools({
       let multipleJobOrders = false;
       let candidateJobOrders = [];
 
-      const rawWorkItem = typeof rawArgs?.work_item === 'string' ? rawArgs.work_item.trim() : '';
+      if (rawArgs?.job_order_id && !jobOrderId) {
+        return {
+          success: false,
+          error: 'أمر الشغل المحدد غير مسجل في قاعدة البيانات (job_orders).'
+        };
+      }
 
       if (projectId) {
         const joRes = await fetchScopedRows('job_orders', {
@@ -1493,9 +1613,30 @@ export function createCopilotTools({
         ? rawArgs.creditor_account.trim()
         : '511 - تكلفة مواد وخامات مباشرة';
 
+      const accRes = await fetchScopedRows('accounts', { select: 'id,code,name', limit: '150' });
+      const accs = accRes.ok && Array.isArray(accRes.data) ? accRes.data : [];
+      const debitAcc = accs.find(a => (a.code && creditorAccount.includes(a.code)) || (a.name && creditorAccount.includes(a.name)));
+      const creditAcc = accs.find(a => (a.code && paymentAccount.includes(a.code)) || (a.name && paymentAccount.includes(a.name)));
+      if (!debitAcc?.id || !creditAcc?.id) {
+        return {
+          success: false,
+          error: 'لم يتم العثور على حساب المدين أو حساب الدائن في دليل الحسابات (accounts). لا يمكن تسجيل المصروف بدون معرف حساب صحيح (Account ID).'
+        };
+      }
+
       const paymentMethod = typeof rawArgs?.payment_method === 'string' && rawArgs.payment_method.trim()
         ? rawArgs.payment_method.trim()
         : 'آجل';
+
+      const isPaidCash =
+        rawArgs?.is_paid === true ||
+        paymentMethod === 'كاش' ||
+        paymentMethod === 'نقدي' ||
+        /(?:دفعنا\s*تمنه|صرفنا\s*تمنه|كاش|نقدا|نقداً)/iu.test(rawArgs?.description || '') ||
+        /(?:دفعنا\s*تمنه|صرفنا\s*تمنه|كاش|نقدا|نقداً)/iu.test(description);
+
+      const paidAmount = isPaidCash ? totalPrice : (Number(rawArgs?.paid_amount) || 0);
+      const effectivePaymentMethod = isPaidCash ? 'كاش' : paymentMethod;
 
       // 5) Build insert payload
       // NOTICE: Do NOT include total_price because it is GENERATED ALWAYS in postgres!
@@ -1506,15 +1647,16 @@ export function createCopilotTools({
         unit_price: unitPrice,
         vat_amount: vatAmount,
         discount_amount: Number(rawArgs?.discount_amount) || 0,
-        paid_amount: Number(rawArgs?.paid_amount) || 0,
-        payment_method: paymentMethod,
+        paid_amount: paidAmount,
+        payment_method: effectivePaymentMethod,
         creditor_account: creditorAccount, // Debit side in post_expenses_bulk
         payment_account: paymentAccount,   // Credit side in post_expenses_bulk
         main_category: mainCategory,
         site_ref: siteRef || 'عام',
         project_id: projectId,
         job_order_id: jobOrderId,
-        payee_name: typeof rawArgs?.payee_name === 'string' ? rawArgs.payee_name.trim() : null,
+        payee_id: payeeId,
+        payee_name: canonicalPayee || null,
         notes: typeof rawArgs?.notes === 'string' && rawArgs.notes.trim()
           ? rawArgs.notes.trim()
           : (rawWorkItem ? `بند: ${rawWorkItem} | تم الإدخال كمسودة عبر مساعد تيليجرام` : 'تم الإدخال كمسودة عبر مساعد تيليجرام الذكي'),
@@ -1524,6 +1666,41 @@ export function createCopilotTools({
       const inserted = await insertScopedDraft('expenses', payload);
       if (!inserted.ok) {
         return { success: false, error: inserted.error };
+      }
+
+      // إذا كان المصروف مسدد كاش فورياً، نصدر سند صرف مالي فوري مرتبط في payment_vouchers (صرفه ودفع تمنه من الخزينة)
+      let linkedVoucherNumber = null;
+      let linkedVoucherId = null;
+      if (isPaidCash && inserted.row?.id) {
+        const voucherTimePart = Date.now().toString().slice(-4);
+        const voucherRandPart = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+        linkedVoucherNumber = `PV-${voucherTimePart}${voucherRandPart}`;
+
+        const treasuryAcc = accs.find(a => String(a.code) === '122' || (a.name && (a.name.includes('الخزينة الرئيسية') || a.name.includes('الخزينة')))) ||
+          accs.find(a => a.name && (a.name.includes('صندوق') || a.name.includes('نقد')));
+
+        const voucherPayload = {
+          voucher_number: linkedVoucherNumber,
+          date: expDate,
+          amount: totalPrice,
+          partner_id: payeeId || null,
+          debit_account_id: creditAcc.id || debitAcc.id,
+          credit_account_id: treasuryAcc?.id || creditAcc.id,
+          payment_method: 'نقدي',
+          description: `سداد فوري لمصروف: ${description}${siteRef ? ` - ${siteRef}` : ''}`,
+          notes: 'تم إصدار سند الصرف تلقائياً لسداد المصروف الفوري عبر المساعد الذكي',
+          status: 'مسودة',
+          is_posted: false,
+          site_ref: siteRef || null,
+          project_ids: projectId ? [projectId] : null,
+          job_order_id: jobOrderId || null,
+          related_expense_id: inserted.row.id,
+        };
+
+        const vInsert = await insertScopedDraft('payment_vouchers', voucherPayload);
+        if (vInsert.ok && vInsert.row?.id) {
+          linkedVoucherId = vInsert.row.id;
+        }
       }
 
       const expShortId = inserted.row?.id ? inserted.row.id.slice(0, 8).toUpperCase() : 'NEW';
@@ -1546,6 +1723,10 @@ export function createCopilotTools({
           quantity,
           unit_price: unitPrice,
           total_price: totalPrice,
+          paid_amount: paidAmount,
+          is_paid: isPaidCash,
+          linked_voucher_number: linkedVoucherNumber,
+          linked_voucher_id: linkedVoucherId,
           vat_amount: vatAmount,
           site_ref: siteRef || 'عام',
           work_item: rawWorkItem || null,
@@ -1555,7 +1736,7 @@ export function createCopilotTools({
           main_category: mainCategory,
           creditor_account: creditorAccount,
           payment_account: paymentAccount,
-          payment_method: paymentMethod,
+          payment_method: effectivePaymentMethod,
           payee_name: payload.payee_name || '—',
           is_posted: false,
         },
@@ -1593,6 +1774,193 @@ export function createCopilotTools({
       };
     },
 
+    // 6.8. إضافة مسودة سند صرف جديدة (payment_vouchers) بدقة وتوجيه محاسبي تلقائي
+    async add_payment_voucher_draft(rawArgs = {}) {
+      if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
+
+      const payeeRaw = typeof rawArgs?.payee_name === 'string' ? rawArgs.payee_name.trim() : '';
+      const amount = Number(rawArgs?.amount);
+      if (!payeeRaw || !Number.isFinite(amount) || amount <= 0) {
+        return { success: false, error: 'يرجى تحديد اسم المستفيد والمبلغ بالريال بشكل صحيح.' };
+      }
+
+      const cleanPayee = payeeRaw
+        .replace(/^(?:لـ|للعامل|لعامل|للمقاول|لمقاول|للمورد|لمورد|للفني|لفني|للصنايعي|لصنايعي|للشريك|لشريك|للمهندس|لمهندس|لـ|ل)\s*/u, '')
+        .trim();
+
+      const voucherDate = resolveDateOrToday(rawArgs?.date || 'today');
+      let siteRef = typeof rawArgs?.site_ref === 'string' && rawArgs.site_ref.trim() ? rawArgs.site_ref.trim() : null;
+      let projectId = null;
+
+      // 1) Match Villa / Project (Optional, but if specified must exist in DB)
+      const projRes = await fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '100' });
+      if (projRes.ok && projRes.data.length > 0 && siteRef) {
+        const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره|موقع|برج)\s*/u, '').trim();
+        const normCleanSite = normalizeArabic(cleanSite);
+        const matchedProj = projRes.data.find(p => {
+          const pProp = normalizeArabic(p.Property);
+          const pCode = (p.project_code || '').toLowerCase();
+          const pName = normalizeArabic(p.project_name);
+          return pProp === normCleanSite || pProp.includes(normCleanSite) || normCleanSite.includes(pProp) ||
+                 pCode === normCleanSite || pName.includes(normCleanSite);
+        });
+        if (matchedProj) {
+          projectId = matchedProj.id;
+          siteRef = matchedProj.Property || matchedProj.project_name || siteRef;
+        }
+      }
+
+      // التحقق الصارم من معرف المشروع (Project ID)
+      if (siteRef && !projectId) {
+        return {
+          success: false,
+          error: `الفيلا أو المشروع «${siteRef}» غير مسجل في قاعدة البيانات (projects). لا يمكن ربط سند الصرف بدون معرف مشروع صحيح (Project ID).`
+        };
+      }
+
+      // 2) Verify payee in partners table (التحقق الصارم من الشريك في جدول الشركاء)
+      let partnerId = null;
+      let canonicalPayeeName = cleanPayee;
+      let partnerType = null;
+      const partnersRes = await fetchScopedRows('partners', {
+        select: 'id,code,name,partner_type,phone,job_role,is_active',
+        limit: '300',
+      });
+
+      if (partnersRes.ok && Array.isArray(partnersRes.data) && partnersRes.data.length > 0) {
+        const pList = partnersRes.data;
+        const normPayee = normalizeArabic(cleanPayee);
+        const matchedPartner = pList.find(p => {
+          if (!p.name) return false;
+          const pNorm = normalizeArabic(p.name);
+          return pNorm === normPayee || pNorm.includes(normPayee) || normPayee.includes(pNorm);
+        });
+
+        if (matchedPartner) {
+          partnerId = matchedPartner.id;
+          canonicalPayeeName = matchedPartner.name;
+          partnerType = matchedPartner.partner_type;
+        }
+      }
+
+      // التحقق الصارم من معرف الشريك في قاعدة البيانات (Partner ID)
+      if (!partnerId) {
+        return {
+          success: false,
+          error: `المستفيد «${cleanPayee}» غير مسجل في جدول الشركاء (partners). لا يمكن تسجيل سند الصرف بدون معرف شريك مسجل (Partner ID). يمكنك تسجيل الشريك أولاً عبر البوت («سجل شريك جديد اسمه ${cleanPayee} نوعه عمالة/مقاول/مورد») ثم إعادة المحاولة.`
+        };
+      }
+
+      const isWorker =
+        partnerType === 'عامل' ||
+        partnerType === 'عامل يومية' ||
+        /(?:عامل|عمال|عمالة|عماله|فني|صنايعي|يومية|يوميه|اجور|أجور|سلفة|سلفه)/iu.test(payeeRaw) ||
+        /(?:عامل|عمال|عمالة|عماله|فني|صنايعي|يومية|يوميه|اجور|أجور|سلفة|سلفه)/iu.test(rawArgs?.description || '');
+
+      // 3) Fetch accounts for auto mapping:
+      // المدين (Debit): عمال (512 - أجور ومرتبات عمالة الموقع) أو حساب الشريك/المقاول
+      // الدائن (Credit): الخزنة (122 - الخزينة الرئيسية)
+      const accRes = await fetchScopedRows('accounts', { select: 'id,code,name,account_type', limit: '200' });
+      const accs = accRes.ok && Array.isArray(accRes.data) ? accRes.data : [];
+
+      // Credit Account: حساب الخزنة
+      let creditAccount = accs.find(a => String(a.code) === '122' || (a.name && (a.name.includes('الخزينة الرئيسية') || a.name.includes('الخزينة'))));
+      if (!creditAccount) {
+        creditAccount = accs.find(a => a.name && (a.name.includes('صندوق') || a.name.includes('نقد')));
+      }
+
+      // Debit Account: حساب العمال (512 - أجور ومرتبات عمالة الموقع)
+      let debitAccount = null;
+      if (isWorker) {
+        debitAccount = accs.find(a => String(a.code) === '512' || (a.name && a.name.includes('أجور ومرتبات عمالة')));
+        if (!debitAccount) {
+          debitAccount = accs.find(a => a.name && (a.name.includes('أجور') || a.name.includes('عمال')));
+        }
+      } else if (partnerType === 'مقاول' || /(?:مقاول|باطن)/u.test(payeeRaw)) {
+        debitAccount = accs.find(a => String(a.code) === '212' || (a.name && a.name.includes('مقاولي الباطن')));
+      } else if (partnerType === 'مورد' || /(?:مورد|خامات)/u.test(payeeRaw)) {
+        debitAccount = accs.find(a => String(a.code) === '211' || (a.name && a.name.includes('الموردين')));
+      }
+
+      if (!debitAccount) {
+        debitAccount = accs.find(a => String(a.code) === '512') || accs.find(a => String(a.code) === '51') || accs[0];
+      }
+
+      // التحقق الصارم من معرف الحسابات في الدليل (Account ID)
+      if (!creditAccount?.id) {
+        return { success: false, error: 'لم يتم العثور على حساب الخزينة في دليل الحسابات (accounts). لا يمكن تسجيل سند الصرف بدون معرف حساب صحيح (Account ID).' };
+      }
+      if (!debitAccount?.id) {
+        return { success: false, error: 'لم يتم العثور على حساب المدين في دليل الحسابات (accounts). لا يمكن تسجيل سند الصرف بدون معرف حساب صحيح (Account ID).' };
+      }
+
+      const paymentMethod = typeof rawArgs?.payment_method === 'string' && rawArgs.payment_method.trim()
+        ? rawArgs.payment_method.trim()
+        : 'نقدي';
+
+      const description = typeof rawArgs?.description === 'string' && rawArgs.description.trim()
+        ? rawArgs.description.trim()
+        : `سند صرف للمستفيد ${canonicalPayeeName}${siteRef ? ` - ${siteRef}` : ''}`;
+
+      const voucherTimePart = Date.now().toString().slice(-4);
+      const voucherRandPart = Math.floor(Math.random() * 100).toString().padStart(2, '0');
+      const voucherNumber = `PV-${voucherTimePart}${voucherRandPart}`;
+
+      const payload = {
+        voucher_number: voucherNumber,
+        date: voucherDate,
+        amount,
+        partner_id: partnerId,
+        debit_account_id: debitAccount?.id || null,
+        credit_account_id: creditAccount?.id || null,
+        payment_method: paymentMethod,
+        reference_no: typeof rawArgs?.reference_no === 'string' ? rawArgs.reference_no.trim() : null,
+        description,
+        notes: typeof rawArgs?.notes === 'string' && rawArgs.notes.trim()
+          ? rawArgs.notes.trim()
+          : 'تم الإدخال كمسودة عبر مساعد تيليجرام الذكي',
+        status: 'مسودة',
+        is_posted: false,
+        site_ref: siteRef || null,
+        project_ids: projectId ? [projectId] : null,
+      };
+
+      const inserted = await insertScopedDraft('payment_vouchers', payload);
+      if (!inserted.ok) {
+        return { success: false, error: inserted.error };
+      }
+
+      const opNumber = registerOperation({
+        operationType: 'payment_voucher',
+        recordId: inserted.row?.id,
+        recordCode: voucherNumber,
+        summary: `سند صرف: ${canonicalPayeeName} (${amount} ر.س)`,
+        siteRef: siteRef || 'عام',
+        amount,
+      });
+
+      return {
+        success: true,
+        record: {
+          id: inserted.row?.id,
+          op_number: opNumber,
+          voucher_number: voucherNumber,
+          date: voucherDate,
+          amount,
+          payee_name: canonicalPayeeName,
+          partner_id: partnerId,
+          partner_verified: Boolean(partnerId),
+          partner_type: partnerType || (isWorker ? 'عامل' : 'شريك'),
+          debit_account: debitAccount ? `${debitAccount.code} - ${debitAccount.name}` : '512 - أجور ومرتبات عمالة الموقع',
+          credit_account: creditAccount ? `${creditAccount.code} - ${creditAccount.name}` : '122 - الخزينة الرئيسية',
+          payment_method: paymentMethod,
+          site_ref: siteRef || 'عام',
+          description,
+          is_posted: false,
+        },
+      };
+    },
+
     // 7. إضافة مسودة قيد محاسبي / قيد يومية
     async add_journal_entry_draft(rawArgs = {}) {
       if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
@@ -1609,32 +1977,58 @@ export function createCopilotTools({
       const accRes = await fetchScopedRows('accounts', { select: 'id,code,name,account_type', limit: '200' });
       const accounts = accRes.ok && Array.isArray(accRes.data) ? accRes.data : [];
 
-      function matchAccount(query, defaultFallbackCode) {
-        if (!query) return accounts.find(a => a.code === defaultFallbackCode) || accounts[0] || null;
+      function matchAccount(query) {
+        if (!query) return null;
         const q = String(query).trim().toLowerCase();
-        return accounts.find(a => a.code === q || (a.name && a.name.toLowerCase() === q)) ||
-          accounts.find(a => a.name && (a.name.toLowerCase().includes(q) || q.includes(a.name.toLowerCase()))) ||
-          accounts.find(a => a.code === defaultFallbackCode) ||
-          accounts[0] || null;
+        const normQ = normalizeArabic(q);
+        return accounts.find(a => String(a.code) === q || normalizeArabic(a.name) === normQ) ||
+          accounts.find(a => a.name && (normalizeArabic(a.name).includes(normQ) || normQ.includes(normalizeArabic(a.name)))) ||
+          null;
       }
 
-      const debitAcc = matchAccount(rawArgs?.debit_account, '1291');
-      const creditAcc = matchAccount(rawArgs?.credit_account, '122');
+      const debitAcc = matchAccount(rawArgs?.debit_account);
+      const creditAcc = matchAccount(rawArgs?.credit_account);
+
+      // التحقق الصارم من معرف الحسابات في الدليل (Account ID)
+      if (!debitAcc?.id) {
+        return {
+          success: false,
+          error: `حساب المدين «${rawArgs?.debit_account || 'غير محدد'}» غير مسجل في دليل الحسابات (accounts). لا يمكن تسجيل القيد بدون معرف حساب صحيح (Account ID).`
+        };
+      }
+      if (!creditAcc?.id) {
+        return {
+          success: false,
+          error: `حساب الدائن «${rawArgs?.credit_account || 'غير محدد'}» غير مسجل في دليل الحسابات (accounts). لا يمكن تسجيل القيد بدون معرف حساب صحيح (Account ID).`
+        };
+      }
 
       // Resolve project if specified
       let siteRef = typeof rawArgs?.site_ref === 'string' && rawArgs.site_ref.trim() ? rawArgs.site_ref.trim() : null;
       let projectId = null;
-      const projRes = await fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '50' });
-      if (projRes.ok && Array.isArray(projRes.data) && projRes.data.length > 0 && siteRef) {
-        const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره)\s*/, '').trim();
-        const matchedProj = projRes.data.find(p =>
-          (p.Property && (p.Property.includes(cleanSite) || siteRef.includes(p.Property))) ||
-          (p.project_name && (p.project_name.includes(cleanSite) || siteRef.includes(p.project_name))) ||
-          (p.project_code && p.project_code.toLowerCase() === cleanSite.toLowerCase())
-        );
-        if (matchedProj) {
-          projectId = matchedProj.id;
-          siteRef = matchedProj.Property || matchedProj.project_name || siteRef;
+      if (siteRef) {
+        const projRes = await fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '50' });
+        if (projRes.ok && Array.isArray(projRes.data) && projRes.data.length > 0) {
+          const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره)\s*/, '').trim();
+          const normSite = normalizeArabic(cleanSite);
+          const matchedProj = projRes.data.find(p => {
+            const pProp = normalizeArabic(p.Property);
+            const pCode = (p.project_code || '').toLowerCase();
+            const pName = normalizeArabic(p.project_name);
+            return pProp === normSite || pProp.includes(normSite) || normSite.includes(pProp) ||
+                   pCode === normSite || pName.includes(normSite);
+          });
+          if (matchedProj) {
+            projectId = matchedProj.id;
+            siteRef = matchedProj.Property || matchedProj.project_name || siteRef;
+          }
+        }
+        // التحقق الصارم من معرف المشروع (Project ID)
+        if (!projectId) {
+          return {
+            success: false,
+            error: `الفيلا أو المشروع «${siteRef}» غير مسجل في قاعدة البيانات (projects). لا يمكن ربط القيد بدون معرف مشروع صحيح (Project ID).`
+          };
         }
       }
 
@@ -1708,31 +2102,44 @@ export function createCopilotTools({
       const totalAmount = assignedQty * unitPrice;
       const startDate = resolveDateOrToday(rawArgs?.start_date || 'today');
 
-      // Resolve project
+      // Resolve project (التحقق الصارم من معرف المشروع)
       let siteRef = typeof rawArgs?.site_ref === 'string' && rawArgs.site_ref.trim() ? rawArgs.site_ref.trim() : null;
       let projectId = null;
       const projRes = await fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '50' });
       if (projRes.ok && Array.isArray(projRes.data) && projRes.data.length > 0 && siteRef) {
         const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره)\s*/, '').trim();
-        const matchedProj = projRes.data.find(p =>
-          (p.Property && (p.Property.includes(cleanSite) || siteRef.includes(p.Property))) ||
-          (p.project_name && (p.project_name.includes(cleanSite) || siteRef.includes(p.project_name))) ||
-          (p.project_code && p.project_code.toLowerCase() === cleanSite.toLowerCase())
-        );
+        const normSite = normalizeArabic(cleanSite);
+        const matchedProj = projRes.data.find(p => {
+          const pProp = normalizeArabic(p.Property);
+          const pCode = (p.project_code || '').toLowerCase();
+          const pName = normalizeArabic(p.project_name);
+          return pProp === normSite || pProp.includes(normSite) || normSite.includes(pProp) ||
+                 pCode === normSite || pName.includes(normSite);
+        });
         if (matchedProj) {
           projectId = matchedProj.id;
           siteRef = matchedProj.Property || matchedProj.project_name || siteRef;
         }
       }
 
-      // Resolve contractor
-      let contractorName = typeof rawArgs?.contractor_name === 'string' ? rawArgs.contractor_name.trim() : 'مقاول باطن';
+      if (!projectId) {
+        return {
+          success: false,
+          error: `الفيلا أو المشروع «${siteRef || 'غير محدد'}» غير مسجل في قاعدة البيانات (projects). لا يمكن إصدار أمر شغل بدون معرف مشروع صحيح (Project ID).`
+        };
+      }
+
+      // Resolve contractor (التحقق الصارم من معرف المقاول في سجل الشركاء)
+      let contractorName = typeof rawArgs?.contractor_name === 'string' ? rawArgs.contractor_name.trim() : '';
       let contractorId = null;
-      const partRes = await fetchScopedRows('partners', { select: 'id,name,partner_type', limit: '100' });
+      const partRes = await fetchScopedRows('partners', { select: 'id,name,partner_type', limit: '150' });
       if (partRes.ok && Array.isArray(partRes.data) && contractorName) {
-        const matchedPart = partRes.data.find(p =>
-          p.name && (p.name.includes(contractorName) || contractorName.includes(p.name))
-        );
+        const normContractor = normalizeArabic(contractorName);
+        const matchedPart = partRes.data.find(p => {
+          if (!p.name) return false;
+          const pNorm = normalizeArabic(p.name);
+          return pNorm === normContractor || pNorm.includes(normContractor) || normContractor.includes(pNorm);
+        });
         if (matchedPart) {
           contractorId = matchedPart.id;
           contractorName = matchedPart.name;
@@ -1743,6 +2150,37 @@ export function createCopilotTools({
         ? 'تنفيذ ذاتي'
         : 'مقاول باطن';
 
+      if (executorType !== 'تنفيذ ذاتي' && !contractorId) {
+        return {
+          success: false,
+          error: `المقاول «${contractorName || 'غير محدد'}» غير مسجل في جدول الشركاء (partners). لا يمكن إصدار أمر شغل بدون معرف مقاول مسجل (Partner ID).`
+        };
+      }
+
+      // Resolve BOQ Budget Item (التحقق الصارم من معرف البند في مقايسة المشروع)
+      let boqBudgetId = null;
+      if (workItem) {
+        const boqRes = await fetchScopedRows('boq_budget', { project_id: 'eq.' + projectId, select: 'id,work_item,budget_code' });
+        if (boqRes.ok && Array.isArray(boqRes.data) && boqRes.data.length > 0) {
+          const normItem = normalizeArabic(workItem);
+          const matchedBoq = boqRes.data.find(b => {
+            if (!b.work_item) return false;
+            const bNorm = normalizeArabic(b.work_item);
+            return bNorm === normItem || bNorm.includes(normItem) || normItem.includes(bNorm);
+          });
+          if (matchedBoq) {
+            boqBudgetId = matchedBoq.id;
+          }
+        }
+      }
+
+      if (!boqBudgetId) {
+        return {
+          success: false,
+          error: `بند الأعمال «${workItem || 'غير محدد'}» غير مسجل في مقايسة المشروع (boq_budget). لا يمكن إصدار أمر شغل بدون معرف بند معتمد (BOQ Item ID).`
+        };
+      }
+
       const orderNumSuffix = Math.floor(1000 + Math.random() * 9000);
       const orderNumber = `JO-${startDate.replace(/-/g, '')}-${orderNumSuffix}`;
 
@@ -1750,6 +2188,7 @@ export function createCopilotTools({
         order_number: orderNumber,
         project_id: projectId,
         contractor_id: contractorId,
+        boq_budget_id: boqBudgetId,
         executor_type: executorType,
         assigned_qty: assignedQty,
         unit_price: unitPrice,
@@ -2076,6 +2515,46 @@ export function createCopilotTools({
               reference: `LAB-${matched.id.slice(0, 8).toUpperCase()}`,
               summary: `${patch.worker_name || matched.worker_name || ''} — ${patch.work_item || matched.work_item || ''}`,
               changes: changes.length > 0 ? changes : ['تم تحديث يومية العامل بنجاح'],
+            },
+          };
+        }
+      }
+
+      // 3.5) سند صرف
+      if (opType === 'payment_voucher' || ref.includes('PV-') || ref.startsWith('PV')) {
+        const cleanVoucherNum = ref.replace(/.*?PV-([\w-]+).*/i, 'PV-$1');
+        const vouchersRes = await fetchScopedRows('payment_vouchers', { select: 'id,voucher_number,amount,description,site_ref,status', limit: '30' });
+        const vouchers = vouchersRes.ok && Array.isArray(vouchersRes.data) ? vouchersRes.data : [];
+        const matched =
+          (indexedOp?.recordId && vouchers.find(v => v.id === indexedOp.recordId)) ||
+          vouchers.find(v => v.voucher_number === cleanVoucherNum || (v.voucher_number && v.voucher_number.includes(cleanVoucherNum))) ||
+          vouchers[0];
+
+        if (matched) {
+          const patch = {};
+          if (rawArgs?.new_amount && Number(rawArgs.new_amount) > 0) {
+            patch.amount = Number(rawArgs.new_amount);
+            changes.push(`💰 مبلغ السند: ${matched.amount ?? '—'} ر.س ⬅️ ${patch.amount} ر.س`);
+          }
+          if (rawArgs?.new_description) {
+            patch.description = rawArgs.new_description.trim();
+            changes.push(`📝 البيان: «${matched.description || '—'}» ⬅️ «${patch.description}»`);
+          }
+          if (rawArgs?.new_site_ref) {
+            patch.site_ref = rawArgs.new_site_ref.trim();
+            changes.push(`📍 الموقع/الفيلا: «${matched.site_ref || 'عام'}» ⬅️ «${patch.site_ref}»`);
+          }
+          if (Object.keys(patch).length > 0) {
+            await updateScopedRecord('payment_vouchers', 'id', matched.id, patch);
+          }
+          return {
+            success: true,
+            updated: {
+              op_number: opNumber,
+              type: 'سند صرف',
+              reference: matched.voucher_number,
+              summary: patch.description || matched.description || indexedOp?.summary || '',
+              changes: changes.length > 0 ? changes : ['تم تحديث بيانات سند الصرف بنجاح'],
             },
           };
         }

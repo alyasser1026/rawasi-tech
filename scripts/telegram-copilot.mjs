@@ -503,8 +503,14 @@ function parseBatchLaborLogs(userPrompt) {
   const text = String(userPrompt || '').trim();
   if (!text) return null;
 
+  // استبعاد أوامر الشغل صراحة حتى لا تتداخل مع يوميات العمالة
+  if (/(?:امر\s*شغل|أمر\s*شغل|امر\s*تشغيل|أمر\s*تشغيل)/iu.test(text)) return null;
+
+  // إذا كانت الرسالة سطراً واحداً وتصف فريق عمل محدد (فني ومساعد)، نتركها لقاعدة الفريق الفردي
+  if (!text.includes('\n') && /(?:للفني|فني)\s+.*(?:و?العامل|و?عامل|و?المساعد|و?مساعد)/iu.test(text)) return null;
+
   // 1. فحص نية تسجيل يوميات أو عمالة
-  const hasLaborIntent = /(?:يوميات|يومية|يوميه|عمال|العمال|شغل|تشغيل)/iu.test(text) &&
+  const hasLaborIntent = /(?:يوميات|يومية|يوميه|عمال|العمال)/iu.test(text) &&
                         /(?:ضيف|اضف|أضف|سجل|سجّل|اعمل|انشئ|أنشئ|عاوز|عايز|محتاج)/iu.test(text);
 
   if (!hasLaborIntent) return null;
@@ -640,6 +646,9 @@ function parseBatchLaborLogs(userPrompt) {
   }
 
   if (workers.length === 0) return null;
+  if (workers.length === 1 && !text.includes('\n') && !/(?:قائمة|كشف|يوميات)/iu.test(text)) {
+    return null; // نترك العامل الفردي للقاعدة 1 لتطبيق كامل التفاصيل والإنتاجية والمساعد
+  }
 
   const calls = workers.map(w => ({
     name: 'add_labor_daily_log_draft',
@@ -705,8 +714,102 @@ export function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
     };
   }
 
+  // 0.5) إنشاء أو تسجيل سند صرف مالي بحساسية ودقة فائقة (شاشة سندات الصرف: صرفه ودفع تمنه من الخزينة)
+  const isCashDisbursement =
+    /(?:^|\s)(?:صرفنا|دفعنا|سددنا|ادفع(?:لي)?|إدفع(?:لي)?|اصرف(?:لي)?|إصرف(?:لي)?|حاسبنا|حاسب(?:لي)?)(?:\s|$)/iu.test(t) ||
+    /(?:سند\s*(?:صرف|سداد|دفع)|إيصال\s*صرف|ايصال\s*صرف|سند\s*قبض\s*وصرف)/iu.test(t) ||
+    (/(?:اعمل|أنشئ|انشئ|سجل|سجّل|ضيف|أضف|اضف)\s+(?:سند|صرف|سداد|دفعة|دفعه)/iu.test(t) && !/(?:يوميه|يومية|حضور|انتاجية|إنتاجية)/iu.test(t)) ||
+    (/(?:دفعة|دفعه|سلفة|سلفه)\s*(?:تحت\s*الحساب)?/iu.test(t) && /(?:لـ|للمقاول|للعامل|للفني|للمساعد|للمورد|للأستاذ|للمهندس|للشريك)/iu.test(t));
+
+  const isInvoiceOrMaterialPurchase =
+    /(?:فاتورة|فاتوره|فواتير|اشترينا|شراء|خامات|مواد\s*بناء|طن\s*حديد|شكارة\s*اسمنت|شكاير\s*اسمنت)/iu.test(t);
+
+  const isPaymentVoucherTrigger = isCashDisbursement && !isInvoiceOrMaterialPurchase;
+
+  if (isPaymentVoucherTrigger) {
+    // 1. استخراج الموقع / الفيلا إن وُجدت
+    let siteRef = null;
+    const siteMatch = t.match(/(?:و?الفيلا|و?فيلا|و?المشروع|و?مشروع|و?العماره|و?عماره|و?العمارة|و?عمارة|و?الموقع|و?موقع)\s*([\p{L}\p{N}_-]+)/u);
+    if (siteMatch) {
+      siteRef = siteMatch[0].trim();
+    }
+
+    // 2. استخراج المبلغ
+    let amount = undefined;
+    const amtExplicit =
+      t.match(/(?:مبلغ|بمبلغ|قيمة|قيمه|بقيمة|بـ|ب|قدره|وقدره)\s*(\d+(?:\.\d+)?)/i) ||
+      t.match(/(\d+(?:\.\d+)?)\s*(?:ريال|رس|ر\.س|جنيه|جنية)/i);
+    if (amtExplicit) {
+      amount = Number(amtExplicit[1]);
+    } else {
+      const allNums = [...t.matchAll(/\b(\d+(?:\.\d+)?)\b/g)];
+      for (const m of allNums) {
+        const num = m[1];
+        if (siteMatch && siteMatch[1] === num) continue;
+        amount = Number(num);
+        break;
+      }
+    }
+
+    // 3. استخراج المستفيد (المقاول، العامل، الفني، المورد، الشخص)
+    const payeeMatch = t.match(
+      /(?:^|\s)(?:لصالح|باسم|بإسم|للمستفيد|المستفيد|المدفوع\s*له|لأجور|لاجور|للعامل|لعامل|للفني|لفني|للصنايعي|لصنايعي|للمساعد|لمساعد|للمقاول|لمقاول|للمورد|لمورد|للأستاذ|للمهندس|لمهندس|للشريك|لشريك|لـ|ل)(?:\s+)?([\p{L}\s]{2,40}?)(?=\s+(?:مبلغ|بمبلغ|فيلا|مشروع|موقع|عماره|عمارة|بند|من\s*حساب|من\s*الخزنة|من\s*الخزينه|كاش|نقدا|تحويل|شيك|بيان|وصف|دفعة|دفعه|\d)|$)/u
+    );
+    let payeeName = payeeMatch?.[1]?.trim();
+    if (payeeName) {
+      payeeName = payeeName
+        .replace(/^(?:العامل|عامل|الفني|فني|المساعد|مساعد|المقاول|مقاول|المورد|مورد|المهندس|مهندس|الأستاذ|استاذ|الأسطى|اسطى|صنايعي|أجور|اجور)\s+/u, '')
+        .replace(/^(?:سند|صرف|سداد)\s*/u, '')
+        .trim();
+    }
+    if (!payeeName || payeeName === 'سند' || payeeName === 'صرف') {
+      const fallbackPayee = t.match(/(?:^|\s)(?:العامل|عامل|المقاول|مقاول|المورد|مورد|الفني|فني)\s+([\p{L}\s]{2,30}?)(?=\s+(?:مبلغ|فيلا|مشروع|بند|\d)|$)/u);
+      if (fallbackPayee) {
+        payeeName = fallbackPayee[1].trim();
+      }
+    }
+
+    // 4. استخراج البيان أو الوصف
+    let description = undefined;
+    const descMatch = t.match(/(?:البيان|بيان|الوصف|وصف|عن|نظير|بخصوص|مقابل|دفعة|دفعه)\s+([\p{L}\p{N}\s]{2,80}?)(?=\s+(?:مبلغ|فيلا|مشروع|لـ|للمقاول|للعامل|للفني|للمساعد|للمورد|\d)|$)/u);
+    if (descMatch) {
+      description = descMatch[1].trim();
+      if (/^(?:تحت\s*الحساب|أعمال|اعمال|حساب)/.test(description)) {
+        description = descMatch[0].trim();
+      }
+    } else {
+      description = ('سند صرف ' + (payeeName ? 'إلى ' + payeeName : '') + (siteRef ? ' - ' + siteRef : '')).trim();
+    }
+
+    // 5. استخراج طريقة الدفع
+    let paymentMethod = 'نقدي';
+    if (/(?:تحويل\s*بنكي|تحويل|بنكي|عبر\s*البنك|أهلي|راجحي|حساب\s*بنكي)/i.test(t)) {
+      paymentMethod = 'تحويل بنكي';
+    } else if (/(?:شيك|شيكات)/i.test(t)) {
+      paymentMethod = 'شيك';
+    } else if (/(?:شبكة|مدى|بطاقة|فيزا)/i.test(t)) {
+      paymentMethod = 'شبكة';
+    }
+
+    if (amount && Number.isFinite(amount) && amount > 0) {
+      return {
+        name: 'add_payment_voucher_draft',
+        args: {
+          payee_name: payeeName || 'مستفيد غير محدد',
+          amount,
+          payment_method: paymentMethod,
+          ...(siteRef ? { site_ref: siteRef } : {}),
+          ...(description ? { description } : {}),
+        },
+      };
+    }
+  }
+
   // 1) إضافة يومية عامل أو فني أو فني ومساعد من المحادثة
-  if (/(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل|اعمليلي|اعملي|اعمل|انشئ|أنشئ).*(?:يوميه|يومية|فني|عامل)/iu.test(t)) {
+  if (
+    !/(?:سند\s*(?:صرف|سداد|دفع)|إيصال\s*صرف|ايصال\s*صرف|سند\s*قبض\s*وصرف|اصرف|إصرف|سداد)/iu.test(t) &&
+    /(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل|اعمليلي|اعملي|اعمل|انشئ|أنشئ).*(?:يوميه|يومية|فني|عامل)/iu.test(t)
+  ) {
     const boundary = '(?=\\s+(?:و?العامل|و?عامل|و?المساعد|و?مساعد|و?الفيلا|و?فيلا|و?المشروع|و?مشروع|و?العماره|و?عماره|و?العمارة|و?عمارة|و?الموقع|و?موقع|و?البند|و?بند|و?امر\\s*شغل|و?أمر\\s*شغل|و?امر|و?أمر|و?انتاجيته|و?إنتاجيته|و?انتاجية|و?إنتاجية|و?انتاج|و?إنتاج|و?عمل|و?طريحه|و?طريحة|و?يوميه|و?يومية|و?اجر|و?أجر|و?ملاحظات|و?ملاحظة|و?ملاحظه|و?بيان|\\d)|$)';
 
     const techMatch = t.match(new RegExp(`(?:للفني|فني)\\s*(?:واسمه|اسمه)?\\s+([\\p{L}\\s]{2,30}?)${boundary}`, 'u'));
@@ -759,12 +862,16 @@ export function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
     }
   }
 
-  // 2) إضافة أو تسجيل مصروف أو فاتورة من المحادثة بحساسية ودقة فائقة
-  if (
-    /(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجللي|سجل|سجّل|تسجيل|إضافة|اضافة|فاتورة|فاتوره|مصروف|مصاريف|صرفنا|اشترينا|دفعنا)/i.test(t) &&
+  // 2) إضافة أو تسجيل مصروف أو فاتورة من المحادثة بحساسية ودقة فائقة (شاشة المصروفات /expenses)
+  const isExplicitExpense =
+    !isPaymentVoucherTrigger &&
+    !/(?:سند\s*(?:صرف|سداد|دفع)|إيصال\s*صرف|ايصال\s*صرف|سند\s*قبض\s*وصرف|اصرف|إصرف)/iu.test(t) &&
+    (/(?:فاتورة|فاتوره|فواتير|مصروف|مصاريف|اشترينا|شراء|توريد|خامات|مواد\s*بناء)/iu.test(t) ||
+     (/(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجللي|سجل|سجّل|تسجيل|إضافة|اضافة)\s*(?:لي)?\s*(?:فاتورة|فاتوره|مصروف|مصاريف)/iu.test(t))) &&
     /\d+/.test(t) &&
-    !/(?:ازاي|إزاي|كيف|وريني|استعلام|(?:^|\s)(?:عرض|هات|كشف|تقرير|كم|كام)(?:\s|$))/i.test(t)
-  ) {
+    !/(?:ازاي|إزاي|كيف|وريني|استعلام|(?:^|\s)(?:عرض|هات|كشف|تقرير|كم|كام)(?:\s|$))/i.test(t);
+
+  if (isExplicitExpense) {
     // 1. استخراج الفيلا أو المشروع (اختياري)
     let siteRef = null;
     const siteMatch = t.match(/(?:فيلا|مشروع|عماره|عمارة|موقع|برج)\s*([\p{L}\p{N}_-]+)/u);
@@ -837,6 +944,14 @@ export function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
         desc = workItem ? `مصروف بند ${workItem}` : 'مصروف موقع';
       }
 
+      // كشف ما إذا كان المصروف مسدد فورياً كاش (صرفه ودفع تمنه كاش)
+      let paymentMethod = 'آجل';
+      let isPaid = false;
+      if (/(?:كاش|نقدا|نقداً|دفعنا\s*تمنه|صرفنا\s*تمنه|دفعنا\s*كاش|سددنا\s*كاش)/iu.test(t)) {
+        paymentMethod = 'كاش';
+        isPaid = true;
+      }
+
       return {
         name: 'add_expense_draft',
         args: {
@@ -844,6 +959,8 @@ export function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
           total_price: totalPrice,
           quantity,
           vat_amount: vatAmount,
+          payment_method: paymentMethod,
+          is_paid: isPaid,
           ...(siteRef ? { site_ref: siteRef } : {}),
           ...(workItem ? { work_item: workItem } : {}),
           exp_date: 'today',
@@ -918,6 +1035,95 @@ export function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
     }
   }
 
+  // 2.7) إضافة أمر شغل جديد لمقاول من المحادثة
+  if (
+    /(?:امر\s*شغل|أمر\s*شغل|امر\s*تشغيل|أمر\s*تشغيل)/iu.test(t) &&
+    /(?:اعمل|أنشئ|انشئ|سجل|سجّل|ضيف|أضف|اضف|فتح|اصدار|إصدار)/iu.test(t) &&
+    !/(?:ازاي|كيف|وريني|استعلام|تقرير)/iu.test(t)
+  ) {
+    let siteRef = null;
+    const siteMatch = t.match(/(?:و?الفيلا|و?فيلا|و?المشروع|و?مشروع|و?العماره|و?عماره|و?العمارة|و?عمارة|و?الموقع|و?موقع)\s*([\p{L}\p{N}_-]+)/u);
+    if (siteMatch) siteRef = siteMatch[0].trim();
+
+    let workItem = null;
+    const itemMatch = t.match(/(?:بند|أعمال|اعمال|شغل)?\s*(محارة|لياسة|نجارة|حدادة|مباني|دهانات|سيراميك|عزل|سباكة|كهرباء|خرسانة|تشطيبات)/iu);
+    if (itemMatch) workItem = itemMatch[1].trim();
+
+    let assignedQty = 1;
+    const qtyMatch = t.match(/(?:كمية|كميه|مساحة|مساحه|قدرها|عدد)?\s*(\d+(?:\.\d+)?)\s*(?:متر|م2|م|طن|حبة|حبات)?(?=\s+(?:بسعر|فئة|فئه|ريال|ر\.س|لمقاول|لـ)|$)/iu);
+    if (qtyMatch) assignedQty = Number(qtyMatch[1]);
+
+    let unitPrice = 0;
+    const priceMatch = t.match(/(?:بسعر|فئة|فئه|سعر|بـ|ب)\s*(\d+(?:\.\d+)?)/iu);
+    if (priceMatch) unitPrice = Number(priceMatch[1]);
+
+    let contractorName = null;
+    const contMatch = t.match(/(?:لمقاول|للمقاول|مقاول|لـ|مع)\s+([\p{L}\s]{2,30}?)(?=\s+(?:كمية|كميه|بسعر|فئة|فئه|فيلا|مشروع|\d)|$)/u);
+    if (contMatch) contractorName = contMatch[1].replace(/^(?:المقاول|مقاول)\s+/u, '').trim();
+
+    if (contractorName || workItem) {
+      return {
+        name: 'add_job_order_draft',
+        args: {
+          contractor_name: contractorName || 'مقاول غير محدد',
+          work_item: workItem || 'أعمال مقاولات',
+          assigned_qty: assignedQty,
+          unit_price: unitPrice,
+          ...(siteRef ? { site_ref: siteRef } : {}),
+          executor_type: 'مقاول باطن',
+        },
+      };
+    }
+  }
+
+  // 2.8) إضافة قيد محاسبي أو قيد يومية من المحادثة
+  if (
+    /(?:قيد\s*(?:يومية|يوميه|محاسبي|تسوية)?|سجل\s*قيد|اعمل\s*قيد|أضف\s*قيد|اضف\s*قيد)/iu.test(t) &&
+    /\d+/.test(t) &&
+    !/(?:ازاي|كيف|وريني|استعلام|تقرير|كشف)/iu.test(t)
+  ) {
+    let amount = undefined;
+    const amtMatch = t.match(/(?:بمبلغ|مبلغ|بقيمة|قيمة|قيمه|بـ|ب)\s*(\d+(?:\.\d+)?)/iu) ||
+      t.match(/(\d+(?:\.\d+)?)\s*(?:ريال|ر\.س|جنيه)/iu) ||
+      t.match(/\b(\d{3,7}(?:\.\d+)?)\b/);
+    if (amtMatch) amount = Number(amtMatch[1]);
+
+    let debitAccount = null;
+    let creditAccount = null;
+
+    // نمط: من [حساب دائن أو مدين] إلى [حساب مدين]
+    const fromToMatch = t.match(/من\s+([\p{L}\s]{2,30}?)\s+(?:إلى|الى|لـ|ل)\s+([\p{L}\s]{2,30}?)(?=\s+(?:بمبلغ|مبلغ|بقيمة|\d)|$)/u);
+    if (fromToMatch) {
+      creditAccount = fromToMatch[1].trim();
+      debitAccount = fromToMatch[2].trim();
+    } else {
+      const singleFrom = t.match(/من\s+([\p{L}\s]{2,30}?)(?=\s+(?:إلى|الى|لـ|ل|بمبلغ|مبلغ|\d)|$)/u);
+      const singleTo = t.match(/(?:إلى|الى|لـ|ل)\s+([\p{L}\s]{2,30}?)(?=\s+(?:من|بمبلغ|مبلغ|\d)|$)/u);
+      if (singleFrom) creditAccount = singleFrom[1].trim();
+      if (singleTo) debitAccount = singleTo[1].trim();
+    }
+
+    let siteRef = null;
+    const siteMatch = t.match(/(?:و?الفيلا|و?فيلا|و?المشروع|و?مشروع|و?الموقع|و?موقع)\s*([\p{L}\p{N}_-]+)/u);
+    if (siteMatch) siteRef = siteMatch[0].trim();
+
+    let desc = t.replace(/(?:ضيفيلي|ضيفلي|ضيف|اضف|أضف|سجل|سجّل|اعمل)\s*(?:قيد|مسودة)?/iu, '').trim();
+
+    if (amount && Number.isFinite(amount) && amount > 0) {
+      return {
+        name: 'add_journal_entry_draft',
+        args: {
+          description: desc.slice(0, 140) || 'قيد محاسبي جديد',
+          amount,
+          ...(debitAccount ? { debit_account: debitAccount } : {}),
+          ...(creditAccount ? { credit_account: creditAccount } : {}),
+          ...(siteRef ? { site_ref: siteRef } : {}),
+          entry_date: 'today',
+        },
+      };
+    }
+  }
+
   const dateArg = /امبارح|إمبارح|أمس|امس|yesterday/i.test(t) ? 'yesterday' : 'today';
 
   // 3) التقرير اليومي المفصل الشامل (أو أسئلة المصروفات/الخامات/المقاولين/الركوستات لليوم)
@@ -987,10 +1193,10 @@ function detectDirectTextReply(userPrompt, quotedMessageText = '') {
   const isMozza = Boolean(s.mozzaModeEnabled);
   const pet = s.mozzaNickname || 'يا يسور';
 
-  // إذا كانت الرسالة تحتوي على أي أمر شغل أو حسابات (تقرير، مصروف، قيد، يومية، أمر شغل، تعديل عملية، فلل، عمالة)، اتركها تمر لأدوات الشغل فوراً!
+  // إذا كانت الرسالة تحتوي على أي أمر شغل أو حسابات (تقرير، مصروف، قيد، سند صرف، يومية، أمر شغل، تعديل عملية، فلل، عمالة)، اتركها تمر لأدوات الشغل فوراً!
   const hasWorkIntent =
     Boolean(detectDirectFieldOpsCall(t, q)) ||
-    /(?:تقرير|مصروف|يوميه|يومية|قيد|امر\s*شغل|أمر\s*شغل|العمليه|العملية|الفلل|المشاريع|العماله|العمالة|الشركاء|طريحه|طريحة|فحص|استلام|مستخلص)/i.test(t);
+    /(?:تقرير|مصروف|سند|سداد|دفعة|دفعه|يوميه|يومية|قيد|امر\s*شغل|أمر\s*شغل|العمليه|العملية|الفلل|المشاريع|العماله|العمالة|الشركاء|طريحه|طريحة|فحص|استلام|مستخلص)/i.test(t);
 
   // 0) تفعيل أو إيقاف «وضع الموزة» مباشرة من المحادثة أو الصوت
   if (/^(?:(?:شغل|شغّل|افتح|فعّل|فعل|عاوز|عايز|هات)\s*)?(?:وضع\s*)?(?:الموزه|الموزة)$|^\/mozza(?:\s+on)?$/i.test(t)) {
@@ -2422,8 +2628,11 @@ function startDailyReportScheduler() {
   }, 45_000).unref();
 }
 
-initKnowledgeBase();
-startDailyReportScheduler();
-runPdfMockTest().catch(err => console.error('Mock test error:', err.message));
-// Polling timeout=25s (long-poll standard). AbortSignal is 35s. // TODO: env — COPILOT_POLL_TIMEOUT_S
-pollUpdates();
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename);
+if (isMain) {
+  initKnowledgeBase();
+  startDailyReportScheduler();
+  runPdfMockTest().catch(err => console.error('Mock test error:', err.message));
+  // Polling timeout=25s (long-poll standard). AbortSignal is 35s. // TODO: env — COPILOT_POLL_TIMEOUT_S
+  pollUpdates();
+}
