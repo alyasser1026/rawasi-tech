@@ -63,7 +63,14 @@ export interface ExecutionItemGuide {
     wirCode: string;
   };
 
-
+  // 8 & 9. أسعار استرشادية وتاريخ آخر تحديث
+  approximatePricing?: {
+    materialCostRange: string;
+    laborCostRange: string;
+    totalRate: string;
+    pricingNotes: string;
+  };
+  lastPriceUpdate?: string;
 }
 
 export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [

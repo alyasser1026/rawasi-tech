@@ -38,7 +38,7 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
           ...item.preExecutionReview.points,
           ...item.executionSequence.steps.map(s => s.title + ' ' + s.detail),
           ...item.inspectionAndHandover.checkpoints,
-          item.approximatePricing.totalRate,
+          item.approximatePricing?.totalRate || '',
         ].join(' ').toLowerCase();
 
         return fullText.includes(searchNorm);
@@ -130,10 +130,12 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
                   </div>
 
                   <div className="pw-exec-header-right">
-                    <div className="pw-exec-price-chip" title="السعر التقريبي التقديري">
-                      <strong className="pw-exec-price-val">{item.approximatePricing.totalRate}</strong>
-                      <small className="pw-exec-price-date">تحديث: {item.lastPriceUpdate}</small>
-                    </div>
+                    {item.approximatePricing && (
+                      <div className="pw-exec-price-chip" title="السعر التقريبي التقديري">
+                        <strong className="pw-exec-price-val">{item.approximatePricing.totalRate}</strong>
+                        {item.lastPriceUpdate && <small className="pw-exec-price-date">تحديث: {item.lastPriceUpdate}</small>}
+                      </div>
+                    )}
                     <button
                       type="button"
                       className="pw-exec-toggle-btn"
@@ -337,33 +339,37 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
                       </section>
 
                       {/* 8 و 9. الأسعار التقريبية وتاريخ آخر تحديث */}
-                      <section className="pw-exec-block pw-block-pricing">
-                        <div className="pw-block-head">
-                          <span className="pw-block-icon">💰</span>
-                          <h4>8 & 9. أسعار استرشادية وتاريخ آخر تحديث</h4>
-                        </div>
-                        <div className="pw-pricing-table">
-                          <div className="pw-price-row">
-                            <span>تكلفة المواد والخامات:</span>
-                            <strong>{item.approximatePricing.materialCostRange}</strong>
+                      {item.approximatePricing && (
+                        <section className="pw-exec-block pw-block-pricing">
+                          <div className="pw-block-head">
+                            <span className="pw-block-icon">💰</span>
+                            <h4>8 & 9. أسعار استرشادية وتاريخ آخر تحديث</h4>
                           </div>
-                          <div className="pw-price-row">
-                            <span>تكلفة المصنعيات والتشغيل:</span>
-                            <strong>{item.approximatePricing.laborCostRange}</strong>
+                          <div className="pw-pricing-table">
+                            <div className="pw-price-row">
+                              <span>تكلفة المواد والخامات:</span>
+                              <strong>{item.approximatePricing.materialCostRange}</strong>
+                            </div>
+                            <div className="pw-price-row">
+                              <span>تكلفة المصنعيات والتشغيل:</span>
+                              <strong>{item.approximatePricing.laborCostRange}</strong>
+                            </div>
+                            <div className="pw-price-row is-total">
+                              <span>السعر الإجمالي الاسترشادي:</span>
+                              <strong className="pw-rate-highlight">{item.approximatePricing.totalRate}</strong>
+                            </div>
                           </div>
-                          <div className="pw-price-row is-total">
-                            <span>السعر الإجمالي الاسترشادي:</span>
-                            <strong className="pw-rate-highlight">{item.approximatePricing.totalRate}</strong>
+                          <div className="pw-pricing-meta">
+                            <p className="pw-price-notes">{item.approximatePricing.pricingNotes}</p>
+                            {item.lastPriceUpdate && (
+                              <div className="pw-price-date-tag">
+                                <span>🕒 تاريخ آخر تحديث للسعر: </span>
+                                <strong>{item.lastPriceUpdate}</strong>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                        <div className="pw-pricing-meta">
-                          <p className="pw-price-notes">{item.approximatePricing.pricingNotes}</p>
-                          <div className="pw-price-date-tag">
-                            <span>🕒 تاريخ آخر تحديث للسعر: </span>
-                            <strong>{item.lastPriceUpdate}</strong>
-                          </div>
-                        </div>
-                      </section>
+                        </section>
+                      )}
                     </div>
                   </div>
                 )}
