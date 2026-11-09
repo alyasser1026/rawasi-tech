@@ -289,7 +289,7 @@ export function useLaborLogsLogic() {
                 return oldData.filter(log => !stringDeletedIds.includes(String(log.id)));
             });
 
-            const { error } = await supabase.rpc('delete_labor_logs_bulk', { p_ids: ids });
+            const { error } = await supabase.rpc('delete_labor_logs_bulk', { log_ids: ids });
             if (error) {
                 queryClient.setQueryData(['labor_logs'], previousData);
                 throw error;
