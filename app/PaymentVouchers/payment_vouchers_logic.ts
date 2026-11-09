@@ -176,6 +176,63 @@ export function usePaymentVouchersLogic() {
 
             // تحويل المعرف الفارغ إلى null لتفادي خطأ الـ UUID في قاعدة البيانات
             if (!payload.job_order_id) payload.job_order_id = null;
+            if (!payload.partner_id || typeof payload.partner_id !== 'string' || !payload.partner_id.trim()) payload.partner_id = null;
+            if (!payload.debit_account_id || typeof payload.debit_account_id !== 'string' || !payload.debit_account_id.trim()) payload.debit_account_id = null;
+            if (!payload.credit_account_id || typeof payload.credit_account_id !== 'string' || !payload.credit_account_id.trim()) payload.credit_account_id = null;
+            if (!payload.site_ref || typeof payload.site_ref !== 'string' || !payload.site_ref.trim()) payload.site_ref = null;
+
+            // 🛡️ التحقق من تطابق الحساب الدائن مع الشركة الحالية لتفادي خطأ payment_vouchers_credit_account_id_company_fkey
+            if (payload.credit_account_id) {
+                const { data: validCredit } = await supabase
+                    .from('accounts')
+                    .select('id')
+                    .eq('id', payload.credit_account_id)
+                    .maybeSingle();
+
+                if (!validCredit) {
+                    const { data: currentTreasury } = await supabase
+                        .from('accounts')
+                        .select('id')
+                        .or('code.eq.122,name.ilike.%الخزينة الرئيسية%,code.eq.121,name.ilike.%خزينة%')
+                        .limit(1)
+                        .maybeSingle();
+                    payload.credit_account_id = currentTreasury?.id || null;
+                }
+            } else {
+                const { data: currentTreasury } = await supabase
+                    .from('accounts')
+                    .select('id')
+                    .or('code.eq.122,name.ilike.%الخزينة الرئيسية%,code.eq.121,name.ilike.%خزينة%')
+                    .limit(1)
+                    .maybeSingle();
+                if (currentTreasury) {
+                    payload.credit_account_id = currentTreasury.id;
+                }
+            }
+
+            // 🛡️ التحقق من تطابق الحساب المدين مع الشركة الحالية
+            if (payload.debit_account_id) {
+                const { data: validDebit } = await supabase
+                    .from('accounts')
+                    .select('id')
+                    .eq('id', payload.debit_account_id)
+                    .maybeSingle();
+                if (!validDebit) {
+                    payload.debit_account_id = null;
+                }
+            }
+
+            // 🛡️ التحقق من تطابق الشريك مع الشركة الحالية
+            if (payload.partner_id) {
+                const { data: validPartner } = await supabase
+                    .from('partners')
+                    .select('id')
+                    .eq('id', payload.partner_id)
+                    .maybeSingle();
+                if (!validPartner) {
+                    payload.partner_id = null;
+                }
+            }
 
             if (!payload.voucher_number) {
                 const timePart = Date.now().toString().slice(-4);
