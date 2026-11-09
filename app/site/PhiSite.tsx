@@ -17,7 +17,7 @@ const NAV = [
   { href: '#services', label: 'الخدمات' },
   { href: '#bim', label: 'نموذج BIM' },
   { href: '#tools', label: 'الأدوات' },
-  { href: '#checklist', label: 'قائمة التفقد' },
+  { href: '#checklist', label: 'دليل وبطاقات التنفيذ' },
   { href: '#process', label: 'طريقة العمل' },
   { href: '#projects', label: 'أعمالنا' },
   { href: '#contact', label: 'تواصل' },
@@ -224,13 +224,13 @@ export default function PhiSite() {
           </div>
         </section>
 
-        {/* Inspection checklist */}
+        {/* Execution Guide & Inspection checklist */}
         <section id="checklist" className="pw-section">
           <div className="pw-wrap">
             <div className="pw-head">
-              <p className="pw-eyebrow">دليل الجودة</p>
-              <h2>قائمة التفقد الهندسية الشاملة</h2>
-              <p>207 بنود تغطي تجهيز الموقع وتنظيم سير العمل والعظم والتشطيبات وحتى التسليم النهائي. تتبّع إنجازك، وابحث في البنود، واطبع القائمة أو احفظها PDF لمشروعك.</p>
+              <p className="pw-eyebrow">منظومة الجودة والتنفيذ الميداني</p>
+              <h2>دليل وبطاقات التنفيذ الهندسي وقوائم التفقد</h2>
+              <p>منظومة تنفيذية شاملة لكل بند ترتكز على 10 محاور هندسية: ما يسبقه، الاعتمادات، الحسابات والكميات، ما يُراجع قبل التنفيذ، تسلسل الخطوات، الاستلام والتسليم، مسار الاعتماد، أسعار استرشادية محدثة (نوفمبر 2026)، والواقع العملي في مشاريعنا التطبيقية (برج كابيتال وفيلا 657) بجانب قائمة التفقد التفاعلية.</p>
             </div>
             <ChecklistExplorer />
           </div>
