@@ -69,10 +69,7 @@ function LoginContent() {
           justify-content: center;
           direction: rtl;
           font-family: 'Cairo', sans-serif;
-          background-image: linear-gradient(rgba(15, 18, 25, 0.88), rgba(24, 27, 36, 0.94)), url('/ryc_login.jpeg');
-          background-size: cover;
-          background-position: center;
-          background-attachment: fixed;
+          background: radial-gradient(1100px 600px at 50% -10%, rgba(199, 85, 23, 0.16), transparent 60%), linear-gradient(180deg, #14171d 0%, #0d0f14 100%);
           padding: 1.5rem;
         }
 
@@ -115,14 +112,11 @@ function LoginContent() {
         }
 
         .logo-container img {
-          max-height: 5.5rem;
+          height: 8.5rem;
           width: auto;
           margin: 0 auto;
-          filter: drop-shadow(0px 8px 18px rgba(0, 0, 0, 0.7));
-          transition: transform 0.3s ease;
+          display: block;
         }
-        
-        .logo-container img:hover { transform: scale(1.05); }
 
         /* Segmented Portal Switcher */
         .portal-switcher {
@@ -309,8 +303,8 @@ function LoginContent() {
         {/* Official Brand Logo */}
         <div className="logo-container">
           <img
-            src="/phitech-logo-transparent.png"
-            alt="شعار فاي تك الرسمي — PhiTech"
+            src="/brand/phitech-lockup-light.svg"
+            alt="فاي تك PhiTech"
           />
         </div>
         
@@ -321,7 +315,6 @@ function LoginContent() {
             onClick={() => handlePortalSwitch('staff')}
             className={`portal-tab ${!isPartner ? 'active-staff' : ''}`}
           >
-            <span>👷‍♂️</span>
             <span>بوابة الموظفين والمهندسين</span>
           </button>
 
@@ -330,7 +323,6 @@ function LoginContent() {
             onClick={() => handlePortalSwitch('partner')}
             className={`portal-tab ${isPartner ? 'active-partner' : ''}`}
           >
-            <span>👑</span>
             <span>بوابة الملاك والشركاء</span>
           </button>
         </div>
@@ -396,15 +388,9 @@ function LoginContent() {
             ) : isSignUp ? (
               <span>إنشاء الحساب</span>
             ) : isPartner ? (
-              <>
-                <span>👑</span>
-                <span>دخول بوابة الشركاء والملاك</span>
-              </>
+              <span>دخول بوابة الشركاء والملاك</span>
             ) : (
-              <>
-                <span>🚀</span>
-                <span>دخول المنظومة الهندسية</span>
-              </>
+              <span>دخول المنظومة</span>
             )}
           </button>
         </form>
@@ -438,14 +424,13 @@ function LoginContent() {
               transition: 'all 0.2s ease',
             }}
           >
-            <span>🌐</span>
-            <span>العودة للموقع الرسمي لشركة فاي تك (PHI CONSTRUCT)</span>
+            <span>العودة إلى موقع فاي تك</span>
           </a>
         </div>
 
         <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
           <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', fontWeight: 600 }}>
-            منظومة مؤمنة ومشفرة © {new Date().getFullYear()} • فاي تك للاستشارات الهندسية والمقاولات
+            © {new Date().getFullYear()} فاي تك للمقاولات العامة والتشطيبات
           </p>
         </div>
       </div>
