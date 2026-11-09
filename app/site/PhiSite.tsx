@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { SITE, SERVICES, STEPS, PROJECTS, COMMITMENTS, FAQS } from './site-content';
 import { CSS } from './site-styles';
 import EngTools from './EngTools';
+import ChecklistExplorer from './ChecklistExplorer';
 
 const BimModel = dynamic(() => import('./BimModel'), {
   ssr: false,
@@ -16,6 +17,7 @@ const NAV = [
   { href: '#services', label: 'الخدمات' },
   { href: '#bim', label: 'نموذج BIM' },
   { href: '#tools', label: 'الأدوات' },
+  { href: '#checklist', label: 'قائمة التفقد' },
   { href: '#process', label: 'طريقة العمل' },
   { href: '#projects', label: 'أعمالنا' },
   { href: '#contact', label: 'تواصل' },
@@ -219,6 +221,18 @@ export default function PhiSite() {
               <p>محوّل وحدات بمعاملات قياسية، وتقدير سريع للخرسانة والحديد والبلاط والدهان. للاسترشاد الأولي، وليست بديلًا عن المقايسة.</p>
             </div>
             <EngTools />
+          </div>
+        </section>
+
+        {/* Inspection checklist */}
+        <section id="checklist" className="pw-section">
+          <div className="pw-wrap">
+            <div className="pw-head">
+              <p className="pw-eyebrow">دليل الجودة</p>
+              <h2>قائمة التفقد الهندسية الشاملة</h2>
+              <p>207 بنود تغطي تجهيز الموقع وتنظيم سير العمل والعظم والتشطيبات وحتى التسليم النهائي. تتبّع إنجازك، وابحث في البنود، واطبع القائمة أو احفظها PDF لمشروعك.</p>
+            </div>
+            <ChecklistExplorer />
           </div>
         </section>
 
