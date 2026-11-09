@@ -7,8 +7,13 @@ import { createCopilotTools } from './copilot-tools.mjs';
 import { authorizeTelegramMessages, getSharedTelegramCommand, normalizeTelegramChatId, normalizeTelegramSharedChatId } from './copilot-telegram-auth.mjs';
 import { createCopilotCompanyAccess } from './copilot-company-access.mjs';
 import { createCopilotTrainingProposals } from './copilot-training-proposals.mjs';
-import { getCopilotDate, getEnabledCopilotDeclarations, runEnabledCopilotTool, splitReportParts } from './copilot-tool-policy.mjs';
-import { createCopilotConversation } from './copilot-conversation.mjs';
+import { getCopilotDate, getEnabledCopilotDeclarations as _getEnabledCopilotDeclarations, runEnabledCopilotTool as _runEnabledCopilotTool, splitReportParts } from './copilot-tool-policy.mjs';
+import { createCopilotConversation, extractEntities } from './copilot-conversation.mjs';
+import {
+  ROLES, isToolAllowed, applyRoleToAccess, canUseCallback, callbackLevel, actorContext, currentActor, requireAdmin,
+  createUserStore, handleUserCommand, createRateLimiter, createAuditLog, messageKind, commandName,
+} from './copilot-access-control.mjs';
+import { createPendingWrites, isWriteCall, formatConfirmationText, buildConfirmMarkup, resolveConfirmCallback, CONFIRM_STATUS_MESSAGES } from './copilot-write-confirm.mjs';
 import { createTelegramDocumentSender, createTelegramMessageSender, createTelegramVoiceSender } from './copilot-telegram-sender.mjs';
 import { createCopilotEntryForms } from './copilot-entry-forms.mjs';
 import { synthesizeArabicSpeech } from './copilot-voice.mjs';
@@ -21,13 +26,16 @@ import {
   PDF_MESSAGES, createPdfRequestLog, createPendingPdfRequests, executePdfRequest, parsePdfRequest, preparePdfRequest,
 } from './copilot-pdf-requests.mjs';
 import {
-  addLearnedRule, detectAutoLearningTrigger, formatLearnedRulesForPrompt,
+  addLearnedRule as _addLearnedRule, detectAutoLearningTrigger, formatLearnedRulesForPrompt,
 } from './copilot-auto-learning.mjs';
 import {
-  getBotSettings, saveBotSettings, attachFileToOperation, resolveOperationByNumberOrCode, updateOperationStatusInIndex,
-  KNOWN_COMPANIES, getActiveCompany, setActiveCompany,
+  getBotSettings, saveBotSettings as _saveBotSettings, attachFileToOperation, resolveOperationByNumberOrCode, updateOperationStatusInIndex,
+  KNOWN_COMPANIES, getActiveCompany, setActiveCompany as _setActiveCompany,
 } from './copilot-bot-settings.mjs';
-import { buildMainMenuMarkup, resolveMenuAction, BOT_COMMANDS } from './copilot-main-menu.mjs';
+import { buildMainMenuMarkup, resolveMenuAction, buildReportFollowUpMarkup, resolveReportAction, BOT_COMMANDS } from './copilot-main-menu.mjs';
+import { createAlertStore, createAlertRunner } from './copilot-alerts.mjs';
+import { createReportScheduleStore, createScheduledReportRunner } from './copilot-scheduled-reports.mjs';
+import { hasModulePermission } from './copilot-tool-policy.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -171,8 +179,9 @@ async function resolveServiceCompanyAccess() {
 async function resolveLiveCompanyAccess(actor) {
   if (!LIVE_READS_ENABLED) return null;
   const userAccess = await resolveCompanyAccess();
-  if (userAccess) return userAccess;
-  return resolveServiceCompanyAccess();
+  // الرجوع لـ service role (لو حساب البوت مش شغال) لسه موجود، بس الصلاحيات بتتقلّص حسب دور المستخدم.
+  const base = userAccess || await resolveServiceCompanyAccess();
+  return scopeAccessForActor(base, actor);
 }
 
 if (!BOT_TOKEN) {
@@ -196,6 +205,167 @@ const SCENARIOS_PATH = path.join(rootDir, 'config', 'copilot_page_scenarios.md')
 const CHECKLIST_PATH = path.join(rootDir, 'config', 'copilot_engineering_checklists.md');
 const MOZZA_SCENARIOS_PATH = path.join(rootDir, 'config', 'copilot_mozza_scenarios.md');
 const trainingProposals = createCopilotTrainingProposals(path.join(rootDir, 'work', 'copilot-training-proposals.json'));
+// 🔐 صلاحيات المستخدمين + حد الطلبات + سجل التدقيق (copilot-access-control.mjs)
+// الملف work/copilot_users.json (متجاهَل في git). لو مش موجود: الشات الخاص المضبوط في الإعدادات بيتسجل مدير،
+// وأرقام COPILOT_ADMIN_PHONES (لو موجودة) تقدر تسجّل نفسها مدير بمشاركة كارت الاتصال.
+const userStore = createUserStore({
+  seedAdminIds: CHAT_ID !== null ? [CHAT_ID] : [],
+  seedAdminPhones: String(setting('COPILOT_ADMIN_PHONES') || '').split(/[,\s]+/).filter(Boolean),
+});
+const rateLimiter = createRateLimiter();
+const audit = createAuditLog();
+
+// الدوال دي بتغيّر حاجة لكل المستخدمين → المدير بس (جوه رسالة أو زر). من غير سياق = النظام.
+function saveBotSettings(partial) { requireAdmin('تغيير إعدادات البوت'); return _saveBotSettings(partial); }
+function setActiveCompany(target) { requireAdmin('تبديل الشركة'); return _setActiveCompany(target); }
+function addLearnedRule(...args) { requireAdmin('إضافة قاعدة للذاكرة الدائمة'); return _addLearnedRule(...args); }
+
+// الأدوات اللي النموذج بيشوفها = المسموح لدور المستخدم بس.
+function getEnabledCopilotDeclarations(declarations, access) {
+  const role = access?.telegramRole;
+  return _getEnabledCopilotDeclarations(declarations, access).filter(d => !role || isToolAllowed(role, d.name));
+}
+
+// كل تنفيذ أداة بيعدّي من هنا: فحص الدور + سجل تدقيق.
+async function runEnabledCopilotTool(call, tools, access, now) {
+  const ctx = currentActor();
+  const role = access?.telegramRole ?? null;
+  const base = { uid: ctx?.userId ?? 0, chat: ctx?.chatId, tool: call?.name };
+  if ((role && !isToolAllowed(role, call?.name)) || (ctx && access && !role)) {
+    audit({ ...base, event: 'denied_tool', role: role ?? ctx?.role });
+    return `🔒 العملية دي مش متاحة لدورك${role ? ` (${ROLES[role]?.label || role})` : ''}.`;
+  }
+  try {
+    const res = await _runEnabledCopilotTool(call, tools, access, now);
+    audit({ ...base, event: 'tool_call', role: role ?? 'system', status: 'done' });
+    return res;
+  } catch (err) {
+    audit({ ...base, event: 'tool_call', role: role ?? 'system', status: 'error' });
+    throw err;
+  }
+}
+
+/** الوصول بيتقلّص حسب دور المستخدم. الجدولة (userId 0 من غير سياق) = وصول النظام. غير مسجّل = مفيش وصول. */
+function scopeAccessForActor(base, actor) {
+  if (!base) return base;
+  const ctx = currentActor();
+  const uid = Number.isSafeInteger(actor?.userId) && actor.userId !== 0 ? actor.userId : ctx?.userId;
+  if (uid === undefined && !ctx) return base;
+  const role = userStore.roleOf(uid);
+  return role ? applyRoleToAccess(base, role) : null;
+}
+
+function isAllowedChat(chat) {
+  if (!chat) return false;
+  return chat.type === 'private' ||
+    (SHARED_CHAT_ID !== null && chat.id === SHARED_CHAT_ID) ||
+    (CHAT_ID !== null && chat.id === CHAT_ID) ||
+    Boolean(RAW_CHAT_ID && String(chat.id) === RAW_CHAT_ID);
+}
+
+const unregisteredNoticeAt = new Map();
+const rateNoticeAt = new Map();
+const noteOnce = (map, key, everyMs) => {
+  const t = Date.now();
+  if (t - (map.get(key) || 0) < everyMs) return false;
+  map.set(key, t);
+  if (map.size > 2000) map.delete(map.keys().next().value);
+  return true;
+};
+
+async function gateMessage(message) {
+  const uid = message.from?.id;
+  const chatId = message.chat?.id;
+  const isPrivate = message.chat?.type === 'private';
+  if (!Number.isSafeInteger(uid) || uid <= 0 || message.sender_chat || message.from?.is_bot) {
+    audit({ event: 'denied_no_user', chat: chatId, kind: messageKind(message) });
+    return;
+  }
+  // تسجيل أول مدير: مشاركة كارت الاتصال بتاع الشخص نفسه لرقم مضبوط مسبقًا
+  if (message.contact && isPrivate && !userStore.roleOf(uid)) {
+    const claim = userStore.claimAdminByContact(message);
+    if (claim.ok) {
+      audit({ event: 'admin_bootstrap', uid, chat: chatId });
+      await sendTelegramMessage(chatId, '✅ اتسجّلت مدير للبوت.\nابعت /menu للبداية، و /users لإدارة المستخدمين.', message.message_id, { html: false, replyMarkup: { remove_keyboard: true } });
+      return;
+    }
+  }
+  const role = userStore.roleOf(uid);
+  const cmd = handleUserCommand(userStore, { userId: uid, role }, message.text);
+  if (cmd) {
+    audit({ event: cmd.event, uid, role, chat: chatId, target: cmd.target, newRole: cmd.newRole });
+    await sendTelegramMessage(chatId, cmd.text, message.message_id, { html: false });
+    return;
+  }
+  if (!role) {
+    audit({ event: 'denied_unregistered', uid, chat: chatId, kind: messageKind(message) });
+    if (isPrivate && noteOnce(unregisteredNoticeAt, uid, 10 * 60 * 1000)) {
+      const offerClaim = userStore.bootstrapPending();
+      await sendTelegramMessage(chatId,
+        `🔒 البوت ده للمستخدمين المسجّلين بس.\n🪪 رقمك في تلغرام: ${uid}\nابعت الرقم ده لمدير البوت عشان يضيفك.` +
+          (offerClaim ? '\n\nلو انت المدير، اضغط «مشاركة رقمي» تحت.' : ''),
+        message.message_id,
+        { html: false, ...(offerClaim ? { replyMarkup: { keyboard: [[{ text: '📱 مشاركة رقمي', request_contact: true }]], resize_keyboard: true, one_time_keyboard: true } } : {}) });
+    }
+    return;
+  }
+  const rl = rateLimiter.hit(`m:${uid}`, userStore.limits());
+  if (!rl.ok) {
+    audit({ event: 'rate_limited', uid, role, chat: chatId, kind: 'message' });
+    if (noteOnce(rateNoticeAt, uid, 60 * 1000)) {
+      await sendTelegramMessage(chatId, `⏳ طلبات كتير ورا بعض. جرّب تاني بعد ${rl.retryAfterSec} ثانية.`, message.message_id, { html: false });
+    }
+    return;
+  }
+  audit({ event: 'message', uid, role, chat: chatId, kind: messageKind(message), command: commandName(message) });
+  return actorContext.run({ userId: uid, chatId, role }, () => processTelegramMessage(message));
+}
+
+async function gateCallback(cb) {
+  if (!cb?.id) return;
+  const uid = cb.from?.id;
+  const chat = cb.message?.chat;
+  const data = String(cb.data || '');
+  const answer = async (text) => {
+    try {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/answerCallbackQuery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ callback_query_id: cb.id, text }),
+        signal: AbortSignal.timeout(5000),
+      });
+    } catch {}
+  };
+  if (!isAllowedChat(chat)) {
+    audit({ event: 'denied_chat', uid, chat: chat?.id, kind: 'callback' });
+    await answer('غير متاح هنا.');
+    return;
+  }
+  const role = userStore.roleOf(uid);
+  if (!role) {
+    audit({ event: 'denied_unregistered', uid, chat: chat.id, kind: 'callback' });
+    await answer('🔒 مش مسجّل في البوت. ابعت /whoami وابعت رقمك للمدير.');
+    return;
+  }
+  const level = callbackLevel(data);
+  if (!canUseCallback(role, data)) {
+    audit({ event: 'denied_callback', uid, role, chat: chat.id, level });
+    await answer(`🔒 مش متاح لدورك (${ROLES[role].label}).`);
+    return;
+  }
+  const rl = rateLimiter.hit(`c:${uid}`, { perMinute: 30, perHour: 600 });
+  if (!rl.ok) {
+    audit({ event: 'rate_limited', uid, role, chat: chat.id, kind: 'callback' });
+    await answer('⏳ استنى شوية وجرّب تاني.');
+    return;
+  }
+  audit({ event: 'callback', uid, role, chat: chat.id, level, kind: data.split(':')[0].slice(0, 20) });
+  return actorContext.run({ userId: uid, chatId: chat.id, role }, () => handleCallbackQuery(cb));
+}
+
+// ✅ تأكيد الكتابة بخطوتين (copilot-write-confirm.mjs)
+const pendingWrites = createPendingWrites();
+
 const conversation = createCopilotConversation({
   maxTurns: 6,            // TODO: env — COPILOT_MAX_TURNS
   ttlMs:  30 * 60 * 1000, // TODO: env — COPILOT_CONV_TTL_MS (30 min default)
@@ -342,11 +512,11 @@ function buildOperationInlineMarkup(cardText) {
   return {
     inline_keyboard: [
       [
-        { text: `✅ اعتماد وترحيل #${opNum}`, callback_data: `op_approve:${opNum}` },
+        { text: `✅ تعليم كمراجَع #${opNum}`, callback_data: `op_approve:${opNum}` },
         { text: `📎 إرفاق صورة/مستند #${opNum}`, callback_data: `op_attach:${opNum}` },
       ],
       [
-        { text: `🗑️ إلغاء المسودة #${opNum}`, callback_data: `op_delete:${opNum}` },
+        { text: `🗑️ إلغاء من متابعة البوت #${opNum}`, callback_data: `op_delete:${opNum}` },
       ],
     ],
   };
@@ -446,6 +616,8 @@ function buildSettingsMessageAndMarkup(s = getBotSettings()) {
           callback_data: isMozza ? 'set_mozza:off' : 'set_mozza:on',
         },
       ],
+      [{ text: '🔔 التنبيهات الاستباقية', callback_data: 'alert_cfg:show' }],
+      [{ text: '📅 التقارير المجدولة', callback_data: 'sched_cfg:show' }],
       [
         {
           text: '🔄 تحديث الإعدادات',
@@ -1505,7 +1677,7 @@ async function processUserPromptWithGemini(userPrompt, actor) {
     return { text: directText, memory: { ...memory, modelText: directText } };
   }
 
-  async function executeToolCall(call) {
+  async function runToolCall(call) {
     const verified = call.name === 'get_engineering_checklist_and_specs'
       ? null
       : await resolveLiveCompanyAccess(actor);
@@ -1524,13 +1696,64 @@ async function processUserPromptWithGemini(userPrompt, actor) {
     if (call.name === 'get_daily_comprehensive_report') {
       const parts = splitReportParts(text);
       if (parts.length > 1) {
-        return { type: 'multi_messages', messages: parts, memory: { ...memory, toolName: call.name } };
+        return { type: 'multi_messages', messages: parts, lastMarkup: buildReportFollowUpMarkup(), memory: { ...memory, toolName: call.name } };
       }
     }
+    const followUp = call.name === 'get_daily_comprehensive_report' && !replyMarkup ? buildReportFollowUpMarkup() : undefined;
     return {
       text,
-      ...(replyMarkup ? { replyMarkup } : {}),
-      memory: { ...memory, toolName: call.name },
+      ...(replyMarkup || followUp ? { replyMarkup: replyMarkup || followUp } : {}),
+      memory: { ...memory, toolName: call.name, entities: extractEntities(call) },
+    };
+  }
+
+  // ✅ أي عملية كتابة بتتعرض كملخص وتستنى «تأكيد» — مفيش كتابة في قاعدة البيانات هنا.
+  async function proposeWrites(writeCalls) {
+    const verified = await resolveLiveCompanyAccess(actor);
+    if (!verified?.companyId) {
+      return { text: 'العملية دي مش متاحة من البوت بالإعدادات والصلاحيات الحالية. افتح الشاشة المختصة في فاي تك.' };
+    }
+    if (!Number.isSafeInteger(actor?.userId) || actor.userId <= 0) {
+      return { text: 'التسجيل من البوت محتاج رسالة من مستخدم (مش من قناة). افتح الشاشة المختصة في فاي تك.' };
+    }
+    const blocked = writeCalls.filter(c => !isToolAllowed(verified.telegramRole, c.name));
+    if (blocked.length > 0) {
+      audit({ event: 'denied_tool', uid: actor.userId, role: verified.telegramRole, chat: actor.chatId, tools: blocked.map(c => c.name) });
+      return { text: `🔒 التسجيل ده مش متاح لدورك (${ROLES[verified.telegramRole]?.label || 'غير محدد'}).` };
+    }
+    const entry = pendingWrites.create({ chatId: actor.chatId, userId: actor.userId, companyId: verified.companyId, calls: writeCalls });
+    audit({ event: 'write_proposed', uid: actor.userId, role: verified.telegramRole, chat: actor.chatId, tools: writeCalls.map(c => c.name) });
+    return {
+      text: formatConfirmationText(entry.calls, { companyLabel: verified.companyName || '' }),
+      replyMarkup: buildConfirmMarkup(entry.id),
+      memory: { ...memory, toolName: 'write_confirmation', entities: extractEntities(entry.calls) },
+    };
+  }
+
+  async function executeToolCall(call) {
+    return isWriteCall(call) ? proposeWrites([call]) : runToolCall(call);
+  }
+
+  // مجموعة عمليات في رسالة واحدة: القراءات تتنفذ، والكتابات كلها في ملخص تأكيد واحد في الآخر.
+  async function executeToolBatch(calls, emptyText) {
+    const writes = calls.filter(isWriteCall);
+    const messages = [];
+    for (const call of calls.filter(c => !isWriteCall(c))) {
+      const res = await runToolCall(call);
+      if (Array.isArray(res?.messages)) messages.push(...res.messages);
+      else if (res?.text) messages.push(res.text);
+    }
+    let lastMarkup;
+    if (writes.length > 0) {
+      const proposal = await proposeWrites(writes);
+      messages.push(proposal.text);
+      lastMarkup = proposal.replyMarkup;
+    }
+    return {
+      type: 'multi_messages',
+      messages: messages.length > 0 ? messages : [emptyText],
+      ...(lastMarkup ? { lastMarkup } : {}),
+      memory: { ...memory, toolCalls: calls.map(c => c.name) },
     };
   }
 
@@ -1542,17 +1765,7 @@ async function processUserPromptWithGemini(userPrompt, actor) {
         _cachedServiceAccess = null;
         _cachedServiceCompanyId = null;
       }
-      const messages = [];
-      for (const call of directCall.calls) {
-        const res = await executeToolCall(call);
-        if (Array.isArray(res?.messages)) messages.push(...res.messages);
-        else if (res?.text) messages.push(res.text);
-      }
-      return {
-        type: 'multi_messages',
-        messages: messages.length > 0 ? messages : ['تم تنفيذ كافة اليوميات بنجاح.'],
-        memory: { ...memory, toolCalls: directCall.calls.map(c => c.name) }
-      };
+      return executeToolBatch(directCall.calls, 'تم تنفيذ كافة اليوميات بنجاح.');
     }
     if (declarations.some(d => d.name === directCall.name)) {
       if (directCall.targetCompany) {
@@ -1604,17 +1817,7 @@ async function processUserPromptWithGemini(userPrompt, actor) {
     const candidate = responseBody.candidates?.[0];
     const reply = interpretModelParts(candidate?.content?.parts, declarations, candidate?.finishReason);
     if (reply.type === 'multi_tools') {
-      const messages = [];
-      for (const call of reply.calls) {
-        const res = await executeToolCall(call);
-        if (Array.isArray(res?.messages)) messages.push(...res.messages);
-        else if (res?.text) messages.push(res.text);
-      }
-      return {
-        type: 'multi_messages',
-        messages: messages.length > 0 ? messages : ['تم تنفيذ العمليات بنجاح.'],
-        memory: { ...memory, toolCalls: reply.calls.map(c => c.name) }
-      };
+      return executeToolBatch(reply.calls, 'تم تنفيذ العمليات بنجاح.');
     }
     if (reply.type === 'multi') return { text: MODEL_MESSAGES.multipleCalls };
     if (reply.type === 'undeclared') {
@@ -1705,41 +1908,30 @@ function parsePartnerDetails(text) {
 }
 
 async function handleAddPartnerFromContact(actor, fullName, phone, details, messageId) {
-  const verified = await verifyTelegramAuth(actor);
-  if (!verified.ok) {
-    await sendTelegramMessage(actor.chatId, verified.error, messageId);
+  // بيعدّي على التأكيد بخطوتين زي أي كتابة تانية (النسخة القديمة كانت بتكتب مباشرة وبدوال مش معرّفة).
+  const verified = await resolveLiveCompanyAccess(actor);
+  if (!verified?.companyId || !Number.isSafeInteger(actor?.userId) || actor.userId <= 0) {
+    await sendTelegramMessage(actor.chatId, 'إضافة الشريك مش متاحة من البوت بالإعدادات والصلاحيات الحالية.', messageId, { html: false });
     return;
   }
-
-  const access = await checkUserCompanyAccess(verified.user.id, verified.companyId);
-  if (!access.ok) {
-    await sendTelegramMessage(actor.chatId, 'لا توجد صلاحية للشركة الحالية.', messageId);
+  if (!isToolAllowed(verified.telegramRole, 'add_partner')) {
+    audit({ event: 'denied_tool', uid: actor.userId, role: verified.telegramRole, chat: actor.chatId, tool: 'add_partner' });
+    await sendTelegramMessage(actor.chatId, `🔒 إضافة الشركاء مش متاحة لدورك (${ROLES[verified.telegramRole]?.label || 'غير محدد'}).`, messageId, { html: false });
     return;
   }
-
-  const tools = createCopilotTools({
-    companyId: verified.companyId,
-    authToken: verified.sessionToken,
-    supabaseKey: SUPABASE_ANON_KEY,
-    restBase: REST_BASE,
-  });
-
-  const addRes = await tools.add_partner({
+  const args = {
     name: fullName,
-    phone: phone,
-    job_role: details.job_role || 'صنايعي',
-    daily_wage: details.daily_wage || null,
-    partner_type: details.partner_type || 'عامل يومية',
+    phone,
+    job_role: details?.job_role || 'صنايعي',
+    partner_type: details?.partner_type || 'عامل يومية',
+    ...(Number.isFinite(Number(details?.daily_wage)) && Number(details.daily_wage) > 0 ? { daily_wage: Number(details.daily_wage) } : {}),
+  };
+  const entry = pendingWrites.create({ chatId: actor.chatId, userId: actor.userId, companyId: verified.companyId, calls: [{ name: 'add_partner', args }] });
+  audit({ event: 'write_proposed', uid: actor.userId, role: verified.telegramRole, chat: actor.chatId, tools: ['add_partner'] });
+  await sendTelegramMessage(actor.chatId, formatConfirmationText(entry.calls, { companyLabel: verified.companyName || '' }), messageId, {
+    html: false,
+    replyMarkup: buildConfirmMarkup(entry.id),
   });
-
-  const s = getBotSettings();
-  const activeComp = getActiveCompany(s);
-  const replyText = formatAddPartnerReply(addRes, activeComp?.name || 'فاي تك');
-
-  await sendTelegramMessage(actor.chatId, replyText, messageId, { html: false });
-  if (s.voiceReplyMode === 'always') {
-    await sendTelegramVoiceReply(actor.chatId, replyText, messageId, s);
-  }
 }
 
 // Process incoming Telegram update
@@ -2288,10 +2480,11 @@ async function processTelegramMessage(msg) {
       if (introHeader) {
         await sendTelegramMessage(chatId, introHeader.trim(), messageId, { html: false });
       }
-      for (const msgItem of reply.messages) {
+      for (const [msgIndex, msgItem] of reply.messages.entries()) {
+        const isLastMsg = msgIndex === reply.messages.length - 1;
         await sendTelegramMessage(chatId, msgItem, messageId, {
           html: false,
-          replyMarkup: buildOperationInlineMarkup(msgItem),
+          replyMarkup: (isLastMsg && reply.lastMarkup) || buildOperationInlineMarkup(msgItem),
         });
         await new Promise(r => setTimeout(r, 200));
       }
@@ -2357,6 +2550,88 @@ async function handleCallbackQuery(cb) {
       });
     } catch {}
   };
+
+  if (data.startsWith('cfm:')) {
+    const cfm = resolveConfirmCallback(data);
+    const userId = cb.from?.id || 0;
+    if (!cfm || !chatId) { await answerCb('خيار غير معروف'); return; }
+    const removeButtons = async () => {
+      try {
+        await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/editMessageReplyMarkup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: chatId, message_id: messageId, reply_markup: { inline_keyboard: [] } }),
+          signal: AbortSignal.timeout(5000),
+        });
+      } catch {}
+    };
+    if (cfm.action === 'cancel') {
+      const r = pendingWrites.cancel({ id: cfm.id, chatId, userId });
+      audit({ event: 'write_cancel', uid: userId, chat: chatId, status: r.status });
+      if (r.status !== 'ok') { await answerCb(CONFIRM_STATUS_MESSAGES[r.status] || 'تعذّر الإلغاء'); if (r.status !== 'wrong_user') await removeButtons(); return; }
+      await answerCb('✖️ اتلغى');
+      await removeButtons();
+      await sendTelegramMessage(chatId, '✖️ اتلغى الطلب ومفيش حاجة اتسجلت.', messageId, { html: false });
+      return;
+    }
+    const taken = pendingWrites.take({ id: cfm.id, chatId, userId });
+    audit({ event: 'write_confirm', uid: userId, chat: chatId, status: taken.status, tools: taken.entry?.calls?.map(c => c.name) });
+    if (taken.status !== 'ok') {
+      await answerCb(CONFIRM_STATUS_MESSAGES[taken.status] || 'تعذّر التأكيد');
+      if (taken.status !== 'wrong_user') await removeButtons();
+      return;
+    }
+    await answerCb('⏳ جارٍ التسجيل...');
+    await removeButtons();
+    const verified = await resolveLiveCompanyAccess({ chatId, userId });
+    if (!verified?.companyId || verified.companyId !== taken.entry.companyId) {
+      await sendTelegramMessage(chatId, '⚠️ ' + CONFIRM_STATUS_MESSAGES.company_changed, messageId, { html: false });
+      return;
+    }
+    const tools = createCopilotTools({
+      supabaseUrl: SUPABASE_URL,
+      supabaseKey: verified.allowServiceRole ? SUPABASE_SERVICE_KEY : SUPABASE_PUBLIC_KEY,
+      accessToken: verified.accessToken,
+      companyId: verified.companyId,
+      detailedReads: true,
+      allowServiceRole: Boolean(verified.allowServiceRole),
+    });
+    for (const call of taken.entry.calls) {
+      let res;
+      try {
+        res = await runEnabledCopilotTool({ name: call.name, args: structuredClone(call.args) }, tools, verified);
+      } catch {
+        res = 'تعذّر تسجيل العملية دي. راجعها من شاشة فاي تك.';
+      }
+      const text = typeof res === 'string' ? res : (res?.text || String(res));
+      const markup = typeof res === 'object' && res?.replyMarkup ? res.replyMarkup : buildOperationInlineMarkup(text);
+      await sendTelegramMessage(chatId, text, messageId, { html: false, ...(markup ? { replyMarkup: markup } : {}) });
+      await new Promise(r => setTimeout(r, 200));
+    }
+    return;
+  }
+
+  if (data.startsWith('sched_cfg:')) {
+    const handled = await scheduledReportRunner.handleCallback({ data, chatId, answerCb, editMessage });
+    if (handled) return;
+  }
+
+  if (data.startsWith('alert:') || data.startsWith('alert_cfg:')) {
+    const handled = await alertRunner.handleCallback({ data, chatId, userId: cb.from?.id || 0, answerCb, editMessage });
+    if (handled) return;
+  }
+
+  if (data.startsWith('report:')) {
+    const action = resolveReportAction(data);
+    if (!action) { await answerCb('خيار غير معروف'); return; }
+    if (!action.phrase) {
+      await answerCb('📌');
+      await sendTelegramMessage(chatId, '📌 <b>القائمة الرئيسية</b> — اختار اللي عاوزه:', messageId, { html: true, replyMarkup: buildMainMenuMarkup() });
+      return;
+    }
+    await answerCb('⏳ جارٍ التجهيز...');
+    return processTelegramMessage({ chat: cb.message?.chat, from: cb.from, message_id: messageId, text: action.phrase });
+  }
 
   if (data.startsWith('menu:')) {
     const action = resolveMenuAction(data);
@@ -2505,27 +2780,29 @@ async function handleCallbackQuery(cb) {
   }
 
   if (action === 'op_approve') {
-    updateOperationStatusInIndex(opNum, 'معتمد ومرحّل');
-    await answerCb(`تم اعتماد وترحيل العملية #${opNum}`);
+    // ملحوظة: الزر ده بيحدّث سجل البوت المحلي بس — الترحيل الفعلي من شاشة فاي تك.
+    updateOperationStatusInIndex(opNum, 'مراجَعة في البوت (غير مرحّلة)');
+    await answerCb(`اتعلّمت العملية #${opNum} كمراجَعة`);
     const nowStr = new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' });
     const msg = [
-      `✅ إشعار اعتماد وترحيل رسمي | العملية رقم [#${opNum}]`,
+      `✅ اتعلّمت كمراجَعة | العملية رقم [#${opNum}]`,
       `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,
       `🔢 رقم العملية: #${opNum} (${op?.recordCode || '—'})`,
       `📌 البيان: ${op?.summary || 'عملية مسجلة'}`,
-      `🕒 وقت الاعتماد: ${nowStr}`,
-      `🟢 الحالة الجديدة: معتمد ومرحّل نهائياً`,
+      `🕒 وقت المراجعة: ${nowStr}`,
+      `⚠️ المسودة لسه غير مرحّلة في فاي تك. الترحيل (القيد المحاسبي) بيتم من الشاشة المختصة في النظام.`,
     ].join('\n');
     await sendTelegramMessage(chatId, msg, messageId, { html: false });
     return;
   }
 
   if (action === 'op_delete') {
-    updateOperationStatusInIndex(opNum, 'ملغاة');
-    await answerCb(`تم إلغاء المسودة #${opNum}`);
+    // ملحوظة: الزر ده بيشيل العملية من متابعة البوت بس — المسودة نفسها لسه في قاعدة البيانات.
+    updateOperationStatusInIndex(opNum, 'ملغاة من متابعة البوت');
+    await answerCb(`اتشالت العملية #${opNum} من متابعة البوت`);
     await sendTelegramMessage(
       chatId,
-      `🗑️ تم إلغاء وإيقاف مسودة العملية رقم [#${opNum}] (${op?.recordCode || '—'}) بنجاح.`,
+      `🗑️ اتشالت العملية رقم [#${opNum}] (${op?.recordCode || '—'}) من متابعة البوت.\n⚠️ المسودة لسه موجودة في فاي تك — احذفها من الشاشة المختصة لو مش محتاجها.`,
       messageId,
       { html: false }
     );
@@ -2535,7 +2812,7 @@ async function handleCallbackQuery(cb) {
 
 async function handleUpdate(update) {
   if (update?.callback_query) {
-    return handleCallbackQuery(update.callback_query);
+    return gateCallback(update.callback_query);
   }
   const message = update?.message || update?.channel_post;
   if (!message) return;
@@ -2549,7 +2826,7 @@ async function handleUpdate(update) {
   console.log(`📩 [Telegram Update] من: ${message.from?.first_name || message.sender_chat?.title || ''} (@${message.from?.username || message.from?.id || message.sender_chat?.id || ''}) | شات: ${message.chat?.id} (${message.chat?.type}) | نص: "${String(message.text || message.caption || (message.voice ? '[بصمة صوتية]' : '[مرفق]')).slice(0, 40)}"`);
 
   if (isPrivate || isTargetChat) {
-    return processTelegramMessage(message);
+    return gateMessage(message);
   }
 }
 
@@ -2735,11 +3012,79 @@ function startDailyReportScheduler() {
   }, 45_000).unref();
 }
 
+// 🔔 التنبيهات الاستباقية — المنطق في copilot-alerts.mjs (كلها مطفية افتراضيًا، تتشغّل من ⚙️ الإعدادات).
+const alertRunner = createAlertRunner({
+  store: createAlertStore(),
+  resolveAccess: (actor) => resolveLiveCompanyAccess(actor),
+  makeTools: (verified) => createCopilotTools({
+    supabaseUrl: SUPABASE_URL,
+    supabaseKey: verified.allowServiceRole ? SUPABASE_SERVICE_KEY : SUPABASE_PUBLIC_KEY,
+    accessToken: verified.accessToken,
+    companyId: verified.companyId,
+    detailedReads: true,
+    allowServiceRole: Boolean(verified.allowServiceRole),
+  }),
+  hasPermission: hasModulePermission,
+  send: (chatId, text, replyMarkup) => sendTelegramMessage(chatId, text, undefined, { html: false, ...(replyMarkup ? { replyMarkup } : {}) }),
+  getDate: () => getCopilotDate(new Date()),
+  getHHMM: () => new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Riyadh', hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date()),
+});
+
+// 📅 التقارير المجدولة (صباحي/أسبوعي/شهري) — المنطق في copilot-scheduled-reports.mjs (مطفية افتراضيًا).
+const scheduledReportRunner = createScheduledReportRunner({
+  store: createReportScheduleStore(),
+  resolveAccess: (actor) => resolveLiveCompanyAccess(actor),
+  makeTools: (verified) => createCopilotTools({
+    supabaseUrl: SUPABASE_URL,
+    supabaseKey: verified.allowServiceRole ? SUPABASE_SERVICE_KEY : SUPABASE_PUBLIC_KEY,
+    accessToken: verified.accessToken,
+    companyId: verified.companyId,
+    detailedReads: true,
+    allowServiceRole: Boolean(verified.allowServiceRole),
+  }),
+  hasPermission: hasModulePermission,
+  getDailyReport: async (date, verified) => {
+    const tools = createCopilotTools({
+      supabaseUrl: SUPABASE_URL,
+      supabaseKey: verified.allowServiceRole ? SUPABASE_SERVICE_KEY : SUPABASE_PUBLIC_KEY,
+      accessToken: verified.accessToken,
+      companyId: verified.companyId,
+      detailedReads: true,
+      allowServiceRole: Boolean(verified.allowServiceRole),
+    });
+    const text = await runEnabledCopilotTool({ name: 'get_daily_comprehensive_report', args: { date } }, tools, verified);
+    return splitReportParts(typeof text === 'string' ? text : text?.text || '');
+  },
+  send: (chatId, text, extra) => sendTelegramMessage(chatId, text, undefined, {
+    html: false,
+    ...(extra === 'followup' ? { replyMarkup: buildReportFollowUpMarkup() } : extra ? { replyMarkup: extra } : {}),
+  }),
+  companyLabel: (verified) => verified?.companyName || '',
+});
+
+function startScheduledReportScheduler() {
+  const targetChat = SHARED_CHAT_ID ?? CHAT_ID ?? RAW_CHAT_ID;
+  if (!targetChat) return;
+  setInterval(() => {
+    scheduledReportRunner.tick({ chatId: targetChat, userId: 0 }).catch(err => console.warn('Scheduled report error:', err?.message));
+  }, 60_000).unref();
+}
+
+function startProactiveAlertScheduler() {
+  const targetChat = SHARED_CHAT_ID ?? CHAT_ID ?? RAW_CHAT_ID;
+  if (!targetChat) return;
+  setInterval(() => {
+    alertRunner.tick({ chatId: targetChat, userId: 0 }).catch(err => console.warn('Proactive alert scheduler error:', err?.message));
+  }, 60_000).unref();
+}
+
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename);
 if (isMain) {
   initKnowledgeBase();
   registerBotCommands();
   startDailyReportScheduler();
+  startProactiveAlertScheduler();
+  startScheduledReportScheduler();
   runPdfMockTest().catch(err => console.error('Mock test error:', err.message));
   // Polling timeout=25s (long-poll standard). AbortSignal is 35s. // TODO: env — COPILOT_POLL_TIMEOUT_S
   pollUpdates();

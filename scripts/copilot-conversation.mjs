@@ -11,6 +11,12 @@ const TOOL_MARKERS = new Map([
   ['get_daily_comprehensive_report', 'كان الطلب السابق استعلامًا عن التقرير اليومي المفصل الشامل (العمالة والفلل والمصروفات والخامات والمقاولين والركوستات). أعد الاستعلام بالأداة عند طلب تاريخ آخر.'],
   ['add_labor_daily_log_draft', 'كان الطلب السابق تسجيل مسودة يومية عامل جديدة في النظام.'],
   ['add_expense_draft', 'كان الطلب السابق تسجيل مسودة مصروف جديدة في النظام.'],
+  ['add_payment_voucher_draft', 'كان الطلب السابق تسجيل مسودة سند صرف.'],
+  ['add_journal_entry_draft', 'كان الطلب السابق تسجيل مسودة قيد يومية.'],
+  ['add_job_order_draft', 'كان الطلب السابق تسجيل مسودة أمر شغل.'],
+  ['add_partner', 'كان الطلب السابق إضافة شريك جديد.'],
+  ['update_operation_draft', 'كان الطلب السابق تعديل عملية مسجلة.'],
+  ['write_confirmation', 'عرض البوت ملخص عملية تسجيل وطلب التأكيد بالأزرار. لا تعتبر العملية متسجلة إلا بعد التأكيد.'],
   ['get_villa_and_budget_details', 'كان الطلب السابق استعلامًا عن بيانات وميزانية فيلا أو مشروع. أعد الاستعلام بالأداة عند طلب تحديث.'],
   ['get_model_villas_and_specs', 'كان الطلب السابق استعلامًا عن فلل ومواصفات نموذج معين.'],
   ['get_boq_and_materials', 'كان الطلب السابق استعلامًا عن مقايسة الأعمال واستهلاك الخامات.'],
@@ -29,6 +35,42 @@ const TOOL_MARKERS = new Map([
 ]);
 
 const isMessageId = id => Number.isSafeInteger(id) && id > 0;
+
+// 🧠 الأسماء اللي المستخدم ذكرها في طلبه (من معطيات الأداة) — عشان أسئلة المتابعة زي «وكام للمقاول ده؟».
+// بنحتفظ بالأسماء والتواريخ بس؛ لا مبالغ ولا أرقام هوية ولا أي حاجة من نتيجة الأداة.
+const ENTITY_FIELDS = Object.freeze([
+  ['contractor_name', 'المقاول'], ['new_contractor', 'المقاول'], ['sub_contractor', 'مقاول الباطن'],
+  ['worker_name', 'العامل'], ['helper_name', 'المساعد'], ['payee_name', 'المستفيد'], ['name', 'الاسم'],
+  ['site_ref', 'الفيلا/المشروع'], ['new_site_ref', 'الفيلا/المشروع'], ['villa_filter', 'الفيلا/المشروع'],
+  ['job_order', 'أمر الشغل'], ['work_item', 'البند'],
+  ['date', 'التاريخ'], ['work_date', 'التاريخ'], ['exp_date', 'التاريخ'], ['entry_date', 'التاريخ'],
+  ['start_date', 'من'], ['end_date', 'إلى'],
+]);
+const MAX_ENTITY_TEXT = 60;
+
+export function extractEntities(calls) {
+  const list = Array.isArray(calls) ? calls : [calls];
+  const seen = new Map();
+  for (const call of list) {
+    const args = call?.args && typeof call.args === 'object' ? call.args : {};
+    for (const [key, label] of ENTITY_FIELDS) {
+      const v = args[key];
+      if (typeof v !== 'string') continue;
+      const text = v.replace(/[\r\n\t]+/g, ' ').replace(/[`"<>]/g, '').trim();
+      if (!text || text.length > MAX_ENTITY_TEXT) continue;
+      const pair = `${label}: ${text}`;
+      if (!seen.has(pair)) seen.set(pair, true);
+      if (seen.size >= 8) break;
+    }
+  }
+  return [...seen.keys()];
+}
+
+function entitiesNote(entities) {
+  if (!Array.isArray(entities) || entities.length === 0) return '';
+  const clean = entities.filter(e => typeof e === 'string' && e.length <= MAX_ENTITY_TEXT + 20).slice(0, 8);
+  return clean.length ? `\nالأسماء اللي اتذكرت في الطلب (استخدمها لو المستخدم قال «ده» أو «نفسه» أو سأل متابعة): ${clean.join('، ')}.` : '';
+}
 
 function identity(chatId, userId) {
   return isMessageId(chatId) && isMessageId(userId) ? chatId + ':' + userId : null;
@@ -94,7 +136,7 @@ export function createCopilotConversation({ maxTurns = 6, ttlMs = 30 * 60 * 1000
     };
   }
 
-  function remember({ chatId, userId, scope, userMessageId, botMessageIds, parentMessageId, userText, modelText, toolName } = {}) {
+  function remember({ chatId, userId, scope, userMessageId, botMessageIds, parentMessageId, userText, modelText, toolName, entities } = {}) {
     const key = identity(chatId, userId);
     if (!key) return false;
     const time = now();
@@ -105,7 +147,8 @@ export function createCopilotConversation({ maxTurns = 6, ttlMs = 30 * 60 * 1000
 
     const user = boundedText(userText, MAX_USER_TEXT);
     // Never retain rendered data, IDs, counts, or other tool result text.
-    const model = toolName != null ? TOOL_MARKERS.get(toolName) : boundedText(modelText, MAX_MODEL_TEXT);
+    const marker = toolName != null ? TOOL_MARKERS.get(toolName) : null;
+    const model = toolName != null ? (marker ? marker + entitiesNote(entities) : undefined) : boundedText(modelText, MAX_MODEL_TEXT);
     if (!user || !model) return false;
 
     const ids = Array.isArray(botMessageIds)

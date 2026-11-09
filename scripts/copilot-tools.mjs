@@ -639,6 +639,200 @@ export function createCopilotTools({
       };
     },
 
+    // 📅 ملخص فترة (للتقارير الأسبوعية/الشهرية المجدولة). داخلية — مش متاحة للنموذج. قراءة فقط.
+    async get_period_summary(rawArgs = {}) {
+      if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
+      const start = String(rawArgs?.start_date || '');
+      const end = String(rawArgs?.end_date || '');
+      if (!Number.isFinite(parseIsoDate(start)) || !Number.isFinite(parseIsoDate(end)) || start > end) {
+        return { success: false, error: 'فترة غير صحيحة.' };
+      }
+      if ((Date.parse(end + 'T00:00:00Z') - Date.parse(start + 'T00:00:00Z')) / DAY_MS > 31) {
+        return { success: false, error: 'الفترة أطول من 31 يوم.' };
+      }
+      const perms = rawArgs?.permissions && typeof rawArgs.permissions === 'object' ? rawArgs.permissions : {};
+      const LIMIT = 1000;
+      const range = (field) => ({ [field]: [`gte.${start}`, `lte.${end}`] });
+      const sum = (rows, f) => Math.round(rows.reduce((t, r) => t + (Number(f(r)) || 0), 0) * 100) / 100;
+      const off = { available: false };
+
+      const [laborRes, expRes, payRes, claimsRes, ordersRes] = await Promise.all([
+        perms.labor_logs === true
+          ? fetchScopedRows('labor_daily_logs', { select: 'work_date,worker_name,attendance_value' + (perms.laborcost === true ? ',daily_wage' : ''), ...range('work_date'), limit: String(LIMIT) })
+          : Promise.resolve(null),
+        perms.expenses === true
+          ? fetchScopedRows('expenses', { select: 'exp_date,total_price,paid_amount,is_deleted', ...range('exp_date'), is_deleted: 'not.is.true', limit: String(LIMIT) })
+          : Promise.resolve(null),
+        perms.payments === true
+          ? fetchScopedRows('payment_vouchers', { select: 'date,amount', ...range('date'), limit: String(LIMIT) })
+          : Promise.resolve(null),
+        perms.contractors === true
+          ? fetchScopedRows('sub_claims', { select: 'date,net_amount,paid_amount', ...range('date'), limit: String(LIMIT) })
+          : Promise.resolve(null),
+        perms.contractors === true
+          ? fetchScopedRows('job_orders', { select: 'created_at,status', created_at: [`gte.${new Date(`${start}T00:00:00+03:00`).toISOString()}`, `lt.${new Date(new Date(`${end}T00:00:00+03:00`).getTime() + DAY_MS).toISOString()}`], limit: String(LIMIT) })
+          : Promise.resolve(null),
+      ]);
+      const ok = (r) => r && r.ok;
+      const trunc = (r) => Boolean(r && r.ok && r.totalCount != null && r.totalCount > r.data.length);
+
+      const labor = ok(laborRes) ? {
+        available: true,
+        truncated: trunc(laborRes),
+        logs: laborRes.data.length,
+        worker_days: sum(laborRes.data, r => r.attendance_value),
+        workers: new Set(laborRes.data.map(r => r.worker_name)).size,
+        days_with_work: new Set(laborRes.data.map(r => r.work_date)).size,
+        ...(perms.laborcost === true ? { wages: sum(laborRes.data, r => r.daily_wage) } : {}),
+      } : off;
+      const expenses = ok(expRes) ? {
+        available: true, truncated: trunc(expRes), count: expRes.data.length,
+        total: sum(expRes.data, r => Math.max(Number(r.total_price) || 0, Number(r.paid_amount) || 0)),
+      } : off;
+      const vouchers = ok(payRes) ? {
+        available: true, truncated: trunc(payRes), count: payRes.data.length, total: sum(payRes.data, r => r.amount),
+      } : off;
+      const claims = ok(claimsRes) ? {
+        available: true, truncated: trunc(claimsRes), count: claimsRes.data.length,
+        net: sum(claimsRes.data, r => r.net_amount), paid: sum(claimsRes.data, r => r.paid_amount),
+      } : off;
+      const jobOrders = ok(ordersRes) ? {
+        available: true, truncated: trunc(ordersRes), created: ordersRes.data.length,
+        active: ordersRes.data.filter(o => o.status === 'جاري التنفيذ').length,
+      } : off;
+      return { success: true, start, end, labor, expenses, vouchers, claims, jobOrders };
+    },
+
+    // 🔔 بيانات التنبيهات الاستباقية (داخلية للجدولة فقط — مش مسجلة كأداة للنموذج). قراءة فقط.
+    // كل قسم بيتجاب لو نوعه مطلوب وصلاحيته متاحة؛ غير كده يرجع available=false.
+    async get_proactive_alert_data(rawArgs = {}) {
+      if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
+      const want = new Set(Array.isArray(rawArgs?.types) ? rawArgs.types : []);
+      const perms = rawArgs?.permissions && typeof rawArgs.permissions === 'object' ? rawArgs.permissions : {};
+      const today = getCopilotDate();
+      const largeMin = Number(rawArgs?.large_tx_min) > 0 ? Number(rawArgs.large_tx_min) : 5000;
+      const off = { available: false, rows: [] };
+      const inList = (ids) => `in.(${[...new Set(ids.filter(id => UUID.test(String(id))))].join(',')})`;
+      const lookupNames = async (table, ids, select, label) => {
+        const valid = [...new Set(ids.filter(id => UUID.test(String(id))))];
+        if (valid.length === 0) return new Map();
+        const res = await fetchScopedRows(table, { select, id: inList(valid), limit: '500' });
+        return new Map(res.ok ? res.data.map(r => [r.id, label(r)]) : []);
+      };
+
+      const loadClaims = async () => {
+        if (!want.has('overdue_claim') || perms.contractors !== true) return off;
+        const res = await fetchScopedRows('sub_claims', {
+          select: 'id,claim_number,contractor_id,project_names_text,date,net_amount,paid_amount,payment_period_days,status,is_posted',
+          is_posted: 'eq.true',
+          status: 'neq.مدفوع',
+          date: 'lt.' + today,
+          order: 'date.asc',
+          limit: '200',
+        });
+        if (!res.ok) return off;
+        const names = await lookupNames('partners', res.data.map(c => c.contractor_id), 'id,name', r => r.name);
+        return {
+          available: true,
+          rows: res.data.map(c => ({ ...c, contractor_name: names.get(c.contractor_id) || '', project: c.project_names_text || '' })),
+        };
+      };
+
+      const loadJobOrders = async () => {
+        if (!want.has('overdue_job_order') || perms.contractors !== true) return off;
+        const res = await fetchScopedRows('job_orders', {
+          select: 'id,order_number,contractor_id,project_id,start_date,end_date,status',
+          status: 'eq.جاري التنفيذ',
+          end_date: 'lt.' + today,
+          order: 'end_date.asc',
+          limit: '200',
+        });
+        if (!res.ok) return off;
+        const [contractors, projects] = await Promise.all([
+          lookupNames('partners', res.data.map(o => o.contractor_id), 'id,name', r => r.name),
+          lookupNames('projects', res.data.map(o => o.project_id), 'id,project_code,project_name', r => [r.project_code, r.project_name].filter(Boolean).join(' — ')),
+        ]);
+        return {
+          available: true,
+          rows: res.data.map(o => ({ ...o, contractor_name: contractors.get(o.contractor_id) || '', project: projects.get(o.project_id) || '' })),
+        };
+      };
+
+      // رصيد الخزنة = مدين − دائن لحساب 122 من القيود المرحّلة (نفس منطق get_trial_balance).
+      const loadTreasury = async () => {
+        if (!want.has('low_treasury') || perms.journal !== true) return { available: false, balance: null };
+        const accRes = await fetchScopedRows('accounts', { select: 'id', code: 'eq.122', limit: '5' });
+        if (!accRes.ok) return { available: false, balance: null };
+        if (accRes.data.length === 0) return { available: false, balance: null };
+        const linesRes = await fetchScopedRows('journal_lines', {
+          select: 'header_id,debit,credit',
+          account_id: inList(accRes.data.map(a => a.id)),
+          limit: '10000',
+        });
+        if (!linesRes.ok) return { available: false, balance: null };
+        if (linesRes.totalCount != null && linesRes.totalCount > linesRes.data.length) return { available: false, balance: null };
+        const headerIds = [...new Set(linesRes.data.map(l => l.header_id).filter(Boolean))];
+        const posted = new Set();
+        for (let i = 0; i < headerIds.length; i += 150) {
+          const hRes = await fetchScopedRows('journal_headers', {
+            select: 'id',
+            id: inList(headerIds.slice(i, i + 150)),
+            status: 'in.(posted,مرحل,معتمد)',
+            limit: '200',
+          });
+          if (!hRes.ok) return { available: false, balance: null };
+          for (const h of hRes.data) posted.add(h.id);
+        }
+        let balance = 0;
+        for (const l of linesRes.data) if (posted.has(l.header_id)) balance += (Number(l.debit) || 0) - (Number(l.credit) || 0);
+        return { available: true, balance: Math.round(balance * 100) / 100 };
+      };
+
+      // حركات اتسجلت آخر 24 ساعة بمبلغ ≥ الحد.
+      const loadTransactions = async () => {
+        if (!want.has('large_transaction') || (perms.expenses !== true && perms.payments !== true)) return off;
+        const since = new Date(Date.now() - DAY_MS).toISOString();
+        const [expRes, payRes] = await Promise.all([
+          perms.expenses === true
+            ? fetchScopedRows('expenses', {
+                select: 'id,exp_date,description,payee_name,sub_contractor,total_price,paid_amount,site_ref,is_posted,created_at',
+                created_at: 'gte.' + since,
+                is_deleted: 'not.is.true',
+                order: 'created_at.desc',
+                limit: '200',
+              })
+            : Promise.resolve({ ok: true, data: [] }),
+          perms.payments === true
+            ? fetchScopedRows('payment_vouchers', {
+                select: 'id,voucher_number,date,amount,partner_id,description,site_ref,is_posted,created_at',
+                created_at: 'gte.' + since,
+                amount: 'gte.' + largeMin,
+                order: 'created_at.desc',
+                limit: '200',
+              })
+            : Promise.resolve({ ok: true, data: [] }),
+        ]);
+        if (!expRes.ok && !payRes.ok) return off;
+        const rows = [];
+        for (const e of expRes.ok ? expRes.data : []) {
+          const amount = Math.max(Number(e.total_price) || 0, Number(e.paid_amount) || 0);
+          if (amount < largeMin) continue;
+          rows.push({ kind: 'expense', id: e.id, number: '', amount, date: e.exp_date, party: e.payee_name || e.sub_contractor || '', description: e.description || '', site: e.site_ref || '', is_posted: e.is_posted === true });
+        }
+        const vouchers = payRes.ok ? payRes.data : [];
+        const partners = await lookupNames('partners', vouchers.map(v => v.partner_id), 'id,name', r => r.name);
+        for (const v of vouchers) {
+          rows.push({ kind: 'voucher', id: v.id, number: v.voucher_number || '', amount: Number(v.amount) || 0, date: v.date, party: partners.get(v.partner_id) || '', description: v.description || '', site: v.site_ref || '', is_posted: v.is_posted === true });
+        }
+        return { available: true, rows };
+      };
+
+      const [claims, jobOrders, treasury, transactions] = await Promise.all([
+        loadClaims(), loadJobOrders(), loadTreasury(), loadTransactions(),
+      ]);
+      return { success: true, today, claims, jobOrders, treasury, transactions };
+    },
+
     // 4. التقرير اليومي المفصل الشامل (7 أقسام كاملة مع فحص صلاحية وتوفر كل قسم على حدة)
     async get_daily_comprehensive_report(rawArgs = {}) {
       if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
