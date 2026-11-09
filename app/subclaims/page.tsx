@@ -9,9 +9,14 @@ import RawasiSmartTable from '@/components/rawasismarttable';
 import AssignWorkModal from './AssignWorkModal'; 
 import ClaimFormModal from './ClaimFormModal'; 
 import PrintClaimModal from './PrintClaimModal'; 
+import AddContractorModal from './AddContractorModal';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager'; 
 import PaymentVoucherModal from '../PaymentVouchers/PaymentVoucherModal';
-import { Search, HardHat, ScanSearch } from 'lucide-react';
+import { 
+  Search, HardHat, ScanSearch, Plus, Download, RotateCw, 
+  ArrowRight, FileText, Banknote, Briefcase, Phone, MapPin,
+  ClipboardList, CheckCircle2, Clock3, Layers, Filter
+} from 'lucide-react';
 import PhiIcon from '@/components/PhiIcon';
 
 // 🚀 قائمة منسدلة ذكية للفلاتر المتعددة
@@ -90,7 +95,10 @@ export default function SubContractorClaimsPage() {
         if (!cleanSearch) return list;
         return list.filter((c: any) => {
             const nameStr = (c.name || '').toLowerCase();
-            return nameStr.includes(cleanSearch);
+            const codeStr = (c.code || '').toLowerCase();
+            const roleStr = (c.job_role || '').toLowerCase();
+            const phoneStr = (c.phone || '').toLowerCase();
+            return nameStr.includes(cleanSearch) || codeStr.includes(cleanSearch) || roleStr.includes(cleanSearch) || phoneStr.includes(cleanSearch);
         });
     }, [logic.contractors, searchTerm]);
 
@@ -153,6 +161,53 @@ export default function SubContractorClaimsPage() {
 
     if (!mounted) return null;
 
+    // أزرار رأس الصفحة العامة (Header Content)
+    const pageHeaderActions = (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap' }}>
+            <button 
+                type="button" 
+                className="ent-button"
+                onClick={logic.refetchAll}
+                title="تحديث البيانات لحظياً"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+                <RotateCw size={15} />
+                <span>تحديث</span>
+            </button>
+
+            <button 
+                type="button" 
+                className="ent-button"
+                onClick={() => {
+                    if (!logic.selectedContractor) {
+                        logic.exportContractorsExcel();
+                    } else if (logic.activeTab === 'assignments') {
+                        logic.exportAssignmentsExcel();
+                    } else {
+                        logic.exportClaimsExcel();
+                    }
+                }}
+                title="تصدير البيانات إلى ملف Excel"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+            >
+                <Download size={15} />
+                <span>تصدير Excel</span>
+            </button>
+
+            <SecureAction module="subclaims" action="create">
+                <button 
+                    type="button" 
+                    className="ent-button ent-primary"
+                    onClick={() => logic.setIsAddContractorModalOpen(true)}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800 }}
+                >
+                    <Plus size={16} />
+                    <span>إضافة مقاول جديد</span>
+                </button>
+            </SecureAction>
+        </div>
+    );
+
     const sidebarActions = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
             {logic.selectedContractor ? (
@@ -179,6 +234,14 @@ export default function SubContractorClaimsPage() {
                         </button>
                     </SecureAction>
 
+                    <button 
+                        onClick={logic.handleOpenDirectPayment}
+                        className="btn-main-glass white"
+                        style={{ background: '#ecfdf5', color: '#166534', border: '1px solid #bbf7d0' }}
+                    >
+                        صرف دفعة للمقاول
+                    </button>
+
                     <div style={{ height: '1px', background: 'rgba(255,255,255,0.2)', margin: '0.625rem 0' }} />
 
                     <button 
@@ -192,8 +255,24 @@ export default function SubContractorClaimsPage() {
                     </button>
                 </>
             ) : (
-                <div style={{ textAlign: 'center', padding: '1rem', background: '#f6f8fb', border: '1px dashed #d6dce5', borderRadius: '12px', color: '#4b5563', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>
-                    يرجى اختيار مقاول من القائمة لعرض الإجراءات وإسناد الأعمال
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <SecureAction module="subclaims" action="create">
+                        <button 
+                            onClick={() => logic.setIsAddContractorModalOpen(true)}
+                            className="btn-main-glass blue"
+                        >
+                            + إضافة مقاول جديد
+                        </button>
+                    </SecureAction>
+                    <button 
+                        onClick={logic.exportContractorsExcel}
+                        className="btn-main-glass white"
+                    >
+                        تصدير كشف المقاولين Excel
+                    </button>
+                    <div style={{ textAlign: 'center', padding: '1rem', background: '#f6f8fb', border: '1px dashed #d6dce5', borderRadius: '12px', color: '#4b5563', fontSize: 'var(--fs-sm)', fontWeight: 700 }}>
+                        اختر مقاولاً من القائمة لعرض ملف الأعمال وإصدار المستخلصات
+                    </div>
                 </div>
             )}
         </div>
@@ -330,7 +409,7 @@ export default function SubContractorClaimsPage() {
                 const isActionPending = logic.actionMutation.isPending && logic.actionMutation.variables?.id === row.id;
 
                 return (
-                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                         {row.is_posted && !isFullyPaid && (
                             <button 
                                 disabled={logic.isSavingPayment}
@@ -375,7 +454,13 @@ export default function SubContractorClaimsPage() {
 
     return (
         <div className="clean-page">
-            <MasterPage title="إدارة مقاولي الباطن" subtitle="إسناد الأعمال وإصدار المستخلصات الدورية">
+            <MasterPage 
+                enterprise 
+                icon={<HardHat />}
+                title="المقاولين" 
+                subtitle="إدارة عقود مقاولي الباطن، إسناد أوامر التشغيل، ومتابعة المستخلصات وسندات الصرف"
+                headerContent={pageHeaderActions}
+            >
                 
                 <RawasiSidebarManager 
                     actions={sidebarActions}
@@ -403,16 +488,149 @@ export default function SubContractorClaimsPage() {
                     .tab-btn.inactive:hover { background: #f8fafc; }
                     
                     .hover-bg-slate:hover { background: #f1f5f9; }
+
+                    .contractor-card {
+                        background: rgba(255,255,255,0.9);
+                        backdrop-filter: blur(15px);
+                        border-radius: 16px;
+                        padding: 1.5rem;
+                        cursor: pointer;
+                        border: 1.5px solid #e2e8f0;
+                        transition: all 0.25s ease;
+                        box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+                        display: flex;
+                        flex-direction: column;
+                        justify-content: space-between;
+                    }
+                    .contractor-card:hover {
+                        transform: translateY(-4px);
+                        border-color: ${THEME.primary};
+                        box-shadow: 0 14px 28px rgba(0,0,0,0.08);
+                    }
                 `}</style>
+
+                {/* KPI Summary Cards */}
+                {!logic.selectedContractor ? (
+                    <div className="ent-summary-grid" style={{ marginBottom: '1.5rem' }}>
+                        <div className="ent-summary-card">
+                            <div className="ent-summary-top">
+                                <span>إجمالي المقاولين المسجلين</span>
+                                <div className="ent-summary-icon"><HardHat size={19}/></div>
+                            </div>
+                            <strong>{logic.stats.totalContractors.toLocaleString('en-US')}</strong>
+                            <small>مقاول باطن معتمد في النظام</small>
+                        </div>
+
+                        <div className="ent-summary-card">
+                            <div className="ent-summary-top">
+                                <span>إسناد أوامر التشغيل</span>
+                                <div className="ent-summary-icon blue"><ClipboardList size={19}/></div>
+                            </div>
+                            <strong>ربط العقود والأعمال</strong>
+                            <small>إسناد فوري لمهام الفلل والبنود</small>
+                        </div>
+
+                        <div className="ent-summary-card">
+                            <div className="ent-summary-top">
+                                <span>المستخلصات والحصر</span>
+                                <div className="ent-summary-icon green"><FileText size={19}/></div>
+                            </div>
+                            <strong>خصومات وتصفية آلية</strong>
+                            <small>خصم الخامات والنثريات من الصافي</small>
+                        </div>
+
+                        <div className="ent-summary-card">
+                            <div className="ent-summary-top">
+                                <span>سداد المستحقات</span>
+                                <div className="ent-summary-icon yellow"><Banknote size={19}/></div>
+                            </div>
+                            <strong>سندات صرف دورية</strong>
+                            <small>توجيه آلي لحساب 212 والخزينة</small>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="ent-summary-grid" style={{ marginBottom: '1.5rem' }}>
+                        <div className="ent-summary-card">
+                            <div className="ent-summary-top">
+                                <span>المقاول المحدد</span>
+                                <div className="ent-summary-icon"><HardHat size={19}/></div>
+                            </div>
+                            <strong style={{ fontSize: '1.2rem', color: THEME.primary }}>{logic.selectedContractor.name}</strong>
+                            <small>{logic.selectedContractor.code ? `كود: ${logic.selectedContractor.code} • ` : ''}{logic.selectedContractor.job_role || 'مقاول باطن'}</small>
+                        </div>
+
+                        <div className="ent-summary-card">
+                            <div className="ent-summary-top">
+                                <span>أعمال جاري تنفيذها</span>
+                                <div className="ent-summary-icon blue"><ClipboardList size={19}/></div>
+                            </div>
+                            <strong>{logic.stats.activeAssignmentsCount} بند عمل</strong>
+                            <small>إجمالي القيمة: {formatCurrency(logic.stats.totalGrossValue)}</small>
+                        </div>
+
+                        <div className="ent-summary-card">
+                            <div className="ent-summary-top">
+                                <span>سجل المستخلصات</span>
+                                <div className="ent-summary-icon green"><FileText size={19}/></div>
+                            </div>
+                            <strong>{logic.stats.totalClaimsCount} مستخلص</strong>
+                            <small>صافي المستخلصات: {formatCurrency(logic.stats.totalClaimsNet)}</small>
+                        </div>
+
+                        <div className="ent-summary-card">
+                            <div className="ent-summary-top">
+                                <span>المتبقي غير مسدد</span>
+                                <div className="ent-summary-icon red"><Banknote size={19}/></div>
+                            </div>
+                            <strong style={{ color: logic.stats.totalClaimsRemaining > 0 ? '#ef4444' : '#16a34a' }}>
+                                {formatCurrency(logic.stats.totalClaimsRemaining)}
+                            </strong>
+                            <small>مسدد للمقاول: {formatCurrency(logic.stats.totalClaimsPaid)}</small>
+                        </div>
+                    </div>
+                )}
 
                 {!logic.selectedContractor ? (
                     <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
+                        {/* Quick Toolbar above Search */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>قائمة المقاولين المعتمدين</span>
+                                <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 800 }}>
+                                    {filteredContractors.length} مقاول
+                                </span>
+                            </div>
+
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <button
+                                    type="button"
+                                    className="ent-button"
+                                    onClick={logic.exportContractorsExcel}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                                >
+                                    <Download size={15} />
+                                    <span>تصدير القائمة Excel</span>
+                                </button>
+                                <SecureAction module="subclaims" action="create">
+                                    <button
+                                        type="button"
+                                        className="ent-button ent-primary"
+                                        onClick={() => logic.setIsAddContractorModalOpen(true)}
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                                    >
+                                        <Plus size={16} />
+                                        <span>إضافة مقاول جديد</span>
+                                    </button>
+                                </SecureAction>
+                            </div>
+                        </div>
+
                         <div className="search-box-container">
                             <span className="search-icon"><Search size={16} aria-hidden="true" /></span>
                             <input 
                                 type="text" 
                                 className="search-input-fancy" 
-                                placeholder="ابحث عن اسم مقاول باطن هنا..." 
+                                placeholder="ابحث بالاسم، الكود، التخصص، أو رقم الهاتف..." 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -422,13 +640,109 @@ export default function SubContractorClaimsPage() {
                         </div>
 
                         {filteredContractors.length > 0 ? (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(17.5rem, 1fr))', gap: '1.25rem', padding: '0.625rem' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(18.5rem, 1fr))', gap: '1.25rem', padding: '0.25rem' }}>
                                 {filteredContractors.map((contractor: any) => (
-                                    <div key={contractor.id} onClick={() => logic.setSelectedContractor(contractor)} 
-                                         style={{ background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(15px)', borderRadius: '14px', padding: '1.5625rem', cursor: 'pointer', border: '1px solid rgba(255,255,255,0.5)', transition: '0.3s', boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}>
-                                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem' }}><HardHat size={34} aria-hidden="true" /></div>
-                                        <h3 style={{ margin: 0, color: THEME.primary, fontWeight: 900 }}>{contractor.name}</h3>
-                                        <div style={{ marginTop: '0.9375rem', background: THEME.accent, color: 'white', padding: '0.5rem', borderRadius: '12px', textAlign: 'center', fontSize: 'var(--fs-sm)', fontWeight: 900 }}>فتح ملف الأعمال</div>
+                                    <div 
+                                        key={contractor.id} 
+                                        onClick={() => logic.setSelectedContractor(contractor)} 
+                                        className="contractor-card"
+                                    >
+                                        <div>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                                                <div style={{ 
+                                                    width: '46px', 
+                                                    height: '46px', 
+                                                    borderRadius: '12px', 
+                                                    background: '#fef3c7', 
+                                                    color: '#b45309', 
+                                                    display: 'grid', 
+                                                    placeItems: 'center' 
+                                                }}>
+                                                    <HardHat size={26} aria-hidden="true" />
+                                                </div>
+                                                {contractor.code && (
+                                                    <span style={{ 
+                                                        background: 'var(--surface-sunken, #f1f5f9)', 
+                                                        color: 'var(--text-secondary, #64748b)', 
+                                                        padding: '0.25rem 0.625rem', 
+                                                        borderRadius: '8px', 
+                                                        fontSize: '0.78rem', 
+                                                        fontWeight: 800 
+                                                    }}>
+                                                        {contractor.code}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <h3 style={{ margin: '0 0 0.5rem 0', color: THEME.primary, fontWeight: 900, fontSize: '1.15rem' }}>
+                                                {contractor.name}
+                                            </h3>
+
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1rem', fontSize: '0.84rem', color: '#64748b' }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                    <Briefcase size={14} style={{ color: '#94a3b8' }} />
+                                                    <span style={{ fontWeight: 700 }}>{contractor.job_role || 'مقاول باطن'}</span>
+                                                </div>
+                                                {contractor.phone && (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                        <Phone size={14} style={{ color: '#94a3b8' }} />
+                                                        <span dir="ltr" style={{ fontWeight: 600 }}>{contractor.phone}</span>
+                                                    </div>
+                                                )}
+                                                {contractor.address && (
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                                        <MapPin size={14} style={{ color: '#94a3b8' }} />
+                                                        <span>{contractor.address}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    logic.setSelectedContractor(contractor);
+                                                }}
+                                                style={{ 
+                                                    flex: 1, 
+                                                    background: THEME.accent, 
+                                                    color: 'white', 
+                                                    padding: '0.625rem', 
+                                                    borderRadius: '10px', 
+                                                    border: 'none',
+                                                    textAlign: 'center', 
+                                                    fontSize: 'var(--fs-sm)', 
+                                                    fontWeight: 900,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                فتح ملف الأعمال
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    logic.setSelectedContractor(contractor);
+                                                    logic.setAssignRecord({ assigned_qty: 1, unit_price: 0 });
+                                                    logic.setIsAssignModalOpen(true);
+                                                }}
+                                                title="إسناد أمر تشغيل سريع"
+                                                style={{ 
+                                                    background: '#e0f2fe', 
+                                                    color: '#0284c7', 
+                                                    padding: '0.625rem', 
+                                                    borderRadius: '10px', 
+                                                    border: 'none',
+                                                    display: 'grid',
+                                                    placeItems: 'center',
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <Plus size={18} />
+                                            </button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -436,31 +750,140 @@ export default function SubContractorClaimsPage() {
                             <div style={{ textAlign: 'center', padding: '3.75rem 1.25rem', background: 'white', borderRadius: '14px', border: '1px dashed #cbd5e1', color: '#64748b' }}>
                                 <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem' }}><ScanSearch size={38} aria-hidden="true" /></div>
                                 <h3 style={{ margin: '0 0 0.5rem 0', color: '#0f172a', fontWeight: 900 }}>لم نتمكن من العثور على مقاول</h3>
-                                <p style={{ margin: 0, fontSize: 'var(--fs-md)', fontWeight: 700 }}>تأكد من كتابة الاسم بشكل صحيح.</p>
+                                <p style={{ margin: '0 0 1rem 0', fontSize: 'var(--fs-md)', fontWeight: 700 }}>تأكد من كتابة الاسم بشكل صحيح أو أضف مقاولاً جديداً الآن.</p>
+                                <button
+                                    type="button"
+                                    className="ent-button ent-primary"
+                                    onClick={() => logic.setIsAddContractorModalOpen(true)}
+                                >
+                                    <Plus size={16} />
+                                    <span>إضافة المقاول «{searchTerm}»</span>
+                                </button>
                             </div>
                         )}
                     </div>
                 ) : (
                     <div style={{ animation: 'slideUp 0.5s ease-out' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5625rem', background: 'white', padding: '1.25rem', border: '1px solid #eee', borderRadius: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-                            <div>
-                                <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary }}>سجل أعمال المقاول</h2>
-                                <span style={{ fontSize: 'var(--fs-md)', color: THEME.accent, fontWeight: 800 }}>الاسم: {logic.selectedContractor.name}</span>
+                        {/* Contractor Detailed Header & Primary Action Toolbar */}
+                        <div style={{ 
+                            display: 'flex', 
+                            justifyContent: 'space-between', 
+                            alignItems: 'center', 
+                            flexWrap: 'wrap',
+                            gap: '1rem',
+                            marginBottom: '1.5rem', 
+                            background: 'white', 
+                            padding: '1.25rem 1.5rem', 
+                            border: '1px solid #e2e8f0', 
+                            borderRadius: '16px', 
+                            boxShadow: '0 4px 14px rgba(0,0,0,0.03)' 
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                                <button
+                                    type="button"
+                                    className="ent-button"
+                                    onClick={() => {
+                                        logic.setSelectedContractor(null);
+                                        logic.setSelectedAssignments([]);
+                                    }}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800 }}
+                                    title="العودة لقائمة كل المقاولين"
+                                >
+                                    <ArrowRight size={16} />
+                                    <span>كل المقاولين</span>
+                                </button>
+                                <div>
+                                    <h2 style={{ margin: 0, fontWeight: 900, color: THEME.primary, fontSize: '1.35rem' }}>
+                                        {logic.selectedContractor.name}
+                                    </h2>
+                                    <span style={{ fontSize: '0.85rem', color: THEME.accent, fontWeight: 800 }}>
+                                        {logic.selectedContractor.code ? `كود: ${logic.selectedContractor.code} • ` : ''}
+                                        {logic.selectedContractor.job_role || 'مقاول باطن'}
+                                        {logic.selectedContractor.phone ? ` • هاتف: ${logic.selectedContractor.phone}` : ''}
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Prominent Action Buttons Bar */}
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', flexWrap: 'wrap' }}>
+                                <SecureAction module="job_orders" action="create">
+                                    <button 
+                                        type="button"
+                                        className="ent-button ent-primary"
+                                        onClick={() => {
+                                            logic.setAssignRecord({ assigned_qty: 1, unit_price: 0 });
+                                            logic.setIsAssignModalOpen(true);
+                                        }}
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800 }}
+                                    >
+                                        <Plus size={16} />
+                                        <span>إسناد أمر تشغيل</span>
+                                    </button>
+                                </SecureAction>
+
+                                <SecureAction module="subclaims" action="create">
+                                    <button 
+                                        type="button"
+                                        className="ent-button ent-success"
+                                        disabled={logic.selectedAssignments.length === 0 || logic.isClaimSaving} 
+                                        onClick={logic.handleOpenClaimModal}
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800 }}
+                                    >
+                                        <FileText size={16} />
+                                        <span>{logic.isClaimSaving ? 'جاري المعالجة...' : `إصدار مستخلص (${logic.selectedAssignments.length})`}</span>
+                                    </button>
+                                </SecureAction>
+
+                                <button 
+                                    type="button"
+                                    className="ent-button"
+                                    onClick={logic.handleOpenDirectPayment}
+                                    style={{ 
+                                        display: 'inline-flex', 
+                                        alignItems: 'center', 
+                                        gap: '0.4rem', 
+                                        fontWeight: 800,
+                                        background: '#16a34a',
+                                        color: '#ffffff',
+                                        border: 'none',
+                                        boxShadow: '0 4px 10px rgba(22,163,74,0.25)'
+                                    }}
+                                    title="صرف دفعة أو سداد مستحقات للمقاول"
+                                >
+                                    <Banknote size={16} />
+                                    <span>صرف دفعة</span>
+                                </button>
+
+                                <button 
+                                    type="button"
+                                    className="ent-button"
+                                    onClick={() => logic.activeTab === 'assignments' ? logic.exportAssignmentsExcel() : logic.exportClaimsExcel()}
+                                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                                    title="تصدير بيانات الجدول الحالي إلى Excel"
+                                >
+                                    <Download size={15} />
+                                    <span>تصدير Excel</span>
+                                </button>
                             </div>
                         </div>
 
+                        {/* Tabs Bar */}
                         <div style={{ display: 'flex', gap: '0.9375rem', marginBottom: '1.5625rem' }}>
                             <button 
                                 className={`tab-btn ${logic.activeTab === 'assignments' ? 'active' : 'inactive'}`} 
                                 onClick={() => logic.setActiveTab('assignments')}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                             >
-                                الأعمال الجارية والإسنادات
+                                <ClipboardList size={17} />
+                                <span>الأعمال الجارية والإسنادات ({logic.assignments?.length || 0})</span>
                             </button>
                             <button 
                                 className={`tab-btn ${logic.activeTab === 'history' ? 'active' : 'inactive'}`} 
                                 onClick={() => logic.setActiveTab('history')}
+                                style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
                             >
-                                سجل المستخلصات (الأرشيف)
+                                <FileText size={17} />
+                                <span>سجل المستخلصات والأرشيف ({logic.claimsHistory?.length || 0})</span>
                             </button>
                         </div>
 
@@ -481,7 +904,7 @@ export default function SubContractorClaimsPage() {
                                         setSelectedOptions={setSelectedItems} 
                                     />
 
-                                    {/* 🚀 فلتر الحالة الجديد */}
+                                    {/* 🚀 فلتر الحالة */}
                                     <FilterDropdown 
                                         title="حالة الإسناد" 
                                         options={availableStatuses as string[]} 
@@ -505,6 +928,7 @@ export default function SubContractorClaimsPage() {
                                     </div>
                                     
                                     <button 
+                                        type="button"
                                         onClick={() => {
                                             // 🚀 تحديد "الجاري تنفيذه فقط" لتسهيل عمل المستخلصات بدون تعارض مع المفوتر
                                             const validIds = filteredAssignments.filter((a: any) => a.assignment_status !== 'مفوتر').map((a:any) => a.id);
@@ -530,14 +954,12 @@ export default function SubContractorClaimsPage() {
                                             { header: 'أمر التشغيل', render: (row: any) => <strong style={{color: THEME.accent}}>{row.order_number}</strong> },
                                             { header: 'المشروع / البند', render: (row: any) => <div style={{lineHeight:'1.4'}}><span style={{fontWeight: 800}}>{row.projects?.Property}</span><br/><span style={{fontSize:'var(--fs-xs)', color:'#64748b'}}>{row.boq_item_name}</span></div> },
                                             { header: 'الكمية', render: (row: any) => <span style={{ fontWeight: 900 }}>{row.executed_qty}</span> },
-                                            // 🚀 عمود سعر الوحدة بجوار الكمية
                                             { header: 'سعر الوحدة', render: (row: any) => <span style={{ fontWeight: 900, color: '#475569' }}>{formatCurrency(row.unit_price)}</span> },
                                             { header: 'قيمة الأعمال', render: (row: any) => <span style={{ color: THEME.success, fontWeight: 900 }}>{formatCurrency(row.gross_total_amount)}</span> },
                                             { header: 'خصومات الخامات', render: (row: any) => <span style={{ color: THEME.danger, fontWeight: 800 }}>{formatCurrency(row.materials_deduction)}</span> },
                                             { header: 'خصومات النثريات', render: (row: any) => <span style={{ color: THEME.danger, fontWeight: 800 }}>{formatCurrency(row.expenses_deduction)}</span> },
                                             { header: 'الصافي التقريبي', render: (row: any) => <strong style={{ color: THEME.primary }}>{formatCurrency(row.net_before_financial_deductions)}</strong> },
                                             
-                                            // 🚀 العمود الجديد (الحالة)
                                             { 
                                                 header: 'الحالة', 
                                                 render: (row: any) => (
@@ -556,18 +978,19 @@ export default function SubContractorClaimsPage() {
                                                 header: 'إجراءات',
                                                 render: (row: any) => (
                                                     <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                                                        {/* 🚀 إخفاء أزرار التعديل والمسح لو البند مفوتر */}
                                                         {row.assignment_status === 'مفوتر' ? (
                                                             <span style={{fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800}}>مغلق (مفوتر)</span>
                                                         ) : (
                                                             <>
                                                                 <button 
+                                                                    type="button"
                                                                     onClick={(e) => { e.stopPropagation(); logic.handleEditAssignment(row); }} 
                                                                     style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0.375rem 0.625rem', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', fontSize: 'var(--fs-xs)' }}
                                                                 >
                                                                     تعديل
                                                                 </button>
                                                                 <button 
+                                                                    type="button"
                                                                     onClick={(e) => { 
                                                                         e.stopPropagation(); 
                                                                         if(confirm('متأكد من مسح هذا البند وإرجاع أمر التشغيل لتنفيذ ذاتي؟')) logic.deleteAssignment(row.assignment_id); 
@@ -600,6 +1023,16 @@ export default function SubContractorClaimsPage() {
                             </div>
                         )}
                     </div>
+                )}
+
+                {/* Modals */}
+                {logic.isAddContractorModalOpen && (
+                    <AddContractorModal 
+                        isOpen={logic.isAddContractorModalOpen}
+                        onClose={() => logic.setIsAddContractorModalOpen(false)}
+                        onSave={logic.handleSaveNewContractor}
+                        isSaving={logic.isAddingContractor}
+                    />
                 )}
 
                 {logic.isAssignModalOpen && (

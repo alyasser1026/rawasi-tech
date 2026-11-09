@@ -47,7 +47,7 @@ export const menuGroups = [
             { id: 'materials', title: 'توريد الخامات', icon: '🧱', path: '/materials' },
             { id: 'materialitems', title: 'أصناف الخامات', icon: '📦', path: '/materialitems' },
             { id: 'material_issues', title: 'صرف الخامات', icon: '📤', path: '/material_issues' },
-            { id: 'subclaims', title: 'مستخلصات مقاولي الباطن', icon: '📑', path: '/subclaims' },
+            { id: 'subclaims', title: 'المقاولين', icon: '👷', path: '/subclaims' },
             { id: 'subcontractor_costs', title: 'تكاليف مقاولي الباطن', icon: '💸', path: '/subcontractor-costs' },
             { id: 'job_orders', title: 'أوامر الشغل', icon: '🛠️', path: '/joborders' },
             { id: 'laborcost', title: 'تكاليف العمالة', icon: '👷‍♂️', path: '/laborcost' },
