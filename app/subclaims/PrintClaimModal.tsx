@@ -154,7 +154,7 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                 
                 .company-header { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 20px; margin-bottom: 35px; border-bottom: 1px solid #e2e8f0; }
                 .company-brand { display: flex; align-items: center; gap: 15px; text-align: left; }
-                .company-logo-img { height: 65px; object-fit: contain; }
+                .company-logo-img { height: 72px; object-fit: contain; }
                 .company-logo-text { font-size: 32px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: -1px; }
                 .company-subtext { font-size: 14px; color: #64748b; margin: 2px 0 0 0; font-weight: 700; }
                 
@@ -230,10 +230,9 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                         </div>
                         <div className="company-brand">
                             <div style={{ textAlign: 'left' }}>
-                                <h1 className="company-logo-text">فاي <span style={{ color: '#1e3a8a' }}>تك</span></h1>
                                 <p className="company-subtext">إدارة المشاريع الهندسية والمقاولات</p>
                             </div>
-                            <img src="/company-logo.svg" alt="Logo" className="company-logo-img" onError={(e: any) => e.target.style.display = 'none'} />
+                            <img src="/company-logo.svg" alt="فاي تك" className="company-logo-img" />
                         </div>
                     </div>
 
