@@ -1,19 +1,24 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { useLoginLogic } from './login_logic';
-import CompanyLogo from '@/components/CompanyLogo';
 
 // 🎨 تطبيق ألوان هوية "فاي تك" الدافئة
 const THEME = {
   coffeeDark: '#27272a',
   coffeeMedium: '#3f3f46',
-  goldAccent: '#c2410c',
+  goldAccent: '#ea580c',
+  amberGlow: '#f97316',
+  emeraldGlow: '#10b981',
   sandLight: '#f7f7f8',
   white: '#ffffff',
   slate: '#94a3b8'
 };
 
-export default function LoginPage() {
+function LoginContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   const {
     isSignUp, toggleSignUp,
     fullName, setFullName,
@@ -24,10 +29,35 @@ export default function LoginPage() {
     handleSubmit
   } = useLoginLogic();
 
+  // Tab state: 'staff' (الموظفين والمهندسين) vs 'partner' (الملاك والشركاء)
+  const initialPortal = searchParams?.get('portal') === 'partner' ? 'partner' : 'staff';
+  const [activePortal, setActivePortal] = useState<'staff' | 'partner'>(initialPortal);
+
+  useEffect(() => {
+    const p = searchParams?.get('portal');
+    if (p === 'partner' || p === 'staff') {
+      setActivePortal(p);
+    }
+  }, [searchParams]);
+
+  const handlePortalSwitch = (portal: 'staff' | 'partner') => {
+    setActivePortal(portal);
+    const currentRedirect = searchParams?.get('redirect');
+    const params = new URLSearchParams();
+    params.set('portal', portal);
+    if (currentRedirect) {
+      params.set('redirect', currentRedirect);
+    } else {
+      params.set('redirect', portal === 'partner' ? '/PartnerBalances' : '/Dashboard');
+    }
+    router.replace(`/login?${params.toString()}`);
+  };
+
+  const isPartner = activePortal === 'partner';
+
   return (
     <div className="login-wrapper">
       <style>{`
-        
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         @keyframes onAutoFillStart { from {} to {} }
@@ -39,102 +69,165 @@ export default function LoginPage() {
           justify-content: center;
           direction: rtl;
           font-family: 'Cairo', sans-serif;
-          /* خلفية دافئة مدمجة مع الصورة */
-          background-image: linear-gradient(rgba(39,39,42, 0.85), rgba(63,63,70, 0.95)), url('/ryc_login.jpeg');
+          background-image: linear-gradient(rgba(15, 18, 25, 0.88), rgba(24, 27, 36, 0.94)), url('/ryc_login.jpeg');
           background-size: cover;
           background-position: center;
           background-attachment: fixed;
+          padding: 1.5rem;
         }
 
         .glass-card {
           width: 100%;
-          max-width: 30rem;
-          /* زجاج دافئ يميل للون الرملي */
-          background: rgba(244, 241, 238, 0.15); 
-          backdrop-filter: blur(25px);
-          -webkit-backdrop-filter: blur(25px);
-          border: 1px solid rgba(194,65,12, 0.4); /* حواف ذهبية */
-          border-radius: 14px;
-          padding: 3.125rem 2.5rem;
-          box-shadow: 0 25px 50px -12px rgba(39,39,42, 0.7), 0 0 40px rgba(194,65,12, 0.15);
+          max-width: 32rem;
+          background: rgba(22, 27, 34, 0.78); 
+          backdrop-filter: blur(28px);
+          -webkit-backdrop-filter: blur(28px);
+          border: 1px solid ${isPartner ? 'rgba(245, 158, 11, 0.45)' : 'rgba(234, 88, 12, 0.45)'};
+          border-radius: 20px;
+          padding: 2.5rem 2rem;
+          box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.85), 0 0 45px ${isPartner ? 'rgba(245, 158, 11, 0.15)' : 'rgba(234, 88, 12, 0.15)'};
           animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          margin: 1.25rem;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .glass-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: ${isPartner 
+            ? 'linear-gradient(90deg, #10b981, #f59e0b, #fbbf24)' 
+            : 'linear-gradient(90deg, #ea580c, #f97316, #fb923c)'};
         }
 
         @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(40px) scale(0.95); }
+          from { opacity: 0; transform: translateY(30px) scale(0.97); }
           to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .logo-container {
-          text-align: right;
-          margin-bottom: 1.5625rem;
+          text-align: center;
+          margin-bottom: 1.25rem;
+          position: relative;
         }
 
         .logo-container img {
-          height: 6.875rem;
-          filter: drop-shadow(0px 10px 15px rgba(39,39,42,0.6));
+          max-height: 5.5rem;
+          width: auto;
+          margin: 0 auto;
+          filter: drop-shadow(0px 8px 18px rgba(0, 0, 0, 0.7));
           transition: transform 0.3s ease;
         }
         
         .logo-container img:hover { transform: scale(1.05); }
 
+        /* Segmented Portal Switcher */
+        .portal-switcher {
+          display: flex;
+          background: rgba(10, 14, 20, 0.75);
+          border-radius: 14px;
+          padding: 4px;
+          margin-bottom: 1.5rem;
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          gap: 4px;
+        }
+
+        .portal-tab {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          border: none;
+          background: transparent;
+          color: rgba(255, 255, 255, 0.65);
+          font-family: inherit;
+          font-size: 0.825rem;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.25s ease;
+        }
+
+        .portal-tab:hover {
+          color: #ffffff;
+          background: rgba(255, 255, 255, 0.04);
+        }
+
+        .portal-tab.active-staff {
+          background: linear-gradient(135deg, rgba(234, 88, 12, 0.25), rgba(249, 115, 22, 0.15));
+          color: #fb923c;
+          border: 1px solid rgba(249, 115, 22, 0.4);
+          box-shadow: 0 4px 15px rgba(234, 88, 12, 0.2);
+        }
+
+        .portal-tab.active-partner {
+          background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(16, 185, 129, 0.15));
+          color: #fde047;
+          border: 1px solid rgba(245, 158, 11, 0.4);
+          box-shadow: 0 4px 15px rgba(245, 158, 11, 0.2);
+        }
+
         .cinematic-title {
           color: ${THEME.white};
           font-weight: 900;
-          font-size: var(--fs-3xl);
+          font-size: 1.625rem;
           text-align: center;
-          margin-bottom: 0.5rem;
-          text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+          margin-bottom: 0.35rem;
+          text-shadow: 0 2px 10px rgba(0,0,0,0.4);
         }
 
         .cinematic-subtitle {
           color: rgba(255, 255, 255, 0.7);
           text-align: center;
-          font-size: var(--fs-lg);
+          font-size: 0.875rem;
           font-weight: 600;
-          margin-bottom: 2.5rem;
+          margin-bottom: 1.75rem;
         }
 
         .input-group {
           position: relative;
-          margin-bottom: 1.5625rem;
+          margin-bottom: 1.35rem;
         }
 
         .cinematic-input {
           width: 100%;
-          padding: 1.125rem 1.25rem;
-          background: rgba(255, 255, 255, 0.1) !important;
-          border: 2px solid rgba(255, 255, 255, 0.2);
-          border-radius: 14px;
+          padding: 1rem 1.15rem;
+          background: rgba(15, 20, 28, 0.6) !important;
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          border-radius: 12px;
           color: ${THEME.white} !important;
-          font-size: var(--fs-lg);
+          font-size: 0.95rem;
           font-weight: 700;
           outline: none;
-          transition: all 0.3s ease;
+          transition: all 0.25s ease;
           text-align: right;
         }
 
         .cinematic-input:focus { 
-            border-color: ${THEME.goldAccent}; 
-            background: rgba(255, 255, 255, 0.15) !important; 
-            box-shadow: 0 0 15px rgba(194,65,12, 0.2);
+          border-color: ${isPartner ? '#f59e0b' : '#f97316'}; 
+          background: rgba(20, 26, 36, 0.8) !important; 
+          box-shadow: 0 0 15px ${isPartner ? 'rgba(245, 158, 11, 0.25)' : 'rgba(249, 115, 22, 0.25)'};
         }
 
         .cinematic-input:-webkit-autofill {
           animation-name: onAutoFillStart;
           -webkit-text-fill-color: #ffffff !important;
-          -webkit-box-shadow: 0 0 0px 1000px rgba(63,63,70, 1) inset !important;
+          -webkit-box-shadow: 0 0 0px 1000px rgba(20, 26, 36, 1) inset !important;
           transition: background-color 5000s ease-in-out 0s;
         }
 
         .floating-label {
           position: absolute;
-          right: 1.25rem;
+          right: 1.15rem;
           top: 50%;
           transform: translateY(-50%);
-          color: rgba(255, 255, 255, 0.7);
-          font-size: var(--fs-lg);
+          color: rgba(255, 255, 255, 0.65);
+          font-size: 0.9rem;
           font-weight: 700;
           pointer-events: none;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -145,42 +238,46 @@ export default function LoginPage() {
         .cinematic-input:not(:placeholder-shown) ~ .floating-label,
         .cinematic-input:-webkit-autofill ~ .floating-label,
         .forced-float {
-          top: -0.75rem !important;
-          right: 0.9375rem !important;
-          font-size: var(--fs-sm) !important;
-          color: ${THEME.coffeeDark} !important;
-          background: ${THEME.goldAccent} !important;
-          padding: 2px 0.625rem !important;
+          top: -0.65rem !important;
+          right: 0.85rem !important;
+          font-size: 0.75rem !important;
+          color: #ffffff !important;
+          background: ${isPartner ? '#d97706' : '#ea580c'} !important;
+          padding: 2px 0.5rem !important;
           border-radius: 6px !important;
           transform: translateY(0) !important;
           opacity: 1 !important;
-          font-weight: 900 !important;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+          font-weight: 800 !important;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
 
         .submit-btn {
           width: 100%;
-          padding: 1.125rem;
-          margin-top: 0.625rem;
-          background: linear-gradient(135deg, ${THEME.goldAccent}, #ea580c);
-          color: ${THEME.coffeeDark};
+          padding: 1rem;
+          margin-top: 0.5rem;
+          background: ${isPartner 
+            ? 'linear-gradient(135deg, #f59e0b, #d97706)' 
+            : 'linear-gradient(135deg, #ea580c, #f97316)'};
+          color: #ffffff;
           border: none;
-          border-radius: 14px;
-          font-size: var(--fs-xl);
+          border-radius: 12px;
+          font-size: 1rem;
           font-weight: 900;
           cursor: pointer;
           transition: all 0.3s ease;
-          box-shadow: 0 10px 20px rgba(194,65,12, 0.3);
+          box-shadow: 0 10px 25px ${isPartner ? 'rgba(245, 158, 11, 0.3)' : 'rgba(234, 88, 12, 0.3)'};
           display: flex;
           justify-content: center;
           align-items: center;
+          gap: 8px;
         }
 
         .submit-btn:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 15px 25px rgba(194,65,12, 0.5);
-          background: linear-gradient(135deg, #ea580c, ${THEME.goldAccent});
+          box-shadow: 0 15px 30px ${isPartner ? 'rgba(245, 158, 11, 0.45)' : 'rgba(234, 88, 12, 0.45)'};
+          filter: brightness(1.08);
         }
+
         .submit-btn:disabled {
           opacity: 0.7;
           cursor: not-allowed;
@@ -192,30 +289,62 @@ export default function LoginPage() {
           border: none;
           color: rgba(255, 255, 255, 0.7);
           font-family: inherit;
-          font-size: var(--fs-md);
+          font-size: 0.85rem;
           font-weight: 700;
-          margin-top: 1.25rem;
+          margin-top: 1.15rem;
           cursor: pointer;
-          transition: 0.3s;
+          transition: 0.25s;
         }
-        .toggle-btn span { color: ${THEME.goldAccent}; text-decoration: underline; }
+        .toggle-btn span { color: ${isPartner ? '#fde047' : '#fb923c'}; text-decoration: underline; }
         .toggle-btn:hover { color: ${THEME.white}; }
         
-        /* تعديل صغير للموبايل في اللوجن */
         @media (max-width: 480px) {
-            .glass-card { padding: 2.5rem 1.5625rem; border-radius: 14px; }
-            .cinematic-title { font-size: var(--fs-3xl); }
-            .logo-container :is(img, svg) { height: 5.625rem; }
+          .glass-card { padding: 2rem 1.25rem; border-radius: 16px; }
+          .cinematic-title { font-size: 1.35rem; }
+          .portal-tab { font-size: 0.75rem; padding: 8px 6px; }
         }
       `}</style>
 
       <div className="glass-card">
+        {/* Official Brand Logo */}
         <div className="logo-container">
-          <CompanyLogo style={{ maxHeight: '6rem', width: 'auto', margin: '0 auto' }} />
+          <img
+            src="/phitech-logo-transparent.png"
+            alt="شعار فاي تك الرسمي — PhiTech"
+          />
         </div>
         
-        <h1 className="cinematic-title">فاي تك</h1>
-        <p className="cinematic-subtitle">{isSignUp ? 'إنشاء حساب جديد' : 'النظام المالي المتكامل'}</p>
+        {/* Dual Portal Switcher: Staff & Engineers vs Owners & Partners */}
+        <div className="portal-switcher">
+          <button
+            type="button"
+            onClick={() => handlePortalSwitch('staff')}
+            className={`portal-tab ${!isPartner ? 'active-staff' : ''}`}
+          >
+            <span>👷‍♂️</span>
+            <span>بوابة الموظفين والمهندسين</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handlePortalSwitch('partner')}
+            className={`portal-tab ${isPartner ? 'active-partner' : ''}`}
+          >
+            <span>👑</span>
+            <span>بوابة الملاك والشركاء</span>
+          </button>
+        </div>
+
+        <h1 className="cinematic-title">
+          {isPartner ? 'بوابة الملاك والشركاء' : 'بوابة الكادر الوظيفي والهندسي'}
+        </h1>
+        <p className="cinematic-subtitle">
+          {isSignUp 
+            ? 'إنشاء حساب جديد بالمنظومة' 
+            : isPartner 
+              ? 'الوصول المباشر لكشوف الحسابات، الأرباح، والتقارير المالية' 
+              : 'النظام المتكامل لإدارة المشاريع، المواقع، والعمليات الميدانية'}
+        </p>
 
         <form onSubmit={handleSubmit}>
           
@@ -262,18 +391,33 @@ export default function LoginPage() {
           </div>
 
           <button type="submit" className="submit-btn" disabled={isLoading}>
-            {isLoading ? 'جاري المعالجة...' : (isSignUp ? 'إنشاء الحساب' : 'دخول للنظام')}
+            {isLoading ? (
+              <span>جاري التحقق والاتصال...</span>
+            ) : isSignUp ? (
+              <span>إنشاء الحساب</span>
+            ) : isPartner ? (
+              <>
+                <span>👑</span>
+                <span>دخول بوابة الشركاء والملاك</span>
+              </>
+            ) : (
+              <>
+                <span>🚀</span>
+                <span>دخول المنظومة الهندسية</span>
+              </>
+            )}
           </button>
         </form>
 
         <button type="button" className="toggle-btn" onClick={toggleSignUp}>
           {isSignUp ? (
-            <>لديك حساب بالفعل؟ <span>سجل دخولك من هنا</span></>
+            <>لديك حساب مسجل؟ <span>تسجيل الدخول</span></>
           ) : (
-            <>مستخدم جديد للمنصة؟ <span>إنشاء حساب جديد</span></>
+            <>طلب اعتماد حساب مستخدم جديد؟ <span>إنشاء حساب</span></>
           )}
         </button>
 
+        {/* Back to Website Link */}
         <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
           <a
             href="/website"
@@ -283,28 +427,40 @@ export default function LoginPage() {
               justifyContent: 'center',
               gap: '0.5rem',
               width: '100%',
-              padding: '0.625rem 1rem',
+              padding: '0.75rem 1rem',
               borderRadius: '12px',
               background: 'rgba(249, 115, 22, 0.12)',
               color: '#fb923c',
               textDecoration: 'none',
-              fontSize: '0.8125rem',
-              fontWeight: 700,
+              fontSize: '0.825rem',
+              fontWeight: 800,
               boxShadow: '0 4px 15px rgba(249, 115, 22, 0.15)',
               transition: 'all 0.2s ease',
             }}
           >
             <span>🌐</span>
-            <span>زيارة موقع شركة فاي كونستركت (PHI CONSTRUCT) الرسمي</span>
+            <span>العودة للموقع الرسمي لشركة فاي تك (PHI CONSTRUCT)</span>
           </a>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '1.5625rem' }}>
-          <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
-            جميع الحقوق محفوظة © {new Date().getFullYear()} <br/> إدارة تقنية المعلومات - فاي تك
+        <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+          <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.75rem', fontWeight: 600 }}>
+            منظومة مؤمنة ومشفرة © {new Date().getFullYear()} • فاي تك للاستشارات الهندسية والمقاولات
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0f1219', color: '#fb923c', fontFamily: 'Cairo, sans-serif' }}>
+        جاري تحميل بوابة الدخول...
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -22,7 +22,9 @@ export function useLoginLogic() {
       if (session) {
         // 👈 توجيه ذكي: يقرأ من الرابط، أو من الذاكرة، أو يروح للداشبورد كافتراضي
         const redirectParam = searchParams?.get('redirect');
-        router.replace(redirectParam || '/'); 
+        const portalParam = searchParams?.get('portal');
+        const target = redirectParam || (portalParam === 'partner' ? '/PartnerBalances' : '/');
+        router.replace(target); 
       }
     };
     checkExistingSession();
@@ -97,7 +99,9 @@ export function useLoginLogic() {
         // 👈 توجيه ذكي بعد الدخول بنجاح
         setTimeout(() => {
           const redirectParam = searchParams?.get('redirect');
-          router.replace(redirectParam || '/'); 
+          const portalParam = searchParams?.get('portal');
+          const target = redirectParam || (portalParam === 'partner' ? '/PartnerBalances' : '/');
+          router.replace(target); 
         }, 500);
       }
     } catch (error: any) {

@@ -8,7 +8,7 @@ export default function WebsitePage() {
   // Theme & Accent states
   const [themeMode, setThemeMode] = useState<'dark' | 'light'>('dark');
   const [accent, setAccent] = useState<'amber' | 'emerald' | 'cyan'>('amber');
-  const [heroLogoVariant, setHeroLogoVariant] = useState<'print-light' | 'web-dark' | 'luxury-foil'>('print-light');
+  const [heroLogoVariant, setHeroLogoVariant] = useState<'official-master' | 'print-light' | 'web-dark' | 'luxury-foil'>('official-master');
 
   // Calculator states
   const [currencySymbol, setCurrencySymbol] = useState<'ج.م' | 'ر.س' | '$'>('ج.م');
@@ -57,6 +57,7 @@ export default function WebsitePage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   // User session state (checks if user is signed into ERP)
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -1006,7 +1007,7 @@ export default function WebsitePage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {isAuthenticated ? (
               <Link
                 href="/Dashboard"
@@ -1016,13 +1017,25 @@ export default function WebsitePage() {
                 <span>لوحة تحكم النظام (ERP)</span>
               </Link>
             ) : (
-              <Link
-                href="/login"
-                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-bold subcard-glass hover:text-amber-400 transition-colors"
-              >
-                <i className="fa-solid fa-lock"></i>
-                <span>دخول المهندسين والموظفين (ERP Login)</span>
-              </Link>
+              <div className="flex items-center gap-1.5">
+                <Link
+                  href="/login?portal=staff&redirect=/Dashboard"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold subcard-glass hover:text-amber-400 transition-colors"
+                  title="بوابة دخول الكادر الهندسي والوظيفي"
+                >
+                  <i className="fa-solid fa-helmet-safety text-amber-500"></i>
+                  <span>بوابة الموظفين والمهندسين</span>
+                </Link>
+                <span className="text-slate-600 text-xs">|</span>
+                <Link
+                  href="/login?portal=partner&redirect=/PartnerBalances"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold subcard-glass hover:text-amber-300 transition-colors text-amber-400"
+                  title="بوابة دخول الشركاء والملاك"
+                >
+                  <i className="fa-solid fa-crown text-amber-400"></i>
+                  <span>بوابة الملاك والشركاء</span>
+                </Link>
+              </div>
             )}
           </div>
         </div>
@@ -1033,21 +1046,23 @@ export default function WebsitePage() {
         <div className="specular-beam"></div>
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4">
           
-          {/* Brand Logo: Full-Bleed Vector Monogram */}
+          {/* Brand Logo: Official Master Emblem & Typography */}
           <a href="#hero" className="flex items-center gap-3.5 group focus:outline-none">
-            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl sunken-well-box p-1 flex items-center justify-center relative overflow-hidden">
-              <svg viewBox={logoGeometry.tightViewBox} className="w-12 h-12 sm:w-13 sm:h-13 transition-transform duration-300 group-hover:scale-105" aria-label="PHI CONSTRUCT Logo">
-                <use href="#phi-master-rings" fill={themeMode === 'light' ? 'url(#phiRingsPrint)' : 'url(#phiRingsWebDark)'} />
-                <use href="#phi-master-pillars" fill={themeMode === 'light' ? 'url(#phiPillarsPrint)' : 'url(#phiPillarsWebDark)'} />
-              </svg>
+            <div className="w-13 h-13 sm:w-14 sm:h-14 rounded-2xl sunken-well-box p-1.5 flex items-center justify-center relative overflow-hidden bg-slate-900/70 border border-amber-500/25 shadow-[0_0_20px_rgba(249,115,22,0.2)]">
+              <img
+                src="/phitech-emblem.png"
+                alt="شعار فاي تك الرسمي"
+                className="w-11 h-11 sm:w-12 sm:h-12 object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-[0_2px_10px_rgba(249,115,22,0.45)]"
+              />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-lg sm:text-xl font-black tracking-wider phi-metallic-text font-mono">PHI CONSTRUCT</span>
-                <span className="badge-pill badge-accent text-[11px] hidden sm:inline-flex font-mono">BOLD FULL-BLEED Φ</span>
+                <span className="text-xl sm:text-2xl font-black tracking-wider text-amber-500 font-sans">فاي تك</span>
+                <span className="text-sm sm:text-base font-black tracking-wider phi-metallic-text font-mono">PhiTech</span>
+                <span className="badge-pill badge-accent text-[10px] hidden sm:inline-flex font-mono">PHI CONSTRUCT</span>
               </div>
               <p className="text-[11px] sm:text-xs font-bold tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                إنشاءات خرسانية (عضم) • تشطيبات معمارية • تقنية معلومات
+                استشارات هندسية • مقاولات عامة • تقنية معلومات وبنية ذكية
               </p>
             </div>
           </a>
@@ -1062,7 +1077,7 @@ export default function WebsitePage() {
             <a href="#brand-identity" className="px-3.5 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--accent-bright)' }}>استوديو الشعار والمطبوعات</a>
           </nav>
 
-          {/* Controls: Sector Accent Dots + Theme Switcher + CTA */}
+          {/* Controls: Sector Accent Dots + Theme Switcher + Dual Login + CTA */}
           <div className="flex items-center gap-2.5">
             <div className="sunken-well-box px-2.5 py-1.5 flex items-center gap-2" title="اختر اللكنة اللونية حسب القطاع">
               <span className="text-[11px] font-bold hidden md:inline" style={{ color: 'var(--text-muted)' }}>القطاع:</span>
@@ -1092,6 +1107,22 @@ export default function WebsitePage() {
             >
               <i className={`fa-solid ${themeMode === 'dark' ? 'fa-moon text-amber-400' : 'fa-sun text-amber-500'}`}></i>
               <span className="hidden sm:inline">{themeMode === 'dark' ? 'أوبسيديان داكن' : 'لؤلؤي نهاري'}</span>
+            </button>
+
+            {/* Unified Login Portal Trigger (الموظفين والملاك) */}
+            <button
+              onClick={() => setIsLoginModalOpen(true)}
+              className="sunken-well-box px-3.5 py-2 text-xs sm:text-sm font-black flex items-center gap-2 cursor-pointer transition-all hover:scale-105 border border-amber-500/30 text-amber-400 hover:text-amber-300 shadow-[0_0_15px_rgba(249,115,22,0.18)]"
+              style={{ background: 'linear-gradient(135deg, rgba(249,115,22,0.2), rgba(15,23,42,0.7))' }}
+              title="بوابة تسجيل الدخول الموحدة للموظفين والمهندسين والملاك"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              <i className="fa-solid fa-shield-halved text-amber-400"></i>
+              <span className="font-bold">تسجيل الدخول</span>
+              <span className="badge-pill bg-amber-500/20 text-amber-300 text-[10px] px-1.5 py-0.5 hidden lg:inline font-mono">موظفين • ملاك</span>
             </button>
 
             <a href="#order-section" className="btn-primary text-xs sm:text-sm py-2.5 px-4 sm:px-5">
@@ -1215,10 +1246,16 @@ export default function WebsitePage() {
 
               <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <span className="badge-pill badge-accent font-mono text-xs">
-                  <i className="fa-solid fa-expand"></i>
-                  نسب قياسية ممتلئة — مالي مكانه
+                  <i className="fa-solid fa-certificate"></i>
+                  الهوية الهندسية المعتمدة
                 </span>
                 <div className="sunken-well-box p-1 flex items-center gap-1 text-[11px] font-bold">
+                  <button
+                    onClick={() => setHeroLogoVariant('official-master')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] ${heroLogoVariant === 'official-master' ? 'btn-primary' : 'text-slate-400'}`}
+                  >
+                    الشعار الرسمي المعتمد
+                  </button>
                   <button
                     onClick={() => setHeroLogoVariant('print-light')}
                     className={`px-2.5 py-1 rounded-lg text-[11px] ${heroLogoVariant === 'print-light' ? 'btn-primary' : 'text-slate-400'}`}
@@ -1240,7 +1277,7 @@ export default function WebsitePage() {
                 </div>
               </div>
 
-              {/* Vector Emblem Stage */}
+              {/* Emblem Stage */}
               <div
                 className={`rounded-3xl p-5 sm:p-6 flex flex-col items-center justify-center relative transition-all duration-500 min-h-[390px] ${
                   heroLogoVariant === 'print-light' ? 'preview-surface-paper' : 'preview-surface-dark'
@@ -1248,51 +1285,104 @@ export default function WebsitePage() {
               >
                 <div className="specular-beam"></div>
 
-                <div className="w-full flex items-center justify-center">
-                  <svg viewBox={logoGeometry.tightViewBox} className="w-64 sm:w-72 h-auto mx-auto transition-all duration-300" role="img" aria-label="شعار فاي كونستركت">
-                    <use
-                      href="#phi-master-rings"
-                      fill={
-                        heroLogoVariant === 'print-light'
-                          ? 'url(#phiRingsPrint)'
-                          : heroLogoVariant === 'luxury-foil'
-                          ? 'url(#phiRingsFoil)'
-                          : 'url(#phiRingsWebDark)'
-                      }
-                    />
-                    <use
-                      href="#phi-master-pillars"
-                      fill={
-                        heroLogoVariant === 'print-light'
-                          ? 'url(#phiPillarsPrint)'
-                          : heroLogoVariant === 'luxury-foil'
-                          ? 'url(#phiPillarsFoil)'
-                          : 'url(#phiPillarsWebDark)'
-                      }
-                    />
-                  </svg>
-                </div>
+                {heroLogoVariant === 'official-master' ? (
+                  <div className="w-full flex flex-col items-center justify-center text-center p-2">
+                    <div className="relative group max-w-[260px] sm:max-w-[280px] mx-auto rounded-2xl overflow-hidden shadow-2xl border border-amber-500/25 bg-slate-900/60 p-2">
+                      <img
+                        src="/phitech-logo.jpg"
+                        alt="الشعار الرسمي المعتمد لشركة فاي تك"
+                        className="w-full h-auto rounded-xl transition-transform duration-500 group-hover:scale-105"
+                      />
+                    </div>
 
-                <div className="mt-2 text-center space-y-0.5">
-                  <div className="font-mono text-2xl sm:text-3xl font-black tracking-[0.16em]">
-                    <span style={{ color: heroLogoVariant === 'print-light' ? '#2c353d' : '#ede5da' }}>PHI </span>
-                    <span style={{ color: heroLogoVariant === 'print-light' ? '#f07613' : '#f97316' }}>CONSTRUCT</span>
-                  </div>
-                  <div className="font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.15em]" style={{ color: heroLogoVariant === 'print-light' ? '#524236' : '#b8aea2' }}>
-                    STRUCTURAL • ARCHITECTURAL • IT SYSTEMS
-                  </div>
-                </div>
+                    <div className="mt-3.5 space-y-1">
+                      <div className="flex items-center justify-center gap-2">
+                        <span className="text-2xl font-black text-amber-500 font-sans">فاي تك</span>
+                        <span className="text-lg font-black text-white font-mono">PhiTech</span>
+                      </div>
+                      <p className="text-[11px] font-bold text-slate-300">
+                        الهوية البصرية الرسمية المعتمدة لشركة فاي تك للاستشارات الهندسية والمقاولات
+                      </p>
+                    </div>
 
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  <button onClick={exportSvg} className="badge-pill badge-accent cursor-pointer hover:scale-105 transition-transform" style={{ background: 'rgba(249,115,22,0.18)', color: '#ea580c' }}>
-                    <i className="fa-solid fa-download"></i>
-                    <span>تحميل SVG بالنسب الممتلئة</span>
-                  </button>
-                  <button onClick={exportPng} className="badge-pill badge-info cursor-pointer hover:scale-105 transition-transform" style={{ background: 'rgba(14,165,233,0.16)', color: '#0284c7' }}>
-                    <i className="fa-solid fa-file-image"></i>
-                    <span>تحميل PNG شفاف (2048px)</span>
-                  </button>
-                </div>
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                      <a
+                        href="/phitech-logo.jpg"
+                        download="phitech-official-logo.jpg"
+                        className="badge-pill badge-accent cursor-pointer hover:scale-105 transition-transform"
+                        style={{ background: 'rgba(249,115,22,0.2)', color: '#fb923c' }}
+                      >
+                        <i className="fa-solid fa-download"></i>
+                        <span>تحميل الأصل (JPG)</span>
+                      </a>
+                      <a
+                        href="/phitech-logo-transparent.png"
+                        download="phitech-logo-transparent.png"
+                        className="badge-pill badge-info cursor-pointer hover:scale-105 transition-transform"
+                        style={{ background: 'rgba(14,165,233,0.18)', color: '#38bdf8' }}
+                      >
+                        <i className="fa-solid fa-file-image"></i>
+                        <span>مفرغ شفاف (PNG)</span>
+                      </a>
+                      <a
+                        href="/phitech-emblem.png"
+                        download="phitech-emblem.png"
+                        className="badge-pill subcard-glass cursor-pointer hover:scale-105 transition-transform text-white text-[11px]"
+                      >
+                        <i className="fa-solid fa-shapes"></i>
+                        <span>الأيقونة فقط (Emblem)</span>
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-full flex items-center justify-center">
+                      <svg viewBox={logoGeometry.tightViewBox} className="w-64 sm:w-72 h-auto mx-auto transition-all duration-300" role="img" aria-label="شعار فاي كونستركت">
+                        <use
+                          href="#phi-master-rings"
+                          fill={
+                            heroLogoVariant === 'print-light'
+                              ? 'url(#phiRingsPrint)'
+                              : heroLogoVariant === 'luxury-foil'
+                              ? 'url(#phiRingsFoil)'
+                              : 'url(#phiRingsWebDark)'
+                          }
+                        />
+                        <use
+                          href="#phi-master-pillars"
+                          fill={
+                            heroLogoVariant === 'print-light'
+                              ? 'url(#phiPillarsPrint)'
+                              : heroLogoVariant === 'luxury-foil'
+                              ? 'url(#phiPillarsFoil)'
+                              : 'url(#phiPillarsWebDark)'
+                          }
+                        />
+                      </svg>
+                    </div>
+
+                    <div className="mt-2 text-center space-y-0.5">
+                      <div className="font-mono text-2xl sm:text-3xl font-black tracking-[0.16em]">
+                        <span style={{ color: heroLogoVariant === 'print-light' ? '#2c353d' : '#ede5da' }}>PHI </span>
+                        <span style={{ color: heroLogoVariant === 'print-light' ? '#f07613' : '#f97316' }}>CONSTRUCT</span>
+                      </div>
+                      <div className="font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.15em]" style={{ color: heroLogoVariant === 'print-light' ? '#524236' : '#b8aea2' }}>
+                        STRUCTURAL • ARCHITECTURAL • IT SYSTEMS
+                      </div>
+                    </div>
+
+                    <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                      <button onClick={exportSvg} className="badge-pill badge-accent cursor-pointer hover:scale-105 transition-transform" style={{ background: 'rgba(249,115,22,0.18)', color: '#ea580c' }}>
+                        <i className="fa-solid fa-download"></i>
+                        <span>تحميل SVG بالنسب الممتلئة</span>
+                      </button>
+                      <button onClick={exportPng} className="badge-pill badge-info cursor-pointer hover:scale-105 transition-transform" style={{ background: 'rgba(14,165,233,0.16)', color: '#0284c7' }}>
+                        <i className="fa-solid fa-file-image"></i>
+                        <span>تحميل PNG شفاف (2048px)</span>
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
 
               {/* Calibration Stats */}
@@ -1945,6 +2035,53 @@ export default function WebsitePage() {
           <div className="glossy-card p-6 sm:p-10">
             <div className="specular-beam"></div>
 
+            {/* OFFICIAL ASSETS QUICK DOWNLOAD BANNER */}
+            <div className="subcard-glass p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border border-amber-500/25 mb-6" style={{ background: 'linear-gradient(135deg, rgba(249,115,22,0.1), rgba(15,23,42,0.6))' }}>
+              <div className="flex items-center gap-3.5">
+                <div className="w-14 h-14 rounded-xl bg-slate-900/80 p-1 flex items-center justify-center border border-amber-500/30 shrink-0">
+                  <img src="/phitech-emblem.png" alt="شعار فاي تك" className="w-11 h-11 object-contain drop-shadow" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-amber-400 text-sm">حزمة ملفات الهوية المعتمدة الرسمية</span>
+                    <span className="badge-pill badge-accent text-[10px]">جاهز للاستخدام الفوري</span>
+                  </div>
+                  <div className="text-xs text-slate-300 mt-0.5">
+                    تحميل الشعار الأصلي (JPG) والمفرغ الشفاف عالي الدقة (PNG) ورمز الأيقونة للمطبوعات والويب.
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <a
+                  href="/phitech-logo.jpg"
+                  download="phitech-official-logo.jpg"
+                  className="btn-primary text-xs py-2 px-3.5"
+                >
+                  <i className="fa-solid fa-download"></i>
+                  <span>الأصل JPG</span>
+                </a>
+                <a
+                  href="/phitech-logo-transparent.png"
+                  download="phitech-logo-transparent.png"
+                  className="btn-secondary text-xs py-2 px-3.5"
+                >
+                  <div className="specular-beam"></div>
+                  <i className="fa-solid fa-file-image text-cyan-400"></i>
+                  <span>مفرغ شفاف PNG</span>
+                </a>
+                <a
+                  href="/phitech-emblem.png"
+                  download="phitech-emblem.png"
+                  className="btn-secondary text-xs py-2 px-3.5"
+                >
+                  <div className="specular-beam"></div>
+                  <i className="fa-solid fa-shapes text-amber-400"></i>
+                  <span>الأيقونة فقط Emblem</span>
+                </a>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
               
               {/* Studio Controls */}
@@ -2517,22 +2654,210 @@ export default function WebsitePage() {
       {/* FOOTER */}
       <footer className="header-surface py-12 px-4 sm:px-8 mt-10 relative">
         <div className="specular-beam"></div>
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-xl sunken-well-box flex items-center justify-center font-mono font-black text-xl" style={{ color: 'var(--accent-bright)' }}>
-              Φ
+            <div className="w-12 h-12 rounded-xl sunken-well-box p-1.5 flex items-center justify-center bg-slate-900/70 border border-amber-500/20 shadow-[0_0_15px_rgba(249,115,22,0.2)]">
+              <img
+                src="/phitech-emblem.png"
+                alt="شعار فاي تك"
+                className="w-10 h-10 object-contain drop-shadow-[0_2px_8px_rgba(249,115,22,0.4)]"
+              />
             </div>
             <div>
-              <div className="font-mono font-black text-base phi-metallic-text">PHI CONSTRUCT</div>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-lg text-amber-500 font-sans">فاي تك</span>
+                <span className="font-mono font-black text-base phi-metallic-text">PhiTech / PHI CONSTRUCT</span>
+              </div>
               <div className="text-xs" style={{ color: 'var(--text-muted)' }}>بناء إنشائي (عضم) • عمارة وتشطيبات • تقنية معلومات وأنظمة ذكية</div>
             </div>
           </div>
 
-          <div className="text-xs text-center sm:text-left" style={{ color: 'var(--text-muted)' }}>
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 text-xs font-bold text-slate-400">
+            <button
+              onClick={() => setIsLoginModalOpen(true)}
+              className="hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1.5 text-amber-400"
+            >
+              <i className="fa-solid fa-shield-halved text-amber-500"></i>
+              <span>بوابات الدخول (موظفين • ملاك)</span>
+            </button>
+            <span>•</span>
+            <Link href="/login?portal=staff&redirect=/Dashboard" className="hover:text-amber-400 transition-colors">
+              بوابة الموظفين والمهندسين
+            </Link>
+            <span>•</span>
+            <Link href="/login?portal=partner&redirect=/PartnerBalances" className="hover:text-amber-300 transition-colors">
+              بوابة الملاك والشركاء
+            </Link>
+            <span>•</span>
+            <a href="#turnkey-calculator" className="hover:text-slate-200 transition-colors">
+              حاسبة المقايسة 3×1
+            </a>
+          </div>
+
+          <div className="text-xs text-center md:text-left" style={{ color: 'var(--text-muted)' }}>
             جميع الحقوق محفوظة © <span className="font-mono">2026</span> لشركة <strong style={{ color: 'var(--text-primary)' }}>PHI CONSTRUCT</strong> — مدمجة بنظام <span className="font-mono">Obsidian Amber Gloss UI</span>.
           </div>
         </div>
       </footer>
+
+      {/* EXECUTIVE DUAL LOGIN MODAL (الموظفين والملاك) */}
+      {isLoginModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="glossy-card max-w-3xl w-full p-6 sm:p-8 relative my-8 border border-amber-500/25 shadow-[0_20px_70px_rgba(0,0,0,0.9)] animate-in fade-in zoom-in-95 duration-200">
+            <div className="specular-beam"></div>
+
+            {/* Close Button */}
+            <button
+              onClick={() => setIsLoginModalOpen(false)}
+              className="absolute top-4 left-4 w-9 h-9 rounded-xl sunken-well-box flex items-center justify-center text-slate-400 hover:text-white transition-colors cursor-pointer"
+              aria-label="إغلاق"
+            >
+              <i className="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            {/* Header */}
+            <div className="text-center space-y-3 mb-8">
+              <div className="w-16 h-16 rounded-2xl mx-auto sunken-well-box p-2 flex items-center justify-center bg-slate-900/80 border border-amber-500/30 shadow-[0_0_25px_rgba(249,115,22,0.3)]">
+                <img
+                  src="/phitech-emblem.png"
+                  alt="شعار فاي تك"
+                  className="w-12 h-12 object-contain drop-shadow-[0_2px_10px_rgba(249,115,22,0.5)]"
+                />
+              </div>
+              <div>
+                <span className="badge-pill badge-accent font-mono text-xs px-3 py-1">
+                  <i className="fa-solid fa-shield-halved"></i>
+                  بوابة الدخول الموحدة لمنظومة فاي تك
+                </span>
+                <h2 className="text-2xl sm:text-3xl font-black mt-2 text-white">
+                  اختر بوابة الدخول المخصصة لك
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto mt-1">
+                  منظومة رقمية مشفرة توفر مسارات دخول منفصلة ومخصصة لكل من كادر العمل الميداني والإداري، والملاك والشركاء المستثمرين.
+                </p>
+              </div>
+            </div>
+
+            {/* The Two Portals */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              
+              {/* Portal 1: Staff & Engineers */}
+              <div className="glossy-card p-6 flex flex-col justify-between relative group hover:border-amber-500/50 transition-all border border-slate-700/60 bg-gradient-to-b from-slate-900/90 to-slate-950/95">
+                <div className="specular-beam"></div>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-amber-400 bg-amber-500/15 border border-amber-500/30">
+                      <i className="fa-solid fa-helmet-safety"></i>
+                    </div>
+                    <span className="badge-pill bg-amber-500/20 text-amber-300 text-xs font-bold font-sans">
+                      الكادر التنفيذي
+                    </span>
+                  </div>
+
+                  <h3 className="text-xl font-black text-white group-hover:text-amber-400 transition-colors">
+                    بوابة الموظفين والمهندسين
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-1 mb-4 leading-relaxed">
+                    مخصصة لمهندسي المواقع، المشرفين الميدانيين، المحاسبين، وفريق إدارة المشاريع والعمليات.
+                  </p>
+
+                  <ul className="space-y-2 text-xs text-slate-300 mb-6 border-t border-slate-800 pt-3">
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-check text-amber-400 text-[10px]"></i>
+                      <span>تسجيل الحضور والموقع الميداني GPS</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-check text-amber-400 text-[10px]"></i>
+                      <span>جداول الكميات وحصر الأعمال اليومية (BoQ)</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-check text-amber-400 text-[10px]"></i>
+                      <span>إدارة العهد والمصروفات والفواتير التشغيلية</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-check text-amber-400 text-[10px]"></i>
+                      <span>المخططات التنفيذية ومستخلصات المشاريع</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <Link
+                  href="/login?portal=staff&redirect=/Dashboard"
+                  className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2 font-bold shadow-lg shadow-orange-500/20"
+                >
+                  <i className="fa-solid fa-arrow-right-to-bracket"></i>
+                  <span>دخول كادر الموظفين والمهندسين</span>
+                </Link>
+              </div>
+
+              {/* Portal 2: Owners & Partners */}
+              <div className="glossy-card p-6 flex flex-col justify-between relative group hover:border-amber-400/60 transition-all border border-amber-500/35 bg-gradient-to-b from-slate-900/95 to-slate-950/95 shadow-[0_0_30px_rgba(245,158,11,0.1)]">
+                <div className="specular-beam"></div>
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl text-amber-300 bg-amber-500/20 border border-amber-400/40">
+                      <i className="fa-solid fa-crown"></i>
+                    </div>
+                    <span className="badge-pill bg-emerald-500/20 text-emerald-300 text-xs font-bold font-sans">
+                      VIP الشركاء والملاك
+                    </span>
+                  </div>
+
+                  <h3 className="text-xl font-black text-amber-200 group-hover:text-amber-300 transition-colors">
+                    بوابة الملاك والشركاء
+                  </h3>
+                  <p className="text-xs text-slate-300 mt-1 mb-4 leading-relaxed">
+                    مخصصة للشركاء المؤسسين، كبار الملاك، والمستثمرين للاطلاع على المؤشرات المالية والأرصدة.
+                  </p>
+
+                  <ul className="space-y-2 text-xs text-slate-300 mb-6 border-t border-slate-800 pt-3">
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+                      <span>كشف حساب الشركاء وحركات المسحوبات اللحظية</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+                      <span>تقارير ربحية المشاريع وتوزيع العوائد والأرباح</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+                      <span>المركز المالي الشامل وصافي التدفقات النقدية</span>
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <i className="fa-solid fa-check text-emerald-400 text-[10px]"></i>
+                      <span>لوحة قياس الأداء الاستراتيجي والشفافية</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <Link
+                  href="/login?portal=partner&redirect=/PartnerBalances"
+                  className="w-full py-3 text-sm flex items-center justify-center gap-2 font-bold rounded-xl text-slate-950 transition-all hover:scale-[1.02] shadow-lg shadow-amber-500/25"
+                  style={{ background: 'linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #d97706 100%)' }}
+                >
+                  <i className="fa-solid fa-gem"></i>
+                  <span>دخول بوابة الملاك والشركاء</span>
+                </Link>
+              </div>
+
+            </div>
+
+            {/* Footer Info */}
+            <div className="mt-6 pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+              <div className="flex items-center gap-2">
+                <i className="fa-solid fa-lock text-amber-500"></i>
+                <span>اتصال محمي ومشفر بالكامل 256-bit SSL عبر Supabase Enterprise</span>
+              </div>
+              <button
+                onClick={() => setIsLoginModalOpen(false)}
+                className="text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                إلغاء والعودة لتصفح الموقع
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL SUCCESS CONFIRMATION */}
       {isModalOpen && (
