@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/lib/toast-context';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
+import * as XLSX from 'xlsx';
 
 export function useSubClaimsLogic() {
     const { showToast } = useToast();
@@ -28,6 +29,7 @@ export function useSubClaimsLogic() {
     const [assignRecord, setAssignRecord] = useState<any>({ assigned_qty: 1, unit_price: 0 });
 
     const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+    const [isAddContractorModalOpen, setIsAddContractorModalOpen] = useState(false);
     const [selectedPrintClaim, setSelectedPrintClaim] = useState<any | null>(null);
     const [printAssignments, setPrintAssignments] = useState<any[]>([]); 
     const [printDeductions, setPrintDeductions] = useState<any[]>([]);
@@ -38,7 +40,7 @@ export function useSubClaimsLogic() {
     const fetchProjectJobOrders = async (projectId: string) => {
         if (!projectId) { setProjectJobOrders([]); return; }
         const { data } = await supabase.from('job_orders')
-            .select('*, boq_budget(unit, work_item)') 
+            .select('*, boq_budget:boq_budget_id(unit, work_item)') 
             .eq('project_id', projectId)
             .is('contractor_id', null); 
         setProjectJobOrders(data || []);
@@ -92,7 +94,7 @@ export function useSubClaimsLogic() {
         enabled: !!selectedContractor,
         queryFn: async () => {
             const buildQuery = () => supabase.from('sub_claims')
-                .select('*, projects(Property)')
+                .select('*, projects:project_id(Property)')
                 .eq('contractor_id', selectedContractor.id)
                 .order('date', { ascending: false })
                 .order('created_at', { ascending: false });
@@ -222,7 +224,7 @@ export function useSubClaimsLogic() {
                 if (error) throw new Error(error.message); 
             }
 
-            // التحديث بعد نجاح الحفظ فقط
+            // تحديث أمر التشغيل بعد نجاح الحفظ فقط
             const { error: joErr } = await supabase.from('job_orders')
                 .update({ executor_type: 'مقاول باطن', contractor_id: selectedContractor?.id })
                 .eq('id', record.job_order_id);
@@ -321,7 +323,7 @@ export function useSubClaimsLogic() {
             type: 'expense', date: e.expense_date || e.created_at, statement: e.notes || 'مصروف محمل', amount: e.amount || e.total_price || 0
         }));
 
-        const { data: materials } = await supabase.from('material_issue_lines').select('*, material_issues(issue_date)').eq('claim_id', claim.id);
+        const { data: materials } = await supabase.from('material_issue_lines').select('*, material_issues:issue_id(issue_date)').eq('claim_id', claim.id);
         const validMaterials = (materials || []).map(m => ({
             type: 'material', date: m.material_issues?.issue_date, statement: `خامة: ${m.item_name} (${m.quantity} ${m.unit})`, amount: m.total_price || 0
         }));
@@ -395,8 +397,218 @@ export function useSubClaimsLogic() {
         }
     });
 
+    // ➕ إضافة مقاول جديد
+    const addContractorMutation = useMutation({
+        mutationFn: async (contractorData: any) => {
+            if (!contractorData.name || !contractorData.name.trim()) {
+                throw new Error('يرجى إدخال اسم المقاول.');
+            }
+            let code = contractorData.code?.trim();
+            if (!code) {
+                const timePart = Date.now().toString().slice(-4);
+                code = `SUB-${timePart}`;
+            }
+            const payload = {
+                name: contractorData.name.trim(),
+                code,
+                partner_type: 'مقاول',
+                job_role: contractorData.job_role?.trim() || 'مقاول باطن',
+                phone: contractorData.phone?.trim() || null,
+                identity_number: contractorData.identity_number?.trim() || null,
+                address: contractorData.address?.trim() || null,
+                is_active: true
+            };
+            const { data, error } = await supabase.from('partners').insert([payload]).select().single();
+            if (error) throw error;
+            return data;
+        },
+        onSuccess: (newPartner) => {
+            showToast('تمت إضافة المقاول بنجاح', 'success');
+            setIsAddContractorModalOpen(false);
+            queryClient.invalidateQueries({ queryKey: ['sub_contractors_list'] });
+            queryClient.invalidateQueries({ queryKey: ['partners'] });
+            if (newPartner) {
+                setSelectedContractor(newPartner);
+            }
+        },
+        onError: (err: any) => {
+            showToast(`فشل إضافة المقاول: ${err.message}`, 'error');
+        }
+    });
+
+    // 💸 فتح سند صرف مباشر للمقاول
+    const handleOpenDirectPayment = async () => {
+        if (!selectedContractor) {
+            showToast('اختر المقاول أولاً لفتح سند الصرف', 'error');
+            return;
+        }
+        setIsBalanceLoading(true);
+
+        const remainingClaims = (claimsHistory || []).reduce((acc: number, c: any) => {
+            const net = Number(c.net_amount || 0);
+            const paid = Number(c.paid_amount || 0);
+            return acc + Math.max(0, net - paid);
+        }, 0);
+        setPartnerBalance(remainingClaims);
+
+        const { data: accountRows } = await supabase
+            .from('accounts')
+            .select('id,code,name')
+            .in('code', ['212', '122', '121', '1291']);
+
+        const debitAccount = accountRows?.find(a => a.code === '212');
+        const creditAccount = accountRows?.find(a => a.code === '122') || accountRows?.find(a => a.code === '121') || accountRows?.find(a => a.code === '1291');
+
+        setPaymentRecord({
+            request_id: crypto.randomUUID(),
+            date: new Date().toISOString().split('T')[0],
+            amount: remainingClaims > 0 ? remainingClaims : '',
+            payee_id: selectedContractor.id,
+            payee_name: selectedContractor.name,
+            debit_account_id: debitAccount?.id || null,
+            debit_account_name: debitAccount?.name || 'التزام مقاولي الباطن',
+            credit_account_id: creditAccount?.id || null,
+            credit_account_name: creditAccount?.name || 'الخزينة الرئيسية',
+            project_ids: [],
+            site_ref: '',
+            description: `سند صرف / سداد دفعة للمقاول: ${selectedContractor.name}`,
+            payment_method: 'نقدي',
+            status: 'مسودة',
+            is_posted: false
+        });
+
+        setIsBalanceLoading(false);
+        setIsPaymentModalOpen(true);
+    };
+
+    // 📊 تصدير Excel
+    const exportContractorsExcel = () => {
+        if (!contractors || contractors.length === 0) {
+            showToast('لا توجد بيانات مقاولين للتصدير', 'error');
+            return;
+        }
+        const wb = XLSX.utils.book_new();
+        const rows = (contractors || []).map((c: any, idx: number) => ({
+            'م': idx + 1,
+            'كود المقاول': c.code || '—',
+            'اسم المقاول': c.name,
+            'التخصص / المهنة': c.job_role || 'مقاول باطن',
+            'رقم الهاتف': c.phone || '—',
+            'رقم الهوية / السجل': c.identity_number || '—',
+            'العنوان': c.address || '—',
+            'الحالة': c.is_active ? 'نشط' : 'معطل'
+        }));
+        const ws = XLSX.utils.json_to_sheet(rows);
+        ws['!cols'] = [{ wch: 5 }, { wch: 15 }, { wch: 25 }, { wch: 20 }, { wch: 16 }, { wch: 18 }, { wch: 25 }, { wch: 10 }];
+        XLSX.utils.book_append_sheet(wb, ws, 'المقاولين');
+        XLSX.writeFile(wb, `Phi_Contractors_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showToast('تم تصدير ملف المقاولين بنجاح', 'success');
+    };
+
+    const exportAssignmentsExcel = () => {
+        if (!assignments || assignments.length === 0) {
+            showToast('لا توجد أعمال جارية للتصدير', 'error');
+            return;
+        }
+        const wb = XLSX.utils.book_new();
+        const rows = (assignments || []).map((a: any, idx: number) => ({
+            'م': idx + 1,
+            'أمر التشغيل': a.order_number || '—',
+            'المشروع / العقار': a.projects?.Property || '—',
+            'بند الأعمال': a.boq_item_name || '—',
+            'الكمية': a.executed_qty || a.assigned_qty || 0,
+            'سعر الوحدة': a.unit_price || 0,
+            'إجمالي الأعمال': a.gross_total_amount || 0,
+            'خصم خامات': a.materials_deduction || 0,
+            'خصم نثريات': a.expenses_deduction || 0,
+            'الصافي المستحق': a.net_before_financial_deductions || 0,
+            'الحالة': a.assignment_status || 'جاري التنفيذ'
+        }));
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, 'الأعمال المسندة');
+        XLSX.writeFile(wb, `Contractor_${selectedContractor?.name || 'Assignments'}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showToast('تم تصدير جدول الأعمال بنجاح', 'success');
+    };
+
+    const exportClaimsExcel = () => {
+        if (!claimsHistory || claimsHistory.length === 0) {
+            showToast('لا توجد مستخلصات للتصدير', 'error');
+            return;
+        }
+        const wb = XLSX.utils.book_new();
+        const rows = (claimsHistory || []).map((c: any, idx: number) => ({
+            'م': idx + 1,
+            'رقم المستخلص': c.claim_number || '—',
+            'التاريخ': c.date || '—',
+            'المشروع / العقارات': c.project_names_text || c.projects?.Property || 'مجمع مشاريع',
+            'الإجمالي قبل الخصم': Number(c.total_amount || 0),
+            'خصم خامات': Number(c.materials_deduction || 0),
+            'خصومات أخرى': Number(c.other_deductions || 0),
+            'الدفعة المقدمة': Number(c.advance_payment || 0),
+            'ضمان الأعمال': Number(c.retention_amount || 0),
+            'الصافي للصرف': Number(c.net_amount || 0),
+            'المسدد': Number(c.paid_amount || 0),
+            'المتبقي': Math.max(0, Number(c.net_amount || 0) - Number(c.paid_amount || 0)),
+            'الحالة': c.is_posted ? 'معتمد' : 'مسودة'
+        }));
+        const ws = XLSX.utils.json_to_sheet(rows);
+        XLSX.utils.book_append_sheet(wb, ws, 'سجل المستخلصات');
+        XLSX.writeFile(wb, `Contractor_${selectedContractor?.name || 'Claims'}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showToast('تم تصدير سجل المستخلصات بنجاح', 'success');
+    };
+
+    // 🔄 تحديث شامل
+    const refetchAll = () => {
+        queryClient.invalidateQueries({ queryKey: ['sub_contractors_list'] });
+        if (selectedContractor?.id) {
+            queryClient.invalidateQueries({ queryKey: ['contractor_tasks', selectedContractor.id] });
+            queryClient.invalidateQueries({ queryKey: ['contractor_claims_history', selectedContractor.id] });
+        }
+        showToast('تم تحديث البيانات لحظياً', 'info');
+    };
+
+    // 📈 إحصائيات سريعة للـ KPIs
+    const stats = useMemo(() => {
+        const totalContractors = contractors.length;
+        const totalAssignmentsCount = assignments.length;
+        const activeAssignmentsCount = assignments.filter((a: any) => a.assignment_status !== 'مفوتر').length;
+        const completedAssignmentsCount = assignments.filter((a: any) => a.assignment_status === 'مفوتر').length;
+
+        const totalGrossValue = assignments.reduce((s: number, a: any) => s + Number(a.gross_total_amount || 0), 0);
+        const totalMatDed = assignments.reduce((s: number, a: any) => s + Number(a.materials_deduction || 0), 0);
+        const totalExpDed = assignments.reduce((s: number, a: any) => s + Number(a.expenses_deduction || 0), 0);
+        const totalNetAssignments = assignments.reduce((s: number, a: any) => s + Number(a.net_before_financial_deductions || 0), 0);
+
+        const totalClaimsCount = claimsHistory.length;
+        const totalClaimsNet = claimsHistory.reduce((s: number, c: any) => s + Number(c.net_amount || 0), 0);
+        const totalClaimsPaid = claimsHistory.reduce((s: number, c: any) => s + Number(c.paid_amount || 0), 0);
+        const totalClaimsRemaining = Math.max(0, totalClaimsNet - totalClaimsPaid);
+
+        return {
+            totalContractors,
+            totalAssignmentsCount,
+            activeAssignmentsCount,
+            completedAssignmentsCount,
+            totalGrossValue,
+            totalMatDed,
+            totalExpDed,
+            totalNetAssignments,
+            totalClaimsCount,
+            totalClaimsNet,
+            totalClaimsPaid,
+            totalClaimsRemaining
+        };
+    }, [contractors, assignments, claimsHistory]);
+
     return {
-        contractors: filteredContractors, searchTerm, setSearchTerm,       
+        contractors: filteredContractors, searchTerm, setSearchTerm,
+        isAddContractorModalOpen, setIsAddContractorModalOpen,
+        handleSaveNewContractor: (data: any) => addContractorMutation.mutate(data),
+        isAddingContractor: addContractorMutation.isPending,
+        handleOpenDirectPayment,
+        exportContractorsExcel, exportAssignmentsExcel, exportClaimsExcel,
+        refetchAll,
+        stats,       
         isLoading, selectedContractor, setSelectedContractor,
         activeTab, setActiveTab, 
         assignments, isAssignLoading, selectedAssignments, setSelectedAssignments,
