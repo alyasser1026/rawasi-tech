@@ -11,27 +11,30 @@ export default function WebsitePage() {
   const [heroLogoVariant, setHeroLogoVariant] = useState<'official-master' | 'print-light' | 'web-dark' | 'luxury-foil'>('official-master');
 
   // Calculator states
-  const [currencySymbol, setCurrencySymbol] = useState<'ج.م' | 'ر.س' | '$'>('ج.م');
+  const [currencySymbol, setCurrencySymbol] = useState<'ر.س' | 'ج.م' | '$'>('ر.س');
   const [currencyRate, setCurrencyRate] = useState<number>(1);
-  const [projectType, setProjectType] = useState<'villa' | 'hq' | 'mall' | 'datacenter'>('hq');
+  const [projectType, setProjectType] = useState<'villa' | 'tower' | 'commercial' | 'duplex'>('villa');
   const [specTier, setSpecTier] = useState<number>(1.35);
   const [areaPerFloor, setAreaPerFloor] = useState<number>(450);
   const [floors, setFloors] = useState<number>(3);
   const [activeScopes, setActiveScopes] = useState<{
     structural: boolean;
     architectural: boolean;
-    technology: boolean;
+    mep: boolean;
   }>({
     structural: true,
     architectural: true,
-    technology: true,
+    mep: true,
   });
 
+  // BOQ Scope Explorer Filter
+  const [boqFilter, setBoqFilter] = useState<'all' | 'structural' | 'plaster' | 'ceilings' | 'marble' | 'paint' | 'mep'>('all');
+
   // X-Ray Layer Simulator
-  const [activeLayer, setActiveLayer] = useState<'all' | 'structural' | 'architectural' | 'technology'>('all');
+  const [activeLayer, setActiveLayer] = useState<'all' | 'structural' | 'mep' | 'plaster' | 'finishing'>('all');
 
   // Portfolio Filter
-  const [portfolioFilter, setPortfolioFilter] = useState<'all' | 'turnkey' | 'structural' | 'architectural' | 'technology'>('all');
+  const [portfolioFilter, setPortfolioFilter] = useState<'all' | 'turnkey' | 'structural' | 'finishing' | 'mep'>('all');
 
   // Brand Studio States
   const [studioLockup, setStudioLockup] = useState<'mark' | 'stacked' | 'horizontal'>('mark');
@@ -51,8 +54,8 @@ export default function WebsitePage() {
   // Lead Form State
   const [leadName, setLeadName] = useState('');
   const [leadPhone, setLeadPhone] = useState('');
-  const [leadPackage, setLeadPackage] = useState('تسليم مفتاح متكامل 3×1 (عضم + تشطيبات + تقنية معلومات)');
-  const [leadLocation, setLeadLocation] = useState('');
+  const [leadPackage, setLeadPackage] = useState('تسليم مفتاح متكامل 3×1 (عظم + تشطيبات ديلوكس + تكييف مخفي وMEP)');
+  const [leadLocation, setLeadLocation] = useState('الرياض — المملكة العربية السعودية');
   const [leadNotes, setLeadNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedRef, setSubmittedRef] = useState<string | null>(null);
@@ -176,18 +179,19 @@ export default function WebsitePage() {
     return { ringsPath, pillarsPath, tightViewBox };
   }, [proportions]);
 
-  // BoQ Calculation
+  // BoQ Calculation for Contracting Scopes (SAR benchmark)
   const boqCalculation = useMemo(() => {
     const totalBUA = areaPerFloor * floors;
 
-    const typeFactors: Record<string, { struct: number; arch: number; tech: number }> = {
-      villa: { struct: 5800, arch: 6500, tech: 1850 },
-      hq: { struct: 6200, arch: 7200, tech: 2900 },
-      mall: { struct: 6800, arch: 7500, tech: 2600 },
-      datacenter: { struct: 7400, arch: 6200, tech: 6800 }
+    // Rates per m² in SAR (Saudi Riyal benchmark)
+    const typeFactors: Record<string, { struct: number; arch: number; mep: number }> = {
+      villa: { struct: 1100, arch: 1450, mep: 550 },
+      tower: { struct: 1250, arch: 1200, mep: 600 },
+      commercial: { struct: 1150, arch: 1350, mep: 700 },
+      duplex: { struct: 980, arch: 1550, mep: 620 }
     };
 
-    const rates = typeFactors[projectType] || typeFactors.hq;
+    const rates = typeFactors[projectType] || typeFactors.villa;
 
     const structCost = activeScopes.structural
       ? Math.round(totalBUA * rates.struct * specTier * currencyRate)
@@ -197,152 +201,333 @@ export default function WebsitePage() {
       ? Math.round(totalBUA * rates.arch * specTier * currencyRate)
       : 0;
 
-    const techCost = activeScopes.technology
-      ? Math.round(totalBUA * rates.tech * specTier * currencyRate)
+    const mepCost = activeScopes.mep
+      ? Math.round(totalBUA * rates.mep * specTier * currencyRate)
       : 0;
 
-    const allThreeActive = activeScopes.structural && activeScopes.architectural && activeScopes.technology;
-    const rawTotal = structCost + archCost + techCost;
+    const allThreeActive = activeScopes.structural && activeScopes.architectural && activeScopes.mep;
+    const rawTotal = structCost + archCost + mepCost;
     const grandTotal = allThreeActive ? Math.round(rawTotal * 0.93) : rawTotal;
 
-    const steelTons = activeScopes.structural ? Math.round(totalBUA * 0.044) : 0;
-    const itPoints = activeScopes.technology ? Math.round(totalBUA * 0.14) : 0;
+    // Quantitative metrics
+    const steelTons = activeScopes.structural ? Math.round(totalBUA * 0.046) : 0;
+    const concreteCbm = activeScopes.structural ? Math.round(totalBUA * 0.42) : 0;
+    const plasterSqm = activeScopes.architectural ? Math.round(totalBUA * 2.8) : 0;
+    const hvacTons = activeScopes.mep ? Math.round(totalBUA / 18) : 0;
+
     let months = 2;
-    if (activeScopes.structural) months += Math.ceil(floors * 1.2);
-    if (activeScopes.architectural) months += Math.ceil(floors * 1.1);
-    if (activeScopes.technology) months += 1;
-    if (allThreeActive) months = Math.max(4, Math.round(months * 0.78));
+    if (activeScopes.structural) months += Math.ceil(floors * 1.1);
+    if (activeScopes.architectural) months += Math.ceil(floors * 1.2);
+    if (activeScopes.mep) months += 1;
+    if (allThreeActive) months = Math.max(4, Math.round(months * 0.8));
 
     return {
       totalBUA,
       structCost,
       archCost,
-      techCost,
+      mepCost,
       grandTotal,
       allThreeActive,
       steelTons,
-      itPoints,
+      concreteCbm,
+      plasterSqm,
+      hvacTons,
       months,
     };
   }, [areaPerFloor, floors, projectType, specTier, currencyRate, activeScopes]);
+
+  // Real BOQ Items Catalog from the Company Database
+  const realBoqItems = [
+    {
+      code: 'STR-03-02',
+      category: 'structural',
+      categoryLabel: 'أعمال الأساسات والخرسانات',
+      name: 'لبشة مسلحة / R.C. Raft / Mat Foundation',
+      unit: 'م3',
+      specs: 'صب خرسانة مسلحة جهد 350-400 كجم/سم² بمضخات هيدروليكية مع حديد تسليح عالي المقاومة B500D، وطبقات عزل بيتوميني مؤكسد وحماية كاملة.',
+      accentColor: '#fb923c',
+    },
+    {
+      code: 'STR-GF-03',
+      category: 'structural',
+      categoryLabel: 'الهيكل الخرساني والأسقف',
+      name: 'سقف فلات سلاب (Flat Slab) / بلاطة لا كمرية',
+      unit: 'م3',
+      specs: 'تنفيذ بلاطة لا كمرية ملساء مع رقتين حديد علوية وسفلية ومناطق تكثيف ومساقط Drop Panels حول الأعمدة لمنع القص الثاقب (Punching).',
+      accentColor: '#fb923c',
+    },
+    {
+      code: 'STR-GF-05',
+      category: 'structural',
+      categoryLabel: 'الهيكل الخرساني والأسقف',
+      name: 'سقف هوردي (Hollow Block / Ribbed Slab)',
+      unit: 'م3',
+      specs: 'تنفيذ أسقف هوردي مفرغة ببلوكات عازلة للصوت والحرارة مع أعصاب تسليح وجسور ساقطة ومخفية لزيادة البحور واستيعاب المسطحات المفتوحة.',
+      accentColor: '#fb923c',
+    },
+    {
+      code: 'STR-03-05',
+      category: 'structural',
+      categoryLabel: 'الأساسات ومسارات العزل',
+      name: 'كمر مقلوب فوق اللبشة / Inverted Beams',
+      unit: 'م3',
+      specs: 'كمرات خرسانية مسلحة مقلوبة لتوزيع الأحمال الإنشائية وضبط مناسيب غرف الخدمات ومنع تسربات المياه في البدروم والملاحق.',
+      accentColor: '#fb923c',
+    },
+    {
+      code: 'FIN-01-04',
+      category: 'plaster',
+      categoryLabel: 'أعمال اللياسة (المحارة)',
+      name: 'أعمال البؤج والأوتار والتأكيس والتربيع لياسة ليزر',
+      unit: 'مقطوعية',
+      specs: 'ضبط استقامة الحوائط وتعامد زوايا الغرف 90 درجة بأجهزة الليزر ومساطر الألومنيوم قبل أعمال الملو لضمان تطابق تام مع أعمال الديكور والرخام.',
+      accentColor: '#34d399',
+    },
+    {
+      code: 'FIN-01-01',
+      category: 'plaster',
+      categoryLabel: 'أعمال اللياسة (المحارة)',
+      name: 'أعمال الملو والتسوية ومس الجدران بالمساطر',
+      unit: 'م2',
+      specs: 'طرطشة مسمارية متجانسة وشبك تمدد فايبر في فواصل الخرسانة والمباني، ملو بخلطة أسمنتية معالجة، وتسوية ناعمة بالقدة ومساطر الليزر.',
+      accentColor: '#34d399',
+    },
+    {
+      code: 'FIN-04-01',
+      category: 'ceilings',
+      categoryLabel: 'الأسقف المعلقة والديكور',
+      name: 'تأسيس وتركيب سيستم جبس بورد (دراي اريا)',
+      unit: 'م2',
+      specs: 'شاسيهات صاج مجلفن عيار 0.5 مم وألواح كناوف أصلية مع معالجة الفواصل بفيبر ومعجون ممتاز، وبيوت نور وتجاويف إنارة مخفية (Shadow Gap).',
+      accentColor: '#34d399',
+    },
+    {
+      code: 'FIN-05-09',
+      category: 'ceilings',
+      categoryLabel: 'الأسقف المعلقة والديكور',
+      name: 'تقفيل وتركيب سيستم سمنت بورد (فلاش تانك ويت اريا)',
+      unit: 'م2',
+      specs: 'ألواح سمنت بورد مقاومة للمياه والرطوبة العالية حول الشاسيهات المدفونة والجدران المبللة في المطابخ والحمامات مع فتحات صيانة Access Panels.',
+      accentColor: '#34d399',
+    },
+    {
+      code: 'FIN-07-03',
+      category: 'marble',
+      categoryLabel: 'الرخام والجرانيت والبورسلان',
+      name: 'تركيب جدران رخام ميكانيكياً بشاسيهات ستانلس',
+      unit: 'م2',
+      specs: 'تثبيت ألواح الرخام الطبيعي المستورد بشاسيهات وزوايا ستانلس ستيل 304 المقاوم للصدأ مع فواصل تمدد محسوبة تمنع السقوط أو التصدع نهائياً.',
+      accentColor: '#34d399',
+    },
+    {
+      code: 'FIN-02-11',
+      category: 'marble',
+      categoryLabel: 'الرخام والجرانيت والبورسلان',
+      name: 'تركيب أرضيات بورسلان لارج فورمات (Large Format)',
+      unit: 'م2',
+      specs: 'لصق البورسلان بالغراء المخصص عالي الالتصاق واستخدام كلبسات التسوية الذاتية (Leveling Spacers) لضمان استواء السطح ونظافة الفواصل.',
+      accentColor: '#34d399',
+    },
+    {
+      code: 'FIN-03-01',
+      category: 'paint',
+      categoryLabel: 'الدهانات والديكور والواجهات',
+      name: 'تأسيس حوائط وأسقف دهان (3 سكاكين معجون + سيلر)',
+      unit: 'م2',
+      specs: 'سيلر مائي مغلغل، 3 سكاكين معجون ممتاز مقاوم للشروخ، صنفرة بأجهزة الإضاءة الكاشفة، وتشطيب بدهانات جوتين (Jotun Fenomastic) الأصلية.',
+      accentColor: '#34d399',
+    },
+    {
+      code: 'FIN-04-09',
+      category: 'paint',
+      categoryLabel: 'الدهانات والديكور والواجهات',
+      name: 'أعمال واجهات بروفايل وسافيتو عازلة للأجواء',
+      unit: 'م2',
+      specs: 'تأسيس سيلر حراري ومائي مقاوم للأملاح، وعمل طبقات بروفايل وجرافيتو بألوان كلاسيكية ومودرن مقاومة للأشعة فوق البنفسجية والعوامل الجوية.',
+      accentColor: '#34d399',
+    },
+    {
+      code: 'MEP-AC-01',
+      category: 'mep',
+      categoryLabel: 'الكهروميكانيك والتكييف المخفي',
+      name: 'دكتات تكييف مخفي كونسيلد وأنظمة VRF الموفرة',
+      unit: 'طن / م2',
+      specs: 'تفصيل دكتات صاج مجلفن معزولة داخلياً وخارجياً بصوف زجاجي، مواسير نحاس جنوب إفريقي معزولة، ومخارج هواء وجريلات خطية (Linear Diffusers) متناسقة مع الجبس.',
+      accentColor: '#38bdf8',
+    },
+    {
+      code: 'MEP-PL-02',
+      category: 'mep',
+      categoryLabel: 'الكهروميكانيك والتكييف المخفي',
+      name: 'شبكات سباكة حرارية PEX/PPR وصرف صامت معلق',
+      unit: 'مقطوعية',
+      specs: 'شبكات تغذية بمواسير بولي بروبلين حرارية مختبرة بضغط 16 بار، شاسيهات كراسي معلقة مدفونة Grohe، وشبكات صرف صامت معلقة بأقفال مانعة للاهتزاز.',
+      accentColor: '#38bdf8',
+    },
+    {
+      code: 'MEP-EL-03',
+      category: 'mep',
+      categoryLabel: 'الكهروميكانيك والتكييف المخفي',
+      name: 'تمديدات كهرباء ومسارات ماجنتيك تراك وقواطع شنايدر',
+      unit: 'مقطوعية',
+      specs: 'كابلات نحاس سويدي معتمدة، لوحات توزيع وقواطع شنايدر إليكتريك، تأسيس مسارات الماجنتيك تراك (Magnetic Tracks) المدمجة بالأسقف، وتجهيز خطوط السمارت هوم.',
+      accentColor: '#38bdf8',
+    },
+    {
+      code: 'FIN-06-03',
+      category: 'marble',
+      categoryLabel: 'الألومنيوم والنجارة المعمارية',
+      name: 'توريد وتركيب قطاعات ألومنيوم دبل جلاس عازل',
+      unit: 'م2',
+      specs: 'قطاعات ألومنيوم ثقيلة حرارية Double Glazed عازلة للصوت والحرارة، إكسسوارات إيطالية، درايش وسحابات ناعمة، وأبواب خشبية وWPC مقاومة للرطوبة.',
+      accentColor: '#34d399',
+    }
+  ];
+
+  const filteredBoqItems = useMemo(() => {
+    if (boqFilter === 'all') return realBoqItems;
+    return realBoqItems.filter(item => item.category === boqFilter);
+  }, [boqFilter]);
 
   // X-Ray Layer Specs Data
   const layerSpecs = {
     all: {
       badge: 'FULL 3-IN-1 TURNKEY INTEGRATION',
-      title: 'التكامل الهندسي الكامل (عضم + تشطيبات + تقنية معلومات)',
-      desc: 'عندما تتولى PHI CONSTRUCT القطاعات الثلاثة معاً، يتم تصميم الهيكل الخرساني بممرات مدمجة مسبقاً للتكييف المركزي وكابلات الألياف الضوئية، مما يوفر 22% من التكلفة ويمنع أي تكسير أثناء التشطيب.',
+      title: 'التكامل الهندسي الكامل 3×1 (عظم + تشطيبات + كهروميكانيك)',
+      desc: 'عندما تتولى فاي تك (PhiTech) القطاعات الثلاثة معاً، يتم تنسيق الهيكل الإنشائي بممرات مسبقة الصب لدكتات التكييف المخفي ومواسير السباكة المعلقة، مما يوفر 20% من التكلفة ويمنع أي تكسير في الخرسانات والمباني لاحقاً.',
       items: [
-        { label: 'الإنشاءات والعضم', val: 'لبشة مسلحة + أعمدة وأسقف Flat Slab خرسانة جهد 400 كجم/سم²', color: '#fb923c' },
-        { label: 'العمارة والتشطيبات', val: 'واجهات زجاجية عازلة + رخام مستورد + تكييف مركزي VRF', color: '#34d399' },
-        { label: 'تقنية المعلومات IT', val: 'شبكة Fiber Optics + غرفة سيرفرات Tier-III + أتمتة BMS ذكية', color: '#38bdf8' }
+        { label: 'الإنشاءات والعظم', val: 'لبشة مسلحة + أعمدة وأسقف Flat Slab وهوردي خرسانة معالجة جهد 350-400 كجم/سم²', color: '#fb923c' },
+        { label: 'التشطيبات المعمارية', val: 'لياسة مساطر ليزر + أسقف كناوف وسمنت بورد + رخام ميكانيكي وبورسلان لارج + دهانات جوتين', color: '#34d399' },
+        { label: 'الكهروميكانيك والتكييف', val: 'دكتات تكييف كونسيلد VRF + سباكة PEX معلقة وشاسيهات دفن + مسارات ماجنتيك تراك شنايدر', color: '#38bdf8' }
       ]
     },
     structural: {
       badge: 'LAYER 01 — STRUCTURAL SKELETON',
-      title: 'الطبقة الأولى: البناء الإنشائي والعضم (الأساسات والهيكل)',
-      desc: 'العمود الفقري للمنشأة؛ ننفذه بإشراف استشاريين إنشائيين مع اختبارات الموجات فوق الصوتية ومكعبات الخرسانة واستلام المحاور بأجهزة Total Station.',
+      title: 'الطبقة الأولى: البناء الإنشائي والعظم (الأساسات والهيكل)',
+      desc: 'العمود الفقري للمبنى؛ ننفذه بإشراف هندسي ميداني صارم مع استلام المحاور بمحطات Total Station وموازين الليزر، واختبار مكعبات كسر الخرسانة في معامل معتمدة.',
       items: [
-        { label: 'الأساسات العميقة والسطحية', val: 'إحلال مدموك، خوازيق ساندة وحاملة، ولبشة مسلحة معزولة بالكامل', color: '#fb923c' },
-        { label: 'الخرسانات المسلحة', val: 'حديد تسليح B500D عالي المقاومة وخرسانة جاهزة بمضخات هيدروليكية', color: '#fb923c' },
-        { label: 'المباني والعزل', val: 'مباني طوب طفلي وأسمنتي على ميزان الليزر + عزل مائي وحراري للأسطح', color: '#fb923c' }
+        { label: 'الأساسات والتربة', val: 'إحلال مدموك، خوازيق ساندة وحاملة، ولبشة مسلحة معزولة بطبقات بيتومين مؤكسد', color: '#fb923c' },
+        { label: 'الخرسانات المسلحة', val: 'حديد تسليح B500D عالي المقاومة، كمرات مقلوبة، وأسقف فلات سلاب وهوردي واسعة البحور', color: '#fb923c' },
+        { label: 'المباني والعزل', val: 'طوب أسمنتي وأحمر مفرغ مع أعتاب مسلحة مسبقة الصب + عزل مائي وحراري فوم بولي يوريثان', color: '#fb923c' }
       ]
     },
-    architectural: {
-      badge: 'LAYER 02 — ARCHITECTURAL & FINISHING',
-      title: 'الطبقة الثانية: الغلاف المعماري والتشطيبات الفاخرة',
-      desc: 'تحويل المساحات الصماء إلى بيئة معمارية راقية تجمع بين فخامة الخامات الطبيعية وكفاءة الأنظمة الكهروميكانيكية.',
+    mep: {
+      badge: 'LAYER 02 — CONCEALED HVAC & MEP SPINE',
+      title: 'الطبقة الثانية: الكهروميكانيك والتكييف المخفي (MEP & HVAC)',
+      desc: 'نؤسس شبكات التغذية والصرف والتكييف المخفي قبل اللياسة والجبس وفق مخططات شوب دروينج (Shop Drawings) دقيقة تضمن سهولة الصيانة وهدوء التشغيل.',
       items: [
-        { label: 'الواجهات الخارجية', val: 'قطاعات ألومنيوم حرارية Double Glazed + تكسيات كلادينج وحجر طبيعي', color: '#34d399' },
-        { label: 'الأرضيات والتجاليد', val: 'رخام إيطالي وإسباني بالوترجيت + تجاليد خشب جوز وأسقف معلقة صوتية', color: '#34d399' },
-        { label: 'الإلكتروميكانيك MEP', val: 'أنظمة تكييف مخفي، تهوية نقية، شبكات تغذية وصرف معزولة صوتياً', color: '#34d399' }
+        { label: 'التكييف المخفي الكونسيلد', val: 'دكتات صاج مجلفن معزول بصوف زجاجي ومخارج هواء خطية Linear Diffusers مدمجة بالسقف', color: '#38bdf8' },
+        { label: 'السباكة والتغذية الحرارية', val: 'شبكات PEX/PPR حرارية مختبرة تحت ضغط 16 بار + كراسي معلقة وشاسيهات دفن Grohe', color: '#38bdf8' },
+        { label: 'الكهرباء والإنارة الحديثة', val: 'كابلات نحاس سويدي، مسارات ماجنتيك تراك، قواطع شنايدر إليكتريك، وتأسيس سمارت هوم', color: '#38bdf8' }
       ]
     },
-    technology: {
-      badge: 'LAYER 03 — IT & SMART BUILDING SPINE',
-      title: 'الطبقة الثالثة: تقنية المعلومات والأنظمة الذكية (IT & BMS)',
-      desc: 'نؤسس بنية تحتية رقمية تجعل المبنى ذكياً، آمناً، وجاهزاً للمستقبل سواء كان مقراً إدارياً للشركات أو قصراً سكنياً ذكياً.',
+    plaster: {
+      badge: 'LAYER 03 — LASER PLASTERING & CEILINGS',
+      title: 'الطبقة الثالثة: اللياسة بالليزر والأسقف المعلقة (المساطر والجبس)',
+      desc: 'سر استواء الأسطح وفخامة الفنش؛ نعتمد تربيع وتأكيس الغرف بالليزر لضمان تعامد الزوايا 90°، مع شاسيهات صاج مجلفن وألواح كناوف وسمنت بورد.',
       items: [
-        { label: 'البنية التحتية للشبكات', val: 'كابلات هيكلية Cat6A/Cat7 وألياف ضوئية Fiber إلى كل طابق وغرفة', color: '#38bdf8' },
-        { label: 'مراكز البيانات والسيرفرات', val: 'تجهيز غرف السيرفرات برفوف ذكية، أرضيات مرفوعة، وإطفاء غاز FM200', color: '#38bdf8' },
-        { label: 'الأتمتة والأمن الذكي', val: 'نظام KNX/BMS للتحكم في الإضاءة والطاقة + كاميرات ذكاء اصطناعي وبوابات دخول', color: '#38bdf8' }
+        { label: 'لياسة المساطر والليزر', val: 'بؤج وأوتار على أجهزة الليزر، تربيع وتأكيس، طرطشة مسمارية وشبك فايبر ضد التمدد', color: '#34d399' },
+        { label: 'أسقف جبس بورد كناوف', val: 'ألواح كناوف أصلية للمناطق الجافة مع بيوت نور وتجاويف إضاءة مخفية شادو جاب (Shadow Gap)', color: '#34d399' },
+        { label: 'سمنت بورد للمناطق الرطبة', val: 'ألواح سمنت بورد مقاومة للرطوبة في الحمامات والمطابخ مع فتحات صيانة Access Panels', color: '#34d399' }
+      ]
+    },
+    finishing: {
+      badge: 'LAYER 04 — LUXURY ARCHITECTURAL FINISH',
+      title: 'الطبقة الرابعة: الرخام والبورسلان والدهانات والواجهات',
+      desc: 'اللمسة الملكية التي يراها العميل؛ خامات طبيعية مستوردة، رخام ميكانيكي، بورسلان لارج فورمات، دهانات جوتين، وواجهات بروفايل سافيتو.',
+      items: [
+        { label: 'الرخام والجرانيت', val: 'تكسيات جدران ميكانيكية بشاسيهات ستانلس ستيل، أرضيات رخام كريستال، ودرج مداخل جرانيت', color: '#fb923c' },
+        { label: 'البورسلان اللارج فورمات', val: 'أرضيات وجدران بورسلان بمقاسات كبيرة مع كلبسات التسوية الذاتية وفواصل إيبوكسي معالجة', color: '#34d399' },
+        { label: 'دهانات جوتين والواجهات', val: 'تأسيس 3 سكاكين معجون ممتاز، دهانات Jotun Fenomastic، وواجهات بروفايل سافيتو عازلة', color: '#38bdf8' }
       ]
     }
   };
 
-  // Portfolio items
+  // Real Field Projects from Database
   const portfolioItems = [
     {
       id: 'PHI-P01',
-      title: 'المقر الإقليمي لشركة تكنولوجيا مالية — التجمع الخامس',
+      title: 'فيلا 657 — الرياض (ضاحية الفرسان)',
       category: 'turnkey',
-      categoryLabel: 'تسليم مفتاح 3×1 (عضم + تشطيب + IT)',
-      area: '4,200 م²',
-      duration: '11 شهراً',
+      categoryLabel: 'تسليم مفتاح متكامل (تشطيبات ديلوكس)',
+      area: '600.19 م²',
+      duration: 'قيد التنفيذ (المساطر والجبس)',
+      location: 'الرياض — ضاحية الفرسان',
+      engineers: 'م/ كريم — م/ أبو عميرة',
       accentColor: '#fb923c',
-      structuralScope: 'تنفيذ بدروم + أرضي + 4 أدوار متكررة بنظام Flat Slab مع كور مصاعد خرساني.',
-      archScope: 'واجهات زجاجية Structural Glazing، أرضيات رخام وبورسلين، وقاعات اجتماعات معزولة صوتياً.',
-      itScope: 'تأسيس مركز بيانات Tier-III، تمديد 650 نقطة شبكة Cat6A، ونظام BMS للتحكم المركزي في التكييف والإضاءة.'
+      structuralScope: 'هيكل إنشائي كامل، معالجة فواصل التمدد، وصب أرضيات الميد والخرسانات الإضافية.',
+      archScope: 'إنجاز أعمال لياسة المساطر وأوتار الليزر بنسبة 100%، تأسيس أسقف جبس بورد كناوف مع بيوت نور، وتجهيز رخام وبورسلان لارج فورمات.',
+      mepScope: 'تأسيس دكتات التكييف المخفي الكونسيلد، تمديدات السباكة المعلقة PEX الحرارية، وشاسيهات كراسي دفن Grohe، ومسارات إنارة ماجنتيك تراك.'
     },
     {
       id: 'PHI-P02',
-      title: 'قصر أوبسيديان الذكي — الشيخ زايد',
-      category: 'turnkey',
-      categoryLabel: 'تسليم مفتاح 3×1 (عضم + تشطيب + سمارت هوم)',
-      area: '1,450 م²',
-      duration: '9 أشهر',
-      accentColor: '#34d399',
-      structuralScope: 'حفر صخري، لبشة مسلحة، هيكل خرساني ببحور واسعة (Post-Tension) وحمام سباحة إنفينيتي.',
-      archScope: 'تشطيب فائق الفخامة برخام أونيكس، تجاليد خشب طبيعي، وتكييف VRF مخفي بالكامل.',
-      itScope: 'منظومة KNX Smart Home شاملة للإضاءة والستائر والصوتيات، مع شبكة Wi-Fi 7 تغطي القصر والحدائق.'
+      title: 'عمارة كابيتال — كورنيش النيل (شارع البحر الأعظم)',
+      category: 'structural',
+      categoryLabel: 'هيكل إنشائي وعظم + تشطيب واجهات',
+      area: '500 م² مسطح الدور (أرضي + متكرر)',
+      duration: 'قيد التنفيذ الميداني',
+      location: 'الجيزة — شارع البحر الأعظم',
+      engineers: 'م/ يوسف',
+      accentColor: '#fb923c',
+      structuralScope: 'تنفيذ الهيكل الخرساني المسلح بنظام Flat Slab وأعمدة عالية الإجهاد مع عزل الأساسات واللبشة بالكامل ضد المياه الجوفية.',
+      archScope: 'تنفيذ مباني الطوب الأسمنتي والأحمر، وتكسيات الواجهات الخارجية بدهانات بروفايل وسافيتو كلاسيكية مقاومة للرطوبة والعوامل الجوية.',
+      mepScope: 'تأسيس الصواعد الرئيسية للصرف والتغذية، وغرف التفتيش، ومسارات كابلات الكهرباء الرئيسية ولوحات شنايدر.'
     },
     {
       id: 'PHI-P03',
-      title: 'تجهيز مركز البيانات والبنية التحتية — برج فاي الإداري',
-      category: 'technology',
-      categoryLabel: 'تقنية معلومات وأنظمة ذكية (IT & Data Center)',
-      area: '2,800 م²',
-      duration: '4 أشهر',
-      accentColor: '#38bdf8',
-      structuralScope: 'تدعيم إنشائي لأرضية غرفة السيرفرات لتحمل أوزان وحدات الـ UPS والبطاريات.',
-      archScope: 'تركيب أرضيات مرفوعة Raised Floors، حوائط مقاومة للحريق لمدة ساعتين، وتبريد دقيق.',
-      itScope: 'ربط ألياف ضوئية Fiber Backbone، تركيب 14 راك سيرفرات، نظام إطفاء غازي، وبوابات دخول بالبصمة والوجه.'
+      title: 'برج كابيتال — المنصورة (طلخا - البحر الأعظم)',
+      category: 'structural',
+      categoryLabel: 'أساسات عميقة وهيكل خرساني (11 دور)',
+      area: '380 م² مسطح الدور (11 دور سكني وتجاري)',
+      duration: 'مرحلة الأساسات واللبشة',
+      location: 'الدقهلية — المنصورة (طلخا)',
+      engineers: 'م/ بهاء الزهيري',
+      accentColor: '#fb923c',
+      structuralScope: 'تنفيذ خوازيق ميكانيكية ولبشة مسلحة بكثافة حديد عالية B500D وكمرات مقلوبة فوق اللبشة لتأمين المبنى بمحاذاة النيل.',
+      archScope: 'تخطيط معماري للأدوار التجارية والسكنية مع أسقف هوردي وفلات سلاب لبحور إنشائية مفتوحة.',
+      mepScope: 'زرع جلب التمديدات والـ Sleeves داخل البلاطات الخرسانية قبل الصب لمنع أي تكسير مستقبلي.'
     },
     {
       id: 'PHI-P04',
-      title: 'الهيكل الخرساني لمجمع فاي الطبي التجاري',
-      category: 'structural',
-      categoryLabel: 'بناء إنشائي وعضم (Structural Skeleton)',
-      area: '6,500 م²',
-      duration: '7 أشهر',
-      accentColor: '#fb923c',
-      structuralScope: 'تنفيذ 2 بدروم جراج + أرضي تجاري + 5 أدوار عيادات ومراكز أشعة بخرسانة عالية الإجهاد.',
-      archScope: 'تأسيس مباني الواجهات والمناور وعزل الأساسات والأسطح بالكامل.',
-      itScope: 'زرع مسارات وصواعد التيار الخفيف والـ Fiber داخل البلاطات الخرسانية قبل الصب.'
+      title: 'قصر الياسمين الفاخر — الرياض (حي حطين)',
+      category: 'turnkey',
+      categoryLabel: 'تسليم مفتاح ملكي (Royal Finishing)',
+      area: '1,250 م²',
+      duration: '10 أشهر',
+      location: 'الرياض — حي حطين',
+      engineers: 'فريق الإشراف الهندسي — فاي تك السعودية',
+      accentColor: '#34d399',
+      structuralScope: 'هيكل خرساني خاص ببحور واسعة، كوابيل معمارية ضخمة، وحمام سباحة إنفينيتي معزول ومفحوص بالكامل.',
+      archScope: 'تكسيات جدران رخام كلكتا وأونيكس ميكانيكياً، أرضيات كريما مارفل معالجة بالكريستال، أسقف جبسية بمسارات شادو جاب، وأبواب خشب جوز طبيعي.',
+      mepScope: 'تكييف مركزي VRF موفر للطاقة مع جريلات طولية مخفية، سباكة حرارية ألمانية Grohe، وتأسيس أنظمة سمارت هوم KNX للتحكم الصوتي والإلكتروني.'
     },
     {
       id: 'PHI-P05',
-      title: 'التشطيب المعماري والهوية البصرية لمقر مجموعة استشارية',
-      category: 'architectural',
-      categoryLabel: 'عمارة وتشطيبات داخلية فاخرة',
-      area: '1,100 م²',
+      title: 'مقر وصالة عرض فاي تك — القاهرة الجديدة',
+      category: 'finishing',
+      categoryLabel: 'تشطيبات معمارية وديكور مودرن',
+      area: '850 م²',
       duration: '3.5 أشهر',
+      location: 'القاهرة الجديدة — التجمع الخامس',
+      engineers: 'المكتب الفني — فاي تك مصر',
       accentColor: '#34d399',
-      structuralScope: 'تعديلات معمارية وتدعيم فتحات بكمر حديدي I-Beam.',
-      archScope: 'أرضيات رخام وبورسلين، قواطع زجاجية دبل جلاس، أسقف جبسية بمسارات إضاءة مغناطيسية، وفرش مكتبي.',
-      itScope: 'تجهيز قاعات المؤتمرات المرئية Video Conferencing ونظام الصوتيات الداخلي.'
+      structuralScope: 'تعديلات معمارية، فتحات بحور إنشائية، وتدعيم كمرات حديدية I-Beam.',
+      archScope: 'أرضيات بورسلان لارج فورمات رمادي إسباني، قواطع زجاجية Double Glazed عازلة للصوت، ودهانات جوتين ديكورية تعتيق ومخملي.',
+      mepScope: 'تكييف كونسيلد مخفي دكتات صاج، مسارات إضاءة ماجنتيك تراك مغناطيسية، وتجهيز شبكة التيار الخفيف والأنظمة الصوتية.'
     },
     {
       id: 'PHI-P06',
-      title: 'مبنى المختبرات الذكية وحاضنة الأعمال التكنولوجية',
-      category: 'technology',
-      categoryLabel: 'مبنى ذكي وبنية تحتية رقمية',
-      area: '3,200 م²',
-      duration: '6 أشهر',
+      title: 'فيلا النرجس السكنية — الرياض (حي النرجس)',
+      category: 'mep',
+      categoryLabel: 'عظم بالمواد + تأسيسات كهروميكانيك متطورة',
+      area: '520 م²',
+      duration: '5 أشهر',
+      location: 'الرياض — حي النرجس',
+      engineers: 'م/ كريم ومساعدي الموقع',
       accentColor: '#38bdf8',
-      structuralScope: 'إنشاء قاعات بدون أعمدة داخلية باستخدام كمرات سابقة الإجهاد.',
-      archScope: 'واجهات ألومنيوم كيرتن وول وتشطيبات مضادة للكهرباء الاستاتيكية.',
-      itScope: 'شبكة ألياف ضوئية بسرعة 40Gbps، حساسات جودة هواء وحرارة، وتحكم ذكي في استهلاك الطاقة.'
+      structuralScope: 'حفر صخري، قواعد منفصلة وسملات وميد، هيكل عظم بالمواد، وعزل فوم بولي يوريثان حراري ومائي للأسطح.',
+      archScope: 'لياسة مساطر وليزر، تربيع غرف وممرات، وأسقف كناوف وسمنت بورد فلاش تانك.',
+      mepScope: 'تأسيس مواسير التكييف النحاسية المعزولة، كابلات سويدي أصلية، صرف أمريكي معلق صامت، ومضخات مياه ذكية.'
     }
   ];
 
@@ -371,45 +556,51 @@ export default function WebsitePage() {
   const handleSetAccent = (acc: 'amber' | 'emerald' | 'cyan') => {
     setAccent(acc);
     const names = {
-      amber: 'الإنشاءات والعضم (Signature Amber)',
-      emerald: 'العمارة والتشطيبات (Architectural Emerald)',
-      cyan: 'تقنية المعلومات والأنظمة الذكية (Technical Cyan)',
+      amber: 'البناء الإنشائي والعظم (Signature Amber)',
+      emerald: 'التشطيبات المعمارية والفاخرة (Architectural Emerald)',
+      cyan: 'الكهروميكانيك والتكييف المخفي MEP (Technical Cyan)',
     };
-    showToast('تم تغيير لكنة النظام', `القطاع اللوني النشط: ${names[acc]}`);
+    showToast('تم تغيير لكنة النظام', `القطاع النشط: ${names[acc]}`);
   };
 
-  const toggleScope = (scope: 'structural' | 'architectural' | 'technology') => {
+  const toggleScope = (scope: 'structural' | 'architectural' | 'mep') => {
     const count = Object.values(activeScopes).filter(Boolean).length;
     if (activeScopes[scope] && count === 1) {
-      showToast('تنبيه هندسي', 'يجب تفعيل قطاع واحد على الأقل لحساب المقايسة التقديرية.');
+      showToast('تنبيه هندسي', 'يجب تفعيل نطاق واحد على الأقل لحساب المقايسة التقديرية.');
       return;
     }
     setActiveScopes(prev => ({ ...prev, [scope]: !prev[scope] }));
   };
 
-  const selectPresetScope = (scope: 'structural' | 'architectural' | 'technology') => {
+  const selectPresetScope = (scope: 'structural' | 'architectural' | 'mep') => {
     setActiveScopes({
       structural: scope === 'structural',
       architectural: scope === 'architectural',
-      technology: scope === 'technology',
+      mep: scope === 'mep',
     });
     const el = document.getElementById('turnkey-calculator');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
-    showToast('تم تخصيص الحاسبة', 'تم ضبط الحاسبة لتسعير القطاع المختار، ويمكنك تفعيل باقي القطاعات للمقارنة.');
+    showToast('تم تخصيص الحاسبة', 'تم ضبط الحاسبة لتسعير النطاق المختار، ويمكنك تفعيل باقي النطاقات للمقارنة.');
   };
 
   const transferBoQToForm = () => {
     const selectedScopes = [];
-    if (activeScopes.structural) selectedScopes.push('بناء إنشائي وعضم');
-    if (activeScopes.architectural) selectedScopes.push('تشطيبات معمارية وواجهات');
-    if (activeScopes.technology) selectedScopes.push('تقنية معلومات وأنظمة ذكية IT');
+    if (activeScopes.structural) selectedScopes.push('بناء إنشائي وعظم');
+    if (activeScopes.architectural) selectedScopes.push('تشطيبات معمارية وواجهات فاخرة');
+    if (activeScopes.mep) selectedScopes.push('كهروميكانيك وتكييف مخفي MEP');
 
-    const summary = `مقايسة إلكترونية من الموقع:\n- إجمالي المسطح البنائي: ${boqCalculation.totalBUA.toLocaleString()} م²\n- النطاق المطلوب: (${selectedScopes.join(' + ')})\n- الميزانية التقديرية المحسوبة: ${boqCalculation.grandTotal.toLocaleString()} ${currencySymbol}\nنرجو التواصل لتحديد موعد معاينة هندسية وعرض سعر تفصيلي.`;
+    const summary = `مقايسة إلكترونية من موقع فاي تك:
+- نوع المشروع: ${projectType === 'villa' ? 'فيلا سكنية فاخرة' : projectType === 'tower' ? 'عمارة / برج سكني وتجاري' : projectType === 'commercial' ? 'مقر إداري أو معرض' : 'شقة دوبلكس / بنتهاوس'}
+- إجمالي المسطح البنائي (BUA): ${boqCalculation.totalBUA.toLocaleString()} م² (${floors} أدوار × ${areaPerFloor} م²)
+- النطاق المطلوب: (${selectedScopes.join(' + ')})
+- الميزانية التقديرية المحسوبة: ${boqCalculation.grandTotal.toLocaleString()} ${currencySymbol}
+- مؤشرات الكميات: خرسانة ~${boqCalculation.concreteCbm} م³ | حديد ~${boqCalculation.steelTons} طن | تكييف ~${boqCalculation.hvacTons} طن تبريد
+نرجو التواصل لتحديد موعد معاينة هندسية للموقع وعرض سعر رسمي.`;
 
     setLeadNotes(summary);
     const el = document.getElementById('order-section');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
-    showToast('تم ترحيل المقايسة لنموذج التعاقد', 'أدخل اسمك ورقم الجوال لإرسال المقايسة لفريقنا الهندسي.');
+    showToast('تم ترحيل المقايسة لنموذج التعاقد', 'أدخل اسمك ورقم الجوال لإرسال المقايسة للمكتب الفني والهندسي.');
   };
 
   // Submit Quote to API
@@ -443,7 +634,6 @@ export default function WebsitePage() {
         setIsModalOpen(true);
         setLeadName('');
         setLeadPhone('');
-        setLeadLocation('');
         setLeadNotes('');
       } else {
         showToast('خطأ', data.error || 'حدث خطأ أثناء إرسال المقايسة.');
@@ -460,7 +650,7 @@ export default function WebsitePage() {
     let ringsStops = '';
     let pillarsStops = '';
     let phiTextColor = '#2c353d';
-    let constructTextColor = '#f07613';
+    let techTextColor = '#f07613';
     let subTextColor = '#524236';
 
     if (studioColorMode === 'print-light') {
@@ -475,7 +665,7 @@ export default function WebsitePage() {
         <stop offset="100%" stop-color="#ea580c" />
       `;
       phiTextColor = '#2c353d';
-      constructTextColor = '#f07613';
+      techTextColor = '#f07613';
       subTextColor = '#524236';
     } else if (studioColorMode === 'luxury-foil') {
       ringsStops = `
@@ -491,7 +681,7 @@ export default function WebsitePage() {
         <stop offset="100%" stop-color="#9a3412" />
       `;
       phiTextColor = '#e2e8f0';
-      constructTextColor = '#f59e0b';
+      techTextColor = '#f59e0b';
       subTextColor = '#94a3b8';
     } else if (studioColorMode === 'mono') {
       const isDark = studioBgSurface === 'dark' || studioBgSurface === 'transparent';
@@ -499,7 +689,7 @@ export default function WebsitePage() {
       ringsStops = `<stop offset="0%" stop-color="${monoHex}" /><stop offset="100%" stop-color="${monoHex}" />`;
       pillarsStops = `<stop offset="0%" stop-color="${monoHex}" /><stop offset="100%" stop-color="${monoHex}" />`;
       phiTextColor = monoHex;
-      constructTextColor = monoHex;
+      techTextColor = monoHex;
       subTextColor = monoHex;
     } else {
       ringsStops = `
@@ -513,7 +703,7 @@ export default function WebsitePage() {
         <stop offset="100%" stop-color="#ea580c" />
       `;
       phiTextColor = '#ede5da';
-      constructTextColor = '#f97316';
+      techTextColor = '#f97316';
       subTextColor = '#b8aea2';
     }
 
@@ -538,16 +728,16 @@ export default function WebsitePage() {
           <path d="${logoGeometry.ringsPath}" fill="url(#expRings)" />
           <path d="${logoGeometry.pillarsPath}" fill="url(#expPillars)" />
         </g>
-        <text x="375" y="185" font-family="'JetBrains Mono', 'Cairo', sans-serif" font-size="66" font-weight="900" letter-spacing="5">
-          <tspan fill="${phiTextColor}">PHI </tspan><tspan fill="${constructTextColor}">CONSTRUCT</tspan>
+        <text x="375" y="175" font-family="'Cairo', sans-serif" font-size="60" font-weight="900" fill="${techTextColor}">
+          فاي تك <tspan font-family="'JetBrains Mono', monospace" font-size="50" font-weight="900" fill="${phiTextColor}">PhiTech</tspan>
         </text>
-        <text x="378" y="232" font-family="'JetBrains Mono', 'Cairo', sans-serif" font-size="19" font-weight="700" fill="${subTextColor}" letter-spacing="4.2">
-          STRUCTURAL • ARCHITECTURAL • IT SYSTEMS
+        <text x="378" y="225" font-family="'Cairo', sans-serif" font-size="18" font-weight="700" fill="${subTextColor}" letter-spacing="1">
+          مقاولات عامة • تشطيبات فاخرة • تكييف مخفي وMEP (الرياض | مصر)
         </text>
       </svg>`;
     }
 
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 600 575" width="100%" height="100%">
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 10 600 585" width="100%" height="100%">
       <defs>
         <linearGradient id="expRings" x1="0%" y1="0%" x2="100%" y2="100%">${ringsStops}</linearGradient>
         <linearGradient id="expPillars" x1="0%" y1="0%" x2="0%" y2="100%">${pillarsStops}</linearGradient>
@@ -556,11 +746,14 @@ export default function WebsitePage() {
         <path d="${logoGeometry.ringsPath}" fill="url(#expRings)" />
         <path d="${logoGeometry.pillarsPath}" fill="url(#expPillars)" />
       </g>
-      <text x="300" y="520" text-anchor="middle" font-family="'JetBrains Mono', 'Cairo', sans-serif" font-size="46" font-weight="900" letter-spacing="6">
-        <tspan fill="${phiTextColor}">PHI </tspan><tspan fill="${constructTextColor}">CONSTRUCT</tspan>
+      <text x="300" y="515" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="52" font-weight="900" fill="${techTextColor}">
+        فاي تك
       </text>
-      <text x="300" y="556" text-anchor="middle" font-family="'JetBrains Mono', 'Cairo', sans-serif" font-size="15" font-weight="700" fill="${subTextColor}" letter-spacing="3.8">
-        GENERAL CONTRACTING &amp; CONSTRUCTION MGMT.
+      <text x="300" y="550" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="28" font-weight="800" fill="${phiTextColor}">
+        PhiTech
+      </text>
+      <text x="300" y="580" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="15" font-weight="700" fill="${subTextColor}">
+        للمقاولات العامة والتشطيبات الفاخرة
       </text>
     </svg>`;
   };
@@ -571,12 +764,12 @@ export default function WebsitePage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `PHI-CONSTRUCT-${studioLockup}-${studioColorMode}.svg`;
+    a.download = `PHITECH-${studioLockup}-${studioColorMode}.svg`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('تم تحميل ملف الفيكتور (SVG)', 'ملف الشعار المتجهي جاهز للمطابع بدقة غير محدودة.');
+    showToast('تم تحميل ملف الفيكتور (SVG)', 'ملف الشعار المتجهي لفاي تك جاهز للمطابع بدقة غير محدودة.');
   };
 
   const exportPng = () => {
@@ -602,12 +795,12 @@ export default function WebsitePage() {
           const pngUrl = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = pngUrl;
-          a.download = `PHI-CONSTRUCT-${studioLockup}-${studioColorMode}-2048px.png`;
+          a.download = `PHITECH-${studioLockup}-${studioColorMode}-2048px.png`;
           document.body.appendChild(a);
           a.click();
           document.body.removeChild(a);
           URL.revokeObjectURL(pngUrl);
-          showToast('تم تحميل صورة PNG شفافة فائقة الدقة', `تم تصدير الشعار بخلفية شفافة بدقة ${width}×${height} بكسل.`);
+          showToast('تم تحميل صورة PNG شفافة فائقة الدقة', `تم تصدير شعار فاي تك بخلفية شفافة بدقة ${width}×${height} بكسل.`);
         }, 'image/png');
       }
     };
@@ -621,7 +814,7 @@ export default function WebsitePage() {
       'classic': { rOut: 176, thickness: 46, verticalExt: 36 }
     };
     setProportions(presets[preset]);
-    showToast('تم ضبط نسب الشعار الهندسية', 'أصبح الشعار ممتلئاً ومتناسقاً بدون هوامش ميتة.');
+    showToast('تم ضبط نسب الشعار الهندسية', 'أصبح الشعار ممتلئاً ومتناسقاً وفق النسبة الذهبية.');
   };
 
   return (
@@ -679,7 +872,7 @@ export default function WebsitePage() {
         </defs>
       </svg>
 
-      {/* STYLESHEET OVERRIDES FOR BORDERLESS UI */}
+      {/* STYLESHEET OVERRIDES FOR BORDERLESS OBSIDIAN AMBER GLOSS */}
       <style jsx global>{`
         :root {
           --font-main: 'Cairo', system-ui, -apple-system, sans-serif;
@@ -971,7 +1164,7 @@ export default function WebsitePage() {
           0% { stroke-dashoffset: 40; }
           100% { stroke-dashoffset: 0; }
         }
-        .it-data-stream {
+        .mep-duct-stream {
           stroke-dasharray: 6 6;
           animation: dataFlow 1.6s linear infinite;
         }
@@ -1003,7 +1196,7 @@ export default function WebsitePage() {
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             <span style={{ color: 'var(--text-secondary)' }}>
-              البوابة الرسمية المعتمدة لشركة <strong>PHI CONSTRUCT</strong> — مدمجة لحظياً بنظام إدارة العمليات والمشاريع
+              البوابة الرسمية لشركة <strong>فاي تك للمقاولات العامة والتشطيبات الفاخرة (PhiTech)</strong> — الرياض • القاهرة والمنصورة
             </span>
           </div>
 
@@ -1059,22 +1252,23 @@ export default function WebsitePage() {
               <div className="flex items-center gap-2">
                 <span className="text-xl sm:text-2xl font-black tracking-wider text-amber-500 font-sans">فاي تك</span>
                 <span className="text-sm sm:text-base font-black tracking-wider phi-metallic-text font-mono">PhiTech</span>
-                <span className="badge-pill badge-accent text-[10px] hidden sm:inline-flex font-mono">PHI CONSTRUCT</span>
+                <span className="badge-pill badge-accent text-[10px] hidden sm:inline-flex font-mono">GENERAL CONTRACTING</span>
               </div>
               <p className="text-[11px] sm:text-xs font-bold tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                استشارات هندسية • مقاولات عامة • تقنية معلومات وبنية ذكية
+                مقاولات عامة • تشطيبات فاخرة • تكييف مخفي وكهروميكانيك MEP
               </p>
             </div>
           </a>
 
           {/* Navigation Links */}
           <nav className="hidden xl:flex items-center gap-1 sunken-well-box p-1.5">
-            <a href="#hero" className="px-3.5 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-primary)' }}>الرئيسية</a>
-            <a href="#three-pillars" className="px-3.5 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>القطاعات الثلاثة</a>
-            <a href="#xray-twin" className="px-3.5 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>محاكي البناء 3D</a>
-            <a href="#turnkey-calculator" className="px-3.5 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>حاسبة المقايسة</a>
-            <a href="#portfolio" className="px-3.5 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>سابقة الأعمال</a>
-            <a href="#brand-identity" className="px-3.5 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--accent-bright)' }}>استوديو الشعار والمطبوعات</a>
+            <a href="#hero" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-primary)' }}>الرئيسية</a>
+            <a href="#three-pillars" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>القطاعات التنفيذية</a>
+            <a href="#boq-catalog" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--accent-bright)' }}>دليل بنود المقايسة</a>
+            <a href="#xray-twin" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>محاكي البناء 3D</a>
+            <a href="#turnkey-calculator" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>حاسبة المقايسة</a>
+            <a href="#portfolio" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>مشاريعنا الميدانية</a>
+            <a href="#brand-identity" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>استوديو الهوية</a>
           </nav>
 
           {/* Controls: Sector Accent Dots + Theme Switcher + Dual Login + CTA */}
@@ -1085,19 +1279,19 @@ export default function WebsitePage() {
                 onClick={() => handleSetAccent('amber')}
                 className={`w-5 h-5 rounded-full transition-transform ${accent === 'amber' ? 'scale-125' : 'opacity-60 hover:opacity-100'}`}
                 style={{ background: 'linear-gradient(180deg, #fb923c 0%, #f97316 55%, #d9460f 100%)', boxShadow: accent === 'amber' ? '0 0 10px rgba(249,115,22,0.8)' : 'none' }}
-                title="الإنشاءات والعضم (Signature Amber)"
+                title="البناء الإنشائي والعظم (Signature Amber)"
               />
               <button
                 onClick={() => handleSetAccent('emerald')}
                 className={`w-5 h-5 rounded-full transition-transform ${accent === 'emerald' ? 'scale-125' : 'opacity-60 hover:opacity-100'}`}
                 style={{ background: 'linear-gradient(180deg, #34d399 0%, #10b981 55%, #047857 100%)', boxShadow: accent === 'emerald' ? '0 0 10px rgba(16,185,129,0.8)' : 'none' }}
-                title="العمارة والتشطيبات (Architectural Emerald)"
+                title="التشطيبات المعمارية الفاخرة (Architectural Emerald)"
               />
               <button
                 onClick={() => handleSetAccent('cyan')}
                 className={`w-5 h-5 rounded-full transition-transform ${accent === 'cyan' ? 'scale-125' : 'opacity-60 hover:opacity-100'}`}
                 style={{ background: 'linear-gradient(180deg, #38bdf8 0%, #0ea5e9 55%, #0369a1 100%)', boxShadow: accent === 'cyan' ? '0 0 10px rgba(14,165,233,0.8)' : 'none' }}
-                title="تقنية المعلومات والأنظمة الذكية (Technical Cyan)"
+                title="الكهروميكانيك والتكييف المخفي (MEP Cyan)"
               />
             </div>
 
@@ -1127,7 +1321,7 @@ export default function WebsitePage() {
 
             <a href="#order-section" className="btn-primary text-xs sm:text-sm py-2.5 px-4 sm:px-5">
               <i className="fa-solid fa-file-signature"></i>
-              <span>اطلب عرض سعر</span>
+              <span>اطلب مقايسة ومعاينة</span>
             </a>
           </div>
 
@@ -1138,22 +1332,22 @@ export default function WebsitePage() {
       <section id="hero" className="relative pt-10 pb-16 sm:py-20 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
           
-          {/* Right Column: Strategic Pitch */}
+          {/* Right Column: Strategic Pitch tailored to the user's real business */}
           <div className="lg:col-span-7 space-y-6 text-right">
             <div className="inline-flex flex-wrap items-center gap-2.5 subcard-glass px-4 py-2">
               <div className="specular-beam"></div>
               <span className="w-2.5 h-2.5 rounded-full animate-ping" style={{ background: 'var(--accent-main)' }}></span>
               <span className="text-xs sm:text-sm font-bold" style={{ color: 'var(--accent-bright)' }}>
-                منظومة البناء المتكامل 3×1: إنشاءات (عضم) • تشطيبات معمارية • تقنية معلومات
+                فاي تك للمقاولات العامة والتشطيبات الفاخرة — المملكة العربية السعودية ومصر
               </span>
             </div>
 
             <h1 className="text-3xl sm:text-5xl xl:text-6xl font-black leading-tight tracking-tight">
-              نبني <span style={{ color: '#fb923c' }}>الهيكل الخرساني</span>، نُبدع <span style={{ color: '#34d399' }}>التشطيب المعماري</span>، ونُشغّل <span style={{ color: '#38bdf8' }}>البنية التكنولوجية</span>.
+              نبني <span style={{ color: '#fb923c' }}>الهيكل الإنشائي (العظم)</span>، نُبدع <span style={{ color: '#34d399' }}>التشطيب المعماري الفاخر</span>، ونُنفّذ <span style={{ color: '#38bdf8' }}>الكهروميكانيك والتكييف المخفي</span>.
             </h1>
 
             <p className="text-base sm:text-lg leading-relaxed max-w-2xl" style={{ color: 'var(--text-secondary)' }}>
-              في <strong className="phi-metallic-text font-mono">PHI CONSTRUCT</strong> نختصر عليك تعدد المقاولين وتضارب المواعيد. نتسلم أرض مشروعك لننفذ <strong style={{ color: 'var(--accent-bright)' }}>أعمال الإنشاءات والعضم</strong> بأعلى معايير الأمان الهندسي، ونحولها إلى تحفة بـ <strong style={{ color: '#34d399' }}>التشطيبات المعمارية والواجهات الفاخرة</strong>، وندمج بداخلها أحدث <strong style={{ color: '#38bdf8' }}>شبكات تقنية المعلومات، مراكز البيانات، وأنظمة المباني الذكية (BMS &amp; IT)</strong> تحت إدارة هندسية واحدة.
+              في <strong className="phi-metallic-text font-mono">PhiTech</strong> نضع بين يديك منظومة مقاولات متكاملة 3×1 بإشراف هندسي معتمد. نتسلم أرض مشروعك لننفذ <strong style={{ color: '#fb923c' }}>أعمال العظم والأساسات والخرسانات (فلات سلاب، هوردي، لبشة مسلحة)</strong>، ونحولها إلى تحفة معمارية بـ <strong style={{ color: '#34d399' }}>اللياسة بالليزر، الأسقف الجبسية، تكسيات الرخام الميكانيكية، ودهانات جوتين</strong>، مع تأسيس احترافي لـ <strong style={{ color: '#38bdf8' }}>شبكات التكييف المخفي الكونسيلد VRF والسباكة والكهرباء</strong> تحت مسؤولية هندسية موحدة بدون أي تكسير.
             </p>
 
             {/* Quick Interactive Sector Selector Pills */}
@@ -1167,8 +1361,8 @@ export default function WebsitePage() {
                   <i className="fa-solid fa-trowel-bricks text-lg"></i>
                 </div>
                 <div>
-                  <div className="text-xs font-black">1. البناء الإنشائي (عضم)</div>
-                  <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>حفر، أساسات، خرسانات ومباني</div>
+                  <div className="text-xs font-black">1. البناء الإنشائي (عظم)</div>
+                  <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>لبشة، أعمدة، فلات وهوردي</div>
                 </div>
               </button>
 
@@ -1181,22 +1375,22 @@ export default function WebsitePage() {
                   <i className="fa-solid fa-compass-drafting text-lg"></i>
                 </div>
                 <div>
-                  <div className="text-xs font-black">2. العمارة والتشطيبات</div>
-                  <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>ديكور، واجهات، رخام وMEP</div>
+                  <div className="text-xs font-black">2. التشطيبات المعمارية</div>
+                  <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>لياسة ليزر، جبس كناوف، ورخام</div>
                 </div>
               </button>
 
               <button
-                onClick={() => { handleSetAccent('cyan'); selectPresetScope('technology'); }}
+                onClick={() => { handleSetAccent('cyan'); selectPresetScope('mep'); }}
                 className="glossy-card glossy-card-interactive p-3.5 text-right flex items-center gap-3 cursor-pointer"
               >
                 <div className="specular-beam"></div>
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(14,165,233,0.15)', color: '#38bdf8' }}>
-                  <i className="fa-solid fa-network-wired text-lg"></i>
+                  <i className="fa-solid fa-fan text-lg"></i>
                 </div>
                 <div>
-                  <div className="text-xs font-black">3. تقنية المعلومات IT</div>
-                  <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>فايبر، داتا سنتر، ومباني ذكية</div>
+                  <div className="text-xs font-black">3. الكهروميكانيك MEP</div>
+                  <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>تكييف مخفي، سباكة، وماجنتيك</div>
                 </div>
               </button>
             </div>
@@ -1205,12 +1399,12 @@ export default function WebsitePage() {
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <a href="#turnkey-calculator" className="btn-primary text-base px-7 py-4">
                 <i className="fa-solid fa-calculator"></i>
-                <span>احسب تكلفة مشروعك (عضم + تشطيب + IT)</span>
+                <span>احسب تكلفة مشروعك (عظم + تشطيب + MEP)</span>
               </a>
-              <a href="#brand-identity" className="btn-secondary text-base px-6 py-4">
+              <a href="#boq-catalog" className="btn-secondary text-base px-6 py-4">
                 <div className="specular-beam"></div>
-                <i className="fa-solid fa-swatchbook" style={{ color: 'var(--accent-main)' }}></i>
-                <span>استوديو الشعار والمطبوعات (SVG / PNG)</span>
+                <i className="fa-solid fa-list-check" style={{ color: 'var(--accent-main)' }}></i>
+                <span>استكشف بنود المقايسة المعتمدة (275+ بند)</span>
               </a>
             </div>
 
@@ -1218,28 +1412,28 @@ export default function WebsitePage() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 pt-3">
               <div className="glossy-card p-4">
                 <div className="specular-beam"></div>
-                <div className="text-2xl sm:text-3xl font-extrabold font-mono" style={{ color: 'var(--accent-bright)' }}>+165</div>
-                <div className="text-xs font-bold mt-1" style={{ color: 'var(--text-muted)' }}>مشروع إنشائي ومعماري وتقني</div>
+                <div className="text-2xl sm:text-3xl font-extrabold font-mono" style={{ color: 'var(--accent-bright)' }}>+275</div>
+                <div className="text-xs font-bold mt-1" style={{ color: 'var(--text-muted)' }}>بند مقايسة ومواصفة معتمدة</div>
               </div>
               <div className="glossy-card p-4">
                 <div className="specular-beam"></div>
                 <div className="text-2xl sm:text-3xl font-extrabold font-mono" style={{ color: 'var(--status-pos-ink)' }}>3×1</div>
-                <div className="text-xs font-bold mt-1" style={{ color: 'var(--text-muted)' }}>مسؤولية هندسية موحدة</div>
+                <div className="text-xs font-bold mt-1" style={{ color: 'var(--text-muted)' }}>تسليم مفتاح ومسؤولية موحدة</div>
               </div>
               <div className="glossy-card p-4">
                 <div className="specular-beam"></div>
-                <div className="text-2xl sm:text-3xl font-extrabold font-mono" style={{ color: 'var(--status-info-ink)' }}>TIER-III</div>
-                <div className="text-xs font-bold mt-1" style={{ color: 'var(--text-muted)' }}>معيار البنية التحتية للـ IT</div>
+                <div className="text-2xl sm:text-3xl font-extrabold font-mono" style={{ color: 'var(--status-info-ink)' }}>100%</div>
+                <div className="text-xs font-bold mt-1" style={{ color: 'var(--text-muted)' }}>استلامات ليزر ومكعبات خرسانة</div>
               </div>
               <div className="glossy-card p-4">
                 <div className="specular-beam"></div>
-                <div className="text-2xl sm:text-3xl font-extrabold font-mono" style={{ color: 'var(--text-primary)' }}>99.6%</div>
-                <div className="text-xs font-bold mt-1" style={{ color: 'var(--text-muted)' }}>التزام بالجدول والمواصفات</div>
+                <div className="text-xl sm:text-2xl font-extrabold" style={{ color: 'var(--text-primary)' }}>الرياض • مصر</div>
+                <div className="text-xs font-bold mt-1" style={{ color: 'var(--text-muted)' }}>إشراف ومواقع تنفيذ نشطة</div>
               </div>
             </div>
           </div>
 
-          {/* Left Column: Clean Full-Bleed Vector Emblem */}
+          {/* Left Column: Official Master Emblem & Logo */}
           <div className="lg:col-span-5">
             <div className="glossy-card p-5 sm:p-6 relative">
               <div className="specular-beam"></div>
@@ -1254,13 +1448,13 @@ export default function WebsitePage() {
                     onClick={() => setHeroLogoVariant('official-master')}
                     className={`px-2.5 py-1 rounded-lg text-[11px] ${heroLogoVariant === 'official-master' ? 'btn-primary' : 'text-slate-400'}`}
                   >
-                    الشعار الرسمي المعتمد
+                    الشعار الرسمي
                   </button>
                   <button
                     onClick={() => setHeroLogoVariant('print-light')}
                     className={`px-2.5 py-1 rounded-lg text-[11px] ${heroLogoVariant === 'print-light' ? 'btn-primary' : 'text-slate-400'}`}
                   >
-                    الأصلي والمطبوعات
+                    المطبوعات
                   </button>
                   <button
                     onClick={() => setHeroLogoVariant('web-dark')}
@@ -1301,7 +1495,7 @@ export default function WebsitePage() {
                         <span className="text-lg font-black text-white font-mono">PhiTech</span>
                       </div>
                       <p className="text-[11px] font-bold text-slate-300">
-                        الهوية البصرية الرسمية المعتمدة لشركة فاي تك للاستشارات الهندسية والمقاولات
+                        الهوية البصرية الرسمية لشركة فاي تك للمقاولات العامة والتشطيبات الفاخرة
                       </p>
                     </div>
 
@@ -1337,7 +1531,7 @@ export default function WebsitePage() {
                 ) : (
                   <>
                     <div className="w-full flex items-center justify-center">
-                      <svg viewBox={logoGeometry.tightViewBox} className="w-64 sm:w-72 h-auto mx-auto transition-all duration-300" role="img" aria-label="شعار فاي كونستركت">
+                      <svg viewBox={logoGeometry.tightViewBox} className="w-64 sm:w-72 h-auto mx-auto transition-all duration-300" role="img" aria-label="شعار فاي تك">
                         <use
                           href="#phi-master-rings"
                           fill={
@@ -1362,12 +1556,12 @@ export default function WebsitePage() {
                     </div>
 
                     <div className="mt-2 text-center space-y-0.5">
-                      <div className="font-mono text-2xl sm:text-3xl font-black tracking-[0.16em]">
-                        <span style={{ color: heroLogoVariant === 'print-light' ? '#2c353d' : '#ede5da' }}>PHI </span>
-                        <span style={{ color: heroLogoVariant === 'print-light' ? '#f07613' : '#f97316' }}>CONSTRUCT</span>
+                      <div className="font-sans text-2xl sm:text-3xl font-black">
+                        <span style={{ color: heroLogoVariant === 'print-light' ? '#f07613' : '#f97316' }}>فاي تك </span>
+                        <span className="font-mono text-xl" style={{ color: heroLogoVariant === 'print-light' ? '#2c353d' : '#ede5da' }}>PhiTech</span>
                       </div>
-                      <div className="font-mono text-[10px] sm:text-[11px] font-bold tracking-[0.15em]" style={{ color: heroLogoVariant === 'print-light' ? '#524236' : '#b8aea2' }}>
-                        STRUCTURAL • ARCHITECTURAL • IT SYSTEMS
+                      <div className="text-[10px] sm:text-[11px] font-bold" style={{ color: heroLogoVariant === 'print-light' ? '#524236' : '#b8aea2' }}>
+                        مقاولات عامة • تشطيبات فاخرة • تكييف مخفي وMEP
                       </div>
                     </div>
 
@@ -1422,143 +1616,143 @@ export default function WebsitePage() {
           <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
             <span className="badge-pill badge-accent text-xs sm:text-sm">
               <i className="fa-solid fa-cubes-stacked"></i>
-              القطاعات التنفيذية الثلاثة لشركة PHI CONSTRUCT
+              القطاعات التنفيذية الثلاثة لشركة فاي تك
             </span>
             <h2 className="text-2xl sm:text-4xl font-black">
-              منظومة مقاولات شاملة: <span style={{ color: '#fb923c' }}>عضم</span> + <span style={{ color: '#34d399' }}>تشطيبات</span> + <span style={{ color: '#38bdf8' }}>تقنية معلومات</span>
+              منظومة مقاولات وتشطيبات شاملة: <span style={{ color: '#fb923c' }}>عظم إنشائي</span> + <span style={{ color: '#34d399' }}>تشطيبات فاخرة</span> + <span style={{ color: '#38bdf8' }}>تكييف وMEP</span>
             </h2>
             <p className="text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>
-              تفرّدنا الهندسي يكمن في دمج المقاولات الإنشائية والمعمارية مع هندسة تقنية المعلومات منذ اللحظة الأولى للتصميم، مما يمنع تكسير الحوائط لاحقاً ويضمن مبنى ذكياً متكاملاً.
+              قوتنا تكمن في ضبط التنسيق الميداني المسبق بين الأعمال الإنشائية وأعمال اللياسة والجبس والتكييف والسباكة، مما يقضي على التعارضات الموقعية ويوفر الجهد والمال للمالك.
             </p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-7 items-stretch">
-            {/* PILLAR 1 */}
+            {/* PILLAR 1: STRUCTURAL */}
             <div className="glossy-card glossy-card-interactive p-6 sm:p-7 flex flex-col justify-between">
               <div className="specular-beam"></div>
               <div>
                 <div className="flex items-center justify-between mb-5">
-                  <span className="badge-pill badge-accent font-mono text-xs">01 / STRUCTURAL &amp; SKELETON</span>
+                  <span className="badge-pill badge-accent font-mono text-xs">01 / STRUCTURAL & SKELETON</span>
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl" style={{ background: 'rgba(249,115,22,0.15)', color: '#fb923c' }}>
                     <i className="fa-solid fa-helmet-safety"></i>
                   </div>
                 </div>
-                <h3 className="text-2xl font-black mb-2">قطاع البناء الإنشائي والعضم</h3>
+                <h3 className="text-2xl font-black mb-2">قطاع البناء الإنشائي والعظم</h3>
                 <p className="text-xs sm:text-sm leading-relaxed mb-5" style={{ color: 'var(--text-secondary)' }}>
-                  ننفذ الهياكل الخرسانية والمعدنية للمشاريع السكنية، الإدارية، والتجارية وفق الكود المصري والعالمي مع ضبط صارم للجودة والأمان الإنشائي.
+                  ننفذ الهياكل الخرسانية المسلحة للفلل السكنية، العمائر، والأبراج وفق الكود السعودي والمصري مع استلامات المحاور بالليزر والتوتال ستيشن واختبارات كسر المكعبات.
                 </p>
 
                 <div className="sunken-well-box p-4 space-y-3 text-xs sm:text-sm">
-                  <div className="font-extrabold text-xs" style={{ color: '#fb923c' }}>نطاق الأعمال الإنشائية (العضم):</div>
+                  <div className="font-extrabold text-xs" style={{ color: '#fb923c' }}>بنود الأعمال الإنشائية والعظم:</div>
                   <ul className="space-y-2.5" style={{ color: 'var(--text-secondary)' }}>
                     <li className="flex items-start gap-2.5">
                       <i className="fa-solid fa-check mt-1" style={{ color: '#fb923c' }}></i>
-                      <span><strong>أعمال الحفر والأساسات:</strong> الجسات، الإحلال، الخوازيق، واللبشة المسلحة معزولة بالكامل.</span>
+                      <span><strong>الحفر والأساسات واللبشة:</strong> أبحاث التربة والخوازيق، إحلال مدموك، فرشة نظافة عادية، ولبشة مسلحة وقواعد منفصلة وسملات معزولة.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <i className="fa-solid fa-check mt-1" style={{ color: '#fb923c' }}></i>
-                      <span><strong>الهيكل الخرساني:</strong> أعمدة، كور مصاعد، وأسقف Flat Slab وPost-Tension.</span>
+                      <span><strong>الهيكل الخرساني والأسقف:</strong> أعمدة، كوابيل، أسقف Flat Slab، أسقف هوردي Ribbed Slab، وكمر مقلوب فوق اللبشة لضبط المناسيب.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <i className="fa-solid fa-check mt-1" style={{ color: '#fb923c' }}></i>
-                      <span><strong>التأسيس المسبق للـ IT و MEP:</strong> زرع مسارات الكابلات والـ Sleeves داخل الخرسانة.</span>
+                      <span><strong>المباني والعزل المائي والحراري:</strong> طوب أسمنتي مصمت وطوب أحمر، عزل بيتومين للميد، وعزل فوم وممبرين للأسطح.</span>
                     </li>
                   </ul>
                 </div>
               </div>
 
               <div className="mt-6 pt-4 flex items-center justify-between">
-                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>اختبارات إجهاد خرسانة معتمدة</span>
+                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>حديد B500D واختبارات كسر معتمدة</span>
                 <button onClick={() => selectPresetScope('structural')} className="btn-primary text-xs py-2.5 px-4">
-                  <span>سعّر أعمال العضم</span>
+                  <span>سعّر أعمال العظم</span>
                   <i className="fa-solid fa-arrow-left"></i>
                 </button>
               </div>
             </div>
 
-            {/* PILLAR 2 */}
+            {/* PILLAR 2: ARCHITECTURAL */}
             <div className="glossy-card glossy-card-interactive p-6 sm:p-7 flex flex-col justify-between">
               <div className="specular-beam"></div>
               <div>
                 <div className="flex items-center justify-between mb-5">
-                  <span className="badge-pill font-mono text-xs" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>02 / ARCHITECTURAL &amp; FINISHING</span>
+                  <span className="badge-pill font-mono text-xs" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>02 / ARCHITECTURAL & FINISHING</span>
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>
                     <i className="fa-solid fa-ruler-combined"></i>
                   </div>
                 </div>
-                <h3 className="text-2xl font-black mb-2">قطاع العمارة والتشطيبات الفاخرة</h3>
+                <h3 className="text-2xl font-black mb-2">قطاع التشطيبات المعمارية الفاخرة</h3>
                 <p className="text-xs sm:text-sm leading-relaxed mb-5" style={{ color: 'var(--text-secondary)' }}>
-                  نحول الهيكل الخرساني إلى تحفة معمارية نابضة بالحياة، بدايةً من التصميم ثلاثي الأبعاد والواجهات حتى أدق تفاصيل الفرش والإضاءة.
+                  نحول المساحات الصماء إلى بيئة سكنية ومعمارية ملكية، بمواصفات دقيقة في استواء اللياسة بالمساطر، والأسقف المعلقة، وتكسيات الرخام والواجهات.
                 </p>
 
                 <div className="sunken-well-box p-4 space-y-3 text-xs sm:text-sm">
-                  <div className="font-extrabold text-xs" style={{ color: '#34d399' }}>نطاق الأعمال المعمارية:</div>
+                  <div className="font-extrabold text-xs" style={{ color: '#34d399' }}>بنود التشطيبات المعمارية:</div>
                   <ul className="space-y-2.5" style={{ color: 'var(--text-secondary)' }}>
                     <li className="flex items-start gap-2.5">
                       <i className="fa-solid fa-check mt-1 text-emerald-400"></i>
-                      <span><strong>الواجهات المعمارية:</strong> واجهات زجاجية Curtain Walls، كلادينج، وتكسيات حجر طبيعي.</span>
+                      <span><strong>لياسة المساطر والليزر:</strong> بؤج وأوتار، تأكيس وتربيع للزوايا 90°، طرطشة مسمارية وشبك فايبر ضد التمدد والتنميل.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <i className="fa-solid fa-check mt-1 text-emerald-400"></i>
-                      <span><strong>التشطيبات الداخلية:</strong> رخام إيطالي بالوترجيت، باركيه، وتجاليد خشبية فاخرة.</span>
+                      <span><strong>الأسقف المعلقة والجبس:</strong> ألواح كناوف أصلية دراي اريا، سمنت بورد ويت اريا وفلاش تانك، بيوت نور وشادو جاب، وفتحات صيانة Access Panels.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <i className="fa-solid fa-check mt-1 text-emerald-400"></i>
-                      <span><strong>أنظمة الكهروميكانيك MEP:</strong> تكييف مركزي ومخفي VRF، وسباكة مدفونة Grohe.</span>
+                      <span><strong>الرخام والبورسلان والدهانات:</strong> تكسيات رخام ميكانيكي بستيل 304، بورسلان لارج فورمات بالكلبسات، دهانات جوتين، وبروفايل واجهات سافيتو.</span>
                     </li>
                   </ul>
                 </div>
               </div>
 
               <div className="mt-6 pt-4 flex items-center justify-between">
-                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>تسليم مفتاح مطابق للـ 3D</span>
+                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>ضمان استواء السطح التام</span>
                 <button onClick={() => selectPresetScope('architectural')} className="btn-secondary text-xs py-2.5 px-4">
                   <div className="specular-beam"></div>
-                  <span style={{ color: '#34d399' }}>سعّر التشطيبات</span>
+                  <span style={{ color: '#34d399' }}>سعّر التشطيبات الفاخرة</span>
                   <i className="fa-solid fa-arrow-left text-emerald-400"></i>
                 </button>
               </div>
             </div>
 
-            {/* PILLAR 3 */}
+            {/* PILLAR 3: MEP & HVAC */}
             <div className="glossy-card glossy-card-interactive p-6 sm:p-7 flex flex-col justify-between">
               <div className="specular-beam"></div>
               <div>
                 <div className="flex items-center justify-between mb-5">
-                  <span className="badge-pill font-mono text-xs" style={{ background: 'rgba(14,165,233,0.15)', color: '#38bdf8' }}>03 / IT &amp; SMART INFRASTRUCTURE</span>
+                  <span className="badge-pill font-mono text-xs" style={{ background: 'rgba(14,165,233,0.15)', color: '#38bdf8' }}>03 / MEP & CONCEALED HVAC</span>
                   <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl" style={{ background: 'rgba(14,165,233,0.15)', color: '#38bdf8' }}>
-                    <i className="fa-solid fa-server"></i>
+                    <i className="fa-solid fa-fan"></i>
                   </div>
                 </div>
-                <h3 className="text-2xl font-black mb-2">قطاع تقنية المعلومات والأنظمة الذكية</h3>
+                <h3 className="text-2xl font-black mb-2">قطاع الكهروميكانيك والتكييف المخفي</h3>
                 <p className="text-xs sm:text-sm leading-relaxed mb-5" style={{ color: 'var(--text-secondary)' }}>
-                  نبني العقل الرقمي والشبكة العصبية للمنشأة، لنقدم للشركات والقصور والمولات بنية تحتية فائقة السرعة والأمان.
+                  تأسيس شبكات التكييف المخفي والسباكة والكهرباء بهندسة دقيقة تضمن كفاءة التبريد وتوفير استهلاك الطاقة والتشغيل الصامت بدون أي تكسير.
                 </p>
 
                 <div className="sunken-well-box p-4 space-y-3 text-xs sm:text-sm">
-                  <div className="font-extrabold text-xs" style={{ color: '#38bdf8' }}>نطاق أعمال تقنية المعلومات:</div>
+                  <div className="font-extrabold text-xs" style={{ color: '#38bdf8' }}>بنود الكهروميكانيك والتكييف:</div>
                   <ul className="space-y-2.5" style={{ color: 'var(--text-secondary)' }}>
                     <li className="flex items-start gap-2.5">
                       <i className="fa-solid fa-check mt-1 text-sky-400"></i>
-                      <span><strong>غرف السيرفرات والداتا سنتر:</strong> تمديد ألياف ضوئية Fiber Optics وشبكات Cat6A/Cat7.</span>
+                      <span><strong>التكييف المخفي والكونسيلد:</strong> تفصيل دكت صاج مجلفن معزول بصوف زجاجي، مواسير نحاس جنوب إفريقي، وجريلات خطية طولية (Linear Diffusers).</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <i className="fa-solid fa-check mt-1 text-sky-400"></i>
-                      <span><strong>المباني الذكية BMS &amp; KNX:</strong> تحكم ذكي في الإضاءة والتكييف والطاقة عبر الجوال.</span>
+                      <span><strong>السباكة والتغذية والصرف:</strong> شبكات بولي بروبلين حرارية PEX/PPR معتمدة تحت ضغط 16 بار، شاسيهات كراسي دفن جدارية، وصرف صامت معلق.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <i className="fa-solid fa-check mt-1 text-sky-400"></i>
-                      <span><strong>التيار الخفيف والأمن ELV:</strong> كاميرات IP بالذكاء الاصطناعي وبوابات Access Control.</span>
+                      <span><strong>الكهرباء والإنارة الحديثة:</strong> كابلات نحاس سويدي، مسارات ماجنتيك تراك مدمجة بالجبس، لوحات وقواطع شنايدر، وتأسيس سمارت هوم.</span>
                     </li>
                   </ul>
                 </div>
               </div>
 
               <div className="mt-6 pt-4 flex items-center justify-between">
-                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>معايير Fluke Networks</span>
-                <button onClick={() => selectPresetScope('technology')} className="btn-secondary text-xs py-2.5 px-4">
+                <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>أعلى كفاءة تبريد وهدوء تشغيلي</span>
+                <button onClick={() => selectPresetScope('mep')} className="btn-secondary text-xs py-2.5 px-4">
                   <div className="specular-beam"></div>
-                  <span style={{ color: '#38bdf8' }}>سعّر البنية التكنولوجية</span>
+                  <span style={{ color: '#38bdf8' }}>سعّر التكييف والـ MEP</span>
                   <i className="fa-solid fa-arrow-left text-sky-400"></i>
                 </button>
               </div>
@@ -1568,19 +1762,101 @@ export default function WebsitePage() {
         </div>
       </section>
 
-      {/* SECTION 3: 3-LAYER BUILDING X-RAY SIMULATOR */}
+      {/* SECTION 3: LIVE BOQ SCOPE EXPLORER (بنود المقايسة المعتمدة) */}
+      <section id="boq-catalog" className="py-16 px-4 sm:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+            <div className="space-y-3">
+              <span className="badge-pill badge-accent text-xs sm:text-sm">
+                <i className="fa-solid fa-list-check"></i>
+                دليل بنود المقايسة والمواصفات الفنية المعتمدة في السيستم
+              </span>
+              <h2 className="text-2xl sm:text-4xl font-black">
+                استعرض بنود المقايسة الحقيقية لشركة <span className="text-amber-500 font-sans">فاي تك</span>
+              </h2>
+              <p className="text-xs sm:text-sm max-w-2xl" style={{ color: 'var(--text-secondary)' }}>
+                أكثر من 275 بند مقايسة مدرج ومُسعّر في نظامنا لإدارة المشاريع، نلتزم بتنفيذها بأعلى معايير الأمان والاستلامات الميدانية الرسمية.
+              </p>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 sunken-well-box p-1.5">
+              {[
+                { id: 'all', label: 'الكل (275+)' },
+                { id: 'structural', label: 'الخرسانات والعظم' },
+                { id: 'plaster', label: 'اللياسة والمحارة' },
+                { id: 'ceilings', label: 'الأسقف والجبس بورد' },
+                { id: 'marble', label: 'الرخام والبورسلان' },
+                { id: 'paint', label: 'الدهانات والواجهات' },
+                { id: 'mep', label: 'التكييف وMEP' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setBoqFilter(tab.id as any)}
+                  className={`px-3 py-1.5 rounded-xl text-xs transition-all ${boqFilter === tab.id ? 'btn-primary font-extrabold' : 'font-bold'}`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filteredBoqItems.map((item) => (
+              <div key={item.code} className="glossy-card glossy-card-interactive p-5 flex flex-col justify-between">
+                <div className="specular-beam"></div>
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="badge-pill font-mono text-[11px] font-black px-2.5 py-0.5" style={{ background: 'rgba(249,115,22,0.18)', color: '#fb923c' }}>
+                      {item.code}
+                    </span>
+                    <span className="text-xs font-bold" style={{ color: item.accentColor }}>
+                      {item.categoryLabel}
+                    </span>
+                  </div>
+
+                  <h3 className="text-base sm:text-lg font-black mb-2 text-white">
+                    {item.name}
+                  </h3>
+
+                  <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                    {item.specs}
+                  </p>
+                </div>
+
+                <div className="pt-3 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
+                  <span className="text-slate-400">وحدة القياس: <strong className="text-amber-400">{item.unit}</strong></span>
+                  <span className="badge-pill bg-emerald-500/15 text-emerald-300 text-[10px] font-sans">
+                    <i className="fa-solid fa-check-double text-[9px]"></i>
+                    مواصفة معتمدة
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-8 text-center">
+            <a href="#turnkey-calculator" className="inline-flex items-center gap-2 btn-primary text-xs sm:text-sm py-3 px-6">
+              <i className="fa-solid fa-calculator"></i>
+              <span>احسب تكلفة هذه البنود في مشروعك الخاص</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 4: 4-LAYER REAL BUILDING X-RAY SIMULATOR */}
       <section id="xray-twin" className="py-14 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center max-w-3xl mx-auto mb-10 space-y-3">
             <span className="badge-pill badge-accent text-xs sm:text-sm">
               <i className="fa-solid fa-eye"></i>
-              التوأم الرقمي لطبقات التنفيذ (3-Layer Building X-Ray)
+              محاكي طبقات البناء والتشطيب (4-Layer Construction Simulator)
             </span>
             <h2 className="text-2xl sm:text-4xl font-black">
-              شاهد كيف ندمج <span style={{ color: '#fb923c' }}>العضم</span> و<span style={{ color: '#34d399' }}>التشطيبات</span> و<span style={{ color: '#38bdf8' }}>التكنولوجيا</span> في مبنى واحد
+              شاهد كيف ندمج <span style={{ color: '#fb923c' }}>العظم</span> و<span style={{ color: '#38bdf8' }}>التكييف والـ MEP</span> و<span style={{ color: '#34d399' }}>التشطيب المعماري</span>
             </h2>
             <p className="text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>
-              اضغط على أي طبقة هندسية أدناه لاستكشاف العناصر التي تنفذها فرق <strong>PHI CONSTRUCT</strong> داخل المشروع وكيف تتكامل معاً دون أي تعارض.
+              اضغط على أي طبقة هندسية أدناه لمعاينة التأسيسات التي تنفذها فرق <strong>فاي تك (PhiTech)</strong> في الموقع لضمان التوافق المطلق بدون أي أخطاء أو تكسير.
             </p>
           </div>
 
@@ -1591,36 +1867,43 @@ export default function WebsitePage() {
               <div className="flex flex-wrap items-center gap-2 sunken-well-box p-2 w-full lg:w-auto">
                 <button
                   onClick={() => setActiveLayer('all')}
-                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold ${activeLayer === 'all' ? 'btn-primary' : 'subcard-glass'}`}
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold ${activeLayer === 'all' ? 'btn-primary' : 'subcard-glass'}`}
                 >
                   <i className="fa-solid fa-layer-group"></i>
-                  <span>التكامل الكامل (3×1)</span>
+                  <span>التكامل الكامل (تسليم مفتاح)</span>
                 </button>
                 <button
                   onClick={() => setActiveLayer('structural')}
-                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold ${activeLayer === 'structural' ? 'btn-primary' : 'subcard-glass'}`}
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold ${activeLayer === 'structural' ? 'btn-primary' : 'subcard-glass'}`}
                 >
                   <i className="fa-solid fa-cubes" style={{ color: '#fb923c' }}></i>
-                  <span>1. الهيكل الإنشائي (العضم)</span>
+                  <span>1. الهيكل الإنشائي (العظم)</span>
                 </button>
                 <button
-                  onClick={() => setActiveLayer('architectural')}
-                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold ${activeLayer === 'architectural' ? 'btn-primary' : 'subcard-glass'}`}
+                  onClick={() => setActiveLayer('mep')}
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold ${activeLayer === 'mep' ? 'btn-primary' : 'subcard-glass'}`}
                 >
-                  <i className="fa-solid fa-building" style={{ color: '#34d399' }}></i>
-                  <span>2. الغلاف المعماري والتشطيبات</span>
+                  <i className="fa-solid fa-fan" style={{ color: '#38bdf8' }}></i>
+                  <span>2. التكييف المخفي والـ MEP</span>
                 </button>
                 <button
-                  onClick={() => setActiveLayer('technology')}
-                  className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold ${activeLayer === 'technology' ? 'btn-primary' : 'subcard-glass'}`}
+                  onClick={() => setActiveLayer('plaster')}
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold ${activeLayer === 'plaster' ? 'btn-primary' : 'subcard-glass'}`}
                 >
-                  <i className="fa-solid fa-network-wired" style={{ color: '#38bdf8' }}></i>
-                  <span>3. الشبكة العصبية وتقنية المعلومات</span>
+                  <i className="fa-solid fa-ruler-combined" style={{ color: '#34d399' }}></i>
+                  <span>3. اللياسة والأسقف المعلقة</span>
+                </button>
+                <button
+                  onClick={() => setActiveLayer('finishing')}
+                  className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold ${activeLayer === 'finishing' ? 'btn-primary' : 'subcard-glass'}`}
+                >
+                  <i className="fa-solid fa-gem" style={{ color: '#fb923c' }}></i>
+                  <span>4. الفنش والرخام والدهانات</span>
                 </button>
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="badge-pill font-mono text-xs" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>BIM LEVEL 300/400</span>
+                <span className="badge-pill font-mono text-xs" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>SHOP DRAWINGS 100%</span>
                 <span className="badge-pill font-mono text-xs" style={{ background: 'rgba(14,165,233,0.15)', color: '#38bdf8' }}>ZERO CLASH DETECTION</span>
               </div>
             </div>
@@ -1628,7 +1911,7 @@ export default function WebsitePage() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-7 items-center">
               {/* SVG Cross-Section */}
               <div className="lg:col-span-7 sunken-well-box p-4 sm:p-6 rounded-3xl relative overflow-hidden">
-                <svg viewBox="0 0 700 440" className="w-full h-auto" aria-label="مخطط طبقات المبنى">
+                <svg viewBox="0 0 700 440" className="w-full h-auto" aria-label="مخطط طبقات البناء لفاي تك">
                   <g stroke="rgba(255,255,255,0.04)" strokeWidth="1">
                     <line x1="0" y1="80" x2="700" y2="80" />
                     <line x1="0" y1="160" x2="700" y2="160" />
@@ -1637,49 +1920,67 @@ export default function WebsitePage() {
                     <line x1="0" y1="390" x2="700" y2="390" />
                   </g>
 
-                  {/* LAYER 1: STRUCTURAL */}
-                  <g opacity={activeLayer === 'all' || activeLayer === 'structural' ? 1 : 0.15} className="transition-opacity duration-300">
-                    <rect x="95" y="365" width="510" height="28" rx="4" fill="rgba(249, 115, 22, 0.28)" stroke="#f97316" strokeWidth="2" />
-                    <rect x="130" y="393" width="18" height="38" fill="#ea580c" opacity="0.7" />
-                    <rect x="250" y="393" width="18" height="38" fill="#ea580c" opacity="0.7" />
-                    <rect x="340" y="393" width="22" height="38" fill="#ea580c" opacity="0.85" />
-                    <rect x="430" y="393" width="18" height="38" fill="#ea580c" opacity="0.7" />
-                    <rect x="550" y="393" width="18" height="38" fill="#ea580c" opacity="0.7" />
+                  {/* LAYER 1: STRUCTURAL SKELETON */}
+                  <g opacity={activeLayer === 'all' || activeLayer === 'structural' ? 1 : 0.12} className="transition-opacity duration-300">
+                    {/* Raft & Mud Slab */}
+                    <rect x="95" y="365" width="510" height="28" rx="4" fill="rgba(249, 115, 22, 0.35)" stroke="#f97316" strokeWidth="2" />
+                    <rect x="130" y="393" width="18" height="38" fill="#ea580c" opacity="0.8" />
+                    <rect x="250" y="393" width="18" height="38" fill="#ea580c" opacity="0.8" />
+                    <rect x="340" y="393" width="22" height="38" fill="#ea580c" opacity="0.9" />
+                    <rect x="430" y="393" width="18" height="38" fill="#ea580c" opacity="0.8" />
+                    <rect x="550" y="393" width="18" height="38" fill="#ea580c" opacity="0.8" />
 
+                    {/* Columns */}
                     <rect x="130" y="75" width="16" height="290" fill="#fb923c" opacity="0.85" />
                     <rect x="255" y="75" width="16" height="290" fill="#fb923c" opacity="0.85" />
                     <rect x="336" y="60" width="28" height="305" fill="rgba(249,115,22,0.45)" stroke="#fb923c" strokeWidth="2" />
                     <rect x="430" y="75" width="16" height="290" fill="#fb923c" opacity="0.85" />
                     <rect x="554" y="75" width="16" height="290" fill="#fb923c" opacity="0.85" />
 
+                    {/* Slabs (Flat & Ribbed) */}
                     <rect x="115" y="270" width="470" height="12" rx="2" fill="#f97316" />
                     <rect x="115" y="175" width="470" height="12" rx="2" fill="#f97316" />
                     <rect x="110" y="75" width="480" height="14" rx="3" fill="#fb923c" />
+                    <text x="350" y="383" textAnchor="middle" fill="#fed7aa" fontSize="10" fontWeight="800" fontFamily="Cairo">اللبشة المسلحة المعزولة (Raft Foundation)</text>
                   </g>
 
-                  {/* LAYER 2: ARCHITECTURAL */}
-                  <g opacity={activeLayer === 'all' || activeLayer === 'architectural' ? 1 : 0.15} className="transition-opacity duration-300">
-                    <rect x="122" y="89" width="456" height="276" rx="6" fill="rgba(16, 185, 129, 0.09)" stroke="#10b981" strokeWidth="2" strokeDasharray="10 4" />
-                    <line x1="148" y1="102" x2="550" y2="102" stroke="#34d399" strokeWidth="3" opacity="0.85" />
-                    <line x1="148" y1="198" x2="550" y2="198" stroke="#34d399" strokeWidth="3" opacity="0.85" />
-                    <line x1="148" y1="292" x2="550" y2="292" stroke="#34d399" strokeWidth="3" opacity="0.85" />
-                    <path d="M 102 75 L 130 42 L 570 42 L 598 75 Z" fill="rgba(16, 185, 129, 0.22)" stroke="#34d399" strokeWidth="2" />
-                    <rect x="165" y="198" width="75" height="72" rx="4" fill="rgba(52, 211, 153, 0.16)" stroke="#34d399" strokeWidth="1.5" />
-                    <rect x="460" y="102" width="80" height="73" rx="4" fill="rgba(52, 211, 153, 0.16)" stroke="#34d399" strokeWidth="1.5" />
+                  {/* LAYER 2: MEP & CONCEALED HVAC */}
+                  <g opacity={activeLayer === 'all' || activeLayer === 'mep' ? 1 : 0.12} className="transition-opacity duration-300">
+                    {/* Concealed Ducts */}
+                    <rect x="170" y="93" width="360" height="18" rx="3" fill="rgba(14, 165, 233, 0.3)" stroke="#38bdf8" strokeWidth="1.5" />
+                    <rect x="170" y="190" width="360" height="18" rx="3" fill="rgba(14, 165, 233, 0.3)" stroke="#38bdf8" strokeWidth="1.5" />
+                    <rect x="170" y="285" width="360" height="18" rx="3" fill="rgba(14, 165, 233, 0.3)" stroke="#38bdf8" strokeWidth="1.5" />
+
+                    {/* Linear Diffusers & Risers */}
+                    <path d="M 350 93 L 350 285 M 220 111 L 220 135 M 480 111 L 480 135 M 220 208 L 220 230 M 480 208 L 480 230" stroke="#38bdf8" strokeWidth="2.5" fill="none" className="mep-duct-stream" />
+                    <circle cx="220" cy="135" r="5" fill="#0ea5e9" />
+                    <circle cx="480" cy="135" r="5" fill="#0ea5e9" />
+                    <circle cx="220" cy="230" r="5" fill="#0ea5e9" />
+                    <circle cx="480" cy="230" r="5" fill="#0ea5e9" />
+                    <text x="350" y="106" textAnchor="middle" fill="#bae6fd" fontSize="9" fontWeight="800" fontFamily="Cairo">دكتات تكييف مخفي كونسيلد (Concealed HVAC)</text>
                   </g>
 
-                  {/* LAYER 3: IT & BMS */}
-                  <g opacity={activeLayer === 'all' || activeLayer === 'technology' ? 1 : 0.15} className="transition-opacity duration-300">
-                    <rect x="282" y="202" width="136" height="64" rx="8" fill="rgba(14, 165, 233, 0.25)" stroke="#38bdf8" strokeWidth="2" />
-                    <text x="350" y="226" textAnchor="middle" fill="#7dd3fc" fontSize="11" fontWeight="800" fontFamily="JetBrains Mono">DATA CENTER TIER-III</text>
-                    <text x="350" y="246" textAnchor="middle" fill="#e0f2fe" fontSize="10" fontWeight="700" fontFamily="Cairo">غرفة السيرفرات والـ BMS</text>
+                  {/* LAYER 3: PLASTERING & SUSPENDED CEILINGS */}
+                  <g opacity={activeLayer === 'all' || activeLayer === 'plaster' ? 1 : 0.12} className="transition-opacity duration-300">
+                    <line x1="148" y1="115" x2="550" y2="115" stroke="#34d399" strokeWidth="3" opacity="0.85" />
+                    <line x1="148" y1="212" x2="550" y2="212" stroke="#34d399" strokeWidth="3" opacity="0.85" />
+                    <line x1="148" y1="306" x2="550" y2="306" stroke="#34d399" strokeWidth="3" opacity="0.85" />
 
-                    <path d="M 350 202 L 350 60 M 350 135 L 185 135 M 350 135 L 505 135 M 350 320 L 200 320 M 350 320 L 510 320 M 350 266 L 350 355" stroke="#38bdf8" strokeWidth="3" fill="none" className="it-data-stream" />
-                    <circle cx="185" cy="135" r="8" fill="#0ea5e9" />
-                    <circle cx="505" cy="135" r="8" fill="#0ea5e9" />
-                    <circle cx="200" cy="320" r="8" fill="#0ea5e9" />
-                    <circle cx="510" cy="320" r="8" fill="#0ea5e9" />
-                    <circle cx="350" cy="60" r="9" fill="#38bdf8" />
+                    {/* Plaster Verticals */}
+                    <line x1="150" y1="115" x2="150" y2="175" stroke="#10b981" strokeWidth="3" strokeDasharray="6 3" />
+                    <line x1="546" y1="115" x2="546" y2="175" stroke="#10b981" strokeWidth="3" strokeDasharray="6 3" />
+                    <line x1="150" y1="212" x2="150" y2="270" stroke="#10b981" strokeWidth="3" strokeDasharray="6 3" />
+                    <line x1="546" y1="212" x2="546" y2="270" stroke="#10b981" strokeWidth="3" strokeDasharray="6 3" />
+                    <text x="350" y="127" textAnchor="middle" fill="#6ee7b7" fontSize="9" fontWeight="800" fontFamily="Cairo">أسقف جبس بورد كناوف + لياسة مساطر ليزر</text>
+                  </g>
+
+                  {/* LAYER 4: FINISHING, MARBLE & FACADES */}
+                  <g opacity={activeLayer === 'all' || activeLayer === 'finishing' ? 1 : 0.12} className="transition-opacity duration-300">
+                    <rect x="122" y="89" width="456" height="276" rx="6" fill="rgba(249, 115, 22, 0.05)" stroke="#fb923c" strokeWidth="1.5" strokeDasharray="8 4" />
+                    <path d="M 102 75 L 130 42 L 570 42 L 598 75 Z" fill="rgba(249, 115, 22, 0.22)" stroke="#f97316" strokeWidth="2" />
+                    <rect x="165" y="215" width="75" height="55" rx="4" fill="rgba(251, 146, 60, 0.18)" stroke="#fb923c" strokeWidth="1.5" />
+                    <rect x="460" y="120" width="80" height="55" rx="4" fill="rgba(251, 146, 60, 0.18)" stroke="#fb923c" strokeWidth="1.5" />
+                    <text x="350" y="62" textAnchor="middle" fill="#fdba74" fontSize="10" fontWeight="900" fontFamily="Cairo">واجهات بروفايل سافيتو + رخام ميكانيكي</text>
                   </g>
                 </svg>
               </div>
@@ -1709,7 +2010,7 @@ export default function WebsitePage() {
         </div>
       </section>
 
-      {/* SECTION 4: TURNKEY COST & TIMELINE CALCULATOR */}
+      {/* SECTION 5: REAL TURNKEY COST & QUANTITIES ESTIMATOR */}
       <section id="turnkey-calculator" className="py-16 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="glossy-card p-6 sm:p-10">
@@ -1722,23 +2023,23 @@ export default function WebsitePage() {
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <span className="badge-pill badge-accent text-xs">
                     <i className="fa-solid fa-calculator"></i>
-                    حاسبة المقايسة الهندسية الفورية (Instant BoQ Estimator)
+                    حاسبة المقايسة والكميات الهندسية التقديرية (Instant BoQ Estimator)
                   </span>
                   <div className="sunken-well-box p-1 flex items-center gap-1 text-xs font-mono">
                     <button
-                      onClick={() => { setCurrencySymbol('ج.م'); setCurrencyRate(1); }}
-                      className={`px-3 py-1 rounded-lg font-bold ${currencySymbol === 'ج.م' ? 'btn-primary' : ''}`}
-                    >
-                      EGP ج.م
-                    </button>
-                    <button
-                      onClick={() => { setCurrencySymbol('ر.س'); setCurrencyRate(0.078); }}
+                      onClick={() => { setCurrencySymbol('ر.س'); setCurrencyRate(1); }}
                       className={`px-3 py-1 rounded-lg font-bold ${currencySymbol === 'ر.س' ? 'btn-primary' : ''}`}
                     >
-                      SAR ر.س
+                      SAR ر.س (السعودية)
                     </button>
                     <button
-                      onClick={() => { setCurrencySymbol('$'); setCurrencyRate(0.021); }}
+                      onClick={() => { setCurrencySymbol('ج.م'); setCurrencyRate(12.8); }}
+                      className={`px-3 py-1 rounded-lg font-bold ${currencySymbol === 'ج.م' ? 'btn-primary' : ''}`}
+                    >
+                      EGP ج.م (مصر)
+                    </button>
+                    <button
+                      onClick={() => { setCurrencySymbol('$'); setCurrencyRate(0.27); }}
                       className={`px-3 py-1 rounded-lg font-bold ${currencySymbol === '$' ? 'btn-primary' : ''}`}
                     >
                       USD $
@@ -1747,10 +2048,10 @@ export default function WebsitePage() {
                 </div>
 
                 <h2 className="text-2xl sm:text-3xl font-black">
-                  احسب تكلفة وكميات مشروعك: <span style={{ color: '#fb923c' }}>عضم</span> • <span style={{ color: '#34d399' }}>تشطيب</span> • <span style={{ color: '#38bdf8' }}>تكنولوجيا</span>
+                  احسب تكلفة وكميات مشروعك: <span style={{ color: '#fb923c' }}>عظم</span> • <span style={{ color: '#34d399' }}>تشطيب</span> • <span style={{ color: '#38bdf8' }}>تكييف وMEP</span>
                 </h2>
                 <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                  حدد نوع المبنى والمساحة، واختر نطاق الأعمال المطلوب (يمكنك اختيار قطاع واحد أو دمج القطاعات الثلاثة معاً بنظام تسليم المفتاح).
+                  حدد نوع المبنى والمساحة، واختر نطاق الأعمال المطلوب لتوليد تقدير فوري للتكلفة والكميات (حديد، خرسانة جاهزة، تكييف مخفي، ومدة التنفيذ).
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1761,22 +2062,22 @@ export default function WebsitePage() {
                       onChange={(e) => setProjectType(e.target.value as any)}
                       className="sunken-input cursor-pointer font-bold"
                     >
-                      <option value="villa">فيلا سكنية خاصة / قصر</option>
-                      <option value="hq">مقر شركة / مبنى إداري ذكي</option>
-                      <option value="mall">مول تجاري / مركز طبي متكامل</option>
-                      <option value="datacenter">مبنى تقني / مركز بيانات ومختبرات</option>
+                      <option value="villa">فيلا سكنية خاصة / قصر فاخر</option>
+                      <option value="tower">عمارة سكنية / برج تجاري وسكني</option>
+                      <option value="commercial">مقر إداري / صالة عرض ومعرض تجاري</option>
+                      <option value="duplex">شقة دوبلكس / بنتهاوس فاخر</option>
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>مستوى المواصفات والتجهيز</label>
+                    <label className="block text-xs font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>مستوى المواصفات والتشطيب</label>
                     <select
                       value={specTier}
                       onChange={(e) => setSpecTier(parseFloat(e.target.value))}
                       className="sunken-input cursor-pointer font-bold"
                     >
                       <option value="1">قياسي هندسي معتمد (Standard Pro)</option>
-                      <option value="1.35">فاخر متقدم (Executive Luxury)</option>
-                      <option value="1.75">فائق الفخامة والذكاء (Signature Φ VIP)</option>
+                      <option value="1.35">فاخر تنفيذي (Executive Deluxe)</option>
+                      <option value="1.75">فاي تك سيجنتشر ملوكي (Signature Φ VIP)</option>
                     </select>
                   </div>
                 </div>
@@ -1790,8 +2091,8 @@ export default function WebsitePage() {
                     <input
                       type="range"
                       min="120"
-                      max="3000"
-                      step="30"
+                      max="2500"
+                      step="20"
                       value={areaPerFloor}
                       onChange={(e) => setAreaPerFloor(parseInt(e.target.value, 10))}
                       className="sunken-slider"
@@ -1806,7 +2107,7 @@ export default function WebsitePage() {
                     <input
                       type="range"
                       min="1"
-                      max="15"
+                      max="14"
                       step="1"
                       value={floors}
                       onChange={(e) => setFloors(parseInt(e.target.value, 10))}
@@ -1829,8 +2130,8 @@ export default function WebsitePage() {
                         </span>
                         <i className={`fa-solid fa-circle-check text-amber-400 ${activeScopes.structural ? 'opacity-100' : 'opacity-20'}`}></i>
                       </div>
-                      <div className="font-extrabold text-xs sm:text-sm">1. الإنشاءات والعضم</div>
-                      <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>حفر، خرسانات، ومباني</div>
+                      <div className="font-extrabold text-xs sm:text-sm">1. الإنشاءات والعظم</div>
+                      <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>لبشة، خرسانات، وهيكل</div>
                     </button>
 
                     <button
@@ -1844,23 +2145,23 @@ export default function WebsitePage() {
                         </span>
                         <i className={`fa-solid fa-circle-check text-emerald-400 ${activeScopes.architectural ? 'opacity-100' : 'opacity-20'}`}></i>
                       </div>
-                      <div className="font-extrabold text-xs sm:text-sm">2. التشطيبات والعمارة</div>
-                      <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>واجهات، ديكور، وMEP</div>
+                      <div className="font-extrabold text-xs sm:text-sm">2. التشطيبات المعمارية</div>
+                      <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>لياسة ليزر، جبس، ورخام</div>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => toggleScope('technology')}
-                      className={`p-3.5 rounded-2xl text-right transition-all cursor-pointer ${activeScopes.technology ? 'scope-toggle-active' : 'sunken-well-box opacity-55'}`}
+                      onClick={() => toggleScope('mep')}
+                      className={`p-3.5 rounded-2xl text-right transition-all cursor-pointer ${activeScopes.mep ? 'scope-toggle-active' : 'sunken-well-box opacity-55'}`}
                     >
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="w-7 h-7 rounded-lg flex items-center justify-center text-xs" style={{ background: 'rgba(14,165,233,0.2)', color: '#38bdf8' }}>
-                          <i className="fa-solid fa-microchip"></i>
+                          <i className="fa-solid fa-fan"></i>
                         </span>
-                        <i className={`fa-solid fa-circle-check text-sky-400 ${activeScopes.technology ? 'opacity-100' : 'opacity-20'}`}></i>
+                        <i className={`fa-solid fa-circle-check text-sky-400 ${activeScopes.mep ? 'opacity-100' : 'opacity-20'}`}></i>
                       </div>
-                      <div className="font-extrabold text-xs sm:text-sm">3. تقنية المعلومات IT</div>
-                      <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>فايبر، سمارت، وداتا سنتر</div>
+                      <div className="font-extrabold text-xs sm:text-sm">3. الكهروميكانيك MEP</div>
+                      <div className="text-[11px]" style={{ color: 'var(--text-muted)' }}>تكييف مخفي وسباكة وكهرباء</div>
                     </button>
                   </div>
                 </div>
@@ -1884,8 +2185,8 @@ export default function WebsitePage() {
                     </div>
                     <div className="text-[11px] mt-1" style={{ color: 'var(--text-muted)' }}>
                       {boqCalculation.allThreeActive
-                        ? 'شامل خصم التكامل الهندسي (7%) لتنفيذ القطاعات الثلاثة معاً'
-                        : 'فعّل القطاعات الثلاثة معاً للحصول على خصم التكامل الهندسي (7%)'}
+                        ? 'شامل خصم التكامل الهندسي (7%) لتسليم مفتاح متكامل 3×1'
+                        : 'فعّل القطاعات الثلاثة معاً للاستفادة من خصم التكامل الهندسي (7%)'}
                     </div>
                   </div>
 
@@ -1893,7 +2194,7 @@ export default function WebsitePage() {
                     <div className="glossy-card p-3.5 flex items-center justify-between">
                       <span className="flex items-center gap-2 font-bold">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#fb923c' }}></span>
-                        <span>تكلفة الإنشاءات والعضم:</span>
+                        <span>تكلفة الإنشاءات والعظم:</span>
                       </span>
                       <span className="font-mono font-extrabold">{boqCalculation.structCost.toLocaleString()} {currencySymbol}</span>
                     </div>
@@ -1901,7 +2202,7 @@ export default function WebsitePage() {
                     <div className="glossy-card p-3.5 flex items-center justify-between">
                       <span className="flex items-center gap-2 font-bold">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#34d399' }}></span>
-                        <span>تكلفة التشطيبات والواجهات:</span>
+                        <span>تكلفة التشطيبات المعمارية:</span>
                       </span>
                       <span className="font-mono font-extrabold">{boqCalculation.archCost.toLocaleString()} {currencySymbol}</span>
                     </div>
@@ -1909,36 +2210,42 @@ export default function WebsitePage() {
                     <div className="glossy-card p-3.5 flex items-center justify-between">
                       <span className="flex items-center gap-2 font-bold">
                         <span className="w-2.5 h-2.5 rounded-full" style={{ background: '#38bdf8' }}></span>
-                        <span>تكلفة تقنية المعلومات والـ BMS:</span>
+                        <span>تكلفة التكييف المخفي والـ MEP:</span>
                       </span>
-                      <span className="font-mono font-extrabold">{boqCalculation.techCost.toLocaleString()} {currencySymbol}</span>
+                      <span className="font-mono font-extrabold">{boqCalculation.mepCost.toLocaleString()} {currencySymbol}</span>
                     </div>
                   </div>
 
+                  {/* Quantitative Engineering Breakdown */}
                   <div className="grid grid-cols-3 gap-2.5 text-center pt-1">
                     <div className="subcard-glass p-2.5">
-                      <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>حديد وخرسانة</div>
+                      <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>خرسانة وحديد</div>
                       <div className="font-mono font-extrabold text-xs mt-0.5" style={{ color: '#fb923c' }}>
-                        {boqCalculation.steelTons > 0 ? `~${boqCalculation.steelTons} طن` : 'غير مشمول'}
+                        {boqCalculation.concreteCbm > 0 ? `~${boqCalculation.concreteCbm} م³` : '—'}
+                      </div>
+                      <div className="text-[9px] text-slate-400 font-mono">
+                        {boqCalculation.steelTons > 0 ? `${boqCalculation.steelTons} طن حديد` : ''}
                       </div>
                     </div>
                     <div className="subcard-glass p-2.5">
-                      <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>نقاط ذكية وشبكات</div>
+                      <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>تكييف مخفي</div>
                       <div className="font-mono font-extrabold text-xs mt-0.5" style={{ color: '#38bdf8' }}>
-                        {boqCalculation.itPoints > 0 ? `${boqCalculation.itPoints} نقطة` : 'غير مشمول'}
+                        {boqCalculation.hvacTons > 0 ? `~${boqCalculation.hvacTons} طن TR` : '—'}
                       </div>
+                      <div className="text-[9px] text-slate-400">كونسيلد / VRF</div>
                     </div>
                     <div className="subcard-glass p-2.5">
-                      <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>المدة الزمنية</div>
+                      <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>مدة التنفيذ</div>
                       <div className="font-mono font-extrabold text-xs mt-0.5" style={{ color: '#34d399' }}>
                         {boqCalculation.months} أشهر
                       </div>
+                      <div className="text-[9px] text-slate-400">جدول معتمد</div>
                     </div>
                   </div>
 
                   <button onClick={transferBoQToForm} className="btn-primary w-full py-4 text-sm sm:text-base">
                     <i className="fa-solid fa-file-export"></i>
-                    <span>اعتماد المقايسة وطلب عرض سعر رسمي</span>
+                    <span>اعتماد المقايسة وطلب عرض سعر ومعاينة</span>
                   </button>
                 </div>
               </div>
@@ -1948,32 +2255,35 @@ export default function WebsitePage() {
         </div>
       </section>
 
-      {/* SECTION 5: PORTFOLIO & DELIVERED PROJECTS */}
+      {/* SECTION 6: REAL FIELD PROJECTS PORTFOLIO */}
       <section id="portfolio" className="py-16 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
             <div className="space-y-3">
               <span className="badge-pill badge-accent text-xs sm:text-sm">
                 <i className="fa-solid fa-award"></i>
-                نماذج من مشاريعنا المنفذة
+                مشاريعنا الميدانية الموثقة من واقع العمل
               </span>
               <h2 className="text-2xl sm:text-4xl font-black">
-                سابقة أعمال <span className="phi-metallic-text">PHI CONSTRUCT</span> على أرض الواقع
+                سابقة أعمال <span className="phi-metallic-text font-mono">PhiTech</span> على أرض الواقع
               </h2>
+              <p className="text-xs sm:text-sm max-w-xl" style={{ color: 'var(--text-secondary)' }}>
+                نماذج حقيقية لمشاريعنا في الرياض والقاهرة والمنصورة مع التفاصيل الإنشائية والمعمارية وفريق الإشراف الهندسي.
+              </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5 sunken-well-box p-1.5">
-              {(['all', 'turnkey', 'structural', 'architectural', 'technology'] as const).map((cat) => (
+              {(['all', 'turnkey', 'structural', 'finishing', 'mep'] as const).map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setPortfolioFilter(cat)}
                   className={`px-3.5 py-2 rounded-xl text-xs ${portfolioFilter === cat ? 'btn-primary font-extrabold' : 'font-bold'}`}
                 >
                   {cat === 'all' && 'الكل'}
-                  {cat === 'turnkey' && 'تسليم مفتاح (3×1)'}
-                  {cat === 'structural' && 'إنشاءات وعضم'}
-                  {cat === 'architectural' && 'تشطيبات معمارية'}
-                  {cat === 'technology' && 'تقنية معلومات IT'}
+                  {cat === 'turnkey' && 'تسليم مفتاح متكامل'}
+                  {cat === 'structural' && 'إنشاءات وعظم'}
+                  {cat === 'finishing' && 'تشطيبات معمارية'}
+                  {cat === 'mep' && 'كهروميكانيك وتكييف'}
                 </button>
               ))}
             </div>
@@ -1988,7 +2298,12 @@ export default function WebsitePage() {
                     <span className="badge-pill badge-accent font-mono text-[11px]">{proj.id}</span>
                     <span className="text-xs font-bold" style={{ color: proj.accentColor }}>{proj.categoryLabel}</span>
                   </div>
-                  <h3 className="text-lg sm:text-xl font-black mb-4">{proj.title}</h3>
+                  <h3 className="text-lg sm:text-xl font-black mb-2 text-white">{proj.title}</h3>
+
+                  <div className="text-xs text-amber-400 font-bold mb-3 flex items-center gap-1.5">
+                    <i className="fa-solid fa-location-dot"></i>
+                    <span>{proj.location}</span>
+                  </div>
 
                   <div className="sunken-well-box p-4 space-y-2.5 text-xs">
                     <div className="flex items-start gap-2">
@@ -2000,15 +2315,21 @@ export default function WebsitePage() {
                       <span><strong>المعماري:</strong> {proj.archScope}</span>
                     </div>
                     <div className="flex items-start gap-2">
-                      <i className="fa-solid fa-server mt-0.5" style={{ color: '#38bdf8' }}></i>
-                      <span><strong>التكنولوجي IT:</strong> {proj.itScope}</span>
+                      <i className="fa-solid fa-fan mt-0.5" style={{ color: '#38bdf8' }}></i>
+                      <span><strong>الـ MEP والتكييف:</strong> {proj.mepScope}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-5 pt-3 flex items-center justify-between text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-                  <span><i className="fa-solid fa-maximize ml-1"></i> المساحة: {proj.area}</span>
-                  <span><i className="fa-regular fa-clock ml-1"></i> التنفيذ: {proj.duration}</span>
+                <div className="mt-5 pt-3 border-t border-slate-800 space-y-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+                  <div className="flex items-center justify-between font-mono">
+                    <span><i className="fa-solid fa-maximize ml-1"></i> المساحة: {proj.area}</span>
+                    <span><i className="fa-regular fa-clock ml-1"></i> الحالة: {proj.duration}</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400">
+                    <i className="fa-solid fa-user-tie text-amber-500 ml-1"></i>
+                    <span>الإشراف الهندسي: <strong>{proj.engineers}</strong></span>
+                  </div>
                 </div>
               </div>
             ))}
@@ -2016,19 +2337,19 @@ export default function WebsitePage() {
         </div>
       </section>
 
-      {/* SECTION 6: BRAND STUDIO */}
+      {/* SECTION 7: BRAND STUDIO & VECTOR LOGO */}
       <section id="brand-identity" className="py-16 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <span className="badge-pill badge-accent text-xs sm:text-sm">
               <i className="fa-solid fa-sliders"></i>
-              استوديو ضبط نسب وألوان الشعار (Full-Bleed Logo &amp; Print Studio)
+              استوديو الهوية البصرية وضبط نسب الشعار (PhiTech Studio)
             </span>
             <h2 className="text-2xl sm:text-4xl font-black">
-              شعار <span className="phi-metallic-text">PHI CONSTRUCT</span> مضبوط النسب («مالي مكانه») للويب والمطبوعات
+              شعار <span className="text-amber-500 font-sans">فاي تك</span> مضبوط النسب للويب والمطبوعات والمواقع
             </h2>
             <p className="text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>
-              حافظنا على نفس تصميم وألوان شعارك المعتمد (الأعمدة البرتقالية العنبرية + الحلقة الدائرية الفحمية الداكنة)، مع تكبير القطر وزيادة سماكة الكتل وتقليص الفراغات الهامشية.
+              أصل شعارك المعتمد (الأعمدة العنبرية + الحلقة الدائرية الفحمية) بنسب ممتلئة بدون هوامش ميتة وجاهزة للتصدير بدقة 2048px وفيكتور SVG للمطابع واللافتات.
             </p>
           </div>
 
@@ -2043,8 +2364,8 @@ export default function WebsitePage() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-amber-400 text-sm">حزمة ملفات الهوية المعتمدة الرسمية</span>
-                    <span className="badge-pill badge-accent text-[10px]">جاهز للاستخدام الفوري</span>
+                    <span className="font-bold text-amber-400 text-sm">حزمة ملفات الهوية المعتمدة لشركة فاي تك</span>
+                    <span className="badge-pill badge-accent text-[10px]">الملفات الأصلية</span>
                   </div>
                   <div className="text-xs text-slate-300 mt-0.5">
                     تحميل الشعار الأصلي (JPG) والمفرغ الشفاف عالي الدقة (PNG) ورمز الأيقونة للمطبوعات والويب.
@@ -2188,7 +2509,7 @@ export default function WebsitePage() {
                         className={`py-2.5 px-3 rounded-xl text-xs ${studioLockup === lk ? 'btn-primary font-extrabold' : 'font-bold'}`}
                       >
                         {lk === 'mark' && 'الرمز فقط Φ'}
-                        {lk === 'stacked' && 'رأسي كامل'}
+                        {lk === 'stacked' && 'رأسي فاي تك'}
                         {lk === 'horizontal' && 'أفقي للهيدر'}
                       </button>
                     ))}
@@ -2318,7 +2639,7 @@ export default function WebsitePage() {
                   <div className="w-full flex items-center justify-between mb-2 pointer-events-none">
                     <span className="badge-pill badge-accent font-mono text-[11px]" style={{ background: 'rgba(249,115,22,0.16)', color: '#ea580c' }}>
                       {studioColorMode === 'print-light' && 'ORIGINAL & PRINT — #2C353D + #F97316'}
-                      {studioColorMode === 'web-dark' && 'WEB DARK — SLATE TITANIUM & AMBER'}
+                      {studioColorMode === 'web-dark' && 'WEB DARK — TITANIUM & AMBER GLOSS'}
                       {studioColorMode === 'luxury-foil' && 'LUXURY FOIL — STEEL & GOLD'}
                       {studioColorMode === 'mono' && 'MONOCHROME — 1-COLOR STAMP'}
                     </span>
@@ -2349,14 +2670,14 @@ export default function WebsitePage() {
                         onClick={() => setStudioMockupTab('letterhead')}
                         className={`px-3.5 py-2 rounded-xl text-xs ${studioMockupTab === 'letterhead' ? 'btn-primary font-extrabold' : 'font-bold'}`}
                       >
-                        <i className="fa-solid fa-file-contract ml-1"></i> ورق المراسلات والعقود (A4)
+                        <i className="fa-solid fa-file-contract ml-1"></i> ورق العقود والمراسلات (A4)
                       </button>
                       <button
                         type="button"
                         onClick={() => setStudioMockupTab('stamp')}
                         className={`px-3.5 py-2 rounded-xl text-xs ${studioMockupTab === 'stamp' ? 'btn-primary font-extrabold' : 'font-bold'}`}
                       >
-                        <i className="fa-solid fa-stamp ml-1"></i> ختم الشركة وأيقونة الويب
+                        <i className="fa-solid fa-stamp ml-1"></i> ختم فاي تك الرسمي
                       </button>
                     </div>
 
@@ -2379,24 +2700,23 @@ export default function WebsitePage() {
                         <div className="absolute bottom-0 right-0 left-0 h-1.5" style={{ background: 'linear-gradient(90deg, #fb923c, #f97316, #ea580c)' }}></div>
                         <div className="flex items-center justify-between text-[10px] font-mono text-stone-400">
                           <span>FRONT SIDE • SPOT UV</span>
-                          <span style={{ color: '#fb923c' }}>WWW.PHICONSTRUCT.COM</span>
+                          <span style={{ color: '#fb923c' }}>PHITECH CONTRACTING</span>
                         </div>
                         <div className="my-3 flex flex-col items-center text-center">
                           <svg viewBox={logoGeometry.tightViewBox} className="w-20 h-20">
                             <use href="#phi-master-rings" fill="url(#phiRingsWebDark)" />
                             <use href="#phi-master-pillars" fill="url(#phiPillarsWebDark)" />
                           </svg>
-                          <div className="font-mono font-black text-base tracking-[0.2em] mt-1.5">
-                            <span style={{ color: '#ede5da' }}>PHI </span>
-                            <span style={{ color: '#f97316' }}>CONSTRUCT</span>
+                          <div className="font-sans font-black text-lg tracking-wider mt-1.5 text-amber-500">
+                            فاي تك <span className="font-mono text-sm text-white">PhiTech</span>
                           </div>
                           <div className="text-[9px] font-bold tracking-wider mt-0.5 text-stone-300">
-                            إنشاءات خرسانية • تشطيبات معمارية • تقنية معلومات
+                            مقاولات عامة • تشطيبات فاخرة • تكييف مخفي وMEP
                           </div>
                         </div>
                         <div className="flex justify-between items-center text-[10px] text-stone-400">
-                          <span>3-IN-1 TURNKEY CONTRACTING</span>
-                          <span className="font-mono">ISO 9001 • BIM 400</span>
+                          <span>الرياض (المملكة) • القاهرة والمنصورة (مصر)</span>
+                          <span className="font-mono text-amber-500 font-bold">Φ 1.618</span>
                         </div>
                       </div>
 
@@ -2408,8 +2728,8 @@ export default function WebsitePage() {
                         <div className="absolute top-0 right-0 bottom-0 w-2" style={{ background: 'linear-gradient(180deg, #2c353d 0%, #2c353d 50%, #f97316 50%, #ea580c 100%)' }}></div>
                         <div className="flex items-start justify-between pr-3">
                           <div>
-                            <div className="font-black text-sm" style={{ color: '#14100d' }}>م. الاستشاري / رئيس مجلس الإدارة</div>
-                            <div className="text-[11px] font-bold" style={{ color: '#ea580c' }}>PHI CONSTRUCT</div>
+                            <div className="font-black text-sm" style={{ color: '#14100d' }}>الإدارة العامة والمكتب الفني</div>
+                            <div className="text-[11px] font-bold" style={{ color: '#ea580c' }}>فاي تك للمقاولات العامة والتشطيبات</div>
                           </div>
                           <svg viewBox={logoGeometry.tightViewBox} className="w-14 h-14">
                             <use href="#phi-master-rings" fill="url(#phiRingsPrint)" />
@@ -2419,20 +2739,16 @@ export default function WebsitePage() {
                         <div className="pr-3 space-y-1.5 text-[11px] my-3" style={{ color: '#2e2620' }}>
                           <div className="flex items-center gap-2 font-mono">
                             <i className="fa-solid fa-phone text-[10px]" style={{ color: '#ea580c' }}></i>
-                            <span dir="ltr">+20 100 000 0000 / +966 50 000 0000</span>
+                            <span dir="ltr">+966 56 938 7438 / +20 100 000 0000</span>
                           </div>
                           <div className="flex items-center gap-2 font-mono">
-                            <i className="fa-solid fa-envelope text-[10px]" style={{ color: '#ea580c' }}></i>
-                            <span>info@phiconstruct.com</span>
-                          </div>
-                          <div className="flex items-center gap-2">
                             <i className="fa-solid fa-location-dot text-[10px]" style={{ color: '#ea580c' }}></i>
-                            <span>القاهرة الجديدة — التجمع الخامس | الرياض — حي العليا</span>
+                            <span>الرياض (ضاحية الفرسان / العليا) • القاهرة • المنصورة</span>
                           </div>
                         </div>
                         <div className="pr-3 pt-2 flex items-center justify-between text-[10px] font-bold" style={{ color: '#524236' }}>
-                          <span>بناء إنشائي (عضم) • عمارة وتشطيبات • شبكات وIT</span>
-                          <span className="font-mono" style={{ color: '#ea580c' }}>Φ 1.618</span>
+                          <span>بناء إنشائي (عظم) • تشطيب معماري • تكييف كونسيلد</span>
+                          <span className="font-mono" style={{ color: '#ea580c' }}>تسليم مفتاح</span>
                         </div>
                       </div>
                     </div>
@@ -2448,22 +2764,21 @@ export default function WebsitePage() {
                             <use href="#phi-master-pillars" fill="url(#phiPillarsPrint)" />
                           </svg>
                           <div>
-                            <div className="font-mono font-black text-lg tracking-[0.16em]">
-                              <span style={{ color: '#2c353d' }}>PHI </span>
-                              <span style={{ color: '#f07613' }}>CONSTRUCT</span>
+                            <div className="font-sans font-black text-xl text-amber-600">
+                              فاي تك للمقاولات العامة والتشطيبات الفاخرة
                             </div>
-                            <div className="text-xs font-extrabold" style={{ color: '#2e2620' }}>
-                              فاي كونستركت للمقاولات العامة والإنشاءات وتقنية المعلومات
+                            <div className="text-xs font-mono font-bold" style={{ color: '#2e2620' }}>
+                              PhiTech General Contracting &amp; Luxury Finishes
                             </div>
-                            <div className="text-[10px] font-mono" style={{ color: '#6b5e53' }}>
-                              STRUCTURAL SKELETON • ARCHITECTURAL FINISHING • IT INFRASTRUCTURE
+                            <div className="text-[10px]" style={{ color: '#6b5e53' }}>
+                              المملكة العربية السعودية (الرياض) • جمهورية مصر العربية (القاهرة - المنصورة)
                             </div>
                           </div>
                         </div>
                         <div className="text-left font-mono text-[11px] space-y-0.5" style={{ color: '#3f352c' }}>
-                          <div><strong>DOC REF:</strong> PHI-BOQ-2026/089</div>
-                          <div><strong>DATE:</strong> {new Date().toLocaleDateString('ar-EG')}</div>
-                          <div><strong>CR / TAX ID:</strong> 748-920-114</div>
+                          <div><strong>DOC REF:</strong> PHI-BOQ-2026/104</div>
+                          <div><strong>DATE:</strong> {new Date().toLocaleDateString('ar-SA')}</div>
+                          <div><strong>STATUS:</strong> معتمد هندسياً</div>
                         </div>
                       </div>
 
@@ -2475,31 +2790,31 @@ export default function WebsitePage() {
 
                         <div className="relative z-10 space-y-3 text-xs leading-relaxed" style={{ color: '#26201b' }}>
                           <div className="font-black text-sm" style={{ color: '#14100d' }}>
-                            الموضوع: عرض سعر فني ومالي لأعمال التنفيذ المتكامل (إنشائي + معماري + تقنية معلومات)
+                            الموضوع: مقايسة فنية وعرض سعر لأعمال المقاولات والتشطيبات (تسليم مفتاح 3×1)
                           </div>
                           <p>
-                            تحية طيبة وبعد، تتشرف شركة <strong>PHI CONSTRUCT</strong> بتقديم المقايسة التقديرية والجدول الزمني لتنفيذ مشروعكم وفق أعلى الأكواد الهندسية المعتمدة:
+                            تحية طيبة وبعد، تتشرف شركة <strong>فاي تك (PhiTech)</strong> بتقديم المقايسة التقديرية وجدول الكميات المعتمد لتنفيذ مشروعكم بأعلى المعايير الهندسية:
                           </p>
                           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
                             <div className="p-3 rounded-xl" style={{ background: '#fdf8f2' }}>
-                              <div className="font-extrabold text-[11px]" style={{ color: '#ea580c' }}>1. القطاع الإنشائي (العضم)</div>
-                              <div className="text-[11px] mt-0.5">حفر، إحلال، لبشة مسلحة، وأعمدة وأسقف خرسانية.</div>
+                              <div className="font-extrabold text-[11px]" style={{ color: '#ea580c' }}>1. القطاع الإنشائي (العظم)</div>
+                              <div className="text-[11px] mt-0.5">حفر، إحلال، لبشة مسلحة، أعمدة، أسقف فلات وهوردي، وكمر مقلوب.</div>
                             </div>
                             <div className="p-3 rounded-xl" style={{ background: '#f2fbf7' }}>
                               <div className="font-extrabold text-[11px]" style={{ color: '#047857' }}>2. القطاع المعماري والتشطيب</div>
-                              <div className="text-[11px] mt-0.5">واجهات زجاجية وكلادينج، رخام، وتكييف VRF.</div>
+                              <div className="text-[11px] mt-0.5">لياسة مساطر ليزر، كناوف وسمنت بورد، رخام ميكانيكي، ودهانات جوتين.</div>
                             </div>
                             <div className="p-3 rounded-xl" style={{ background: '#f2f9fd' }}>
-                              <div className="font-extrabold text-[11px]" style={{ color: '#0369a1' }}>3. تقنية المعلومات IT</div>
-                              <div className="text-[11px] mt-0.5">شبكات فايبر، غرفة سيرفرات، ومباني ذكية BMS.</div>
+                              <div className="font-extrabold text-[11px]" style={{ color: '#0369a1' }}>3. الكهروميكانيك MEP والتكييف</div>
+                              <div className="text-[11px] mt-0.5">دكتات تكييف مخفي كونسيلد VRF، سباكة معلقة PEX، وشنايدر.</div>
                             </div>
                           </div>
                         </div>
                       </div>
 
                       <div className="pt-4 mt-2 flex flex-wrap items-center justify-between gap-2 text-[10px]" style={{ color: '#524236', background: '#faf5ed', padding: '10px 16px', borderRadius: '10px' }}>
-                        <span>المقر الرئيسي: القاهرة الجديدة — التجمع الخامس | الرياض — حي العليا</span>
-                        <span className="font-mono font-bold" style={{ color: '#ea580c' }}>www.phiconstruct.com | info@phiconstruct.com</span>
+                        <span>المكاتب: الرياض (ضاحية الفرسان / العليا) | القاهرة الجديدة (التجمع) | المنصورة (طلخا)</span>
+                        <span className="font-mono font-bold" style={{ color: '#ea580c' }}>PHITECH CONTRACTING</span>
                       </div>
                     </div>
                   )}
@@ -2508,19 +2823,20 @@ export default function WebsitePage() {
                   {studioMockupTab === 'stamp' && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="rounded-2xl p-6 flex flex-col items-center justify-center text-center" style={{ background: '#ffffff', color: '#14100d' }}>
-                        <span className="text-[11px] font-bold mb-3" style={{ color: '#6b5e53' }}>نسخة الأختام الرسمية والحفر بالليزر (1-Color Stamp)</span>
-                        <div className="w-40 h-40 rounded-full flex flex-col items-center justify-center p-3" style={{ background: 'rgba(30, 58, 138, 0.06)', color: '#1e3a8a' }}>
-                          <svg viewBox={logoGeometry.tightViewBox} className="w-20 h-20">
+                        <span className="text-[11px] font-bold mb-3" style={{ color: '#6b5e53' }}>ختم الشركة الرسمي المعتمد (Official Stamp)</span>
+                        <div className="w-44 h-44 rounded-full flex flex-col items-center justify-center p-3 border-2 border-dashed border-blue-900/40" style={{ background: 'rgba(30, 58, 138, 0.05)', color: '#1e3a8a' }}>
+                          <svg viewBox={logoGeometry.tightViewBox} className="w-16 h-16">
                             <use href="#phi-master-rings" fill="#1e3a8a" />
                             <use href="#phi-master-pillars" fill="#1e3a8a" />
                           </svg>
-                          <div className="font-mono font-black text-[11px] tracking-widest mt-1">PHI CONSTRUCT</div>
-                          <div className="text-[9px] font-bold">مقاولات عامة وتقنية معلومات</div>
+                          <div className="font-sans font-black text-xs tracking-wider mt-1">شركة فاي تك للمقاولات</div>
+                          <div className="font-mono text-[9px] font-bold">PHITECH GENERAL CONTRACTING</div>
+                          <div className="text-[8px] mt-0.5">الرياض • القاهرة • المنصورة</div>
                         </div>
                       </div>
 
                       <div className="rounded-2xl p-6 flex flex-col items-center justify-center text-center sunken-well-box">
-                        <span className="text-[11px] font-bold mb-3" style={{ color: 'var(--text-muted)' }}>أيقونة الموقع والتطبيق (مالي مكانه في المربع)</span>
+                        <span className="text-[11px] font-bold mb-3" style={{ color: 'var(--text-muted)' }}>أيقونة التطبيق والويب (مالي مكانه بنسبة 95%)</span>
                         <div className="flex items-center gap-5">
                           <div className="w-22 h-22 rounded-[22px] flex items-center justify-center p-2" style={{ background: '#ffffff', boxShadow: '0 14px 28px rgba(0,0,0,0.65)' }}>
                             <svg viewBox={logoGeometry.tightViewBox} className="w-18 h-18">
@@ -2535,7 +2851,7 @@ export default function WebsitePage() {
                             </svg>
                           </div>
                         </div>
-                        <div className="text-[11px] mt-3" style={{ color: 'var(--text-secondary)' }}>كتلة ممتلئة ومتوازنة بدون هوامش ضائعة</div>
+                        <div className="text-[11px] mt-3" style={{ color: 'var(--text-secondary)' }}>كتلة هندسية متوازنة بدون أي فراغات ميتة</div>
                       </div>
                     </div>
                   )}
@@ -2548,7 +2864,7 @@ export default function WebsitePage() {
         </div>
       </section>
 
-      {/* SECTION 7: DIRECT QUOTE & CONSULTATION FORM */}
+      {/* SECTION 8: DIRECT QUOTE & SITE VISIT FORM */}
       <section id="order-section" className="py-16 px-4 sm:px-8">
         <div className="max-w-5xl mx-auto">
           <div className="glossy-card p-6 sm:p-12">
@@ -2557,13 +2873,13 @@ export default function WebsitePage() {
             <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
               <span className="badge-pill badge-accent text-xs sm:text-sm">
                 <i className="fa-solid fa-compass-drafting"></i>
-                احجز معاينة هندسية مجانية أو اطلب عرض سعر رسمي
+                احجز معاينة هندسية للموقع أو اطلب مقايسة رسمية
               </span>
               <h2 className="text-2xl sm:text-4xl font-black">
-                ابدأ تنفيذ مشروعك مع <span className="phi-metallic-text">PHI CONSTRUCT</span>
+                ابدأ مشروعك بثقة مع <span className="text-amber-500 font-sans">فاي تك</span>
               </h2>
               <p className="text-sm sm:text-base" style={{ color: 'var(--text-secondary)' }}>
-                سواء كنت تخطط لبناء هيكل خرساني (عضم)، أو تشطيب معماري فاخر، أو تجهيز بنية تحتية لتقنية المعلومات والأنظمة الذكية، فريقنا الهندسي جاهز لدراسة مشروعك فوراً.
+                سواء كنت تخطط لبناء فيلا سكنية فاخرة أو عمارة أو برج، فريقنا الهندسي في الرياض ومصر جاهز لمعاينة الموقع ودراسة المخططات وتقديم مقايسة تفصيلية لك.
               </p>
             </div>
 
@@ -2577,7 +2893,7 @@ export default function WebsitePage() {
                     value={leadName}
                     onChange={(e) => setLeadName(e.target.value)}
                     className="sunken-input"
-                    placeholder="مثال: م. طارق المنصور / شركة الرؤية"
+                    placeholder="مثال: الشيخ فهد العتيبي / م. طارق المنصور"
                   />
                 </div>
                 <div>
@@ -2588,7 +2904,7 @@ export default function WebsitePage() {
                     value={leadPhone}
                     onChange={(e) => setLeadPhone(e.target.value)}
                     className="sunken-input font-mono"
-                    placeholder="+20 100 000 0000"
+                    placeholder="+966 50 000 0000 أو +20 100 000 0000"
                     dir="ltr"
                     style={{ textAlign: 'right' }}
                   />
@@ -2603,22 +2919,22 @@ export default function WebsitePage() {
                     onChange={(e) => setLeadPackage(e.target.value)}
                     className="sunken-input cursor-pointer font-bold"
                   >
-                    <option value="تسليم مفتاح متكامل 3×1 (عضم + تشطيبات + تقنية معلومات)">تسليم مفتاح متكامل 3×1 (عضم + تشطيبات + تقنية معلومات)</option>
-                    <option value="أعمال البناء الإنشائي والعضم فقط (حفر وخرسانات ومباني)">أعمال البناء الإنشائي والعضم فقط (حفر وخرسانات ومباني)</option>
-                    <option value="أعمال العمارة والتشطيبات الفاخرة والواجهات (Turnkey Finishing)">أعمال العمارة والتشطيبات الفاخرة والواجهات (Turnkey Finishing)</option>
-                    <option value="أعمال تقنية المعلومات والشبكات والمباني الذكية (IT & Smart BMS)">أعمال تقنية المعلومات والشبكات والمباني الذكية (IT &amp; Smart BMS)</option>
-                    <option value="تشطيبات معمارية + بنية تحتية لتقنية المعلومات (بدون عضم)">تشطيبات معمارية + بنية تحتية لتقنية المعلومات (بدون عضم)</option>
+                    <option value="تسليم مفتاح متكامل 3×1 (عظم + تشطيبات ديلوكس + تكييف مخفي وMEP)">تسليم مفتاح متكامل 3×1 (عظم + تشطيبات ديلوكس + تكييف مخفي وMEP)</option>
+                    <option value="أعمال البناء الإنشائي والعظم فقط (حفر، لبشة مسلحة، خرسانات، ومباني)">أعمال البناء الإنشائي والعظم فقط (حفر، لبشة مسلحة، خرسانات، ومباني)</option>
+                    <option value="أعمال التشطيبات المعمارية الفاخرة والواجهات (لياسة ليزر، جبس، رخام، جوتين)">أعمال التشطيبات المعمارية الفاخرة والواجهات (لياسة ليزر، جبس، رخام، جوتين)</option>
+                    <option value="أعمال الكهروميكانيك والتكييف المخفي الكونسيلد والـ VRF">أعمال الكهروميكانيك والتكييف المخفي الكونسيلد والـ VRF</option>
+                    <option value="تشطيبات معمارية + تكييف مخفي (بدون عظم)">تشطيبات معمارية + تكييف مخفي (بدون عظم)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>موقع المشروع / المدينة *</label>
+                  <label className="block text-xs font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>موقع المشروع / المدينة والحي *</label>
                   <input
                     type="text"
                     required
                     value={leadLocation}
                     onChange={(e) => setLeadLocation(e.target.value)}
                     className="sunken-input"
-                    placeholder="مثال: القاهرة الجديدة / العاصمة الإدارية / الشيخ زايد / الرياض"
+                    placeholder="مثال: الرياض (ضاحية الفرسان / حطين / النرجس) أو القاهرة الجديدة / المنصورة"
                   />
                 </div>
               </div>
@@ -2626,18 +2942,18 @@ export default function WebsitePage() {
               <div>
                 <label className="block text-xs font-bold mb-2" style={{ color: 'var(--text-secondary)' }}>تفاصيل المشروع أو المقايسة المحسوبة</label>
                 <textarea
-                  rows={3}
+                  rows={4}
                   value={leadNotes}
                   onChange={(e) => setLeadNotes(e.target.value)}
                   className="sunken-input"
-                  placeholder="اذكر المساحة التقريبية، عدد الأدوار، أو أي متطلبات خاصة في الإنشاءات أو التشطيب أو شبكات الـ IT..."
+                  placeholder="اذكر المساحة التقريبية، عدد الأدوار، طبيعة التربة أو أي متطلبات خاصة في التشطيبات والتكييف المخفي..."
                 />
               </div>
 
               <div className="pt-3 flex flex-wrap items-center justify-between gap-4">
                 <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
                   <i className="fa-solid fa-shield-halved text-emerald-400"></i>
-                  <span>عقود هندسية موثقة بجدول زمني وضمان شامل على الإنشاءات والتشطيبات والشبكات.</span>
+                  <span>عقود هندسية موثقة بجدول زمني، دفعات مع المستخلصات، وضمان شامل على الهيكل والتشطيب.</span>
                 </div>
 
                 <button type="submit" disabled={isSubmitting} className="btn-primary text-base py-4 px-10 w-full sm:w-auto">
@@ -2666,9 +2982,11 @@ export default function WebsitePage() {
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-lg text-amber-500 font-sans">فاي تك</span>
-                <span className="font-mono font-black text-base phi-metallic-text">PhiTech / PHI CONSTRUCT</span>
+                <span className="font-mono font-black text-base phi-metallic-text">PhiTech General Contracting</span>
               </div>
-              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>بناء إنشائي (عضم) • عمارة وتشطيبات • تقنية معلومات وأنظمة ذكية</div>
+              <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                بناء إنشائي (عظم) • تشطيبات معمارية فاخرة • تكييف مخفي وكهروميكانيك MEP (الرياض • مصر)
+              </div>
             </div>
           </div>
 
@@ -2695,7 +3013,7 @@ export default function WebsitePage() {
           </div>
 
           <div className="text-xs text-center md:text-left" style={{ color: 'var(--text-muted)' }}>
-            جميع الحقوق محفوظة © <span className="font-mono">2026</span> لشركة <strong style={{ color: 'var(--text-primary)' }}>PHI CONSTRUCT</strong> — مدمجة بنظام <span className="font-mono">Obsidian Amber Gloss UI</span>.
+            جميع الحقوق محفوظة © <span className="font-mono">2026</span> لشركة <strong style={{ color: 'var(--text-primary)' }}>فاي تك (PhiTech)</strong> — نظام <span className="font-mono">Obsidian Amber Gloss</span>.
           </div>
         </div>
       </footer>
@@ -2733,7 +3051,7 @@ export default function WebsitePage() {
                   اختر بوابة الدخول المخصصة لك
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300 max-w-lg mx-auto mt-1">
-                  منظومة رقمية مشفرة توفر مسارات دخول منفصلة ومخصصة لكل من كادر العمل الميداني والإداري، والملاك والشركاء المستثمرين.
+                  منظومة رقمية مشفرة توفر مسارات دخول مخصصة للكادر الهندسي والميداني والإداري، والملاك والشركاء المستثمرين مع توجيه ذكي حسب الصلاحيات.
                 </p>
               </div>
             </div>
@@ -2846,7 +3164,7 @@ export default function WebsitePage() {
             <div className="mt-6 pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
               <div className="flex items-center gap-2">
                 <i className="fa-solid fa-lock text-amber-500"></i>
-                <span>اتصال محمي ومشفر بالكامل 256-bit SSL عبر Supabase Enterprise</span>
+                <span>اتصال محمي ومشفر بالكامل 256-bit SSL مع توجيه ذكي حسب الصلاحيات</span>
               </div>
               <button
                 onClick={() => setIsLoginModalOpen(false)}
@@ -2871,7 +3189,7 @@ export default function WebsitePage() {
               <span className="badge-pill badge-accent font-mono text-xs">REF: #{submittedRef}</span>
               <h3 className="text-2xl font-black">تم تسجيل طلب المعاينة والمقايسة بنجاح!</h3>
               <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                تم إرسال تفاصيل مقايستك إلى المكتب الفني والإداري في <strong>PHI CONSTRUCT</strong> وتم ربطها بنظام التنبيهات المباشر. سيتواصل معك أحد مهندسينا خلال ساعات العمل.
+                تم إرسال تفاصيل مقايستك إلى المكتب الفني والهندسي في <strong>فاي تك (PhiTech)</strong> وتنبيه فريق العمل عبر النظام والتليجرام. سيتواصل معك أحد مهندسينا خلال ساعات العمل لتأكيد موعد المعاينة.
               </p>
               <div className="pt-3">
                 <button onClick={() => setIsModalOpen(false)} className="btn-primary w-full py-3 text-sm">
