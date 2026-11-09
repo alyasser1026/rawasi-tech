@@ -364,16 +364,16 @@ function LoginContent() {
 
           <div className="input-group">
             <input 
-              type="email" 
+              type="text" 
               className="cinematic-input" 
               placeholder=" " 
               value={email}
               onAnimationStart={handleAutoFill}
               onChange={(e) => setEmail(e.target.value)}
               required 
-              autoComplete="email"
+              autoComplete="username"
             />
-            <label className={`floating-label ${email ? 'forced-float' : ''}`}>البريد الإلكتروني</label>
+            <label className={`floating-label ${email ? 'forced-float' : ''}`}>اسم المستخدم أو البريد الإلكتروني</label>
           </div>
 
           <div className="input-group">

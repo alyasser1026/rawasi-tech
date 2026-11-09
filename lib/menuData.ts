@@ -2,7 +2,7 @@ export const menuGroups = [
     { 
         group: "الداشبورد والملخصات", 
         items: [
-            { id: 'home', title: 'الصفحة الرئيسية', icon: '🏠', path: '/' },
+            { id: 'home', title: 'شاشة الترحيب والمفضلات', icon: '🏠', path: '/welcome' },
             { id: 'global_summary', title: 'الملخص العام', icon: '📊', path: '/GlobalSummary' }, 
             { id: 'dashboard', title: 'لوحة القيادة', icon: '🖥️', path: '/Dashboard' },
             { id: 'financial_center', title: 'المركز المالي', icon: '🏦', path: '/financial-center' },

@@ -13,7 +13,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const { loading } = usePermissions();
   const [isInitialized, setIsInitialized] = useState(false);
-  const isPublicPage = pathname === '/login' || pathname === '/signup' || pathname.startsWith('/website') || pathname.startsWith('/construct');
+  const isPublicPage = pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname.startsWith('/website') || pathname.startsWith('/construct');
 
   useEffect(() => {
     if (isPublicPage) return;

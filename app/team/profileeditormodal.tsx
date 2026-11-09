@@ -7,6 +7,7 @@ import SmartCombo from '@/components/SmartCombo';
 import { adminUsersRequest } from '@/lib/admin-api';
 import { Lock } from 'lucide-react';
 import { notify } from '@/lib/notify';
+import { AVAILABLE_LANDING_PAGES } from '@/lib/roleRouter';
 
 interface ProfileEditorModalProps {
     isOpen: boolean;
@@ -20,7 +21,8 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
     const [isSaving, setIsSaving] = useState(false);
     const [mounted, setMounted] = useState(false); 
 
-    const defaultPermissions = {
+    const defaultPermissions: Record<string, any> = {
+        default_page: 'auto',
         global_summary: { view: false },
         dashboard: { view: false },
         financial_center: { view: false },
@@ -311,7 +313,7 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                         </div>
                     </div>
 
-                    {/* بيانات الوظيفة والربط المحاسبي */}
+                    {/* بيانات الوظيفة والربط المحاسبي والتوجيه بعد الدخول */}
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13.75rem, 1fr))', gap: '1.25rem', marginBottom: '2.5rem' }}>
                         <div>
                             <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>الرتبة (System Role)</label>
@@ -340,6 +342,27 @@ export default function ProfileEditorModal({ isOpen, onClose, record, onSave }: 
                                 onSelect={(p: any) => setForm({...form, linked_partner_id: p?.id || null})}
                                 enableClear={true}
                             />
+                        </div>
+                        <div>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>
+                                🎯 صفحة التوجيه بعد تسجيل الدخول (Landing Route)
+                            </label>
+                            <select 
+                                className="modal-input" 
+                                style={{ cursor: 'pointer' }} 
+                                value={(form.permissions as any)?.default_page || 'auto'} 
+                                onChange={e => setForm({
+                                    ...form, 
+                                    permissions: {
+                                        ...form.permissions,
+                                        default_page: e.target.value
+                                    }
+                                })}
+                            >
+                                {AVAILABLE_LANDING_PAGES.map(page => (
+                                    <option key={page.value} value={page.value}>{page.label}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 

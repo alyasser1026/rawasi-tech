@@ -2681,11 +2681,11 @@ export default function WebsitePage() {
               <span>بوابات الدخول (موظفين • ملاك)</span>
             </button>
             <span>•</span>
-            <Link href="/login?portal=staff&redirect=/Dashboard" className="hover:text-amber-400 transition-colors">
+            <Link href="/login?portal=staff" className="hover:text-amber-400 transition-colors">
               بوابة الموظفين والمهندسين
             </Link>
             <span>•</span>
-            <Link href="/login?portal=partner&redirect=/PartnerBalances" className="hover:text-amber-300 transition-colors">
+            <Link href="/login?portal=partner" className="hover:text-amber-300 transition-colors">
               بوابة الملاك والشركاء
             </Link>
             <span>•</span>
@@ -2782,7 +2782,7 @@ export default function WebsitePage() {
                 </div>
 
                 <Link
-                  href="/login?portal=staff&redirect=/Dashboard"
+                  href="/login?portal=staff"
                   className="btn-primary w-full py-3 text-sm flex items-center justify-center gap-2 font-bold shadow-lg shadow-orange-500/20"
                 >
                   <i className="fa-solid fa-arrow-right-to-bracket"></i>
@@ -2831,7 +2831,7 @@ export default function WebsitePage() {
                 </div>
 
                 <Link
-                  href="/login?portal=partner&redirect=/PartnerBalances"
+                  href="/login?portal=partner"
                   className="w-full py-3 text-sm flex items-center justify-center gap-2 font-bold rounded-xl text-slate-950 transition-all hover:scale-[1.02] shadow-lg shadow-amber-500/25"
                   style={{ background: 'linear-gradient(135deg, #fef08a 0%, #f59e0b 50%, #d97706 100%)' }}
                 >
