@@ -264,7 +264,7 @@ export default function ChecklistExplorer() {
                                 className="pw-ck-card-btn"
                                 onClick={() => setViewMode('dossier')}
                               >
-                                🏗️ استعراض بطاقة التنفيذ التفصيلية والأسعار (10 محاور)
+                                🏗️ استعراض بطاقة التنفيذ التفصيلية
                               </button>
                             </div>
                           </div>

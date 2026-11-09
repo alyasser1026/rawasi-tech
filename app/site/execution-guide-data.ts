@@ -8,8 +8,6 @@
  * 5. تسلسل التنفيذ (Execution Sequence)
  * 6. الاستلام والتسليم (Inspection & Handover)
  * 7. مسار الاعتماد (Approval Workflow)
- * 8. أسعار تقريبية (Approximate Pricing)
- * 9. تاريخ آخر تحديث للسعر (Last Price Update Date)
  */
 
 export interface ExecutionItemGuide {
@@ -65,18 +63,6 @@ export interface ExecutionItemGuide {
     wirCode: string;
   };
 
-  // 8. أسعار تقريبية
-  approximatePricing: {
-    materialCostRange: string;
-    laborCostRange: string;
-    totalRate: string;
-    pricingUnit: string;
-    currency: string;
-    pricingNotes: string;
-  };
-
-  // 9. تاريخ آخر تحديث للسعر
-  lastPriceUpdate: string;
 
 }
 
@@ -168,17 +154,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-PIL-001'
     },
-
-    approximatePricing: {
-      materialCostRange: '280 – 380 ج.م / للمتر الطولي (خرسانة جاهزة SRC + حديد تسليح عالي المقاومة).',
-      laborCostRange: '120 – 180 ج.م / للمتر الطولي (تشغيل ماكينة الحفر + العمالة والتشوين وسحب ناتج الحفر).',
-      totalRate: '400 – 560 ج.م / للمتر الطولي الإجمالي.',
-      pricingUnit: 'متر طولي من عمق الخازوق المنفذ',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'الأسعار شاملة صب الخرسانة الجاهزة وتوريد وتشكيل أقفاص الحديد، وتختلف بحسب عمق المياه الجوفية وطبيعة التربة.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -265,17 +240,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-ERT-002'
     },
-
-    approximatePricing: {
-      materialCostRange: '70 – 120 ج.م / م3 لتربة الإحلال المتدرجة والمياه (في حال تطلب إحلال).',
-      laborCostRange: '50 – 85 ج.م / م3 (تشغيل حفارات + لودر + شاحنات نقل للمقلب العمومي والتسوية).',
-      totalRate: '60 – 110 ج.م / م3 للحفر العادي بدون إحلال | 140 – 210 ج.م / م3 بالحفر والإحلال المدموك.',
-      pricingUnit: 'متر مكعب حفر صافي من واقع المخطط',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'تزيد التكلفة في حالة التربة الصخرية واستخدام الشواكيش الهيدروليكية (Jackhammers) أو سند الجوانب المتخصص.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -365,17 +329,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-FND-003'
     },
-
-    approximatePricing: {
-      materialCostRange: '4,400 – 5,600 ج.م / م3 (خرسانة جاهزة مقاومة C35 + حديد تسليح 125 كجم/م3 + إضافات وبسكوت).',
-      laborCostRange: '450 – 700 ج.م / م3 (أجور نجارة مسلحة + حدادة مسلحة وصب ومساعدين وتشغيل هزازات).',
-      totalRate: '4,900 – 6,300 ج.م / م3 إجمالي خامات ومصنعيات جاهزة للتسليم.',
-      pricingUnit: 'متر مكعب خرسانة مسلحة مصبوبة ومدموكة',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في السوق السعودي تتراوح التكلفة بين 550 إلى 750 ريال سعودي للمتر المكعب شاملاً المواد والمصنعيات وفقاً لأسعار حديد سابك وسعر الخرسانة الجاهزة.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -464,17 +417,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-COL-004'
     },
-
-    approximatePricing: {
-      materialCostRange: '4,600 – 5,800 ج.م / م3 (خرسانة جاهزة C40 + حديد تسليح 160 كجم/م3 + كانات وبسكوت).',
-      laborCostRange: '700 – 1,050 ج.م / م3 (مصنعية نجارة وحدادة وصب الأعمدة وحوائط القص المعقدة).',
-      totalRate: '5,300 – 6,850 ج.م / م3 إجمالي خامات ومصنعيات.',
-      pricingUnit: 'متر مكعب خرسانة أعمدة منفذة',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في المشاريع السعودية تتراوح التكلفة بين 650 إلى 850 ريال سعودي للمتر المكعب بحسب عدد الأدوار وارتفاع الأعمدة الشاهقة.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -564,17 +506,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-SLB-005'
     },
-
-    approximatePricing: {
-      materialCostRange: '4,300 – 5,400 ج.م / م3 (خرسانة C30/C35 + حديد تسليح 130 كجم/م3 + خراطيم وسليفزات).',
-      laborCostRange: '500 – 750 ج.م / م3 (مصنعية نجارة وحدادة وصب السقف والفلات سلاب).',
-      totalRate: '4,800 – 6,150 ج.م / م3 خرسانة مسلحة شاملة المواد والتشغيل | أو 1,050 – 1,400 ج.م / م2 مسطح بسماكة 22 سم.',
-      pricingUnit: 'متر مكعب خرسانة مصبوبة أو متر مربع مسطح لسماكة محددة',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في المشاريع السعودية: السعر يتراوح بين 580 إلى 720 ريال سعودي للمتر المكعب شاملاً الشدات المعدنية وحديد سابك والخرسانة الجاهزة.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -663,17 +594,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-MSN-006'
     },
-
-    approximatePricing: {
-      materialCostRange: '130 – 190 ج.م / م2 (بلوك أسمنتي أو طوب مفرغ + أسمنت ورمل وكانات وشبك وعتب مسلحة).',
-      laborCostRange: '50 – 85 ج.م / م2 (أجر البنّاء والمساعد وتشوين الطوب وخلط المونة ورش المياه).',
-      totalRate: '180 – 275 ج.م / م2 مسطح مباني شامل الخامات والمصنعيات.',
-      pricingUnit: 'متر مربع مسطح جدار مباني صافي مخصوماً منه الفتحات',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في المشاريع السعودية: السعر يتراوح بين 45 إلى 65 ريال سعودي للمتر المربع للبلوك الإسمنتي أو البركاني سمك 20 سم شاملاً المواد والمصنعية.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -762,17 +682,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-PLM-007'
     },
-
-    approximatePricing: {
-      materialCostRange: '2,800 – 4,500 ج.م / للحمام الواحد (مواسير تغذية PPR + مواسير صرف UPVC + محابس وخلاطات دفن وصفايات).',
-      laborCostRange: '1,500 – 2,400 ج.م / للحمام الواحد (تكسير بالصاروخ + تمديد وتثبيت ولحام شبكة المياه والصرف).',
-      totalRate: '4,300 – 6,900 ج.م / للحمام والمطبخ المتكامل تأسيس معتمد.',
-      pricingUnit: 'حمام أو مطبخ سكني متكامل التأسيس',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في المشاريع السعودية: تتراوح تكلفة تأسيس دورة المياه الكاملة بين 1,200 إلى 1,800 ريال سعودي بالمواد الحرارية الألمانية وشهادة ضمان الفحص.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -861,17 +770,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-PLS-008'
     },
-
-    approximatePricing: {
-      materialCostRange: '45 – 70 ج.م / م2 (أسمنت بورتلاندي + رمال حرشة وناعمة + شبك فايبر ومسامير + زوايا مجلفنة وبوند).',
-      laborCostRange: '40 – 65 ج.م / م2 (أجر المليّس والمساعد للطرطشة والبؤج والأوتار والملء والدرع والمعالجة).',
-      totalRate: '85 – 135 ج.م / م2 مسطح لياسة بؤج وأوتار هندسية معتمدة.',
-      pricingUnit: 'متر مربع مسطح محارة من واقع الاستلام الهندسي',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في المشاريع السعودية: السعر يتراوح بين 22 إلى 35 ريال سعودي للمتر المربع للياسة الموزونة بالبؤج والأوتار شاملة شبك التمدد والزوايا والرش بالماء.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -960,17 +858,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-WTR-009'
     },
-
-    approximatePricing: {
-      materialCostRange: '120 – 190 ج.م / م2 (عازل أسمنتي بوليمري مرن عالي الجودة أو ممبرين بيتوميني 4 مم مسلح + برايمر وشبك).',
-      laborCostRange: '50 – 80 ج.م / م2 (أجر فني العزل المتخصص ومساعدين وتجهيز الأسطح ورقبة الزجاجة واختبار الغمر).',
-      totalRate: '170 – 270 ج.م / م2 شامل التوريد والتنفيذ واختبار الغمر 48 ساعة.',
-      pricingUnit: 'متر مربع مسطح عزل معتمد مضافاً إليه الوزرات الرأسية',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في المشاريع السعودية: تتراوح التكلفة بين 45 إلى 70 ريال سعودي للمتر المربع لعزل الرولات البيتومينية المعتمدة أو العزل الأسمنتي، وترتفع إلى 90-130 ريال/م2 للأسطح المقلوبة شاملة الفوم بولي يوريثان والعزل الحراري XPS.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -1060,17 +947,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-TIL-010'
     },
-
-    approximatePricing: {
-      materialCostRange: '180 – 380 ج.م / م2 للبورسلين الفاخر + 45 – 70 ج.م غراء ورمل وترويبة.',
-      laborCostRange: '65 – 110 ج.م / م2 (مصنعية تركيب البورسلين بكلبسات التسوية والوزرات والترويبة).',
-      totalRate: '290 – 560 ج.م / م2 شامل الخامات والمصنعيات والكلبسات.',
-      pricingUnit: 'متر مربع أرضيات منفذة ومستلمة',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في السوق السعودي: تتراوح تكلفة البورسلين الإسباني أو الهندي فرز أول بين 45 إلى 90 ريال للمتر، وأجور التركيب بكلبسات التسوية بين 35 إلى 55 ريال/م2 (الإجمالي 80 - 145 ريال/م2).'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -1160,17 +1036,6 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-GYP-011'
     },
-
-    approximatePricing: {
-      materialCostRange: '130 – 190 ج.م / م2 (ألواح جبس بورد كناوف + شاسيه صاج 0.6 مم + إكسسوارات وفيشر وتيب ومعجون).',
-      laborCostRange: '60 – 95 ج.م / م2 (مصنعية تركيب الشاسيه والألواح والتشكيل الهندسي ومعالجة الفواصل).',
-      totalRate: '190 – 285 ج.م / م2 للأسقف المستوية | 240 – 350 ج.م / م.ط لبيوت النور والجبس الديكوري.',
-      pricingUnit: 'متر مربع مسطح أسقف مستوية أو متر طولي للبانوهات وبيوت النور',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في المشاريع السعودية: السعر يتراوح بين 55 إلى 85 ريال سعودي للمتر المربع للجبس بورد فلات كامل التوريد والتركيب، ويرتفع إلى 70-110 ريال للمتر الطولي لبيوت الإضاءة والستائر.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   },
 
   {
@@ -1260,16 +1125,5 @@ export const EXECUTION_GUIDE_ITEMS: ExecutionItemGuide[] = [
       ],
       wirCode: 'WIR-PNT-012'
     },
-
-    approximatePricing: {
-      materialCostRange: '35 – 60 ج.م / م2 (سيلر مائي + معجون أكريليك 3 سكاكين + دهان بلاستيكي فاخر وجهين من جوتن/جي إل سي).',
-      laborCostRange: '30 – 50 ج.م / م2 (أجر النقاش المحترف ومساعدين للصنفرة الميكانيكية وتلقيط المعجون والدهان بالرول).',
-      totalRate: '65 – 110 ج.م / م2 شامل المواد والمصنعية والتجهيز المتكامل.',
-      pricingUnit: 'متر مربع مسطح دهان جدران وأسقف مستلمة هندسياً',
-      currency: 'جنيه مصري (EGP)',
-      pricingNotes: 'في المشاريع السعودية: السعر يتراوح بين 18 إلى 32 ريال سعودي للمتر المربع لدهانات جوتن فينوماستيك شاملة 3 سكاكين معجون والبرايمر ووجهين التشطيب.'
-    },
-
-    lastPriceUpdate: 'نوفمبر 2026'
   }
 ];
