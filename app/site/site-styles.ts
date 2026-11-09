@@ -39,7 +39,8 @@ export const CSS = `
 .pw a:focus-visible,.pw button:focus-visible,.pw input:focus-visible,.pw select:focus-visible,.pw textarea:focus-visible,.pw summary:focus-visible{outline:3px solid rgba(249,115,22,.55);outline-offset:3px}
 
 /* hero (dark) */
-.pw-hero{position:relative;background:radial-gradient(900px 480px at 85% 0%,rgba(249,115,22,.22),transparent 60%),linear-gradient(180deg,var(--g1),var(--g2));color:#fff;overflow:hidden}
+.pw-hero{position:relative;background:linear-gradient(270deg,rgba(14,18,21,.94) 0%,rgba(14,18,21,.8) 38%,rgba(14,18,21,.25) 75%,rgba(14,18,21,.1) 100%),linear-gradient(180deg,rgba(14,18,21,.35),rgba(14,18,21,.7)),url('/brand/hero-bg.webp') 15% center/cover no-repeat,var(--g2);color:#fff;overflow:hidden}
+.pw-hero-art{visibility:hidden}
 .pw-hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,#000 0%,transparent 90%);-webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 90%)}
 .pw-hero-grid{position:relative;display:grid;grid-template-columns:1.2fr .8fr;gap:56px;align-items:center;padding-top:84px;padding-bottom:64px}
 .pw-eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.84rem;font-weight:700;color:var(--o);letter-spacing:.02em;margin-bottom:14px}
@@ -209,7 +210,8 @@ export const CSS = `
 }
 @media (max-width:960px){
   .pw-hero-grid{grid-template-columns:1fr;gap:36px;padding-top:56px;padding-bottom:44px}
-  .pw-hero-art{order:-1}
+  .pw-hero-art{display:none}
+  .pw-hero{background:linear-gradient(180deg,rgba(14,18,21,.82),rgba(14,18,21,.9)),url('/brand/hero-bg.webp') 18% center/cover no-repeat,var(--g2)}
   .pw-emblem{width:min(70%,240px)}
   .pw-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .pw-stats li:nth-child(3){border-inline-start:0}

@@ -24,6 +24,7 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
         if (!record.job_order_id) return notify("يرجى اختيار أمر التشغيل."); 
         if (Number(record.assigned_qty) <= 0 || Number(record.unit_price) <= 0) return notify("يرجى إدخال كمية وسعر صحيحين أكبر من الصفر.");
         
+        if (isSaving) return; // منع الضغط المزدوج
         onSave(record);
     };
 
@@ -58,7 +59,7 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                     <div style={{ zIndex: 50, position: 'relative' }}>
                         <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#475569', display: 'block', marginBottom: '0.625rem' }}>أوامر التشغيل المتاحة (للفيلا المحددة) *</label>
                         <select 
-                            style={{ width: '100%', padding: '0.875rem', borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-sunken)', fontWeight: 800, outline: 'none', background: 'var(--surface-sunken)', color: 'var(--text-primary)' }}
+                            style={{ width: '100%', padding: '0.875rem', borderRadius: '12px', border: '2px solid #e2e8f0', fontWeight: 800, outline: 'none', background: '#f8fafc' }}
                             value={record.job_order_id || ''}
                             onChange={(e) => {
                                 // 🚀 2. البحث في قائمة أوامر التشغيل وسحب السعر والكمية
@@ -84,7 +85,7 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                         </select>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginTop: '0.625rem', background: 'var(--surface-sunken)', padding: '1.25rem', borderRadius: '14px', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginTop: '0.625rem', background: '#f8fafc', padding: '1.25rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
                         <div>
                             <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.625rem' }}>الكمية (قابلة للتعديل)</label>
                             <input 
