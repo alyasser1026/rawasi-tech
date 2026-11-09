@@ -1,6 +1,5 @@
 "use client";
-import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import React, { Suspense } from 'react';
 import { useLoginLogic } from './login_logic';
 
 // 🎨 تطبيق ألوان هوية "فاي تك" الدافئة
@@ -16,9 +15,6 @@ const THEME = {
 };
 
 function LoginContent() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-
   const {
     isSignUp, toggleSignUp,
     fullName, setFullName,
@@ -29,31 +25,8 @@ function LoginContent() {
     handleSubmit
   } = useLoginLogic();
 
-  // Tab state: 'staff' (الموظفين والمهندسين) vs 'partner' (الملاك والشركاء)
-  const initialPortal = searchParams?.get('portal') === 'partner' ? 'partner' : 'staff';
-  const [activePortal, setActivePortal] = useState<'staff' | 'partner'>(initialPortal);
-
-  useEffect(() => {
-    const p = searchParams?.get('portal');
-    if (p === 'partner' || p === 'staff') {
-      setActivePortal(p);
-    }
-  }, [searchParams]);
-
-  const handlePortalSwitch = (portal: 'staff' | 'partner') => {
-    setActivePortal(portal);
-    const currentRedirect = searchParams?.get('redirect');
-    const params = new URLSearchParams();
-    params.set('portal', portal);
-    if (currentRedirect) {
-      params.set('redirect', currentRedirect);
-    } else {
-      params.set('redirect', portal === 'partner' ? '/PartnerBalances' : '/Dashboard');
-    }
-    router.replace(`/login?${params.toString()}`);
-  };
-
-  const isPartner = activePortal === 'partner';
+  // صفحة دخول واحدة للموظفين والعملاء والشركاء — الوجهة تتحدد تلقائيًا حسب الصلاحيات (roleRouter)
+  const isPartner = false;
 
   return (
     <div className="login-wrapper">
@@ -308,34 +281,11 @@ function LoginContent() {
           />
         </div>
         
-        {/* Dual Portal Switcher: Staff & Engineers vs Owners & Partners */}
-        <div className="portal-switcher">
-          <button
-            type="button"
-            onClick={() => handlePortalSwitch('staff')}
-            className={`portal-tab ${!isPartner ? 'active-staff' : ''}`}
-          >
-            <span>بوابة الموظفين والمهندسين</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handlePortalSwitch('partner')}
-            className={`portal-tab ${isPartner ? 'active-partner' : ''}`}
-          >
-            <span>بوابة الملاك والشركاء</span>
-          </button>
-        </div>
-
         <h1 className="cinematic-title">
-          {isPartner ? 'بوابة الملاك والشركاء' : 'بوابة الكادر الوظيفي والهندسي'}
+دخول فاي تك
         </h1>
         <p className="cinematic-subtitle">
-          {isSignUp 
-            ? 'إنشاء حساب جديد بالمنظومة' 
-            : isPartner 
-              ? 'الوصول المباشر لكشوف الحسابات، الأرباح، والتقارير المالية' 
-              : 'النظام المتكامل لإدارة المشاريع، المواقع، والعمليات الميدانية'}
+          {isSignUp ? 'إنشاء حساب جديد بالمنظومة' : 'للموظفين والمهندسين والعملاء — يتم توجيهك تلقائيًا حسب صلاحياتك'}
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -387,10 +337,8 @@ function LoginContent() {
               <span>جاري التحقق والاتصال...</span>
             ) : isSignUp ? (
               <span>إنشاء الحساب</span>
-            ) : isPartner ? (
-              <span>دخول بوابة الشركاء والملاك</span>
             ) : (
-              <span>دخول المنظومة</span>
+              <span>تسجيل الدخول</span>
             )}
           </button>
         </form>

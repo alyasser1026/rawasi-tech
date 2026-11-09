@@ -95,8 +95,8 @@ export function getDestinationForUser(
     return '/subclaims';
   }
 
-  // 10. Dashboard or Global Summary if accessible
-  if (perms.dashboard?.view !== false) {
+  // 10. Dashboard or Global Summary only when explicitly allowed
+  if (perms.dashboard?.view === true) {
     return '/Dashboard';
   }
   if (perms.global_summary?.view) {
@@ -126,6 +126,7 @@ export function getDestinationForUser(
     }
   }
 
-  // Final fallback
-  return '/Dashboard';
+  // Final fallback: no module granted (e.g. a new client account) -> own profile,
+  // the only page every signed-in user may open. Avoids the "access denied" screen.
+  return '/profile';
 }

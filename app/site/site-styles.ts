@@ -158,7 +158,7 @@ export const CSS = `
 .pw-steps p{font-size:.92rem;color:var(--ink-2)}
 
 /* projects */
-.pw-projects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.pw-projects{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:24px}
 .pw-project{background:#fff;border:1px solid var(--line);border-radius:20px;padding:28px 26px;display:flex;flex-direction:column;gap:6px;border-top:4px solid var(--o)}
 .pw-badge{align-self:flex-start;font-size:.78rem;font-weight:700;color:var(--o-dark);background:var(--o-soft);border-radius:999px;padding:3px 12px;margin-bottom:8px}
 .pw-project h3{font-size:1.3rem;font-weight:800}
