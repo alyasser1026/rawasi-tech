@@ -81,6 +81,7 @@ export default function BimViewer3D({
   const [clipActive, setClipActive] = useState<boolean>(false);
   const [loadedFileName, setLoadedFileName] = useState<string | null>(null);
   const [isLoadingModel, setIsLoadingModel] = useState<boolean>(false);
+  const [webGLUnsupported, setWebGLUnsupported] = useState<boolean>(false);
 
   // Highlight selection material
   const highlightMaterial = useRef(
@@ -453,6 +454,19 @@ export default function BimViewer3D({
   // =========================================================================
   useEffect(() => {
     if (!mountRef.current) return;
+
+    try {
+      const testCanvas = document.createElement('canvas');
+      const gl = testCanvas.getContext('webgl2') || testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+      if (!window.WebGLRenderingContext || !gl) {
+        setWebGLUnsupported(true);
+        return;
+      }
+    } catch {
+      setWebGLUnsupported(true);
+      return;
+    }
+
     const container = mountRef.current;
     const width = container.clientWidth || 800;
     const heightPx = container.clientHeight || 600;
@@ -467,7 +481,13 @@ export default function BimViewer3D({
     cameraRef.current = camera;
 
     // 3. Renderer with ACES ToneMapping & Shadows
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'default', failIfMajorPerformanceCaveat: false });
+    } catch {
+      setWebGLUnsupported(true);
+      return;
+    }
     renderer.setSize(width, heightPx);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
@@ -906,6 +926,13 @@ export default function BimViewer3D({
         style={{ width: '100%', height: '100%', cursor: 'grab' }} 
         onPointerDown={handlePointerDown}
       />
+
+      {webGLUnsupported && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--surface-card)', padding: '2rem', textAlign: 'center', zIndex: 10 }}>
+          <p style={{ fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>متصفحك لا يدعم العرض ثلاثي الأبعاد WebGL</p>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', maxWidth: '400px' }}>يمكنك تفعيل تسريع الرسوميات (Hardware Acceleration) في إعدادات المتصفح أو فتح الصفحة عبر متصفح حديث يدعم WebGL.</p>
+        </div>
+      )}
 
       {/* Header Watermark / Title */}
       <div 

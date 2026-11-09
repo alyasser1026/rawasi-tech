@@ -7,8 +7,8 @@ const copilotContent = fs.readFileSync('./scripts/telegram-copilot.mjs', 'utf8')
 
 // Isolate parseBatchLaborLogs
 const fnStart = copilotContent.indexOf('function parseBatchLaborLogs(');
-const fnEnd = copilotContent.indexOf('function detectDirectFieldOpsCall(');
-const fnCode = copilotContent.slice(fnStart, fnEnd).trim();
+const fnEnd = copilotContent.indexOf('export function detectDirectFieldOpsCall(');
+const fnCode = copilotContent.slice(fnStart, fnEnd !== -1 ? fnEnd : copilotContent.indexOf('function detectDirectFieldOpsCall(')).replace(/export\s*$/, '').trim();
 
 // Execute isolated function
 const parseBatchLaborLogs = new Function(fnCode + '; return parseBatchLaborLogs;')();

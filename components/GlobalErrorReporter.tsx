@@ -17,6 +17,8 @@ export default function GlobalErrorReporter() {
     // 1. Unhandled Window Errors
     const handleError = (event: ErrorEvent) => {
       const err = event.error || event.message;
+      const text = String(err?.message || err || '');
+      if (text.includes('WebGL') || text.includes('THREE.WebGLRenderer')) return;
       void reportTechnicalError(err, {
         category: 'uncaught_exception',
         source: event.filename ? `${event.filename}:${event.lineno}:${event.colno}` : undefined,
@@ -30,9 +32,13 @@ export default function GlobalErrorReporter() {
       if (
         reasonText.includes('Invalid Refresh Token') ||
         reasonText.includes('refresh_token_not_found') ||
+        reasonText.includes('WebGL') ||
+        reasonText.includes('THREE.WebGLRenderer') ||
         reason?.code === 'refresh_token_not_found'
       ) {
-        try { void supabase.auth.signOut({ scope: 'local' }); } catch {}
+        if (reasonText.includes('Refresh Token') || reasonText.includes('refresh_token_not_found')) {
+          try { void supabase.auth.signOut({ scope: 'local' }); } catch {}
+        }
         return;
       }
 
@@ -71,7 +77,7 @@ export default function GlobalErrorReporter() {
           return;
         }
 
-        // Filter out benign React development / hydration logs / normal session expiries
+        // Filter out benign React development / hydration logs / normal session expiries / client WebGL hardware limitations
         if (
           combinedText &&
           !combinedText.includes('React will try to recreate this component tree') &&
@@ -86,7 +92,10 @@ export default function GlobalErrorReporter() {
           !combinedText.includes('Permission denied') &&
           !combinedText.includes('NotAllowedError') &&
           !combinedText.includes('User denied Geolocation') &&
-          !combinedText.includes('Mic access error')
+          !combinedText.includes('Mic access error') &&
+          !combinedText.includes('WebGLRenderer') &&
+          !combinedText.includes('WebGL context') &&
+          !combinedText.includes('Could not create a WebGL context')
         ) {
           void reportTechnicalError(errorObj || combinedText, {
             category: 'business_exception',

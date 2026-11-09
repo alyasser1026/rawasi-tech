@@ -21,9 +21,11 @@ html.phi-brand:has(.enterprise-shell) body { background: var(--bg-canvas, #07080
 .enterprise-shell { --nav-width:244px; min-height:100vh; }
 .enterprise-shell.ent-collapsed { --nav-width:78px; }
 .ent-sidebar { position:fixed; inset-block:0; inset-inline-start:0; width:var(--nav-width); display:flex; flex-direction:column; z-index:1200; background:var(--surface-sidebar); border-inline-end:none; box-shadow:var(--shadow-elevation); }
-.ent-brand { height:5.6875rem; padding:1rem 1.6875rem; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; }
-.ent-brand :is(img, svg) { width:11.125rem; height:3.625rem; object-fit:contain; }
-.ent-collapsed .ent-brand { padding:0.875rem; }.ent-collapsed .ent-brand :is(img, svg) { width:3.125rem; height:3.125rem; }
+.ent-brand { height:5.6875rem; padding:0.875rem 1.25rem; border-bottom:1px solid rgba(255,255,255,0.04); display:flex; align-items:center; justify-content:center; }
+.ent-brand :is(img, svg) { width:100%; max-width:12.75rem; height:3.875rem; object-fit:contain; }
+.ent-collapsed .ent-brand { padding:0.875rem 0.5rem; justify-content:center; }
+.ent-collapsed .ent-brand :is(img, svg) { width:2.875rem; height:2.875rem; }
+.ent-collapsed .ent-brand::after { right:0.75rem; left:0.75rem; }
 .ent-collapse { position:absolute; inset-inline-end:-0.9375rem; top:4.6875rem; border-radius:50% !important; width:1.875rem !important; min-height:1.875rem !important; z-index:1; background:var(--surface-card) !important; border:none !important; color:var(--text-secondary) !important; box-shadow:var(--shadow-elevation) !important; }
 .ent-nav-scroll { flex:1; overflow-y:auto; padding:1.125rem 0.75rem; }
 .ent-nav-group { padding-bottom:1.0625rem; }.ent-nav-group p { font-size:var(--fs-xs); color:var(--text-muted, #b8aea2); padding:0 0.75rem; margin:0 0 0.5rem; font-weight:700; }

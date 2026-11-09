@@ -85,7 +85,8 @@ function LoginContent() {
         }
 
         .logo-container img {
-          height: 8.5rem;
+          height: 4.5rem;
+          max-width: 100%;
           width: auto;
           margin: 0 auto;
           display: block;

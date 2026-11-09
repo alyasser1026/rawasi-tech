@@ -32,6 +32,19 @@ const INFO: Record<string, Info> = {
   facade: { title: 'تكسية الواجهة', ifc: 'IfcCovering', text: 'ألواح تكسية على هيكل تثبيت خلف الواجهة.' },
 };
 
+function isWebGLSupported(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const canvas = document.createElement('canvas');
+    return Boolean(
+      window.WebGLRenderingContext &&
+      (canvas.getContext('webgl2') || canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+    );
+  } catch {
+    return false;
+  }
+}
+
 export default function BimModel() {
   const hostRef = useRef<HTMLDivElement | null>(null);
   const apiRef = useRef<{ setLayer: (id: LayerId, on: boolean) => void; setExplode: (v: number) => void; reset: () => void } | null>(null);
@@ -43,6 +56,12 @@ export default function BimModel() {
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
+
+    if (!isWebGLSupported()) {
+      setStatus('unsupported');
+      return;
+    }
+
     let disposed = false;
     let cleanup = () => {};
 
@@ -60,11 +79,21 @@ export default function BimModel() {
 
       let renderer: ThreeNS.WebGLRenderer;
       try {
-        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+        renderer = new THREE.WebGLRenderer({
+          antialias: true,
+          alpha: true,
+          powerPreference: 'default',
+          failIfMajorPerformanceCaveat: false,
+        });
       } catch {
-        setStatus('unsupported');
+        if (!disposed) setStatus('unsupported');
         return;
       }
+
+      renderer.domElement.addEventListener('webglcontextlost', (e) => {
+        e.preventDefault();
+        if (!disposed) setStatus('unsupported');
+      }, false);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       renderer.setClearColor(0x000000, 0);
       host.appendChild(renderer.domElement);
