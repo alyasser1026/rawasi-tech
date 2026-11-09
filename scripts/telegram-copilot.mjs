@@ -27,6 +27,7 @@ import {
   getBotSettings, saveBotSettings, attachFileToOperation, resolveOperationByNumberOrCode, updateOperationStatusInIndex,
   KNOWN_COMPANIES, getActiveCompany, setActiveCompany,
 } from './copilot-bot-settings.mjs';
+import { buildMainMenuMarkup, resolveMenuAction, BOT_COMMANDS } from './copilot-main-menu.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -351,6 +352,17 @@ function buildOperationInlineMarkup(cardText) {
   };
 }
 
+async function registerBotCommands() {
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/setMyCommands`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ commands: BOT_COMMANDS }),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch {}
+}
+
 function buildCompanySwitchMarkup(activeId) {
   const isComp1 = activeId === '72918f4d-10c3-43a0-884e-2f84f1224335';
   return {
@@ -505,7 +517,10 @@ function cleanWorkerName(name) {
   let prev = '';
   while (prev !== n) {
     prev = n;
-    n = n.replace(/^(?:سجل(?:ي(?:لي)?)?|ضيف(?:ي(?:لي)?)?|أضف|اضف|ادخل|دخل|دخله(?:الي)?|مصروفات|مصروف|مصاريف|فاتورة|فواتير|يومية|يوميات|امبارح|أمس|النهارده|النهاردة|اليوم|و|أو|منهم|كشف|بيان|للعمال[ةه]?|للعامل)\s*/iu, '').trim();
+    n = n
+      .replace(/^(?:سجل(?:ي(?:لي)?)?|ضيف(?:ي(?:لي)?)?|أضف|اضف|ادخل|دخل|دخله(?:الي)?|مصروفات|مصروف|مصاريف|فاتورة|فواتير|يومية|يوميات|امبارح|أمس|النهارده|النهاردة|اليوم|أو|منهم|كشف|بيان|للعمال[ةه]?|للعامل)\s*/iu, '')
+      .replace(/^و(?=[\p{L}])/u, '')
+      .trim();
   }
   n = n.replace(/\s+(?:في\s*العمال[ةه]|للعمال[ةه]|يومية|يوميات|مصروفات|مصروف)$/iu, '').trim();
   if (/(?:مشروع|فيلا|بند|شركة|مصروف|فواتير|فاتورة|سند|صرف|سداد)/iu.test(n) && !/(?:حارس|جرار|ونش|سائق|خفير|عامل|صنايعي|فني|مساعد)/iu.test(n)) {
@@ -680,7 +695,7 @@ function parseBatchLaborLogs(userPrompt) {
 
   // إذا لم نجد عمالاً بالطريقة الرأسية، نبحث بالنمط الأفقي
   if (workers.length === 0) {
-    // 1) نمط: الاسم ثم المبلغ (الأكثر شيوعاً، مثال: «إبراهيم النجار 700 ومحمد بهلول 700»)
+    // 1) نمط: الاسم ثم المبلغ (مثال: «إبراهيم النجار 700 ومحمد بهلول 700»)
     const inlineMatches = [...cleanText.matchAll(/([^\n\r\d,،]{2,30}?)\s*(?:نجار\s*مسلح|مساعد|حداد\s*مسلح|بناء|مليس|صنايعي|فني)?\s*(?:يومية|يوميته|أجر|اجر|بـ)?\s*(\d{2,5})\s*(?:ر\.س|ريال|جنيه|ج\.م)?(?=\s+(?:و|في|بند|مشروع|فيلا|برج|عماره|عمارة|موقع|$)|\r?\n|[،,.])/gu)];
     for (const m of inlineMatches) {
       const rawName = cleanWorkerName(m[1]);
@@ -693,7 +708,7 @@ function parseBatchLaborLogs(userPrompt) {
       }
     }
 
-    // 2) نمط: المبلغ ثم الاسم/الوصف (مثال: «1000جرار نقل خشب و 100 حارس» أو «1000 جرار و 100 حارس»)
+    // 2) نمط: المبلغ ثم الاسم (مثال: «1000جرار نقل خشب و 100 حارس» أو «1000 جرار و 100 حارس»)
     if (workers.length === 0) {
       const amountFirstMatches = [...cleanText.matchAll(/(\d{2,6})\s*([\p{L}\s]{2,30}?)(?=\s+(?:و\s*\d|\d|$|[،,.]|\r?\n))/gu)];
       for (const m of amountFirstMatches) {
@@ -2103,7 +2118,8 @@ async function processTelegramMessage(msg) {
     }
 
     // 1. أمر البداية والترحيب
-    if (['/start', '/help'].includes(cleanText.toLowerCase())) {
+    if (['/start', '/help', '/menu'].includes(cleanText.toLowerCase())) {
+      const isMenuOnly = cleanText.toLowerCase() === '/menu';
       const s = getBotSettings();
       const addr = s.mozzaModeEnabled ? (s.mozzaNickname || 'يا محاميحو') : `يا باشمهندس <b>${fromName}</b>`;
       const welcome = `
@@ -2130,7 +2146,11 @@ async function processTelegramMessage(msg) {
 📸 <b>قراءة الفواتير وإرفاق الصور والمستندات</b>
 • ابعت صورة أي فاتورة وهقرأها وأسجلهالك فوراً، أو دوس على زرار الإرفاق تحت أي عملية.
 `;
-      await sendTelegramMessage(chatId, welcome, messageId);
+      if (isMenuOnly) {
+        await sendTelegramMessage(chatId, '📌 <b>القائمة الرئيسية</b> — اختار اللي عاوزه:', messageId, { html: true, replyMarkup: buildMainMenuMarkup() });
+      } else {
+        await sendTelegramMessage(chatId, welcome, messageId, { html: true, replyMarkup: buildMainMenuMarkup() });
+      }
       return;
     }
 
@@ -2337,6 +2357,13 @@ async function handleCallbackQuery(cb) {
       });
     } catch {}
   };
+
+  if (data.startsWith('menu:')) {
+    const action = resolveMenuAction(data);
+    if (!action) { await answerCb('خيار غير معروف'); return; }
+    await answerCb('⏳ جارٍ التجهيز...');
+    return processTelegramMessage({ chat: cb.message?.chat, from: cb.from, message_id: messageId, text: action.phrase });
+  }
 
   if (data.startsWith('jo_pick:')) {
     const parts = data.split(':');
@@ -2711,6 +2738,7 @@ function startDailyReportScheduler() {
 const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename);
 if (isMain) {
   initKnowledgeBase();
+  registerBotCommands();
   startDailyReportScheduler();
   runPdfMockTest().catch(err => console.error('Mock test error:', err.message));
   // Polling timeout=25s (long-poll standard). AbortSignal is 35s. // TODO: env — COPILOT_POLL_TIMEOUT_S

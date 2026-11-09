@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/lib/toast-context';
 import * as XLSX from 'xlsx'; // 🚀 استدعاء مكتبة الإكسل
+import { getAccountTypeByCode, generateNextAccountCode } from '@/lib/accountCodeGenerator';
 
 export function useHierarchicalAccountsLogic() {
   const router = useRouter();
@@ -18,6 +19,20 @@ export function useHierarchicalAccountsLogic() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
+
+  // ⚡ حالات مودال الإضافة والتعديل التلقائي الذكي
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [isCodeAuto, setIsCodeAuto] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    code: '',
+    parent_id: '',
+    account_type: 'أصول',
+    is_transactional: true
+  });
 
   // 🧠 1. جلب البيانات "المطبوخة" من الباك إند (الأرصدة + القيود معاً)
   const { data: accountsReport = [], isLoading } = useQuery({
@@ -184,6 +199,157 @@ export function useHierarchicalAccountsLogic() {
     showToast("تم تصدير ميزان المراجعة بنجاح", "success");
   };
 
+  // ⚡ قائمة الحسابات المؤهلة كأب مرتبة حسب الكود
+  const parentAccounts = useMemo(() => {
+    return [...accountsReport].sort((a: any, b: any) => {
+      const codeA = a.code ? String(a.code) : '';
+      const codeB = b.code ? String(b.code) : '';
+      return codeA.localeCompare(codeB, undefined, { numeric: true });
+    });
+  }, [accountsReport]);
+
+  // ⚡ فتح مودال الإضافة وتوليد الكود التلقائي
+  const openAddModal = (presetParentId?: string) => {
+    const targetParentId = presetParentId || (selectedIds.length === 1 ? selectedIds[0] : '');
+    const parent = accountsReport.find((a: any) => a.id === targetParentId);
+    const derivedType = parent ? getAccountTypeByCode(parent.code) : 'أصول';
+    const existingCodes = accountsReport.map((a: any) => a.code);
+    const nextCode = generateNextAccountCode({
+      parentCode: parent?.code,
+      accountType: derivedType,
+      existingCodes
+    });
+
+    setFormData({
+      name: '',
+      code: nextCode,
+      parent_id: targetParentId,
+      account_type: derivedType,
+      is_transactional: true
+    });
+    setEditingId(null);
+    setIsCodeAuto(true);
+    setIsModalOpen(true);
+  };
+
+  // ⚡ فتح مودال التعديل
+  const openEditModal = (id?: string) => {
+    const targetId = id || (selectedIds.length === 1 ? selectedIds[0] : null);
+    if (!targetId) return;
+    const account = accountsReport.find((a: any) => a.id === targetId);
+    if (!account) return;
+
+    setEditingId(targetId);
+    setFormData({
+      name: account.name || '',
+      code: account.code || '',
+      parent_id: account.parent_id || '',
+      account_type: account.account_type || getAccountTypeByCode(account.code),
+      is_transactional: account.is_transactional !== false
+    });
+    setIsCodeAuto(false); // الحساب الموجود يحتفظ بكوده تلقائياً
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingId(null);
+    setIsCodeAuto(true);
+  };
+
+  const handleParentChange = (parentId: string) => {
+    const parent = accountsReport.find((a: any) => a.id === parentId);
+    const derivedType = parent ? getAccountTypeByCode(parent.code) : formData.account_type;
+    const existingCodes = accountsReport.filter((a: any) => editingId ? a.id !== editingId : true).map((a: any) => a.code);
+    const nextCode = (isCodeAuto && !editingId) 
+      ? generateNextAccountCode({ parentCode: parent?.code, accountType: derivedType, existingCodes })
+      : formData.code;
+
+    setFormData(prev => ({
+      ...prev,
+      parent_id: parentId,
+      account_type: derivedType,
+      code: nextCode
+    }));
+  };
+
+  const handleAccountTypeChange = (type: string) => {
+    const existingCodes = accountsReport.filter((a: any) => editingId ? a.id !== editingId : true).map((a: any) => a.code);
+    const nextCode = (!formData.parent_id && isCodeAuto && !editingId)
+      ? generateNextAccountCode({ parentCode: null, accountType: type, existingCodes })
+      : formData.code;
+
+    setFormData(prev => ({
+      ...prev,
+      account_type: type,
+      code: nextCode
+    }));
+  };
+
+  const regenerateCode = () => {
+    const parent = accountsReport.find((a: any) => a.id === formData.parent_id);
+    const existingCodes = accountsReport.filter((a: any) => editingId ? a.id !== editingId : true).map((a: any) => a.code);
+    const nextCode = generateNextAccountCode({
+      parentCode: parent?.code,
+      accountType: formData.account_type,
+      existingCodes
+    });
+    setFormData(prev => ({ ...prev, code: nextCode }));
+  };
+
+  const handleSaveAccount = async () => {
+    const cleanName = formData.name.trim();
+    const cleanCode = formData.code.trim();
+
+    if (!cleanName) {
+      showToast('الرجاء إدخال اسم الحساب', 'error');
+      return;
+    }
+    if (!cleanCode) {
+      showToast('الرجاء إدخال كود الحساب', 'error');
+      return;
+    }
+
+    // التحقق من عدم تكرار الكود مع حساب آخر
+    const duplicate = accountsReport.find((a: any) => 
+      String(a.code || '').trim() === cleanCode && (editingId ? a.id !== editingId : true)
+    );
+    if (duplicate) {
+      showToast(`الكود (${cleanCode}) مستخدم بالفعل للحساب: ${duplicate.name}`, 'error');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const payload: any = {
+        name: cleanName,
+        code: cleanCode,
+        parent_id: formData.parent_id || null,
+        account_type: formData.account_type,
+        is_transactional: formData.is_transactional
+      };
+
+      let error;
+      if (editingId) {
+        const res = await supabase.from('accounts').update(payload).eq('id', editingId);
+        error = res.error;
+      } else {
+        const res = await supabase.from('accounts').insert([payload]);
+        error = res.error;
+      }
+
+      if (error) throw error;
+
+      showToast(editingId ? 'تم تحديث بيانات الحساب بنجاح!' : 'تم إضافة الحساب وتوليد الكود بنجاح!', 'success');
+      closeModal();
+      queryClient.invalidateQueries({ queryKey: ['accounts_report_with_lines'] });
+    } catch (err: any) {
+      showToast('خطأ أثناء الحفظ: ' + (err.message || err), 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return { 
     paginatedTree, 
     totalPages: Math.ceil(filteredTree.length / itemsPerPage) || 1,
@@ -202,9 +368,9 @@ export function useHierarchicalAccountsLogic() {
     selectedIds, setSelectedIds,
     toggleSelection: (id: string) => setSelectedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]),
     
-    handleAdd: () => router.push('/accounts/new'),
+    handleAdd: () => openAddModal(),
     handleEdit: (ids: string[]) => {
-      if (ids.length === 1) router.push(`/accounts/edit/${ids[0]}`);
+      if (ids.length === 1) openEditModal(ids[0]);
     },
     handleDelete: (ids: string[]) => { 
         if(confirm(`هل أنت متأكد من حذف ${ids.length} حساب/حسابات بجميع تفاصيلها؟`)) {
@@ -212,6 +378,15 @@ export function useHierarchicalAccountsLogic() {
         }
     },
     isDeleting: deleteMutation.isPending,
-    exportToExcel // 🚀 تم استخراج دالة التصدير هنا لربطها بالزرار
+    exportToExcel,
+    // ⚡ مخرجات مودال وتوليد الأكواد
+    isModalOpen, setIsModalOpen,
+    openAddModal, openEditModal, closeModal,
+    formData, setFormData,
+    isCodeAuto, setIsCodeAuto,
+    isSaving,
+    parentAccounts,
+    handleParentChange, handleAccountTypeChange, regenerateCode, handleSaveAccount,
+    editingId
   };
 }

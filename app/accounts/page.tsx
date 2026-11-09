@@ -1,5 +1,6 @@
 "use client";
 import React, { useMemo, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useHierarchicalAccountsLogic } from './accounts_logic';
 import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
@@ -8,7 +9,7 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import { usePermissions } from '@/lib/PermissionsContext'; 
 import SecureAction from '@/components/SecureAction'; 
 import LoadingScreen from '@/components/LoadingScreen';
-import { FolderOpen, Folder, FileText } from 'lucide-react';
+import { FolderOpen, Folder, FileText, Lock, Unlock, RefreshCw, X, Sparkles } from 'lucide-react';
 
 export default function HierarchicalLedgerPage() {
   const { 
@@ -16,7 +17,10 @@ export default function HierarchicalLedgerPage() {
     isLoading, isDeleting, searchTerm, setSearchTerm, expandedIds, toggleExpand, expandAll, collapseAll, 
     selectedIds, toggleSelection, handleDelete, handleAdd, handleEdit,
     startDate, setStartDate, endDate, setEndDate,
-    exportToExcel // 🚀 جلب دالة تصدير الإكسل من اللوجيك
+    exportToExcel,
+    isModalOpen, setIsModalOpen, openAddModal, openEditModal, closeModal,
+    formData, setFormData, isCodeAuto, setIsCodeAuto, isSaving, parentAccounts,
+    handleParentChange, handleAccountTypeChange, regenerateCode, handleSaveAccount, editingId
   } = useHierarchicalAccountsLogic();
 
   const [mounted, setMounted] = useState(false);
@@ -312,6 +316,257 @@ export default function HierarchicalLedgerPage() {
 
         @keyframes cardFadeUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
       `}</style>
+
+      {/* 🚀 نافذة (مودال) إضافة وتعديل الحساب المحاسبي مع التوليد التلقائي الذكي للكود */}
+      {isModalOpen && mounted && createPortal(
+        <div 
+          className="phi-modal-backdrop" 
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            zIndex: 9999999, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            background: 'radial-gradient(circle at center, rgba(40, 24, 10, 0.4) 0%, rgba(15, 7, 0, 0.9) 100%)', 
+            backdropFilter: 'blur(20px)', 
+            direction: 'rtl',
+            padding: '1rem'
+          }} 
+          onClick={closeModal}
+        >
+          <div 
+            className="cinematic-scroll phi-modal-panel" 
+            onClick={e => e.stopPropagation()} 
+            style={{ 
+              width: '46rem', 
+              maxWidth: '95vw', 
+              maxHeight: '90vh', 
+              background: 'var(--surface-card, #ffffff)', 
+              borderRadius: '16px', 
+              padding: '2.25rem', 
+              boxShadow: '0 40px 80px rgba(0,0,0,0.4)', 
+              overflowY: 'auto' 
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '2px solid var(--accent-soft-bg, #fef3c7)', paddingBottom: '0.9rem' }}>
+              <div>
+                <h2 style={{ color: 'var(--text-primary, #0f172a)', fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>
+                  {editingId ? 'تعديل بيانات الحساب المحاسبي' : 'إضافة حساب جديد في شجرة الحسابات'}
+                </h2>
+                <p style={{ margin: '0.35rem 0 0 0', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #64748b)' }}>
+                  {editingId ? 'تعديل مسمى أو تصنيف الحساب مع حماية الكود المالي' : 'توليد تسلسلي ذكي لرقم الحساب حسب المستوى والأصل المالي'}
+                </p>
+              </div>
+              <button 
+                type="button" 
+                onClick={closeModal}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-secondary, #64748b)', padding: '0.5rem', borderRadius: '8px' }}
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+              {/* اسم الحساب */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary, #0f172a)', display: 'block', marginBottom: '0.375rem' }}>
+                  اسم الحساب *
+                </label>
+                <input 
+                  className="glass-input-field" 
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: 'var(--fs-md)', fontWeight: 700 }}
+                  value={formData.name} 
+                  onChange={e => setFormData({ ...formData, name: e.target.value })} 
+                  placeholder="مثال: بنك الإنماء، مورد مواد عزل، مصاريف نقل..." 
+                  autoFocus
+                />
+              </div>
+
+              {/* الحساب الأب */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary, #0f172a)', display: 'block', marginBottom: '0.375rem' }}>
+                  الحساب الرئيسي (الأب)
+                </label>
+                <select 
+                  className="glass-input-field" 
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
+                  value={formData.parent_id} 
+                  onChange={e => handleParentChange(e.target.value)}
+                >
+                  <option value="">بدون حساب أب (حساب رئيسي جذري)</option>
+                  {parentAccounts.map((acc: any) => (
+                    <option key={acc.id} value={acc.id}>
+                      {acc.code} - {acc.name} {!acc.is_transactional ? '📁 [تجميعي]' : '📄 [فرعي]'}
+                    </option>
+                  ))}
+                </select>
+                <p style={{ margin: '0.35rem 0 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary, #64748b)' }}>
+                  * اختيار الحساب الأب يحدد تلقائياً طبيعة الحساب ويولد الكود الفرعي المتسلسل تحته مباشرة.
+                </p>
+              </div>
+
+              {/* طبيعة الحساب */}
+              <div>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary, #0f172a)', display: 'block', marginBottom: '0.375rem' }}>
+                  طبيعة الحساب (القوائم المالية) *
+                </label>
+                <select 
+                  className="glass-input-field" 
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
+                  value={formData.account_type} 
+                  onChange={e => handleAccountTypeChange(e.target.value)}
+                >
+                  <option value="أصول">1 - أصول (Assets)</option>
+                  <option value="التزامات">2 - التزامات (Liabilities)</option>
+                  <option value="حقوق ملكية">3 - حقوق ملكية (Equity)</option>
+                  <option value="إيرادات">4 - إيرادات (Revenues)</option>
+                  <option value="مصروفات">5 - مصروفات وتكاليف (Expenses)</option>
+                </select>
+              </div>
+
+              {/* نوع الحساب (حركة أم تجميعي) */}
+              <div>
+                <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary, #0f172a)', display: 'block', marginBottom: '0.375rem' }}>
+                  نوع الحساب في الدليل *
+                </label>
+                <select 
+                  className="glass-input-field" 
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: '10px', border: '1px solid #e2e8f0', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
+                  value={formData.is_transactional ? 'true' : 'false'} 
+                  onChange={e => setFormData({ ...formData, is_transactional: e.target.value === 'true' })}
+                >
+                  <option value="true">📄 حساب فرعي (يقبل قيود وحركات مالية)</option>
+                  <option value="false">📁 حساب رئيسي (تجميعي للمستويات الأدنى)</option>
+                </select>
+              </div>
+
+              {/* كود الحساب مع التحكم الذكي */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.375rem' }}>
+                  <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary, #0f172a)', margin: 0 }}>
+                    رقم الحساب المحاسبي (الكود) *
+                  </label>
+                  <span 
+                    style={{
+                      fontSize: '0.72rem',
+                      padding: '0.15rem 0.5rem',
+                      borderRadius: '9999px',
+                      fontWeight: 700,
+                      background: isCodeAuto ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 88, 12, 0.15)',
+                      color: isCodeAuto ? '#059669' : '#c2410c',
+                      border: `1px solid ${isCodeAuto ? 'rgba(16, 185, 129, 0.3)' : 'rgba(234, 88, 12, 0.3)'}`
+                    }}
+                  >
+                    {isCodeAuto ? '⚡ توليد تلقائي ذكي' : '✍️ إدخال يدوي'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <input 
+                    className="glass-input-field" 
+                    style={{ 
+                      flex: 1, 
+                      padding: '0.8rem',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      fontFamily: 'monospace', 
+                      fontSize: 'var(--fs-lg)',
+                      fontWeight: 900, 
+                      letterSpacing: '0.1em',
+                      background: isCodeAuto ? 'rgba(0,0,0,0.03)' : '#ffffff'
+                    }} 
+                    value={formData.code} 
+                    onChange={e => {
+                      setIsCodeAuto(false);
+                      setFormData({ ...formData, code: e.target.value });
+                    }} 
+                    placeholder="مثال: 1293" 
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsCodeAuto(!isCodeAuto)}
+                    title={isCodeAuto ? "قفل التوليد التلقائي للتحرير اليدوي" : "تفعيل التوليد التلقائي الذكي"}
+                    style={{
+                      padding: '0.8rem 1rem',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      background: isCodeAuto ? '#fef3c7' : '#ffffff',
+                      color: isCodeAuto ? '#b45309' : '#64748b',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontWeight: 800,
+                      fontSize: 'var(--fs-xs)'
+                    }}
+                  >
+                    {isCodeAuto ? <Lock size={16} /> : <Unlock size={16} />}
+                    <span>{isCodeAuto ? 'مقفل تلقائي' : 'مفتوح يدوي'}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={regenerateCode}
+                    title="إعادة فحص الشجرة وتوليد الكود التالي"
+                    style={{
+                      padding: '0.8rem 1rem',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0',
+                      background: '#f8fafc',
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      fontWeight: 800,
+                      fontSize: 'var(--fs-xs)'
+                    }}
+                  >
+                    <RefreshCw size={16} />
+                    <span>تحديث</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1.5rem', borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem' }}>
+              <button
+                type="button"
+                onClick={closeModal}
+                style={{
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '12px',
+                  border: '1px solid #cbd5e1',
+                  background: 'transparent',
+                  color: '#475569',
+                  fontWeight: 800,
+                  cursor: 'pointer'
+                }}
+              >
+                إلغاء
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveAccount}
+                disabled={isSaving}
+                style={{
+                  padding: '0.75rem 2rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #c2410c, #ea580c)',
+                  color: 'white',
+                  fontWeight: 900,
+                  cursor: isSaving ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 10px 20px rgba(194, 65, 12, 0.3)',
+                  opacity: isSaving ? 0.7 : 1
+                }}
+              >
+                {isSaving ? 'جاري الحفظ...' : (editingId ? 'حفظ التعديلات' : 'إضافة الحساب')}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </MasterPage>
   );
 }
