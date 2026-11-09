@@ -5,6 +5,7 @@ import { RETIRED_TOOL_NAMES } from './copilot-tool-registry.mjs';
 import { getCopilotDate } from './copilot-tool-policy.mjs';
 import { assessTareeha, unassessedReason } from './copilot-tareeha.mjs';
 import { registerOperation, resolveOperationByNumberOrCode, setActiveCompany, getActiveCompany } from './copilot-bot-settings.mjs';
+import { generateNextPartnerCode } from '../lib/partnerCodeGenerator.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -2372,19 +2373,12 @@ export function createCopilotTools({
         else if (/داخل/i.test(partnerType)) partnerType = 'جهة داخلية';
       }
 
-      // 3. تحديد كود الشريك
+      // 3. تحديد كود الشريك تلقائياً وبذكاء حسب التصنيف والمهنة
       let code = typeof rawArgs?.code === 'string' && rawArgs.code.trim() ? rawArgs.code.trim() : null;
       if (!code) {
-        const countRes = await fetchScopedRows('partners', { select: 'id', limit: '1' });
-        const count = countRes.ok && typeof countRes.totalCount === 'number' ? countRes.totalCount + 1 : Math.floor(Math.random() * 900) + 100;
-        const prefix =
-          partnerType === 'عامل يومية' ? 'WRK'
-          : partnerType === 'مقاول' ? 'CNT'
-          : partnerType === 'مورد' ? 'SUP'
-          : partnerType === 'عميل' ? 'CLI'
-          : partnerType === 'موظف' ? 'EMP'
-          : 'PRT';
-        code = `${prefix}-${count}`;
+        const existingRes = await fetchScopedRows('partners', { select: 'code', limit: '1000' });
+        const existingCodes = existingRes.ok && Array.isArray(existingRes.data) ? existingRes.data.map(p => p.code) : [];
+        code = generateNextPartnerCode(partnerType, rawArgs?.job_role || '', existingCodes);
       }
 
       let jobRole = typeof rawArgs?.job_role === 'string' && rawArgs.job_role.trim() ? rawArgs.job_role.trim() : null;

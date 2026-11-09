@@ -472,4 +472,56 @@ export const CSS = `
   .pw-exec-card-header{flex-direction:column;align-items:flex-start}
   .pw-exec-header-right{width:100%;justify-content:space-between}
 }
+
+/* ===== تنسيق موحّد: رؤوس الأقسام، الحاويات، الكروت، والتوازن العام ===== */
+.pw{--pw-radius:20px;--pw-gap:24px;--pw-pad-y:88px}
+.pw-section{padding:var(--pw-pad-y) 0}
+/* تبادل خلفيات الأقسام بانتظام (أبيض / رمادي فاتح) بغض النظر عن الأقسام المخفية */
+.pw .pw-section.pw-tint{background:#fff;border-block:0}
+.pw main>section.pw-section:nth-of-type(odd){background:var(--tint);border-block:1px solid var(--line)}
+/* رؤوس الأقسام: كلها في المنتصف وبعرض واحد */
+.pw-head{max-width:46rem;margin:0 auto 52px;text-align:center}
+.pw-head .pw-eyebrow{justify-content:center}
+.pw-head p:not(.pw-eyebrow){max-width:40rem;margin-inline:auto}
+.pw-contact .pw-head{max-width:none;margin:0 0 22px;text-align:start}
+.pw-contact .pw-head .pw-eyebrow{justify-content:flex-start}
+.pw-contact .pw-head p:not(.pw-eyebrow){margin-inline:0}
+.pw-contact.pw-contact-solo{grid-template-columns:minmax(0,680px);justify-content:center}
+.pw-contact-solo .pw-head{text-align:center}
+.pw-contact-solo .pw-head .pw-eyebrow{justify-content:center}
+.pw-contact-solo .pw-head p:not(.pw-eyebrow){margin-inline:auto}
+/* شريط الأرقام يتماشى مع عرض الحاوية */
+.pw-stats.pw-wrap{width:calc(100% - 48px);max-width:1152px;padding:0}
+/* الالتزامات وطريقة العمل: نفس شكل الكروت ونفس التباعد والارتفاع */
+.pw-trust,.pw-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--pw-gap);background:none;border:0;border-radius:0;overflow:visible}
+.pw-trust li,.pw-trust li:first-child,.pw-trust li:nth-child(n),.pw-steps li{background:#fff;border:1px solid var(--line);border-radius:var(--pw-radius);padding:28px 24px;height:100%}
+.pw-trust li:hover,.pw-steps li:hover{border-color:rgba(199,85,23,.45);box-shadow:0 18px 38px -26px rgba(199,85,23,.45)}
+.pw-card,.pw-contact-card,.pw-faq details{border-radius:var(--pw-radius)}
+.pw-cards{gap:var(--pw-gap)}
+.pw-card{height:100%}
+.pw-tools,.pw-bim-stage,.pw-bim-panel{border-radius:22px}
+/* التواصل: عمودان متساويان بنفس الارتفاع */
+.pw-contact{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:var(--pw-gap);align-items:stretch}
+.pw-contact>div:first-child{display:flex;flex-direction:column}
+.pw-contact>div:first-child .pw-contact-card{flex:1}
+.pw-contact>.pw-contact-card{height:100%}
+.pw-faq{max-width:860px}
+@media (max-width:1040px){
+  .pw-trust,.pw-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:960px){
+  .pw{--pw-pad-y:64px}
+  .pw-head{margin-bottom:40px}
+  .pw-contact,.pw-contact.pw-contact-solo{grid-template-columns:minmax(0,1fr)}
+  .pw-stats.pw-wrap{width:calc(100% - 36px)}
+  .pw-trust,.pw-steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pw-trust li:nth-child(n),.pw-trust li:first-child{border:1px solid var(--line)}
+}
+@media (max-width:600px){
+  .pw{--pw-gap:16px;--pw-pad-y:52px}
+  .pw-trust,.pw-steps{grid-template-columns:1fr}
+  .pw-trust li:nth-child(n),.pw-trust li:first-child{border:1px solid var(--line);padding:22px 20px}
+  .pw-steps li{padding:22px 20px}
+  .pw-head{margin-bottom:32px}
+}
 `;

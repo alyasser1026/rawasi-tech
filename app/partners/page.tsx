@@ -8,7 +8,7 @@ import SmartCombo from '@/components/SmartCombo';
 import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import KpiStrip from '@/components/KpiStrip';
-import { Building2, HardHat, Truck, Users } from 'lucide-react';
+import { Building2, HardHat, Truck, Users, Lock, Unlock, RefreshCw, Sparkles } from 'lucide-react';
 
 export default function PartnersDirectory() {
   const router = useRouter();
@@ -17,7 +17,8 @@ export default function PartnersDirectory() {
     isAddModalOpen, setIsAddModalOpen, openAddModal, newPartner, setNewPartner,
     isSaving, handleSavePartner, filteredPartners, stats,
     handleDelete, exportToExcel, handlePrint, handleEdit, selectedIds, setSelectedIds, editingId,
-    currentPage, setCurrentPage, rowsPerPage, setRowsPerPage, totalPages, totalResults
+    currentPage, setCurrentPage, rowsPerPage, setRowsPerPage, totalPages, totalResults,
+    isCodeAuto, setIsCodeAuto, handlePartnerTypeChange, handlePartnerRoleChange, regenerateCode
   } = usePartnersLogic();
 
   // 🚀 حالة للتأكد من تحميل المكون عشان الـ Portal يشتغل بدون أخطاء SSR
@@ -287,18 +288,91 @@ export default function PartnersDirectory() {
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary)', display: 'block', marginBottom: '0.375rem' }}>الكود المرجعي *</label>
-                        <input className="glass-input-field" value={newPartner.code} onChange={e => setNewPartner({...newPartner, code: e.target.value})} placeholder="مثال: PRT-001" />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.375rem' }}>
+                            <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary)', margin: 0 }}>الكود المرجعي *</label>
+                            <span 
+                                style={{
+                                    fontSize: '0.72rem',
+                                    padding: '0.15rem 0.5rem',
+                                    borderRadius: '9999px',
+                                    fontWeight: 700,
+                                    background: isCodeAuto ? 'rgba(16, 185, 129, 0.15)' : 'rgba(234, 88, 12, 0.15)',
+                                    color: isCodeAuto ? '#059669' : '#c2410c',
+                                    border: `1px solid ${isCodeAuto ? 'rgba(16, 185, 129, 0.3)' : 'rgba(234, 88, 12, 0.3)'}`
+                                }}
+                            >
+                                {isCodeAuto ? '⚡ تلقائي ذكي' : '✍️ يدوي'}
+                            </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <input 
+                                className="glass-input-field" 
+                                style={{ 
+                                    flex: 1, 
+                                    fontFamily: 'monospace', 
+                                    fontWeight: 800, 
+                                    letterSpacing: '0.05em',
+                                    background: isCodeAuto ? 'rgba(0,0,0,0.03)' : undefined
+                                }} 
+                                value={newPartner.code} 
+                                onChange={e => {
+                                    setIsCodeAuto(false);
+                                    setNewPartner({ ...newPartner, code: e.target.value });
+                                }} 
+                                placeholder="مثال: WRK-001" 
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setIsCodeAuto(!isCodeAuto)}
+                                title={isCodeAuto ? "قفل التوليد التلقائي للتحرير اليدوي" : "تفعيل التوليد التلقائي الذكي"}
+                                style={{
+                                    padding: '0.55rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--border-color, #e5e7eb)',
+                                    background: isCodeAuto ? 'var(--accent-soft-bg, #fef3c7)' : 'var(--surface-card, #ffffff)',
+                                    color: isCodeAuto ? 'var(--accent-ink, #b45309)' : 'var(--text-secondary, #6b7280)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {isCodeAuto ? <Lock size={16} /> : <Unlock size={16} />}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={regenerateCode}
+                                title="إعادة توليد الكود التسلسلي التالي"
+                                style={{
+                                    padding: '0.55rem',
+                                    borderRadius: '10px',
+                                    border: '1px solid var(--border-color, #e5e7eb)',
+                                    background: 'var(--surface-card, #ffffff)',
+                                    color: 'var(--text-primary, #111827)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <RefreshCw size={16} />
+                            </button>
+                        </div>
                     </div>
                     <div>
                         <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary)', display: 'block', marginBottom: '0.375rem' }}>التصنيف *</label>
-                        <select className="glass-input-field" value={newPartner.type} onChange={e => setNewPartner({...newPartner, type: e.target.value})}>
-                            <option value="موظف">موظف</option>
-                            <option value="عامل يومية">عامل يومية</option>
-                            <option value="مقاول">مقاول</option>
-                            <option value="جهة داخلية">جهة داخلية</option>
-                            <option value="عميل">عميل</option>
-                            <option value="مورد">مورد</option>
+                        <select className="glass-input-field" value={newPartner.type} onChange={e => handlePartnerTypeChange(e.target.value)}>
+                            <option value="عامل يومية">عامل يومية (صنايعية ومساعدين)</option>
+                            <option value="موظف">موظف (إداري أو مهندس)</option>
+                            <option value="مقاول">مقاول باطن</option>
+                            <option value="مورد">مورد مواد وتجهيزات</option>
+                            <option value="عميل">عميل وملاك مشاريع</option>
+                            <option value="استشاري">استشاري ومكتب هندسي</option>
+                            <option value="تأجير معدات">تأجير معدات وآليات</option>
+                            <option value="جهة حكومية">جهة حكومية ورسمية</option>
+                            <option value="جهة داخلية">جهة داخلية وعهد</option>
                         </select>
                     </div>
                 </div>
@@ -310,7 +384,7 @@ export default function PartnersDirectory() {
                     </div>
                     <div>
                         <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary)', display: 'block', marginBottom: '0.375rem' }}>المهنة / الدور</label>
-                        <input className="glass-input-field" value={newPartner.role} onChange={e => setNewPartner({...newPartner, role: e.target.value})} placeholder="مثال: نجار، مورد حديد..." />
+                        <input className="glass-input-field" value={newPartner.role} onChange={e => handlePartnerRoleChange(e.target.value)} placeholder="مثال: نجار، مهندس موقع، مساعد، سائق..." />
                     </div>
                 </div>
 

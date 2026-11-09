@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fetchAllSupabaseData } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
+import { generateNextPartnerCode } from '@/lib/partnerCodeGenerator';
 
 export function usePartnersLogic() {
   // 1️⃣ الحالات (States) الأساسية
@@ -18,6 +19,7 @@ export function usePartnersLogic() {
   // 4️⃣ نافذة الإضافة والتعديل
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null); 
+  const [isCodeAuto, setIsCodeAuto] = useState(true);
   
   // 🔢 حالات التحكم في الصفحات (Pagination States) - 🆕 جديد
   const [currentPage, setCurrentPage] = useState(1);
@@ -122,9 +124,55 @@ export function usePartnersLogic() {
     }
   };
 
+  // ⚡ التوليد التلقائي والتحكم في كود الشريك
+  const openAddModal = () => {
+    setIsCodeAuto(true);
+    const existingCodes = partners.map(p => p.code);
+    const nextCode = generateNextPartnerCode('عامل يومية', '', existingCodes);
+    setNewPartner({
+      type: 'عامل يومية',
+      name: '',
+      role: '',
+      idNumber: '',
+      code: nextCode,
+      phone: '',
+      address: '',
+      vat_number: '',
+      identity_expiry_date: '',
+      account_id: ''
+    });
+    setEditingId(null);
+    setIsAddModalOpen(true);
+  };
+
+  const handlePartnerTypeChange = (type: string) => {
+    const existingCodes = partners.map(p => p.code);
+    setNewPartner(prev => ({
+      ...prev,
+      type,
+      code: (!editingId && isCodeAuto) ? generateNextPartnerCode(type, prev.role, existingCodes) : prev.code
+    }));
+  };
+
+  const handlePartnerRoleChange = (role: string) => {
+    const existingCodes = partners.map(p => p.code);
+    setNewPartner(prev => ({
+      ...prev,
+      role,
+      code: (!editingId && isCodeAuto) ? generateNextPartnerCode(prev.type, role, existingCodes) : prev.code
+    }));
+  };
+
+  const regenerateCode = () => {
+    const existingCodes = partners.filter(p => editingId ? p.id !== editingId : true).map(p => p.code);
+    const nextCode = generateNextPartnerCode(newPartner.type, newPartner.role, existingCodes);
+    setNewPartner(prev => ({ ...prev, code: nextCode }));
+  };
+
   // ✏️ التعديل
   const handleEdit = (partner: any) => {
     setEditingId(partner.id);
+    setIsCodeAuto(false); // شريك موجود يحتفظ بكوده تلقائياً ما لم يتم تغييره يدوياً
     setNewPartner({
       type: partner.type,
       name: partner.name,
@@ -143,6 +191,7 @@ export function usePartnersLogic() {
   const closeModal = () => {
     setIsAddModalOpen(false);
     setEditingId(null);
+    setIsCodeAuto(true);
     setNewPartner({ type: 'عامل يومية', name: '', role: '', idNumber: '', code: '', phone: '', address: '', vat_number: '', identity_expiry_date: '', account_id: '' }); // 🚀 تفريغ الحساب
     setSelectedIds([]);
   };
@@ -218,13 +267,16 @@ export function usePartnersLogic() {
 
   return {
     isLoading, searchTerm, setSearchTerm, filterType, setFilterType,
-    isAddModalOpen, setIsAddModalOpen: (open: boolean) => open ? setIsAddModalOpen(true) : closeModal(), handleEdit, openAddModal: () => setIsAddModalOpen(true),
+    isAddModalOpen, setIsAddModalOpen: (open: boolean) => open ? openAddModal() : closeModal(), handleEdit, openAddModal,
     newPartner, setNewPartner, isSaving, handleSavePartner,
     filteredPartners, stats, getTypeStyle, handleDelete, exportToExcel, handlePrint,
     selectedIds, setSelectedIds, editingId,
     // مخرجات الصفحات الجديدة 🆕
     currentPage, setCurrentPage,
     rowsPerPage, setRowsPerPage,
-    totalPages, totalResults
+    totalPages, totalResults,
+    // توليد الأكواد التلقائي الذكي ⚡
+    isCodeAuto, setIsCodeAuto,
+    handlePartnerTypeChange, handlePartnerRoleChange, regenerateCode
   };
 }
