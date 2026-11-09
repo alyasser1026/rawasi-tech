@@ -7,7 +7,7 @@ import { createCopilotTools } from './copilot-tools.mjs';
 import { authorizeTelegramMessages, getSharedTelegramCommand, normalizeTelegramChatId, normalizeTelegramSharedChatId } from './copilot-telegram-auth.mjs';
 import { createCopilotCompanyAccess } from './copilot-company-access.mjs';
 import { createCopilotTrainingProposals } from './copilot-training-proposals.mjs';
-import { getCopilotDate, getEnabledCopilotDeclarations, runEnabledCopilotTool } from './copilot-tool-policy.mjs';
+import { getCopilotDate, getEnabledCopilotDeclarations, runEnabledCopilotTool, splitReportParts } from './copilot-tool-policy.mjs';
 import { createCopilotConversation } from './copilot-conversation.mjs';
 import { createTelegramDocumentSender, createTelegramMessageSender, createTelegramVoiceSender } from './copilot-telegram-sender.mjs';
 import { createCopilotEntryForms } from './copilot-entry-forms.mjs';
@@ -1484,6 +1484,13 @@ async function processUserPromptWithGemini(userPrompt, actor) {
     const toolRes = await runEnabledCopilotTool(call, tools, verified);
     const text = typeof toolRes === 'string' ? toolRes : (toolRes?.text || String(toolRes));
     const replyMarkup = typeof toolRes === 'object' && toolRes?.replyMarkup ? toolRes.replyMarkup : undefined;
+    // التقرير اليومي بيرجع تقريرين (اليومي + الإضافات المتأخرة) يتبعتوا رسالتين ورا بعض
+    if (call.name === 'get_daily_comprehensive_report') {
+      const parts = splitReportParts(text);
+      if (parts.length > 1) {
+        return { type: 'multi_messages', messages: parts, memory: { ...memory, toolName: call.name } };
+      }
+    }
     return {
       text,
       ...(replyMarkup ? { replyMarkup } : {}),
@@ -1502,7 +1509,8 @@ async function processUserPromptWithGemini(userPrompt, actor) {
       const messages = [];
       for (const call of directCall.calls) {
         const res = await executeToolCall(call);
-        if (res?.text) messages.push(res.text);
+        if (Array.isArray(res?.messages)) messages.push(...res.messages);
+        else if (res?.text) messages.push(res.text);
       }
       return {
         type: 'multi_messages',
@@ -1563,7 +1571,8 @@ async function processUserPromptWithGemini(userPrompt, actor) {
       const messages = [];
       for (const call of reply.calls) {
         const res = await executeToolCall(call);
-        if (res?.text) messages.push(res.text);
+        if (Array.isArray(res?.messages)) messages.push(...res.messages);
+        else if (res?.text) messages.push(res.text);
       }
       return {
         type: 'multi_messages',
@@ -2662,9 +2671,14 @@ function startDailyReportScheduler() {
           verified
         );
         const header = `⏰ <b>التقرير اليومي التلقائي المجدول (${targetTime}) — معك ${escapeTelegramText(s.botName)}</b>\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
-        await sendTelegramMessage(targetChat, header + escapeTelegramText(reportText), undefined, { html: true });
+        const reportParts = splitReportParts(reportText);
+        await sendTelegramMessage(targetChat, header + escapeTelegramText(reportParts[0]), undefined, { html: true });
+        for (const extra of reportParts.slice(1)) {
+          await new Promise(r => setTimeout(r, 300));
+          await sendTelegramMessage(targetChat, escapeTelegramText(extra), undefined, { html: true });
+        }
         if (s.voiceReplyMode !== 'off') {
-          await sendTelegramVoiceReply(targetChat, reportText, undefined, s);
+          await sendTelegramVoiceReply(targetChat, reportParts[0], undefined, s);
         }
       }
     } catch (err) {

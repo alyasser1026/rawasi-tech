@@ -405,6 +405,42 @@ function formatProjectsReply(result, companyLabel) {
   return lines.join('\n');
 }
 
+export const REPORT_PART_SPLIT = '\n\u2063\u2063SPLIT\u2063\u2063\n';
+export function splitReportParts(text) {
+  return typeof text === 'string' && text.includes(REPORT_PART_SPLIT)
+    ? text.split(REPORT_PART_SPLIT).map(p => p.trim()).filter(Boolean)
+    : [text];
+}
+
+function formatLateEntriesReport(result, companyLabel) {
+  const le = result.late_entries || {};
+  const lines = [
+    `🕒 تقرير الإضافات المتأخرة — ${companyLabel}`,
+    `📅 حركات اتسجلت يوم ${result.report_date} لكن بتاريخ عملية مختلف`,
+    '────────────────────────────',
+  ];
+  let any = false;
+  const section = (title, part, line, totalLabel) => {
+    if (!part) return;
+    if (part.available === false) { lines.push(`${title}: غير متاح (الصلاحية أو المصدر).`); return; }
+    const rows = Array.isArray(part.rows) ? part.rows : [];
+    if (rows.length === 0) return;
+    any = true;
+    lines.push(`${title} (${rows.length}${part.total != null ? ` | ${totalLabel}: ${part.total} ر.س` : ''}):`);
+    for (const r of rows.slice(0, 15)) lines.push(`  - ${line(r)} 📅 بتاريخ ${r.date || '—'}`);
+    if (rows.length > 15) lines.push(`  … و${rows.length - 15} حركة تانية`);
+  };
+  section('👷 يوميات عمالة', le.labor, r => `${r.worker_name} | ${r.site_ref} | ${r.work_item}${r.daily_wage != null ? ` | ${r.daily_wage} ر.س` : ''} (${r.status})`, 'إجمالي اليوميات');
+  if (le.labor && Array.isArray(le.labor.rows) && le.labor.rows.length > 0 && le.labor.total_wages != null) lines.push(`  إجمالي يوميات متأخرة: ${le.labor.total_wages} ر.س`);
+  section('🧾 مصروفات', le.expenses, r => `${r.description}: ${r.total_price} ر.س | ${r.site_ref} | ${r.payee_name} (${r.status})`, 'الإجمالي');
+  section('💸 سندات صرف', le.payments, r => `${r.voucher_number} | ${r.partner_name} | ${r.amount} ر.س | ${r.description} (${r.status})`, 'الإجمالي');
+  section('💰 سندات قبض', le.receipts, r => `${r.receipt_number} | ${r.partner_name} | ${r.amount} ر.س`, 'الإجمالي');
+  section('📦 صرف خامات', le.materials, r => `${r.issue_number} | ${r.villa} | ${r.contractor} | ${r.total_amount} ر.س`, 'الإجمالي');
+  section('📑 مستخلصات مقاولين', le.claims, r => `${r.claim_number} | ${r.contractor_name} | ${r.projects} | ${r.net_amount} ر.س (${r.status})`, 'الإجمالي');
+  if (!any) lines.push('مفيش أي إضافات متأخرة النهارده. كل الحركات اللي اتسجلت بتاريخ اليوم نفسه ✅');
+  return lines.join('\n');
+}
+
 function formatComprehensiveReportReply(result, companyLabel) {
   const s1 = result.section_1_labor_today || {};
   const s2 = result.section_2_villas_and_projects || {};
@@ -440,7 +476,7 @@ function formatComprehensiveReportReply(result, companyLabel) {
       for (const w of s1.workers.slice(0, 15)) {
         const tareehaTxt = w.tareeha != null ? ` | طريحته: ${w.tareeha} وعمل: ${w.productivity ?? 0} (${w.completion_percentage || '—'})` : '';
         const wageTxt = s1.wages_available === false ? '' : ` | يوميته: ${w.daily_wage ?? 0} ر.س`;
-        lines.push(`  - ${w.worker_name} | ${w.site_ref} | شغال في بند: ${w.work_item}${wageTxt} (${w.status})${tareehaTxt}`);
+        lines.push(`  - ${w.worker_name} | ${w.site_ref} | شغال في بند: ${w.work_item}${wageTxt} (${w.status})${tareehaTxt}${w.note ? ` ⚠️ ${w.note}` : ''}`);
       }
     } else {
       lines.push(`• لسه متسجلش أي يوميات عمالة النهارده لحد دلوقتي ${addr}.`);
@@ -474,7 +510,7 @@ function formatComprehensiveReportReply(result, companyLabel) {
     lines.push(`3️⃣ المصروفات المسجلة النهارده (${s3.expenses_count ?? 0} عملية بمبلغ إجمالي ${s3.total_expenses_amount ?? 0} ر.س):`);
     if (Array.isArray(s3.expenses_list) && s3.expenses_list.length > 0) {
       for (const e of s3.expenses_list.slice(0, 10)) {
-        lines.push(`  - ${e.description}: ${e.total_price} ر.س | ${e.site_ref} | قسم: ${e.main_category} (${e.status})`);
+        lines.push(`  - ${e.description}: ${e.total_price} ر.س | ${e.site_ref} | قسم: ${e.main_category} (${e.status})${e.note ? ` ⚠️ ${e.note}` : ''}`);
       }
     } else {
       lines.push('• مفيش أي مصروفات اتسجلت في اليوم ده.');
@@ -493,6 +529,24 @@ function formatComprehensiveReportReply(result, companyLabel) {
       `• سندات صرف كاش أو تحويل للعمال: ${s4.vouchers_available === false ? 'غير متاح (صلاحية payments)' : `${s4.labor_payment_vouchers_total ?? 0} ر.س`}`,
       `• إجمالي اللي رايح للعمالة كله: ${s4.total_spent_or_accrued_for_labor === null || s4.total_spent_or_accrued_for_labor === undefined ? 'غير متاح بالكامل' : `${s4.total_spent_or_accrued_for_labor} ر.س`}`
     );
+  }
+
+  // 4-ب) سندات الصرف والقبض النهارده (كل الحركات المسجلة النهارده)
+  if (s4.available !== false && (Array.isArray(s4.all_payment_vouchers_today) || s4.receipt_vouchers_today)) {
+    lines.push('────────────────────────────');
+    const pv = Array.isArray(s4.all_payment_vouchers_today) ? s4.all_payment_vouchers_today : [];
+    lines.push(`💸 سندات الصرف النهارده (${pv.length} سند بإجمالي ${s4.all_payment_vouchers_today_total ?? 0} ر.س):`);
+    if (pv.length === 0) lines.push('• مفيش سندات صرف في اليوم ده.');
+    for (const v of pv.slice(0, 15)) {
+      lines.push(`  - ${v.voucher_number} | ${v.partner_name} | ${v.amount} ر.س | ${v.description} (${v.status})${v.note ? ` ⚠️ ${v.note}` : ''}`);
+    }
+    const rv = s4.receipt_vouchers_today;
+    if (rv) {
+      lines.push(`💰 سندات القبض النهارده (${rv.count} سند بإجمالي ${rv.total} ر.س):`);
+      for (const r of (rv.list || []).slice(0, 10)) {
+        lines.push(`  - ${r.receipt_number} | ${r.partner_name} | ${r.amount} ر.س${r.note ? ` ⚠️ ${r.note}` : ''}`);
+      }
+    }
   }
 
   // 5) الخامات اللي اتصرفت
@@ -888,8 +942,9 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
       projects: hasModulePermission(access, 'projects', 'view'),
       expenses: hasModulePermission(access, 'expenses', 'view'),
       payments: hasModulePermission(access, 'payments', 'view'),
+      receipts: hasModulePermission(access, 'receipts', 'view'),
       inventory: hasModulePermission(access, 'inventory', 'view') || hasModulePermission(access, 'projects', 'view'),
-      contractors: hasModulePermission(access, 'sub_claims', 'view') || hasModulePermission(access, 'projects', 'view'),
+      contractors: hasModulePermission(access, 'sub_claims', 'view') || hasModulePermission(access, 'subclaims', 'view') || hasModulePermission(access, 'projects', 'view'),
       requests: Boolean(access?.fullCompanyAccess) || hasModulePermission(access, 'projects', 'view'),
     };
   }
@@ -918,7 +973,7 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     return formatProjectsReply(result, companyLabel);
   }
   if (name === DAILY_REPORT) {
-    return formatComprehensiveReportReply(result, companyLabel);
+    return formatComprehensiveReportReply(result, companyLabel) + REPORT_PART_SPLIT + formatLateEntriesReport(result, companyLabel);
   }
   if (name === ADD_LABOR) {
     return formatAddLaborReply(result, companyLabel);

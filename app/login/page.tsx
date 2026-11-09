@@ -42,14 +42,52 @@ function LoginContent() {
           justify-content: center;
           direction: rtl;
           font-family: 'Cairo', sans-serif;
-          background: radial-gradient(1100px 600px at 50% -10%, rgba(199, 85, 23, 0.16), transparent 60%), linear-gradient(180deg, #14171d 0%, #0d0f14 100%);
+          background: #0d0f14;
           padding: 1.5rem;
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+        }
+
+        /* خلفية الشعار (صورة الهوية) مع حركة تقريب بطيئة */
+        .login-wrapper::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: -2;
+          background: url('/brand/hero-bg.webp') 22% center / cover no-repeat, #0d0f14;
+          transform-origin: 22% 50%;
+          animation: bgDrift 28s ease-in-out infinite alternate;
+        }
+
+        /* طبقة تعتيم متدرجة: تحمي قراءة البطاقة وتُبقي نور النحاس ظاهرًا */
+        .login-wrapper::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          background:
+            radial-gradient(70rem 40rem at 50% 50%, rgba(10, 12, 16, 0.78), rgba(10, 12, 16, 0.35) 70%),
+            linear-gradient(180deg, rgba(10, 12, 16, 0.35), rgba(10, 12, 16, 0.7));
+        }
+
+        @keyframes bgDrift {
+          from { transform: scale(1); }
+          to { transform: scale(1.07); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .login-wrapper::before { animation: none; }
+        }
+
+        @media (max-width: 640px) {
+          .login-wrapper::before { background-position: 24% center; }
         }
 
         .glass-card {
           width: 100%;
           max-width: 32rem;
-          background: rgba(22, 27, 34, 0.78); 
+          background: rgba(18, 22, 28, 0.74); 
           backdrop-filter: blur(28px);
           -webkit-backdrop-filter: blur(28px);
           border: 1px solid ${isPartner ? 'rgba(245, 158, 11, 0.45)' : 'rgba(234, 88, 12, 0.45)'};

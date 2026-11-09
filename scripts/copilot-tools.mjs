@@ -655,12 +655,19 @@ export function createCopilotTools({
       const canInventory = perms.inventory !== false;
       const canContractors = perms.contractors !== false;
       const canRequests = perms.requests !== false;
+      const canReceipts = perms.receipts !== false;
+
+      // 🕒 «اليوم» بتوقيت الرياض: نجيب الحركات اللي تاريخها اليوم + أي حركة اتسجلت اليوم حتى لو بتاريخ سابق
+      const dayStartIso = new Date(`${targetDate}T00:00:00+03:00`).toISOString();
+      const dayEndIso = new Date(new Date(`${targetDate}T00:00:00+03:00`).getTime() + 86400000).toISOString();
+      const bizDate = (v) => (v ? String(v).slice(0, 10) : '');
+      const backdatedNote = (v) => (bizDate(v) && bizDate(v) !== targetDate ? `اتسجل النهارده بتاريخ ${bizDate(v)}` : null);
       const notPermitted = { ok: false, error: 'غير متاح بالصلاحية الحالية' };
 
       const laborCols = [
         'id', 'work_date', 'worker_name', 'site_ref', 'project_id', 'work_item', 'unit', 'skill_level',
         ...(canLaborCost ? ['daily_wage'] : []),
-        'attendance_value', 'tareeha', 'productivity', 'completion_percentage', 'sub_contractor', 'notes', 'is_posted',
+        'attendance_value', 'tareeha', 'productivity', 'completion_percentage', 'sub_contractor', 'notes', 'is_posted', 'created_at',
       ].join(',');
 
       const [
@@ -675,6 +682,7 @@ export function createCopilotTools({
         assignRes,
         partnersRes,
         ucRes,
+        receiptsRes,
       ] = await Promise.all([
         canProjects
           ? fetchScopedRows('projects', {
@@ -693,7 +701,7 @@ export function createCopilotTools({
           : Promise.resolve(notPermitted),
         canExpenses
           ? fetchScopedRows('expenses', {
-              select: 'id,exp_date,description,quantity,unit_price,total_price,paid_amount,payment_method,creditor_account,main_category,site_ref,payee_name,sub_contractor,project_id,is_posted,notes',
+              select: 'id,exp_date,description,quantity,unit_price,total_price,paid_amount,payment_method,creditor_account,main_category,site_ref,payee_name,sub_contractor,project_id,is_posted,notes,created_at',
               exp_date: `eq.${targetDate}`,
               is_deleted: 'eq.false',
               order: 'created_at.desc',
@@ -702,7 +710,7 @@ export function createCopilotTools({
           : Promise.resolve(notPermitted),
         canPayments
           ? fetchScopedRows('payment_vouchers', {
-              select: 'id,voucher_number,date,amount,partner_id,payment_method,description,notes,status,is_posted,site_ref,sub_claim_id',
+              select: 'id,voucher_number,date,amount,partner_id,payment_method,description,notes,status,is_posted,site_ref,sub_claim_id,created_at',
               date: `eq.${targetDate}`,
               order: 'created_at.desc',
               limit: '100',
@@ -710,18 +718,13 @@ export function createCopilotTools({
           : Promise.resolve(notPermitted),
         canInventory
           ? fetchScopedRows('material_issues', {
-              select: 'id,issue_number,project_id,subcontractor_id,contractor_text_name,issue_date,issue_type,total_amount,notes,is_posted,job_order_id',
+              select: 'id,issue_number,project_id,subcontractor_id,contractor_text_name,issue_date,issue_type,total_amount,notes,is_posted,job_order_id,created_at',
               issue_date: `eq.${targetDate}`,
               order: 'created_at.desc',
               limit: '100',
             })
           : Promise.resolve(notPermitted),
-        canInventory
-          ? fetchScopedRows('material_issue_lines', {
-              select: 'id,issue_id,item_name,quantity,unit,unit_price,total_price,job_order_id',
-              limit: '100',
-            })
-          : Promise.resolve(notPermitted),
+        Promise.resolve({ ok: true, data: [] }), // تُجلب بعد معرفة صرفيات اليوم
         canContractors
           ? fetchScopedRows('sub_claims', {
               select: 'id,claim_number,contractor_id,project_id,project_names_text,date,total_amount,retention_amount,deductions_amount,net_amount,paid_amount,status,is_posted,job_order_id',
@@ -752,7 +755,42 @@ export function createCopilotTools({
               limit: '50',
             })
           : Promise.resolve(notPermitted),
+        canReceipts
+          ? fetchScopedRows('receipt_vouchers', {
+              select: 'id,receipt_number,date,amount,partner_id,payment_method,description,status,is_posted,created_at',
+              date: `eq.${targetDate}`,
+              order: 'created_at.desc',
+              limit: '100',
+            })
+          : Promise.resolve(notPermitted),
       ]);
+
+      // 🕒 تقرير «الإضافات المتأخرة»: حركات اتسجلت النهارده لكن بتاريخ عملية مختلف عن النهارده
+      const lateRange = { created_at: [`gte.${dayStartIso}`, `lt.${dayEndIso}`] };
+      const lateFetch = (allowed, table, select, dateCol) => allowed
+        ? fetchScopedRows(table, { select, ...lateRange, [dateCol]: `neq.${targetDate}`, order: 'created_at.desc', limit: '100' })
+        : Promise.resolve(notPermitted);
+      const [lateLaborRes, lateExpRes, latePayRes, lateRecRes, lateMatRes, lateClaimRes] = await Promise.all([
+        lateFetch(canLaborLogs, 'labor_daily_logs', 'id,work_date,worker_name,site_ref,project_id,work_item,' + (canLaborCost ? 'daily_wage,' : '') + 'attendance_value,is_posted,created_at', 'work_date'),
+        lateFetch(canExpenses, 'expenses', 'id,exp_date,description,total_price,main_category,site_ref,payee_name,project_id,is_posted,created_at', 'exp_date'),
+        lateFetch(canPayments, 'payment_vouchers', 'id,voucher_number,date,amount,partner_id,description,notes,status,is_posted,created_at', 'date'),
+        lateFetch(canReceipts, 'receipt_vouchers', 'id,receipt_number,date,amount,partner_id,description,status,is_posted,created_at', 'date'),
+        lateFetch(canInventory, 'material_issues', 'id,issue_number,project_id,issue_date,total_amount,contractor_text_name,subcontractor_id,is_posted,created_at', 'issue_date'),
+        lateFetch(canContractors, 'sub_claims', 'id,claim_number,contractor_id,project_id,project_names_text,date,net_amount,status,is_posted,created_at', 'date'),
+      ]);
+
+      // خامات اليوم: نجيب بنود الصرفيات اللي اتحددت فقط (بدل أول 100 بند عشوائيين)
+      if (canInventory && matIssuesRes.ok && matIssuesRes.data.length > 0) {
+        const ids = matIssuesRes.data.map(m => m.id).filter(id => typeof id === 'string' && UUID.test(id));
+        if (ids.length > 0) {
+          const linesRes = await fetchScopedRows('material_issue_lines', {
+            select: 'id,issue_id,item_name,quantity,unit,unit_price,total_price,job_order_id',
+            issue_id: `in.(${ids.join(',')})`,
+            limit: '300',
+          });
+          if (linesRes.ok) matLinesRes.data = linesRes.data;
+        }
+      }
 
       const projects = projRes.ok ? projRes.data : [];
       const projectMap = new Map(projects.map(p => [p.id, p.Property || p.project_name || p.project_code || 'مشروع']));
@@ -866,6 +904,18 @@ export function createCopilotTools({
         success: true,
         report_date: targetDate,
         villa_filter: villaFilter || 'جميع المشاريع والفلل',
+        late_entries: (() => {
+          const rows = (res, map) => (res.ok ? res.data.map(map) : null);
+          const sum = (res, f) => (res.ok ? res.data.reduce((t, r) => t + (Number(r[f]) || 0), 0) : null);
+          return {
+            labor: { available: lateLaborRes.ok, rows: rows(lateLaborRes, l => ({ date: bizDate(l.work_date), worker_name: l.worker_name, site_ref: l.site_ref || projectMap.get(l.project_id) || 'غير محدد', work_item: l.work_item || '—', daily_wage: canLaborCost ? (Number(l.daily_wage) || 0) : null, status: l.is_posted ? 'مرحّل' : 'مسودة' })), total_wages: canLaborCost ? sum(lateLaborRes, 'daily_wage') : null },
+            expenses: { available: lateExpRes.ok, rows: rows(lateExpRes, e => ({ date: bizDate(e.exp_date), description: e.description, total_price: Number(e.total_price) || 0, site_ref: e.site_ref || projectMap.get(e.project_id) || 'عام', payee_name: e.payee_name || '—', status: e.is_posted ? 'مرحّل' : 'مسودة' })), total: sum(lateExpRes, 'total_price') },
+            payments: { available: latePayRes.ok, rows: rows(latePayRes, v => ({ date: bizDate(v.date), voucher_number: v.voucher_number || 'مسودة', amount: Number(v.amount) || 0, partner_name: partnerMap.get(v.partner_id)?.name || '—', description: v.description || v.notes || '—', status: v.status || (v.is_posted ? 'مرحّل' : 'مسودة') })), total: sum(latePayRes, 'amount') },
+            receipts: { available: lateRecRes.ok, rows: rows(lateRecRes, r => ({ date: bizDate(r.date), receipt_number: r.receipt_number || 'مسودة', amount: Number(r.amount) || 0, partner_name: partnerMap.get(r.partner_id)?.name || '—' })), total: sum(lateRecRes, 'amount') },
+            materials: { available: lateMatRes.ok, rows: rows(lateMatRes, m => ({ date: bizDate(m.issue_date), issue_number: m.issue_number, villa: projectMap.get(m.project_id) || 'عام', contractor: m.contractor_text_name || partnerMap.get(m.subcontractor_id)?.name || '—', total_amount: Number(m.total_amount) || 0 })), total: sum(lateMatRes, 'total_amount') },
+            claims: { available: lateClaimRes.ok, rows: rows(lateClaimRes, c => ({ date: bizDate(c.date), claim_number: c.claim_number || 'مسودة', contractor_name: partnerMap.get(c.contractor_id)?.name || 'مقاول', projects: c.project_names_text || projectMap.get(c.project_id) || 'مشروع', net_amount: Number(c.net_amount) || 0, status: c.status || (c.is_posted ? 'معتمد' : 'معلق') })), total: sum(lateClaimRes, 'net_amount') },
+          };
+        })(),
         section_1_labor_today: {
           available: canLaborLogs && laborRes.ok,
           wages_available: wagesAvailable,
@@ -883,7 +933,9 @@ export function createCopilotTools({
             productivity: l.productivity != null ? Number(l.productivity) : null,
             completion_percentage: l.completion_percentage != null ? `${l.completion_percentage}%` : null,
             status: l.is_posted ? 'مرحّل' : 'مسودة',
+            note: backdatedNote(l.work_date),
           })),
+          backdated_entries_count: canLaborLogs && laborRes.ok ? laborLogs.filter(l => backdatedNote(l.work_date)).length : null,
         },
         section_2_villas_and_projects: {
           available: canProjects && projRes.ok,
@@ -915,7 +967,9 @@ export function createCopilotTools({
             payee_name: e.payee_name || '—',
             payment_method: e.payment_method || 'آجل',
             status: e.is_posted ? 'مرحّل' : 'مسودة',
+            note: backdatedNote(e.exp_date),
           })),
+          backdated_entries_count: expensesAvailable ? expensesToday.filter(e => backdatedNote(e.exp_date)).length : null,
         },
         section_4_spent_on_labor: {
           available: wagesAvailable || expensesAvailable || paymentsAvailable,
@@ -930,6 +984,24 @@ export function createCopilotTools({
               ? totalLaborWagesToday + totalLaborExpenses + totalLaborVouchers
               : null,
           all_payment_vouchers_today_total: totalPaymentVouchersToday,
+          all_payment_vouchers_today: paymentsAvailable ? paymentVouchersToday.map(v => ({
+            voucher_number: v.voucher_number || 'مسودة',
+            amount: Number(v.amount) || 0,
+            partner_name: partnerMap.get(v.partner_id)?.name || '—',
+            description: v.description || v.notes || '—',
+            status: v.status || (v.is_posted ? 'مرحّل' : 'مسودة'),
+            note: backdatedNote(v.date),
+          })) : null,
+          receipt_vouchers_today: receiptsRes.ok ? {
+            count: receiptsRes.data.length,
+            total: receiptsRes.data.reduce((sum, r) => sum + (Number(r.amount) || 0), 0),
+            list: receiptsRes.data.map(r => ({
+              receipt_number: r.receipt_number || 'مسودة',
+              amount: Number(r.amount) || 0,
+              partner_name: partnerMap.get(r.partner_id)?.name || '—',
+              note: backdatedNote(r.date),
+            })),
+          } : null,
           labor_expenses_details: laborRelatedExpenses.map(e => ({
             description: e.description,
             amount: Number(e.total_price) || 0,
@@ -952,6 +1024,7 @@ export function createCopilotTools({
             contractor: m.contractor_text_name || partnerMap.get(m.subcontractor_id)?.name || '—',
             total_amount: Number(m.total_amount) || 0,
             status: m.is_posted ? 'مرحّل' : 'مسودة',
+            note: backdatedNote(m.issue_date),
           })),
           items_issued: matLinesToday.map(l => ({
             item_name: l.item_name,
