@@ -274,6 +274,31 @@ export default function LoginPage() {
           )}
         </button>
 
+        <div style={{ textAlign: 'center', marginTop: '1.25rem' }}>
+          <a
+            href="/website"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              width: '100%',
+              padding: '0.625rem 1rem',
+              borderRadius: '12px',
+              background: 'rgba(249, 115, 22, 0.12)',
+              color: '#fb923c',
+              textDecoration: 'none',
+              fontSize: '0.8125rem',
+              fontWeight: 700,
+              boxShadow: '0 4px 15px rgba(249, 115, 22, 0.15)',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <span>🌐</span>
+            <span>زيارة موقع شركة فاي كونستركت (PHI CONSTRUCT) الرسمي</span>
+          </a>
+        </div>
+
         <div style={{ textAlign: 'center', marginTop: '1.5625rem' }}>
           <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
             جميع الحقوق محفوظة © {new Date().getFullYear()} <br/> إدارة تقنية المعلومات - فاي تك

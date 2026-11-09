@@ -59,6 +59,11 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
   '/profile': 'profile',
 };
 
+export const isPublicRoute = (path?: string | null) => {
+  if (!path) return false;
+  return path === '/login' || path === '/signup' || path.startsWith('/website') || path.startsWith('/construct');
+};
+
 export default function AuthGuard({ children, requiredRoles }: { children: React.ReactNode; requiredRoles?: readonly string[] }) {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -90,7 +95,7 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
         setUser(null);
         setProfile(null);
         void sharedQueryClient.cancelQueries();
-        if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
+        if (!isPublicRoute(pathname)) router.replace("/login");
         setLoading(false);
         return;
       }
@@ -150,14 +155,14 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
         setUser(null);
         setProfile(null);
         try { sharedQueryClient.clear(); } catch {}
-        if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
+        if (!isPublicRoute(pathname)) router.replace("/login");
       } else if (session && !user) {
         setUser(session.user);
       } else if (!session && event === "TOKEN_REFRESHED") {
         setUser(null);
         setProfile(null);
         try { sharedQueryClient.clear(); } catch {}
-        if (pathname !== "/login" && pathname !== "/signup") router.replace("/login");
+        if (!isPublicRoute(pathname)) router.replace("/login");
       }
     });
 
@@ -180,7 +185,7 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
 
   const isAuthorized = useMemo(() => {
     if (loading || !user || !profile) return true; // Don't block while loading
-    if (pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname.startsWith('/api')) return true;
+    if (pathname === '/' || isPublicRoute(pathname) || pathname.startsWith('/api')) return true;
     if (requiredRoles?.length && !profile.is_admin && !requiredRoles.includes(profile.role)) return false;
     
     // 🛡️ السماح دائماً للملف الشخصي لأي مستخدم مسجل
@@ -193,10 +198,10 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
   }, [pathname, profile, loading, user, requiredRoles]);
 
   if (!user) {
-    if (pathname !== '/login' && pathname !== '/signup') {
+    if (!isPublicRoute(pathname)) {
       return <LoadingScreen message="جاري تأمين الاتصال..." subMessage="نتحقق من صلاحيات الدخول الآمن لنظام فاي تك" fullScreen={true} />;
     }
-    if (loading) return <>{children}</>;
+    return <>{children}</>;
   }
 
   if (!isAuthorized) {

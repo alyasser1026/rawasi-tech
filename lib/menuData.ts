@@ -38,6 +38,7 @@ export const menuGroups = [
     { 
         group: "المشاريع والشركاء", 
         items: [
+            { id: 'phi_construct_website', title: 'بوابة العملاء والمقايسات (PHI CONSTRUCT)', icon: '🌐', path: '/website' },
             { id: 'fieldops', title: 'رادار الميدان الحي', icon: '📡', path: '/fieldops' },
             { id: 'bim_viewer', title: 'استعراض النماذج ثلاثية الأبعاد (3D BIM)', icon: '🏛️', path: '/bim' },
             { id: 'projects', title: 'غرفة المشاريع', icon: '🏗️', path: '/projects' }, 
