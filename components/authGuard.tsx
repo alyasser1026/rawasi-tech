@@ -56,12 +56,13 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
   '/reports': 'reports',
   '/import': 'import',
   '/settings': 'settings',
+  '/website-admin': 'settings',
   '/profile': 'profile',
 };
 
 export const isPublicRoute = (path?: string | null) => {
   if (!path) return false;
-  return path === '/' || path === '/login' || path === '/signup' || path.startsWith('/website') || path.startsWith('/construct');
+  return path === '/' || path === '/login' || path === '/signup' || path === '/website' || path.startsWith('/website/') || path.startsWith('/construct');
 };
 
 export default function AuthGuard({ children, requiredRoles }: { children: React.ReactNode; requiredRoles?: readonly string[] }) {

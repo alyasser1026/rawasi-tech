@@ -11,15 +11,10 @@ interface Props {
 export default function ExecutionGuideDossier({ initialSearch = '', onNavigateToChecklistSection }: Props) {
   const [q, setQ] = useState(initialSearch);
   const [selectedCategory, setSelectedCategory] = useState<string>('الكل');
-  const [selectedProject, setSelectedProject] = useState<string>('الكل');
   const [expandedId, setExpandedId] = useState<string | null>(EXECUTION_GUIDE_ITEMS[0]?.id || null);
 
   const categories = useMemo(() => {
     return ['الكل', 'أعمال مدنية وعظم', 'أعمال تشطيبات', 'أعمال كهروميكانيكية (MEP)', 'أعمال متخصصة وعزل'];
-  }, []);
-
-  const projects = useMemo(() => {
-    return ['الكل', 'برج كابيتال', 'فيلا 657'];
   }, []);
 
   const filteredItems = useMemo(() => {
@@ -28,12 +23,6 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
       // Category filter
       if (selectedCategory !== 'الكل' && item.itemCategory !== selectedCategory) {
         return false;
-      }
-      // Project filter
-      if (selectedProject !== 'الكل') {
-        if (!item.appliedProject.projectName.includes(selectedProject)) {
-          return false;
-        }
       }
       // Text search
       if (searchNorm) {
@@ -50,15 +39,13 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
           ...item.executionSequence.steps.map(s => s.title + ' ' + s.detail),
           ...item.inspectionAndHandover.checkpoints,
           item.approximatePricing.totalRate,
-          item.appliedProject.projectName,
-          item.appliedProject.siteReality,
         ].join(' ').toLowerCase();
 
         return fullText.includes(searchNorm);
       }
       return true;
     });
-  }, [q, selectedCategory, selectedProject]);
+  }, [q, selectedCategory]);
 
   const toggleExpand = (id: string) => {
     setExpandedId(prev => (prev === id ? null : id));
@@ -112,22 +99,6 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
               ))}
             </div>
           </div>
-
-          <div className="pw-exec-filter-group">
-            <span className="pw-exec-filter-label">المشروع التطبيقي:</span>
-            <div className="pw-exec-chips" role="tablist">
-              {projects.map(prj => (
-                <button
-                  key={prj}
-                  type="button"
-                  className={`pw-chip ${selectedProject === prj ? 'is-on' : ''}`}
-                  onClick={() => setSelectedProject(prj)}
-                >
-                  {prj}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
@@ -136,7 +107,7 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
         {filteredItems.length === 0 ? (
           <div className="pw-exec-empty">
             <p>لا توجد بنود مطابقة لبحثك في دليل التنفيذ.</p>
-            <button type="button" className="pw-ck-btn" onClick={() => { setQ(''); setSelectedCategory('الكل'); setSelectedProject('الكل'); }}>
+            <button type="button" className="pw-ck-btn" onClick={() => { setQ(''); setSelectedCategory('الكل'); }}>
               إعادة ضبط الفلاتر
             </button>
           </div>
@@ -154,7 +125,6 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
                       <div className="pw-exec-meta-pills">
                         <span className="pw-exec-pill pw-pill-cat">{item.itemCategory}</span>
                         <span className="pw-exec-pill pw-pill-unit">{item.unit}</span>
-                        <span className="pw-exec-pill pw-pill-prj">🏛️ {item.appliedProject.projectName}</span>
                       </div>
                     </div>
                   </div>
@@ -177,13 +147,13 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
                   </div>
                 </header>
 
-                {/* Collapsible Content: The 10 Dimensions */}
+                {/* Collapsible Content: Dimensions */}
                 {isExpanded && (
                   <div className="pw-exec-body">
                     {/* Top Shortcut Bar */}
                     <div className="pw-exec-topbar">
                       <div className="pw-exec-dimension-badges">
-                        <span className="pw-dim-badge">10 محاور تنفيذية معتمدة</span>
+                        <span className="pw-dim-badge">محاور تنفيذية معتمدة</span>
                         <span className="pw-dim-badge is-verified">معايير فاي تك الهندسية</span>
                       </div>
                       {onNavigateToChecklistSection && (
@@ -395,53 +365,6 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
                         </div>
                       </section>
                     </div>
-
-                    {/* 10. ما يحدث في المشروع التطبيقي (عرض ممتد مميز) */}
-                    <section className="pw-exec-block pw-block-applied full-width">
-                      <div className="pw-applied-banner">
-                        <div className="pw-applied-head">
-                          <span className="pw-applied-icon">🏗️</span>
-                          <div>
-                            <h4>10. ما يحدث في المشروع التطبيقي (الواقع الميداني العملي)</h4>
-                            <p className="pw-applied-sub">
-                              المشروع: <strong>{item.appliedProject.projectName}</strong> ({item.appliedProject.projectCode}) — {item.appliedProject.location}
-                              {item.appliedProject.appliedJobOrder && (
-                                <span className="pw-applied-jo"> | أمر الشغل: <code>{item.appliedProject.appliedJobOrder}</code></span>
-                              )}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="pw-applied-story">
-                          <p>{item.appliedProject.siteReality}</p>
-                        </div>
-
-                        {item.appliedProject.practicalChallenges.length > 0 && (
-                          <div className="pw-applied-challenges">
-                            <h5>تحديات ميدانية حقيقية وكيف تعاملنا معها هندسياً:</h5>
-                            <div className="pw-challenges-grid">
-                              {item.appliedProject.practicalChallenges.map((ch, idx) => (
-                                <div key={idx} className="pw-challenge-card">
-                                  <div className="pw-ch-q">
-                                    <span className="pw-ch-tag">التحدي الميداني</span>
-                                    <p>{ch.challenge}</p>
-                                  </div>
-                                  <div className="pw-ch-a">
-                                    <span className="pw-ch-tag is-sol">الحل الهندسي المنفذ</span>
-                                    <p>{ch.solution}</p>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <div className="pw-applied-metric">
-                          <span className="pw-metric-icon">🏆</span>
-                          <p><strong>مؤشر جودة واقعي: </strong>{item.appliedProject.fieldKeyMetric}</p>
-                        </div>
-                      </div>
-                    </section>
                   </div>
                 )}
               </article>

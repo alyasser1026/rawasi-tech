@@ -86,6 +86,7 @@ export const menuGroups = [
             { id: 'import', title: 'استيراد البيانات', icon: '📥', path: '/import' },
             { id: 'companies', title: 'المنشآت والشركات', icon: '🏢', path: '/settings/companies' },
             { id: 'settings', title: 'إعدادات النظام', icon: '⚙️', path: '/settings' }, 
+            { id: 'website-admin', title: 'إدارة الموقع', icon: '🌐', path: '/website-admin' },
             { id: 'profile', title: 'الملف الشخصي', icon: '👤', path: '/profile' }
         ] 
     }

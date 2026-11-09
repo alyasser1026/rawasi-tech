@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { SITE, SERVICES, STEPS, PROJECTS, COMMITMENTS, FAQS } from './site-content';
+import { SERVICES, STEPS, mergeContent, type SiteContentOverride } from './site-content';
 import { CSS } from './site-styles';
 import EngTools from './EngTools';
 import ChecklistExplorer from './ChecklistExplorer';
@@ -93,7 +93,8 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
   );
 }
 
-export default function PhiSite() {
+export default function PhiSite({ content }: { content?: SiteContentOverride }) {
+  const { SITE, PROJECTS, COMMITMENTS, FAQS } = mergeContent(content);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -230,7 +231,7 @@ export default function PhiSite() {
             <div className="pw-head">
               <p className="pw-eyebrow">منظومة الجودة والتنفيذ الميداني</p>
               <h2>دليل وبطاقات التنفيذ الهندسي وقوائم التفقد</h2>
-              <p>منظومة تنفيذية شاملة لكل بند ترتكز على 10 محاور هندسية: ما يسبقه، الاعتمادات، الحسابات والكميات، ما يُراجع قبل التنفيذ، تسلسل الخطوات، الاستلام والتسليم، مسار الاعتماد، أسعار استرشادية محدثة (نوفمبر 2026)، والواقع العملي في مشاريعنا التطبيقية (برج كابيتال وفيلا 657) بجانب قائمة التفقد التفاعلية.</p>
+              <p>منظومة تنفيذية شاملة لكل بند ترتكز على محاور هندسية: ما يسبقه، الاعتمادات، الحسابات والكميات، ما يُراجع قبل التنفيذ، تسلسل الخطوات، الاستلام والتسليم، مسار الاعتماد، وأسعار استرشادية محدثة (نوفمبر 2026)، بجانب قائمة التفقد التفاعلية.</p>
             </div>
             <ChecklistExplorer />
           </div>
