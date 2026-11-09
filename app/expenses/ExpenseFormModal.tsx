@@ -207,7 +207,7 @@ export default function ExpenseFormModal({
                 <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.25rem, 1fr))', gap: '1.5625rem', marginBottom: '1.5625rem' }}>
                     <label style={{ display: 'block' }}>
                         <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary)', display: 'block', marginBottom: '0.375rem' }}>تاريخ المصروف *</span>
-                        <input type="date" className="glass-input-field" value={record?.exp_date || ''} onChange={e => setRecord({...record, exp_date: e.target.value})} />
+                        <input type="date" className="glass-input-field" value={record?.exp_date || ''} onChange={e => setRecord((prev: any) => ({ ...prev, exp_date: e.target.value }))} />
                     </label>
                     <div style={{ gridColumn: 'span 2', zIndex: 90, position: 'relative' }}>
                         <SmartCombo 
@@ -262,7 +262,7 @@ export default function ExpenseFormModal({
                         />
                     </div>
                     <div style={{ zIndex: 70, position: 'relative' }}>
-                        <SmartCombo label="المستفيد المباشر" icon="👤" table="partners" displayCol="name" initialDisplay={record?.payee_name} onSelect={(val:any) => setRecord({...record, payee_name: typeof val === 'object' && val !== null ? val.name : val})} />
+                        <SmartCombo label="المستفيد المباشر" icon="👤" table="partners" displayCol="name" initialDisplay={record?.payee_name} onSelect={(val:any) => setRecord((prev: any) => ({ ...prev, payee_name: typeof val === 'object' && val !== null ? val.name : val }))} />
                     </div>
                     
                     <div style={{ zIndex: 65, position: 'relative' }}>
@@ -290,12 +290,12 @@ export default function ExpenseFormModal({
                         icon="📁" 
                         options={EXPENSE_CATEGORIES} 
                         initialDisplay={record?.main_category} 
-                        onSelect={(val:any) => setRecord({...record, main_category: typeof val === 'object' && val !== null ? val.name : val})} 
+                        onSelect={(val:any) => setRecord((prev: any) => ({ ...prev, main_category: typeof val === 'object' && val !== null ? val.name : val }))} 
                         strict={true} 
                     />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.25rem, 1fr))', gap: '1.5625rem', background: isSettlement ? 'rgba(16, 185, 129, 0.12)' : 'var(--surface-subcard)', padding: '1.5625rem', borderRadius: '14px', marginBottom: '1.5625rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.25rem, 1fr))', gap: '1.5625rem', background: isSettlement ? 'rgba(16, 185, 129, 0.12)' : 'var(--surface-subcard)', padding: '1.5625rem', borderRadius: '14px', marginBottom: '1.5625rem', position: 'relative', zIndex: 55 }}>
                     <div style={{ zIndex: 55, position: 'relative' }}>
                         <SmartCombo 
                             label="طريقة القيد *" 
@@ -321,7 +321,7 @@ export default function ExpenseFormModal({
                             table="accounts" 
                             displayCol="name" 
                             initialDisplay={record?.creditor_account} 
-                            onSelect={(val:any) => setRecord({...record, creditor_account: typeof val === 'object' && val !== null ? val.name : val})} 
+                            onSelect={(val:any) => setRecord((prev: any) => ({ ...prev, creditor_account: typeof val === 'object' && val !== null ? val.name : val }))} 
                             strict={true} 
                         />
                     </div>
@@ -359,7 +359,7 @@ export default function ExpenseFormModal({
                                 table="accounts" 
                                 displayCol="name" 
                                 initialDisplay={record?.payment_account} 
-                                onSelect={(val:any) => setRecord({...record, payment_account: typeof val === 'object' && val !== null ? val.name : val})} 
+                                onSelect={(val:any) => setRecord((prev: any) => ({ ...prev, payment_account: typeof val === 'object' && val !== null ? val.name : val }))} 
                                 strict={true} 
                             />
                         </div>
@@ -370,23 +370,23 @@ export default function ExpenseFormModal({
                     <h3 style={{ margin: '0 0 0.9375rem', fontSize: 'var(--fs-xl)', fontWeight: 900, color: 'var(--accent-ink)' }}>إضافة بنود المصروف</h3>
                     <div className="responsive-line-entry-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr 1fr 1fr 0.5fr', gap: '0.9375rem', alignItems: 'end' }}>
                         <div style={{ zIndex: 40 }}>
-                            <SmartCombo label="البيان / الصنف *" icon="🛠️" freeText={true} initialDisplay={record.description} onSelect={(val: any) => setRecord({...record, description: typeof val === 'object' && val !== null ? val.name : val})} options={historicalData?.descriptions || []} />
+                            <SmartCombo label="البيان / الصنف *" icon="🛠️" freeText={true} initialDisplay={record.description} onSelect={(val: any) => setRecord((prev: any) => ({ ...prev, description: typeof val === 'object' && val !== null ? val.name : val }))} options={historicalData?.descriptions || []} />
                         </div>
                         <div>
                             <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--text-primary)' }}>الكمية *</label>
-                            <input type="number" value={record.quantity || ''} onChange={e => setRecord({...record, quantity: e.target.value})} className="glass-input-field" style={{ textAlign: 'center' }} />
+                            <input type="number" value={record.quantity || ''} onChange={e => setRecord((prev: any) => ({ ...prev, quantity: e.target.value }))} className="glass-input-field" style={{ textAlign: 'center' }} />
                         </div>
                         <div>
                             <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--text-primary)' }}>سعر الوحدة *</label>
-                            <input type="number" value={record.unit_price || ''} onChange={e => setRecord({...record, unit_price: e.target.value})} className="glass-input-field" style={{ textAlign: 'center' }} />
+                            <input type="number" value={record.unit_price || ''} onChange={e => setRecord((prev: any) => ({ ...prev, unit_price: e.target.value }))} className="glass-input-field" style={{ textAlign: 'center' }} />
                         </div>
                         <div>
                             <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--text-primary)' }}>قيمة الضريبة</label>
-                            <input type="number" value={record.vat_amount || ''} onChange={e => setRecord({...record, vat_amount: e.target.value})} className="glass-input-field" style={{ textAlign: 'center' }} />
+                            <input type="number" value={record.vat_amount || ''} onChange={e => setRecord((prev: any) => ({ ...prev, vat_amount: e.target.value }))} className="glass-input-field" style={{ textAlign: 'center' }} />
                         </div>
                         <div>
                             <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--status-negative)' }}>الخصم (-)</label>
-                            <input type="number" value={record.discount_amount || ''} onChange={e => setRecord({...record, discount_amount: e.target.value})} className="glass-input-field" style={{ textAlign: 'center' }}/>
+                            <input type="number" value={record.discount_amount || ''} onChange={e => setRecord((prev: any) => ({ ...prev, discount_amount: e.target.value }))} className="glass-input-field" style={{ textAlign: 'center' }}/>
                         </div>
                         <button onClick={handleAddStatement} style={{ background: 'rgba(16, 185, 129, 0.14)', color: 'var(--status-positive)', border: 'none', height: '2.8125rem', borderRadius: '12px', cursor: 'pointer', fontWeight: 900, fontSize: 'var(--fs-xl)' }}><Plus size={15} aria-hidden="true" /></button>
                     </div>

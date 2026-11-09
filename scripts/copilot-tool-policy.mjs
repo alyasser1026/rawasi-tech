@@ -154,7 +154,13 @@ function getToolArgs(name, supplied, now) {
   }
 
   if (name === ADD_EXPENSE) {
-    const allowedKeys = ['description', 'total_price', 'site_ref', 'main_category', 'payee_name', 'payment_method', 'exp_date', 'notes'];
+    const allowedKeys = [
+      'description', 'total_price', 'quantity', 'unit_price',
+      'site_ref', 'work_item', 'job_order_id', 'main_category',
+      'creditor_account', 'payment_account', 'payee_name',
+      'payment_method', 'exp_date', 'vat_amount', 'discount_amount',
+      'paid_amount', 'notes'
+    ];
     if (Object.keys(supplied).some(key => !allowedKeys.includes(key))) return null;
     const description = safeText(supplied.description, 160);
     const totalPrice = Number(supplied.total_price);
@@ -165,8 +171,15 @@ function getToolArgs(name, supplied, now) {
       description,
       total_price: totalPrice,
       exp_date: expDate,
+      ...(Number.isFinite(Number(supplied.quantity)) && Number(supplied.quantity) > 0 ? { quantity: Number(supplied.quantity) } : { quantity: 1 }),
+      ...(Number.isFinite(Number(supplied.unit_price)) && Number(supplied.unit_price) > 0 ? { unit_price: Number(supplied.unit_price) } : {}),
+      ...(Number.isFinite(Number(supplied.vat_amount)) && Number(supplied.vat_amount) >= 0 ? { vat_amount: Number(supplied.vat_amount) } : { vat_amount: 0 }),
       ...(safeText(supplied.site_ref, 80) ? { site_ref: safeText(supplied.site_ref, 80) } : {}),
+      ...(safeText(supplied.work_item, 100) ? { work_item: safeText(supplied.work_item, 100) } : {}),
+      ...(safeText(supplied.job_order_id, 40) ? { job_order_id: safeText(supplied.job_order_id, 40) } : {}),
       ...(safeText(supplied.main_category, 80) ? { main_category: safeText(supplied.main_category, 80) } : {}),
+      ...(safeText(supplied.creditor_account, 100) ? { creditor_account: safeText(supplied.creditor_account, 100) } : {}),
+      ...(safeText(supplied.payment_account, 100) ? { payment_account: safeText(supplied.payment_account, 100) } : {}),
       ...(safeText(supplied.payee_name, 80) ? { payee_name: safeText(supplied.payee_name, 80) } : {}),
       ...(safeText(supplied.payment_method, 40) ? { payment_method: safeText(supplied.payment_method, 40) } : {}),
       ...(safeText(supplied.notes, 200) ? { notes: safeText(supplied.notes, 200) } : {}),
@@ -615,7 +628,8 @@ function formatAddExpenseReply(result, companyLabel) {
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
   const pet = s.mozzaNickname || 'يا محاميحو';
-  return [
+
+  const lines = [
     isMozza
       ? `💖 من عيوني ${pet}، سجلتلك مسودة المصروف | العملية رقم [${opTag}]`
       : `✅ تمام يا باشمهندس، سجلتلك مسودة المصروف | العملية رقم [${opTag}]`,
@@ -623,17 +637,31 @@ function formatAddExpenseReply(result, companyLabel) {
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
     `• البيان: ${r.description}`,
+    `• الكمية: ${r.quantity || 1} | سعر الوحدة: ${r.unit_price} ر.س`,
     `• المبلغ الإجمالي: ${r.total_price} ر.س`,
+    `• الضريبة: ${r.vat_amount > 0 ? `${r.vat_amount} ر.س` : 'غير شامل ضريبة (0 ر.س)'}`,
     `• التاريخ: ${r.exp_date}`,
-    `• الفيلا / الموقع: ${r.site_ref}`,
-    `• التصنيف: ${r.main_category} | طريقة الدفع: ${r.payment_method}`,
+    `• الفيلا / الموقع: ${r.site_ref || 'عام'}`,
+    r.job_order_number ? `• أمر الشغل المرتبط: #${r.job_order_number} (${r.job_order_item || '—'})` : (r.work_item ? `• البند المستهدف: ${r.work_item}` : null),
+    `• حساب المدين: ${r.creditor_account || '511 - تكلفة مواد وخامات مباشرة'}`,
+    `• حساب الدائن: ${r.payment_account || '211 - الموردين (مواد بناء)'}`,
+    `• التصنيف: ${r.main_category} | طريقة القيد: ${r.payment_method || 'آجل'}`,
     r.payee_name && r.payee_name !== '—' ? `• المستفيد: ${r.payee_name}` : null,
-    `• الحالة: مسودة جاهزة للمراجعة والاعتماد من شاشة المصروفات أو من الزرار تحت.`,
+    `• الحالة: مسودة جاهزة للمراجعة والاعتماد من شاشة المصروفات أو الأزرار أدناه.`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
+  ];
+
+  if (result.multiple_job_orders && Array.isArray(result.candidate_job_orders) && result.candidate_job_orders.length > 1) {
+    lines.push(`⚠️ تنبيه: تم العثور على أكثر من أمر شغل لهذا البند. يرجى اختيار أمر الشغل المطلوب للربط من الأزرار بالأسفل:`);
+  }
+
+  lines.push(
     isMozza
       ? `💌 لو عايزني أعدل فيها أي حاجة يا روحي قولّي بس: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» وأنا أعملهالك فوراً!`
-      : `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`,
-  ].filter(Boolean).join('\n');
+      : `💡 لو حابب تعدل أي حاجة قولّي أو اكتب: «عدل العملية رقم ${r.op_number || opTag} وخلي ...» أو اعمل Reply على الرسالة دي.`
+  );
+
+  return lines.filter(Boolean).join('\n');
 }
 
 function formatAddJournalReply(result, companyLabel) {
@@ -831,7 +859,32 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     return formatAddLaborReply(result, companyLabel);
   }
   if (name === ADD_EXPENSE) {
-    return formatAddExpenseReply(result, companyLabel);
+    const text = formatAddExpenseReply(result, companyLabel);
+    if (result.multiple_job_orders && Array.isArray(result.candidate_job_orders) && result.candidate_job_orders.length > 1) {
+      const r = result.record || {};
+      const opTag = r.op_number || (r.id ? String(r.id).slice(0, 8).toUpperCase() : '');
+      const joButtons = result.candidate_job_orders.map(jo => ([
+        {
+          text: `📋 أمر شغل #${jo.order_number} (${jo.contractor_name} - ${jo.item_name})`.slice(0, 60),
+          callback_data: `jo_pick:${r.id}:${jo.id}`,
+        }
+      ]));
+      const baseButtons = opTag ? [
+        [
+          { text: `✅ اعتماد وترحيل #${opTag}`, callback_data: `op_approve:${opTag}` },
+          { text: `📎 إرفاق صورة #${opTag}`, callback_data: `op_attach:${opTag}` },
+        ],
+        [
+          { text: `🗑️ إلغاء المسودة #${opTag}`, callback_data: `op_delete:${opTag}` },
+        ],
+      ] : [];
+
+      const strObj = new String(text);
+      strObj.text = text;
+      strObj.replyMarkup = { inline_keyboard: [...joButtons, ...baseButtons] };
+      return strObj;
+    }
+    return text;
   }
   if (name === ADD_JOURNAL) {
     return formatAddJournalReply(result, companyLabel);

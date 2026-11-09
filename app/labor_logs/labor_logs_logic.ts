@@ -45,6 +45,7 @@ export function useLaborLogsLogic() {
         tareeha: '', productivity: '', completion_percentage: '', 
         daily_wage: '', attendance_value: 1, notes: '',
         worker_partner_id: '', project_id: '',
+        job_order_id: null, job_order_display: '',
         work_item_id: null, 
         sub_contractor: '', sub_contractor_id: null,
         credit_account_id: null, credit_account_name: 'رواتب وأجور مستحقة'
@@ -478,7 +479,7 @@ export function useLaborLogsLogic() {
                 if (foundWorker) partnerId = foundWorker.id;
             }
             setEditingId(log.id);
-            setCurrentLog({ ...log, worker_partner_id: partnerId || '' });
+            setCurrentLog({ ...log, worker_partner_id: partnerId || '', job_order_display: log.job_order_id ? (log.work_item ? `أمر شغل: ${log.work_item}` : 'أمر شغل مرتبط') : '' });
             setIsAddModalOpen(true);
         }, 
         handleDelete: (id: string) => { if (confirm('تأكيد الحذف؟')) deleteMutation.mutate([id]); }, 

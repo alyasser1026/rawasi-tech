@@ -664,7 +664,7 @@ function parseBatchLaborLogs(userPrompt) {
   };
 }
 
-function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
+export function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
   const raw = String(userPrompt || '').trim();
   if (!raw) return null;
   // تنظيف أي عبارات دلع أو ترحيب في أول الجملة حتى تعمل كل أوامر الشغل بشكل طبيعي داخل وضع الموزة
@@ -759,21 +759,93 @@ function detectDirectFieldOpsCall(userPrompt, quotedMessageText = '') {
     }
   }
 
-  // 2) إضافة مصروف من المحادثة
-  if (/(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل).*(?:مصروف)/i.test(t) && /\d+/.test(t) && !/ازاي|إزاي|كيف/.test(t)) {
-    const amountMatch = t.match(/(\d+(?:\.\d+)?)/);
-    const siteMatch = t.match(/(?:فيلا|مشروع|عماره|عمارة|موقع)\s*([\p{L}\p{N}_-]+)/u);
-    if (amountMatch) {
-      const desc = t
-        .replace(/^.*?(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل)\s*(?:مصروف)?/u, '')
+  // 2) إضافة أو تسجيل مصروف أو فاتورة من المحادثة بحساسية ودقة فائقة
+  if (
+    /(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجللي|سجل|سجّل|تسجيل|إضافة|اضافة|فاتورة|فاتوره|مصروف|مصاريف|صرفنا|اشترينا|دفعنا)/i.test(t) &&
+    /\d+/.test(t) &&
+    !/(?:ازاي|إزاي|كيف|وريني|استعلام|(?:^|\s)(?:عرض|هات|كشف|تقرير|كم|كام)(?:\s|$))/i.test(t)
+  ) {
+    // 1. استخراج الفيلا أو المشروع (اختياري)
+    let siteRef = null;
+    const siteMatch = t.match(/(?:فيلا|مشروع|عماره|عمارة|موقع|برج)\s*([\p{L}\p{N}_-]+)/u);
+    if (siteMatch) {
+      siteRef = siteMatch[0].trim();
+    }
+
+    // 2. استخراج بند الأعمال (اختياري لربط أمر الشغل)
+    let workItem = null;
+    const itemMatch = t.match(/(?:بند|أعمال|اعمال)\s+([\p{L}\p{N}_\s]{2,40}?)(?=\s+(?:فيلا|مشروع|عماره|عمارة|موقع|برج|كمية|كميه|عدد|بمبلغ|بـ|بسعر|ريال|ر\.س|شامل|ضريبة|ضريبه)|\s*$)/u);
+    if (itemMatch) {
+      workItem = itemMatch[1].trim();
+    }
+
+    // 3. استخراج الضريبة (افتراضياً 0 - غير شامل الضريبة)
+    let vatAmount = 0;
+    const vatMatch = t.match(/(?:ضريبة|ضريبه|vat)\s*(\d+(?:\.\d+)?)/i);
+    if (vatMatch) {
+      vatAmount = Number(vatMatch[1]);
+    }
+
+    // 4. استخراج الكمية (افتراضياً 1 إذا لم تُذكر)
+    let quantity = 1;
+    const qtyExplicitMatch = t.match(/(?:كمية|كميه|عدد)\s*(\d+(?:\.\d+)?)/i);
+    const qtyUnitMatch = t.match(/(?:^|\s)(\d+(?:\.\d+)?)\s*(?:طن|شكارة|شكاير|شيكارة|شوال|نقلة|نقلات|رد|ردود|متر|أمتار|حبة|حبات|كرتونة|كراتين|لتر|لترات|برميل|براميل|لوح|ألواح)(?:\s|$)/i);
+    if (qtyExplicitMatch) {
+      quantity = Number(qtyExplicitMatch[1]);
+    } else if (qtyUnitMatch) {
+      quantity = Number(qtyUnitMatch[1]);
+    }
+
+    // 5. استخراج المبلغ الإجمالي بدقة
+    let totalPrice = null;
+    const priceExplicitMatch = t.match(/(?:بمبلغ|بـ|ب\s*|سعر|بقيمة|إجمالي|اجمالي)\s*(\d+(?:\.\d+)?)/i);
+    const priceCurrencyMatch = t.match(/(\d+(?:\.\d+)?)\s*(?:ريال|ر\.س|جنية|جنيه|درهم)/i);
+
+    if (priceExplicitMatch) {
+      totalPrice = Number(priceExplicitMatch[1]);
+    } else if (priceCurrencyMatch) {
+      totalPrice = Number(priceCurrencyMatch[1]);
+    } else {
+      const numbers = [...t.matchAll(/(\d+(?:\.\d+)?)/g)].map(m => Number(m[1]));
+      const siteNum = siteRef ? Number(siteRef.replace(/\D/g, '')) : null;
+      const filtered = numbers.filter(n => n !== quantity && n !== siteNum && n !== vatAmount);
+      if (filtered.length > 0) {
+        totalPrice = filtered[filtered.length - 1];
+      }
+    }
+
+    if (totalPrice && totalPrice > 0) {
+      // 6. تنظيف البيان بدقة واستخراج اسم المادة
+      let desc = t
         .replace(/(?:يا\s*(?:قلبي|روحي|حبيبتي|موزه|موزة|سلمى|قمر))\s*$/iu, '')
-        .trim();
+        .replace(/^.*?(?:ضيفيلي|ضفيلي|ضيفي|ضيفلي|ضيف|اضف|أضف|سجليلي|سجلي|سجل|سجّل|تسجيل|إضافة|اضافة|فاتورة|فاتوره|مصروف|مصاريف|صرفنا|اشترينا|دفعنا)\s*(?:لي)?\s*(?:مصروف|فاتورة|فاتوره)?/u, '');
+
+      if (siteRef) desc = desc.replace(new RegExp(`(?:في|بـ|لـ|على)?\\s*${siteRef.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gu'), ' ');
+      if (workItem) desc = desc.replace(new RegExp(`(?:بند|أعمال|اعمال)?\\s*${workItem.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'gu'), ' ');
+      desc = desc.replace(/(?:بند|أعمال|اعمال)\s+[\p{L}\p{N}_\s-]+?(?=(?:فيلا|مشروع|عماره|عمارة|موقع|برج|كمية|كميه|عدد|بمبلغ|بـ|بسعر|ريال|ر\.س|شامل|ضريبة|ضريبه|$))/gu, ' ');
+      desc = desc.replace(/(?:غير\s*شامل|شامل\s*غير|شامل\s*)?(?:ضريبة|ضريبه|vat)\s*(?:\d+(?:\.\d+)?)?/gi, ' ');
+      desc = desc.replace(/(?:بمبلغ|بسعر|بقيمة|إجمالي|اجمالي|بـ|ب)\s*\d+(?:\.\d+)?/gi, ' ');
+      desc = desc.replace(/\d+(?:\.\d+)?\s*(?:ريال|ر\.س|جنية|جنيه|درهم)/gi, ' ');
+      if (totalPrice) desc = desc.replace(new RegExp(`\\b${totalPrice}\\b`, 'g'), ' ');
+      desc = desc.replace(/(?:كمية|كميه|عدد)\s*\d+(?:\.\d+)?/gi, ' ');
+      desc = desc.replace(/(?:^|\s)(?:ريال|ر\.س|جنية|جنيه|درهم)(?:\s|$)/gi, ' ');
+      desc = desc.replace(/(?:^|\s)(?:بمبلغ|بسعر|بقيمة|بند|فيلا|مشروع|عماره|عمارة|موقع|برج)(?:\s|$)/gu, ' ');
+      desc = desc.replace(/^\s*(?:لـ|في|على|بـ|من|ل)\s+/u, '').replace(/\s+(?:لـ|في|على|بـ|من|ل)\s*$/u, '');
+      desc = desc.replace(/\s+/g, ' ').trim();
+
+      if (!desc || desc.length < 2) {
+        desc = workItem ? `مصروف بند ${workItem}` : 'مصروف موقع';
+      }
+
       return {
         name: 'add_expense_draft',
         args: {
-          description: desc.slice(0, 140) || 'مصروف موقع',
-          total_price: Number(amountMatch[1]),
-          ...(siteMatch ? { site_ref: siteMatch[0].trim() } : {}),
+          description: desc.slice(0, 140),
+          total_price: totalPrice,
+          quantity,
+          vat_amount: vatAmount,
+          ...(siteRef ? { site_ref: siteRef } : {}),
+          ...(workItem ? { work_item: workItem } : {}),
           exp_date: 'today',
         },
       };
@@ -1158,8 +1230,12 @@ async function processUserPromptWithGemini(userPrompt, actor) {
       detailedReads: true,
       allowServiceRole: Boolean(verified?.allowServiceRole),
     });
+    const toolRes = await runEnabledCopilotTool(call, tools, verified);
+    const text = typeof toolRes === 'string' ? toolRes : (toolRes?.text || String(toolRes));
+    const replyMarkup = typeof toolRes === 'object' && toolRes?.replyMarkup ? toolRes.replyMarkup : undefined;
     return {
-      text: await runEnabledCopilotTool(call, tools, verified),
+      text,
+      ...(replyMarkup ? { replyMarkup } : {}),
       memory: { ...memory, toolName: call.name },
     };
   }
@@ -1980,6 +2056,38 @@ async function handleCallbackQuery(cb) {
       });
     } catch {}
   };
+
+  if (data.startsWith('jo_pick:')) {
+    const parts = data.split(':');
+    const expenseId = parts[1];
+    const jobOrderId = parts[2];
+    await answerCb('جارٍ ربط المصروف بأمر الشغل...');
+
+    const verified = await resolveLiveCompanyAccess({ chatId, userId: cb.from?.id || 0 });
+    const tools = createCopilotTools({
+      supabaseUrl: SUPABASE_URL,
+      supabaseKey: verified?.allowServiceRole ? SUPABASE_SERVICE_KEY : SUPABASE_PUBLIC_KEY,
+      accessToken: verified?.accessToken,
+      companyId: verified?.companyId,
+      detailedReads: true,
+      allowServiceRole: Boolean(verified?.allowServiceRole),
+    });
+
+    const linkRes = await tools.link_expense_job_order({ expense_id: expenseId, job_order_id: jobOrderId });
+    if (linkRes.success) {
+      await answerCb(`✅ تم ربط أمر الشغل #${linkRes.job_order_number || ''}`);
+      await sendTelegramMessage(
+        chatId,
+        `✅ تم ربط المصروف بنجاح بأمر الشغل [#${linkRes.job_order_number || '—'}] (${linkRes.job_order_item || 'بدون بند'})\nالمقاول: ${linkRes.contractor_name || 'غير محدد'}`,
+        messageId,
+        { html: false }
+      );
+    } else {
+      await answerCb('تعذر ربط أمر الشغل');
+      await sendTelegramMessage(chatId, `⚠️ تعذر ربط المصروف بأمر الشغل: ${linkRes.error || 'خطأ غير متوقع'}`, messageId);
+    }
+    return;
+  }
 
   if (data.startsWith('partner_type:')) {
     const selectedType = data.split(':')[1];

@@ -724,7 +724,7 @@ export default function MaterialsPage() {
                                 >
                                     السابق
                                 </button>
-                                <span style={{ padding: '0.5rem 1rem', background: THEME.sandLight, borderRadius: '8px', fontWeight: 900, color: THEME.coffeeDark, border: `1px solid ${THEME.sandDark}` }}>
+                                <span style={{ padding: '0.5rem 1rem', background: THEME.sandLight, borderRadius: '8px', fontWeight: 900, color: THEME.coffeeDark, border: `1px solid ${THEME.sandDark}`, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                                     {currentPage} / {totalPages || 1}
                                 </span>
                                 <button 

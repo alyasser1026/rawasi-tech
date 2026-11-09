@@ -162,8 +162,26 @@ export default function PartnersDirectory() {
           .partners-dialog .glass-input-field { width: 100%; padding: 0.75rem; border-radius: 12px; background: var(--surface-sunken); border: none; box-shadow: var(--shadow-sunken); font-weight: 700; color: var(--text-primary); }
           .partners-dialog .glass-input-field::placeholder { color: var(--text-muted); }
           .partners-dialog select option { color: var(--text-primary); background: var(--surface-sunken); }
-          .partners-directory .nav-btn { padding: 0.5rem 1rem; border-radius: 8px; border: none; background: var(--accent-soft-bg); color: var(--accent-ink); cursor: pointer; font-weight: 900; }
-          .partners-directory .nav-btn:disabled { background: var(--surface-subcard); color: var(--text-muted); cursor: not-allowed; }
+          .partners-directory .nav-btn { 
+            height: 2.25rem; 
+            min-height: 2.25rem; 
+            padding: 0 1rem; 
+            border-radius: 8px; 
+            border: none; 
+            background: var(--accent-soft-bg); 
+            color: var(--accent-ink); 
+            cursor: pointer; 
+            font-weight: 800; 
+            font-size: var(--fs-sm); 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            white-space: nowrap; 
+            line-height: 1;
+            transition: 0.2s; 
+          }
+          .partners-directory .nav-btn:hover:not(:disabled) { filter: brightness(0.95); transform: translateY(-1px); }
+          .partners-directory .nav-btn:disabled { background: var(--surface-subcard); color: var(--text-muted); cursor: not-allowed; opacity: 0.6; transform: none; }
         `}</style>
 
         {/* المحتوى الرئيسي */}
@@ -201,20 +219,21 @@ export default function PartnersDirectory() {
           )}
 
           {!isLoading && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1.25rem', padding: '0.9375rem', background: 'var(--surface-card)', borderRadius: '16px', boxShadow: 'var(--shadow-ambient)' }}>
-              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)', fontWeight: 900 }}>
-                إجمالي السجلات: <b style={{ color: 'var(--accent-ink)', fontSize: 'var(--fs-lg)' }}>{totalResults}</b>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', padding: '0.625rem 1.25rem', background: 'var(--surface-card)', borderRadius: '12px', boxShadow: 'var(--shadow-ambient)', minHeight: '52px' }}>
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-primary)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                <span>إجمالي السجلات:</span>
+                <b style={{ color: 'var(--accent-ink)', fontSize: 'var(--fs-md)', fontWeight: 900 }}>{totalResults}</b>
               </div>
-              <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center' }}>
-                <select value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ padding: '0.5rem 0.75rem', borderRadius: '8px', border: 0, background: 'var(--surface-sunken)', color: 'var(--text-primary)', fontWeight: 900, cursor: 'pointer' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <select value={rowsPerPage} onChange={(e) => { setRowsPerPage(Number(e.target.value)); setCurrentPage(1); }} style={{ height: '2.25rem', padding: '0 0.875rem', borderRadius: '8px', border: '1px solid var(--border-soft, transparent)', background: 'var(--surface-sunken)', color: 'var(--text-primary)', fontWeight: 800, fontSize: 'var(--fs-sm)', cursor: 'pointer', outline: 'none' }}>
                   <option value={50}>50 سجل</option>
                   <option value={100}>100 سجل</option>
                   <option value={500}>500 سجل</option>
                   <option value={1000}>1000 سجل</option>
                 </select>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
                   <button disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)} className="nav-btn">السابق</button>
-                  <span style={{ padding: '0.5rem 1rem', background: 'var(--surface-subcard)', borderRadius: '8px', fontWeight: 900, color: 'var(--text-primary)' }}>
+                  <span style={{ height: '2.25rem', padding: '0 0.875rem', background: 'var(--surface-subcard)', borderRadius: '8px', fontWeight: 800, color: 'var(--text-primary)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap', fontSize: 'var(--fs-sm)', minWidth: '4.5rem', textAlign: 'center', lineHeight: 1 }}>
                     {currentPage} / {totalPages || 1}
                   </span>
                   <button disabled={currentPage >= totalPages} onClick={() => setCurrentPage(p => p + 1)} className="nav-btn">التالي</button>

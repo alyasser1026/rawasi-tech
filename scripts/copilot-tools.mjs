@@ -77,6 +77,62 @@ function resolveDateOrToday(val) {
 }
 
 /**
+ * التصنيف التلقائي الذكي للمصروفات حسب طبيعة البيان
+ * متطابق مع بنود EXPENSE_CATEGORIES في شاشة المصروفات
+ */
+export function classifyExpenseCategory(description = '') {
+  const d = String(description || '').toLowerCase();
+
+  // 1. عمولات وبقشيش وإكراميات (تسبق الإعاشة حتى لا يلتقط "شاي عمال" كإعاشة)
+  if (/(?:بقشيش|إكرامية|اكرامية|إكراميه|اكراميه|شاى عمال|شاي عمال|شايات|حلوان|أتعاب|اتعاب|عمولة|عموله|عمولات)/u.test(d)) {
+    return 'عمولات وبقشيش';
+  }
+
+  // 2. إعاشة وتغذية
+  if (/(?:أكل|اكل|طعام|وجبة|وجبات|غداء|غدا|فطار|إفطار|عشاء|عشا|شاي|شاى|سكر|قهوة|قهوه|بوفيه|مياه|مايه|مشروبات|عصير|فواكه|تموين|تغذية|تغذيه|إعاشة|اعاشة)/u.test(d)) {
+    return 'إعاشة وتغذية';
+  }
+
+  // 3. محروقات وانتقالات
+  if (/(?:بنزين|سولار|ديزل|محروقات|وقود|كارته|كارتة|مشال|مشالات|توصيل|شحن|نقل|نولون|مواصلات|تاكسي|أوبر|اوبر|كريم|تذكرة|تذاكر|باص|قطار)/u.test(d)) {
+    return 'محروقات وانتقالات';
+  }
+
+  // 4. صيانة وإصلاحات (تسبق المعدات لأن صيانة المعدة تعتبر صيانة)
+  if (/(?:صيانة|صيانه|تصليح|إصلاح|اصلاح|تغيير زيت|قطع غيار|كاوتش|بطارية|بطاريه|سيرفيس|سباكة|سباكه|كهرباء|تكييف)/u.test(d)) {
+    return 'صيانة وإصلاحات';
+  }
+
+  // 5. عدد ومعدات
+  if (/(?:شاكوش|مطرقة|صاروخ|هيلتي|دريل|شنيور|متر|ميزان|سقالة|سقالات|سلم|كماشة|بنسة|مفك|منشار|مقص|عِدد|عدد|عدة|ماكينة|معدة|تأجير معدة)/u.test(d)) {
+    return 'عدد ومعدات';
+  }
+
+  // 6. مصاريف إدارية
+  if (/(?:ورق|طباعة|طباعه|تصوير|أحبار|احبار|أقلام|اقلام|دفاتر|أختام|اختام|مكتب|بريد|رسوم|ضيافة إدارية|إنترنت|انترنت|اشتراك|تجديد|شريحة|شريحه)/u.test(d)) {
+    return 'مصاريف إدارية';
+  }
+
+  // 7. سكن وأثاث
+  if (/(?:إيجار سكن|ايجار سكن|سكن عمال|شقة|شقه|مرتبة|مرتبه|مراتب|سرير|سراير|ملايات|دولاب|مروحة|مروحه|مبرد|تلاجة|تلاجه|أثاث|اثاث)/u.test(d)) {
+    return 'سكن وأثاث';
+  }
+
+  // 8. أدوات نظافة
+  if (/(?:صابون|كلور|ديتول|منظف|منظفات|مكنسة|مكنسه|مساحة|مساحه|نظافة|نظافه|أكياس زبالة|اكياس قمامة|سلة|سله)/u.test(d)) {
+    return 'أدوات نظافة';
+  }
+
+  // 9. مستهلكات ومواد تشغيل
+  if (/(?:مسامير|سلك رباط|شطرطون|شريط لحام|دبوس|غراء|سيليكون|فوم|جوانتيات|قفازات|كمامات|خوذة|خوذه|مستهلكات)/u.test(d)) {
+    return 'مستهلكات ومواد تشغيل';
+  }
+
+  // 10. مواد إنشائية (افتراضي لبنود التشييد والبناء: رمل، اسمنت، حديد، طوب، جبس، سيراميك، عازل، بلك، خرسانة، دهانات، رخام، إلخ)
+  return 'مواد إنشائية';
+}
+
+/**
  * Scoped Copilot tools. Every tool here is listed in copilot-tool-registry.mjs; company_id always
  * comes from this closure.
  */
@@ -1346,49 +1402,122 @@ export function createCopilotTools({
         return { success: false, error: 'يرجى تحديد بيان المصروف والمبلغ بالريال بشكل صحيح.' };
       }
 
+      // Quantity default = 1, unit_price = totalPrice / qty
+      const quantity = Number(rawArgs?.quantity) > 0 ? Number(rawArgs.quantity) : 1;
+      const unitPrice = Number(rawArgs?.unit_price) > 0
+        ? Number(rawArgs.unit_price)
+        : Math.round((totalPrice / quantity) * 100) / 100;
+
+      // Tax/VAT: Defaults to 0 (non-inclusive of tax unless specified)
+      const vatAmount = Number(rawArgs?.vat_amount) > 0 ? Number(rawArgs.vat_amount) : 0;
+
       const expDate = resolveDateOrToday(rawArgs?.exp_date || 'today');
       let siteRef = typeof rawArgs?.site_ref === 'string' && rawArgs.site_ref.trim() ? rawArgs.site_ref.trim() : null;
       let projectId = null;
 
-      const projRes = await fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '50' });
+      // 1) Match Villa / Project (Optional)
+      const projRes = await fetchScopedRows('projects', { select: 'id,Property,project_name,project_code,status', limit: '100' });
       if (projRes.ok && projRes.data.length > 0 && siteRef) {
-        const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره)\s*/, '').trim();
+        const cleanSite = siteRef.replace(/^(فيلا|مشروع|عمارة|عماره|موقع|برج)\s*/u, '').trim();
         const matchedProj = projRes.data.find(p =>
           (p.Property && (p.Property.includes(cleanSite) || siteRef.includes(p.Property))) ||
+          (p.project_name && (p.project_name.includes(cleanSite) || siteRef.includes(p.project_name))) ||
           (p.project_code && p.project_code.toLowerCase() === cleanSite.toLowerCase())
         );
         if (matchedProj) {
           projectId = matchedProj.id;
-          siteRef = matchedProj.Property || siteRef;
+          siteRef = matchedProj.Property || matchedProj.project_name || siteRef;
         }
       }
 
+      // 2) Match Job Order (أمر الشغل) for Villa + Work Item
+      let jobOrderId = typeof rawArgs?.job_order_id === 'string' && UUID.test(rawArgs.job_order_id)
+        ? rawArgs.job_order_id
+        : null;
+      let linkedJobOrder = null;
+      let multipleJobOrders = false;
+      let candidateJobOrders = [];
+
+      const rawWorkItem = typeof rawArgs?.work_item === 'string' ? rawArgs.work_item.trim() : '';
+
+      if (projectId) {
+        const joRes = await fetchScopedRows('job_orders', {
+          project_id: 'eq.' + projectId,
+          select: 'id,order_number,project_id,boq_budget_id,contractor_id,status,notes,boq_budget:boq_budget_id(work_item,budget_code),partners:contractor_id(name)',
+          limit: '50',
+        });
+
+        if (joRes.ok && Array.isArray(joRes.data) && joRes.data.length > 0) {
+          const list = joRes.data;
+          if (rawWorkItem) {
+            const cleanItem = rawWorkItem.toLowerCase();
+            const matched = list.filter(jo => {
+              const bi = (jo.boq_budget?.work_item || '').toLowerCase();
+              const notes = (jo.notes || '').toLowerCase();
+              const orderNum = (jo.order_number || '').toLowerCase();
+              return bi.includes(cleanItem) || cleanItem.includes(bi) || notes.includes(cleanItem) || orderNum.includes(cleanItem);
+            });
+
+            if (matched.length === 1) {
+              jobOrderId = matched[0].id;
+              linkedJobOrder = matched[0];
+            } else if (matched.length > 1) {
+              multipleJobOrders = true;
+              candidateJobOrders = matched.map(j => ({
+                id: j.id,
+                order_number: j.order_number,
+                item_name: j.boq_budget?.work_item || 'بدون بند',
+                contractor_name: j.partners?.name || 'غير محدد',
+              }));
+            }
+          } else if (list.length === 1 && !jobOrderId) {
+            jobOrderId = list[0].id;
+            linkedJobOrder = list[0];
+          }
+        }
+      }
+
+      // 3) Automatic Classification based on description
       const mainCategory = typeof rawArgs?.main_category === 'string' && rawArgs.main_category.trim()
         ? rawArgs.main_category.trim()
-        : 'مصروفات مواقع';
+        : classifyExpenseCategory(description);
+
+      // 4) Accounts:
+      // الدائن (Credit): '211 - الموردين (مواد بناء)'
+      // المدين (Debit): '511 - تكلفة مواد وخامات مباشرة' (تكاليف البناء المباشرة)
+      const paymentAccount = typeof rawArgs?.payment_account === 'string' && rawArgs.payment_account.trim()
+        ? rawArgs.payment_account.trim()
+        : '211 - الموردين (مواد بناء)';
+
+      const creditorAccount = typeof rawArgs?.creditor_account === 'string' && rawArgs.creditor_account.trim()
+        ? rawArgs.creditor_account.trim()
+        : '511 - تكلفة مواد وخامات مباشرة';
+
       const paymentMethod = typeof rawArgs?.payment_method === 'string' && rawArgs.payment_method.trim()
         ? rawArgs.payment_method.trim()
         : 'آجل';
 
+      // 5) Build insert payload
+      // NOTICE: Do NOT include total_price because it is GENERATED ALWAYS in postgres!
       const payload = {
         exp_date: expDate,
         description,
-        quantity: 1,
-        unit_price: totalPrice,
-        total_price: totalPrice,
-        vat_amount: 0,
-        discount_amount: 0,
-        paid_amount: 0,
+        quantity,
+        unit_price: unitPrice,
+        vat_amount: vatAmount,
+        discount_amount: Number(rawArgs?.discount_amount) || 0,
+        paid_amount: Number(rawArgs?.paid_amount) || 0,
         payment_method: paymentMethod,
-        creditor_account: mainCategory,
-        payment_account: mainCategory,
+        creditor_account: creditorAccount, // Debit side in post_expenses_bulk
+        payment_account: paymentAccount,   // Credit side in post_expenses_bulk
         main_category: mainCategory,
-        site_ref: siteRef,
+        site_ref: siteRef || 'عام',
         project_id: projectId,
+        job_order_id: jobOrderId,
         payee_name: typeof rawArgs?.payee_name === 'string' ? rawArgs.payee_name.trim() : null,
         notes: typeof rawArgs?.notes === 'string' && rawArgs.notes.trim()
           ? rawArgs.notes.trim()
-          : 'تم الإدخال كمسودة عبر مساعد تيليجرام الذكي',
+          : (rawWorkItem ? `بند: ${rawWorkItem} | تم الإدخال كمسودة عبر مساعد تيليجرام` : 'تم الإدخال كمسودة عبر مساعد تيليجرام الذكي'),
         is_deleted: false,
       };
 
@@ -1414,13 +1543,53 @@ export function createCopilotTools({
           op_number: opNumber,
           exp_date: expDate,
           description,
+          quantity,
+          unit_price: unitPrice,
           total_price: totalPrice,
+          vat_amount: vatAmount,
           site_ref: siteRef || 'عام',
+          work_item: rawWorkItem || null,
+          job_order_id: jobOrderId,
+          job_order_number: linkedJobOrder?.order_number || null,
+          job_order_item: linkedJobOrder?.boq_budget?.work_item || null,
           main_category: mainCategory,
+          creditor_account: creditorAccount,
+          payment_account: paymentAccount,
           payment_method: paymentMethod,
           payee_name: payload.payee_name || '—',
           is_posted: false,
         },
+        multiple_job_orders: multipleJobOrders,
+        candidate_job_orders: candidateJobOrders,
+      };
+    },
+
+    // 6.5. ربط مصروف بأمر شغل محدد
+    async link_expense_job_order(rawArgs = {}) {
+      if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
+      const expenseId = rawArgs?.expense_id;
+      const jobOrderId = rawArgs?.job_order_id;
+      if (!expenseId || !jobOrderId || !UUID.test(expenseId) || !UUID.test(jobOrderId)) {
+        return { success: false, error: 'معرف المصروف أو معرف أمر الشغل غير صحيح.' };
+      }
+
+      const joRes = await fetchScopedRows('job_orders', {
+        id: 'eq.' + jobOrderId,
+        select: 'id,order_number,boq_budget:boq_budget_id(work_item),partners:contractor_id(name)',
+        limit: '1',
+      });
+      const jo = joRes.ok && joRes.data?.[0];
+
+      const updated = await updateScopedRecord('expenses', 'id', expenseId, { job_order_id: jobOrderId });
+      if (!updated.ok) return { success: false, error: updated.error };
+
+      return {
+        success: true,
+        expense_id: expenseId,
+        job_order_id: jobOrderId,
+        job_order_number: jo?.order_number || null,
+        job_order_item: jo?.boq_budget?.work_item || null,
+        contractor_name: jo?.partners?.name || null,
       };
     },
 

@@ -457,10 +457,23 @@ export default function LaborLogsDirectory() {
                          customQuery={(q: any) => q.select('*, boq_budget:boq_budget_id(work_item)')}
                          displayFormat={(item: any) => `${item.order_number} - ${item.boq_budget?.work_item || 'بدون بند'}`}
                          key={(logic.currentLog.project_id || 'empty-jo') + '_job_order'} 
-                         initialDisplay={logic.currentLog.job_order_id ? `أمر شغل مرتبط` : ''} 
+                         initialDisplay={logic.currentLog.job_order_display || (logic.currentLog.job_order_id ? (logic.currentLog.work_item ? `${logic.currentLog.work_item}` : 'أمر شغل مرتبط') : '')} 
                          onSelect={async (v:any) => {
+                             if (!v) {
+                                 logic.setCurrentLog((prev: any) => ({
+                                     ...prev,
+                                     job_order_id: null,
+                                     job_order_display: '',
+                                     work_item: '',
+                                     work_item_id: null,
+                                     unit: ''
+                                 }));
+                                 return;
+                             }
+                             const displayText = `${v.order_number || ''} - ${v.boq_budget?.work_item || 'بدون بند'}`;
                              let updates: any = {
                                  job_order_id: v?.id || null,
+                                 job_order_display: displayText,
                                  work_item: v?.boq_budget?.work_item || '',
                                  unit: v?.boq_budget?.unit || ''
                              };
@@ -471,33 +484,15 @@ export default function LaborLogsDirectory() {
                                          updates.work_item = data.work_item || updates.work_item;
                                          updates.work_item_id = data.boq_item_id;
                                          updates.unit = data.unit || updates.unit;
-                                         updates.tareeha = data.tareeha ? String(data.tareeha) : logic.currentLog.tareeha;
+                                         if (data.tareeha) updates.tareeha = String(data.tareeha);
                                      }
                                  } catch { /* offline safe fallback */ }
                              }
-                             logic.setCurrentLog({ ...logic.currentLog, ...updates });
-                             return;
-                             
-                             if (v?.boq_budget_id) {
-                                 // Fetch the work item details from boq_budget_distinct to auto-fill
-                                 const { data } = await supabase
-                                     .from('boq_budget_distinct')
-                                     .select('*')
-                                     .eq('id', v.boq_budget_id)
-                                     .single();
-                                     
-                                 if (data) {
-                                     updates.work_item = data.work_item;
-                                     updates.work_item_id = data.boq_item_id;
-                                     updates.unit = data.unit;
-                                     updates.tareeha = data.tareeha ? String(data.tareeha) : logic.currentLog.tareeha;
-                                 }
-                             }
-                             
-                             logic.setCurrentLog({
-                                 ...logic.currentLog, 
-                                 ...updates
-                             });
+                             logic.setCurrentLog((prev: any) => ({
+                                 ...prev,
+                                 ...updates,
+                                 tareeha: updates.tareeha !== undefined ? updates.tareeha : prev.tareeha
+                             }));
                          }} 
                      />
                      {!logic.currentLog.project_id && (

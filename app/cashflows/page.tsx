@@ -739,7 +739,7 @@ export default function CashFlowsPage() {
                                 >
                                     السابق
                                 </button>
-                                <span style={{ padding: '0.625rem 1.25rem', background: 'var(--surface-sunken)', borderRadius: '10px', fontWeight: 900, border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
+                                <span style={{ padding: '0.625rem 1.25rem', background: 'var(--surface-sunken)', borderRadius: '10px', fontWeight: 900, border: 'none', boxShadow: 'var(--shadow-sunken)', whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
                                     {currentPage} / {totalPages}
                                 </span>
                                 <button 

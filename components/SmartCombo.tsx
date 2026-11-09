@@ -72,6 +72,7 @@ export default function SmartCombo({
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
     const listRef = useRef<HTMLDivElement>(null);
     const comboRef = useRef<HTMLDivElement>(null);
+    const lastSelectedRef = useRef<any>(null);
 
     // 🛡️ [نظام الصلاحيات المركزي]: حماية ذكية للحقل
     let can = (module: string, action: string) => true; 
@@ -134,16 +135,27 @@ export default function SmartCombo({
         if (!showRecent) return;
         const key = `smartcombo_recent_${getActiveCompanyId() ?? 'none'}_${table || label || 'global'}`;
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        const updated = [item, ...existing.filter((i:any) => i.id !== item.id)].slice(0, 5);
+        const isPrimitive = typeof item !== 'object';
+        const updated = [item, ...existing.filter((i:any) => isPrimitive ? i !== item : (i?.id !== item.id))].slice(0, 5);
         localStorage.setItem(key, JSON.stringify(updated));
         setRecentItems(updated);
     };
 
     // 🔄 تحديث القيمة الافتراضية
     useEffect(() => {
-        if (initialDisplay !== undefined) setSearch(initialDisplay);
-        else if (!multi && !freeText) setSearch('');
-    }, [initialDisplay, multi, freeText]);
+        if (initialDisplay !== undefined && initialDisplay !== null) {
+            setSearch(initialDisplay);
+            if (options && options.length > 0) {
+                const found = options.find((o: any) => typeof o === 'object' ? (o[displayCol] === initialDisplay || o.name === initialDisplay) : String(o) === String(initialDisplay));
+                lastSelectedRef.current = found !== undefined ? found : initialDisplay;
+            } else {
+                lastSelectedRef.current = initialDisplay;
+            }
+        } else if (!multi && !freeText) {
+            setSearch('');
+            lastSelectedRef.current = null;
+        }
+    }, [initialDisplay, multi, freeText, options, displayCol]);
 
     useEffect(() => {
         if (value === null || value === '') setSearch('');
@@ -175,8 +187,24 @@ export default function SmartCombo({
         if (!hasFieldAccess) return; 
         setIsLoading(true);
         try {
+            // Determine if query is currently selected value - if so, show all options!
+            const isSelectedDisplay = Boolean(
+                (lastSelectedRef.current !== undefined && lastSelectedRef.current !== null && (
+                    (typeof lastSelectedRef.current !== 'object' && String(lastSelectedRef.current) === query) ||
+                    (typeof lastSelectedRef.current === 'object' && (
+                        (displayFormat && displayFormat(lastSelectedRef.current) === query) ||
+                        lastSelectedRef.current[displayCol] === query ||
+                        lastSelectedRef.current.name === query ||
+                        lastSelectedRef.current.Property === query
+                    ))
+                )) ||
+                (initialDisplay !== undefined && initialDisplay !== null && String(initialDisplay) === query)
+            );
+
+            const effectiveQuery = isSelectedDisplay ? '' : query;
+
             if (options && options.length > 0) {
-                const normQuery = normalizeText(query);
+                const normQuery = normalizeText(effectiveQuery);
                 const cols = searchCols.split(',').map(c => c.trim()).filter(Boolean);
                 const filtered = options.filter((o: any) => {
                     if (!normQuery) return true;
@@ -193,7 +221,7 @@ export default function SmartCombo({
             const filterLocalRows = (rows: any[]) => {
                 const activeColumnLocal = filterColumn || filter?.column;
                 const activeValueLocal = filterValue !== undefined ? filterValue : filter?.value;
-                const normQ = normalizeText(query);
+                const normQ = normalizeText(effectiveQuery);
                 const cols = searchCols.split(',').map(c => c.trim()).filter(Boolean);
                 return (rows || []).filter((r: any) => {
                     if (!r) return false;
@@ -235,8 +263,8 @@ export default function SmartCombo({
                 q = q.filter(match[1], match[2], match[3]);
             }
 
-            if (query) {
-                const orQuery = searchCols.split(',').map((col: string) => `${col}.ilike.%${query}%`).join(',');
+            if (effectiveQuery) {
+                const orQuery = searchCols.split(',').map((col: string) => `${col}.ilike.%${effectiveQuery}%`).join(',');
                 q = q.or(orQuery);
             }
             
@@ -309,6 +337,7 @@ export default function SmartCombo({
         const isPrimitive = typeof item !== 'object';
         const displayName = isPrimitive ? item : (displayFormat ? displayFormat(item) : (item[displayCol] || item.Property || item.project_name || item.item_name || item.name || item.description || 'بدون اسم'));
         
+        lastSelectedRef.current = item;
         saveToRecent(item); 
         
         if (multi) {
@@ -327,20 +356,47 @@ export default function SmartCombo({
 
         // 🚀 مطابقة ذكية عند مغادرة الحقل لربط كائن الشريك بـ ID بدلاً من تركه نصاً مجرداً
         if (search && !multi && hasFieldAccess) {
-            const pool = (options && options.length > 0) ? options : results;
             const normSearch = normalizeText(search);
+
+            // حماية ذكية: إذا كان النص يطابق العنصر المختار مسبقاً (بالفورمات أو الاسم الأصلي) لا تمسحه أبداً
+            if (lastSelectedRef.current) {
+                const isPrimitive = typeof lastSelectedRef.current !== 'object';
+                const formatted = !isPrimitive && displayFormat ? displayFormat(lastSelectedRef.current) : '';
+                const raw = isPrimitive ? String(lastSelectedRef.current) : String(lastSelectedRef.current[displayCol] || lastSelectedRef.current.name || lastSelectedRef.current.Property || lastSelectedRef.current.description || '');
+                if (
+                    search === formatted || search === raw ||
+                    (formatted && (normalizeText(formatted) === normSearch || formatted.trim().toLowerCase() === search.trim().toLowerCase())) ||
+                    normalizeText(raw) === normSearch || raw.trim().toLowerCase() === search.trim().toLowerCase()
+                ) {
+                    setShow(false);
+                    setHighlightedIndex(-1);
+                    return;
+                }
+            }
+
+            const pool = (options && options.length > 0) ? options : results;
             const matched = pool.find((item: any) => {
                 if (!item) return false;
                 const isPrimitive = typeof item !== 'object';
+                const formatted = !isPrimitive && displayFormat ? displayFormat(item) : '';
                 const lbl = isPrimitive ? String(item) : String(item[displayCol] || item.name || item.Property || item.description || '');
-                return normalizeText(lbl) === normSearch || lbl.trim().toLowerCase() === search.trim().toLowerCase();
+                return (
+                    (formatted && (normalizeText(formatted) === normSearch || formatted.trim().toLowerCase() === search.trim().toLowerCase())) ||
+                    normalizeText(lbl) === normSearch || lbl.trim().toLowerCase() === search.trim().toLowerCase()
+                );
             });
 
-            if (matched && typeof matched === 'object') {
+            if (matched !== undefined && matched !== null) {
                 handleItemSelect(matched);
             } else if (strict && !freeText) {
-                setSearch('');
-                onSelect('');
+                if (lastSelectedRef.current !== undefined && lastSelectedRef.current !== null) {
+                    const isPrimitive = typeof lastSelectedRef.current !== 'object';
+                    const prevDisplay = isPrimitive ? String(lastSelectedRef.current) : (displayFormat ? displayFormat(lastSelectedRef.current) : (lastSelectedRef.current[displayCol] || ''));
+                    setSearch(prevDisplay || '');
+                } else {
+                    setSearch('');
+                    onSelect('');
+                }
             }
         }
 
@@ -368,7 +424,7 @@ export default function SmartCombo({
                         const lbl = typeof item === 'object' ? (item[displayCol] || item.name || '') : String(item);
                         return normalizeText(lbl) === normSearch || normalizeText(lbl).startsWith(normSearch);
                     }) || results[0];
-                    if (matched && typeof matched === 'object') {
+                    if (matched !== undefined && matched !== null) {
                         handleItemSelect(matched);
                     }
                     setShow(false);
@@ -405,7 +461,11 @@ export default function SmartCombo({
         const displayName = isPrimitive ? item : (displayFormat ? displayFormat(item) : (item[displayCol] || item.Property || item.project_name || item.item_name || item.name || item.description || 'بدون اسم'));
         const displayCode = isPrimitive ? '' : (item.project_code || item.item_code || item.code); 
         const itemId = isPrimitive ? item : item.id;
-        const isSelected = multi ? selectedValues.some((v: any) => (v.id || v) === itemId) : false;
+        const isSelected = multi 
+            ? selectedValues.some((v: any) => (v.id || v) === itemId) 
+            : (lastSelectedRef.current !== undefined && lastSelectedRef.current !== null
+                ? (isPrimitive ? lastSelectedRef.current === item : lastSelectedRef.current.id === item.id)
+                : (isPrimitive ? initialDisplay === item : false));
         const isHighlighted = index === highlightedIndex && !isRecent; 
 
         return (
@@ -518,14 +578,14 @@ export default function SmartCombo({
                                 const lbl = typeof item !== 'object' ? String(item) : String(item[displayCol] || item.name || '');
                                 return normalizeText(lbl) === normVal || lbl.trim().toLowerCase() === val.trim().toLowerCase();
                             });
-                            if (matched && typeof matched === 'object') {
+                            if (matched !== undefined && matched !== null) {
                                 onSelect(matched);
                             } else {
                                 onSelect(val);
                             }
                         }
                     }}
-                    onFocus={() => { if (!disabled) { setShow(true); loadData(search || ''); } }}
+                    onFocus={(e: any) => { if (!disabled) { setShow(true); loadData(''); e.target?.select?.(); } }}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown} 
                     className={`smart-combo-input ${disabled ? 'disabled' : ''}`}
@@ -539,7 +599,7 @@ export default function SmartCombo({
                 )}
 
                 {!isTextArea && !disabled && (
-                    <span onMouseDown={e => e.preventDefault()} onClick={() => { if(!disabled) { setShow(!show); if(!show) loadData(search || ''); } }} style={{ position: 'absolute', left: '0.9375rem', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.3125rem', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    <span onMouseDown={e => e.preventDefault()} onClick={() => { if(!disabled) { const nextShow = !show; setShow(nextShow); if(nextShow) loadData(''); } }} style={{ position: 'absolute', left: '0.9375rem', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.3125rem', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                         ▼
                     </span>
                 )}
