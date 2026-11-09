@@ -72,6 +72,8 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   }, [isPublicPage, pathname, router]);
 
   if (isPublicPage) return <>{children}</>;
+  // بوابة العميل بواجهتها الخاصة (بدون قائمة النظام الإدارية)
+  if (pathname.startsWith('/client')) return isInitialized ? <>{children}</> : <LoadingScreen message="جاري تأمين الاتصال..." subMessage="نتحقق من صلاحيات الدخول" fullScreen />;
   if (loading && !isInitialized) return <LoadingScreen message="جاري تهيئة النظام..." subMessage="يتم الآن تجميع صلاحياتك الخاصة وتأمين الواجهة" fullScreen />;
   return <EnterpriseShell>{children}</EnterpriseShell>;
 }

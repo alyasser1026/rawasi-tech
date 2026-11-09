@@ -19,6 +19,7 @@ export const AVAILABLE_LANDING_PAGES = [
   { value: 'auto', label: 'تلقائي ذكي حسب الصلاحيات والرتبة' },
   { value: '/Dashboard', label: 'لوحة القيادة العامة (Dashboard)' },
   { value: '/GlobalSummary', label: 'الملخص المالي العام (Global Summary)' },
+  { value: '/client', label: 'بوابة العميل (متابعة المشروع والمالية)' },
   { value: '/PartnerBalances', label: 'كشف حساب وأرصدة الشركاء (Partner Balances)' },
   { value: '/financial-center', label: 'المركز المالي ومؤشرات السيولة' },
   { value: '/fieldops', label: 'رادار الميدان الحي للمهندسين (Field Ops)' },
@@ -58,6 +59,11 @@ export function getDestinationForUser(
   // 3. Super admin / Admin -> Executive Dashboard
   if (profile.is_admin || profile.role === 'super_admin' || profile.role === 'admin') {
     return '/Dashboard';
+  }
+
+  // 3b. Client (project owner) -> client portal: progress + finance of own projects only
+  if (profile.role === 'client' && profile.linked_partner_id) {
+    return '/client';
   }
 
   // 4. Partner / Owner -> Partner Balances
