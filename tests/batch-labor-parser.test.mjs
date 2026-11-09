@@ -5,8 +5,8 @@ import fs from 'fs';
 // Extract parseBatchLaborLogs from telegram-copilot.mjs dynamically for unit testing
 const copilotContent = fs.readFileSync('./scripts/telegram-copilot.mjs', 'utf8');
 
-// Isolate parseBatchLaborLogs
-const fnStart = copilotContent.indexOf('function parseBatchLaborLogs(');
+// Isolate parseBatchLaborLogs and its helper cleanWorkerName
+const fnStart = copilotContent.indexOf('function cleanWorkerName(');
 const fnEnd = copilotContent.indexOf('export function detectDirectFieldOpsCall(');
 const fnCode = copilotContent.slice(fnStart, fnEnd !== -1 ? fnEnd : copilotContent.indexOf('function detectDirectFieldOpsCall(')).replace(/export\s*$/, '').trim();
 

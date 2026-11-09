@@ -501,10 +501,13 @@ function conversationScope(access, declarations) {
 
 function cleanWorkerName(name) {
   if (!name) return '';
-  let n = name
-    .replace(/^(?:سجل(?:ي(?:لي)?)?|ضيف(?:ي(?:لي)?)?|أضف|اضف|ادخل|دخل|دخله(?:الي)?|مصروفات|مصروف|مصاريف|فاتورة|فواتير|يومية|يوميات|امبارح|أمس|النهارده|النهاردة|اليوم|و|أو|منهم|كشف|بيان)\s+/iu, '')
-    .replace(/\s+(?:في\s*العمال[ةه]|للعمال[ةه]|يومية|يوميات|مصروفات|مصروف)$/iu, '')
-    .trim();
+  let n = String(name).trim();
+  let prev = '';
+  while (prev !== n) {
+    prev = n;
+    n = n.replace(/^(?:سجل(?:ي(?:لي)?)?|ضيف(?:ي(?:لي)?)?|أضف|اضف|ادخل|دخل|دخله(?:الي)?|مصروفات|مصروف|مصاريف|فاتورة|فواتير|يومية|يوميات|امبارح|أمس|النهارده|النهاردة|اليوم|و|أو|منهم|كشف|بيان|للعمال[ةه]?|للعامل)\s*/iu, '').trim();
+  }
+  n = n.replace(/\s+(?:في\s*العمال[ةه]|للعمال[ةه]|يومية|يوميات|مصروفات|مصروف)$/iu, '').trim();
   if (/(?:مشروع|فيلا|بند|شركة|مصروف|فواتير|فاتورة|سند|صرف|سداد)/iu.test(n) && !/(?:حارس|جرار|ونش|سائق|خفير|عامل|صنايعي|فني|مساعد)/iu.test(n)) {
     return '';
   }
@@ -548,9 +551,9 @@ function parseBatchLaborLogs(userPrompt) {
 
   // 4. استخراج المشروع / الفيلا
   const projectMatch = text.match(/(?:في\s+|لـ?)?(?:مشروع|فيلا|عماره|عمارة|موقع|برج)\s+([^\n\r,،]+?)(?=\s+(?:على|في|بند|وبند|وامر|وأمر|امر|أمر|يومية|يوميات|للعمال|دخلهالي|دخلها|في\s*العمال|$))/iu);
-  let siteRef = projectMatch ? projectMatch[0].replace(/^(?:في\s+|لـ?)/u, '').trim() : null;
+  let siteRef = projectMatch ? (projectMatch[1] || projectMatch[0]).replace(/^(?:في\s+|لـ?|(?:مشروع|فيلا|عماره|عمارة|موقع)\s+)/u, '').trim() : null;
   if (siteRef) {
-    siteRef = siteRef.replace(/\s+(?:على|في|لـ?|بـ?)$/u, '').trim();
+    siteRef = siteRef.replace(/^(?:مشروع|فيلا|عماره|عمارة|موقع)\s+/u, '').replace(/\s+(?:على|في|لـ?|بـ?)$/u, '').trim();
   }
   if (!siteRef) {
     const inlineSite = text.match(/(?:لـ?|في\s+)?(برج\s+[\p{L}\p{N}]+|فيلا\s+[\p{L}\p{N}_-]+)/u);
@@ -580,7 +583,7 @@ function parseBatchLaborLogs(userPrompt) {
     .replace(/(?:في\s+|لـ?)?(?:مشروع|فيلا|برج|عماره|عمارة|موقع)\s+[^\n\r,،]+/gi, ' ')
     .replace(/(?:وبند|بند)\s+[^\n\r,،]+/gi, ' ')
     .replace(/(?:على\s+)?(?:وامر|وأمر|امر|أمر)\s*شغل[^\n\r,،]*/gi, ' ')
-    .replace(/(?:دخله(?:الي)?\s*في\s*العمال[ةه]|في\s*العمال[ةه]|للعمال[ةه])/gi, ' ')
+    .replace(/(?:دخله(?:الي)?\s*في\s*(?:العمال[ةه]|العمال)|في\s*(?:العمال[ةه]|العمال)|للعمال[ةه]?|للعامل)/gi, ' ')
     .replace(/(?:سجلي|سجل|ضيفي|ضيف|أضف|اضف|ادخل|دخل|اعمل)\s*(?:لي)?\s*(?:مصروفات|مصاريف|مصروف|يوميات|يومية|فواتير|فاتورة)?\s*(?:امبارح|أمس|النهارده|النهاردة|اليوم)?/gi, ' ')
     .replace(/ليه\s+اليوميات[^\n\r]*/gi, ' ')
     .replace(/المفروض\s+البوت[^\n\r]*/gi, ' ');
@@ -639,6 +642,24 @@ function parseBatchLaborLogs(userPrompt) {
       continue;
     }
 
+    // اسم الشخص ومبلغه في سطر واحد (مثال: «إبراهيم النجار 700»)
+    const lineNameWage = line.match(/^([^\n\r\d,،]{2,30}?)\s+(\d{2,6})\s*(?:ر\.س|ريال|جنيه|ج\.م)?$/u);
+    if (lineNameWage) {
+      const cleanN = cleanWorkerName(lineNameWage[1]);
+      if (cleanN && cleanN.length >= 2) {
+        if (currentWorker?.name) {
+          workers.push(currentWorker);
+          currentWorker = {};
+        }
+        workers.push({
+          name: cleanN,
+          daily_wage: Number(lineNameWage[2]),
+        });
+        currentWorker = null;
+        continue;
+      }
+    }
+
     // اسم الشخص (1 إلى 4 كلمات بدون كلمات النظام)
     if (/^[\p{L}\s]{2,40}$/u.test(line)) {
       const cleanN = cleanWorkerName(line);
@@ -659,11 +680,11 @@ function parseBatchLaborLogs(userPrompt) {
 
   // إذا لم نجد عمالاً بالطريقة الرأسية، نبحث بالنمط الأفقي
   if (workers.length === 0) {
-    // 1) نمط: المبلغ ثم الاسم (مثال: «1000جرار نقل خشب و 100 حارس» أو «1000 جرار و 100 حارس»)
-    const amountFirstMatches = [...cleanText.matchAll(/(\d{2,6})\s*([\p{L}\s]{2,30}?)(?=\s+(?:و\s*\d|\d|$|[،,.]|\r?\n))/gu)];
-    for (const m of amountFirstMatches) {
-      const wage = Number(m[1]);
-      const rawName = cleanWorkerName(m[2]);
+    // 1) نمط: الاسم ثم المبلغ (الأكثر شيوعاً، مثال: «إبراهيم النجار 700 ومحمد بهلول 700»)
+    const inlineMatches = [...cleanText.matchAll(/([^\n\r\d,،]{2,30}?)\s*(?:نجار\s*مسلح|مساعد|حداد\s*مسلح|بناء|مليس|صنايعي|فني)?\s*(?:يومية|يوميته|أجر|اجر|بـ)?\s*(\d{2,5})\s*(?:ر\.س|ريال|جنيه|ج\.م)?(?=\s+(?:و|في|بند|مشروع|فيلا|برج|عماره|عمارة|موقع|$)|\r?\n|[،,.])/gu)];
+    for (const m of inlineMatches) {
+      const rawName = cleanWorkerName(m[1]);
+      const wage = Number(m[2]);
       if (rawName && rawName.length >= 2 && wage > 0) {
         workers.push({
           name: rawName,
@@ -672,12 +693,12 @@ function parseBatchLaborLogs(userPrompt) {
       }
     }
 
-    // 2) نمط: الاسم ثم المبلغ (مثال: «إبراهيم النجار 700 ومحمد بهلول 700»)
+    // 2) نمط: المبلغ ثم الاسم/الوصف (مثال: «1000جرار نقل خشب و 100 حارس» أو «1000 جرار و 100 حارس»)
     if (workers.length === 0) {
-      const inlineMatches = [...cleanText.matchAll(/([\p{L}\s]{2,30}?)\s*(?:نجار\s*مسلح|مساعد|حداد\s*مسلح|بناء|مليس|صنايعي|فني)?\s*(?:يومية|يوميته|أجر|اجر|بـ)?\s*(\d{2,5})\s*(?:ر\.س|ريال|جنيه|ج\.م)?(?=\s+(?:و|$)|\r?\n|[،,.])/gu)];
-      for (const m of inlineMatches) {
-        const rawName = cleanWorkerName(m[1]);
-        const wage = Number(m[2]);
+      const amountFirstMatches = [...cleanText.matchAll(/(\d{2,6})\s*([\p{L}\s]{2,30}?)(?=\s+(?:و\s*\d|\d|$|[،,.]|\r?\n))/gu)];
+      for (const m of amountFirstMatches) {
+        const wage = Number(m[1]);
+        const rawName = cleanWorkerName(m[2]);
         if (rawName && rawName.length >= 2 && wage > 0) {
           workers.push({
             name: rawName,
