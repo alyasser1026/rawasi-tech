@@ -49,31 +49,31 @@ function LoginContent() {
           isolation: isolate;
         }
 
-        /* خلفية الشعار (صورة الهوية) مع حركة تقريب بطيئة */
+        /* خلفية غرفة التحكم والشعار ثلاثي الأبعاد لصفحة تسجيل الدخول */
         .login-wrapper::before {
           content: '';
           position: absolute;
           inset: 0;
           z-index: -2;
-          background: url('/brand/hero-bg.webp') 22% center / cover no-repeat, #0d0f14;
-          transform-origin: 22% 50%;
+          background: url('/brand/login-bg.webp') center center / cover no-repeat, url('/brand/login-bg.jpg') center center / cover no-repeat, #0d0f14;
+          transform-origin: center 50%;
           animation: bgDrift 28s ease-in-out infinite alternate;
         }
 
-        /* طبقة تعتيم متدرجة: تحمي قراءة البطاقة وتُبقي نور النحاس ظاهرًا */
+        /* طبقة تعتيم متدرجة متوازنة: تحمي قراءة البطاقة وتُبرز الشعار ثلاثي الأبعاد ومكتب التحكم */
         .login-wrapper::after {
           content: '';
           position: absolute;
           inset: 0;
           z-index: -1;
           background:
-            radial-gradient(70rem 40rem at 50% 50%, rgba(10, 12, 16, 0.78), rgba(10, 12, 16, 0.35) 70%),
-            linear-gradient(180deg, rgba(10, 12, 16, 0.35), rgba(10, 12, 16, 0.7));
+            radial-gradient(48rem 36rem at 50% 50%, rgba(10, 12, 16, 0.62), rgba(10, 12, 16, 0.16) 72%),
+            linear-gradient(180deg, rgba(10, 12, 16, 0.18), rgba(10, 12, 16, 0.52));
         }
 
         @keyframes bgDrift {
           from { transform: scale(1); }
-          to { transform: scale(1.07); }
+          to { transform: scale(1.06); }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -81,7 +81,7 @@ function LoginContent() {
         }
 
         @media (max-width: 640px) {
-          .login-wrapper::before { background-position: 24% center; }
+          .login-wrapper::before { background-position: 32% center; }
         }
 
         .glass-card {

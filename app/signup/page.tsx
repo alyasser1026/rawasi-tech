@@ -106,7 +106,7 @@ export default function SignUpPage() {
     return (
         <div className="phi-signup" style={{
             minHeight: '100vh', width: '100vw', display: 'grid', placeItems: 'center',
-            background: THEME.brand.coffee, // ☕ تغيير الخلفية للون القهوة الرسمي
+            background: "linear-gradient(180deg, rgba(10, 12, 16, 0.45), rgba(10, 12, 16, 0.68)), url('/brand/login-bg.webp') center center / cover no-repeat, #0d0f14",
             fontFamily: "'Cairo', sans-serif", direction: 'rtl', 
             padding: '1.25rem', position: 'relative', overflow: 'hidden'
         }}>
