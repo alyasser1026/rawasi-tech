@@ -57,6 +57,7 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
   '/import': 'import',
   '/settings': 'settings',
   '/website-admin': 'settings',
+  '/bot-users': 'settings',
   '/profile': 'profile',
 };
 

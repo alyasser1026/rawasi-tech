@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {
   ROLES, isToolAllowed, applyRoleToAccess, canUseCallback, callbackLevel, actorContext, currentActor, requireAdmin,
-  createUserStore, handleUserCommand, createRateLimiter, createAuditLog, messageKind, commandName, normalizeRole,
+  createUserStore, createDbUserStore, handleUserCommand, createRateLimiter, createAuditLog, messageKind, commandName, normalizeRole,
 } from './copilot-access-control.mjs';
 import { hasModulePermission } from './copilot-tool-policy.mjs';
 import { TOOL_REGISTRY } from './copilot-tool-registry.mjs';
@@ -159,20 +159,20 @@ await test('admin claim by sharing OWN contact for a listed phone, once', () => 
   assert.equal(store.claimAdminByContact(msg(901, 901, '201558888744')).ok, false, 'one-time');
 });
 
-await test('user commands: whoami for anyone, management for admins only', () => {
+await test('user commands: whoami for anyone, management for admins only', async () => {
   const store = createUserStore({ filePath: path.join(tmp(), 'u.json'), seedAdminIds: [1] });
-  assert.ok(handleUserCommand(store, { userId: 77, role: null }, '/whoami').text.includes('77'));
-  assert.ok(handleUserCommand(store, { userId: 77, role: null }, '/whoami@MyBot').text.includes('مش متسجّل'));
-  assert.equal(handleUserCommand(store, { userId: 2, role: 'accountant' }, '/user_add 3 admin').event, 'denied_admin_command');
-  assert.equal(handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_add 3 مهندس محمد علي').event, 'user_upsert');
+  assert.ok((await handleUserCommand(store, { userId: 77, role: null }, '/whoami')).text.includes('77'));
+  assert.ok((await handleUserCommand(store, { userId: 77, role: null }, '/whoami@MyBot')).text.includes('مش متسجّل'));
+  assert.equal((await handleUserCommand(store, { userId: 2, role: 'accountant' }, '/user_add 3 admin')).event, 'denied_admin_command');
+  assert.equal((await handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_add 3 مهندس محمد علي')).event, 'user_upsert');
   assert.equal(store.roleOf(3), 'engineer');
-  assert.equal(handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_role 3 viewer').newRole, 'viewer');
-  assert.equal(handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_role 99 viewer').event, 'usage');
-  assert.ok(handleUserCommand(store, { userId: 1, role: 'admin' }, '/users').text.includes('3'));
-  assert.equal(handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_remove 1').event, 'user_remove_failed');
-  assert.equal(handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_remove 3').event, 'user_remove');
+  assert.equal((await handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_role 3 viewer')).newRole, 'viewer');
+  assert.equal((await handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_role 99 viewer')).event, 'usage');
+  assert.ok((await handleUserCommand(store, { userId: 1, role: 'admin' }, '/users')).text.includes('3'));
+  assert.equal((await handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_remove 1')).event, 'user_remove_failed');
+  assert.equal((await handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_remove 3')).event, 'user_remove');
   assert.equal(store.roleOf(3), null);
-  assert.equal(handleUserCommand(store, { userId: 1, role: 'admin' }, 'سجل مصروف 500'), null);
+  assert.equal(await handleUserCommand(store, { userId: 1, role: 'admin' }, 'سجل مصروف 500'), null);
   assert.equal(normalizeRole('ADMIN'), 'admin');
 });
 
@@ -217,6 +217,88 @@ await test('message kind/command for audit without content', () => {
   assert.equal(messageKind({ contact: {} }), 'contact');
   assert.equal(commandName({ text: '/user_add 5 admin' }), 'user_add');
   assert.equal(commandName({ text: 'hello' }), null);
+});
+
+// ---- مخزن قاعدة البيانات (fetch مزيّف بجدول في الذاكرة) ----
+function fakeTable({ missing = false } = {}) {
+  const rows = new Map();
+  const calls = [];
+  const fetchImpl = async (url, init = {}) => {
+    const u = new URL(url);
+    calls.push({ method: init.method || 'GET', path: u.pathname, auth: init.headers?.Authorization });
+    if (missing) return new Response('{"message":"relation does not exist"}', { status: 404 });
+    if (!init.method || init.method === 'GET') return Response.json([...rows.values()]);
+    if (init.method === 'POST') { for (const r of JSON.parse(init.body)) rows.set(String(r.telegram_id), { ...rows.get(String(r.telegram_id)), ...r }); return new Response(null, { status: 201 }); }
+    if (init.method === 'DELETE') { rows.delete(u.searchParams.get('telegram_id').replace('eq.', '')); return new Response(null, { status: 204 }); }
+    return new Response(null, { status: 400 });
+  };
+  return { rows, calls, fetchImpl };
+}
+
+await test('db store: migrates file users once, reads roles, service key only', async () => {
+  const fileStore = createUserStore({ filePath: path.join(tmp(), 'u.json'), seedAdminIds: [111] });
+  fileStore.upsert('222', 'engineer');
+  const t = fakeTable();
+  const store = createDbUserStore({ supabaseUrl: 'https://x.supabase.co', serviceKey: 'service-key-for-test', fileStore, fetchImpl: t.fetchImpl });
+  assert.equal(await store.ensureFresh(), true);
+  assert.equal(store.source(), 'db');
+  assert.equal(t.rows.size, 2, 'migrated');
+  assert.equal(store.roleOf(111), 'admin');
+  assert.equal(store.roleOf(222), 'engineer');
+  assert.ok(t.calls.every(c => c.path === '/rest/v1/copilot_telegram_users' && c.auth === 'Bearer service-key-for-test'));
+});
+
+await test('db store: upsert/remove with last-admin protection; web edits seen after TTL', async () => {
+  let clock = 0;
+  const t = fakeTable();
+  t.rows.set('1', { telegram_id: 1, role: 'admin', name: 'A' });
+  const store = createDbUserStore({ supabaseUrl: 'https://x.supabase.co', serviceKey: 'service-key-for-test', fetchImpl: t.fetchImpl, now: () => clock, ttlMs: 30_000 });
+  await store.ensureFresh();
+  assert.equal((await store.upsert('5', 'محاسب', { name: 'م', by: 1 })).ok, true);
+  assert.equal(store.roleOf(5), 'accountant');
+  assert.equal(t.rows.get('5').added_by, 'telegram:1');
+  assert.equal((await store.upsert('1', 'viewer')).ok, false);
+  assert.equal((await store.remove('1')).ok, false);
+  assert.equal((await store.remove('5')).ok, true);
+  assert.equal(store.roleOf(5), null);
+  // تعديل من صفحة السيستم مباشرة في الجدول
+  t.rows.set('9', { telegram_id: 9, role: 'viewer' });
+  await store.ensureFresh();
+  assert.equal(store.roleOf(9), null, 'cached');
+  clock = 31_000;
+  await store.ensureFresh();
+  assert.equal(store.roleOf(9), 'viewer', 'refreshed');
+  // handleUserCommand شغال مع المخزن ده
+  assert.equal((await handleUserCommand(store, { userId: 1, role: 'admin' }, '/user_add 10 مهندس')).event, 'user_upsert');
+  assert.equal(store.roleOf(10), 'engineer');
+});
+
+await test('db store: falls back to the file when the table is missing or no service key', async () => {
+  const fileStore = createUserStore({ filePath: path.join(tmp(), 'u.json'), seedAdminIds: [111] });
+  const missing = createDbUserStore({ supabaseUrl: 'https://x.supabase.co', serviceKey: 'service-key-for-test', fileStore, fetchImpl: fakeTable({ missing: true }).fetchImpl });
+  assert.equal(await missing.ensureFresh(), false);
+  assert.equal(missing.source(), 'file');
+  assert.equal(missing.roleOf(111), 'admin');
+  assert.equal((await missing.upsert('7', 'viewer')).ok, true);
+  assert.equal(fileStore.roleOf(7), 'viewer');
+  const nokey = createDbUserStore({ supabaseUrl: 'https://x.supabase.co', serviceKey: '', fileStore });
+  assert.equal(await nokey.ensureFresh(), false);
+  assert.equal(nokey.roleOf(111), 'admin');
+  const badUrl = createDbUserStore({ supabaseUrl: 'http://evil.example.com', serviceKey: 'service-key-for-test', fileStore });
+  assert.equal(badUrl.source(), 'file');
+});
+
+await test('db store: contact bootstrap writes the admin to the table', async () => {
+  const fileStore = createUserStore({ filePath: path.join(tmp(), 'u.json'), seedAdminPhones: ['201558888744'] });
+  const t = fakeTable();
+  t.rows.set('3', { telegram_id: 3, role: 'viewer' });
+  const store = createDbUserStore({ supabaseUrl: 'https://x.supabase.co', serviceKey: 'service-key-for-test', fileStore, fetchImpl: t.fetchImpl });
+  await store.ensureFresh();
+  const msg = { chat: { type: 'private', id: 900 }, from: { id: 900, is_bot: false, first_name: 'Alreef' }, contact: { user_id: 900, phone_number: '+201558888744' } };
+  assert.equal((await store.claimAdminByContact(msg)).ok, true);
+  assert.equal(t.rows.get('900').role, 'admin');
+  assert.equal(store.roleOf(900), 'admin');
+  assert.equal(store.bootstrapPending(), false);
 });
 
 console.log(`copilot-access-control: ${passed} tests OK`);

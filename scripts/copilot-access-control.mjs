@@ -226,7 +226,7 @@ export function createUserStore({ filePath = USERS_PATH, seedAdminIds = [], seed
 }
 
 // ---- أوامر إدارة المستخدمين (/whoami لأي حد، الباقي للمدير) ----
-export function handleUserCommand(store, { userId, role, firstName }, text) {
+export async function handleUserCommand(store, { userId, role }, text) {
   const t = String(text || '').trim().replace(/^(\/[a-z_]+)@[a-z0-9_]+/i, '$1');
   if (/^\/whoami$/i.test(t)) {
     return { text: `🪪 رقمك في تلغرام: ${userId}\nالدور: ${role ? ROLES[role].label : 'مش متسجّل'}`, event: 'whoami' };
@@ -245,7 +245,7 @@ export function handleUserCommand(store, { userId, role, firstName }, text) {
     const [id, r, ...name] = args;
     if (!id || !r) return { text: `الصيغة: /${cmd} <رقم تلغرام> <دور>${cmd === 'user_add' ? ' [اسم]' : ''}\n${roleHelp}\n(الشخص يعرف رقمه بإرسال /whoami للبوت)`, event: 'usage' };
     if (cmd === 'user_role' && !store.list().some(u => u.id === id)) return { text: 'المستخدم مش موجود. استخدم /user_add.', event: 'usage' };
-    const res = store.upsert(id, r, { name: name.join(' '), by: String(userId) });
+    const res = await store.upsert(id, r, { name: name.join(' '), by: String(userId) });
     return res.ok
       ? { text: `✅ ${id} بقى «${ROLES[res.role].label}».`, event: 'user_upsert', target: id, newRole: res.role }
       : { text: `⚠️ ${res.error}\n${roleHelp}`, event: 'user_upsert_failed' };
@@ -253,8 +253,123 @@ export function handleUserCommand(store, { userId, role, firstName }, text) {
   const [id] = args;
   if (!id) return { text: 'الصيغة: /user_remove <رقم تلغرام>', event: 'usage' };
   if (id === String(userId)) return { text: '⚠️ مش هينفع تشيل نفسك. خلّي مدير تاني يعملها.', event: 'user_remove_failed' };
-  const res = store.remove(id);
+  const res = await store.remove(id);
   return res.ok ? { text: `🗑️ اتشال ${id}.`, event: 'user_remove', target: id } : { text: `⚠️ ${res.error}`, event: 'user_remove_failed' };
+}
+
+// ---- مخزن المستخدمين في قاعدة البيانات (جدول copilot_telegram_users) ----
+// البوت بيقرأ ويكتب بمفتاح الخادم. القراءة من كاش في الذاكرة بيتجدد كل ttlMs (التعديل من صفحة السيستم
+// بيوصل للبوت في خلال نص دقيقة). لو مفيش مفتاح خادم أو الجدول لسه ما اتعملش: بيرجع للملف (fileStore).
+// أرقام التسجيل الأولي بالموبايل وحدود الطلبات بتفضل في الملف المحلي.
+export function createDbUserStore({ supabaseUrl, serviceKey, fileStore, fetchImpl = fetch, ttlMs = 30_000, now = Date.now, onEvent = () => {} } = {}) {
+  let base = null;
+  try {
+    const u = new URL(String(supabaseUrl || ''));
+    if (u.protocol === 'https:' || ['localhost', '127.0.0.1'].includes(u.hostname)) base = `${u.origin}/rest/v1/copilot_telegram_users`;
+  } catch {}
+  const enabled = Boolean(base && typeof serviceKey === 'string' && serviceKey.trim().length > 10);
+  let users = null; // Map<id, {role,name,...}> أو null = لسه ما اتقريش / مش متاح
+  let loadedAt = 0;
+  let pending = null;
+  let migrated = false;
+  const headers = (extra = {}) => ({ apikey: serviceKey, Authorization: `Bearer ${serviceKey}`, 'Content-Type': 'application/json', ...extra });
+  const request = (query, init = {}) => fetchImpl(`${base}${query}`, { ...init, headers: headers(init.headers), redirect: 'error', signal: AbortSignal.timeout(10_000) });
+
+  async function writeRow(id, role, name, by) {
+    const res = await request('?on_conflict=telegram_id', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify([{ telegram_id: Number(id), role, name: name || null, added_by: by ? String(by).slice(0, 80) : null, updated_at: new Date(now()).toISOString() }]),
+    });
+    return res.ok;
+  }
+
+  async function load() {
+    const res = await request('?select=telegram_id,role,name,added_by,created_at&order=created_at.asc');
+    if (!res.ok) throw new Error(`users table unavailable (${res.status})`);
+    const rows = await res.json();
+    if (!Array.isArray(rows)) throw new Error('bad users payload');
+    // أول مرة: الجدول فاضي والملف فيه مستخدمين → انقلهم
+    if (rows.length === 0 && !migrated && fileStore) {
+      migrated = true;
+      const local = fileStore.list();
+      for (const u of local) await writeRow(u.id, u.role, u.name, u.addedBy || 'file-migration');
+      if (local.length) { onEvent({ event: 'users_migrated', count: local.length }); return load(); }
+    }
+    migrated = true;
+    const map = new Map();
+    for (const r of rows) {
+      const role = normalizeRole(r.role);
+      const id = String(r.telegram_id);
+      if (role && ID.test(id)) map.set(id, { role, name: String(r.name ?? '').slice(0, 60), addedAt: r.created_at ?? null, addedBy: r.added_by ?? null });
+    }
+    users = map;
+    loadedAt = now();
+  }
+
+  async function ensureFresh(force = false) {
+    if (!enabled) return false;
+    if (!force && users && now() - loadedAt < ttlMs) return true;
+    pending ??= load().then(() => true, (err) => {
+      onEvent({ event: 'users_db_unavailable', reason: String(err?.message || err).slice(0, 80) });
+      if (users) loadedAt = now() - ttlMs + 5_000; // جرّب تاني بعد 5 ثواني، وكمّل بالكاش القديم
+      return Boolean(users);
+    }).finally(() => { pending = null; });
+    return pending;
+  }
+
+  const usingDb = () => enabled && users !== null;
+  const adminCount = () => [...users.values()].filter(u => u.role === 'admin').length;
+
+  return {
+    ensureFresh,
+    source: () => (usingDb() ? 'db' : 'file'),
+    roleOf(userId) {
+      if (!usingDb()) return fileStore ? fileStore.roleOf(userId) : null;
+      if (!Number.isSafeInteger(userId) || userId <= 0) return null;
+      return users.get(String(userId))?.role ?? null;
+    },
+    list() {
+      if (!usingDb()) return fileStore ? fileStore.list() : [];
+      return [...users.entries()].map(([id, u]) => ({ id, ...u }));
+    },
+    limits: () => (fileStore ? fileStore.limits() : DEFAULT_LIMITS),
+    bootstrapPending: () => Boolean(fileStore?.bootstrapPending()),
+    async upsert(userId, role, { name = '', by = null } = {}) {
+      if (!usingDb()) return fileStore ? fileStore.upsert(userId, role, { name, by }) : { ok: false, error: 'قائمة المستخدمين غير متاحة.' };
+      const r = normalizeRole(role);
+      const id = String(userId);
+      if (!ID.test(id) || !r) return { ok: false, error: 'رقم أو دور غير صحيح.' };
+      await ensureFresh(true);
+      const cur = users.get(id);
+      if (cur?.role === 'admin' && r !== 'admin' && adminCount() <= 1) return { ok: false, error: 'ده آخر مدير — ضيف مدير تاني الأول.' };
+      const ok = await writeRow(id, r, String(name || cur?.name || '').slice(0, 60), by ? `telegram:${by}` : null);
+      if (!ok) return { ok: false, error: 'تعذّر الحفظ في قاعدة البيانات.' };
+      await ensureFresh(true);
+      return { ok: true, role: r };
+    },
+    async remove(userId) {
+      if (!usingDb()) return fileStore ? fileStore.remove(userId) : { ok: false, error: 'قائمة المستخدمين غير متاحة.' };
+      const id = String(userId);
+      await ensureFresh(true);
+      const cur = users.get(id);
+      if (!cur) return { ok: false, error: 'المستخدم مش موجود.' };
+      if (cur.role === 'admin' && adminCount() <= 1) return { ok: false, error: 'ده آخر مدير — مش هينفع يتشال.' };
+      const res = await request(`?telegram_id=eq.${encodeURIComponent(id)}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } });
+      if (!res.ok) return { ok: false, error: 'تعذّر الحذف من قاعدة البيانات.' };
+      await ensureFresh(true);
+      return { ok: true };
+    },
+    /** التسجيل الأولي بالموبايل: التحقق من الملف المحلي، والحفظ في قاعدة البيانات لو متاحة. */
+    async claimAdminByContact(message) {
+      if (!fileStore) return { ok: false };
+      const claim = fileStore.claimAdminByContact(message);
+      if (!claim.ok || !usingDb()) return claim;
+      const ok = await writeRow(message.from.id, 'admin', String(message.from.first_name || 'مدير').slice(0, 60), 'contact-bootstrap');
+      await ensureFresh(true);
+      return ok ? claim : { ok: false, reason: 'db_write_failed' };
+    },
+  };
 }
 
 // ---- حد الطلبات (نافذة منزلقة لكل مستخدم، في الذاكرة) ----

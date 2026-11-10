@@ -11,7 +11,7 @@ import { getCopilotDate, getEnabledCopilotDeclarations as _getEnabledCopilotDecl
 import { createCopilotConversation, extractEntities } from './copilot-conversation.mjs';
 import {
   ROLES, isToolAllowed, applyRoleToAccess, canUseCallback, callbackLevel, actorContext, currentActor, requireAdmin,
-  createUserStore, handleUserCommand, createRateLimiter, createAuditLog, messageKind, commandName,
+  createUserStore, createDbUserStore, handleUserCommand, createRateLimiter, createAuditLog, messageKind, commandName,
 } from './copilot-access-control.mjs';
 import { createPendingWrites, isWriteCall, formatConfirmationText, buildConfirmMarkup, resolveConfirmCallback, CONFIRM_STATUS_MESSAGES } from './copilot-write-confirm.mjs';
 import { createTelegramDocumentSender, createTelegramMessageSender, createTelegramVoiceSender } from './copilot-telegram-sender.mjs';
@@ -208,12 +208,20 @@ const trainingProposals = createCopilotTrainingProposals(path.join(rootDir, 'wor
 // 🔐 صلاحيات المستخدمين + حد الطلبات + سجل التدقيق (copilot-access-control.mjs)
 // الملف work/copilot_users.json (متجاهَل في git). لو مش موجود: الشات الخاص المضبوط في الإعدادات بيتسجل مدير،
 // وأرقام COPILOT_ADMIN_PHONES (لو موجودة) تقدر تسجّل نفسها مدير بمشاركة كارت الاتصال.
-const userStore = createUserStore({
+// القائمة نفسها في جدول copilot_telegram_users (بتتدار من صفحة «مستخدمي البوت» في السيستم أو بأوامر /user_*).
+// لو مفتاح الخادم مش موجود أو الجدول لسه ما اتعملش، البوت بيكمّل على الملف المحلي.
+const fileUserStore = createUserStore({
   seedAdminIds: CHAT_ID !== null ? [CHAT_ID] : [],
   seedAdminPhones: String(setting('COPILOT_ADMIN_PHONES') || '').split(/[,\s]+/).filter(Boolean),
 });
 const rateLimiter = createRateLimiter();
 const audit = createAuditLog();
+const userStore = createDbUserStore({
+  supabaseUrl: SUPABASE_URL,
+  serviceKey: SUPABASE_SERVICE_KEY,
+  fileStore: fileUserStore,
+  onEvent: (e) => audit(e),
+});
 
 // الدوال دي بتغيّر حاجة لكل المستخدمين → المدير بس (جوه رسالة أو زر). من غير سياق = النظام.
 function saveBotSettings(partial) { requireAdmin('تغيير إعدادات البوت'); return _saveBotSettings(partial); }
@@ -281,9 +289,10 @@ async function gateMessage(message) {
     audit({ event: 'denied_no_user', chat: chatId, kind: messageKind(message) });
     return;
   }
+  await userStore.ensureFresh();
   // تسجيل أول مدير: مشاركة كارت الاتصال بتاع الشخص نفسه لرقم مضبوط مسبقًا
   if (message.contact && isPrivate && !userStore.roleOf(uid)) {
-    const claim = userStore.claimAdminByContact(message);
+    const claim = await userStore.claimAdminByContact(message);
     if (claim.ok) {
       audit({ event: 'admin_bootstrap', uid, chat: chatId });
       await sendTelegramMessage(chatId, '✅ اتسجّلت مدير للبوت.\nابعت /menu للبداية، و /users لإدارة المستخدمين.', message.message_id, { html: false, replyMarkup: { remove_keyboard: true } });
@@ -291,7 +300,7 @@ async function gateMessage(message) {
     }
   }
   const role = userStore.roleOf(uid);
-  const cmd = handleUserCommand(userStore, { userId: uid, role }, message.text);
+  const cmd = await handleUserCommand(userStore, { userId: uid, role }, message.text);
   if (cmd) {
     audit({ event: cmd.event, uid, role, chat: chatId, target: cmd.target, newRole: cmd.newRole });
     await sendTelegramMessage(chatId, cmd.text, message.message_id, { html: false });
@@ -341,6 +350,7 @@ async function gateCallback(cb) {
     await answer('غير متاح هنا.');
     return;
   }
+  await userStore.ensureFresh();
   const role = userStore.roleOf(uid);
   if (!role) {
     audit({ event: 'denied_unregistered', uid, chat: chat.id, kind: 'callback' });
@@ -3082,6 +3092,7 @@ const isMain = process.argv[1] && path.resolve(process.argv[1]) === path.resolve
 if (isMain) {
   initKnowledgeBase();
   registerBotCommands();
+  userStore.ensureFresh().then(() => console.log(`🔐 مستخدمي البوت من: ${userStore.source() === 'db' ? 'قاعدة البيانات' : 'الملف المحلي work/copilot_users.json'}`));
   startDailyReportScheduler();
   startProactiveAlertScheduler();
   startScheduledReportScheduler();
