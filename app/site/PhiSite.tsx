@@ -13,8 +13,14 @@ const BimModel = dynamic(() => import('./BimModel'), {
   loading: () => <div className="pw-bim-stage"><div className="pw-bim-note">جاري تحميل النموذج…</div></div>,
 });
 
+const SuperheroRoom3D = dynamic(() => import('./SuperheroRoom3D'), {
+  ssr: false,
+  loading: () => <div className="pw-bim-stage"><div className="pw-bim-note">جاري تحميل غرفة السوبر هيرو ثلاثية الأبعاد…</div></div>,
+});
+
 const NAV = [
   { href: '#services', label: 'الخدمات' },
+  { href: '#superhero-room', label: 'غرفة سوبر هيرو 3D' },
   { href: '#bim', label: 'نموذج BIM' },
   { href: '#tools', label: 'الأدوات' },
   { href: '#checklist', label: 'دليل وبطاقات التنفيذ' },
@@ -149,6 +155,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
               <p className="pw-lead">{SITE.intro}</p>
               <div className="pw-actions">
                 <a href={primaryContact.href} className="pw-btn pw-btn-primary" {...(primaryContact.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{primaryContact.label}</a>
+                <a href="#superhero-room" className="pw-btn pw-btn-light">غرفة سوبر هيرو 3D</a>
                 <a href="#bim" className="pw-btn pw-btn-light">استكشف نموذج BIM</a>
               </div>
             </div>
@@ -198,6 +205,18 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
                 </article>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Superhero Room 3D */}
+        <section id="superhero-room" className="pw-section">
+          <div className="pw-wrap">
+            <div className="pw-head">
+              <p className="pw-eyebrow">معرض التصميم الداخلي والتشطيبات ثلاثية الأبعاد</p>
+              <h2>غرفة سوبر هيرو 3D — تكامل الديكور والأنظمة الذكية والتكييف المخفي</h2>
+              <p>استعرض الغرفة عبر نموذج 3D تفاعلي حي (Three.js) إلى جانب الريندر الواقعي بهوية فاي تك (#0c0907 الليلي و #f7eee2 النهاري والبرتقالي #f97316)، واضغط على أي عنصر لعرض مواصفاته الهندسية وتكلفته التقديرية.</p>
+            </div>
+            <LazyMount minHeight={520}><SuperheroRoom3D /></LazyMount>
           </div>
         </section>
 

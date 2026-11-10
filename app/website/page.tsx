@@ -2,7 +2,17 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabase';
+
+const SuperheroRoom3D = dynamic(() => import('../site/SuperheroRoom3D'), {
+  ssr: false,
+  loading: () => (
+    <div className="p-12 text-center font-bold text-amber-500">
+      جاري تحميل غرفة السوبر هيرو ثلاثية الأبعاد (Three.js)...
+    </div>
+  ),
+});
 
 export default function WebsitePage() {
   // Theme & Accent states
@@ -1263,8 +1273,9 @@ export default function WebsitePage() {
           {/* Navigation Links */}
           <nav className="hidden xl:flex items-center gap-1 sunken-well-box p-1.5">
             <a href="#hero" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-primary)' }}>الرئيسية</a>
+            <a href="#superhero-room" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--accent-bright)' }}>غرفة سوبر هيرو 3D</a>
             <a href="#three-pillars" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>القطاعات التنفيذية</a>
-            <a href="#boq-catalog" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--accent-bright)' }}>دليل بنود المقايسة</a>
+            <a href="#boq-catalog" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>دليل بنود المقايسة</a>
             <a href="#xray-twin" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>محاكي البناء 3D</a>
             <a href="#turnkey-calculator" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>حاسبة المقايسة</a>
             <a href="#portfolio" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>مشاريعنا الميدانية</a>
@@ -1400,6 +1411,11 @@ export default function WebsitePage() {
               <a href="#turnkey-calculator" className="btn-primary text-base px-7 py-4">
                 <i className="fa-solid fa-calculator"></i>
                 <span>احسب تكلفة مشروعك (عظم + تشطيب + MEP)</span>
+              </a>
+              <a href="#superhero-room" className="btn-secondary text-base px-6 py-4">
+                <div className="specular-beam"></div>
+                <i className="fa-solid fa-cube" style={{ color: 'var(--accent-main)' }}></i>
+                <span>استكشف غرفة سوبر هيرو 3D</span>
               </a>
               <a href="#boq-catalog" className="btn-secondary text-base px-6 py-4">
                 <div className="specular-beam"></div>
@@ -1607,6 +1623,13 @@ export default function WebsitePage() {
             </div>
           </div>
 
+        </div>
+      </section>
+
+      {/* SECTION 1.5: SUPERHERO 3D ROOM SHOWCASE */}
+      <section id="superhero-room" className="py-12 px-4 sm:px-8">
+        <div className="max-w-7xl mx-auto">
+          <SuperheroRoom3D />
         </div>
       </section>
 
