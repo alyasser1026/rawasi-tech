@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabase';
+import { PHITECH_RINGS_PATH, PHITECH_PILLARS_PATH, PHITECH_TIGHT_VIEWBOX } from '@/lib/brand-logo-paths';
 
 const SuperheroRoom3D = dynamic(() => import('../site/SuperheroRoom3D'), {
   ssr: false,
@@ -98,95 +99,13 @@ export default function WebsitePage() {
     });
   }, []);
 
-  // Geometry calculation for the Attached Exact Logo ("مالي مكانه")
+  // Geometry calculation for the Official PhiTech Logo
   const logoGeometry = useMemo(() => {
-    const cx = 250;
-    const cy = 250;
-    const { rOut, thickness, verticalExt } = proportions;
-    const rIn = Math.max(70, rOut - thickness);
-
-    const centerGap = 10;
-    const stemWidth = Math.round(thickness * 0.66);
-    const xLeftInner = cx - centerGap / 2;
-    const xLeftOuter = xLeftInner - stemWidth;
-    const xRightInner = cx + centerGap / 2;
-    const xRightOuter = xRightInner + stemWidth;
-
-    const serifWidth = Math.round(stemWidth * 0.82);
-    const serifHeight = Math.round(stemWidth * 0.78);
-    const xLeftSerif = xLeftOuter - serifWidth;
-    const xRightSerif = xRightOuter + serifWidth;
-
-    const topCircleY = cy - rOut;
-    const bottomCircleY = cy + rOut;
-    const topY = Math.round(topCircleY - verticalExt);
-    const topSerifBottomY = topY + serifHeight;
-
-    const dxTotal = xRightOuter - xLeftOuter;
-    const bottomLeftTipY = Math.round(bottomCircleY + verticalExt + 16);
-    const bottomRightOuterY = bottomLeftTipY - dxTotal;
-    const bottomRightInnerY = bottomLeftTipY - (xRightInner - xLeftOuter);
-    const bottomLeftInnerY = bottomLeftTipY - (xLeftInner - xLeftOuter);
-
-    const notchGap = Math.max(16, Math.round(stemWidth * 0.56));
-    const xLeftNotch = xLeftOuter - notchGap;
-
-    const dyCircle = (r: number, x: number) => {
-      const d = Math.abs(x - cx);
-      if (d >= r) return 0;
-      return Math.sqrt(r * r - d * d);
+    return {
+      ringsPath: PHITECH_RINGS_PATH,
+      pillarsPath: PHITECH_PILLARS_PATH,
+      tightViewBox: PHITECH_TIGHT_VIEWBOX,
     };
-
-    const yLeftTopOut = (cy - dyCircle(rOut, xLeftNotch)).toFixed(1);
-    const yLeftTopIn = (cy - dyCircle(rIn, xLeftNotch)).toFixed(1);
-    const yLeftBotOut = (cy + dyCircle(rOut, xLeftOuter)).toFixed(1);
-    const yLeftBotIn = (cy + dyCircle(rIn, xLeftOuter)).toFixed(1);
-
-    const yRightTopOut = (cy - dyCircle(rOut, xRightOuter)).toFixed(1);
-    const yRightTopIn = (cy - dyCircle(rIn, xRightOuter)).toFixed(1);
-    const yRightBotOut = (cy + dyCircle(rOut, xRightOuter)).toFixed(1);
-    const yRightBotIn = (cy + dyCircle(rIn, xRightOuter)).toFixed(1);
-
-    const ringsPath = [
-      `M ${xLeftNotch} ${yLeftTopOut}`,
-      `A ${rOut} ${rOut} 0 0 0 ${xLeftOuter} ${yLeftBotOut}`,
-      `L ${xLeftOuter} ${yLeftBotIn}`,
-      `A ${rIn} ${rIn} 0 0 1 ${xLeftNotch} ${yLeftTopIn}`,
-      `Z`,
-      `M ${xRightOuter} ${yRightTopOut}`,
-      `A ${rOut} ${rOut} 0 0 1 ${xRightOuter} ${yRightBotOut}`,
-      `L ${xRightOuter} ${yRightBotIn}`,
-      `A ${rIn} ${rIn} 0 0 0 ${xRightOuter} ${yRightTopIn}`,
-      `Z`
-    ].join(' ');
-
-    const pillarsPath = [
-      `M ${xLeftSerif} ${topY}`,
-      `L ${xLeftInner} ${topY}`,
-      `L ${xLeftInner} ${bottomLeftInnerY}`,
-      `L ${xLeftOuter} ${bottomLeftTipY}`,
-      `L ${xLeftOuter} ${topSerifBottomY}`,
-      `L ${xLeftSerif} ${topSerifBottomY}`,
-      `Z`,
-      `M ${xRightInner} ${topY}`,
-      `L ${xRightSerif} ${topY}`,
-      `L ${xRightSerif} ${topSerifBottomY}`,
-      `L ${xRightOuter} ${topSerifBottomY}`,
-      `L ${xRightOuter} ${bottomRightOuterY}`,
-      `L ${xRightInner} ${bottomRightInnerY}`,
-      `Z`
-    ].join(' ');
-
-    const pad = 8;
-    const minX = (cx - rOut) - pad;
-    const maxX = (cx + rOut) + pad;
-    const minY = topY - pad;
-    const maxY = bottomLeftTipY + pad;
-    const vbWidth = maxX - minX;
-    const vbHeight = maxY - minY;
-    const tightViewBox = `${minX} ${minY} ${vbWidth} ${vbHeight}`;
-
-    return { ringsPath, pillarsPath, tightViewBox };
   }, [proportions]);
 
   // BoQ Calculation for Contracting Scopes (SAR benchmark)
@@ -723,8 +642,8 @@ export default function WebsitePage() {
           <linearGradient id="expRings" x1="0%" y1="0%" x2="100%" y2="100%">${ringsStops}</linearGradient>
           <linearGradient id="expPillars" x1="0%" y1="0%" x2="0%" y2="100%">${pillarsStops}</linearGradient>
         </defs>
-        <path d="${logoGeometry.ringsPath}" fill="url(#expRings)" />
-        <path d="${logoGeometry.pillarsPath}" fill="url(#expPillars)" />
+        <path fill-rule="evenodd" d="${logoGeometry.ringsPath}" fill="url(#expRings)" />
+        <path fill-rule="evenodd" d="${logoGeometry.pillarsPath}" fill="url(#expPillars)" />
       </svg>`;
     }
 
@@ -735,8 +654,8 @@ export default function WebsitePage() {
           <linearGradient id="expPillars" x1="0%" y1="0%" x2="0%" y2="100%">${pillarsStops}</linearGradient>
         </defs>
         <g transform="translate(5, -5) scale(0.76)">
-          <path d="${logoGeometry.ringsPath}" fill="url(#expRings)" />
-          <path d="${logoGeometry.pillarsPath}" fill="url(#expPillars)" />
+          <path fill-rule="evenodd" d="${logoGeometry.ringsPath}" fill="url(#expRings)" />
+          <path fill-rule="evenodd" d="${logoGeometry.pillarsPath}" fill="url(#expPillars)" />
         </g>
         <text x="375" y="175" font-family="'Cairo', sans-serif" font-size="60" font-weight="900" fill="${techTextColor}">
           فاي تك <tspan font-family="'JetBrains Mono', monospace" font-size="50" font-weight="900" fill="${phiTextColor}">PhiTech</tspan>
@@ -753,8 +672,8 @@ export default function WebsitePage() {
         <linearGradient id="expPillars" x1="0%" y1="0%" x2="0%" y2="100%">${pillarsStops}</linearGradient>
       </defs>
       <g transform="translate(50, -5)">
-        <path d="${logoGeometry.ringsPath}" fill="url(#expRings)" />
-        <path d="${logoGeometry.pillarsPath}" fill="url(#expPillars)" />
+        <path fill-rule="evenodd" d="${logoGeometry.ringsPath}" fill="url(#expRings)" />
+        <path fill-rule="evenodd" d="${logoGeometry.pillarsPath}" fill="url(#expPillars)" />
       </g>
       <text x="300" y="515" text-anchor="middle" font-family="'Cairo', sans-serif" font-size="52" font-weight="900" fill="${techTextColor}">
         فاي تك
@@ -877,8 +796,8 @@ export default function WebsitePage() {
             <stop offset="100%" stop-color="#9a3412" />
           </linearGradient>
 
-          <path id="phi-master-rings" d={logoGeometry.ringsPath} />
-          <path id="phi-master-pillars" d={logoGeometry.pillarsPath} />
+          <path id="phi-master-rings" fillRule="evenodd" d={logoGeometry.ringsPath} />
+          <path id="phi-master-pillars" fillRule="evenodd" d={logoGeometry.pillarsPath} />
         </defs>
       </svg>
 

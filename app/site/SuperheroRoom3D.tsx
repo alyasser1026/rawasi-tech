@@ -376,9 +376,9 @@ export default function SuperheroRoom3D() {
       // Twin PhiTech Crane Pillars + Superhero Mask Visor inside Emblem
       addBox('heroWall', 0.075, 0.92, 0.035, -0.065, 0, 0.01, matNeonOrange, emblemGroup);
       addBox('heroWall', 0.075, 0.92, 0.035, 0.065, 0, 0.01, matNeonOrange, emblemGroup);
-      // Top T-bars of PhiTech Towers
-      addBox('heroWall', 0.16, 0.04, 0.035, -0.09, 0.45, 0.01, matNeonOrange, emblemGroup);
-      addBox('heroWall', 0.16, 0.04, 0.035, 0.09, 0.45, 0.01, matNeonOrange, emblemGroup);
+      // Bottom Outrigger Feet of PhiTech Towers (matching new official logo)
+      addBox('heroWall', 0.16, 0.04, 0.035, -0.09, -0.45, 0.01, matNeonOrange, emblemGroup);
+      addBox('heroWall', 0.16, 0.04, 0.035, 0.09, -0.45, 0.01, matNeonOrange, emblemGroup);
       // Superhero Glowing Eyes / Visor Bar across the Emblem
       const eyeLeft = addBox('heroWall', 0.18, 0.04, 0.04, -0.17, 0.08, 0.02, matNeonWhite, emblemGroup);
       eyeLeft.rotation.z = -0.18;
