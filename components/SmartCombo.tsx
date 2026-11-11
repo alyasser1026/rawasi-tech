@@ -632,7 +632,7 @@ export default function SmartCombo({
                             }
                         }
                     }}
-                    onFocus={(e: any) => { if (!disabled) { setShow(true); loadData(''); e.target?.select?.(); } }}
+                    onFocus={(e: any) => { if (!disabled) { setShow(true); loadData(isUserTypingRef.current ? search : ''); e.target?.select?.(); } }}
                     onBlur={handleBlur}
                     onKeyDown={handleKeyDown} 
                     className={`smart-combo-input ${disabled ? 'disabled' : ''}`}
@@ -646,7 +646,7 @@ export default function SmartCombo({
                 )}
 
                 {!isTextArea && !disabled && (
-                    <span onMouseDown={e => e.preventDefault()} onClick={() => { if(!disabled) { const nextShow = !show; setShow(nextShow); if(nextShow) loadData(''); } }} style={{ position: 'absolute', left: '0.9375rem', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.3125rem', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                    <span onMouseDown={e => e.preventDefault()} onClick={() => { if(!disabled) { const nextShow = !show; setShow(nextShow); if(nextShow) loadData(isUserTypingRef.current ? search : ''); } }} style={{ position: 'absolute', left: '0.9375rem', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', cursor: 'pointer', padding: '0.3125rem', transition: '0.2s', transform: show ? 'rotate(180deg)' : 'rotate(0deg)' }}>
                         ▼
                     </span>
                 )}

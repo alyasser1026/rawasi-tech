@@ -260,12 +260,12 @@ function computeRelevanceTier(
     return 3;
   }
   if (tokens.every((tok) => primaryText.includes(tok) || rawDisplay.includes(tok) || codeText.includes(tok))) {
-    return 4;
+    return primaryText.startsWith(tokens[0]) || rawDisplay.startsWith(tokens[0]) ? 4 : 5;
   }
   if (colTexts.some((txt) => txt.includes(normFullQuery))) {
-    return 5;
+    return 6;
   }
-  return 6;
+  return 7;
 }
 
 /**
