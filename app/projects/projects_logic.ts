@@ -24,7 +24,7 @@ export function useProjectsLogic() {
   const [selectedProject, setSelectedProject] = useState<any | null>(null);
   
   const [projectDetails, setProjectDetails] = useState<any>({
-    stages: [], boq: [], expenses: [], ledger: [], invoices: [], inspections: [], laborStats: null, materials: [], contractorAssignments: [], milestones: [], siteVisits: [], receiptVouchers: []
+    stages: [], boq: [], expenses: [], ledger: [], invoices: [], inspections: [], laborStats: null, materials: [], contractorAssignments: [], milestones: [], siteVisits: [], receiptVouchers: [], paymentVouchers: [], jobOrders: []
   });
   
   const [isLoading, setIsLoading] = useState(true);
@@ -490,16 +490,45 @@ export function useProjectsLogic() {
         logs: synthesizedLaborLogs
       };
 
-      // جلب دفعات العميل وسجل الزيارات وسندات القبض للربط
+      // جلب دفعات العميل وسجل الزيارات وسندات القبض والصرف وأوامر الشغل للتقرير اليومي الشامل
       const [
         { data: milestonesData },
         { data: siteVisitsData },
-        { data: receiptsData }
+        { data: receiptsData },
+        { data: jobOrdersData },
+        { data: pvRawData },
+        { data: accListData },
+        { data: partnersListData }
       ] = await Promise.all([
         supabase.from('project_payment_milestones').select('*').eq('project_id', project.id).order('milestone_number', { ascending: true }),
         supabase.from('project_site_visits').select('*').eq('project_id', project.id).order('visit_date', { ascending: false }),
-        supabase.from('receipt_vouchers').select('id, receipt_number, date, amount, payment_method, notes, partner_id, project_ids').order('date', { ascending: false })
+        supabase.from('receipt_vouchers').select('id, receipt_number, date, amount, payment_method, notes, partner_id, project_ids').order('date', { ascending: false }),
+        supabase.from('job_orders').select('id, order_number, project_id, contractor_id, executor_type, assigned_qty, unit_price, status, start_date, end_date, notes').eq('project_id', project.id).order('created_at', { ascending: false }),
+        supabase.from('payment_vouchers').select('id, voucher_number, date, amount, partner_id, debit_account_id, description, notes, status, is_posted, site_ref, project_ids, job_order_id, sub_claim_id, related_expense_id, custody_id').order('date', { ascending: false }).limit(300),
+        supabase.from('accounts').select('id, code, name'),
+        supabase.from('partners').select('id, name, partner_type')
       ]);
+
+      const accMap = new Map((accListData || []).map((a: any) => [a.id, a]));
+      const partMap = new Map((partnersListData || []).map((p: any) => [p.id, p]));
+      const joIds = new Set((jobOrdersData || []).map((o: any) => o.id));
+      const enrichedJobOrders = (jobOrdersData || []).map((o: any) => ({
+        ...o,
+        contractor_name: partMap.get(o.contractor_id)?.name || 'مقاول'
+      }));
+      const projectNameLower = String(project.Property || project.project_name || '').toLowerCase();
+      const enrichedPaymentVouchers = (pvRawData || [])
+        .filter((v: any) => {
+          if (Array.isArray(v.project_ids) && v.project_ids.includes(project.id)) return true;
+          if (v.job_order_id && joIds.has(v.job_order_id)) return true;
+          return Boolean(projectNameLower && v.site_ref && String(v.site_ref).toLowerCase().includes(projectNameLower));
+        })
+        .map((v: any) => ({
+          ...v,
+          _matchedProject: true,
+          debit_account: accMap.get(v.debit_account_id) || null,
+          partner: partMap.get(v.partner_id) || null
+        }));
 
       setProjectDetails({
         stages: [],
@@ -515,7 +544,9 @@ export function useProjectsLogic() {
         inspections: [],
         milestones: milestonesData || [],
         siteVisits: siteVisitsData || [],
-        receiptVouchers: receiptsData || []
+        receiptVouchers: receiptsData || [],
+        paymentVouchers: enrichedPaymentVouchers,
+        jobOrders: enrichedJobOrders
       });
 
     } catch (err: any) {

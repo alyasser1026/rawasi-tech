@@ -6,6 +6,8 @@ import { getCopilotDate } from './copilot-tool-policy.mjs';
 import { assessTareeha, unassessedReason } from './copilot-tareeha.mjs';
 import { registerOperation, resolveOperationByNumberOrCode, setActiveCompany, getActiveCompany, resolveCompanyCurrencyLabel } from './copilot-bot-settings.mjs';
 import { generateNextPartnerCode } from '../lib/partnerCodeGenerator.ts';
+import { buildMilestoneSchedule } from '../lib/milestoneSchedule.ts';
+import { isHelperWorker, recordMatchesProject } from '../lib/projectDailyReport.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -912,7 +914,7 @@ export function createCopilotTools({
       const notPermitted = { ok: false, error: 'غير متاح بالصلاحية الحالية' };
 
       const laborCols = [
-        'id', 'work_date', 'worker_name', 'site_ref', 'project_id', 'work_item', 'unit', 'skill_level',
+        'id', 'work_date', 'worker_name', 'worker_partner_id', 'site_ref', 'project_id', 'job_order_id', 'work_item', 'unit', 'skill_level',
         ...(canLaborCost ? ['daily_wage'] : []),
         'attendance_value', 'tareeha', 'productivity', 'completion_percentage', 'sub_contractor', 'notes', 'is_posted', 'created_at',
       ].join(',');
@@ -932,10 +934,14 @@ export function createCopilotTools({
         ucRes,
         receiptsRes,
         companyRes,
+        boqRes,
+        milestonesRes,
+        visitsRes,
+        allReceiptsRes,
       ] = await Promise.all([
         canProjects
           ? fetchScopedRows('projects', {
-              select: 'id,project_code,Property,project_name,status,current_stage,unit_type,unit_area,engineer_in_charge,project_manager,contract_value,estimated_budget,location_address',
+              select: 'id,project_code,Property,project_name,client_id,status,current_stage,unit_type,unit_area,engineer_in_charge,project_manager,contract_value,estimated_budget,start_date,end_date,location_address',
               order: 'created_at.desc',
               limit: '100',
             })
@@ -950,7 +956,7 @@ export function createCopilotTools({
           : Promise.resolve(notPermitted),
         canExpenses
           ? fetchScopedRows('expenses', {
-              select: 'id,exp_date,description,quantity,unit_price,total_price,paid_amount,payment_method,creditor_account,main_category,site_ref,payee_name,sub_contractor,project_id,is_posted,notes,created_at',
+              select: 'id,exp_date,description,quantity,unit_price,total_price,paid_amount,payment_method,creditor_account,main_category,site_ref,payee_name,sub_contractor,project_id,job_order_id,is_posted,notes,created_at',
               exp_date: `eq.${targetDate}`,
               is_deleted: 'eq.false',
               order: 'created_at.desc',
@@ -959,7 +965,7 @@ export function createCopilotTools({
           : Promise.resolve(notPermitted),
         canPayments
           ? fetchScopedRows('payment_vouchers', {
-              select: 'id,voucher_number,date,amount,partner_id,debit_account_id,credit_account_id,payment_method,description,notes,status,is_posted,site_ref,sub_claim_id,related_expense_id,custody_id,created_at',
+              select: 'id,voucher_number,date,amount,partner_id,debit_account_id,credit_account_id,payment_method,description,notes,status,is_posted,site_ref,project_ids,job_order_id,sub_claim_id,related_expense_id,custody_id,created_at',
               date: `eq.${targetDate}`,
               order: 'created_at.desc',
               limit: '100',
@@ -995,7 +1001,7 @@ export function createCopilotTools({
             })
           : Promise.resolve(notPermitted),
         fetchScopedRows('partners', {
-          select: 'id,name,partner_type,phone,job_role',
+          select: 'id,code,name,partner_type,phone,job_role',
           limit: '200',
         }),
         canPayments
@@ -1012,13 +1018,41 @@ export function createCopilotTools({
           : Promise.resolve(notPermitted),
         canReceipts
           ? fetchScopedRows('receipt_vouchers', {
-              select: 'id,receipt_number,date,amount,partner_id,payment_method,notes,status,created_at',
+              select: 'id,receipt_number,date,amount,partner_id,payment_method,notes,status,project_ids,job_order_id,created_at',
               date: `eq.${targetDate}`,
               order: 'created_at.desc',
               limit: '100',
             })
           : Promise.resolve(notPermitted),
         fetchRest(`companies?id=eq.${companyId}&select=id,name,currency,country&limit=1`).catch(() => ({ data: null })),
+        canProjects
+          ? fetchScopedRows('boq_budget', {
+              select: 'id,project_id,parent_id,item_type,work_item,estimated_labor_cost,estimated_expenses_cost,estimated_material_cost,estimated_subcontractor_cost,actual_labor_cost,actual_expenses_cost,actual_material_cost,actual_subcontractor_cost,loaded_amount_egp,loaded_amount,completed_percentage,total_contract_amount',
+              limit: '500',
+            })
+          : Promise.resolve(notPermitted),
+        canProjects
+          ? fetchScopedRows('project_payment_milestones', {
+              select: 'id,project_id,milestone_number,title,due_date,expected_amount,received_amount,receipt_voucher_id,receipt_number,receipt_date,status',
+              order: 'milestone_number.asc',
+              limit: '300',
+            })
+          : Promise.resolve(notPermitted),
+        canProjects
+          ? fetchScopedRows('project_site_visits', {
+              select: 'id,project_id,title,stage,boq_item_name,visit_date,inspector_name,notes,status',
+              visit_date: `eq.${targetDate}`,
+              order: 'created_at.desc',
+              limit: '100',
+            })
+          : Promise.resolve(notPermitted),
+        canProjects && canReceipts
+          ? fetchScopedRows('receipt_vouchers', {
+              select: 'id,receipt_number,date,amount,partner_id,project_ids,invoice_id',
+              order: 'date.asc',
+              limit: '300',
+            })
+          : Promise.resolve(notPermitted),
       ]);
 
       // 🕒 تقرير «الإضافات المتأخرة»: حركات اتسجلت النهارده لكن بتاريخ عملية مختلف عن النهارده
@@ -1089,14 +1123,31 @@ export function createCopilotTools({
         }
       }
 
+      const matchedProjectsForFilter = villaFilter
+        ? projects.filter(p => {
+            const vf = normalizeArabic(villaFilter);
+            return [p.Property, p.project_name, p.project_code].some(f => {
+              const fn = normalizeArabic(f || '');
+              return fn && (fn.includes(vf) || vf.includes(fn));
+            });
+          })
+        : [];
+      const matchedProjectIds = new Set(matchedProjectsForFilter.map(p => p.id));
+      const matchVillaFilterRecord = (rec) => {
+        if (!villaFilter) return true;
+        if (rec?.project_id && matchedProjectIds.has(rec.project_id)) return true;
+        if (Array.isArray(rec?.project_ids) && rec.project_ids.some(id => matchedProjectIds.has(id))) return true;
+        const txt = normalizeArabic(`${rec?.site_ref || ''} ${rec?.project_names_text || ''} ${projectMap.get(rec?.project_id) || ''}`);
+        const vf = normalizeArabic(villaFilter);
+        return Boolean(vf && txt && (txt.includes(vf) || vf.includes(txt)));
+      };
+
       // 1. العمالة اللي نزلت النهارده
-      let laborLogs = laborRes.ok ? laborRes.data : [];
-      if (villaFilter) {
-        laborLogs = laborLogs.filter(l =>
-          (l.site_ref && l.site_ref.includes(villaFilter)) ||
-          (projectMap.get(l.project_id) && projectMap.get(l.project_id).includes(villaFilter))
-        );
-      }
+      let laborLogs = (laborRes.ok ? laborRes.data : []).map(l => ({
+        ...l,
+        partner_job_role: partnerMap.get(l.worker_partner_id)?.job_role || '',
+      }));
+      if (villaFilter) laborLogs = laborLogs.filter(matchVillaFilterRecord);
       const wagesAvailable = canLaborLogs && canLaborCost && laborRes.ok;
       const totalLaborWagesToday = wagesAvailable
         ? roundMoney2(laborLogs.reduce((s, r) => s + (Number(r.daily_wage) || 0) * Number(r.attendance_value ?? 1), 0))
@@ -1111,17 +1162,13 @@ export function createCopilotTools({
         else if (l.project_id && projectMap.has(l.project_id)) villasWorkedTodaySet.add(projectMap.get(l.project_id));
       }
       let expensesToday = expRes.ok ? expRes.data : [];
-      if (villaFilter) {
-        expensesToday = expensesToday.filter(e =>
-          (e.site_ref && e.site_ref.includes(villaFilter)) ||
-          (projectMap.get(e.project_id) && projectMap.get(e.project_id).includes(villaFilter))
-        );
-      }
+      if (villaFilter) expensesToday = expensesToday.filter(matchVillaFilterRecord);
       for (const e of expensesToday) {
         if (e.site_ref) villasWorkedTodaySet.add(e.site_ref);
         else if (e.project_id && projectMap.has(e.project_id)) villasWorkedTodaySet.add(projectMap.get(e.project_id));
       }
-      const matIssuesToday = matIssuesRes.ok ? matIssuesRes.data : [];
+      let matIssuesToday = matIssuesRes.ok ? matIssuesRes.data : [];
+      if (villaFilter) matIssuesToday = matIssuesToday.filter(matchVillaFilterRecord);
       for (const m of matIssuesToday) {
         if (m.project_id && projectMap.has(m.project_id)) villasWorkedTodaySet.add(projectMap.get(m.project_id));
       }
@@ -1130,7 +1177,12 @@ export function createCopilotTools({
       const expensesAvailable = canExpenses && expRes.ok;
       const paymentsAvailable = canPayments && payRes.ok;
       const totalExpensesToday = expensesAvailable ? roundMoney2(expensesToday.reduce((s, e) => s + (Number(e.total_price) || 0), 0)) : null;
-      const paymentVouchersToday = paymentsAvailable ? payRes.data : [];
+      let paymentVouchersToday = paymentsAvailable ? payRes.data : [];
+      if (villaFilter) paymentVouchersToday = paymentVouchersToday.filter(matchVillaFilterRecord);
+      const receiptsTodayRaw = receiptsRes.ok
+        ? (villaFilter ? receiptsRes.data.filter(matchVillaFilterRecord) : receiptsRes.data)
+        : [];
+      const receiptsForTool = { ...receiptsRes, data: receiptsTodayRaw };
       const classifiedVouchers = paymentVouchersToday.map(v => {
         const partner = partnerMap.get(v.partner_id);
         const debitAccount = accountMap.get(v.debit_account_id);
@@ -1184,14 +1236,252 @@ export function createCopilotTools({
 
       // 6. المقاولين اللي اتسلمت وأوامر الشغل والمستخلصات
       const contractorsAvailable = canContractors && (ordersRes.ok || claimsRes.ok);
-      const jobOrders = ordersRes.ok ? ordersRes.data : [];
+      const jobOrders = ordersRes.ok ? (villaFilter ? ordersRes.data.filter(matchVillaFilterRecord) : ordersRes.data) : [];
       const deliveredJobOrders = jobOrders.filter(o => o.status === 'مكتمل' || o.status === 'معتمد');
       const activeJobOrders = jobOrders.filter(o => o.status === 'جاري التنفيذ');
-      const allSubClaims = claimsRes.ok ? claimsRes.data : [];
+      const allSubClaims = claimsRes.ok ? (villaFilter ? claimsRes.data.filter(matchVillaFilterRecord) : claimsRes.data) : [];
       const todaySubClaims = allSubClaims.filter(c => c.date === targetDate);
       const approvedOrDeliveredSubClaims = allSubClaims.filter(c => c.is_posted === true || c.status === 'معتمد' || c.status === 'مكتمل');
       const pendingSubClaims = allSubClaims.filter(c => c.is_posted === false && c.status !== 'معتمد');
       const assignments = assignRes.ok ? assignRes.data : [];
+
+      // 2-ب) التقرير اليومي التفصيلي الشامل لكل مشروع على حدة (project_daily_details)
+      const allBoqRows = boqRes.ok ? boqRes.data : [];
+      const allMilestoneRows = milestonesRes.ok ? milestonesRes.data : [];
+      const todaySiteVisits = visitsRes.ok ? visitsRes.data : [];
+      const allCumulativeReceipts = allReceiptsRes.ok ? allReceiptsRes.data : [];
+      const jobOrderProjectMap = new Map((ordersRes.ok ? ordersRes.data : []).map(o => [o.id, o.project_id]));
+      const forProject = (rec, p) => {
+        if (!rec || !p) return false;
+        if (rec.job_order_id && jobOrderProjectMap.get(rec.job_order_id) === p.id) return true;
+        return recordMatchesProject(rec, p);
+      };
+      const targetProjects = villaFilter
+        ? matchedProjectsForFilter
+        : projects.filter(p =>
+            laborLogs.some(l => forProject(l, p)) ||
+            expensesToday.some(e => forProject(e, p)) ||
+            paymentVouchersToday.some(v => forProject(v, p)) ||
+            receiptsTodayRaw.some(r => forProject(r, p)) ||
+            matIssuesToday.some(m => forProject(m, p)) ||
+            todaySubClaims.some(c => forProject(c, p)) ||
+            todaySiteVisits.some(v => v.project_id === p.id) ||
+            ['قيد التنفيذ', 'جاري التنفيذ', 'قيد الدراسة'].includes(p.status)
+          );
+
+      const projectDailyDetails = canProjects && projRes.ok
+        ? targetProjects.slice(0, 10).map(p => {
+            const pLabor = laborLogs.filter(l => forProject(l, p));
+            const techLogs = pLabor.filter(l => !isHelperWorker(l));
+            const helperLogs = pLabor.filter(l => isHelperWorker(l));
+            const techDays = roundMoney2(techLogs.reduce((s, l) => s + Number(l.attendance_value ?? 1), 0));
+            const helperDays = roundMoney2(helperLogs.reduce((s, l) => s + Number(l.attendance_value ?? 1), 0));
+            const techCost = wagesAvailable ? roundMoney2(techLogs.reduce((s, l) => s + (Number(l.daily_wage) || 0) * Number(l.attendance_value ?? 1), 0)) : null;
+            const helperCost = wagesAvailable ? roundMoney2(helperLogs.reduce((s, l) => s + (Number(l.daily_wage) || 0) * Number(l.attendance_value ?? 1), 0)) : null;
+
+            const pExpenses = expensesToday.filter(e => forProject(e, p));
+            const pClassifiedVouchers = classifiedVouchers.filter(cv => forProject(cv.raw, p));
+            const pCustodies = pClassifiedVouchers.filter(cv => cv.category === 'custody');
+            const pNonCustodyVouchers = pClassifiedVouchers.filter(cv => cv.category !== 'custody');
+            const pWageVouchersTotal = paymentsAvailable
+              ? roundMoney2(pClassifiedVouchers.filter(cv => cv.category === 'labor_wage').reduce((s, cv) => s + (Number(cv.raw.amount) || 0), 0))
+              : null;
+
+            const pReceiptsToday = receiptsTodayRaw.filter(r => forProject(r, p) || (!r.project_ids?.length && p.client_id && r.partner_id === p.client_id));
+            const pMatIssues = matIssuesToday.filter(m => forProject(m, p));
+            const pIssueIdSet = new Set(pMatIssues.map(m => m.id));
+            const pMatLines = matLinesToday.filter(l => pIssueIdSet.has(l.issue_id));
+            const pVisitsToday = todaySiteVisits.filter(v => v.project_id === p.id);
+
+            const pAllSubClaims = allSubClaims.filter(c => forProject(c, p));
+            const pTodaySubClaims = pAllSubClaims.filter(c => c.date === targetDate);
+            const pOrders = jobOrders.filter(o => o.project_id === p.id);
+
+            // التراكمي من بنود المقايسة (BOQ)
+            const pBoq = allBoqRows.filter(b => b.project_id === p.id);
+            const pLeafBoq = pBoq.filter(b => (b.item_type === 'فرعي' || !b.item_type) && !pBoq.some(c => c.parent_id === b.id));
+            const cumLabor = roundMoney2(pLeafBoq.reduce((s, b) => s + (Number(b.actual_labor_cost) || 0), 0));
+            const cumExpenses = roundMoney2(pLeafBoq.reduce((s, b) => s + (Number(b.actual_expenses_cost) || 0), 0));
+            const cumSub = roundMoney2(pLeafBoq.reduce((s, b) => s + (Number(b.actual_subcontractor_cost) || 0), 0));
+            const cumMat = roundMoney2(pLeafBoq.reduce((s, b) => s + (Number(b.actual_material_cost) || 0), 0));
+            const cumAbc = roundMoney2(pLeafBoq.reduce((s, b) => s + (Number(b.allocated_expenses || b.loaded_amount_egp || b.loaded_amount) || 0), 0));
+            const cumActual = roundMoney2(cumLabor + cumExpenses + cumMat + cumAbc);
+            const boqEst = roundMoney2(pLeafBoq.reduce((s, b) => s + (Number(b.estimated_labor_cost) || 0) + (Number(b.estimated_expenses_cost) || 0) + (Number(b.estimated_material_cost) || 0) + (Number(b.estimated_subcontractor_cost) || 0), 0));
+            const estBudget = Number(p.estimated_budget) || boqEst;
+
+            // جدول دفعات العميل والتراكمي المحصل
+            const pMilestones = allMilestoneRows.filter(m => m.project_id === p.id);
+            const pCumReceipts = allCumulativeReceipts.filter(r => !r.invoice_id && (forProject(r, p) || (!r.project_ids?.length && p.client_id && r.partner_id === p.client_id)));
+            const paySched = buildMilestoneSchedule(pMilestones, pCumReceipts, targetDate);
+
+            const workedToday = pLabor.length > 0 || pExpenses.length > 0 || pClassifiedVouchers.length > 0 || pReceiptsToday.length > 0 || pMatIssues.length > 0 || pTodaySubClaims.length > 0 || pVisitsToday.length > 0;
+
+            const boqCompletionAvg = pLeafBoq.length > 0
+              ? roundMoney2(pLeafBoq.reduce((s, b) => s + (Number(b.completed_percentage) || 0), 0) / pLeafBoq.length)
+              : 0;
+
+            return {
+              id: p.id,
+              name: p.Property || p.project_name || p.project_code || 'مشروع',
+              project_code: p.project_code || '—',
+              status: p.status || 'غير محدد',
+              current_stage: p.current_stage || 'غير محدد',
+              completion_percentage: Number(p.overall_completion_percentage) || boqCompletionAvg,
+              engineer_in_charge: p.engineer_in_charge || 'غير محدد',
+              project_manager: p.project_manager || 'غير محدد',
+              contract_value: Number(p.contract_value) || 0,
+              estimated_budget: estBudget,
+              worked_today: workedToday,
+              today_labor: {
+                available: canLaborLogs && laborRes.ok,
+                wages_available: wagesAvailable,
+                records_count: pLabor.length,
+                attendance_days: roundMoney2(techDays + helperDays),
+                tech_days: techDays,
+                tech_cost: techCost,
+                helper_days: helperDays,
+                helper_cost: helperCost,
+                total_wages: wagesAvailable ? roundMoney2((techCost || 0) + (helperCost || 0)) : null,
+                workers: pLabor.slice(0, 20).map(l => ({
+                  worker_name: l.worker_name,
+                  role_type: isHelperWorker(l) ? 'مساعد' : 'فني',
+                  work_item: l.work_item || '—',
+                  attendance_value: Number(l.attendance_value ?? 1),
+                  daily_wage: wagesAvailable ? (Number(l.daily_wage) || 0) : null,
+                  tareeha: l.tareeha != null ? Number(l.tareeha) : null,
+                  productivity: l.productivity != null ? Number(l.productivity) : null,
+                  status: l.is_posted ? 'مرحّل' : 'مسودة',
+                })),
+              },
+              today_expenses: {
+                available: expensesAvailable,
+                count: pExpenses.length,
+                total: roundMoney2(pExpenses.reduce((s, e) => s + (Number(e.total_price) || 0), 0)),
+                items: pExpenses.slice(0, 15).map(e => ({
+                  description: e.description,
+                  total_price: Number(e.total_price) || 0,
+                  main_category: e.main_category || 'عام',
+                  payment_method: e.payment_method || 'آجل',
+                  status: e.is_posted ? 'مرحّل' : 'مسودة',
+                })),
+              },
+              today_vouchers: {
+                available: paymentsAvailable,
+                count: pNonCustodyVouchers.length,
+                total: roundMoney2(pNonCustodyVouchers.reduce((s, cv) => s + (Number(cv.raw.amount) || 0), 0)),
+                labor_wage_vouchers_total: pWageVouchersTotal,
+                items: pNonCustodyVouchers.slice(0, 15).map(cv => ({
+                  voucher_number: cv.raw.voucher_number || 'مسودة',
+                  partner_name: cv.partner?.name || '—',
+                  amount: Number(cv.raw.amount) || 0,
+                  description: cv.raw.description || cv.raw.notes || '—',
+                  category_label: cv.category_label,
+                  status: cv.raw.status || (cv.raw.is_posted ? 'مرحّل' : 'مسودة'),
+                })),
+              },
+              today_custodies: {
+                available: paymentsAvailable,
+                count: pCustodies.length,
+                total: roundMoney2(pCustodies.reduce((s, cv) => s + (Number(cv.raw.amount) || 0), 0)),
+                items: pCustodies.slice(0, 10).map(cv => ({
+                  voucher_number: cv.raw.voucher_number || 'مسودة',
+                  partner_name: cv.partner?.name || '—',
+                  amount: Number(cv.raw.amount) || 0,
+                  description: cv.raw.description || cv.raw.notes || '—',
+                  status: cv.raw.status || (cv.raw.is_posted ? 'مرحّل' : 'مسودة'),
+                })),
+              },
+              today_receipts: {
+                available: receiptsRes.ok,
+                count: pReceiptsToday.length,
+                total: roundMoney2(pReceiptsToday.reduce((s, r) => s + (Number(r.amount) || 0), 0)),
+                items: pReceiptsToday.slice(0, 10).map(r => ({
+                  receipt_number: r.receipt_number || 'مسودة',
+                  partner_name: partnerMap.get(r.partner_id)?.name || 'عميل',
+                  amount: Number(r.amount) || 0,
+                })),
+              },
+              today_materials: {
+                available: materialsAvailable,
+                issues_count: pMatIssues.length,
+                total: roundMoney2(pMatIssues.reduce((s, m) => s + (Number(m.total_amount) || 0), 0)),
+                items: pMatLines.slice(0, 15).map(l => ({
+                  item_name: l.item_name,
+                  quantity: l.quantity,
+                  unit: l.unit || 'وحدة',
+                  total_price: Number(l.total_price) || 0,
+                })),
+              },
+              today_visits: {
+                count: pVisitsToday.length,
+                items: pVisitsToday.slice(0, 10).map(v => ({
+                  title: v.title || 'زيارة موقع',
+                  inspector_name: v.inspector_name || '—',
+                  boq_item_name: v.boq_item_name || '—',
+                  status: v.status || 'معتمدة',
+                  notes: v.notes || '',
+                })),
+              },
+              contractors: {
+                active_job_orders: pOrders.filter(o => o.status === 'جاري التنفيذ').slice(0, 10).map(o => ({
+                  order_number: o.order_number,
+                  contractor_name: partnerMap.get(o.contractor_id)?.name || 'مقاول',
+                  assigned_qty: o.assigned_qty,
+                  status: o.status,
+                })),
+                delivered_job_orders: pOrders.filter(o => o.status === 'مكتمل' || o.status === 'معتمد').slice(0, 10).map(o => ({
+                  order_number: o.order_number,
+                  contractor_name: partnerMap.get(o.contractor_id)?.name || 'مقاول',
+                  assigned_qty: o.assigned_qty,
+                  status: o.status,
+                })),
+                today_subclaims: pTodaySubClaims.map(c => ({
+                  claim_number: c.claim_number || 'مسودة',
+                  contractor_name: partnerMap.get(c.contractor_id)?.name || 'مقاول',
+                  net_amount: Number(c.net_amount) || 0,
+                  status: c.status || 'معتمد',
+                })),
+                all_subclaims_count: pAllSubClaims.length,
+                all_subclaims_total: roundMoney2(pAllSubClaims.reduce((s, c) => s + (Number(c.net_amount) || 0), 0)),
+              },
+              cumulative: {
+                estimated_budget: estBudget,
+                actual_labor_cost: cumLabor,
+                actual_expenses_cost: cumExpenses,
+                actual_subcontractor_cost: cumSub,
+                actual_material_cost: cumMat,
+                actual_abc_allocated: cumAbc,
+                total_actual_cost: cumActual,
+                budget_variance: roundMoney2(estBudget - cumActual),
+                boq_items: pLeafBoq.slice(0, 10).map(b => ({
+                  work_item: b.work_item,
+                  completed_percentage: Number(b.completed_percentage) || 0,
+                  actual_total: roundMoney2((Number(b.actual_labor_cost) || 0) + (Number(b.actual_expenses_cost) || 0) + (Number(b.actual_material_cost) || 0) + (Number(b.allocated_expenses || b.loaded_amount_egp || b.loaded_amount) || 0)),
+                })),
+                payment_schedule: {
+                  milestones_count: pMilestones.length,
+                  total_scheduled: paySched.totalScheduled,
+                  total_received: paySched.totalReceived,
+                  total_remaining: paySched.totalRemaining,
+                  overdue_amount: paySched.overdueAmount,
+                  overdue_count: paySched.counts.overdue + paySched.counts.overdue_partial,
+                  collecting_count: paySched.counts.collecting + paySched.counts.partial,
+                  collection_rate: paySched.collectionRate,
+                  next_due: paySched.nextDue
+                    ? {
+                        number: paySched.nextDue.number,
+                        title: paySched.nextDue.title,
+                        due_date: paySched.nextDue.dueDate,
+                        remaining: paySched.nextDue.remaining,
+                        status_label: paySched.nextDue.status.label,
+                        days_label: paySched.nextDue.daysLabel,
+                      }
+                    : null,
+                },
+              },
+            };
+          })
+        : [];
 
       // 7. الركوستات والمهام اللي خلصت
       const completedRequests = userRequests.filter(r => ['مكتمل', 'معتمد', 'تم الإنجاز', 'تم التنفيذ', 'مقبول', 'approved', 'completed', 'done'].includes(String(r.status || '').toLowerCase().trim()));
@@ -1333,10 +1623,10 @@ export function createCopilotTools({
             status: v.status || (v.is_posted ? 'مرحّل' : 'مسودة'),
             note: backdatedNote(v.date),
           })) : null,
-          receipt_vouchers_today: receiptsRes.ok ? {
-            count: receiptsRes.data.length,
-            total: receiptsRes.data.reduce((sum, r) => sum + (Number(r.amount) || 0), 0),
-            list: receiptsRes.data.map(r => ({
+          receipt_vouchers_today: receiptsForTool.ok ? {
+            count: receiptsForTool.data.length,
+            total: receiptsForTool.data.reduce((sum, r) => sum + (Number(r.amount) || 0), 0),
+            list: receiptsForTool.data.map(r => ({
               receipt_number: r.receipt_number || 'مسودة',
               amount: Number(r.amount) || 0,
               partner_name: partnerMap.get(r.partner_id)?.name || '—',
@@ -1407,6 +1697,7 @@ export function createCopilotTools({
           })),
           contractor_assignments_count: assignments.length,
         },
+        project_daily_details: projectDailyDetails,
         section_7_completed_requests: {
           available: requestsAvailable,
           completed_user_requests_count: requestsAvailable ? completedRequests.length : null,

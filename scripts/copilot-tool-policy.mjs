@@ -449,6 +449,116 @@ function formatLateEntriesReport(result, companyLabel, cur = 'ر.س') {
   return lines.join('\n');
 }
 
+function formatProjectsDailyDetailsReport(result, companyLabel, cur = 'ر.س') {
+  const list = Array.isArray(result.project_daily_details) ? result.project_daily_details : [];
+  if (list.length === 0) return '';
+
+  const lines = [
+    `🏗️ تقرير المشاريع اليومي التفصيلي الشامل — ${companyLabel}`,
+    `📅 التاريخ: ${result.report_date} | عدد المشاريع: ${list.length}`,
+    '════════════════════════════',
+  ];
+
+  for (const p of list) {
+    const L = p.today_labor || {};
+    const E = p.today_expenses || {};
+    const V = p.today_vouchers || {};
+    const C = p.today_custodies || {};
+    const R = p.today_receipts || {};
+    const M = p.today_materials || {};
+    const SV = p.today_visits || {};
+    const CT = p.contractors || {};
+    const CM = p.cumulative || {};
+    const PS = CM.payment_schedule || {};
+
+    lines.push(
+      `🏢 مشروع: ${p.name} [${p.project_code || '—'}]`,
+      `• الحالة: ${p.status} | المرحلة: «${p.current_stage}» | الإنجاز: ${p.completion_percentage ?? 0}% | م/ ${p.engineer_in_charge}`,
+      `• قيمة العقد: ${(p.contract_value || 0).toLocaleString('en-US')} ${cur} | الميزانية المعتمدة: ${(CM.estimated_budget || p.estimated_budget || 0).toLocaleString('en-US')} ${cur}`
+    );
+
+    // حركة اليوم على المشروع
+    lines.push(`📌 حركات اليوم (${result.report_date}):`);
+    if (L.available === false) {
+      lines.push(`  • العمالة: غير متاح (صلاحية labor_logs)`);
+    } else if (L.records_count > 0) {
+      const wageSummary = L.wages_available === false
+        ? 'غير متاح (صلاحية laborcost)'
+        : `${L.total_wages ?? 0} ${cur} (فنيين: ${L.tech_days ?? 0} يوم / ${L.tech_cost ?? 0} ${cur} | مساعدين: ${L.helper_days ?? 0} يوم / ${L.helper_cost ?? 0} ${cur})`;
+      lines.push(`  👷 العمالة (${L.records_count} يومية / ${L.attendance_days ?? 0} يوم حضور): ${wageSummary}`);
+      for (const w of (L.workers || []).slice(0, 10)) {
+        const wageTxt = L.wages_available === false ? '' : ` | ${w.daily_wage ?? 0} ${cur}`;
+        const prodTxt = w.tareeha != null ? ` | طريحة ${w.tareeha} ومنفذ ${w.productivity ?? 0}` : '';
+        lines.push(`    - ${w.worker_name} (${w.role_type}) | ${w.work_item}${wageTxt}${prodTxt} (${w.status})`);
+      }
+    } else {
+      lines.push(`  👷 العمالة اليوم: 0 يومية مسجلة`);
+    }
+
+    if (E.available !== false) {
+      lines.push(`  🧾 مصروفات المشروع اليوم (${E.count ?? 0}): ${E.total ?? 0} ${cur}`);
+      for (const e of (E.items || []).slice(0, 6)) {
+        lines.push(`    - ${e.description}: ${e.total_price} ${cur} (${e.main_category} / ${e.status})`);
+      }
+    }
+
+    if (V.available !== false) {
+      lines.push(`  💸 سندات الصرف بالمشروع اليوم (${V.count ?? 0}): ${V.total ?? 0} ${cur}${Number(V.labor_wage_vouchers_total) > 0 ? ` (منها صرف يوميات عمال: ${V.labor_wage_vouchers_total} ${cur})` : ''}`);
+      for (const v of (V.items || []).slice(0, 6)) {
+        lines.push(`    - ${v.voucher_number} | ${v.partner_name} | ${v.amount} ${cur} | ${v.description} [${v.category_label}]`);
+      }
+    }
+
+    if (C.available !== false && C.count > 0) {
+      lines.push(`  💼 عُهد المشروع اليوم (${C.count}): ${C.total ?? 0} ${cur} (حساب 125 — لا تُحسب كمصروف)`);
+      for (const c of (C.items || []).slice(0, 5)) {
+        lines.push(`    - ${c.voucher_number} | ${c.partner_name} | ${c.amount} ${cur} | ${c.description}`);
+      }
+    }
+
+    if (R.available !== false && R.count > 0) {
+      lines.push(`  💰 سندات قبض المشروع اليوم (${R.count}): ${R.total ?? 0} ${cur}`);
+    }
+    if (M.available !== false && M.issues_count > 0) {
+      lines.push(`  📦 خامات منصرفة اليوم (${M.issues_count} إذن): ${M.total ?? 0} ${cur}`);
+      for (const item of (M.items || []).slice(0, 5)) {
+        lines.push(`    - ${item.item_name}: ${item.quantity} ${item.unit} (${item.total_price} ${cur})`);
+      }
+    }
+    if (SV.count > 0) {
+      lines.push(`  🦺 زيارات ميدانية اليوم (${SV.count}):`);
+      for (const sv of SV.items || []) {
+        lines.push(`    - ${sv.title} (${sv.boq_item_name}) | م/ ${sv.inspector_name} — ${sv.status}`);
+      }
+    }
+
+    const activeOrders = Array.isArray(CT.active_job_orders) ? CT.active_job_orders : [];
+    const deliveredOrders = Array.isArray(CT.delivered_job_orders) ? CT.delivered_job_orders : [];
+    if (activeOrders.length > 0 || deliveredOrders.length > 0 || (CT.all_subclaims_count || 0) > 0) {
+      lines.push(`  📑 المقاولين: أوامر شغل جارية (${activeOrders.length}) | مسلمة (${deliveredOrders.length}) | إجمالي المستخلصات (${CT.all_subclaims_count || 0}: ${(CT.all_subclaims_total || 0).toLocaleString('en-US')} ${cur})`);
+    }
+
+    // الموقف التراكمي لحد النهارده + جدول دفعات العميل
+    lines.push(`📊 الموقف التراكمي للمشروع حتى ${result.report_date}:`);
+    lines.push(
+      `  • التكلفة الفعلية التراكمية: ${(CM.total_actual_cost || 0).toLocaleString('en-US')} ${cur} (عمالة ${(CM.actual_labor_cost || 0).toLocaleString('en-US')} | مصروفات ومستخلصات ${(CM.actual_expenses_cost || 0).toLocaleString('en-US')} | مواد ${(CM.actual_material_cost || 0).toLocaleString('en-US')}) | الانحراف: ${(CM.budget_variance || 0) >= 0 ? `+${(CM.budget_variance || 0).toLocaleString('en-US')}` : (CM.budget_variance || 0).toLocaleString('en-US')} ${cur}`
+    );
+    if (PS.milestones_count > 0) {
+      lines.push(
+        `  • جدول دفعات العميل: المجدول ${(PS.total_scheduled || 0).toLocaleString('en-US')} ${cur} | المحصل ${(PS.total_received || 0).toLocaleString('en-US')} ${cur} (${PS.collection_rate ?? 0}%) | المتبقي ${(PS.total_remaining || 0).toLocaleString('en-US')} ${cur}${PS.overdue_count > 0 ? ` | ⚠️ متأخر: ${PS.overdue_count} (${(PS.overdue_amount || 0).toLocaleString('en-US')} ${cur})` : ''}`
+      );
+      if (PS.next_due) {
+        lines.push(`  • أقرب دفعة مستحقة: #${PS.next_due.number} «${PS.next_due.title}» — المتبقي ${(PS.next_due.remaining || 0).toLocaleString('en-US')} ${cur} (${PS.next_due.due_date || '—'} — ${PS.next_due.status_label} / ${PS.next_due.days_label})`);
+      }
+    } else if (Number(PS.total_received) > 0) {
+      lines.push(`  • المحصل من العميل حتى الآن: ${(PS.total_received || 0).toLocaleString('en-US')} ${cur}`);
+    }
+    lines.push('────────────────────────────');
+  }
+
+  return lines.join('\n');
+}
+
 function formatComprehensiveReportReply(result, companyLabel, cur = 'ر.س') {
   const s1 = result.section_1_labor_today || {};
   const s2 = result.section_2_villas_and_projects || {};
@@ -1014,7 +1124,12 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     return formatProjectsReply(result, companyLabel, cur);
   }
   if (name === DAILY_REPORT) {
-    return formatComprehensiveReportReply(result, companyLabel, cur) + REPORT_PART_SPLIT + formatLateEntriesReport(result, companyLabel, cur);
+    const projectPart = formatProjectsDailyDetailsReport(result, companyLabel, cur);
+    return [
+      formatComprehensiveReportReply(result, companyLabel, cur),
+      ...(projectPart ? [projectPart] : []),
+      formatLateEntriesReport(result, companyLabel, cur),
+    ].join(REPORT_PART_SPLIT);
   }
   if (name === ADD_LABOR) {
     return formatAddLaborReply(result, companyLabel, cur);

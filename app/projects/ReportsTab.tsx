@@ -13,13 +13,16 @@ import {
 import SecureAction from '@/components/SecureAction';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import { buildMilestoneSchedule, localToday, MILESTONE_STATUS_META } from '@/lib/milestoneSchedule';
+import { buildProjectDailyReport } from '@/lib/projectDailyReport';
+import DailyProjectReportSection from './DailyProjectReportSection';
 
 interface ReportsTabProps {
   logic: any;
 }
 
 export default function ReportsTab({ logic }: ReportsTabProps) {
-  const [subTab, setSubTab] = useState<'milestones' | 'timeline' | 'visits' | 'evm' | 'subcontractors'>('milestones');
+  const [subTab, setSubTab] = useState<'milestones' | 'daily' | 'timeline' | 'visits' | 'evm' | 'subcontractors'>('milestones');
+  const [selectedDailyDate, setSelectedDailyDate] = useState<string>(() => localToday());
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<any>(null);
   const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
@@ -28,6 +31,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   const [isPrintOptionsModalOpen, setIsPrintOptionsModalOpen] = useState(false);
   const [printOptions, setPrintOptions] = useState({
     projectInfo: true,
+    dailyReport: true,
     clientMilestones: true,
     scheduleTimeline: true,
     ganttChart: false,
@@ -51,6 +55,11 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   const boqList: any[] = details.boq || [];
 
   // بنود المقايسة المؤهلة لتوليد الدفعات مرتبة بتواريخ البداية
+  const dailyReport = useMemo(
+    () => buildProjectDailyReport(project, details, selectedDailyDate, localToday()),
+    [project, details, selectedDailyDate]
+  );
+
   const boqEligibleItems = useMemo(() => {
     return boqList
       .filter((b: any) => b.start_date && (b.item_type === 'فرعي' || !b.item_type))
@@ -319,6 +328,37 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
           </button>
 
           <button
+            onClick={() => setSubTab('daily')}
+            style={{
+              padding: '0.625rem 1.125rem',
+              borderRadius: '12px',
+              border: 'none',
+              fontWeight: 800,
+              fontSize: 'var(--fs-sm)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s ease',
+              backgroundColor: subTab === 'daily' ? THEME.primary : '#f8fafc',
+              color: subTab === 'daily' ? 'white' : '#475569',
+              boxShadow: subTab === 'daily' ? '0 4px 12px rgba(37, 99, 235, 0.25)' : 'none'
+            }}
+          >
+            <FileText size={16} />
+            التقرير اليومي للمشروع
+            <span style={{
+              backgroundColor: subTab === 'daily' ? 'rgba(255,255,255,0.25)' : '#e2e8f0',
+              padding: '2px 8px',
+              borderRadius: '999px',
+              fontSize: '11px',
+              fontWeight: 900
+            }}>
+              {dailyReport.activeDates.length} يوم
+            </span>
+          </button>
+
+          <button
             onClick={() => setSubTab('timeline')}
             style={{
               padding: '0.625rem 1.125rem',
@@ -447,6 +487,22 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
           خيارات وطباعة التقرير المجمع 🖨️
         </button>
       </div>
+
+      {/* =====================================================================
+          التقرير اليومي الشامل للمشروع
+          ===================================================================== */}
+      {subTab === 'daily' && (
+        <DailyProjectReportSection
+          report={dailyReport}
+          selectedDate={selectedDailyDate}
+          onDateChange={setSelectedDailyDate}
+          onPrintDaily={() => {
+            setPrintOptions((prev) => ({ ...prev, projectInfo: true, dailyReport: true }));
+            setCustomReportTitle(`تقرير المشروع اليومي الشامل ليوم ${selectedDailyDate}`);
+            setIsPrintDossierOpen(true);
+          }}
+        />
+      )}
 
       {/* =====================================================================
           القسم الأول: جدول دفعات العميل المتوقعة والمحصلة (Milestones)
@@ -2096,6 +2152,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   onClick={() => {
                     setPrintOptions({
                       projectInfo: true,
+                      dailyReport: true,
                       clientMilestones: true,
                       scheduleTimeline: true,
                       ganttChart: false,
@@ -2126,6 +2183,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   onClick={() => {
                     setPrintOptions({
                       projectInfo: true,
+                      dailyReport: true,
                       clientMilestones: false,
                       scheduleTimeline: true,
                       ganttChart: true,
@@ -2156,6 +2214,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   onClick={() => {
                     setPrintOptions({
                       projectInfo: true,
+                      dailyReport: false,
                       clientMilestones: true,
                       scheduleTimeline: true,
                       ganttChart: false,
@@ -2186,6 +2245,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   onClick={() => {
                     setPrintOptions({
                       projectInfo: true,
+                      dailyReport: true,
                       clientMilestones: true,
                       scheduleTimeline: true,
                       ganttChart: true,
@@ -2215,6 +2275,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   onClick={() => {
                     setPrintOptions({
                       projectInfo: false,
+                      dailyReport: false,
                       clientMilestones: false,
                       scheduleTimeline: false,
                       ganttChart: false,
@@ -2244,6 +2305,35 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
             {/* شبكة خيارات الأقسام */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(21rem, 1fr))', gap: '0.75rem', marginBottom: '1.25rem' }}>
               
+              {/* 0. التقرير اليومي للمشروع */}
+              <label style={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem',
+                padding: '0.875rem',
+                borderRadius: '12px',
+                border: `1px solid ${printOptions.dailyReport ? '#93c5fd' : '#e2e8f0'}`,
+                background: printOptions.dailyReport ? '#eff6ff' : '#ffffff',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
+              }}>
+                <input
+                  type="checkbox"
+                  checked={printOptions.dailyReport}
+                  onChange={(e) => setPrintOptions({ ...printOptions, dailyReport: e.target.checked })}
+                  style={{ width: '18px', height: '18px', marginTop: '2px', cursor: 'pointer' }}
+                />
+                <div>
+                  <div style={{ fontWeight: 800, fontSize: '13px', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <FileText size={15} style={{ color: THEME.primary }} />
+                    التقرير اليومي التفصيلي ليوم ({selectedDailyDate})
+                  </div>
+                  <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                    حركات اليوم: عمالة (فنيين ومساعدين)، مصروفات، سندات صرف وعُهد، خامات، وزيارات ميدانية.
+                  </div>
+                </div>
+              </label>
+
               {/* 1. بيانات المشروع والـ KPIs */}
               <label style={{
                 display: 'flex',
@@ -2758,6 +2848,21 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                       </div>
                     </div>
                   </div>
+                </div>
+              )}
+
+              {/* 0. التقرير اليومي التفصيلي للمشروع */}
+              {printOptions.dailyReport && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h3 style={{ margin: '1rem 0 0.75rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <FileText size={16} /> التقرير اليومي التفصيلي للمشروع ({selectedDailyDate})
+                  </h3>
+                  <DailyProjectReportSection
+                    report={dailyReport}
+                    selectedDate={selectedDailyDate}
+                    onDateChange={setSelectedDailyDate}
+                    printableOnly
+                  />
                 </div>
               )}
 

@@ -94,7 +94,20 @@ test('Daily comprehensive report: separates custody (3000) from unpaid labor dai
         if (tbl === 'companies') return Response.json([{ id: egyptCompanyId, name: 'PHI-TECH-EGY', currency: 'EGP', country: 'EG' }]);
         if (tbl === 'accounts') return Response.json([ACC_CUSTODY, ACC_WAGES_PAYABLE, ACC_LABOR_EXP, ACC_SUBCONTRACTORS]);
         if (tbl === 'partners') return Response.json([WORKER, CONTRACTOR]);
-        if (tbl === 'projects') return Response.json([{ id: projectId, project_code: 'PRJ-1', Property: 'برج كابيتال', status: 'قيد التنفيذ', current_stage: 'الخرسانات' }]);
+        if (tbl === 'projects') return Response.json([{ id: projectId, project_code: 'PRJ-1', Property: 'برج كابيتال', status: 'قيد التنفيذ', current_stage: 'الخرسانات', contract_value: 1500000, estimated_budget: 26900 }]);
+        if (tbl === 'boq_budget') {
+          return Response.json([{
+            id: 'boq-1', project_id: projectId, item_type: 'فرعي', work_item: 'كمرة الاستراوس',
+            actual_labor_cost: 8600, actual_expenses_cost: 13650, actual_subcontractor_cost: 12000, actual_material_cost: 0,
+            loaded_amount_egp: 0, completed_percentage: 20,
+          }]);
+        }
+        if (tbl === 'project_payment_milestones') {
+          return Response.json([{
+            id: 'ms-1', project_id: projectId, milestone_number: 1, title: 'مقدمة', due_date: '2026-11-08',
+            expected_amount: 150000, received_amount: 30000, receipt_voucher_id: 'rv-1', receipt_number: 'RV-2026-0001',
+          }]);
+        }
         if (tbl === 'labor_daily_logs') {
           return Response.json(isLate ? [] : [{
             id: 'log-1', work_date: date, worker_name: 'ابراهيم شداد', project_id: projectId,
@@ -145,7 +158,8 @@ test('Daily comprehensive report: separates custody (3000) from unpaid labor dai
       tools,
       access
     );
-    const [mainPart] = splitReportParts(rendered);
+    const parts = splitReportParts(rendered);
+    const [mainPart, projectPart] = parts;
 
     assert.doesNotMatch(mainPart, /ر\.س|ريال/);
     assert.match(mainPart, /اليوميات المسجلة للعمال \(labor_daily_logs\): 700 ج\.م/);
@@ -154,6 +168,10 @@ test('Daily comprehensive report: separates custody (3000) from unpaid labor dai
     assert.match(mainPart, /يوميات مستحقة من النهارده لسه لم تُصرف بسند: 700 ج\.م/);
     assert.match(mainPart, /العُهد النقدية المسلّمة النهارده \(1 عهدة بإجمالي 3000 ج\.م/);
     assert.match(mainPart, /سندات الصرف النهارده \(3 سند بإجمالي 10550 ج\.م — بخلاف العُهد\)/);
+    assert.match(projectPart, /تقرير المشاريع اليومي التفصيلي الشامل/);
+    assert.match(projectPart, /برج كابيتال/);
+    assert.match(projectPart, /التكلفة الفعلية التراكمية: 22,250 ج\.م/);
+    assert.match(projectPart, /جدول دفعات العميل: المجدول 150,000 ج\.م \| المحصل 30,000 ج\.م/);
   } finally {
     if (prevFlag === undefined) delete process.env.COPILOT_LIVE_FIELD_OPS_ENABLED;
     else process.env.COPILOT_LIVE_FIELD_OPS_ENABLED = prevFlag;
