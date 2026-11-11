@@ -389,6 +389,10 @@ html.phi-brand ::selection { background: var(--accent-ink); color: var(--bg-canv
   border-radius: 24px;
   box-shadow: var(--shadow-ambient); 
 }
+html .login-wrapper .logo-container .logo-on-light { display: none; }
+html .login-wrapper .logo-container .logo-on-dark { display: block; }
+html[data-mode="light"] .login-wrapper .logo-container .logo-on-light { display: block; }
+html[data-mode="light"] .login-wrapper .logo-container .logo-on-dark { display: none; }
 .phi-brand .login-wrapper .cinematic-title { color: var(--text-primary); text-shadow: none; }
 .phi-brand .login-wrapper .cinematic-subtitle, 
 .phi-brand .login-wrapper .toggle-btn, 

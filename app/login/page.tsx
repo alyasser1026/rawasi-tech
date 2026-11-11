@@ -127,7 +127,6 @@ function LoginContent() {
           max-width: 100%;
           width: auto;
           margin: 0 auto;
-          display: block;
         }
 
         /* Segmented Portal Switcher */
@@ -312,11 +311,17 @@ function LoginContent() {
       `}</style>
 
       <div className="glass-card">
-        {/* Official Brand Logo */}
+        {/* Official Brand Logo (تبديل تلقائي بين النص الأسود في الخلفية الفاتحة والنص اللؤلؤي في الخلفية الداكنة) */}
         <div className="logo-container">
+          <img
+            src="/brand/phitech-lockup-color.svg"
+            alt="فاي تك PhiTech"
+            className="logo-on-light"
+          />
           <img
             src="/brand/phitech-lockup-light.svg"
             alt="فاي تك PhiTech"
+            className="logo-on-dark"
           />
         </div>
         
