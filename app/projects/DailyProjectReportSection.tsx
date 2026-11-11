@@ -328,6 +328,9 @@ export default function DailyProjectReportSection({
           </div>
           <div>الميزانية المعتمدة: <strong>{formatCurrency(cumulative.estimatedBudget)}</strong></div>
           <div>التكلفة الفعلية التراكمية: <strong style={{ color: '#be123c' }}>{formatCurrency(cumulative.totalActualCost)}</strong></div>
+          <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 700 }}>
+            (عمالة: {formatCurrency(cumulative.actualLaborCost)} | مستخلصات باطن: {formatCurrency(cumulative.actualSubcontractorCost)} | مصروفات مباشرة: {formatCurrency(Math.max(0, cumulative.actualExpensesCost - cumulative.actualSubcontractorCost))} | خامات: {formatCurrency(cumulative.actualMaterialsCost)}{cumulative.actualAbcAllocated > 0 ? ` | ABC: ${formatCurrency(cumulative.actualAbcAllocated)}` : ''})
+          </div>
           <div>الانحراف عن الميزانية: <strong style={{ color: cumulative.budgetVariance >= 0 ? '#15803d' : '#dc2626' }}>{formatCurrency(cumulative.budgetVariance)}</strong></div>
         </div>
 
