@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/lib/toast-context';
 import { fetchAllSupabaseData } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
+import { resolveMilestoneStatus, localToday } from '@/lib/milestoneSchedule';
 
 // دالة تطهير النصوص لضمان تطابق البحث في المصروفات
 const normalizeArabic = (str: string) => {
@@ -601,17 +602,22 @@ export function useProjectsLogic() {
   const saveMilestoneMutation = useMutation({
     mutationFn: async (record: any) => {
       if (!selectedProject) throw new Error('لم يتم تحديد مشروع');
+      const expectedAmt = Number(record.expected_amount) || 0;
+      const receivedAmt = Number(record.received_amount) || 0;
+      const computedStatus = resolveMilestoneStatus(
+        expectedAmt, receivedAmt, record.due_date || '', localToday(), record.status
+      ).status.label;
       const payload: any = {
         project_id: selectedProject.id,
         milestone_number: Number(record.milestone_number) || 1,
         title: record.title || 'دفعة تعاقدية',
         due_date: record.due_date || null,
-        expected_amount: Number(record.expected_amount) || 0,
-        received_amount: Number(record.received_amount) || 0,
+        expected_amount: expectedAmt,
+        received_amount: receivedAmt,
         receipt_voucher_id: record.receipt_voucher_id || null,
         receipt_number: record.receipt_number || null,
         receipt_date: record.receipt_date || null,
-        status: record.status || 'مستحقة',
+        status: computedStatus,
         notes: record.notes || null
       };
       if (record.id) {
@@ -712,16 +718,20 @@ export function useProjectsLogic() {
       return;
     }
 
-    // حذف الدفعات القديمة إن وجدت للمشروع لإعادة بنائها بدقة من الميزانية
-    const { error: delErr } = await supabase
-      .from('project_payment_milestones')
-      .delete()
-      .eq('project_id', selectedProject.id);
+    // حذف الدفعات غير المسددة فقط لإعادة بنائها من الميزانية (مع الحفاظ على أي دفعة مربوطة بسند قبض أو عليها تحصيل)
+    const existing: any[] = projectDetails.milestones || [];
+    const preserved = existing.filter((m: any) => m.receipt_voucher_id || Number(m.received_amount || 0) > 0);
+    const deletableIds = existing.filter((m: any) => !preserved.includes(m)).map((m: any) => m.id).filter(Boolean);
+
+    const { error: delErr } = deletableIds.length > 0
+      ? await supabase.from('project_payment_milestones').delete().in('id', deletableIds)
+      : { error: null as any };
 
     if (delErr) {
       showToast('خطأ أثناء تهيئة الدفعات: ' + delErr.message, 'error');
       return;
     }
+    const numberOffset = preserved.reduce((mx: number, m: any) => Math.max(mx, Number(m.milestone_number) || 0), 0);
 
     // تجهيز صفوف الدفعات: سحب تاريخ بداية العمل في البند وحساب تاريخ الدفعة قبلها بـ 7 أيام ومبلغ العميل للبند
     const rows = validBoqItems.map((item: any, idx: number) => {
@@ -738,12 +748,12 @@ export function useProjectsLogic() {
 
       return {
         project_id: selectedProject.id,
-        milestone_number: idx + 1,
+        milestone_number: numberOffset + idx + 1,
         title: `دفعة بند: ${item.work_item}`,
         due_date: dueDateFormatted,
         expected_amount: itemContractAmount,
         received_amount: 0,
-        status: 'مستحقة',
+        status: resolveMilestoneStatus(itemContractAmount, 0, dueDateFormatted, localToday()).status.label,
         notes: `مستحقة قبل أسبوع من موعد بدء تنفيذ البند (تاريخ بداية التنفيذ: ${startDateFormatted})`
       };
     });

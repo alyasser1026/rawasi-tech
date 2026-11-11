@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import SecureAction from '@/components/SecureAction';
 import ReportContactFooter from '@/components/ReportContactFooter';
+import { buildMilestoneSchedule, localToday, MILESTONE_STATUS_META } from '@/lib/milestoneSchedule';
 
 interface ReportsTabProps {
   logic: any;
@@ -58,33 +59,50 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   // =========================================================================
   // 1️⃣ إحصائيات وحسابات جدول دفعات العميل
   // =========================================================================
+  // سندات القبض الخاصة بالمشروع فقط (مربوطة بالمشروع أو بعميل المشروع)
+  const projectReceiptOptions = useMemo(() => {
+    return receiptVouchers.filter((r: any) => {
+      const ids: any[] = Array.isArray(r.project_ids) ? r.project_ids : [];
+      if (project.id && ids.includes(project.id)) return true;
+      return ids.length === 0 && project.client_id && r.partner_id === project.client_id;
+    });
+  }, [receiptVouchers, project.id, project.client_id]);
+
+  const paymentSchedule = useMemo(
+    () => buildMilestoneSchedule(milestones, details.projectReceipts || [], localToday()),
+    [milestones, details.projectReceipts]
+  );
+
   const paymentStats = useMemo(() => {
     const contractVal = Number(project.contract_value) || 0;
-    const totalScheduledFromMilestones = milestones.reduce((sum, m) => sum + (Number(m.expected_amount) || 0), 0);
-    const totalReceivedFromMilestones = milestones.reduce((sum, m) => sum + (Number(m.received_amount) || 0), 0);
-    const unlinkedReceiptsTotal = (details.projectReceipts || []).reduce((sum: number, r: any) => sum + (Number(r.final_amount || r.amount) || 0), 0);
-    const totalScheduled = totalScheduledFromMilestones || contractVal;
-    const totalReceived = Math.max(totalReceivedFromMilestones, unlinkedReceiptsTotal);
-    const totalRemaining = Math.max(0, totalScheduled - totalReceived);
-    const collectionRate = totalScheduled > 0 ? ((totalReceived / totalScheduled) * 100).toFixed(1) : '0.0';
+    const s = paymentSchedule;
+    const totalScheduled = s.totalScheduled;
     const contractCoverageRate = contractVal > 0 ? ((totalScheduled / contractVal) * 100).toFixed(1) : '0.0';
-    
-    const today = new Date().toISOString().split('T')[0];
-    const overdueCount = milestones.filter(m => m.due_date && m.due_date < today && m.status !== 'محصلة بالكامل').length;
-    const paidCount = milestones.filter(m => m.status === 'محصلة بالكامل').length;
+    const unscheduledContract = Math.max(0, contractVal - totalScheduled);
+    const overdueCount = s.counts.overdue + s.counts.overdue_partial;
+    const collectingCount = s.counts.collecting + s.counts.partial;
 
     return {
       contractVal,
       totalScheduled,
-      totalReceived,
-      totalRemaining,
-      collectionRate,
+      totalReceived: s.totalReceived,
+      totalPaidOnSchedule: s.totalPaidOnSchedule,
+      unallocatedAdvance: s.unallocatedAdvance,
+      totalRemaining: s.totalRemaining,
+      overdueAmount: s.overdueAmount,
+      collectingAmount: s.collectingAmount,
+      collectionRate: s.collectionRate.toFixed(1),
       contractCoverageRate,
+      unscheduledContract,
       overdueCount,
-      paidCount,
+      collectingCount,
+      scheduledCount: s.counts.scheduled,
+      paidCount: s.counts.paid,
+      cancelledCount: s.counts.cancelled,
+      nextDue: s.nextDue,
       count: milestones.length
     };
-  }, [project, milestones, details.projectReceipts]);
+  }, [project, milestones.length, paymentSchedule]);
 
   // =========================================================================
   // 2️⃣ حسابات الجدول الزمني ومخطط جانت المسحوبة من المقايسة
@@ -491,7 +509,8 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 {formatCurrency(paymentStats.totalReceived)}
               </div>
               <span style={{ fontSize: '11px', color: '#15803d', fontWeight: 700 }}>
-                نسبة التحصيل: {paymentStats.collectionRate}% ({paymentStats.paidCount} محصلة)
+                نسبة التحصيل: {paymentStats.collectionRate}% ({paymentStats.paidCount} محصلة بالكامل)
+                {paymentStats.unallocatedAdvance > 0 && ` • مقدم غير مخصص: ${formatCurrency(paymentStats.unallocatedAdvance)}`}
               </span>
             </div>
 
@@ -509,9 +528,60 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 {formatCurrency(paymentStats.totalRemaining)}
               </div>
               <span style={{ fontSize: '11px', color: paymentStats.overdueCount > 0 ? '#b91c1c' : '#64748b', fontWeight: 700 }}>
-                {paymentStats.overdueCount > 0 ? `⚠️ يوجد ${paymentStats.overdueCount} دفعات متأخرة` : 'لا توجد دفعات متأخرة'}
+                {paymentStats.overdueCount > 0 ? `⚠️ ${paymentStats.overdueCount} دفعات متأخرة بقيمة ${formatCurrency(paymentStats.overdueAmount)}` : 'لا توجد دفعات متأخرة'}
               </span>
             </div>
+          </div>
+
+          {/* شريط توزيع حالات الدفعات + الدفعة القادمة */}
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.75rem',
+            padding: '0.875rem 1rem',
+            background: 'white',
+            borderRadius: '16px',
+            border: '1px solid #f1f5f9'
+          }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+              {(['overdue', 'overdue_partial', 'collecting', 'partial', 'scheduled', 'paid', 'cancelled'] as const)
+                .filter(k => paymentSchedule.counts[k] > 0)
+                .map(k => {
+                  const meta = MILESTONE_STATUS_META[k];
+                  return (
+                    <span key={k} style={{
+                      display: 'inline-flex', alignItems: 'center', gap: '6px',
+                      padding: '4px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800,
+                      background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`
+                    }}>
+                      {meta.label}
+                      <span style={{ background: 'white', borderRadius: '999px', padding: '0 7px', fontWeight: 900 }}>
+                        {paymentSchedule.counts[k]}
+                      </span>
+                    </span>
+                  );
+                })}
+              {paymentStats.collectingAmount > 0 && (
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#1d4ed8', alignSelf: 'center' }}>
+                  قيد التحصيل: {formatCurrency(paymentStats.collectingAmount)}
+                </span>
+              )}
+              {paymentStats.unscheduledContract > 0 && paymentStats.count > 0 && (
+                <span style={{ fontSize: '11px', fontWeight: 800, color: '#b45309', alignSelf: 'center' }}>
+                  ⚠️ جزء من العقد غير مجدول: {formatCurrency(paymentStats.unscheduledContract)}
+                </span>
+              )}
+            </div>
+            {paymentStats.nextDue && (
+              <div style={{ fontSize: '12px', fontWeight: 800, color: '#334155' }}>
+                ⏭️ الدفعة القادمة: <span style={{ color: THEME.primary }}>#{paymentStats.nextDue.number} {paymentStats.nextDue.title}</span>
+                {' — '}{formatCurrency(paymentStats.nextDue.remaining)}
+                {' — '}<span style={{ direction: 'ltr', display: 'inline-block' }}>{paymentStats.nextDue.dueDate || '---'}</span>
+                {' '}<span style={{ color: paymentStats.nextDue.status.color }}>({paymentStats.nextDue.daysLabel})</span>
+              </div>
+            )}
           </div>
 
           {/* شريط الإجراءات والتحكم بالدفعات */}
@@ -630,136 +700,86 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: 'var(--fs-sm)' }}>
                   <thead>
                     <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontWeight: 900 }}>
-                      <th style={{ padding: '0.875rem 1rem' }}>#</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>بيان الدفعة ومرحلة الصرف</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>تاريخ الاستحقاق</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>القيمة المتوقعة</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>سند القبض المرتبط</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>تاريخ السند</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>المحصل فعلياً</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>المتبقي</th>
-                      <th style={{ padding: '0.875rem 1rem' }}>حالة الدفعة</th>
-                      <th style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>الإجراءات</th>
+                      <th style={{ padding: '0.875rem 0.75rem' }}>#</th>
+                      <th style={{ padding: '0.875rem 0.75rem' }}>بيان الدفعة ومرحلة الصرف</th>
+                      <th style={{ padding: '0.875rem 0.75rem' }}>موعد الاستحقاق</th>
+                      <th style={{ padding: '0.875rem 0.75rem' }}>قيمة الدفعة</th>
+                      <th style={{ padding: '0.875rem 0.75rem' }}>المسدد</th>
+                      <th style={{ padding: '0.875rem 0.75rem' }}>المتبقي</th>
+                      <th style={{ padding: '0.875rem 0.75rem' }}>سندات القبض</th>
+                      <th style={{ padding: '0.875rem 0.75rem' }}>حالة الدفعة</th>
+                      <th style={{ padding: '0.875rem 0.75rem' }}>التأخير / المتبقي للموعد</th>
+                      <th style={{ padding: '0.875rem 0.75rem', textAlign: 'center' }}>الإجراءات</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {milestones.map((m: any, idx: number) => {
-                      const expected = Number(m.expected_amount) || 0;
-                      const received = Number(m.received_amount) || 0;
-                      const remaining = Math.max(0, expected - received);
-                      const isOverdue = m.due_date && m.due_date < new Date().toISOString().split('T')[0] && m.status !== 'محصلة بالكامل';
-
+                    {paymentSchedule.rows.map((row, idx) => {
+                      const m = row.milestone;
+                      const isLate = row.status.key === 'overdue' || row.status.key === 'overdue_partial';
                       return (
                         <tr
                           key={m.id || idx}
                           style={{
                             borderBottom: '1px solid #f1f5f9',
-                            backgroundColor: idx % 2 === 0 ? 'white' : '#fafafa',
-                            transition: 'background 0.15s ease'
+                            backgroundColor: isLate ? '#fff7f7' : (idx % 2 === 0 ? 'white' : '#fafafa'),
+                            opacity: row.status.key === 'cancelled' ? 0.6 : 1
                           }}
                         >
-                          <td style={{ padding: '0.875rem 1rem', fontWeight: 900, color: '#64748b' }}>
-                            {m.milestone_number || idx + 1}
+                          <td style={{ padding: '0.75rem', fontWeight: 900, color: '#64748b' }}>{row.number}</td>
+                          <td style={{ padding: '0.75rem', minWidth: '14rem' }}>
+                            <div style={{ fontWeight: 800, color: '#0f172a' }}>{row.title}</div>
+                            {m.notes && <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{m.notes}</div>}
+                            <div style={{ marginTop: '6px', height: '5px', background: '#f1f5f9', borderRadius: '999px', overflow: 'hidden' }}>
+                              <div style={{ width: `${row.paidPct}%`, height: '100%', background: row.status.color }} />
+                            </div>
                           </td>
-                          <td style={{ padding: '0.875rem 1rem' }}>
-                            <div style={{ fontWeight: 800, color: '#0f172a' }}>{m.title}</div>
-                            {m.notes && (
-                              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>{m.notes}</div>
-                            )}
+                          <td style={{ padding: '0.75rem', direction: 'ltr', textAlign: 'right', fontWeight: 800, color: isLate ? '#dc2626' : '#334155', whiteSpace: 'nowrap' }}>
+                            {row.dueDate || '---'}
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', direction: 'ltr', textAlign: 'right' }}>
-                            <span style={{
-                              fontWeight: 700,
-                              color: isOverdue ? '#dc2626' : '#334155',
-                              backgroundColor: isOverdue ? '#fee2e2' : 'transparent',
-                              padding: isOverdue ? '2px 6px' : '0',
-                              borderRadius: '4px'
-                            }}>
-                              {formatDate(m.due_date)}
-                            </span>
+                          <td style={{ padding: '0.75rem', fontWeight: 900, color: '#0f172a', whiteSpace: 'nowrap' }}>{formatCurrency(row.expected)}</td>
+                          <td style={{ padding: '0.75rem', whiteSpace: 'nowrap' }}>
+                            <div style={{ fontWeight: 900, color: '#16a34a' }}>{formatCurrency(row.paid)}</div>
+                            <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700 }}>
+                              {row.paidPct}%{row.autoPaid > 0 ? ' • مخصص تلقائياً من سندات المشروع' : ''}
+                            </div>
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', fontWeight: 900, color: '#0f172a' }}>
-                            {formatCurrency(expected)}
+                          <td style={{ padding: '0.75rem', fontWeight: 900, color: row.remaining > 0 ? '#dc2626' : '#64748b', whiteSpace: 'nowrap' }}>
+                            {formatCurrency(row.remaining)}
                           </td>
-                          <td style={{ padding: '0.875rem 1rem' }}>
-                            {m.receipt_number ? (
-                              <span style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                backgroundColor: '#ecfdf5',
-                                color: '#047857',
-                                padding: '3px 8px',
-                                borderRadius: '6px',
-                                fontWeight: 800,
-                                fontSize: '12px'
-                              }}>
-                                <Link2 size={12} />
-                                {m.receipt_number}
-                              </span>
+                          <td style={{ padding: '0.75rem' }}>
+                            {row.receiptRefs.length > 0 ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                                {row.receiptRefs.map(ref => (
+                                  <span key={ref} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', backgroundColor: '#ecfdf5', color: '#047857', padding: '2px 8px', borderRadius: '6px', fontWeight: 800, fontSize: '11px', width: 'fit-content' }}>
+                                    <Link2 size={11} />{ref}
+                                  </span>
+                                ))}
+                                {row.lastReceiptDate && <span style={{ fontSize: '10px', color: '#64748b', direction: 'ltr', textAlign: 'right' }}>{row.lastReceiptDate}</span>}
+                              </div>
                             ) : (
-                              <span style={{ color: '#94a3b8', fontSize: '12px' }}>لم يربط سند</span>
+                              <span style={{ color: '#94a3b8', fontSize: '12px' }}>لا يوجد سند</span>
                             )}
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', direction: 'ltr', textAlign: 'right', color: '#64748b' }}>
-                            {formatDate(m.receipt_date)}
-                          </td>
-                          <td style={{ padding: '0.875rem 1rem', fontWeight: 900, color: '#16a34a' }}>
-                            {formatCurrency(received)}
-                          </td>
-                          <td style={{ padding: '0.875rem 1rem', fontWeight: 900, color: remaining > 0 ? '#dc2626' : '#64748b' }}>
-                            {formatCurrency(remaining)}
-                          </td>
-                          <td style={{ padding: '0.875rem 1rem' }}>
-                            <span style={{
-                              display: 'inline-block',
-                              padding: '3px 9px',
-                              borderRadius: '999px',
-                              fontSize: '11px',
-                              fontWeight: 800,
-                              backgroundColor: 
-                                m.status === 'محصلة بالكامل' ? '#dcfce7' :
-                                m.status === 'محصلة جزئياً' ? '#fef3c7' :
-                                isOverdue ? '#fee2e2' : '#f1f5f9',
-                              color: 
-                                m.status === 'محصلة بالكامل' ? '#15803d' :
-                                m.status === 'محصلة جزئياً' ? '#b45309' :
-                                isOverdue ? '#b91c1c' : '#475569'
-                            }}>
-                              {isOverdue && m.status !== 'محصلة بالكامل' ? 'متأخرة عن الموعد' : (m.status || 'مستحقة')}
+                          <td style={{ padding: '0.75rem' }}>
+                            <span style={{ display: 'inline-block', padding: '3px 10px', borderRadius: '999px', fontSize: '11px', fontWeight: 800, backgroundColor: row.status.bg, color: row.status.color, border: `1px solid ${row.status.border}`, whiteSpace: 'nowrap' }}>
+                              {row.status.label}
                             </span>
                           </td>
-                          <td style={{ padding: '0.875rem 1rem', textAlign: 'center' }}>
+                          <td style={{ padding: '0.75rem', fontSize: '12px', fontWeight: 800, color: isLate ? '#b91c1c' : row.status.key === 'collecting' ? '#1d4ed8' : '#64748b', whiteSpace: 'nowrap' }}>
+                            {row.daysLabel}
+                          </td>
+                          <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                             <div style={{ display: 'inline-flex', gap: '6px' }}>
                               <button
-                                onClick={() => {
-                                  setEditingMilestone({ ...m });
-                                  setIsMilestoneModalOpen(true);
-                                }}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  color: THEME.primary,
-                                  padding: '4px'
-                                }}
+                                onClick={() => { setEditingMilestone({ ...m }); setIsMilestoneModalOpen(true); }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: THEME.primary, padding: '4px' }}
                                 title="تعديل أو ربط سند القبض"
                               >
                                 <Edit3 size={15} />
                               </button>
                               <button
-                                onClick={() => {
-                                  if (confirm(`هل أنت متأكد من حذف الدفعة "${m.title}"؟`)) {
-                                    logic.deleteMilestone(m.id);
-                                  }
-                                }}
-                                style={{
-                                  background: 'none',
-                                  border: 'none',
-                                  cursor: 'pointer',
-                                  color: '#dc2626',
-                                  padding: '4px'
-                                }}
+                                onClick={() => { if (confirm(`هل أنت متأكد من حذف الدفعة "${row.title}"؟`)) logic.deleteMilestone(m.id); }}
+                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#dc2626', padding: '4px' }}
                                 title="حذف الدفعة"
                               >
                                 <Trash2 size={15} />
@@ -770,6 +790,18 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                       );
                     })}
                   </tbody>
+                  <tfoot>
+                    <tr style={{ background: '#f8fafc', borderTop: '2px solid #e2e8f0', fontWeight: 900 }}>
+                      <td colSpan={3} style={{ padding: '0.875rem 0.75rem', color: '#0f172a' }}>الإجمالي ({paymentStats.count} دفعة)</td>
+                      <td style={{ padding: '0.875rem 0.75rem', color: '#0f172a', whiteSpace: 'nowrap' }}>{formatCurrency(paymentStats.totalScheduled)}</td>
+                      <td style={{ padding: '0.875rem 0.75rem', color: '#16a34a', whiteSpace: 'nowrap' }}>{formatCurrency(paymentStats.totalPaidOnSchedule)}</td>
+                      <td style={{ padding: '0.875rem 0.75rem', color: '#dc2626', whiteSpace: 'nowrap' }}>{formatCurrency(paymentStats.totalRemaining)}</td>
+                      <td colSpan={4} style={{ padding: '0.875rem 0.75rem', color: '#64748b', fontSize: '12px' }}>
+                        نسبة التحصيل {paymentStats.collectionRate}% • متأخر {formatCurrency(paymentStats.overdueAmount)}
+                        {paymentStats.unallocatedAdvance > 0 ? ` • مقدم غير مخصص ${formatCurrency(paymentStats.unallocatedAdvance)}` : ''}
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
             )}
@@ -1700,7 +1732,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                           receipt_number: found.receipt_number,
                           receipt_date: found.date,
                           received_amount: found.amount,
-                          status: 'محصلة بالكامل'
+                          status: 'مستحقة'
                         });
                       } else {
                         setEditingMilestone({
@@ -1715,8 +1747,8 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                     }}
                     style={{ width: '100%', padding: '0.625rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: 'var(--fs-xs)', background: 'white' }}
                   >
-                    <option value="">-- اختيار من سندات القبض المتاحة --</option>
-                    {receiptVouchers.map((r: any) => (
+                    <option value="">-- اختيار من سندات قبض المشروع --</option>
+                    {projectReceiptOptions.map((r: any) => (
                       <option key={r.id} value={r.id}>
                         سند #{r.receipt_number} - بتاريخ {formatDate(r.date)} - مبلغ {formatCurrency(r.amount)}
                       </option>
@@ -1762,16 +1794,16 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 <div>
                   <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>حالة الدفعة</label>
                   <select
-                    value={editingMilestone.status || 'مستحقة'}
+                    value={editingMilestone.status === 'ملغاة' ? 'ملغاة' : 'مستحقة'}
                     onChange={(e) => setEditingMilestone({ ...editingMilestone, status: e.target.value })}
                     style={{ width: '100%', padding: '0.625rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontWeight: 800 }}
                   >
-                    <option value="مستحقة">مستحقة (Pending)</option>
-                    <option value="محصلة جزئياً">محصلة جزئياً (Partially Paid)</option>
-                    <option value="محصلة بالكامل">محصلة بالكامل (Fully Paid)</option>
-                    <option value="متأخرة">متأخرة عن موعدها (Overdue)</option>
+                    <option value="مستحقة">نشطة (الحالة تُحسب تلقائياً)</option>
                     <option value="ملغاة">ملغاة (Cancelled)</option>
                   </select>
+                  <span style={{ display: 'block', fontSize: '10px', color: '#64748b', marginTop: '4px', fontWeight: 700 }}>
+                    متأخرة / قيد التحصيل / محصلة جزئياً / محصلة بالكامل — تُحدد آلياً من الموعد والمسدد.
+                  </span>
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>ملاحظات إضافية</label>
@@ -2734,38 +2766,54 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <DollarSign size={16} /> جدول دفعات العميل وسندات القبض ومواعيد الاستحقاق
                   </h3>
+                  {paymentSchedule.rows.length === 0 ? (
+                    <div style={{ padding: '10px', fontSize: '11px', color: '#64748b', border: '1px dashed #cbd5e1', borderRadius: '6px' }}>لا توجد دفعات مجدولة لهذا المشروع.</div>
+                  ) : (
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11px', textAlign: 'right' }}>
                     <thead>
                       <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
                         <th style={{ padding: '6px' }}>#</th>
-                        <th style={{ padding: '6px' }}>بيان الدفعة ومرحلة الصرف</th>
-                        <th style={{ padding: '6px' }}>تاريخ الاستحقاق</th>
-                        <th style={{ padding: '6px' }}>القيمة المتوقعة</th>
-                        <th style={{ padding: '6px' }}>رقم سند القبض</th>
-                        <th style={{ padding: '6px' }}>تاريخ السند</th>
-                        <th style={{ padding: '6px' }}>المحصل فعلياً</th>
+                        <th style={{ padding: '6px' }}>بيان الدفعة</th>
+                        <th style={{ padding: '6px' }}>موعد الاستحقاق</th>
+                        <th style={{ padding: '6px' }}>قيمة الدفعة</th>
+                        <th style={{ padding: '6px' }}>المسدد</th>
                         <th style={{ padding: '6px' }}>المتبقي</th>
+                        <th style={{ padding: '6px' }}>سندات القبض</th>
                         <th style={{ padding: '6px' }}>الحالة</th>
+                        <th style={{ padding: '6px' }}>التأخير / المهلة</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {milestones.map((m: any, idx: number) => (
+                      {paymentSchedule.rows.map((row, idx) => (
                         <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '6px', fontWeight: 800 }}>{m.milestone_number || idx + 1}</td>
-                          <td style={{ padding: '6px', fontWeight: 800 }}>{m.title}</td>
-                          <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{formatDate(m.due_date)}</td>
-                          <td style={{ padding: '6px', fontWeight: 800 }}>{formatCurrency(m.expected_amount)}</td>
-                          <td style={{ padding: '6px' }}>{m.receipt_number || '---'}</td>
-                          <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right', color: '#64748b' }}>{formatDate(m.receipt_date)}</td>
-                          <td style={{ padding: '6px', fontWeight: 800, color: '#16a34a' }}>{formatCurrency(m.received_amount)}</td>
-                          <td style={{ padding: '6px', fontWeight: 800, color: Number(m.expected_amount) - Number(m.received_amount) > 0 ? '#dc2626' : '#64748b' }}>
-                            {formatCurrency(Math.max(0, (Number(m.expected_amount) || 0) - (Number(m.received_amount) || 0)))}
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{row.number}</td>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{row.title}</td>
+                          <td style={{ padding: '6px', direction: 'ltr', textAlign: 'right' }}>{row.dueDate || '---'}</td>
+                          <td style={{ padding: '6px', fontWeight: 800 }}>{formatCurrency(row.expected)}</td>
+                          <td style={{ padding: '6px', fontWeight: 800, color: '#16a34a' }}>{formatCurrency(row.paid)} ({row.paidPct}%)</td>
+                          <td style={{ padding: '6px', fontWeight: 800, color: row.remaining > 0 ? '#dc2626' : '#64748b' }}>{formatCurrency(row.remaining)}</td>
+                          <td style={{ padding: '6px' }}>{row.receiptRefs.join('، ') || '---'}</td>
+                          <td style={{ padding: '6px' }}>
+                            <span style={{ padding: '1px 6px', borderRadius: '999px', background: row.status.bg, color: row.status.color, fontWeight: 800, whiteSpace: 'nowrap' }}>{row.status.label}</span>
                           </td>
-                          <td style={{ padding: '6px' }}>{m.status || 'مستحقة'}</td>
+                          <td style={{ padding: '6px', whiteSpace: 'nowrap' }}>{row.daysLabel}</td>
                         </tr>
                       ))}
                     </tbody>
+                    <tfoot>
+                      <tr style={{ background: '#f8fafc', borderTop: '2px solid #cbd5e1', fontWeight: 900 }}>
+                        <td colSpan={3} style={{ padding: '6px' }}>الإجمالي</td>
+                        <td style={{ padding: '6px' }}>{formatCurrency(paymentStats.totalScheduled)}</td>
+                        <td style={{ padding: '6px', color: '#16a34a' }}>{formatCurrency(paymentStats.totalPaidOnSchedule)}</td>
+                        <td style={{ padding: '6px', color: '#dc2626' }}>{formatCurrency(paymentStats.totalRemaining)}</td>
+                        <td colSpan={3} style={{ padding: '6px', color: '#475569' }}>
+                          متأخر: {formatCurrency(paymentStats.overdueAmount)} • قيد التحصيل: {formatCurrency(paymentStats.collectingAmount)}
+                          {paymentStats.unallocatedAdvance > 0 ? ` • مقدم غير مخصص: ${formatCurrency(paymentStats.unallocatedAdvance)}` : ''}
+                        </td>
+                      </tr>
+                    </tfoot>
                   </table>
+                  )}
                 </div>
               )}
 
