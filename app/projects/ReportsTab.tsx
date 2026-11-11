@@ -14,6 +14,7 @@ import SecureAction from '@/components/SecureAction';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import { buildMilestoneSchedule, localToday, MILESTONE_STATUS_META } from '@/lib/milestoneSchedule';
 import { buildProjectDailyReport } from '@/lib/projectDailyReport';
+import { buildEvmAnalysis, EVM_STATUS_META } from '@/lib/evmAnalysis';
 import DailyProjectReportSection from './DailyProjectReportSection';
 
 interface ReportsTabProps {
@@ -207,41 +208,15 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   // =========================================================================
   // 4️⃣ تحليل القيمة المكتسبة والانحراف المالي EVM
   // =========================================================================
-  const evmData = useMemo(() => {
-    let plannedValue = 0;
-    let actualCost = 0;
-    let earnedValue = 0;
-
-    const leafItems = boqList.filter((b: any) => b.item_type === 'فرعي' || !b.item_type);
-
-    leafItems.forEach((b: any) => {
-      const budgetCost = Number(b.estimated_labor_cost || 0) + Number(b.estimated_subcontractor_cost || 0) + Number(b.estimated_material_cost || 0) + Number(b.estimated_expenses_cost || 0);
-      const directActual = Number(b.actual_labor_cost || 0) + Number(b.actual_material_cost || 0) + Number(b.actual_expenses_cost || 0);
-      const allocatedABC = Number(b.allocated_expenses || 0);
-      const totalItemActual = directActual + allocatedABC;
-      const contractAmount = Number(b.total_contract_amount || (Number(b.contract_quantity || 0) * Number(b.unit_contract_price || 0)));
-
-      plannedValue += budgetCost;
-      actualCost += totalItemActual;
-      // تقدير القيمة المكتسبة بناء على نسبة الإنجاز المقدرة
-      const itemProgress = budgetCost > 0 ? Math.min(1, totalItemActual / budgetCost) : (totalItemActual > 0 ? 1 : 0);
-      earnedValue += contractAmount * itemProgress;
-    });
-
-    const costVariance = earnedValue - actualCost;
-    const cpi = actualCost > 0 ? (earnedValue / actualCost) : 1;
-    const isCostOverrun = actualCost > plannedValue && actualCost > 0;
-
-    return {
-      plannedValue,
-      actualCost,
-      earnedValue,
-      costVariance,
-      cpi: cpi.toFixed(2),
-      isCostOverrun,
-      leafItems
-    };
-  }, [boqList]);
+  const evmData = useMemo(
+    () =>
+      buildEvmAnalysis(boqList, {
+        asOfDate: localToday(),
+        project,
+        laborLogs: details.laborStats?.logs || [],
+      }),
+    [boqList, project, details.laborStats?.logs]
+  );
 
   // =========================================================================
   // 5️⃣ عقود مقاولي الباطن المعتمدة في الميزانية
@@ -1396,54 +1371,101 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
       {subTab === 'evm' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           
-          {/* كروت مؤشرات إدارة القيمة المكتسبة EVM */}
+          {/* كروت مؤشرات إدارة القيمة المكتسبة EVM القياسية */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))',
-            gap: '1rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))',
+            gap: '0.85rem'
           }}>
-            <div style={{ background: 'white', borderRadius: '16px', padding: '1.25rem', border: '1px solid #f1f5f9' }}>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '1.1rem', border: '1px solid #e2e8f0' }}>
               <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, display: 'block', marginBottom: '0.25rem' }}>
-                الميزانية المخططة (Planned Value - PV)
+                إجمالي الميزانية المعتمدة (BAC)
+              </span>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#0f172a' }}>
+                {formatCurrency(evmData.bac)}
+              </div>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
+                مقابل التعاقد: {formatCurrency(evmData.totalContractAmount)}
+              </span>
+            </div>
+
+            <div style={{ background: 'white', borderRadius: '16px', padding: '1.1rem', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, display: 'block', marginBottom: '0.25rem' }}>
+                القيمة المخططة حتى اليوم (PV)
               </span>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: THEME.primary }}>
                 {formatCurrency(evmData.plannedValue)}
               </div>
-              <span style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 700 }}>إجمالي تكاليف المقايسة المعتمدة</span>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
+                المخطط زمنياً حتى {evmData.asOfDate} ({evmData.plannedProgressPct.toFixed(1)}%)
+              </span>
             </div>
 
-            <div style={{ background: 'white', borderRadius: '16px', padding: '1.25rem', border: '1px solid #f1f5f9' }}>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '1.1rem', border: '1px solid #e2e8f0' }}>
               <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, display: 'block', marginBottom: '0.25rem' }}>
-                التكلفة الفعلية الشاملة (Actual Cost - AC)
+                القيمة المكتسبة (EV)
+              </span>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#0369a1' }}>
+                {formatCurrency(evmData.earnedValue)}
+              </div>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
+                إنجاز مرجح: {evmData.progressPct.toFixed(1)}% من ميزانية التكلفة
+              </span>
+            </div>
+
+            <div style={{ background: 'white', borderRadius: '16px', padding: '1.1rem', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, display: 'block', marginBottom: '0.25rem' }}>
+                التكلفة الفعلية الشاملة (AC)
               </span>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: evmData.isCostOverrun ? '#dc2626' : '#059669' }}>
                 {formatCurrency(evmData.actualCost)}
               </div>
-              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>المصروفات المباشرة + توزيعات ABC</span>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
+                مباشر {formatCurrency(evmData.directActualCost)} + ABC {formatCurrency(evmData.allocatedAbcCost)}
+              </span>
             </div>
 
-            <div style={{ background: 'white', borderRadius: '16px', padding: '1.25rem', border: '1px solid #f1f5f9' }}>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '1.1rem', border: `1px solid ${evmData.actualCost === 0 ? '#e2e8f0' : (evmData.costVariance >= 0 ? '#bbf7d0' : '#fecaca')}` }}>
               <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, display: 'block', marginBottom: '0.25rem' }}>
-                القيمة المكتسبة (Earned Value - EV)
+                انحراف التكلفة (CV) ومؤشر CPI
               </span>
-              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#0f172a' }}>
-                {formatCurrency(evmData.earnedValue)}
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: evmData.actualCost === 0 ? '#475569' : (evmData.costVariance >= 0 ? '#16a34a' : '#dc2626'), direction: 'ltr', textAlign: 'right' }}>
+                {evmData.costVariance > 0 ? '+' : ''}{formatCurrency(evmData.costVariance)} <span style={{ fontSize: '0.8rem' }}>({evmData.cpiFormatted})</span>
               </div>
-              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>قيمة الإنجاز المحقق فعلياً</span>
+              <span style={{ fontSize: '11px', color: evmData.actualCost === 0 ? '#64748b' : (evmData.costVariance >= 0 ? '#15803d' : '#b91c1c'), fontWeight: 700 }}>
+                {evmData.actualCost === 0
+                  ? 'لم يبدأ الصرف الفعلي بعد'
+                  : evmData.costVariance >= 0
+                  ? '✅ كفاءة إنفاق ممتازة (EV ≥ AC)'
+                  : '⚠️ تجاوز تكاليف عن القيمة المكتسبة (EV - AC)'}
+              </span>
             </div>
 
-            <div style={{ background: 'white', borderRadius: '16px', padding: '1.25rem', border: '1px solid #f1f5f9' }}>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '1.1rem', border: `1px solid ${evmData.plannedValue === 0 && evmData.earnedValue === 0 ? '#e2e8f0' : (evmData.scheduleVariance >= 0 ? '#bbf7d0' : '#fde68a')}` }}>
               <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800, display: 'block', marginBottom: '0.25rem' }}>
-                مؤشر أداء التكلفة (CPI Index)
+                انحراف الجدول (SV) ومؤشر SPI
               </span>
-              <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: Number(evmData.cpi) >= 1 ? '#16a34a' : '#dc2626' }}>
-                {evmData.cpi}
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: evmData.plannedValue === 0 && evmData.earnedValue === 0 ? '#475569' : (evmData.scheduleVariance >= 0 ? '#16a34a' : '#d97706'), direction: 'ltr', textAlign: 'right' }}>
+                {evmData.scheduleVariance > 0 ? '+' : ''}{formatCurrency(evmData.scheduleVariance)} <span style={{ fontSize: '0.8rem' }}>({evmData.spiFormatted})</span>
               </div>
-              <span style={{ fontSize: '11px', color: Number(evmData.cpi) >= 1 ? '#15803d' : '#b91c1c', fontWeight: 700 }}>
-                {Number(evmData.cpi) >= 1 ? '✅ كفاءة إنفاق ممتازة (تحت الميزانية)' : '⚠️ تجاوز تكاليف وانحراف سلبي'}
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
+                {evmData.eac !== null
+                  ? `التقدير عند الإتمام (EAC): ${formatCurrency(evmData.eac)}`
+                  : `المتبقي بالميزانية: ${formatCurrency(evmData.remainingBudget)}`}
               </span>
             </div>
           </div>
+
+          {(evmData.missingProgressCount > 0 || evmData.pricingDeficitCount > 0) && (
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '14px', padding: '0.85rem 1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem', color: '#92400e', fontSize: 'var(--fs-xs)', fontWeight: 800 }}>
+              {evmData.missingProgressCount > 0 && (
+                <div>⚠️ يوجد {evmData.missingProgressCount} بند/بنود مسجل عليها صرف فعلي بدون كمية منفذة أو نسبة إنجاز في المقايسة، ما يجعل القيمة المكتسبة EV = 0 لحين تسجيل نسبة الإنجاز.</div>
+              )}
+              {evmData.pricingDeficitCount > 0 && (
+                <div>🔎 يوجد {evmData.pricingDeficitCount} بند/بنود ميزانيتها التقديرية أعلى من سعر التعاقد (عجز تسعير قبل البدء).</div>
+              )}
+            </div>
+          )}
 
           {/* ملخص يوميات العمالة الميدانية (الفنيين والمساعدين) */}
           <div style={{
@@ -1495,50 +1517,104 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
             overflow: 'hidden',
             border: '1px solid #f1f5f9'
           }}>
-            <div style={{ padding: '1rem', borderBottom: '1px solid #f1f5f9', fontWeight: 900, color: '#0f172a' }}>
-              تحليل الانحراف المالي المباشر وتوزيعات ABC لكل بند
+            <div style={{ padding: '1rem', borderBottom: '1px solid #f1f5f9', fontWeight: 900, color: '#0f172a', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <span>تحليل الانحراف المالي المباشر والقيمة المكتسبة (EVM &amp; ABC) لكل بند</span>
+              <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b' }}>
+                انحراف التكلفة CV = القيمة المكتسبة EV − إجمالي الفعلي AC (البنود التي لم تبدأ بعد = 0.00 محايد)
+              </span>
             </div>
             <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: 'var(--fs-sm)' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right', fontSize: 'var(--fs-xs)' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', fontWeight: 900 }}>
-                    <th style={{ padding: '0.875rem 1rem' }}>البند الإنشائي</th>
-                    <th style={{ padding: '0.875rem 1rem' }}>سعر التعاقد (البيع)</th>
-                    <th style={{ padding: '0.875rem 1rem' }}>الميزانية التقديرية</th>
-                    <th style={{ padding: '0.875rem 1rem' }}>الفعلي المباشر</th>
-                    <th style={{ padding: '0.875rem 1rem' }}>الموزع (ABC)</th>
-                    <th style={{ padding: '0.875rem 1rem' }}>إجمالي الفعلي</th>
-                    <th style={{ padding: '0.875rem 1rem' }}>انحراف الميزانية</th>
-                    <th style={{ padding: '0.875rem 1rem' }}>صافي ربح البند</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>البند الإنشائي</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>سعر التعاقد</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>الميزانية (BAC)</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>المخطط (PV)</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>المكتسبة (EV)</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>الفعلي المباشر</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>الموزع (ABC)</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>إجمالي الفعلي (AC)</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>انحراف التكلفة (CV)</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>المتبقي بالميزانية</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>صافي الربح</th>
+                    <th style={{ padding: '0.85rem 0.75rem' }}>الحالة</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {evmData.leafItems.map((item: any, idx: number) => {
-                    const budget = Number(item.estimated_labor_cost || 0) + Number(item.estimated_subcontractor_cost || 0) + Number(item.estimated_material_cost || 0) + Number(item.estimated_expenses_cost || 0);
-                    const directActual = Number(item.actual_labor_cost || 0) + Number(item.actual_material_cost || 0) + Number(item.actual_expenses_cost || 0);
-                    const abc = Number(item.allocated_expenses || 0);
-                    const totalActual = directActual + abc;
-                    const variance = budget - totalActual;
-                    const netProfit = Number(item.item_net_profit || 0);
-
+                  {evmData.rows.map((row) => {
+                    const meta = EVM_STATUS_META[row.status];
+                    const cvColor = row.status === 'not_started'
+                      ? '#64748b'
+                      : (row.costVariance < 0 ? '#dc2626' : row.costVariance > 0 ? '#16a34a' : '#0369a1');
                     return (
-                      <tr key={item.id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '0.875rem 1rem', fontWeight: 800, color: '#0f172a' }}>{item.work_item}</td>
-                        <td style={{ padding: '0.875rem 1rem', fontWeight: 900, color: '#334155' }}>{formatCurrency(item.total_contract_amount || 0)}</td>
-                        <td style={{ padding: '0.875rem 1rem', color: '#64748b' }}>{formatCurrency(budget)}</td>
-                        <td style={{ padding: '0.875rem 1rem', color: '#0369a1' }}>{formatCurrency(directActual)}</td>
-                        <td style={{ padding: '0.875rem 1rem', color: '#9333ea', fontWeight: 700 }}>{formatCurrency(abc)}</td>
-                        <td style={{ padding: '0.875rem 1rem', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(totalActual)}</td>
-                        <td style={{ padding: '0.875rem 1rem', fontWeight: 900, color: variance < 0 ? '#dc2626' : '#16a34a' }}>
-                          {variance > 0 ? '+' : ''}{formatCurrency(variance)}
+                      <tr key={row.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '0.85rem 0.75rem', fontWeight: 800, color: '#0f172a' }}>
+                          <div>{row.workItem}</div>
+                          {row.startDate && (
+                            <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
+                              {row.startDate}{row.endDate ? ` ← ${row.endDate}` : ''}
+                            </div>
+                          )}
+                          {row.isPricingDeficit && (
+                            <span style={{ display: 'inline-block', marginTop: '2px', fontSize: '10px', background: '#fef2f2', color: '#b91c1c', padding: '1px 5px', borderRadius: '4px', fontWeight: 800 }}>
+                              عجز تسعير: {formatCurrency(row.pricingMargin)}
+                            </span>
+                          )}
                         </td>
-                        <td style={{ padding: '0.875rem 1rem', fontWeight: 900, color: netProfit < 0 ? '#dc2626' : '#16a34a' }}>
-                          {netProfit > 0 ? '+' : ''}{formatCurrency(netProfit)}
+                        <td style={{ padding: '0.85rem 0.75rem', fontWeight: 900, color: '#334155' }}>{formatCurrency(row.contractAmount)}</td>
+                        <td style={{ padding: '0.85rem 0.75rem', color: '#475569', fontWeight: 700 }}>{formatCurrency(row.budgetCost)}</td>
+                        <td style={{ padding: '0.85rem 0.75rem', color: '#64748b', fontWeight: 700 }}>
+                          {formatCurrency(row.plannedValueToDate)}
+                          <div style={{ fontSize: '10px', color: '#94a3b8' }}>{row.scheduleProgressPct.toFixed(0)}%</div>
+                        </td>
+                        <td style={{ padding: '0.85rem 0.75rem', color: '#0369a1', fontWeight: 800 }}>
+                          {formatCurrency(row.earnedValue)}
+                          <div style={{ fontSize: '10px', color: '#0284c7' }}>{row.progressPct.toFixed(0)}% إنجاز</div>
+                        </td>
+                        <td style={{ padding: '0.85rem 0.75rem', color: '#0369a1' }}>{formatCurrency(row.directActual)}</td>
+                        <td style={{ padding: '0.85rem 0.75rem', color: '#9333ea', fontWeight: 700 }}>{formatCurrency(row.allocatedAbc)}</td>
+                        <td style={{ padding: '0.85rem 0.75rem', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(row.totalActual)}</td>
+                        <td style={{ padding: '0.85rem 0.75rem', fontWeight: 900, color: cvColor, direction: 'ltr', textAlign: 'right' }}>
+                          {row.costVariance > 0 ? '+' : ''}{formatCurrency(row.costVariance)}
+                        </td>
+                        <td style={{ padding: '0.85rem 0.75rem', fontWeight: 700, color: row.remainingBudget < 0 ? '#dc2626' : '#475569' }}>
+                          {formatCurrency(row.remainingBudget)}
+                        </td>
+                        <td style={{ padding: '0.85rem 0.75rem', fontWeight: 900, color: row.netProfit < 0 ? '#dc2626' : '#16a34a', direction: 'ltr', textAlign: 'right' }}>
+                          {row.netProfit > 0 ? '+' : ''}{formatCurrency(row.netProfit)}
+                        </td>
+                        <td style={{ padding: '0.85rem 0.75rem' }}>
+                          <span style={{ display: 'inline-block', padding: '2px 7px', borderRadius: '6px', fontSize: '10px', fontWeight: 800, background: meta.bg, color: meta.color, border: `1px solid ${meta.border}`, whiteSpace: 'nowrap' }}>
+                            {meta.label}
+                          </span>
                         </td>
                       </tr>
                     );
                   })}
                 </tbody>
+                <tfoot>
+                  <tr style={{ backgroundColor: '#f8fafc', borderTop: '2px solid #cbd5e1', fontWeight: 900, color: '#0f172a' }}>
+                    <td style={{ padding: '0.85rem 0.75rem' }}>الإجمالي الكلي ({evmData.rows.length} بند)</td>
+                    <td style={{ padding: '0.85rem 0.75rem' }}>{formatCurrency(evmData.totalContractAmount)}</td>
+                    <td style={{ padding: '0.85rem 0.75rem' }}>{formatCurrency(evmData.bac)}</td>
+                    <td style={{ padding: '0.85rem 0.75rem' }}>{formatCurrency(evmData.plannedValue)}</td>
+                    <td style={{ padding: '0.85rem 0.75rem', color: '#0369a1' }}>{formatCurrency(evmData.earnedValue)}</td>
+                    <td style={{ padding: '0.85rem 0.75rem', color: '#0369a1' }}>{formatCurrency(evmData.directActualCost)}</td>
+                    <td style={{ padding: '0.85rem 0.75rem', color: '#9333ea' }}>{formatCurrency(evmData.allocatedAbcCost)}</td>
+                    <td style={{ padding: '0.85rem 0.75rem' }}>{formatCurrency(evmData.actualCost)}</td>
+                    <td style={{ padding: '0.85rem 0.75rem', color: evmData.actualCost === 0 ? '#475569' : (evmData.costVariance < 0 ? '#dc2626' : '#16a34a'), direction: 'ltr', textAlign: 'right' }}>
+                      {evmData.costVariance > 0 ? '+' : ''}{formatCurrency(evmData.costVariance)}
+                    </td>
+                    <td style={{ padding: '0.85rem 0.75rem' }}>{formatCurrency(evmData.remainingBudget)}</td>
+                    <td style={{ padding: '0.85rem 0.75rem', color: evmData.totalNetProfit < 0 ? '#dc2626' : '#16a34a', direction: 'ltr', textAlign: 'right' }}>
+                      {evmData.totalNetProfit > 0 ? '+' : ''}{formatCurrency(evmData.totalNetProfit)}
+                    </td>
+                    <td style={{ padding: '0.85rem 0.75rem', fontSize: '10px', color: '#475569' }}>
+                      CPI: {evmData.cpiFormatted}
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
@@ -3045,26 +3121,38 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
 
               {/* 6. تقرير تحليل الانحراف المالي والقيمة المكتسبة EVM */}
               {printOptions.costVarianceEVM && (
-                <div style={{ marginBottom: '1.5rem', pageBreakInside: 'avoid' }}>
+                <div style={{ marginBottom: '1.5rem' }}>
                   <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <TrendingUp size={16} /> تحليل الانحراف المالي وإدارة القيمة المكتسبة (EVM Analysis)
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem', marginBottom: '0.75rem' }}>
-                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '10px', color: '#64748b' }}>الميزانية المخططة (PV)</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900 }}>{formatCurrency(evmData.plannedValue)}</div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem', marginBottom: '0.75rem', pageBreakInside: 'avoid' }}>
+                    <div style={{ padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>الميزانية الكلية (BAC)</div>
+                      <div style={{ fontSize: '12px', fontWeight: 900 }}>{formatCurrency(evmData.bac)}</div>
                     </div>
-                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '10px', color: '#64748b' }}>التكلفة الفعلية (AC)</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900, color: evmData.isCostOverrun ? '#dc2626' : '#16a34a' }}>{formatCurrency(evmData.actualCost)}</div>
+                    <div style={{ padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>المخطط حتى اليوم (PV)</div>
+                      <div style={{ fontSize: '12px', fontWeight: 900, color: THEME.primary }}>{formatCurrency(evmData.plannedValue)}</div>
                     </div>
-                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '10px', color: '#64748b' }}>القيمة المكتسبة (EV)</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900 }}>{formatCurrency(evmData.earnedValue)}</div>
+                    <div style={{ padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>القيمة المكتسبة (EV)</div>
+                      <div style={{ fontSize: '12px', fontWeight: 900, color: '#0369a1' }}>{formatCurrency(evmData.earnedValue)}</div>
                     </div>
-                    <div style={{ padding: '8px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '10px', color: '#64748b' }}>مؤشر أداء التكلفة (CPI)</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900, color: Number(evmData.cpi) >= 1 ? '#16a34a' : '#dc2626' }}>{evmData.cpi}</div>
+                    <div style={{ padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>التكلفة الفعلية (AC)</div>
+                      <div style={{ fontSize: '12px', fontWeight: 900, color: evmData.isCostOverrun ? '#dc2626' : '#16a34a' }}>{formatCurrency(evmData.actualCost)}</div>
+                    </div>
+                    <div style={{ padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>انحراف التكلفة (CV)</div>
+                      <div style={{ fontSize: '12px', fontWeight: 900, color: evmData.actualCost === 0 ? '#475569' : (evmData.costVariance >= 0 ? '#16a34a' : '#dc2626'), direction: 'ltr' }}>
+                        {evmData.costVariance > 0 ? '+' : ''}{formatCurrency(evmData.costVariance)}
+                      </div>
+                    </div>
+                    <div style={{ padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>مؤشر الأداء (CPI / SPI)</div>
+                      <div style={{ fontSize: '12px', fontWeight: 900, color: evmData.cpi === null ? '#475569' : (evmData.cpi >= 1 ? '#16a34a' : '#dc2626') }}>
+                        {evmData.cpiFormatted} / {evmData.spiFormatted}
+                      </div>
                     </div>
                   </div>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '10px', textAlign: 'right' }}>
@@ -3072,33 +3160,66 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                       <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #cbd5e1' }}>
                         <th style={{ padding: '5px' }}>البند بالميزانية</th>
                         <th style={{ padding: '5px' }}>سعر البيع</th>
-                        <th style={{ padding: '5px' }}>الميزانية المقدرة</th>
-                        <th style={{ padding: '5px' }}>الفعلي المباشر</th>
-                        <th style={{ padding: '5px' }}>توزيعات ABC</th>
-                        <th style={{ padding: '5px' }}>إجمالي الفعلي</th>
-                        <th style={{ padding: '5px' }}>الانحراف</th>
+                        <th style={{ padding: '5px' }}>الميزانية (BAC)</th>
+                        <th style={{ padding: '5px' }}>المخطط (PV)</th>
+                        <th style={{ padding: '5px' }}>المكتسبة (EV)</th>
+                        <th style={{ padding: '5px' }}>الفعلي (AC)</th>
+                        <th style={{ padding: '5px' }}>انحراف التكلفة (CV)</th>
+                        <th style={{ padding: '5px' }}>المتبقي بالميزانية</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {evmData.leafItems.slice(0, 15).map((it: any, idx: number) => {
-                        const bgt = Number(it.estimated_labor_cost || 0) + Number(it.estimated_subcontractor_cost || 0) + Number(it.estimated_material_cost || 0) + Number(it.estimated_expenses_cost || 0);
-                        const dir = Number(it.actual_labor_cost || 0) + Number(it.actual_material_cost || 0) + Number(it.actual_expenses_cost || 0);
-                        const abc = Number(it.allocated_expenses || 0);
-                        const tot = dir + abc;
-                        const vr = bgt - tot;
+                      {evmData.rows.map((r) => {
+                        const cvColor = r.status === 'not_started'
+                          ? '#64748b'
+                          : (r.costVariance < 0 ? '#dc2626' : r.costVariance > 0 ? '#16a34a' : '#0369a1');
+                        const meta = EVM_STATUS_META[r.status];
                         return (
-                          <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '5px', fontWeight: 800 }}>{it.work_item}</td>
-                            <td style={{ padding: '5px' }}>{formatCurrency(it.total_contract_amount || 0)}</td>
-                            <td style={{ padding: '5px' }}>{formatCurrency(bgt)}</td>
-                            <td style={{ padding: '5px' }}>{formatCurrency(dir)}</td>
-                            <td style={{ padding: '5px' }}>{formatCurrency(abc)}</td>
-                            <td style={{ padding: '5px', fontWeight: 800 }}>{formatCurrency(tot)}</td>
-                            <td style={{ padding: '5px', fontWeight: 800, color: vr < 0 ? '#dc2626' : '#16a34a' }}>{vr > 0 ? '+' : ''}{formatCurrency(vr)}</td>
+                          <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '5px', fontWeight: 800 }}>
+                              <div>{r.workItem}</div>
+                              <div style={{ fontSize: '8.5px', color: meta.color, fontWeight: 700 }}>
+                                {meta.label}{r.isPricingDeficit ? ` | عجز تسعير ${formatCurrency(r.pricingMargin)}` : ''}
+                              </div>
+                            </td>
+                            <td style={{ padding: '5px' }}>{formatCurrency(r.contractAmount)}</td>
+                            <td style={{ padding: '5px' }}>{formatCurrency(r.budgetCost)}</td>
+                            <td style={{ padding: '5px' }}>{formatCurrency(r.plannedValueToDate)}</td>
+                            <td style={{ padding: '5px', color: '#0369a1', fontWeight: 700 }}>
+                              {formatCurrency(r.earnedValue)} ({r.progressPct.toFixed(0)}%)
+                            </td>
+                            <td style={{ padding: '5px', fontWeight: 800 }}>
+                              {formatCurrency(r.totalActual)}
+                              {r.allocatedAbc > 0 && (
+                                <div style={{ fontSize: '8px', color: '#7e22ce', fontWeight: 600 }}>
+                                  مباشر {formatCurrency(r.directActual)} + ABC {formatCurrency(r.allocatedAbc)}
+                                </div>
+                              )}
+                            </td>
+                            <td style={{ padding: '5px', fontWeight: 800, color: cvColor, direction: 'ltr', textAlign: 'right' }}>
+                              {r.costVariance > 0 ? '+' : ''}{formatCurrency(r.costVariance)}
+                            </td>
+                            <td style={{ padding: '5px', color: r.remainingBudget < 0 ? '#dc2626' : '#475569' }}>
+                              {formatCurrency(r.remainingBudget)}
+                            </td>
                           </tr>
                         );
                       })}
                     </tbody>
+                    <tfoot>
+                      <tr style={{ background: '#f8fafc', borderTop: '2px solid #cbd5e1', fontWeight: 900 }}>
+                        <td style={{ padding: '5px' }}>الإجمالي ({evmData.rows.length} بند)</td>
+                        <td style={{ padding: '5px' }}>{formatCurrency(evmData.totalContractAmount)}</td>
+                        <td style={{ padding: '5px' }}>{formatCurrency(evmData.bac)}</td>
+                        <td style={{ padding: '5px' }}>{formatCurrency(evmData.plannedValue)}</td>
+                        <td style={{ padding: '5px', color: '#0369a1' }}>{formatCurrency(evmData.earnedValue)}</td>
+                        <td style={{ padding: '5px' }}>{formatCurrency(evmData.actualCost)}</td>
+                        <td style={{ padding: '5px', color: evmData.actualCost === 0 ? '#475569' : (evmData.costVariance < 0 ? '#dc2626' : '#16a34a'), direction: 'ltr', textAlign: 'right' }}>
+                          {evmData.costVariance > 0 ? '+' : ''}{formatCurrency(evmData.costVariance)}
+                        </td>
+                        <td style={{ padding: '5px' }}>{formatCurrency(evmData.remainingBudget)}</td>
+                      </tr>
+                    </tfoot>
                   </table>
                 </div>
               )}
