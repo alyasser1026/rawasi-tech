@@ -12,6 +12,7 @@ import ThemeSwitcher from './ThemeSwitcher';
 import CompanyLogo from './CompanyLogo';
 import CompanySwitcher from './CompanySwitcher';
 import OfflineSyncStatus from './OfflineSyncStatus';
+import UiScaleControl from './UiScaleControl';
 
 export const OPEN_SEARCH_EVENT = 'phi:open-search';
 export const OPEN_SHORTCUTS_EVENT = 'phi:open-shortcuts';
@@ -50,6 +51,7 @@ export default function AppTopBar({ onOpenMenu }: { onOpenMenu: () => void }) {
         <button type="button" className="ent-topbar-search" onClick={() => window.dispatchEvent(new Event(OPEN_SEARCH_EVENT))} aria-label="البحث في الشاشات (Ctrl K)">
           <Search size={15} aria-hidden="true" /><span>بحث في الشاشات</span><kbd dir="ltr">Ctrl K</kbd>
         </button>
+        <UiScaleControl />
         <div className="ent-topbar-theme"><ThemeSwitcher /></div>
         <button type="button" className="ent-icon-button ent-topbar-zap" onClick={toggle} disabled={!ready} aria-pressed={fastMode}
           aria-label={fastMode ? 'إيقاف وضع الأداء السريع' : 'تشغيل وضع الأداء السريع'} title={fastMode ? 'وضع الأداء السريع مفعّل' : 'وضع الأداء السريع: تقليل الحركات والظلال'}>

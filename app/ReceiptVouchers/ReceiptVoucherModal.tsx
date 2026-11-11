@@ -466,3 +466,4 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
         </div>
     );
 }
+

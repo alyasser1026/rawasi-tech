@@ -348,3 +348,13 @@ html.low-graphics-mode .ent-topbar { background:var(--surface-flat); backdrop-fi
 @media screen and (max-width:800px) {
   .enterprise-page.enterprise-page :is(.glass-input-field, .glass-input, .filter-input-glass, .modal-input):not([type=checkbox]):not([type=radio]) { font-size:max(16px, var(--fs-md)) !important; }
 }
+
+/* ---------- حجم الواجهة (UiScaleControl) ---------- */
+.ent-ui-scale { display:inline-flex; align-items:center; gap:0.125rem; padding:0.125rem; border-radius:999px; background:var(--surface-sunken, rgba(127,127,127,.12)); box-shadow:var(--shadow-sunken, none); flex-shrink:0; }
+.ent-ui-scale button { border:0; background:transparent; color:var(--text-secondary); font:inherit; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; }
+.ent-ui-scale-btn { width:1.875rem; height:1.875rem; }
+.ent-ui-scale-btn:hover:not(:disabled), .ent-ui-scale-value:hover { color:var(--accent-main); background:var(--accent-soft-bg, rgba(249,115,22,.13)); }
+.ent-ui-scale-btn:disabled { opacity:.35; cursor:default; }
+.ent-ui-scale-value { min-width:3rem; height:1.875rem; padding:0 0.375rem; font-size:var(--fs-xs) !important; font-weight:800; font-variant-numeric:tabular-nums; color:var(--text-primary) !important; }
+.ent-ui-scale button:focus-visible { outline:2px solid var(--accent-main); outline-offset:1px; }
+@media screen and (max-width:480px) { .ent-ui-scale-value { display:none; } .ent-ui-scale-btn { width:2.125rem; height:2.125rem; } }

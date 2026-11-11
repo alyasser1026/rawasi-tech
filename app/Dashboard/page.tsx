@@ -42,11 +42,11 @@ export default function DashboardPage() {
       {logic.isLoading ? (
         <LoadingScreen message="جاري معالجة البيانات المالية..." subMessage="نقوم الآن بتجميع وتحليل البيانات من جميع الأقسام..." fullScreen={false} />
       ) : (
-        <div className="phi-dashboard" style={{ display: 'flex', flexDirection: 'column', gap: '2.1875rem', paddingBottom: '3.125rem' }}>
+        <div className="phi-dashboard" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-section)', paddingBottom: 'var(--space-section)' }}>
           
           {/* 🏛️ القسم الأول: المركز المالي */}
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.25rem' }}>
+            <div className="dash-section-head">
               <h3 className="section-title"><Landmark size={18}/> المركز المالي</h3>
               <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', background: '#f1f5f9', padding: '0.375rem 0.9375rem', borderRadius: '14px' }}>من السجلات الحالية</span>
             </div>
@@ -110,8 +110,8 @@ export default function DashboardPage() {
             
             {/* 1. التدفق النقدي */}
             <div className="premium-card">
-              <h3 className="section-title" style={{ fontSize: 'var(--fs-xl)' }}><ChartColumn size={18}/> التدفق النقدي والسيولة</h3>
-              <div style={{ height: '20rem', width: '100%', marginTop: '1.25rem' }}>
+              <h3 className="section-title"><ChartColumn size={18}/> التدفق النقدي والسيولة</h3>
+              <div className="dash-chart">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={logic.stats?.cashFlowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
@@ -138,8 +138,8 @@ export default function DashboardPage() {
 
             {/* 2. تحليل التكاليف */}
             <div className="premium-card">
-              <h3 className="section-title" style={{ fontSize: 'var(--fs-xl)' }}><ChartPie size={18}/> توزيع التكاليف</h3>
-              <div style={{ height: '20rem', width: '100%', display: 'flex', alignItems: 'center', marginTop: '1.25rem' }}>
+              <h3 className="section-title"><ChartPie size={18}/> توزيع التكاليف</h3>
+              <div className="dash-chart" style={{ display: 'flex', alignItems: 'center' }}>
                 {!logic.stats?.expensesByCategory || logic.stats.expensesByCategory.length === 0 ? (
                     <div style={{width:'100%', textAlign:'center', color:'#94a3b8', fontWeight:900}}>لا توجد تكاليف مسجلة بعد</div>
                 ) : (
@@ -170,10 +170,10 @@ export default function DashboardPage() {
           </div>
 
           {/* 🚀 القسم الجديد: أداء أوامر الشغل */}
-          <div style={{ marginTop: '1.875rem', marginBottom: '1.875rem' }}>
+          <div>
             <div className="premium-card" style={{ width: '100%' }}>
               <h3 className="section-title"><ChartColumn size={18}/> الميزانية والتكلفة الفعلية لأوامر الشغل</h3>
-              <div style={{ height: '21.875rem', width: '100%', marginTop: '1.25rem' }}>
+              <div className="dash-chart dash-chart-wide">
                 {!logic.stats?.jobOrdersPerformance || logic.stats.jobOrdersPerformance.length === 0 ? (
                     <div style={{width:'100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color:'#94a3b8', fontWeight:900}}>لا توجد بيانات لأوامر الشغل أو لم يتم تسجيل تكاليف عليها بعد</div>
                 ) : (
@@ -433,6 +433,37 @@ export default function DashboardPage() {
         }
         html.low-graphics-mode .phi-dashboard .premium-card, html.low-graphics-mode .phi-dashboard .mini-stat-card { background: white; }
         html.low-graphics-mode .phi-dashboard .premium-card:hover, html.low-graphics-mode .phi-dashboard .mini-stat-card:hover, html.low-graphics-mode .phi-dashboard .health-ring-card:hover, html.low-graphics-mode .phi-dashboard .alert-row:hover { transform: none; }
+        /* ── تناسق موحّد: كل المقاسات مربوطة بمقياس الواجهة (rem + --space-*) نفسه اللي بيستخدمه الهيدر والقائمة ── */
+        .enterprise-page .phi-dashboard.phi-dashboard .section-title { font-size: var(--fs-lg); font-weight: 800; color: var(--text-primary); margin: 0 0 var(--sp-3); gap: var(--sp-2); }
+        .enterprise-page .phi-dashboard.phi-dashboard .dash-section-head { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-3); }
+        .enterprise-page .phi-dashboard.phi-dashboard .dash-section-head .section-title { margin: 0; }
+        .enterprise-page .phi-dashboard.phi-dashboard .dash-section-head > span { background: var(--surface-sunken) !important; color: var(--text-secondary) !important; border-radius: 999px !important; font-size: var(--fs-xs) !important; padding: var(--sp-1) var(--sp-3) !important; }
+        .enterprise-page .phi-dashboard.phi-dashboard :is(.premium-grid-2, .premium-grid-3, .premium-grid-4, .health-rings-grid) { gap: var(--space-gap); }
+        .enterprise-page .phi-dashboard.phi-dashboard .premium-grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
+        .enterprise-page .phi-dashboard.phi-dashboard .premium-grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); }
+        .enterprise-page .phi-dashboard.phi-dashboard .premium-grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 12.5rem), 1fr)); }
+        .enterprise-page .phi-dashboard.phi-dashboard .health-rings-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); }
+        .enterprise-page .phi-dashboard.phi-dashboard :is(.premium-card, .mini-stat-card, .health-ring-card) { background: var(--surface-card); border: none; border-radius: var(--phi-radius-card, 14px); box-shadow: var(--shadow-ambient); padding: var(--space-card); min-width: 0; }
+        .enterprise-page .phi-dashboard.phi-dashboard .financial-stat { border-top: 3px solid var(--stat-accent); }
+        .enterprise-page .phi-dashboard.phi-dashboard .card-header-flex { margin-bottom: var(--sp-3); }
+        .enterprise-page .phi-dashboard.phi-dashboard .icon-wrapper { width: 2.75rem; height: 2.75rem; border-radius: 12px; }
+        .enterprise-page .phi-dashboard.phi-dashboard .card-subtitle { color: var(--text-secondary); font-size: var(--fs-sm); margin: 0 0 var(--sp-1); }
+        .enterprise-page .phi-dashboard.phi-dashboard .financial-stat .card-value { font-size: clamp(var(--fs-xl), 0.375rem + 6cqi, var(--fs-2xl)); }
+        .enterprise-page .phi-dashboard.phi-dashboard .mini-stat-card { gap: var(--sp-3); align-items: center; }
+        .enterprise-page .phi-dashboard.phi-dashboard .mini-icon { width: 2.5rem; height: 2.5rem; border-radius: 12px; border: none; }
+        .enterprise-page .phi-dashboard.phi-dashboard .mini-stat-card p, .enterprise-page .phi-dashboard.phi-dashboard .ring-info p { color: var(--text-secondary); font-size: var(--fs-xs); }
+        .enterprise-page .phi-dashboard.phi-dashboard .mini-stat-card h3 { color: var(--text-primary); font-size: var(--fs-lg); margin-top: var(--sp-1); }
+        .enterprise-page .phi-dashboard.phi-dashboard .currency { color: var(--text-muted, var(--text-secondary)); }
+        .enterprise-page .phi-dashboard.phi-dashboard .health-ring-card { gap: var(--sp-3); align-items: center; }
+        .enterprise-page .phi-dashboard.phi-dashboard .health-ring-card > div:first-child { width: 4rem !important; height: 4rem !important; flex: none; }
+        .enterprise-page .phi-dashboard.phi-dashboard .health-ring-card.warning-glow { box-shadow: var(--shadow-ambient), inset 0 0 0 1px rgba(245, 158, 11, 0.45); background: var(--surface-card); }
+        .enterprise-page .phi-dashboard.phi-dashboard .ring-info h4, .enterprise-page .phi-dashboard.phi-dashboard .ring-center-text { color: var(--text-primary); }
+        .enterprise-page .phi-dashboard.phi-dashboard .dash-chart { height: clamp(13rem, 26vh, 17rem); width: 100%; margin-top: var(--sp-2); }
+        .enterprise-page .phi-dashboard.phi-dashboard .dash-chart-wide { height: clamp(14rem, 30vh, 19rem); }
+        .enterprise-page .phi-dashboard.phi-dashboard .alerts-container { background: var(--surface-card) !important; border: none !important; box-shadow: var(--shadow-ambient), inset 0 0 0 1px rgba(225, 29, 72, 0.35); padding: var(--space-card); }
+        .enterprise-page .phi-dashboard.phi-dashboard .alerts-header { margin-bottom: var(--sp-3); }
+        .enterprise-page .phi-dashboard.phi-dashboard .alert-row { background: var(--surface-sunken); border: none; border-radius: 12px; padding: var(--sp-3) var(--sp-4); }
+        .enterprise-page .phi-dashboard.phi-dashboard .alert-content { color: var(--text-primary); font-size: var(--fs-sm); }
         @media print {
           .phi-dashboard .premium-card, .phi-dashboard .mini-stat-card, .phi-dashboard .health-ring-card { background: white; box-shadow: none; break-inside: avoid; }
           .phi-dashboard .premium-card:hover, .phi-dashboard .mini-stat-card:hover, .phi-dashboard .health-ring-card:hover { transform: none; }
@@ -442,3 +473,4 @@ export default function DashboardPage() {
     </MasterPage>
   );
 }
+

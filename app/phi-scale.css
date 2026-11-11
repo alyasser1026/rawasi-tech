@@ -5,12 +5,13 @@
    Use these tokens instead of fixed px values. */
 
 html {
-  font-size: clamp(0.9375rem, 0.798rem + 0.218vw, 1.125rem);
+  /* --ui-scale: زر حجم الواجهة في الشريط العلوي (components/UiScaleControl.tsx) — 1 = الطبيعي. */
+  font-size: calc(clamp(0.9375rem, 0.798rem + 0.218vw, 1.125rem) * var(--ui-scale, 1));
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
 }
 @media screen and (max-width: 800px) {
-  html { font-size: 100%; }
+  html { font-size: calc(100% * var(--ui-scale, 1)); }
 }
 
 :root {

@@ -659,3 +659,4 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
 
     return createPortal(modalContent, document.body);
 }
+

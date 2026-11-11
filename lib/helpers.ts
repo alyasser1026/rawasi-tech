@@ -538,3 +538,4 @@ export const normalizeArabicText = (text: any): string => {
     .replace(/[\u064B-\u065F\u0670]/g, '')
     .replace(/\s+/g, ' ');
 };
+

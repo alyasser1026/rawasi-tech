@@ -344,6 +344,20 @@ export default function WelcomeHomePage() {
                 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
                 @keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
 
+                /* ── تناسق موحّد مع الهيدر والقائمة: نفس مقياس الخطوط والمسافات (rem + --space-*) ── */
+                .welcome-page-wrapper.welcome-page-wrapper { padding: 0; gap: var(--space-section); min-height: auto; }
+                .welcome-page-wrapper .hero-glass-card { border-radius: var(--phi-radius-card, 14px); padding: calc(var(--space-card) * 1.75) calc(var(--space-card) * 1.5); }
+                .welcome-page-wrapper .welcome-title { font-size: var(--fs-2xl); margin: 0 0 var(--sp-2); letter-spacing: 0; }
+                .welcome-page-wrapper .welcome-subtitle { font-size: var(--fs-md); margin: 0 auto var(--space-section); }
+                .welcome-page-wrapper .welcome-fav-head { text-align: right; margin: 0 auto var(--sp-3); max-width: 62rem; }
+                .welcome-page-wrapper .welcome-fav-head h2 { font-size: var(--fs-lg) !important; margin: 0; }
+                .welcome-page-wrapper .modules-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr)); gap: var(--space-gap); max-width: 62rem; }
+                .welcome-page-wrapper :is(.module-card, .add-fav-card) { border-radius: var(--phi-radius-card, 14px); padding: var(--space-card) var(--sp-3); gap: var(--sp-3); min-height: 8.5rem; justify-content: center; }
+                .welcome-page-wrapper .module-card:hover, .welcome-page-wrapper .add-fav-card:hover { transform: translateY(-3px); }
+                .welcome-page-wrapper .module-icon { width: 3rem; height: 3rem; }
+                .welcome-page-wrapper .module-title, .welcome-page-wrapper .add-fav-title { font-size: var(--fs-sm); line-height: 1.5; }
+                .welcome-page-wrapper .add-fav-icon { width: 3rem; height: 3rem; display: grid; place-items: center; border-radius: 50%; background: var(--surface-sunken); font-size: var(--fs-lg); }
+
                 @media (max-width: 768px) {
                     .hero-glass-card { padding: 1.875rem 1.25rem; border-radius: 20px; }
                     .welcome-title { font-size: var(--fs-2xl); }
@@ -364,7 +378,7 @@ export default function WelcomeHomePage() {
                 <p className="welcome-subtitle">{quote}</p>
                 {!permsLoading && !displayName.hasProfileName && <p className="welcome-profile-hint">لم تُكمل اسمك في الملف الشخصي بعد. <Link href="/profile">أكمل بياناتك</Link> ليظهر اسمك في التحيات والتقارير.</p>}
 
-                <div style={{ textAlign: 'right', marginBottom: '0.9375rem' }}>
+                <div className="welcome-fav-head">
                     <h2 style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: 'var(--text-primary)' }}>الصفحات المفضلة</h2>
                 </div>
 
