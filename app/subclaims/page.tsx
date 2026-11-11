@@ -594,10 +594,13 @@ export default function SubContractorClaimsPage() {
                     <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
                         {/* Quick Toolbar above Search */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                                 <span style={{ fontWeight: 800, fontSize: '0.95rem', color: 'var(--text-primary)' }}>قائمة المقاولين المعتمدين</span>
                                 <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 800 }}>
                                     {filteredContractors.length} مقاول
+                                </span>
+                                <span style={{ background: '#f0fdf4', color: '#15803d', border: '1px solid #bbf7d0', padding: '0.2rem 0.6rem', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 800 }}>
+                                    مرتبط تلقائياً بدليل الشركاء (البارتنر)
                                 </span>
                             </div>
 

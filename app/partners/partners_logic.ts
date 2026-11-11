@@ -1,10 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { fetchAllSupabaseData } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
 import { generateNextPartnerCode } from '@/lib/partnerCodeGenerator';
 
 export function usePartnersLogic() {
+  const queryClient = useQueryClient();
   // 1️⃣ الحالات (States) الأساسية
   const [partners, setPartners] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -111,6 +113,9 @@ export function usePartnersLogic() {
       notify(editingId ? 'تم تحديث البيانات بنجاح!' : 'تم إضافة الشريك بنجاح!');
       closeModal();
       fetchPartners();
+      queryClient.invalidateQueries({ queryKey: ['sub_contractors_list'] });
+      queryClient.invalidateQueries({ queryKey: ['partners'] });
+      queryClient.invalidateQueries({ queryKey: ['job_orders'] });
     }
     setIsSaving(false);
   };
@@ -120,7 +125,11 @@ export function usePartnersLogic() {
     if (confirm('هل أنت متأكد من حذف هذا الكيان نهائياً من سجلات فاي تك؟')) {
       const { error } = await supabase.from('partners').delete().eq('id', id);
       if (error) notify('خطأ في الحذف: ' + error.message);
-      else fetchPartners();
+      else {
+        fetchPartners();
+        queryClient.invalidateQueries({ queryKey: ['sub_contractors_list'] });
+        queryClient.invalidateQueries({ queryKey: ['partners'] });
+      }
     }
   };
 

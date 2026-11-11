@@ -2423,17 +2423,22 @@ export function createCopilotTools({
         };
       }
 
-      // Resolve contractor (التحقق الصارم من معرف المقاول في سجل الشركاء)
+      // Resolve contractor (التحقق الصارم من معرف المقاول في سجل الشركاء مع إعطاء الأولوية لتصنيف المقاول)
       let contractorName = typeof rawArgs?.contractor_name === 'string' ? rawArgs.contractor_name.trim() : '';
       let contractorId = null;
-      const partRes = await fetchScopedRows('partners', { select: 'id,name,partner_type', limit: '150' });
+      const partRes = await fetchScopedRows('partners', { select: 'id,name,partner_type,job_role', limit: '500' });
       if (partRes.ok && Array.isArray(partRes.data) && contractorName) {
         const normContractor = normalizeArabic(contractorName);
-        const matchedPart = partRes.data.find(p => {
+        const candidates = partRes.data.filter(p => {
           if (!p.name) return false;
           const pNorm = normalizeArabic(p.name);
           return pNorm === normContractor || pNorm.includes(normContractor) || normContractor.includes(pNorm);
         });
+        const matchedPart =
+          candidates.find(p => normalizeArabic(p.name) === normContractor && /مقاول/i.test(p.partner_type || '')) ||
+          candidates.find(p => /مقاول/i.test(`${p.partner_type || ''} ${p.job_role || ''}`)) ||
+          candidates.find(p => normalizeArabic(p.name) === normContractor) ||
+          candidates[0];
         if (matchedPart) {
           contractorId = matchedPart.id;
           contractorName = matchedPart.name;

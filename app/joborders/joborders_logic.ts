@@ -44,8 +44,13 @@ export function useJobOrdersLogic() {
                     partners!job_orders_contractor_id_fkey(name), 
                     boq_budget:boq_budget_id(work_item, budget_code, Property),
                     contractor_assignments:contractor_assignments!contractor_assignments_job_order_id_fkey(
+                        id,
+                        contractor_id,
                         assigned_qty,
                         unit_price,
+                        status,
+                        claim_id,
+                        partners:contractor_id ( id, name, code ),
                         sub_claims:sub_claims!contractor_assignments_claim_id_fkey ( id, total_amount, net_amount, paid_amount, materials_deduction, other_deductions, advance_payment, retention_amount )
                     )
                 `, 'created_at', false);
@@ -61,11 +66,16 @@ export function useJobOrdersLogic() {
 
                 try {
                     const rawAssignments = await fetchAllSupabaseData(supabase, 'contractor_assignments', `
+                        id,
                         job_order_id,
+                        contractor_id,
                         assigned_qty,
                         unit_price,
+                        status,
+                        claim_id,
+                        partners:contractor_id ( id, name, code ),
                         sub_claims:claim_id ( id, total_amount, net_amount, paid_amount, materials_deduction, other_deductions, advance_payment, retention_amount )
-                    `, 'created_at', false) || [];
+                    `, 'id', true) || [];
 
                     const asgMap = new Map<string, any[]>();
                     rawAssignments.forEach((asg: any) => {
@@ -169,9 +179,27 @@ export function useJobOrdersLogic() {
                 }
             }
 
+            // استخراج أسماء ومعرفات جميع المقاولين المسندين لأمر الشغل (أمر الشغل مفتوح لأكثر من مقاول)
+            const assignedContractorsMap = new Map<string, { id: string; name: string; code?: string }>();
+            if (jo.contractor_id && jo.partners?.name) {
+                assignedContractorsMap.set(jo.contractor_id, { id: jo.contractor_id, name: jo.partners.name });
+            }
+            (jo.contractor_assignments || []).forEach((ca: any) => {
+                const pObj = Array.isArray(ca.partners) ? ca.partners[0] : ca.partners;
+                if (ca.contractor_id && (pObj?.name || !assignedContractorsMap.has(ca.contractor_id))) {
+                    assignedContractorsMap.set(ca.contractor_id, {
+                        id: ca.contractor_id,
+                        name: pObj?.name || jo.partners?.name || 'مقاول',
+                        code: pObj?.code
+                    });
+                }
+            });
+            const assignedContractors = Array.from(assignedContractorsMap.values());
+
             return { 
                 ...jo, 
                 ...perf,
+                assigned_contractors: assignedContractors,
                 subcontractor_paid: subPaidTotal, // المبالغ النقدية للمقاول بعد التوزيع الدقيق للفيلا
                 total_allocated_overhead: totalAllocatedOverhead, // المصروفات العامة المحملة على أمر الشغل
                 final_effective_cost: effectiveCost + subPaidTotal // إجمالي المنصرف الحقيقي متضمناً العمالة والمقاول
@@ -187,6 +215,7 @@ export function useJobOrdersLogic() {
             const orderNum = String(jo.order_number || '').toLowerCase();
             const projName = String(jo.projects?.project_name || jo.projects?.Property || '').toLowerCase();
             const partnerName = String(jo.partners?.name || '').toLowerCase();
+            const allContractorNames = (jo.assigned_contractors || []).map((c: any) => c.name || '').join(' ').toLowerCase();
             const propName = String(jo.boq_budget?.Property || '').toLowerCase();
             const combName = String(jo.job_order_name || '').toLowerCase();
 
@@ -194,6 +223,7 @@ export function useJobOrdersLogic() {
                 orderNum.includes(searchLower) || 
                 projName.includes(searchLower) ||
                 partnerName.includes(searchLower) ||
+                allContractorNames.includes(searchLower) ||
                 propName.includes(searchLower) ||
                 combName.includes(searchLower);
             
@@ -217,7 +247,11 @@ export function useJobOrdersLogic() {
             if (projectFilter && jo.project_id !== projectFilter) matchesProject = false;
 
             let matchesPartner = true;
-            if (partnerFilter && jo.contractor_id !== partnerFilter) matchesPartner = false;
+            if (partnerFilter) {
+                const hasContractor = jo.contractor_id === partnerFilter ||
+                    (jo.assigned_contractors || []).some((c: any) => c.id === partnerFilter);
+                if (!hasContractor) matchesPartner = false;
+            }
 
             let matchesFinancial = true;
             if (financialFilter) {
@@ -253,13 +287,28 @@ export function useJobOrdersLogic() {
             executor_type: 'تنفيذ ذاتي',
             status: 'مسودة', 
             start_date: new Date().toISOString().split('T')[0],
-            retention_percent: 10
+            retention_percent: 10,
+            extra_contractors: []
         }); 
         setIsEditModalOpen(true); 
     };
 
     const handleEdit = (jo: any) => {
-        setCurrentRecord({ ...jo, client_name: jo.partners?.name || '' });
+        const extraContractors = (jo.contractor_assignments || [])
+            .filter((ca: any) => ca.contractor_id && ca.contractor_id !== jo.contractor_id)
+            .map((ca: any) => {
+                const pObj = Array.isArray(ca.partners) ? ca.partners[0] : ca.partners;
+                return {
+                    id: ca.id,
+                    contractor_id: ca.contractor_id,
+                    contractor_name: pObj?.name || 'مقاول',
+                    assigned_qty: ca.assigned_qty ?? jo.assigned_qty ?? 1,
+                    unit_price: ca.unit_price ?? 0,
+                    claim_id: ca.claim_id || null,
+                    status: ca.status || 'جاري التنفيذ'
+                };
+            });
+        setCurrentRecord({ ...jo, client_name: jo.partners?.name || '', extra_contractors: extraContractors });
         setIsEditModalOpen(true);
     };
 
@@ -272,7 +321,7 @@ export function useJobOrdersLogic() {
             if (qty <= 0) throw new Error("عفواً، الكمية المسندة يجب أن تكون أكبر من صفر");
             if (price < 0) throw new Error("عفواً، سعر الوحدة لا يمكن أن يكون قيمة سالبة");
             if (record.executor_type === 'مقاول باطن' && !record.contractor_id) {
-                throw new Error("عفواً، يجب اختيار اسم مقاول الباطن لإتمام الأمر");
+                throw new Error("عفواً، يجب اختيار اسم مقاول الباطن الأساسي لإتمام الأمر");
             }
 
             const retentionInput = String(record.retention_percent ?? '').trim();
@@ -303,40 +352,92 @@ export function useJobOrdersLogic() {
                 notes: record.notes
             };
 
-            const saveWithFallback = async (dataPayload: any) => {
+            const saveWithFallback = async (dataPayload: any): Promise<string> => {
                 const isRetentionError = (err: any) => 
                     err && (String(err.message).includes('retention_percent') || err.code === 'PGRST204' || err.code === '42703' || String(err.details).includes('retention_percent'));
 
                 if (record.id) {
-                    let { error } = await supabase.from('job_orders').update(dataPayload).eq('id', record.id);
+                    let { data: updated, error } = await supabase.from('job_orders').update(dataPayload).eq('id', record.id).select('id').single();
                     if (isRetentionError(error)) {
-                        console.warn('retention_percent column missing in schema cache, retrying without it...');
                         const fallbackPayload = { ...dataPayload };
                         delete fallbackPayload.retention_percent;
-                        const retry = await supabase.from('job_orders').update(fallbackPayload).eq('id', record.id);
+                        const retry = await supabase.from('job_orders').update(fallbackPayload).eq('id', record.id).select('id').single();
                         error = retry.error;
+                        updated = retry.data;
                     }
                     if (error) throw error;
+                    return updated?.id || record.id;
                 } else {
-                    let { error } = await supabase.from('job_orders').insert([dataPayload]);
+                    let { data: inserted, error } = await supabase.from('job_orders').insert([dataPayload]).select('id').single();
                     if (isRetentionError(error)) {
-                        console.warn('retention_percent column missing in schema cache, retrying without it...');
                         const fallbackPayload = { ...dataPayload };
                         delete fallbackPayload.retention_percent;
-                        const retry = await supabase.from('job_orders').insert([fallbackPayload]);
+                        const retry = await supabase.from('job_orders').insert([fallbackPayload]).select('id').single();
                         error = retry.error;
+                        inserted = retry.data;
                     }
                     if (error) throw error;
+                    return inserted?.id;
                 }
             };
 
-            await saveWithFallback(payload);
+            const savedJoId = await saveWithFallback(payload);
+
+            // حفظ المقاولين الإضافيين على نفس أمر الشغل (تعدد المقاولين)
+            if (savedJoId && payload.executor_type === 'مقاول باطن' && Array.isArray(record.extra_contractors)) {
+                const extraRows = record.extra_contractors
+                    .filter((ec: any) => ec && ec.contractor_id && ec.contractor_id !== payload.contractor_id);
+
+                // إزالة أي إسناد غير مفوتر تم حذفه من القائمة في المودال
+                if (Array.isArray(record.removed_assignment_ids) && record.removed_assignment_ids.length > 0) {
+                    await supabase
+                        .from('contractor_assignments')
+                        .delete()
+                        .in('id', record.removed_assignment_ids)
+                        .is('claim_id', null);
+                }
+
+                for (const ec of extraRows) {
+                    const ecQty = Number(ec.assigned_qty) > 0 ? Number(ec.assigned_qty) : qty;
+                    const ecPrice = Number(ec.unit_price) >= 0 ? Number(ec.unit_price) : 0;
+                    if (ec.id) {
+                        if (!ec.claim_id) {
+                            await supabase
+                                .from('contractor_assignments')
+                                .update({
+                                    assigned_qty: ecQty,
+                                    unit_price: ecPrice,
+                                    project_id: payload.project_id,
+                                    boq_budget_id: payload.boq_budget_id
+                                })
+                                .eq('id', ec.id);
+                        }
+                    } else {
+                        const { error: ecErr } = await supabase
+                            .from('contractor_assignments')
+                            .insert([{
+                                job_order_id: savedJoId,
+                                contractor_id: ec.contractor_id,
+                                project_id: payload.project_id,
+                                boq_budget_id: payload.boq_budget_id,
+                                assigned_qty: ecQty,
+                                unit_price: ecPrice,
+                                status: 'جاري التنفيذ'
+                            }]);
+                        if (ecErr && !String(ecErr.message).includes('duplicate')) {
+                            throw ecErr;
+                        }
+                    }
+                }
+            }
         },
         onSuccess: () => {
             setIsEditModalOpen(false);
-            showToast("تم حفظ أمر التشغيل بنجاح", "success");
+            showToast("تم حفظ أمر التشغيل والمقاولين بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['job_orders'] });
             queryClient.invalidateQueries({ queryKey: ['job_order_performance'] });
+            queryClient.invalidateQueries({ queryKey: ['contractor_tasks'] });
+            queryClient.invalidateQueries({ queryKey: ['sub_contractors_list'] });
         },
         onError: (err: any) => showToast(`${err.message}`, "error")
     });

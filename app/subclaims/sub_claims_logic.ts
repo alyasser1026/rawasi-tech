@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/lib/toast-context';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
+import { generateNextPartnerCode } from '@/lib/partnerCodeGenerator';
 import * as XLSX from 'xlsx';
 
 export function useSubClaimsLogic() {
@@ -36,22 +37,69 @@ export function useSubClaimsLogic() {
 
     const [projectJobOrders, setProjectJobOrders] = useState<any[]>([]);
     
-    // 🚀 1. سحب اسم البند (work_item)
+    // 🚀 1. سحب جميع أوامر التشغيل بالمشروع (مفتوحة لأكثر من مقاول بدون تقييد بمقاول واحد)
     const fetchProjectJobOrders = async (projectId: string) => {
         if (!projectId) { setProjectJobOrders([]); return; }
-        const { data } = await supabase.from('job_orders')
-            .select('*, boq_budget:boq_budget_id(unit, work_item)') 
+        const { data: jos } = await supabase.from('job_orders')
+            .select('*, boq_budget:boq_budget_id(unit, work_item)')
             .eq('project_id', projectId)
-            .is('contractor_id', null); 
-        setProjectJobOrders(data || []);
+            .order('order_number', { ascending: false });
+
+        const joIds = (jos || []).map((j: any) => j.id).filter(Boolean);
+        let assignmentsByJo = new Map<string, any[]>();
+        if (joIds.length > 0) {
+            const { data: existingAsgs } = await supabase
+                .from('contractor_assignments')
+                .select('id, job_order_id, contractor_id, assigned_qty, status, partners:contractor_id(id, name)')
+                .in('job_order_id', joIds);
+            (existingAsgs || []).forEach((a: any) => {
+                if (!a.job_order_id) return;
+                if (!assignmentsByJo.has(a.job_order_id)) assignmentsByJo.set(a.job_order_id, []);
+                const partnerObj = Array.isArray(a.partners) ? a.partners[0] : a.partners;
+                assignmentsByJo.get(a.job_order_id)!.push({
+                    ...a,
+                    contractor_name: partnerObj?.name || 'مقاول'
+                });
+            });
+        }
+
+        const enriched = (jos || []).map((j: any) => ({
+            ...j,
+            existing_assignments: assignmentsByJo.get(j.id) || []
+        }));
+        setProjectJobOrders(enriched);
     };
 
     const { data: contractors = [], isLoading } = useQuery({
         queryKey: ['sub_contractors_list'],
+        staleTime: 0,
+        refetchOnMount: 'always',
         queryFn: async () => {
-            const buildQuery = () => supabase.from('partners').select('*').eq('partner_type', 'مقاول');
-            const data = await fetchPaginatedData(buildQuery, 'id');
-            return data || [];
+            const buildQuery = () => supabase
+                .from('partners')
+                .select('*')
+                .or('partner_type.ilike.%مقاول%,job_role.ilike.%مقاول%')
+                .order('name', { ascending: true });
+            const matchedPartners = await fetchPaginatedData(buildQuery, 'id') || [];
+
+            // سحب أي شركاء لديهم إسنادات مقاولين أو أوامر شغل حالية حتى لو تصنيفهم مختلف في البارتنر
+            const [{ data: asgRows }, { data: joRows }] = await Promise.all([
+                supabase.from('contractor_assignments').select('contractor_id'),
+                supabase.from('job_orders').select('contractor_id').not('contractor_id', 'is', null)
+            ]);
+            const seenIds = new Set(matchedPartners.map((p: any) => p.id));
+            const extraIds = Array.from(new Set([
+                ...(asgRows || []).map((r: any) => r.contractor_id),
+                ...(joRows || []).map((r: any) => r.contractor_id)
+            ].filter((id) => id && !seenIds.has(id))));
+
+            if (extraIds.length > 0) {
+                const { data: extraPartners } = await supabase.from('partners').select('*').in('id', extraIds);
+                return [...matchedPartners, ...(extraPartners || [])].sort((a: any, b: any) =>
+                    String(a.name || '').localeCompare(String(b.name || ''), 'ar')
+                );
+            }
+            return matchedPartners;
         }
     });
 
@@ -208,12 +256,16 @@ export function useSubClaimsLogic() {
             if (!payload.job_order_id) throw new Error('يرجى اختيار أمر التشغيل.');
             if (!(payload.assigned_qty > 0) || !(payload.unit_price > 0)) throw new Error('الكمية والسعر يجب أن يكونا أكبر من الصفر.');
 
-            // 🛡️ منع إسناد نفس أمر التشغيل مرتين (يسبب تكرار القيمة وتكرار خصومات الخامات)
-            const { data: existing, error: existErr } = await supabase.from('contractor_assignments')
-                .select('id').eq('job_order_id', payload.job_order_id);
+            // 🛡️ السماح بتعدد المقاولين على نفس أمر الشغل، مع منع تكرار نفس المقاول بدون مستخلص على نفس الأمر
+            const { data: existing, error: existErr } = await supabase
+                .from('contractor_assignments')
+                .select('id')
+                .eq('job_order_id', payload.job_order_id)
+                .eq('contractor_id', payload.contractor_id)
+                .is('claim_id', null);
             if (existErr) throw new Error(existErr.message);
             if ((existing || []).some((x: any) => x.id !== record.id)) {
-                throw new Error('أمر التشغيل ده مُسند بالفعل. عدّل الإسناد الحالي بدل إضافة إسناد جديد.');
+                throw new Error('أمر التشغيل ده مُسند بالفعل لهذا المقاول. عدّل الإسناد الحالي بدل إضافة إسناد جديد.');
             }
 
             if (record.id) {
@@ -224,11 +276,21 @@ export function useSubClaimsLogic() {
                 if (error) throw new Error(error.message); 
             }
 
-            // تحديث أمر التشغيل بعد نجاح الحفظ فقط
-            const { error: joErr } = await supabase.from('job_orders')
-                .update({ executor_type: 'مقاول باطن', contractor_id: selectedContractor?.id })
-                .eq('id', record.job_order_id);
-            if (joErr) throw new Error(joErr.message);
+            // تحديث رأس أمر التشغيل فقط إذا لم يكن مربوطاً بمقاول أول بالفعل (لضمان تعدد المقاولين بأمان)
+            const { data: currentJo } = await supabase
+                .from('job_orders')
+                .select('contractor_id, executor_type')
+                .eq('id', record.job_order_id)
+                .single();
+            if (currentJo && (!currentJo.contractor_id || currentJo.executor_type !== 'مقاول باطن')) {
+                const { error: joErr } = await supabase.from('job_orders')
+                    .update({
+                        executor_type: 'مقاول باطن',
+                        contractor_id: currentJo.contractor_id || selectedContractor?.id
+                    })
+                    .eq('id', record.job_order_id);
+                if (joErr) throw new Error(joErr.message);
+            }
         },
         onError: (err: any) => {
             showToast(`تعذر الإسناد: ${err.message}`, "error");
@@ -239,25 +301,39 @@ export function useSubClaimsLogic() {
             setAssignRecord({ assigned_qty: 1, unit_price: 0 });
             setProjectJobOrders([]);
             queryClient.invalidateQueries({ queryKey: ['contractor_tasks', selectedContractor?.id] });
+            queryClient.invalidateQueries({ queryKey: ['job_orders'] });
         }
     });
 
     const deleteAssignmentMutation = useMutation({
         mutationFn: async (id: string) => {
-            const { data: assignment } = await supabase.from('contractor_assignments').select('job_order_id').eq('id', id).single();
+            const { data: assignment } = await supabase.from('contractor_assignments').select('job_order_id, contractor_id').eq('id', id).single();
             
             const { error } = await supabase.from('contractor_assignments').delete().eq('id', id);
             if (error) throw new Error(error.message);
 
-            if(assignment?.job_order_id) {
-                 await supabase.from('job_orders')
-                    .update({ executor_type: 'تنفيذ ذاتي', contractor_id: null })
-                    .eq('id', assignment.job_order_id);
+            if (assignment?.job_order_id) {
+                const { data: remaining } = await supabase
+                    .from('contractor_assignments')
+                    .select('contractor_id')
+                    .eq('job_order_id', assignment.job_order_id)
+                    .limit(1);
+
+                if (remaining && remaining.length > 0) {
+                    await supabase.from('job_orders')
+                        .update({ executor_type: 'مقاول باطن', contractor_id: remaining[0].contractor_id })
+                        .eq('id', assignment.job_order_id);
+                } else {
+                    await supabase.from('job_orders')
+                        .update({ executor_type: 'تنفيذ ذاتي', contractor_id: null })
+                        .eq('id', assignment.job_order_id);
+                }
             }
         },
         onSuccess: () => {
-            showToast("تم إلغاء التكليف وإرجاع أمر التشغيل بنجاح", "success");
+            showToast("تم إلغاء التكليف وتحديث أمر التشغيل بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['contractor_tasks', selectedContractor?.id] });
+            queryClient.invalidateQueries({ queryKey: ['job_orders'] });
         }
     });
 
@@ -397,22 +473,65 @@ export function useSubClaimsLogic() {
         }
     });
 
-    // ➕ إضافة مقاول جديد
+    // ➕ إضافة أو ربط مقاول باطن من قائمة البارتنر
     const addContractorMutation = useMutation({
         mutationFn: async (contractorData: any) => {
+            // 1) وضع الربط / التحديد من شريك مسجل مسبقاً في البارتنر
+            if (contractorData.mode === 'link' && contractorData.partnerId) {
+                const { data: existingPartner, error: fetchErr } = await supabase
+                    .from('partners')
+                    .select('*')
+                    .eq('id', contractorData.partnerId)
+                    .single();
+                if (fetchErr || !existingPartner) throw new Error('تعذر العثور على الشريك المختار في البارتنر.');
+
+                const currentType = String(existingPartner.partner_type || '').trim();
+                const isAlreadyContractor = /مقاول/i.test(currentType);
+
+                if (isAlreadyContractor && !contractorData.job_role) {
+                    return { partner: existingPartner, action: 'selected' };
+                }
+
+                const patch: any = {};
+                if (!isAlreadyContractor) patch.partner_type = 'مقاول';
+                if (contractorData.job_role && contractorData.job_role.trim() && contractorData.job_role.trim() !== existingPartner.job_role) {
+                    patch.job_role = contractorData.job_role.trim();
+                }
+
+                if (Object.keys(patch).length > 0) {
+                    const { data: updated, error: updErr } = await supabase
+                        .from('partners')
+                        .update(patch)
+                        .eq('id', existingPartner.id)
+                        .select()
+                        .single();
+                    if (updErr) throw updErr;
+                    return { partner: updated, action: 'linked' };
+                }
+                return { partner: existingPartner, action: 'selected' };
+            }
+
+            // 2) وضع تعريف مقاول جديد في البارتنر + المقاولين
             if (!contractorData.name || !contractorData.name.trim()) {
                 throw new Error('يرجى إدخال اسم المقاول.');
             }
+            const cleanName = contractorData.name.trim();
+            const jobRole = contractorData.job_role?.trim() || 'مقاول باطن';
+
+            // سحب الأكواد الحالية لتوليد الكود التسلسلي الذكي CON-xxx بدون تكرار
+            const { data: allPartners } = await supabase.from('partners').select('id, code, name, partner_type');
+            const existingCodes = (allPartners || []).map((p: any) => p.code);
+
             let code = contractorData.code?.trim();
-            if (!code) {
-                const timePart = Date.now().toString().slice(-4);
-                code = `SUB-${timePart}`;
+            if (!code || /^SUB-\d{4}$/i.test(code)) {
+                code = generateNextPartnerCode('مقاول', jobRole, existingCodes);
             }
+
             const payload = {
-                name: contractorData.name.trim(),
+                name: cleanName,
                 code,
                 partner_type: 'مقاول',
-                job_role: contractorData.job_role?.trim() || 'مقاول باطن',
+                job_role: jobRole,
                 phone: contractorData.phone?.trim() || null,
                 identity_number: contractorData.identity_number?.trim() || null,
                 address: contractorData.address?.trim() || null,
@@ -420,15 +539,24 @@ export function useSubClaimsLogic() {
             };
             const { data, error } = await supabase.from('partners').insert([payload]).select().single();
             if (error) throw error;
-            return data;
+            return { partner: data, action: 'created' };
         },
-        onSuccess: (newPartner) => {
-            showToast('تمت إضافة المقاول بنجاح', 'success');
+        onSuccess: (result: any) => {
+            const partner = result?.partner || result;
+            const action = result?.action;
+            if (action === 'selected') {
+                showToast(`تم فتح ملف المقاول «${partner?.name}»`, 'success');
+            } else if (action === 'linked') {
+                showToast(`تم ربط «${partner?.name}» من البارتنر كـ مقاول باطن بنجاح`, 'success');
+            } else {
+                showToast(`تم تسجيل المقاول «${partner?.name}» في البارتنر والمقاولين بنجاح`, 'success');
+            }
             setIsAddContractorModalOpen(false);
             queryClient.invalidateQueries({ queryKey: ['sub_contractors_list'] });
             queryClient.invalidateQueries({ queryKey: ['partners'] });
-            if (newPartner) {
-                setSelectedContractor(newPartner);
+            queryClient.invalidateQueries({ queryKey: ['job_orders'] });
+            if (partner) {
+                setSelectedContractor(partner);
             }
         },
         onError: (err: any) => {

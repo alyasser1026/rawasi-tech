@@ -75,14 +75,27 @@ export default function AssignWorkModal({ isOpen, onClose, record, setRecord, on
                             }}
                             disabled={!record.project_id}
                         >
-                            <option value="">{record.project_id ? '-- يرجى اختيار أمر التشغيل --' : '-- اختر الفيلا أولاً لعرض أوامر التشغيل --'}</option>
-                            {logic.projectJobOrders.map((jo: any) => (
-                                <option key={jo.id} value={jo.id}>
-                                    {/* 🚀 التحديث هنا: عرض واضح للاسم ورقم الأمر والكمية والوحدة */}
-                                    {`[${jo.order_number}] - ${jo.boq_budget?.work_item || 'بند غير محدد'} | الكمية: ${jo.assigned_qty} ${jo.boq_budget?.unit || ''}`}
-                                </option>
-                            ))}
+                            <option value="">{record.project_id ? '-- يرجى اختيار أمر التشغيل (مفتوح لأكثر من مقاول) --' : '-- اختر الفيلا أولاً لعرض أوامر التشغيل --'}</option>
+                            {logic.projectJobOrders.map((jo: any) => {
+                                const assignedList = (jo.existing_assignments || [])
+                                    .map((a: any) => a.contractor_name)
+                                    .filter(Boolean);
+                                const uniqueNames = Array.from(new Set(assignedList));
+                                const tag = uniqueNames.length > 0
+                                    ? ` • مسند أيضاً لـ: ${uniqueNames.join('، ')} (متاح لإضافة مقاول)`
+                                    : '';
+                                return (
+                                    <option key={jo.id} value={jo.id}>
+                                        {`[${jo.order_number}] - ${jo.boq_budget?.work_item || 'بند غير محدد'} | الكمية: ${jo.assigned_qty} ${jo.boq_budget?.unit || ''}${tag}`}
+                                    </option>
+                                );
+                            })}
                         </select>
+                        {record.project_id && (
+                            <p style={{ margin: '0.4rem 0 0 0', fontSize: 'var(--fs-xs)', color: '#0369a1', fontWeight: 700 }}>
+                                * كل أوامر التشغيل بالمشروع متاحة ومفتوحة لإسناد أكثر من مقاول باطن في نفس الوقت.
+                            </p>
+                        )}
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginTop: '0.625rem', background: 'var(--surface-sunken)', padding: '1.25rem', borderRadius: '14px', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>

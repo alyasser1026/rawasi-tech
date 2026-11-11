@@ -233,6 +233,10 @@ export default function SmartCombo({
                             const [, col, op, val] = m;
                             if (op === 'eq' && String(r[col]) !== val) return false;
                             if (op === 'neq' && String(r[col]) === val) return false;
+                            if (op === 'ilike') {
+                                const needle = normalizeText(val.replace(/%/g, ''));
+                                if (!normalizeText(r[col]).includes(needle)) return false;
+                            }
                         }
                     }
                     if (!normQ) return true;

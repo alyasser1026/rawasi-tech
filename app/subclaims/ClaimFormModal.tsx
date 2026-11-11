@@ -39,7 +39,7 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                     .from('contractor_assignments')
                     .select(`
                         id, assigned_qty, unit_price, job_order_id, project_id,
-                        job_orders:job_orders!job_order_id ( order_number ),
+                        job_orders:job_orders!job_order_id ( order_number, contractor_id ),
                         projects:projects!contractor_assignments_project_id_fkey ( Property ),
                         boq_budget:boq_budget_id ( work_item, unit )
                     `)
@@ -59,17 +59,30 @@ export default function ClaimFormModal({ isOpen, onClose, logic }: any) {
                 let mTotal = 0; let eTotal = 0;
                 let mIds: string[] = []; let eIds: string[] = [];
 
-                // 2. سحب الخامات بناءً على أوامر التشغيل
-                if (extractedJobOrderIds.length > 0) {
+                // 2. سحب الخامات الخاصة بهذا المقاول فقط على أوامر التشغيل
+                if (extractedJobOrderIds.length > 0 && logic.selectedContractor?.id) {
+                    const joContractorMap = new Map<string, string | null>();
+                    (realAssignments || []).forEach((r: any) => {
+                        const orderObj = Array.isArray(r.job_orders) ? r.job_orders[0] : r.job_orders;
+                        if (r.job_order_id) joContractorMap.set(r.job_order_id, orderObj?.contractor_id || null);
+                    });
+
                     const { data: materials } = await supabase
                         .from('material_issue_lines')
-                        .select('id, total_price')
+                        .select('id, total_price, job_order_id, material_issues:issue_id(subcontractor_id)')
                         .in('job_order_id', extractedJobOrderIds)
                         .eq('is_deducted_from_contractor', true)
                         .is('claim_id', null);
+
+                    const contractorMaterials = (materials || []).filter((m: any) => {
+                        const issueObj = Array.isArray(m.material_issues) ? m.material_issues[0] : m.material_issues;
+                        const issueContractor = issueObj?.subcontractor_id;
+                        if (issueContractor) return issueContractor === logic.selectedContractor.id;
+                        return joContractorMap.get(m.job_order_id) === logic.selectedContractor.id;
+                    });
                     
-                    mIds = (materials || []).map(m => m.id);
-                    mTotal = (materials || []).reduce((acc, curr) => acc + Number(curr.total_price || 0), 0);
+                    mIds = contractorMaterials.map((m: any) => m.id);
+                    mTotal = contractorMaterials.reduce((acc: number, curr: any) => acc + Number(curr.total_price || 0), 0);
                 }
 
                 // 🚀 3. سحب المصروفات بذكاء (بناءً على المقاول والمشاريع)

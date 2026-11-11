@@ -203,8 +203,13 @@ export default function JobOrdersPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(17.5rem, 1fr))', gap: '1.25rem' }}>
             {logic.allFiltered.slice((logic.currentPage - 1) * logic.rowsPerPage, logic.currentPage * logic.rowsPerPage).map((row: any) => {
               const isSelected = logic.selectedIds.includes(String(row.id));
-              const isSelf = row.executor_type === 'تنفيذ ذاتي';
-              const executorName = isSelf ? 'تنفيذ ذاتي (عمالة الشركة)' : (row.partners?.name || 'غير محدد');
+              const contractorNames = (row.assigned_contractors || []).map((c: any) => c.name).filter(Boolean);
+              const isSelf = row.executor_type === 'تنفيذ ذاتي' && contractorNames.length === 0;
+              const executorName = isSelf
+                ? 'تنفيذ ذاتي (عمالة الشركة)'
+                : (contractorNames.length > 1
+                    ? `${contractorNames.join(' + ')} (${contractorNames.length} مقاولين)`
+                    : (contractorNames[0] || row.partners?.name || 'غير محدد'));
               
               const targetBudget = Number(row.boq_budget?.total_price || row.boq_total_budget || 0); 
               const materialsAndExpenses = Number(row.effective_cost || 0); 

@@ -6,15 +6,41 @@ import { formatCurrency } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/toast-context'; 
 import SmartCombo from '@/components/SmartCombo'; 
+import { Plus, Trash2, Users } from 'lucide-react';
 
 export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSave, isSaving }: any) {
     const { showToast } = useToast(); 
     const [mounted, setMounted] = useState(false);
     const [boqItems, setBoqItems] = useState<any[]>([]);
+    const [contractorOptions, setContractorOptions] = useState<any[]>([]);
 
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    // 🚀 0. جلب المقاولين والشركاء المسجلين في البارتنر مع ترتيب المقاولين أولاً
+    useEffect(() => {
+        if (!isOpen) return;
+        let cancelled = false;
+        const fetchContractors = async () => {
+            const { data } = await supabase
+                .from('partners')
+                .select('id, name, code, partner_type, job_role')
+                .order('name', { ascending: true });
+            if (!cancelled && data) {
+                const sorted = [...data].sort((a: any, b: any) => {
+                    const aIsC = /مقاول/i.test(`${a.partner_type || ''} ${a.job_role || ''}`);
+                    const bIsC = /مقاول/i.test(`${b.partner_type || ''} ${b.job_role || ''}`);
+                    if (aIsC && !bIsC) return -1;
+                    if (!aIsC && bIsC) return 1;
+                    return String(a.name || '').localeCompare(String(b.name || ''), 'ar');
+                });
+                setContractorOptions(sorted);
+            }
+        };
+        void fetchContractors();
+        return () => { cancelled = true; };
+    }, [isOpen]);
 
     // 🚀 1. توليد رقم الأمر وسحب البيانات الأساسية
     useEffect(() => {
@@ -223,10 +249,12 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
 
                     <div style={{ gridColumn: 'span 1', opacity: record.executor_type === 'مقاول باطن' ? 1 : 0.4, pointerEvents: record.executor_type === 'مقاول باطن' ? 'auto' : 'none', transition: '0.3s' }}>
                         <SmartCombo 
-                            label="اسم مقاول الباطن" 
+                            label="مقاول الباطن الأساسي (من البارتنر)" 
                             icon="👤"
-                            table="partners" 
-                            searchCols="name,code" displayCol="name"
+                            options={contractorOptions}
+                            searchCols="name,code,job_role,partner_type"
+                            displayCol="name"
+                            displayFormat={(c: any) => `${c.name}${c.code ? ` (${c.code})` : ''} — ${/مقاول/i.test(c.partner_type || '') ? 'مقاول' : (c.partner_type || 'شريك')}`}
                             initialDisplay={record.client_name || record.partners?.name || ''}
                             onSelect={(c: any) => setRecord({...record, contractor_id: c?.id || null, client_name: c?.name || ''})} 
                         />
@@ -261,6 +289,152 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                             placeholder="غير محددة"
                         />
                     </div>
+
+                    {/* 🚀 قسم تعدد المقاولين على نفس أمر الشغل */}
+                    {record.executor_type === 'مقاول باطن' && (
+                        <div style={{ gridColumn: '1 / -1', background: 'rgba(255, 255, 255, 0.7)', border: '1.5px dashed rgba(194, 65, 12, 0.35)', borderRadius: '14px', padding: '1.125rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: (record.extra_contractors || []).length > 0 ? '1rem' : '0' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <Users size={18} color={THEME.accent} />
+                                    <div>
+                                        <div style={{ fontWeight: 900, fontSize: 'var(--fs-md)', color: THEME.primary }}>
+                                            مقاولون إضافيون على نفس أمر الشغل ({(record.extra_contractors || []).length})
+                                        </div>
+                                        <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 700 }}>
+                                            أمر الشغل مفتوح لأكثر من مقاول باطن (كل مقاول بكميته وسعره ومستخلصه المستقل)
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const list = Array.isArray(record.extra_contractors) ? [...record.extra_contractors] : [];
+                                        list.push({
+                                            contractor_id: '',
+                                            contractor_name: '',
+                                            assigned_qty: record.assigned_qty || 1,
+                                            unit_price: ''
+                                        });
+                                        setRecord({ ...record, extra_contractors: list });
+                                    }}
+                                    style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.35rem',
+                                        padding: '0.5rem 0.9rem',
+                                        borderRadius: '10px',
+                                        border: 'none',
+                                        background: '#0f172a',
+                                        color: 'white',
+                                        fontWeight: 800,
+                                        fontSize: 'var(--fs-xs)',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    <Plus size={14} />
+                                    <span>إضافة مقاول إضافي</span>
+                                </button>
+                            </div>
+
+                            {(record.extra_contractors || []).length > 0 && (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                                    {(record.extra_contractors || []).map((ec: any, idx: number) => (
+                                        <div
+                                            key={ec.id || `extra-${idx}`}
+                                            style={{
+                                                display: 'grid',
+                                                gridTemplateColumns: '2fr 1fr 1fr auto',
+                                                gap: '0.75rem',
+                                                alignItems: 'end',
+                                                background: '#ffffff',
+                                                padding: '0.75rem',
+                                                borderRadius: '10px',
+                                                border: '1px solid #e2e8f0'
+                                            }}
+                                        >
+                                            <div>
+                                                <SmartCombo
+                                                    label={`المقاول الإضافي #${idx + 1}`}
+                                                    options={contractorOptions.filter((c: any) => c.id !== record.contractor_id)}
+                                                    searchCols="name,code,job_role,partner_type"
+                                                    displayCol="name"
+                                                    displayFormat={(c: any) => `${c.name}${c.code ? ` (${c.code})` : ''} — ${/مقاول/i.test(c.partner_type || '') ? 'مقاول' : (c.partner_type || 'شريك')}`}
+                                                    initialDisplay={ec.contractor_name || ''}
+                                                    disabled={Boolean(ec.claim_id)}
+                                                    onSelect={(c: any) => {
+                                                        const list = [...(record.extra_contractors || [])];
+                                                        list[idx] = { ...list[idx], contractor_id: c?.id || '', contractor_name: c?.name || '' };
+                                                        setRecord({ ...record, extra_contractors: list });
+                                                    }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>الكمية</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    disabled={Boolean(ec.claim_id)}
+                                                    value={ec.assigned_qty ?? ''}
+                                                    onChange={(e) => {
+                                                        const list = [...(record.extra_contractors || [])];
+                                                        list[idx] = { ...list[idx], assigned_qty: e.target.value };
+                                                        setRecord({ ...record, extra_contractors: list });
+                                                    }}
+                                                    className="glass-input-field"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label style={{ fontSize: '0.75rem', fontWeight: 800, color: '#475569', display: 'block', marginBottom: '0.25rem' }}>السعر</label>
+                                                <input
+                                                    type="number"
+                                                    min="0"
+                                                    step="0.01"
+                                                    disabled={Boolean(ec.claim_id)}
+                                                    value={ec.unit_price ?? ''}
+                                                    onChange={(e) => {
+                                                        const list = [...(record.extra_contractors || [])];
+                                                        list[idx] = { ...list[idx], unit_price: e.target.value };
+                                                        setRecord({ ...record, extra_contractors: list });
+                                                    }}
+                                                    className="glass-input-field"
+                                                />
+                                            </div>
+                                            <div>
+                                                {ec.claim_id ? (
+                                                    <span style={{ fontSize: '0.72rem', fontWeight: 800, padding: '0.45rem 0.6rem', borderRadius: '8px', background: '#dcfce7', color: '#166534', display: 'inline-block' }}>
+                                                        مفوتر
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        type="button"
+                                                        title="إزالة المقاول الإضافي"
+                                                        onClick={() => {
+                                                            const list = [...(record.extra_contractors || [])];
+                                                            const removed = list.splice(idx, 1)[0];
+                                                            const removedIds = Array.isArray(record.removed_assignment_ids) ? [...record.removed_assignment_ids] : [];
+                                                            if (removed?.id) removedIds.push(removed.id);
+                                                            setRecord({ ...record, extra_contractors: list, removed_assignment_ids: removedIds });
+                                                        }}
+                                                        style={{
+                                                            padding: '0.6rem',
+                                                            borderRadius: '8px',
+                                                            border: '1px solid #fecaca',
+                                                            background: '#fef2f2',
+                                                            color: '#dc2626',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        <Trash2 size={15} />
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Summary Grid */}

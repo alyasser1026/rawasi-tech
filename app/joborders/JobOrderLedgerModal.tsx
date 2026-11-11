@@ -249,7 +249,14 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                             </h2>
                             <p style={{ margin: '0.9375rem 0 0 0', color: '#cbd5e1', fontSize: 'var(--fs-lg)', fontWeight: 800 }}>
                                 <span style={{ color: '#fff' }}>{jobOrder?.projects?.Property}</span> &nbsp;|&nbsp;<span style={{ color: '#fff' }}>{jobOrder?.boq_budget?.work_item || jobOrder?.job_order_name}</span>
-                                {isSubcontractor && <span style={{ color: '#c2410c' }}> &nbsp;|&nbsp; المقاول: {jobOrder?.partners?.name || 'غير محدد'}</span>}
+                                {isSubcontractor && (
+                                    <span style={{ color: '#c2410c' }}>
+                                        {' '}&nbsp;|&nbsp; المقاول:{' '}
+                                        {(jobOrder?.assigned_contractors || []).length > 0
+                                            ? jobOrder.assigned_contractors.map((c: any) => c.name).join(' + ')
+                                            : (jobOrder?.partners?.name || 'غير محدد')}
+                                    </span>
+                                )}
                             </p>
                         </div>
                         <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: 'white', padding: '0.75rem 1.5625rem', borderRadius: '14px', cursor: 'pointer', fontWeight: 900, transition: 'all 0.3s', fontSize: 'var(--fs-lg)', backdropFilter: 'blur(10px)' }} onMouseOver={e => { e.currentTarget.style.background='rgba(239, 68, 68, 0.9)'; e.currentTarget.style.borderColor='rgba(239, 68, 68, 1)'; e.currentTarget.style.boxShadow='0 5px 15px rgba(239, 68, 68, 0.4)'; }} onMouseOut={e => { e.currentTarget.style.background='rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor='rgba(255,255,255,0.2)'; e.currentTarget.style.boxShadow='none'; }}>إغلاق ✖</button>

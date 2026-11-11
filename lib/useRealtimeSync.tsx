@@ -35,6 +35,8 @@ const REALTIME_TABLES = [
   'journal_headers',
   'projects',
   'job_orders',
+  'partners',
+  'contractor_assignments',
   'company_documents',
   'company_attachments',
 ] as const;
@@ -57,7 +59,9 @@ const TABLE_QUERY_KEYS: Record<string, string[][]> = {
   fixed_assets: [['fixed_assets']],
   journal_headers: [['journals'], ['journal_headers'], ['trial_balance'], ['dashboard']],
   projects: [['projects'], ['dashboard']],
-  job_orders: [['job_orders']],
+  job_orders: [['job_orders'], ['job_order_performance']],
+  partners: [['partners'], ['sub_contractors_list']],
+  contractor_assignments: [['contractor_tasks'], ['job_orders'], ['sub_contractors_list']],
   company_documents: [['company_documents'], ['audit']],
   company_attachments: [['expenses'], ['site_custodies_summary'], ['company_documents'], ['receipt_vouchers']],
 };
