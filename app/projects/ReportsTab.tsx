@@ -1,6 +1,7 @@
 "use client";
 import { currencySymbol } from '@/lib/currency';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { formatCurrency, formatDate } from '@/lib/helpers';
 import { THEME } from '@/lib/theme';
 import { 
@@ -47,6 +48,14 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   const [selectedPhotoPreview, setSelectedPhotoPreview] = useState<string | null>(null);
   const [isAutoGenerateModalOpen, setIsAutoGenerateModalOpen] = useState(false);
   const [excludeZeroAmount, setExcludeZeroAmount] = useState(true);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.classList.toggle('phi-dossier-printing', isPrintDossierOpen);
+    return () => {
+      document.body.classList.remove('phi-dossier-printing');
+    };
+  }, [isPrintDossierOpen]);
 
   const project = logic.selectedProject || {};
   const details = logic.projectDetails || {};
@@ -2756,8 +2765,8 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
       {/* =====================================================================
           مودال التقرير التنفيذي الشامل القابل للطباعة (Print Executive Dossier)
           ===================================================================== */}
-      {isPrintDossierOpen && (
-        <div style={{
+      {isPrintDossierOpen && typeof document !== 'undefined' && createPortal(
+        <div className="phi-dossier-overlay" style={{
           position: 'fixed',
           inset: 0,
           zIndex: 999999,
@@ -2770,15 +2779,73 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
         }}>
           <style>{`
             @media print {
-              body * { visibility: hidden !important; }
-              #printable-dossier, #printable-dossier * { visibility: visible !important; }
-              #printable-dossier { position: absolute !important; left: 0 !important; top: 0 !important; width: 100% !important; margin: 0 !important; padding: 15mm !important; background: white !important; }
+              @page { size: A4 landscape; margin: 10mm 12mm; }
+              html, body {
+                height: auto !important;
+                min-height: 0 !important;
+                overflow: visible !important;
+                background: #ffffff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                zoom: 1 !important;
+              }
+              body.phi-dossier-printing > *:not(.phi-dossier-overlay) {
+                display: none !important;
+              }
+              .phi-dossier-overlay {
+                position: static !important;
+                inset: auto !important;
+                width: 100% !important;
+                height: auto !important;
+                background: #ffffff !important;
+                backdrop-filter: none !important;
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+              }
+              .phi-dossier-card {
+                position: static !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                max-height: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                box-shadow: none !important;
+                border-radius: 0 !important;
+                display: block !important;
+                background: #ffffff !important;
+              }
+              #printable-dossier {
+                position: static !important;
+                width: 100% !important;
+                max-height: none !important;
+                height: auto !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                background: #ffffff !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              #printable-dossier .phi-print-unclip {
+                overflow: visible !important;
+                max-height: none !important;
+              }
+              #printable-dossier * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
               .dossier-no-print { display: none !important; }
-              @page { size: A4 landscape; margin: 10mm; }
+              .dossier-keep-together { break-inside: avoid !important; page-break-inside: avoid !important; }
+              #printable-dossier h1, #printable-dossier h2, #printable-dossier h3 { break-after: avoid !important; page-break-after: avoid !important; }
+              #printable-dossier table { width: 100% !important; border-collapse: collapse !important; page-break-inside: auto !important; break-inside: auto !important; }
+              #printable-dossier thead { display: table-header-group !important; }
+              #printable-dossier tfoot { display: table-footer-group !important; }
+              #printable-dossier tr { break-inside: avoid !important; page-break-inside: avoid !important; }
             }
           `}</style>
 
-          <div style={{
+          <div className="phi-dossier-card" style={{
             background: 'white',
             borderRadius: '20px',
             width: '95%',
@@ -2859,67 +2926,88 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
             </div>
 
             {/* محتوى الورقة الرسمية المطبوعة */}
-            <div id="printable-dossier" style={{ padding: '2rem', overflowY: 'auto', color: '#1e293b' }}>
+            <div id="printable-dossier" style={{ padding: '1.5rem 1.75rem', overflowY: 'auto', color: '#1e293b', background: '#ffffff' }}>
               
-              {/* ترويسة التقرير Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `3px solid ${THEME.primary}`, paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+              {/* ترويسة التقرير الرسمية مع شعار فاي تك */}
+              <div className="dossier-keep-together" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', borderBottom: `3px solid ${THEME.primary}`, paddingBottom: '0.85rem', marginBottom: '1rem' }}>
                 <div>
-                  <h1 style={{ margin: 0, color: '#0f172a', fontWeight: 900, fontSize: '24px' }}>
+                  <h1 style={{ margin: 0, color: '#0f172a', fontWeight: 900, fontSize: '21px', lineHeight: 1.3 }}>
                     {customReportTitle || 'التقرير التنفيذي الشامل للمشروع (Project Executive Dossier)'}
                   </h1>
-                  <p style={{ margin: '4px 0 0 0', color: '#64748b', fontWeight: 800 }}>
-                    تاريخ الإصدار: {new Date().toLocaleDateString('en-GB')}
-                  </p>
+                  <div style={{ margin: '6px 0 0 0', color: '#475569', fontWeight: 800, fontSize: '12px', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                    <span>المشروع: <strong style={{ color: '#0f172a' }}>{project.Property || '—'}</strong></span>
+                    <span>• تاريخ الإصدار: <strong dir="ltr">{new Date().toLocaleDateString('en-GB')}</strong></span>
+                    <span>• العملة: <strong>{currencySymbol()}</strong></span>
+                  </div>
                 </div>
-                <div style={{ textAlign: 'left' }}>
-                  <h2 style={{ margin: 0, color: THEME.primary, fontWeight: 900, fontSize: '18px' }}>إدارة المشروعات والرقابة المالية</h2>
-                  <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '12px', fontWeight: 700 }}>نظام رواسي لإدارة المقاولات والمقايسات</p>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
+                  <img
+                    src="/brand/phitech-lockup-color.svg"
+                    alt="فاي تك PhiTech للمقاولات والتوريدات"
+                    style={{ height: '54px', width: 'auto', objectFit: 'contain', display: 'block' }}
+                  />
+                  <div style={{ color: '#475569', fontSize: '11px', fontWeight: 800 }}>
+                    إدارة المشروعات والرقابة المالية • نظام فاي تك الموحد
+                  </div>
                 </div>
               </div>
 
               {/* بيانات المشروع الأساسية والـ KPIs */}
               {printOptions.projectInfo && (
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem', background: '#f8fafc', padding: '1rem', borderRadius: '12px', marginBottom: '0.75rem', border: '1px solid #e2e8f0', fontSize: '13px' }}>
+                <div className="dossier-keep-together" style={{ marginBottom: '1rem' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '0.75rem', background: '#f8fafc', padding: '0.65rem 0.9rem', borderRadius: '10px', marginBottom: '0.6rem', border: '1px solid #e2e8f0', fontSize: '12px' }}>
                     <div><strong style={{ color: '#64748b' }}>اسم المشروع:</strong> <span style={{ fontWeight: 900 }}>{project.Property}</span></div>
                     <div><strong style={{ color: '#64748b' }}>العميل المالك:</strong> <span style={{ fontWeight: 900 }}>{project.client?.name || 'غير محدد'}</span></div>
                     <div><strong style={{ color: '#64748b' }}>قيمة التعاقد:</strong> <span style={{ fontWeight: 900, color: THEME.primary }}>{formatCurrency(project.contract_value)}</span></div>
                     <div><strong style={{ color: '#64748b' }}>المهندس المشرف:</strong> <span style={{ fontWeight: 900 }}>{project.engineer_in_charge || 'غير محدد'}</span></div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.75rem' }}>
-                    <div style={{ padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '0.6rem' }}>
+                    <div style={{ padding: '6px 10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 800 }}>المجدول من الدفعات</div>
-                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a' }}>{formatCurrency(paymentStats.totalScheduled)}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#0f172a' }}>
+                        {paymentStats.totalScheduled > 0 ? formatCurrency(paymentStats.totalScheduled) : 'غير مجدول بعد'}
+                      </div>
                     </div>
-                    <div style={{ padding: '8px 12px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ padding: '6px 10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10px', color: '#166534', fontWeight: 800 }}>المحصل بسندات قبض</div>
-                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#15803d' }}>{formatCurrency(paymentStats.totalReceived)} ({paymentStats.collectionRate}%)</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#15803d' }}>
+                        {formatCurrency(paymentStats.totalReceived)}{' '}
+                        <span style={{ fontSize: '10.5px' }}>
+                          ({paymentStats.totalScheduled > 0
+                            ? `${paymentStats.collectionRate}% من المجدول`
+                            : `${paymentStats.contractVal > 0 ? ((paymentStats.totalReceived / paymentStats.contractVal) * 100).toFixed(1) : '0.0'}% من العقد`})
+                        </span>
+                      </div>
                     </div>
-                    <div style={{ padding: '8px 12px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ padding: '6px 10px', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10px', color: '#991b1b', fontWeight: 800 }}>المتبقي للتحصيل</div>
-                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#dc2626' }}>{formatCurrency(paymentStats.totalRemaining)}</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#dc2626' }}>
+                        {paymentStats.totalScheduled > 0
+                          ? formatCurrency(paymentStats.totalRemaining)
+                          : formatCurrency(Math.max(0, Number(project.contract_value || 0) - paymentStats.totalReceived))}
+                      </div>
                     </div>
-                    <div style={{ padding: '8px 12px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ padding: '6px 10px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10px', color: '#1e40af', fontWeight: 800 }}>مدة المشروع والمنقضي</div>
-                      <div style={{ fontSize: '14px', fontWeight: 900, color: '#2563eb' }}>{scheduleData.elapsedDays} / {scheduleData.totalDays} يوم ({scheduleData.timeProgress}%)</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#2563eb' }}>{scheduleData.elapsedDays} / {scheduleData.totalDays} يوم ({scheduleData.timeProgress}%)</div>
                     </div>
                   </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '0.75rem' }}>
-                    <div style={{ padding: '8px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', textAlign: 'center' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: '0.6rem', marginTop: '0.6rem' }}>
+                    <div style={{ padding: '6px 10px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10px', color: '#0369a1', fontWeight: 900 }}>👷 عدد أيام يومية الفنيين</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#0284c7' }}>
+                      <div style={{ fontSize: '12.5px', fontWeight: 900, color: '#0284c7' }}>
                         {details.laborStats?.techDays || 0} يوم — {formatCurrency(details.laborStats?.techCost || 0)}
                       </div>
                     </div>
-                    <div style={{ padding: '8px 12px', background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ padding: '6px 10px', background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10px', color: '#0f766e', fontWeight: 900 }}>🤝 عدد أيام يومية المساعدين</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#0d9488' }}>
+                      <div style={{ fontSize: '12.5px', fontWeight: 900, color: '#0d9488' }}>
                         {details.laborStats?.helperDays || 0} يوم — {formatCurrency(details.laborStats?.helperCost || 0)}
                       </div>
                     </div>
-                    <div style={{ padding: '8px 12px', background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ padding: '6px 10px', background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10px', color: '#be123c', fontWeight: 900 }}>إجمالي أيام وأجور العمالة</div>
-                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#e11d48' }}>
+                      <div style={{ fontSize: '12.5px', fontWeight: 900, color: '#e11d48' }}>
                         {details.laborStats?.totalWorkersToDate || 0} يوم — {formatCurrency(details.laborStats?.totalLaborCost || 0)}
                       </div>
                     </div>
@@ -3282,7 +3370,8 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* مودال معاينة الصور الفردية Zoom */}

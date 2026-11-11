@@ -1,11 +1,20 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { formatCurrency } from '@/lib/helpers';
 import { THEME } from '@/lib/theme';
 import { Printer } from 'lucide-react';
 import ReportContactFooter from '@/components/ReportContactFooter';
 
 export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, flatBoqData }: any) {
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.body.classList.toggle('phi-boq-report-printing', Boolean(isOpen));
+    return () => {
+      document.body.classList.remove('phi-boq-report-printing');
+    };
+  }, [isOpen]);
+
+  if (!isOpen || typeof document === 'undefined') return null;
 
   const project = logic.selectedProject || {};
   const expenses = logic.projectDetails?.expenses || []; 
@@ -15,25 +24,27 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
   // حساب إجمالي المصروفات الفعلية لتذييل الجدول
   const totalActualExpenses = expenses.reduce((sum: number, exp: any) => sum + Number(exp.amount || 0), 0);
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+  return createPortal(
+    <div className="phi-boq-report-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       {/* 🚀 كود CSS السحري للطباعة المرفق داخل المودال */}
       <style>{`
         @media print {
-          body * { visibility: hidden; }
-          #printable-report, #printable-report * { visibility: visible; }
-          #printable-report { position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px; background: white; }
+          @page { size: A4 landscape; margin: 12mm; }
+          html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #ffffff !important; margin: 0 !important; padding: 0 !important; zoom: 1 !important; }
+          body.phi-boq-report-printing > *:not(.phi-boq-report-overlay) { display: none !important; }
+          .phi-boq-report-overlay { position: static !important; inset: auto !important; width: 100% !important; height: auto !important; padding: 0 !important; margin: 0 !important; background: white !important; backdrop-filter: none !important; display: block !important; }
+          .phi-boq-report-card { position: static !important; width: 100% !important; max-width: 100% !important; max-height: none !important; height: auto !important; overflow: visible !important; box-shadow: none !important; border-radius: 0 !important; display: block !important; background: white !important; }
+          #printable-report { position: static !important; width: 100% !important; margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
-          @page { size: A4 landscape; margin: 15mm; } /* خليناها بالعرض عشان الأعمدة الكتير تبان بوضوح */
-          table { page-break-inside: auto; }
-          tr { page-break-inside: avoid; page-break-after: auto; }
+          table { page-break-inside: auto; break-inside: auto; }
+          tr { page-break-inside: avoid; break-inside: avoid; page-break-after: auto; }
           thead { display: table-header-group; }
           tfoot { display: table-footer-group; }
           .page-break { page-break-before: always; }
         }
       `}</style>
 
-      <div className="bg-white rounded-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col relative">
+      <div className="phi-boq-report-card bg-white rounded-2xl w-full max-w-7xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col relative">
         
         {/* شريط التحكم (يختفي في الطباعة) */}
         <div className="no-print sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-10">
@@ -52,14 +63,18 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
         <div id="printable-report" style={{ padding: '2.5rem', color: '#1e293b', direction: 'rtl', backgroundColor: 'white' }}>
           
           {/* الترويسة Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: `3px solid ${THEME.primary}`, paddingBottom: '1.25rem', marginBottom: '1.875rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `3px solid ${THEME.primary}`, paddingBottom: '1rem', marginBottom: '1.5rem' }}>
             <div>
               <h1 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-2xl)' }}>التقرير المالي والتحليلي للمشروع</h1>
               <p style={{ margin: '0.3125rem 0 0 0', color: '#64748b', fontWeight: 800 }}>تاريخ الإصدار: {today}</p>
             </div>
-            <div style={{ textAlign: 'left' }}>
-              <h2 style={{ margin: 0, color: THEME.primary, fontWeight: 900 }}>إدارة المشاريع والتكاليف</h2>
-              <p style={{ margin: '0.3125rem 0 0 0', color: '#64748b', fontWeight: 700, fontSize: 'var(--fs-sm)' }}>نظام الرقابة المالية (ABC Costing)</p>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+              <img
+                src="/brand/phitech-lockup-color.svg"
+                alt="فاي تك PhiTech للمقاولات والتوريدات"
+                style={{ height: '50px', width: 'auto', objectFit: 'contain', display: 'block' }}
+              />
+              <p style={{ margin: 0, color: '#475569', fontWeight: 800, fontSize: 'var(--fs-xs)' }}>إدارة المشاريع والتكاليف • نظام الرقابة المالية (ABC Costing)</p>
             </div>
           </div>
 
@@ -190,6 +205,7 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
 
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
