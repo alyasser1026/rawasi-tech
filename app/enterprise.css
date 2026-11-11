@@ -71,7 +71,23 @@ html.phi-brand:has(.enterprise-shell) body { background: var(--bg-canvas, #07080
 html.low-graphics-mode .enterprise-page .phi-dashboard .financial-stat { background-image:none; }
 html.low-graphics-mode .ent-button.ent-primary { background:var(--action-fill) !important; }
 @media(prefers-reduced-motion:reduce) { .enterprise-shell *, .ent-voucher-dialog * { animation:none !important; transition:none !important; } }
-@media print { .ent-sidebar,.ent-mobile-bar,.ent-breadcrumb,.ent-heading-actions,.ent-filters,.ent-date-filters,.ent-bulk-actions,.ent-table-footer,.ent-table .ent-row-actions,.ent-table .ent-check { display:none !important; }.ent-workspace { margin:0; padding:0; }.enterprise-page .phi-dashboard .financial-stat,.ent-summary-card,.ent-panel { background:white !important; box-shadow:none !important; }.ent-table { min-width:0; }.ent-table td,.ent-table th { padding:8px; }.enterprise-shell { --nav-width:0px; } }
+@media print {
+  html.phi-brand:has(.enterprise-shell) body,
+  html:has(.enterprise-shell) body {
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    color: #0f172a !important;
+    --bg-canvas: #ffffff !important;
+    --bg-canvas-secondary: #ffffff !important;
+  }
+  .ent-sidebar,.ent-mobile-bar,.ent-breadcrumb,.ent-heading-actions,.ent-filters,.ent-date-filters,.ent-bulk-actions,.ent-table-footer,.ent-table .ent-row-actions,.ent-table .ent-check { display:none !important; }
+  .ent-workspace { margin:0; padding:0; background: #ffffff !important; }
+  .enterprise-page .phi-dashboard .financial-stat,.ent-summary-card,.ent-panel { background:white !important; box-shadow:none !important; }
+  .ent-table { min-width:0; }
+  .ent-table td,.ent-table th { padding:8px; }
+  .enterprise-shell { --nav-width:0px; background: #ffffff !important; }
+}
 .ent-table th { font-size:var(--fs-xs); }
 .ent-table td { font-size:var(--fs-sm); }
 .ent-form-field>label, .ent-form-field label { font-size:var(--fs-sm) !important; color:var(--text-secondary) !important; font-weight:700 !important; }

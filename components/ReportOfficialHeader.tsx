@@ -2,13 +2,24 @@
 
 import React, { useMemo } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { PHI_COMPANY_CONTACTS } from '@/lib/company-contacts';
 
 export interface ReportOfficialHeaderProps {
   title: string;
   subtitle?: string;
   projectName?: string;
+  projectCode?: string;
+  unitType?: string;
+  locationAddress?: string;
   clientName?: string;
+  clientCode?: string;
+  clientPhone?: string;
+  clientAddress?: string;
+  clientVatNumber?: string;
+  clientIdNumber?: string;
   engineerName?: string;
+  engineerPhone?: string;
+  projectManager?: string;
   contractValueText?: string;
   issueDate?: string;
   currency?: string;
@@ -62,12 +73,29 @@ function buildLinearBarcodeBars(seed: string): Array<{ x: number; w: number }> {
   return bars;
 }
 
+function cleanValue(val?: string | null): string | undefined {
+  if (!val) return undefined;
+  const trimmed = String(val).trim();
+  if (!trimmed || trimmed === '---' || trimmed === '—' || trimmed === 'غير محدد') return undefined;
+  return trimmed;
+}
+
 export default function ReportOfficialHeader({
   title,
   subtitle,
   projectName,
+  projectCode,
+  unitType,
+  locationAddress,
   clientName,
+  clientCode,
+  clientPhone,
+  clientAddress,
+  clientVatNumber,
+  clientIdNumber,
   engineerName,
+  engineerPhone,
+  projectManager,
   contractValueText,
   issueDate,
   currency,
@@ -77,28 +105,54 @@ export default function ReportOfficialHeader({
 }: ReportOfficialHeaderProps) {
   const resolvedDate = issueDate || new Date().toLocaleDateString('en-GB');
 
+  const safeProjectName = cleanValue(projectName);
+  const safeProjectCode = cleanValue(projectCode);
+  const safeUnitType = cleanValue(unitType);
+  const safeLocation = cleanValue(locationAddress);
+  const safeClientName = cleanValue(clientName);
+  const safeClientCode = cleanValue(clientCode);
+  const safeClientPhone = cleanValue(clientPhone);
+  const safeClientAddress = cleanValue(clientAddress);
+  const safeClientVat = cleanValue(clientVatNumber);
+  const safeClientId = cleanValue(clientIdNumber);
+  const safeEngineerName = cleanValue(engineerName);
+  const safeEngineerPhone = cleanValue(engineerPhone);
+  const safeProjectManager = cleanValue(projectManager);
+  const safeContractValue = cleanValue(contractValueText);
+
   const resolvedRefCode = useMemo(() => {
     if (reportRefCode) return reportRefCode;
     const dateDigits = resolvedDate.replace(/[^0-9]/g, '').slice(0, 8) || '20261111';
-    const projHash = (projectName || title || 'PHI')
+    const projHash = (safeProjectName || title || 'PHI')
       .split('')
       .reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 9000 + 1000, 1024);
     return `PHI-REP-${dateDigits}-${projHash}`;
-  }, [reportRefCode, resolvedDate, projectName, title]);
+  }, [reportRefCode, resolvedDate, safeProjectName, title]);
 
   const qrVerificationValue = useMemo(() => {
     const lines = [
-      'PHITECH OFFICIAL REPORT | شركة فاي تك للمقاولات والتوريدات',
+      `${PHI_COMPANY_CONTACTS.nameAr} | ${PHI_COMPANY_CONTACTS.nameEn}`,
       `REF: ${resolvedRefCode}`,
       `TITLE: ${title}`,
-      projectName ? `PROJECT: ${projectName}` : null,
-      clientName ? `CLIENT: ${clientName}` : null,
+      safeProjectName ? `PROJECT: ${safeProjectName}${safeProjectCode ? ` (${safeProjectCode})` : ''}` : null,
+      safeClientName ? `CLIENT: ${safeClientName}${safeClientPhone ? ` - ${safeClientPhone}` : ''}` : null,
+      safeEngineerName ? `ENGINEER: ${safeEngineerName}${safeEngineerPhone ? ` - ${safeEngineerPhone}` : ''}` : null,
       `DATE: ${resolvedDate}`,
-      'WEB: https://www.phi-tech.org',
-      'TEL: +201014561199 / +201113031523',
+      `TEL: ${PHI_COMPANY_CONTACTS.phone1} | ${PHI_COMPANY_CONTACTS.phone2}`,
+      `EMAIL: ${PHI_COMPANY_CONTACTS.email}`,
     ].filter(Boolean);
     return lines.join('\n');
-  }, [resolvedRefCode, title, projectName, clientName, resolvedDate]);
+  }, [
+    resolvedRefCode,
+    title,
+    safeProjectName,
+    safeProjectCode,
+    safeClientName,
+    safeClientPhone,
+    safeEngineerName,
+    safeEngineerPhone,
+    resolvedDate,
+  ]);
 
   const barcodeBars = useMemo(() => buildLinearBarcodeBars(resolvedRefCode), [resolvedRefCode]);
   const barcodeTotalWidth = useMemo(() => {
@@ -106,6 +160,17 @@ export default function ReportOfficialHeader({
     const last = barcodeBars[barcodeBars.length - 1];
     return last.x + last.w;
   }, [barcodeBars]);
+
+  const hasClientOrProjectDetails = Boolean(
+    safeProjectName ||
+      safeProjectCode ||
+      safeClientName ||
+      safeClientPhone ||
+      safeClientAddress ||
+      safeClientVat ||
+      safeEngineerName ||
+      safeContractValue
+  );
 
   return (
     <header
@@ -139,24 +204,24 @@ export default function ReportOfficialHeader({
         <div style={{ width: '8%', background: '#f59e0b' }} />
       </div>
 
-      {/* المحتوى الرئيسي للترويسة: الشعار يميناً، العنوان في المنتصف، الباركود و QR يساراً */}
+      {/* المحتوى الرئيسي للترويسة: الشعار الرسمي يميناً، العنوان في المنتصف، الباركود و QR يساراً */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'minmax(210px, 1.1fr) minmax(260px, 1.65fr) minmax(215px, 1.05fr)',
+          gridTemplateColumns: 'minmax(225px, 1.15fr) minmax(250px, 1.6fr) minmax(215px, 1.05fr)',
           gap: compact ? '0.75rem' : '1rem',
           alignItems: 'center',
           padding: compact ? '0.75rem 1rem' : '0.95rem 1.15rem',
           background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
         }}
       >
-        {/* القسم الأيمن: الشعار الرسمي والبيانات المؤسسية */}
+        {/* القسم الأيمن: الشعار الرسمي المعتمد لفاي تك (الوضع النهاري #f7eee2) وبيانات التواصل الحقيقية */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-start',
-            gap: '6px',
+            gap: '5px',
             borderLeft: '1px dashed #cbd5e1',
             paddingLeft: '0.85rem',
           }}
@@ -165,17 +230,19 @@ export default function ReportOfficialHeader({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              background: '#ffffff',
-              border: '1px solid #e2e8f0',
-              borderRadius: '8px',
-              padding: '4px 10px',
+              justifyContent: 'center',
+              background: '#f7eee2',
+              border: '1.5px solid #e2d2be',
+              borderRadius: '10px',
+              padding: '6px 14px',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
             }}
           >
             <img
               src="/brand/phitech-lockup-color.svg"
               alt="فاي تك PhiTech للمقاولات والتوريدات"
               style={{
-                height: compact ? '46px' : '54px',
+                height: compact ? '48px' : '56px',
                 width: 'auto',
                 objectFit: 'contain',
                 display: 'block',
@@ -183,25 +250,40 @@ export default function ReportOfficialHeader({
             />
           </div>
           <div style={{ fontWeight: 900, fontSize: '12px', color: '#0f172a', lineHeight: 1.35 }}>
-            شركة فاي تك للمقاولات والتوريدات الهندسية
+            {PHI_COMPANY_CONTACTS.nameAr} ({PHI_COMPANY_CONTACTS.nameEn})
           </div>
-          <div style={{ fontWeight: 800, fontSize: '10.5px', color: '#ea580c', lineHeight: 1.3 }}>
-            إدارة المشروعات والرقابة المالية • نظام فاي تك الموحد
+          <div style={{ fontWeight: 800, fontSize: '10px', color: '#ea580c', lineHeight: 1.3 }}>
+            للمقاولات والتوريدات الهندسية • {PHI_COMPANY_CONTACTS.address}
           </div>
           <div
             dir="ltr"
             style={{
               fontSize: '9.5px',
-              fontWeight: 800,
-              color: '#475569',
+              fontWeight: 900,
+              color: '#334155',
               letterSpacing: '0.2px',
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '6px',
             }}
           >
-            www.phi-tech.org • +20 101 456 1199
+            <span>{PHI_COMPANY_CONTACTS.phone1}</span>
+            <span style={{ color: '#cbd5e1' }}>|</span>
+            <span>{PHI_COMPANY_CONTACTS.phone2}</span>
+          </div>
+          <div
+            dir="ltr"
+            style={{
+              fontSize: '9px',
+              fontWeight: 800,
+              color: '#64748b',
+            }}
+          >
+            {PHI_COMPANY_CONTACTS.email}
           </div>
         </div>
 
-        {/* القسم الأوسط: شارة الاعتماد وعنوان التقرير وبيانات المشروع */}
+        {/* القسم الأوسط: شارة الاعتماد وعنوان التقرير */}
         <div
           style={{
             display: 'flex',
@@ -248,50 +330,24 @@ export default function ReportOfficialHeader({
             </div>
           )}
 
-          {/* شريط بيانات المشروع المختصر */}
-          {(projectName || clientName || engineerName || contractValueText || currency) && (
+          {currency && (
             <div
               style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                justifyContent: 'center',
-                gap: '6px 12px',
-                marginTop: '3px',
-                padding: '5px 10px',
-                background: '#f1f5f9',
-                border: '1px solid #cbd5e1',
-                borderRadius: '8px',
-                fontSize: '10.5px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                fontSize: '10px',
                 fontWeight: 800,
                 color: '#334155',
-                width: '100%',
+                background: '#f1f5f9',
+                border: '1px solid #cbd5e1',
+                borderRadius: '999px',
+                padding: '2px 10px',
               }}
             >
-              {projectName && (
-                <span>
-                  المشروع: <strong style={{ color: '#0f172a' }}>{projectName}</strong>
-                </span>
-              )}
-              {clientName && (
-                <span>
-                  • المالك: <strong style={{ color: '#0f172a' }}>{clientName}</strong>
-                </span>
-              )}
-              {engineerName && (
-                <span>
-                  • المهندس: <strong style={{ color: '#0f172a' }}>{engineerName}</strong>
-                </span>
-              )}
-              {contractValueText && (
-                <span>
-                  • قيمة التعاقد: <strong style={{ color: '#c2410c' }}>{contractValueText}</strong>
-                </span>
-              )}
-              {currency && (
-                <span>
-                  • العملة: <strong style={{ color: '#0f172a' }}>{currency}</strong>
-                </span>
-              )}
+              <span>تاريخ الإصدار: <strong dir="ltr" style={{ color: '#0f172a' }}>{resolvedDate}</strong></span>
+              <span>•</span>
+              <span>العملة المعتمدة: <strong style={{ color: '#c2410c' }}>{currency}</strong></span>
             </div>
           )}
         </div>
@@ -353,10 +409,10 @@ export default function ReportOfficialHeader({
                 style={{
                   fontSize: '8.5px',
                   fontWeight: 900,
-                  fontFamily: 'monospace',
                   color: '#0f172a',
-                  letterSpacing: '0.6px',
+                  letterSpacing: '0.7px',
                   marginTop: '1px',
+                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
                 }}
               >
                 {resolvedRefCode}
@@ -374,48 +430,173 @@ export default function ReportOfficialHeader({
                 color: '#475569',
               }}
             >
-              <span>تاريخ الإصدار:</span>
+              <span>الإصدار:</span>
               <strong dir="ltr" style={{ color: '#0f172a' }}>
                 {resolvedDate}
               </strong>
             </div>
           </div>
 
-          {/* QR Code للتحقق الفوري */}
+          {/* QR Code للتحقق الإلكتروني */}
           <div
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
               background: '#ffffff',
               border: '1.5px solid #0f172a',
               borderRadius: '8px',
               padding: '5px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '2px',
               flexShrink: 0,
             }}
           >
             <QRCodeSVG
               value={qrVerificationValue}
-              size={compact ? 54 : 62}
+              size={compact ? 52 : 60}
               level="M"
-              includeMargin={false}
               bgColor="#ffffff"
               fgColor="#0f172a"
             />
             <span
-              dir="ltr"
               style={{
                 fontSize: '7.5px',
                 fontWeight: 900,
-                color: '#ea580c',
-                marginTop: '2px',
-                letterSpacing: '0.4px',
+                color: '#0f172a',
+                letterSpacing: '0.3px',
               }}
             >
-              SCAN VERIFY
+              QR VERIFIED
             </span>
           </div>
         </div>
+      </div>
+
+      {/* بطاقة بيانات العميل المالك والمشروع (تظهر تلقائياً عند توفر بيانات العميل أو المشروع) */}
+      {hasClientOrProjectDetails && (
+        <div
+          style={{
+            background: '#f8fafc',
+            borderTop: '1px solid #cbd5e1',
+            padding: '7px 14px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+            gap: '6px 14px',
+            fontSize: '10.5px',
+            color: '#334155',
+          }}
+        >
+          {safeProjectName && (
+            <div>
+              <span style={{ color: '#64748b', fontWeight: 800 }}>المشروع / العقار: </span>
+              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeProjectName}</strong>
+              {safeProjectCode && (
+                <span style={{ color: '#c2410c', fontWeight: 900, marginRight: '4px' }}>
+                  [{safeProjectCode}]
+                </span>
+              )}
+              {safeUnitType && (
+                <span style={{ color: '#475569', fontWeight: 800, marginRight: '4px' }}>
+                  ({safeUnitType})
+                </span>
+              )}
+            </div>
+          )}
+
+          {safeClientName && (
+            <div>
+              <span style={{ color: '#64748b', fontWeight: 800 }}>العميل المالك: </span>
+              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeClientName}</strong>
+              {safeClientCode && (
+                <span style={{ color: '#475569', fontWeight: 800, marginRight: '4px' }}>
+                  ({safeClientCode})
+                </span>
+              )}
+            </div>
+          )}
+
+          {safeClientPhone && (
+            <div>
+              <span style={{ color: '#64748b', fontWeight: 800 }}>جوال العميل: </span>
+              <strong dir="ltr" style={{ color: '#0f172a', fontWeight: 900 }}>
+                {safeClientPhone}
+              </strong>
+            </div>
+          )}
+
+          {safeClientAddress && (
+            <div>
+              <span style={{ color: '#64748b', fontWeight: 800 }}>عنوان العميل: </span>
+              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeClientAddress}</strong>
+            </div>
+          )}
+
+          {(safeClientVat || safeClientId) && (
+            <div>
+              <span style={{ color: '#64748b', fontWeight: 800 }}>
+                {safeClientVat ? 'الرقم الضريبي للعميل: ' : 'هوية العميل: '}
+              </span>
+              <strong dir="ltr" style={{ color: '#0f172a', fontWeight: 900 }}>
+                {safeClientVat || safeClientId}
+              </strong>
+            </div>
+          )}
+
+          {safeContractValue && (
+            <div>
+              <span style={{ color: '#64748b', fontWeight: 800 }}>قيمة التعاقد: </span>
+              <strong style={{ color: '#c2410c', fontWeight: 900 }}>{safeContractValue}</strong>
+            </div>
+          )}
+
+          {safeEngineerName && (
+            <div>
+              <span style={{ color: '#64748b', fontWeight: 800 }}>المهندس المشرف: </span>
+              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeEngineerName}</strong>
+              {safeEngineerPhone && (
+                <span dir="ltr" style={{ color: '#475569', fontWeight: 800, marginRight: '4px' }}>
+                  ({safeEngineerPhone})
+                </span>
+              )}
+            </div>
+          )}
+
+          {safeProjectManager && (
+            <div>
+              <span style={{ color: '#64748b', fontWeight: 800 }}>مدير المشروع: </span>
+              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeProjectManager}</strong>
+            </div>
+          )}
+
+          {safeLocation && (
+            <div>
+              <span style={{ color: '#64748b', fontWeight: 800 }}>موقع المشروع: </span>
+              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeLocation}</strong>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* شريط سفلي رفيع لتأكيد الموثوقية */}
+      <div
+        style={{
+          background: '#f1f5f9',
+          borderTop: '1px solid #cbd5e1',
+          padding: '4px 12px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '9.5px',
+          fontWeight: 800,
+          color: '#475569',
+        }}
+      >
+        <span>
+          ● مستند رسمي صادر إلكترونياً من نظام الرقابة الهندسية والمالية الموحد — {PHI_COMPANY_CONTACTS.nameAr}
+        </span>
+        <span dir="ltr" style={{ color: '#0f172a', fontWeight: 900 }}>
+          DOC ID: {resolvedRefCode}
+        </span>
       </div>
     </header>
   );

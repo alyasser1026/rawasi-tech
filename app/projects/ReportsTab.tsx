@@ -14,6 +14,7 @@ import {
 import SecureAction from '@/components/SecureAction';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { printReportElement } from '@/lib/printReportElement';
 import { buildMilestoneSchedule, localToday, MILESTONE_STATUS_META } from '@/lib/milestoneSchedule';
 import { buildProjectDailyReport } from '@/lib/projectDailyReport';
 import { buildEvmAnalysis, EVM_STATUS_META } from '@/lib/evmAnalysis';
@@ -53,12 +54,27 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.body.classList.toggle('phi-dossier-printing', isPrintDossierOpen);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isPrintDossierOpen && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        printReportElement('printable-dossier', customReportTitle || 'تقرير_المشروع_فاي_تك');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.classList.remove('phi-dossier-printing');
+      window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isPrintDossierOpen]);
+  }, [isPrintDossierOpen, customReportTitle]);
 
   const project = logic.selectedProject || {};
+  const clientRecord = useMemo(() => {
+    const fromJoin = project.client && typeof project.client === 'object' ? project.client : {};
+    const fromList = Array.isArray(logic.clients)
+      ? logic.clients.find((c: any) => c.id && c.id === project.client_id) || {}
+      : {};
+    return { ...fromList, ...fromJoin };
+  }, [project.client, project.client_id, logic.clients]);
   const details = logic.projectDetails || {};
   const milestones: any[] = details.milestones || [];
   const siteVisits: any[] = details.siteVisits || [];
@@ -2767,30 +2783,61 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
           مودال التقرير التنفيذي الشامل القابل للطباعة (Print Executive Dossier)
           ===================================================================== */}
       {isPrintDossierOpen && typeof document !== 'undefined' && createPortal(
-        <div className="phi-dossier-overlay" style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 999999,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: 'rgba(15, 23, 42, 0.75)',
-          backdropFilter: 'blur(8px)',
-          direction: 'rtl'
-        }}>
+        <div className="phi-dossier-overlay" dir="rtl">
           <style>{`
+            @media screen {
+              .phi-dossier-overlay {
+                position: fixed;
+                inset: 0;
+                z-index: 999999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: rgba(15, 23, 42, 0.75);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                direction: rtl;
+              }
+              .phi-dossier-card {
+                background: #ffffff;
+                border-radius: 20px;
+                width: 95%;
+                max-width: 75rem;
+                max-height: 92vh;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);
+              }
+              #printable-dossier {
+                padding: 1.5rem 1.75rem;
+                overflow-y: auto;
+                color: #0f172a;
+                background: #ffffff;
+              }
+            }
             @media print {
               @page { size: A4 landscape; margin: 10mm 12mm; }
-              html, body {
+              html.phi-brand:has(.enterprise-shell) body,
+              html.phi-brand body,
+              html,
+              body {
+                --bg-canvas: #ffffff !important;
+                --bg-canvas-secondary: #ffffff !important;
                 height: auto !important;
                 min-height: 0 !important;
+                max-height: none !important;
                 overflow: visible !important;
                 background: #ffffff !important;
+                background-color: #ffffff !important;
+                background-image: none !important;
+                color: #0f172a !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 zoom: 1 !important;
               }
-              body.phi-dossier-printing > *:not(.phi-dossier-overlay) {
+              body.phi-dossier-printing > *:not(.phi-dossier-overlay),
+              body:has(.phi-dossier-overlay) > *:not(.phi-dossier-overlay) {
                 display: none !important;
               }
               .phi-dossier-overlay {
@@ -2800,6 +2847,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 height: auto !important;
                 background: #ffffff !important;
                 backdrop-filter: none !important;
+                -webkit-backdrop-filter: none !important;
                 display: block !important;
                 padding: 0 !important;
                 margin: 0 !important;
@@ -2846,17 +2894,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
             }
           `}</style>
 
-          <div className="phi-dossier-card" style={{
-            background: 'white',
-            borderRadius: '20px',
-            width: '95%',
-            maxWidth: '75rem',
-            maxHeight: '92vh',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            boxShadow: '0 25px 50px -12px rgba(0,0,0,0.35)'
-          }}>
+          <div className="phi-dossier-card">
             {/* بار تحكم علوي يختفي بالطباعة */}
             <div className="dossier-no-print" style={{
               padding: '1rem 1.5rem',
@@ -2873,7 +2911,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
 
               <div style={{ display: 'flex', gap: '0.625rem' }}>
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => printReportElement('printable-dossier', customReportTitle || project.Property || 'تقرير_المشروع_فاي_تك')}
                   style={{
                     backgroundColor: THEME.primary,
                     color: 'white',
@@ -2927,7 +2965,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
             </div>
 
             {/* محتوى الورقة الرسمية المطبوعة */}
-            <div id="printable-dossier" style={{ padding: '1.5rem 1.75rem', overflowY: 'auto', color: '#0f172a', background: '#ffffff' }}>
+            <div id="printable-dossier" style={{ color: '#0f172a', background: '#ffffff' }}>
               <style>{`
                 #printable-dossier {
                   font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
@@ -3033,9 +3071,19 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 title={customReportTitle || 'التقرير التنفيذي الشامل للمشروع (Project Executive Dossier)'}
                 subtitle="تقرير رقابي معتمد صادر عن منظومة فاي تك لإدارة المشروعات والمقاولات"
                 projectName={project.Property || '—'}
-                clientName={project.Client || undefined}
-                engineerName={project.Engineer || undefined}
-                contractValueText={project.Contract ? `${Number(project.Contract).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencySymbol()}` : undefined}
+                projectCode={project.project_code || undefined}
+                unitType={project.unit_type || undefined}
+                locationAddress={project.location_address || undefined}
+                clientName={clientRecord.name || project.client?.name || project.client_name || project.Client || undefined}
+                clientCode={clientRecord.code || undefined}
+                clientPhone={clientRecord.phone || project.client_phone || undefined}
+                clientAddress={clientRecord.address || undefined}
+                clientVatNumber={clientRecord.vat_number || undefined}
+                clientIdNumber={clientRecord.identity_number || undefined}
+                engineerName={project.engineer_in_charge || project.Engineer || undefined}
+                engineerPhone={project.engineer_phone || undefined}
+                projectManager={project.project_manager || undefined}
+                contractValueText={Number(project.contract_value || project.Contract) > 0 ? formatCurrency(project.contract_value || project.Contract) : undefined}
                 issueDate={new Date().toLocaleDateString('en-GB')}
                 currency={currencySymbol()}
               />
@@ -3044,10 +3092,26 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
               {printOptions.projectInfo && (
                 <div className="dossier-keep-together" style={{ marginBottom: '1rem' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '0.75rem', background: '#f8fafc', padding: '0.65rem 0.9rem', borderRadius: '10px', marginBottom: '0.6rem', border: '1px solid #e2e8f0', fontSize: '12px' }}>
-                    <div><strong style={{ color: '#64748b' }}>اسم المشروع:</strong> <span style={{ fontWeight: 900 }}>{project.Property}</span></div>
-                    <div><strong style={{ color: '#64748b' }}>العميل المالك:</strong> <span style={{ fontWeight: 900 }}>{project.client?.name || 'غير محدد'}</span></div>
+                    <div>
+                      <strong style={{ color: '#64748b' }}>اسم المشروع:</strong>{' '}
+                      <span style={{ fontWeight: 900 }}>{project.Property}</span>
+                      {project.project_code && <span style={{ color: '#c2410c', fontWeight: 800, marginRight: '4px' }}>({project.project_code})</span>}
+                    </div>
+                    <div>
+                      <strong style={{ color: '#64748b' }}>العميل المالك:</strong>{' '}
+                      <span style={{ fontWeight: 900 }}>{clientRecord.name || project.client?.name || project.client_name || 'غير محدد'}</span>
+                      {clientRecord.phone && clientRecord.phone !== '---' && (
+                        <span dir="ltr" style={{ color: '#475569', fontWeight: 800, marginRight: '6px' }}>• {clientRecord.phone}</span>
+                      )}
+                    </div>
                     <div><strong style={{ color: '#64748b' }}>قيمة التعاقد:</strong> <span style={{ fontWeight: 900, color: THEME.primary }}>{formatCurrency(project.contract_value)}</span></div>
-                    <div><strong style={{ color: '#64748b' }}>المهندس المشرف:</strong> <span style={{ fontWeight: 900 }}>{project.engineer_in_charge || 'غير محدد'}</span></div>
+                    <div>
+                      <strong style={{ color: '#64748b' }}>المهندس المشرف:</strong>{' '}
+                      <span style={{ fontWeight: 900 }}>{project.engineer_in_charge || 'غير محدد'}</span>
+                      {project.engineer_phone && (
+                        <span dir="ltr" style={{ color: '#475569', fontWeight: 800, marginRight: '6px' }}>• {project.engineer_phone}</span>
+                      )}
+                    </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: '0.6rem' }}>
                     <div style={{ padding: '6px 10px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
@@ -3455,7 +3519,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 >
                   <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0.75rem 0.5rem' }}>
                     <div style={{ fontWeight: 900, fontSize: '12px', color: '#0f172a' }}>المهندس المشرف على الموقع</div>
-                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, marginTop: '2px' }}>{project.Engineer || 'الإشراف الهندسي'}</div>
+                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, marginTop: '2px' }}>{project.engineer_in_charge || project.Engineer || 'الإشراف الهندسي'}</div>
                     <div style={{ marginTop: '1.85rem', borderTop: '1px dashed #94a3b8', paddingTop: '6px', color: '#475569', fontSize: '10.5px', fontWeight: 800 }}>التوقيع والاعتماد</div>
                   </div>
                   <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0.75rem 0.5rem' }}>

@@ -315,7 +315,7 @@ export function useProjectsLogic() {
   const fetchData = async () => {
     setIsLoading(true);
     
-    const projData = await fetchAllSupabaseData(supabase, 'projects', `*, client:partners!client_id(name)`, 'created_at', false);
+    const projData = await fetchAllSupabaseData(supabase, 'projects', `*, client:partners!client_id(*)`, 'created_at', false);
     
     const { data: dashboardData } = await supabase.rpc('get_project_dashboard');
 
@@ -327,7 +327,7 @@ export function useProjectsLogic() {
       setProjects(enrichedProjects);
     }
 
-    const clientData = await fetchAllSupabaseData(supabase, 'partners', 'id, name, partner_type', 'id', false);
+    const clientData = await fetchAllSupabaseData(supabase, 'partners', 'id, code, name, partner_type, phone, address, vat_number, identity_number, job_role', 'id', false);
     if (clientData) {
       setClients(clientData.filter((p: any) => p.partner_type === 'عميل'));
     }

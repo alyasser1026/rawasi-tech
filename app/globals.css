@@ -726,8 +726,23 @@ td {
     display: none !important;
   }
   
-  /* 🚨 ضمان تعدد الصفحات الكامل (Multi-Page Pagination) ومنع قص التقرير عند الصفحة الأولى */
-  html, body {
+  /* 🚨 ضمان تعدد الصفحات الكامل (Multi-Page Pagination) ومنع قص التقرير أو تلوين الخلفية بالبيج */
+  html.phi-brand[data-mode],
+  html[data-mode],
+  :root,
+  html,
+  body {
+    --bg-canvas: #ffffff !important;
+    --bg-canvas-secondary: #ffffff !important;
+    --bg-main: #ffffff !important;
+    --phi-background: #ffffff !important;
+    --phi-charcoal: #ffffff !important;
+  }
+
+  html.phi-brand:has(.enterprise-shell) body,
+  html.phi-brand body,
+  html,
+  body {
     zoom: 1 !important; 
     transform: none !important;
     width: 100% !important;
@@ -741,10 +756,10 @@ td {
     position: static !important;
     margin: 0 !important;
     padding: 0 !important;
-  }
-
-  body {
     background: #ffffff !important;
+    background-color: #ffffff !important;
+    background-image: none !important;
+    background-attachment: scroll !important;
     color: #0f172a !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;

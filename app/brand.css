@@ -491,8 +491,14 @@ html[data-mode="light"] .login-wrapper .logo-container .logo-on-dark { display: 
 }
 
 @media print {
-  html.phi-brand[data-mode] {
+  html.phi-brand[data-mode],
+  html.phi-brand {
     color-scheme: light;
+    --bg-canvas: #ffffff !important;
+    --bg-canvas-secondary: #ffffff !important;
+    --bg-main: #ffffff !important;
+    --phi-background: #ffffff !important;
+    --phi-charcoal: #ffffff !important;
     --text-primary: #000;
     --text-secondary: #201913;
     --text-muted: #524236;
@@ -506,7 +512,7 @@ html[data-mode="light"] .login-wrapper .logo-container .logo-on-dark { display: 
     --status-info: #075985;
     --status-warning: #854d0e;
   }
-  html.phi-brand body, .phi-brand .glass-container, .phi-brand .master-header { background: white !important; color: black !important; box-shadow: none !important; }
+  html.phi-brand:has(.enterprise-shell) body, html.phi-brand body, .phi-brand .glass-container, .phi-brand .master-header { background: #ffffff !important; background-color: #ffffff !important; background-image: none !important; background-attachment: scroll !important; color: black !important; box-shadow: none !important; }
   .phi-brand :is(.hero-glass-card, .module-card, .nav-card) { background: white !important; color: black !important; box-shadow: none !important; transform: none !important; }
   .phi-brand .rawasi-printable-table tbody tr[data-selected="true"], .phi-brand .rawasi-printable-table tbody tr:hover { background: white !important; }
   .phi-brand .rawasi-printable-table thead th { background: #f4f4f5 !important; color: #18181b !important; }

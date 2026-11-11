@@ -5,19 +5,33 @@ import { THEME } from '@/lib/theme';
 import { Printer } from 'lucide-react';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { printReportElement } from '@/lib/printReportElement';
 
 export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, flatBoqData }: any) {
   useEffect(() => {
     if (typeof document === 'undefined') return;
     document.body.classList.toggle('phi-boq-report-printing', Boolean(isOpen));
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isOpen && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        printReportElement('printable-report', 'التقرير_المالي_فاي_تك');
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
     return () => {
       document.body.classList.remove('phi-boq-report-printing');
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
 
   if (!isOpen || typeof document === 'undefined') return null;
 
   const project = logic.selectedProject || {};
+  const fromJoin = project.client && typeof project.client === 'object' ? project.client : {};
+  const fromList = Array.isArray(logic.clients)
+    ? logic.clients.find((c: any) => c.id && c.id === project.client_id) || {}
+    : {};
+  const clientRecord = { ...fromList, ...fromJoin };
   const expenses = logic.projectDetails?.expenses || []; 
   const laborStats = logic.projectDetails?.laborStats || {};
   const today = new Date().toISOString().split('T')[0];
@@ -31,9 +45,27 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
       <style>{`
         @media print {
           @page { size: A4 landscape; margin: 12mm; }
-          html, body { height: auto !important; min-height: 0 !important; overflow: visible !important; background: #ffffff !important; margin: 0 !important; padding: 0 !important; zoom: 1 !important; }
-          body.phi-boq-report-printing > *:not(.phi-boq-report-overlay) { display: none !important; }
-          .phi-boq-report-overlay { position: static !important; inset: auto !important; width: 100% !important; height: auto !important; padding: 0 !important; margin: 0 !important; background: white !important; backdrop-filter: none !important; display: block !important; }
+          html.phi-brand:has(.enterprise-shell) body,
+          html.phi-brand body,
+          html,
+          body {
+            --bg-canvas: #ffffff !important;
+            --bg-canvas-secondary: #ffffff !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            background-image: none !important;
+            color: #0f172a !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            zoom: 1 !important;
+          }
+          body.phi-boq-report-printing > *:not(.phi-boq-report-overlay),
+          body:has(.phi-boq-report-overlay) > *:not(.phi-boq-report-overlay) { display: none !important; }
+          .phi-boq-report-overlay { position: static !important; inset: auto !important; width: 100% !important; height: auto !important; padding: 0 !important; margin: 0 !important; background: white !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; display: block !important; }
           .phi-boq-report-card { position: static !important; width: 100% !important; max-width: 100% !important; max-height: none !important; height: auto !important; overflow: visible !important; box-shadow: none !important; border-radius: 0 !important; display: block !important; background: white !important; }
           #printable-report { position: static !important; width: 100% !important; margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
           .no-print { display: none !important; }
@@ -51,7 +83,7 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
         <div className="no-print sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-10">
           <h2 style={{ color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-xl)', margin: 0 }}>معاينة التقرير المالي والتحليلي (يشمل تكاليف ABC)</h2>
           <div style={{ display: 'flex', gap: '0.625rem' }}>
-            <button onClick={() => window.print()} style={{ backgroundColor: THEME.primary, color: 'white', padding: '0.5rem 1.25rem', borderRadius: '8px', fontWeight: 800, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button onClick={() => printReportElement('printable-report', `التقرير_المالي_${project.Property || 'فاي_تك'}`)} style={{ backgroundColor: THEME.primary, color: 'white', padding: '0.5rem 1.25rem', borderRadius: '8px', fontWeight: 800, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
               <span><Printer size={16} aria-hidden="true" /></span> طباعة الآن
             </button>
             <button onClick={onClose} style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '0.5rem 1.25rem', borderRadius: '8px', fontWeight: 800 }}>
@@ -137,17 +169,40 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
             title="التقرير المالي والتحليلي للمشروع"
             subtitle="إدارة المشاريع والتكاليف • نظام الرقابة المالية (ABC Costing)"
             projectName={project.Property || '—'}
-            clientName={project.Client || undefined}
-            engineerName={project.Engineer || undefined}
+            projectCode={project.project_code || undefined}
+            unitType={project.unit_type || undefined}
+            locationAddress={project.location_address || undefined}
+            clientName={clientRecord.name || project.client?.name || project.client_name || project.Client || undefined}
+            clientCode={clientRecord.code || undefined}
+            clientPhone={clientRecord.phone || project.client_phone || undefined}
+            clientAddress={clientRecord.address || undefined}
+            clientVatNumber={clientRecord.vat_number || undefined}
+            clientIdNumber={clientRecord.identity_number || undefined}
+            engineerName={project.engineer_in_charge || project.Engineer || undefined}
+            engineerPhone={project.engineer_phone || undefined}
+            projectManager={project.project_manager || undefined}
+            contractValueText={Number(boqStats?.totalContractValue || project.contract_value) > 0 ? formatCurrency(boqStats?.totalContractValue || project.contract_value) : undefined}
             issueDate={today}
           />
 
           {/* بيانات المشروع */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginBottom: '1.875rem', backgroundColor: '#f8fafc', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
             <div><strong style={{ color: '#64748b' }}>اسم المشروع / العقار:</strong> <span style={{ fontWeight: 900, fontSize: 'var(--fs-lg)' }}>{project.Property}</span></div>
-            <div><strong style={{ color: '#64748b' }}>العميل المالك:</strong> <span style={{ fontWeight: 900 }}>{project.client?.name || 'غير محدد'}</span></div>
+            <div>
+              <strong style={{ color: '#64748b' }}>العميل المالك:</strong>{' '}
+              <span style={{ fontWeight: 900 }}>{clientRecord.name || project.client?.name || project.client_name || 'غير محدد'}</span>
+              {clientRecord.phone && clientRecord.phone !== '---' && (
+                <span dir="ltr" style={{ color: '#475569', fontWeight: 800, marginRight: '6px' }}>• {clientRecord.phone}</span>
+              )}
+            </div>
             <div><strong style={{ color: '#64748b' }}>حالة المشروع:</strong> <span style={{ fontWeight: 900 }}>{project.status}</span></div>
-            <div><strong style={{ color: '#64748b' }}>المهندس المسئول:</strong> <span style={{ fontWeight: 900 }}>{project.engineer_in_charge || 'غير محدد'}</span></div>
+            <div>
+              <strong style={{ color: '#64748b' }}>المهندس المسئول:</strong>{' '}
+              <span style={{ fontWeight: 900 }}>{project.engineer_in_charge || 'غير محدد'}</span>
+              {project.engineer_phone && (
+                <span dir="ltr" style={{ color: '#475569', fontWeight: 800, marginRight: '6px' }}>• {project.engineer_phone}</span>
+              )}
+            </div>
           </div>
 
           {/* ملخص التحليل المالي الكلي */}
