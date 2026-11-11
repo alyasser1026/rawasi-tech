@@ -1,4 +1,5 @@
 'use client';
+import { currencySymbol } from '@/lib/currency';
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -642,7 +643,7 @@ export default function FixedAssetsPage() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.875rem' }}>
                     <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>تكلفة الشراء (ر.س) *</label>
+                      <label className={styles.formLabel}>تكلفة الشراء ({currencySymbol()}) *</label>
                       <input
                         type="number"
                         step="0.01"
@@ -1092,7 +1093,7 @@ export default function FixedAssetsPage() {
                   {disposalType === 'sale' && (
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
                       <div className={styles.formGroup}>
-                        <label className={styles.formLabel}>مبلغ البيع (ر.س) *</label>
+                        <label className={styles.formLabel}>مبلغ البيع ({currencySymbol()}) *</label>
                         <input
                           type="number"
                           step="0.01"

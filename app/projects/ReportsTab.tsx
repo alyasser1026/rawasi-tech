@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import React, { useState, useMemo } from 'react';
 import { formatCurrency, formatDate } from '@/lib/helpers';
 import { THEME } from '@/lib/theme';
@@ -1696,7 +1697,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>القيمة المتوقعة (ر.س)</label>
+                  <label style={{ display: 'block', fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#475569', marginBottom: '4px' }}>القيمة المتوقعة ({currencySymbol()})</label>
                   <input
                     type="number"
                     step="any"

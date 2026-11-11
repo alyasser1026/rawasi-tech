@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import MasterPage from '@/components/MasterPage';
 import { supabase } from '@/lib/supabase';
@@ -121,7 +122,7 @@ export default function FinancialStatementsPage() {
 
     if (activeTab === 'income') {
       csvContent += 'قائمة الدخل عن الفترة من,' + startDate + ',إلى,' + endDate + '\n';
-      csvContent += 'القسم,كود الحساب,اسم الحساب,المبلغ (ر.س)\n';
+      csvContent += 'القسم,كود الحساب,اسم الحساب,المبلغ (' + currencySymbol() + ')\n';
 
       (incomeData.sections?.revenues || []).forEach((r: any) => {
         csvContent += `إيرادات,${r.code},"${r.name}",${r.balance}\n`;
@@ -150,7 +151,7 @@ export default function FinancialStatementsPage() {
       document.body.removeChild(link);
     } else {
       csvContent += 'قائمة المركز المالي في تاريخ,' + asOfDate + '\n';
-      csvContent += 'القسم,كود الحساب,اسم الحساب,المبلغ (ر.س)\n';
+      csvContent += 'القسم,كود الحساب,اسم الحساب,المبلغ (' + currencySymbol() + ')\n';
 
       (balanceData.sections?.current_assets || []).forEach((a: any) => {
         csvContent += `أصول متداولة,${a.code},"${a.name}",${a.balance}\n`;
@@ -398,7 +399,7 @@ export default function FinancialStatementsPage() {
                       <tr>
                         <th style={{ width: '120px' }}>كود الحساب</th>
                         <th>بيان الحساب / البند</th>
-                        <th style={{ width: '160px', textAlign: 'left' }}>المبلغ بالفترة (ر.س)</th>
+                        <th style={{ width: '160px', textAlign: 'left' }}>المبلغ بالفترة ({currencySymbol()})</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -499,7 +500,7 @@ export default function FinancialStatementsPage() {
                     {isBalanced ? (
                       <>
                         <ShieldCheck size={16} />
-                        المعادلة المحاسبية متزنة تماماً (الفرق: 0.00 ر.س)
+                        المعادلة المحاسبية متزنة تماماً (الفرق: 0.00 {currencySymbol()})
                       </>
                     ) : (
                       <>
@@ -516,7 +517,7 @@ export default function FinancialStatementsPage() {
                       <tr>
                         <th style={{ width: '120px' }}>كود الحساب</th>
                         <th>الحساب / البند</th>
-                        <th style={{ width: '160px', textAlign: 'left' }}>الرصيد (ر.س)</th>
+                        <th style={{ width: '160px', textAlign: 'left' }}>الرصيد ({currencySymbol()})</th>
                       </tr>
                     </thead>
                     <tbody>

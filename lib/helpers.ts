@@ -1,7 +1,10 @@
 import { supabase } from '@/lib/supabase';
+import { currencyInfo } from '@/lib/currency';
 
-export const tafqeet = (value: number | string | null | undefined): string => {
-  if (!value || isNaN(Number(value)) || Number(value) === 0) return "صفر ريال سعودي";
+/** تفقيط المبلغ بعملة الشركة المفتوحة (أو عملة محددة). */
+export const tafqeet = (value: number | string | null | undefined, currency?: string | null): string => {
+  const cur = currencyInfo(currency);
+  if (!value || isNaN(Number(value)) || Number(value) === 0) return "صفر " + cur.major;
 
   // تحويل الرقم لكسور عشرية ثابتة (خانتين للهللات)
   const val = Math.abs(Number(value)).toFixed(2);
@@ -9,7 +12,7 @@ export const tafqeet = (value: number | string | null | undefined): string => {
   let intPart = parseInt(parts[0], 10);
   const decPart = parseInt(parts[1], 10);
 
-  if (intPart === 0 && decPart === 0) return "صفر ريال سعودي";
+  if (intPart === 0 && decPart === 0) return "صفر " + cur.major;
 
   const ones = ["", "واحد", "اثنان", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"];
   const tens = ["", "عشرة", "عشرون", "ثلاثون", "أربعون", "خمسون", "ستون", "سبعون", "ثمانون", "تسعون"];
@@ -78,16 +81,16 @@ export const tafqeet = (value: number | string | null | undefined): string => {
     result += getSection(intPart);
   }
 
-  // تجميع النص الأساسي للريالات
-  let finalStr = result.trim() === "" ? "" : "فقط " + result.trim() + " ريال سعودي";
+  // تجميع النص الأساسي (ريال / جنيه ... حسب عملة الشركة)
+  let finalStr = result.trim() === "" ? "" : "فقط " + result.trim() + " " + cur.major;
 
   // 5. حساب الهللات (الكسور)
   if (decPart > 0) {
     let decStr = "";
-    if (decPart === 1) decStr = "هللة واحدة";
-    else if (decPart === 2) decStr = "هللتان";
-    else if (decPart >= 3 && decPart <= 10) decStr = getSection(decPart) + " هللات";
-    else decStr = getSection(decPart) + " هللة";
+    if (decPart === 1) decStr = cur.minorOne;
+    else if (decPart === 2) decStr = cur.minorTwo;
+    else if (decPart >= 3 && decPart <= 10) decStr = getSection(decPart) + " " + cur.minorFew;
+    else decStr = getSection(decPart) + " " + cur.minorMany;
 
     if (finalStr === "") {
       finalStr = "فقط " + decStr;
@@ -152,23 +155,26 @@ export const checkAdminApprovalPrivilege = async (
   }
 };
 
-/** Short currency for tight spaces, e.g. "١٫٣ مليون ر.س."; pair it with the full value (title/tooltip). */
-export const formatCompactCurrency = (amount: number | string | null | undefined): string => {
+/** Short currency for tight spaces, e.g. "١٫٣ مليون ر.س."; pair it with the full value (title/tooltip). Uses the open company's currency. */
+export const formatCompactCurrency = (amount: number | string | null | undefined, currency?: string | null): string => {
   const num = Number(amount) || 0;
-  return new Intl.NumberFormat('ar-SA-u-nu-latn', {
+  const cur = currencyInfo(currency);
+  return new Intl.NumberFormat(cur.locale, {
     style: 'currency',
-    currency: 'SAR',
+    currency: cur.code,
     notation: 'compact',
     minimumFractionDigits: 0,
     maximumFractionDigits: 1,
   }).format(num);
 };
 
-export const formatCurrency = (amount: number | string | null | undefined): string => {
+/** المبلغ بعملة الشركة المفتوحة (إعدادات الشركة ← العملة)، أو بعملة محددة. */
+export const formatCurrency = (amount: number | string | null | undefined, currency?: string | null): string => {
   const num = Number(amount) || 0;
-  return new Intl.NumberFormat('ar-SA-u-nu-latn', {
+  const cur = currencyInfo(currency);
+  return new Intl.NumberFormat(cur.locale, {
     style: 'currency',
-    currency: 'SAR',
+    currency: cur.code,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(num);

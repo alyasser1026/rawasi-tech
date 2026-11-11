@@ -1,5 +1,13 @@
 import { TOOL_STATUS, isToolFlagEnabled, registryEntry } from './copilot-tool-registry.mjs';
-import { getBotSettings } from './copilot-bot-settings.mjs';
+import { getBotSettings, resolveCompanyCurrencyLabel } from './copilot-bot-settings.mjs';
+
+function resolveCurrency(result, access) {
+  return resolveCompanyCurrencyLabel({
+    companyId: access?.companyId,
+    companyName: access?.companyName,
+    currency: result?.currency_label || result?.currency || access?.companyCurrency,
+  });
+}
 
 const CHECKLIST = 'get_engineering_checklist_and_specs';
 const LABOR = 'get_labor_daily_logs';
@@ -320,7 +328,7 @@ function getToolArgs(name, supplied, now) {
   return { start_date: resolvedStart, end_date: resolvedEnd, ...workerFilter };
 }
 
-function formatProjectsReply(result, companyLabel) {
+function formatProjectsReply(result, companyLabel, cur = 'ر.س') {
   const mode = result.filter_mode || 'all';
   const dateChecked = result.date_checked || '';
   const allProjects = Array.isArray(result.all_projects) ? result.all_projects : [];
@@ -372,11 +380,11 @@ function formatProjectsReply(result, companyLabel) {
       lines.push('\n📌 الفلل والمشاريع اللي اشتغلنا فيها النهارده:');
       for (const p of workedToday) {
         const act = p.today_activity || {};
-        const wagePart = act.wages_available ? ` بحساب ${act.labor_wages || 0} ر.س` : '';
+        const wagePart = act.wages_available ? ` بحساب ${act.labor_wages || 0} ${cur}` : '';
         lines.push(
           `• ${p.name} (${p.status} — واقفين في مرحلة: ${p.current_stage})` +
           `\n  - المهندس المسؤول: ${p.engineer_in_charge} | مدير المشروع: ${p.project_manager}` +
-          `\n  - اللي تم النهارده: عمالة (${act.workers_count || 0})${wagePart} | مصروفات (${act.expenses_count || 0}) بمبلغ ${act.expenses_total || 0} ر.س | خامات اتصرفت (${act.material_issues_count || 0}) بمبلغ ${act.material_issues_total || 0} ر.س`
+          `\n  - اللي تم النهارده: عمالة (${act.workers_count || 0})${wagePart} | مصروفات (${act.expenses_count || 0}) بمبلغ ${act.expenses_total || 0} ${cur} | خامات اتصرفت (${act.material_issues_count || 0}) بمبلغ ${act.material_issues_total || 0} ${cur}`
         );
       }
     }
@@ -387,14 +395,14 @@ function formatProjectsReply(result, companyLabel) {
     for (const p of allProjects) {
       const act = p.today_activity || {};
       const todayBadge = p.worked_on_date
-        ? `✅ اشتغلنا فيها النهارده (${act.workers_count || 0} عامل / مصروفات ${act.expenses_total || 0} ر.س)`
+        ? `✅ اشتغلنا فيها النهارده (${act.workers_count || 0} عامل / مصروفات ${act.expenses_total || 0} ${cur})`
         : '➖ مفيش شغل اتسجل عليها في اليوم ده';
       lines.push(
         `• ${p.name} [كود: ${p.project_code}] — حالتها: ${p.status}` +
         `\n  - النموذج: ${p.unit_type} | المساحة: ${p.unit_area}` +
         `\n  - المرحلة اللي شغالة دلوقتي: ${p.current_stage}` +
         `\n  - المهندس المسؤول: ${p.engineer_in_charge} | مدير المشروع: ${p.project_manager}` +
-        (p.contract_value > 0 ? `\n  - قيمة العقد: ${p.contract_value.toLocaleString('en-US')} ر.س` : '') +
+        (p.contract_value > 0 ? `\n  - قيمة العقد: ${p.contract_value.toLocaleString('en-US')} ${cur}` : '') +
         `\n  - أخبارها النهارده (${dateChecked}): ${todayBadge}`
       );
     }
@@ -412,7 +420,7 @@ export function splitReportParts(text) {
     : [text];
 }
 
-function formatLateEntriesReport(result, companyLabel) {
+function formatLateEntriesReport(result, companyLabel, cur = 'ر.س') {
   const le = result.late_entries || {};
   const lines = [
     `🕒 تقرير الإضافات المتأخرة — ${companyLabel}`,
@@ -426,22 +434,22 @@ function formatLateEntriesReport(result, companyLabel) {
     const rows = Array.isArray(part.rows) ? part.rows : [];
     if (rows.length === 0) return;
     any = true;
-    lines.push(`${title} (${rows.length}${part.total != null ? ` | ${totalLabel}: ${part.total} ر.س` : ''}):`);
+    lines.push(`${title} (${rows.length}${part.total != null ? ` | ${totalLabel}: ${part.total} ${cur}` : ''}):`);
     for (const r of rows.slice(0, 15)) lines.push(`  - ${line(r)} 📅 بتاريخ ${r.date || '—'}`);
     if (rows.length > 15) lines.push(`  … و${rows.length - 15} حركة تانية`);
   };
-  section('👷 يوميات عمالة', le.labor, r => `${r.worker_name} | ${r.site_ref} | ${r.work_item}${r.daily_wage != null ? ` | ${r.daily_wage} ر.س` : ''} (${r.status})`, 'إجمالي اليوميات');
-  if (le.labor && Array.isArray(le.labor.rows) && le.labor.rows.length > 0 && le.labor.total_wages != null) lines.push(`  إجمالي يوميات متأخرة: ${le.labor.total_wages} ر.س`);
-  section('🧾 مصروفات', le.expenses, r => `${r.description}: ${r.total_price} ر.س | ${r.site_ref} | ${r.payee_name} (${r.status})`, 'الإجمالي');
-  section('💸 سندات صرف', le.payments, r => `${r.voucher_number} | ${r.partner_name} | ${r.amount} ر.س | ${r.description} (${r.status})`, 'الإجمالي');
-  section('💰 سندات قبض', le.receipts, r => `${r.receipt_number} | ${r.partner_name} | ${r.amount} ر.س`, 'الإجمالي');
-  section('📦 صرف خامات', le.materials, r => `${r.issue_number} | ${r.villa} | ${r.contractor} | ${r.total_amount} ر.س`, 'الإجمالي');
-  section('📑 مستخلصات مقاولين', le.claims, r => `${r.claim_number} | ${r.contractor_name} | ${r.projects} | ${r.net_amount} ر.س (${r.status})`, 'الإجمالي');
+  section('👷 يوميات عمالة', le.labor, r => `${r.worker_name} | ${r.site_ref} | ${r.work_item}${r.daily_wage != null ? ` | ${r.daily_wage} ${cur}` : ''} (${r.status})`, 'إجمالي اليوميات');
+  if (le.labor && Array.isArray(le.labor.rows) && le.labor.rows.length > 0 && le.labor.total_wages != null) lines.push(`  إجمالي يوميات متأخرة: ${le.labor.total_wages} ${cur}`);
+  section('🧾 مصروفات', le.expenses, r => `${r.description}: ${r.total_price} ${cur} | ${r.site_ref} | ${r.payee_name} (${r.status})`, 'الإجمالي');
+  section('💸 سندات صرف وعُهد', le.payments, r => `${r.voucher_number} | ${r.partner_name} | ${r.amount} ${cur} | ${r.description}${r.category_label ? ` [${r.category_label}]` : ''} (${r.status})`, 'الإجمالي');
+  section('💰 سندات قبض', le.receipts, r => `${r.receipt_number} | ${r.partner_name} | ${r.amount} ${cur}`, 'الإجمالي');
+  section('📦 صرف خامات', le.materials, r => `${r.issue_number} | ${r.villa} | ${r.contractor} | ${r.total_amount} ${cur}`, 'الإجمالي');
+  section('📑 مستخلصات مقاولين', le.claims, r => `${r.claim_number} | ${r.contractor_name} | ${r.projects} | ${r.net_amount} ${cur} (${r.status})`, 'الإجمالي');
   if (!any) lines.push('مفيش أي إضافات متأخرة النهارده. كل الحركات اللي اتسجلت بتاريخ اليوم نفسه ✅');
   return lines.join('\n');
 }
 
-function formatComprehensiveReportReply(result, companyLabel) {
+function formatComprehensiveReportReply(result, companyLabel, cur = 'ر.س') {
   const s1 = result.section_1_labor_today || {};
   const s2 = result.section_2_villas_and_projects || {};
   const s3 = result.section_3_expenses_today || {};
@@ -471,11 +479,11 @@ function formatComprehensiveReportReply(result, companyLabel) {
     if (Array.isArray(s1.workers) && s1.workers.length > 0) {
       const wageSummary = s1.wages_available === false
         ? 'غير متاح (يتطلب صلاحية laborcost)'
-        : `${s1.total_daily_wages ?? 0} ر.س`;
-      lines.push(`• إجمالي أيام الحضور: ${s1.total_attendance_days ?? 0} يوم | حساب اليوميات كلها: ${wageSummary}`);
+        : `${s1.total_daily_wages ?? 0} ${cur}`;
+      lines.push(`• إجمالي أيام الحضور: ${s1.total_attendance_days ?? 0} يوم | حساب اليوميات المسجلة: ${wageSummary}`);
       for (const w of s1.workers.slice(0, 15)) {
         const tareehaTxt = w.tareeha != null ? ` | طريحته: ${w.tareeha} وعمل: ${w.productivity ?? 0} (${w.completion_percentage || '—'})` : '';
-        const wageTxt = s1.wages_available === false ? '' : ` | يوميته: ${w.daily_wage ?? 0} ر.س`;
+        const wageTxt = s1.wages_available === false ? '' : ` | يوميته: ${w.daily_wage ?? 0} ${cur}`;
         lines.push(`  - ${w.worker_name} | ${w.site_ref} | شغال في بند: ${w.work_item}${wageTxt} (${w.status})${tareehaTxt}${w.note ? ` ⚠️ ${w.note}` : ''}`);
       }
     } else {
@@ -507,44 +515,76 @@ function formatComprehensiveReportReply(result, companyLabel) {
   if (s3.available === false) {
     lines.push(`3️⃣ المصروفات المسجلة: غير متاح (راجع صلاحية المصروفات expenses أو المصدر).`);
   } else {
-    lines.push(`3️⃣ المصروفات المسجلة النهارده (${s3.expenses_count ?? 0} عملية بمبلغ إجمالي ${s3.total_expenses_amount ?? 0} ر.س):`);
+    lines.push(`3️⃣ المصروفات المسجلة النهارده (${s3.expenses_count ?? 0} عملية بمبلغ إجمالي ${s3.total_expenses_amount ?? 0} ${cur}):`);
     if (Array.isArray(s3.expenses_list) && s3.expenses_list.length > 0) {
       for (const e of s3.expenses_list.slice(0, 10)) {
-        lines.push(`  - ${e.description}: ${e.total_price} ر.س | ${e.site_ref} | قسم: ${e.main_category} (${e.status})${e.note ? ` ⚠️ ${e.note}` : ''}`);
+        lines.push(`  - ${e.description}: ${e.total_price} ${cur} | ${e.site_ref} | قسم: ${e.main_category} (${e.status})${e.note ? ` ⚠️ ${e.note}` : ''}`);
       }
     } else {
       lines.push('• مفيش أي مصروفات اتسجلت في اليوم ده.');
     }
   }
 
-  // 4) اللي اتصرف للعمالة
+  // 4) اليوميات المسجلة للعمال + سندات صرف اليوميات الفعلية (بدون خلط العُهد 125)
   lines.push('────────────────────────────');
   if (s4.available === false) {
     lines.push(`4️⃣ اللي اتصرف للعمالة: غير متاح (يتطلب صلاحيات تكلفة العمالة والمصروفات وسندات الصرف).`);
   } else {
-    lines.push(
-      `4️⃣ اللي اتصرف للعمالة النهارده (حسابات ومنصرف العمال):`,
-      `• حساب يوميات العمال اللي نزلوا: ${s4.wages_available === false ? 'غير متاح (صلاحية laborcost)' : `${s4.daily_logs_wages_total ?? 0} ر.س`}`,
-      `• مصروفات عمالة مباشرة: ${s4.expenses_available === false ? 'غير متاح (صلاحية expenses)' : `${s4.labor_expenses_total ?? 0} ر.س`}`,
-      `• سندات صرف كاش أو تحويل للعمال: ${s4.vouchers_available === false ? 'غير متاح (صلاحية payments)' : `${s4.labor_payment_vouchers_total ?? 0} ر.س`}`,
-      `• إجمالي اللي رايح للعمالة كله: ${s4.total_spent_or_accrued_for_labor === null || s4.total_spent_or_accrued_for_labor === undefined ? 'غير متاح بالكامل' : `${s4.total_spent_or_accrued_for_labor} ر.س`}`
+    const wagesTxt = s4.wages_available === false ? 'غير متاح (صلاحية laborcost)' : `${s4.daily_logs_wages_total ?? 0} ${cur}`;
+    const vouchersTxt = s4.vouchers_available === false ? 'غير متاح (صلاحية payments)' : `${s4.labor_payment_vouchers_total ?? 0} ${cur}`;
+    const expTxt = s4.expenses_available === false ? 'غير متاح (صلاحية expenses)' : `${s4.labor_expenses_total ?? 0} ${cur}`;
+    const actualPaid = s4.total_actual_cash_paid_for_labor ?? (
+      s4.expenses_available !== false && s4.vouchers_available !== false
+        ? (Number(s4.labor_expenses_total ?? 0) + Number(s4.labor_payment_vouchers_total ?? 0))
+        : null
     );
+    const actualPaidTxt = actualPaid === null || actualPaid === undefined ? 'غير متاح بالكامل' : `${actualPaid} ${cur}`;
+    lines.push(
+      `4️⃣ اليوميات وسندات صرف العمالة النهارده:`,
+      `• اليوميات المسجلة للعمال (labor_daily_logs): ${wagesTxt}`,
+      `• سندات صرف يوميات/أجور مصروفة للعمال: ${vouchersTxt}`,
+      ...(Number(s4.labor_expenses_total) > 0 || s4.expenses_available === false ? [`• مصروفات عمالة مباشرة: ${expTxt}`] : []),
+      `• إجمالي المنصرف الفعلي للعمالة النهارده: ${actualPaidTxt}`
+    );
+    if (Number(s4.unpaid_daily_wages_today) > 0) {
+      lines.push(`• يوميات مستحقة من النهارده لسه لم تُصرف بسند: ${s4.unpaid_daily_wages_today} ${cur}`);
+    }
+    if (Array.isArray(s4.labor_vouchers_details) && s4.labor_vouchers_details.length > 0) {
+      for (const lv of s4.labor_vouchers_details.slice(0, 10)) {
+        lines.push(`  - ${lv.voucher_number || 'مسودة'} | ${lv.partner_name} | ${lv.amount} ${cur} | ${lv.description}`);
+      }
+    }
   }
 
-  // 4-ب) سندات الصرف والقبض النهارده (كل الحركات المسجلة النهارده)
-  if (s4.available !== false && (Array.isArray(s4.all_payment_vouchers_today) || s4.receipt_vouchers_today)) {
+  // 4-أ) العُهد النقدية المسلّمة النهارده (حساب 125 — مستقلة عن يوميات العمال والمصروفات)
+  if (s4.available !== false && Array.isArray(s4.custody_vouchers_today) && s4.custody_vouchers_today.length > 0) {
     lines.push('────────────────────────────');
-    const pv = Array.isArray(s4.all_payment_vouchers_today) ? s4.all_payment_vouchers_today : [];
-    lines.push(`💸 سندات الصرف النهارده (${pv.length} سند بإجمالي ${s4.all_payment_vouchers_today_total ?? 0} ر.س):`);
-    if (pv.length === 0) lines.push('• مفيش سندات صرف في اليوم ده.');
+    lines.push(`💼 العُهد النقدية المسلّمة النهارده (${s4.custody_vouchers_today.length} عهدة بإجمالي ${s4.custody_vouchers_today_total ?? 0} ${cur} — حساب 125، لا تُحسب ضمن اليوميات أو المصروفات):`);
+    for (const c of s4.custody_vouchers_today.slice(0, 10)) {
+      lines.push(`  - ${c.voucher_number} | ${c.partner_name} | ${c.amount} ${cur} | ${c.description} (${c.status})${c.note ? ` ⚠️ ${c.note}` : ''}`);
+    }
+  }
+
+  // 4-ب) سندات الصرف والقبض النهارده (بخلاف العُهد)
+  if (s4.available !== false && (Array.isArray(s4.non_custody_payment_vouchers_today) || Array.isArray(s4.all_payment_vouchers_today) || s4.receipt_vouchers_today)) {
+    lines.push('────────────────────────────');
+    const hasSplit = Array.isArray(s4.non_custody_payment_vouchers_today);
+    const pv = hasSplit
+      ? s4.non_custody_payment_vouchers_today
+      : (Array.isArray(s4.all_payment_vouchers_today) ? s4.all_payment_vouchers_today : []);
+    const pvTotal = hasSplit ? (s4.non_custody_payment_vouchers_today_total ?? 0) : (s4.all_payment_vouchers_today_total ?? 0);
+    const pvNote = Array.isArray(s4.custody_vouchers_today) && s4.custody_vouchers_today.length > 0 ? ' — بخلاف العُهد' : '';
+    lines.push(`💸 سندات الصرف النهارده (${pv.length} سند بإجمالي ${pvTotal} ${cur}${pvNote}):`);
+    if (pv.length === 0) lines.push('• مفيش سندات صرف مصروفة في اليوم ده.');
     for (const v of pv.slice(0, 15)) {
-      lines.push(`  - ${v.voucher_number} | ${v.partner_name} | ${v.amount} ر.س | ${v.description} (${v.status})${v.note ? ` ⚠️ ${v.note}` : ''}`);
+      const tag = v.category_label ? ` [${v.category_label}]` : '';
+      lines.push(`  - ${v.voucher_number} | ${v.partner_name} | ${v.amount} ${cur} | ${v.description}${tag} (${v.status})${v.note ? ` ⚠️ ${v.note}` : ''}`);
     }
     const rv = s4.receipt_vouchers_today;
     if (rv) {
-      lines.push(`💰 سندات القبض النهارده (${rv.count} سند بإجمالي ${rv.total} ر.س):`);
+      lines.push(`💰 سندات القبض النهارده (${rv.count} سند بإجمالي ${rv.total} ${cur}):`);
       for (const r of (rv.list || []).slice(0, 10)) {
-        lines.push(`  - ${r.receipt_number} | ${r.partner_name} | ${r.amount} ر.س${r.note ? ` ⚠️ ${r.note}` : ''}`);
+        lines.push(`  - ${r.receipt_number} | ${r.partner_name} | ${r.amount} ${cur}${r.note ? ` ⚠️ ${r.note}` : ''}`);
       }
     }
   }
@@ -554,10 +594,10 @@ function formatComprehensiveReportReply(result, companyLabel) {
   if (s5.available === false) {
     lines.push(`5️⃣ الخامات اللي اتصرفت من المخازن: غير متاح (راجع صلاحية المخازن وصرف الخامات).`);
   } else {
-    lines.push(`5️⃣ الخامات اللي اتصرفت من المخازن (${s5.issues_count_today ?? 0} إذن صرف بمبلغ ${s5.total_materials_cost_today ?? 0} ر.س):`);
+    lines.push(`5️⃣ الخامات اللي اتصرفت من المخازن (${s5.issues_count_today ?? 0} إذن صرف بمبلغ ${s5.total_materials_cost_today ?? 0} ${cur}):`);
     if (Array.isArray(s5.items_issued) && s5.items_issued.length > 0) {
       for (const item of s5.items_issued.slice(0, 10)) {
-        lines.push(`  - ${item.item_name}: سحبنا ${item.quantity} ${item.unit} (بحساب ${item.total_price} ر.س)`);
+        lines.push(`  - ${item.item_name}: سحبنا ${item.quantity} ${item.unit} (بحساب ${item.total_price} ${cur})`);
       }
     } else {
       lines.push('• مفيش خامات اتسحبت أو اتصرفت من المخزن في اليوم ده.');
@@ -581,7 +621,7 @@ function formatComprehensiveReportReply(result, companyLabel) {
     }
     if (Array.isArray(s6.subclaims_summary) && s6.subclaims_summary.length > 0) {
       for (const c of s6.subclaims_summary.slice(0, 5)) {
-        lines.push(`  - مستخلص ${c.claim_number}: المقاول ${c.contractor_name} | ${c.projects} | الصافي بتاعه: ${c.net_amount} ر.س (${c.status})`);
+        lines.push(`  - مستخلص ${c.claim_number}: المقاول ${c.contractor_name} | ${c.projects} | الصافي بتاعه: ${c.net_amount} ${cur} (${c.status})`);
       }
     }
   }
@@ -618,7 +658,7 @@ function formatComprehensiveReportReply(result, companyLabel) {
   return lines.join('\n');
 }
 
-function formatAddLaborReply(result, companyLabel) {
+function formatAddLaborReply(result, companyLabel, cur = 'ر.س') {
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
   const pet = s.mozzaNickname || 'يا محاميحو';
@@ -658,8 +698,8 @@ function formatAddLaborReply(result, companyLabel) {
         : `✅ تمام يا باشمهندس، تم تسجيل يومية الفني والمساعد بنجاح:`,
       `الشركة: ${companyLabel}`,
       `━━━━━━━━━━━━━━━━━━━━━━━━`,
-      `👨‍🔧 الفني: ${r1.worker_name} ${r1.worker_partner_id ? '(✓ شريك مسجل)' : ''} | اليومية: ${r1.daily_wage} ر.س [${opTag1}]`,
-      `👷‍♂️ المساعد: ${r2.worker_name} ${r2.worker_partner_id ? '(✓ شريك مسجل)' : ''} | اليومية: ${r2.daily_wage} ر.س [${opTag2}]`,
+      `👨‍🔧 الفني: ${r1.worker_name} ${r1.worker_partner_id ? '(✓ شريك مسجل)' : ''} | اليومية: ${r1.daily_wage} ${cur} [${opTag1}]`,
+      `👷‍♂️ المساعد: ${r2.worker_name} ${r2.worker_partner_id ? '(✓ شريك مسجل)' : ''} | اليومية: ${r2.daily_wage} ${cur} [${opTag2}]`,
       `🏛️ الفيلا / الموقع: ${r1.site_ref}`,
       `🔨 البند المنفذ: ${r1.work_item}`,
       r1.job_order_number ? `📋 أمر الشغل المربوط تلقائياً: [${r1.job_order_number}]` : `📋 أمر الشغل: غير محدد`,
@@ -690,7 +730,7 @@ function formatAddLaborReply(result, companyLabel) {
     `• الفيلا / الموقع: ${r.site_ref}`,
     `• البند / العمل: ${r.work_item}`,
     r.job_order_number ? `• أمر الشغل المربوط تلقائياً: [${r.job_order_number}]` : null,
-    `• اليومية (الأجر): ${r.daily_wage} ر.س (حضور: ${r.attendance_value} يوم)`,
+    `• اليومية (الأجر): ${r.daily_wage} ${cur} (حضور: ${r.attendance_value} يوم)`,
     r.tareeha != null ? `• الطريحة: ${r.tareeha} ${r.unit} | الإنتاجية المنفذة: ${r.productivity ?? 0} ${r.unit} (${r.completion_percentage || '—'})` : (r.productivity != null ? `• الإنتاجية المنفذة: ${r.productivity} ${r.unit}` : null),
     r.tareeha != null ? `• موقف الطريحة: ${r.tareeha_deficit}` : null,
     r.notes ? `• ملاحظات: ${r.notes}` : null,
@@ -702,7 +742,7 @@ function formatAddLaborReply(result, companyLabel) {
   ].filter(Boolean).join('\n');
 }
 
-function formatAddExpenseReply(result, companyLabel) {
+function formatAddExpenseReply(result, companyLabel, cur = 'ر.س') {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.id ? `EXP-${String(r.id).slice(0, 8).toUpperCase()}` : '#');
   const s = getBotSettings();
@@ -719,9 +759,9 @@ function formatAddExpenseReply(result, companyLabel) {
     `الشركة: ${companyLabel}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
     `• البيان: ${r.description}`,
-    `• الكمية: ${r.quantity || 1} | سعر الوحدة: ${r.unit_price} ر.س`,
-    `• المبلغ الإجمالي: ${r.total_price} ر.س`,
-    `• الضريبة: ${r.vat_amount > 0 ? `${r.vat_amount} ر.س` : 'غير شامل ضريبة (0 ر.س)'}`,
+    `• الكمية: ${r.quantity || 1} | سعر الوحدة: ${r.unit_price} ${cur}`,
+    `• المبلغ الإجمالي: ${r.total_price} ${cur}`,
+    `• الضريبة: ${r.vat_amount > 0 ? `${r.vat_amount} ${cur}` : `غير شامل ضريبة (0 ${cur})`}`,
     r.is_paid && r.linked_voucher_number
       ? `• حالة السداد: 🟢 مسدد كاش فورياً - تم إصدار سند صرف مرتبط رقم [${r.linked_voucher_number}] وخصمه من الخزينة`
       : `• حالة السداد: 🟡 ${r.payment_method || 'آجل'} (استحقاق - لم يُصرف بعد، يتم الصرف من شاشة سندات الصرف)`,
@@ -749,7 +789,7 @@ function formatAddExpenseReply(result, companyLabel) {
   return lines.filter(Boolean).join('\n');
 }
 
-function formatAddPaymentVoucherReply(result, companyLabel) {
+function formatAddPaymentVoucherReply(result, companyLabel, cur = 'ر.س') {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.voucher_number || '#');
   const s = getBotSettings();
@@ -767,7 +807,7 @@ function formatAddPaymentVoucherReply(result, companyLabel) {
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
     `• المستفيد: ${r.payee_name} ${r.partner_verified ? '✅ (مطابق ومسجل في الشركاء)' : '⚠️ (غير مسجل في سجل الشركاء)'}`,
     `• فئة المستفيد: ${r.partner_type || 'عامل'}`,
-    `• المبلغ المنصرف: ${r.amount} ر.س`,
+    `• المبلغ المنصرف: ${r.amount} ${cur}`,
     `• طريقة الدفع: ${r.payment_method || 'نقدي'}`,
     `• حساب المدين (المستلم): ${r.debit_account}`,
     `• حساب الدائن (الخزينة/المصدر): ${r.credit_account}`,
@@ -782,7 +822,7 @@ function formatAddPaymentVoucherReply(result, companyLabel) {
   ].filter(Boolean).join('\n');
 }
 
-function formatAddJournalReply(result, companyLabel) {
+function formatAddJournalReply(result, companyLabel, cur = 'ر.س') {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.entry_number || '#');
   const s = getBotSettings();
@@ -797,7 +837,7 @@ function formatAddJournalReply(result, companyLabel) {
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
     `📅 التاريخ: ${r.entry_date}`,
     `📝 البيان: ${r.description}`,
-    `💰 المبلغ: ${r.amount} ر.س`,
+    `💰 المبلغ: ${r.amount} ${cur}`,
     `🟢 المدين (+): ${r.debit_account}`,
     `🔴 الدائن (-): ${r.credit_account}`,
     `🏗️ المشروع: ${r.site_ref}`,
@@ -809,7 +849,7 @@ function formatAddJournalReply(result, companyLabel) {
   ].filter(Boolean).join('\n');
 }
 
-function formatAddJobOrderReply(result, companyLabel) {
+function formatAddJobOrderReply(result, companyLabel, cur = 'ر.س') {
   const r = result.record || {};
   const opTag = r.op_number ? `#${r.op_number}` : (r.order_number || '#');
   const s = getBotSettings();
@@ -826,8 +866,8 @@ function formatAddJobOrderReply(result, companyLabel) {
     `🏗️ المشروع: ${r.site_ref}`,
     `👷 المقاول / المنفذ: ${r.contractor_name} (${r.executor_type})`,
     `📦 البند: ${r.work_item}`,
-    `📐 الكمية: ${r.assigned_qty} | الفئة: ${r.unit_price} ر.س`,
-    `💵 الإجمالي: ${r.total_amount} ر.س`,
+    `📐 الكمية: ${r.assigned_qty} | الفئة: ${r.unit_price} ${cur}`,
+    `💵 الإجمالي: ${r.total_amount} ${cur}`,
     `📌 الحالة: ${r.status}`,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
     isMozza
@@ -836,7 +876,7 @@ function formatAddJobOrderReply(result, companyLabel) {
   ].filter(Boolean).join('\n');
 }
 
-function formatAddPartnerReply(result, companyLabel) {
+function formatAddPartnerReply(result, companyLabel, cur = 'ر.س') {
   const s = getBotSettings();
   const isMozza = Boolean(s.mozzaModeEnabled);
   const pet = s.mozzaNickname || 'يا محاميحو';
@@ -870,7 +910,7 @@ function formatAddPartnerReply(result, companyLabel) {
     `🔢 كود الشريك: ${rec.code}`,
     rec.job_role ? `💼 المهنة / التخصص: ${rec.job_role}` : null,
     rec.phone ? `📱 رقم الهاتف: ${rec.phone}` : null,
-    rec.daily_wage ? `💰 اليومية المتفق عليها: ${rec.daily_wage} ر.س` : null,
+    rec.daily_wage ? `💰 اليومية المتفق عليها: ${rec.daily_wage} ${cur}` : null,
     `━━━━━━━━━━━━━━━━━━━━━━━━`,
     `⚡ الشريك نشط وجاهز فوراً لربط اليوميات والمصروفات وأوامر الشغل وسندات الصرف والقبض.`,
     isMozza
@@ -968,18 +1008,19 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
   }
 
   const companyLabel = safeText(access?.companyName, 100) || access?.companyId || 'الشركة';
+  const cur = resolveCurrency(result, access);
 
   if (name === PROJECTS) {
-    return formatProjectsReply(result, companyLabel);
+    return formatProjectsReply(result, companyLabel, cur);
   }
   if (name === DAILY_REPORT) {
-    return formatComprehensiveReportReply(result, companyLabel) + REPORT_PART_SPLIT + formatLateEntriesReport(result, companyLabel);
+    return formatComprehensiveReportReply(result, companyLabel, cur) + REPORT_PART_SPLIT + formatLateEntriesReport(result, companyLabel, cur);
   }
   if (name === ADD_LABOR) {
-    return formatAddLaborReply(result, companyLabel);
+    return formatAddLaborReply(result, companyLabel, cur);
   }
   if (name === ADD_EXPENSE) {
-    const text = formatAddExpenseReply(result, companyLabel);
+    const text = formatAddExpenseReply(result, companyLabel, cur);
     if (result.multiple_job_orders && Array.isArray(result.candidate_job_orders) && result.candidate_job_orders.length > 1) {
       const r = result.record || {};
       const opTag = r.op_number || (r.id ? String(r.id).slice(0, 8).toUpperCase() : '');
@@ -1007,17 +1048,17 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     return text;
   }
   if (name === ADD_PAYMENT_VOUCHER) {
-    return formatAddPaymentVoucherReply(result, companyLabel);
+    return formatAddPaymentVoucherReply(result, companyLabel, cur);
   }
 
   if (name === ADD_JOURNAL) {
-    return formatAddJournalReply(result, companyLabel);
+    return formatAddJournalReply(result, companyLabel, cur);
   }
   if (name === ADD_JOB_ORDER) {
-    return formatAddJobOrderReply(result, companyLabel);
+    return formatAddJobOrderReply(result, companyLabel, cur);
   }
   if (name === ADD_PARTNER) {
-    return formatAddPartnerReply(result, companyLabel);
+    return formatAddPartnerReply(result, companyLabel, cur);
   }
   if (name === UPDATE_OPERATION) {
     return formatUpdateOperationReply(result, companyLabel);
@@ -1069,7 +1110,7 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     if (isFieldOpsMode && result.latest_recorded_hint?.last_work_date) {
       const samples = Array.isArray(result.latest_recorded_hint.recent_samples)
         ? result.latest_recorded_hint.recent_samples.map(item => {
-            const wageTxt = canViewWages && item.daily_wage !== undefined ? ` — يوميته: ${item.daily_wage ?? 0} ر.س` : '';
+            const wageTxt = canViewWages && item.daily_wage !== undefined ? ` — يوميته: ${item.daily_wage ?? 0} ${cur}` : '';
             return `  - ${item.work_date}: ${item.worker_name} (${item.site_ref || 'مش متحدد'} — شغال في: ${item.work_item || '—'}${wageTxt})`;
           }).join('\n')
         : '';
@@ -1079,7 +1120,7 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
   }
 
   const wageHeader = canViewWages && result.total_wages !== null && result.total_wages !== undefined
-    ? `حساب اليوميات كلها: ${result.total_wages ?? 0} ر.س`
+    ? `حساب اليوميات كلها: ${result.total_wages ?? 0} ${cur}`
     : 'إجمالي الأجور اليومية: غير متاح (تتطلب صلاحية laborcost)';
   const summaryStats = isFieldOpsMode && result.count_unique_workers !== undefined
     ? `\nعدد العمال اللي نزلوا: ${result.count_unique_workers ?? result.count_records} عامل | إجمالي أيام الحضور: ${result.total_attendance_days ?? 0} | ${wageHeader} (معتمد: ${result.posted_records ?? 0} / مسودة: ${result.draft_records ?? 0})`
@@ -1088,7 +1129,7 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
   const logLines = Array.isArray(result.logs) && result.logs.length > 0
     ? '\n\nتفاصيل العمال اللي نزلوا:\n' + result.logs.slice(0, isFieldOpsMode ? 15 : 5).map(l => {
         const wagePart = isFieldOpsMode && canViewWages && l.daily_wage !== undefined
-          ? ` | يوميته: ${l.daily_wage ?? 0} ر.س`
+          ? ` | يوميته: ${l.daily_wage ?? 0} ${cur}`
           : '';
         const extra = isFieldOpsMode
           ? wagePart +

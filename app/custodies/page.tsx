@@ -1,4 +1,5 @@
 'use client';
+import { currencySymbol } from '@/lib/currency';
 
 import { Fragment, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -971,7 +972,7 @@ export default function CustodiesPage() {
                     }}
                   >
                     <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>المبلغ قبل الضريبة (ر.س) *</label>
+                      <label className={styles.formLabel}>المبلغ قبل الضريبة ({currencySymbol()}) *</label>
                       <input
                         type="number"
                         step="0.01"
@@ -987,7 +988,7 @@ export default function CustodiesPage() {
                     </div>
 
                     <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>ضريبة القيمة المضافة (ر.س)</label>
+                      <label className={styles.formLabel}>ضريبة القيمة المضافة ({currencySymbol()})</label>
                       <input
                         type="number"
                         step="0.01"
@@ -1118,7 +1119,7 @@ export default function CustodiesPage() {
                     }}
                   >
                     <div className={styles.formGroup}>
-                      <label className={styles.formLabel}>مبلغ العهدة (ر.س) *</label>
+                      <label className={styles.formLabel}>مبلغ العهدة ({currencySymbol()}) *</label>
                       <input
                         type="number"
                         step="0.01"

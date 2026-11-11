@@ -1,4 +1,5 @@
 "use client";
+import {  } from '@/lib/currency';
 import React, { useMemo } from 'react';
 import { usePayrollLogic } from './payroll_logic';
 import MasterPage from '@/components/MasterPage';
@@ -425,7 +426,7 @@ export default function PayrollPage() {
          </table>
 
          <div style={{ marginTop: '1.25rem', fontSize: 'var(--fs-sm)', fontWeight: 800, background: THEME.slate, padding: '0.75rem', borderRadius: '6px', border: `1px solid ${THEME.border}` }}>
-             إجمالي المبالغ المراد صرفها بالحروف: فقط ( {tafqeet(logic.totals.amount_to_pay || 0)} ريال سعودي ) لا غير.
+             إجمالي المبالغ المراد صرفها بالحروف: {tafqeet(logic.totals.amount_to_pay || 0)}
          </div>
 
          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3.75rem', fontSize: 'var(--fs-md)', fontWeight: 800, padding: '0 2.5rem' }}>

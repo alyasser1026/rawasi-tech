@@ -1,3 +1,4 @@
+import { currencySymbol, currencyCode } from '@/lib/currency';
 import { getActiveCompanyId, supabase } from '@/lib/supabase';
 import { readCachedTableRows } from '@/lib/offline/referenceCache';
 import { saveReferenceTableCache } from '@/lib/offline/offlineStore';
@@ -84,10 +85,10 @@ export const STATUS_MAP: Record<string, { label: string; className: string }> = 
 };
 
 export function formatCustodyCurrency(amount: number | null | undefined): string {
-  if (amount == null || isNaN(amount)) return '0.00 ر.س';
+  if (amount == null || isNaN(amount)) return '0.00 ' + currencySymbol();
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'SAR',
+    currency: currencyCode(),
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);

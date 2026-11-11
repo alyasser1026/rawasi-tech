@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 
 import React from 'react';
 import MasterPage from '@/components/MasterPage';
@@ -209,7 +210,7 @@ export default function AttendancePage() {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })}{' '}
-                <span style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 700 }}>ر.س</span>
+                <span style={{ fontSize: 'var(--fs-xs, 0.85rem)', color: 'var(--text-secondary, #64748b)', fontWeight: 700 }}>{currencySymbol()}</span>
               </div>
             </div>
           </div>

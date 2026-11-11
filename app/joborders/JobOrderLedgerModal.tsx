@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
@@ -673,7 +674,7 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                                         <th style={{ padding: '0.85rem 1rem' }}>نوع الحركة</th>
                                         <th style={{ padding: '0.85rem 1rem' }}>البيان التحليلي</th>
                                         <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>العدد / الأيام</th>
-                                        <th style={{ padding: '0.85rem 1rem', textAlign: 'left' }}>القيمة (ر.س)</th>
+                                        <th style={{ padding: '0.85rem 1rem', textAlign: 'left' }}>القيمة ({currencySymbol()})</th>
                                     </tr>
                                 </thead>
                                 <tbody>

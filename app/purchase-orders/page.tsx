@@ -1,4 +1,5 @@
 'use client';
+import { currencySymbol } from '@/lib/currency';
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -59,12 +60,12 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 function formatCurrency(val: number | null | undefined): string {
-  if (val === null || val === undefined || isNaN(val)) return '0.00 ر.س';
+  if (val === null || val === undefined || isNaN(val)) return '0.00 ' + currencySymbol();
   return (
     new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(val) + ' ر.س'
+    }).format(val) + ' ' + currencySymbol()
   );
 }
 
@@ -831,7 +832,7 @@ export default function PurchaseOrdersPage() {
                                   <option value="">اختيار سريع من الدليل...</option>
                                   {materialItems.map((m) => (
                                     <option key={m.id} value={m.id}>
-                                      {m.name} ({m.default_price || 0} ر.س)
+                                      {m.name} ({m.default_price || 0} {currencySymbol()})
                                     </option>
                                   ))}
                                 </select>
@@ -1493,7 +1494,7 @@ export default function PurchaseOrdersPage() {
                                       {formatCurrency(l.price_variance)}
                                     </span>
                                   ) : (
-                                    <span style={{ color: '#059669' }}>0.00 ر.س</span>
+                                    <span style={{ color: '#059669' }}>0.00 {currencySymbol()}</span>
                                   )}
                                 </td>
                                 <td>{l.remaining_to_receive}</td>

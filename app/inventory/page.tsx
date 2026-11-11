@@ -1,4 +1,5 @@
 'use client';
+import { currencySymbol } from '@/lib/currency';
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -44,12 +45,12 @@ import {
 import styles from './inventory.module.css';
 
 function formatCurrency(val: number | null | undefined): string {
-  if (val === null || val === undefined || isNaN(val)) return '0.00 ر.س';
+  if (val === null || val === undefined || isNaN(val)) return '0.00 ' + currencySymbol();
   return (
     new Intl.NumberFormat('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    }).format(val) + ' ر.س'
+    }).format(val) + ' ' + currencySymbol()
   );
 }
 

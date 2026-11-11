@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import React, { useState, useEffect, useRef } from 'react';
 import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
@@ -356,7 +357,7 @@ export default function ReceiptVoucherModal({ isOpen, onClose, record, setRecord
                     </div>
 
                     <div>
-                        <label style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: THEME.success, display: 'block', marginBottom: '0.375rem' }}>المبلغ المُحصل (ريال) *</label>
+                        <label style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: THEME.success, display: 'block', marginBottom: '0.375rem' }}>المبلغ المُحصل ({currencySymbol()}) *</label>
                         <input type="number" required tabIndex={3} step="0.01" value={record.amount ?? ''} onChange={e => setRecord({...record, amount: e.target.value})} className="glass-input" style={{ background: '#f0fdf4', color: THEME.success, fontSize: 'var(--fs-xl)', border: `2px solid ${THEME.success}50` }} />
                     </div>
 

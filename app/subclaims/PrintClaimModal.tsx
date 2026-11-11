@@ -1,4 +1,5 @@
 "use client";
+import { currencyCode } from '@/lib/currency';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '@/lib/helpers';
@@ -267,7 +268,7 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                                 <th style={{ width: '6%' }}>الوحدة</th>
                                 <th style={{ width: '15%' }}>الكمية المنجزة</th>
                                 <th style={{ width: '15%' }}>سعر الوحدة</th>
-                                <th style={{ width: '30%' }}>إجمالي القيمة (SAR)</th>
+                                <th style={{ width: '30%' }}>إجمالي القيمة ({currencyCode()})</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -306,7 +307,7 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                         <div className="summary-section">
                             <div className="summary-row">
                                 <span>إجمالي قيمة الأعمال (Total Work)</span>
-                                <span>{Number(totalWorkAmount).toLocaleString(undefined, {minimumFractionDigits: 2})} SAR</span>
+                                <span>{Number(totalWorkAmount).toLocaleString(undefined, {minimumFractionDigits: 2})} {currencyCode()}</span>
                             </div>
                             
                             {Number(claim.retention_amount || 0) > 0 && (
@@ -347,7 +348,7 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                             {/* سطر الصافي */}
                             <div className="summary-row net">
                                 <span>الصافي المُستحق (Net Payable)</span>
-                                <span>{netAmount.toLocaleString(undefined, {minimumFractionDigits: 2})} SAR</span>
+                                <span>{netAmount.toLocaleString(undefined, {minimumFractionDigits: 2})} {currencyCode()}</span>
                             </div>
 
                             {/* 🚀 سطور السداد والمتبقي تظهر فقط إذا كان هناك سداد جزئي أو كلي */}
@@ -355,11 +356,11 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                                 <>
                                     <div className="summary-row paid">
                                         <span>(-) ما تم سداده (Paid Amount)</span>
-                                        <span>{paidAmount.toLocaleString(undefined, {minimumFractionDigits: 2})} SAR</span>
+                                        <span>{paidAmount.toLocaleString(undefined, {minimumFractionDigits: 2})} {currencyCode()}</span>
                                     </div>
                                     <div className="summary-row remaining">
                                         <span>المتبقي للصرف (Remaining Balance)</span>
-                                        <span>{remainingAmount.toLocaleString(undefined, {minimumFractionDigits: 2})} SAR</span>
+                                        <span>{remainingAmount.toLocaleString(undefined, {minimumFractionDigits: 2})} {currencyCode()}</span>
                                     </div>
                                 </>
                             )}

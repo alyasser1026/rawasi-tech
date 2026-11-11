@@ -1,4 +1,5 @@
 'use client';
+import { currencySymbol, currencyCode } from '@/lib/currency';
 
 import { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -52,7 +53,7 @@ type IssuedNote = {
 };
 
 const noteLabels: Record<NoteType, string> = { credit: 'إشعار دائن', debit: 'إشعار مدين' };
-const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'SAR', minimumFractionDigits: 2 });
+const currency = { format: (value: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode(), minimumFractionDigits: 2 }).format(value) };
 const formatAmount = (amount: Amount) => currency.format(Number(amount));
 const dateFormat = new Intl.DateTimeFormat('en-GB', { calendar: 'gregory', timeZone: 'Asia/Riyadh', dateStyle: 'medium', timeStyle: 'short' });
 const taxDay = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Riyadh', year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -210,7 +211,7 @@ export default function InvoiceAdjustmentModal({ invoiceId, companyId, onClose }
             </select>
             {selectedLine?.review_reason && <small className="ent-field-note">{selectedLine.review_reason}</small>}
           </div>
-          <div className="ent-form-field ent-form-full"><label htmlFor="adjustment-base">مبلغ التعديل قبل الضريبة (ريال)</label>
+          <div className="ent-form-field ent-form-full"><label htmlFor="adjustment-base">مبلغ التعديل قبل الضريبة ({currencySymbol()})</label>
             <input id="adjustment-base" dir="ltr" type="number" min="0.01" step="0.01" inputMode="decimal" required value={base}
               onChange={event => setBase(event.target.value)} disabled={issue.isPending} />
             {noteType === 'credit' && selectedLine && <small className="ent-field-note">المتبقي من أصل البند قبل الضريبة {formatAmount(selectedLine.remaining_base)}. يُتحقق أيضًا من رصيد الفاتورة عند الترحيل.</small>}

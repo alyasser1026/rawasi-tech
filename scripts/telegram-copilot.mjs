@@ -123,7 +123,7 @@ async function resolveServiceCompanyAccess() {
     if (currentTargetCompanyId) {
       const { data } = await adminClient
         .from('companies')
-        .select('id, name, code, is_active')
+        .select('id, name, code, currency, country, is_active')
         .eq('id', currentTargetCompanyId)
         .maybeSingle();
       if (data) company = data;
@@ -131,7 +131,7 @@ async function resolveServiceCompanyAccess() {
     if (!company) {
       const { data } = await adminClient
         .from('companies')
-        .select('id, name, code, is_active')
+        .select('id, name, code, currency, country, is_active')
         .eq('is_active', true)
         .order('created_at', { ascending: true })
         .limit(1)
@@ -152,6 +152,8 @@ async function resolveServiceCompanyAccess() {
       companyId: company.id,
       companyName: company.name || activeComp?.name || 'فاي تك',
       companyCode: company.code || activeComp?.code || 'PHI',
+      companyCurrency: company.currency || activeComp?.currency || 'SAR',
+      companyCountry: company.country || activeComp?.country || 'SA',
       userId: memberRow?.user_id || '00000000-0000-0000-0000-000000000000',
       accessToken: SUPABASE_SERVICE_KEY,
       allowServiceRole: true,

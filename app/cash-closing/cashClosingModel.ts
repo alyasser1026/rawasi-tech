@@ -1,3 +1,4 @@
+import { currencySymbol, currencyCode } from '@/lib/currency';
 import { supabase } from '@/lib/supabase';
 
 export interface CashClosing {
@@ -35,10 +36,10 @@ export interface SafeAccountOption {
 }
 
 export function formatCashCurrency(amount: number | null | undefined): string {
-  if (amount == null || isNaN(amount)) return '0.00 ر.س';
+  if (amount == null || isNaN(amount)) return '0.00 ' + currencySymbol();
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'SAR',
+    currency: currencyCode(),
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -73,7 +74,7 @@ export async function fetchCashClosingPreview(
       return {
         book_balance: 0,
         expected_balance: 0,
-        currency: 'SAR',
+        currency: currencyCode(),
         last_closing_date: null,
       } as any;
     }

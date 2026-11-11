@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useMutation, useQueryClient } from '@tanstack/react-query'; 
@@ -426,7 +427,7 @@ export function useProjectsLogic() {
               worker_role_type: isHelper ? 'helper' : 'tech',
               worker_category_label: isHelper ? 'يومية مساعدين' : 'يومية فنيين',
               main_category: isHelper ? 'أجور يومية المساعدين' : 'أجور يومية الفنيين',
-              description: `${l.worker_name || 'عامل'} (${l.skill_level || (isHelper ? 'مساعد' : 'فني')}) — ${days} يوم × ${wage} ر.س`,
+              description: `${l.worker_name || 'عامل'} (${l.skill_level || (isHelper ? 'مساعد' : 'فني')}) — ${days} يوم × ${wage} ${currencySymbol()}`,
               payee_name: l.worker_name,
               payment_method: l.is_posted ? 'مرحل' : 'يومية ميدانية'
           };

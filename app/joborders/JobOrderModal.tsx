@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
@@ -444,7 +445,7 @@ export default function JobOrderModal({ isOpen, onClose, record, setRecord, onSa
                         <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900 }}>{Number(record.assigned_qty || 0).toLocaleString('en-US')}</div>
                     </div>
                     <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>سعر الوحدة (ر.س)</div>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: '#94a3b8', fontWeight: 800 }}>سعر الوحدة ({currencySymbol()})</div>
                         <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900 }}>{formatCurrency(record.unit_price || 0)}</div>
                     </div>
                     <div style={{ background: `linear-gradient(135deg, ${THEME.accent}40, transparent)`, padding: '0.9375rem', borderRadius: '16px', border: `1px solid ${THEME.accent}80`, boxShadow: `0 0 20px ${THEME.accent}20` }}>

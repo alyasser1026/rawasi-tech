@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 
 import React, { useState, useEffect, useMemo } from 'react';
 import MasterPage from '@/components/MasterPage';
@@ -386,7 +387,7 @@ export default function ComplianceAndAuditPage() {
                                 </div>
                                 {item.amount !== undefined && item.amount !== 0 && (
                                   <span className={styles.radarItemAmount}>
-                                    {Number(item.amount).toLocaleString('en-US')} ر.س
+                                    {Number(item.amount).toLocaleString('en-US')} {currencySymbol()}
                                   </span>
                                 )}
                               </div>
@@ -675,10 +676,10 @@ export default function ComplianceAndAuditPage() {
                             <td style={{ fontWeight: 800, color: days < 0 ? '#b91c1c' : days <= 30 ? '#b45309' : '#1e293b' }}>
                               {days < 0 ? `متأخر ${Math.abs(days)} يوم` : `${days} يوم`}
                             </td>
-                            <td>{Number(r.client_retention_unreleased).toLocaleString('en-US')} ر.س</td>
-                            <td>{Number(r.sub_retention_unreleased).toLocaleString('en-US')} ر.س</td>
+                            <td>{Number(r.client_retention_unreleased).toLocaleString('en-US')} {currencySymbol()}</td>
+                            <td>{Number(r.sub_retention_unreleased).toLocaleString('en-US')} {currencySymbol()}</td>
                             <td style={{ fontWeight: 900, color: '#d97706' }}>
-                              {Number(r.total_retention_unreleased).toLocaleString('en-US')} ر.س
+                              {Number(r.total_retention_unreleased).toLocaleString('en-US')} {currencySymbol()}
                             </td>
                             <td>{statusBadge}</td>
                           </tr>

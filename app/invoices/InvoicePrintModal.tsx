@@ -1,4 +1,5 @@
 "use client";
+import { currencyCode } from '@/lib/currency';
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom'; 
 import { THEME } from '@/lib/theme';
@@ -253,7 +254,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
     // Wrapper for currency if the original function uses Arabic numbers
     const formatCurrencyEn = (val: any) => {
         const num = Number(val) || 0;
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'SAR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode(), minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
     }
 
     // 📦 محتوى المعاينة 

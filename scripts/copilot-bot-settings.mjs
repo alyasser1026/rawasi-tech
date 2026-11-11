@@ -41,6 +41,8 @@ export const KNOWN_COMPANIES = Object.freeze([
     name: 'فاي تك للمقاولات العامة والتشطيبات الفاخرة',
     shortName: 'فاي تك',
     country: 'SA',
+    currency: 'SAR',
+    currencyLabel: 'ر.س',
     flag: '🇸🇦',
   },
   {
@@ -50,9 +52,28 @@ export const KNOWN_COMPANIES = Object.freeze([
     name: 'PHI-TECH-EGY',
     shortName: 'فاي تك مصر (PHI-TECH-EGY)',
     country: 'EG',
+    currency: 'EGP',
+    currencyLabel: 'ج.م',
     flag: '🇪🇬',
   },
 ]);
+
+export function resolveCompanyCurrencyLabel({ companyId, companyName, currency } = {}) {
+  const cur = String(currency || '').trim().toUpperCase();
+  if (cur === 'EGP' || cur === 'EG' || cur === 'ج.م' || cur === 'جنيه') return 'ج.م';
+  if (cur === 'SAR' || cur === 'SA' || cur === 'ر.س' || cur === 'ريال') return 'ر.س';
+  if (cur === 'USD' || cur === 'دولار') return 'USD';
+  if (cur === 'AED' || cur === 'درهم') return 'د.إ';
+
+  const idLower = String(companyId || '').trim().toLowerCase();
+  const nameLower = String(companyName || '').trim().toLowerCase();
+  const matched = KNOWN_COMPANIES.find(
+    c => (idLower && c.id === idLower) || (nameLower && (c.name.toLowerCase() === nameLower || c.code.toLowerCase() === nameLower))
+  );
+  if (matched?.currencyLabel) return matched.currencyLabel;
+  if (nameLower && (nameLower.includes('egy') || nameLower.includes('مصر'))) return 'ج.م';
+  return 'ر.س';
+}
 
 export function getActiveCompany(settings = getBotSettings()) {
   const activeId = settings.activeCompanyId || KNOWN_COMPANIES[0].id;

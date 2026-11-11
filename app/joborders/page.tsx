@@ -1,4 +1,5 @@
 'use client';
+import { currencySymbol } from '@/lib/currency';
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { useJobOrdersLogic } from './joborders_logic';
@@ -321,7 +322,7 @@ export default function JobOrdersPage() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>
                      <div style={{ color: '#0ea5e9', display: 'flex', justifyContent: 'space-between' }}>
-                         <span>أصل الموازنة:</span> <span>{targetBudget.toLocaleString()} ر.س</span>
+                         <span>أصل الموازنة:</span> <span>{targetBudget.toLocaleString()} {currencySymbol()}</span>
                      </div>
                      
                      {row.executor_type === 'مقاول باطن' ? (
@@ -340,14 +341,14 @@ export default function JobOrdersPage() {
                      )}
                      
                      <div style={{ color: '#1e293b', borderTop: '1px dashed #cbd5e1', paddingTop: '0.375rem', marginTop: '0.25rem', display: 'flex', justifyContent: 'space-between' }}>
-                         <span>إجمالي التكلفة:</span> <span>{finalCost.toLocaleString()} ر.س</span>
+                         <span>إجمالي التكلفة:</span> <span>{finalCost.toLocaleString()} {currencySymbol()}</span>
                      </div>
                      
                      <div style={{ 
                          color: profitColor, background: profitBg, 
                          padding: '0.375rem 0.625rem', borderRadius: '8px', border: `1px solid ${profitColor}40`, marginTop: '0.25rem', display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)'
                      }}>
-                       <span>{profitLabel}</span> <span>{Math.abs(calculatedProfit).toLocaleString()} ر.س</span>
+                       <span>{profitLabel}</span> <span>{Math.abs(calculatedProfit).toLocaleString()} {currencySymbol()}</span>
                      </div>
 
                      <div style={{ marginTop: '0.625rem' }}>

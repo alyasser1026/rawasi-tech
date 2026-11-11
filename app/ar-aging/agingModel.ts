@@ -1,3 +1,4 @@
+import { currencySymbol } from '@/lib/currency';
 export type AgingPartyType = 'customers' | 'subcontractors' | 'suppliers';
 
 export type AgingBucket = 'current' | 'days_1_30' | 'days_31_60' | 'days_61_90' | 'over_90' | 'unspecified';
@@ -125,11 +126,11 @@ export type AgingReport = {
 };
 
 export function formatAgingCurrency(amount: number | null | undefined): string {
-  if (amount == null || isNaN(amount)) return '0.00 ر.س';
+  if (amount == null || isNaN(amount)) return '0.00 ' + currencySymbol();
   return Number(amount).toLocaleString('en-US', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }) + ' ر.س';
+  }) + ' ' + currencySymbol();
 }
 
 export function formatAgingPercent(percent: number | null | undefined): string {

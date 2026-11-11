@@ -349,7 +349,7 @@ export default function CompaniesSettingsPage() {
             <div className="ent-form-field"><label htmlFor="co-vat">الرقم الضريبي</label><input id="co-vat" dir="ltr" inputMode="numeric" maxLength={15} placeholder="3XXXXXXXXXXXXX3" {...field('tax_number')} /><span className="ent-field-note">يظهر في الفواتير الضريبية — اتركه فارغًا لو غير مسجل</span></div>
             <div className="ent-form-field"><label htmlFor="co-cr">السجل التجاري</label><input id="co-cr" dir="ltr" inputMode="numeric" maxLength={10} {...field('cr_number')} /></div>
             <div className="ent-form-field"><label htmlFor="co-country">الدولة</label><select id="co-country" {...field('country')}>{COUNTRIES.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></div>
-            <div className="ent-form-field"><label htmlFor="co-currency">العملة</label><select id="co-currency" {...field('currency')}>{CURRENCIES.map(([v, l]) => <option key={v} value={v}>{v} — {l}</option>)}</select></div>
+            <div className="ent-form-field"><label htmlFor="co-currency">العملة</label><select id="co-currency" {...field('currency')}>{CURRENCIES.map(([v, l]) => <option key={v} value={v}>{v} — {l}</option>)}</select><span className="ent-field-note">كل المبالغ في الشاشات والتقارير والتفقيط بتظهر بالعملة دي لما الشركة تكون مفتوحة. تغييرها مش بيحوّل المبالغ المسجلة.</span></div>
             <div className="ent-form-field"><label htmlFor="co-fy">بداية السنة المالية</label><input id="co-fy" type="date" {...field('fiscal_year_start')} /></div>
             <div className="ent-form-field"><label htmlFor="co-color">لون الهوية</label><input id="co-color" type="color" {...field('brand_color')} /></div>
           </div>

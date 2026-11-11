@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
@@ -9,7 +10,7 @@ import { Users, HardHat, Calendar, DollarSign } from 'lucide-react';
 // دالة تنسيق المبالغ بأرقام إنجليزية ولاتينية واضحة
 const formatMoneyEn = (val: number | string | null | undefined): string => {
     const n = Number(val || 0);
-    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ر.س';
+    return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + currencySymbol();
 };
 
 const formatNumberEn = (val: number | string | null | undefined): string => {
@@ -327,7 +328,7 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                                                placeholder={durationDays > 0 ? String(durationDays) : "1"} />
                                     </div>
                                     <div>
-                                        <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>اليومية (ر.س)</label>
+                                        <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>اليومية ({currencySymbol()})</label>
                                         <input type="number" min="0" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.tech_daily_wage || ''} onChange={e => handleLaborChange({ tech_daily_wage: e.target.value })} placeholder="0.00" />
                                     </div>
@@ -356,7 +357,7 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                                                placeholder={durationDays > 0 ? String(durationDays) : "1"} />
                                     </div>
                                     <div>
-                                        <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>اليومية (ر.س)</label>
+                                        <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>اليومية ({currencySymbol()})</label>
                                         <input type="number" min="0" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.helper_daily_wage || ''} onChange={e => handleLaborChange({ helper_daily_wage: e.target.value })} placeholder="0.00" />
                                     </div>
@@ -372,7 +373,7 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                                                value={record.labor_days || (durationDays > 0 ? durationDays : '')} onChange={e => handleLaborChange({ labor_days: e.target.value })} placeholder={durationDays > 0 ? String(durationDays) : "1"} />
                                     </div>
                                     <div>
-                                        <label style={{ fontSize: '11px', color: '#0369a1', fontWeight: 900, display: 'block' }}>ميزانية العمالة (ر.س)</label>
+                                        <label style={{ fontSize: '11px', color: '#0369a1', fontWeight: 900, display: 'block' }}>ميزانية العمالة ({currencySymbol()})</label>
                                         <input type="number" step="any" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '2px solid #0284c7', color: '#0284c7' }}
                                                value={record.estimated_labor_cost || ''} onChange={e => setRecord({ ...record, estimated_labor_cost: e.target.value })} placeholder="0.00" />
                                     </div>

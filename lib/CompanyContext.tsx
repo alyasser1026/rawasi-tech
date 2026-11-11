@@ -3,6 +3,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { ACTIVE_COMPANY_STORAGE_KEY, getActiveCompanyId, setActiveCompanyId as sendCompanyWithRequests, supabase } from './supabase';
 import type { Company } from '@/types/company';
+import { currencyCode, setActiveCurrency } from './currency';
 
 interface CompanyContextType {
   /** Companies the signed-in user belongs to (from get_user_accessible_companies). */
@@ -163,11 +164,18 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     [companies, activeCompanyId]
   );
 
+  // عملة الشركة المفتوحة لكل شاشات العرض (formatCurrency / tafqeet / currencySymbol).
+  // بتتضبط وقت الرسم نفسه عشان الشاشات اللي بترسم بعدها تاخد العملة الصح؛ ولو اتغيّرت فعلًا
+  // (أول دخول أو تعديل العملة من الإعدادات) المحتوى بيتعاد رسمه بالمفتاح تحت.
+  if (activeCompany?.currency) setActiveCurrency(activeCompany.currency);
+  const currencyKey = currencyCode();
+
   const switchCompany = useCallback(async (companyId: string) => {
     const target = companies.find(c => c.id === companyId);
     if (!target || companyId === activeCompanyId) return;
     sendCompanyWithRequests(companyId);
     storeId(companyId);
+    setActiveCurrency(target.currency);
     setActiveCompanyId(companyId);
     window.dispatchEvent(new CustomEvent(COMPANY_CHANGED_EVENT, { detail: { company: target, companyId } }));
     if (typeof navigator === 'undefined' || navigator.onLine) {
@@ -187,7 +195,7 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     refreshCompanies,
   }), [companies, activeCompany, activeCompanyId, isLoading, error, switchCompany, refreshCompanies]);
 
-  return <CompanyContext.Provider value={value}>{children}</CompanyContext.Provider>;
+  return <CompanyContext.Provider value={value}><React.Fragment key={currencyKey}>{children}</React.Fragment></CompanyContext.Provider>;
 }
 
 export function useCompany(): CompanyContextType {

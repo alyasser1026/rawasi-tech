@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { RETIRED_TOOL_NAMES } from './copilot-tool-registry.mjs';
 import { getCopilotDate } from './copilot-tool-policy.mjs';
 import { assessTareeha, unassessedReason } from './copilot-tareeha.mjs';
-import { registerOperation, resolveOperationByNumberOrCode, setActiveCompany, getActiveCompany } from './copilot-bot-settings.mjs';
+import { registerOperation, resolveOperationByNumberOrCode, setActiveCompany, getActiveCompany, resolveCompanyCurrencyLabel } from './copilot-bot-settings.mjs';
 import { generateNextPartnerCode } from '../lib/partnerCodeGenerator.ts';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -100,6 +100,58 @@ export function matchItemText(a, b) {
   const common = wordsA.filter(w => wordsB.some(bw => bw.includes(w) || w.includes(bw)));
   return common.length >= 1 && (common.length >= Math.min(wordsA.length, wordsB.length));
 }
+
+export const PAYMENT_VOUCHER_CATEGORY_LABELS = Object.freeze({
+  labor_wage: 'صرف يوميات عمال',
+  custody: 'عُهدة نقدية (حساب 125)',
+  sub_claim: 'مستخلص مقاول',
+  expense: 'سداد مصروف',
+  advance: 'سلفة',
+  other: 'سند صرف',
+});
+
+/**
+ * تصنيف سندات الصرف بدقة محاسبية:
+ * - العُهد (125 / custody_id / وصف يحتوي عهدة) تُفصل كلياً عن يوميات وأجور العمالة.
+ * - سندات صرف العمالة في التقرير اليومي تقتصر على سداد اليوميات والأجور الفعلية للعمال/الموظفين (216/512/521).
+ */
+export function classifyPaymentVoucherCategory(v = {}, partner = null, debitAccount = null) {
+  const debitCode = String(debitAccount?.code || '').trim();
+  const debitName = normalizeArabic(debitAccount?.name || '');
+  const text = normalizeArabic(`${v?.description || ''} ${v?.notes || ''}`);
+  const partnerType = String(partner?.partner_type || '').trim();
+
+  if (
+    Boolean(v?.custody_id) ||
+    debitCode === '125' ||
+    /عهد/.test(debitName) ||
+    /(?:^|\s)(?:عهده|عهد|عُهد[هة]?)(?:\s|$)/u.test(text)
+  ) {
+    return 'custody';
+  }
+  if (Boolean(v?.sub_claim_id) || debitCode === '212' || /مستخلص/.test(text)) {
+    return 'sub_claim';
+  }
+  if (
+    Boolean(v?.related_expense_id) ||
+    /^سداد مصروف/.test(text) ||
+    /^5(?:1[13456789]|2[02-9])/.test(debitCode)
+  ) {
+    return 'expense';
+  }
+  if (debitCode === '127' || debitCode === '128' || /(?:^|\s)(?:سلفه|سلف)(?:\s|$)/.test(text)) {
+    return 'advance';
+  }
+  const isLaborAccount = debitCode === '216' || debitCode === '512' || debitCode === '521' || /اجور|رواتب/.test(debitName);
+  const isWageText = /(?:يوميه|يوميات|اجور|اجر|راتب|رواتب|مستحقات\s*(?:عمال|عامل|موظف))/.test(text);
+  const isWorkerWithLaborDesc = (partnerType === 'عامل يومية' || partnerType === 'عامل' || partnerType === 'موظف') && /عمال|عامل|فني|صنايعي/.test(text);
+  if (isLaborAccount || isWageText || isWorkerWithLaborDesc) {
+    return 'labor_wage';
+  }
+  return 'other';
+}
+
+const roundMoney2 = (v) => Math.round((Number(v) || 0) * 100) / 100;
 
 /**
  * التصنيف التلقائي الذكي للمصروفات حسب طبيعة البيان
@@ -876,8 +928,10 @@ export function createCopilotTools({
         ordersRes,
         assignRes,
         partnersRes,
+        accountsRes,
         ucRes,
         receiptsRes,
+        companyRes,
       ] = await Promise.all([
         canProjects
           ? fetchScopedRows('projects', {
@@ -905,7 +959,7 @@ export function createCopilotTools({
           : Promise.resolve(notPermitted),
         canPayments
           ? fetchScopedRows('payment_vouchers', {
-              select: 'id,voucher_number,date,amount,partner_id,payment_method,description,notes,status,is_posted,site_ref,sub_claim_id,created_at',
+              select: 'id,voucher_number,date,amount,partner_id,debit_account_id,credit_account_id,payment_method,description,notes,status,is_posted,site_ref,sub_claim_id,related_expense_id,custody_id,created_at',
               date: `eq.${targetDate}`,
               order: 'created_at.desc',
               limit: '100',
@@ -944,6 +998,12 @@ export function createCopilotTools({
           select: 'id,name,partner_type,phone,job_role',
           limit: '200',
         }),
+        canPayments
+          ? fetchScopedRows('accounts', {
+              select: 'id,code,name,account_type',
+              limit: '300',
+            })
+          : Promise.resolve({ ok: true, data: [] }),
         canRequests
           ? fetchScopedRows('user_companies', {
               select: 'user_id',
@@ -952,12 +1012,13 @@ export function createCopilotTools({
           : Promise.resolve(notPermitted),
         canReceipts
           ? fetchScopedRows('receipt_vouchers', {
-              select: 'id,receipt_number,date,amount,partner_id,payment_method,description,status,is_posted,created_at',
+              select: 'id,receipt_number,date,amount,partner_id,payment_method,notes,status,created_at',
               date: `eq.${targetDate}`,
               order: 'created_at.desc',
               limit: '100',
             })
           : Promise.resolve(notPermitted),
+        fetchRest(`companies?id=eq.${companyId}&select=id,name,currency,country&limit=1`).catch(() => ({ data: null })),
       ]);
 
       // 🕒 تقرير «الإضافات المتأخرة»: حركات اتسجلت النهارده لكن بتاريخ عملية مختلف عن النهارده
@@ -968,8 +1029,8 @@ export function createCopilotTools({
       const [lateLaborRes, lateExpRes, latePayRes, lateRecRes, lateMatRes, lateClaimRes] = await Promise.all([
         lateFetch(canLaborLogs, 'labor_daily_logs', 'id,work_date,worker_name,site_ref,project_id,work_item,' + (canLaborCost ? 'daily_wage,' : '') + 'attendance_value,is_posted,created_at', 'work_date'),
         lateFetch(canExpenses, 'expenses', 'id,exp_date,description,total_price,main_category,site_ref,payee_name,project_id,is_posted,created_at', 'exp_date'),
-        lateFetch(canPayments, 'payment_vouchers', 'id,voucher_number,date,amount,partner_id,description,notes,status,is_posted,created_at', 'date'),
-        lateFetch(canReceipts, 'receipt_vouchers', 'id,receipt_number,date,amount,partner_id,description,status,is_posted,created_at', 'date'),
+        lateFetch(canPayments, 'payment_vouchers', 'id,voucher_number,date,amount,partner_id,debit_account_id,custody_id,sub_claim_id,related_expense_id,description,notes,status,is_posted,created_at', 'date'),
+        lateFetch(canReceipts, 'receipt_vouchers', 'id,receipt_number,date,amount,partner_id,notes,status,created_at', 'date'),
         lateFetch(canInventory, 'material_issues', 'id,issue_number,project_id,issue_date,total_amount,contractor_text_name,subcontractor_id,is_posted,created_at', 'issue_date'),
         lateFetch(canContractors, 'sub_claims', 'id,claim_number,contractor_id,project_id,project_names_text,date,net_amount,status,is_posted,created_at', 'date'),
       ]);
@@ -991,6 +1052,15 @@ export function createCopilotTools({
       const projectMap = new Map(projects.map(p => [p.id, p.Property || p.project_name || p.project_code || 'مشروع']));
       const partners = partnersRes.ok ? partnersRes.data : [];
       const partnerMap = new Map(partners.map(p => [p.id, p]));
+      const accounts = accountsRes.ok ? accountsRes.data : [];
+      const accountMap = new Map(accounts.map(a => [a.id, a]));
+      const companyRow = Array.isArray(companyRes?.data) ? companyRes.data[0] : companyRes?.data;
+      const currencyCode = companyRow?.currency || undefined;
+      const currencyLabel = resolveCompanyCurrencyLabel({
+        companyId,
+        companyName: companyRow?.name,
+        currency: currencyCode,
+      });
 
       let userRequests = [];
       let userTasks = [];
@@ -1028,7 +1098,9 @@ export function createCopilotTools({
         );
       }
       const wagesAvailable = canLaborLogs && canLaborCost && laborRes.ok;
-      const totalLaborWagesToday = wagesAvailable ? laborLogs.reduce((s, r) => s + (Number(r.daily_wage) || 0), 0) : null;
+      const totalLaborWagesToday = wagesAvailable
+        ? roundMoney2(laborLogs.reduce((s, r) => s + (Number(r.daily_wage) || 0) * Number(r.attendance_value ?? 1), 0))
+        : null;
       const totalAttendanceDays = laborLogs.reduce((s, r) => s + (Number(r.attendance_value) || 0), 0);
       const uniqueWorkersToday = Array.from(new Set(laborLogs.map(r => r.worker_name).filter(Boolean)));
 
@@ -1054,24 +1126,54 @@ export function createCopilotTools({
         if (m.project_id && projectMap.has(m.project_id)) villasWorkedTodaySet.add(projectMap.get(m.project_id));
       }
 
-      // 3 & 4. المصروفات واللي اتصرف للعمالة
+      // 3 & 4. المصروفات + يوميات وسندات صرف العمالة (مع فصل العُهد 125 نهائياً عن أجور العمال)
       const expensesAvailable = canExpenses && expRes.ok;
       const paymentsAvailable = canPayments && payRes.ok;
-      const totalExpensesToday = expensesAvailable ? expensesToday.reduce((s, e) => s + (Number(e.total_price) || 0), 0) : null;
+      const totalExpensesToday = expensesAvailable ? roundMoney2(expensesToday.reduce((s, e) => s + (Number(e.total_price) || 0), 0)) : null;
       const paymentVouchersToday = paymentsAvailable ? payRes.data : [];
-      const totalPaymentVouchersToday = paymentsAvailable ? paymentVouchersToday.reduce((s, p) => s + (Number(p.amount) || 0), 0) : null;
+      const classifiedVouchers = paymentVouchersToday.map(v => {
+        const partner = partnerMap.get(v.partner_id);
+        const debitAccount = accountMap.get(v.debit_account_id);
+        const category = classifyPaymentVoucherCategory(v, partner, debitAccount);
+        return {
+          raw: v,
+          partner,
+          debitAccount,
+          category,
+          category_label: PAYMENT_VOUCHER_CATEGORY_LABELS[category] || 'سند صرف',
+          debit_account_label: debitAccount ? `${debitAccount.code} - ${debitAccount.name}` : null,
+        };
+      });
+      const custodyVouchersToday = classifiedVouchers.filter(x => x.category === 'custody');
+      const nonCustodyVouchersToday = classifiedVouchers.filter(x => x.category !== 'custody');
+      const totalPaymentVouchersToday = paymentsAvailable
+        ? roundMoney2(paymentVouchersToday.reduce((s, p) => s + (Number(p.amount) || 0), 0))
+        : null;
+      const totalCustodyVouchersToday = paymentsAvailable
+        ? roundMoney2(custodyVouchersToday.reduce((s, x) => s + (Number(x.raw.amount) || 0), 0))
+        : null;
+      const totalNonCustodyVouchersToday = paymentsAvailable
+        ? roundMoney2(nonCustodyVouchersToday.reduce((s, x) => s + (Number(x.raw.amount) || 0), 0))
+        : null;
 
       const laborRelatedExpenses = expensesAvailable ? expensesToday.filter(e => {
-        const text = `${e.description || ''} ${e.main_category || ''} ${e.creditor_account || ''} ${e.payee_name || ''}`;
-        return /عمال|عامل|يوميه|يومية|صنايعي|مصنعيه|مصنعية|رواتب|اجور|أجور/.test(text);
+        const rawText = `${e.description || ''} ${e.main_category || ''} ${e.creditor_account || ''} ${e.payee_name || ''}`;
+        const normText = normalizeArabic(rawText);
+        if (/(?:^|\s)(?:عهده|عهد)(?:\s|$)/.test(normText)) return false;
+        return /عمال|عامل|يوميه|يومية|صنايعي|مصنعيه|مصنعية|رواتب|اجور|أجور/.test(rawText);
       }) : [];
-      const laborRelatedVouchers = paymentsAvailable ? paymentVouchersToday.filter(v => {
-        const partner = partnerMap.get(v.partner_id);
-        const text = `${v.description || ''} ${v.notes || ''} ${partner?.partner_type || ''}`;
-        return partner?.partner_type === 'عامل يومية' || partner?.partner_type === 'موظف' || /عمال|عامل|يوميه|يومية/.test(text);
-      }) : [];
-      const totalLaborExpenses = expensesAvailable ? laborRelatedExpenses.reduce((s, e) => s + (Number(e.total_price) || 0), 0) : null;
-      const totalLaborVouchers = paymentsAvailable ? laborRelatedVouchers.reduce((s, v) => s + (Number(v.amount) || 0), 0) : null;
+      // سندات صرف العمالة = فقط السندات المصروفة فعلياً ليوميات وأجور العمال (بدون عُهد 125 أو سداد مصروفات أو مستخلصات)
+      const laborRelatedVouchers = paymentsAvailable
+        ? classifiedVouchers.filter(x => x.category === 'labor_wage').map(x => x.raw)
+        : [];
+      const totalLaborExpenses = expensesAvailable ? roundMoney2(laborRelatedExpenses.reduce((s, e) => s + (Number(e.total_price) || 0), 0)) : null;
+      const totalLaborVouchers = paymentsAvailable ? roundMoney2(laborRelatedVouchers.reduce((s, v) => s + (Number(v.amount) || 0), 0)) : null;
+      const totalActualCashPaidForLabor = expensesAvailable && paymentsAvailable
+        ? roundMoney2(totalLaborExpenses + totalLaborVouchers)
+        : (paymentsAvailable ? totalLaborVouchers : null);
+      const unpaidDailyWagesToday = wagesAvailable && paymentsAvailable
+        ? Math.max(0, roundMoney2(totalLaborWagesToday - totalLaborVouchers))
+        : null;
 
       // 5. الخامات اللي اتصرفت
       const materialsAvailable = canInventory && matIssuesRes.ok;
@@ -1098,14 +1200,34 @@ export function createCopilotTools({
       return {
         success: true,
         report_date: targetDate,
+        currency: currencyCode || 'SAR',
+        currency_label: currencyLabel,
         villa_filter: villaFilter || 'جميع المشاريع والفلل',
         late_entries: (() => {
           const rows = (res, map) => (res.ok ? res.data.map(map) : null);
-          const sum = (res, f) => (res.ok ? res.data.reduce((t, r) => t + (Number(r[f]) || 0), 0) : null);
+          const sum = (res, f) => (res.ok ? roundMoney2(res.data.reduce((t, r) => t + (Number(r[f]) || 0), 0)) : null);
           return {
-            labor: { available: lateLaborRes.ok, rows: rows(lateLaborRes, l => ({ date: bizDate(l.work_date), worker_name: l.worker_name, site_ref: l.site_ref || projectMap.get(l.project_id) || 'غير محدد', work_item: l.work_item || '—', daily_wage: canLaborCost ? (Number(l.daily_wage) || 0) : null, status: l.is_posted ? 'مرحّل' : 'مسودة' })), total_wages: canLaborCost ? sum(lateLaborRes, 'daily_wage') : null },
+            labor: { available: lateLaborRes.ok, rows: rows(lateLaborRes, l => ({ date: bizDate(l.work_date), worker_name: l.worker_name, site_ref: l.site_ref || projectMap.get(l.project_id) || 'غير محدد', work_item: l.work_item || '—', daily_wage: canLaborCost ? (Number(l.daily_wage) || 0) : null, status: l.is_posted ? 'مرحّل' : 'مسودة' })), total_wages: canLaborCost && lateLaborRes.ok ? roundMoney2(lateLaborRes.data.reduce((t, r) => t + (Number(r.daily_wage) || 0) * Number(r.attendance_value ?? 1), 0)) : null },
             expenses: { available: lateExpRes.ok, rows: rows(lateExpRes, e => ({ date: bizDate(e.exp_date), description: e.description, total_price: Number(e.total_price) || 0, site_ref: e.site_ref || projectMap.get(e.project_id) || 'عام', payee_name: e.payee_name || '—', status: e.is_posted ? 'مرحّل' : 'مسودة' })), total: sum(lateExpRes, 'total_price') },
-            payments: { available: latePayRes.ok, rows: rows(latePayRes, v => ({ date: bizDate(v.date), voucher_number: v.voucher_number || 'مسودة', amount: Number(v.amount) || 0, partner_name: partnerMap.get(v.partner_id)?.name || '—', description: v.description || v.notes || '—', status: v.status || (v.is_posted ? 'مرحّل' : 'مسودة') })), total: sum(latePayRes, 'amount') },
+            payments: {
+              available: latePayRes.ok,
+              rows: rows(latePayRes, v => {
+                const partner = partnerMap.get(v.partner_id);
+                const debitAcc = accountMap.get(v.debit_account_id);
+                const cat = classifyPaymentVoucherCategory(v, partner, debitAcc);
+                return {
+                  date: bizDate(v.date),
+                  voucher_number: v.voucher_number || 'مسودة',
+                  amount: Number(v.amount) || 0,
+                  partner_name: partner?.name || '—',
+                  description: v.description || v.notes || '—',
+                  category: cat,
+                  category_label: PAYMENT_VOUCHER_CATEGORY_LABELS[cat] || 'سند صرف',
+                  status: v.status || (v.is_posted ? 'مرحّل' : 'مسودة'),
+                };
+              }),
+              total: sum(latePayRes, 'amount'),
+            },
             receipts: { available: lateRecRes.ok, rows: rows(lateRecRes, r => ({ date: bizDate(r.date), receipt_number: r.receipt_number || 'مسودة', amount: Number(r.amount) || 0, partner_name: partnerMap.get(r.partner_id)?.name || '—' })), total: sum(lateRecRes, 'amount') },
             materials: { available: lateMatRes.ok, rows: rows(lateMatRes, m => ({ date: bizDate(m.issue_date), issue_number: m.issue_number, villa: projectMap.get(m.project_id) || 'عام', contractor: m.contractor_text_name || partnerMap.get(m.subcontractor_id)?.name || '—', total_amount: Number(m.total_amount) || 0 })), total: sum(lateMatRes, 'total_amount') },
             claims: { available: lateClaimRes.ok, rows: rows(lateClaimRes, c => ({ date: bizDate(c.date), claim_number: c.claim_number || 'مسودة', contractor_name: partnerMap.get(c.contractor_id)?.name || 'مقاول', projects: c.project_names_text || projectMap.get(c.project_id) || 'مشروع', net_amount: Number(c.net_amount) || 0, status: c.status || (c.is_posted ? 'معتمد' : 'معلق') })), total: sum(lateClaimRes, 'net_amount') },
@@ -1174,16 +1296,40 @@ export function createCopilotTools({
           daily_logs_wages_total: totalLaborWagesToday,
           labor_expenses_total: totalLaborExpenses,
           labor_payment_vouchers_total: totalLaborVouchers,
-          total_spent_or_accrued_for_labor:
-            wagesAvailable && expensesAvailable && paymentsAvailable
-              ? totalLaborWagesToday + totalLaborExpenses + totalLaborVouchers
-              : null,
-          all_payment_vouchers_today_total: totalPaymentVouchersToday,
-          all_payment_vouchers_today: paymentsAvailable ? paymentVouchersToday.map(v => ({
+          total_actual_cash_paid_for_labor: totalActualCashPaidForLabor,
+          unpaid_daily_wages_today: unpaidDailyWagesToday,
+          total_spent_or_accrued_for_labor: totalActualCashPaidForLabor,
+          custody_vouchers_today_total: totalCustodyVouchersToday,
+          custody_vouchers_today: paymentsAvailable ? custodyVouchersToday.map(({ raw: v, partner, debit_account_label }) => ({
             voucher_number: v.voucher_number || 'مسودة',
             amount: Number(v.amount) || 0,
-            partner_name: partnerMap.get(v.partner_id)?.name || '—',
+            partner_name: partner?.name || '—',
             description: v.description || v.notes || '—',
+            debit_account: debit_account_label || '125 - عُهد الموظفين والمواقع',
+            status: v.status || (v.is_posted ? 'مرحّل' : 'مسودة'),
+            note: backdatedNote(v.date),
+          })) : null,
+          non_custody_payment_vouchers_today_total: totalNonCustodyVouchersToday,
+          non_custody_payment_vouchers_today: paymentsAvailable ? nonCustodyVouchersToday.map(({ raw: v, partner, category, category_label, debit_account_label }) => ({
+            voucher_number: v.voucher_number || 'مسودة',
+            amount: Number(v.amount) || 0,
+            partner_name: partner?.name || '—',
+            description: v.description || v.notes || '—',
+            category,
+            category_label,
+            debit_account: debit_account_label,
+            status: v.status || (v.is_posted ? 'مرحّل' : 'مسودة'),
+            note: backdatedNote(v.date),
+          })) : null,
+          all_payment_vouchers_today_total: totalPaymentVouchersToday,
+          all_payment_vouchers_today: paymentsAvailable ? classifiedVouchers.map(({ raw: v, partner, category, category_label, debit_account_label }) => ({
+            voucher_number: v.voucher_number || 'مسودة',
+            amount: Number(v.amount) || 0,
+            partner_name: partner?.name || '—',
+            description: v.description || v.notes || '—',
+            category,
+            category_label,
+            debit_account: debit_account_label,
             status: v.status || (v.is_posted ? 'مرحّل' : 'مسودة'),
             note: backdatedNote(v.date),
           })) : null,
@@ -2145,14 +2291,20 @@ export function createCopilotTools({
         };
       }
 
+      const isCustodyVoucher =
+        /(?:^|\s)عهد[ةه](?:\s|$)/iu.test(rawArgs?.description || '') ||
+        /(?:^|\s)عهد[ةه](?:\s|$)/iu.test(rawArgs?.debit_account || '');
+
       const isWorker =
-        partnerType === 'عامل' ||
-        partnerType === 'عامل يومية' ||
-        /(?:عامل|عمال|عمالة|عماله|فني|صنايعي|يومية|يوميه|اجور|أجور|سلفة|سلفه)/iu.test(payeeRaw) ||
-        /(?:عامل|عمال|عمالة|عماله|فني|صنايعي|يومية|يوميه|اجور|أجور|سلفة|سلفه)/iu.test(rawArgs?.description || '');
+        !isCustodyVoucher && (
+          partnerType === 'عامل' ||
+          partnerType === 'عامل يومية' ||
+          /(?:عامل|عمال|عمالة|عماله|فني|صنايعي|يومية|يوميه|اجور|أجور|سلفة|سلفه)/iu.test(payeeRaw) ||
+          /(?:عامل|عمال|عمالة|عماله|فني|صنايعي|يومية|يوميه|اجور|أجور|سلفة|سلفه)/iu.test(rawArgs?.description || '')
+        );
 
       // 3) Fetch accounts for auto mapping:
-      // المدين (Debit): عمال (512 - أجور ومرتبات عمالة الموقع) أو حساب الشريك/المقاول
+      // المدين (Debit): عهدة (125) أو عمال (512 - أجور ومرتبات عمالة الموقع) أو حساب الشريك/المقاول
       // الدائن (Credit): الخزنة (122 - الخزينة الرئيسية)
       const accRes = await fetchScopedRows('accounts', { select: 'id,code,name,account_type', limit: '200' });
       const accs = accRes.ok && Array.isArray(accRes.data) ? accRes.data : [];
@@ -2163,9 +2315,11 @@ export function createCopilotTools({
         creditAccount = accs.find(a => a.name && (a.name.includes('صندوق') || a.name.includes('نقد')));
       }
 
-      // Debit Account: حساب العمال (512 - أجور ومرتبات عمالة الموقع)
+      // Debit Account: العُهد 125 أو العمال 512 أو حساب المقاول/المورد
       let debitAccount = null;
-      if (isWorker) {
+      if (isCustodyVoucher) {
+        debitAccount = accs.find(a => String(a.code) === '125' || (a.name && a.name.includes('عُهد')));
+      } else if (isWorker) {
         debitAccount = accs.find(a => String(a.code) === '512' || (a.name && a.name.includes('أجور ومرتبات عمالة')));
         if (!debitAccount) {
           debitAccount = accs.find(a => a.name && (a.name.includes('أجور') || a.name.includes('عمال')));

@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import MasterPage from '@/components/MasterPage';
 import { supabase } from '@/lib/supabase';
@@ -300,12 +301,12 @@ export default function ProjectProfitabilityPage() {
                 {isReconciled ? (
                   <>
                     <ShieldCheck size={16} />
-                    مطابقة تامة 100% مع الأستاذ العام (حسابات 4 و 51) — الفارق: 0.00 ر.س
+                    مطابقة تامة 100% مع الأستاذ العام (حسابات 4 و 51) — الفارق: 0.00 {currencySymbol()}
                   </>
                 ) : (
                   <>
                     <AlertTriangle size={16} />
-                    يوجد فارق عدم مطابقة: {formatCurrency(glVariance)} ر.س
+                    يوجد فارق عدم مطابقة: {formatCurrency(glVariance)}
                   </>
                 )}
               </div>

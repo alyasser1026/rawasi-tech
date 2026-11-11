@@ -1,4 +1,5 @@
 "use client";
+import { currencyCode } from '@/lib/currency';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '@/lib/helpers';
@@ -118,7 +119,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
                                     <th style={{ width: '10%' }}>الكمية</th>
                                     <th style={{ width: '10%' }}>الوحدة</th>
                                     <th style={{ width: '15%' }}>سعر الوحدة</th>
-                                    <th style={{ width: '20%' }}>الإجمالي (SAR)</th>
+                                    <th style={{ width: '20%' }}>الإجمالي ({currencyCode()})</th>
                                 </tr>
                             </thead>
                             <tbody>

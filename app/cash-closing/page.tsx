@@ -1,4 +1,5 @@
 'use client';
+import { currencySymbol } from '@/lib/currency';
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -277,7 +278,7 @@ export default function CashClosingPage() {
               {/* Physical Cash Input */}
               <div className={styles.formGroup}>
                 <label className={styles.formLabel}>
-                  المبلغ الفعلي الموجود بالخزينة (الجرد الفعلي ر.س) *
+                  المبلغ الفعلي الموجود بالخزينة (الجرد الفعلي {currencySymbol()}) *
                 </label>
                 <input
                   type="number"
@@ -374,7 +375,7 @@ export default function CashClosingPage() {
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                   <span className="text-amber-400 font-bold">•</span>
                   <span>
-                    <strong>المطابقة الصفرية:</strong> إذا كان الفارق بين الجرد الفعلي والدفتري 0.00 ر.س، يُعتمد
+                    <strong>المطابقة الصفرية:</strong> إذا كان الفارق بين الجرد الفعلي والدفتري 0.00 {currencySymbol()}، يُعتمد
                     المحضر تلقائياً فور حفظه.
                   </span>
                 </div>

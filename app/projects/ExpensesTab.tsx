@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import React, { useState, useMemo, useEffect } from 'react';
 import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
@@ -198,7 +199,7 @@ export default function ExpensesTab({ logic }: { logic: any }) {
         render: (row: any) => <strong style={{ color: THEME.coffeeDark, fontSize: 'var(--fs-sm)' }}>{row['البيان / البند']}</strong> 
     },
     { 
-        header: 'التكلفة المحملة (ر.س)', 
+        header: `التكلفة المحملة (${currencySymbol()})`, 
         render: (row: any) => {
             const typeText = String(row['نوع التكلفة'] || '');
             const isLabor = typeText.includes('عمالة مباشرة');

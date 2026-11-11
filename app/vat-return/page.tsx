@@ -1,4 +1,5 @@
 'use client';
+import { currencySymbol } from '@/lib/currency';
 
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -65,7 +66,7 @@ function ReviewDialog({ row, companyId, onClose }: { row: VatTransaction; compan
         <input id="vat-review-date" type="date" required value={taxDate} onChange={event => setTaxDate(event.target.value)} disabled={save.isPending} />
         <small className="ent-field-note">تاريخ المستند {row.document_date}. تحقّق من التاريخ حسب المستند المؤيد، خصوصًا في المعاملات الحكومية أو النقدية.</small>
       </div>
-      {needsDeductible && <div className="ent-form-field ent-form-full"><label htmlFor="vat-review-deductible">الضريبة القابلة للخصم (ريال)</label>
+      {needsDeductible && <div className="ent-form-field ent-form-full"><label htmlFor="vat-review-deductible">الضريبة القابلة للخصم ({currencySymbol()})</label>
         <input id="vat-review-deductible" type="number" min="0" step="0.01" inputMode="decimal" required value={deductible}
           onChange={event => setDeductible(event.target.value)} disabled={save.isPending} />
         <small className="ent-field-note">الضريبة المسجلة {formatVatAmount(row.recorded_tax)}. أدخل المبلغ الذي تؤيده المستندات، أو صفرًا إذا تأكدت من عدم وجود مبلغ قابل للخصم.</small>
@@ -116,13 +117,13 @@ function PeriodAdjustmentsDialog({
     footer={<button type="submit" className="ent-button ent-primary" disabled={!canSubmit || save.isPending}>{save.isPending ? 'جاري الحفظ…' : 'حفظ واعتماد الخانات'}</button>}>
     <div className="ent-form-grid" dir="rtl">
       <div className="ent-form-field">
-        <label htmlFor="vat-box-14">خانة 14 — تصحيحات الفترات السابقة (ريال)</label>
+        <label htmlFor="vat-box-14">خانة 14 — تصحيحات الفترات السابقة ({currencySymbol()})</label>
         <input id="vat-box-14" dir="ltr" type="number" step="0.01" inputMode="decimal" required value={priorAdj}
           onChange={event => setPriorAdj(event.target.value)} disabled={save.isPending} />
         <small className="ent-field-note">أدخل 0 إذا لم توجد تصحيحات، أو قيمة موجبة/سالبة حسب لائحة الهيئة (±5,000 ر.س).</small>
       </div>
       <div className="ent-form-field">
-        <label htmlFor="vat-box-15">خانة 15 — الرصيد الدائن المرحّل من فترات سابقة (ريال)</label>
+        <label htmlFor="vat-box-15">خانة 15 — الرصيد الدائن المرحّل من فترات سابقة ({currencySymbol()})</label>
         <input id="vat-box-15" dir="ltr" type="number" min="0" step="0.01" inputMode="decimal" required value={creditFwd}
           onChange={event => setCreditFwd(event.target.value)} disabled={save.isPending} />
         <small className="ent-field-note">يُطرح من صافي ضريبة الفترة الحالية للوصول إلى الخانة 16 بعد اكتمال مراجعة المستندات.</small>

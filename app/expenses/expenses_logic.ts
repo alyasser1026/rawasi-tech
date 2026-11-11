@@ -1,4 +1,5 @@
 "use client";
+import { currencySymbol } from '@/lib/currency';
 import { useState, useMemo, useEffect } from 'react';
 import { supabase } from '@/lib/supabase'; 
 import * as XLSX from 'xlsx';
@@ -510,7 +511,7 @@ export function useExpensesLogic() {
         },
         onSuccess: (res) => {
             if (res.processed_count > 0) {
-                showToast(`تم إنشاء ${res.processed_count} سند صرف بإجمالي ${Number(res.total_amount).toLocaleString()} ريال`, 'success');
+                showToast(`تم إنشاء ${res.processed_count} سند صرف بإجمالي ${Number(res.total_amount).toLocaleString()} ${currencySymbol()}`, 'success');
             } else {
                 showToast("لم يتم إنشاء أي سندات، قد تكون السجلات مسددة بالفعل!", 'warning');
             }
