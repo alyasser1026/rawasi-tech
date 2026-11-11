@@ -726,24 +726,69 @@ td {
     display: none !important;
   }
   
-  /* 🚨 السر هنا: إزالة التصغير والـ transform اللي كان بيرحل الصفحة يمين! */
+  /* 🚨 ضمان تعدد الصفحات الكامل (Multi-Page Pagination) ومنع قص التقرير عند الصفحة الأولى */
   html, body {
     zoom: 1 !important; 
     transform: none !important;
     width: 100% !important;
-    height: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    position: static !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
   body {
-    background: white !important;
-    color: black !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   
-  .table-container { box-shadow: none; border: none; }
-  table { border: 1px solid #ddd; }
-  thead th { border-bottom: 2px solid #000; color: #000; }
+  .table-container {
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    max-height: none !important;
+  }
+  table {
+    border: 1px solid #cbd5e1 !important;
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  thead {
+    display: table-header-group !important;
+  }
+  tfoot {
+    display: table-footer-group !important;
+  }
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+  thead th {
+    position: static !important;
+    top: auto !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    border: 1px solid #cbd5e1 !important;
+    border-bottom: 2px solid #0f172a !important;
+    padding: 7px 8px !important;
+    font-size: 11px !important;
+  }
+  td {
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    padding: 6px 8px;
+    font-size: 11px;
+  }
 }
 
 /* ========================================================================= */

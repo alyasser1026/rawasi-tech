@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import SecureAction from '@/components/SecureAction';
 import ReportContactFooter from '@/components/ReportContactFooter';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { buildMilestoneSchedule, localToday, MILESTONE_STATUS_META } from '@/lib/milestoneSchedule';
 import { buildProjectDailyReport } from '@/lib/projectDailyReport';
 import { buildEvmAnalysis, EVM_STATUS_META } from '@/lib/evmAnalysis';
@@ -2926,31 +2927,118 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
             </div>
 
             {/* محتوى الورقة الرسمية المطبوعة */}
-            <div id="printable-dossier" style={{ padding: '1.5rem 1.75rem', overflowY: 'auto', color: '#1e293b', background: '#ffffff' }}>
-              
-              {/* ترويسة التقرير الرسمية مع شعار فاي تك */}
-              <div className="dossier-keep-together" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', borderBottom: `3px solid ${THEME.primary}`, paddingBottom: '0.85rem', marginBottom: '1rem' }}>
-                <div>
-                  <h1 style={{ margin: 0, color: '#0f172a', fontWeight: 900, fontSize: '21px', lineHeight: 1.3 }}>
-                    {customReportTitle || 'التقرير التنفيذي الشامل للمشروع (Project Executive Dossier)'}
-                  </h1>
-                  <div style={{ margin: '6px 0 0 0', color: '#475569', fontWeight: 800, fontSize: '12px', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                    <span>المشروع: <strong style={{ color: '#0f172a' }}>{project.Property || '—'}</strong></span>
-                    <span>• تاريخ الإصدار: <strong dir="ltr">{new Date().toLocaleDateString('en-GB')}</strong></span>
-                    <span>• العملة: <strong>{currencySymbol()}</strong></span>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
-                  <img
-                    src="/brand/phitech-lockup-color.svg"
-                    alt="فاي تك PhiTech للمقاولات والتوريدات"
-                    style={{ height: '54px', width: 'auto', objectFit: 'contain', display: 'block' }}
-                  />
-                  <div style={{ color: '#475569', fontSize: '11px', fontWeight: 800 }}>
-                    إدارة المشروعات والرقابة المالية • نظام فاي تك الموحد
-                  </div>
-                </div>
-              </div>
+            <div id="printable-dossier" style={{ padding: '1.5rem 1.75rem', overflowY: 'auto', color: '#0f172a', background: '#ffffff' }}>
+              <style>{`
+                #printable-dossier {
+                  font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+                  color: #0f172a;
+                  background: #ffffff;
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+                #printable-dossier table {
+                  width: 100% !important;
+                  border-collapse: collapse !important;
+                  border: 1.5px solid #94a3b8 !important;
+                  background: #ffffff !important;
+                  margin-bottom: 1rem !important;
+                }
+                #printable-dossier thead {
+                  display: table-header-group !important;
+                }
+                #printable-dossier tfoot {
+                  display: table-footer-group !important;
+                }
+                #printable-dossier tr {
+                  page-break-inside: avoid !important;
+                  break-inside: avoid !important;
+                }
+                #printable-dossier thead th {
+                  position: static !important;
+                  top: auto !important;
+                  z-index: auto !important;
+                  backdrop-filter: none !important;
+                  -webkit-backdrop-filter: none !important;
+                  background: #0f172a !important;
+                  color: #ffffff !important;
+                  font-weight: 900 !important;
+                  font-size: 11px !important;
+                  padding: 8px 10px !important;
+                  border: 1px solid #334155 !important;
+                  border-bottom: 2.5px solid #ea580c !important;
+                  line-height: 1.35 !important;
+                }
+                #printable-dossier tbody tr:nth-child(even) {
+                  background-color: #f8fafc !important;
+                }
+                #printable-dossier tbody tr:nth-child(odd) {
+                  background-color: #ffffff !important;
+                }
+                #printable-dossier tbody td {
+                  color: #0f172a;
+                  font-size: 11px !important;
+                  font-weight: 700 !important;
+                  padding: 7px 10px !important;
+                  border: 1px solid #cbd5e1 !important;
+                  line-height: 1.4 !important;
+                  vertical-align: middle !important;
+                }
+                #printable-dossier tfoot tr,
+                #printable-dossier tfoot td {
+                  background: #f1f5f9 !important;
+                  color: #0f172a !important;
+                  font-weight: 900 !important;
+                  font-size: 11.5px !important;
+                  padding: 8px 10px !important;
+                  border: 1.5px solid #64748b !important;
+                }
+                #printable-dossier h3 {
+                  background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%) !important;
+                  border: 1px solid #cbd5e1 !important;
+                  border-right: 4px solid #ea580c !important;
+                  border-radius: 6px !important;
+                  padding: 6px 12px !important;
+                  color: #0f172a !important;
+                  font-size: 13.5px !important;
+                  font-weight: 900 !important;
+                  margin-bottom: 0.65rem !important;
+                  page-break-after: avoid !important;
+                  break-after: avoid !important;
+                }
+                @media print {
+                  html, body {
+                    height: auto !important;
+                    min-height: 0 !important;
+                    max-height: none !important;
+                    overflow: visible !important;
+                    overflow-x: visible !important;
+                    overflow-y: visible !important;
+                  }
+                  #printable-dossier {
+                    position: static !important;
+                    width: 100% !important;
+                    max-width: none !important;
+                    height: auto !important;
+                    max-height: none !important;
+                    overflow: visible !important;
+                    padding: 0 !important;
+                    margin: 0 !important;
+                    box-shadow: none !important;
+                  }
+                }
+              `}</style>
+
+              {/* ترويسة التقرير الرسمية مع شعار فاي تك والباركود الخطي و QR */}
+              <ReportOfficialHeader
+                title={customReportTitle || 'التقرير التنفيذي الشامل للمشروع (Project Executive Dossier)'}
+                subtitle="تقرير رقابي معتمد صادر عن منظومة فاي تك لإدارة المشروعات والمقاولات"
+                projectName={project.Property || '—'}
+                clientName={project.Client || undefined}
+                engineerName={project.Engineer || undefined}
+                contractValueText={project.Contract ? `${Number(project.Contract).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currencySymbol()}` : undefined}
+                issueDate={new Date().toLocaleDateString('en-GB')}
+                currency={currencySymbol()}
+              />
 
               {/* بيانات المشروع الأساسية والـ KPIs */}
               {printOptions.projectInfo && (
@@ -3347,26 +3435,53 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 </div>
               )}
 
-              {/* صناديق التوقيع والاعتماد */}
+              {/* صناديق التوقيع والاعتماد الرسمي + ختم الشركة */}
               {printOptions.signatures && (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem', textAlign: 'center', marginTop: '2.5rem', pageBreakInside: 'avoid' }}>
-                  <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.75rem' }}>
-                    <div style={{ fontWeight: 900, fontSize: '13px' }}>المهندس المشرف على الموقع</div>
-                    <div style={{ marginTop: '2rem', color: '#94a3b8', fontSize: '11px' }}>التوقيع: ..........................</div>
+                <div
+                  className="dossier-keep-together"
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(4, 1fr)',
+                    gap: '1rem',
+                    textAlign: 'center',
+                    marginTop: '2rem',
+                    padding: '1rem',
+                    background: '#f8fafc',
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '10px',
+                    pageBreakInside: 'avoid',
+                    breakInside: 'avoid',
+                  }}
+                >
+                  <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0.75rem 0.5rem' }}>
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#0f172a' }}>المهندس المشرف على الموقع</div>
+                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, marginTop: '2px' }}>{project.Engineer || 'الإشراف الهندسي'}</div>
+                    <div style={{ marginTop: '1.85rem', borderTop: '1px dashed #94a3b8', paddingTop: '6px', color: '#475569', fontSize: '10.5px', fontWeight: 800 }}>التوقيع والاعتماد</div>
                   </div>
-                  <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.75rem' }}>
-                    <div style={{ fontWeight: 900, fontSize: '13px' }}>مدير إدارة المشروعات</div>
-                    <div style={{ marginTop: '2rem', color: '#94a3b8', fontSize: '11px' }}>التوقيع: ..........................</div>
+                  <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0.75rem 0.5rem' }}>
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#0f172a' }}>مدير إدارة المشروعات (PMO)</div>
+                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, marginTop: '2px' }}>الرقابة الهندسية والجدول الزمني</div>
+                    <div style={{ marginTop: '1.85rem', borderTop: '1px dashed #94a3b8', paddingTop: '6px', color: '#475569', fontSize: '10.5px', fontWeight: 800 }}>التوقيع والاعتماد</div>
                   </div>
-                  <div style={{ borderTop: '1px solid #cbd5e1', paddingTop: '0.75rem' }}>
-                    <div style={{ fontWeight: 900, fontSize: '13px' }}>المدير المالي والاعتماد</div>
-                    <div style={{ marginTop: '2rem', color: '#94a3b8', fontSize: '11px' }}>التوقيع: ..........................</div>
+                  <div style={{ background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '0.75rem 0.5rem' }}>
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#0f172a' }}>المدير المالي والمراجعة</div>
+                    <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, marginTop: '2px' }}>الإدارة المالية ومراقبة التكاليف</div>
+                    <div style={{ marginTop: '1.85rem', borderTop: '1px dashed #94a3b8', paddingTop: '6px', color: '#475569', fontSize: '10.5px', fontWeight: 800 }}>التوقيع والاعتماد</div>
+                  </div>
+                  <div style={{ background: '#ffffff', border: '1.5px dashed #ea580c', borderRadius: '8px', padding: '0.75rem 0.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#c2410c' }}>ختم الشركة والمصادقة</div>
+                    <div style={{ width: '58px', height: '58px', borderRadius: '50%', border: '2px double #ea580c', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#ea580c', fontSize: '8.5px', fontWeight: 900, lineHeight: 1.15, margin: '4px 0' }}>
+                      <span>PHI TECH</span>
+                      <span>OFFICIAL</span>
+                      <span>SEAL</span>
+                    </div>
+                    <div style={{ color: '#475569', fontSize: '10px', fontWeight: 800 }}>شركة فاي تك للمقاولات</div>
                   </div>
                 </div>
               )}
 
               {/* 📱 فوتر جهات الاتصال الرسمية مع باركود vCard الذكي */}
-              <ReportContactFooter style={{ marginTop: '2.5rem' }} />
+              <ReportContactFooter style={{ marginTop: '1.75rem' }} />
 
             </div>
           </div>

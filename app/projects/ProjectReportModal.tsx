@@ -4,6 +4,7 @@ import { formatCurrency } from '@/lib/helpers';
 import { THEME } from '@/lib/theme';
 import { Printer } from 'lucide-react';
 import ReportContactFooter from '@/components/ReportContactFooter';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 
 export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, flatBoqData }: any) {
   useEffect(() => {
@@ -60,23 +61,86 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
         </div>
 
         {/* 📄 بداية الورقة الرسمية (التي ستطبع) */}
-        <div id="printable-report" style={{ padding: '2.5rem', color: '#1e293b', direction: 'rtl', backgroundColor: 'white' }}>
+        <div id="printable-report" style={{ padding: '2.5rem', color: '#0f172a', direction: 'rtl', backgroundColor: 'white' }}>
+          <style>{`
+            #printable-report {
+              font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
+              color: #0f172a;
+              background: #ffffff;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            #printable-report table {
+              width: 100% !important;
+              border-collapse: collapse !important;
+              border: 1.5px solid #94a3b8 !important;
+              background: #ffffff !important;
+            }
+            #printable-report thead {
+              display: table-header-group !important;
+            }
+            #printable-report tfoot {
+              display: table-footer-group !important;
+            }
+            #printable-report tr {
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+            }
+            #printable-report thead th {
+              position: static !important;
+              top: auto !important;
+              backdrop-filter: none !important;
+              -webkit-backdrop-filter: none !important;
+              background: #0f172a !important;
+              color: #ffffff !important;
+              font-weight: 900 !important;
+              font-size: 11px !important;
+              padding: 8px 10px !important;
+              border: 1px solid #334155 !important;
+              border-bottom: 2.5px solid #ea580c !important;
+            }
+            #printable-report tbody tr:nth-child(even) {
+              background-color: #f8fafc !important;
+            }
+            #printable-report tbody td {
+              color: #0f172a;
+              font-size: 11px !important;
+              font-weight: 700 !important;
+              padding: 7px 10px !important;
+              border: 1px solid #cbd5e1 !important;
+            }
+            @media print {
+              html, body {
+                height: auto !important;
+                min-height: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+                overflow-x: visible !important;
+                overflow-y: visible !important;
+              }
+              #printable-report {
+                position: static !important;
+                width: 100% !important;
+                max-width: none !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+              }
+            }
+          `}</style>
           
-          {/* الترويسة Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `3px solid ${THEME.primary}`, paddingBottom: '1rem', marginBottom: '1.5rem' }}>
-            <div>
-              <h1 style={{ margin: 0, color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-2xl)' }}>التقرير المالي والتحليلي للمشروع</h1>
-              <p style={{ margin: '0.3125rem 0 0 0', color: '#64748b', fontWeight: 800 }}>تاريخ الإصدار: {today}</p>
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-              <img
-                src="/brand/phitech-lockup-color.svg"
-                alt="فاي تك PhiTech للمقاولات والتوريدات"
-                style={{ height: '50px', width: 'auto', objectFit: 'contain', display: 'block' }}
-              />
-              <p style={{ margin: 0, color: '#475569', fontWeight: 800, fontSize: 'var(--fs-xs)' }}>إدارة المشاريع والتكاليف • نظام الرقابة المالية (ABC Costing)</p>
-            </div>
-          </div>
+          {/* الترويسة الرسمية Header مع الشعار والباركود و QR */}
+          <ReportOfficialHeader
+            title="التقرير المالي والتحليلي للمشروع"
+            subtitle="إدارة المشاريع والتكاليف • نظام الرقابة المالية (ABC Costing)"
+            projectName={project.Property || '—'}
+            clientName={project.Client || undefined}
+            engineerName={project.Engineer || undefined}
+            issueDate={today}
+          />
 
           {/* بيانات المشروع */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginBottom: '1.875rem', backgroundColor: '#f8fafc', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
