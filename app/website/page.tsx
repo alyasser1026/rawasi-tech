@@ -1272,7 +1272,7 @@ export default function WebsitePage() {
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl xl:text-6xl font-black leading-tight tracking-tight">
+            <h1 className="text-3xl sm:text-5xl xl:text-6xl font-black leading-snug">
               نبني <span style={{ color: '#fb923c' }}>الهيكل الإنشائي (العظم)</span>، نُبدع <span style={{ color: '#34d399' }}>التشطيب المعماري الفاخر</span>، ونُنفّذ <span style={{ color: '#38bdf8' }}>الكهروميكانيك والتكييف المخفي</span>.
             </h1>
 

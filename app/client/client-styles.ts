@@ -10,7 +10,8 @@ export const CSS = `
 .cl-bar-row{display:flex;align-items:center;gap:16px;min-height:68px}
 .cl-brand{white-space:nowrap;display:flex;align-items:center;gap:12px;font-weight:800;font-size:1.1rem}
 .cl-brand img{height:42px;width:auto;display:block}
-.cl-brand small{display:block;font-size:.72rem;font-weight:700;color:var(--o);letter-spacing:.02em}
+.cl-brand>div{display:flex;flex-direction:column;gap:3px;line-height:1.35}
+.cl-brand small{display:block;font-size:.72rem;font-weight:700;color:var(--o);letter-spacing:.02em;line-height:1.2}
 .cl-spacer{flex:1}
 .cl-user{font-weight:700;font-size:.9rem;color:var(--ink-2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cl-btn{min-height:42px;padding:0 16px;border-radius:11px;border:1px solid var(--line);background:#fff;color:var(--ink);font-weight:700;font-size:.88rem;cursor:pointer}
