@@ -256,43 +256,52 @@ export default function AdvancedProjectsPage() {
           ) : (
               <div style={{ animation: 'fadeIn 0.4s ease-out' }}>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5625rem', background: 'rgba(255,255,255,0.4)', padding: '1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.5)' }}>
-                    <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5625rem', background: 'rgba(255,255,255,0.4)', padding: '1rem 1.25rem', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.5)' }}>
+                    <div style={{ minWidth: 0 }}>
                         <h2 style={{ margin: 0, fontWeight: 900, color: THEME.coffeeDark, fontSize: 'var(--fs-2xl)' }}>
                             {logic.selectedProject.Property}
                             {logic.selectedProject.unit_type && <span style={{ fontSize: 'var(--fs-lg)', color: THEME.goldAccent, marginRight: '0.625rem' }}>- {logic.selectedProject.unit_type}</span>}
                         </h2>
-                        <div style={{ display: 'flex', gap: '1.25rem', marginTop: '0.625rem', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem', marginTop: '0.5rem', fontSize: 'var(--fs-sm)', fontWeight: 800, color: '#475569' }}>
                             {logic.selectedProject.engineer_in_charge && <span>المهندس المسئول: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_in_charge}</strong></span>}
                             {logic.selectedProject.engineer_phone && <span>جوال: <strong style={{color: THEME.primary}}>{logic.selectedProject.engineer_phone}</strong></span>}
                         </div>
                     </div>
                     
-                    <div style={{ display: 'flex', gap: '0.9375rem', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+                            <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b', whiteSpace: 'nowrap' }}>تغيير حالة المشروع:</span>
+                            <select 
+                                value={logic.selectedProject.status || 'قيد الدراسة'}
+                                onChange={(e) => logic.updateProjectStatus(e.target.value)}
+                                style={{ 
+                                    width: 'auto', minWidth: '10.5rem', flexShrink: 0,
+                                    padding: '0.625rem 1rem', borderRadius: '12px', border: 'none', 
+                                    fontWeight: 900, backgroundColor: 'white', color: THEME.primary, 
+                                    boxShadow: '0 5px 15px rgba(0,0,0,0.05)', outline: 'none', cursor: 'pointer'
+                                }}
+                            >
+                                <option value="قيد الدراسة">قيد الدراسة</option>
+                                <option value="جاري تجهيز الموقع">جاري تجهيز الموقع</option>
+                                <option value="قيد التنفيذ">قيد التنفيذ</option>
+                                <option value="متوقف مؤقتا">متوقف مؤقتا</option>
+                                <option value="متوقف">متوقف نهائياً</option>
+                                <option value="منتهي">منتهي</option>
+                            </select>
+                        </div>
+
                         <button 
                             onClick={() => logic.setSelectedProject(null)} 
-                            style={{ padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', fontWeight: 900, backgroundColor: '#475569', color: 'white', cursor: 'pointer', boxShadow: '0 5px 15px rgba(0,0,0,0.1)', transition: '0.3s' }}
+                            style={{ 
+                                whiteSpace: 'nowrap', flexShrink: 0, minHeight: '2.625rem',
+                                display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                                padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', 
+                                fontWeight: 900, backgroundColor: '#475569', color: 'white', 
+                                cursor: 'pointer', boxShadow: '0 5px 15px rgba(0,0,0,0.1)', transition: '0.3s' 
+                            }}
                         >
                             العودة لقائمة المشاريع
                         </button>
-
-                        <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#64748b' }}>تغيير حالة المشروع:</span>
-                        <select 
-                            value={logic.selectedProject.status || 'قيد الدراسة'}
-                            onChange={(e) => logic.updateProjectStatus(e.target.value)}
-                            style={{ 
-                                padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', 
-                                fontWeight: 900, backgroundColor: 'white', color: THEME.primary, 
-                                boxShadow: '0 5px 15px rgba(0,0,0,0.05)', outline: 'none', cursor: 'pointer'
-                            }}
-                        >
-                            <option value="قيد الدراسة">قيد الدراسة</option>
-                            <option value="جاري تجهيز الموقع">جاري تجهيز الموقع</option>
-                            <option value="قيد التنفيذ">قيد التنفيذ</option>
-                            <option value="متوقف مؤقتا">متوقف مؤقتا</option>
-                            <option value="متوقف">متوقف نهائياً</option>
-                            <option value="منتهي">منتهي</option>
-                        </select>
                     </div>
                 </div>
 
