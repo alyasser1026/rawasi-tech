@@ -27,6 +27,34 @@ export function resolveMenuAction(callbackData) {
   return MAIN_MENU_ACTIONS[data.slice(5)] || null;
 }
 
+export const REPORT_FOLLOWUP_ACTIONS = Object.freeze({
+  yesterday: { label: '🗓️ تقرير امبارح', phrase: 'ابعت تقرير امبارح المفصل', tool: 'get_daily_comprehensive_report' },
+  labor: { label: '👷 عمالة اليوم', phrase: 'العمالة اللي نزلت النهارده', tool: 'get_labor_daily_logs' },
+  projects: { label: '🏗️ المشاريع', phrase: 'المشاريع والفلل اللي عندنا كلها', tool: 'get_all_projects_and_villas' },
+  menu: { label: '📌 القائمة الرئيسية', phrase: null, tool: null },
+});
+
+export function buildReportFollowUpMarkup() {
+  return {
+    inline_keyboard: [
+      [
+        { text: REPORT_FOLLOWUP_ACTIONS.yesterday.label, callback_data: 'report:yesterday' },
+        { text: REPORT_FOLLOWUP_ACTIONS.labor.label, callback_data: 'report:labor' },
+      ],
+      [
+        { text: REPORT_FOLLOWUP_ACTIONS.projects.label, callback_data: 'report:projects' },
+        { text: REPORT_FOLLOWUP_ACTIONS.menu.label, callback_data: 'report:menu' },
+      ],
+    ],
+  };
+}
+
+export function resolveReportAction(callbackData) {
+  const data = String(callbackData || '');
+  if (!data.startsWith('report:')) return null;
+  return REPORT_FOLLOWUP_ACTIONS[data.slice(7)] || null;
+}
+
 export const BOT_COMMANDS = Object.freeze([
   { command: 'menu', description: 'القائمة الرئيسية' },
   { command: 'start', description: 'بدء وتعريف بالبوت' },
