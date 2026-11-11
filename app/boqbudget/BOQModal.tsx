@@ -71,7 +71,7 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
 
                     <div style={{ gridColumn: 'span 2' }}>
                         <SmartCombo 
-                            label="وصف الأعمال (اختر البند الرئيسي للربط) *" icon="📋" table="boq_items" searchCols="item_name" displayCol="item_name" 
+                            label="وصف الأعمال (اختر البند الرئيسي للربط) *" icon="📋" table="boq_items" searchCols="item_name,item_code,main_category,sub_category" displayCol="item_name" orderCol="item_code" enableClear={true}
                             initialDisplay={record.work_item || ''} 
                             onSelect={(item: any) => {
                                 const isObj = typeof item === 'object' && item !== null;

@@ -5,6 +5,12 @@ import { readCachedTableRows, writeCachedTableRows } from '@/lib/offline/referen
 import { usePermissions } from '@/lib/PermissionsContext'; // 🛡️ استدعاء مركز قيادة الصلاحيات
 import { Clock, Hourglass, Lock } from 'lucide-react';
 import PhiIcon from './PhiIcon';
+import {
+    normalizeComboText,
+    buildSupabaseTokenOrQueries,
+    filterAndRankComboRows,
+    resolveComboEffectiveQuery
+} from '@/lib/smartComboSearch';
 
 interface SmartComboProps {
     label?: string;
@@ -47,6 +53,7 @@ interface SmartComboProps {
     filterColumn?: string;         // 🚀 إضافة استقبال الفلتر المنفصل المبعوث من الواجهة
     filterValue?: any;             // 🚀 إضافة استقبال قيمة الفلتر المنفصل المبعوث من الواجهة
     filter?: { column: string; value: any }; 
+    orderCol?: string;             // ترتيب النتائج من الداتابيز إن وجد
 }
 
 export default function SmartCombo({ 
@@ -60,7 +67,8 @@ export default function SmartCombo({
     permModule, permAction,
     filterColumn, // 🚀 استلام اسم العمود الفلتر لمنع التكرار
     filterValue,  // 🚀 استلام قيمة الفلتر لمنع التكرار
-    filter // 👈 استلام فلتر التصفية (مثال: project_id)
+    filter, // 👈 استلام فلتر التصفية (مثال: project_id)
+    orderCol
 }: SmartComboProps) {
     
     const [search, setSearch] = useState<string>(initialDisplay || ''); 
@@ -73,6 +81,9 @@ export default function SmartCombo({
     const listRef = useRef<HTMLDivElement>(null);
     const comboRef = useRef<HTMLDivElement>(null);
     const lastSelectedRef = useRef<any>(null);
+    const isUserTypingRef = useRef<boolean>(false);
+    const lastFreeTextEmittedRef = useRef<string | null>(null);
+    const latestRequestIdRef = useRef<number>(0);
 
     // 🛡️ [نظام الصلاحيات المركزي]: حماية ذكية للحقل
     let can = (module: string, action: string) => true; 
@@ -93,14 +104,7 @@ export default function SmartCombo({
     const hasAddPermission = requiredPermission ? can(requiredPermission.module, requiredPermission.action) : true;
 
     // 🚀 [رفع الحساسية]: توحيد الحروف
-    const normalizeText = (text: any) => {
-        return String(text || '')
-            .toLowerCase()
-            .replace(/[أإآ]/g, 'ا')
-            .replace(/ة/g, 'ه')
-            .replace(/\s+/g, ' ')
-            .trim();
-    };
+    const normalizeText = normalizeComboText;
 
     // 🕵️‍♂️ [الخصوصية]: التشفير
     const applyMask = (text: string) => {
@@ -144,14 +148,35 @@ export default function SmartCombo({
     // 🔄 تحديث القيمة الافتراضية
     useEffect(() => {
         if (initialDisplay !== undefined && initialDisplay !== null) {
+            if (
+                freeText &&
+                isUserTypingRef.current &&
+                lastFreeTextEmittedRef.current !== null &&
+                String(initialDisplay) === String(lastFreeTextEmittedRef.current)
+            ) {
+                return;
+            }
+            isUserTypingRef.current = false;
+            lastFreeTextEmittedRef.current = null;
             setSearch(initialDisplay);
-            if (options && options.length > 0) {
-                const found = options.find((o: any) => typeof o === 'object' ? (o[displayCol] === initialDisplay || o.name === initialDisplay) : String(o) === String(initialDisplay));
-                lastSelectedRef.current = found !== undefined ? found : initialDisplay;
-            } else {
-                lastSelectedRef.current = initialDisplay;
+            const prevSel = lastSelectedRef.current;
+            const prevSelMatches = prevSel && typeof prevSel === 'object' && (
+                (displayFormat && displayFormat(prevSel) === initialDisplay) ||
+                prevSel[displayCol] === initialDisplay ||
+                prevSel.name === initialDisplay ||
+                prevSel.Property === initialDisplay
+            );
+            if (!prevSelMatches) {
+                if (options && options.length > 0) {
+                    const found = options.find((o: any) => typeof o === 'object' ? (o[displayCol] === initialDisplay || o.name === initialDisplay) : String(o) === String(initialDisplay));
+                    lastSelectedRef.current = found !== undefined ? found : initialDisplay;
+                } else {
+                    lastSelectedRef.current = initialDisplay;
+                }
             }
         } else if (!multi && !freeText) {
+            isUserTypingRef.current = false;
+            lastFreeTextEmittedRef.current = null;
             setSearch('');
             lastSelectedRef.current = null;
         }
@@ -184,78 +209,70 @@ export default function SmartCombo({
 
     // 📡 دالة البحث الذكية (مع دعم الفلاتر المتسلسلة 🚀)
     const loadData = async (query = '') => {
-        if (!hasFieldAccess) return; 
+        if (!hasFieldAccess) return;
+        const requestId = ++latestRequestIdRef.current;
         setIsLoading(true);
+
+        const activeColumn = filterColumn || filter?.column;
+        const activeValue = filterValue !== undefined ? filterValue : filter?.value;
+        const effectiveQuery = resolveComboEffectiveQuery({
+            query,
+            isUserTyping: isUserTypingRef.current,
+            lastSelected: lastSelectedRef.current,
+            initialDisplay,
+            displayCol,
+            displayFormat,
+        });
+
+        const filterLocalRows = (rows: any[]) =>
+            filterAndRankComboRows(rows, {
+                query: effectiveQuery,
+                searchCols,
+                displayCol,
+                displayFormat,
+                customFilter,
+                filterColumn: activeColumn,
+                filterValue: activeValue,
+                table,
+                maxResults: effectiveQuery ? 30 : 25,
+            });
+
         try {
-            // Determine if query is currently selected value - if so, show all options!
-            const isSelectedDisplay = Boolean(
-                (lastSelectedRef.current !== undefined && lastSelectedRef.current !== null && (
-                    (typeof lastSelectedRef.current !== 'object' && String(lastSelectedRef.current) === query) ||
-                    (typeof lastSelectedRef.current === 'object' && (
-                        (displayFormat && displayFormat(lastSelectedRef.current) === query) ||
-                        lastSelectedRef.current[displayCol] === query ||
-                        lastSelectedRef.current.name === query ||
-                        lastSelectedRef.current.Property === query
-                    ))
-                )) ||
-                (initialDisplay !== undefined && initialDisplay !== null && String(initialDisplay) === query)
-            );
-
-            const effectiveQuery = isSelectedDisplay ? '' : query;
-
             if (options && options.length > 0) {
-                const normQuery = normalizeText(effectiveQuery);
-                const cols = searchCols.split(',').map(c => c.trim()).filter(Boolean);
-                const filtered = options.filter((o: any) => {
-                    if (!normQuery) return true;
-                    if (typeof o !== 'object') return normalizeText(o).includes(normQuery);
-                    const matchDisplay = normalizeText(o[displayCol] || o.item_name || o.Property || o.name || o.description || '').includes(normQuery);
-                    if (matchDisplay) return true;
-                    return cols.some(c => o[c] && normalizeText(o[c]).includes(normQuery));
-                }).slice(0, 30); 
-                setResults(filtered);
+                const filtered = filterAndRankComboRows(options, {
+                    query: effectiveQuery,
+                    searchCols,
+                    displayCol,
+                    displayFormat,
+                    customFilter,
+                    filterColumn: activeColumn,
+                    filterValue: activeValue,
+                    table,
+                    maxResults: 30,
+                });
+                if (requestId === latestRequestIdRef.current) {
+                    setResults(filtered);
+                }
                 return;
             }
 
             if (!table) return;
-            const filterLocalRows = (rows: any[]) => {
-                const activeColumnLocal = filterColumn || filter?.column;
-                const activeValueLocal = filterValue !== undefined ? filterValue : filter?.value;
-                const normQ = normalizeText(effectiveQuery);
-                const cols = searchCols.split(',').map(c => c.trim()).filter(Boolean);
-                return (rows || []).filter((r: any) => {
-                    if (!r) return false;
-                    if (table === 'accounts' && r.is_transactional === false) return false;
-                    if (activeColumnLocal && activeValueLocal && String(r[activeColumnLocal]) !== String(activeValueLocal)) return false;
-                    if (customFilter) {
-                        const m = /^([^=]+)=([a-z]+)\.(.*)$/.exec(customFilter);
-                        if (m) {
-                            const [, col, op, val] = m;
-                            if (op === 'eq' && String(r[col]) !== val) return false;
-                            if (op === 'neq' && String(r[col]) === val) return false;
-                            if (op === 'ilike') {
-                                const needle = normalizeText(val.replace(/%/g, ''));
-                                if (!normalizeText(r[col]).includes(needle)) return false;
-                            }
-                        }
-                    }
-                    if (!normQ) return true;
-                    return cols.some(col => normalizeText(r[col]).includes(normQ)) || normalizeText(r[displayCol] || r.name || '').includes(normQ);
-                }).slice(0, 20);
-            };
             if (typeof navigator !== 'undefined' && !navigator.onLine) {
                 const cached = await readCachedTableRows(table);
-                setResults(filterLocalRows(cached));
+                if (requestId === latestRequestIdRef.current) {
+                    setResults(filterLocalRows(cached));
+                }
                 return;
             }
-            let q = supabase.from(table).select('*').limit(20); 
-            
-            if (table === 'accounts') q = q.eq('is_transactional', true);
-            
-            // 🔗 🚀 [تحديث ذكي]: دمج قراءة الفلتر سواء مبعوث كـ Object أو Props منفصلة لمنع تكرار البنود
-            const activeColumn = filterColumn || filter?.column;
-            const activeValue = filterValue !== undefined ? filterValue : filter?.value;
 
+            const fetchLimit = effectiveQuery
+                ? (table === 'boq_items' ? 150 : 120)
+                : (table === 'boq_items' ? 40 : 20);
+            let q = supabase.from(table).select('*').limit(fetchLimit);
+
+            if (table === 'accounts') q = q.eq('is_transactional', true);
+
+            // 🔗 🚀 [تحديث ذكي]: دمج قراءة الفلتر سواء مبعوث كـ Object أو Props منفصلة لمنع تكرار البنود
             if (activeColumn && activeValue) {
                 q = q.eq(activeColumn, activeValue);
             }
@@ -267,27 +284,43 @@ export default function SmartCombo({
                 q = q.filter(match[1], match[2], match[3]);
             }
 
-            if (effectiveQuery) {
-                const orQuery = searchCols.split(',').map((col: string) => `${col}.ilike.%${effectiveQuery}%`).join(',');
-                q = q.or(orQuery);
+            const effectiveOrderCol = orderCol || (table === 'boq_items' ? 'item_code' : undefined);
+            if (effectiveOrderCol) {
+                q = q.order(effectiveOrderCol, { ascending: true });
             }
-            
+
+            if (effectiveQuery) {
+                const orClauses = buildSupabaseTokenOrQueries(searchCols, effectiveQuery);
+                for (const clause of orClauses) {
+                    q = q.or(clause);
+                }
+            }
+
             const { data, error } = await q;
+            if (requestId !== latestRequestIdRef.current) return;
+
             if (!error) {
-                setResults(data || []);
-                if (data && data.length > 0) void writeCachedTableRows(table, data);
+                const rawRows = data || [];
+                if (rawRows.length > 0) void writeCachedTableRows(table, rawRows);
+                setResults(filterLocalRows(rawRows));
             } else {
                 const cached = await readCachedTableRows(table);
-                setResults(filterLocalRows(cached));
+                if (requestId === latestRequestIdRef.current) {
+                    setResults(filterLocalRows(cached));
+                }
             }
         } catch (error) {
             console.error("SmartCombo Error:", error);
-            if (table) {
+            if (table && requestId === latestRequestIdRef.current) {
                 const cached = await readCachedTableRows(table);
-                setResults(cached.slice(0, 20));
+                if (requestId === latestRequestIdRef.current) {
+                    setResults(filterLocalRows(cached));
+                }
             }
         } finally {
-            setIsLoading(false);
+            if (requestId === latestRequestIdRef.current) {
+                setIsLoading(false);
+            }
         }
     };
 
@@ -341,6 +374,8 @@ export default function SmartCombo({
         const isPrimitive = typeof item !== 'object';
         const displayName = isPrimitive ? item : (displayFormat ? displayFormat(item) : (item[displayCol] || item.Property || item.project_name || item.item_name || item.name || item.description || 'بدون اسم'));
         
+        isUserTypingRef.current = false;
+        lastFreeTextEmittedRef.current = null;
         lastSelectedRef.current = item;
         saveToRecent(item); 
         
@@ -448,6 +483,9 @@ export default function SmartCombo({
     const handleClear = (e: React.MouseEvent) => {
         e.stopPropagation();
         if (!hasFieldAccess) return;
+        isUserTypingRef.current = false;
+        lastFreeTextEmittedRef.current = null;
+        lastSelectedRef.current = null;
         setSearch('');
         onSelect(null);
         setShow(true);
@@ -571,20 +609,25 @@ export default function SmartCombo({
                     value={search ?? ''} 
                     onChange={(e: any) => { 
                         const val = e.target.value;
+                        isUserTypingRef.current = true;
                         setSearch(val); 
                         setShow(true); 
                         setHighlightedIndex(-1); 
                         if(freeText) {
                             const pool = (options && options.length > 0) ? options : results;
                             const normVal = normalizeText(val);
-                            const matched = pool.find((item: any) => {
+                            const matched = val.trim() ? pool.find((item: any) => {
                                 if (!item) return false;
                                 const lbl = typeof item !== 'object' ? String(item) : String(item[displayCol] || item.name || '');
                                 return normalizeText(lbl) === normVal || lbl.trim().toLowerCase() === val.trim().toLowerCase();
-                            });
+                            }) : undefined;
                             if (matched !== undefined && matched !== null) {
+                                lastFreeTextEmittedRef.current = null;
+                                lastSelectedRef.current = matched;
                                 onSelect(matched);
                             } else {
+                                lastFreeTextEmittedRef.current = val;
+                                lastSelectedRef.current = null;
                                 onSelect(val);
                             }
                         }

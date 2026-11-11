@@ -172,8 +172,10 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             table="boq_items" 
                             searchCols="item_name,item_code,main_category,sub_category"
                             displayCol="item_name" 
+                            orderCol="item_code"
                             initialDisplay={record.work_item}
                             freeText={true} 
+                            enableClear={true}
                             onSelect={(b: any) => {
                                 const isObj = typeof b === 'object' && b !== null;
                                 let suggestedParentId = record.parent_id;
