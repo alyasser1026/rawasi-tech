@@ -33,18 +33,23 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
         return 0;
     }, [record.start_date, record.end_date]);
 
-    // 👷 حسابات العمالة التقديرية التفصيلية
+    // 👷 حسابات العمالة التقديرية التفصيلية (فنيين ومساعدين بأيام مستقلة لكل فئة)
     const techCount = Number(record.tech_count || 0);
     const techWage = Number(record.tech_daily_wage || 0);
     const helperCount = Number(record.helper_count || 0);
     const helperWage = Number(record.helper_daily_wage || 0);
 
-    const totalTechDaily = techCount * techWage; // إجمالي يومية الفنيين
-    const totalHelperDaily = helperCount * helperWage; // إجمالي يومية المساعدين
+    const totalTechDaily = techCount * techWage; // إجمالي يومية الفنيين لليوم الواحد
+    const totalHelperDaily = helperCount * helperWage; // إجمالي يومية المساعدين لليوم الواحد
     const totalDailyLabor = totalTechDaily + totalHelperDaily; // إجمالي اليومية للعمالة
 
-    // عدد أيام العمل (تأخذ مدة التنفيذ افتراضياً إذا وجدت)
+    // عدد أيام العمل لكل فئة (تأخذ أيام الفئة أو أيام العمل العامة أو مدة التنفيذ افتراضياً)
     const effectiveDays = Number(record.labor_days || (durationDays > 0 ? durationDays : 0));
+    const effectiveTechDays = Number(record.tech_days ?? record.labor_days ?? (durationDays > 0 ? durationDays : 0));
+    const effectiveHelperDays = Number(record.helper_days ?? record.labor_days ?? (durationDays > 0 ? durationDays : 0));
+
+    const totalTechBudget = totalTechDaily * (effectiveTechDays > 0 ? effectiveTechDays : (techCount > 0 ? 1 : 0));
+    const totalHelperBudget = totalHelperDaily * (effectiveHelperDays > 0 ? effectiveHelperDays : (helperCount > 0 ? 1 : 0));
 
     // 🤝 حسابات عقود مقاولي الباطن
     const rebarSubcontractor = Number(record.subcontractor_rebar_cost || 0);
@@ -72,15 +77,23 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
     // دوال التحديث التلقائي للعمالة ومقاولي الباطن
     const handleLaborChange = (updates: any) => {
         const next = { ...record, ...updates };
+        if (updates.labor_days !== undefined) {
+            if (!record.tech_days) next.tech_days = updates.labor_days;
+            if (!record.helper_days) next.helper_days = updates.labor_days;
+        }
         const tc = Number(next.tech_count || 0);
         const tw = Number(next.tech_daily_wage || 0);
         const hc = Number(next.helper_count || 0);
         const hw = Number(next.helper_daily_wage || 0);
-        const daily = (tc * tw) + (hc * hw);
-        const days = Number(next.labor_days || (durationDays > 0 ? durationDays : 1));
+        const fallbackDays = Number(next.labor_days || (durationDays > 0 ? durationDays : 1));
+        const tDays = Number(next.tech_days ?? fallbackDays);
+        const hDays = Number(next.helper_days ?? fallbackDays);
 
-        if (daily > 0 && days > 0) {
-            next.estimated_labor_cost = daily * days;
+        const techSubtotal = (tc * tw) * (tDays > 0 ? tDays : 1);
+        const helperSubtotal = (hc * hw) * (hDays > 0 ? hDays : 1);
+
+        if ((tc * tw) + (hc * hw) > 0) {
+            next.estimated_labor_cost = techSubtotal + helperSubtotal;
         }
         setRecord(next);
     };
@@ -104,12 +117,15 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
             return notify("تاريخ البداية لا يمكن أن يكون بعد تاريخ النهاية!");
         }
 
-        // التأكد من حفظ المجاميع المحسوبة
+        // التأكد من حفظ المجاميع المحسوبة وأيام الفنيين والمساعدين
         const finalRecord = {
             ...record,
+            tech_days: Number(record.tech_days ?? effectiveTechDays ?? 0),
+            helper_days: Number(record.helper_days ?? effectiveHelperDays ?? 0),
+            labor_days: Number(record.labor_days || Math.max(effectiveTechDays, effectiveHelperDays) || 0),
             retention_percentage: Number(record.retention_percentage ?? 0),
             estimated_subcontractor_cost: totalSubcontractors,
-            estimated_labor_cost: Number(record.estimated_labor_cost || (totalDailyLabor * (effectiveDays || 1)) || 0)
+            estimated_labor_cost: Number(record.estimated_labor_cost || (totalTechBudget + totalHelperBudget) || 0)
         };
 
         onSave(finalRecord);
@@ -288,18 +304,27 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             </div>
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))', gap: '0.9375rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(15rem, 1fr))', gap: '0.9375rem' }}>
                             {/* باقة الفنيين */}
                             <div style={{ background: '#ffffff', padding: '0.9375rem', borderRadius: '12px', border: '1px solid #e0f2fe' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                    <strong style={{ fontSize: 'var(--fs-xs)', color: '#0369a1' }}>👷 الفنيين (صنايعية)</strong>
-                                    <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 800 }} dir="ltr">{formatMoneyEn(totalTechDaily)}</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
+                                    <strong style={{ fontSize: 'var(--fs-xs)', color: '#0369a1' }}>👷 يومية الفنيين (صنايعية)</strong>
+                                    <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 900, background: '#f0f9ff', padding: '2px 6px', borderRadius: '6px' }} dir="ltr">
+                                        {formatMoneyEn(totalTechBudget)} ({effectiveTechDays || 0}d)
+                                    </span>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>عدد الفنيين</label>
                                         <input type="number" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.tech_count || ''} onChange={e => handleLaborChange({ tech_count: e.target.value })} placeholder="0" />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '11px', color: '#0369a1', fontWeight: 800, display: 'block' }}>أيام الفنيين</label>
+                                        <input type="number" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #7dd3fc', background: '#f0f9ff' }}
+                                               value={record.tech_days ?? record.labor_days ?? (durationDays > 0 ? durationDays : '')}
+                                               onChange={e => handleLaborChange({ tech_days: e.target.value })}
+                                               placeholder={durationDays > 0 ? String(durationDays) : "1"} />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>اليومية (ر.س)</label>
@@ -311,15 +336,24 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
 
                             {/* باقة المساعدين */}
                             <div style={{ background: '#ffffff', padding: '0.9375rem', borderRadius: '12px', border: '1px solid #e0f2fe' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                                    <strong style={{ fontSize: 'var(--fs-xs)', color: '#0369a1' }}>🤝 المساعدين (عمال)</strong>
-                                    <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 800 }} dir="ltr">{formatMoneyEn(totalHelperDaily)}</span>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', alignItems: 'center' }}>
+                                    <strong style={{ fontSize: 'var(--fs-xs)', color: '#0369a1' }}>🤝 يومية المساعدين (عمال)</strong>
+                                    <span style={{ fontSize: '11px', color: '#0284c7', fontWeight: 900, background: '#f0f9ff', padding: '2px 6px', borderRadius: '6px' }} dir="ltr">
+                                        {formatMoneyEn(totalHelperBudget)} ({effectiveHelperDays || 0}d)
+                                    </span>
                                 </div>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>عدد المساعدين</label>
                                         <input type="number" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.helper_count || ''} onChange={e => handleLaborChange({ helper_count: e.target.value })} placeholder="0" />
+                                    </div>
+                                    <div>
+                                        <label style={{ fontSize: '11px', color: '#0369a1', fontWeight: 800, display: 'block' }}>أيام المساعدين</label>
+                                        <input type="number" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #7dd3fc', background: '#f0f9ff' }}
+                                               value={record.helper_days ?? record.labor_days ?? (durationDays > 0 ? durationDays : '')}
+                                               onChange={e => handleLaborChange({ helper_days: e.target.value })}
+                                               placeholder={durationDays > 0 ? String(durationDays) : "1"} />
                                     </div>
                                     <div>
                                         <label style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block' }}>اليومية (ر.س)</label>
@@ -333,7 +367,7 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                             <div style={{ background: '#ffffff', padding: '0.9375rem', borderRadius: '12px', border: '1px solid #bae6fd', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: '0.5rem' }}>
                                     <div>
-                                        <label style={{ fontSize: '11px', color: '#0369a1', fontWeight: 800, display: 'block' }}>أيام العمل</label>
+                                        <label style={{ fontSize: '11px', color: '#0369a1', fontWeight: 800, display: 'block' }}>أيام البند</label>
                                         <input type="number" min="0" dir="ltr" style={{ ...numInputStyle, width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                                                value={record.labor_days || (durationDays > 0 ? durationDays : '')} onChange={e => handleLaborChange({ labor_days: e.target.value })} placeholder={durationDays > 0 ? String(durationDays) : "1"} />
                                     </div>
@@ -344,7 +378,7 @@ export default function BoqFormModal({ isOpen, onClose, record, setRecord, onSav
                                     </div>
                                 </div>
                                 <div style={{ fontSize: '10px', color: '#64748b', marginTop: '4px', textAlign: 'center' }} dir="ltr">
-                                    ({formatNumberEn(totalTechDaily)} + {formatNumberEn(totalHelperDaily)} = {formatNumberEn(totalDailyLabor)} × {effectiveDays || 1} d)
+                                    فنيين: {formatNumberEn(totalTechBudget)} ({effectiveTechDays || 0}d) + مساعدين: {formatNumberEn(totalHelperBudget)} ({effectiveHelperDays || 0}d)
                                 </div>
                             </div>
                         </div>

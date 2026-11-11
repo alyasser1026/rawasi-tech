@@ -9,7 +9,8 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
 
   const project = logic.selectedProject || {};
   const expenses = logic.projectDetails?.expenses || []; 
-  const today = new Date().toLocaleDateString('en-GB');
+  const laborStats = logic.projectDetails?.laborStats || {};
+  const today = new Date().toISOString().split('T')[0];
 
   // حساب إجمالي المصروفات الفعلية لتذييل الجدول
   const totalActualExpenses = expenses.reduce((sum: number, exp: any) => sum + Number(exp.amount || 0), 0);
@@ -93,6 +94,31 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
             <div style={{ padding: '0.9375rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>هامش الربح الفعلي</div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#1e293b', direction: 'ltr' }}>{boqStats.profitMargin}%</div>
+            </div>
+          </div>
+
+          {/* توزيع يوميات العمالة الميدانية (فنيين ومساعدين) */}
+          <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '0.625rem', color: THEME.coffeeDark, fontWeight: 900 }}>ملخص يوميات العمالة الميدانية (الفنيين والمساعدين)</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.9375rem', marginBottom: '2rem' }}>
+            <div style={{ padding: '0.85rem', border: '1px solid #bae6fd', backgroundColor: '#f0f9ff', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#0369a1', fontWeight: 900 }}>👷 عدد أيام يومية الفنيين</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#0284c7' }}>{laborStats.techDays || 0} يوم</div>
+              <div style={{ fontSize: '11px', color: '#475569', fontWeight: 800, marginTop: '2px' }}>التكلفة: {formatCurrency(laborStats.techCost || 0)}</div>
+            </div>
+            <div style={{ padding: '0.85rem', border: '1px solid #99f6e4', backgroundColor: '#f0fdfa', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#0f766e', fontWeight: 900 }}>🤝 عدد أيام يومية المساعدين</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#0d9488' }}>{laborStats.helperDays || 0} يوم</div>
+              <div style={{ fontSize: '11px', color: '#475569', fontWeight: 800, marginTop: '2px' }}>التكلفة: {formatCurrency(laborStats.helperCost || 0)}</div>
+            </div>
+            <div style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>إجمالي أيام العمالة المسجلة</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#1e293b' }}>{laborStats.totalWorkersToDate || 0} يوم</div>
+              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, marginTop: '2px' }}>فنيين + مساعدين</div>
+            </div>
+            <div style={{ padding: '0.85rem', border: '1px solid #fecdd3', backgroundColor: '#fff1f2', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#be123c', fontWeight: 900 }}>إجمالي أجور العمالة الفعلية</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: THEME.danger }}>{formatCurrency(laborStats.totalLaborCost || 0)}</div>
+              <div style={{ fontSize: '11px', color: '#be123c', fontWeight: 700, marginTop: '2px' }}>100% من واقع اليوميات</div>
             </div>
           </div>
 

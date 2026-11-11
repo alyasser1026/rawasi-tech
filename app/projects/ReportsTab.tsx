@@ -60,8 +60,11 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   // =========================================================================
   const paymentStats = useMemo(() => {
     const contractVal = Number(project.contract_value) || 0;
-    const totalScheduled = milestones.reduce((sum, m) => sum + (Number(m.expected_amount) || 0), 0);
-    const totalReceived = milestones.reduce((sum, m) => sum + (Number(m.received_amount) || 0), 0);
+    const totalScheduledFromMilestones = milestones.reduce((sum, m) => sum + (Number(m.expected_amount) || 0), 0);
+    const totalReceivedFromMilestones = milestones.reduce((sum, m) => sum + (Number(m.received_amount) || 0), 0);
+    const unlinkedReceiptsTotal = (details.projectReceipts || []).reduce((sum: number, r: any) => sum + (Number(r.final_amount || r.amount) || 0), 0);
+    const totalScheduled = totalScheduledFromMilestones || contractVal;
+    const totalReceived = Math.max(totalReceivedFromMilestones, unlinkedReceiptsTotal);
     const totalRemaining = Math.max(0, totalScheduled - totalReceived);
     const collectionRate = totalScheduled > 0 ? ((totalReceived / totalScheduled) * 100).toFixed(1) : '0.0';
     const contractCoverageRate = contractVal > 0 ? ((totalScheduled / contractVal) * 100).toFixed(1) : '0.0';
@@ -81,7 +84,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
       paidCount,
       count: milestones.length
     };
-  }, [project, milestones]);
+  }, [project, milestones, details.projectReceipts]);
 
   // =========================================================================
   // 2️⃣ حسابات الجدول الزمني ومخطط جانت المسحوبة من المقايسة
@@ -231,7 +234,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
     const totalBudget = rebarTotal + concreteTotal + otherTotal;
     
     // سحب مطالبات ومستخلصات مقاولي الباطن من الفواتير
-    const subClaims = (details.invoices || []).filter((inv: any) => inv.display_type === 'مستخلص مقاول باطن');
+    const subClaims = (details.invoices || []).filter((inv: any) => inv.row_kind === 'sub_claim' || String(inv.display_type || '').includes('مقاول باطن'));
     const totalPaid = subClaims.reduce((sum: number, c: any) => sum + Number(c.final_amount || 0), 0);
     const remaining = Math.max(0, totalBudget - totalPaid);
 
@@ -239,10 +242,11 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
       rebarTotal,
       concreteTotal,
       otherTotal,
-      totalBudget,
+      totalBudget: totalBudget || totalPaid,
       totalPaid,
       remaining,
-      claimsCount: subClaims.length
+      claimsCount: subClaims.length,
+      subClaims
     };
   }, [boqList, details.invoices]);
 
@@ -1348,6 +1352,49 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
               </div>
               <span style={{ fontSize: '11px', color: Number(evmData.cpi) >= 1 ? '#15803d' : '#b91c1c', fontWeight: 700 }}>
                 {Number(evmData.cpi) >= 1 ? '✅ كفاءة إنفاق ممتازة (تحت الميزانية)' : '⚠️ تجاوز تكاليف وانحراف سلبي'}
+              </span>
+            </div>
+          </div>
+
+          {/* ملخص يوميات العمالة الميدانية (الفنيين والمساعدين) */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))',
+            gap: '1rem'
+          }}>
+            <div style={{ background: '#f0f9ff', borderRadius: '16px', padding: '1rem 1.25rem', border: '1px solid #bae6fd' }}>
+              <span style={{ fontSize: 'var(--fs-xs)', color: '#0369a1', fontWeight: 900, display: 'block', marginBottom: '0.2rem' }}>
+                👷 عدد أيام يومية الفنيين (صنايعية)
+              </span>
+              <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#0284c7' }}>
+                {details.laborStats?.techDays || 0} يوم
+              </div>
+              <span style={{ fontSize: '11px', color: '#475569', fontWeight: 800 }}>
+                إجمالي تكلفة الفنيين: {formatCurrency(details.laborStats?.techCost || 0)}
+              </span>
+            </div>
+
+            <div style={{ background: '#f0fdfa', borderRadius: '16px', padding: '1rem 1.25rem', border: '1px solid #99f6e4' }}>
+              <span style={{ fontSize: 'var(--fs-xs)', color: '#0f766e', fontWeight: 900, display: 'block', marginBottom: '0.2rem' }}>
+                🤝 عدد أيام يومية المساعدين (عمال)
+              </span>
+              <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#0d9488' }}>
+                {details.laborStats?.helperDays || 0} يوم
+              </div>
+              <span style={{ fontSize: '11px', color: '#475569', fontWeight: 800 }}>
+                إجمالي تكلفة المساعدين: {formatCurrency(details.laborStats?.helperCost || 0)}
+              </span>
+            </div>
+
+            <div style={{ background: '#fff1f2', borderRadius: '16px', padding: '1rem 1.25rem', border: '1px solid #fecdd3' }}>
+              <span style={{ fontSize: 'var(--fs-xs)', color: '#be123c', fontWeight: 900, display: 'block', marginBottom: '0.2rem' }}>
+                إجمالي أيام وتكلفة العمالة الميدانية
+              </span>
+              <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#e11d48' }}>
+                {details.laborStats?.totalWorkersToDate || 0} يوم — {formatCurrency(details.laborStats?.totalLaborCost || 0)}
+              </div>
+              <span style={{ fontSize: '11px', color: '#881337', fontWeight: 700 }}>
+                مسحوب لحظياً من سجل اليوميات الميدانية
               </span>
             </div>
           </div>
@@ -2656,6 +2703,26 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                     <div style={{ padding: '8px 12px', background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '8px', textAlign: 'center' }}>
                       <div style={{ fontSize: '10px', color: '#1e40af', fontWeight: 800 }}>مدة المشروع والمنقضي</div>
                       <div style={{ fontSize: '14px', fontWeight: 900, color: '#2563eb' }}>{scheduleData.elapsedDays} / {scheduleData.totalDays} يوم ({scheduleData.timeProgress}%)</div>
+                    </div>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginTop: '0.75rem' }}>
+                    <div style={{ padding: '8px 12px', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#0369a1', fontWeight: 900 }}>👷 عدد أيام يومية الفنيين</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#0284c7' }}>
+                        {details.laborStats?.techDays || 0} يوم — {formatCurrency(details.laborStats?.techCost || 0)}
+                      </div>
+                    </div>
+                    <div style={{ padding: '8px 12px', background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#0f766e', fontWeight: 900 }}>🤝 عدد أيام يومية المساعدين</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#0d9488' }}>
+                        {details.laborStats?.helperDays || 0} يوم — {formatCurrency(details.laborStats?.helperCost || 0)}
+                      </div>
+                    </div>
+                    <div style={{ padding: '8px 12px', background: '#fff1f2', border: '1px solid #fecdd3', borderRadius: '8px', textAlign: 'center' }}>
+                      <div style={{ fontSize: '10px', color: '#be123c', fontWeight: 900 }}>إجمالي أيام وأجور العمالة</div>
+                      <div style={{ fontSize: '13px', fontWeight: 900, color: '#e11d48' }}>
+                        {details.laborStats?.totalWorkersToDate || 0} يوم — {formatCurrency(details.laborStats?.totalLaborCost || 0)}
+                      </div>
                     </div>
                   </div>
                 </div>

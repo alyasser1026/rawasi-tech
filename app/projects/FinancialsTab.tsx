@@ -23,8 +23,9 @@ export default function FinancialsTab({ logic }: { logic: any }) {
       }
     });
 
-    // 🚀 سحب التكاليف الداخلية (مواد + عمالة + ABC) من محرك الـ KPIs
-    const internalCosts = Number(kpis.actualCost || 0);
+    // 🚀 سحب التكاليف الداخلية (مواد + عمالة + مصروفات نثرية + ABC) بدون ازدواجية مستخلصات الباطن
+    const totalAllCosts = Number(kpis.actualCost || 0);
+    const internalCosts = Math.max(0, totalAllCosts - subContractorTotal);
     
     // ⚖️ التدفق النقدي الحقيقي = (إيرادات العميل) - (التزامات مقاولي الباطن + التكاليف الداخلية للشركة)
     const netCashFlow = clientTotal - (subContractorTotal + internalCosts);
@@ -35,7 +36,7 @@ export default function FinancialsTab({ logic }: { logic: any }) {
   const invoiceColumns = [
     { 
         header: 'التاريخ', 
-        render: (row: any) => row.date || row.created_at?.split('T')[0] || '---' 
+        render: (row: any) => (row.date || row.created_at || '---').toString().split('T')[0] 
     },
     { 
         header: 'الرقم / النوع', 

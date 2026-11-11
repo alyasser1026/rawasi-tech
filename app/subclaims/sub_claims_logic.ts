@@ -419,11 +419,17 @@ export function useSubClaimsLogic() {
         setPartnerBalance(remainingAmount > 0 ? remainingAmount : 0); 
         
         const allProjectIds = claimRow.project_ids || (claimRow.project_id ? [claimRow.project_id] : []);
-        const { data: accountRows, error: accountsError } = await supabase.from('accounts').select('id,code,name').in('code', ['212', '1291']);
+        const { data: accountRows, error: accountsError } = await supabase
+            .from('accounts')
+            .select('id,code,name')
+            .in('code', ['212', '122', '121', '1291']);
         if (accountsError) { setIsBalanceLoading(false); showToast(accountsError.message, 'error'); return; }
         const debitAccount = accountRows?.find(a => a.code === '212');
-        const creditAccount = accountRows?.find(a => a.code === '1291');
-        if (!debitAccount || !creditAccount) { setIsBalanceLoading(false); showToast('راجع حساب التزام المقاولين وحساب الصرف في الدليل.', 'error'); return; }
+        const creditAccount =
+            accountRows?.find(a => a.code === '122') ||
+            accountRows?.find(a => a.code === '121') ||
+            accountRows?.find(a => a.code === '1291');
+        if (!debitAccount || !creditAccount) { setIsBalanceLoading(false); showToast('راجع حساب التزام المقاولين وحساب الخزينة الرئيسية في الدليل.', 'error'); return; }
 
         setPaymentRecord({
             request_id: crypto.randomUUID(),

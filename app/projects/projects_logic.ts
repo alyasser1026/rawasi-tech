@@ -171,9 +171,11 @@ export function useProjectsLogic() {
             retention_percentage: Number(record.retention_percentage) || 0,
             tech_count: Number(record.tech_count) || 0,
             tech_daily_wage: Number(record.tech_daily_wage) || 0,
+            tech_days: Number(record.tech_days ?? record.labor_days) || 0,
             helper_count: Number(record.helper_count) || 0,
             helper_daily_wage: Number(record.helper_daily_wage) || 0,
-            labor_days: Number(record.labor_days) || 0,
+            helper_days: Number(record.helper_days ?? record.labor_days) || 0,
+            labor_days: Number(record.labor_days || Math.max(Number(record.tech_days || 0), Number(record.helper_days || 0))) || 0,
             estimated_labor_cost: Number(record.estimated_labor_cost) || 0,
             subcontractor_rebar_cost: Number(record.subcontractor_rebar_cost) || 0,
             subcontractor_concrete_cost: Number(record.subcontractor_concrete_cost) || 0,
@@ -366,11 +368,12 @@ export function useProjectsLogic() {
       const boqDataWithAllocations = rawBoqData.map((item: any) => {
           if (item.item_type === 'فرعي' || !item.item_type) {
               const allocated = abcMap[item.id] || 0;
+              const rawActualExpenses = Number(item.actual_expenses_cost || 0);
+              const directPlusSubOnly = Math.max(0, rawActualExpenses - allocated);
               return {
                   ...item,
-                  allocated_expenses: allocated,
-                  item_net_profit: Number(item.item_net_profit || 0) - allocated,
-                  total_budget_variance: Number(item.total_budget_variance || 0) - allocated
+                  actual_expenses_cost: directPlusSubOnly,
+                  allocated_expenses: allocated
               };
           }
           return item; 
@@ -382,36 +385,107 @@ export function useProjectsLogic() {
               const totalAllocated = children.reduce((sum: number, child: any) => sum + (Number(child.allocated_expenses) || 0), 0);
               return {
                   ...item,
-                  allocated_expenses: totalAllocated,
-                  item_net_profit: Number(item.item_net_profit || 0) - totalAllocated,
-                  total_budget_variance: Number(item.total_budget_variance || 0) - totalAllocated
+                  allocated_expenses: totalAllocated
               };
           }
           return item;
       });
 
-      const expensesData = fullDetails.expenses || [];
+      const rawExpensesData = fullDetails.expenses || [];
+      const rawLaborLogsData = fullDetails.labor_logs || [];
       const materialsData = fullDetails.materials || [];
       const invoicesData = fullDetails.invoices || [];
+      const projectReceiptsData = fullDetails.receipt_vouchers || [];
       const subClaimsData = fullDetails.sub_claims || [];
       const contractorAssignmentsData = fullDetails.contractor_assignments || [];
 
+      const isHelperRole = (l: any) => {
+          const roleText = `${l.skill_level || ''} ${l.partner_job_role || ''}`.trim();
+          const codeText = String(l.worker_code || '').toUpperCase();
+          return roleText.includes('مساعد') || roleText.includes('عامل عادي') || codeText.startsWith('HLP-');
+      };
+
+      const synthesizedLaborLogs = rawLaborLogsData.map((l: any) => {
+          const days = Number(l.attendance_value ?? 1);
+          const wage = Number(l.daily_wage ?? 0);
+          const totalAmount = days * wage;
+          const isHelper = isHelperRole(l);
+          const dateStr = l.work_date ? String(l.work_date).split('T')[0] : '';
+          return {
+              ...l,
+              row_type: 'labor_direct',
+              display_date: dateStr,
+              exp_date: l.work_date,
+              attendance_days: days,
+              daily_wage: wage,
+              amount: totalAmount,
+              total_price: totalAmount,
+              paid_amount: totalAmount,
+              is_helper: isHelper,
+              worker_role_type: isHelper ? 'helper' : 'tech',
+              worker_category_label: isHelper ? 'يومية مساعدين' : 'يومية فنيين',
+              main_category: isHelper ? 'أجور يومية المساعدين' : 'أجور يومية الفنيين',
+              description: `${l.worker_name || 'عامل'} (${l.skill_level || (isHelper ? 'مساعد' : 'فني')}) — ${days} يوم × ${wage} ر.س`,
+              payee_name: l.worker_name,
+              payment_method: l.is_posted ? 'مرحل' : 'يومية ميدانية'
+          };
+      });
+
+      const expensesData = [
+          ...rawExpensesData.map((e: any) => ({ ...e, row_type: e.row_type || 'expense_direct' })),
+          ...synthesizedLaborLogs
+      ];
+
       const processedInvoices = invoicesData.map((inv: any) => ({
-          ...inv, display_number: inv.invoice_number, display_type: 'مستخلص عام / توريد', final_amount: Number(inv.total_amount || 0)
+          ...inv,
+          row_kind: 'client_invoice',
+          display_number: inv.invoice_number,
+          display_type: 'مستخلص عام / توريد',
+          final_amount: Number(inv.total_amount || 0)
       }));
+
+      const processedProjectReceipts = projectReceiptsData
+          .filter((rv: any) => !rv.invoice_id)
+          .map((rv: any) => ({
+              ...rv,
+              row_kind: 'client_receipt',
+              display_number: rv.receipt_number,
+              display_type: 'سند قبض عميل (دفعة تعاقدية)',
+              final_amount: Number(rv.amount || 0)
+          }));
 
       const processedSubClaims = subClaimsData.map((clm: any) => ({
-          ...clm, display_number: clm.claim_number, display_type: `مستخلص مقاول باطن`, final_amount: Number(clm.net_amount || 0)
+          ...clm,
+          row_kind: 'sub_claim',
+          display_number: clm.claim_number,
+          display_type: `مستخلص مقاول باطن${clm.contractor_name ? ` - ${clm.contractor_name}` : ''}`,
+          final_amount: Number(clm.net_amount || 0)
       }));
 
-      const laborLogs = expensesData.filter((e: any) => e.row_type === 'labor_direct');
       const todayStr = new Date().toISOString().split('T')[0];
-      
+      const techLogs = synthesizedLaborLogs.filter((l: any) => !l.is_helper);
+      const helperLogs = synthesizedLaborLogs.filter((l: any) => l.is_helper);
+      const todayLogs = synthesizedLaborLogs.filter((l: any) => l.display_date === todayStr);
+
+      const techDays = techLogs.reduce((sum: number, l: any) => sum + Number(l.attendance_days || 1), 0);
+      const techCost = techLogs.reduce((sum: number, l: any) => sum + Number(l.amount || 0), 0);
+      const helperDays = helperLogs.reduce((sum: number, l: any) => sum + Number(l.attendance_days || 1), 0);
+      const helperCost = helperLogs.reduce((sum: number, l: any) => sum + Number(l.amount || 0), 0);
+      const todayTechDays = todayLogs.filter((l: any) => !l.is_helper).reduce((sum: number, l: any) => sum + Number(l.attendance_days || 1), 0);
+      const todayHelperDays = todayLogs.filter((l: any) => l.is_helper).reduce((sum: number, l: any) => sum + Number(l.attendance_days || 1), 0);
+
       const laborStats = {
-        todayWorkers: laborLogs.filter((l: any) => l.display_date === todayStr).length,
-        totalWorkersToDate: laborLogs.length,
-        todayCost: laborLogs.filter((l: any) => l.display_date === todayStr).reduce((sum: number, l: any) => sum + Number(l.amount || 0), 0),
-        totalLaborCost: laborLogs.reduce((sum: number, l: any) => sum + Number(l.amount || 0), 0),
+        techDays,
+        techCost,
+        helperDays,
+        helperCost,
+        todayTechDays,
+        todayHelperDays,
+        todayWorkers: todayTechDays + todayHelperDays,
+        totalWorkersToDate: techDays + helperDays,
+        todayCost: todayLogs.reduce((sum: number, l: any) => sum + Number(l.amount || 0), 0),
+        totalLaborCost: techCost + helperCost,
+        logs: synthesizedLaborLogs
       };
 
       // جلب دفعات العميل وسجل الزيارات وسندات القبض للربط
@@ -426,8 +500,17 @@ export function useProjectsLogic() {
       ]);
 
       setProjectDetails({
-        stages: [], boq: finalBoqData, expenses: expensesData, ledger: [], materials: materialsData,
-        invoices: [...processedInvoices, ...processedSubClaims], laborStats, contractorAssignments: contractorAssignmentsData, inspections: [],
+        stages: [],
+        boq: finalBoqData,
+        expenses: expensesData,
+        ledger: [],
+        materials: materialsData,
+        invoices: [...processedInvoices, ...processedProjectReceipts, ...processedSubClaims],
+        subClaims: processedSubClaims,
+        projectReceipts: processedProjectReceipts,
+        laborStats,
+        contractorAssignments: contractorAssignmentsData,
+        inspections: [],
         milestones: milestonesData || [],
         siteVisits: siteVisitsData || [],
         receiptVouchers: receiptsData || []
@@ -477,7 +560,9 @@ export function useProjectsLogic() {
     });
 
     const actualCost = totalActualLabor + totalActualMaterial + totalDirectExpenses + totalABCAllocated;
-    const totalRevenue = projectDetails.invoices.reduce((sum: number, i:any) => sum + (i.final_amount || 0), 0);
+    const totalRevenue = projectDetails.invoices
+      .filter((i: any) => i.row_kind !== 'sub_claim' && !String(i.display_type || '').includes('مقاول باطن'))
+      .reduce((sum: number, i: any) => sum + (Number(i.final_amount) || 0), 0);
     const financialProgress = totalContract > 0 ? ((totalRevenue / totalContract) * 100) : 0;
     const physicalProgress = Number(selectedProject.overall_completion_percentage || 0);
     

@@ -25,7 +25,12 @@ export default function OverviewTab({ logic }: { logic: any }) {
         totalAllocatedABC += allocated;
 
         totalContract += Number(item.total_contract_amount || 0);
-        totalBudget += (Number(item.estimated_labor_cost || 0) + Number(item.estimated_material_cost || 0) + Number(item.estimated_expenses_cost || 0));
+        totalBudget += (
+          Number(item.estimated_labor_cost || 0) +
+          Number(item.estimated_material_cost || 0) +
+          Number(item.estimated_expenses_cost || 0) +
+          Number(item.estimated_subcontractor_cost || 0)
+        );
         
         // التكلفة الفعلية + التكاليف الموزعة
         totalActualCost += (Number(item.actual_labor_cost || 0) + Number(item.actual_material_cost || 0) + Number(item.actual_expenses_cost || 0)) + allocated;
@@ -40,15 +45,17 @@ export default function OverviewTab({ logic }: { logic: any }) {
       }
     });
 
-    const financialProgress = totalContract > 0 ? (totalVillaRevenue / totalContract) * 100 : 0;
-    const profitMargin = totalContract > 0 ? ((totalNetProfit / totalContract) * 100).toFixed(1) : "0.0";
+    const effectiveRevenue = totalVillaRevenue || Number(kpis?.totalRevenue || 0);
+    const effectiveContract = totalContract || Number(kpis?.totalContract || 0);
+    const financialProgress = effectiveContract > 0 ? (effectiveRevenue / effectiveContract) * 100 : 0;
+    const profitMargin = effectiveContract > 0 ? ((totalNetProfit / effectiveContract) * 100).toFixed(1) : "0.0";
 
     return {
-      totalContract: totalContract || Number(kpis?.totalContract || 0),
+      totalContract: effectiveContract,
       totalBudget: totalBudget || Number(kpis?.totalEstimatedBudget || 0),
       totalActualCost: totalActualCost || Number(kpis?.actualCost || 0),
       totalAllocatedABC,
-      totalVillaRevenue,
+      totalVillaRevenue: effectiveRevenue,
       financialProgress,
       profitMargin,
       totalRetention,
@@ -97,12 +104,36 @@ export default function OverviewTab({ logic }: { logic: any }) {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(17.5rem, 1fr))', gap: '1.5625rem', marginBottom: '1.5625rem' }}>
         <div className="glass-card">
-          <h3 style={{ margin: '0 0 1.25rem 0', color: THEME.coffeeDark, fontWeight: 900 }}>تقرير العمالة الميدانية</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '0.9375rem' }}>
-            <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>عمالة اليوم</span><strong style={{fontSize:'var(--fs-xl)'}}>{projectDetails.laborStats?.todayWorkers || 0}</strong></div>
-            <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>تكلفة اليوم</span><strong style={{fontSize:'var(--fs-xl)', color: THEME.danger}}>{projectDetails.laborStats?.todayCost?.toLocaleString() || 0} ج.م</strong></div>
-            <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>إجمالي العمالة السابقة</span><strong style={{fontSize:'var(--fs-xl)'}}>{projectDetails.laborStats?.totalWorkersToDate || 0}</strong></div>
-            <div className="labor-stat-item"><span style={{fontSize:'var(--fs-xs)', color:'#64748b', fontWeight:800}}>إجمالي الأجور المسددة</span><strong style={{fontSize:'var(--fs-xl)'}}>{projectDetails.laborStats?.totalLaborCost?.toLocaleString() || 0} ج.م</strong></div>
+          <h3 style={{ margin: '0 0 1.25rem 0', color: THEME.coffeeDark, fontWeight: 900 }}>تقرير العمالة الميدانية (الفنيين والمساعدين)</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.5rem, 1fr))', gap: '0.85rem' }}>
+            <div className="labor-stat-item" style={{ borderRight: '4px solid #0284c7' }}>
+              <span style={{ fontSize: 'var(--fs-xs)', color: '#0369a1', fontWeight: 900 }}>👷 عدد أيام يومية الفنيين</span>
+              <strong style={{ fontSize: 'var(--fs-xl)', color: '#0284c7' }}>{projectDetails.laborStats?.techDays || 0} يوم</strong>
+              <span style={{ fontSize: '11px', color: '#475569', fontWeight: 800, display: 'block', marginTop: '2px' }}>
+                التكلفة: {formatCurrency(projectDetails.laborStats?.techCost || 0)}
+              </span>
+            </div>
+            <div className="labor-stat-item" style={{ borderRight: '4px solid #0d9488' }}>
+              <span style={{ fontSize: 'var(--fs-xs)', color: '#0f766e', fontWeight: 900 }}>🤝 عدد أيام يومية المساعدين</span>
+              <strong style={{ fontSize: 'var(--fs-xl)', color: '#0d9488' }}>{projectDetails.laborStats?.helperDays || 0} يوم</strong>
+              <span style={{ fontSize: '11px', color: '#475569', fontWeight: 800, display: 'block', marginTop: '2px' }}>
+                التكلفة: {formatCurrency(projectDetails.laborStats?.helperCost || 0)}
+              </span>
+            </div>
+            <div className="labor-stat-item">
+              <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>إجمالي أيام العمالة المسجلة</span>
+              <strong style={{ fontSize: 'var(--fs-xl)' }}>{projectDetails.laborStats?.totalWorkersToDate || 0} يوم</strong>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block', marginTop: '2px' }}>
+                عمالة اليوم: {projectDetails.laborStats?.todayWorkers || 0} يوم ({formatCurrency(projectDetails.laborStats?.todayCost || 0)})
+              </span>
+            </div>
+            <div className="labor-stat-item">
+              <span style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>إجمالي أجور العمالة الفعلية</span>
+              <strong style={{ fontSize: 'var(--fs-xl)', color: THEME.danger }}>{formatCurrency(projectDetails.laborStats?.totalLaborCost || 0)}</strong>
+              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, display: 'block', marginTop: '2px' }}>
+                فنيين + مساعدين
+              </span>
+            </div>
           </div>
         </div>
 
