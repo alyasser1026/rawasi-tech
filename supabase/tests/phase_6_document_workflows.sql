@@ -79,15 +79,12 @@ BEGIN
   INSERT INTO public.payment_vouchers(voucher_number,partner_id,amount,related_expense_id,debit_account_id,credit_account_id)
     VALUES('PH6-'||gen_random_uuid(),party,10,expense_id,payable,cash) RETURNING id INTO expense_payment;
   PERFORM public.post_payment_vouchers_bulk(ARRAY[expense_payment]);
-  blocked:=false;
-  BEGIN PERFORM public.unpost_expenses_bulk(ARRAY[expense_id]);
-  EXCEPTION WHEN check_violation THEN blocked:=true; END;
-  IF NOT blocked OR NOT EXISTS(SELECT 1 FROM public.payment_vouchers WHERE id=expense_payment) THEN RAISE EXCEPTION 'Expense unposting erased a payment'; END IF;
-  PERFORM public.unpost_payment_vouchers_bulk(ARRAY[expense_payment]);
   PERFORM public.unpost_expenses_bulk(ARRAY[expense_id]);
-  IF EXISTS(SELECT 1 FROM public.journal_headers WHERE reference_id=expense_id)
-    OR NOT EXISTS(SELECT 1 FROM public.payment_vouchers WHERE id=expense_payment AND related_expense_id=expense_id) THEN
-    RAISE EXCEPTION 'Expense unposting left its journal or lost its voucher'; END IF;
+  IF EXISTS(SELECT 1 FROM public.journal_headers WHERE reference_id IN (expense_id, expense_payment))
+    OR EXISTS(SELECT 1 FROM public.payment_vouchers WHERE id=expense_payment)
+    OR EXISTS(SELECT 1 FROM public.cash_flows WHERE source_id=expense_payment)
+    OR EXISTS(SELECT 1 FROM public.expenses WHERE id=expense_id AND (is_posted OR COALESCE(paid_amount,0)<>0)) THEN
+    RAISE EXCEPTION 'Expense unposting failed to cascade-delete its payment voucher, journal, cash flow, or reset paid_amount'; END IF;
   SET CONSTRAINTS ALL IMMEDIATE;
 END;
 $tests$;

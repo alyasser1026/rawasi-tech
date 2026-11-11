@@ -611,8 +611,12 @@ export function useExpensesLogic() {
             try {
                 const { error } = await supabase.rpc('unpost_expenses_bulk', { record_ids: idsToProcess });
                 if (error) throw error;
-                showToast('تم فك الترحيل بنجاح', 'success');
+                showToast('تم فك الترحيل وحذف سندات الصرف المرتبطة بنجاح', 'success');
+                queryClient.invalidateQueries({ queryKey: ['expenses'] });
                 queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
+                queryClient.invalidateQueries({ queryKey: ['journal_headers'] });
+                queryClient.invalidateQueries({ queryKey: ['cash_flows'] });
+                queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
             } catch (error: any) {
                 queryClient.setQueryData(['expenses'], previousData);
                 showToast(`خطأ: ${error.message}`, 'error');

@@ -55,7 +55,7 @@ function LoginContent() {
           position: absolute;
           inset: 0;
           z-index: -2;
-          background: url('/brand/login-bg.webp') center center / cover no-repeat, url('/brand/login-bg.jpg') center center / cover no-repeat, #0d0f14;
+          background: url('/brand/login-bg.webp?v=2') center center / cover no-repeat, url('/brand/login-bg.jpg?v=2') center center / cover no-repeat, #0d0f14;
           transform-origin: center 50%;
           animation: bgDrift 28s ease-in-out infinite alternate;
         }
