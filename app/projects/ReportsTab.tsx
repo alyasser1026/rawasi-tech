@@ -15,7 +15,7 @@ import SecureAction from '@/components/SecureAction';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { printReportElement } from '@/lib/printReportElement';
-import { buildMilestoneSchedule, localToday, MILESTONE_STATUS_META } from '@/lib/milestoneSchedule';
+import { buildMilestoneSchedule, localToday, MILESTONE_STATUS_META, MILESTONE_CONTRACTUAL_DISCLAIMER } from '@/lib/milestoneSchedule';
 import { buildProjectDailyReport } from '@/lib/projectDailyReport';
 import { buildEvmAnalysis, EVM_STATUS_META } from '@/lib/evmAnalysis';
 import DailyProjectReportSection from './DailyProjectReportSection';
@@ -719,6 +719,44 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 <Plus size={15} />
                 إضافة دفعة مجدولة
               </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setPrintOptions({
+                    projectInfo: true,
+                    dailyReport: false,
+                    clientMilestones: true,
+                    scheduleTimeline: false,
+                    ganttChart: false,
+                    siteVisits: false,
+                    sitePhotos: false,
+                    costVarianceEVM: false,
+                    subcontractors: false,
+                    signatures: true
+                  });
+                  setCustomReportTitle(`جدول دفعات العميل التعاقدي - مشروع ${project?.name || project?.Property || ''}`);
+                  setIsPrintDossierOpen(true);
+                }}
+                style={{
+                  backgroundColor: '#0f172a',
+                  color: 'white',
+                  padding: '0.5rem 1.125rem',
+                  borderRadius: '10px',
+                  border: 'none',
+                  fontWeight: 800,
+                  fontSize: 'var(--fs-xs)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  boxShadow: '0 2px 8px rgba(15, 23, 42, 0.25)'
+                }}
+                title="طباعة جدول الدفعات والشرط التعاقدي لمالك المشروع"
+              >
+                <Printer size={15} />
+                طباعة جدول الدفعات
+              </button>
             </div>
           </div>
 
@@ -861,6 +899,31 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                     </tr>
                   </tfoot>
                 </table>
+              </div>
+            )}
+
+            {/* الشرط والضوابط التعاقدية لسريان جدول الدفعات */}
+            {milestones.length > 0 && (
+              <div style={{
+                marginTop: '1rem',
+                padding: '1rem 1.25rem',
+                background: '#fffbeb',
+                border: '1px solid #fef3c7',
+                borderRight: '5px solid #d97706',
+                borderRadius: '14px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '0.75rem'
+              }}>
+                <AlertTriangle size={20} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <div style={{ fontWeight: 900, color: '#92400e', fontSize: 'var(--fs-sm)', marginBottom: '0.25rem' }}>
+                    ⚖️ شروط وضوابط سريان جدول الدفعات والجدول الزمني (الفقرة التعاقدية الملزمة):
+                  </div>
+                  <p style={{ margin: 0, fontSize: 'var(--fs-xs)', color: '#78350f', lineHeight: 1.8 }}>
+                    {MILESTONE_CONTRACTUAL_DISCLAIMER}
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -2254,6 +2317,37 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   onClick={() => {
                     setPrintOptions({
                       projectInfo: true,
+                      dailyReport: false,
+                      clientMilestones: true,
+                      scheduleTimeline: false,
+                      ganttChart: false,
+                      siteVisits: false,
+                      sitePhotos: false,
+                      costVarianceEVM: false,
+                      subcontractors: false,
+                      signatures: true
+                    });
+                    setCustomReportTitle(`جدول دفعات العميل والشرط التعاقدي`);
+                  }}
+                  style={{
+                    backgroundColor: '#fffbeb',
+                    color: '#92400e',
+                    border: '1px solid #fde68a',
+                    padding: '5px 12px',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    cursor: 'pointer'
+                  }}
+                >
+                  💵 جدول دفعات العميل والشرط التعاقدي
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPrintOptions({
+                      projectInfo: true,
                       dailyReport: true,
                       clientMilestones: true,
                       scheduleTimeline: true,
@@ -3235,6 +3329,30 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                       </tr>
                     </tfoot>
                   </table>
+                  )}
+
+                  {/* الشرط والضوابط التعاقدية الملزمة المطبوعة أسفل جدول الدفعات */}
+                  {paymentSchedule.rows.length > 0 && (
+                    <div style={{
+                      marginTop: '12px',
+                      padding: '10px 14px',
+                      background: '#f8fafc',
+                      border: '1px solid #cbd5e1',
+                      borderRight: '4px solid #f59e0b',
+                      borderRadius: '8px',
+                      fontSize: '11px',
+                      lineHeight: '1.7',
+                      color: '#1e293b',
+                      pageBreakInside: 'avoid'
+                    }}>
+                      <div style={{ fontWeight: 900, color: '#0f172a', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <AlertTriangle size={14} color="#d97706" />
+                        <span>شروط وضوابط سريان جدول الدفعات والجدول الزمني (بند تعاقدي ملزم):</span>
+                      </div>
+                      <p style={{ margin: 0, textAlign: 'justify' }}>
+                        {MILESTONE_CONTRACTUAL_DISCLAIMER}
+                      </p>
+                    </div>
                   )}
                 </div>
               )}

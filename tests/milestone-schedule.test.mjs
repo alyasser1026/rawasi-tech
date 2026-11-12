@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildMilestoneSchedule, resolveMilestoneStatus } from '../lib/milestoneSchedule.ts';
+import { buildMilestoneSchedule, resolveMilestoneStatus, MILESTONE_CONTRACTUAL_DISCLAIMER } from '../lib/milestoneSchedule.ts';
 
 const capitalMilestones = [
   { id: 'm1', milestone_number: 1, title: 'مقدمة', due_date: '2026-11-08', expected_amount: '150000', received_amount: '0', status: 'مستحقة' },
@@ -68,4 +68,13 @@ test('Milestone status: partial before due date is "محصلة جزئياً"', (
   const r = resolveMilestoneStatus(1000, 200, '2026-12-01', '2026-11-11', 'مستحقة');
   assert.equal(r.status.key, 'partial');
   assert.equal(r.status.label, 'محصلة جزئياً');
+});
+
+test('Milestone contractual disclaimer: includes 3-month owner delay condition, schedule replanning, and price adjustment', () => {
+  assert.ok(typeof MILESTONE_CONTRACTUAL_DISCLAIMER === 'string');
+  assert.ok(MILESTONE_CONTRACTUAL_DISCLAIMER.includes('ثلاثة (3) أشهر') || MILESTONE_CONTRACTUAL_DISCLAIMER.includes('ثلاث'));
+  assert.ok(MILESTONE_CONTRACTUAL_DISCLAIMER.includes('المالك'));
+  assert.ok(MILESTONE_CONTRACTUAL_DISCLAIMER.includes('فني أو تقني'));
+  assert.ok(MILESTONE_CONTRACTUAL_DISCLAIMER.includes('تعديل وتحديث الأسعار') || MILESTONE_CONTRACTUAL_DISCLAIMER.includes('تعديل الأسعار'));
+  assert.ok(MILESTONE_CONTRACTUAL_DISCLAIMER.includes('الجدول الزمني'));
 });

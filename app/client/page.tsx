@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CSS } from './client-styles';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { MILESTONE_CONTRACTUAL_DISCLAIMER } from '@/lib/milestoneSchedule';
 
 /* ===== أنواع البيانات القادمة من الدالة public.client_portal_data ===== */
 type Item = { name: string; category: string; unit: string | null; qty: number | null; done_qty: number; pct: number; start_date: string | null; end_date: string | null };
@@ -312,15 +313,33 @@ function Portal() {
               <h2>جدول الدفعات</h2>
               <p className="cl-sub">المستحق والمسدد لكل مرحلة</p>
               {ms.length === 0 ? <p className="cl-note">لم يُحدَّد جدول دفعات لهذا المشروع بعد.</p> : (
-                <div className="cl-scroll"><table className="cl-table">
-                  <thead><tr><th>#</th><th>الدفعة</th><th>الاستحقاق</th><th>المطلوب</th><th>المسدد</th><th>الحالة</th></tr></thead>
-                  <tbody>{ms.map(m => (
-                    <tr key={m.no}>
-                      <td className="n">{m.no}</td><td>{m.title}</td><td>{dateAr(m.due_date)}</td>
-                      <td className="n">{money(m.expected, cur)}</td><td className="n">{money(m.received, cur)}</td>
-                      <td><span className={`cl-tag ${m.status === 'paid' ? 'done' : m.status === 'late' ? 'late' : 'due'}`}>{m.status === 'paid' ? 'مسددة' : m.status === 'late' ? 'متأخرة' : 'مستحقة'}</span></td>
-                    </tr>))}</tbody>
-                </table></div>
+                <>
+                  <div className="cl-scroll"><table className="cl-table">
+                    <thead><tr><th>#</th><th>الدفعة</th><th>الاستحقاق</th><th>المطلوب</th><th>المسدد</th><th>الحالة</th></tr></thead>
+                    <tbody>{ms.map(m => (
+                      <tr key={m.no}>
+                        <td className="n">{m.no}</td><td>{m.title}</td><td>{dateAr(m.due_date)}</td>
+                        <td className="n">{money(m.expected, cur)}</td><td className="n">{money(m.received, cur)}</td>
+                        <td><span className={`cl-tag ${m.status === 'paid' ? 'done' : m.status === 'late' ? 'late' : 'due'}`}>{m.status === 'paid' ? 'مسددة' : m.status === 'late' ? 'متأخرة' : 'مستحقة'}</span></td>
+                      </tr>))}</tbody>
+                  </table></div>
+                  <div style={{
+                    marginTop: '12px',
+                    padding: '10px 14px',
+                    background: 'var(--surface-sunken, #f8fafc)',
+                    border: '1px solid var(--border-subtle, #e2e8f0)',
+                    borderRight: '4px solid var(--brand-primary, #f59e0b)',
+                    borderRadius: '8px',
+                    fontSize: '11px',
+                    lineHeight: '1.7',
+                    color: 'var(--text-secondary, #334155)'
+                  }}>
+                    <strong style={{ display: 'block', color: 'var(--text-primary, #0f172a)', marginBottom: '3px' }}>
+                      ⚖️ شروط وضوابط سريان جدول الدفعات والجدول الزمني:
+                    </strong>
+                    <span>{MILESTONE_CONTRACTUAL_DISCLAIMER}</span>
+                  </div>
+                </>
               )}
             </div>
             <div className="cl-grid2">

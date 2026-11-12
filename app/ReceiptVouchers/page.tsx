@@ -9,6 +9,7 @@ import RawasiSmartTable from '@/components/rawasismarttable'; // 💎 الجدو
 import SecureAction from '@/components/SecureAction'; // 🛡️ حارس الأزرار
 import { useReceiptVouchersLogic } from './ReceiptVouchers_logic';
 import ReceiptVoucherModal from './ReceiptVoucherModal';
+import ReceiptPrintModal from './ReceiptPrintModal';
 import MasterPage from '@/components/MasterPage';
 import { useSidebar } from '@/lib/SidebarContext';
 import SmartCombo from '@/components/SmartCombo';
@@ -48,6 +49,9 @@ export default function ReceiptVouchersPage() {
     
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
+
+    // 🖨️ معاينة وطباعة سند القبض
+    const [printRecord, setPrintRecord] = useState<any>(null);
 
     // 🚀 استخراج العناصر الحالية لتحديد الكل بأمان (الإضافة الجديدة)
     const currentVisibleIds = useMemo(() => {
@@ -180,6 +184,25 @@ export default function ReceiptVouchersPage() {
             }
         },
         {
+            header: 'طباعة',
+            accessor: 'print_action',
+            excludeFromExport: true,
+            render: (row: any) => {
+                if (!row) return null;
+                return (
+                    <button
+                        type="button"
+                        className="btn-main-glass white"
+                        style={{ padding: '0.375rem 0.75rem', fontSize: 'var(--fs-xs)', fontWeight: 900, whiteSpace: 'nowrap' }}
+                        aria-label={`طباعة سند القبض ${row.receipt_number || ''}`}
+                        onClick={(e) => { e.stopPropagation(); setPrintRecord(row); }}
+                    >
+                        🖨️ طباعة
+                    </button>
+                );
+            }
+        },
+        {
             header: 'إرسال',
             accessor: 'send_action',
             excludeFromExport: true,
@@ -226,6 +249,13 @@ export default function ReceiptVouchersPage() {
                             سند قبض جديد
                         </button>
                     </SecureAction>
+
+                    {/* 🖨️ طباعة السند المحدد */}
+                    {singleSelected && selectedRecord && (
+                        <button onClick={() => setPrintRecord(selectedRecord)} className="btn-main-glass white" style={{ padding: '0.75rem' }}>
+                            🖨️ طباعة السند
+                        </button>
+                    )}
 
                     {/* 🛡️ حماية التعديل */}
                     {canEdit && (
@@ -324,6 +354,9 @@ export default function ReceiptVouchersPage() {
                         onRowClick={(row) => {
                             if(logic.canUserEdit(row)) {
                                 logic.handleEdit(row);
+                            } else {
+                                // السند المعتمد مايتعدلش: الضغط عليه بيفتح معاينة الطباعة
+                                setPrintRecord(row);
                             }
                         }} 
                     />
@@ -331,6 +364,11 @@ export default function ReceiptVouchersPage() {
                         <PaginationPanel totalItems={logic.allFiltered.length} currentPage={logic.currentPage} rowsPerPage={logic.rowsPerPage} onPageChange={logic.setCurrentPage} onRowsChange={logic.setRowsPerPage} />
                     </div>
                 </div>
+            )}
+
+            {/* 🖨️ معاينة طباعة سند القبض */}
+            {mounted && printRecord && (
+                <ReceiptPrintModal isOpen={!!printRecord} onClose={() => setPrintRecord(null)} record={printRecord} />
             )}
 
             {/* 🛡️ مودال الإضافة والتعديل */}
@@ -430,3 +468,4 @@ export default function ReceiptVouchersPage() {
         </MasterPage>
     );
 }
+
