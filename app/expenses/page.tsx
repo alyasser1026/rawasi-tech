@@ -18,6 +18,7 @@ import { supabase } from '@/lib/supabase';
 // 🎬 المودالز
 import ExpenseFormModal from './ExpenseFormModal'; 
 import ExpensePrintModal from './ExpensePrintModal'; 
+import ExpenseCategorySummary from './ExpenseCategorySummary';
 import LoadingScreen from '@/components/LoadingScreen';
 import { ChevronUp, ChevronDown, ArrowUpDown, Printer, Banknote, Plus, Download, Edit3, CheckCircle2, RotateCcw, Trash2 } from 'lucide-react';
 import { AttachmentViewButton } from '@/components/TelegramAttachmentField';
@@ -76,7 +77,7 @@ export default function ExpensesPage() {
 
   const displayedExpenses = useMemo(() => {
     if (!categoryFilter) return logic.filteredExpenses;
-    return logic.filteredExpenses.filter((item: any) => item.main_category === categoryFilter);
+    return logic.filteredExpenses.filter((item: any) => (String(item.main_category || '').trim() || 'غير مصنف') === categoryFilter);
   }, [logic.filteredExpenses, categoryFilter]);
 
   const displayedTotal = useMemo(() => {
@@ -551,6 +552,7 @@ export default function ExpensesPage() {
                   >
                     <option value="الكل">كل التصنيفات</option>
                     {MAIN_CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    {categoryFilter && !MAIN_CATEGORIES.includes(categoryFilter) && <option value={categoryFilter}>{categoryFilter}</option>}
                   </select>
                 </div>
 
@@ -603,7 +605,7 @@ export default function ExpensesPage() {
 
               </div>
             }
-            watchDeps={[logic.selectedIds, displayedTotal, logic.rowsPerPage, displayedExpenses.length, logic.filterStatus, logic.paymentFilter]}
+            watchDeps={[logic.selectedIds, displayedTotal, logic.rowsPerPage, displayedExpenses.length, logic.filterStatus, logic.paymentFilter, categoryFilter]}
           />
 
           <style>{`
@@ -770,6 +772,14 @@ export default function ExpensesPage() {
             @keyframes modalEntrance { from { opacity: 0; transform: translateY(40px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
           `}</style>
 
+          {!(logic.isLoading || permsLoading) && (
+            <ExpenseCategorySummary
+              expenses={logic.filteredExpenses}
+              category={categoryFilter}
+              onSelectCategory={(c) => { setCategoryFilter(c); logic.setCurrentPage(1); }}
+            />
+          )}
+
           {(logic.isLoading || permsLoading) ? (
             <LoadingScreen message="جاري المزامنة..." fullScreen={false} />
           ) : (
@@ -913,3 +923,4 @@ export default function ExpensesPage() {
     </div>
   );
 }
+
