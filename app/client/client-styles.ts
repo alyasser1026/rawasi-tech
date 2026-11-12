@@ -130,8 +130,10 @@ export const CSS = `
   .cl-stat3{gap:8px}.cl-stat{padding:14px}.cl-stat strong{font-size:1.6rem}
   .cl-card{padding:18px}
 }
+.cl-print-head{display:none}
 @media print{
-  @page{margin:12mm}
+  @page{margin:12mm; @bottom-center{content:"صفحة " counter(page) " من " counter(pages); font-family:'Cairo',sans-serif; font-size:8.5px; color:#64748b}}
+  .cl-print-head{display:block;margin-bottom:12px}
   .cl-bar,.cl-pills,.cl-tabs,.cl-toolbar,.cl-noprint{display:none!important}
   .cl{background:#fff}
   .cl-hero{background:#fff!important;color:#000;border:1px solid #bbb}

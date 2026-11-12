@@ -1,14 +1,15 @@
 "use client";
-import { currencyCode } from '@/lib/currency';
+import { currencyCode, currencyName } from '@/lib/currency';
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom'; 
 import { THEME } from '@/lib/theme';
 import { formatCurrency, tafqeet } from '@/lib/helpers'; 
 import { useToast } from '@/lib/toast-context'; 
 import ZatcaQRCode from './ZatcaQRCode'; 
-import { QRCodeSVG } from 'qrcode.react'; 
 import { supabase } from '@/lib/supabase';
-import ReportContactFooter from '@/components/ReportContactFooter'; // 🚀 استدعاء Supabase
+import ReportContactFooter from '@/components/ReportContactFooter';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { DocSignatures, DocTotals, DocWords, PHI_DOC_CSS, type DocTotalRow } from '@/components/PrintDocument';
 import { useCompany } from '@/lib/CompanyContext';
 
 // --- [المودال الرئيسي لطباعة ومعاينة الفاتورة] ---
@@ -401,11 +402,6 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                 }
 
                 @media print {
-                    @page { 
-                        size: A4 portrait; 
-                        margin: 0 !important; 
-                    }
-                    
                     html, body { 
                         width: 210mm !important;
                         height: 297mm !important; 
@@ -461,6 +457,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                     }
                 }
             `}</style>
+            <style>{PHI_DOC_CSS}</style>
 
             <div className="print-actions-bar no-print">
                 <button onClick={handlePrintOrPDF} className="action-btn print">
@@ -471,101 +468,60 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                 </button>
             </div>
 
-            <div className="a4-preview-box">
+            <div className="a4-preview-box phi-doc phi-doc-page">
                 
-                {/* 1️⃣ رأس الفاتورة */}
-                <div className="inv-header">
-                    <div className="header-qr">
-                        {/* 🚀 باركود الزكاة والضريبة */}
-                        {!record.skip_zatca && (
-                            <div className="qr-container">
-                                <ZatcaQRCode record={record} />
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="header-center">
-                        <h1 style={{ fontSize: '18px', fontWeight: 900, color: THEME.primary, margin: '0 0 4px 0' }}>{sellerNameAr}</h1>
-                        {isDefaultCompany && <h2 style={{ fontSize: '15px', fontWeight: 900, color: THEME.primary, margin: '0 0 8px 0', letterSpacing: '0.5px' }}>Phi Tech Contracting Company</h2>}
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', fontFamily: 'Arial, sans-serif' }}>الرقم الضريبي (VAT No): {sellerTaxNo}</div>
-                        {sellerCrNo && <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginTop: '2px', fontFamily: 'Arial, sans-serif' }}>الرقم الموحد (Unified No): {sellerCrNo}</div>}
-                    </div>
-
-                    <div className="header-logo">
-                        <img src="/company-logo.svg" alt="شعار الشركة" />
-                    </div>
-                </div>
-
-                <div className="inv-title-box">
-                    <div className="inv-title">فاتورة ضريبية | TAX INVOICE</div>
-                </div>
-
-                {/* 2️⃣ مربعات البيانات (المعدلة عربي/إنجليزي) بخاصية توزيع المساحات المحمية لمنع الالتفاف السعري السفلي */}
-                <div className="info-grid">
-                    <div className="info-box">
-                        <span className="box-label">صُدرت إلى / Invoice To</span>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '4px' }}>
-                                <span style={{ width: '26%', textAlign: 'right', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>العميل</span>
-                                <span style={{ width: '48%', textAlign: 'center', fontWeight: 900, color: THEME.primary, fontSize: '12px' }}>{record.client_name || record.partners?.name || '---'}</span>
-                                <span style={{ width: '26%', textAlign: 'left', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>Client Name</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '4px' }}>
-                                <span style={{ width: '26%', textAlign: 'right', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>الرقم الضريبي</span>
-                                <span style={{ width: '48%', textAlign: 'center', fontWeight: 900, color: '#334155', fontSize: '12px', fontFamily: 'Arial, sans-serif' }}>{record.partners?.tax_id || record.partners?.vat_number || '---'}</span>
-                                <span style={{ width: '26%', textAlign: 'left', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>VAT No</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ width: '26%', textAlign: 'right', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>العنوان</span>
-                                <span style={{ width: '48%', textAlign: 'center', fontWeight: 900, color: '#334155', fontSize: '11px' }}>{record.partners?.address || record.address || 'المملكة العربية السعودية'}</span>
-                                <span style={{ width: '26%', textAlign: 'left', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>Address</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="info-box">
-                        <span className="box-label">بيانات الفاتورة | INVOICE DETAILS</span>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '6px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '4px' }}>
-                                <span style={{ width: '26%', textAlign: 'right', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>رقم الفاتورة</span>
-                                <span style={{ width: '48%', textAlign: 'center', fontWeight: 900, color: '#334155', fontSize: '12px', fontFamily: 'Arial, sans-serif' }}>#{record.invoice_number}</span>
-                                <span style={{ width: '26%', textAlign: 'left', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>Invoice No</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px dashed #e2e8f0', paddingBottom: '4px' }}>
-                                <span style={{ width: '26%', textAlign: 'right', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>تاريخ الإصدار</span>
-                                <span style={{ width: '48%', textAlign: 'center', fontWeight: 900, color: '#334155', fontSize: '12px', fontFamily: 'Arial, sans-serif' }}>{new Date(record.date).toLocaleDateString('en-US')}</span>
-                                <span style={{ width: '26%', textAlign: 'left', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>Issue Date</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span style={{ width: '26%', textAlign: 'right', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>المشروع</span>
-                                <span style={{ width: '48%', textAlign: 'center', fontWeight: 900, color: THEME.primary, fontSize: '11px' }}>{projectNames}</span>
-                                <span style={{ width: '26%', textAlign: 'left', fontWeight: 900, color: '#64748b', fontSize: '11px', whiteSpace: 'nowrap' }}>Project</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {/* 1️⃣ الترويسة الرسمية الموحدة + رمز هيئة الزكاة + بيانات الفاتورة */}
+                <ReportOfficialHeader
+                    title={record.skip_zatca ? 'فاتورة (Invoice)' : 'فاتورة ضريبية (Tax Invoice)'}
+                    badgeText={record.skip_zatca ? 'فاتورة مبيعات معتمدة • SALES INVOICE' : 'فاتورة ضريبية معتمدة • VAT INVOICE'}
+                    reportRefCode={record.invoice_number ? `INV-${record.invoice_number}` : undefined}
+                    refLabel="رقم الفاتورة"
+                    issueDate={record.date ? new Date(record.date).toLocaleDateString('en-GB') : creationDate}
+                    meta={[
+                        { label: 'تاريخ الاستحقاق', value: record.due_date ? new Date(record.due_date).toLocaleDateString('en-GB') : undefined, ltr: true },
+                        { label: 'وقت الإصدار', value: creationTime, ltr: true },
+                    ]}
+                    currency={`${currencyName()} (${currencyCode()})`}
+                    compact
+                    issuer={{
+                        nameAr: sellerNameAr,
+                        nameEn: isDefaultCompany && !activeCompany?.legal_name ? 'Phi Tech Contracting Company' : undefined,
+                        taxNumber: sellerTaxNo,
+                        unifiedNumber: sellerCrNo || undefined,
+                        address: sellerAddress || undefined,
+                    }}
+                    qrNode={record.skip_zatca ? undefined : <ZatcaQRCode record={record} />}
+                    qrCaption={record.skip_zatca ? undefined : 'رمز هيئة الزكاة والضريبة'}
+                    details={[
+                        { label: 'العميل • Client', value: record.client_name || record.partners?.name || '---' },
+                        { label: 'الرقم الضريبي للعميل • VAT No', value: record.partners?.tax_id || record.partners?.vat_number, ltr: true },
+                        { label: 'المشروع • Project', value: projectNames },
+                        { label: 'الصافي المستحق', value: formatCurrencyEn(record.total_amount), accent: true, ltr: true },
+                        { label: 'عنوان العميل • Address', value: record.partners?.address || record.address || 'المملكة العربية السعودية', wide: true },
+                    ]}
+                />
 
                 {/* 3️⃣ جدول البنود التفصيلية */}
-                <table className="inv-table">
+                <table className="inv-table phi-doc-table">
                     <thead>
                         <tr>
                             <th style={{ width: '40px' }}>#</th>
-                            <th style={{ textAlign: 'right' }}>البيان / Description</th>
+                            <th className="is-start">البيان / Description</th>
                             <th style={{ width: '90px' }}>الوحدة / Unit</th>
                             <th style={{ width: '90px' }}>الكمية / Qty</th>
                             <th style={{ width: '120px' }}>السعر / Price</th>
                             <th style={{ width: '150px' }}>الإجمالي / Total</th>
                         </tr>
                     </thead>
-                    <tbody style={{ fontFamily: 'Arial, sans-serif' }}>
+                    <tbody>
                         {hasMainItem && (
                             <tr>
                                 <td>1</td>
-                                <td className="desc" style={{ fontFamily: "'Arial', sans-serif" }}>{record.description || '---'}</td>
+                                <td className="is-start is-strong">{record.description || '---'}</td>
                                 <td>{record.unit || '---'}</td>
                                 <td>{formatNumberEn(record.quantity || 0)}</td>
                                 <td>{formatCurrencyEn(record.unit_price)}</td>
-                                <td style={{ fontWeight: 900, color: '#0f172a' }}>{formatCurrencyEn((Number(record.quantity||0) * Number(record.unit_price||0)))}</td>
+                                <td className="is-strong">{formatCurrencyEn((Number(record.quantity||0) * Number(record.unit_price||0)))}</td>
                             </tr>
                         )}
                         
@@ -578,11 +534,11 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                             return (
                                 <tr key={`pline-${idx}`}>
                                     <td>{rowNum}</td>
-                                    <td className="desc" style={{ fontFamily: "'Arial', sans-serif" }}>{line.description || line.item_name || line.name || '---'}</td>
+                                    <td className="is-start is-strong">{line.description || line.item_name || line.name || '---'}</td>
                                     <td>{line.unit || '---'}</td>
                                     <td>{formatNumberEn(qty || 0)}</td>
                                     <td>{formatCurrencyEn(price)}</td>
-                                    <td style={{ fontWeight: 900, color: '#0f172a' }}>{formatCurrencyEn(total)}</td>
+                                    <td className="is-strong">{formatCurrencyEn(total)}</td>
                                 </tr>
                             );
                         })}
@@ -590,68 +546,38 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                 </table>
 
                 {/* 4️⃣ التفقيط والإجماليات */}
-                <div className="inv-footer-flex">
-                    <div className="inv-amount-words">
-                        <div style={{ fontSize: '13px', fontWeight: 900, marginBottom: '6px', color: '#64748b' }}>المبلغ الإجمالي كتابة (Amount in Words):</div>
-                        <div className="words-box">{amountInWords}</div>
-                        
-                        <div className="signature-area">
-                            <div className="signature-title">معتمد إلكترونياً من / E-Signature</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <QRCodeSVG value={signatureData} size={75} level="M" />
-                                <div style={{ fontSize: '14px', fontWeight: 900, marginTop: '8px', color: THEME.primary }}>{finalFullName}</div>
-                            </div>
-                        </div>
+                <div className="phi-doc-summary" style={{ gridTemplateColumns: 'minmax(0,1fr) 340px' }}>
+                    <div className="phi-doc-stack">
+                        <DocWords text={amountInWords} />
                     </div>
-
-                    <div className="inv-totals-box" style={{ fontFamily: 'Arial, sans-serif' }}>
-                        <div className="inv-total-row">
-                            <span style={{ fontFamily: "'Arial', sans-serif" }}>إجمالي الأعمال / Subtotal:</span>
-                            <span>{formatCurrencyEn(record.line_accounting ? record.taxable_amount : (record.line_total || displayLineTotal))}</span>
-                        </div>
-                        {!record.line_accounting && Number(record.materials_discount) > 0 && (
-                            <div className="inv-total-row discount">
-                                <span style={{ fontFamily: "'Arial', sans-serif" }}>يخصم (مواد) / Mat. Discount:</span>
-                                <span>{formatCurrencyEn(record.materials_discount)} -</span>
-                            </div>
-                        )}
-                        {!record.line_accounting && (
-                            <div className="inv-total-row">
-                                <span style={{ fontFamily: "'Arial', sans-serif" }}>الخاضع للضريبة / Taxable:</span>
-                                <span>{formatCurrencyEn(record.taxable_amount)}</span>
-                            </div>
-                        )}
-                        <div className="inv-total-row tax">
-                            <span style={{ fontFamily: "'Arial', sans-serif" }}>{record.skip_zatca ? 'الضريبة (غير خاضعة) / VAT (0%):' : 'الضريبة (15%) / VAT (15%):'}</span>
-                            <span>{formatCurrencyEn(record.tax_amount)}</span>
-                        </div>
-                        {Number(record.guarantee_amount) > 0 && (
-                            <div className="inv-total-row discount">
-                                <span style={{ fontFamily: "'Arial', sans-serif" }}>ضمان أعمال / Guarantee{Number(record.guarantee_percent) > 0 ? ` (${record.guarantee_percent}%)` : ''}:</span>
-                                <span>{formatCurrencyEn(record.guarantee_amount)} -</span>
-                            </div>
-                        )}
-                        {record.line_accounting && Number(record.materials_discount) > 0 && (
-                            <div className="inv-total-row discount">
-                                <span style={{ fontFamily: "'Arial', sans-serif" }}>تسوية خامات العميل / Customer Materials:</span>
-                                <span>{formatCurrencyEn(record.materials_discount)} -</span>
-                            </div>
-                        )}
-                        <div className="inv-total-row grand-total">
-                            <span style={{ fontFamily: "'Arial', sans-serif" }}>الصافي المستحق / Grand Total:</span>
-                            <span>{formatCurrencyEn(record.total_amount)}</span>
-                        </div>
-                        {Number(record.net_adjustment || 0) !== 0 && (
-                            <div className="inv-total-row">
-                                <span style={{ fontFamily: "'Arial', sans-serif" }}>الرصيد بعد الإشعارات / Adjusted Total:</span>
-                                <span>{formatCurrencyEn(record.effective_total ?? record.total_amount)}</span>
-                            </div>
-                        )}
-                    </div>
+                    <DocTotals
+                        rows={([
+                            { label: 'إجمالي الأعمال / Subtotal', value: formatCurrencyEn(record.line_accounting ? record.taxable_amount : (record.line_total || displayLineTotal)) },
+                            { label: 'يخصم (مواد) / Mat. Discount', value: `- ${formatCurrencyEn(record.materials_discount)}`, tone: 'discount', hidden: !(!record.line_accounting && Number(record.materials_discount) > 0) },
+                            { label: 'الخاضع للضريبة / Taxable', value: formatCurrencyEn(record.taxable_amount), hidden: !!record.line_accounting },
+                            { label: record.skip_zatca ? 'الضريبة (غير خاضعة) / VAT 0%' : 'الضريبة 15% / VAT 15%', value: formatCurrencyEn(record.tax_amount), tone: 'tax' },
+                            { label: `ضمان أعمال / Guarantee${Number(record.guarantee_percent) > 0 ? ` (${record.guarantee_percent}%)` : ''}`, value: `- ${formatCurrencyEn(record.guarantee_amount)}`, tone: 'discount', hidden: !(Number(record.guarantee_amount) > 0) },
+                            { label: 'تسوية خامات العميل / Customer Materials', value: `- ${formatCurrencyEn(record.materials_discount)}`, tone: 'discount', hidden: !(record.line_accounting && Number(record.materials_discount) > 0) },
+                        ] as DocTotalRow[])}
+                        grand={{ label: 'الصافي المستحق / Grand Total', value: formatCurrencyEn(record.total_amount) }}
+                    />
                 </div>
+                {Number(record.net_adjustment || 0) !== 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-8px', marginBottom: '12px' }}>
+                        <div style={{ width: '340px' }}>
+                            <DocTotals rows={[{ label: 'الرصيد بعد الإشعارات / Adjusted Total', value: formatCurrencyEn(record.effective_total ?? record.total_amount), tone: 'warn' }]} />
+                        </div>
+                    </div>
+                )}
+
+                <DocSignatures slots={[
+                    { title: 'أعدّه', en: 'Prepared by', name: finalFullName, qrValue: signatureData, date: creationDate },
+                    { title: 'المدير المالي', en: 'Finance Manager' },
+                    { title: 'استلام العميل', en: 'Client Acknowledgement', name: record.client_name || record.partners?.name || undefined },
+                ]} />
 
                 {/* 5️⃣ الفوتر الثابت أسفل الصفحة */}
-                <ReportContactFooter qrSize={56} customAddress={sellerAddress} style={{ marginTop: 'auto', paddingTop: '15px' }} />
+                <ReportContactFooter layout="minimal" style={{ marginTop: 'auto', paddingTop: '10px' }} />
 
             </div>
         </div>

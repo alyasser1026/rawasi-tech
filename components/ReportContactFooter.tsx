@@ -97,7 +97,7 @@ export default function ReportContactFooter({
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{ fontWeight: 900, color: brandColor, fontSize: '13px' }}>
-            Phi Tech للحلول والإنشاءات
+            فاي تك للمقاولات والتوريدات
           </span>
           {customAddress && (
             <span style={{ color: '#64748b', fontSize: '11px' }}>

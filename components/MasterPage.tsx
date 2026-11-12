@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import EnterprisePageTools from './EnterprisePageTools';
 import { getNavigationIcon } from './NavigationIcon';
+import PrintMasthead from './PrintMasthead';
 
 type MasterPageProps = {
   title: string;
@@ -29,6 +30,7 @@ export default function MasterPage({ title, subtitle, description, children, hea
   }, [pathname]);
 
   return <section className="enterprise-page">
+    <PrintMasthead title={title} subtitle={subtitle || description} />
     <header className="ent-page-heading">
       <div><div className="ent-title-line">{icon && typeof icon !== 'string' ? icon : <Icon aria-hidden="true"/>}<h1>{title}</h1></div><p>{subtitle || description || 'نظام فاي تك لإدارة الموارد المؤسسية'}</p></div>
       {headerContent && <div className="ent-heading-actions no-print">{headerContent}</div>}

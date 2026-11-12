@@ -1,9 +1,11 @@
 "use client";
-import { currencyCode } from '@/lib/currency';
+import { currencyCode, currencyName } from '@/lib/currency';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '@/lib/helpers';
 import ReportContactFooter from '@/components/ReportContactFooter';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { DocNote, DocSection, DocSignatures, DocTotals, PHI_DOC_CSS, type DocTotalRow } from '@/components/PrintDocument';
 
 export default function PrintClaimModal({ isOpen, onClose, claim, contractorName, assignments = [], deductions = [] }: any) {
     const [mounted, setMounted] = useState(false);
@@ -63,16 +65,13 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
 
     let paymentStatus = 'غير مسدد';
     let statusColor = '#ef4444'; // أحمر
-    let statusBg = '#fef2f2';
 
     if (paidAmount >= netAmount && netAmount > 0) {
         paymentStatus = 'مسدد بالكامل';
         statusColor = '#16a34a'; // أخضر
-        statusBg = '#dcfce7';
     } else if (paidAmount > 0 && paidAmount < netAmount) {
         paymentStatus = 'مسدد جزئي';
         statusColor = '#d97706'; // برتقالي
-        statusBg = '#fef3c7';
     }
 
     return createPortal(
@@ -209,6 +208,7 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                 .sig-sub { display: block; font-size: 11px; color: #94a3b8; font-weight: 700; margin-top: 4px; }
                 .sig-line { border-bottom: 2px solid #cbd5e1; width: 85%; margin: 0 auto; }
             `}</style>
+            <style>{PHI_DOC_CSS}</style>
 
             <div className="printable-area cinematic-scroll">
                 
@@ -221,50 +221,31 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                     </div>
                 </div>
 
-                <div ref={printRef}>
+                <div ref={printRef} className="phi-doc">
                     
-                    {/* 🏢 ترويسة الشركة */}
-                    <div className="company-header">
-                        <div className="document-title">
-                            <h2>مستخلص أعمال</h2>
-                            <p>SUBCONTRACTOR PAYMENT CERTIFICATE</p>
-                        </div>
-                        <div className="company-brand">
-                            <div style={{ textAlign: 'left' }}>
-                                <p className="company-subtext">إدارة المشاريع الهندسية والمقاولات</p>
-                            </div>
-                            <img src="/company-logo.svg" alt="فاي تك" className="company-logo-img" />
-                        </div>
-                    </div>
-
-                    {/* 📋 كروت البيانات */}
-                    <div className="info-grid">
-                        <div className="info-card">
-                            <span className="info-label">المقاول المنفذ / Subcontractor</span>
-                            <div className="info-value">{contractorName}</div>
-                        </div>
-                        <div className="info-card">
-                            <span className="info-label">نطاق الأعمال / Project Scope</span>
-                            <div className="info-value highlight">{allVillas}</div>
-                        </div>
-                        <div className="info-card">
-                            <span className="info-label">بيانات الدفع / Claim Info</span>
-                            <div className="info-value">رقم المستخلص: <span style={{ color: '#1e3a8a' }}>{claim.claim_number}</span></div>
-                            <div className="info-value" style={{ marginTop: '6px', fontSize: '13px', color: '#64748b' }}>التاريخ: {claim.date}</div>
-                            {/* 🚀 بادج حالة السداد */}
-                            <div className="status-badge" style={{ marginTop: '10px', display: 'inline-block', padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: 900, background: statusBg, color: statusColor, border: `1px solid ${statusColor}40` }}>
-                                حالة السداد: {paymentStatus}
-                            </div>
-                        </div>
-                    </div>
+                    {/* 🏢 الترويسة الرسمية الموحدة + بيانات المستخلص */}
+                    <ReportOfficialHeader
+                        title="مستخلص أعمال مقاول باطن (Subcontractor Payment Certificate)"
+                        badgeText="مستخلص معتمد • PAYMENT CERTIFICATE"
+                        reportRefCode={claim.claim_number ? `CLM-${claim.claim_number}` : undefined}
+                        refLabel="رقم المستخلص"
+                        issueDate={claim.date || undefined}
+                        meta={[{ label: 'حالة السداد', value: <span style={{ color: statusColor }}>{paymentStatus}</span> }]}
+                        currency={`${currencyName()} (${currencyCode()})`}
+                        details={[
+                            { label: 'المقاول المنفذ • Subcontractor', value: contractorName },
+                            { label: 'نطاق الأعمال • Project Scope', value: allVillas, wide: true },
+                            { label: 'الصافي المستحق • Net Payable', value: `${netAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ${currencyCode()}`, accent: true },
+                        ]}
+                    />
 
                     {/* 📊 الجدول الأول: الأعمال المنجزة */}
-                    <div style={{ marginBottom: '15px', fontWeight: 900, color: '#0f172a', fontSize: '16px' }}>أولاً: بيان الأعمال المنجزة (Work Performed)</div>
-                    <table className="vip-table">
+                    <DocSection title="أولًا: بيان الأعمال المنجزة" en="Work Performed" />
+                    <table className="vip-table phi-doc-table">
                         <thead>
                             <tr>
                                 <th style={{ width: '4%' }}>م</th>
-                                <th className="text-right" style={{ width: '30%' }}>تفاصيل البند / Description</th>
+                                <th className="is-start" style={{ width: '30%' }}>تفاصيل البند / Description</th>
                                 <th style={{ width: '6%' }}>الوحدة</th>
                                 <th style={{ width: '15%' }}>الكمية المنجزة</th>
                                 <th style={{ width: '15%' }}>سعر الوحدة</th>
@@ -276,14 +257,14 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                                 groupedAssignments.map((item: any, i: number) => (
                                     <tr key={i}>
                                         <td style={{ color: '#64748b' }}>{i + 1}</td>
-                                        <td className="text-right">
-                                            <span className="villa-badge">{item.villasList}</span>
-                                            <div className="item-title">{item.itemName}</div>
+                                        <td className="is-start is-strong">
+                                            {item.itemName}
+                                            <small>{item.villasList}</small>
                                         </td>
                                         <td>{item.unitName}</td>
-                                        <td className="highlight-blue">{item.totalQty.toFixed(2)}</td>
+                                        <td>{item.totalQty.toFixed(2)}</td>
                                         <td>{item.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-                                        <td className="highlight-green">{item.totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                                        <td className="is-strong">{item.totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
                                     </tr>
                                 ))
                             ) : (
@@ -296,100 +277,47 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                         </tbody>
                     </table>
 
-                    {/* 💰 الملخص المالي والتفقيط */}
-                    <div className="summary-container">
-                        
-                        <div className="disclaimer-box">
-                            <strong>إقرار استلام ومخالصة:</strong>
-                            أقر أنا الموقع أدناه بصفتي ممثلاً عن الجهة المنفذة للأعمال، بأنني قمت بمراجعة كافة الكميات والأسعار أعلاه، وبأنها تمثل حصر دقيق ونهائي للأعمال المنجزة. وأقر باستلامي للصافي الموضح، ولا يحق لي الرجوع على الشركة بأي مطالبات مستقبلاً تخص هذه البنود.
+                    {/* 💰 الملخص المالي */}
+                    <DocSection title="ثانيًا: الخلاصة المالية" en="Financial Summary" />
+                    <div className="phi-doc-summary" style={{ gridTemplateColumns: 'minmax(0,1fr) 400px' }}>
+                        <div className="phi-doc-stack">
+                            <DocNote title="إقرار استلام ومخالصة">
+                                أقر أنا الموقع أدناه بصفتي ممثلاً عن الجهة المنفذة للأعمال، بأنني قمت بمراجعة كافة الكميات والأسعار أعلاه، وبأنها تمثل حصر دقيق ونهائي للأعمال المنجزة. وأقر باستلامي للصافي الموضح، ولا يحق لي الرجوع على الشركة بأي مطالبات مستقبلاً تخص هذه البنود.
+                            </DocNote>
                         </div>
-
-                        <div className="summary-section">
-                            <div className="summary-row">
-                                <span>إجمالي قيمة الأعمال (Total Work)</span>
-                                <span>{Number(totalWorkAmount).toLocaleString(undefined, {minimumFractionDigits: 2})} {currencyCode()}</span>
-                            </div>
-                            
-                            {Number(claim.retention_amount || 0) > 0 && (
-                                <div className="summary-row deduction">
-                                    <span>(-) ضمان أعمال {claim.retention_percent || 0}% (Retention)</span>
-                                    <span>{Number(claim.retention_amount || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                                </div>
-                            )}
-
-                            {materialsDeductionDB > 0 && (
-                                <div className="summary-row deduction">
-                                    <span>(-) خامات ومواد منصرفة (Materials)</span>
-                                    <span>{materialsDeductionDB.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                                </div>
-                            )}
-
-                             {expensesDeductionDB > 0 && (
-                                <div className="summary-row deduction">
-                                    <span>(-) مصروفات سابقة (Expenses)</span>
-                                    <span>{expensesDeductionDB.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                                </div>
-                            )}
-
-                            {advancePaymentDB > 0 && (
-                                <div className="summary-row deduction">
-                                    <span>(-) دفعات نقدية سلفة (Advances)</span>
-                                    <span>{advancePaymentDB.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                                </div>
-                            )}
-
-                            {otherDeductionsDB > 0 && (
-                                <div className="summary-row deduction">
-                                    <span>(-) خصومات أخرى وتسويات (Others)</span>
-                                    <span>{otherDeductionsDB.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
-                                </div>
-                            )}
-
-                            {/* سطر الصافي */}
-                            <div className="summary-row net">
-                                <span>الصافي المُستحق (Net Payable)</span>
-                                <span>{netAmount.toLocaleString(undefined, {minimumFractionDigits: 2})} {currencyCode()}</span>
-                            </div>
-
-                            {/* 🚀 سطور السداد والمتبقي تظهر فقط إذا كان هناك سداد جزئي أو كلي */}
-                            {paidAmount > 0 && (
-                                <>
-                                    <div className="summary-row paid">
-                                        <span>(-) ما تم سداده (Paid Amount)</span>
-                                        <span>{paidAmount.toLocaleString(undefined, {minimumFractionDigits: 2})} {currencyCode()}</span>
-                                    </div>
-                                    <div className="summary-row remaining">
-                                        <span>المتبقي للصرف (Remaining Balance)</span>
-                                        <span>{remainingAmount.toLocaleString(undefined, {minimumFractionDigits: 2})} {currencyCode()}</span>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-
+                        <DocTotals
+                            rows={([
+                                { label: 'إجمالي قيمة الأعمال (Total Work)', value: `${Number(totalWorkAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })} ${currencyCode()}` },
+                                { label: `(-) ضمان أعمال ${claim.retention_percent || 0}% (Retention)`, value: Number(claim.retention_amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2 }), tone: 'discount', hidden: !(Number(claim.retention_amount || 0) > 0) },
+                                { label: '(-) خامات ومواد منصرفة (Materials)', value: materialsDeductionDB.toLocaleString(undefined, { minimumFractionDigits: 2 }), tone: 'discount', hidden: !(materialsDeductionDB > 0) },
+                                { label: '(-) مصروفات سابقة (Expenses)', value: expensesDeductionDB.toLocaleString(undefined, { minimumFractionDigits: 2 }), tone: 'discount', hidden: !(expensesDeductionDB > 0) },
+                                { label: '(-) دفعات نقدية سلفة (Advances)', value: advancePaymentDB.toLocaleString(undefined, { minimumFractionDigits: 2 }), tone: 'discount', hidden: !(advancePaymentDB > 0) },
+                                { label: '(-) خصومات أخرى وتسويات (Others)', value: otherDeductionsDB.toLocaleString(undefined, { minimumFractionDigits: 2 }), tone: 'discount', hidden: !(otherDeductionsDB > 0) },
+                            ] as DocTotalRow[])}
+                            grand={{ label: 'الصافي المستحق (Net Payable)', value: `${netAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ${currencyCode()}` }}
+                        />
                     </div>
+                    {paidAmount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-6px', marginBottom: '12px' }}>
+                            <div style={{ width: '400px' }}>
+                                <DocTotals rows={[
+                                    { label: '(-) ما تم سداده (Paid Amount)', value: `${paidAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ${currencyCode()}`, tone: 'positive' },
+                                    { label: 'المتبقي للصرف (Remaining Balance)', value: `${remainingAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ${currencyCode()}`, tone: 'warn' },
+                                ]} />
+                            </div>
+                        </div>
+                    )}
 
                     {/* ✒️ التوقيعات */}
-                    <div className="signatures-container">
-                        <div className="signature-box">
-                            <div className="sig-title">المقاول المستلم<span className="sig-sub">Subcontractor</span></div>
-                            <div className="sig-line"></div>
-                        </div>
-                        <div className="signature-box">
-                            <div className="sig-title">مهندس الموقع<span className="sig-sub">Site Engineer</span></div>
-                            <div className="sig-line"></div>
-                        </div>
-                        <div className="signature-box">
-                            <div className="sig-title">مدير المشاريع<span className="sig-sub">Project Manager</span></div>
-                            <div className="sig-line"></div>
-                        </div>
-                        <div className="signature-box">
-                            <div className="sig-title">الاعتماد المالي<span className="sig-sub">Finance Dept.</span></div>
-                            <div className="sig-line"></div>
-                        </div>
-                    </div>
+                    <DocSignatures slots={[
+                        { title: 'المقاول المستلم', en: 'Subcontractor', name: contractorName || undefined },
+                        { title: 'مهندس الموقع', en: 'Site Engineer' },
+                        { title: 'مدير المشاريع', en: 'Project Manager' },
+                        { title: 'الاعتماد المالي', en: 'Finance Dept.' },
+                    ]} />
 
                     {/* 📱 فوتر جهات الاتصال الرسمية مع باركود vCard الذكي */}
-                    <ReportContactFooter qrSize={56} style={{ marginTop: '25px' }} />
+                    <ReportContactFooter layout="minimal" style={{ marginTop: '18px' }} />
 
                 </div>
             </div>

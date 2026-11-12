@@ -315,9 +315,10 @@ export default function RawasiSmartTable({
             {/* 🎨 CSS للطباعة ولتأثيرات الهوفر */}
             <style>{`
                 @media print {
-                    body * { visibility: hidden; }
-                    .rawasi-printable-table, .rawasi-printable-table * { visibility: visible; }
-                    .rawasi-printable-table { position: absolute; left: 0; top: 0; width: 100%; }
+                    /* الطباعة بتطلع الجدول بس + ترويسة الطباعة الرسمية فوقه (من غير فراغات مكان العناصر المخفية).
+                       الصفحات اللي ليها منطقة طباعة خاصة أو مستند مفتوح بتتطبع بطريقتها هي. */
+                    body:not(:has(.print-modal-overlay, .phi-print-own-header, .print-area, .print-only)) *:not(:has(.rawasi-printable-table, .phi-print-masthead)):not(.rawasi-printable-table):not(.rawasi-printable-table *):not(.phi-print-masthead):not(.phi-print-masthead *):not(style):not(script) { display: none !important; }
+                    .rawasi-printable-table { width: 100%; }
                     .hide-on-print { display: none !important; }
                     /* إخفاء عمود التحديد والـ Actions عند الطباعة */
                     .rawasi-printable-table th:first-child, .rawasi-printable-table td:first-child { display: none !important; }

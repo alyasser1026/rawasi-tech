@@ -5,6 +5,7 @@ import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { RefreshCw } from 'lucide-react';
 
 export default function AdvancedExpenseAllocation() {
@@ -203,12 +204,14 @@ export default function AdvancedExpenseAllocation() {
     <div className="allocation-dashboard-container" style={{ padding: '1.5625rem', direction: 'rtl', fontFamily: 'inherit' }}>
       
       {/* 🖨️ جزء الطباعة المخفي */}
-      <div className="print-only-header" style={{ display: 'none' }}>
-        <div style={{ textAlign: 'center', padding: '1.25rem', borderBottom: '2px solid #334155', marginBottom: '1.875rem' }}>
-          <h1 style={{ margin: '0 0 0.625rem 0', color: '#1e293b', fontWeight: 900 }}>شركة فاي تك للمقاولات والاستثمار العقاري</h1>
-          <h2 style={{ margin: 0, color: '#475569', fontSize: 'var(--fs-xl)' }}>تقرير توزيع وتحميل المصروفات العامة غير المباشرة على الفلل والمشاريع</h2>
-          <small style={{ color: '#94a3b8', display: 'block', marginTop: '0.625rem' }}>تاريخ استخراج التقرير: {new Date().toLocaleDateString('en-GB')}</small>
-        </div>
+      <div className="print-only-header phi-print-masthead" style={{ display: 'none' }}>
+        <ReportOfficialHeader
+          title="تقرير توزيع المصروفات غير المباشرة (Indirect Cost Allocation)"
+          subtitle="توزيع وتحميل المصروفات العامة غير المباشرة على الفلل والمشاريع"
+          badgeText="تقرير مالي معتمد • FINANCIAL REPORT"
+          refLabel="رقم التقرير"
+          compact
+        />
       </div>
 
       {/* 🔝 العنوان الرئيسي */}

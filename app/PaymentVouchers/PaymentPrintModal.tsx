@@ -1,11 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom'; 
-import { THEME } from '@/lib/theme';
 import { formatCurrency, tafqeet } from '@/lib/helpers'; 
-import { QRCodeSVG } from 'qrcode.react'; 
+import { currencyCode, currencyName } from '@/lib/currency';
 import { supabase } from '@/lib/supabase';
 import ReportContactFooter from '@/components/ReportContactFooter';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { DocAmount, DocNote, DocSignatures, DocWords, PHI_DOC_CSS } from '@/components/PrintDocument';
 
 export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
     const [mounted, setMounted] = useState(false); 
@@ -64,27 +65,7 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
                 .action-btn.print { background: #0f172a; color: white; }
                 .action-btn.close { background: #fee2e2; color: #dc2626; }
                 .a4-preview-box { width: 210mm !important; min-height: 297mm !important; background: white !important; color: #000; padding: 15mm !important; margin: 0 auto 40px auto !important; box-shadow: 0 20px 50px rgba(0,0,0,0.4); direction: rtl; border-radius: 14px !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; box-sizing: border-box !important; }
-                .inv-header { display: grid; grid-template-columns: 180px 1fr 180px; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 25px; width: 100%; gap: 15px; }
-                .header-center { text-align: center; }
-                .header-logo { display: flex; justify-content: flex-end; } 
-                .header-logo img { height: 72px; max-height: 72px; width: auto; max-width: 240px; object-fit: contain; background: transparent; } 
-                .inv-title-box { text-align: center; margin-bottom: 25px; }
-                .inv-title { font-size: 22px; font-weight: 900; border: 2.5px solid #000; padding: 8px 35px; display: inline-block; background: #fef2f2; color: #b91c1c; text-transform: uppercase; letter-spacing: 1px; border-radius: 12px; }
-                .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-                .info-box { border: 1.5px solid #cbd5e1; border-radius: 16px !important; padding: 18px 15px 12px 15px; display: flex; flex-direction: column; justify-content: center; position: relative; background: #fff; min-height: 90px; }
-                .box-label { position: absolute; top: -10px; right: 20px; background: white; padding: 0 10px; font-size: 12px; font-weight: 900; color: #475569; border-radius: 14px; }
-                .inner-table { width: 100%; border-collapse: collapse; }
-                .inner-table td { padding: 4px 0; font-size: 14px; vertical-align: middle; font-weight: 900; color: #1e293b;}
-                .label-cell { text-align: left; font-weight: 900; color: #64748b; width: 100px; padding-left: 10px !important; }
-                .value-highlight { color: #b91c1c; font-size: 18px !important; }
-                .inv-footer-flex { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; flex-grow: 1; gap: 40px; }
-                .inv-amount-words { flex: 1; display: flex; flex-direction: column; }
-                .inv-amount-words .words-box { background: #f8fafc; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 16px; font-weight: 900; font-size: 15px; color: #0f172a; line-height: 1.6; }
-                .signature-area { margin-top: 30px; text-align: center; align-self: flex-start; }
-                .signature-title { font-weight: 900; font-size: 13px; color: #64748b; margin-bottom: 15px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
-                .inv-footer-contact { margin-top: auto !important; border-top: 2px solid #e2e8f0; padding-top: 15px; text-align: center; font-size: 13px; color: #64748b; font-weight: 700; }
                 @media print {
-                    @page { size: A4 portrait; margin: 0 !important; }
                     html, body { width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
                     body > *:not(.print-modal-overlay) { display: none !important; }
                     .no-print { display: none !important; }
@@ -92,70 +73,49 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
                     .a4-preview-box { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; box-shadow: none !important; border: none !important; padding: 15mm !important; box-sizing: border-box !important; direction: rtl !important; display: flex !important; flex-direction: column !important; border-radius: 0 !important; page-break-after: avoid !important; page-break-inside: avoid !important; }
                 }
             `}</style>
+            <style>{PHI_DOC_CSS}</style>
 
             <div className="print-actions-bar no-print">
                 <button onClick={handlePrint} className="action-btn print">طباعة السند</button>
                 <button onClick={onClose} className="action-btn close">إغلاق المعاينة</button>
             </div>
 
-            <div className="a4-preview-box">
-                <div className="inv-header">
-                    <div style={{width: '180px'}}></div> 
-                    <div className="header-center">
-                        <h1 style={{ fontSize: '18px', fontWeight: 900, color: THEME.primary, margin: '0 0 4px 0' }}>مؤسسة طفله عبد الله السبيعي للمقاولات</h1>
-                        <div style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>الرقم الضريبي: ٣١٢٤٨٧٤٧٧٨٠٠٠٠٣</div>
+            <div className="a4-preview-box phi-doc phi-doc-page">
+                <ReportOfficialHeader
+                    title="سند صرف (Payment Voucher)"
+                    badgeText="مستند مالي معتمد • FINANCIAL VOUCHER"
+                    reportRefCode={record.voucher_number || record.id?.slice(0, 8)?.toUpperCase() || undefined}
+                    refLabel="رقم السند"
+                    issueDate={creationDate}
+                    meta={[{ label: 'وقت الإصدار', value: creationTime, ltr: true }]}
+                    currency={`${currencyName()} (${currencyCode()})`}
+                    compact
+                    details={[
+                        { label: 'يُصرف إلى', value: record.payee_name || '---', wide: true },
+                        { label: 'طريقة الدفع', value: record.payment_method },
+                        { label: 'رقم المرجع / الحوالة', value: record.reference || record.reference_number || record.reference_no, ltr: true },
+                        { label: 'المشروع / مركز التكلفة', value: record.site_ref },
+                        { label: 'الحساب المدين', value: record.debit_account?.name || record.debit_account_name },
+                        { label: 'الخزينة / البنك', value: record.credit_account?.name || record.credit_account_name },
+                    ]}
+                />
+
+                <DocAmount label="مبلغ وقدره" value={formatCurrency(record.amount)} tone="out" />
+                <DocWords text={amountInWords} label="فقط لا غير • Amount in words" />
+
+                {record.description && (
+                    <div style={{ marginTop: '12px' }}>
+                        <DocNote title="وذلك بموجب / البيان">{record.description}</DocNote>
                     </div>
-                    <div className="header-logo"><img src="/company-logo.svg" alt="شعار الشركة" /></div>
-                </div>
+                )}
 
-                <div className="inv-title-box">
-                    <div className="inv-title">سند صرف | PAYMENT VOUCHER</div>
-                </div>
+                <DocSignatures slots={[
+                    { title: 'أعدّه', en: 'Prepared by', name: finalFullName, qrValue: signatureData, date: creationDate },
+                    { title: 'المدير المالي', en: 'Finance Manager' },
+                    { title: 'المستلم', en: 'Received by', name: record.payee_name || undefined },
+                ]} />
 
-                <div className="info-grid">
-                    <div className="info-box">
-                        <span className="box-label">يُصرف إلى | PAY TO</span>
-                        <table className="inner-table">
-                            <tbody>
-                                <tr><td className="value-highlight">{record.payee_name || '---'}</td></tr>
-                                <tr><td style={{ color: '#64748b', fontSize: '12px' }}>بموجب المرجعية: {record.description || '---'}</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div className="info-box">
-                        <span className="box-label">بيانات السند | VOUCHER INFO</span>
-                        <table className="inner-table">
-                            <tbody>
-                                <tr><td style={{textAlign: 'left'}}>{record.voucher_number || record.id?.slice(0,8)}</td><td className="label-cell">:رقم السند</td></tr>
-                                <tr><td style={{textAlign: 'left'}}>{creationDate}</td><td className="label-cell">:التاريخ</td></tr>
-                                <tr><td style={{textAlign: 'left'}}>{record.payment_method || '---'}</td><td className="label-cell">:طريقة الدفع</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <div style={{ background: '#fef2f2', padding: '20px', borderRadius: '16px', border: '1.5px solid #fecaca', marginBottom: '30px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 900, color: '#b91c1c' }}>مبلغ وقدره:</div>
-                    <div style={{ fontSize: '28px', fontWeight: 900, color: '#b91c1c' }}>{formatCurrency(record.amount)}</div>
-                </div>
-
-                <div className="inv-footer-flex">
-                    <div className="inv-amount-words">
-                        <div style={{ fontSize: '13px', fontWeight: 900, marginBottom: '6px', color: '#64748b' }}>فقط لا غير:</div>
-                        <div className="words-box">{amountInWords}</div>
-                        
-                        <div className="signature-area">
-                            <div className="signature-title">معتمد إلكترونياً / E-Signature</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <QRCodeSVG value={signatureData} size={75} level="M" />
-                                <div style={{ fontSize: '14px', fontWeight: 900, marginTop: '8px', color: THEME.primary }}>{finalFullName}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <ReportContactFooter qrSize={56} style={{ marginTop: 'auto', paddingTop: '15px' }} />
+                <ReportContactFooter layout="minimal" style={{ marginTop: 'auto', paddingTop: '10px' }} />
             </div>
         </div>
     );

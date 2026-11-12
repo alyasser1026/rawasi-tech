@@ -5,6 +5,9 @@ import MasterPage from '@/components/MasterPage';
 import LoadingScreen from '@/components/LoadingScreen';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import { formatCurrency } from '@/lib/helpers';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { DocSignatures, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { currencyCode, currencyName } from '@/lib/currency';
 
 const PRINT_THEME = {
   primary: '#0f172a',
@@ -252,15 +255,22 @@ export default function TrialBalancePage() {
       </div>
 
       {/* مساحة الطباعة */}
-      <div className="print-area" style={{ display: 'none' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${PRINT_THEME.primary}`, paddingBottom: '0.9375rem', marginBottom: '1.25rem' }}>
-            <div>
-                
-                <p style={{ margin: '0.5rem 0 0 0', fontWeight: 700, fontSize: 'var(--fs-md)', color: '#000000' }}>شركة فاي تك للمقاولات</p>
-                <p style={{ margin: '0.25rem 0 0 0', fontWeight: 900, fontSize: 'var(--fs-sm)', color: '#000000' }}>عن الفترة من {logic.startDate} إلى {logic.endDate}</p>
-            </div>
-            <img src="/company-logo.svg" alt="Company Logo" style={{ height: '3.125rem', objectFit: 'contain' }} />
-          </div>
+      <div className="print-area phi-doc phi-print-own-header" style={{ display: 'none' }}>
+          <style>{PHI_DOC_CSS}</style>
+          <ReportOfficialHeader
+            title="ميزان المراجعة (Trial Balance)"
+            subtitle={`عن الفترة من ${logic.startDate} إلى ${logic.endDate}`}
+            badgeText="تقرير مالي معتمد • FINANCIAL REPORT"
+            refLabel="رقم التقرير"
+            currency={`${currencyName()} (${currencyCode()})`}
+            compact
+            details={[
+              { label: 'من تاريخ', value: logic.startDate, ltr: true },
+              { label: 'إلى تاريخ', value: logic.endDate, ltr: true },
+              { label: 'عدد الحسابات', value: String(logic.records.length) },
+              { label: 'حالة الميزان', value: isBalanced ? 'متوازن' : 'غير متوازن', accent: !isBalanced },
+            ]}
+          />
 
           <table className="print-table">
             <thead>
@@ -309,11 +319,11 @@ export default function TrialBalancePage() {
           </table>
 
           {/* توقيعات الطباعة */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3.125rem', fontSize: 'var(--fs-md)', fontWeight: 900, padding: '0 2.5rem', color: '#000000' }}>
-              <div style={{textAlign: 'center', width: '12.5rem'}}>أعده / المحاسب المالي<br/><br/><hr style={{borderTop: '2px dashed #000000', margin: '1.875rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
-              <div style={{textAlign: 'center', width: '12.5rem'}}>اعتمده / المدير المالي<br/><br/><hr style={{borderTop: '2px dashed #000000', margin: '1.875rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
-              <div style={{textAlign: 'center', width: '12.5rem'}}>المدير العام<br/><br/><hr style={{borderTop: '2px dashed #000000', margin: '1.875rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
-          </div>
+          <DocSignatures slots={[
+            { title: 'أعدّه', en: 'Accountant' },
+            { title: 'اعتمده', en: 'Finance Manager' },
+            { title: 'المدير العام', en: 'General Manager' },
+          ]} />
       </div>
 
     </MasterPage>

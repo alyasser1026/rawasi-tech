@@ -4,6 +4,7 @@ import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CSS } from './client-styles';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 
 /* ===== أنواع البيانات القادمة من الدالة public.client_portal_data ===== */
 type Item = { name: string; category: string; unit: string | null; qty: number | null; done_qty: number; pct: number; start_date: string | null; end_date: string | null };
@@ -176,6 +177,22 @@ function Portal() {
     <>
       {header}
       <main className="cl-wrap cl-main">
+        <div className="cl-print-head">
+          <ReportOfficialHeader
+            title="تقرير متابعة المشروع (Project Progress Report)"
+            subtitle={project.stage ? `المرحلة الحالية: ${project.stage}` : undefined}
+            badgeText="تقرير للعميل • CLIENT REPORT"
+            refLabel="رقم التقرير"
+            issuer={false}
+            compact
+            projectName={project.name}
+            unitType={project.unit_type || undefined}
+            clientName={data.client?.name}
+            engineerName={project.engineer || undefined}
+            locationAddress={project.location || undefined}
+            currency={project.currency}
+          />
+        </div>
         {data.projects.length > 1 && (
           <div className="cl-pills" role="tablist" aria-label="مشاريعك">
             {data.projects.map((p, i) => (

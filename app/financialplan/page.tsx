@@ -3,6 +3,9 @@ import React, { useMemo } from 'react';
 import { useFinancialPlanLogic } from './financial_plan_logic';
 import MasterPage from '@/components/MasterPage';
 import { formatCurrency } from '@/lib/helpers';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { DocSignatures, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { currencyCode, currencyName } from '@/lib/currency';
 import * as XLSX from 'xlsx-js-style';
 import LoadingScreen from '@/components/LoadingScreen';
 import { Trash2, Plus, Download, Printer, Save } from 'lucide-react';
@@ -584,14 +587,22 @@ export default function FinancialPlanPage() {
       </div>
 
       {/* 🖨️ قسم الطباعة الرسمي النظيف والمستقل (مخفي تماماً عن الشاشة ويظهر فقط في ورق المطبوعات) */}
-      <div className="print-area" style={{ display: 'none' }}>
-         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '0.75rem', marginBottom: '1.5625rem' }}>
-            <div>
-               
-               <p style={{ margin: '0.375rem 0 0 0', fontWeight: 800, fontSize: 'var(--fs-md)', color: THEME.textMain }}>شركة فاي تك للمقاولات | كشف تفصيلي لشهر: ({monthNameArabic} / {logic.selectedYear})</p>
-            </div>
-            <img src="/company-logo.svg" alt=" RY Logo" style={{ height: '3.4375rem', objectFit: 'contain' }} />
-         </div>
+      <div className="print-area phi-doc phi-print-own-header" style={{ display: 'none' }}>
+         <style>{PHI_DOC_CSS}</style>
+         <ReportOfficialHeader
+            title="الخطة المالية والموازنة (Financial Plan & Budget)"
+            subtitle={`كشف تفصيلي لشهر ${monthNameArabic} ${logic.selectedYear}`}
+            badgeText="تقرير مالي معتمد • FINANCIAL REPORT"
+            refLabel="رقم التقرير"
+            reportRefCode={`BGT-${logic.selectedYear}-${String(logic.selectedMonth).padStart(2, '0')}`}
+            currency={`${currencyName()} (${currencyCode()})`}
+            compact
+            details={[
+               { label: 'الفترة', value: `${monthNameArabic} ${logic.selectedYear}` },
+               { label: 'صافي الربح المستهدف', value: formatCurrency(logic.totals.netPlanned) },
+               { label: 'صافي الربح المحقق', value: formatCurrency(logic.totals.netActual), accent: true },
+            ]}
+         />
 
          {/* جدول الإيرادات الورقي */}
          <table className="print-table">
@@ -688,11 +699,11 @@ export default function FinancialPlanPage() {
          </table>
 
          {/* ذيل اعتماد ومصادقة التقرير المالي */}
-         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3.75rem', fontSize: 'var(--fs-sm)', fontWeight: 800, padding: '0 1.25rem' }}>
-             <div style={{textAlign: 'center', width: '11.25rem'}}>أعده / المحاسب المالي<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '1.5625rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
-             <div style={{textAlign: 'center', width: '11.25rem'}}>راجعه / المدير المالي<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '1.5625rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
-             <div style={{textAlign: 'center', width: '11.25rem'}}>اعتمده / المدير العام<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '1.5625rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
-         </div>
+         <DocSignatures slots={[
+            { title: 'أعدّه', en: 'Accountant' },
+            { title: 'راجعه', en: 'Finance Manager' },
+            { title: 'اعتمده', en: 'General Manager' },
+         ]} />
       </div>
 
     </MasterPage>

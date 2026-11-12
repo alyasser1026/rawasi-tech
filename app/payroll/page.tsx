@@ -8,6 +8,9 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import RawasiMultiSelect from '@/components/RawasiMultiSelect';
 import { tafqeet, formatCurrency } from '@/lib/helpers';
 import LoadingScreen from '@/components/LoadingScreen';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { DocSignatures, DocWords, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { currencyCode, currencyName } from '@/lib/currency';
 
 const THEME = {
   primary: '#0f172a',    
@@ -366,17 +369,25 @@ export default function PayrollPage() {
         
       </div>
 
-      <div className="print-area" style={{ display: 'none' }}>
-         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `4px solid ${THEME.primary}`, paddingBottom: '1.25rem', marginBottom: '1.5625rem' }}>
-            <div>
-               
-               <p style={{ margin: '0.5rem 0 0 0', fontWeight: 700, fontSize: 'var(--fs-md)', color: THEME.textMuted }}>شركة فاي تك للمقاولات | عن شهر ({logic.selectedMonth} / {logic.selectedYear})</p>
-               <p style={{ margin: '0.25rem 0 0 0', fontWeight: 600, fontSize: 'var(--fs-sm)', color: THEME.ruby }}>تاريخ القطع للمسحوبات: {logic.cutoffDate}</p>
-            </div>
-            <img src="/company-logo.svg" alt="Company Logo" style={{ height: '3.75rem', objectFit: 'contain' }} />
-         </div>
+      <div className="print-area phi-doc phi-print-own-header" style={{ display: 'none' }}>
+         <style>{PHI_DOC_CSS}</style>
+         <ReportOfficialHeader
+            title="مسير الرواتب والأجور (Payroll Sheet)"
+            subtitle={`عن شهر ${logic.selectedMonth} / ${logic.selectedYear}`}
+            badgeText="مسير معتمد • PAYROLL"
+            refLabel="رقم المسير"
+            reportRefCode={`PAY-${logic.selectedYear}-${String(logic.selectedMonth).padStart(2, '0')}`}
+            currency={`${currencyName()} (${currencyCode()})`}
+            compact
+            details={[
+               { label: 'الفترة', value: `${logic.selectedMonth} / ${logic.selectedYear}`, ltr: true },
+               { label: 'تاريخ قطع المسحوبات', value: logic.cutoffDate, ltr: true },
+               { label: 'عدد الموظفين', value: String(logic.filteredRecords.length) },
+               { label: 'إجمالي المبالغ للصرف', value: formatCurrency(logic.totals.amount_to_pay || 0), accent: true },
+            ]}
+         />
 
-         <table className="print-table">
+         <table className="print-table phi-doc-table">
             <thead>
                <tr>
                   <th style={{width: '1.875rem'}}>م</th>
@@ -425,15 +436,13 @@ export default function PayrollPage() {
             </tbody>
          </table>
 
-         <div style={{ marginTop: '1.25rem', fontSize: 'var(--fs-sm)', fontWeight: 800, background: THEME.slate, padding: '0.75rem', borderRadius: '6px', border: `1px solid ${THEME.border}` }}>
-             إجمالي المبالغ المراد صرفها بالحروف: {tafqeet(logic.totals.amount_to_pay || 0)}
-         </div>
+         <DocWords text={tafqeet(logic.totals.amount_to_pay || 0)} label="إجمالي المبالغ المراد صرفها بالحروف" />
 
-         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '3.75rem', fontSize: 'var(--fs-md)', fontWeight: 800, padding: '0 2.5rem' }}>
-             <div style={{textAlign: 'center', width: '12.5rem'}}>أعده / محاسب الرواتب<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '1.875rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
-             <div style={{textAlign: 'center', width: '12.5rem'}}>راجعه / مدير الموارد البشرية<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '1.875rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
-             <div style={{textAlign: 'center', width: '12.5rem'}}>اعتمده / المدير المالي<br/><br/><hr style={{borderTop: '2px dashed #94a3b8', margin: '1.875rem 0 0.625rem 0'}}/>الاسم والتوقيع</div>
-         </div>
+         <DocSignatures slots={[
+            { title: 'أعدّه', en: 'Payroll Accountant' },
+            { title: 'راجعه', en: 'HR Manager' },
+            { title: 'اعتمده', en: 'Finance Manager' },
+         ]} />
       </div>
     </MasterPage>
   );

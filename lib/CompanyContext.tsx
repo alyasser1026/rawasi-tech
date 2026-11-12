@@ -198,6 +198,11 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
   return <CompanyContext.Provider value={value}><React.Fragment key={currencyKey}>{children}</React.Fragment></CompanyContext.Provider>;
 }
 
+/** زي useCompany بس بيرجع null بدل ما يرمي خطأ لو المكوّن اتعرض برا CompanyProvider (زي صفحات الطباعة المستقلة). */
+export function useOptionalCompany(): CompanyContextType | null {
+  return useContext(CompanyContext);
+}
+
 export function useCompany(): CompanyContextType {
   const context = useContext(CompanyContext);
   if (!context) throw new Error('useCompany must be used within a CompanyProvider');

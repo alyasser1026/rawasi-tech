@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom'; // 🚀 استدعاء الـ Portal �
 import { usePartnersLogic } from './partners_logic';
 import SmartCombo from '@/components/SmartCombo';
 import MasterPage from '@/components/MasterPage';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import KpiStrip from '@/components/KpiStrip';
 import { Building2, HardHat, Truck, Users, Lock, Unlock, RefreshCw, Sparkles } from 'lucide-react';
@@ -132,14 +133,10 @@ export default function PartnersDirectory() {
             @page { size: A4 landscape; margin: 1cm; }
             .no-print, .MasterPage-Sidebar, button { display: none !important; }
             .partners-directory .print-only { display: block !important; background: white; color: #27221d; }
-            .print-header { display: flex !important; justify-content: space-between; align-items: center; border-bottom: 3px solid #27221d; padding-bottom: 15px; margin-bottom: 25px; }
             .print-table { width: 100% !important; border-collapse: collapse !important; table-layout: fixed; }
-            .print-table th, .print-table td { border: 1px solid #000 !important; padding: 6px 4px !important; text-align: center !important; font-size: 9pt !important; word-wrap: break-word; color: black !important; }
-            .print-table th { background: #f2f2f2 !important; font-weight: 900; }
+            .print-table th, .print-table td { border: 1px solid #cbd5e1 !important; padding: 6px 4px !important; text-align: center !important; font-size: 9pt !important; word-wrap: break-word; color: black !important; }
+            .print-table th { background: #0f172a !important; color: #fff !important; font-weight: 900; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .print-table thead { display: table-header-group !important; }
-            body { counter-reset: page; }
-            .page-num::after { counter-increment: page; content: "صفحة " counter(page); }
-            .print-footer { position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; font-size: 10pt; border-top: 1px solid #ccc; padding: 10px 0; background: white; }
           }
           @media screen { .print-only { display: none !important; } }
 
@@ -244,14 +241,15 @@ export default function PartnersDirectory() {
           )}
         </div>
 
-        <div className="print-only">
-           <div className="print-header">
-             <div style={{ textAlign: 'right' }}>
-               <h1 style={{ margin: 0, fontSize: '26pt', color: '#27221d', fontWeight: 900 }}>دليل الشركاء</h1>
-               <p style={{ margin: 0, fontSize: '14pt', color: '#493a2d', fontWeight: 700 }}>شركة فاي تك للمقاولات العامة</p>
-             </div>
-             <img src="/company-logo.svg" style={{ width: '11.25rem' }} alt="Logo" />
-           </div>
+        <div className="print-only phi-print-own-header">
+          <ReportOfficialHeader
+            title="دليل الشركاء (Partners Directory)"
+            subtitle="الموردون والمقاولون والعملاء والعمالة"
+            badgeText="تقرير معتمد • OFFICIAL REPORT"
+            refLabel="رقم التقرير"
+            compact
+            details={[{ label: 'عدد السجلات', value: String(filteredPartners.length) }]}
+          />
           <table className="print-table">
             <thead>
               <tr>
@@ -269,8 +267,6 @@ export default function PartnersDirectory() {
               ))}
             </tbody>
           </table>
-          <div style={{ height: '3.125rem' }}></div>
-          <div className="print-footer"><span className="page-num"></span><span style={{ marginRight: '2.5rem' }}>تقرير رسمي - فاي تك للمقاولات - {new Date().toLocaleDateString('en-GB')}</span></div>
         </div>
 
       </MasterPage>

@@ -1,10 +1,11 @@
 "use client";
-import { currencyCode } from '@/lib/currency';
+import { currencyCode, currencyName } from '@/lib/currency';
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '@/lib/helpers';
 import ReportContactFooter from '@/components/ReportContactFooter';
-import { THEME } from '@/lib/theme';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { DocNote, DocSignatures, DocTotals, PHI_DOC_CSS } from '@/components/PrintDocument';
 
 export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, receiptId }: any) {
     const [mounted, setMounted] = useState(false);
@@ -24,7 +25,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
     const totalAmount = receiptItems.reduce((sum: number, item: any) => sum + (Number(item.total_price) || 0), 0);
 
     return createPortal(
-        <div style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', padding: '40px 15px', direction: 'rtl' }}>
+        <div className="print-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', padding: '40px 15px', direction: 'rtl' }}>
             
             {/* 🖨️ ستايلات الطباعة والتصميم العصري */}
             <style dangerouslySetInnerHTML={{__html: `
@@ -49,18 +50,10 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
                         background: white !important;
                         border-radius: 0 !important;
                     }
-                    @page { size: A4 portrait; margin: 0; }
-                    .modern-table th { background: #f1f5f9 !important; color: #0f172a !important; border-bottom: 2px solid #cbd5e1 !important; }
                 }
                 
-                /* ستايل الجدول العصري */
-                .modern-table th { background: linear-gradient(135deg, #1e293b, #0f172a); color: white; font-weight: 900; padding: 14px 10px; border: none; }
-                .modern-table th:first-child { border-top-right-radius: 12px; }
-                .modern-table th:last-child { border-top-left-radius: 12px; }
-                .modern-table td { padding: 14px 10px; color: #334155; font-size: 14px; font-weight: 800; border-bottom: 1px solid #f1f5f9; }
-                .modern-table tbody tr:nth-child(even) { background-color: #f8fafc; }
-                .modern-table tbody tr:hover { background-color: #f1f5f9; }
             `}} />
+            <style>{PHI_DOC_CSS}</style>
 
             {/* 🖨️ أزرار التحكم */}
             <div className="no-print" style={{ display: 'flex', gap: '15px', marginBottom: '20px', width: '100%', maxWidth: '800px' }}>
@@ -73,101 +66,70 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
             </div>
 
             {/* 📄 ورقة الطباعة (Auto-fit on screen, A4 on print) */}
-            <div className="print-page" style={{ position: 'relative', width: '95%', maxWidth: '800px', minHeight: 'fit-content', background: 'white', padding: '45px', borderRadius: '14px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', color: 'black', overflow: 'hidden' }}>
+            <div className="print-page phi-doc phi-doc-page" style={{ position: 'relative', width: '95%', maxWidth: '800px', minHeight: 'fit-content', background: 'white', padding: '45px', borderRadius: '14px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', color: 'black', overflow: 'hidden' }}>
                 
-                {/* 🌟 علامة مائية (Watermark) */}
-                <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/company-logo.svg)', backgroundPosition: 'center', backgroundRepeat: 'no-repeat', backgroundSize: '50%', opacity: 0.03, pointerEvents: 'none', zIndex: 0 }}></div>
+                {/* 1️⃣ الترويسة الرسمية الموحدة + بيانات الإذن */}
+                <ReportOfficialHeader
+                    title="إذن استلام خامات (Material Receipt Note)"
+                    badgeText="مستند مخزني معتمد • STORE NOTE"
+                    reportRefCode={`MRN-${String(receiptId).slice(-6).toUpperCase()}`}
+                    refLabel="رقم الإذن"
+                    issueDate={masterData.exp_date || undefined}
+                    currency={`${currencyName()} (${currencyCode()})`}
+                    compact
+                    details={[
+                        { label: 'المشروع الموجّه له الخامات', value: masterData.project?.Property || '---' },
+                        { label: 'المورد / جهة التوريد', value: masterData.supplier?.name || '---' },
+                        { label: 'عدد الأصناف', value: String(receiptItems.length) },
+                        { label: 'إجمالي قيمة الإذن', value: formatCurrency(totalAmount), accent: true },
+                    ]}
+                />
 
-                <div style={{ position: 'relative', zIndex: 1 }}>
-                    {/* هيدر الشركة */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '3px solid #f1f5f9', paddingBottom: '20px', marginBottom: '30px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <img src="/company-logo.svg" alt="شعار فاي تك" style={{ height: '70px', objectFit: 'contain' }} onError={(e: any) => e.target.style.display = 'none'} />
-                            <div>
-                                <h1 style={{ margin: 0, color: '#0f172a', fontSize: '28px', fontWeight: 900, letterSpacing: '-0.5px' }}>فاي <span style={{ color: THEME.goldAccent || '#d97706' }}>تك</span></h1>
-                                <p style={{ margin: '5px 0 0 0', color: '#64748b', fontSize: '14px', fontWeight: 800 }}>إدارة المشتريات والمخازن</p>
-                            </div>
-                        </div>
-                        <div style={{ textAlign: 'left' }}>
-                            <h2 style={{ margin: 0, color: THEME.primary || '#2563eb', fontSize: '24px', fontWeight: 900, background: '#eff6ff', padding: '10px 20px', borderRadius: '12px', display: 'inline-block' }}>إذن استلام خامات (وارد)</h2>
-                            <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                                <span style={{ fontWeight: 900, fontSize: '13px', color: '#475569' }}>التاريخ: <b style={{ color: '#0f172a' }}>{masterData.exp_date}</b></span>
-                                <span style={{ fontWeight: 900, fontSize: '13px', color: '#475569' }}>رقم الإذن: <b style={{ color: '#ef4444', background: '#fef2f2', padding: '2px 8px', borderRadius: '6px' }}>#{receiptId.slice(-6).toUpperCase()}</b></span>
-                            </div>
-                        </div>
-                    </div>
+                {/* 2️⃣ جدول الأصناف */}
+                <table className="phi-doc-table">
+                    <thead>
+                        <tr>
+                            <th style={{ width: '5%' }}>م</th>
+                            <th className="is-start" style={{ width: '40%' }}>اسم الخامة / البيان</th>
+                            <th style={{ width: '10%' }}>الكمية</th>
+                            <th style={{ width: '10%' }}>الوحدة</th>
+                            <th style={{ width: '15%' }}>سعر الوحدة</th>
+                            <th style={{ width: '20%' }}>الإجمالي ({currencyCode()})</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {receiptItems.map((item: any, idx: number) => (
+                            <tr key={idx}>
+                                <td className="is-muted">{idx + 1}</td>
+                                <td className="is-start is-strong">{item.work_item}</td>
+                                <td className="is-strong">{item.quantity}</td>
+                                <td>{item.unit}</td>
+                                <td>{formatCurrency(item.unit_price)}</td>
+                                <td className="is-strong">{formatCurrency(item.total_price)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
 
-                    {/* بيانات الفاتورة المتقدمة */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '35px' }}>
-                        <div style={{ background: 'var(--surface-sunken)', padding: '20px', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase' }}>المشروع الموجه له الخامات</p>
-                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#1e293b' }}>{masterData.project?.Property || '---'}</h3>
-                        </div>
-                        <div style={{ background: 'var(--surface-sunken)', padding: '20px', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
-                            <p style={{ margin: '0 0 8px 0', fontSize: '12px', fontWeight: 900, color: '#64748b', textTransform: 'uppercase' }}>المورد / جهة التوريد</p>
-                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: '#1e293b' }}>{masterData.supplier?.name || '---'}</h3>
-                        </div>
-                    </div>
-
-                    {/* جدول الأصناف العصري */}
-                    <div style={{ borderRadius: '16px', overflow: 'hidden', border: 'none', boxShadow: 'var(--shadow-elevation)', marginBottom: '35px' }}>
-                        <table className="modern-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
-                            <thead>
-                                <tr>
-                                    <th style={{ width: '5%' }}>م</th>
-                                    <th style={{ width: '40%', textAlign: 'right' }}>اسم الخامة / البيان</th>
-                                    <th style={{ width: '10%' }}>الكمية</th>
-                                    <th style={{ width: '10%' }}>الوحدة</th>
-                                    <th style={{ width: '15%' }}>سعر الوحدة</th>
-                                    <th style={{ width: '20%' }}>الإجمالي ({currencyCode()})</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {receiptItems.map((item: any, idx: number) => (
-                                    <tr key={idx}>
-                                        <td style={{ color: '#94a3b8' }}>{idx + 1}</td>
-                                        <td style={{ textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>{item.work_item}</td>
-                                        <td style={{ fontWeight: 900, color: THEME.primary || '#2563eb' }}>{item.quantity}</td>
-                                        <td>{item.unit}</td>
-                                        <td>{formatCurrency(item.unit_price)}</td>
-                                        <td style={{ fontWeight: 900, color: '#166534' }}>{formatCurrency(item.total_price)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {/* الإجمالي والإقرار */}
-                    <div style={{ display: 'flex', gap: '20px', alignItems: 'stretch', marginBottom: '50px', flexWrap: 'wrap' }}>
-                        <div style={{ flex: '1 1 300px', background: '#f8fafc', padding: '20px', borderRadius: '16px', border: '1px dashed #cbd5e1', fontSize: '13px', color: '#475569', lineHeight: '1.8' }}>
-                            <strong style={{ color: '#0f172a', display: 'block', marginBottom: '8px', fontSize: '15px' }}>إقرار استلام مخزني:</strong>
+                {/* 3️⃣ الإقرار والإجمالي */}
+                <div className="phi-doc-summary">
+                    <div className="phi-doc-stack">
+                        <DocNote title="إقرار استلام مخزني">
                             أقر أنا أمين المخزن / مهندس الموقع الموقع أدناه، باستلام كافة المواد والخامات المذكورة أعلاه بحالة جيدة ومطابقة للمواصفات، وقد تم إيداعها بعهدة المشروع المذكور وتوريدها للموقع الفعلي.
-                        </div>
-                        <div style={{ flex: '1 1 250px', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}15, transparent)`, padding: '20px', borderRadius: '16px', border: `2px solid ${THEME.goldAccent || '#c2410c'}`, textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                            <span style={{ fontSize: '14px', fontWeight: 900, color: '#b45309' }}>إجمالي قيمة الإذن</span>
-                            <div style={{ fontSize: '32px', fontWeight: 900, color: '#0f172a', margin: '5px 0' }}>{formatCurrency(totalAmount)}</div>
-                        </div>
+                        </DocNote>
                     </div>
-
-                    {/* التوقيعات (بتصميم هادي) */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '30px', textAlign: 'center', marginTop: 'auto', paddingTop: '40px', borderTop: '2px dashed #e2e8f0' }}>
-                        <div>
-                            <p style={{ fontWeight: 900, color: '#64748b', marginBottom: '50px', fontSize: '14px' }}>أمين المخزن (المستلم)</p>
-                            <div style={{ borderBottom: '2px solid #cbd5e1', width: '70%', margin: '0 auto' }}></div>
-                        </div>
-                        <div>
-                            <p style={{ fontWeight: 900, color: '#64748b', marginBottom: '50px', fontSize: '14px' }}>مهندس الموقع (الاعتماد)</p>
-                            <div style={{ borderBottom: '2px solid #cbd5e1', width: '70%', margin: '0 auto' }}></div>
-                        </div>
-                        <div>
-                            <p style={{ fontWeight: 900, color: '#64748b', marginBottom: '50px', fontSize: '14px' }}>المدير المالي (التوجيه)</p>
-                            <div style={{ borderBottom: '2px solid #cbd5e1', width: '70%', margin: '0 auto' }}></div>
-                        </div>
-                    </div>
+                    <DocTotals rows={[{ label: 'عدد الأصناف', value: receiptItems.length }]} grand={{ label: 'إجمالي قيمة الإذن', value: formatCurrency(totalAmount) }} />
                 </div>
 
+                {/* 4️⃣ التوقيعات */}
+                <DocSignatures slots={[
+                    { title: 'أمين المخزن', en: 'Storekeeper (Receiver)' },
+                    { title: 'مهندس الموقع', en: 'Site Engineer' },
+                    { title: 'المدير المالي', en: 'Finance Manager' },
+                ]} />
+
                 {/* 📱 فوتر جهات الاتصال الرسمية مع باركود vCard الذكي */}
-                <ReportContactFooter qrSize={56} style={{ marginTop: '24px' }} />
+                <ReportContactFooter layout="minimal" style={{ marginTop: 'auto', paddingTop: '10px' }} />
             </div>
         </div>,
         document.body
