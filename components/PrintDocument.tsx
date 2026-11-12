@@ -115,26 +115,30 @@ export interface DocSignatureSlot {
 }
 
 /** خانات التوقيع والاعتماد في آخر المستند. */
+/**
+ * خانة الاعتماد في آخر المستند: مربع واحد بس.
+ * لو المستند معاه اعتماد إلكتروني (qrValue) بيظهر الكود واسم المعتمد، وإلا بيظهر سطر للتوقيع والختم.
+ * slots محفوظة للتوافق مع النماذج: بيتاخد منها الاعتماد الإلكتروني لو موجود.
+ */
 export function DocSignatures({ slots }: { slots: DocSignatureSlot[] }) {
+  const digital = slots.find(s => s.qrValue);
   return (
-    <div className="phi-doc-signs" style={{ ['--cols' as string]: String(Math.max(1, Math.min(slots.length, 4))) } as React.CSSProperties}>
-      {slots.map((s, i) => (
-        <div key={i} className={`phi-doc-sign${s.qrValue ? ' is-digital' : ''}`}>
-          <h4>{s.title}{s.en && <span dir="ltr">{s.en}</span>}</h4>
-          {s.qrValue ? (
-            <>
-              <QRCodeSVG value={s.qrValue} size={52} level="M" bgColor="#ffffff" fgColor="#0f172a" />
-              {s.name && <div className="phi-doc-sign-who">{s.name}</div>}
-              <div className="phi-doc-sign-meta">معتمد إلكترونيًا{s.date ? <> • <bdi>{s.date}</bdi></> : null}</div>
-            </>
-          ) : (
-            <>
-              <div className="phi-doc-sign-line" />
-              <div className="phi-doc-sign-meta">{s.name || 'الاسم والتوقيع'}</div>
-            </>
-          )}
-        </div>
-      ))}
+    <div className="phi-doc-signs">
+      <div className={`phi-doc-sign${digital ? ' is-digital' : ''}`}>
+        <h4>الاعتماد<span dir="ltr">Approval</span></h4>
+        {digital ? (
+          <>
+            <QRCodeSVG value={digital.qrValue as string} size={56} level="M" bgColor="#ffffff" fgColor="#0f172a" />
+            {digital.name && <div className="phi-doc-sign-who">{digital.name}</div>}
+            <div className="phi-doc-sign-meta">معتمد إلكترونيًا{digital.date ? <> • <bdi>{digital.date}</bdi></> : null}</div>
+          </>
+        ) : (
+          <>
+            <div className="phi-doc-sign-line" />
+            <div className="phi-doc-sign-meta">الاسم والتوقيع والختم</div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -208,8 +212,8 @@ export const PHI_DOC_CSS = `
 .phi-doc-amount.is-out b { color:#b91c1c; }
 .phi-doc-amount.is-in b { color:#15803d; }
 
-.phi-doc-signs { display:grid; grid-template-columns:repeat(var(--cols,4), minmax(0,1fr)); gap:12px; margin-top:18px; break-inside:avoid; page-break-inside:avoid; }
-.phi-doc-sign { border:1px solid var(--d-line); border-radius:10px; padding:9px 12px 8px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; min-height:92px; background:#fff; }
+.phi-doc-signs { display:flex; justify-content:flex-end; margin-top:18px; break-inside:avoid; page-break-inside:avoid; }
+.phi-doc-sign { width:230px; max-width:100%; border:1px solid var(--d-line); border-radius:10px; padding:10px 14px 9px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:4px; min-height:118px; background:#fff; }
 .phi-doc-sign h4 { margin:0; font-size:11px; font-weight:900; color:var(--d-ink); }
 .phi-doc-sign h4 span { display:block; margin-top:1px; font-size:8.5px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:var(--d-muted); }
 .phi-doc-sign-line { margin-top:auto; width:86%; border-bottom:1.5px solid #94a3b8; }
@@ -230,6 +234,6 @@ export const PHI_DOC_CSS = `
 
 @media screen and (max-width: 760px) {
   .phi-doc-summary { grid-template-columns:1fr; }
-  .phi-doc-signs, .phi-doc-stats { grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .phi-doc-stats { grid-template-columns:repeat(2, minmax(0,1fr)); }
 }
 `;

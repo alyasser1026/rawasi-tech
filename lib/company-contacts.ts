@@ -38,19 +38,15 @@ export interface DocumentIssuer {
 }
 
 /**
- * بيانات المؤسسة اللي كانت مكتوبة ثابتة في السندات والفاتورة الضريبية للشركة الافتراضية (السعودية).
- * بتُستخدم بس لو الشركة الافتراضية لسه ما اتسجلش لها اسم قانوني أو رقم ضريبي في إعدادات الشركة.
- * أول ما تتملا البيانات دي في «إعدادات الشركات»، هي اللي بتظهر.
+ * الرقم الضريبي والرقم الموحد للشركة الافتراضية (السعودية)، كانوا مكتوبين ثابت في الفاتورة الضريبية.
+ * بيُستخدموا في الفاتورة الضريبية بس لو خانات «إعدادات الشركات» لسه فاضية. اسم الشركة على كل النماذج: فاي تك.
  */
-export const PHI_DEFAULT_ISSUER: Required<Omit<DocumentIssuer, 'address'>> = {
-  nameAr: 'مؤسسة طفله عبد الله السبيعي للمقاولات',
-  nameEn: 'Tifla Abdullah Al-Subaie Est. for Contracting',
+export const PHI_DEFAULT_TAX_IDS = {
   taxNumber: '312487477800003',
   unifiedNumber: '7051013319',
 };
 
 type IssuerCompany = {
-  name?: string | null;
   legal_name?: string | null;
   tax_number?: string | null;
   cr_number?: string | null;
@@ -58,15 +54,13 @@ type IssuerCompany = {
   is_default?: boolean | null;
 } | null | undefined;
 
-/** الكيان المُصدر للمستند حسب الشركة المفتوحة: بيانات إعدادات الشركة أولًا، وبعدها بيانات الشركة الافتراضية القديمة. */
+/** البيانات الضريبية للفاتورة حسب الشركة المفتوحة: إعدادات الشركة أولًا، وبعدها الأرقام الافتراضية للشركة الافتراضية. */
 export function resolveDocumentIssuer(company: IssuerCompany): DocumentIssuer {
   const clean = (v?: string | null) => (v && String(v).trim()) || undefined;
-  const legacy = !company || company.is_default !== false ? PHI_DEFAULT_ISSUER : undefined;
+  const fallback = !company || company.is_default !== false ? PHI_DEFAULT_TAX_IDS : undefined;
   return {
-    nameAr: clean(company?.legal_name) || legacy?.nameAr || clean(company?.name),
-    nameEn: clean(company?.legal_name) ? undefined : legacy?.nameEn,
-    taxNumber: clean(company?.tax_number) || legacy?.taxNumber,
-    unifiedNumber: clean(company?.cr_number) || legacy?.unifiedNumber,
+    taxNumber: clean(company?.tax_number) || fallback?.taxNumber,
+    unifiedNumber: clean(company?.cr_number) || fallback?.unifiedNumber,
     address: clean(company?.address),
   };
 }

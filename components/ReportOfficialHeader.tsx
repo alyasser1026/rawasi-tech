@@ -2,8 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { PHI_COMPANY_CONTACTS, resolveDocumentIssuer, type DocumentIssuer } from '@/lib/company-contacts';
-import { useOptionalCompany } from '@/lib/CompanyContext';
+import { PHI_COMPANY_CONTACTS, type DocumentIssuer } from '@/lib/company-contacts';
 
 /** خانة بيانات في جدول الترويسة: عنوان صغير فوق وقيمة تحت. */
 export interface ReportHeaderDetail {
@@ -54,7 +53,7 @@ export interface ReportOfficialHeaderProps {
   meta?: ReportHeaderMeta[];
   /** عنوان سطر الرقم المرجعي (افتراضي: بدون عنوان، الكود بس). */
   refLabel?: string;
-  /** الكيان المُصدر (الاسم القانوني والرقم الضريبي). افتراضيًا من إعدادات الشركة المفتوحة؛ false لإخفائه. */
+  /** بيانات ضريبية تظهر تحت اسم الشركة (الفاتورة الضريبية بس). من غيرها الترويسة بتعرض فاي تك فقط. */
   issuer?: DocumentIssuer | false;
   /** محتوى QR التحقق بدل المحتوى الافتراضي. */
   qrValue?: string;
@@ -148,12 +147,8 @@ export default function ReportOfficialHeader({
   qrNode,
   qrCaption = 'امسح للتحقق',
 }: ReportOfficialHeaderProps) {
-  const companyCtx = useOptionalCompany();
-  const activeCompany = companyCtx?.activeCompany;
-  const resolvedIssuer = useMemo<DocumentIssuer | null>(() => {
-    if (issuer === false) return null;
-    return issuer || resolveDocumentIssuer(activeCompany);
-  }, [issuer, activeCompany]);
+  // الترويسة باسم فاي تك فقط. البيانات الضريبية بتظهر بس لما المستند يبعتها صراحةً (الفاتورة الضريبية).
+  const resolvedIssuer = useMemo<DocumentIssuer | null>(() => (issuer ? issuer : null), [issuer]);
   const issuerName = cleanValue(resolvedIssuer?.nameAr);
   const issuerNameEn = cleanValue(resolvedIssuer?.nameEn);
   const issuerTax = cleanValue(resolvedIssuer?.taxNumber);
@@ -346,8 +341,8 @@ const ORH_CSS = `
 .phi-orh-main > div { padding:16px 18px; min-width:0; }
 .phi-orh.is-compact .phi-orh-main > div { padding:12px 14px; }
 .phi-orh-brand { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:4px; border-left:1px solid var(--line); }
-.phi-orh-logo { height:62px; width:auto; max-width:100%; object-fit:contain; object-position:center; display:block; background:var(--phi-badge-bg, transparent); /* official light badge: #f7eee2 */ margin:0 auto 6px; }
-.phi-orh.is-compact .phi-orh-logo { height:52px; }
+.phi-orh-logo { height:74px; width:auto; max-width:100%; object-fit:contain; object-position:center; display:block; background:var(--phi-badge-bg, transparent); /* official light badge: #f7eee2 */ margin:0 auto 6px; }
+.phi-orh.is-compact .phi-orh-logo { height:66px; }
 .phi-orh.is-compact .phi-orh-contacts { display:none; }
 .phi-orh.is-compact .phi-orh-logo { margin-bottom:2px; }
 .phi-orh-company { font-weight:900; font-size:12.5px; color:var(--ink); }

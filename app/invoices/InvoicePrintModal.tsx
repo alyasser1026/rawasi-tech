@@ -240,7 +240,6 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
             : Number(record.taxable_amount) + Number(record.materials_discount || 0);
     }
 
-    const sellerNameAr = activeCompany?.legal_name || activeCompany?.name || 'شركة فاي تك للمقاولات';
     const isDefaultCompany = activeCompany?.is_default !== false;
     const sellerTaxNo = activeCompany?.tax_number || (isDefaultCompany ? '312487477800003' : 'غير مسجل');
     const sellerCrNo = activeCompany?.cr_number || (isDefaultCompany ? '7051013319' : '');
@@ -489,8 +488,6 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                     currency={`${currencyName()} (${currencyCode()})`}
                     compact
                     issuer={{
-                        nameAr: sellerNameAr,
-                        nameEn: isDefaultCompany && !activeCompany?.legal_name ? 'Phi Tech Contracting Company' : undefined,
                         taxNumber: sellerTaxNo,
                         unifiedNumber: sellerCrNo || undefined,
                         address: sellerAddress || undefined,
