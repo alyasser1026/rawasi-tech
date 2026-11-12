@@ -11,6 +11,8 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
+  Info,
+  Layers,
   Plus,
   Printer,
   Receipt,
@@ -110,7 +112,7 @@ export default function CustodiesPage() {
 
   // Settle Form State
   const [settlementType, setSettlementType] = useState<
-    'cash_return' | 'salary_deduction' | 'carry_forward' | 'cleared'
+    'cash_return' | 'salary_deduction' | 'carry_forward' | 'cleared' | 'merge_custody'
   >('cash_return');
   const [settlementDestinationId, setSettlementDestinationId] = useState('');
   const [settlementDate, setSettlementDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -199,6 +201,18 @@ export default function CustodiesPage() {
     },
     enabled: !!activeCompany?.id,
   });
+
+  const openCustodiesForMerge = useMemo(() => {
+    if (!summaryData?.custodies || !selectedCustodyForSettle) return [];
+    return summaryData.custodies.filter(
+      (c) => c.status === 'open' && c.id !== selectedCustodyForSettle.id
+    );
+  }, [summaryData?.custodies, selectedCustodyForSettle]);
+
+  const targetCustodyForMerge = useMemo(() => {
+    if (settlementType !== 'merge_custody' || !settlementDestinationId) return null;
+    return openCustodiesForMerge.find((c) => c.id === settlementDestinationId) || null;
+  }, [settlementType, settlementDestinationId, openCustodiesForMerge]);
 
   const toggleExpand = (id: string) => {
     setExpandedCustodyIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -382,6 +396,15 @@ export default function CustodiesPage() {
       return;
     }
 
+    if (
+      settlementType === 'merge_custody' &&
+      selectedCustodyForSettle.remaining_amount > 0 &&
+      !settlementDestinationId
+    ) {
+      notify('يرجى اختيار العهدة الجارية المراد ضم الرصيد إليها', 'error');
+      return;
+    }
+
     try {
       setIsSubmittingSettle(true);
       await settleSiteCustody({
@@ -390,6 +413,8 @@ export default function CustodiesPage() {
         destinationId:
           settlementType === 'cash_return'
             ? settlementDestinationId
+            : settlementType === 'merge_custody'
+            ? settlementDestinationId
             : settlementType === 'carry_forward'
             ? selectedCustodyForSettle.project_id
             : null,
@@ -397,7 +422,12 @@ export default function CustodiesPage() {
         notes: settlementNotes,
       });
 
-      notify('تمت تسوية العهدة بنجاح وإقفال قيود الأستاذ العام', 'success');
+      notify(
+        settlementType === 'merge_custody'
+          ? 'تم ضم رصيد العهدة بنجاح وتحديث العهدة المدمج إليها وإقفال العهدة الحالية'
+          : 'تمت تسوية العهدة بنجاح وإقفال قيود الأستاذ العام',
+        'success'
+      );
       setIsSettleModalOpen(false);
       setSelectedCustodyForSettle(null);
       queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
@@ -785,11 +815,18 @@ export default function CustodiesPage() {
                             {formatCustodyCurrency(custody.remaining_amount)}
                           </td>
                           <td>
-                            <span
-                              className={`${styles.statusBadge} ${styles[statusConfig.className]}`}
-                            >
-                              {statusConfig.label}
-                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '0.25rem' }}>
+                              <span
+                                className={`${styles.statusBadge} ${styles[statusConfig.className]}`}
+                              >
+                                {statusConfig.label}
+                              </span>
+                              {custody.status === 'settled' && custody.settlement_type && (
+                                <span className="text-[10px] text-slate-400 font-medium px-1.5 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 whitespace-nowrap">
+                                  {SETTLEMENT_TYPES[custody.settlement_type]?.label || custody.settlement_type}
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td>
                             <div className={styles.rowActions} style={{ justifyContent: 'center' }}>
@@ -878,6 +915,24 @@ export default function CustodiesPage() {
                                     إجمالي المصروف المسجل: {formatCustodyCurrency(custody.spent_amount)}
                                   </span>
                                 </div>
+
+                                {custody.status === 'settled' && (
+                                  <div className="mb-3 p-3 bg-slate-800/80 border border-emerald-500/30 rounded-lg text-xs space-y-1">
+                                    <div className="flex flex-wrap items-center justify-between gap-2">
+                                      <span className="font-semibold text-emerald-400">
+                                        تمت تسوية وإقفال هذه العهدة بتاريخ: {custody.settlement_date || '—'}
+                                      </span>
+                                      <span className="px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
+                                        طريقة التسوية: {SETTLEMENT_TYPES[custody.settlement_type || '']?.label || custody.settlement_type || 'تسوية مسجلة'}
+                                      </span>
+                                    </div>
+                                    {custody.settlement_notes && (
+                                      <p className="text-slate-300 text-[11px] mt-1">
+                                        ملاحظات التسوية: {custody.settlement_notes}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
 
                                 {!hasMovements ? (
                                   <p className="text-xs text-slate-400 py-2">
@@ -1495,7 +1550,10 @@ export default function CustodiesPage() {
                               name="settle_type"
                               value="carry_forward"
                               checked={settlementType === 'carry_forward'}
-                              onChange={() => setSettlementType('carry_forward')}
+                              onChange={() => {
+                                setSettlementType('carry_forward');
+                                setSettlementDestinationId('');
+                              }}
                               style={{ marginTop: '0.2rem' }}
                             />
                             <div>
@@ -1504,6 +1562,36 @@ export default function CustodiesPage() {
                               </span>
                               <span className="text-xs text-slate-400">
                                 {SETTLEMENT_TYPES.carry_forward.desc}
+                              </span>
+                            </div>
+                          </label>
+
+                          <label
+                            className={`${styles.settlementOptionCard} ${
+                              settlementType === 'merge_custody'
+                                ? styles.settlementOptionActive
+                                : ''
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name="settle_type"
+                              value="merge_custody"
+                              checked={settlementType === 'merge_custody'}
+                              onChange={() => {
+                                setSettlementType('merge_custody');
+                                if (!openCustodiesForMerge.some((c) => c.id === settlementDestinationId)) {
+                                  setSettlementDestinationId(openCustodiesForMerge[0]?.id || '');
+                                }
+                              }}
+                              style={{ marginTop: '0.2rem' }}
+                            />
+                            <div>
+                              <span className="font-bold block text-sm text-white">
+                                {SETTLEMENT_TYPES.merge_custody.label}
+                              </span>
+                              <span className="text-xs text-slate-400">
+                                {SETTLEMENT_TYPES.merge_custody.desc}
                               </span>
                             </div>
                           </label>
@@ -1525,6 +1613,101 @@ export default function CustodiesPage() {
                               </option>
                             ))}
                           </select>
+                        </div>
+                      )}
+
+                      {settlementType === 'merge_custody' && (
+                        <div className={styles.formGroup}>
+                          <label className={styles.formLabel}>
+                            اختر العهدة الجارية المراد ضم هذا المبلغ إليها *
+                          </label>
+                          {openCustodiesForMerge.length === 0 ? (
+                            <div className="p-3 bg-amber-950/40 border border-amber-500/30 rounded-lg text-amber-300 text-xs">
+                              لا توجد أي عهد جارية أخرى مفتوحة حالياً في الشركة لضم هذا المبلغ إليها. يمكنك استخدام خيار «ترحيل لعهدة جديدة» أو «رد نقدي للخزينة».
+                            </div>
+                          ) : (
+                            <>
+                              <select
+                                value={settlementDestinationId}
+                                onChange={(e) => setSettlementDestinationId(e.target.value)}
+                                className={styles.formSelect}
+                                required
+                              >
+                                {openCustodiesForMerge.map((c) => (
+                                  <option key={c.id} value={c.id}>
+                                    {c.custody_number} — {c.partner_name || 'بدون اسم'} — {c.title} (متبقي حالياً: {formatCustodyCurrency(c.remaining_amount)})
+                                  </option>
+                                ))}
+                              </select>
+
+                              {targetCustodyForMerge && (
+                                <div className="mt-3 p-3.5 bg-slate-900/95 border border-indigo-500/40 rounded-xl space-y-3">
+                                  <div className="flex items-center justify-between border-b border-indigo-500/20 pb-2">
+                                    <span className="text-xs font-semibold text-indigo-300 flex items-center gap-1.5">
+                                      <Layers size={14} className="text-indigo-400" />
+                                      بيان احتساب ضم العهدتين
+                                    </span>
+                                    <span className="text-[11px] px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 font-mono">
+                                      {targetCustodyForMerge.custody_number} ← {selectedCustodyForSettle.custody_number}
+                                    </span>
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-2 text-xs">
+                                    <div className="p-2.5 bg-slate-800/80 rounded-lg border border-slate-700/60">
+                                      <span className="text-slate-400 block text-[11px] mb-0.5">
+                                        المبلغ المحوّل من العهدة الحالية
+                                      </span>
+                                      <span className="text-sm font-bold text-amber-400">
+                                        +{formatCustodyCurrency(selectedCustodyForSettle.remaining_amount)}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 block mt-0.5 truncate">
+                                        {selectedCustodyForSettle.custody_number} ({selectedCustodyForSettle.partner_name || 'صاحب العهدة'})
+                                      </span>
+                                    </div>
+
+                                    <div className="p-2.5 bg-slate-800/80 rounded-lg border border-slate-700/60">
+                                      <span className="text-slate-400 block text-[11px] mb-0.5">
+                                        رصيد العهدة المختارة قبل الضم
+                                      </span>
+                                      <span className="text-sm font-bold text-sky-400">
+                                        {formatCustodyCurrency(targetCustodyForMerge.remaining_amount)}
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 block mt-0.5 truncate">
+                                        من أصل منصرف {formatCustodyCurrency(targetCustodyForMerge.disbursed_amount)}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {/* Requested Total combined amount */}
+                                  <div className="p-3 bg-gradient-to-r from-emerald-950/70 via-slate-900 to-indigo-950/60 border border-emerald-500/50 rounded-lg flex items-center justify-between">
+                                    <div>
+                                      <span className="text-xs font-bold text-emerald-300 block">
+                                        المبلغ الإجمالي الجديد بعد الضم (التوتال)
+                                      </span>
+                                      <span className="text-[10px] text-slate-400 block mt-0.5">
+                                        إجمالي المنصرف الجديد للعهدة: {formatCustodyCurrency(targetCustodyForMerge.disbursed_amount + selectedCustodyForSettle.remaining_amount)} (مصروف منها: {formatCustodyCurrency(targetCustodyForMerge.spent_amount)})
+                                      </span>
+                                    </div>
+                                    <div className="text-left font-mono">
+                                      <span className="text-base font-extrabold text-emerald-400 block">
+                                        {formatCustodyCurrency(targetCustodyForMerge.remaining_amount + selectedCustodyForSettle.remaining_amount)}
+                                      </span>
+                                      <span className="text-[10px] text-emerald-500/80 font-sans">صافي متبقي متاح للصرف</span>
+                                    </div>
+                                  </div>
+
+                                  {selectedCustodyForSettle.partner_id !== targetCustodyForMerge.partner_id && (
+                                    <div className="text-[11px] text-amber-300/90 bg-amber-950/30 border border-amber-500/30 p-2 rounded flex items-center gap-1.5">
+                                      <Info size={13} className="shrink-0" />
+                                      <span>
+                                        تنبيه: نظراً لاختلاف أصحاب العهدتين ({selectedCustodyForSettle.partner_name} ← {targetCustodyForMerge.partner_name})، سيتم إنشاء قيد أستاذ عام تلقائي لنقل المديونية في ح/125.
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </>
+                          )}
                         </div>
                       )}
                     </>
@@ -1700,7 +1883,7 @@ export default function CustodiesPage() {
                   </table>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-center p-3 bg-slate-800 rounded text-xs mb-6">
+                <div className="grid grid-cols-3 gap-2 text-center p-3 bg-slate-800 rounded text-xs mb-4">
                   <div>
                     <span className="text-slate-400 block">المبلغ المنصرف:</span>
                     <strong className="text-white text-sm">
@@ -1720,6 +1903,29 @@ export default function CustodiesPage() {
                     </strong>
                   </div>
                 </div>
+
+                {selectedCustodyForPrint.status === 'settled' && (
+                  <div className="p-3 bg-slate-800/60 border border-slate-700 rounded text-xs mb-6 space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-emerald-400">
+                        حالة المحضر: تمت التسوية والإقفال
+                      </span>
+                      <span className="text-slate-300">
+                        طريقة التسوية: {SETTLEMENT_TYPES[selectedCustodyForPrint.settlement_type || '']?.label || selectedCustodyForPrint.settlement_type || 'تسوية مسجلة'}
+                      </span>
+                    </div>
+                    {selectedCustodyForPrint.settlement_date && (
+                      <div className="text-slate-400 text-[11px]">
+                        تاريخ اعتماد التسوية: {selectedCustodyForPrint.settlement_date}
+                      </div>
+                    )}
+                    {selectedCustodyForPrint.settlement_notes && (
+                      <div className="text-slate-300 text-[11px] mt-0.5">
+                        البيان والملاحظات: {selectedCustodyForPrint.settlement_notes}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-3 gap-4 text-center text-xs pt-4 border-t border-slate-700">
                   <div>

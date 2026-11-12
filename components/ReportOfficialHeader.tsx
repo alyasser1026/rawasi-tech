@@ -346,7 +346,7 @@ const ORH_CSS = `
 .phi-orh-main > div { padding:16px 18px; min-width:0; }
 .phi-orh.is-compact .phi-orh-main > div { padding:12px 14px; }
 .phi-orh-brand { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:4px; border-left:1px solid var(--line); }
-.phi-orh-logo { height:62px; width:auto; max-width:100%; object-fit:contain; object-position:center; display:block; background:transparent; margin:0 auto 6px; }
+.phi-orh-logo { height:62px; width:auto; max-width:100%; object-fit:contain; object-position:center; display:block; background:var(--phi-badge-bg, transparent); /* official light badge: #f7eee2 */ margin:0 auto 6px; }
 .phi-orh.is-compact .phi-orh-logo { height:52px; }
 .phi-orh.is-compact .phi-orh-contacts { display:none; }
 .phi-orh.is-compact .phi-orh-logo { margin-bottom:2px; }

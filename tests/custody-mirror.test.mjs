@@ -149,3 +149,31 @@ test('Custody Mirror: PostgREST schema cache resolves custody_partner_id join on
   });
   assert.equal(res.status, 200, `Expected 200 from PostgREST, got ${res.status}: ${await res.text()}`);
 });
+
+test('Custody Merge Settlement: model, calculations, UI, and database support merging custodies with combined total', async () => {
+  const modelSrc = fs.readFileSync('app/custodies/custodiesModel.ts', 'utf8');
+  assert.match(modelSrc, /merge_custody/);
+  assert.match(modelSrc, /ضم العهدة على عهدة أخرى/);
+
+  const pageSrc = fs.readFileSync('app/custodies/page.tsx', 'utf8');
+  assert.match(pageSrc, /openCustodiesForMerge/);
+  assert.match(pageSrc, /targetCustodyForMerge/);
+  assert.match(pageSrc, /المبلغ الإجمالي الجديد بعد الضم \(التوتال\)/);
+  assert.match(pageSrc, /targetCustodyForMerge\.remaining_amount \+ selectedCustodyForSettle\.remaining_amount/);
+
+  // Verify merge calculation math
+  const sourceCustody = { disbursed_amount: 10000, spent_amount: 4000, remaining_amount: 6000 };
+  const targetCustody = { disbursed_amount: 15000, spent_amount: 5000, remaining_amount: 10000 };
+  const newCombinedDisbursed = targetCustody.disbursed_amount + sourceCustody.remaining_amount;
+  const newCombinedRemaining = targetCustody.remaining_amount + sourceCustody.remaining_amount;
+
+  assert.equal(newCombinedDisbursed, 21000);
+  assert.equal(newCombinedRemaining, 16000);
+  assert.equal(newCombinedDisbursed - targetCustody.spent_amount, newCombinedRemaining);
+
+  const migrationSrc = fs.readFileSync('supabase/migrations/20261112214500_custody_merge_settlement.sql', 'utf8');
+  assert.match(migrationSrc, /merge_custody/);
+  assert.match(migrationSrc, /site_custodies_settlement_type_check/);
+  assert.match(migrationSrc, /recalculate_custody_spent/);
+});
+

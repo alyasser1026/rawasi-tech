@@ -50,7 +50,7 @@ export interface SiteCustody {
   status: 'draft' | 'open' | 'settled' | 'cancelled';
   notes?: string | null;
   settlement_date?: string | null;
-  settlement_type?: 'cash_return' | 'salary_deduction' | 'carry_forward' | 'cleared' | null;
+  settlement_type?: 'cash_return' | 'salary_deduction' | 'carry_forward' | 'cleared' | 'merge_custody' | null;
   settlement_reference_id?: string | null;
   settlement_notes?: string | null;
   payment_voucher_id?: string | null;
@@ -82,15 +82,19 @@ export interface CustodySummaryResponse {
 export const SETTLEMENT_TYPES: Record<string, { label: string; desc: string }> = {
   cash_return: {
     label: 'رد نقدي للخزينة / البنك',
-    desc: 'إنشاء سند قبض آلي (مدين الخزينة/البنك، دائن ح/125 مع المهندس)',
+    desc: 'إنشاء سند قبض آلي (مدين الخزينة/البنك، دائن ح/125 مع صاحب العهدة)',
   },
   salary_deduction: {
     label: 'خصم من الراتب',
-    desc: 'قيد محاسبي آلي (مدين ح/216 رواتب وأجور مستحقة، دائن ح/125 مع المهندس)',
+    desc: 'قيد محاسبي آلي (مدين ح/216 رواتب وأجور مستحقة، دائن ح/125 مع صاحب العهدة)',
   },
   carry_forward: {
     label: 'ترحيل لعهدة جديدة',
-    desc: 'إنشاء عهدة جديدة تلقائياً بنفس المبلغ المتبقي لنفس المهندس/المشروع',
+    desc: 'إنشاء عهدة جديدة تلقائياً بنفس المبلغ المتبقي لنفس صاحب العهدة/المشروع',
+  },
+  merge_custody: {
+    label: 'ضم العهدة على عهدة أخرى',
+    desc: 'نقل الرصيد المتبقي بالكامل ودمجه في عهدة جارية أخرى مع إظهار المبلغ الإجمالي (التوتال)',
   },
   cleared: {
     label: 'إقفال دون رصيد متبقٍ',
@@ -264,8 +268,8 @@ export async function createSiteCustody(payload: {
 
 export async function settleSiteCustody(payload: {
   custodyId: string;
-  settlementType: 'cash_return' | 'salary_deduction' | 'carry_forward' | 'cleared';
-  destinationId?: string | null; // safe/bank account ID for cash_return, or project ID for carry_forward
+  settlementType: 'cash_return' | 'salary_deduction' | 'carry_forward' | 'cleared' | 'merge_custody';
+  destinationId?: string | null; // safe/bank account ID for cash_return, project ID for carry_forward, or target custody ID for merge_custody
   settlementDate?: string;
   notes?: string;
 }): Promise<any> {
