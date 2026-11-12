@@ -1260,9 +1260,16 @@ export default function WebsitePage() {
       </header>
 
       {/* HERO SECTION */}
-      <section id="hero" className="relative overflow-hidden pt-10 pb-20 sm:py-20 px-4 sm:px-8">
+      <section
+        id="hero"
+        className="relative overflow-hidden pt-10 pb-20 sm:py-20 px-4 sm:px-8"
+        style={{ position: 'relative', overflow: 'hidden', isolation: 'isolate' }}
+      >
         <HeroVideoBackdrop variant="full" tone={themeMode} controlsMode="corner" />
-        <div className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+        <div
+          className="relative z-10 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center"
+          style={{ position: 'relative', zIndex: 2 }}
+        >
           
           {/* Right Column: Strategic Pitch tailored to the user's real business */}
           <div className="lg:col-span-7 space-y-6 text-right">

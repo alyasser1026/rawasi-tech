@@ -54,7 +54,7 @@ const BACKDROP_CSS = `
 
 .phi-hb-hud{display:inline-flex;align-items:center;gap:6px;padding:5px;border-radius:999px;background:rgba(10,13,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),0 12px 28px -10px rgba(0,0,0,.75);pointer-events:auto;direction:rtl}
 .phi-hb-hud.is-corner{position:absolute;left:24px;bottom:20px;z-index:25}
-.phi-hb-btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px;border-radius:999px;background:rgba(255,255,255,.06);color:#e2e8f0;font-family:'Cairo',system-ui,sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);transition:background .18s,color .18s,box-shadow .18s,transform .18s}
+.phi-hb-btn{display:inline-flex;align-items:center;gap:7px;height:34px;padding:0 12px;border:0;margin:0;appearance:none;-webkit-appearance:none;border-radius:999px;background:rgba(255,255,255,.08);color:#e2e8f0;font-family:'Cairo',system-ui,sans-serif;font-size:.78rem;font-weight:700;line-height:1;cursor:pointer;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12);transition:background .18s,color .18s,box-shadow .18s,transform .18s}
 .phi-hb-btn:hover{background:rgba(249,115,22,.22);color:#fff;box-shadow:inset 0 0 0 1px rgba(249,115,22,.55);transform:translateY(-1px)}
 .phi-hb-btn.is-icon{width:34px;padding:0;justify-content:center}
 .phi-hb-btn.is-active{background:rgba(249,115,22,.26);color:#fed7aa;box-shadow:inset 0 0 0 1px rgba(249,115,22,.65)}

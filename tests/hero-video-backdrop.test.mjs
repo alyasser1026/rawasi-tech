@@ -47,5 +47,7 @@ test('Public site (/) and portal (/website) both mount HeroVideoBackdrop cleanly
 
   assert.doesNotMatch(siteStyles, /url\('\/brand\/hero-bg\.webp'\)/);
   assert.match(siteStyles, /\.pw-hero-toolbar/);
+  assert.match(siteStyles, /body:has\(\.pw\)\{padding:0!important\}/);
+  assert.match(siteStyles, /\.pw main#top\{padding:0!important/);
   assert.match(siteStyles, /backdrop-filter:blur\(16px\)/);
 });
