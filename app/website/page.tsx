@@ -7,11 +7,11 @@ import { supabase } from '@/lib/supabase';
 import { PHITECH_RINGS_PATH, PHITECH_PILLARS_PATH, PHITECH_TIGHT_VIEWBOX } from '@/lib/brand-logo-paths';
 import HeroVideoBackdrop from '@/components/HeroVideoBackdrop';
 
-const SuperheroRoom3D = dynamic(() => import('../site/SuperheroRoom3D'), {
+const CapitalTower3D = dynamic(() => import('../site/CapitalTower3D'), {
   ssr: false,
   loading: () => (
     <div className="p-12 text-center font-bold text-amber-500">
-      جاري تحميل غرفة السوبر هيرو ثلاثية الأبعاد (Three.js)...
+      جاري تحميل مجسم برج كابيتال ثلاثي الأبعاد (Three.js)...
     </div>
   ),
 });
@@ -1193,7 +1193,7 @@ export default function WebsitePage() {
           {/* Navigation Links */}
           <nav className="hidden xl:flex items-center gap-1 sunken-well-box p-1.5">
             <a href="#hero" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-primary)' }}>الرئيسية</a>
-            <a href="#superhero-room" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--accent-bright)' }}>غرفة سوبر هيرو 3D</a>
+            <a href="#capital-tower" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--accent-bright)' }}>برج كابيتال 3D</a>
             <a href="#three-pillars" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>القطاعات التنفيذية</a>
             <a href="#boq-catalog" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>دليل بنود المقايسة</a>
             <a href="#xray-twin" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>محاكي البناء 3D</a>
@@ -1340,10 +1340,10 @@ export default function WebsitePage() {
                 <i className="fa-solid fa-calculator"></i>
                 <span>احسب تكلفة مشروعك (عظم + تشطيب + MEP)</span>
               </a>
-              <a href="#superhero-room" className="btn-secondary text-base px-6 py-4">
+              <a href="#capital-tower" className="btn-secondary text-base px-6 py-4">
                 <div className="specular-beam"></div>
                 <i className="fa-solid fa-cube" style={{ color: 'var(--accent-main)' }}></i>
-                <span>استكشف غرفة سوبر هيرو 3D</span>
+                <span>برج كابيتال 3D ⇄ BIM</span>
               </a>
               <a href="#boq-catalog" className="btn-secondary text-base px-6 py-4">
                 <div className="specular-beam"></div>
@@ -1554,10 +1554,10 @@ export default function WebsitePage() {
         </div>
       </section>
 
-      {/* SECTION 1.5: SUPERHERO 3D ROOM SHOWCASE */}
-      <section id="superhero-room" className="py-12 px-4 sm:px-8">
+      {/* SECTION 1.5: CAPITAL TOWER 3D -> BIM SHOWCASE */}
+      <section id="capital-tower" className="py-12 px-4 sm:px-8">
         <div className="max-w-7xl mx-auto">
-          <SuperheroRoom3D />
+          <CapitalTower3D />
         </div>
       </section>
 

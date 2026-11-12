@@ -14,14 +14,14 @@ const BimModel = dynamic(() => import('./BimModel'), {
   loading: () => <div className="pw-bim-stage"><div className="pw-bim-note">جاري تحميل النموذج…</div></div>,
 });
 
-const SuperheroRoom3D = dynamic(() => import('./SuperheroRoom3D'), {
+const CapitalTower3D = dynamic(() => import('./CapitalTower3D'), {
   ssr: false,
-  loading: () => <div className="pw-bim-stage"><div className="pw-bim-note">جاري تحميل غرفة السوبر هيرو ثلاثية الأبعاد…</div></div>,
+  loading: () => <div className="pw-bim-stage"><div className="pw-bim-note">جاري تحميل مجسم برج كابيتال ثلاثي الأبعاد…</div></div>,
 });
 
 const NAV = [
   { href: '#services', label: 'الخدمات' },
-  { href: '#superhero-room', label: 'غرفة سوبر هيرو 3D' },
+  { href: '#capital-tower', label: 'برج كابيتال 3D' },
   { href: '#bim', label: 'نموذج BIM' },
   { href: '#tools', label: 'الأدوات' },
   { href: '#checklist', label: 'دليل وبطاقات التنفيذ' },
@@ -158,7 +158,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
               <p className="pw-lead">{SITE.intro}</p>
               <div className="pw-actions">
                 <a href={primaryContact.href} className="pw-btn pw-btn-primary" {...(primaryContact.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{primaryContact.label}</a>
-                <a href="#superhero-room" className="pw-btn pw-btn-light">غرفة سوبر هيرو 3D</a>
+                <a href="#capital-tower" className="pw-btn pw-btn-light">برج كابيتال 3D</a>
                 <a href="#bim" className="pw-btn pw-btn-light">استكشف نموذج BIM</a>
               </div>
             </div>
@@ -216,15 +216,15 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
           </div>
         </section>
 
-        {/* Superhero Room 3D */}
-        <section id="superhero-room" className="pw-section">
+        {/* Capital Tower 3D -> BIM */}
+        <section id="capital-tower" className="pw-section">
           <div className="pw-wrap">
             <div className="pw-head">
-              <p className="pw-eyebrow">معرض التصميم الداخلي والتشطيبات ثلاثية الأبعاد</p>
-              <h2>غرفة سوبر هيرو 3D — تكامل الديكور والأنظمة الذكية والتكييف المخفي</h2>
-              <p>استعرض الغرفة عبر نموذج 3D تفاعلي حي (Three.js) إلى جانب الريندر الواقعي بهوية فاي تك (#0c0907 الليلي و #f7eee2 النهاري والبرتقالي #f97316)، واضغط على أي عنصر لعرض مواصفاته الهندسية وتكلفته التقديرية.</p>
+              <p className="pw-eyebrow">معرض برج كابيتال المعماري ثلاثي الأبعاد والتحول إلى BIM</p>
+              <h2>برج كابيتال 3D — الواجهة، المدخل الفندقي، والشقق 140 / 185 / 205 م²</h2>
+              <p>استعرض نموذج برج كابيتال ثلاثي الأبعاد بكل تفاصيله المعمارية (الأركيد التجاري، المدخل الرخامي والمصاعد، المسقط المتكرر والوحدات المفروشة)، وحوّله بضغطة واحدة إلى توأم رقمي BIM / IFC متكامل.</p>
             </div>
-            <LazyMount minHeight={520}><SuperheroRoom3D /></LazyMount>
+            <LazyMount minHeight={540}><CapitalTower3D /></LazyMount>
           </div>
         </section>
 
@@ -232,11 +232,11 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
         <section id="bim" className="pw-section">
           <div className="pw-wrap">
             <div className="pw-head">
-              <p className="pw-eyebrow">نموذج BIM تفاعلي</p>
-              <h2>شاهد كيف تتكامل الطبقات داخل المبنى</h2>
-              <p>أخفِ الطبقات وأظهرها، وافصل الأدوار، واضغط على أي عنصر لتعرف نوعه وفئته في معيار IFC.</p>
+              <p className="pw-eyebrow">نموذج BIM تفاعلي — برج كابيتال</p>
+              <h2>شاهد كيف تتكامل الطبقات الإنشائية والمعمارية وMEP داخل البرج</h2>
+              <p>أخفِ الطبقات وأظهرها، افصل الأدوار الـ 12 + البوديوم، اقطع المستويات أفقياً، واضغط على أي عنصر لعرض فئته في معيار IFC وحصره التقديري.</p>
             </div>
-            <LazyMount minHeight={460}><BimModel /></LazyMount>
+            <LazyMount minHeight={500}><BimModel /></LazyMount>
           </div>
         </section>
 
