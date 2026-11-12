@@ -28,6 +28,7 @@ import { usePermissions } from '@/lib/PermissionsContext';
 import { notify } from '@/lib/notify';
 import { supabase } from '@/lib/supabase';
 import { executeDraftWithOfflineQueue } from '@/lib/offline/offlineExecutor';
+import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 import { readCachedTableRows } from '@/lib/offline/referenceCache';
 import { useOfflineSync } from '@/lib/offline/useOfflineSync';
 import {
@@ -840,6 +841,23 @@ export default function CustodiesPage() {
                               >
                                 <Printer size={15} />
                               </button>
+                              <SendPartnerMessageButton
+                                partnerId={custody.partner_id}
+                                partnerName={custody.partner_name}
+                                operation={{
+                                  type: 'custody',
+                                  reference: custody.custody_number,
+                                  date: custody.opened_date,
+                                  project: custody.project_name || 'عهدة عامة',
+                                  amount: custody.disbursed_amount,
+                                  description: custody.title,
+                                  status: statusConfig.label,
+                                  extraLines: [
+                                    { label: 'المصروف', value: formatCustodyCurrency(custody.spent_amount) },
+                                    { label: 'المتبقي', value: formatCustodyCurrency(custody.remaining_amount) },
+                                  ],
+                                }}
+                              />
                             </div>
                           </td>
                         </tr>

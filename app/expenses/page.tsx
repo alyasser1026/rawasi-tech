@@ -22,6 +22,7 @@ import ExpenseCategorySummary from './ExpenseCategorySummary';
 import LoadingScreen from '@/components/LoadingScreen';
 import { ChevronUp, ChevronDown, ArrowUpDown, Printer, Banknote, Plus, Download, Edit3, CheckCircle2, RotateCcw, Trash2 } from 'lucide-react';
 import { AttachmentViewButton } from '@/components/TelegramAttachmentField';
+import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 
 const MAIN_CATEGORIES = [
   "إعاشة وتغذية", "محروقات وانتقالات", "عدد ومعدات", "مستهلكات ومواد تشغيل", 
@@ -357,6 +358,28 @@ export default function ExpensesPage() {
             >
               <Printer size={14} aria-hidden="true" />
             </button>
+            <SendPartnerMessageButton
+              partnerId={row.payee_id || row.partner_id}
+              partnerName={row.sub_contractor || row.payee_name || row.creditor_account}
+              operation={{
+                type: 'expense',
+                reference: row.invoice_number,
+                date: row.exp_date,
+                project: row.site_ref,
+                amount: total,
+                description:
+                  row.description ||
+                  (Array.isArray(row.lines_data)
+                    ? row.lines_data.map((l: any) => l.description).filter(Boolean).join(' + ')
+                    : '') ||
+                  'قيد مصروف',
+                status: row.is_posted ? 'معتمد' : 'معلق',
+                extraLines: [
+                  { label: 'التصنيف', value: row.main_category },
+                  { label: 'حالة السداد', value: balance <= 0 ? 'مسدد' : paid > 0 ? 'مسدد جزئي' : 'غير مسدد' },
+                ],
+              }}
+            />
             {needsPayment && (
              <button 
                   disabled={pvLogic.state.isEditModalOpen} 

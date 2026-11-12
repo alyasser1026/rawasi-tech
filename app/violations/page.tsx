@@ -16,6 +16,7 @@ import { Pencil } from 'lucide-react';
 import TelegramAttachmentField, { AttachmentViewButton } from '@/components/TelegramAttachmentField';
 import { notify } from '@/lib/notify';
 import VoiceFormTrigger from '@/components/voice/VoiceFormTrigger';
+import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 
 export default function ViolationsPage() {
   const logic = useViolationsLogic();
@@ -114,9 +115,26 @@ export default function ViolationsPage() {
       render: (row: any) => {
         if (!row) return null;
         return (
-          can('violations', 'edit') && !row.is_posted ? (
-            <button onClick={(e) => { e.stopPropagation(); logic.actions.handleEdit(row); }} className="btn-glass-print"><Pencil size={16} aria-hidden="true" /></button>
-          ) : <span style={{color:'#94a3b8', fontSize:'var(--fs-xs)', fontWeight: 900}}>مقفل</span>
+          <div style={{ display: 'inline-flex', gap: '0.375rem', alignItems: 'center' }}>
+            {can('violations', 'edit') && !row.is_posted ? (
+              <button onClick={(e) => { e.stopPropagation(); logic.actions.handleEdit(row); }} className="btn-glass-print"><Pencil size={16} aria-hidden="true" /></button>
+            ) : <span style={{color:'#94a3b8', fontSize:'var(--fs-xs)', fontWeight: 900}}>مقفل</span>}
+            <SendPartnerMessageButton
+              partnerId={row.partner_id}
+              partnerName={row.partner?.name || row.emp_name}
+              operation={{
+                type: 'violation',
+                date: row.date,
+                project: row.project?.Property,
+                amount: row.amount,
+                description: row.reason,
+                status: row.is_posted ? 'معتمد' : 'معلق',
+                extraLines: [
+                  { label: 'نوع الخصم / الجزاء', value: row.violation_type || 'غرامة' },
+                ],
+              }}
+            />
+          </div>
         );
       }
     }

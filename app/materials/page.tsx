@@ -18,6 +18,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 import KpiStrip from '@/components/KpiStrip';
 import { FileText, ListChecks, Package } from 'lucide-react';
 import { notify } from '@/lib/notify';
+import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 
 // =========================================================================
 // 🧩 مكون القائمة المنسدلة متعددة الاختيارات مع بحث (Custom Dropdown)
@@ -559,6 +560,28 @@ export default function MaterialsPage() {
                                                         >
                                                             طباعة الفاتورة
                                                         </button>
+                                                        <SendPartnerMessageButton
+                                                            partnerId={group.supplier?.id}
+                                                            partnerName={group.supplier?.name}
+                                                            operation={{
+                                                                type: 'material_supply',
+                                                                reference: group.receipt_no,
+                                                                date: group.exp_date,
+                                                                project: group.project?.Property,
+                                                                amount: group.total_receipt_price,
+                                                                description: `${group.receipt_type || 'فاتورة توريد خامات'} (${group.items?.length || 0} أصناف)`,
+                                                                status: group.is_posted ? 'معتمد' : 'مسودة',
+                                                                extraLines: [
+                                                                    {
+                                                                        label: 'الأصناف',
+                                                                        value: (group.items || [])
+                                                                            .slice(0, 4)
+                                                                            .map((i: any) => `${i.item_name} (${i.quantity} ${i.unit || ''})`.trim())
+                                                                            .join('، '),
+                                                                    },
+                                                                ],
+                                                            }}
+                                                        />
                                                         
                                                         {!group.is_posted ? (
                                                             <>

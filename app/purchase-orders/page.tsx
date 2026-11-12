@@ -1,5 +1,6 @@
 'use client';
 import { currencySymbol } from '@/lib/currency';
+import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -664,6 +665,24 @@ export default function PurchaseOrdersPage() {
                           >
                             <Eye size={13} /> مطابقة 3-Way
                           </button>
+
+                          <SendPartnerMessageButton
+                            partnerId={po.supplier_id}
+                            partnerName={po.supplier_name}
+                            operation={{
+                              type: 'purchase_order',
+                              reference: po.po_number,
+                              date: po.order_date,
+                              project: po.project_name || 'عام',
+                              amount: po.total_amount,
+                              description: `أمر شراء خامات (${po.lines_count || 0} بنود)`,
+                              status: po.status,
+                              extraLines: [
+                                { label: 'قيمة الخامات', value: formatCurrency(po.subtotal) },
+                                { label: 'الضريبة', value: formatCurrency(po.tax_amount) },
+                              ],
+                            }}
+                          />
 
                           {po.status === 'draft' && (
                             <button

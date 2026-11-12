@@ -13,6 +13,7 @@ import { supabase } from '@/lib/supabase';
 import { normalizeArabicText } from '@/lib/helpers';
 import LoadingScreen from '@/components/LoadingScreen';
 import VoiceFormTrigger from '@/components/voice/VoiceFormTrigger';
+import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 
 export default function LaborLogsDirectory() {
   const logic = useLaborLogsLogic();
@@ -189,6 +190,32 @@ export default function LaborLogsDirectory() {
           <span className="glass-badge" style={{ backgroundColor: row.is_posted ? '#ecfdf5' : '#fff7ed', color: row.is_posted ? '#059669' : '#d97706' }}>
             {row._offline_queued ? 'في الطابور' : (row.is_posted ? 'معتمد' : 'معلق')}
           </span>
+        );
+      }
+    },
+    {
+      key: 'send_partner',
+      label: 'إرسال',
+      excludeFromExport: true,
+      render: (row: any) => {
+        if (!row) return null;
+        return (
+          <SendPartnerMessageButton
+            partnerId={row.worker_partner_id || row.sub_contractor_id}
+            partnerName={row.worker_name || row.sub_contractor}
+            operation={{
+              type: 'labor_log',
+              date: row.work_date,
+              project: row.site_ref,
+              amount: Number(row.daily_wage || 0),
+              description: row.work_item || row.production_desc || 'يومية عمالة ميدانية',
+              status: row._offline_queued ? 'في الطابور' : (row.is_posted ? 'معتمد' : 'معلق'),
+              extraLines: [
+                { label: 'قيمة الحضور', value: row.attendance_value },
+                { label: 'ملاحظات', value: row.notes },
+              ],
+            }}
+          />
         );
       }
     }

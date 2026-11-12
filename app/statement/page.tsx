@@ -9,6 +9,7 @@ import SecureAction from '@/components/SecureAction';
 import { formatCurrency, formatDate } from '@/lib/helpers';
 import StatementPrintModal from './StatementPrintModal'; 
 import ExportLoadingModal from '@/components/ExportLoadingModal'; 
+import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 
 import { Suspense } from 'react';
 import { ReceiptText } from 'lucide-react';
@@ -101,8 +102,34 @@ function PartnerStatementContent() {
                     </div>
                 );
             }
+        },
+        {
+            header: 'إرسال',
+            accessor: 'send_action',
+            excludeFromExport: true,
+            render: (row: any) => {
+                if (!row || row.id === 'opening') return null;
+                return (
+                    <SendPartnerMessageButton
+                        partnerId={logic.partnerId}
+                        partnerName={logic.partnerName || selectedPartnerName}
+                        operation={{
+                            type: 'statement_line',
+                            reference: row.v_type,
+                            date: row.date,
+                            amount: Number(row.debit || 0) > 0 ? Number(row.debit) : Number(row.credit || 0),
+                            description: row.description,
+                            extraLines: [
+                                { label: 'دائن (له)', value: Number(row.credit || 0) > 0 ? formatCurrency(row.credit) : null },
+                                { label: 'مدين (عليه)', value: Number(row.debit || 0) > 0 ? formatCurrency(row.debit) : null },
+                                { label: 'الرصيد التراكمي', value: `${formatCurrency(Math.abs(Number(row.balance || 0)))} ${Number(row.balance || 0) >= 0 ? '(له)' : '(عليه)'}` },
+                            ],
+                        }}
+                    />
+                );
+            }
         }
-    ], []);
+    ], [logic.partnerId, logic.partnerName, selectedPartnerName]);
 
     const tableData = useMemo(() => {
         if (!logic.partnerId || logic.isLoading) return [];
@@ -126,6 +153,25 @@ function PartnerStatementContent() {
             >
                 معاينة وطباعة الكشف
             </button>
+            <SendPartnerMessageButton
+                variant="button"
+                label="إرسال الكشف للبارتنر (واتساب)"
+                disabled={!logic.partnerId}
+                partnerId={logic.partnerId}
+                partnerName={logic.partnerName || selectedPartnerName}
+                operation={{
+                    type: 'statement',
+                    date: `${logic.dateFrom || '---'} إلى ${logic.dateTo || '---'}`,
+                    amount: Math.abs(Number(logic.currentBalance || 0)),
+                    description: 'ملخص كشف الحساب المعتمد',
+                    extraLines: [
+                        { label: 'إجمالي مستحقات (دائن/له)', value: formatCurrency(logic.totalCredit) },
+                        { label: 'إجمالي مسحوبات (مدين/عليه)', value: formatCurrency(logic.totalDebit) },
+                        { label: 'صافي الحركة خلال الفترة', value: `${formatCurrency(Math.abs(Number(logic.periodNet || 0)))} ${Number(logic.periodNet || 0) >= 0 ? '(له)' : '(عليه)'}` },
+                        { label: 'الرصيد النهائي', value: `${formatCurrency(Math.abs(Number(logic.currentBalance || 0)))} ${Number(logic.currentBalance || 0) >= 0 ? '(له)' : '(عليه)'}` },
+                    ],
+                }}
+            />
             <SecureAction module="statements" action="export">
                 <button 
                     type="button" 

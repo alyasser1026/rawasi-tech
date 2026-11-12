@@ -11,6 +11,7 @@ import MaterialIssueModal from './MaterialIssueModal';
 import { useConfirm } from '@/components/ConfirmContext';
 import * as XLSX from 'xlsx'; // 🚀 استدعاء مكتبة الإكسل
 import { notify } from '@/lib/notify';
+import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 
 // =========================================================================
 // 🧩 مكون ذكي للقائمة المنسدلة متعددة الاختيارات مع بحث (Custom Dropdown)
@@ -308,6 +309,33 @@ export default function MaterialIssuesPage() {
                     {row.is_posted === true ? 'معتمد' : 'مسودة'}
                 </span>
             )
+        },
+        {
+            header: 'إرسال',
+            excludeFromExport: true,
+            render: (row: any) => {
+                if (!row) return null;
+                return (
+                    <SendPartnerMessageButton
+                        partnerId={row.subcontractor_id}
+                        partnerName={row.subcontractor_name || row.contractor_text_name}
+                        operation={{
+                            type: 'material_issue',
+                            reference: row.issue_number,
+                            date: row.issue_date,
+                            project: row.project_name,
+                            amount: row.total_price,
+                            description: row.item_name || 'إذن صرف خامات',
+                            status: row.is_posted === true ? 'معتمد' : 'مسودة',
+                            extraLines: [
+                                { label: 'الكمية', value: row.quantity ? `${row.quantity} ${row.unit || ''}`.trim() : null },
+                                { label: 'بند المقايسة', value: row.boq_item },
+                                { label: 'نوع الصرف', value: row.issue_type },
+                            ],
+                        }}
+                    />
+                );
+            }
         }
     ];
 

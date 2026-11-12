@@ -14,6 +14,7 @@ import { useSidebar } from '@/lib/SidebarContext';
 import SmartCombo from '@/components/SmartCombo';
 import LoadingScreen from '@/components/LoadingScreen';
 import { AttachmentViewButton } from '@/components/TelegramAttachmentField';
+import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 
 export default function ReceiptVouchersPage() {
     // 💎 نقطة الاستدعاء الواحدة (Single Source of Truth)
@@ -175,6 +176,33 @@ export default function ReceiptVouchersPage() {
                         <span style={{ width: '0.375rem', height: '0.375rem', borderRadius: '50%', background: isPosted ? '#10b981' : isRefunded ? '#ef4444' : '#f59e0b' }}></span>
                         {row.status || 'مسودة'}
                     </div>
+                );
+            }
+        },
+        {
+            header: 'إرسال',
+            accessor: 'send_action',
+            excludeFromExport: true,
+            render: (row: any) => {
+                if (!row) return null;
+                return (
+                    <SendPartnerMessageButton
+                        partnerId={row.partner_id}
+                        partnerName={row.partners?.name || row.partner_name}
+                        operation={{
+                            type: 'receipt_voucher',
+                            reference: row.receipt_number,
+                            date: row.date,
+                            amount: row.amount,
+                            project: row.project_names,
+                            description: row.notes || row.description || 'سند قبض مالي',
+                            status: row.status || 'مسودة',
+                            extraLines: [
+                                { label: 'طريقة التحصيل', value: row.payment_method },
+                                { label: 'المرجع', value: row.reference_number },
+                            ],
+                        }}
+                    />
                 );
             }
         }
