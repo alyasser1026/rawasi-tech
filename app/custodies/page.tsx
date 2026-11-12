@@ -32,6 +32,7 @@ import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 import { readCachedTableRows } from '@/lib/offline/referenceCache';
 import { useOfflineSync } from '@/lib/offline/useOfflineSync';
 import {
+  CustodyDisbursementVoucher,
   CustodyExpense,
   SETTLEMENT_TYPES,
   STATUS_MAP,
@@ -707,6 +708,8 @@ export default function CustodiesPage() {
                     const isExpanded = !!expandedCustodyIds[custody.id];
                     const statusConfig = STATUS_MAP[custody.status] || STATUS_MAP.open;
                     const hasExpenses = (custody.expenses || []).length > 0;
+                    const hasDisbursementVouchers = (custody.disbursement_vouchers || []).length > 0;
+                    const hasMovements = hasExpenses || hasDisbursementVouchers;
 
                     return (
                       <Fragment key={custody.id}>
@@ -876,65 +879,118 @@ export default function CustodiesPage() {
                                   </span>
                                 </div>
 
-                                {!hasExpenses ? (
+                                {!hasMovements ? (
                                   <p className="text-xs text-slate-400 py-2">
-                                    لم تسجل أي مصروفات أو فواتير مشتريات على هذه العهدة حتى الآن.
+                                    لم تسجل أي مصروفات أو سندات صرف على هذه العهدة حتى الآن.
                                   </p>
                                 ) : (
-                                  <table className={styles.subTable}>
-                                    <thead>
-                                      <tr>
-                                        <th>التاريخ</th>
-                                        <th>البيان والمصروف</th>
-                                        <th>طريقة الصرف</th>
-                                        <th>الضريبة</th>
-                                        <th>قيمة المصروف</th>
-                                        <th>المرفق</th>
-                                        <th>الحالة المحاسبية</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {custody.expenses?.map((exp: CustodyExpense) => (
-                                        <tr key={exp.id}>
-                                          <td>{exp.exp_date}</td>
-                                          <td>{exp.description}</td>
-                                          <td>{exp.payment_method || 'عهدة'}</td>
-                                          <td>{formatCustodyCurrency(exp.vat_amount || 0)}</td>
-                                          <td className="font-semibold text-emerald-400">
-                                            {formatCustodyCurrency(exp.amount ?? exp.paid_amount ?? 0)}
-                                          </td>
-                                          <td>
-                                            {exp.invoice_image ? (
-                                              <AttachmentViewButton
-                                                url={exp.invoice_image}
-                                                label="المرفق"
-                                                title={exp.description}
-                                              />
-                                            ) : (
-                                              <span className="text-xs text-slate-500">—</span>
-                                            )}
-                                          </td>
-                                          <td>
-                                            <span
-                                              className={
-                                                exp._offline_queued
-                                                  ? 'text-xs text-sky-400'
-                                                  : exp.is_posted
-                                                  ? 'text-xs text-emerald-400'
-                                                  : 'text-xs text-amber-400'
-                                              }
-                                            >
-                                              {exp._offline_queued
-                                                ? 'في طابور المزامنة'
-                                                : exp.is_posted
-                                                ? 'مرحل للأستاذ العام'
-                                                : 'مسودة'}
-                                            </span>
-                                          </td>
-                                        </tr>
-                                      ))}
-                                    </tbody>
-                                  </table>
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                                    {hasExpenses && (
+                                      <table className={styles.subTable}>
+                                        <thead>
+                                          <tr>
+                                            <th>التاريخ</th>
+                                            <th>البيان والمصروف</th>
+                                            <th>طريقة الصرف</th>
+                                            <th>الضريبة</th>
+                                            <th>قيمة المصروف</th>
+                                            <th>المرفق</th>
+                                            <th>الحالة المحاسبية</th>
+                                          </tr>
+                                        </thead>
+                                        <tbody>
+                                          {custody.expenses?.map((exp: CustodyExpense) => (
+                                            <tr key={exp.id}>
+                                              <td>{exp.exp_date}</td>
+                                              <td>{exp.description}</td>
+                                              <td>{exp.payment_method || 'عهدة'}</td>
+                                              <td>{formatCustodyCurrency(exp.vat_amount || 0)}</td>
+                                              <td className="font-semibold text-emerald-400">
+                                                {formatCustodyCurrency(exp.amount ?? exp.paid_amount ?? 0)}
+                                              </td>
+                                              <td>
+                                                {exp.invoice_image ? (
+                                                  <AttachmentViewButton
+                                                    url={exp.invoice_image}
+                                                    label="المرفق"
+                                                    title={exp.description}
+                                                  />
+                                                ) : (
+                                                  <span className="text-xs text-slate-500">—</span>
+                                                )}
+                                              </td>
+                                              <td>
+                                                <span
+                                                  className={
+                                                    exp._offline_queued
+                                                      ? 'text-xs text-sky-400'
+                                                      : exp.is_posted
+                                                      ? 'text-xs text-emerald-400'
+                                                      : 'text-xs text-amber-400'
+                                                  }
+                                                >
+                                                  {exp._offline_queued
+                                                    ? 'في طابور المزامنة'
+                                                    : exp.is_posted
+                                                    ? 'مرحل للأستاذ العام'
+                                                    : 'مسودة'}
+                                                </span>
+                                              </td>
+                                            </tr>
+                                          ))}
+                                        </tbody>
+                                      </table>
+                                    )}
+
+                                    {hasDisbursementVouchers && (
+                                      <div>
+                                        <div className="text-xs font-bold text-amber-300 mb-2">
+                                          سندات الصرف المسددة من هذه العهدة ({custody.disbursement_vouchers?.length || 0})
+                                        </div>
+                                        <table className={styles.subTable}>
+                                          <thead>
+                                            <tr>
+                                              <th>رقم السند</th>
+                                              <th>التاريخ</th>
+                                              <th>المستفيد</th>
+                                              <th>الحساب المدين والبيان</th>
+                                              <th>المبلغ</th>
+                                              <th>الحالة المحاسبية</th>
+                                            </tr>
+                                          </thead>
+                                          <tbody>
+                                            {custody.disbursement_vouchers?.map((pv: CustodyDisbursementVoucher) => (
+                                              <tr key={pv.id}>
+                                                <td>
+                                                  <Link
+                                                    href={`/PaymentVouchers?q=${encodeURIComponent(pv.voucher_number)}`}
+                                                    className="inline-flex items-center gap-1 text-sky-400 hover:underline font-semibold"
+                                                  >
+                                                    <FileText size={12} />
+                                                    {pv.voucher_number}
+                                                  </Link>
+                                                </td>
+                                                <td>{pv.date}</td>
+                                                <td>{pv.payee_name || '—'}</td>
+                                                <td>
+                                                  {pv.debit_account_name ? `${pv.debit_account_name} — ` : ''}
+                                                  {pv.description || 'سداد من عهدة'}
+                                                </td>
+                                                <td className="font-semibold text-amber-400">
+                                                  {formatCustodyCurrency(pv.amount)}
+                                                </td>
+                                                <td>
+                                                  <span className={pv.is_posted ? 'text-xs text-emerald-400' : 'text-xs text-amber-400'}>
+                                                    {pv.is_posted ? 'مرحل ومخصوم من العهدة' : 'مسودة (لم يرحل بعد)'}
+                                                  </span>
+                                                </td>
+                                              </tr>
+                                            ))}
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             </td>
@@ -1615,7 +1671,7 @@ export default function CustodiesPage() {
                     </thead>
                     <tbody>
                       {(selectedCustodyForPrint.expenses || []).map((exp, idx) => (
-                        <tr key={idx} className="border-b border-slate-800">
+                        <tr key={`exp-${idx}`} className="border-b border-slate-800">
                           <td className="p-1.5 border border-slate-700">{exp.exp_date}</td>
                           <td className="p-1.5 border border-slate-700">{exp.description}</td>
                           <td className="p-1.5 border border-slate-700">
@@ -1623,6 +1679,20 @@ export default function CustodiesPage() {
                           </td>
                           <td className="p-1.5 border border-slate-700 font-semibold text-sky-400">
                             {formatCustodyCurrency(exp.amount ?? exp.paid_amount ?? 0)}
+                          </td>
+                        </tr>
+                      ))}
+                      {(selectedCustodyForPrint.disbursement_vouchers || []).filter((pv) => pv.is_posted).map((pv) => (
+                        <tr key={`pv-${pv.id}`} className="border-b border-slate-800">
+                          <td className="p-1.5 border border-slate-700">{pv.date}</td>
+                          <td className="p-1.5 border border-slate-700">
+                            سند صرف {pv.voucher_number} {pv.payee_name ? `(${pv.payee_name})` : ''} — {pv.description || pv.debit_account_name || 'سداد من العهدة'}
+                          </td>
+                          <td className="p-1.5 border border-slate-700">
+                            {formatCustodyCurrency(0)}
+                          </td>
+                          <td className="p-1.5 border border-slate-700 font-semibold text-sky-400">
+                            {formatCustodyCurrency(pv.amount)}
                           </td>
                         </tr>
                       ))}

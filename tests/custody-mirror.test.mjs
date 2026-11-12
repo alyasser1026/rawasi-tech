@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import {
   isCustodyAccountLike,
   normalizeArabicAccountText,
+  pickDefaultOpenCustodyForPartner,
   validateCustodyPaymentVoucherDraft,
 } from '../lib/custodyMirror.ts';
 
@@ -57,4 +58,68 @@ test('Custody Mirror: Realtime and React Query hooks keep both modules synchroni
 
   const engine = fs.readFileSync('lib/accounting_engine.ts', 'utf8');
   assert.match(engine, /site_custodies_summary/);
+});
+
+test('Custody Mirror (Credit Side): requires custodyPartnerId when credit account is custody 125 and rejects custody on both sides', () => {
+  const missingHolder = validateCustodyPaymentVoucherDraft({
+    debitAccountCode: '216',
+    debitAccountName: 'رواتب وأجور مستحقة',
+    creditAccountCode: '125',
+    creditAccountName: 'عُهد الموظفين والمواقع',
+    partnerId: 'payee-1',
+    custodyPartnerId: null,
+  });
+  assert.equal(missingHolder.isCustody, false);
+  assert.equal(missingHolder.isCreditCustody, true);
+  assert.equal(missingHolder.creditValid, false);
+  assert.equal(missingHolder.valid, false);
+  assert.ok(missingHolder.creditError && missingHolder.creditError.includes('صاحب العهدة'));
+
+  const validCredit = validateCustodyPaymentVoucherDraft({
+    debitAccountCode: '216',
+    debitAccountName: 'رواتب وأجور مستحقة',
+    creditAccountCode: '125',
+    creditAccountName: 'عُهد الموظفين والمواقع',
+    partnerId: 'payee-1',
+    custodyPartnerId: 'holder-1',
+  });
+  assert.equal(validCredit.isCreditCustody, true);
+  assert.equal(validCredit.creditValid, true);
+  assert.equal(validCredit.valid, true);
+  assert.equal(validCredit.error, null);
+
+  const bothSides = validateCustodyPaymentVoucherDraft({
+    debitAccountCode: '125',
+    debitAccountName: 'عُهد الموظفين والمواقع',
+    creditAccountCode: '125',
+    creditAccountName: 'عُهد الموظفين والمواقع',
+    partnerId: 'payee-1',
+    custodyPartnerId: 'holder-1',
+  });
+  assert.equal(bothSides.bothSidesCustody, true);
+  assert.equal(bothSides.valid, false);
+});
+
+test('Custody Mirror (Credit Side): picks best matching open custody for partner and wires modal, logic, and custodies page', () => {
+  const picked = pickDefaultOpenCustodyForPartner(
+    [
+      { id: 'c1', partner_id: 'h1', project_id: 'p2', remaining_amount: 400, status: 'open', opened_date: '2026-11-01' },
+      { id: 'c2', partner_id: 'h1', project_id: 'p1', remaining_amount: 2000, status: 'open', opened_date: '2026-11-05' },
+      { id: 'c3', partner_id: 'h2', project_id: 'p1', remaining_amount: 5000, status: 'open', opened_date: '2026-11-01' },
+    ],
+    'h1',
+    1000,
+    'p1',
+  );
+  assert.equal(picked?.id, 'c2');
+
+  const modalSrc = fs.readFileSync('app/PaymentVouchers/PaymentVoucherModal.tsx', 'utf8');
+  assert.match(modalSrc, /custody_partner_id/);
+  assert.match(modalSrc, /custodyStatus\.isCreditCustody/);
+
+  const logicSrc = fs.readFileSync('app/PaymentVouchers/payment_vouchers_logic.ts', 'utf8');
+  assert.match(logicSrc, /custody_partner_id/);
+
+  const custodiesSrc = fs.readFileSync('app/custodies/page.tsx', 'utf8');
+  assert.match(custodiesSrc, /disbursement_vouchers/);
 });

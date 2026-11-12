@@ -67,7 +67,8 @@ export function usePaymentVouchersLogic() {
                 .select(`
                     *,
                     payee:partners!partner_id(name),
-                    credit_account:accounts!credit_account_id(name),
+                    custody_partner:partners!custody_partner_id(name),
+                    credit_account:accounts!credit_account_id(name, code),
                     debit_account:accounts!debit_account_id(name, code)
                 `)
                 .order('date', { ascending: false })
@@ -139,6 +140,7 @@ export function usePaymentVouchersLogic() {
                 (v.voucher_number?.toString().toLowerCase().includes(lower)) ||
                 (v.description?.toString().toLowerCase().includes(lower)) ||
                 (v.payee?.name?.toString().toLowerCase().includes(lower)) ||
+                (v.custody_partner?.name?.toString().toLowerCase().includes(lower)) ||
                 (v.credit_account?.name?.toString().toLowerCase().includes(lower)) ||
                 (v.debit_account?.name?.toString().toLowerCase().includes(lower)) ||
                 (v.custody?.custody_number?.toString().toLowerCase().includes(lower)) ||
@@ -188,6 +190,10 @@ export function usePaymentVouchersLogic() {
                 debitAccountCode: voucherData.debit_account_code,
                 debitAccountName: voucherData.debit_account_name,
                 partnerId: voucherData.payee_id ?? voucherData.partner_id,
+                creditAccount: voucherData.credit_account,
+                creditAccountCode: voucherData.credit_account_code,
+                creditAccountName: voucherData.credit_account_name,
+                custodyPartnerId: voucherData.custody_partner_id,
             });
             if (!custodyCheck.valid && custodyCheck.error) {
                 throw new Error(custodyCheck.error);
@@ -195,11 +201,26 @@ export function usePaymentVouchersLogic() {
 
             let payload = { ...voucherData };
             payload.partner_id = payload.payee_id;
+            payload.custody_partner_id = custodyCheck.isCreditCustody
+                ? (payload.custody_partner_id || null)
+                : null;
+            if (custodyCheck.isCreditCustody) {
+                payload.custody_id =
+                    payload.custody_id && typeof payload.custody_id === 'string' && payload.custody_id.trim()
+                        ? payload.custody_id.trim()
+                        : null;
+            } else if (!custodyCheck.isCustody) {
+                payload.custody_id = null;
+            } else {
+                delete payload.custody_id;
+            }
             payload.amount = parseFloat(Number(payload.amount).toFixed(2));
             
             // تنظيف الحقول المؤقتة
             delete payload.payee_id; 
             delete payload.payee_name; 
+            delete payload.custody_partner_name;
+            delete payload.custody_partner;
             delete payload.debit_account_name;
             delete payload.credit_account_name; 
             delete payload.payee; 
@@ -211,8 +232,8 @@ export function usePaymentVouchersLogic() {
             delete payload.job_order;
             delete payload.project_id;
             delete payload.debit_account_code;
+            delete payload.credit_account_code;
             delete payload.custody;
-            delete payload.custody_id;
 
             // تحويل المعرف الفارغ إلى null لتفادي خطأ الـ UUID في قاعدة البيانات
             if (!payload.job_order_id) payload.job_order_id = null;
@@ -274,6 +295,19 @@ export function usePaymentVouchersLogic() {
                 }
             }
 
+            if (!payload.custody_partner_id || typeof payload.custody_partner_id !== 'string' || !payload.custody_partner_id.trim()) {
+                payload.custody_partner_id = null;
+            } else {
+                const { data: validCustodyPartner } = await supabase
+                    .from('partners')
+                    .select('id')
+                    .eq('id', payload.custody_partner_id)
+                    .maybeSingle();
+                if (!validCustodyPartner) {
+                    payload.custody_partner_id = null;
+                }
+            }
+
             if (!payload.voucher_number) {
                 const timePart = Date.now().toString().slice(-4);
                 const randomPart = Math.floor(Math.random() * 100).toString().padStart(2, '0');
@@ -304,6 +338,7 @@ export function usePaymentVouchersLogic() {
             queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
             queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
             queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
+            queryClient.invalidateQueries({ queryKey: ['open_custodies_for_pv_partner'] });
         },
         onError: (error: any) => showToast(error.message, 'error')
     });
@@ -379,8 +414,8 @@ export function usePaymentVouchersLogic() {
                     date: new Date().toISOString().split('T')[0], 
                     payment_method: 'نقدي', 
                     amount: '', // 🎯 اعتماد مبلغ واحد فقط
-                    debit_account_id: null, debit_account_name: '', debit_account_code: '', credit_account_id: null, credit_account_name: '',
-                    payee_id: '', payee_name: '', is_posted: false, status: 'مسودة',
+                    debit_account_id: null, debit_account_name: '', debit_account_code: '', credit_account_id: null, credit_account_name: '', credit_account_code: '',
+                    payee_id: '', payee_name: '', custody_partner_id: null, custody_partner_name: '', custody_id: null, is_posted: false, status: 'مسودة',
                     job_order_id: null, job_order_number: ''
                 });
                 setIsEditModalOpen(true);
@@ -396,6 +431,10 @@ export function usePaymentVouchersLogic() {
                         debit_account_name: selected.debit_account?.name || '',
                         debit_account_code: selected.debit_account?.code || '',
                         credit_account_name: selected.credit_account?.name || '',
+                        credit_account_code: selected.credit_account?.code || '',
+                        custody_partner_id: selected.custody_partner_id || null,
+                        custody_partner_name: selected.custody_partner?.name || '',
+                        custody_id: selected.custody_id || null,
                         job_order_id: selected.job_order_id || null,
                         job_order_number: selected.job_order?.order_number || ''
                     };

@@ -16,6 +16,20 @@ export interface CustodyExpense {
   _offline_queued?: boolean;
 }
 
+export interface CustodyDisbursementVoucher {
+  id: string;
+  voucher_number: string;
+  date: string;
+  amount: number;
+  description?: string | null;
+  payment_method?: string | null;
+  payee_name?: string | null;
+  debit_account_name?: string | null;
+  project_name?: string | null;
+  is_posted?: boolean;
+  status?: string | null;
+}
+
 export interface SiteCustody {
   id: string;
   company_id: string;
@@ -44,6 +58,8 @@ export interface SiteCustody {
   voucher_status?: string | null;
   voucher_is_posted?: boolean;
   expenses?: CustodyExpense[];
+  disbursement_vouchers_count?: number;
+  disbursement_vouchers?: CustodyDisbursementVoucher[];
 }
 
 export interface CustodyKPIs {
