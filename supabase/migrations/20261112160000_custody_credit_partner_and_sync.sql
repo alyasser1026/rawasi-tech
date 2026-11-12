@@ -24,6 +24,15 @@ ALTER TABLE public.payment_vouchers
   REFERENCES public.partners(id, company_id)
   ON DELETE RESTRICT;
 
+ALTER TABLE public.payment_vouchers
+  DROP CONSTRAINT IF EXISTS payment_vouchers_custody_partner_id_fkey;
+
+ALTER TABLE public.payment_vouchers
+  ADD CONSTRAINT payment_vouchers_custody_partner_id_fkey
+  FOREIGN KEY (custody_partner_id)
+  REFERENCES public.partners(id)
+  ON DELETE RESTRICT;
+
 CREATE INDEX IF NOT EXISTS idx_payment_vouchers_custody_partner_id
   ON public.payment_vouchers (company_id, custody_partner_id)
   WHERE custody_partner_id IS NOT NULL;

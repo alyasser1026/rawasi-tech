@@ -123,3 +123,29 @@ test('Custody Mirror (Credit Side): picks best matching open custody for partner
   const custodiesSrc = fs.readFileSync('app/custodies/page.tsx', 'utf8');
   assert.match(custodiesSrc, /disbursement_vouchers/);
 });
+
+test('Custody Mirror: PostgREST schema cache resolves custody_partner_id join on payment_vouchers', async () => {
+  const envContent = fs.readFileSync('.env.local', 'utf8');
+  const env = Object.fromEntries(
+    envContent
+      .split(/\r?\n/)
+      .filter((l) => l.includes('='))
+      .map((l) => {
+        const i = l.indexOf('=');
+        return [l.slice(0, i).trim(), l.slice(i + 1).trim().replace(/^["']|["']$/g, '')];
+      }),
+  );
+  if (!env.NEXT_PUBLIC_SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    return;
+  }
+  const selectParam =
+    '*,payee:partners!partner_id(name),custody_partner:partners!custody_partner_id(name),credit_account:accounts!credit_account_id(name,code),debit_account:accounts!debit_account_id(name,code)';
+  const url = `${env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/payment_vouchers?select=${encodeURIComponent(selectParam)}&order=date.desc,created_at.desc&offset=0&limit=1`;
+  const res = await fetch(url, {
+    headers: {
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+  });
+  assert.equal(res.status, 200, `Expected 200 from PostgREST, got ${res.status}: ${await res.text()}`);
+});
