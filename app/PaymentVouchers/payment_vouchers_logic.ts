@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/lib/toast-context';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
-import { useUniversalPosting } from '@/lib/accounting_engine'; 
+import { useUniversalPosting } from '@/lib/accounting_engine';
+import { validateCustodyPaymentVoucherDraft } from '@/lib/custodyMirror';
 
 export function usePaymentVouchersLogic() {
     const queryClient = useQueryClient();
@@ -35,6 +36,10 @@ export function usePaymentVouchersLogic() {
     const [bulkFixAccounts, setBulkFixAccounts] = useState({ credit_account_name: '', credit_account_id: null, debit_account_name: '', debit_account_id: null });
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const q = new URLSearchParams(window.location.search).get('q');
+            if (q) setGlobalSearch(q);
+        }
         const handleDateChange = (e: any) => {
             setDateRange({ start: e.detail.start, end: e.detail.end });
             setCurrentPage(1); 
@@ -63,14 +68,35 @@ export function usePaymentVouchersLogic() {
                     *,
                     payee:partners!partner_id(name),
                     credit_account:accounts!credit_account_id(name),
-                    debit_account:accounts!debit_account_id(name)
+                    debit_account:accounts!debit_account_id(name, code)
                 `)
                 .order('date', { ascending: false })
                 .order('created_at', { ascending: false });
 
             const allData = await fetchPaginatedData(buildQuery, 'id');
-            
-            return allData.map(v => ({ ...v, payee_id: v.partner_id }));
+
+            // Enrich with linked site_custodies metadata so Payment Vouchers & Custodies mirror each other
+            const custodyById = new Map<string, any>();
+            const custodyByVoucherId = new Map<string, any>();
+            try {
+                const { data: custodyRows } = await supabase
+                    .from('site_custodies')
+                    .select('id, custody_number, status, title, spent_amount, remaining_amount, payment_voucher_id');
+                for (const sc of custodyRows || []) {
+                    custodyById.set(String(sc.id), sc);
+                    if (sc.payment_voucher_id) {
+                        custodyByVoucherId.set(String(sc.payment_voucher_id), sc);
+                    }
+                }
+            } catch {
+                /* non-blocking enrichment if user lacks custody view permission */
+            }
+
+            return allData.map(v => ({
+                ...v,
+                payee_id: v.partner_id,
+                custody: (v.custody_id ? custodyById.get(String(v.custody_id)) : null) || custodyByVoucherId.get(String(v.id)) || null,
+            }));
         }
     });
 
@@ -115,6 +141,7 @@ export function usePaymentVouchersLogic() {
                 (v.payee?.name?.toString().toLowerCase().includes(lower)) ||
                 (v.credit_account?.name?.toString().toLowerCase().includes(lower)) ||
                 (v.debit_account?.name?.toString().toLowerCase().includes(lower)) ||
+                (v.custody?.custody_number?.toString().toLowerCase().includes(lower)) ||
                 (v.amount?.toString().includes(lower))
             );
         }
@@ -156,6 +183,16 @@ export function usePaymentVouchersLogic() {
                 throw new Error("يرجى اختيار أمر الشغل عشان الصرف يتحمّل عليه");
             }
 
+            const custodyCheck = validateCustodyPaymentVoucherDraft({
+                debitAccount: voucherData.debit_account,
+                debitAccountCode: voucherData.debit_account_code,
+                debitAccountName: voucherData.debit_account_name,
+                partnerId: voucherData.payee_id ?? voucherData.partner_id,
+            });
+            if (!custodyCheck.valid && custodyCheck.error) {
+                throw new Error(custodyCheck.error);
+            }
+
             let payload = { ...voucherData };
             payload.partner_id = payload.payee_id;
             payload.amount = parseFloat(Number(payload.amount).toFixed(2));
@@ -173,6 +210,9 @@ export function usePaymentVouchersLogic() {
             delete payload.job_order_number;
             delete payload.job_order;
             delete payload.project_id;
+            delete payload.debit_account_code;
+            delete payload.custody;
+            delete payload.custody_id;
 
             // تحويل المعرف الفارغ إلى null لتفادي خطأ الـ UUID في قاعدة البيانات
             if (!payload.job_order_id) payload.job_order_id = null;
@@ -262,7 +302,8 @@ export function usePaymentVouchersLogic() {
             showToast('تم حفظ السند وهو الآن (معلق)', 'success');
             setIsEditModalOpen(false);
             queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
-            queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] }); 
+            queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
+            queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
         },
         onError: (error: any) => showToast(error.message, 'error')
     });
@@ -280,6 +321,7 @@ export function usePaymentVouchersLogic() {
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
             queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
+            queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
         },
         onError: (err: any) => showToast(err.message, 'error')
     });
@@ -310,6 +352,9 @@ export function usePaymentVouchersLogic() {
             setIsBulkFixModalOpen(false); 
             setBulkFixAccounts({ credit_account_name: '', credit_account_id: null, debit_account_name: '', debit_account_id: null });
             setSelectedIds([]); 
+            queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
+            queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
+            queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
             showToast(`تم تصحيح الحسابات بنجاح!`, 'success');
         } catch (error: any) {
             queryClient.setQueryData(['payment_vouchers'], previousData); 
@@ -334,7 +379,7 @@ export function usePaymentVouchersLogic() {
                     date: new Date().toISOString().split('T')[0], 
                     payment_method: 'نقدي', 
                     amount: '', // 🎯 اعتماد مبلغ واحد فقط
-                    debit_account_id: null, debit_account_name: '', credit_account_id: null, credit_account_name: '',
+                    debit_account_id: null, debit_account_name: '', debit_account_code: '', credit_account_id: null, credit_account_name: '',
                     payee_id: '', payee_name: '', is_posted: false, status: 'مسودة',
                     job_order_id: null, job_order_number: ''
                 });
@@ -349,6 +394,7 @@ export function usePaymentVouchersLogic() {
                         ...selected,
                         payee_name: selected.payee?.name || '',
                         debit_account_name: selected.debit_account?.name || '',
+                        debit_account_code: selected.debit_account?.code || '',
                         credit_account_name: selected.credit_account?.name || '',
                         job_order_id: selected.job_order_id || null,
                         job_order_number: selected.job_order?.order_number || ''
@@ -368,11 +414,13 @@ export function usePaymentVouchersLogic() {
                 await postRecords(selectedIds);
                 queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
                 queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
+                queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
             },
             handleUnpostSelected: async () => {
                 await unpostRecords(selectedIds);
                 queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
                 queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
+                queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
             },
             handleBulkFixSave,
             exportToExcel: () => {}

@@ -33,13 +33,16 @@ export interface SiteCustody {
   max_days: number;
   days_open?: number;
   is_overdue?: boolean;
-  status: 'open' | 'settled' | 'cancelled';
+  status: 'draft' | 'open' | 'settled' | 'cancelled';
   notes?: string | null;
   settlement_date?: string | null;
   settlement_type?: 'cash_return' | 'salary_deduction' | 'carry_forward' | 'cleared' | null;
   settlement_reference_id?: string | null;
   settlement_notes?: string | null;
   payment_voucher_id?: string | null;
+  voucher_number?: string | null;
+  voucher_status?: string | null;
+  voucher_is_posted?: boolean;
   expenses?: CustodyExpense[];
 }
 
@@ -47,6 +50,7 @@ export interface CustodyKPIs {
   total_custodies: number;
   open_custodies: number;
   settled_custodies: number;
+  draft_custodies?: number;
   overdue_custodies: number;
   total_disbursed: number;
   total_spent: number;
@@ -79,6 +83,7 @@ export const SETTLEMENT_TYPES: Record<string, { label: string; desc: string }> =
 };
 
 export const STATUS_MAP: Record<string, { label: string; className: string }> = {
+  draft: { label: 'بانتظار اعتماد السند', className: 'statusDraft' },
   open: { label: 'مفتوحة / جارية', className: 'statusOpen' },
   settled: { label: 'تمت التسوية', className: 'statusSettled' },
   cancelled: { label: 'ملغاة', className: 'statusCancelled' },

@@ -23,6 +23,11 @@ export function useUniversalPosting(queryKey: string, tableName: string, postRpc
         onSuccess: () => {
             showToast('تم الترحيل وإصدار القيود بنجاح', 'success');
             queryClient.invalidateQueries({ queryKey: [queryKey] });
+            if (tableName === 'payment_vouchers') {
+                queryClient.invalidateQueries({ queryKey: ['contractor_claims_history'] });
+                queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
+                queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
+            }
         },
         onError: (err: any) => showToast(`فشل الترحيل: ${err.message}`, 'error')
     });
@@ -49,6 +54,8 @@ export function useUniversalPosting(queryKey: string, tableName: string, postRpc
             queryClient.invalidateQueries({ queryKey: [queryKey] });
             if (tableName === 'payment_vouchers') {
                 queryClient.invalidateQueries({ queryKey: ['contractor_claims_history'] });
+                queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
+                queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
             }
         },
         onError: (err: any) => showToast(`فشل فك الترحيل: ${err.message}`, 'error')

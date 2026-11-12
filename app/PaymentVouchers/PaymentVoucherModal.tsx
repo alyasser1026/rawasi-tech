@@ -6,6 +6,7 @@ import SmartCombo from '@/components/SmartCombo';
 import JobOrderSelector from '@/components/JobOrderSelector';
 import { formatCurrency } from '@/lib/helpers';
 import { useDialogFocus } from '@/hooks/useDialogFocus';
+import { validateCustodyPaymentVoucherDraft } from '@/lib/custodyMirror';
 
 type Props = { isOpen: boolean; onClose: () => void; record: any; setRecord: (value: any) => void; onSave: (record: any) => unknown; isSaving?: boolean; partnerBalance?: number; isBalanceLoading?: boolean };
 export default function PaymentVoucherModal({ isOpen, onClose, record, setRecord, onSave, isSaving = false, partnerBalance = 0, isBalanceLoading = false }: Props) {
@@ -20,6 +21,12 @@ export default function PaymentVoucherModal({ isOpen, onClose, record, setRecord
   const hasBalance = partnerBalance > 0;
   const percentage = hasBalance ? amount / partnerBalance * 100 : 0;
   const overpaid = percentage > 100;
+  const custodyStatus = validateCustodyPaymentVoucherDraft({
+    debitAccount: record.debit_account,
+    debitAccountCode: record.debit_account_code,
+    debitAccountName: record.debit_account_name,
+    partnerId: record.payee_id ?? record.partner_id,
+  });
   return createPortal(<div className="ent-dialog-backdrop no-print" onClick={event => { if (event.target === event.currentTarget) close(); }}>
     <div className="ent-voucher-dialog" ref={panel} role="dialog" aria-modal="true" aria-labelledby={`${id}-title`}>
       <form onSubmit={event => { event.preventDefault(); if (!isSaving && amount > 0) void Promise.resolve(onSave(record)).catch(() => {}); }}>
@@ -43,9 +50,11 @@ export default function PaymentVoucherModal({ isOpen, onClose, record, setRecord
           </section>
           <div className="ent-form-divider"/>
           <section className="ent-form-section"><h3><Landmark size={17}/>التوجيه المحاسبي <span className="ent-muted">اختياري عند حفظ المسودة</span></h3><div className="ent-form-grid">
-            <div className="ent-form-field"><SmartCombo label="الحساب المدين — من حساب" table="accounts" displayCol="name" initialDisplay={record.debit_account_name || ''} strict onSelect={value => setRecord({ ...record, debit_account_name: value?.name || '', debit_account_id: value?.id || null })}/></div>
+            <div className="ent-form-field"><SmartCombo label="الحساب المدين — من حساب" table="accounts" displayCol="name" initialDisplay={record.debit_account_name || ''} strict onSelect={value => setRecord({ ...record, debit_account_name: value?.name || '', debit_account_code: value?.code || '', debit_account_id: value?.id || null })}/></div>
             <div className="ent-form-field"><SmartCombo label="الحساب الدائن — الخزينة / البنك" table="accounts" displayCol="name" initialDisplay={record.credit_account_name || ''} strict onSelect={value => setRecord({ ...record, credit_account_name: value?.name || '', credit_account_id: value?.id || null })}/></div>
-          </div></section>
+          </div>
+          {custodyStatus.isCustody && <div className={custodyStatus.valid ? 'ent-help' : 'ent-overpaid'} role="status" style={{ marginTop: '0.75rem' }}>{custodyStatus.valid ? <Info size={16}/> : <CircleAlert size={16}/> }<span>{custodyStatus.valid ? (record.custody?.custody_number ? `مرتبط تلقائياً بالعهدة ${record.custody.custody_number} — أي تعديل هنا سينعكس على شاشة العُهد تلقائياً.` : 'سيتم إنشاء وربط عهدة تلقائياً في شاشة العُهد (ح/ 125) كمسودة لحين اعتماد السند.') : custodyStatus.error}</span></div>}
+          </section>
           <div className="ent-help"><Info size={16}/><span>يُحفظ السند كمسودة. راجع بيانات السداد والحسابات ثم اعتمده من شاشة سندات الصرف لتسجيل الترحيل.</span></div>
         </div>
         <footer className="ent-dialog-footer"><div className="ent-dialog-total" aria-live="polite"><small>إجمالي مبلغ السند</small><strong>{formatCurrency(amount)}</strong></div><div><button type="button" className="ent-button" onClick={close} disabled={isSaving}>إلغاء</button><button type="submit" id="payment-save-button" className="ent-button ent-primary" disabled={isSaving || amount <= 0}><Save size={16}/>{isSaving ? 'جاري الحفظ…' : 'حفظ كمسودة'}</button></div></footer>

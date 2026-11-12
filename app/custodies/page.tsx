@@ -1,13 +1,16 @@
 'use client';
 import { currencySymbol } from '@/lib/currency';
 
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AlertTriangle,
   Briefcase,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
+  FileText,
   Plus,
   Printer,
   Receipt,
@@ -21,6 +24,7 @@ import JobOrderSelector from '@/components/JobOrderSelector';
 import TelegramAttachmentField, { AttachmentViewButton } from '@/components/TelegramAttachmentField';
 import { StagedAttachment } from '@/lib/attachments/telegramAttachments';
 import { useCompany } from '@/lib/CompanyContext';
+import { usePermissions } from '@/lib/PermissionsContext';
 import { notify } from '@/lib/notify';
 import { supabase } from '@/lib/supabase';
 import { executeDraftWithOfflineQueue } from '@/lib/offline/offlineExecutor';
@@ -52,6 +56,7 @@ const CUSTODY_EXPENSE_CATEGORIES = [
 export default function CustodiesPage() {
   const queryClient = useQueryClient();
   const { activeCompany } = useCompany();
+  const { can } = usePermissions();
   const { items: offlineQueueItems } = useOfflineSync();
 
   // Filters & State
@@ -59,6 +64,13 @@ export default function CustodiesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
   const [expandedCustodyIds, setExpandedCustodyIds] = useState<Record<string, boolean>>({});
+  const [approvingCustodyId, setApprovingCustodyId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const q = new URLSearchParams(window.location.search).get('q');
+    if (q) setSearchQuery(q);
+  }, []);
 
   // Modals State
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
@@ -342,6 +354,8 @@ export default function CustodiesPage() {
       setNewAmount('');
       setNewNotes('');
       queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
+      queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
+      queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
     } catch (err: any) {
       notify(err.message || 'حدث خطأ أثناء صرف العهدة', 'error');
     } finally {
@@ -385,6 +399,9 @@ export default function CustodiesPage() {
       setIsSettleModalOpen(false);
       setSelectedCustodyForSettle(null);
       queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
+      queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
+      queryClient.invalidateQueries({ queryKey: ['receipt_vouchers'] });
+      queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
     } catch (err: any) {
       notify(err.message || 'فشلت تسوية العهدة', 'error');
     } finally {
@@ -442,11 +459,38 @@ export default function CustodiesPage() {
     });
   }, [summaryData?.custodies, offlineQueueItems, activeCompany?.id]);
 
+  const handleApproveDraftCustodyVoucher = async (custody: SiteCustody) => {
+    if (!custody.payment_voucher_id) return;
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      notify('اعتماد السند وترحيل العهدة يتطلب اتصالاً بالإنترنت', 'warning');
+      return;
+    }
+    try {
+      setApprovingCustodyId(custody.id);
+      const { error } = await supabase.rpc('post_payment_vouchers_bulk', {
+        p_ids: [custody.payment_voucher_id],
+      });
+      if (error) throw error;
+      notify(
+        `تم اعتماد سند الصرف ${custody.voucher_number || ''} وتفعيل العهدة ${custody.custody_number}`,
+        'success',
+      );
+      queryClient.invalidateQueries({ queryKey: ['site_custodies_summary'] });
+      queryClient.invalidateQueries({ queryKey: ['payment_vouchers'] });
+      queryClient.invalidateQueries({ queryKey: ['vouchers_server_totals'] });
+    } catch (err: any) {
+      notify(err.message || 'تعذر اعتماد سند الصرف المرتبط بالعهدة', 'error');
+    } finally {
+      setApprovingCustodyId(null);
+    }
+  };
+
   // Filter list
   const kpis = summaryData?.kpis || {
     total_custodies: 0,
     open_custodies: 0,
     settled_custodies: 0,
+    draft_custodies: 0,
     overdue_custodies: 0,
     total_disbursed: 0,
     total_spent: 0,
@@ -460,10 +504,11 @@ export default function CustodiesPage() {
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchNum = (c.custody_number || '').toLowerCase().includes(q);
+      const matchVoucher = (c.voucher_number || '').toLowerCase().includes(q);
       const matchTitle = (c.title || '').toLowerCase().includes(q);
       const matchPartner = (c.partner_name || '').toLowerCase().includes(q);
       const matchProject = (c.project_name || '').toLowerCase().includes(q);
-      if (!matchNum && !matchTitle && !matchPartner && !matchProject) return false;
+      if (!matchNum && !matchVoucher && !matchTitle && !matchPartner && !matchProject) return false;
     }
     return true;
   });
@@ -554,6 +599,10 @@ export default function CustodiesPage() {
               {[
                 { id: 'all', label: 'الكل' },
                 { id: 'open', label: 'الجارية والمفتوحة' },
+                {
+                  id: 'draft',
+                  label: kpis.draft_custodies ? `بانتظار الاعتماد (${kpis.draft_custodies})` : 'بانتظار الاعتماد',
+                },
                 { id: 'settled', label: 'تمت التسوية' },
                 { id: 'overdue', label: 'متجاوزة المدة' },
               ].map((tab) => (
@@ -588,7 +637,7 @@ export default function CustodiesPage() {
             <Search size={16} className="text-slate-400" />
             <input
               type="text"
-              placeholder="بحث برقم العهدة، المهندس، أو المشروع..."
+              placeholder="بحث برقم العهدة، رقم السند، المهندس، أو المشروع..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -671,7 +720,19 @@ export default function CustodiesPage() {
                             </button>
                           </td>
                           <td>
-                            <span className={styles.custodyCode}>{custody.custody_number}</span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                              <span className={styles.custodyCode}>{custody.custody_number}</span>
+                              {custody.voucher_number && (
+                                <Link
+                                  href={`/PaymentVouchers?q=${encodeURIComponent(custody.voucher_number)}`}
+                                  className="inline-flex items-center gap-1 text-[11px] text-sky-400 hover:text-sky-300 underline-offset-2 hover:underline"
+                                  title="عرض سند الصرف المرتبط"
+                                >
+                                  <FileText size={11} />
+                                  سند: {custody.voucher_number}
+                                </Link>
+                              )}
+                            </div>
                           </td>
                           <td>
                             <div className={styles.partnerCell}>
@@ -728,6 +789,30 @@ export default function CustodiesPage() {
                           </td>
                           <td>
                             <div className={styles.rowActions} style={{ justifyContent: 'center' }}>
+                              {custody.status === 'draft' && custody.payment_voucher_id && (
+                                <>
+                                  {can('payments', 'post') && (
+                                    <button
+                                      onClick={() => handleApproveDraftCustodyVoucher(custody)}
+                                      disabled={approvingCustodyId === custody.id}
+                                      className={styles.actionBtnSettle}
+                                      title="اعتماد وترحيل سند الصرف المرتبط وتفعيل العهدة"
+                                    >
+                                      <CheckCircle2 size={13} />
+                                      {approvingCustodyId === custody.id ? 'جاري الاعتماد...' : 'اعتماد السند'}
+                                    </button>
+                                  )}
+                                  <Link
+                                    href={`/PaymentVouchers?q=${encodeURIComponent(custody.voucher_number || custody.custody_number)}`}
+                                    className={styles.btnSecondary}
+                                    style={{ padding: '0.32rem 0.6rem', fontSize: '0.75rem' }}
+                                    title="مراجعة وتعديل السند في شاشة سندات الصرف"
+                                  >
+                                    <FileText size={13} />
+                                    السند
+                                  </Link>
+                                </>
+                              )}
                               {custody.status === 'open' && (
                                 <>
                                   <button
