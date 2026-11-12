@@ -79,41 +79,58 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
             <div className="print-modal-backdrop" style={{ position: 'fixed', inset: 0 }} onClick={onClose} />
             
             <style>{`
-                @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800;900&display=swap');
-
                 /* إعدادات الطباعة للزوم التلقائي والاحتواء الكامل */
                 @media print {
-                    @page { size: A4 landscape; margin: 10mm; } 
-                    
-                    body * { visibility: hidden; }
-                    
-                    .print-modal-overlay { 
-                        position: absolute !important; 
-                        left: 0 !important; 
-                        top: 0 !important; 
-                        width: 100% !important; 
-                        height: auto !important; 
-                        margin: 0 !important; 
-                        padding: 0 !important; 
+                    @page { size: A4 landscape; margin: 10mm; }
+
+                    html, body {
+                        width: auto !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        overflow: visible !important;
+                        background: #ffffff !important;
                         visibility: visible !important;
                     }
-                    
-                    .print-modal-overlay * { visibility: visible; }
-                    
-                    .printable-area { 
-                        position: relative !important; 
-                        width: 100% !important; 
-                        max-width: 100% !important; 
-                        height: auto !important; 
-                        max-height: none !important; 
-                        overflow: visible !important; 
-                        box-shadow: none !important; 
-                        border: none !important; 
-                        padding: 0 !important; 
-                        margin: 0 !important; 
+
+                    body > *:not(.print-modal-overlay):not(:has(.print-modal-overlay)) {
+                        display: none !important;
+                    }
+
+                    .print-modal-overlay {
+                        position: static !important;
+                        inset: auto !important;
+                        width: auto !important;
+                        height: auto !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        display: block !important;
+                        overflow: visible !important;
+                        background: #ffffff !important;
+                        backdrop-filter: none !important;
+                        visibility: visible !important;
+                    }
+
+                    .print-modal-overlay * { visibility: visible !important; }
+
+                    .printable-area,
+                    .printable-area.phi-doc-page {
+                        page: auto !important;
+                        position: static !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        max-height: none !important;
+                        overflow: visible !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
                         /* زوم أوت كافي لاحتواء الخلاصة المالية والتوقيعات */
-                        zoom: 0.70 !important; 
-                        -webkit-print-color-adjust: exact; 
+                        zoom: 0.70 !important;
+                        -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
                     }
 

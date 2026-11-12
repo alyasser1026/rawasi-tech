@@ -1418,7 +1418,45 @@ export default function CustodiesPage() {
 
         {/* Modal: Printable Settlement Slip */}
         {isPrintModalOpen && selectedCustodyForPrint && (
-          <div className={styles.modalOverlay}>
+          <div className={`${styles.modalOverlay} custody-settlement-modal`}>
+            <style jsx global>{`
+              @media print {
+                body:has(.custody-settlement-modal) *:not(:has(.custody-print-area)):not(.custody-print-area):not(.custody-print-area *):not(style):not(script) {
+                  display: none !important;
+                }
+                body:has(.custody-settlement-modal) .custody-settlement-modal,
+                body:has(.custody-settlement-modal) .custody-settlement-modal *:has(.custody-print-area) {
+                  position: static !important;
+                  width: auto !important;
+                  max-width: none !important;
+                  height: auto !important;
+                  max-height: none !important;
+                  overflow: visible !important;
+                  background: #ffffff !important;
+                  box-shadow: none !important;
+                  border: none !important;
+                  margin: 0 !important;
+                  padding: 0 !important;
+                  display: block !important;
+                }
+                body:has(.custody-settlement-modal) .custody-print-area {
+                  position: static !important;
+                  width: 100% !important;
+                  max-width: none !important;
+                  height: auto !important;
+                  overflow: visible !important;
+                  background: #ffffff !important;
+                  color: #0f172a !important;
+                  padding: 12mm !important;
+                  margin: 0 !important;
+                }
+                body:has(.custody-settlement-modal) .custody-print-area * {
+                  color: #0f172a !important;
+                  background: transparent !important;
+                  border-color: #cbd5e1 !important;
+                }
+              }
+            `}</style>
             <div className={styles.modalContent} style={{ maxWidth: '750px' }}>
               <div className={styles.modalHeader}>
                 <h3 className={styles.modalTitle}>
@@ -1429,7 +1467,7 @@ export default function CustodiesPage() {
                 </button>
               </div>
 
-              <div className="p-6 text-slate-100 bg-slate-900 overflow-y-auto" id="print-area">
+              <div className="p-6 text-slate-100 bg-slate-900 overflow-y-auto custody-print-area" id="print-area">
                 <div className="text-center border-b border-slate-700 pb-4 mb-4">
                   <h2 className="text-xl font-bold text-white mb-1">
                     {activeCompany?.name || 'شركة رواسي'}

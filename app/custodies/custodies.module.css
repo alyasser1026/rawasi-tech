@@ -573,22 +573,38 @@
   gap: 0.75rem;
 }
 
-/* Printable Settlement Slip */
+/* Clean print styles for custodies list and modal settlement slip */
 @media print {
-  body * {
-    visibility: hidden;
+  .toolbar,
+  .filtersBar,
+  .actionsCol,
+  .modalHeader,
+  .modalFooter {
+    display: none !important;
   }
-  .printContainer,
-  .printContainer * {
-    visibility: visible;
+  .page,
+  .tableCard {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    box-shadow: none !important;
+    border-color: #cbd5e1 !important;
   }
-  .printContainer {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    background: #fff;
-    color: #000;
-    padding: 2cm;
+  .modalOverlay {
+    position: static !important;
+    inset: auto !important;
+    background: #ffffff !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+  .modalContent {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 }

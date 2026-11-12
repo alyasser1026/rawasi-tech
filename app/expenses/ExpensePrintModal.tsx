@@ -130,11 +130,11 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
                 }
 
                 @media print {
-                    html, body { width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
+                    html, body { width: auto !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #ffffff !important; color: #000000 !important; overflow: visible !important; }
                     body > *:not(.print-modal-overlay) { display: none !important; }
                     .no-print, .print-actions-bar { display: none !important; }
-                    .print-modal-overlay { position: absolute !important; left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; width: 210mm !important; height: 297mm !important; display: block !important; background: white !important; padding: 0 !important; margin: 0 !important; }
-                    .a4-preview-box { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; box-shadow: none !important; border: none !important; padding: 15mm !important; box-sizing: border-box !important; direction: rtl !important; display: flex !important; flex-direction: column !important; border-radius: 0 !important; page-break-after: avoid !important; page-break-inside: avoid !important; }
+                    .print-modal-overlay { position: static !important; width: auto !important; height: auto !important; min-height: 0 !important; display: block !important; background: #ffffff !important; padding: 0 !important; margin: 0 !important; overflow: visible !important; }
+                    .a4-preview-box { position: static !important; width: auto !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; padding: 12mm !important; box-sizing: border-box !important; direction: rtl !important; display: block !important; border-radius: 0 !important; background: #ffffff !important; color: #000000 !important; overflow: visible !important; page-break-after: auto !important; page-break-inside: auto !important; break-inside: auto !important; }
                 }
             `}</style>
             <style>{PHI_DOC_CSS}</style>

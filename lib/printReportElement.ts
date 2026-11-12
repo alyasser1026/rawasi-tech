@@ -25,8 +25,10 @@ export function printReportElement(elementId: string, documentTitle?: string): v
     const iframe = document.createElement('iframe');
     iframe.id = 'phi-report-print-iframe';
     iframe.setAttribute('aria-hidden', 'true');
+    // Off-screen with real A4 dimensions and full opacity so Chromium/Edge
+    // always computes full layout and never paints a 0x0 / opacity:0 blank frame.
     iframe.style.cssText =
-      'position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0;pointer-events:none;z-index:-1;';
+      'position:fixed;left:-10000px;top:0;width:210mm;min-height:297mm;border:0;opacity:1;pointer-events:none;z-index:-1;background:#ffffff;';
     document.body.appendChild(iframe);
 
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -37,6 +39,10 @@ export function printReportElement(elementId: string, documentTitle?: string): v
     }
 
     const clone = sourceEl.cloneNode(true) as HTMLElement;
+    clone.removeAttribute('aria-hidden');
+    clone.style.display = 'block';
+    clone.style.visibility = 'visible';
+    clone.style.opacity = '1';
     clone.style.overflow = 'visible';
     clone.style.overflowY = 'visible';
     clone.style.overflowX = 'visible';
@@ -58,7 +64,7 @@ export function printReportElement(elementId: string, documentTitle?: string): v
   <title>${safeTitle}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=Tajawal:wght@400;500;700;800;900&display=swap" media="print" onload="this.media='all'" />
   <style>
     :root {
       --fs-2xs: 10px;
@@ -151,9 +157,21 @@ export function printReportElement(elementId: string, documentTitle?: string): v
     iframeDoc.write(html);
     iframeDoc.close();
 
+    let cleanupDone = false;
+    const cleanup = () => {
+      if (cleanupDone) return;
+      cleanupDone = true;
+      document.title = prevTitle;
+      setTimeout(() => {
+        if (iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 250);
+    };
+
     const triggerPrint = () => {
       try {
         document.title = printTitle;
+        iframeWin.addEventListener('afterprint', cleanup, { once: true });
+        setTimeout(cleanup, 60000);
         iframeWin.focus();
         iframeWin.print();
       } catch {
@@ -168,14 +186,28 @@ export function printReportElement(elementId: string, documentTitle?: string): v
     const images = Array.from(iframeDoc.images || []);
     const pendingImages = images.filter((img) => !img.complete);
 
+    const scheduleTrigger = () => {
+      const fontsReady = (iframeDoc as Document & { fonts?: { ready?: Promise<unknown> } }).fonts?.ready;
+      const fontsGate = fontsReady
+        ? Promise.race([fontsReady, new Promise<void>((r) => setTimeout(r, 350))])
+        : Promise.resolve();
+      Promise.resolve(fontsGate).finally(() => {
+        iframeWin.requestAnimationFrame(() => {
+          iframeWin.requestAnimationFrame(() => {
+            setTimeout(triggerPrint, 60);
+          });
+        });
+      });
+    };
+
     if (pendingImages.length === 0) {
-      setTimeout(triggerPrint, 120);
+      scheduleTrigger();
     } else {
       let settled = false;
       const done = () => {
         if (settled) return;
         settled = true;
-        setTimeout(triggerPrint, 80);
+        scheduleTrigger();
       };
       const timeoutId = setTimeout(done, 700);
       Promise.all(

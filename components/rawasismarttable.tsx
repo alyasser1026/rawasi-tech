@@ -317,7 +317,8 @@ export default function RawasiSmartTable({
                 @media print {
                     /* الطباعة بتطلع الجدول بس + ترويسة الطباعة الرسمية فوقه (من غير فراغات مكان العناصر المخفية).
                        الصفحات اللي ليها منطقة طباعة خاصة أو مستند مفتوح بتتطبع بطريقتها هي. */
-                    body:not(:has(.print-modal-overlay, .phi-print-own-header, .print-area, .print-only)) *:not(:has(.rawasi-printable-table, .phi-print-masthead)):not(.rawasi-printable-table):not(.rawasi-printable-table *):not(.phi-print-masthead):not(.phi-print-masthead *):not(style):not(script) { display: none !important; }
+                    body:has(.rawasi-printable-table:not(.no-print *)):not(:has(.print-modal-overlay, .phi-print-own-header, .print-area, .print-only, .phi-boq-report-overlay, .phi-dossier-overlay, #printable-report, #printable-dossier, #printable-a4-sheet, .custody-settlement-modal, .custody-print-area)):not(.phi-boq-report-printing):not(.phi-dossier-printing) *:not(:has(.rawasi-printable-table, .phi-print-masthead)):not(.rawasi-printable-table):not(.rawasi-printable-table *):not(.phi-print-masthead):not(.phi-print-masthead *):not(style):not(script) { display: none !important; }
+                    body:has(.rawasi-printable-table:not(.no-print *)) *:has(.rawasi-printable-table) { overflow: visible !important; max-height: none !important; height: auto !important; }
                     .rawasi-printable-table { width: 100%; }
                     .hide-on-print { display: none !important; }
                     /* إخفاء عمود التحديد والـ Actions عند الطباعة */

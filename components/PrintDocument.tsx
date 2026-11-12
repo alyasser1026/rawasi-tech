@@ -221,9 +221,10 @@ export const PHI_DOC_CSS = `
 @page phi-doc-a4 { size: A4 portrait; margin: 10mm 0; @bottom-center { content:"صفحة " counter(page) " من " counter(pages); font-family:'Cairo','Segoe UI',Tahoma,sans-serif; font-size:8px; font-weight:700; color:#94a3b8; } }
 @media print {
   .print-modal-overlay:has(.phi-doc) { background:#fff !important; backdrop-filter:none !important; }
-  body:has(> .print-modal-overlay .phi-doc-page) > *:not(.print-modal-overlay) { display:none !important; }
-  html:has(.phi-doc-page), html:has(.phi-doc-page) body { width:auto !important; height:auto !important; overflow:visible !important; }
-  .print-modal-overlay:has(.phi-doc-page) { position:static !important; inset:auto !important; width:auto !important; height:auto !important; padding:0 !important; margin:0 !important; overflow:visible !important; display:block !important; background:#fff !important; backdrop-filter:none !important; }
+  body:has(.print-modal-overlay .phi-doc-page) > *:not(.print-modal-overlay):not(:has(.print-modal-overlay)) { display:none !important; }
+  html:has(.phi-doc-page), html:has(.phi-doc-page) body { width:auto !important; height:auto !important; overflow:visible !important; background:#fff !important; background-image:none !important; color:#0f172a !important; }
+  .print-modal-overlay:has(.phi-doc-page) { position:static !important; inset:auto !important; width:auto !important; height:auto !important; padding:0 !important; margin:0 !important; overflow:visible !important; display:block !important; background:#fff !important; backdrop-filter:none !important; visibility:visible !important; }
+  .print-modal-overlay:has(.phi-doc-page) * { visibility:visible !important; }
   .phi-doc-page { page:phi-doc-a4; box-sizing:border-box !important; position:static !important; width:auto !important; height:auto !important; min-height:276mm !important; margin:0 !important; padding:0 14mm !important; overflow:visible !important; box-shadow:none !important; border:0 !important; border-radius:0 !important; display:flex !important; flex-direction:column !important; break-inside:auto !important; page-break-inside:auto !important; }
 }
 

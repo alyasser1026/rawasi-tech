@@ -58,7 +58,9 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
     const modalContent = (
         <div className="print-modal-overlay">
             <style>{`
-                body { overflow: hidden !important; }
+                @media screen {
+                    body { overflow: hidden !important; }
+                }
                 .print-modal-overlay { position: fixed !important; inset: 0 !important; background: rgba(40, 24, 10, 0.85) !important; backdrop-filter: blur(10px) !important; z-index: 999999999 !important; display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: flex-start !important; padding: 30px 20px !important; overflow-y: auto !important; font-family: 'Arial', sans-serif; }
                 .print-actions-bar { display: flex !important; gap: 15px !important; margin-bottom: 25px !important; background: white !important; padding: 15px 30px !important; border-radius: 50px !important; box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important; position: sticky !important; top: 20px !important; z-index: 1000000000 !important; }
                 .action-btn { padding: 12px 25px; border-radius: 10px; border: none; font-weight: 900; font-size: 16px; cursor: pointer; transition: 0.2s; }
@@ -66,11 +68,11 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
                 .action-btn.close { background: #fee2e2; color: #dc2626; }
                 .a4-preview-box { width: 210mm !important; min-height: 297mm !important; background: white !important; color: #000; padding: 15mm !important; margin: 0 auto 40px auto !important; box-shadow: 0 20px 50px rgba(0,0,0,0.4); direction: rtl; border-radius: 14px !important; overflow: hidden !important; display: flex !important; flex-direction: column !important; box-sizing: border-box !important; }
                 @media print {
-                    html, body { width: 210mm !important; height: 297mm !important; margin: 0 !important; padding: 0 !important; background: white !important; overflow: visible !important; }
+                    html, body { width: auto !important; height: auto !important; min-height: 0 !important; margin: 0 !important; padding: 0 !important; background: #ffffff !important; color: #000000 !important; overflow: visible !important; }
                     body > *:not(.print-modal-overlay) { display: none !important; }
                     .no-print { display: none !important; }
-                    .print-modal-overlay { position: absolute !important; left: 0 !important; top: 0 !important; right: 0 !important; bottom: 0 !important; width: 210mm !important; height: 297mm !important; display: block !important; background: white !important; padding: 0 !important; margin: 0 !important; }
-                    .a4-preview-box { position: absolute !important; top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important; margin: 0 !important; box-shadow: none !important; border: none !important; padding: 15mm !important; box-sizing: border-box !important; direction: rtl !important; display: flex !important; flex-direction: column !important; border-radius: 0 !important; page-break-after: avoid !important; page-break-inside: avoid !important; }
+                    .print-modal-overlay { position: static !important; width: auto !important; height: auto !important; min-height: 0 !important; display: block !important; background: #ffffff !important; padding: 0 !important; margin: 0 !important; overflow: visible !important; }
+                    .a4-preview-box { position: static !important; width: auto !important; max-width: 100% !important; height: auto !important; min-height: 0 !important; margin: 0 !important; box-shadow: none !important; border: none !important; padding: 12mm !important; box-sizing: border-box !important; direction: rtl !important; display: block !important; border-radius: 0 !important; background: #ffffff !important; color: #000000 !important; overflow: visible !important; page-break-after: auto !important; page-break-inside: auto !important; break-inside: auto !important; }
                 }
             `}</style>
             <style>{PHI_DOC_CSS}</style>

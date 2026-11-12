@@ -1100,22 +1100,44 @@ export default function WebsitePage() {
         }
 
         @media print {
-          body * {
-            visibility: hidden;
+          html, body {
+            background: #ffffff !important;
+            color: #0f172a !important;
+            height: auto !important;
+            overflow: visible !important;
           }
-          #printable-a4-sheet, #printable-a4-sheet * {
-            visibility: visible;
+          body:has(#printable-a4-sheet) *:not(:has(#printable-a4-sheet)):not(#printable-a4-sheet):not(#printable-a4-sheet *):not(style):not(script) {
+            display: none !important;
           }
-          #printable-a4-sheet {
-            position: fixed;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
+          body:has(#printable-a4-sheet) #printable-a4-sheet {
+            position: static !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
             background: #ffffff !important;
             color: #000000 !important;
             box-shadow: none !important;
-            padding: 24px !important;
+            padding: 16px !important;
+            margin: 0 !important;
+          }
+          body:not(:has(#printable-a4-sheet)) header,
+          body:not(:has(#printable-a4-sheet)) nav,
+          body:not(:has(#printable-a4-sheet)) video,
+          body:not(:has(#printable-a4-sheet)) canvas,
+          body:not(:has(#printable-a4-sheet)) button {
+            display: none !important;
+          }
+          body:not(:has(#printable-a4-sheet)) section,
+          body:not(:has(#printable-a4-sheet)) main,
+          body:not(:has(#printable-a4-sheet)) div {
+            background: #ffffff !important;
+            background-image: none !important;
+            color: #0f172a !important;
+            box-shadow: none !important;
+          }
+          body:not(:has(#printable-a4-sheet)) :is(h1, h2, h3, h4, p, span, li, td, th, dt, dd, strong) {
+            color: #0f172a !important;
+            -webkit-text-fill-color: #0f172a !important;
           }
         }
       `}</style>

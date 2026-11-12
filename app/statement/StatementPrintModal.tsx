@@ -179,50 +179,54 @@ export default function StatementPrintModal({
 
 
                 @media print {
-                    html, body { 
-                        visibility: hidden !important; 
-                        overflow: visible !important; 
-                        height: auto !important; 
-                        background: white !important;
-                    }
-                    .print-modal-overlay { 
+                    html, body {
                         visibility: visible !important;
-                        position: absolute !important; 
-                        left: 0 !important; 
-                        top: 0 !important; 
-                        width: 100% !important; 
+                        overflow: visible !important;
                         height: auto !important;
-                        overflow: visible !important; 
-                        background: transparent !important; 
-                        padding: 0 !important; 
+                        min-height: 0 !important;
+                        background: #ffffff !important;
+                        color: #000000 !important;
+                    }
+                    body > *:not(.print-modal-overlay) {
+                        display: none !important;
+                    }
+                    .print-modal-overlay {
+                        visibility: visible !important;
+                        position: static !important;
+                        width: auto !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        overflow: visible !important;
+                        background: #ffffff !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        display: block !important;
                     }
                     .print-modal-content {
                         width: 100% !important;
                         max-width: 100% !important;
                         margin: 0 !important;
                         animation: none !important;
+                        overflow: visible !important;
                     }
-                    #printable-area, #printable-area * { 
-                        visibility: visible !important; 
+                    #printable-area, #printable-area * {
+                        visibility: visible !important;
                     }
-                    #printable-area { 
-                        position: relative !important; 
-                        width: 100% !important; 
-                        margin: 0 !important; 
-                        padding: 0 14mm !important; 
+                    #printable-area {
+                        position: static !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        margin: 0 !important;
+                        padding: 8mm 10mm !important;
                         box-shadow: none !important;
-                        display: flex !important;
-                        flex-direction: column !important;
-                        min-height: 276mm !important;
+                        display: block !important;
+                        min-height: 0 !important;
+                        height: auto !important;
+                        background: #ffffff !important;
+                        color: #000000 !important;
                     }
                     .no-print { display: none !important; }
-
-                        background-color: #f7f3ed !important; 
-                        -webkit-print-color-adjust: exact !important; 
-                        print-color-adjust: exact !important; 
-                    }
-
-                    tr { page-break-inside: avoid; }
+                    tr { page-break-inside: avoid; break-inside: avoid; }
                 }
             `}</style>
         </div>

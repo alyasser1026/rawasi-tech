@@ -34,21 +34,42 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
                     print-color-adjust: exact !important;
                 }
                 @media print {
-                    body * { visibility: hidden; }
+                    html, body {
+                        width: auto !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: #ffffff !important;
+                        color: #000000 !important;
+                        overflow: visible !important;
+                    }
+                    body > *:not(.print-modal-overlay) { display: none !important; }
                     .no-print { display: none !important; }
-                    .print-page, .print-page * { visibility: visible; }
-                    .print-page { 
-                        position: absolute; 
-                        left: 0; 
-                        top: 0; 
-                        width: 100%; 
-                        max-width: 100%;
-                        height: auto;
-                        box-shadow: none !important; 
-                        padding: 10mm !important; 
-                        margin: 0 !important; 
-                        background: white !important;
+                    .print-modal-overlay {
+                        position: static !important;
+                        width: auto !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                        background: #ffffff !important;
+                        overflow: visible !important;
+                        display: block !important;
+                    }
+                    .print-page {
+                        position: static !important;
+                        width: 100% !important;
+                        max-width: 100% !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        box-shadow: none !important;
+                        padding: 10mm !important;
+                        margin: 0 !important;
+                        background: #ffffff !important;
+                        color: #000000 !important;
                         border-radius: 0 !important;
+                        overflow: visible !important;
                     }
                 }
                 

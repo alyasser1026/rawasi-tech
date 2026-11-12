@@ -15,7 +15,7 @@ type Props = { title: string; subtitle?: string };
 
 function PrintMasthead({ title, subtitle }: Props) {
   return (
-    <div className="phi-print-masthead" aria-hidden="true">
+    <div className="phi-print-masthead">
       <style>{MASTHEAD_CSS}</style>
       <ReportOfficialHeader
         title={title}
@@ -36,7 +36,9 @@ const MASTHEAD_CSS = `
   @page { margin:12mm 10mm 14mm; @bottom-center { content:"صفحة " counter(page) " من " counter(pages); font-family:'Cairo','Segoe UI',Tahoma,sans-serif; font-size:8.5px; font-weight:700; color:#64748b; } }
   .phi-print-masthead { display:block; margin:0 0 12px; break-inside:avoid; }
   .enterprise-page:has(.phi-print-own-header) .phi-print-masthead,
-  body:has(.print-modal-overlay) .phi-print-masthead { display:none !important; }
+  body:has(.print-modal-overlay, .phi-boq-report-overlay, .phi-dossier-overlay, #printable-report, #printable-dossier, .custody-settlement-modal, .custody-print-area, #printable-a4-sheet) .phi-print-masthead,
+  body.phi-boq-report-printing .phi-print-masthead,
+  body.phi-dossier-printing .phi-print-masthead { display:none !important; }
   .enterprise-page:has(> .phi-print-masthead) > .ent-page-heading { display:none !important; }
   .enterprise-page .ent-table thead, .enterprise-page .rawasi-printable-table thead { display:table-header-group; }
   .enterprise-page .ent-table tr, .enterprise-page .rawasi-printable-table tr { break-inside:avoid; page-break-inside:avoid; }
