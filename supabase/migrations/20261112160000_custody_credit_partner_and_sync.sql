@@ -129,6 +129,72 @@ END;
 $function$;
 
 -- ============================================================================
+-- 3. Document protection trigger function: allow custody_id and custody_partner_id
+--    to be safely maintained during internal custody sync (rawasi.syncing_custody = '1')
+-- ============================================================================
+CREATE OR REPLACE FUNCTION rawasi_private.protect_claim_payment_documents()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO ''
+AS $function$
+DECLARE
+  has_journal boolean;
+  protected boolean;
+  old_data jsonb;
+  new_data jsonb;
+BEGIN
+  IF auth.uid() IS NULL AND current_setting('role',true) IN ('anon','authenticated') THEN
+    RAISE EXCEPTION 'يلزم تسجيل الدخول لتعديل المستند' USING ERRCODE='42501';
+  END IF;
+  IF TG_OP='UPDATE' AND NEW.id IS DISTINCT FROM OLD.id THEN
+    RAISE EXCEPTION 'لا يمكن تغيير معرّف المستند' USING ERRCODE='23514';
+  END IF;
+  SELECT EXISTS(SELECT 1 FROM public.journal_headers WHERE reference_id=OLD.id
+    OR (TG_TABLE_NAME='sub_claims' AND id IN (
+      (to_jsonb(OLD)->>'jv_header_id')::uuid,(to_jsonb(OLD)->>'jv_id')::uuid))) INTO has_journal;
+  protected:=COALESCE(OLD.is_posted,false) OR COALESCE(OLD.status IN ('posted','مرحل','معتمد'),false) OR has_journal;
+  IF TG_OP='DELETE' THEN
+    IF protected THEN
+      RAISE EXCEPTION 'لا يمكن حذف مستند مرحل أو مرتبط بقيد؛ يجب فك الترحيل أولاً' USING ERRCODE='23514';
+    END IF;
+    IF TG_TABLE_NAME='sub_claims' THEN
+      IF EXISTS(SELECT 1 FROM public.payment_vouchers WHERE sub_claim_id=OLD.id) THEN
+        RAISE EXCEPTION 'لا يمكن حذف مستخلص مرتبط بسندات صرف؛ احتفظ بالسندات وعالج ارتباطها أولاً' USING ERRCODE='23503';
+      END IF;
+      IF EXISTS(SELECT 1 FROM public.contractor_assignments WHERE claim_id=OLD.id)
+        OR EXISTS(SELECT 1 FROM public.material_issue_lines WHERE claim_id=OLD.id)
+        OR EXISTS(SELECT 1 FROM public.material_issues WHERE claim_id=OLD.id)
+        OR EXISTS(SELECT 1 FROM public.expenses WHERE claim_id=OLD.id) THEN
+        RAISE EXCEPTION 'يلزم حذف المستخلص بالعملية المخصصة مع صلاحية تحرير الأعمال والخامات والمصروفات' USING ERRCODE='42501';
+      END IF;
+    ELSIF OLD.sub_claim_id IS NOT NULL THEN
+      RAISE EXCEPTION 'احذف سند المسودة من عملية حذف السندات المخصصة لحماية ارتباط المستخلص' USING ERRCODE='23514';
+    END IF;
+    RETURN OLD;
+  END IF;
+  IF protected THEN
+    old_data:=to_jsonb(OLD)-ARRAY['status','is_posted','updated_at'];
+    new_data:=to_jsonb(NEW)-ARRAY['status','is_posted','updated_at'];
+    IF TG_TABLE_NAME='sub_claims' THEN
+      old_data:=old_data-ARRAY['jv_header_id','jv_id','paid_amount'];
+      new_data:=new_data-ARRAY['jv_header_id','jv_id','paid_amount'];
+    ELSIF TG_TABLE_NAME='payment_vouchers' AND current_setting('rawasi.syncing_custody', true) = '1' THEN
+      old_data:=old_data-ARRAY['custody_id','custody_partner_id'];
+      new_data:=new_data-ARRAY['custody_id','custody_partner_id'];
+    END IF;
+    IF new_data IS DISTINCT FROM old_data THEN
+      RAISE EXCEPTION 'لا يمكن تعديل بيانات مستند مرحل؛ يجب فك الترحيل أولاً' USING ERRCODE='23514';
+    END IF;
+    IF NOT COALESCE(NEW.is_posted,false) AND NOT COALESCE(NEW.status IN ('posted','مرحل','معتمد'),false) AND has_journal THEN
+      RAISE EXCEPTION 'استخدم عملية فك الترحيل لإزالة القيد وإعادة الحالة معاً' USING ERRCODE='23514';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$function$;
+
+-- ============================================================================
 -- 3. Sync function & triggers supporting BOTH Debit (Issuance) & Credit (Spend)
 -- ============================================================================
 CREATE OR REPLACE FUNCTION rawasi_private.sync_custody_for_voucher(
@@ -371,11 +437,18 @@ BEGIN
   -- ==========================================================================
   IF v_is_credit_custody THEN
     IF v_voucher.custody_partner_id IS NULL THEN
-      IF NOT v_is_posted THEN
-        RAISE EXCEPTION 'يلزم تحديد الشخص اللي العهدة في ذمته (صاحب العهدة) عند السداد من حساب العُهد'
-          USING ERRCODE = '23514';
+      -- When custody partner is unassigned (e.g. unposted/draft voucher), clear any custody link and exit cleanly
+      IF v_voucher.custody_id IS NOT NULL THEN
+        UPDATE public.payment_vouchers
+        SET custody_id = NULL
+        WHERE id = v_voucher.id;
+
+        IF p_old_custody_id IS NOT NULL THEN
+          PERFORM rawasi_private.recalculate_custody_spent(p_old_custody_id);
+        END IF;
       END IF;
-      RETURN v_voucher.custody_id;
+      PERFORM set_config('rawasi.syncing_custody', COALESCE(v_prev_sync, ''), true);
+      RETURN NULL;
     END IF;
 
     SELECT p.name INTO v_partner_name
@@ -1086,5 +1159,46 @@ BEGIN
   RETURN v_result;
 END;
 $function$;
+
+-- ============================================================================
+-- 10. Data backfill: link historical vouchers paid from custody to Ibrahim Shaddad
+-- ============================================================================
+DO $$
+DECLARE
+  v_ibrahim_id uuid := '207eade1-de0b-4b4f-8947-767f01e020c0';
+  v_cust1_id uuid := '92523856-69fb-4633-bca1-86b7c4df55aa';
+  v_cust3_id uuid := 'bae7d413-aa95-40fc-8e35-b05a3c19a7b3';
+BEGIN
+  IF EXISTS (SELECT 1 FROM public.partners WHERE id = v_ibrahim_id) THEN
+    PERFORM set_config('rawasi.syncing_custody', '1', true);
+
+    UPDATE public.payment_vouchers
+    SET custody_partner_id = v_ibrahim_id,
+        custody_id = v_cust1_id
+    WHERE voucher_number = 'PV-2026-0012' AND (custody_partner_id IS NULL OR custody_id IS NULL);
+
+    UPDATE public.payment_vouchers
+    SET custody_partner_id = v_ibrahim_id,
+        custody_id = v_cust3_id
+    WHERE voucher_number IN ('PV-2026-0013', 'PV-2026-0014') AND (custody_partner_id IS NULL OR custody_id IS NULL);
+
+    UPDATE public.journal_lines jl
+    SET partner_id = v_ibrahim_id
+    FROM public.journal_headers jh, public.accounts a
+    WHERE jl.header_id = jh.id
+      AND jl.account_id = a.id
+      AND a.code = '125'
+      AND jl.partner_id IS NULL
+      AND jh.reference_id IN (
+        SELECT id FROM public.payment_vouchers
+        WHERE voucher_number IN ('PV-2026-0012', 'PV-2026-0013', 'PV-2026-0014')
+      );
+
+    PERFORM rawasi_private.recalculate_custody_spent(v_cust1_id);
+    PERFORM rawasi_private.recalculate_custody_spent(v_cust3_id);
+
+    PERFORM set_config('rawasi.syncing_custody', '', true);
+  END IF;
+END $$;
 
 COMMIT;
