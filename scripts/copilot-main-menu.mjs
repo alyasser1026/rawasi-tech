@@ -27,32 +27,32 @@ export function resolveMenuAction(callbackData) {
   return MAIN_MENU_ACTIONS[data.slice(5)] || null;
 }
 
+// أزرار المتابعة تحت التقرير اليومي. كلها مبنية على أدوات موجودة (لا PDF لأن مفيش مولّد PDF للتقرير اليومي).
 export const REPORT_FOLLOWUP_ACTIONS = Object.freeze({
   yesterday: { label: '🗓️ تقرير امبارح', phrase: 'ابعت تقرير امبارح المفصل', tool: 'get_daily_comprehensive_report' },
-  labor: { label: '👷 عمالة اليوم', phrase: 'العمالة اللي نزلت النهارده', tool: 'get_labor_daily_logs' },
-  projects: { label: '🏗️ المشاريع', phrase: 'المشاريع والفلل اللي عندنا كلها', tool: 'get_all_projects_and_villas' },
+  labor_week: { label: '👷 عمالة آخر 7 أيام', phrase: 'العمالة اللي نزلت آخر 7 أيام', tool: 'get_labor_daily_logs' },
+  tareeha: { label: '⚠️ عجوزات الطريحة', phrase: 'عجوزات الطريحة', tool: 'get_tareeha_deficits' },
   menu: { label: '📌 القائمة الرئيسية', phrase: null, tool: null },
 });
 
+export const REPORT_FOLLOWUP_LAYOUT = Object.freeze([
+  ['yesterday', 'labor_week'],
+  ['tareeha'],
+  ['menu'],
+]);
+
 export function buildReportFollowUpMarkup() {
   return {
-    inline_keyboard: [
-      [
-        { text: REPORT_FOLLOWUP_ACTIONS.yesterday.label, callback_data: 'report:yesterday' },
-        { text: REPORT_FOLLOWUP_ACTIONS.labor.label, callback_data: 'report:labor' },
-      ],
-      [
-        { text: REPORT_FOLLOWUP_ACTIONS.projects.label, callback_data: 'report:projects' },
-        { text: REPORT_FOLLOWUP_ACTIONS.menu.label, callback_data: 'report:menu' },
-      ],
-    ],
+    inline_keyboard: REPORT_FOLLOWUP_LAYOUT.map((row) =>
+      row.map((key) => ({ text: REPORT_FOLLOWUP_ACTIONS[key].label, callback_data: `report:${key}` }))),
   };
 }
 
 export function resolveReportAction(callbackData) {
   const data = String(callbackData || '');
   if (!data.startsWith('report:')) return null;
-  return REPORT_FOLLOWUP_ACTIONS[data.slice(7)] || null;
+  const key = data.slice(7);
+  return Object.hasOwn(REPORT_FOLLOWUP_ACTIONS, key) ? { key, ...REPORT_FOLLOWUP_ACTIONS[key] } : null;
 }
 
 export const BOT_COMMANDS = Object.freeze([

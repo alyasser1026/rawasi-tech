@@ -23,6 +23,7 @@ import { useOfflineSync } from '@/lib/offline/useOfflineSync';
 import { OfflineEntityType } from '@/lib/offline/offlineStore';
 import { readCachedTableRows } from '@/lib/offline/referenceCache';
 import styles from './OfflineSyncStatus.module.css';
+import { currencySymbol } from '@/lib/currency';
 
 function entityLabel(type: OfflineEntityType): string {
   switch (type) {
@@ -291,7 +292,7 @@ export default function OfflineSyncStatus() {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}{' '}
-                        ر.س
+                        {currencySymbol()}
                       </span>
                     </div>
 

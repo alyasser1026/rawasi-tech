@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import GlassContainer from '@/components/GlassContainer';
 import { THEME } from '@/lib/theme';
+import { currencySymbol } from '@/lib/currency';
 import {
   Bot, Volume2, VolumeX, Clock, Hash, Brain, Save, Plus, Trash2, CheckCircle2, RefreshCw, Sparkles, MessageSquare
 } from 'lucide-react';
@@ -709,7 +710,7 @@ export default function BotSettingsManager() {
                   </div>
                   {op.amount != null && (
                     <div style={{ fontWeight: 900, fontSize: 'var(--fs-sm)', color: '#059669', whiteSpace: 'nowrap' }}>
-                      {op.amount} ر.س
+                      {op.amount} {currencySymbol()}
                     </div>
                   )}
                 </div>
