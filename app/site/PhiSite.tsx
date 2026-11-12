@@ -7,6 +7,7 @@ import { SERVICES, STEPS, mergeContent, type SiteContentOverride } from './site-
 import { CSS } from './site-styles';
 import EngTools from './EngTools';
 import ChecklistExplorer from './ChecklistExplorer';
+import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } from '@/components/HeroVideoBackdrop';
 
 const BimModel = dynamic(() => import('./BimModel'), {
   ssr: false,
@@ -103,6 +104,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
   const { SITE, PROJECTS, COMMITMENTS, FAQS } = mergeContent(content);
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [heroControls, setHeroControls] = useState<HeroVideoControlsState | null>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -148,6 +150,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
       <main id="top">
         {/* Hero */}
         <section className="pw-hero">
+          <HeroVideoBackdrop variant="showcase-left" controlsMode="none" onControlsReady={setHeroControls} />
           <div className="pw-wrap pw-hero-grid">
             <div>
               <p className="pw-eyebrow">{SITE.tagline} · {SITE.offices.join(' • ')}</p>
@@ -163,6 +166,11 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
               <div className="pw-emblem"><img src="/brand/phitech-mark-light.svg" alt="" /></div>
             </div>
           </div>
+          {heroControls && (
+            <div className="pw-wrap pw-hero-toolbar">
+              <HeroVideoControls controls={heroControls} />
+            </div>
+          )}
           <ul className="pw-wrap pw-stats">
             <li><strong>3 قطاعات</strong><span>إنشاء · تشطيب · تأسيسات</span></li>
             <li><strong>جهة تنفيذ واحدة</strong><span>مسؤولية موحّدة</span></li>

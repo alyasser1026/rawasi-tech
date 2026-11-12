@@ -37,7 +37,6 @@ function buildLinearBarcodeBars(seed: string): Array<{ x: number; w: number }> {
   const bars: Array<{ x: number; w: number }> = [];
   let cursor = 0;
 
-  // Start guard pattern
   const startPattern = [2, 1, 1, 2, 3, 1];
   for (let i = 0; i < startPattern.length; i++) {
     const w = startPattern[i];
@@ -62,7 +61,6 @@ function buildLinearBarcodeBars(seed: string): Array<{ x: number; w: number }> {
     cursor += b3 + s3;
   }
 
-  // Stop guard pattern
   const stopPattern = [2, 3, 1, 1, 2];
   for (let i = 0; i < stopPattern.length; i++) {
     const w = stopPattern[i];
@@ -78,6 +76,12 @@ function cleanValue(val?: string | null): string | undefined {
   const trimmed = String(val).trim();
   if (!trimmed || trimmed === '---' || trimmed === '—' || trimmed === 'غير محدد') return undefined;
   return trimmed;
+}
+
+/** «التقرير التنفيذي (Project Executive Dossier)» → عنوان عربي + سطر إنجليزي صغير، عشان العنوان ما يتكسرش في النص. */
+function splitTitle(title: string): { ar: string; en?: string } {
+  const m = /^(.*?)\s*\(([A-Za-z][^()]*)\)\s*$/.exec(title.trim());
+  return m && m[1] ? { ar: m[1].trim(), en: m[2].trim() } : { ar: title };
 }
 
 export default function ReportOfficialHeader({
@@ -104,6 +108,7 @@ export default function ReportOfficialHeader({
   compact = false,
 }: ReportOfficialHeaderProps) {
   const resolvedDate = issueDate || new Date().toLocaleDateString('en-GB');
+  const { ar: titleAr, en: titleEn } = splitTitle(title || '');
 
   const safeProjectName = cleanValue(projectName);
   const safeProjectCode = cleanValue(projectCode);
@@ -142,17 +147,7 @@ export default function ReportOfficialHeader({
       `EMAIL: ${PHI_COMPANY_CONTACTS.email}`,
     ].filter(Boolean);
     return lines.join('\n');
-  }, [
-    resolvedRefCode,
-    title,
-    safeProjectName,
-    safeProjectCode,
-    safeClientName,
-    safeClientPhone,
-    safeEngineerName,
-    safeEngineerPhone,
-    resolvedDate,
-  ]);
+  }, [resolvedRefCode, title, safeProjectName, safeProjectCode, safeClientName, safeClientPhone, safeEngineerName, safeEngineerPhone, resolvedDate]);
 
   const barcodeBars = useMemo(() => buildLinearBarcodeBars(resolvedRefCode), [resolvedRefCode]);
   const barcodeTotalWidth = useMemo(() => {
@@ -161,435 +156,164 @@ export default function ReportOfficialHeader({
     return last.x + last.w;
   }, [barcodeBars]);
 
-  const hasClientOrProjectDetails = Boolean(
-    safeProjectName ||
-      safeProjectCode ||
-      safeClientName ||
-      safeClientPhone ||
-      safeClientAddress ||
-      safeClientVat ||
-      safeEngineerName ||
-      safeContractValue
-  );
+  // خانات بيانات المشروع والعميل: كل خانة عنوان صغير فوق وقيمة تحت، بنفس الارتفاع والمحاذاة.
+  const details: Array<{ label: string; value: React.ReactNode; wide?: boolean }> = [];
+  if (safeProjectName) {
+    details.push({
+      label: 'المشروع / العقار',
+      value: <>{safeProjectName}{safeProjectCode && <span className="phi-orh-tag">{safeProjectCode}</span>}{safeUnitType && <span className="phi-orh-sub"> ({safeUnitType})</span>}</>,
+    });
+  }
+  if (safeClientName) {
+    details.push({ label: 'العميل المالك', value: <>{safeClientName}{safeClientCode && <span className="phi-orh-sub"> ({safeClientCode})</span>}</> });
+  }
+  if (safeClientPhone) details.push({ label: 'جوال العميل', value: <span dir="ltr">{safeClientPhone}</span> });
+  if (safeContractValue) details.push({ label: 'قيمة التعاقد', value: <span className="phi-orh-accent">{safeContractValue}</span> });
+  if (safeProjectManager) details.push({ label: 'مدير المشروع', value: safeProjectManager });
+  if (safeEngineerName) {
+    details.push({ label: 'المهندس المشرف', value: <>{safeEngineerName}{safeEngineerPhone && <span className="phi-orh-sub" dir="ltr"> {safeEngineerPhone}</span>}</> });
+  }
+  if (safeClientVat || safeClientId) {
+    details.push({ label: safeClientVat ? 'الرقم الضريبي للعميل' : 'هوية العميل', value: <span dir="ltr">{safeClientVat || safeClientId}</span> });
+  }
+  if (safeLocation) details.push({ label: 'موقع المشروع', value: safeLocation, wide: true });
+  if (safeClientAddress) details.push({ label: 'عنوان العميل', value: safeClientAddress, wide: true });
+
+  // آخر خانة تكمّل الصف لحد آخره، عشان ما يفضلش جزء فاضي في آخر الجدول (4 أعمدة).
+  const cellSpans = details.map(d => (d.wide ? 2 : 1));
+  const usedInLastRow = cellSpans.reduce((t, s) => t + s, 0) % 4;
+  if (cellSpans.length && usedInLastRow) cellSpans[cellSpans.length - 1] += 4 - usedInLastRow;
 
   return (
-    <header
-      className="phi-official-report-header dossier-keep-together"
-      dir="rtl"
-      style={{
-        background: '#ffffff',
-        color: '#0f172a',
-        border: '1.5px solid #cbd5e1',
-        borderRadius: '12px',
-        overflow: 'hidden',
-        marginBottom: compact ? '0.9rem' : '1.15rem',
-        pageBreakInside: 'avoid',
-        breakInside: 'avoid',
-        WebkitPrintColorAdjust: 'exact',
-        printColorAdjust: 'exact',
-        boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)',
-      }}
-    >
-      {/* شريط الهوية السيادي العلوي المزدوج */}
-      <div
-        style={{
-          display: 'flex',
-          height: '7px',
-          width: '100%',
-          background: '#0f172a',
-        }}
-      >
-        <div style={{ width: '68%', background: '#0f172a' }} />
-        <div style={{ width: '24%', background: '#ea580c' }} />
-        <div style={{ width: '8%', background: '#f59e0b' }} />
-      </div>
+    <header className={`phi-official-report-header phi-orh dossier-keep-together${compact ? ' is-compact' : ''}`} dir="rtl">
+      <style>{ORH_CSS}</style>
 
-      {/* المحتوى الرئيسي للترويسة: الشعار الرسمي يميناً، العنوان في المنتصف، الباركود و QR يساراً */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'minmax(225px, 1.15fr) minmax(250px, 1.6fr) minmax(215px, 1.05fr)',
-          gap: compact ? '0.75rem' : '1rem',
-          alignItems: 'center',
-          padding: compact ? '0.75rem 1rem' : '0.95rem 1.15rem',
-          background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
-        }}
-      >
-        {/* القسم الأيمن: الشعار الرسمي المعتمد لفاي تك (مفرّغ) وبيانات التواصل الحقيقية */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start',
-            gap: '5px',
-            borderLeft: '1px dashed #cbd5e1',
-            paddingLeft: '0.85rem',
-          }}
-        >
-          {/* الشعار الرسمي مفرّغ (خلفية شفافة) بدون إطار، بمقاس ثابت يناسب الطباعة */}
-          <img
-            src="/brand/phitech-lockup-color.svg"
-            alt="فاي تك PhiTech للمقاولات والتوريدات"
-            style={{
-              height: compact ? '54px' : '64px',
-              width: 'auto',
-              maxWidth: '100%',
-              objectFit: 'contain',
-              objectPosition: 'right center',
-              display: 'block',
-              background: 'transparent',
-              marginBottom: '2px',
-            }}
-          />
-          <div style={{ fontWeight: 900, fontSize: '12px', color: '#0f172a', lineHeight: 1.35 }}>
-            {PHI_COMPANY_CONTACTS.nameAr} ({PHI_COMPANY_CONTACTS.nameEn})
-          </div>
-          <div style={{ fontWeight: 800, fontSize: '10px', color: '#ea580c', lineHeight: 1.3 }}>
-            للمقاولات والتوريدات الهندسية • {PHI_COMPANY_CONTACTS.address}
-          </div>
-          <div
-            dir="ltr"
-            style={{
-              fontSize: '9.5px',
-              fontWeight: 900,
-              color: '#334155',
-              letterSpacing: '0.2px',
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '6px',
-            }}
-          >
-            <span>{PHI_COMPANY_CONTACTS.phone1}</span>
-            <span style={{ color: '#cbd5e1' }}>|</span>
-            <span>{PHI_COMPANY_CONTACTS.phone2}</span>
-          </div>
-          <div
-            dir="ltr"
-            style={{
-              fontSize: '9px',
-              fontWeight: 800,
-              color: '#64748b',
-            }}
-          >
-            {PHI_COMPANY_CONTACTS.email}
+      <div className="phi-orh-stripe" aria-hidden="true"><span /><span /><span /></div>
+
+      <div className="phi-orh-main">
+        {/* الهوية: الشعار مفرّغ + بيانات الشركة */}
+        <div className="phi-orh-brand">
+          <img src="/brand/phitech-lockup-color.svg" alt="فاي تك PhiTech للمقاولات والتوريدات" className="phi-orh-logo" />
+          <div className="phi-orh-company">{PHI_COMPANY_CONTACTS.nameAr} <span>({PHI_COMPANY_CONTACTS.nameEn})</span></div>
+          <div className="phi-orh-tagline">للمقاولات والتوريدات الهندسية • {PHI_COMPANY_CONTACTS.address}</div>
+          <div className="phi-orh-contacts" dir="ltr">
+            <span>{PHI_COMPANY_CONTACTS.phone1}</span><i>|</i><span>{PHI_COMPANY_CONTACTS.phone2}</span><i>|</i><span>{PHI_COMPANY_CONTACTS.email}</span>
           </div>
         </div>
 
-        {/* القسم الأوسط: شارة الاعتماد وعنوان التقرير */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textAlign: 'center',
-            gap: '6px',
-            padding: '0 0.35rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              background: '#0f172a',
-              color: '#ffffff',
-              fontSize: '9.5px',
-              fontWeight: 900,
-              padding: '3px 12px',
-              borderRadius: '999px',
-              letterSpacing: '0.3px',
-            }}
-          >
-            <span style={{ color: '#fb923c' }}>●</span>
-            <span>{badgeText}</span>
-          </div>
-
-          <h1
-            style={{
-              margin: 0,
-              color: '#0f172a',
-              fontWeight: 900,
-              fontSize: compact ? '17px' : '19px',
-              lineHeight: 1.3,
-            }}
-          >
-            {title}
-          </h1>
-
-          {subtitle && (
-            <div style={{ fontSize: '11px', fontWeight: 800, color: '#475569' }}>
-              {subtitle}
-            </div>
-          )}
-
-          {currency && (
-            <div
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '10px',
-                fontWeight: 800,
-                color: '#334155',
-                background: '#f1f5f9',
-                border: '1px solid #cbd5e1',
-                borderRadius: '999px',
-                padding: '2px 10px',
-              }}
-            >
-              <span>تاريخ الإصدار: <strong dir="ltr" style={{ color: '#0f172a' }}>{resolvedDate}</strong></span>
-              <span>•</span>
-              <span>العملة المعتمدة: <strong style={{ color: '#c2410c' }}>{currency}</strong></span>
-            </div>
-          )}
+        {/* العنوان */}
+        <div className="phi-orh-title">
+          <div className="phi-orh-badge"><b aria-hidden="true">●</b>{badgeText}</div>
+          <h1>{titleAr}</h1>
+          {titleEn && <div className="phi-orh-title-en" dir="ltr">{titleEn}</div>}
+          {subtitle && <p>{subtitle}</p>}
+          {currency && <div className="phi-orh-chip">العملة المعتمدة: <strong>{currency}</strong></div>}
         </div>
 
-        {/* القسم الأيسر: رمز التحقق QR + الباركود الخطي الرسمي + الرقم المرجعي */}
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            gap: '10px',
-            borderRight: '1px dashed #cbd5e1',
-            paddingRight: '0.85rem',
-          }}
-        >
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '4px',
-              flex: 1,
-            }}
-          >
-            {/* الباركود الخطي Code-128 SVG */}
-            <div
-              style={{
-                background: '#ffffff',
-                border: '1px solid #cbd5e1',
-                borderRadius: '6px',
-                padding: '4px 6px 2px 6px',
-                width: '100%',
-                maxWidth: '150px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-              }}
-            >
-              <svg
-                viewBox={`0 0 ${barcodeTotalWidth} 28`}
-                style={{ width: '100%', height: '24px', display: 'block' }}
-                aria-label={`Barcode ${resolvedRefCode}`}
-              >
-                <rect x="0" y="0" width={barcodeTotalWidth} height="28" fill="#ffffff" />
-                {barcodeBars.map((bar, idx) => (
-                  <rect
-                    key={idx}
-                    x={bar.x}
-                    y="1"
-                    width={bar.w}
-                    height="26"
-                    fill="#0f172a"
-                  />
-                ))}
-              </svg>
-              <div
-                dir="ltr"
-                style={{
-                  fontSize: '8.5px',
-                  fontWeight: 900,
-                  color: '#0f172a',
-                  letterSpacing: '0.7px',
-                  marginTop: '1px',
-                  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-                }}
-              >
-                {resolvedRefCode}
-              </div>
-            </div>
-
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                width: '100%',
-                maxWidth: '150px',
-                fontSize: '9.5px',
-                fontWeight: 800,
-                color: '#475569',
-              }}
-            >
-              <span>الإصدار:</span>
-              <strong dir="ltr" style={{ color: '#0f172a' }}>
-                {resolvedDate}
-              </strong>
-            </div>
+        {/* التحقق: الباركود + الرقم المرجعي + التاريخ + QR */}
+        <div className="phi-orh-verify">
+          <div className="phi-orh-ref">
+            <svg viewBox={`0 0 ${barcodeTotalWidth} 28`} preserveAspectRatio="none" aria-label={`Barcode ${resolvedRefCode}`}>
+              <rect x="0" y="0" width={barcodeTotalWidth} height="28" fill="#ffffff" />
+              {barcodeBars.map((bar, idx) => (
+                <rect key={idx} x={bar.x} y="1" width={bar.w} height="26" fill="#0f172a" />
+              ))}
+            </svg>
+            <div className="phi-orh-ref-code" dir="ltr">{resolvedRefCode}</div>
+            <dl>
+              <div><dt>تاريخ الإصدار</dt><dd dir="ltr">{resolvedDate}</dd></div>
+            </dl>
           </div>
-
-          {/* QR Code للتحقق الإلكتروني */}
-          <div
-            style={{
-              background: '#ffffff',
-              border: '1.5px solid #0f172a',
-              borderRadius: '8px',
-              padding: '5px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '2px',
-              flexShrink: 0,
-            }}
-          >
-            <QRCodeSVG
-              value={qrVerificationValue}
-              size={compact ? 52 : 60}
-              level="M"
-              bgColor="#ffffff"
-              fgColor="#0f172a"
-            />
-            <span
-              style={{
-                fontSize: '7.5px',
-                fontWeight: 900,
-                color: '#0f172a',
-                letterSpacing: '0.3px',
-              }}
-            >
-              QR VERIFIED
-            </span>
+          <div className="phi-orh-qr">
+            <QRCodeSVG value={qrVerificationValue} size={compact ? 58 : 66} level="M" bgColor="#ffffff" fgColor="#0f172a" />
+            <span>امسح للتحقق</span>
           </div>
         </div>
       </div>
 
-      {/* بطاقة بيانات العميل المالك والمشروع (تظهر تلقائياً عند توفر بيانات العميل أو المشروع) */}
-      {hasClientOrProjectDetails && (
-        <div
-          style={{
-            background: '#f8fafc',
-            borderTop: '1px solid #cbd5e1',
-            padding: '7px 14px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
-            gap: '6px 14px',
-            fontSize: '10.5px',
-            color: '#334155',
-          }}
-        >
-          {safeProjectName && (
-            <div>
-              <span style={{ color: '#64748b', fontWeight: 800 }}>المشروع / العقار: </span>
-              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeProjectName}</strong>
-              {safeProjectCode && (
-                <span style={{ color: '#c2410c', fontWeight: 900, marginRight: '4px' }}>
-                  [{safeProjectCode}]
-                </span>
-              )}
-              {safeUnitType && (
-                <span style={{ color: '#475569', fontWeight: 800, marginRight: '4px' }}>
-                  ({safeUnitType})
-                </span>
-              )}
+      {details.length > 0 && (
+        <div className="phi-orh-details">
+          {details.map((d, i) => (
+            <div key={d.label} className="phi-orh-cell" style={cellSpans[i] > 1 ? { gridColumn: `span ${cellSpans[i]}` } : undefined}>
+              <span className="phi-orh-label">{d.label}</span>
+              <strong className="phi-orh-value">{d.value}</strong>
             </div>
-          )}
-
-          {safeClientName && (
-            <div>
-              <span style={{ color: '#64748b', fontWeight: 800 }}>العميل المالك: </span>
-              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeClientName}</strong>
-              {safeClientCode && (
-                <span style={{ color: '#475569', fontWeight: 800, marginRight: '4px' }}>
-                  ({safeClientCode})
-                </span>
-              )}
-            </div>
-          )}
-
-          {safeClientPhone && (
-            <div>
-              <span style={{ color: '#64748b', fontWeight: 800 }}>جوال العميل: </span>
-              <strong dir="ltr" style={{ color: '#0f172a', fontWeight: 900 }}>
-                {safeClientPhone}
-              </strong>
-            </div>
-          )}
-
-          {safeClientAddress && (
-            <div>
-              <span style={{ color: '#64748b', fontWeight: 800 }}>عنوان العميل: </span>
-              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeClientAddress}</strong>
-            </div>
-          )}
-
-          {(safeClientVat || safeClientId) && (
-            <div>
-              <span style={{ color: '#64748b', fontWeight: 800 }}>
-                {safeClientVat ? 'الرقم الضريبي للعميل: ' : 'هوية العميل: '}
-              </span>
-              <strong dir="ltr" style={{ color: '#0f172a', fontWeight: 900 }}>
-                {safeClientVat || safeClientId}
-              </strong>
-            </div>
-          )}
-
-          {safeContractValue && (
-            <div>
-              <span style={{ color: '#64748b', fontWeight: 800 }}>قيمة التعاقد: </span>
-              <strong style={{ color: '#c2410c', fontWeight: 900 }}>{safeContractValue}</strong>
-            </div>
-          )}
-
-          {safeEngineerName && (
-            <div>
-              <span style={{ color: '#64748b', fontWeight: 800 }}>المهندس المشرف: </span>
-              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeEngineerName}</strong>
-              {safeEngineerPhone && (
-                <span dir="ltr" style={{ color: '#475569', fontWeight: 800, marginRight: '4px' }}>
-                  ({safeEngineerPhone})
-                </span>
-              )}
-            </div>
-          )}
-
-          {safeProjectManager && (
-            <div>
-              <span style={{ color: '#64748b', fontWeight: 800 }}>مدير المشروع: </span>
-              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeProjectManager}</strong>
-            </div>
-          )}
-
-          {safeLocation && (
-            <div>
-              <span style={{ color: '#64748b', fontWeight: 800 }}>موقع المشروع: </span>
-              <strong style={{ color: '#0f172a', fontWeight: 900 }}>{safeLocation}</strong>
-            </div>
-          )}
+          ))}
         </div>
       )}
 
-      {/* شريط سفلي رفيع لتأكيد الموثوقية */}
-      <div
-        style={{
-          background: '#f1f5f9',
-          borderTop: '1px solid #cbd5e1',
-          padding: '4px 12px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          fontSize: '9.5px',
-          fontWeight: 800,
-          color: '#475569',
-        }}
-      >
-        <span>
-          ● مستند رسمي صادر إلكترونياً من نظام الرقابة الهندسية والمالية الموحد — {PHI_COMPANY_CONTACTS.nameAr}
-        </span>
-        <span dir="ltr" style={{ color: '#0f172a', fontWeight: 900 }}>
-          DOC ID: {resolvedRefCode}
-        </span>
+      <div className="phi-orh-foot">
+        <span>مستند رسمي صادر إلكترونيًا من نظام الرقابة الهندسية والمالية الموحد — {PHI_COMPANY_CONTACTS.nameAr}</span>
+        <span dir="ltr">DOC ID: <b>{resolvedRefCode}</b></span>
       </div>
     </header>
   );
 }
+
+// مقاسات بالـ px عن قصد: الترويسة للطباعة على A4، ومش لازم تتأثر بزر حجم الواجهة.
+const ORH_CSS = `
+.phi-orh { --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --soft:#f8fafc; --brand:#ea580c; --brand-ink:#c2410c;
+  background:#fff; color:var(--ink); border:1px solid #cbd5e1; border-radius:12px; overflow:hidden; margin-bottom:18px;
+  break-inside:avoid; page-break-inside:avoid; -webkit-print-color-adjust:exact; print-color-adjust:exact; font-size:11px; line-height:1.5; }
+.phi-orh.is-compact { margin-bottom:14px; }
+.phi-orh * { box-sizing:border-box; }
+.phi-orh-stripe { display:flex; height:6px; }
+.phi-orh-stripe span:nth-child(1) { flex:68; background:#0f172a; }
+.phi-orh-stripe span:nth-child(2) { flex:24; background:var(--brand); }
+.phi-orh-stripe span:nth-child(3) { flex:8; background:#f59e0b; }
+
+.phi-orh-main { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr); align-items:stretch; }
+.phi-orh-main > div { padding:16px 18px; min-width:0; }
+.phi-orh.is-compact .phi-orh-main > div { padding:12px 14px; }
+.phi-orh-brand { display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:4px; border-left:1px solid var(--line); }
+.phi-orh-logo { height:62px; width:auto; max-width:100%; object-fit:contain; object-position:right center; display:block; background:transparent; margin-bottom:6px; }
+.phi-orh.is-compact .phi-orh-logo { height:52px; }
+.phi-orh-company { font-weight:900; font-size:12.5px; color:var(--ink); }
+.phi-orh-company span { color:var(--muted); font-weight:800; }
+.phi-orh-tagline { font-weight:800; font-size:10px; color:var(--brand-ink); }
+.phi-orh-contacts { display:flex; flex-wrap:wrap; gap:4px 6px; font-size:9.5px; font-weight:800; color:#334155; font-variant-numeric:tabular-nums; }
+.phi-orh-contacts i { color:#cbd5e1; font-style:normal; }
+
+.phi-orh-title { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; gap:6px; }
+.phi-orh-badge { display:inline-flex; align-items:center; gap:6px; background:var(--ink); color:#fff; font-size:9px; font-weight:900; padding:3px 12px; border-radius:999px; letter-spacing:.3px; white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+.phi-orh-badge b { color:#fb923c; font-size:8px; }
+.phi-orh-title h1 { margin:2px 0 0; font-size:20px; font-weight:900; line-height:1.35; color:var(--ink); text-wrap:balance; }
+.phi-orh.is-compact .phi-orh-title h1 { font-size:17px; }
+.phi-orh-title-en { font-size:10px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted); }
+.phi-orh-title p { margin:0; font-size:11px; font-weight:700; color:#475569; text-wrap:balance; }
+.phi-orh-chip { margin-top:2px; font-size:10px; font-weight:800; color:#334155; background:var(--soft); border:1px solid var(--line); border-radius:999px; padding:2px 12px; }
+.phi-orh-chip strong { color:var(--brand-ink); }
+
+.phi-orh-verify { display:flex; align-items:center; justify-content:flex-end; gap:12px; border-right:1px solid var(--line); }
+.phi-orh-ref { flex:1; max-width:170px; display:flex; flex-direction:column; align-items:stretch; gap:3px; }
+.phi-orh-ref svg { width:100%; height:26px; display:block; }
+.phi-orh-ref-code { text-align:center; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:9px; font-weight:800; letter-spacing:.6px; color:var(--ink); }
+.phi-orh-ref dl { margin:4px 0 0; padding-top:5px; border-top:1px dashed var(--line); }
+.phi-orh-ref dl > div { display:flex; justify-content:space-between; align-items:baseline; gap:8px; }
+.phi-orh-ref dt { color:var(--muted); font-weight:800; font-size:9.5px; }
+.phi-orh-ref dd { margin:0; font-weight:900; font-size:10.5px; font-variant-numeric:tabular-nums; }
+.phi-orh-qr { display:flex; flex-direction:column; align-items:center; gap:3px; padding:5px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; flex-shrink:0; }
+.phi-orh-qr span { font-size:8px; font-weight:900; color:var(--muted); }
+
+.phi-orh-details { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); border-top:1px solid #cbd5e1; background:var(--soft); margin-left:-1px; margin-bottom:-1px; }
+.phi-orh-cell { padding:8px 14px; display:flex; flex-direction:column; gap:2px; min-width:0; border-left:1px solid var(--line); border-bottom:1px solid var(--line); }
+.phi-orh-label { color:var(--muted); font-size:9.5px; font-weight:800; }
+.phi-orh-value { color:var(--ink); font-size:11.5px; font-weight:900; overflow-wrap:anywhere; }
+.phi-orh-tag { display:inline-block; margin-inline-start:6px; padding:0 6px; border-radius:4px; background:#fff7ed; color:var(--brand-ink); font-size:10px; font-weight:900; }
+.phi-orh-sub { color:#475569; font-weight:700; font-size:10.5px; }
+.phi-orh-accent { color:var(--brand-ink); font-variant-numeric:tabular-nums; }
+
+.phi-orh-foot { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:5px 14px; background:#f1f5f9; border-top:1px solid #cbd5e1; font-size:9.5px; font-weight:700; color:#475569; }
+.phi-orh-foot b { color:var(--ink); font-weight:900; }
+
+@media screen and (max-width: 760px) {
+  .phi-orh-main { grid-template-columns:1fr; }
+  .phi-orh-brand, .phi-orh-verify { border:0; }
+  .phi-orh-brand { align-items:center; text-align:center; border-bottom:1px solid var(--line); }
+  .phi-orh-logo { object-position:center; }
+  .phi-orh-verify { justify-content:center; border-top:1px solid var(--line); }
+  .phi-orh-details { grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .phi-orh-cell { grid-column:auto !important; }
+  .phi-orh-foot { flex-direction:column; align-items:flex-start; }
+}
+`;

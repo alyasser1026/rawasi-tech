@@ -39,28 +39,30 @@ export const CSS = `
 .pw a:focus-visible,.pw button:focus-visible,.pw input:focus-visible,.pw select:focus-visible,.pw textarea:focus-visible,.pw summary:focus-visible{outline:3px solid rgba(249,115,22,.55);outline-offset:3px}
 
 /* hero (dark) */
-.pw-hero{position:relative;background:linear-gradient(270deg,rgba(14,18,21,.94) 0%,rgba(14,18,21,.8) 38%,rgba(14,18,21,.25) 75%,rgba(14,18,21,.1) 100%),linear-gradient(180deg,rgba(14,18,21,.35),rgba(14,18,21,.7)),url('/brand/hero-bg.webp') 15% center/cover no-repeat,var(--g2);color:#fff;overflow:hidden}
-.pw-hero-art{visibility:hidden}
-.pw-hero::before{content:'';position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(180deg,#000 0%,transparent 90%);-webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 90%)}
-.pw-hero-grid{position:relative;display:grid;grid-template-columns:1.2fr .8fr;gap:56px;align-items:center;padding-top:84px;padding-bottom:64px}
+.pw-hero{position:relative;isolation:isolate;background:#090b0f;color:#fff;overflow:hidden}
+.pw-hero-art{visibility:hidden;min-height:340px}
+.pw-hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center;padding-top:86px;padding-bottom:36px}
 .pw-eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.84rem;font-weight:700;color:var(--o);letter-spacing:.02em;margin-bottom:14px}
 .pw-eyebrow::before{content:'';width:28px;height:2px;background:currentColor}
-.pw-hero .pw-eyebrow{color:var(--o-hi)}
-.pw-hero h1{font-size:clamp(2.1rem,4.6vw,3.5rem);line-height:1.34;font-weight:800;margin-bottom:20px}
+.pw-hero .pw-eyebrow{color:var(--o-hi);text-shadow:0 2px 14px rgba(0,0,0,.65)}
+.pw-hero h1{font-size:clamp(2.1rem,4.6vw,3.5rem);line-height:1.34;font-weight:800;margin-bottom:20px;text-shadow:0 4px 28px rgba(0,0,0,.72)}
 .pw-hero h1 em{font-style:normal;color:var(--o-hi)}
-.pw-lead{font-size:1.1rem;color:#c5ced6;max-width:36rem;margin-bottom:30px}
+.pw-lead{font-size:1.1rem;color:#d6dee6;max-width:36rem;margin-bottom:30px;text-shadow:0 2px 18px rgba(0,0,0,.75)}
 .pw-actions{display:flex;flex-wrap:wrap;gap:12px}
+.pw-actions .pw-btn-light{background:rgba(15,19,26,.55);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.pw-hero-toolbar{position:relative;z-index:3;display:flex;justify-content:flex-end;padding-bottom:16px}
 .pw-hero-art{display:flex;justify-content:center}
 .pw-emblem{position:relative;width:min(100%,380px);aspect-ratio:1;display:flex;align-items:center;justify-content:center}
 .pw-emblem::before,.pw-emblem::after{content:'';position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.14)}
 .pw-emblem::before{inset:0}
 .pw-emblem::after{inset:12%;border-color:rgba(249,115,22,.35);border-style:dashed}
 .pw-emblem img{position:relative;height:56%;width:auto;filter:drop-shadow(0 20px 40px rgba(0,0,0,.45))}
-.pw-stats{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top:1px solid rgba(255,255,255,.12);margin-top:0}
-.pw-stats li{padding:22px 24px;border-inline-start:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;gap:2px}
+.pw-stats{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;background:rgba(9,11,15,.72);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.12);border-radius:18px;margin-top:0;margin-bottom:28px;overflow:hidden}
+.pw-stats li{padding:20px 24px;border-inline-start:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;gap:2px;transition:background .2s}
+.pw-stats li:hover{background:rgba(249,115,22,.07)}
 .pw-stats li:first-child{border-inline-start:0}
 .pw-stats strong{font-size:1.2rem;font-weight:800}
-.pw-stats span{font-size:.85rem;color:#a9b4be}
+.pw-stats span{font-size:.85rem;color:#b8c2cc}
 
 /* sections */
 .pw-section{padding:96px 0}
@@ -210,11 +212,12 @@ export const CSS = `
   .pw-nav{gap:16px;font-size:.88rem}
 }
 @media (max-width:960px){
-  .pw-hero-grid{grid-template-columns:1fr;gap:36px;padding-top:56px;padding-bottom:44px}
-  .pw-hero-art{display:none}
-  .pw-hero{background:linear-gradient(180deg,rgba(14,18,21,.82),rgba(14,18,21,.9)),url('/brand/hero-bg.webp') 18% center/cover no-repeat,var(--g2)}
+  .pw-hero-grid{grid-template-columns:1fr;gap:28px;padding-top:52px;padding-bottom:24px}
+  .pw-hero-art{display:none;min-height:0}
+  .pw-hero{background:#090b0f}
+  .pw-hero-toolbar{justify-content:center;padding-bottom:14px}
   .pw-emblem{width:min(70%,240px)}
-  .pw-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .pw-stats{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:20px}
   .pw-stats li:nth-child(3){border-inline-start:0}
   .pw-stats li:nth-child(n+3){border-top:1px solid rgba(255,255,255,.12)}
   .pw-trust{grid-template-columns:repeat(2,minmax(0,1fr))}
