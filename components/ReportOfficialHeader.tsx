@@ -215,7 +215,7 @@ export default function ReportOfficialHeader({
           background: 'linear-gradient(180deg, #f8fafc 0%, #ffffff 100%)',
         }}
       >
-        {/* القسم الأيمن: الشعار الرسمي المعتمد لفاي تك (الوضع النهاري #f7eee2) وبيانات التواصل الحقيقية */}
+        {/* القسم الأيمن: الشعار الرسمي المعتمد لفاي تك (مفرّغ) وبيانات التواصل الحقيقية */}
         <div
           style={{
             display: 'flex',
@@ -226,29 +226,21 @@ export default function ReportOfficialHeader({
             paddingLeft: '0.85rem',
           }}
         >
-          <div
+          {/* الشعار الرسمي مفرّغ (خلفية شفافة) بدون إطار، بمقاس ثابت يناسب الطباعة */}
+          <img
+            src="/brand/phitech-lockup-color.svg"
+            alt="فاي تك PhiTech للمقاولات والتوريدات"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: '#f7eee2',
-              border: '1.5px solid #e2d2be',
-              borderRadius: '10px',
-              padding: '6px 14px',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.6)',
+              height: compact ? '54px' : '64px',
+              width: 'auto',
+              maxWidth: '100%',
+              objectFit: 'contain',
+              objectPosition: 'right center',
+              display: 'block',
+              background: 'transparent',
+              marginBottom: '2px',
             }}
-          >
-            <img
-              src="/brand/phitech-lockup-color.svg"
-              alt="فاي تك PhiTech للمقاولات والتوريدات"
-              style={{
-                height: compact ? '48px' : '56px',
-                width: 'auto',
-                objectFit: 'contain',
-                display: 'block',
-              }}
-            />
-          </div>
+          />
           <div style={{ fontWeight: 900, fontSize: '12px', color: '#0f172a', lineHeight: 1.35 }}>
             {PHI_COMPANY_CONTACTS.nameAr} ({PHI_COMPANY_CONTACTS.nameEn})
           </div>

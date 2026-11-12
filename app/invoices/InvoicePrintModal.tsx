@@ -318,7 +318,7 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                 .header-center { text-align: center; }
                 .header-logo { display: flex; justify-content: flex-end; align-items: center; } 
                 
-                .header-logo img { max-height: 80px; width: auto; max-width: 100%; object-fit: contain; } 
+                .header-logo img { height: 72px; max-height: 72px; width: auto; max-width: 240px; object-fit: contain; background: transparent; } 
                 
                 .qr-container { 
                     width: 80px !important; 

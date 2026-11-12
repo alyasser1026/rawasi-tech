@@ -131,7 +131,7 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
                 .inv-header { display: grid; grid-template-columns: 180px 1fr 180px; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 20px; margin-bottom: 25px; width: 100%; gap: 15px; }
                 .header-center { text-align: center; }
                 .header-logo { display: flex; justify-content: flex-end; } 
-                .header-logo img { max-height: 120px; width: auto; max-width: 100%; object-fit: contain; } 
+                .header-logo img { height: 72px; max-height: 72px; width: auto; max-width: 240px; object-fit: contain; background: transparent; } 
 
                 .inv-title-box { text-align: center; margin-bottom: 25px; }
                 .inv-title { font-size: 22px; font-weight: 900; border: 2.5px solid #000; padding: 8px 35px; display: inline-block; background: #f8fafc; color: #0f172a; text-transform: uppercase; letter-spacing: 1px; border-radius: 12px; }
