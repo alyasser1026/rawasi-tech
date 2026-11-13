@@ -151,10 +151,13 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
         {/* Hero */}
         <section className="pw-hero">
           <HeroVideoBackdrop variant="showcase-left" controlsMode="none" onControlsReady={setHeroControls} />
-          <div className="pw-wrap pw-hero-grid">
+          <div className="pw-wrap pw-hero-grid" id="hero-content">
             <div>
               <p className="pw-eyebrow">{SITE.tagline} · {SITE.offices.join(' • ')}</p>
-              <h1>نبني <em>الهيكل</em>، ونُتقن <em>التشطيب</em>، ونُنفّذ <em>التأسيسات</em></h1>
+              <h1>
+                <span className="pw-hero-part">نبني <em>الهيكل</em>، ونُتقن <em>التشطيب</em>،</span>{' '}
+                <span className="pw-hero-part">ونُنفّذ <em>التأسيسات</em></span>
+              </h1>
               <p className="pw-lead">{SITE.intro}</p>
               <div className="pw-actions">
                 <a href={primaryContact.href} className="pw-btn pw-btn-primary" {...(primaryContact.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{primaryContact.label}</a>
@@ -169,6 +172,10 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
           {heroControls && (
             <div className="pw-wrap pw-hero-toolbar">
               <HeroVideoControls controls={heroControls} />
+              <a href="#hero-content" className="pw-mobile-scroll-cue" aria-label="التمرير لبقية محتوى الصفحة">
+                <span>اسحب للأسفل لاستعراض التفاصيل</span>
+                <span className="pw-cue-arrow" aria-hidden>↓</span>
+              </a>
             </div>
           )}
           <ul className="pw-wrap pw-stats">

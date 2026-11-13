@@ -51,3 +51,25 @@ test('Public site (/) and portal (/website) both mount HeroVideoBackdrop cleanly
   assert.match(siteStyles, /\.pw main#top\{padding:0!important/);
   assert.match(siteStyles, /backdrop-filter:blur\(16px\)/);
 });
+
+test('Mobile hero starts with video first and scales typography smoothly without orphan words', () => {
+  const phiSite = read('app/site/PhiSite.tsx');
+  const siteStyles = read('app/site/site-styles.ts');
+
+  // Verify headline phrase grouping
+  assert.match(phiSite, /pw-hero-part/);
+  assert.match(phiSite, /id="hero-content"/);
+  assert.match(phiSite, /pw-mobile-scroll-cue/);
+
+  // Verify desktop typography styling
+  assert.match(siteStyles, /\.pw-hero h1\{font-size:clamp\(1\.9rem/);
+  assert.match(siteStyles, /\.pw-hero-part\{display:inline-block/);
+
+  // Verify mobile video-first order and dimensions
+  assert.match(siteStyles, /\.pw-hero\{display:flex;flex-direction:column/);
+  assert.match(siteStyles, /\.pw-hero \.phi-hb\{[^\}]*order:0/);
+  assert.match(siteStyles, /\.pw-hero \.phi-hb\{[^\}]*height:clamp\(300px/);
+  assert.match(siteStyles, /\.pw-hero-grid\{[^\}]*order:2/);
+  assert.match(siteStyles, /\.pw-mobile-scroll-cue/);
+});
+

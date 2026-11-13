@@ -63,7 +63,7 @@ const BACKDROP_CSS = `
 
 @media (max-width:960px){
   .phi-hb.is-showcase-left .phi-hb-stage{left:0;width:100%;-webkit-mask-image:none;mask-image:none}
-  .phi-hb.is-showcase-left .phi-hb-scrim{background:linear-gradient(180deg,rgba(9,11,15,.72) 0%,rgba(9,11,15,.54) 45%,rgba(9,11,15,.9) 100%)}
+  .phi-hb.is-showcase-left .phi-hb-scrim{background:linear-gradient(180deg,rgba(9,11,15,.35) 0%,transparent 20%,transparent 72%,rgba(9,11,15,.96) 100%),radial-gradient(ellipse at center,transparent 40%,rgba(9,11,15,.45) 100%)}
   .phi-hb-hud.is-corner{left:14px;bottom:14px}
 }
 @media print{
