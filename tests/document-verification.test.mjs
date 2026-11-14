@@ -3,11 +3,15 @@ import assert from 'node:assert/strict';
 import crypto from 'crypto';
 import fs from 'fs';
 
-// Verify that authGuard.tsx has the public routes registered
-test('Document Verification: authGuard contains /verify and /website/verify', () => {
-  const content = fs.readFileSync('components/authGuard.tsx', 'utf8');
-  assert.ok(content.includes("path === '/verify' || path.startsWith('/verify')"));
-  assert.ok(content.includes("path.startsWith('/website/')"));
+// Verify that authGuard.tsx and LayoutClient.tsx have the public routes registered
+test('Document Verification: authGuard and LayoutClient contain /verify and /website/verify', () => {
+  const authGuardContent = fs.readFileSync('components/authGuard.tsx', 'utf8');
+  assert.ok(authGuardContent.includes("path === '/verify' || path.startsWith('/verify')"));
+  assert.ok(authGuardContent.includes("path.startsWith('/website/')"));
+
+  const layoutClientContent = fs.readFileSync('components/layout/LayoutClient.tsx', 'utf8');
+  assert.ok(layoutClientContent.includes("pathname === '/verify' || pathname.startsWith('/verify')"));
+  assert.ok(layoutClientContent.includes("pathname.startsWith('/website/')"));
 });
 
 function isPublicRoute(path) {

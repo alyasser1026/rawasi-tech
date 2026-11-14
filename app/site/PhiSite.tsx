@@ -8,6 +8,7 @@ import { CSS } from './site-styles';
 import EngTools from './EngTools';
 import ChecklistExplorer from './ChecklistExplorer';
 import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } from '@/components/HeroVideoBackdrop';
+import DocumentVerificationView from '@/components/DocumentVerificationView';
 
 const BimModel = dynamic(() => import('./BimModel'), {
   ssr: false,
@@ -27,8 +28,8 @@ const NAV = [
   { href: '#checklist', label: 'دليل وبطاقات التنفيذ' },
   { href: '#process', label: 'طريقة العمل' },
   { href: '#projects', label: 'أعمالنا' },
+  { href: '#verify', label: 'التحقق من المستندات' },
   { href: '#contact', label: 'تواصل' },
-  { href: '/verify', label: 'التحقق من المستندات' },
 ];
 
 function Icon({ name }: { name: string }) {
@@ -142,7 +143,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
           </a>
           <nav className={`pw-nav ${open ? 'is-open' : ''}`} aria-label="التنقل الرئيسي">
             {NAV.map(n => (<a key={n.href} href={n.href} onClick={() => setOpen(false)}>{n.label}</a>))}
-            <Link href="/verify" className="pw-btn pw-btn-ghost pw-nav-cta" onClick={() => setOpen(false)} style={{ borderColor: 'var(--o)', color: 'var(--o)' }}>التحقق من المستندات</Link>
+            <a href="#verify" className="pw-btn pw-btn-ghost pw-nav-cta" onClick={() => setOpen(false)} style={{ borderColor: 'var(--o)', color: 'var(--o)' }}>التحقق من المستندات</a>
             <Link href="/login" className="pw-btn pw-btn-primary pw-nav-cta" onClick={() => setOpen(false)}>دخول النظام</Link>
           </nav>
           <button className="pw-burger" aria-label="القائمة" aria-expanded={open} onClick={() => setOpen(v => !v)}><span /><span /><span /></button>
@@ -163,9 +164,9 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
               <p className="pw-lead">{SITE.intro}</p>
               <div className="pw-actions">
                 <a href={primaryContact.href} className="pw-btn pw-btn-primary" {...(primaryContact.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{primaryContact.label}</a>
-                <Link href="/verify" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(249,115,22,0.6)', color: '#fbbf24' }}>
+                <a href="#verify" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(249,115,22,0.6)', color: '#fbbf24' }}>
                   التحقق من المستندات والباركود
-                </Link>
+                </a>
                 <a href="#capital-tower" className="pw-btn pw-btn-light">برج كابيتال 3D</a>
                 <a href="#bim" className="pw-btn pw-btn-light">استكشف نموذج BIM</a>
               </div>
@@ -327,6 +328,22 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
           </div>
         </section>
 
+        {/* Document Verification Section (مدمج مباشرة في موقع الشركة للعملاء) */}
+        <section id="verify" className="pw-section" style={{ background: '#070a12', borderTop: '1px solid rgba(249,115,22,0.15)', borderBottom: '1px solid rgba(249,115,22,0.15)' }}>
+          <div className="pw-wrap">
+            <div className="pw-head pw-head-center">
+              <p className="pw-eyebrow" style={{ color: 'var(--o)' }}>الخدمات الرقمية للملاك والعملاء</p>
+              <h2 style={{ color: '#fff' }}>التحقق من صحة المستندات والباركود</h2>
+              <p style={{ color: 'rgba(255,255,255,0.7)', maxWidth: 650, margin: '0 auto' }}>
+                تحقق فورياً من صحة أرقام ومبالغ السندات والفواتير والمستخلصات الصادرة من فاي تك عن طريق مسح الباركود أو إدخال رقم السند مباشرة.
+              </p>
+            </div>
+            <div style={{ maxWidth: 860, margin: '0 auto' }}>
+              <DocumentVerificationView embedded={true} />
+            </div>
+          </div>
+        </section>
+
         {/* Contact */}
         <section id="contact" className="pw-section pw-tint">
           <div className={`pw-wrap pw-contact ${waDigits || c.email ? '' : 'pw-contact-solo'}`}>
@@ -369,7 +386,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
             <nav className="pw-footer-nav" aria-label="روابط التذييل">
               {NAV.map(n => (<a key={n.href} href={n.href}>{n.label}</a>))}
             </nav>
-            <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>التحقق من صحة المستندات</Link>
+            <a href="#verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>التحقق من صحة المستندات</a>
             <Link href="/login" className="pw-footer-link">دخول النظام</Link>
           </div>
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>

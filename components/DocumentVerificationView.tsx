@@ -53,7 +53,13 @@ export interface VerifiedDocData {
   allMatchesCount?: number;
 }
 
-export default function DocumentVerificationView({ initialDocQuery = '' }: { initialDocQuery?: string }) {
+export default function DocumentVerificationView({ 
+  initialDocQuery = '', 
+  embedded = false 
+}: { 
+  initialDocQuery?: string; 
+  embedded?: boolean; 
+}) {
   const searchParams = useSearchParams();
   const paramDoc = searchParams?.get('doc') || searchParams?.get('code') || searchParams?.get('ref') || initialDocQuery;
   const [docQuery, setDocQuery] = useState(paramDoc || '');
@@ -244,54 +250,58 @@ export default function DocumentVerificationView({ initialDocQuery = '' }: { ini
   };
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 font-sans selection:bg-amber-500 selection:text-black" dir="rtl">
-      {/* Top Navbar */}
-      <nav className="sticky top-0 z-40 bg-[#090d16]/90 backdrop-blur-md border-b border-amber-500/20 px-4 sm:px-8 py-3.5 transition-all">
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
-          <Link href="/website" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-700/30 border border-amber-500/40 p-1.5 flex items-center justify-center group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(249,115,22,0.2)]">
-              <svg viewBox={PHITECH_TIGHT_VIEWBOX} className="w-full h-full fill-amber-400">
-                <path d={PHITECH_RINGS_PATH} />
-                <path d={PHITECH_PILLARS_PATH} />
-              </svg>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-black text-base sm:text-lg tracking-wider text-slate-100">PHI CONSTRUCT</span>
-                <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-1.5 py-0.5 rounded border border-amber-500/30">فاي تك</span>
+    <div className={embedded ? "w-full text-slate-100 font-sans" : "min-h-screen bg-[#07090e] text-slate-100 font-sans selection:bg-amber-500 selection:text-black"} dir="rtl">
+      {/* Top Navbar (only for standalone page) */}
+      {!embedded && (
+        <nav className="sticky top-0 z-40 bg-[#090d16]/90 backdrop-blur-md border-b border-amber-500/20 px-4 sm:px-8 py-3.5 transition-all">
+          <div className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-700/30 border border-amber-500/40 p-1.5 flex items-center justify-center group-hover:scale-105 transition-transform shadow-[0_0_15px_rgba(249,115,22,0.2)]">
+                <svg viewBox={PHITECH_TIGHT_VIEWBOX} className="w-full h-full fill-amber-400">
+                  <path d={PHITECH_RINGS_PATH} />
+                  <path d={PHITECH_PILLARS_PATH} />
+                </svg>
               </div>
-              <p className="text-[11px] text-slate-400 hidden sm:block">منظومة التحقق الرقمي من صحة المستندات المالية</p>
-            </div>
-          </Link>
-
-          <div className="flex items-center gap-2.5">
-            <Link 
-              href="/website" 
-              className="px-3.5 py-1.5 text-xs sm:text-sm font-bold text-slate-300 hover:text-amber-400 transition-colors flex items-center gap-1.5"
-            >
-              <span>الموقع الرئيسي</span>
-              <ArrowRight className="w-4 h-4 rotate-180" />
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-black text-base sm:text-lg tracking-wider text-slate-100">PHI CONSTRUCT</span>
+                  <span className="text-[10px] bg-amber-500/20 text-amber-300 font-bold px-1.5 py-0.5 rounded border border-amber-500/30">فاي تك</span>
+                </div>
+                <p className="text-[11px] text-slate-400 hidden sm:block">منظومة التحقق الرقمي من صحة المستندات المالية</p>
+              </div>
             </Link>
+
+            <div className="flex items-center gap-2.5">
+              <Link 
+                href="/" 
+                className="px-3.5 py-1.5 text-xs sm:text-sm font-bold text-slate-300 hover:text-amber-400 transition-colors flex items-center gap-1.5"
+              >
+                <span>الموقع الرئيسي</span>
+                <ArrowRight className="w-4 h-4 rotate-180" />
+              </Link>
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      )}
 
       {/* Main Container */}
-      <main className="max-w-4xl mx-auto px-4 py-8 sm:py-12">
-        {/* Hero Section */}
-        <div className="text-center mb-8 sm:mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold mb-4 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
-            <span>بوابة التحقق والتوثيق الرقمي المعتمدة رسمياً</span>
-          </div>
+      <div className={embedded ? "w-full py-2" : "max-w-4xl mx-auto px-4 py-8 sm:py-12"}>
+        {/* Hero Section (only for standalone page) */}
+        {!embedded && (
+          <div className="text-center mb-8 sm:mb-10">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-bold mb-4 shadow-[0_0_20px_rgba(16,185,129,0.15)]">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>بوابة التحقق والتوثيق الرقمي المعتمدة رسمياً</span>
+            </div>
 
-          <h1 className="text-2xl sm:text-4xl font-black text-slate-50 mb-3 tracking-tight">
-            التحقق من صحة ومطابقة المستندات
-          </h1>
-          <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            امسح الباركود أو رمز QR المطبوع على السند أو اكتب رقم المستند يدوياً للتحقق الفوري من صحة الأرقام والمبالغ المعتمدة في سجلات فاي تك.
-          </p>
-        </div>
+            <h1 className="text-2xl sm:text-4xl font-black text-slate-50 mb-3 tracking-tight">
+              التحقق من صحة ومطابقة المستندات
+            </h1>
+            <p className="text-sm sm:text-base text-slate-400 max-w-2xl mx-auto leading-relaxed">
+              امسح الباركود أو رمز QR المطبوع على السند أو اكتب رقم المستند يدوياً للتحقق الفوري من صحة الأرقام والمبالغ المعتمدة في سجلات فاي تك.
+            </p>
+          </div>
+        )}
 
         {/* Search & Scan Box */}
         <div className="bg-[#0d131f] border border-amber-500/30 rounded-2xl p-4 sm:p-6 shadow-[0_10px_35px_rgba(0,0,0,0.5)] mb-8 relative overflow-hidden">
@@ -691,19 +701,21 @@ export default function DocumentVerificationView({ initialDocQuery = '' }: { ini
             </p>
           </div>
         </div>
-      </main>
+      </div>
 
-      {/* Footer */}
-      <footer className="border-t border-slate-800/80 mt-16 py-8 px-4 text-center text-xs text-slate-500">
-        <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© 2026 شركة فاي تك للتطوير العقاري والمقاولات العامة (PHI CONSTRUCT) — جميع الحقوق محفوظة.</p>
-          <div className="flex items-center gap-4">
-            <span>هاتف: {PHI_COMPANY_CONTACTS.phone1}</span>
-            <span>•</span>
-            <span>البريد: {PHI_COMPANY_CONTACTS.email}</span>
+      {/* Footer (only for standalone page) */}
+      {!embedded && (
+        <footer className="border-t border-slate-800/80 mt-16 py-8 px-4 text-center text-xs text-slate-500">
+          <div className="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>© 2026 شركة فاي تك للتطوير العقاري والمقاولات العامة (PHI CONSTRUCT) — جميع الحقوق محفوظة.</p>
+            <div className="flex items-center gap-4">
+              <span>هاتف: {PHI_COMPANY_CONTACTS.phone1}</span>
+              <span>•</span>
+              <span>البريد: {PHI_COMPANY_CONTACTS.email}</span>
+            </div>
           </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 }
