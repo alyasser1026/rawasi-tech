@@ -23,7 +23,7 @@ import ExpensesTab from './ExpensesTab'; // 👈 استدعاء تاب المص�
 import BimTab from './BimTab'; // 👈 استدعاء تاب النماذج ثلاثية الأبعاد BIM
 import ReportsTab from './ReportsTab'; // 👈 استدعاء تاب التقارير الهندسية والمالية الشاملة
 import LoadingScreen from '@/components/LoadingScreen';
-import { Activity, Building2, CirclePause, Layers, TriangleAlert, HardHat, Phone, Handshake, ChevronLeft, CheckCircle2, Clock, User, Home, ArrowUpRight } from 'lucide-react';
+import { Activity, Building2, CirclePause, Layers, TriangleAlert, HardHat, Phone, Handshake, ChevronLeft, CheckCircle2, Clock, User, Home, ArrowUpRight, FileText } from 'lucide-react';
 import KpiStrip from '@/components/KpiStrip';
 
 export default function AdvancedProjectsPage() {
@@ -199,7 +199,8 @@ export default function AdvancedProjectsPage() {
                <div className="projects-grid" style={{ animation: 'fadeIn 0.5s ease-out' }}>
                    {logic.projects.map(proj => {
                        // 1. القيم المالية المحسوبة
-                       const budgetAmount = Number(proj.estimated_budget || proj.contract_value || 0);
+                       const contractAmount = Number(proj.contract_value || 0);
+                       const budgetAmount = Number(proj.estimated_budget || (contractAmount > 0 ? contractAmount : 0));
                        const totalActualCost = Number(proj.total_cost || 0);
                        const variance = budgetAmount - totalActualCost;
                        const budgetUsagePercent = budgetAmount > 0 ? (totalActualCost / budgetAmount) * 100 : 0;
@@ -406,6 +407,16 @@ export default function AdvancedProjectsPage() {
                                        fontSize: 'var(--fs-xs, 12px)'
                                    }}
                                >
+                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                       <span style={{ color: 'var(--text-primary, #0f172a)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                           <FileText size={13} color="#ea580c" />
+                                           <span>قيمة التعاقد</span>
+                                       </span>
+                                       <span style={{ color: '#ea580c', fontWeight: 900, fontSize: '13px' }} dir="ltr">
+                                           {formatCurrency(contractAmount)}
+                                       </span>
+                                   </div>
+
                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                        <span style={{ color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>الميزانية المعتمدة</span>
                                        <span style={{ color: '#0284c7', fontWeight: 900, fontSize: '13px' }} dir="ltr">
