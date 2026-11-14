@@ -35,6 +35,8 @@ body:has(.pw){padding:0!important}
 .pw-nav a:not(.pw-btn)::after{content:'';position:absolute;inset-inline:0;bottom:0;height:2px;background:#f97316;transform:scaleX(0);transition:transform .2s;transform-origin:center}
 .pw-nav a:not(.pw-btn):hover{color:#ffffff;text-shadow:0 0 12px rgba(255,255,255,.5)}
 .pw-nav a:not(.pw-btn):hover::after{transform:scaleX(1)}
+.pw-nav-head{display:none}
+.pw-nav-arrow{display:none}
 .pw-burger{display:none;width:44px;height:44px;border:1px solid rgba(255,255,255,.2);background:rgba(15,20,28,.65);backdrop-filter:blur(10px);border-radius:10px;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
 .pw-burger span{display:block;width:20px;height:2px;background:#ede5da;border-radius:2px}
 
