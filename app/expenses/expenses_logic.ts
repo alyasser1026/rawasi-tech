@@ -380,11 +380,23 @@ export function useExpensesLogic() {
 
             let resolvedDebitId = null, resolvedCreditId = null;
             if (supportData?.accounts_raw) {
-                const foundDebit = supportData.accounts_raw.find((a: any) => `${a.code} - ${a.name}` === paymentData.payment_account || a.name === paymentData.payment_account);
+                // 💡 المدين لسند الصرف هو حساب الالتزام (payment_account) لإقفال الالتزام وتفادي تكرار التكلفة
+                const targetDebitName = paymentData.payment_account;
+                const foundDebit = supportData.accounts_raw.find((a: any) => 
+                    `${a.code} - ${a.name}` === targetDebitName || 
+                    a.name === targetDebitName || 
+                    String(a.code) === targetDebitName ||
+                    (targetDebitName && targetDebitName.includes(' - ') && a.name === targetDebitName.split(' - ')[1]?.trim())
+                );
                 if (foundDebit) resolvedDebitId = foundDebit.id;
                 
-                const targetCreditName = paymentData.creditor_account || paymentData.payment_account; 
-                const foundCredit = supportData.accounts_raw.find((a: any) => `${a.code} - ${a.name}` === targetCreditName || a.name === targetCreditName);
+                // 💡 الدائن لسند الصرف هو وسيلة السداد (الخزينة للنقدي، أو البنك للشيك والتحويل البنكي)
+                const isBankOrCheque = ['شيك', 'تحويل بنكي'].includes(paymentData.payment_method);
+                const foundCredit = supportData.accounts_raw.find((a: any) => 
+                    isBankOrCheque 
+                        ? ((a.name || '').includes('بنك') || String(a.code).startsWith('121') || String(a.code).startsWith('129'))
+                        : (String(a.code) === '122' || (a.name || '').includes('خزينة') || (a.name || '').includes('صندوق'))
+                );
                 if (foundCredit) resolvedCreditId = foundCredit.id;
             }
 

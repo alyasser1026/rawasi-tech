@@ -388,40 +388,67 @@ export default function ExpensesPage() {
                       // 🏦 1. تحديد حساب الخزينة الخاص بالشركة الحالية ديناميكياً لتفادي أخطاء قيود الشركات المتعددة
                       let resolvedCreditId = null;
                       let resolvedCreditName = 'الخزينة الرئيسية';
-                      if (Array.isArray(logic.accounts_raw) && logic.accounts_raw.length > 0) {
-                          const treasuryAcc = logic.accounts_raw.find((a: any) => String(a.code) === '122')
-                              || logic.accounts_raw.find((a: any) => (a.name || '').includes('الخزينة الرئيسية'))
-                              || logic.accounts_raw.find((a: any) => String(a.code) === '121')
-                              || logic.accounts_raw.find((a: any) => (a.name || '').includes('خزينة'))
-                              || logic.accounts_raw.find((a: any) => (a.name || '').includes('صندوق'));
+                      let resolvedCreditCode = '122';
+                      const accountsList = Array.isArray(logic.accounts_raw) ? logic.accounts_raw : [];
+
+                      if (accountsList.length > 0) {
+                          const treasuryAcc = accountsList.find((a: any) => String(a.code) === '122')
+                              || accountsList.find((a: any) => (a.name || '').includes('الخزينة الرئيسية'))
+                              || accountsList.find((a: any) => String(a.code) === '121')
+                              || accountsList.find((a: any) => (a.name || '').includes('خزينة'))
+                              || accountsList.find((a: any) => (a.name || '').includes('صندوق'));
                           if (treasuryAcc) {
                               resolvedCreditId = treasuryAcc.id;
                               resolvedCreditName = treasuryAcc.name;
+                              resolvedCreditCode = treasuryAcc.code;
                           }
                       }
 
-                      // 📑 2. تحديد الحساب المدين (المصروف / المورد / الشريك)
+                      // 📑 2. تحديد الحساب المدين لسند الصرف
+                      // 💡 المحاسبة الصحيحة: الطرف المدين لسند صرف المصروف هو حساب الالتزام / المورد / المستحقات (payment_account)
+                      // لإقفال الالتزام وتخفيض مديونية الشركة، وتفادي تكرار تسجيل المصروف والتكلفة مرتين!
                       let resolvedDebitId = null;
-                      let resolvedDebitName = row.payment_account || row.creditor_account || '';
-                      if (Array.isArray(logic.accounts_raw) && logic.accounts_raw.length > 0) {
-                          const candidates = [row.creditor_account, row.payment_account].filter(Boolean);
-                          for (const cand of candidates) {
-                              const found = logic.accounts_raw.find((a: any) => 
-                                  String(a.code) === cand || a.name === cand || `${a.code} - ${a.name}` === cand
+                      let resolvedDebitName = row.payment_account || '';
+                      let resolvedDebitCode = '';
+
+                      if (accountsList.length > 0) {
+                          // أ. البحث أولاً عن حساب الالتزام (payment_account) المسجل في المصروف
+                          if (row.payment_account) {
+                              const foundLiability = accountsList.find((a: any) => 
+                                  String(a.code) === row.payment_account || 
+                                  a.name === row.payment_account || 
+                                  `${a.code} - ${a.name}` === row.payment_account ||
+                                  (row.payment_account.includes(' - ') && a.name === row.payment_account.split(' - ')[1]?.trim()) ||
+                                  (row.payment_account.includes(' - ') && String(a.code) === row.payment_account.split(' - ')[0]?.trim())
                               );
-                              if (found && String(found.code) !== '122' && String(found.code) !== '121') {
-                                  resolvedDebitId = found.id;
-                                  resolvedDebitName = found.name;
-                                  break;
+                              if (foundLiability) {
+                                  resolvedDebitId = foundLiability.id;
+                                  resolvedDebitName = foundLiability.name;
+                                  resolvedDebitCode = foundLiability.code;
                               }
                           }
-                          if (!resolvedDebitId && row.payment_account) {
-                              const fallback = logic.accounts_raw.find((a: any) => 
-                                  String(a.code) === row.payment_account || a.name === row.payment_account || `${a.code} - ${a.name}` === row.payment_account
+                          // ب. كحل بديل إن لم يكن مسجلاً حساب التزام محدد، نبحث عن حساب الالتزامات المناسب
+                          if (!resolvedDebitId && (row.partner_id || row.payee_id)) {
+                              const foundPartnerLiability = accountsList.find((a: any) => 
+                                  String(a.code) === '211' || String(a.code) === '212' || String(a.code) === '219'
                               );
-                              if (fallback) {
-                                  resolvedDebitId = fallback.id;
-                                  resolvedDebitName = fallback.name;
+                              if (foundPartnerLiability) {
+                                  resolvedDebitId = foundPartnerLiability.id;
+                                  resolvedDebitName = foundPartnerLiability.name;
+                                  resolvedDebitCode = foundPartnerLiability.code;
+                              }
+                          }
+                          // ج. كحل أخير إذا لم يتم إثبات استحقاق والتزام مسبق
+                          if (!resolvedDebitId && row.creditor_account) {
+                              const foundCost = accountsList.find((a: any) => 
+                                  String(a.code) === row.creditor_account || 
+                                  a.name === row.creditor_account || 
+                                  `${a.code} - ${a.name}` === row.creditor_account
+                              );
+                              if (foundCost) {
+                                  resolvedDebitId = foundCost.id;
+                                  resolvedDebitName = foundCost.name;
+                                  resolvedDebitCode = foundCost.code;
                               }
                           }
                       }
@@ -431,11 +458,13 @@ export default function ExpensesPage() {
                           amount: balance, 
                           debit_account_id: resolvedDebitId, 
                           debit_account_name: resolvedDebitName, 
+                          debit_account_code: resolvedDebitCode,
                           credit_account_id: resolvedCreditId,
                           credit_account_name: resolvedCreditName,
-                          partner_id: row.partner_id || null, 
-                          payee_id: row.partner_id || null,
-                          payee_name: row.sub_contractor || row.payee_name || row.creditor_account,
+                          credit_account_code: resolvedCreditCode,
+                          partner_id: row.partner_id || row.payee_id || null, 
+                          payee_id: row.partner_id || row.payee_id || null,
+                          payee_name: row.sub_contractor || row.payee_name || (resolvedDebitName ? resolvedDebitName : ''),
                           site_ref: row.site_ref || null,
                           project_ids: row.project_id ? [row.project_id] : (row.project_ids || []),
                           job_order_id: row.job_order_id || null,

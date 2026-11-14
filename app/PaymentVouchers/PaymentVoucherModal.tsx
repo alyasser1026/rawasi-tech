@@ -41,6 +41,19 @@ export default function PaymentVoucherModal({ isOpen, onClose, record, setRecord
 
   const custodyPartnerId = record?.custody_partner_id ? String(record.custody_partner_id) : '';
 
+  const { data: defaultCashAccounts = [] } = useQuery<any[]>({
+    queryKey: ['default_cash_and_bank_accounts'],
+    enabled: Boolean(isOpen),
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('accounts')
+        .select('id, code, name')
+        .or('code.in.(121,122,125,1291),name.ilike.%خزينة%,name.ilike.%صندوق%,name.ilike.%بنك%')
+        .eq('is_transactional', true);
+      return (data || []) as any[];
+    }
+  });
+
   const { data: openCustodies = [], isFetching: loadingOpenCustodies } = useQuery<OpenCustodyCandidate[]>({
     queryKey: ['open_custodies_for_pv_partner', custodyPartnerId],
     enabled: Boolean(isOpen && custodyStatus.isCreditCustody && custodyPartnerId),
@@ -93,7 +106,39 @@ export default function PaymentVoucherModal({ isOpen, onClose, record, setRecord
           <section className="ent-form-section"><h3><FileText size={17}/>بيانات السند</h3><div className="ent-form-grid">
             <div className="ent-form-field"><label htmlFor={`${id}-date`}>تاريخ السداد</label><input id={`${id}-date`} type="date" value={record.date || ''} onChange={event => setRecord({ ...record, date: event.target.value })}/></div>
             <div className="ent-form-field"><label htmlFor={`${id}-amount`}>مبلغ السند <span aria-hidden="true">*</span></label><input id={`${id}-amount`} data-autofocus type="number" min="0.01" step="0.01" required placeholder="0.00" value={record.amount || ''} onChange={event => setRecord({ ...record, amount: Number(event.target.value) })}/></div>
-            <div className="ent-form-field"><label htmlFor={`${id}-method`}>طريقة الدفع</label><select id={`${id}-method`} value={record.payment_method || 'تحويل بنكي'} onChange={event => setRecord({ ...record, payment_method: event.target.value })}><option value="تحويل بنكي">تحويل بنكي</option><option value="نقدي">نقدي (كاش)</option><option value="شيك">شيك</option></select></div>
+            <div className="ent-form-field">
+              <label htmlFor={`${id}-method`}>طريقة الدفع</label>
+              <select
+                id={`${id}-method`}
+                value={record.payment_method || 'تحويل بنكي'}
+                onChange={event => {
+                  const newMethod = event.target.value;
+                  let updatedCredit: any = {};
+                  if (defaultCashAccounts && defaultCashAccounts.length > 0) {
+                    if (newMethod === 'نقدي') {
+                      const treasury = defaultCashAccounts.find((a: any) => String(a.code) === '122' || (a.name || '').includes('خزينة') || (a.name || '').includes('صندوق'));
+                      if (treasury) {
+                        updatedCredit = { credit_account_id: treasury.id, credit_account_name: treasury.name, credit_account_code: treasury.code };
+                      }
+                    } else if (newMethod === 'شيك' || newMethod === 'تحويل بنكي') {
+                      const bank = defaultCashAccounts.find((a: any) => (a.name || '').includes('بنك') || String(a.code).startsWith('121') || String(a.code).startsWith('129'));
+                      if (bank) {
+                        updatedCredit = { credit_account_id: bank.id, credit_account_name: bank.name, credit_account_code: bank.code };
+                      }
+                    }
+                  }
+                  setRecord((prev: any) => ({
+                    ...prev,
+                    payment_method: newMethod,
+                    ...updatedCredit
+                  }));
+                }}
+              >
+                <option value="تحويل بنكي">تحويل بنكي</option>
+                <option value="نقدي">نقدي (كاش)</option>
+                <option value="شيك">شيك</option>
+              </select>
+            </div>
             <div className="ent-form-field"><label htmlFor={`${id}-reference`}>رقم المرجع أو الحوالة</label><input id={`${id}-reference`} placeholder="اختياري" value={record.reference_number || record.reference_no || ''} onChange={event => setRecord({ ...record, reference_number: event.target.value, reference_no: event.target.value })}/></div>
           </div></section>
           <div className="ent-form-divider"/>
