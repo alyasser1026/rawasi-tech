@@ -3,6 +3,15 @@ export const CSS = `
   position:relative;min-height:100vh;background:var(--bg);color:var(--ink);font-family:'Cairo',-apple-system,'Segoe UI',sans-serif;line-height:1.75;letter-spacing:0;-webkit-font-smoothing:antialiased;overflow-x:clip}
 .pw *{box-sizing:border-box}
 body:has(.pw){padding:0!important}
+.pw.has-modal-blur > header,
+.pw.has-modal-blur > main,
+.pw.has-modal-blur > footer {
+  filter: blur(8px);
+  -webkit-filter: blur(8px);
+  transition: filter 0.25s ease;
+  pointer-events: none;
+  user-select: none;
+}
 .pw main#top{padding:0!important;border-radius:0!important;margin:0!important;box-shadow:none!important;width:100%!important}
 :where(.pw) :is(h1,h2,h3,h4,p,ul,ol,dl,dd,figure,table,caption){margin:0;padding:0}
 :where(.pw) :is(ul,ol){list-style:none}

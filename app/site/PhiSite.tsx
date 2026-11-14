@@ -2,12 +2,14 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { SERVICES, STEPS, mergeContent, type SiteContentOverride } from './site-content';
 import { CSS } from './site-styles';
 import EngTools from './EngTools';
 import ChecklistExplorer from './ChecklistExplorer';
 import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } from '@/components/HeroVideoBackdrop';
+import LoginModal from './LoginModal';
 
 const BimModel = dynamic(() => import('./BimModel'), {
   ssr: false,
@@ -101,11 +103,42 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
   );
 }
 
-export default function PhiSite({ content }: { content?: SiteContentOverride }) {
+export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
   const { SITE, PROJECTS, COMMITMENTS, FAQS } = mergeContent(content);
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [heroControls, setHeroControls] = useState<HeroVideoControlsState | null>(null);
+  const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('login') === 'true' || window.location.hash === '#login') {
+        setLoginOpen(true);
+      }
+    }
+  }, []);
+
+  const handleOpenLogin = (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
+    setOpen(false);
+    setLoginOpen(true);
+    if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+      window.history.pushState(null, '', '/login');
+    }
+  };
+
+  const handleCloseLogin = () => {
+    setLoginOpen(false);
+    if (typeof window !== 'undefined') {
+      if (window.location.pathname === '/login') {
+        router.push('/');
+      } else if (window.location.search.includes('login') || window.location.hash === '#login') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    }
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -131,7 +164,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
       : { href: '#contact', label: 'تواصل معنا', external: false };
 
   return (
-    <div className="pw" dir="rtl">
+    <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
 
       <header className={`pw-header ${scrolled ? 'is-scrolled' : ''}`}>
@@ -146,7 +179,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
             ) : (
               <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="pw-nav-verify">{n.label}</Link>
             ))}
-            <Link href="/login" className="pw-btn pw-btn-primary pw-nav-cta" onClick={() => setOpen(false)}>دخول النظام</Link>
+            <a href="/login" className="pw-btn pw-btn-primary pw-nav-cta" onClick={handleOpenLogin}>دخول النظام</a>
           </nav>
           <button className="pw-burger" aria-label="القائمة" aria-expanded={open} onClick={() => setOpen(v => !v)}><span /><span /><span /></button>
         </div>
@@ -377,11 +410,13 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
               ))}
             </nav>
             <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>التحقق من صحة المستندات</Link>
-            <Link href="/login" className="pw-footer-link">دخول النظام</Link>
+            <a href="/login" className="pw-footer-link" onClick={handleOpenLogin}>دخول النظام</a>
           </div>
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
         </div>
       </footer>
+
+      <LoginModal isOpen={loginOpen} onClose={handleCloseLogin} />
     </div>
   );
 }
