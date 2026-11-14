@@ -36,11 +36,11 @@ export interface VerifiedDocData {
   referenceNo?: string | null;
   date: string;
   rawDate?: string;
-  amount: number;
+  amount?: number;
   taxAmount?: number;
   netAmount?: number;
-  currency: string;
-  amountInWords: string;
+  currency?: string;
+  amountInWords?: string;
   partyName: string;
   partyRole: string;
   projectName?: string;
@@ -424,49 +424,48 @@ const SYSTEM_UNIFIED_STYLES = `
   }
 }
 
-/* Massive Amount Display */
-.phi-sys-amount-box {
-  background: #090807;
-  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.92), inset 0 -1px 1px rgba(249, 115, 22, 0.06);
+/* Document Authenticity Status Banner (بدون أي مبالغ مالية) */
+.phi-sys-auth-banner {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(14, 18, 25, 0.95) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 24px rgba(0, 0, 0, 0.4);
   border-radius: 18px;
-  padding: 24px;
-  text-align: center;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 24px;
 }
-.phi-sys-amount-label {
-  font-size: 0.82rem;
-  font-weight: 800;
-  color: #fb923c;
-  margin-bottom: 6px;
-}
-.phi-sys-amount-row {
+.phi-sys-auth-icon {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.14);
+  border: 1px solid rgba(16, 185, 129, 0.35);
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: center;
-  gap: 10px;
-  direction: ltr;
-  margin-bottom: 8px;
 }
-.phi-sys-amount-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(2.2rem, 5vw, 3.4rem);
-  font-weight: 900;
+.phi-sys-auth-title {
+  font-size: 1.08rem;
+  font-weight: 800;
   color: #ffffff;
-  letter-spacing: -0.02em;
+  line-height: 1.4;
+  margin-bottom: 4px;
 }
-.phi-sys-amount-curr {
-  font-size: clamp(1.2rem, 2vw, 1.6rem);
-  font-weight: 900;
-  color: #f97316;
+.phi-sys-auth-sub {
+  font-size: 0.86rem;
+  color: #d1d5db;
+  font-weight: 600;
 }
-.phi-sys-tafqeet-pill {
-  display: inline-block;
-  background: rgba(249, 115, 22, 0.12);
-  color: #fed7aa;
-  font-size: 0.88rem;
-  font-weight: 700;
-  padding: 6px 20px;
-  border-radius: 999px;
+@media (max-width: 600px) {
+  .phi-sys-auth-banner {
+    flex-direction: column;
+    text-align: center;
+    padding: 18px 16px;
+    gap: 12px;
+  }
 }
 
 /* Details Grid */
@@ -870,8 +869,8 @@ const SYSTEM_UNIFIED_STYLES = `
   body { background: #fff !important; color: #000 !important; }
   .phi-sys-topbar, .phi-sys-panel, .phi-sys-features, .phi-sys-footer, .phi-sys-actions, .phi-sys-hero { display: none !important; }
   .phi-sys-cert-card { border: 2px solid #000 !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
-  .phi-sys-amount-box, .phi-sys-cell, .phi-sys-desc-box { background: #f8fafc !important; border: 1px solid #ccc !important; color: #000 !important; }
-  .phi-sys-amount-num, .phi-sys-cell-val, .phi-sys-desc-text { color: #000 !important; }
+  .phi-sys-auth-banner, .phi-sys-cell, .phi-sys-desc-box { background: #f8fafc !important; border: 1px solid #ccc !important; color: #000 !important; }
+  .phi-sys-auth-title, .phi-sys-auth-sub, .phi-sys-cell-val, .phi-sys-desc-text { color: #000 !important; }
   .phi-sys-seal-box { border: 1px solid #ccc !important; background: #fff !important; }
 }
 `;
@@ -1095,7 +1094,7 @@ export default function DocumentVerificationView({
               />
               <div className="phi-sys-brand-divider" />
               <div className="phi-sys-brand-meta">
-                <strong>منظومة التحقق المالي</strong>
+                <strong>منظومة التحقق والتوثيق</strong>
                 <small>بوابة التحقق والتوثيق الرقمي للمستندات</small>
               </div>
             </Link>
@@ -1128,7 +1127,7 @@ export default function DocumentVerificationView({
               التحقق من صحة ومطابقة المستندات
             </h1>
             <p className="phi-sys-hero-desc">
-              تحقق فوري من صحة ومطابقة الأرقام والمبالغ المعتمدة في سجلات الأستاذ العام عبر كتابة رقم السند أو مسح رمز QR والباركود.
+              تحقق فوري من صحة ومطابقة بيانات المستندات والسندات الصادرة والمعتمدة رسمياً عبر كتابة رقم السند أو مسح رمز QR والباركود.
             </p>
           </div>
         )}
@@ -1277,21 +1276,18 @@ export default function DocumentVerificationView({
 
             {/* Body */}
             <div className="phi-sys-cert-body">
-              {/* Massive Amount Display */}
-              <div className="phi-sys-amount-box">
-                <div className="phi-sys-amount-label">
-                  المبلغ المالي المعتمد في السند
+              {/* Document Authenticity Status Banner (بدون أي مبالغ مالية) */}
+              <div className="phi-sys-auth-banner">
+                <div className="phi-sys-auth-icon">
+                  <ShieldCheck style={{ width: 28, height: 28, color: '#10b981' }} />
                 </div>
-                <div className="phi-sys-amount-row">
-                  <span className="phi-sys-amount-num">
-                    {verifiedData.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                  <span className="phi-sys-amount-curr">
-                    {verifiedData.currency}
-                  </span>
-                </div>
-                <div className="phi-sys-tafqeet-pill">
-                  {verifiedData.amountInWords}
+                <div className="phi-sys-auth-content">
+                  <div className="phi-sys-auth-title">
+                    مستند رسمي أصلي معتمد ومقيد في حسابات المنظومة
+                  </div>
+                  <div className="phi-sys-auth-sub">
+                    رقم المستند المعتمد: <span style={{ fontFamily: 'monospace', color: '#fb923c', fontWeight: 800 }}>{verifiedData.docNumber}</span> — مثبت في سجلات الحسابات العامة
+                  </div>
                 </div>
               </div>
 
@@ -1350,7 +1346,7 @@ export default function DocumentVerificationView({
               {/* Description */}
               <div className="phi-sys-desc-box">
                 <div className="phi-sys-desc-label">
-                  البيان المالي المسجل في السند:
+                  البيان والغرض المسجل في السند:
                 </div>
                 <div className="phi-sys-desc-text">
                   {verifiedData.description}
@@ -1437,7 +1433,7 @@ export default function DocumentVerificationView({
             </p>
 
             <div className="phi-sys-error-tips">
-              <div style={{ fontWeight: 800, color: '#ffffff', marginBottom: 6 }}>إرشادات التحقق المالي:</div>
+              <div style={{ fontWeight: 800, color: '#ffffff', marginBottom: 6 }}>إرشادات التحقق من المستند:</div>
               <div>• تأكد من كتابة كود السند كاملاً كما هو مطبوع (مثال: <span style={{ fontFamily: 'monospace', color: '#fb923c' }}>PV-2026-0002</span> أو <span style={{ fontFamily: 'monospace', color: '#fb923c' }}>RV-2026-0001</span>).</div>
               <div>• يمكنك أيضاً كتابة أرقام السند فقط (مثال: <span style={{ fontFamily: 'monospace', color: '#fb923c' }}>0002</span>).</div>
               <div>• في حال استلامك إيصالاً غير مسجل، تواصل فوراً مع الإدارة المالية للتأكيد.</div>
