@@ -28,6 +28,7 @@ const NAV = [
   { href: '#process', label: 'طريقة العمل' },
   { href: '#projects', label: 'أعمالنا' },
   { href: '#contact', label: 'تواصل' },
+  { href: '/verify', label: 'التحقق من المستندات' },
 ];
 
 function Icon({ name }: { name: string }) {
@@ -141,6 +142,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
           </a>
           <nav className={`pw-nav ${open ? 'is-open' : ''}`} aria-label="التنقل الرئيسي">
             {NAV.map(n => (<a key={n.href} href={n.href} onClick={() => setOpen(false)}>{n.label}</a>))}
+            <Link href="/verify" className="pw-btn pw-btn-ghost pw-nav-cta" onClick={() => setOpen(false)} style={{ borderColor: 'var(--o)', color: 'var(--o)' }}>التحقق من المستندات</Link>
             <Link href="/login" className="pw-btn pw-btn-primary pw-nav-cta" onClick={() => setOpen(false)}>دخول النظام</Link>
           </nav>
           <button className="pw-burger" aria-label="القائمة" aria-expanded={open} onClick={() => setOpen(v => !v)}><span /><span /><span /></button>
@@ -161,6 +163,9 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
               <p className="pw-lead">{SITE.intro}</p>
               <div className="pw-actions">
                 <a href={primaryContact.href} className="pw-btn pw-btn-primary" {...(primaryContact.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{primaryContact.label}</a>
+                <Link href="/verify" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(249,115,22,0.6)', color: '#fbbf24' }}>
+                  التحقق من المستندات والباركود
+                </Link>
                 <a href="#capital-tower" className="pw-btn pw-btn-light">برج كابيتال 3D</a>
                 <a href="#bim" className="pw-btn pw-btn-light">استكشف نموذج BIM</a>
               </div>
@@ -364,6 +369,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
             <nav className="pw-footer-nav" aria-label="روابط التذييل">
               {NAV.map(n => (<a key={n.href} href={n.href}>{n.label}</a>))}
             </nav>
+            <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>التحقق من صحة المستندات</Link>
             <Link href="/login" className="pw-footer-link">دخول النظام</Link>
           </div>
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
