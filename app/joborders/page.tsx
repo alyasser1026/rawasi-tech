@@ -16,7 +16,7 @@ import SmartCombo from '@/components/SmartCombo';
 import JobOrderModal from './JobOrderModal';
 import JobOrderLedgerModal from './JobOrderLedgerModal'; 
 import LoadingScreen from '@/components/LoadingScreen';
-import { HardHat, Handshake, Activity, CircleCheck, CirclePause, ClipboardList } from 'lucide-react';
+import { HardHat, Handshake, Activity, CircleCheck, CirclePause, ClipboardList, Building2, BookOpen, Edit3 } from 'lucide-react';
 import KpiStrip from '@/components/KpiStrip';
 import PhiIcon from '@/components/PhiIcon';
 
@@ -201,7 +201,7 @@ export default function JobOrdersPage() {
         <LoadingScreen message="جاري تحميل أوامر التشغيل..." fullScreen={false} />
       ) : (
         <div style={{ padding: '0.625rem' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(17.5rem, 1fr))', gap: '1.25rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(18.5rem, 1fr))', gap: '1.25rem' }}>
             {logic.allFiltered.slice((logic.currentPage - 1) * logic.rowsPerPage, logic.currentPage * logic.rowsPerPage).map((row: any) => {
               const isSelected = logic.selectedIds.includes(String(row.id));
               const contractorNames = (row.assigned_contractors || []).map((c: any) => c.name).filter(Boolean);
@@ -252,26 +252,26 @@ export default function JobOrdersPage() {
                   key={row.id}
                   onClick={() => { logic.setLedgerRecord(row); logic.setIsLedgerOpen(true); }}
                   style={{ 
-                    background: 'rgba(255, 255, 255, 0.85)', 
-                    backdropFilter: 'blur(20px)', 
-                    border: isSelected ? '2px solid #d97706' : '1px solid rgba(255, 255, 255, 0.4)', 
-                    borderRadius: '14px', 
+                    background: 'var(--surface-card, #ffffff)', 
+                    border: isSelected ? '2px solid #f97316' : '1px solid var(--border-color, #e2e8f0)', 
+                    borderRadius: '16px', 
                     padding: '1.25rem', 
                     cursor: 'pointer',
-                    boxShadow: isSelected ? '0 10px 30px rgba(217, 119, 6, 0.15)' : '0 10px 30px rgba(0, 0, 0, 0.03)',
-                    transition: 'all 0.3s ease',
+                    boxShadow: isSelected ? '0 12px 30px rgba(249, 115, 22, 0.15)' : '0 4px 18px rgba(0, 0, 0, 0.04)',
+                    transition: 'all 0.25s ease',
                     position: 'relative',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '0.9375rem'
+                    gap: '0.85rem'
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.08)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = isSelected ? '0 10px 30px rgba(217, 119, 6, 0.15)' : '0 10px 30px rgba(0, 0, 0, 0.03)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-4px)'; e.currentTarget.style.boxShadow = '0 16px 36px rgba(0,0,0,0.08)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = isSelected ? '0 12px 30px rgba(249, 115, 22, 0.15)' : '0 4px 18px rgba(0, 0, 0, 0.04)'; }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-                      <div className="jo-checkbox-wrap" style={{ marginTop: '2px' }} onClick={(e) => e.stopPropagation()}>
+                  {/* 1️⃣ ترويسة الكارت: رقم الأمر + التاريخ + شارة الحالة المعتمدة */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                      <div className="jo-checkbox-wrap" onClick={(e) => e.stopPropagation()}>
                         <input 
                           type="checkbox" 
                           className="custom-checkbox" 
@@ -284,91 +284,235 @@ export default function JobOrdersPage() {
                         />
                       </div>
                       <div>
-                        <b style={{ color: '#8b5cf6', fontSize: 'var(--fs-lg)', fontWeight: 900 }}>#{row.order_number}</b>
-                        <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', marginTop: '2px' }}>{row.start_date ? new Date(row.start_date).toLocaleDateString('en-GB') : '---'}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <span
+                            dir="ltr"
+                            style={{
+                              color: 'var(--text-primary, #0f172a)',
+                              fontSize: 'var(--fs-md, 15px)',
+                              fontWeight: 900,
+                              letterSpacing: '0.3px'
+                            }}
+                          >
+                            #{row.order_number}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary, #64748b)', fontWeight: 700, marginTop: '1px' }}>
+                          {row.start_date ? new Date(row.start_date).toLocaleDateString('en-GB') : '---'}
+                        </div>
                       </div>
                     </div>
+
                     <div style={{
-                      display: 'flex', alignItems: 'center', gap: '0.375rem',
-                      padding: '0.25rem 0.625rem', borderRadius: '14px', fontSize: 'var(--fs-xs)', fontWeight: 800,
-                      backgroundColor: badgeStyle.bg, color: badgeStyle.color, border: `1px solid ${badgeStyle.dot}40`
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.35rem',
+                      padding: '0.3rem 0.7rem',
+                      borderRadius: '999px',
+                      fontSize: '11.5px',
+                      fontWeight: 800,
+                      backgroundColor: badgeStyle.bg,
+                      color: badgeStyle.color,
+                      border: `1px solid ${badgeStyle.dot}35`
                     }}>
-                      <PhiIcon value={badgeStyle.icon} size={14} /> {row.status}
+                      <PhiIcon value={badgeStyle.icon} size={13} />
+                      <span>{row.status}</span>
                     </div>
                   </div>
 
-                  <div className="jo-project-name" style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#27272a', background: 'linear-gradient(90deg, rgba(194,65,12, 0.15) 0%, transparent 100%)', padding: '0.5rem 0.75rem', borderRight: '4px solid #c2410c', borderRadius: '4px' }}>
-                        {row.projects?.Property || row.projects?.project_name || 'العقار غير محدد'}
+                  {/* 2️⃣ كتلة هوية المشروع وبند الأعمال المنسقة */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <div
+                        style={{
+                          width: '32px',
+                          height: '32px',
+                          borderRadius: '8px',
+                          background: 'rgba(249, 115, 22, 0.1)',
+                          color: '#ea580c',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}
+                      >
+                        <Building2 size={17} />
+                      </div>
+                      <h3
+                        style={{
+                          margin: 0,
+                          fontSize: 'var(--fs-md, 16px)',
+                          fontWeight: 900,
+                          color: 'var(--text-primary, #0f172a)',
+                          lineHeight: 1.3
+                        }}
+                      >
+                        {row.projects?.Property || row.projects?.project_name || 'مشروع غير محدد'}
+                      </h3>
+                    </div>
+
+                    {row.boq_budget?.work_item && (
+                      <div
+                        style={{
+                          fontSize: 'var(--fs-xs, 12px)',
+                          color: 'var(--text-secondary, #475569)',
+                          fontWeight: 700,
+                          background: 'var(--surface-sunken, #f8fafc)',
+                          padding: '0.4rem 0.65rem',
+                          borderRadius: '8px',
+                          border: '1px solid var(--border-color, #e2e8f0)',
+                          lineHeight: 1.4
+                        }}
+                      >
+                        {row.boq_budget.work_item}
+                      </div>
+                    )}
+
+                    <div>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.35rem',
+                          padding: '0.25rem 0.6rem',
+                          borderRadius: '6px',
+                          fontSize: '11.5px',
+                          fontWeight: 800,
+                          background: isSelf ? 'rgba(99, 102, 241, 0.08)' : 'rgba(245, 158, 11, 0.08)',
+                          color: isSelf ? '#4338ca' : '#b45309',
+                          border: `1px solid ${isSelf ? 'rgba(99, 102, 241, 0.2)' : 'rgba(245, 158, 11, 0.25)'}`
+                        }}
+                      >
+                        {isSelf ? <HardHat size={13} /> : <Handshake size={13} />}
+                        <span>{executorName}</span>
+                      </span>
+                    </div>
                   </div>
-                  
-                  {row.boq_budget?.work_item && (
-                       <span style={{ fontSize: 'var(--fs-xs)', background: 'var(--surface-sunken)', color: 'var(--text-secondary)', padding: '0.25rem 0.625rem', borderRadius: '8px', width: 'fit-content', border: 'none', boxShadow: 'var(--shadow-sunken)', fontWeight: 800 }}>
-                         {row.boq_budget.work_item}
-                       </span>
-                  )}
 
-                  <div>
-                    <span style={{ 
-                      padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-sm)', fontWeight: 800, display: 'inline-block',
-                      background: isSelf ? 'rgba(99, 102, 241, 0.1)' : 'rgba(245, 158, 11, 0.1)',
-                      color: isSelf ? '#4f46e5' : '#d97706',
-                      border: `1px solid ${isSelf ? 'rgba(99, 102, 241, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
-                    }}>
-                      {isSelf ? <HardHat size={14} aria-hidden="true" /> : <Handshake size={14} aria-hidden="true" />} {executorName}
-                    </span>
+                  {/* 3️⃣ الكتلة المالية المنظمة والمتناسقة */}
+                  <div
+                    style={{
+                      background: 'var(--surface-sunken, #f8fafc)',
+                      border: '1px solid var(--border-color, #e2e8f0)',
+                      borderRadius: '12px',
+                      padding: '0.85rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.45rem',
+                      fontSize: 'var(--fs-xs, 12px)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>أصل الموازنة التقديرية</span>
+                      <span style={{ color: '#0284c7', fontWeight: 900, fontSize: '13px' }} dir="ltr">
+                        {targetBudget.toLocaleString()} {currencySymbol()}
+                      </span>
+                    </div>
+
+                    {row.executor_type === 'مقاول باطن' ? (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b' }}>
+                          <span style={{ fontWeight: 700 }}>مواد ومصروفات مباشرة</span>
+                          <span style={{ color: '#d97706', fontWeight: 800 }} dir="ltr">
+                            - {materialsAndExpenses.toLocaleString()} {currencySymbol()}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b' }}>
+                          <span style={{ fontWeight: 700 }}>مسدد لمقاولي الباطن</span>
+                          <span style={{ color: '#7c3aed', fontWeight: 800 }} dir="ltr">
+                            - {subcontractorPaid.toLocaleString()} {currencySymbol()}
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b' }}>
+                        <span style={{ fontWeight: 700 }}>منصرف عمالة وخامات</span>
+                        <span style={{ color: '#dc2626', fontWeight: 800 }} dir="ltr">
+                          - {materialsAndExpenses.toLocaleString()} {currencySymbol()}
+                        </span>
+                      </div>
+                    )}
+
+                    <div
+                      style={{
+                        borderTop: '1px dashed var(--border-color, #cbd5e1)',
+                        paddingTop: '0.4rem',
+                        marginTop: '0.1rem',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <span style={{ color: 'var(--text-primary, #0f172a)', fontWeight: 900 }}>إجمالي التكلفة المنصرفة</span>
+                      <span style={{ color: '#dc2626', fontWeight: 900, fontSize: '13px' }} dir="ltr">
+                        {finalCost.toLocaleString()} {currencySymbol()}
+                      </span>
+                    </div>
+
+                    <div
+                      style={{
+                        background: profitBg,
+                        border: `1px solid ${profitColor}35`,
+                        borderRadius: '8px',
+                        padding: '0.45rem 0.75rem',
+                        marginTop: '0.2rem',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
+                      }}
+                    >
+                      <span style={{ color: profitColor, fontWeight: 900 }}>{profitLabel}</span>
+                      <span style={{ color: profitColor, fontWeight: 900, fontSize: '13.5px' }} dir="ltr">
+                        {calculatedProfit > 0 ? '+ ' : ''}{Math.abs(calculatedProfit).toLocaleString()} {currencySymbol()}
+                      </span>
+                    </div>
+
+                    {/* شريط استهلاك الميزانية المتناسق */}
+                    <div style={{ marginTop: '0.35rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginBottom: '0.3rem', fontWeight: 800 }}>
+                        <span>استهلاك الميزانية</span>
+                        <span style={{ color: progressColor, fontWeight: 900 }}>{usagePercent.toFixed(1)}%</span>
+                      </div>
+                      <div style={{ width: '100%', height: '7px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
+                        <div
+                          style={{
+                            width: `${Math.min(usagePercent, 100)}%`,
+                            height: '100%',
+                            background: progressColor,
+                            borderRadius: '999px',
+                            transition: 'width 0.4s ease'
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
 
-                  <div style={{ borderTop: '1px dashed #cbd5e1', margin: '0.3125rem 0' }}></div>
-
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>
-                     <div style={{ color: '#0ea5e9', display: 'flex', justifyContent: 'space-between' }}>
-                         <span>أصل الموازنة:</span> <span>{targetBudget.toLocaleString()} {currencySymbol()}</span>
-                     </div>
-                     
-                     {row.executor_type === 'مقاول باطن' ? (
-                        <>
-                            <div style={{ color: '#f59e0b', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>مواد ومصروفات:</span> <span dir="ltr"> - {materialsAndExpenses.toLocaleString()}</span>
-                            </div>
-                            <div style={{ color: '#8b5cf6', display: 'flex', justifyContent: 'space-between' }}>
-                                <span>مسدد للمقاول:</span> <span dir="ltr"> - {subcontractorPaid.toLocaleString()}</span>
-                            </div>
-                        </>
-                     ) : (
-                        <div style={{ color: '#ef4444', display: 'flex', justifyContent: 'space-between' }}>
-                            <span>منصرف للعمالة والخامات:</span> <span dir="ltr"> - {materialsAndExpenses.toLocaleString()}</span>
-                        </div>
-                     )}
-                     
-                     <div style={{ color: '#1e293b', borderTop: '1px dashed #cbd5e1', paddingTop: '0.375rem', marginTop: '0.25rem', display: 'flex', justifyContent: 'space-between' }}>
-                         <span>إجمالي التكلفة:</span> <span>{finalCost.toLocaleString()} {currencySymbol()}</span>
-                     </div>
-                     
-                     <div style={{ 
-                         color: profitColor, background: profitBg, 
-                         padding: '0.375rem 0.625rem', borderRadius: '8px', border: `1px solid ${profitColor}40`, marginTop: '0.25rem', display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-sm)'
-                     }}>
-                       <span>{profitLabel}</span> <span>{Math.abs(calculatedProfit).toLocaleString()} {currencySymbol()}</span>
-                     </div>
-
-                     <div style={{ marginTop: '0.625rem' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', color: '#64748b', marginBottom: '0.375rem' }}>
-                          <span>استهلاك الميزانية (عمالة + خامات)</span>
-                          <span style={{ color: progressColor, fontWeight: 900 }}>{usagePercent.toFixed(1)}%</span>
-                        </div>
-                        <div style={{ width: '100%', height: '0.5rem', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                          <div style={{ width: `${Math.min(usagePercent, 100)}%`, height: '100%', background: progressColor, transition: 'width 0.5s ease-out' }}></div>
-                        </div>
-                     </div>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.625rem' }}>
-                    <select 
+                  {/* 4️⃣ شريط الإجراءات الموحد والمتناسق */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: 'auto', paddingTop: '0.4rem' }}>
+                    {/* سطر الحالة السريعة بعرض كافي ومريح بدون أي قص للنص */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                      <span style={{ fontSize: '11.5px', color: 'var(--text-secondary, #64748b)', fontWeight: 800, whiteSpace: 'nowrap' }}>
+                        الحالة:
+                      </span>
+                      <select 
                         value={row.status}
                         onChange={(e) => { e.stopPropagation(); logic.handleUpdateSingleStatus(row.id, e.target.value); }}
                         onClick={(e) => e.stopPropagation()}
-                        style={{ flex: 1, padding: '0.5rem', background: 'var(--surface-sunken)', color: 'var(--text-primary)', border: 'none', boxShadow: 'var(--shadow-sunken)', borderRadius: '12px', fontWeight: 800, cursor: 'pointer', outline: 'none' }}
-                    >
+                        style={{
+                          flex: 1,
+                          height: '35px',
+                          padding: '0 0.75rem',
+                          background: 'var(--surface-sunken, #f8fafc)',
+                          color: 'var(--text-primary, #0f172a)',
+                          border: '1px solid var(--border-color, #e2e8f0)',
+                          borderRadius: '8px',
+                          fontSize: '12px',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                          outline: 'none',
+                          transition: 'all 0.2s ease'
+                        }}
+                      >
                         <option value="مسودة">مسودة</option>
                         <option value="جاري التنفيذ">جاري التنفيذ</option>
                         <option value="مكتمل">مكتمل</option>
@@ -376,13 +520,63 @@ export default function JobOrdersPage() {
                         <option value="جاري التسليم">جاري التسليم</option>
                         <option value="مفوتر">مفوتر</option>
                         <option value="تم التحصيل">تم التحصيل</option>
-                    </select>
-                    <button onClick={(e) => { e.stopPropagation(); logic.handleEdit(row); }} className="btn-main-glass" style={{ flex: 1, padding: '0.5rem', background: 'rgba(59, 130, 246, 0.05)', color: '#3b82f6', border: '1px solid rgba(59, 130, 246, 0.2)' }}>
-                      تعديل
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); logic.setLedgerRecord(row); logic.setIsLedgerOpen(true); }} className="btn-main-glass" style={{ flex: 1, padding: '0.5rem', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
-                      الليدجر
-                    </button>
+                      </select>
+                    </div>
+
+                    {/* أزرار الإجراءات المتناسقة */}
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); logic.setLedgerRecord(row); logic.setIsLedgerOpen(true); }}
+                        style={{
+                          flex: 1,
+                          height: '38px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.4rem',
+                          background: 'rgba(16, 185, 129, 0.12)',
+                          color: '#059669',
+                          border: '1px solid rgba(16, 185, 129, 0.3)',
+                          borderRadius: '10px',
+                          fontWeight: 900,
+                          fontSize: '12.5px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.2)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.12)'; }}
+                        title="فتح دفتر أستاذ ومطابقة أمر الشغل والتقرير الشامل"
+                      >
+                        <BookOpen size={15} /> الليدجر
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); logic.handleEdit(row); }}
+                        style={{
+                          height: '38px',
+                          padding: '0 1.15rem',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.4rem',
+                          background: 'var(--surface-sunken, #f8fafc)',
+                          color: 'var(--text-primary, #334155)',
+                          border: '1px solid var(--border-color, #cbd5e1)',
+                          borderRadius: '10px',
+                          fontWeight: 800,
+                          fontSize: '12.5px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease'
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--surface-raised, #e2e8f0)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'var(--surface-sunken, #f8fafc)'; }}
+                        title="تعديل بيانات أمر الشغل"
+                      >
+                        <Edit3 size={15} /> تعديل
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
