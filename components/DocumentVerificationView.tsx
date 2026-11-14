@@ -24,7 +24,8 @@ import {
   FileCheck2,
   Copy,
   ArrowRight,
-  Sparkles
+  Globe,
+  LogIn
 } from 'lucide-react';
 import { PHI_COMPANY_CONTACTS } from '@/lib/company-contacts';
 
@@ -53,15 +54,16 @@ export interface VerifiedDocData {
   allMatchesCount?: number;
 }
 
-const VERIFY_STYLES = `
+const SYSTEM_UNIFIED_STYLES = `
 /* ==========================================================================
-   PHI CONSTRUCT — SELF-CONTAINED VERIFICATION PORTAL STYLES
+   PHI TECH ERP SYSTEM — UNIFIED OBSIDIAN CERAMIC THEME (مطابق تماماً للسيستم)
    ========================================================================== */
-.pv-root {
+.phi-sys-root {
   min-height: 100vh;
-  background-color: #07090e;
-  background-image: radial-gradient(circle at 50% 0%, #151a27 0%, #07090e 75%);
-  color: #f1f5f9;
+  background: radial-gradient(circle at 15% 10%, rgba(249, 115, 22, 0.13), transparent 38%),
+              radial-gradient(circle at 85% 85%, rgba(245, 158, 11, 0.08), transparent 40%),
+              linear-gradient(180deg, #0c0907 0%, #100c09 100%) !important;
+  color: #ffffff !important;
   font-family: 'Cairo', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   direction: rtl;
   text-align: right;
@@ -71,504 +73,486 @@ const VERIFY_STYLES = `
   padding: 0;
   margin: 0;
 }
-.pv-root * {
+.phi-sys-root * {
   box-sizing: border-box;
 }
 
-/* Navbar */
-.pv-nav {
+/* System Top Bar (مطابق لشريط نظام فاي تك) */
+.phi-sys-topbar {
   position: sticky;
   top: 0;
   z-index: 50;
-  background: rgba(8, 11, 18, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(245, 158, 11, 0.22);
-  padding: 12px 20px;
+  background: linear-gradient(135deg, #191613 0%, #120f0d 55%, #090807 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 20px 42px -12px rgba(0, 0, 0, 0.88), 0 6px 16px -4px rgba(0, 0, 0, 0.65);
+  padding: 12px 24px;
 }
-.pv-nav-inner {
-  max-width: 980px;
+.phi-sys-topbar-inner {
+  max-width: 1040px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
-.pv-brand-link {
+.phi-sys-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   text-decoration: none;
-  color: #f8fafc;
+  color: #ffffff;
 }
-.pv-logo-mark {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(199, 85, 23, 0.35) 100%);
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  padding: 6px;
+.phi-sys-logo {
+  height: 40px;
+  width: auto;
+  max-width: 140px;
+  object-fit: contain;
+  display: block;
+}
+.phi-sys-brand-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.phi-sys-brand-meta {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15);
+  flex-direction: column;
 }
-.pv-brand-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.pv-brand-title strong {
-  font-size: 1.05rem;
-  font-weight: 900;
-  letter-spacing: 0.05em;
-  color: #f8fafc;
-}
-.pv-brand-badge {
-  font-size: 0.7rem;
+.phi-sys-brand-meta strong {
+  font-size: 0.96rem;
   font-weight: 800;
-  background: rgba(245, 158, 11, 0.18);
-  color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  padding: 2px 7px;
-  border-radius: 6px;
+  color: #ffffff;
+  letter-spacing: -0.2px;
 }
-.pv-brand-sub {
+.phi-sys-brand-meta small {
   font-size: 0.72rem;
-  color: #94a3b8;
-  margin: 0;
+  color: #d4c7b8;
+  font-weight: 600;
 }
-.pv-nav-actions {
+.phi-sys-topbar-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
-.pv-nav-link {
+.phi-sys-nav-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #cbd5e1;
+  color: #ede5da;
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  padding: 6px 12px;
-  border-radius: 8px;
-  transition: all 0.2s;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.07) 0%, rgba(20, 16, 13, 0.92) 100%);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
-.pv-nav-link:hover {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.08);
+.phi-sys-nav-btn:hover {
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.16) 0%, rgba(30, 22, 17, 0.95) 100%);
+  color: #f97316;
+  transform: translateY(-1.5px);
+}
+.phi-sys-nav-btn.primary {
+  background: linear-gradient(180deg, #fb923c 0%, #f97316 55%, #d9460f 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 24px -4px rgba(249, 115, 22, 0.35);
+}
+.phi-sys-nav-btn.primary:hover {
+  filter: brightness(1.08);
 }
 
-/* Main Container */
-.pv-main {
-  max-width: 860px;
+/* Page Workspace */
+.phi-sys-workspace {
+  max-width: 900px;
   margin: 0 auto;
-  padding: 36px 18px 60px;
+  padding: 38px 20px 60px;
 }
-.pv-hero {
+
+/* Hero Section */
+.phi-sys-hero {
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
 }
-.pv-pill-badge {
+.phi-sys-badge {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: rgba(16, 185, 129, 0.12);
-  border: 1px solid rgba(16, 185, 129, 0.35);
-  color: #34d399;
+  background: rgba(249, 115, 22, 0.13);
+  color: #fb923c;
   font-size: 0.78rem;
   font-weight: 800;
-  padding: 6px 14px;
+  padding: 6px 16px;
   border-radius: 999px;
   margin-bottom: 14px;
-  box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
 }
-.pv-hero-title {
-  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+.phi-sys-hero-title {
+  font-size: clamp(1.7rem, 3.4vw, 2.35rem);
   font-weight: 900;
   color: #ffffff;
   margin: 0 0 10px;
-  line-height: 1.25;
+  line-height: 1.3;
+  letter-spacing: -0.5px;
 }
-.pv-hero-desc {
+.phi-sys-hero-desc {
   font-size: clamp(0.88rem, 1.3vw, 0.98rem);
-  color: #94a3b8;
+  color: #d4c7b8;
   max-width: 620px;
   margin: 0 auto;
-  line-height: 1.65;
+  line-height: 1.7;
 }
 
-/* Search Box */
-.pv-search-card {
-  background: linear-gradient(180deg, #0e1422 0%, #090e18 100%);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+/* Panel Card (نفس كارتات .ent-panel في السيستم بدون إطارات صلبة) */
+.phi-sys-panel {
+  background: linear-gradient(180deg, #181512 0%, #120f0d 52%, #0b0908 100%);
   border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.03);
-  margin-bottom: 28px;
+  box-shadow: 0 26px 54px -15px rgba(0, 0, 0, 0.9), 0 12px 32px -10px rgba(249, 115, 22, 0.12);
+  padding: 26px;
+  margin-bottom: 30px;
   position: relative;
   overflow: hidden;
+  border: none !important;
 }
-.pv-search-glow {
+.phi-sys-specular-top {
   position: absolute;
-  top: -60px;
-  right: -60px;
-  width: 180px;
-  height: 180px;
-  background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%);
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(254, 215, 170, 0.35) 50%, transparent 100%);
   pointer-events: none;
+  z-index: 2;
 }
-.pv-form {
+
+/* Search Form */
+.phi-sys-form {
   display: flex;
   gap: 12px;
   flex-direction: column;
 }
 @media (min-width: 640px) {
-  .pv-form {
+  .phi-sys-form {
     flex-direction: row;
   }
 }
-.pv-input-wrap {
+.phi-sys-input-wrap {
   position: relative;
   flex: 1;
 }
-.pv-input-icon {
+.phi-sys-input-icon {
   position: absolute;
   right: 14px;
   top: 50%;
   transform: translateY(-50%);
-  color: #64748b;
+  color: #84654c;
   pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.pv-input {
+.phi-sys-input {
   width: 100%;
-  background: #04070d;
-  border: 1.5px solid #263347;
-  color: #ffffff;
+  background: #090807 !important;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.92), inset 0 -1px 1px rgba(249, 115, 22, 0.06) !important;
+  border: none !important;
+  color: #ffffff !important;
   font-family: inherit;
   font-size: 1rem;
-  padding: 13px 44px 13px 38px;
+  padding: 14px 44px 14px 38px;
   border-radius: 12px;
   outline: none;
-  transition: all 0.2s;
+  transition: box-shadow 0.25s ease, background 0.25s ease;
 }
-.pv-input:focus {
-  border-color: #f59e0b;
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18);
+.phi-sys-input:focus {
+  outline: none;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.92), 0 0 0 2px rgba(249, 115, 22, 0.4) !important;
 }
-.pv-input::placeholder {
-  color: #64748b;
-  font-size: 0.88rem;
+.phi-sys-input::placeholder {
+  color: #716253;
+  font-size: 0.9rem;
 }
-.pv-clear-btn {
+.phi-sys-clear-btn {
   position: absolute;
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #94a3b8;
+  color: #84654c;
   cursor: pointer;
   padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.pv-clear-btn:hover {
+.phi-sys-clear-btn:hover {
   color: #ffffff;
 }
-.pv-form-actions {
+
+/* Buttons */
+.phi-sys-btn-group {
   display: flex;
   gap: 10px;
 }
-.pv-btn-search {
+.phi-sys-btn-primary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-  color: #0b0906;
+  background: linear-gradient(180deg, #fb923c 0%, #f97316 55%, #d9460f 100%);
+  color: #ffffff;
   font-family: inherit;
   font-weight: 800;
   font-size: 0.95rem;
   padding: 0 24px;
-  min-height: 48px;
-  border: none;
+  min-height: 50px;
+  border: none !important;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
-  box-shadow: 0 6px 20px -4px rgba(245, 158, 11, 0.45);
+  transition: transform 0.2s ease, box-shadow 0.25s ease, filter 0.2s ease;
+  box-shadow: 0 10px 26px -4px rgba(249, 115, 22, 0.35);
   white-space: nowrap;
 }
-.pv-btn-search:hover:not(:disabled) {
-  background: linear-gradient(135deg, #fbbf24 0%, #ea580c 100%);
-  transform: translateY(-1px);
+.phi-sys-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1.5px);
+  box-shadow: 0 14px 32px -4px rgba(249, 115, 22, 0.45);
+  filter: brightness(1.06);
 }
-.pv-btn-search:disabled {
+.phi-sys-btn-primary:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
-.pv-btn-camera {
+.phi-sys-btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #141c2c;
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  color: #fbbf24;
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.07) 0%, rgba(20, 16, 13, 0.92) 100%);
+  color: #f7efe5;
   font-family: inherit;
   font-weight: 700;
   font-size: 0.88rem;
-  padding: 0 16px;
-  min-height: 48px;
+  padding: 0 18px;
+  min-height: 50px;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  border: 1px solid rgba(249, 115, 22, 0.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
   white-space: nowrap;
 }
-.pv-btn-camera:hover {
-  background: #1a253a;
-  border-color: #f59e0b;
-}
-
-/* Quick samples */
-.pv-examples {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.78rem;
-  color: #94a3b8;
-}
-.pv-sample-chip {
-  background: #121826;
-  border: 1px solid #263347;
-  color: #fbbf24;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.18s;
-}
-.pv-sample-chip:hover {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: #f59e0b;
-  color: #ffffff;
+.phi-sys-btn-secondary:hover {
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.16) 0%, rgba(30, 22, 17, 0.95) 100%);
+  color: #f97316;
+  transform: translateY(-1.5px);
 }
 
 /* Verified Certificate Card */
-.pv-cert {
-  background: linear-gradient(180deg, #0c1322 0%, #080c16 100%);
-  border: 2px solid rgba(16, 185, 129, 0.55);
-  border-radius: 20px;
+.phi-sys-cert-card {
+  background: linear-gradient(180deg, #181512 0%, #120f0d 52%, #0b0908 100%);
+  border-radius: 24px;
+  box-shadow: 0 26px 54px -15px rgba(0, 0, 0, 0.95), 0 12px 32px -10px rgba(16, 185, 129, 0.15);
   overflow: hidden;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65), 0 0 40px rgba(16, 185, 129, 0.12);
   margin-bottom: 30px;
-  animation: pvFadeIn 0.3s ease-out;
+  position: relative;
+  border: none !important;
+  animation: phiFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
-@keyframes pvFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
+@keyframes phiFadeIn {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.pv-cert-header {
-  background: linear-gradient(90deg, rgba(6, 78, 59, 0.5) 0%, rgba(15, 23, 42, 0.8) 100%);
-  padding: 16px 22px;
-  border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+.phi-sys-cert-header {
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.16) 0%, rgba(20, 16, 13, 0.95) 100%);
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
 }
-.pv-cert-status-left {
+.phi-sys-cert-status-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
-.pv-cert-icon {
+.phi-sys-status-icon {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: rgba(16, 185, 129, 0.18);
-  border: 1px solid rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.15);
   color: #34d399;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
-.pv-cert-title-wrap strong {
+.phi-sys-status-texts strong {
   display: block;
-  font-size: 1rem;
-  font-weight: 900;
+  font-size: 1.05rem;
+  font-weight: 800;
   color: #34d399;
   line-height: 1.3;
 }
-.pv-cert-title-wrap p {
-  margin: 2px 0 0;
-  font-size: 0.75rem;
-  color: #94a3b8;
+.phi-sys-status-texts p {
+  margin: 3px 0 0;
+  font-size: 0.76rem;
+  color: #d4c7b8;
 }
-.pv-doc-num-badge {
+.phi-sys-voucher-code {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 0.82rem;
+  font-size: 0.86rem;
   font-weight: 800;
-  color: #fbbf24;
-  background: #060a12;
-  border: 1px solid rgba(245, 158, 11, 0.4);
-  padding: 6px 12px;
+  color: #fb923c;
+  background: #090807;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.92);
+  padding: 6px 14px;
   border-radius: 10px;
 }
-.pv-cert-body {
-  padding: 24px;
+
+/* Certificate Body */
+.phi-sys-cert-body {
+  padding: 26px;
 }
 @media (min-width: 640px) {
-  .pv-cert-body {
-    padding: 30px;
+  .phi-sys-cert-body {
+    padding: 32px;
   }
 }
 
-/* Amount Display Box */
-.pv-amount-card {
-  background: #040812;
-  border: 1.5px solid rgba(245, 158, 11, 0.28);
-  border-radius: 16px;
-  padding: 22px;
+/* Massive Amount Display */
+.phi-sys-amount-box {
+  background: #090807;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.92), inset 0 -1px 1px rgba(249, 115, 22, 0.06);
+  border-radius: 18px;
+  padding: 24px;
   text-align: center;
-  margin-bottom: 22px;
-  box-shadow: inset 0 2px 8px rgba(0,0,0,0.6);
+  margin-bottom: 24px;
 }
-.pv-amount-label {
-  font-size: 0.8rem;
+.phi-sys-amount-label {
+  font-size: 0.82rem;
   font-weight: 800;
-  color: #fbbf24;
+  color: #fb923c;
   margin-bottom: 6px;
 }
-.pv-amount-row {
+.phi-sys-amount-row {
   display: flex;
   align-items: baseline;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   direction: ltr;
   margin-bottom: 8px;
 }
-.pv-amount-num {
+.phi-sys-amount-num {
   font-family: 'JetBrains Mono', monospace;
-  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-size: clamp(2.2rem, 5vw, 3.4rem);
   font-weight: 900;
   color: #ffffff;
   letter-spacing: -0.02em;
 }
-.pv-amount-curr {
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
+.phi-sys-amount-curr {
+  font-size: clamp(1.2rem, 2vw, 1.6rem);
   font-weight: 900;
-  color: #f59e0b;
+  color: #f97316;
 }
-.pv-amount-tafqeet {
+.phi-sys-tafqeet-pill {
   display: inline-block;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  color: #fde68a;
-  font-size: 0.86rem;
+  background: rgba(249, 115, 22, 0.12);
+  color: #fed7aa;
+  font-size: 0.88rem;
   font-weight: 700;
-  padding: 5px 16px;
+  padding: 6px 20px;
   border-radius: 999px;
 }
 
 /* Details Grid */
-.pv-grid {
+.phi-sys-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 12px;
-  margin-bottom: 20px;
+  gap: 14px;
+  margin-bottom: 22px;
 }
 @media (min-width: 600px) {
-  .pv-grid {
+  .phi-sys-grid {
     grid-template-columns: 1fr 1fr;
   }
 }
-.pv-cell {
-  background: #070b14;
-  border: 1px solid #1e293b;
+.phi-sys-cell {
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.05) 0%, rgba(20, 16, 13, 0.92) 100%);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: 16px 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  border: none !important;
 }
-.pv-cell-header {
+.phi-sys-cell-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.75rem;
-  color: #94a3b8;
+  font-size: 0.76rem;
+  color: #d4c7b8;
   margin-bottom: 4px;
 }
-.pv-cell-header svg {
-  color: #f59e0b;
+.phi-sys-cell-header svg {
+  color: #f97316;
 }
-.pv-cell-val {
-  font-size: 0.94rem;
+.phi-sys-cell-val {
+  font-size: 0.98rem;
   font-weight: 800;
-  color: #f8fafc;
+  color: #ffffff;
 }
-.pv-cell-sub {
-  font-size: 0.73rem;
-  color: #64748b;
+.phi-sys-cell-sub {
+  font-size: 0.74rem;
+  color: #84654c;
   margin-top: 3px;
 }
 
 /* Description Box */
-.pv-desc-box {
-  background: #070b14;
-  border: 1px solid #1e293b;
+.phi-sys-desc-box {
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.05) 0%, rgba(20, 16, 13, 0.92) 100%);
   border-radius: 14px;
-  padding: 16px;
-  margin-bottom: 20px;
+  padding: 18px;
+  margin-bottom: 22px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
 }
-.pv-desc-label {
-  font-size: 0.75rem;
+.phi-sys-desc-label {
+  font-size: 0.76rem;
   font-weight: 800;
-  color: #94a3b8;
+  color: #d4c7b8;
   margin-bottom: 6px;
 }
-.pv-desc-text {
-  font-size: 0.92rem;
-  color: #e2e8f0;
-  line-height: 1.6;
+.phi-sys-desc-text {
+  font-size: 0.94rem;
+  color: #f7efe5;
+  line-height: 1.65;
 }
 
-/* Seal & QR Row */
-.pv-seal-row {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(8, 14, 25, 0.9) 60%, rgba(16, 185, 129, 0.08) 100%);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 14px;
-  padding: 16px;
+/* Digital Seal & QR Stamp */
+.phi-sys-seal-box {
+  background: linear-gradient(135deg, rgba(249, 115, 22, 0.08) 0%, rgba(20, 16, 13, 0.95) 60%, rgba(16, 185, 129, 0.07) 100%);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 @media (min-width: 600px) {
-  .pv-seal-row {
+  .phi-sys-seal-box {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
   }
 }
-.pv-seal-left {
+.phi-sys-seal-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
 }
-.pv-qr-box {
+.phi-sys-qr-container {
   background: #ffffff;
   padding: 6px;
   border-radius: 12px;
@@ -576,134 +560,135 @@ const VERIFY_STYLES = `
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
-.pv-seal-info strong {
+.phi-sys-seal-details strong {
   display: block;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 800;
-  color: #fbbf24;
+  color: #fb923c;
 }
-.pv-seal-hash {
+.phi-sys-seal-hash {
   font-family: 'JetBrains Mono', monospace;
+  font-size: 0.76rem;
+  color: #d4c7b8;
+  margin-top: 3px;
+}
+.phi-sys-seal-issuer {
   font-size: 0.74rem;
-  color: #cbd5e1;
-  margin-top: 2px;
+  color: #84654c;
+  margin-top: 3px;
 }
-.pv-seal-issuer {
-  font-size: 0.72rem;
-  color: #94a3b8;
-  margin-top: 2px;
-}
-.pv-seal-right {
+.phi-sys-seal-right {
   text-align: right;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 12px;
 }
 @media (min-width: 600px) {
-  .pv-seal-right {
+  .phi-sys-seal-right {
     border-top: none;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    border-right: 1px solid rgba(255, 255, 255, 0.06);
     padding-top: 0;
-    padding-right: 14px;
+    padding-right: 16px;
   }
 }
-.pv-verified-stamp {
-  font-size: 0.78rem;
+.phi-sys-verified-tag {
+  font-size: 0.8rem;
   font-weight: 800;
   color: #34d399;
 }
-.pv-verified-date {
-  font-size: 0.72rem;
-  color: #94a3b8;
-  margin-top: 2px;
+.phi-sys-verified-timestamp {
+  font-size: 0.74rem;
+  color: #d4c7b8;
+  margin-top: 3px;
 }
 
 /* Actions Row */
-.pv-actions-row {
-  margin-top: 20px;
+.phi-sys-actions {
+  margin-top: 22px;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
-.pv-btn-action {
+.phi-sys-action-btn {
   display: inline-flex;
   align-items: center;
   gap: 7px;
-  background: #141c2c;
-  border: 1px solid #263347;
-  color: #e2e8f0;
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.07) 0%, rgba(20, 16, 13, 0.92) 100%);
+  color: #f7efe5;
   font-family: inherit;
   font-weight: 700;
-  font-size: 0.82rem;
-  padding: 8px 16px;
-  border-radius: 10px;
+  font-size: 0.84rem;
+  padding: 10px 18px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  border: 1px solid rgba(249, 115, 22, 0.18);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease;
 }
-.pv-btn-action:hover {
-  background: #1e293b;
-  border-color: #f59e0b;
-  color: #ffffff;
+.phi-sys-action-btn:hover {
+  background: linear-gradient(180deg, rgba(249, 115, 22, 0.16) 0%, rgba(30, 22, 17, 0.95) 100%);
+  color: #f97316;
+  transform: translateY(-1.5px);
 }
-.pv-btn-action.pv-btn-ghost {
+.phi-sys-action-btn.ghost {
   background: transparent;
   border-color: transparent;
-  color: #94a3b8;
+  box-shadow: none;
+  color: #d4c7b8;
 }
-.pv-btn-action.pv-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.06);
+.phi-sys-action-btn.ghost:hover {
+  background: rgba(255, 255, 255, 0.05);
   color: #ffffff;
 }
 
 /* Error Card */
-.pv-error-card {
-  background: linear-gradient(180deg, #180e12 0%, #11090d 100%);
-  border: 2px solid rgba(244, 63, 94, 0.45);
+.phi-sys-error-card {
+  background: linear-gradient(180deg, rgba(244, 63, 94, 0.12) 0%, rgba(20, 14, 16, 0.95) 100%);
   border-radius: 20px;
-  padding: 30px 20px;
+  padding: 32px 20px;
   text-align: center;
   margin-bottom: 30px;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 26px 54px -15px rgba(0, 0, 0, 0.9), 0 12px 32px -10px rgba(244, 63, 94, 0.1);
+  border: none !important;
 }
-.pv-error-icon {
+.phi-sys-error-icon {
   width: 50px;
   height: 50px;
   border-radius: 50%;
   background: rgba(244, 63, 94, 0.15);
-  border: 1px solid rgba(244, 63, 94, 0.35);
   color: #fb7185;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 0 auto 14px;
 }
-.pv-error-title {
+.phi-sys-error-title {
   font-size: 1.15rem;
-  font-weight: 900;
+  font-weight: 800;
   color: #fda4af;
   margin: 0 0 8px;
 }
-.pv-error-desc {
-  font-size: 0.9rem;
-  color: #cbd5e1;
+.phi-sys-error-desc {
+  font-size: 0.92rem;
+  color: #f7efe5;
   max-width: 500px;
   margin: 0 auto 18px;
   line-height: 1.6;
 }
-.pv-error-tips {
-  background: #090608;
-  border: 1px solid rgba(244, 63, 94, 0.2);
+.phi-sys-error-tips {
+  background: #090807;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.92);
   border-radius: 12px;
   padding: 14px 18px;
-  max-width: 460px;
+  max-width: 480px;
   margin: 0 auto 20px;
   text-align: right;
-  font-size: 0.78rem;
-  color: #94a3b8;
-  line-height: 1.7;
+  font-size: 0.8rem;
+  color: #d4c7b8;
+  line-height: 1.8;
 }
-.pv-btn-wa {
+.phi-sys-btn-wa {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -712,167 +697,170 @@ const VERIFY_STYLES = `
   text-decoration: none;
   font-weight: 800;
   font-size: 0.88rem;
-  padding: 10px 20px;
+  padding: 11px 22px;
   border-radius: 12px;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   box-shadow: 0 4px 15px rgba(5, 150, 105, 0.4);
 }
-.pv-btn-wa:hover {
+.phi-sys-btn-wa:hover {
   background: #10b981;
+  transform: translateY(-1.5px);
 }
 
 /* Feature grid */
-.pv-features {
+.phi-sys-features {
   display: grid;
   grid-template-columns: 1fr;
   gap: 14px;
   padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 @media (min-width: 768px) {
-  .pv-features {
+  .phi-sys-features {
     grid-template-columns: repeat(3, 1fr);
   }
 }
-.pv-feature-card {
-  background: #0a0e17;
-  border: 1px solid #1e293b;
-  border-radius: 14px;
-  padding: 18px;
+.phi-sys-feature-card {
+  background: linear-gradient(180deg, #181512 0%, #120f0d 52%, #0b0908 100%);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.6);
+  border: none !important;
 }
-.pv-feature-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
+.phi-sys-feature-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
-.pv-feature-title {
-  font-size: 0.88rem;
+.phi-sys-feature-title {
+  font-size: 0.9rem;
   font-weight: 800;
-  color: #f1f5f9;
+  color: #ffffff;
   margin-bottom: 6px;
 }
-.pv-feature-desc {
-  font-size: 0.76rem;
-  color: #94a3b8;
+.phi-sys-feature-desc {
+  font-size: 0.78rem;
+  color: #d4c7b8;
   line-height: 1.6;
   margin: 0;
 }
 
 /* Footer */
-.pv-footer {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.phi-sys-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   margin-top: 40px;
   padding: 24px 20px;
   text-align: center;
-  font-size: 0.75rem;
-  color: #64748b;
+  font-size: 0.78rem;
+  color: #84654c;
 }
-.pv-footer-inner {
-  max-width: 860px;
+.phi-sys-footer-inner {
+  max-width: 900px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
 }
 @media (min-width: 640px) {
-  .pv-footer-inner {
+  .phi-sys-footer-inner {
     flex-direction: row;
   }
 }
 
 /* Camera Modal */
-.pv-modal-overlay {
+.phi-sys-modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 100;
   background: rgba(0, 0, 0, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 16px;
 }
-.pv-modal-card {
-  background: #0d1424;
-  border: 1.5px solid rgba(245, 158, 11, 0.4);
-  border-radius: 20px;
-  max-width: 420px;
+.phi-sys-modal-card {
+  background: linear-gradient(180deg, #181512 0%, #120f0d 52%, #0b0908 100%);
+  border-radius: 24px;
+  max-width: 440px;
   width: 100%;
   overflow: hidden;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.9);
+  position: relative;
+  border: 1px solid rgba(249, 115, 22, 0.25);
 }
-.pv-modal-header {
-  padding: 14px 18px;
-  border-bottom: 1px solid #1e293b;
+.phi-sys-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.pv-modal-title {
+.phi-sys-modal-title {
   display: flex;
   align-items: center;
   gap: 8px;
   font-weight: 800;
-  font-size: 0.95rem;
-  color: #f8fafc;
+  font-size: 0.98rem;
+  color: #ffffff;
 }
-.pv-modal-close {
+.phi-sys-modal-close {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: #d4c7b8;
   cursor: pointer;
   padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.pv-modal-close:hover {
+.phi-sys-modal-close:hover {
   color: #ffffff;
 }
-.pv-modal-body {
-  padding: 18px;
+.phi-sys-modal-body {
+  padding: 20px;
 }
-.pv-video-stage {
+.phi-sys-video-stage {
   position: relative;
   width: 100%;
   aspect-ratio: 1;
   background: #000000;
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.pv-video {
+.phi-sys-video {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.pv-viewfinder {
+.phi-sys-viewfinder {
   position: absolute;
   inset: 24px;
-  border: 2px dashed rgba(245, 158, 11, 0.8);
-  border-radius: 14px;
+  border: 2px dashed rgba(249, 115, 22, 0.8);
+  border-radius: 16px;
   pointer-events: none;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.pv-laser-line {
+.phi-sys-laser {
   width: 100%;
   height: 2px;
-  background: #f59e0b;
-  box-shadow: 0 0 10px #f59e0b;
-  animation: pvLaser 2s infinite ease-in-out;
+  background: #f97316;
+  box-shadow: 0 0 10px #f97316;
+  animation: phiLaser 2s infinite ease-in-out;
 }
-@keyframes pvLaser {
+@keyframes phiLaser {
   0%, 100% { transform: translateY(-50px); opacity: 0.4; }
   50% { transform: translateY(50px); opacity: 1; }
 }
@@ -880,11 +868,11 @@ const VERIFY_STYLES = `
 /* Print styles */
 @media print {
   body { background: #fff !important; color: #000 !important; }
-  .pv-nav, .pv-search-card, .pv-features, .pv-footer, .pv-actions-row, .pv-hero { display: none !important; }
-  .pv-cert { border: 2px solid #000 !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
-  .pv-amount-card, .pv-cell, .pv-desc-box { background: #f8fafc !important; border: 1px solid #ccc !important; color: #000 !important; }
-  .pv-amount-num, .pv-cell-val, .pv-desc-text { color: #000 !important; }
-  .pv-seal-row { border: 1px solid #ccc !important; background: #fff !important; }
+  .phi-sys-topbar, .phi-sys-panel, .phi-sys-features, .phi-sys-footer, .phi-sys-actions, .phi-sys-hero { display: none !important; }
+  .phi-sys-cert-card { border: 2px solid #000 !important; box-shadow: none !important; background: #fff !important; color: #000 !important; }
+  .phi-sys-amount-box, .phi-sys-cell, .phi-sys-desc-box { background: #f8fafc !important; border: 1px solid #ccc !important; color: #000 !important; }
+  .phi-sys-amount-num, .phi-sys-cell-val, .phi-sys-desc-text { color: #000 !important; }
+  .phi-sys-seal-box { border: 1px solid #ccc !important; background: #fff !important; }
 }
 `;
 
@@ -1091,74 +1079,73 @@ export default function DocumentVerificationView({
   };
 
   return (
-    <div className="pv-root" dir="rtl">
-      <style>{VERIFY_STYLES}</style>
+    <div className="phi-sys-root" dir="rtl">
+      <style>{SYSTEM_UNIFIED_STYLES}</style>
 
-      {/* Top Navbar (only for standalone page) */}
+      {/* Unified System Top Bar */}
       {!embedded && (
-        <header className="pv-nav">
-          <div className="pv-nav-inner">
-            <Link href="/" className="pv-brand-link">
-              <div className="pv-logo-mark">
-                <img 
-                  src="/brand/phitech-mark-color.svg" 
-                  alt="Phi Tech" 
-                  width={30} 
-                  height={30} 
-                  style={{ width: 30, height: 30, objectFit: 'contain' }} 
-                />
-              </div>
-              <div>
-                <div className="pv-brand-title">
-                  <strong>PHI CONSTRUCT</strong>
-                  <span className="pv-brand-badge">فاي تك</span>
-                </div>
-                <p className="pv-brand-sub">بوابة التحقق والتوثيق المعتمدة رسمياً</p>
+        <header className="phi-sys-topbar">
+          <div className="phi-sys-topbar-inner">
+            <Link href="/" className="phi-sys-brand" title="الرئيسية">
+              <img 
+                src="/brand/phitech-lockup-light.svg" 
+                alt="فاي تك | PHI TECH" 
+                className="phi-sys-logo" 
+                style={{ height: 38, width: 'auto', display: 'block' }}
+              />
+              <div className="phi-sys-brand-divider" />
+              <div className="phi-sys-brand-meta">
+                <strong>منظومة التحقق المالي</strong>
+                <small>بوابة التحقق والتوثيق الرقمي للمستندات</small>
               </div>
             </Link>
 
-            <div className="pv-nav-actions">
-              <Link href="/" className="pv-nav-link">
-                <span>الموقع الرئيسي</span>
-                <ArrowRight style={{ width: 14, height: 14, transform: 'rotate(180deg)' }} />
+            <div className="phi-sys-topbar-actions">
+              <Link href="/" className="phi-sys-nav-btn">
+                <Globe style={{ width: 15, height: 15 }} />
+                <span>الموقع العام</span>
+              </Link>
+              <Link href="/login" className="phi-sys-nav-btn primary">
+                <LogIn style={{ width: 15, height: 15 }} />
+                <span>دخول النظام</span>
               </Link>
             </div>
           </div>
         </header>
       )}
 
-      {/* Main Container */}
-      <main className="pv-main">
+      {/* Main Workspace */}
+      <main className="phi-sys-workspace">
         {/* Hero Section */}
         {!embedded && (
-          <div className="pv-hero">
-            <div className="pv-pill-badge">
-              <ShieldCheck style={{ width: 15, height: 15, color: '#34d399' }} />
-              <span>منظومة التحقق والتوثيق الرقمي من صحة المستندات المالية</span>
+          <div className="phi-sys-hero">
+            <div className="phi-sys-badge">
+              <ShieldCheck style={{ width: 16, height: 16 }} />
+              <span>نظام فاي تك الموحد | توثيق واعتماد القيود المحاسبية</span>
             </div>
 
-            <h1 className="pv-hero-title">
+            <h1 className="phi-sys-hero-title">
               التحقق من صحة ومطابقة المستندات
             </h1>
-            <p className="pv-hero-desc">
-              امسح رمز QR أو الباركود المطبوع على السند أو اكتب رقمه للتحقق الفوري من صحة الأرقام والمبالغ المعتمدة في سجلات فاي تك.
+            <p className="phi-sys-hero-desc">
+              تحقق فوري من صحة ومطابقة الأرقام والمبالغ المعتمدة في سجلات الأستاذ العام عبر كتابة رقم السند أو مسح رمز QR والباركود.
             </p>
           </div>
         )}
 
-        {/* Search & Scan Box */}
-        <div className="pv-search-card">
-          <div className="pv-search-glow" />
+        {/* Search & Scan Panel (بنفس أسلوب بطاقات السيستم) */}
+        <div className="phi-sys-panel">
+          <div className="phi-sys-specular-top" />
           
           <form 
             onSubmit={(e) => {
               e.preventDefault();
               handleSearch();
             }}
-            className="pv-form"
+            className="phi-sys-form"
           >
-            <div className="pv-input-wrap">
-              <div className="pv-input-icon">
+            <div className="phi-sys-input-wrap">
+              <div className="phi-sys-input-icon">
                 <Search style={{ width: 18, height: 18 }} />
               </div>
               <input
@@ -1166,28 +1153,28 @@ export default function DocumentVerificationView({
                 value={docQuery}
                 onChange={(e) => setDocQuery(e.target.value)}
                 placeholder="اكتب رقم السند أو الفاتورة (مثال: PV-2026-0002 أو RV-2026-0001)..."
-                className="pv-input"
+                className="phi-sys-input"
               />
               {docQuery && (
                 <button
                   type="button"
                   onClick={() => setDocQuery('')}
-                  className="pv-clear-btn"
-                  title="مسح الحقل"
+                  className="phi-sys-clear-btn"
+                  title="مسح"
                 >
                   <X style={{ width: 16, height: 16 }} />
                 </button>
               )}
             </div>
 
-            <div className="pv-form-actions">
+            <div className="phi-sys-btn-group">
               <button
                 type="submit"
                 disabled={isLoading}
-                className="pv-btn-search"
+                className="phi-sys-btn-primary"
               >
                 {isLoading ? (
-                  <span style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid #000', borderTopColor: 'transparent', borderRadius: '50%', animation: 'pvSpin 0.8s linear infinite' }} />
+                  <span style={{ display: 'inline-block', width: 16, height: 16, border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'phiSpin 0.8s linear infinite' }} />
                 ) : (
                   <>
                     <Search style={{ width: 16, height: 16 }} />
@@ -1199,79 +1186,44 @@ export default function DocumentVerificationView({
               <button
                 type="button"
                 onClick={startCameraScan}
-                className="pv-btn-camera"
+                className="phi-sys-btn-secondary"
                 title="مسح الباركود باستخدام الكاميرا"
               >
-                <Camera style={{ width: 16, height: 16 }} />
+                <Camera style={{ width: 16, height: 16, color: '#f97316' }} />
                 <span>مسح بالكاميرا</span>
               </button>
             </div>
           </form>
-
-          {/* Quick Examples */}
-          <div className="pv-examples">
-            <span style={{ fontWeight: 700, color: '#64748b' }}>أمثلة سريعة للتجربة:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setDocQuery('PV-2026-0002');
-                handleSearch('PV-2026-0002');
-              }}
-              className="pv-sample-chip"
-            >
-              PV-2026-0002
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setDocQuery('PV-2026-0003');
-                handleSearch('PV-2026-0003');
-              }}
-              className="pv-sample-chip"
-            >
-              PV-2026-0003
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setDocQuery('RV-2026-0001');
-                handleSearch('RV-2026-0001');
-              }}
-              className="pv-sample-chip"
-            >
-              RV-2026-0001
-            </button>
-          </div>
         </div>
 
         {/* Camera Modal */}
         {isCameraOpen && (
-          <div className="pv-modal-overlay">
-            <div className="pv-modal-card">
-              <div className="pv-modal-header">
-                <div className="pv-modal-title">
-                  <Camera style={{ width: 18, height: 18, color: '#f59e0b' }} />
+          <div className="phi-sys-modal-overlay">
+            <div className="phi-sys-modal-card">
+              <div className="phi-sys-modal-header">
+                <div className="phi-sys-modal-title">
+                  <Camera style={{ width: 18, height: 18, color: '#f97316' }} />
                   <span>مسح الباركود بالكاميرا</span>
                 </div>
                 <button
                   type="button"
                   onClick={stopCameraScan}
-                  className="pv-modal-close"
+                  className="phi-sys-modal-close"
                   title="إغلاق"
                 >
                   <X style={{ width: 18, height: 18 }} />
                 </button>
               </div>
 
-              <div className="pv-modal-body">
-                <div className="pv-video-stage">
+              <div className="phi-sys-modal-body">
+                <div className="phi-sys-video-stage">
                   <video
                     ref={videoRef}
                     playsInline
-                    className="pv-video"
+                    className="phi-sys-video"
                   />
-                  <div className="pv-viewfinder">
-                    <div className="pv-laser-line" />
+                  <div className="phi-sys-viewfinder">
+                    <div className="phi-sys-laser" />
                   </div>
                 </div>
 
@@ -1281,12 +1233,12 @@ export default function DocumentVerificationView({
                   </p>
                 )}
 
-                <p style={{ fontSize: '0.78rem', color: '#94a3b8', textAlign: 'center', marginTop: 12 }}>
+                <p style={{ fontSize: '0.78rem', color: '#d4c7b8', textAlign: 'center', marginTop: 12 }}>
                   وجّه الكاميرا نحو الباركود أو رمز QR المطبوع أعلى السند.
                 </p>
 
-                <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid #1e293b', textAlign: 'center' }}>
-                  <label style={{ fontSize: '0.8rem', color: '#fbbf24', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ marginTop: 14, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.06)', textAlign: 'center' }}>
+                  <label style={{ fontSize: '0.82rem', color: '#fb923c', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
                     <span>أو اختر صورة السند من الهاتف</span>
                     <input
                       type="file"
@@ -1301,154 +1253,156 @@ export default function DocumentVerificationView({
           </div>
         )}
 
-        {/* Results: Verified Card */}
+        {/* Results: Verified Card (مطابق لبطاقات وبيانات السيستم) */}
         {verifiedData && (
-          <div id="verified-certificate" className="pv-cert">
-            {/* Verification Status Header */}
-            <div className="pv-cert-header">
-              <div className="pv-cert-status-left">
-                <div className="pv-cert-icon">
+          <div id="verified-certificate" className="phi-sys-cert-card">
+            <div className="phi-sys-specular-top" />
+            
+            {/* Status Header */}
+            <div className="phi-sys-cert-header">
+              <div className="phi-sys-cert-status-wrap">
+                <div className="phi-sys-status-icon">
                   <CheckCircle2 style={{ width: 24, height: 24 }} />
                 </div>
-                <div className="pv-cert-title-wrap">
+                <div className="phi-sys-status-texts">
                   <strong>مستند أصلي موثق ومعتمد رسمياً</strong>
-                  <p>تم التحقق من مطابقة الأرقام والبيانات مع دفتر الأستاذ العام في فاي تك</p>
+                  <p>تمت المطابقة مع قيود اليومية العامة ودفتر الأستاذ في نظام فاي تك</p>
                 </div>
               </div>
 
-              <span className="pv-doc-num-badge">
+              <span className="phi-sys-voucher-code">
                 {verifiedData.docNumber}
               </span>
             </div>
 
-            {/* Certificate Body */}
-            <div className="pv-cert-body">
+            {/* Body */}
+            <div className="phi-sys-cert-body">
               {/* Massive Amount Display */}
-              <div className="pv-amount-card">
-                <div className="pv-amount-label">
+              <div className="phi-sys-amount-box">
+                <div className="phi-sys-amount-label">
                   المبلغ المالي المعتمد في السند
                 </div>
-                <div className="pv-amount-row">
-                  <span className="pv-amount-num">
+                <div className="phi-sys-amount-row">
+                  <span className="phi-sys-amount-num">
                     {verifiedData.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
-                  <span className="pv-amount-curr">
+                  <span className="phi-sys-amount-curr">
                     {verifiedData.currency}
                   </span>
                 </div>
-                <div className="pv-amount-tafqeet">
+                <div className="phi-sys-tafqeet-pill">
                   {verifiedData.amountInWords}
                 </div>
               </div>
 
-              {/* Document Details Grid */}
-              <div className="pv-grid">
-                <div className="pv-cell">
-                  <div className="pv-cell-header">
+              {/* Details Grid */}
+              <div className="phi-sys-grid">
+                <div className="phi-sys-cell">
+                  <div className="phi-sys-cell-header">
                     <FileText style={{ width: 14, height: 14 }} />
-                    <span>نوع المستند ورقم المرجع:</span>
+                    <span>نوع المستند:</span>
                   </div>
-                  <div className="pv-cell-val">
+                  <div className="phi-sys-cell-val">
                     {verifiedData.docType}
                   </div>
-                  <div className="pv-cell-sub">
-                    رقم السند: {verifiedData.docNumber}
+                  <div className="phi-sys-cell-sub">
+                    رقم السند المرجعي: {verifiedData.docNumber}
                   </div>
                 </div>
 
-                <div className="pv-cell">
-                  <div className="pv-cell-header">
+                <div className="phi-sys-cell">
+                  <div className="phi-sys-cell-header">
                     <Calendar style={{ width: 14, height: 14 }} />
                     <span>تاريخ المستند الرسمي:</span>
                   </div>
-                  <div className="pv-cell-val" style={{ fontFamily: 'monospace' }}>
+                  <div className="phi-sys-cell-val" style={{ fontFamily: 'monospace' }}>
                     {verifiedData.date}
                   </div>
-                  <div className="pv-cell-sub">
-                    مسجل ومثبت بالسجلات المحاسبية
+                  <div className="phi-sys-cell-sub">
+                    مسجل ومثبت في الحسابات العامة
                   </div>
                 </div>
 
-                <div className="pv-cell">
-                  <div className="pv-cell-header">
+                <div className="phi-sys-cell">
+                  <div className="phi-sys-cell-header">
                     <User style={{ width: 14, height: 14 }} />
                     <span>{verifiedData.partyRole}:</span>
                   </div>
-                  <div className="pv-cell-val">
+                  <div className="phi-sys-cell-val">
                     {verifiedData.partyName}
                   </div>
                 </div>
 
-                <div className="pv-cell">
-                  <div className="pv-cell-header">
+                <div className="phi-sys-cell">
+                  <div className="phi-sys-cell-header">
                     <CreditCard style={{ width: 14, height: 14 }} />
-                    <span>طريقة السداد / الصرف:</span>
+                    <span>طريقة السداد / الخزينة:</span>
                   </div>
-                  <div className="pv-cell-val">
+                  <div className="phi-sys-cell-val">
                     {verifiedData.paymentMethod}
                   </div>
-                  <div className="pv-cell-sub" style={{ color: '#34d399', fontWeight: 600 }}>
+                  <div className="phi-sys-cell-sub" style={{ color: '#34d399', fontWeight: 700 }}>
                     {verifiedData.status}
                   </div>
                 </div>
               </div>
 
-              {/* Description & Statement */}
-              <div className="pv-desc-box">
-                <div className="pv-desc-label">
+              {/* Description */}
+              <div className="phi-sys-desc-box">
+                <div className="phi-sys-desc-label">
                   البيان المالي المسجل في السند:
                 </div>
-                <div className="pv-desc-text">
+                <div className="phi-sys-desc-text">
                   {verifiedData.description}
                 </div>
               </div>
 
-              {/* Digital Seal & QR Stamp */}
-              <div className="pv-seal-row">
-                <div className="pv-seal-left">
-                  <div className="pv-qr-box">
+              {/* Digital Seal */}
+              <div className="phi-sys-seal-box">
+                <div className="phi-sys-seal-left">
+                  <div className="phi-sys-qr-container">
                     <QRCodeSVG
                       value={typeof window !== 'undefined' ? window.location.href : `https://phi-tech.org/verify?doc=${verifiedData.docNumber}`}
-                      size={58}
+                      size={60}
                       level="M"
                     />
                   </div>
-                  <div className="pv-seal-info">
-                    <strong>الختم الرقمي المشفر</strong>
-                    <div className="pv-seal-hash">
+                  <div className="phi-sys-seal-details">
+                    <strong>الختم الرقمي المشفر (Digital Seal)</strong>
+                    <div className="phi-sys-seal-hash">
                       {verifiedData.securitySeal}
                     </div>
-                    <div className="pv-seal-issuer">
+                    <div className="phi-sys-seal-issuer">
                       الجهة المصدرة: {verifiedData.companyName}
                     </div>
                   </div>
                 </div>
 
-                <div className="pv-seal-right">
-                  <div className="pv-verified-stamp">موثق ومعتمد رسمياً</div>
-                  <div className="pv-verified-date">
+                <div className="phi-sys-seal-right">
+                  <div className="phi-sys-verified-tag">موثق ومعتمد رسمياً</div>
+                  <div className="phi-sys-verified-timestamp">
                     بتاريخ: {new Date(verifiedData.verifiedAt).toLocaleDateString('ar-EG')}
                   </div>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="pv-actions-row">
+              <div className="phi-sys-actions">
                 <button
                   type="button"
                   onClick={handlePrintCertificate}
-                  className="pv-btn-action"
+                  className="phi-sys-action-btn"
                 >
-                  <Printer style={{ width: 15, height: 15, color: '#f59e0b' }} />
+                  <Printer style={{ width: 15, height: 15, color: '#f97316' }} />
                   <span>طباعة شهادة التوثيق</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={handleCopyLink}
-                  className="pv-btn-action"
+                  className="phi-sys-action-btn"
                 >
-                  <Share2 style={{ width: 15, height: 15, color: '#f59e0b' }} />
+                  <Share2 style={{ width: 15, height: 15, color: '#f97316' }} />
                   <span>{isCopied ? 'تم نسخ الرابط بنجاح!' : 'مشاركة الرابط'}</span>
                 </button>
 
@@ -1459,7 +1413,7 @@ export default function DocumentVerificationView({
                     setDocQuery('');
                     setHasSearched(false);
                   }}
-                  className="pv-btn-action pv-btn-ghost"
+                  className="phi-sys-action-btn ghost"
                 >
                   <RotateCcw style={{ width: 14, height: 14 }} />
                   <span>فحص مستند آخر</span>
@@ -1471,21 +1425,21 @@ export default function DocumentVerificationView({
 
         {/* Error / Not Found Message */}
         {errorMessage && (
-          <div className="pv-error-card">
-            <div className="pv-error-icon">
+          <div className="phi-sys-error-card">
+            <div className="phi-sys-error-icon">
               <AlertTriangle style={{ width: 24, height: 24 }} />
             </div>
-            <h3 className="pv-error-title">
+            <h3 className="phi-sys-error-title">
               تنبيه: لم يتم العثور على المستند
             </h3>
-            <p className="pv-error-desc">
+            <p className="phi-sys-error-desc">
               {errorMessage}
             </p>
 
-            <div className="pv-error-tips">
-              <div style={{ fontWeight: 800, color: '#f8fafc', marginBottom: 6 }}>إرشادات التحقق السريع:</div>
-              <div>• تأكد من كتابة كود السند كاملاً كما هو مطبوع (مثال: <span style={{ fontFamily: 'monospace', color: '#fbbf24' }}>PV-2026-0002</span> أو <span style={{ fontFamily: 'monospace', color: '#fbbf24' }}>RV-2026-0001</span>).</div>
-              <div>• يمكنك أيضاً كتابة أرقام السند فقط (مثال: <span style={{ fontFamily: 'monospace', color: '#fbbf24' }}>0002</span>).</div>
+            <div className="phi-sys-error-tips">
+              <div style={{ fontWeight: 800, color: '#ffffff', marginBottom: 6 }}>إرشادات التحقق المالي:</div>
+              <div>• تأكد من كتابة كود السند كاملاً كما هو مطبوع (مثال: <span style={{ fontFamily: 'monospace', color: '#fb923c' }}>PV-2026-0002</span> أو <span style={{ fontFamily: 'monospace', color: '#fb923c' }}>RV-2026-0001</span>).</div>
+              <div>• يمكنك أيضاً كتابة أرقام السند فقط (مثال: <span style={{ fontFamily: 'monospace', color: '#fb923c' }}>0002</span>).</div>
               <div>• في حال استلامك إيصالاً غير مسجل، تواصل فوراً مع الإدارة المالية للتأكيد.</div>
             </div>
 
@@ -1493,7 +1447,7 @@ export default function DocumentVerificationView({
               href={`https://wa.me/${PHI_COMPANY_CONTACTS.phone1?.replace(/[^0-9]/g, '') || '201026332733'}?text=${encodeURIComponent(`السلام عليكم، أحتاج التحقق من السند رقم: ${docQuery}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="pv-btn-wa"
+              className="phi-sys-btn-wa"
             >
               <span>التواصل مع الإدارة المالية عبر واتساب</span>
               <ExternalLink style={{ width: 15, height: 15 }} />
@@ -1502,43 +1456,43 @@ export default function DocumentVerificationView({
         )}
 
         {/* Feature Cards Guide */}
-        <div className="pv-features">
-          <div className="pv-feature-card">
-            <div className="pv-feature-icon" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#fbbf24' }}>
+        <div className="phi-sys-features">
+          <div className="phi-sys-feature-card">
+            <div className="phi-sys-feature-icon" style={{ background: 'rgba(249, 115, 22, 0.13)', color: '#fb923c' }}>
               <QrCode style={{ width: 18, height: 18 }} />
             </div>
-            <div className="pv-feature-title">مسح الباركود الفوري</div>
-            <p className="pv-feature-desc">
+            <div className="phi-sys-feature-title">مسح الباركود الفوري</div>
+            <p className="phi-sys-feature-desc">
               كاميرا الهاتف الذكي تفتح شهادة التحقق مباشرة بمجرد توجيه الكاميرا نحو رمز QR على أي مستند مطبوع.
             </p>
           </div>
 
-          <div className="pv-feature-card">
-            <div className="pv-feature-icon" style={{ background: 'rgba(16, 185, 129, 0.12)', color: '#34d399' }}>
+          <div className="phi-sys-feature-card">
+            <div className="phi-sys-feature-icon" style={{ background: 'rgba(16, 185, 129, 0.13)', color: '#34d399' }}>
               <FileCheck2 style={{ width: 18, height: 18 }} />
             </div>
-            <div className="pv-feature-title">مطابقة محاسبية دقيقة</div>
-            <p className="pv-feature-desc">
+            <div className="phi-sys-feature-title">مطابقة محاسبية دقيقة</div>
+            <p className="phi-sys-feature-desc">
               يتم جلب الأرقام والبيانات لحظياً من قيود اليومية العامة المعتمدة في النظام لمنع أي تلاعب أو تزوير.
             </p>
           </div>
 
-          <div className="pv-feature-card">
-            <div className="pv-feature-icon" style={{ background: 'rgba(14, 165, 233, 0.12)', color: '#38bdf8' }}>
+          <div className="phi-sys-feature-card">
+            <div className="phi-sys-feature-icon" style={{ background: 'rgba(56, 189, 248, 0.13)', color: '#38bdf8' }}>
               <Building2 style={{ width: 18, height: 18 }} />
             </div>
-            <div className="pv-feature-title">اعتماد فاي تك الرسمي</div>
-            <p className="pv-feature-desc">
+            <div className="phi-sys-feature-title">اعتماد فاي تك الرسمي</div>
+            <p className="phi-sys-feature-desc">
               كل مستند موثق يحمل ختماً رقمياً مشفراً وكود أمان إلكتروني يثبت صحته للعملاء والملاك ومقاولي الباطن.
             </p>
           </div>
         </div>
       </main>
 
-      {/* Footer (only for standalone page) */}
+      {/* Footer */}
       {!embedded && (
-        <footer className="pv-footer">
-          <div className="pv-footer-inner">
+        <footer className="phi-sys-footer">
+          <div className="phi-sys-footer-inner">
             <p>© 2026 شركة فاي تك للتطوير العقاري والمقاولات العامة (PHI CONSTRUCT) — جميع الحقوق محفوظة.</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span>هاتف: {PHI_COMPANY_CONTACTS.phone1}</span>
