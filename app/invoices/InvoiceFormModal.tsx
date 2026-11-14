@@ -8,7 +8,7 @@ import { useToast } from '@/lib/toast-context';
 import SmartCombo from '@/components/SmartCombo'; 
 import PhiDialog from '@/components/PhiDialog';
 import JobOrderSelector, { JobOrderOption } from '@/components/JobOrderSelector';
-import { FileText, Landmark, ListPlus, Percent, Plus, ReceiptText, Save, Trash2, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, FileText, Info, Landmark, Link2, ListPlus, Percent, Plus, ReceiptText, Save, Trash2, Wallet, X } from 'lucide-react';
 
 type MaterialCredit = { receipt_id: string; receipt_number: string; receipt_date: string; available_amount: number | string };
 const cents = (amount: number) => Math.round((amount + Number.EPSILON) * 100);
@@ -73,6 +73,21 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         }
     });
 
+    // 🚀 استعلام سندات القبض الخاصة بنفس العميل لإمكانية ربط الدفعة
+    const partnerReceiptsQuery = useQuery({
+        queryKey: ['invoice-partner-receipts', activeCompany?.id, record?.partner_id],
+        enabled: Boolean(isOpen && record?.partner_id),
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('receipt_vouchers')
+                .select('id, receipt_number, date, amount, invoice_id, notes, description, status')
+                .eq('partner_id', record.partner_id)
+                .order('date', { ascending: false });
+            if (error) return [];
+            return (data || []) as any[];
+        }
+    });
+
     // 🚀 1. سحب البيانات بشكل ذكي ومؤكد (العقارات، العميل، والبنود)
     useEffect(() => {
         if (!isOpen || !record) return;
@@ -130,6 +145,19 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             setRecord((prev: any) => ({ ...prev, ...updates }));
         }
     }, [record?.id, projects?.length, isOpen, record?.lines_data, record?.items, defaultAccountsQuery.data]); 
+
+    // 🚀 ربط سند القبض إذا كانت الفاتورة مرتبطة به مسبقاً
+    useEffect(() => {
+        if (!record?.id || record.selected_receipt_id || !partnerReceiptsQuery.data?.length) return;
+        const linked = partnerReceiptsQuery.data.find((rc: any) => rc.invoice_id === record.id);
+        if (linked) {
+            setRecord((prev: any) => ({
+                ...prev,
+                selected_receipt_id: linked.id,
+                paid_amount: prev.paid_amount != null && Number(prev.paid_amount) > 0 ? prev.paid_amount : Number(linked.amount || 0)
+            }));
+        }
+    }, [record?.id, record?.selected_receipt_id, partnerReceiptsQuery.data]); 
 
     // 🚀 2. الحسابات الفورية
     useEffect(() => {
@@ -295,7 +323,11 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         }
         
         if (!perLine) {
-            onSave(record);
+            onSave({
+                ...record,
+                paid_amount: Number(record.paid_amount || 0),
+                selected_receipt_id: record.selected_receipt_id || null
+            });
             return;
         }
         if (materialQuery.isFetching) {
@@ -313,14 +345,24 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         const rawDate = String(record.date).split('T')[0];
         const date = new Date(rawDate + 'T00:00:00Z');
         date.setUTCDate(date.getUTCDate() + Number(record.due_in_days || 0));
-        onSave({ ...record, date: rawDate, due_date: date.toISOString().slice(0, 10),
-            customer_materials: allocations.filter(row => row.amount > 0).map(row => ({ receipt_id: row.receipt_id, amount: row.amount })) });
+        onSave({
+            ...record,
+            date: rawDate,
+            due_date: date.toISOString().slice(0, 10),
+            paid_amount: Number(record.paid_amount || 0),
+            selected_receipt_id: record.selected_receipt_id || null,
+            customer_materials: allocations.filter(row => row.amount > 0).map(row => ({ receipt_id: row.receipt_id, amount: row.amount }))
+        });
     };
 
     if (!isOpen || !record) return null;
 
     const units = ['متر طولي', 'متر مربع', 'متر مكعب', 'مقطوعية', 'عدد'];
     const linesTotal = lines.reduce((sum: number, line: any) => sum + Number(line.total_price || 0), 0);
+    const previewNetTotal = perLine ? (beforeMaterials - materials) / 100 : Number(record.total_amount ?? 0);
+    const paidAmount = Number(record.paid_amount || 0);
+    const remainingBalance = Number((previewNetTotal - paidAmount).toFixed(2));
+
     const removeProject = (id: any) => {
         const next = (record.selected_projects || []).filter((c: any) => c.id !== id);
         setRecord({ ...record, selected_projects: next, project_ids: next.map((c: any) => c.id) });
@@ -335,7 +377,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             title={record.id ? 'تعديل الفاتورة' : 'فاتورة جديدة'}
             subtitle={record.invoice_number ? `رقم الفاتورة: ${record.invoice_number}` : 'أدخل بيانات العميل والبنود ثم احفظ لترحيل القيود'}
             icon={<ReceiptText size={22} />}
-            total={<><small>الصافي النهائي</small><strong>{formatCurrency(perLine ? (beforeMaterials - materials) / 100 : (record.total_amount ?? 0))}</strong></>}
+            total={<><small>{paidAmount > 0 ? 'المتبقي المستحق' : 'الصافي المطلوب'}</small><strong>{formatCurrency(paidAmount > 0 ? remainingBalance : previewNetTotal)}</strong></>}
             footer={<button type="button" className="ent-button ent-primary" onClick={handleValidateAndSave} disabled={isSaving}><Save size={16} aria-hidden="true" />{isSaving ? 'جاري الحفظ والترحيل…' : 'حفظ الفاتورة وترحيل القيود'}</button>}
         >
             <section className="ent-form-section">
@@ -463,13 +505,228 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
                 </div>
             </section>}
 
+            <div className="ent-form-divider" />
+            <section className="ent-form-section">
+                <h3>
+                    <Wallet size={17} aria-hidden="true" />
+                    الدفعات وسداد الفاتورة
+                    {paidAmount > 0 && (
+                        <span className="phi-chip" style={{
+                            marginRight: 'auto',
+                            background: remainingBalance === 0 ? 'var(--status-positive-bg, #ecfdf5)' : remainingBalance < 0 ? '#faf5ff' : '#fffbeb',
+                            color: remainingBalance === 0 ? 'var(--status-positive, #059669)' : remainingBalance < 0 ? '#7c3aed' : '#b45309',
+                            fontWeight: 700
+                        }}>
+                            {remainingBalance === 0 ? 'مسددة بالكامل' : remainingBalance < 0 ? 'رصيد دائن' : 'سداد جزئي'}
+                        </span>
+                    )}
+                </h3>
+
+                <div className="ent-form-grid cols-2">
+                    <div className="ent-form-field">
+                        <label htmlFor="inv-paid-amount">الدفعة المسددة من العميل</label>
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <input
+                                id="inv-paid-amount"
+                                type="number"
+                                min="0"
+                                step="0.01"
+                                placeholder="0.00"
+                                value={record.paid_amount ?? ''}
+                                onChange={(e) => {
+                                    const val = e.target.value === '' ? '' : Number(e.target.value);
+                                    setRecord({ ...record, paid_amount: val, selected_receipt_id: null });
+                                }}
+                            />
+                            <div style={{ display: 'inline-flex', gap: '4px', flexWrap: 'nowrap' }}>
+                                <button
+                                    type="button"
+                                    className="ent-button"
+                                    style={{ padding: '0.35rem 0.65rem', fontSize: '11px', whiteSpace: 'nowrap', fontWeight: 700 }}
+                                    onClick={() => setRecord({ ...record, paid_amount: Number(previewNetTotal.toFixed(2)), selected_receipt_id: null })}
+                                    title="سداد كامل القيمة"
+                                >
+                                    سداد كامل
+                                </button>
+                                <button
+                                    type="button"
+                                    className="ent-button"
+                                    style={{ padding: '0.35rem 0.65rem', fontSize: '11px', whiteSpace: 'nowrap', fontWeight: 700 }}
+                                    onClick={() => setRecord({ ...record, paid_amount: Number((previewNetTotal * 0.5).toFixed(2)), selected_receipt_id: null })}
+                                    title="سداد 50%"
+                                >
+                                    50%
+                                </button>
+                                <button
+                                    type="button"
+                                    className="ent-button"
+                                    style={{ padding: '0.35rem 0.65rem', fontSize: '11px', whiteSpace: 'nowrap', fontWeight: 700 }}
+                                    onClick={() => setRecord({ ...record, paid_amount: Number((previewNetTotal * 0.25).toFixed(2)), selected_receipt_id: null })}
+                                    title="سداد 25%"
+                                >
+                                    25%
+                                </button>
+                                <button
+                                    type="button"
+                                    className="ent-button"
+                                    style={{ padding: '0.35rem 0.65rem', fontSize: '11px', whiteSpace: 'nowrap', fontWeight: 700 }}
+                                    onClick={() => setRecord({ ...record, paid_amount: 0, selected_receipt_id: null })}
+                                    title="تصفير الدفعة"
+                                >
+                                    تصفير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="ent-form-field">
+                        <label htmlFor="inv-receipt-select">ربط بسند قبض مسجل للعميل (اختياري)</label>
+                        <select
+                            id="inv-receipt-select"
+                            value={record.selected_receipt_id || ''}
+                            onChange={(e) => {
+                                const receiptId = e.target.value;
+                                if (!receiptId) {
+                                    setRecord({ ...record, selected_receipt_id: null });
+                                    return;
+                                }
+                                const found = (partnerReceiptsQuery.data || []).find((r: any) => String(r.id) === String(receiptId));
+                                if (found) {
+                                    setRecord({
+                                        ...record,
+                                        selected_receipt_id: found.id,
+                                        paid_amount: Number(found.amount || 0)
+                                    });
+                                }
+                            }}
+                        >
+                            <option value="">-- بدون ربط بسند قبض (إدخال يدوي) --</option>
+                            {(partnerReceiptsQuery.data || []).map((rc: any) => {
+                                const isCurrentLinked = rc.invoice_id === record?.id;
+                                const isFree = !rc.invoice_id || isCurrentLinked;
+                                return (
+                                    <option key={rc.id} value={rc.id} disabled={!isFree}>
+                                        سند {rc.receipt_number || rc.id.slice(0, 8)} · {formatCurrency(rc.amount)} · بتاريخ {rc.date}
+                                        {rc.invoice_id && !isCurrentLinked ? ' (مرتبط بفاتورة أخرى)' : isCurrentLinked ? ' (مرتبط بهذه الفاتورة)' : ' (متاح للربط)'}
+                                    </option>
+                                );
+                            })}
+                        </select>
+                        {record.selected_receipt_id && (
+                            <span className="ent-field-note" style={{ color: 'var(--status-positive, #10b981)', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
+                                <CheckCircle2 size={13} /> تم ربط الفاتورة بسند القبض بنجاح واحتساب قيمته كدفعة مسددة.
+                            </span>
+                        )}
+                        {!record.selected_receipt_id && partnerReceiptsQuery.data && partnerReceiptsQuery.data.length > 0 && (
+                            <span className="ent-field-note">
+                                يوجد {partnerReceiptsQuery.data.filter((r: any) => !r.invoice_id || r.invoice_id === record?.id).length} سند قبض متاح للعميل.
+                            </span>
+                        )}
+                    </div>
+                </div>
+
+                {/* 🌟 إشعار المتبقي الديناميكي */}
+                <div
+                    className="phi-payment-notice"
+                    style={{
+                        marginTop: '0.75rem',
+                        padding: '0.875rem 1.125rem',
+                        borderRadius: '10px',
+                        border: remainingBalance > 0 && paidAmount > 0
+                            ? '1.5px solid #f59e0b'
+                            : remainingBalance === 0 && previewNetTotal > 0
+                            ? '1.5px solid #10b981'
+                            : remainingBalance < 0
+                            ? '1.5px solid #8b5cf6'
+                            : '1.5px solid var(--ent-line, #e2e8f0)',
+                        background: remainingBalance > 0 && paidAmount > 0
+                            ? '#fffbeb'
+                            : remainingBalance === 0 && previewNetTotal > 0
+                            ? '#f0fdf4'
+                            : remainingBalance < 0
+                            ? '#faf5ff'
+                            : '#f8fafc',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.375rem',
+                        boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
+                    }}
+                >
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '0.9rem' }}>
+                            {remainingBalance > 0 && paidAmount > 0 && <AlertCircle size={18} color="#d97706" />}
+                            {remainingBalance === 0 && previewNetTotal > 0 && <CheckCircle2 size={18} color="#059669" />}
+                            {remainingBalance < 0 && <Info size={18} color="#7c3aed" />}
+                            {(paidAmount === 0 || previewNetTotal <= 0) && <Clock size={18} color="#64748b" />}
+                            <span style={{
+                                color: remainingBalance > 0 && paidAmount > 0
+                                    ? '#b45309'
+                                    : remainingBalance === 0 && previewNetTotal > 0
+                                    ? '#047857'
+                                    : remainingBalance < 0
+                                    ? '#6d28d9'
+                                    : '#334155'
+                            }}>
+                                {remainingBalance > 0 && paidAmount > 0 && 'إشعار بالمتبقي المستحق على العميل'}
+                                {remainingBalance === 0 && previewNetTotal > 0 && 'إشعار سداد كامل: الفاتورة مسددة 100%'}
+                                {remainingBalance < 0 && 'إشعار فائض في السداد (رصيد دائن للعميل)'}
+                                {paidAmount === 0 && 'إشعار بالمستحق: الفاتورة غير مسددة (بدون دفعة مقدمة)'}
+                            </span>
+                        </div>
+                        <div style={{
+                            padding: '0.2rem 0.65rem',
+                            borderRadius: '999px',
+                            fontSize: '0.78rem',
+                            fontWeight: 800,
+                            background: remainingBalance > 0 && paidAmount > 0 ? '#fef3c7' : remainingBalance === 0 && previewNetTotal > 0 ? '#dcfce7' : remainingBalance < 0 ? '#ede9fe' : '#f1f5f9',
+                            color: remainingBalance > 0 && paidAmount > 0 ? '#92400e' : remainingBalance === 0 && previewNetTotal > 0 ? '#166534' : remainingBalance < 0 ? '#5b21b6' : '#475569'
+                        }}>
+                            {remainingBalance > 0 && paidAmount > 0 && `المتبقي: ${formatCurrency(remainingBalance)}`}
+                            {remainingBalance === 0 && previewNetTotal > 0 && 'تم السداد بالكامل'}
+                            {remainingBalance < 0 && `دائن: ${formatCurrency(Math.abs(remainingBalance))}`}
+                            {paidAmount === 0 && `المستحق: ${formatCurrency(previewNetTotal)}`}
+                        </div>
+                    </div>
+
+                    <div style={{ fontSize: '0.825rem', color: '#475569', lineHeight: 1.5, paddingInlineStart: '1.625rem' }}>
+                        {remainingBalance > 0 && paidAmount > 0 && (
+                            <>
+                                قام العميل بسداد دفعة قدرها <strong style={{ color: '#059669' }}>{formatCurrency(paidAmount)}</strong> من إجمالي الفاتورة المطلوب (<strong style={{ color: '#1e293b' }}>{formatCurrency(previewNetTotal)}</strong>).
+                                <br />
+                                <strong>المتبقي المطلوب تحصيله من العميل هو: <span style={{ color: '#d97706', fontSize: '0.95rem' }}>{formatCurrency(remainingBalance)}</span></strong>
+                                {record.due_date && <span> · تاريخ الاستحقاق: {new Date(record.due_date).toLocaleDateString('ar-EG')}</span>}
+                            </>
+                        )}
+                        {remainingBalance === 0 && previewNetTotal > 0 && (
+                            <>
+                                تم سداد كامل قيمة الفاتورة بمبلغ <strong style={{ color: '#059669' }}>{formatCurrency(paidAmount)}</strong>. تم تسوية رصيد هذه الفاتورة بالكامل ولا يوجد أي متبقي.
+                            </>
+                        )}
+                        {remainingBalance < 0 && (
+                            <>
+                                المبلغ المسدد من العميل (<strong style={{ color: '#7c3aed' }}>{formatCurrency(paidAmount)}</strong>) أكبر من إجمالي الفاتورة (<strong style={{ color: '#1e293b' }}>{formatCurrency(previewNetTotal)}</strong>).
+                                <br />
+                                الفارق بقيمة <strong style={{ color: '#7c3aed' }}>{formatCurrency(Math.abs(remainingBalance))}</strong> يُسجل كرصيد دائن لصالح العميل.
+                            </>
+                        )}
+                        {paidAmount === 0 && (
+                            <>
+                                لم يتم تسجيل أي دفعة نقدية أو بنكية مسددة حتى الآن. كامل قيمة الفاتورة الصافية <strong style={{ color: '#1e293b' }}>{formatCurrency(previewNetTotal)}</strong> تعتبر مستحقة بالكامل على العميل {record.client_name ? `(${record.client_name})` : ''}.
+                            </>
+                        )}
+                    </div>
+                </div>
+            </section>
+
             <div className="phi-totals" aria-live="polite">
                 <div className="phi-total"><small>إجمالي البنود</small><strong>{formatCurrency(perLine ? totals.base / 100 : record.line_total ?? 0)}</strong></div>
                 {!perLine && <div className="phi-total"><small>الخاضع للضريبة</small><strong>{formatCurrency(record.taxable_amount ?? 0)}</strong></div>}
                 <div className="phi-total"><small>{record.skip_zatca ? 'الضريبة (غير خاضعة)' : 'ضريبة القيمة المضافة 15٪'}</small><strong>{formatCurrency(perLine ? totals.tax / 100 : record.tax_amount ?? 0)}</strong></div>
                 <div className="phi-total is-bad"><small>محتجز ضمان الأعمال</small><strong>{formatCurrency(perLine ? totals.retention / 100 : record.guarantee_amount ?? 0)}</strong></div>
                 {perLine && <div className="phi-total is-bad"><small>تسوية خامات العميل</small><strong>{formatCurrency(materials / 100)}</strong></div>}
-                <div className="phi-total is-grand"><small>الصافي المطلوب</small><strong>{formatCurrency(perLine ? (beforeMaterials - materials) / 100 : record.total_amount ?? 0)}</strong></div>
+                <div className="phi-total"><small>صافي الفاتورة</small><strong>{formatCurrency(previewNetTotal)}</strong></div>
+                <div className="phi-total is-good"><small>الدفعة المسددة</small><strong>{formatCurrency(paidAmount)}</strong></div>
+                <div className={`phi-total is-grand ${remainingBalance > 0 && paidAmount > 0 ? 'is-warning' : ''}`}><small>المتبقي المستحق</small><strong>{formatCurrency(remainingBalance)}</strong></div>
             </div>
         </PhiDialog>
     );

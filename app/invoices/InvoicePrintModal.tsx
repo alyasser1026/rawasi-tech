@@ -498,7 +498,11 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                         { label: 'العميل • Client', value: record.client_name || record.partners?.name || '---' },
                         { label: 'الرقم الضريبي للعميل • VAT No', value: record.partners?.tax_id || record.partners?.vat_number, ltr: true },
                         { label: 'المشروع • Project', value: projectNames },
-                        { label: 'الصافي المستحق', value: formatCurrencyEn(record.total_amount), accent: true, ltr: true },
+                        { label: 'الصافي المطلوب', value: formatCurrencyEn(record.total_amount), accent: !(Number(record.paid_amount) > 0), ltr: true },
+                        ...(Number(record.paid_amount) > 0 ? [
+                            { label: 'الدفعة المسددة • Paid', value: formatCurrencyEn(record.paid_amount), ltr: true },
+                            { label: 'المتبقي المستحق • Balance', value: formatCurrencyEn(Math.max(0, Number(record.total_amount || 0) - Number(record.paid_amount || 0))), accent: true, ltr: true },
+                        ] : []),
                         { label: 'عنوان العميل • Address', value: record.partners?.address || record.address || 'المملكة العربية السعودية', wide: true },
                     ]}
                 />
@@ -560,8 +564,12 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                             { label: record.skip_zatca ? 'الضريبة (غير خاضعة) / VAT 0%' : 'الضريبة 15% / VAT 15%', value: formatCurrencyEn(record.tax_amount), tone: 'tax' },
                             { label: `ضمان أعمال / Guarantee${Number(record.guarantee_percent) > 0 ? ` (${record.guarantee_percent}%)` : ''}`, value: `- ${formatCurrencyEn(record.guarantee_amount)}`, tone: 'discount', hidden: !(Number(record.guarantee_amount) > 0) },
                             { label: 'تسوية خامات العميل / Customer Materials', value: `- ${formatCurrencyEn(record.materials_discount)}`, tone: 'discount', hidden: !(record.line_accounting && Number(record.materials_discount) > 0) },
+                            { label: 'الدفعة المسددة / Paid Amount', value: `- ${formatCurrencyEn(record.paid_amount)}`, tone: 'discount', hidden: !(Number(record.paid_amount) > 0) },
                         ] as DocTotalRow[])}
-                        grand={{ label: 'الصافي المستحق / Grand Total', value: formatCurrencyEn(record.total_amount) }}
+                        grand={{
+                            label: Number(record.paid_amount) > 0 ? 'المتبقي المستحق / Balance Due' : 'الصافي المستحق / Grand Total',
+                            value: formatCurrencyEn(Number(record.paid_amount) > 0 ? Math.max(0, Number(record.total_amount || 0) - Number(record.paid_amount || 0)) : record.total_amount)
+                        }}
                     />
                 </div>
                 {Number(record.net_adjustment || 0) !== 0 && (

@@ -110,8 +110,10 @@ export function useInvoicesLogic() {
                 const rawTotal = Number(inv.total_amount || 0);
                 const netAdjustment = adj ? Number(adj.net_adjustment || 0) : 0;
                 const effectiveTotal = Number((rawTotal + netAdjustment).toFixed(2));
-                const adjustedPaid = adj ? Number(adj.paid_amount || 0) : Number(inv.paid_amount || 0);
-                const balance = adj ? Number(adj.balance || 0) : Number((effectiveTotal - adjustedPaid).toFixed(2));
+                const rpcPaid = Number(adj?.paid_amount || 0);
+                const invoicePaid = Number(inv.paid_amount || 0);
+                const adjustedPaid = Math.max(rpcPaid, invoicePaid);
+                const balance = adj && rpcPaid > 0 ? Number(adj.balance || 0) : Number((effectiveTotal - adjustedPaid).toFixed(2));
                 return {
                     ...inv,
                     net_adjustment: netAdjustment,
@@ -251,6 +253,8 @@ export function useInvoicesLogic() {
             date: new Date().toISOString().split('T')[0],
             project_ids: [],
             selected_projects: [],
+            paid_amount: 0,
+            selected_receipt_id: null,
             debit_account_id: debitAcc?.id || null,
             debit_account_name: debitAcc?.name || '',
             credit_account_id: creditAcc?.id || null,
@@ -281,6 +285,8 @@ export function useInvoicesLogic() {
         setCurrentRecord({
             ...inv,
             lines: Array.isArray(inv.lines_data) ? inv.lines_data : (inv.lines || []),
+            paid_amount: Number(inv.adjusted_paid_amount != null ? inv.adjusted_paid_amount : (inv.paid_amount || 0)),
+            selected_receipt_id: inv.selected_receipt_id || null,
             debit_account_name: inv.debit_acc?.name || inv.debit_account_name || '',
             credit_account_name: inv.credit_acc?.name || inv.credit_account_name || '',
             client_name: inv.client_name || inv.partners?.name || '',
@@ -384,18 +390,25 @@ export function useInvoicesLogic() {
                 };
             }
 
+            let targetInvoiceId = record.id;
             if (record.id) {
                 const { error: headErr } = await supabase.from('invoices').update(invoiceHeader).eq('id', record.id);
                 if (headErr) throw headErr;
             } else {
-                const { error: headErr } = await supabase.from('invoices').insert([invoiceHeader]);
+                const { data: inserted, error: headErr } = await supabase.from('invoices').insert([invoiceHeader]).select('id').single();
                 if (headErr) throw headErr;
+                if (inserted?.id) targetInvoiceId = inserted.id;
+            }
+
+            if (record.selected_receipt_id && targetInvoiceId) {
+                await supabase.from('receipt_vouchers').update({ invoice_id: targetInvoiceId }).eq('id', record.selected_receipt_id);
             }
         },
         onSuccess: () => {
             setIsEditModalOpen(false);
             showToast("تم حفظ الفاتورة بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['invoices'] });
+            queryClient.invalidateQueries({ queryKey: ['receipt_vouchers'] });
         },
         onError: (err: any) => {
             showToast(`حدث خطأ أثناء الحفظ! ${err.message}`, "error");
