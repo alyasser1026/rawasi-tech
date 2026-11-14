@@ -22,22 +22,23 @@ body:has(.pw){padding:0!important}
 .pw-muted{color:var(--ink-2)}
 
 /* header */
-.pw-header{position:sticky;top:0;z-index:60;background:rgba(255,255,255,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid transparent;transition:border-color .2s,box-shadow .2s}
-.pw-header.is-scrolled{border-bottom-color:var(--line);box-shadow:0 6px 24px rgba(20,28,34,.06)}
+.pw-header{position:sticky;top:0;z-index:60;margin-bottom:-72px;background:rgba(9,11,15,.22);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid rgba(255,255,255,.08);transition:background .25s ease,border-color .25s ease,box-shadow .25s ease}
+.pw-header.is-scrolled{background:rgba(10,14,20,.85);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom-color:rgba(255,255,255,.12);box-shadow:0 8px 30px rgba(0,0,0,.4)}
 .pw-header-row{display:flex;align-items:center;justify-content:space-between;height:72px;gap:16px}
 .pw-brand{display:flex;align-items:center;gap:12px;flex-shrink:0}
-.pw-brand-mark{height:44px;width:auto}
+.pw-brand-mark{height:44px;width:auto;filter:drop-shadow(0 0 1px rgba(255,255,255,.45)) drop-shadow(0 2px 8px rgba(0,0,0,.5))}
 .pw-brand-text{display:flex;flex-direction:column;gap:5px;line-height:1.35}
-.pw-brand-text strong{font-size:1.2rem;font-weight:800;line-height:1.3;letter-spacing:0;display:block}
-.pw-brand-text small{font-size:.72rem;font-weight:700;letter-spacing:.16em;line-height:1.15;color:var(--o);direction:ltr;unicode-bidi:isolate;text-align:right;display:block}
-.pw-nav{display:flex;align-items:center;gap:18px;font-weight:600;font-size:.9rem;color:var(--ink-2);white-space:nowrap}
-.pw-nav a.pw-nav-verify{color:var(--o);font-weight:700}
-.pw-nav a:not(.pw-btn){position:relative;padding:6px 0}
-.pw-nav a:not(.pw-btn)::after{content:'';position:absolute;inset-inline:0;bottom:0;height:2px;background:var(--o);transform:scaleX(0);transition:transform .2s;transform-origin:center}
-.pw-nav a:not(.pw-btn):hover{color:var(--ink)}
+.pw-brand-text strong{font-size:1.24rem;font-weight:900;line-height:1.3;letter-spacing:0;display:block;color:#fefcf9;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.pw-brand-text small{font-size:.72rem;font-weight:800;letter-spacing:.16em;line-height:1.15;color:#f97316;direction:ltr;unicode-bidi:isolate;text-align:right;display:block}
+.pw-nav{display:flex;align-items:center;gap:18px;font-weight:700;font-size:.92rem;color:#ede5da;white-space:nowrap}
+.pw-nav a.pw-nav-verify{color:#fb923c!important;font-weight:800;text-shadow:0 0 14px rgba(249,115,22,.4)}
+.pw-nav a.pw-nav-verify:hover{color:#fdba74!important;text-shadow:0 0 18px rgba(249,115,22,.65)}
+.pw-nav a:not(.pw-btn){position:relative;padding:6px 0;color:#ede5da;transition:color .2s ease,text-shadow .2s ease}
+.pw-nav a:not(.pw-btn)::after{content:'';position:absolute;inset-inline:0;bottom:0;height:2px;background:#f97316;transform:scaleX(0);transition:transform .2s;transform-origin:center}
+.pw-nav a:not(.pw-btn):hover{color:#ffffff;text-shadow:0 0 12px rgba(255,255,255,.5)}
 .pw-nav a:not(.pw-btn):hover::after{transform:scaleX(1)}
-.pw-burger{display:none;width:44px;height:44px;border:1px solid var(--line);background:#fff;border-radius:10px;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
-.pw-burger span{display:block;width:20px;height:2px;background:var(--ink);border-radius:2px}
+.pw-burger{display:none;width:44px;height:44px;border:1px solid rgba(255,255,255,.2);background:rgba(15,20,28,.65);backdrop-filter:blur(10px);border-radius:10px;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px}
+.pw-burger span{display:block;width:20px;height:2px;background:#ede5da;border-radius:2px}
 
 /* buttons */
 .pw-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 26px;border-radius:12px;font-weight:700;font-size:.97rem;cursor:pointer;border:1.5px solid transparent;transition:background .18s,border-color .18s,color .18s,box-shadow .18s}
@@ -53,7 +54,7 @@ body:has(.pw){padding:0!important}
 /* hero (dark) */
 .pw-hero{position:relative;isolation:isolate;background:#090b0f;color:#fff;overflow:hidden}
 .pw-hero-art{visibility:hidden;min-height:340px}
-.pw-hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,0.95fr);gap:40px;align-items:center;padding-top:80px;padding-bottom:34px}
+.pw-hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,0.95fr);gap:40px;align-items:center;padding-top:108px;padding-bottom:34px}
 .pw-eyebrow{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:clamp(0.76rem,0.92vw,0.84rem);font-weight:700;color:var(--o);letter-spacing:.02em;margin-bottom:14px;line-height:1.4}
 .pw-eyebrow::before{content:'';width:28px;height:2px;background:currentColor}
 .pw-hero .pw-eyebrow{color:var(--o-hi);text-shadow:0 2px 14px rgba(0,0,0,.65)}
@@ -357,16 +358,17 @@ body:has(.pw){padding:0!important}
 }
 @media (max-width:980px){
   .pw-burger{display:flex}
-  .pw-nav{position:absolute;top:72px;inset-inline:0;background:#fff;border-bottom:1px solid var(--line);box-shadow:0 20px 30px -18px rgba(20,28,34,.25);flex-direction:column;align-items:stretch;gap:0;padding:8px 24px 18px;display:none;z-index:99}
+  .pw-nav{position:absolute;top:72px;inset-inline:0;background:rgba(12,16,22,.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);box-shadow:0 20px 40px rgba(0,0,0,.5);flex-direction:column;align-items:stretch;gap:0;padding:12px 24px 20px;display:none;z-index:99}
   .pw-nav.is-open{display:flex}
-  .pw-nav a:not(.pw-btn){padding:14px 4px;border-bottom:1px solid var(--line)}
+  .pw-nav a:not(.pw-btn){padding:14px 4px;border-bottom:1px solid rgba(255,255,255,.08);color:#ede5da}
+  .pw-nav a:not(.pw-btn):hover{color:#ffffff}
   .pw-nav a:not(.pw-btn)::after{display:none}
   .pw-nav-cta{margin-top:14px}
 }
 @media (max-width:600px){
   .pw-wrap{padding:0 16px}
   .pw-hero .phi-hb{height:clamp(280px,54svh,420px)}
-  .pw-hero-grid{padding-top:16px;padding-bottom:16px}
+  .pw-hero-grid{padding-top:84px;padding-bottom:16px}
   .pw-hero h1{font-size:clamp(1.36rem,6.4vw,1.82rem)}
   .pw-actions{display:flex;flex-direction:column;gap:10px;width:100%}
   .pw-actions .pw-btn{width:100%;min-height:48px;justify-content:center;font-size:.94rem}
