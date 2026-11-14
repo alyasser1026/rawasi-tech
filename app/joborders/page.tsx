@@ -16,7 +16,8 @@ import SmartCombo from '@/components/SmartCombo';
 import JobOrderModal from './JobOrderModal';
 import JobOrderLedgerModal from './JobOrderLedgerModal'; 
 import LoadingScreen from '@/components/LoadingScreen';
-import { HardHat, Handshake, Activity, CircleCheck, CirclePause, ClipboardList, Building2, BookOpen, Edit3 } from 'lucide-react';
+import { HardHat, Handshake, Activity, CircleCheck, CirclePause, ClipboardList, Building2, BookOpen, Edit3, CheckCircle2, Clock } from 'lucide-react';
+import { computeJobOrderProgressAndTimeline } from '@/lib/jobOrderProgress';
 import KpiStrip from '@/components/KpiStrip';
 import PhiIcon from '@/components/PhiIcon';
 
@@ -247,6 +248,24 @@ export default function JobOrdersPage() {
               if (row.status === 'مفوتر') badgeStyle = { bg: '#e0e7ff', color: '#4338ca', dot: '#6366f1', icon: '🧾' };
               if (row.status === 'تم التحصيل') badgeStyle = { bg: '#d1fae5', color: '#047857', dot: '#10b981', icon: '💰' };
 
+              const itemProg = row.item_progress || computeJobOrderProgressAndTimeline(row, logic.allFiltered);
+
+              let timelineToneColor = '#059669';
+              let timelineToneBg = 'rgba(16, 185, 129, 0.1)';
+              if (itemProg.timelineTone === 'danger') {
+                timelineToneColor = '#dc2626';
+                timelineToneBg = 'rgba(239, 68, 68, 0.1)';
+              } else if (itemProg.timelineTone === 'warning') {
+                timelineToneColor = '#d97706';
+                timelineToneBg = 'rgba(245, 158, 11, 0.1)';
+              } else if (itemProg.timelineTone === 'info') {
+                timelineToneColor = '#2563eb';
+                timelineToneBg = 'rgba(37, 99, 235, 0.1)';
+              } else if (itemProg.timelineTone === 'neutral') {
+                timelineToneColor = '#64748b';
+                timelineToneBg = 'rgba(100, 116, 139, 0.1)';
+              }
+
               return (
                 <div 
                   key={row.id}
@@ -385,6 +404,83 @@ export default function JobOrdersPage() {
                       >
                         {isSelf ? <HardHat size={13} /> : <Handshake size={13} />}
                         <span>{executorName}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 🎯 مؤشر إنجاز البند بالمشروع والموقف الزمني المعتمد */}
+                  <div
+                    style={{
+                      background: 'var(--surface-sunken, #f8fafc)',
+                      border: '1px solid var(--border-color, #e2e8f0)',
+                      borderRadius: '10px',
+                      padding: '0.65rem 0.75rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.45rem'
+                    }}
+                  >
+                    {/* سطر نسبة إنجاز البند بالمشروع */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontSize: '11.5px', color: 'var(--text-secondary, #64748b)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <CheckCircle2 size={13} color={itemProg.isFullyCompleted ? '#16a34a' : '#ea580c'} />
+                        إنجاز البند بالمشروع
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '11.5px',
+                          fontWeight: 900,
+                          color: itemProg.isFullyCompleted ? '#16a34a' : '#ea580c'
+                        }}
+                      >
+                        {itemProg.progressPercent}% ({itemProg.isFullyCompleted ? 'مكتمل بالكامل' : `${itemProg.completedQty}/${itemProg.contractQty} ${itemProg.unit}`})
+                      </span>
+                    </div>
+
+                    {/* شريط تقدم البند */}
+                    <div style={{ width: '100%', height: '5px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
+                      <div
+                        style={{
+                          width: `${itemProg.progressPercent}%`,
+                          height: '100%',
+                          background: itemProg.isFullyCompleted ? '#16a34a' : '#f97316',
+                          borderRadius: '999px',
+                          transition: 'width 0.4s ease'
+                        }}
+                      />
+                    </div>
+
+                    {/* سطر الموقف الزمني المعتمد */}
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        paddingTop: '0.2rem',
+                        borderTop: '1px dashed var(--border-color, #e2e8f0)',
+                        marginTop: '0.1rem'
+                      }}
+                    >
+                      <span style={{ fontSize: '11px', color: 'var(--text-secondary, #64748b)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                        <Clock size={12} color={timelineToneColor} />
+                        الموقف الزمني:
+                      </span>
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          padding: '0.2rem 0.5rem',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 900,
+                          backgroundColor: timelineToneBg,
+                          color: timelineToneColor,
+                          border: `1px solid ${timelineToneColor}35`
+                        }}
+                        title={itemProg.timelineStatusDesc}
+                      >
+                        {itemProg.timelineBadgeText}
                       </span>
                     </div>
                   </div>

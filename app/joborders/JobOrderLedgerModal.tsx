@@ -16,6 +16,7 @@ import {
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import { printReportElement } from '@/lib/printReportElement';
+import { computeJobOrderProgressAndTimeline } from '@/lib/jobOrderProgress';
 
 export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) {
     const [activeTab, setActiveTab] = useState('الكل');
@@ -225,6 +226,10 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
             netCashFlow
         };
     }, [ledgerData, claimsData, jobOrder]);
+
+    const itemProgress = useMemo(() => {
+        return jobOrder?.item_progress || computeJobOrderProgressAndTimeline(jobOrder, []);
+    }, [jobOrder]);
 
     // قائمة المقاولين المسند إليهم أمر الشغل
     const contractorNamesList = useMemo(() => {
@@ -445,6 +450,8 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                 details={[
                     { label: 'رقم أمر الشغل', value: jobOrder?.order_number || 'JO-0000', ltr: true },
                     { label: 'بند الأعمال المكلف', value: jobOrder?.boq_budget?.work_item || jobOrder?.job_order_name || 'بند الأعمال' },
+                    { label: 'إنجاز البند بالمشروع', value: `${itemProgress.progressPercent}% (${itemProgress.isFullyCompleted ? 'مكتمل بالكامل' : `${itemProgress.completedQty}/${itemProgress.contractQty} ${itemProgress.unit}`})` },
+                    { label: 'الموقف الزمني للجدول', value: `${itemProgress.timelineBadgeText} - ${itemProgress.timelineStatusDesc}` },
                     { label: 'حالة أمر الشغل', value: jobOrder?.status || 'جاري التنفيذ' },
                     { label: 'جهة التنفيذ', value: contractorNamesList.length > 0 ? contractorNamesList.join(' ، ') : 'تشغيل ذاتي (عمالة الشركة)' },
                     { label: 'فواتير المبيعات الصادرة', value: formatCurrency(metrics.totalBilledRevenue || metrics.contractValue), accent: true },
@@ -946,6 +953,20 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                             marginTop: '1.25rem'
                         }}
                     >
+                        <div style={{ background: itemProgress.isFullyCompleted ? 'rgba(16, 185, 129, 0.22)' : 'rgba(249, 115, 22, 0.22)', padding: '0.85rem 1rem', borderRadius: '12px', border: `1px solid ${itemProgress.isFullyCompleted ? 'rgba(52, 211, 153, 0.45)' : 'rgba(251, 146, 60, 0.45)'}` }}>
+                            <div style={{ fontSize: '11px', color: itemProgress.isFullyCompleted ? '#a7f3d0' : '#fed7aa', fontWeight: 800 }}>🎯 إنجاز بند المقايسة</div>
+                            <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '0.25rem', color: itemProgress.isFullyCompleted ? '#6ee7b7' : '#fdba74' }}>
+                                {itemProgress.progressPercent}% {itemProgress.isFullyCompleted ? '✅ مكتمل' : `(${itemProgress.completedQty}/${itemProgress.contractQty})`}
+                            </div>
+                        </div>
+
+                        <div style={{ background: itemProgress.isDelayed ? 'rgba(239, 68, 68, 0.22)' : 'rgba(16, 185, 129, 0.22)', padding: '0.85rem 1rem', borderRadius: '12px', border: `1px solid ${itemProgress.isDelayed ? 'rgba(248, 113, 113, 0.45)' : 'rgba(52, 211, 153, 0.45)'}` }}>
+                            <div style={{ fontSize: '11px', color: itemProgress.isDelayed ? '#fecaca' : '#a7f3d0', fontWeight: 800 }}>⏱️ الموقف الزمني</div>
+                            <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, marginTop: '0.25rem', color: itemProgress.isDelayed ? '#fca5a5' : '#6ee7b7' }} title={itemProgress.timelineStatusDesc}>
+                                {itemProgress.timelineBadgeText}
+                            </div>
+                        </div>
+
                         <div style={{ background: 'rgba(255, 255, 255, 0.1)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid rgba(255, 255, 255, 0.18)' }}>
                             <div style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.78)', fontWeight: 800 }}>👷 يومية الفنيين (صنايعية)</div>
                             <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '0.25rem', color: '#7dd3fc' }}>

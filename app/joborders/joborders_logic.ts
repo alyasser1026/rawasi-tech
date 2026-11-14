@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/toast-context'; 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; 
 import { fetchAllSupabaseData } from '@/lib/helpers';
+import { computeJobOrderProgressAndTimeline } from '@/lib/jobOrderProgress';
 
 export function useJobOrdersLogic() {
     const { showToast } = useToast(); 
@@ -42,7 +43,7 @@ export function useJobOrdersLogic() {
                     *, 
                     projects:project_id(project_name, Property), 
                     partners!job_orders_contractor_id_fkey(name), 
-                    boq_budget:boq_budget_id(work_item, budget_code, Property),
+                    boq_budget:boq_budget_id(id, work_item, budget_code, Property, contract_quantity, actual_quantity, completed_percentage, execution_status, unit, start_date, end_date, total_contract_amount, unit_contract_price),
                     contractor_assignments:contractor_assignments!contractor_assignments_job_order_id_fkey(
                         id,
                         contractor_id,
@@ -61,7 +62,7 @@ export function useJobOrdersLogic() {
                     *, 
                     projects:project_id(project_name, Property), 
                     partners!job_orders_contractor_id_fkey(name), 
-                    boq_budget:boq_budget_id(work_item, budget_code, Property)
+                    boq_budget:boq_budget_id(id, work_item, budget_code, Property, contract_quantity, actual_quantity, completed_percentage, execution_status, unit, start_date, end_date, total_contract_amount, unit_contract_price)
                 `, 'created_at', false) || [];
 
                 try {
@@ -195,10 +196,12 @@ export function useJobOrdersLogic() {
                 }
             });
             const assignedContractors = Array.from(assignedContractorsMap.values());
+            const itemProgress = computeJobOrderProgressAndTimeline(jo, baseJobOrders);
 
             return { 
                 ...jo, 
                 ...perf,
+                item_progress: itemProgress,
                 assigned_contractors: assignedContractors,
                 subcontractor_paid: subPaidTotal, // المبالغ النقدية للمقاول بعد التوزيع الدقيق للفيلا
                 total_allocated_overhead: totalAllocatedOverhead, // المصروفات العامة المحملة على أمر الشغل
@@ -435,6 +438,8 @@ export function useJobOrdersLogic() {
             setIsEditModalOpen(false);
             showToast("تم حفظ أمر التشغيل والمقاولين بنجاح", "success");
             queryClient.invalidateQueries({ queryKey: ['job_orders'] });
+            queryClient.invalidateQueries({ queryKey: ['boq_budget'] });
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
             queryClient.invalidateQueries({ queryKey: ['job_order_performance'] });
             queryClient.invalidateQueries({ queryKey: ['contractor_tasks'] });
             queryClient.invalidateQueries({ queryKey: ['sub_contractors_list'] });
@@ -449,9 +454,16 @@ export function useJobOrdersLogic() {
             if (error) throw error;
         },
         onSuccess: (_, newStatus) => {
-            showToast(`تم تغيير الحالة إلى ${newStatus} بنجاح`, "success");
+            if (newStatus === 'مكتمل') {
+                showToast(`تم إكمال أوامر الشغل المحددة وتحديث تقدم بنود المقايسة والجدول الزمني بنجاح`, "success");
+            } else {
+                showToast(`تم تغيير الحالة إلى ${newStatus} بنجاح`, "success");
+            }
             setSelectedIds([]);
             queryClient.invalidateQueries({ queryKey: ['job_orders'] });
+            queryClient.invalidateQueries({ queryKey: ['boq_budget'] });
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+            queryClient.invalidateQueries({ queryKey: ['job_order_performance'] });
         },
         onError: (err: any) => showToast(`خطأ في تحديث الحالة: ${err.message}`, "error")
     });
@@ -461,8 +473,21 @@ export function useJobOrdersLogic() {
             if (error) throw error;
         },
         onSuccess: (_, variables) => {
-            showToast(`تم تغيير الحالة إلى ${variables.newStatus} بنجاح`, "success");
+            const targetJo = baseJobOrders.find((j: any) => j.id === variables.id);
+            if (targetJo && variables.newStatus === 'مكتمل') {
+                const simulated = { ...targetJo, status: 'مكتمل' };
+                const p = computeJobOrderProgressAndTimeline(simulated, baseJobOrders);
+                const toastMsg = `تم إكمال أمر الشغل #${targetJo.order_number || ''} بنجاح!\n` +
+                    `📊 تقدم بند [${p.workItemName}]: ${p.progressPercent}% (${p.isFullyCompleted ? 'مكتمل بالكامل' : `${p.completedQty}/${p.contractQty} ${p.unit}`})\n` +
+                    `⏱️ الموقف الزمني: ${p.timelineBadgeText} (${p.timelineStatusDesc})`;
+                showToast(toastMsg, "success");
+            } else {
+                showToast(`تم تغيير الحالة إلى ${variables.newStatus} بنجاح`, "success");
+            }
             queryClient.invalidateQueries({ queryKey: ['job_orders'] });
+            queryClient.invalidateQueries({ queryKey: ['boq_budget'] });
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+            queryClient.invalidateQueries({ queryKey: ['job_order_performance'] });
         },
         onError: (err: any) => showToast(`خطأ في تحديث الحالة: ${err.message}`, "error")
     });
