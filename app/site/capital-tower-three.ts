@@ -305,7 +305,7 @@ export function buildTowerExteriorScene(
   const shopLabels: [string, string][] = [
     ['THE ARCADE', 'BOUTIQUE GALLERY'],
     ["MAISON D'OR", 'FINE INTERIORS'],
-    ['مدخل برج كابيتال', 'LOBBY RECEPTION'],
+    ['المدخل الرئيسي', 'MAIN LOBBY'],
     ['CAFÉ LUMIÈRE', 'ESPRESSO & BAKERY'],
   ];
   bayCenters.forEach((bx, idx) => {
@@ -320,8 +320,8 @@ export function buildTowerExteriorScene(
     addBoxMesh(THREE, disp, root, bw * 0.84, 0.68, 0.12, bx, PH - 0.42, D / 2 + 0.12, signMat, idx === 2 ? 'entrance' : 'podium', pickables);
   });
 
-  // Main Tower Banner "برج كابيتال — Perfect Home" anchored above Podium
-  const towerSignTex = createSignTexture(THREE, disp, 'برج كابيتال', 'CAPITAL TOWER • PERFECT HOME', '#1c140e', '#ffe0ad', '#f97316', 768, 160);
+  // Main Tower Banner "المجسم المعماري" anchored above Podium
+  const towerSignTex = createSignTexture(THREE, disp, 'المجسم المعماري', 'ARCHITECTURAL RESIDENCE', '#1c140e', '#ffe0ad', '#f97316', 768, 160);
   const towerSignMat = disp.add(new THREE.MeshStandardMaterial({ map: towerSignTex, emissive: 0x452208, emissiveIntensity: 0.5, roughness: 0.3 }));
   addBoxMesh(THREE, disp, root, 9.8, 1.35, 0.22, 0, PH + 0.55, D / 2 + 0.32, towerSignMat, 'entrance', pickables);
 

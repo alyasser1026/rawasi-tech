@@ -18,12 +18,12 @@ const BimModel = dynamic(() => import('./BimModel'), {
 
 const CapitalTower3D = dynamic(() => import('./CapitalTower3D'), {
   ssr: false,
-  loading: () => <div className="pw-bim-stage"><div className="pw-bim-note">جاري تحميل مجسم برج كابيتال ثلاثي الأبعاد…</div></div>,
+  loading: () => <div className="pw-bim-stage"><div className="pw-bim-note">جاري تحميل المجسم المعماري ثلاثي الأبعاد…</div></div>,
 });
 
 const NAV = [
   { href: '#services', label: 'الخدمات' },
-  { href: '#capital-tower', label: 'برج كابيتال 3D' },
+  { href: '#capital-tower', label: 'المجسم المعماري 3D' },
   { href: '#bim', label: 'نموذج BIM' },
   { href: '#tools', label: 'الأدوات' },
   { href: '#checklist', label: 'دليل التنفيذ' },
@@ -202,7 +202,7 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
                 <Link href="/verify" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(249,115,22,0.6)', color: '#fbbf24' }}>
                   التحقق من المستندات والباركود
                 </Link>
-                <a href="#capital-tower" className="pw-btn pw-btn-light">برج كابيتال 3D</a>
+                <a href="#capital-tower" className="pw-btn pw-btn-light">المجسم المعماري 3D</a>
                 <a href="#bim" className="pw-btn pw-btn-light">استكشف نموذج BIM</a>
               </div>
             </div>
@@ -268,9 +268,9 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
         <section id="capital-tower" className="pw-section">
           <div className="pw-wrap">
             <div className="pw-head">
-              <p className="pw-eyebrow">معرض برج كابيتال المعماري ثلاثي الأبعاد والتحول إلى BIM</p>
-              <h2>برج كابيتال 3D — الواجهة، المدخل الفندقي، والشقق 140 / 185 / 205 م²</h2>
-              <p>استعرض نموذج برج كابيتال ثلاثي الأبعاد بكل تفاصيله المعمارية (الأركيد التجاري، المدخل الرخامي والمصاعد، المسقط المتكرر والوحدات المفروشة)، وحوّله بضغطة واحدة إلى توأم رقمي BIM / IFC متكامل.</p>
+              <p className="pw-eyebrow">معرض المجسم المعماري ثلاثي الأبعاد والتحول إلى BIM</p>
+              <h2>المجسم المعماري 3D — الواجهة، المدخل، ونماذج الوحدات السكنية</h2>
+              <p>استعرض المجسم المعماري ثلاثي الأبعاد بكل تفاصيله المعمارية (الأركيد التجاري، المدخل والمصاعد، والمسقط المتكرر للوحدات)، وحوّله بضغطة واحدة إلى توأم رقمي BIM / IFC متكامل.</p>
             </div>
             <LazyMount minHeight={540}><CapitalTower3D /></LazyMount>
           </div>
@@ -280,8 +280,8 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
         <section id="bim" className="pw-section">
           <div className="pw-wrap">
             <div className="pw-head">
-              <p className="pw-eyebrow">نموذج BIM تفاعلي — برج كابيتال</p>
-              <h2>شاهد كيف تتكامل الطبقات الإنشائية والمعمارية وMEP داخل البرج</h2>
+              <p className="pw-eyebrow">نموذج BIM تفاعلي — التوأم الرقمي</p>
+              <h2>شاهد كيف تتكامل الطبقات الإنشائية والمعمارية وMEP داخل المبنى</h2>
               <p>أخفِ الطبقات وأظهرها، افصل الأدوار الـ 12 + البوديوم، اقطع المستويات أفقياً، واضغط على أي عنصر لعرض فئته في معيار IFC وحصره التقديري.</p>
             </div>
             <LazyMount minHeight={500}><BimModel /></LazyMount>

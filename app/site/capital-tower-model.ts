@@ -154,7 +154,7 @@ export const CAPITAL_APARTMENTS: Record<UnitId, ApartmentSpec> = {
     bedrooms: 3,
     bathrooms: 2,
     wingLabel: 'الجناح الأيمن البانورامي',
-    summary: 'أكبر وحدات برج كابيتال بمساحة 205 م² مع جناح ماستر خلفي مستقل وريسيبشن L وتراس واجهة رئيسية.',
+    summary: 'أكبر الوحدات بمساحة 205 م² مع جناح ماستر خلفي مستقل وريسيبشن L وتراس واجهة رئيسية.',
     features: [
       'جناح ماستر خلفي واسع مع ركن جلوس ودريسنج',
       'غرفتا نوم مستقلتان وممر توزيع معزول عن الضيوف',
@@ -184,7 +184,7 @@ export const BIM_LAYERS: { id: BimLayerId; label: string; color: string }[] = [
 export const TOWER_SPEC_CARDS: Record<string, TowerSpecCard> = {
   facade: {
     id: 'facade',
-    title: 'واجهة برج كابيتال (تكسية حجر دافئ وإطارات برونز + سبوت معماري)',
+    title: 'الواجهة المعمارية الرئيسية (تكسية حجر دافئ وإطارات برونز + سبوت معماري)',
     ifc: 'IfcCurtainWall / IfcCovering',
     layer: 'finish',
     code: 'FIN-EXT-CAP01',

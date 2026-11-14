@@ -11,7 +11,7 @@ const CapitalTower3D = dynamic(() => import('../site/CapitalTower3D'), {
   ssr: false,
   loading: () => (
     <div className="p-12 text-center font-bold text-amber-500">
-      جاري تحميل مجسم برج كابيتال ثلاثي الأبعاد (Three.js)...
+      جاري تحميل المجسم المعماري ثلاثي الأبعاد (Three.js)...
     </div>
   ),
 });
@@ -391,7 +391,7 @@ export default function WebsitePage() {
     },
     {
       id: 'PHI-P02',
-      title: 'عمارة كابيتال — كورنيش النيل (شارع البحر الأعظم)',
+      title: 'عمارة سكنية وتجارية — كورنيش النيل',
       category: 'structural',
       categoryLabel: 'هيكل إنشائي وعظم + تشطيب واجهات',
       area: '500 م² مسطح الدور (أرضي + متكرر)',
@@ -405,7 +405,7 @@ export default function WebsitePage() {
     },
     {
       id: 'PHI-P03',
-      title: 'برج كابيتال — المنصورة (طلخا - البحر الأعظم)',
+      title: 'برج سكني وتجاري — المنصورة',
       category: 'structural',
       categoryLabel: 'أساسات عميقة وهيكل خرساني (11 دور)',
       area: '380 م² مسطح الدور (11 دور سكني وتجاري)',
@@ -1215,7 +1215,7 @@ export default function WebsitePage() {
           {/* Navigation Links */}
           <nav className="hidden xl:flex items-center gap-1 sunken-well-box p-1.5">
             <a href="#hero" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-primary)' }}>الرئيسية</a>
-            <a href="#capital-tower" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--accent-bright)' }}>برج كابيتال 3D</a>
+            <a href="#capital-tower" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--accent-bright)' }}>المجسم المعماري 3D</a>
             <a href="#three-pillars" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>القطاعات التنفيذية</a>
             <a href="#boq-catalog" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>دليل بنود المقايسة</a>
             <a href="#xray-twin" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>محاكي البناء 3D</a>
@@ -1369,7 +1369,7 @@ export default function WebsitePage() {
               <a href="#capital-tower" className="btn-secondary text-base px-6 py-4">
                 <div className="specular-beam"></div>
                 <i className="fa-solid fa-cube" style={{ color: 'var(--accent-main)' }}></i>
-                <span>برج كابيتال 3D ⇄ BIM</span>
+                <span>المجسم المعماري 3D ⇄ BIM</span>
               </a>
               <a href="#boq-catalog" className="btn-secondary text-base px-6 py-4">
                 <div className="specular-beam"></div>

@@ -77,6 +77,6 @@ test('CapitalTower3D and BimModel share capital-tower-three geometry builders an
   assert.doesNotMatch(phiSite, /غرفة سوبر هيرو/);
   assert.doesNotMatch(website, /غرفة سوبر هيرو/);
   assert.match(phiSite, /#capital-tower/);
-  assert.match(phiSite, /برج كابيتال 3D/);
+  assert.match(phiSite, /المجسم المعماري 3D/);
   assert.match(website, /#capital-tower/);
 });

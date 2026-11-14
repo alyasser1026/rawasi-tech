@@ -572,7 +572,7 @@ export default function CapitalTower3D() {
                 fontWeight: 900,
               }}
             >
-              🏙️ برج كابيتال — CAPITAL TOWER · PERFECT HOME
+              🏙️ نموذج معماري متكامل — برج سكني وتجاري
             </span>
             <span
               style={{
@@ -616,7 +616,7 @@ export default function CapitalTower3D() {
           >
             {engineMode === 'bim'
               ? '🏛️ العودة إلى المجسم المعماري 3D'
-              : '🧱 تحويل برج كابيتال إلى BIM (IFC Twin)'}
+              : '🧱 تحويل المجسم إلى BIM (IFC Twin)'}
           </button>
 
           <a
@@ -773,7 +773,7 @@ export default function CapitalTower3D() {
                 color: '#f97316',
               }}
             >
-              جاري بناء مجسم برج كابيتال ثلاثي الأبعاد…
+              جاري بناء المجسم المعماري ثلاثي الأبعاد…
             </div>
           )}
 
@@ -814,7 +814,7 @@ export default function CapitalTower3D() {
           >
             {engineMode === 'bim'
               ? '🧱 التوأم الرقمي BIM — اسحب للتدوير • اضغط أي عنصر لعرض فئة IFC'
-              : '🏙️ برج كابيتال 3D — اسحب للتدوير • مرّر للتكبير • اضغط على أي جزء للفحص'}
+              : '🏙️ المجسم المعماري 3D — اسحب للتدوير • مرّر للتكبير • اضغط على أي جزء للفحص'}
           </div>
         </div>
 
@@ -836,7 +836,7 @@ export default function CapitalTower3D() {
           {engineMode === 'bim' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#0284c7' }}>
-                طبقات نموذج BIM — برج كابيتال (13 مستوى)
+                طبقات نموذج BIM الهندسي (13 مستوى)
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
                 {BIM_LAYERS.map((layer) => {
@@ -943,7 +943,7 @@ export default function CapitalTower3D() {
             /* Exterior / Entrance / Typical Overview summary */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <div style={{ fontSize: '0.86rem', fontWeight: 900, color: '#c75517' }}>
-                بطاقة المشروع — برج كابيتال (Perfect Home)
+                بطاقة المواصفات — نموذج برج سكني وتجاري
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.78rem' }}>
                 <div style={{ padding: '8px 10px', borderRadius: '10px', background: '#ffffff', border: '1px solid #e3e6e9' }}>

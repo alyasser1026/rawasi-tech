@@ -346,11 +346,11 @@ export default function BimModel() {
           ref={hostRef}
           className="pw-bim-canvas"
           role="img"
-          aria-label="التوأم الرقمي BIM ثلاثي الأبعاد لبرج كابيتال يوضح اللبشة والأعمدة والقلب الإنشائي والشقق الثلاث والتأسيسات"
+          aria-label="التوأم الرقمي BIM ثلاثي الأبعاد يوضح اللبشة والأعمدة والقلب الإنشائي والشقق السكنية والتأسيسات"
         />
-        {status === 'loading' && <div className="pw-bim-note">جاري تحميل التوأم الرقمي لبرج كابيتال…</div>}
+        {status === 'loading' && <div className="pw-bim-note">جاري تحميل التوأم الرقمي BIM…</div>}
         {status === 'unsupported' && <div className="pw-bim-note">متصفحك لا يدعم العرض ثلاثي الأبعاد.</div>}
-        <div className="pw-bim-hint">برج كابيتال BIM (13 مستوى + مصاعد متحركة) · اسحب للتدوير · اضغط على أي عنصر</div>
+        <div className="pw-bim-hint">نموذج BIM الهندسي (13 مستوى + مصاعد متحركة) · اسحب للتدوير · اضغط على أي عنصر</div>
         <button
           type="button"
           className="pw-bim-reset"
@@ -379,7 +379,7 @@ export default function BimModel() {
           ))}
         </div>
 
-        <h3>طبقات نموذج BIM — برج كابيتال</h3>
+        <h3>طبقات نموذج BIM الهندسي</h3>
         <div className="pw-bim-layers">
           {BIM_LAYERS.map((l) => (
             <button
@@ -429,7 +429,7 @@ export default function BimModel() {
         </div>
 
         <p className="pw-bim-disclaimer">
-          نموذج هندسي متكامل يطابق تقسيمات برج كابيتال (شقة 140 م² + شقة 185 م² + شقة 205 م² وقلب المصعدين المزدوج).
+          نموذج هندسي متكامل يطابق التقسيمات المعمارية (شقة 140 م² + شقة 185 م² + شقة 205 م² وقلب المصعدين المزدوج).
         </p>
       </aside>
     </div>
