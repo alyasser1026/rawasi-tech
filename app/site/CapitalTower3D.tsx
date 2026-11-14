@@ -511,7 +511,21 @@ export default function CapitalTower3D() {
           .ct3d-tabs-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
         @media (max-width: 600px) {
-          .ct3d-tabs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .ct3d-shell {
+            padding: 14px 12px !important;
+            border-radius: 16px !important;
+          }
+          .ct3d-tabs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 6px !important; }
+          .ct3d-pill {
+            padding: 7px 6px !important;
+            font-size: 0.74rem !important;
+            border-radius: 10px !important;
+            gap: 4px !important;
+          }
+          .ct3d-stage {
+            min-height: 320px !important;
+            border-radius: 14px !important;
+          }
         }
         .ct3d-pill {
           border: 1px solid #e3e6e9;
@@ -750,6 +764,7 @@ export default function CapitalTower3D() {
       {/* Main 3D Stage + Right Engineering / BIM Inspector Panel */}
       <div className="ct3d-grid">
         <div
+          className="ct3d-stage"
           style={{
             position: 'relative',
             minHeight: '500px',
