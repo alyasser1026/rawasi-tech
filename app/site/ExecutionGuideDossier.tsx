@@ -68,7 +68,7 @@ export default function ExecutionGuideDossier({ initialSearch = '', onNavigateTo
               className="pw-exec-search-input"
               value={q}
               onChange={e => setQ(e.target.value)}
-              placeholder="ابحث في بنود التنفيذ، الاشتراطات، المعادلات، الأسعار، أو مشاريع التطبيق (مثال: استراوس، بؤج، عزل، كابيتال)..."
+              placeholder="ابحث في بنود التنفيذ، الاشتراطات، المعادلات، الأسعار (مثال: استراوس، بؤج، عزل، تكييف)..."
               aria-label="بحث في دليل التنفيذ"
             />
             {q && (

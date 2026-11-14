@@ -87,11 +87,29 @@ export function useLoginLogic() {
         if (!fullName.trim()) throw new Error('يرجى إدخال الاسم الكامل');
         if (password.length < 6) throw new Error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
 
-        const { error } = await supabase.auth.signUp({
+        const { error, data } = await supabase.auth.signUp({
           email, password, options: { data: { full_name: fullName, role: 'client' } }
         });
 
         if (error) throw error;
+
+        // في حال تفعيل تأكيد البريد في Supabase وعدم وجود جلسة فورية
+        if (data?.user && !data.session) {
+          showToast('تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني (ومجلد Spam) والضغط على رابط التفعيل لتسجيل الدخول.', 'info');
+          setIsSignUp(false); setPassword(''); setIsLoading(false);
+          return;
+        }
+
+        // في حال كان تأكيد البريد معطلاً وتم إنشاء الجلسة فوراً
+        if (data?.session) {
+          showToast('تم إنشاء الحساب وتفعيله بنجاح! جاري توجيهك...', 'success');
+          router.refresh();
+          const target = getDestinationForUser({ role: 'client' }, searchParams?.get('portal'));
+          setTimeout(() => {
+            router.replace(target);
+          }, 350);
+          return;
+        }
         
         showToast('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.', 'success');
         setIsSignUp(false); setPassword(''); setIsLoading(false);
@@ -118,7 +136,16 @@ export function useLoginLogic() {
 
         // 🔑 تسجيل الدخول في Supabase
         const { error, data } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
-        if (error) throw new Error('بيانات الدخول غير صحيحة، يرجى مراجعة اسم المستخدم وكلمة المرور.');
+        if (error) {
+          const msg = (error.message || '').toLowerCase();
+          if (msg.includes('email not confirmed') || (error as any).code === 'email_not_confirmed') {
+            throw new Error('لم يتم تأكيد البريد الإلكتروني بعد! يرجى فتح بريدك الإلكتروني (ومراجعة مجلد Spam / غير المرغوب فيها) والضغط على رابط التفعيل.');
+          }
+          if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+            throw new Error('بيانات الدخول غير صحيحة، يرجى التأكد من كتابة البريد الإلكتروني وكلمة المرور بدقة.');
+          }
+          throw new Error(error.message || 'بيانات الدخول غير صحيحة، يرجى مراجعة البريد الإلكتروني وكلمة المرور.');
+        }
         
         // تسجيل حركة الدخول في سجل المراقبة
         if (data.session) {
