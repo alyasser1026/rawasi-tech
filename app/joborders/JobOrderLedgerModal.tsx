@@ -1,6 +1,6 @@
 "use client";
 import { currencySymbol } from '@/lib/currency';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
@@ -11,8 +11,11 @@ import {
 } from 'recharts';
 import {
     BookOpen, HardHat, Users, Package, Receipt, Wallet, AlertTriangle,
-    FileSpreadsheet, TrendingUp, X, Layers, CheckCircle2
+    FileSpreadsheet, TrendingUp, X, Layers, CheckCircle2, Printer
 } from 'lucide-react';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import ReportContactFooter from '@/components/ReportContactFooter';
+import { printReportElement } from '@/lib/printReportElement';
 
 export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) {
     const [activeTab, setActiveTab] = useState('الكل');
@@ -278,6 +281,40 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
         [tableRows]
     );
 
+    const collectionPercentage = useMemo(() => {
+        if (metrics.totalBilledRevenue > 0) {
+            return Math.min(100, Math.round((metrics.totalCollectedRevenue / metrics.totalBilledRevenue) * 100));
+        }
+        if (metrics.contractValue > 0) {
+            return Math.min(100, Math.round((metrics.totalCollectedRevenue / metrics.contractValue) * 100));
+        }
+        return 0;
+    }, [metrics]);
+
+    const budgetConsumedPercentage = useMemo(() => {
+        if (metrics.boqBudget > 0) {
+            return Math.round((metrics.totalActualCost / metrics.boqBudget) * 100);
+        }
+        return 0;
+    }, [metrics]);
+
+    const handlePrint = useCallback(() => {
+        const orderNum = jobOrder?.order_number || 'JO-0000';
+        printReportElement('job-order-ledger-printable', `تقرير_أستاذ_أمر_شغل_${orderNum}`);
+    }, [jobOrder]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
+                e.preventDefault();
+                handlePrint();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, handlePrint]);
+
     if (!isOpen) return null;
 
     const countByType = (type: string) => {
@@ -294,7 +331,8 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
         { id: 'فواتير', label: 'فواتير المبيعات', icon: FileSpreadsheet, count: countByType('فواتير') },
         { id: 'سندات قبض', label: 'تحصيلات العميل (سندات قبض)', icon: Receipt, count: countByType('سندات قبض') },
         { id: 'جزاءات', label: 'الجزاءات', icon: AlertTriangle, count: countByType('جزاءات') },
-        { id: 'مؤشرات الأداء', label: 'الرسم البياني', icon: TrendingUp, count: null }
+        { id: 'مؤشرات الأداء', label: 'الرسم البياني', icon: TrendingUp, count: null },
+        { id: 'تقرير الطباعة', label: 'معاينة وطباعة التقرير الشامل', icon: Printer, count: null }
     ];
 
     const getTypeBadgeStyle = (type: string, desc: string = '') => {
@@ -328,6 +366,408 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
         if (str.includes('T')) return str.split('T')[0];
         return str.slice(0, 10);
     };
+
+    const renderPrintableDocument = () => (
+        <div
+            id="job-order-ledger-printable"
+            style={{
+                background: '#ffffff',
+                color: '#0f172a',
+                padding: '2rem',
+                borderRadius: '16px',
+                border: '1px solid #cbd5e1',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)',
+                direction: 'rtl',
+                fontFamily: "'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif"
+            }}
+        >
+            <style>{`
+                @media print {
+                    @page {
+                        size: A4 landscape;
+                        margin: 10mm 12mm;
+                    }
+                    html, body {
+                        --bg-canvas: #ffffff !important;
+                        --bg-canvas-secondary: #ffffff !important;
+                        background: #ffffff !important;
+                        background-color: #ffffff !important;
+                        background-image: none !important;
+                        color: #0f172a !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        height: auto !important;
+                        min-height: 0 !important;
+                        max-height: none !important;
+                        overflow: visible !important;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                    #job-order-ledger-printable {
+                        position: static !important;
+                        left: auto !important;
+                        top: auto !important;
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: #ffffff !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                        display: block !important;
+                        visibility: visible !important;
+                    }
+                    table {
+                        page-break-inside: auto !important;
+                        break-inside: auto !important;
+                    }
+                    tr {
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                    }
+                    thead {
+                        display: table-header-group !important;
+                    }
+                    tfoot {
+                        display: table-footer-group !important;
+                    }
+                }
+            `}</style>
+
+            {/* 1️⃣ ترويسة التقرير الرسمية للشركة */}
+            <ReportOfficialHeader
+                title="تقرير أستاذ ومطابقة أمر الشغل التحليلي"
+                subtitle="بيان التكاليف الفعلية ومطابقة فواتير وتحصيلات العميل والمركز المالي"
+                projectName={jobOrder?.projects?.Property || 'المشروع'}
+                projectCode={jobOrder?.projects?.code}
+                reportRefCode={jobOrder?.order_number || 'JO-0000'}
+                issueDate={new Date().toISOString().split('T')[0]}
+                details={[
+                    { label: 'رقم أمر الشغل', value: jobOrder?.order_number || 'JO-0000', ltr: true },
+                    { label: 'بند الأعمال المكلف', value: jobOrder?.boq_budget?.work_item || jobOrder?.job_order_name || 'بند الأعمال' },
+                    { label: 'حالة أمر الشغل', value: jobOrder?.status || 'جاري التنفيذ' },
+                    { label: 'جهة التنفيذ', value: contractorNamesList.length > 0 ? contractorNamesList.join(' ، ') : 'تشغيل ذاتي (عمالة الشركة)' },
+                    { label: 'فواتير المبيعات الصادرة', value: formatCurrency(metrics.totalBilledRevenue || metrics.contractValue), accent: true },
+                    { label: 'المحصل الفعلي بسندات القبض', value: formatCurrency(metrics.totalCollectedRevenue), accent: true }
+                ]}
+                meta={[
+                    { label: 'تاريخ الطباعة', value: new Date().toLocaleDateString('ar-EG') },
+                    { label: 'حالة الاعتماد', value: 'معتمد ومطابق' }
+                ]}
+            />
+
+            {/* 2️⃣ شبكة مؤشرات المركز المالي المطبوعة */}
+            <div
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(6, 1fr)',
+                    gap: '0.65rem',
+                    marginTop: '1.25rem',
+                    marginBottom: '1.25rem',
+                    pageBreakInside: 'avoid'
+                }}
+            >
+                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10.5px', color: '#64748b', fontWeight: 800 }}>🎯 الميزانية التقديرية</div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#334155', marginTop: '0.2rem' }} dir="ltr">
+                        {formatCurrency(metrics.boqBudget)}
+                    </div>
+                </div>
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10.5px', color: '#991b1b', fontWeight: 800 }}>🛑 إجمالي التكلفة الفعلية</div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#dc2626', marginTop: '0.2rem' }} dir="ltr">
+                        {formatCurrency(metrics.totalActualCost)}
+                    </div>
+                </div>
+                <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10.5px', color: '#1e40af', fontWeight: 800 }}>📄 فواتير المبيعات الصادرة</div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#2563eb', marginTop: '0.2rem' }} dir="ltr">
+                        {formatCurrency(metrics.totalBilledRevenue)}
+                    </div>
+                </div>
+                <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10.5px', color: '#065f46', fontWeight: 800 }}>💰 المحصل الفعلي (قبض)</div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#059669', marginTop: '0.2rem' }} dir="ltr">
+                        {formatCurrency(metrics.totalCollectedRevenue)}
+                    </div>
+                </div>
+                <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10.5px', color: '#92400e', fontWeight: 800 }}>⏳ المتبقي طرف العميل</div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, color: '#d97706', marginTop: '0.2rem' }} dir="ltr">
+                        {formatCurrency(metrics.customerRemainingBalance)}
+                    </div>
+                </div>
+                <div style={{ background: metrics.netCashFlow >= 0 ? '#f0fdf4' : '#fef2f2', border: `1px solid ${metrics.netCashFlow >= 0 ? '#bbf7d0' : '#fecaca'}`, borderRadius: '10px', padding: '0.75rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '10.5px', color: metrics.netCashFlow >= 0 ? '#166534' : '#991b1b', fontWeight: 800 }}>💎 صافي التدفق النقدي</div>
+                    <div style={{ fontSize: '13px', fontWeight: 900, color: metrics.netCashFlow >= 0 ? '#16a34a' : '#dc2626', marginTop: '0.2rem' }} dir="ltr">
+                        {formatCurrency(metrics.netCashFlow)}
+                    </div>
+                </div>
+            </div>
+
+            {/* 3️⃣ الرسم البياني التحليلي الشامل ومؤشرات المطابقة */}
+            <div
+                style={{
+                    border: '1.5px solid #cbd5e1',
+                    borderRadius: '14px',
+                    padding: '1.25rem',
+                    background: '#ffffff',
+                    marginBottom: '1.25rem',
+                    pageBreakInside: 'avoid'
+                }}
+            >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                    <div style={{ fontWeight: 900, fontSize: '14px', color: '#0f172a' }}>
+                        📊 الرسم البياني التحليلي لمقارنة الميزانية والتكاليف الفعلية والتحصيل
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 800 }}>
+                        كافة المبالغ بالريال السعودي ({currencySymbol()})
+                    </div>
+                </div>
+
+                {/* رسم بياني بأبعاد بكسل ثابتة لضمان النسخ الفيكتوري الكامل عند الطباعة */}
+                <div style={{ display: 'flex', justifyContent: 'center' }}>
+                    <BarChart
+                        width={840}
+                        height={250}
+                        data={[
+                            {
+                                name: jobOrder?.order_number || 'أمر الشغل',
+                                'الميزانية التقديرية': metrics.boqBudget,
+                                'التكلفة الفعلية': metrics.totalActualCost,
+                                'فواتير المبيعات': metrics.totalBilledRevenue,
+                                'المحصل الفعلي': metrics.totalCollectedRevenue,
+                                'المتبقي على العميل': metrics.customerRemainingBalance,
+                                'صافي التدفق': metrics.netCashFlow
+                            }
+                        ]}
+                        margin={{ top: 15, right: 20, left: 20, bottom: 5 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                        <XAxis dataKey="name" axisLine={{ stroke: '#94a3b8' }} tickLine={false} tick={{ fill: '#0f172a', fontWeight: 800, fontSize: 12 }} />
+                        <YAxis axisLine={{ stroke: '#94a3b8' }} tickLine={false} tick={{ fill: '#475569', fontWeight: 800, fontSize: 11 }} tickFormatter={(val) => Number(val).toLocaleString('en-US')} />
+                        <Legend wrapperStyle={{ paddingTop: '8px', fontWeight: 800, fontSize: '12px' }} iconType="circle" />
+                        <Bar dataKey="الميزانية التقديرية" fill="#475569" radius={[5, 5, 0, 0]} barSize={28} />
+                        <Bar dataKey="التكلفة الفعلية" fill="#dc2626" radius={[5, 5, 0, 0]} barSize={28} />
+                        <Bar dataKey="فواتير المبيعات" fill="#2563eb" radius={[5, 5, 0, 0]} barSize={28} />
+                        <Bar dataKey="المحصل الفعلي" fill="#059669" radius={[5, 5, 0, 0]} barSize={28} />
+                        <Bar dataKey="المتبقي على العميل" fill="#d97706" radius={[5, 5, 0, 0]} barSize={28} />
+                        <Bar dataKey="صافي التدفق" fill="#0891b2" radius={[5, 5, 0, 0]} barSize={28} />
+                    </BarChart>
+                </div>
+
+                {/* أشرطة المطابقة والنسب المرئية */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem', paddingTop: '1rem', borderTop: '1px dashed #cbd5e1' }}>
+                    {/* شريط مطابقة تحصيل العميل */}
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.85rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', fontSize: '12px', fontWeight: 900 }}>
+                            <span style={{ color: '#0f172a' }}>موقف تحصيل فواتير العميل</span>
+                            <span style={{ color: '#059669' }}>تم تحصيل {collectionPercentage}%</span>
+                        </div>
+                        <div style={{ height: '12px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden', display: 'flex', border: '1px solid #cbd5e1' }}>
+                            <div style={{ width: `${collectionPercentage}%`, background: '#059669', height: '100%' }} />
+                            <div style={{ width: `${100 - collectionPercentage}%`, background: '#d97706', height: '100%' }} />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem', fontSize: '11px', fontWeight: 800 }}>
+                            <span style={{ color: '#059669' }}>● المحصل: {formatCurrency(metrics.totalCollectedRevenue)}</span>
+                            <span style={{ color: '#d97706' }}>● المتبقي: {formatCurrency(metrics.customerRemainingBalance)}</span>
+                            <span style={{ color: '#2563eb' }}>● الفواتير: {formatCurrency(metrics.totalBilledRevenue || metrics.contractValue)}</span>
+                        </div>
+                    </div>
+
+                    {/* شريط استهلاك الميزانية */}
+                    <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '0.85rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem', fontSize: '12px', fontWeight: 900 }}>
+                            <span style={{ color: '#0f172a' }}>موقف استهلاك الميزانية التقديرية</span>
+                            <span style={{ color: budgetConsumedPercentage > 100 ? '#dc2626' : '#0284c7' }}>
+                                {budgetConsumedPercentage}% مستهلك
+                            </span>
+                        </div>
+                        <div style={{ height: '12px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden', border: '1px solid #cbd5e1' }}>
+                            <div style={{ width: `${Math.min(100, budgetConsumedPercentage)}%`, background: budgetConsumedPercentage > 100 ? '#dc2626' : '#0284c7', height: '100%' }} />
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.4rem', fontSize: '11px', fontWeight: 800 }}>
+                            <span style={{ color: '#dc2626' }}>● التكلفة الفعلية: {formatCurrency(metrics.totalActualCost)}</span>
+                            <span style={{ color: metrics.budgetRemaining >= 0 ? '#059669' : '#dc2626' }}>
+                                ● {metrics.budgetRemaining >= 0 ? 'الوفر المتبقي:' : 'العجز:'} {formatCurrency(Math.abs(metrics.budgetRemaining))}
+                            </span>
+                            <span style={{ color: '#475569' }}>● الميزانية: {formatCurrency(metrics.boqBudget)}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* 4️⃣ تحليل عناصر التكلفة المنصرفة */}
+            <div
+                style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(5, 1fr)',
+                    gap: '0.65rem',
+                    marginBottom: '1.25rem',
+                    pageBreakInside: 'avoid'
+                }}
+            >
+                <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.65rem 0.85rem', background: '#f8fafc' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#0369a1' }}>👷 عمالة فنية (صنايعية)</div>
+                    <div style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a', marginTop: '0.2rem' }}>
+                        {metrics.techDays} يوم — {formatCurrency(metrics.techCost)}
+                    </div>
+                </div>
+                <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.65rem 0.85rem', background: '#f8fafc' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#0f766e' }}>🤝 عمالة مساعدة (عمال)</div>
+                    <div style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a', marginTop: '0.2rem' }}>
+                        {metrics.helperDays} يوم — {formatCurrency(metrics.helperCost)}
+                    </div>
+                </div>
+                <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.65rem 0.85rem', background: '#f8fafc' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#b45309' }}>🏗️ مستخلصات مقاولين</div>
+                    <div style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a', marginTop: '0.2rem' }}>
+                        {formatCurrency(metrics.subClaimsTotal)}
+                    </div>
+                </div>
+                <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.65rem 0.85rem', background: '#f8fafc' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#c2410c' }}>📦 خامات ومواد منصرفة</div>
+                    <div style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a', marginTop: '0.2rem' }}>
+                        {formatCurrency(metrics.materialsTotal)}
+                    </div>
+                </div>
+                <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', padding: '0.65rem 0.85rem', background: '#f8fafc' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 800, color: '#7e22ce' }}>💸 مصروفات ونثريات وABC</div>
+                    <div style={{ fontSize: '12px', fontWeight: 900, color: '#0f172a', marginTop: '0.2rem' }}>
+                        {formatCurrency(metrics.directExpensesTotal + metrics.allocatedExpensesTotal)}
+                    </div>
+                </div>
+            </div>
+
+            {/* 5️⃣ جدول كشف الحركات المالي التفصيلي */}
+            <div style={{ marginBottom: '1.5rem' }}>
+                <div style={{ fontWeight: 900, fontSize: '13px', color: '#0f172a', marginBottom: '0.65rem' }}>
+                    📋 كشف الحركات التفصيلي لدفتر أستاذ أمر الشغل ({ledgerData.length} حركة مسجلة)
+                </div>
+                <table
+                    style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        textAlign: 'right',
+                        border: '1.5px solid #94a3b8',
+                        fontSize: '11.5px'
+                    }}
+                >
+                    <thead>
+                        <tr style={{ background: '#f1f5f9', color: '#1e293b', fontWeight: 900, borderBottom: '2px solid #94a3b8' }}>
+                            <th style={{ padding: '0.6rem 0.75rem', width: '35px', textAlign: 'center', border: '1px solid #cbd5e1' }}>م</th>
+                            <th style={{ padding: '0.6rem 0.75rem', width: '95px', textAlign: 'center', border: '1px solid #cbd5e1' }}>التاريخ</th>
+                            <th style={{ padding: '0.6rem 0.75rem', width: '130px', border: '1px solid #cbd5e1' }}>نوع الحركة</th>
+                            <th style={{ padding: '0.6rem 0.75rem', border: '1px solid #cbd5e1' }}>البيان التحليلي والتفصيلي</th>
+                            <th style={{ padding: '0.6rem 0.75rem', width: '85px', textAlign: 'center', border: '1px solid #cbd5e1' }}>العدد / الأيام</th>
+                            <th style={{ padding: '0.6rem 0.75rem', width: '130px', textAlign: 'left', border: '1px solid #cbd5e1' }}>القيمة ({currencySymbol()})</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {ledgerData.length > 0 ? (
+                            ledgerData.map((row: any, idx: number) => {
+                                const badge = getTypeBadgeStyle(row.trans_type, row.trans_desc);
+                                const isReceipt = row.trans_type === 'سندات قبض';
+                                const isInvoice = row.trans_type === 'فواتير';
+                                return (
+                                    <tr
+                                        key={row.source_id || idx}
+                                        style={{
+                                            background: idx % 2 === 0 ? '#ffffff' : '#f8fafc',
+                                            borderBottom: '1px solid #e2e8f0',
+                                            color: '#1e293b'
+                                        }}
+                                    >
+                                        <td style={{ padding: '0.55rem 0.75rem', textAlign: 'center', fontWeight: 800, color: '#64748b', border: '1px solid #e2e8f0' }} dir="ltr">
+                                            {idx + 1}
+                                        </td>
+                                        <td style={{ padding: '0.55rem 0.75rem', textAlign: 'center', fontWeight: 800, color: '#475569', border: '1px solid #e2e8f0' }} dir="ltr">
+                                            {formatDateClean(row.trans_date)}
+                                        </td>
+                                        <td style={{ padding: '0.55rem 0.75rem', border: '1px solid #e2e8f0' }}>
+                                            <span
+                                                style={{
+                                                    display: 'inline-block',
+                                                    padding: '0.2rem 0.55rem',
+                                                    borderRadius: '6px',
+                                                    fontSize: '10.5px',
+                                                    fontWeight: 900,
+                                                    background: badge.bg,
+                                                    color: badge.color,
+                                                    border: `1px solid ${badge.border}`
+                                                }}
+                                            >
+                                                {badge.label}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '0.55rem 0.75rem', fontWeight: 800, border: '1px solid #e2e8f0' }}>
+                                            {row.trans_desc}
+                                        </td>
+                                        <td style={{ padding: '0.55rem 0.75rem', textAlign: 'center', fontWeight: 900, border: '1px solid #e2e8f0' }} dir="ltr">
+                                            {row.qty ?? 1}
+                                        </td>
+                                        <td
+                                            style={{
+                                                padding: '0.55rem 0.75rem',
+                                                textAlign: 'left',
+                                                fontWeight: 900,
+                                                border: '1px solid #e2e8f0',
+                                                color: isReceipt ? '#15803d' : isInvoice ? '#1d4ed8' : badge.color
+                                            }}
+                                            dir="ltr"
+                                        >
+                                            {isReceipt ? '+' : ''}{formatCurrency(row.amount)}
+                                        </td>
+                                    </tr>
+                                );
+                            })
+                        ) : (
+                            <tr>
+                                <td colSpan={6} style={{ textAlign: 'center', padding: '2rem', color: '#64748b' }}>
+                                    لا توجد حركات مسجلة على أمر الشغل.
+                                </td>
+                            </tr>
+                        )}
+                    </tbody>
+                    <tfoot>
+                        <tr style={{ background: '#f1f5f9', fontWeight: 900, borderTop: '2px solid #94a3b8' }}>
+                            <td colSpan={4} style={{ padding: '0.75rem 1rem', border: '1px solid #cbd5e1' }}>
+                                إجمالي حركات دفتر الأستاذ ({ledgerData.length} حركة)
+                            </td>
+                            <td style={{ padding: '0.75rem 1rem', textAlign: 'center', border: '1px solid #cbd5e1' }} dir="ltr">
+                                {metrics.totalLaborDays > 0 ? `${metrics.totalLaborDays} يوم عمالة` : '-'}
+                            </td>
+                            <td style={{ padding: '0.75rem 1rem', textAlign: 'left', fontSize: '13px', color: '#0f172a', border: '1px solid #cbd5e1' }} dir="ltr">
+                                {formatCurrency(ledgerData.reduce((sum, item) => sum + Number(item.amount || 0), 0))}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            {/* 6️⃣ خانات الاعتماد والتوقيعات الرسمية */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1.25rem', marginTop: '1.75rem', marginBottom: '1.5rem', pageBreakInside: 'avoid' }}>
+                <div style={{ border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '0.85rem', textAlign: 'center', background: '#f8fafc' }}>
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#475569' }}>إعداد / المحاسب المالي</div>
+                    <div style={{ height: '40px' }}></div>
+                    <div style={{ borderTop: '1px dashed #94a3b8', paddingTop: '0.35rem', fontSize: '11px', color: '#0f172a', fontWeight: 800 }}>التوقيع: ................................</div>
+                </div>
+                <div style={{ border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '0.85rem', textAlign: 'center', background: '#f8fafc' }}>
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#475569' }}>مراجعة / مهندس الموقع والمشروع</div>
+                    <div style={{ height: '40px' }}></div>
+                    <div style={{ borderTop: '1px dashed #94a3b8', paddingTop: '0.35rem', fontSize: '11px', color: '#0f172a', fontWeight: 800 }}>التوقيع: ................................</div>
+                </div>
+                <div style={{ border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '0.85rem', textAlign: 'center', background: '#f8fafc' }}>
+                    <div style={{ fontWeight: 900, fontSize: '12px', color: '#475569' }}>اعتماد / المدير التنفيذي والإدارة العامة</div>
+                    <div style={{ height: '40px' }}></div>
+                    <div style={{ borderTop: '1px dashed #94a3b8', paddingTop: '0.35rem', fontSize: '11px', color: '#0f172a', fontWeight: 800 }}>الختم والاعتماد: ........................</div>
+                </div>
+            </div>
+
+            {/* 7️⃣ تذييل بيانات الاتصال للشركة */}
+            <ReportContactFooter layout="row" />
+        </div>
+    );
 
     const modalContent = (
         <div
@@ -453,24 +893,48 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                             </div>
                         </div>
 
-                        <button
-                            onClick={onClose}
-                            style={{
-                                background: 'rgba(255, 255, 255, 0.14)',
-                                border: '1px solid rgba(255, 255, 255, 0.28)',
-                                color: '#ffffff',
-                                padding: '0.55rem 1.1rem',
-                                borderRadius: '12px',
-                                cursor: 'pointer',
-                                fontWeight: 900,
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.4rem',
-                                fontSize: 'var(--fs-sm)'
-                            }}
-                        >
-                            <X size={16} /> إغلاق
-                        </button>
+                        <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                            <button
+                                type="button"
+                                onClick={handlePrint}
+                                style={{
+                                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                    border: '1px solid rgba(255, 255, 255, 0.35)',
+                                    color: '#ffffff',
+                                    padding: '0.55rem 1.15rem',
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                    fontWeight: 900,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.45rem',
+                                    fontSize: 'var(--fs-sm)',
+                                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)',
+                                    transition: 'all 0.2s ease'
+                                }}
+                                title="طباعة التقرير الشامل لأمر الشغل (Ctrl+P)"
+                            >
+                                <Printer size={16} /> طباعة التقرير الشامل
+                            </button>
+                            <button
+                                onClick={onClose}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.14)',
+                                    border: '1px solid rgba(255, 255, 255, 0.28)',
+                                    color: '#ffffff',
+                                    padding: '0.55rem 1.1rem',
+                                    borderRadius: '12px',
+                                    cursor: 'pointer',
+                                    fontWeight: 900,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.4rem',
+                                    fontSize: 'var(--fs-sm)'
+                                }}
+                            >
+                                <X size={16} /> إغلاق
+                            </button>
+                        </div>
                     </div>
 
                     {/* 2️⃣ شبكة الكروت المالية والتشغيلية الموحدة */}
@@ -627,182 +1091,272 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                     </div>
                 )}
 
-                {/* 5️⃣ محتوى الجدول أو الرسم البياني */}
+                {/* 5️⃣ محتوى الجدول أو الرسم البياني أو تقرير الطباعة */}
                 <div style={{ padding: '1.25rem 1.5rem', flex: 1 }}>
-                    {activeTab === 'مؤشرات الأداء' ? (
-                        <div
-                            style={{
-                                height: '24rem',
-                                width: '100%',
-                                padding: '1.5rem',
-                                background: 'var(--surface-sunken, #f8fafc)',
-                                borderRadius: '16px',
-                                border: '1px solid var(--border-color, #e2e8f0)'
-                            }}
-                        >
-                            <h3 style={{ textAlign: 'center', marginBottom: '1.25rem', color: 'var(--text-primary, #1e293b)', fontWeight: 900, fontSize: 'var(--fs-lg)' }}>
-                                مقارنة الميزانية والتكاليف الفعلية والتحصيل لأمر الشغل
-                            </h3>
-                            <ResponsiveContainer width="100%" height="88%">
-                                <BarChart
-                                    data={[
-                                        {
-                                            name: jobOrder?.order_number || 'أمر الشغل',
-                                            'الميزانية التقديرية': metrics.boqBudget,
-                                            'فواتير المبيعات': metrics.totalBilledRevenue,
-                                            'المحصل الفعلي': metrics.totalCollectedRevenue,
-                                            'المتبقي على العميل': metrics.customerRemainingBalance,
-                                            'التكلفة الفعلية': metrics.totalActualCost
-                                        }
-                                    ]}
-                                    margin={{ top: 10, right: 20, left: 20, bottom: 5 }}
+                    {activeTab === 'تقرير الطباعة' ? (
+                        <div style={{ maxWidth: '980px', margin: '0 auto', width: '100%', padding: '0.25rem 0 1.5rem 0' }}>
+                            <div
+                                className="no-print"
+                                style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    flexWrap: 'wrap',
+                                    gap: '1rem',
+                                    marginBottom: '1.25rem',
+                                    padding: '1rem 1.25rem',
+                                    background: 'var(--surface-sunken, #f8fafc)',
+                                    borderRadius: '12px',
+                                    border: '1px solid var(--border-color, #e2e8f0)'
+                                }}
+                            >
+                                <div>
+                                    <h3 style={{ margin: 0, fontSize: 'var(--fs-md)', fontWeight: 900, color: 'var(--text-primary, #0f172a)' }}>
+                                        📄 معاينة التقرير المالي والتشغيلي الرسمي لأمر الشغل
+                                    </h3>
+                                    <p style={{ margin: '0.25rem 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary, #64748b)', fontWeight: 700 }}>
+                                        جاهز للإخراج بصيغة PDF والطباعة على ورق A4 متضمناً كافة الرسوم البيانية وجداول المطابقة
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handlePrint}
+                                    style={{
+                                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                        color: '#ffffff',
+                                        padding: '0.6rem 1.4rem',
+                                        borderRadius: '10px',
+                                        fontWeight: 900,
+                                        cursor: 'pointer',
+                                        border: 'none',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '0.5rem',
+                                        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.35)'
+                                    }}
                                 >
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.2)" />
-                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontWeight: 800, fontSize: 13 }} />
-                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontWeight: 800 }} tickFormatter={(val) => val.toLocaleString('en-US')} />
-                                    <Tooltip
-                                        formatter={(value: any) => formatCurrency(Number(value || 0))}
-                                        contentStyle={{
-                                            borderRadius: '12px',
-                                            border: '1px solid var(--border-color, #e2e8f0)',
-                                            background: 'var(--surface-card, #ffffff)',
-                                            color: 'var(--text-primary, #1e293b)',
-                                            fontWeight: 800
-                                        }}
-                                    />
-                                    <Legend wrapperStyle={{ paddingTop: '12px', fontWeight: 900, fontSize: '13px' }} iconType="circle" />
-                                    <Bar dataKey="الميزانية التقديرية" fill={THEME.primary} radius={[8, 8, 0, 0]} barSize={36} />
-                                    <Bar dataKey="فواتير المبيعات" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={36} />
-                                    <Bar dataKey="المحصل الفعلي" fill="#10b981" radius={[8, 8, 0, 0]} barSize={36} />
-                                    <Bar dataKey="المتبقي على العميل" fill="#f59e0b" radius={[8, 8, 0, 0]} barSize={36} />
-                                    <Bar dataKey="التكلفة الفعلية" fill="#e11d48" radius={[8, 8, 0, 0]} barSize={36} />
-                                </BarChart>
-                            </ResponsiveContainer>
+                                    <Printer size={16} /> طباعة هذا التقرير الآن (A4)
+                                </button>
+                            </div>
+
+                            {renderPrintableDocument()}
                         </div>
-                    ) : loading ? (
-                        <LoadingScreen message="جاري استخراج دفتر أستاذ أمر الشغل..." fullScreen={false} />
                     ) : (
-                        <div
-                            style={{
-                                borderRadius: '14px',
-                                border: '1px solid var(--border-color, #e2e8f0)',
-                                overflow: 'hidden',
-                                background: 'var(--surface-card, #ffffff)'
-                            }}
-                        >
-                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
-                                <thead>
-                                    <tr
-                                        style={{
-                                            background: 'var(--surface-sunken, #f8fafc)',
-                                            color: 'var(--text-secondary, #475569)',
-                                            fontSize: 'var(--fs-xs)',
-                                            fontWeight: 900,
-                                            borderBottom: '2px solid var(--border-color, #e2e8f0)'
-                                        }}
-                                    >
-                                        <th style={{ padding: '0.85rem 1rem' }}>التاريخ</th>
-                                        <th style={{ padding: '0.85rem 1rem' }}>نوع الحركة</th>
-                                        <th style={{ padding: '0.85rem 1rem' }}>البيان التحليلي</th>
-                                        <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>العدد / الأيام</th>
-                                        <th style={{ padding: '0.85rem 1rem', textAlign: 'left' }}>القيمة ({currencySymbol()})</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {tableRows.length > 0 ? (
-                                        tableRows.map((row: any, i: number) => {
-                                            const badge = getTypeBadgeStyle(row.trans_type, row.trans_desc);
-                                            const isReceipt = row.trans_type === 'سندات قبض';
-                                            const isInvoice = row.trans_type === 'فواتير';
-                                            return (
-                                                <tr
-                                                    key={row.source_id || i}
-                                                    style={{
-                                                        borderBottom: '1px solid var(--border-color, #f1f5f9)',
-                                                        fontSize: 'var(--fs-sm)',
-                                                        fontWeight: 800,
-                                                        color: 'var(--text-primary, #1e293b)'
-                                                    }}
-                                                >
-                                                    <td style={{ padding: '0.85rem 1rem', direction: 'ltr', textAlign: 'right', color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>
-                                                        {formatDateClean(row.trans_date)}
-                                                    </td>
-                                                    <td style={{ padding: '0.85rem 1rem' }}>
-                                                        <span
-                                                            style={{
-                                                                display: 'inline-block',
-                                                                padding: '0.25rem 0.65rem',
-                                                                borderRadius: '8px',
-                                                                fontSize: '11px',
-                                                                fontWeight: 900,
-                                                                background: badge.bg,
-                                                                color: badge.color,
-                                                                border: `1px solid ${badge.border}`
-                                                            }}
-                                                        >
-                                                            {badge.label}
-                                                        </span>
-                                                    </td>
-                                                    <td style={{ padding: '0.85rem 1rem', fontWeight: 800 }}>
-                                                        {row.trans_desc}
-                                                    </td>
-                                                    <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 900 }} dir="ltr">
-                                                        {row.qty ?? 1}
-                                                    </td>
-                                                    <td
-                                                        style={{
-                                                            padding: '0.85rem 1rem',
-                                                            textAlign: 'left',
-                                                            fontWeight: 900,
-                                                            color: isReceipt ? '#16a34a' : isInvoice ? '#2563eb' : badge.color
-                                                        }}
-                                                        dir="ltr"
-                                                    >
-                                                        {isReceipt ? '+' : ''}{formatCurrency(row.amount)}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    ) : (
-                                        <tr>
-                                            <td
-                                                colSpan={5}
-                                                style={{
-                                                    textAlign: 'center',
-                                                    padding: '3.5rem 1rem',
-                                                    color: 'var(--text-secondary, #94a3b8)',
-                                                    fontSize: 'var(--fs-md)',
-                                                    fontWeight: 800
-                                                }}
-                                            >
-                                                لا توجد حركات مسجلة في هذا التبويب حتى الآن.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                                {tableRows.length > 0 && (
-                                    <tfoot>
-                                        <tr
+                        <>
+                            {activeTab === 'مؤشرات الأداء' ? (
+                                <div
+                                    style={{
+                                        padding: '1.5rem',
+                                        background: 'var(--surface-sunken, #f8fafc)',
+                                        borderRadius: '16px',
+                                        border: '1px solid var(--border-color, #e2e8f0)'
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                                        <h3 style={{ margin: 0, color: 'var(--text-primary, #1e293b)', fontWeight: 900, fontSize: 'var(--fs-lg)' }}>
+                                            مقارنة الميزانية والتكاليف الفعلية والتحصيل لأمر الشغل
+                                        </h3>
+                                        <button
+                                            type="button"
+                                            onClick={handlePrint}
                                             style={{
-                                                background: 'var(--surface-sunken, #f8fafc)',
-                                                borderTop: '2px solid var(--border-color, #cbd5e1)',
-                                                fontWeight: 900
+                                                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                                                color: '#ffffff',
+                                                padding: '0.45rem 1rem',
+                                                borderRadius: '8px',
+                                                border: 'none',
+                                                fontWeight: 800,
+                                                fontSize: 'var(--fs-xs)',
+                                                cursor: 'pointer',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.4rem',
+                                                boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
                                             }}
                                         >
-                                            <td colSpan={3} style={{ padding: '0.9rem 1rem', color: 'var(--text-primary, #0f172a)', fontSize: 'var(--fs-sm)' }}>
-                                                إجمالي التبويب المعروض ({tableRows.length} حركة)
-                                            </td>
-                                            <td style={{ padding: '0.9rem 1rem', textAlign: 'center', color: 'var(--text-secondary, #475569)' }} dir="ltr">
-                                                {activeTab === 'يوميات عمالة' ? `${metrics.totalLaborDays} يوم` : '-'}
-                                            </td>
-                                            <td style={{ padding: '0.9rem 1rem', textAlign: 'left', fontSize: 'var(--fs-md)', color: THEME.primary }} dir="ltr">
-                                                {formatCurrency(tabTotal)}
-                                            </td>
-                                        </tr>
-                                    </tfoot>
-                                )}
-                            </table>
-                        </div>
+                                            <Printer size={14} /> طباعة الرسم البياني والتقرير
+                                        </button>
+                                    </div>
+                                    <div style={{ height: '22rem', width: '100%' }}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <BarChart
+                                                data={[
+                                                    {
+                                                        name: jobOrder?.order_number || 'أمر الشغل',
+                                                        'الميزانية التقديرية': metrics.boqBudget,
+                                                        'فواتير المبيعات': metrics.totalBilledRevenue,
+                                                        'المحصل الفعلي': metrics.totalCollectedRevenue,
+                                                        'المتبقي على العميل': metrics.customerRemainingBalance,
+                                                        'التكلفة الفعلية': metrics.totalActualCost
+                                                    }
+                                                ]}
+                                                margin={{ top: 10, right: 20, left: 20, bottom: 5 }}
+                                            >
+                                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(148, 163, 184, 0.2)" />
+                                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontWeight: 800, fontSize: 13 }} />
+                                                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontWeight: 800 }} tickFormatter={(val) => val.toLocaleString('en-US')} />
+                                                <Tooltip
+                                                    formatter={(value: any) => formatCurrency(Number(value || 0))}
+                                                    contentStyle={{
+                                                        borderRadius: '12px',
+                                                        border: '1px solid var(--border-color, #e2e8f0)',
+                                                        background: 'var(--surface-card, #ffffff)',
+                                                        color: 'var(--text-primary, #1e293b)',
+                                                        fontWeight: 800
+                                                    }}
+                                                />
+                                                <Legend wrapperStyle={{ paddingTop: '12px', fontWeight: 900, fontSize: '13px' }} iconType="circle" />
+                                                <Bar dataKey="الميزانية التقديرية" fill={THEME.primary} radius={[8, 8, 0, 0]} barSize={36} />
+                                                <Bar dataKey="فواتير المبيعات" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={36} />
+                                                <Bar dataKey="المحصل الفعلي" fill="#10b981" radius={[8, 8, 0, 0]} barSize={36} />
+                                                <Bar dataKey="المتبقي على العميل" fill="#f59e0b" radius={[8, 8, 0, 0]} barSize={36} />
+                                                <Bar dataKey="التكلفة الفعلية" fill="#e11d48" radius={[8, 8, 0, 0]} barSize={36} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            ) : loading ? (
+                                <LoadingScreen message="جاري استخراج دفتر أستاذ أمر الشغل..." fullScreen={false} />
+                            ) : (
+                                <div
+                                    style={{
+                                        borderRadius: '14px',
+                                        border: '1px solid var(--border-color, #e2e8f0)',
+                                        overflow: 'hidden',
+                                        background: 'var(--surface-card, #ffffff)'
+                                    }}
+                                >
+                                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'right' }}>
+                                        <thead>
+                                            <tr
+                                                style={{
+                                                    background: 'var(--surface-sunken, #f8fafc)',
+                                                    color: 'var(--text-secondary, #475569)',
+                                                    fontSize: 'var(--fs-xs)',
+                                                    fontWeight: 900,
+                                                    borderBottom: '2px solid var(--border-color, #e2e8f0)'
+                                                }}
+                                            >
+                                                <th style={{ padding: '0.85rem 1rem' }}>التاريخ</th>
+                                                <th style={{ padding: '0.85rem 1rem' }}>نوع الحركة</th>
+                                                <th style={{ padding: '0.85rem 1rem' }}>البيان التحليلي</th>
+                                                <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>العدد / الأيام</th>
+                                                <th style={{ padding: '0.85rem 1rem', textAlign: 'left' }}>القيمة ({currencySymbol()})</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {tableRows.length > 0 ? (
+                                                tableRows.map((row: any, i: number) => {
+                                                    const badge = getTypeBadgeStyle(row.trans_type, row.trans_desc);
+                                                    const isReceipt = row.trans_type === 'سندات قبض';
+                                                    const isInvoice = row.trans_type === 'فواتير';
+                                                    return (
+                                                        <tr
+                                                            key={row.source_id || i}
+                                                            style={{
+                                                                borderBottom: '1px solid var(--border-color, #f1f5f9)',
+                                                                fontSize: 'var(--fs-sm)',
+                                                                fontWeight: 800,
+                                                                color: 'var(--text-primary, #1e293b)'
+                                                            }}
+                                                        >
+                                                            <td style={{ padding: '0.85rem 1rem', direction: 'ltr', textAlign: 'right', color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>
+                                                                {formatDateClean(row.trans_date)}
+                                                            </td>
+                                                            <td style={{ padding: '0.85rem 1rem' }}>
+                                                                <span
+                                                                    style={{
+                                                                        display: 'inline-block',
+                                                                        padding: '0.25rem 0.65rem',
+                                                                        borderRadius: '8px',
+                                                                        fontSize: '11px',
+                                                                        fontWeight: 900,
+                                                                        background: badge.bg,
+                                                                        color: badge.color,
+                                                                        border: `1px solid ${badge.border}`
+                                                                    }}
+                                                                >
+                                                                    {badge.label}
+                                                                </span>
+                                                            </td>
+                                                            <td style={{ padding: '0.85rem 1rem', fontWeight: 800 }}>
+                                                                {row.trans_desc}
+                                                            </td>
+                                                            <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 900 }} dir="ltr">
+                                                                {row.qty ?? 1}
+                                                            </td>
+                                                            <td
+                                                                style={{
+                                                                    padding: '0.85rem 1rem',
+                                                                    textAlign: 'left',
+                                                                    fontWeight: 900,
+                                                                    color: isReceipt ? '#16a34a' : isInvoice ? '#2563eb' : badge.color
+                                                                }}
+                                                                dir="ltr"
+                                                            >
+                                                                {isReceipt ? '+' : ''}{formatCurrency(row.amount)}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })
+                                            ) : (
+                                                <tr>
+                                                    <td
+                                                        colSpan={5}
+                                                        style={{
+                                                            textAlign: 'center',
+                                                            padding: '3.5rem 1rem',
+                                                            color: 'var(--text-secondary, #94a3b8)',
+                                                            fontSize: 'var(--fs-md)',
+                                                            fontWeight: 800
+                                                        }}
+                                                    >
+                                                        لا توجد حركات مسجلة في هذا التبويب حتى الآن.
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                        {tableRows.length > 0 && (
+                                            <tfoot>
+                                                <tr
+                                                    style={{
+                                                        background: 'var(--surface-sunken, #f8fafc)',
+                                                        borderTop: '2px solid var(--border-color, #cbd5e1)',
+                                                        fontWeight: 900
+                                                    }}
+                                                >
+                                                    <td colSpan={3} style={{ padding: '0.9rem 1rem', color: 'var(--text-primary, #0f172a)', fontSize: 'var(--fs-sm)' }}>
+                                                        إجمالي التبويب المعروض ({tableRows.length} حركة)
+                                                    </td>
+                                                    <td style={{ padding: '0.9rem 1rem', textAlign: 'center', color: 'var(--text-secondary, #475569)' }} dir="ltr">
+                                                        {activeTab === 'يوميات عمالة' ? `${metrics.totalLaborDays} يوم` : '-'}
+                                                    </td>
+                                                    <td style={{ padding: '0.9rem 1rem', textAlign: 'left', fontSize: 'var(--fs-md)', color: THEME.primary }} dir="ltr">
+                                                        {formatCurrency(tabTotal)}
+                                                    </td>
+                                                </tr>
+                                            </tfoot>
+                                        )}
+                                    </table>
+                                </div>
+                            )}
+
+                            {/* الحاوية الجاهزة دوماً للطباعة الفورية خارج الشاشة */}
+                            <div
+                                style={{
+                                    position: 'fixed',
+                                    left: '-99999px',
+                                    top: 0,
+                                    width: '920px',
+                                    background: '#ffffff',
+                                    zIndex: -1,
+                                    pointerEvents: 'none'
+                                }}
+                                aria-hidden="true"
+                            >
+                                {renderPrintableDocument()}
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
