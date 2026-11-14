@@ -155,6 +155,10 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
             .filter(d => d.trans_type === 'جزاءات')
             .reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
+        const contractValue =
+            Number(jobOrder?.boq_budget?.total_contract_amount || 0) ||
+            (Number(jobOrder?.assigned_qty || 1) * Number(jobOrder?.unit_price || 0));
+
         const invoicesTotal = ledgerData
             .filter(d => d.trans_type === 'فواتير')
             .reduce((sum, item) => sum + Number(item.amount || 0), 0);
@@ -163,7 +167,15 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
             .filter(d => d.trans_type === 'سندات قبض')
             .reduce((sum, item) => sum + Number(item.amount || 0), 0);
 
-        const totalCollectedRevenue = invoicesTotal + receiptsTotal;
+        // التحصيل الفعلي النقدي من العميل هو ما تم قبضه بسندات القبض فقط
+        const totalCollectedRevenue = receiptsTotal;
+
+        // إجمالي الفواتير الصادرة للعميل (أو قيمة العقد المستهدفة)
+        const totalBilledRevenue = invoicesTotal;
+        const targetBilledOrContract = invoicesTotal > 0 ? invoicesTotal : (contractValue || 0);
+
+        // المتبقي غير المحصل طرف العميل (قيمة الفواتير/العقد ناقص المحصل بسندات القبض)
+        const customerRemainingBalance = Math.max(0, targetBilledOrContract - receiptsTotal);
 
         const totalActualCost =
             laborTotal +
@@ -183,10 +195,6 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
             ) ||
             (Number(jobOrder?.assigned_qty || 1) * Number(jobOrder?.unit_price || 0));
 
-        const contractValue =
-            Number(jobOrder?.boq_budget?.total_contract_amount || 0) ||
-            (Number(jobOrder?.assigned_qty || 1) * Number(jobOrder?.unit_price || 0));
-
         const budgetRemaining = boqBudget - totalActualCost;
         const netCashFlow = totalCollectedRevenue - totalActualCost;
 
@@ -204,7 +212,9 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
             penaltiesTotal,
             invoicesTotal,
             receiptsTotal,
+            totalBilledRevenue,
             totalCollectedRevenue,
+            customerRemainingBalance,
             totalActualCost,
             boqBudget,
             contractValue,
@@ -281,8 +291,8 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
         { id: 'دفعات مقاولين', label: 'مستخلصات المقاولين', icon: HardHat, count: countByType('دفعات مقاولين') },
         { id: 'مصروفات نثرية', label: 'المصروفات المباشرة', icon: Wallet, count: countByType('مصروفات نثرية') },
         { id: 'خامات مصروفة', label: 'الخامات المنصرفة', icon: Package, count: countByType('خامات مصروفة') },
-        { id: 'سندات قبض', label: 'تحصيلات العميل', icon: Receipt, count: countByType('سندات قبض') },
-        { id: 'فواتير', label: 'الفواتير', icon: FileSpreadsheet, count: countByType('فواتير') },
+        { id: 'فواتير', label: 'فواتير المبيعات', icon: FileSpreadsheet, count: countByType('فواتير') },
+        { id: 'سندات قبض', label: 'تحصيلات العميل (سندات قبض)', icon: Receipt, count: countByType('سندات قبض') },
         { id: 'جزاءات', label: 'الجزاءات', icon: AlertTriangle, count: countByType('جزاءات') },
         { id: 'مؤشرات الأداء', label: 'الرسم البياني', icon: TrendingUp, count: null }
     ];
@@ -303,8 +313,11 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
         if (type === 'خامات مصروفة') {
             return { bg: 'rgba(234, 88, 12, 0.12)', color: '#c2410c', border: 'rgba(234, 88, 12, 0.3)', label: '📦 خامات منصرفة' };
         }
-        if (type === 'سندات قبض' || type === 'فواتير') {
+        if (type === 'سندات قبض') {
             return { bg: 'rgba(22, 163, 74, 0.14)', color: '#15803d', border: 'rgba(22, 163, 74, 0.35)', label: '💰 تحصيل عميل' };
+        }
+        if (type === 'فواتير') {
+            return { bg: 'rgba(37, 99, 235, 0.14)', color: '#1d4ed8', border: 'rgba(37, 99, 235, 0.35)', label: '📄 فاتورة مبيعات' };
         }
         return { bg: 'rgba(225, 29, 72, 0.12)', color: '#be123c', border: 'rgba(225, 29, 72, 0.3)', label: type || 'حركة مالية' };
     };
@@ -498,16 +511,30 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                         </div>
 
                         <div style={{ background: 'rgba(244, 63, 94, 0.22)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid rgba(251, 113, 133, 0.45)' }}>
-                            <div style={{ fontSize: '11px', color: '#fecdd3', fontWeight: 800 }}>إجمالي التكلفة الفعلية لأمر الشغل</div>
+                            <div style={{ fontSize: '11px', color: '#fecdd3', fontWeight: 800 }}>🛑 إجمالي التكلفة الفعلية للأمر</div>
                             <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '0.25rem', color: '#fda4af' }}>
                                 {formatCurrency(metrics.totalActualCost)}
                             </div>
                         </div>
 
+                        <div style={{ background: 'rgba(56, 189, 248, 0.18)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid rgba(56, 189, 248, 0.4)' }}>
+                            <div style={{ fontSize: '11px', color: '#bae6fd', fontWeight: 800 }}>📄 إجمالي فواتير المبيعات</div>
+                            <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '0.25rem', color: '#7dd3fc' }}>
+                                {formatCurrency(metrics.invoicesTotal)}
+                            </div>
+                        </div>
+
                         <div style={{ background: 'rgba(16, 185, 129, 0.22)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid rgba(52, 211, 153, 0.45)' }}>
-                            <div style={{ fontSize: '11px', color: '#a7f3d0', fontWeight: 800 }}>💰 المحصل من العميل على الأمر</div>
+                            <div style={{ fontSize: '11px', color: '#a7f3d0', fontWeight: 800 }}>💰 المحصل الفعلي (سندات قبض)</div>
                             <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '0.25rem', color: '#6ee7b7' }}>
                                 {formatCurrency(metrics.totalCollectedRevenue)}
+                            </div>
+                        </div>
+
+                        <div style={{ background: 'rgba(245, 158, 11, 0.22)', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid rgba(251, 191, 36, 0.45)' }}>
+                            <div style={{ fontSize: '11px', color: '#fef08a', fontWeight: 800 }}>⏳ المتبقي طرف العميل</div>
+                            <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, marginTop: '0.25rem', color: '#fde047' }}>
+                                {formatCurrency(metrics.customerRemainingBalance)}
                             </div>
                         </div>
                     </div>
@@ -622,8 +649,10 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                                         {
                                             name: jobOrder?.order_number || 'أمر الشغل',
                                             'الميزانية التقديرية': metrics.boqBudget,
-                                            'التكلفة الفعلية': metrics.totalActualCost,
-                                            'المحصل من العميل': metrics.totalCollectedRevenue
+                                            'فواتير المبيعات': metrics.totalBilledRevenue,
+                                            'المحصل الفعلي': metrics.totalCollectedRevenue,
+                                            'المتبقي على العميل': metrics.customerRemainingBalance,
+                                            'التكلفة الفعلية': metrics.totalActualCost
                                         }
                                     ]}
                                     margin={{ top: 10, right: 20, left: 20, bottom: 5 }}
@@ -642,9 +671,11 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                                         }}
                                     />
                                     <Legend wrapperStyle={{ paddingTop: '12px', fontWeight: 900, fontSize: '13px' }} iconType="circle" />
-                                    <Bar dataKey="الميزانية التقديرية" fill={THEME.primary} radius={[8, 8, 0, 0]} barSize={60} />
-                                    <Bar dataKey="التكلفة الفعلية" fill="#e11d48" radius={[8, 8, 0, 0]} barSize={60} />
-                                    <Bar dataKey="المحصل من العميل" fill="#10b981" radius={[8, 8, 0, 0]} barSize={60} />
+                                    <Bar dataKey="الميزانية التقديرية" fill={THEME.primary} radius={[8, 8, 0, 0]} barSize={36} />
+                                    <Bar dataKey="فواتير المبيعات" fill="#3b82f6" radius={[8, 8, 0, 0]} barSize={36} />
+                                    <Bar dataKey="المحصل الفعلي" fill="#10b981" radius={[8, 8, 0, 0]} barSize={36} />
+                                    <Bar dataKey="المتبقي على العميل" fill="#f59e0b" radius={[8, 8, 0, 0]} barSize={36} />
+                                    <Bar dataKey="التكلفة الفعلية" fill="#e11d48" radius={[8, 8, 0, 0]} barSize={36} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -681,7 +712,8 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                                     {tableRows.length > 0 ? (
                                         tableRows.map((row: any, i: number) => {
                                             const badge = getTypeBadgeStyle(row.trans_type, row.trans_desc);
-                                            const isInflow = row.trans_type === 'سندات قبض' || row.trans_type === 'فواتير';
+                                            const isReceipt = row.trans_type === 'سندات قبض';
+                                            const isInvoice = row.trans_type === 'فواتير';
                                             return (
                                                 <tr
                                                     key={row.source_id || i}
@@ -722,11 +754,11 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                                                             padding: '0.85rem 1rem',
                                                             textAlign: 'left',
                                                             fontWeight: 900,
-                                                            color: isInflow ? '#16a34a' : badge.color
+                                                            color: isReceipt ? '#16a34a' : isInvoice ? '#2563eb' : badge.color
                                                         }}
                                                         dir="ltr"
                                                     >
-                                                        {isInflow ? '+' : ''}{formatCurrency(row.amount)}
+                                                        {isReceipt ? '+' : ''}{formatCurrency(row.amount)}
                                                     </td>
                                                 </tr>
                                             );
