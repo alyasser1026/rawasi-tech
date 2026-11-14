@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function RootVerifyPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#07090e] text-amber-500 flex items-center justify-center font-bold">
+      <div style={{ minHeight: '100vh', backgroundColor: '#07090e', color: '#f59e0b', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontFamily: 'Cairo, sans-serif' }}>
         جاري تحميل بوابة التحقق من المستندات...
       </div>
     }>

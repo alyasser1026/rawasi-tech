@@ -144,7 +144,7 @@ export default function PhiSite({ content }: { content?: SiteContentOverride }) 
             {NAV.map(n => n.href.startsWith('#') ? (
               <a key={n.href} href={n.href} onClick={() => setOpen(false)}>{n.label}</a>
             ) : (
-              <Link key={n.href} href={n.href} onClick={() => setOpen(false)} style={{ color: 'var(--o)', fontWeight: 'bold' }}>{n.label}</Link>
+              <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="pw-nav-verify">{n.label}</Link>
             ))}
             <Link href="/login" className="pw-btn pw-btn-primary pw-nav-cta" onClick={() => setOpen(false)}>دخول النظام</Link>
           </nav>
