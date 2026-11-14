@@ -5,6 +5,26 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/toast-context'; 
 import { getDestinationForUser } from '@/lib/roleRouter';
 
+function notifyTelegramAuth(payload: {
+  type: 'login' | 'signup';
+  userId?: string;
+  email: string;
+  fullName?: string;
+  role?: string;
+  destination?: string;
+  status?: string;
+}) {
+  try {
+    fetch('/api/notify/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  } catch {
+    // Fail silently
+  }
+}
+
 export function useLoginLogic() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -93,6 +113,16 @@ export function useLoginLogic() {
 
         if (error) throw error;
 
+        // 🔔 إشعار فوري على تلغرام بإنشاء الحساب الجديد
+        notifyTelegramAuth({
+          type: 'signup',
+          userId: data?.user?.id,
+          email,
+          fullName,
+          role: 'client',
+          status: data?.session ? 'مفعّل ومسجّل فورياً' : 'في انتظار تأكيد البريد الإلكتروني',
+        });
+
         // في حال تفعيل تأكيد البريد في Supabase وعدم وجود جلسة فورية
         if (data?.user && !data.session) {
           showToast('تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني (ومجلد Spam) والضغط على رابط التفعيل لتسجيل الدخول.', 'info');
@@ -177,6 +207,15 @@ export function useLoginLogic() {
         
         showToast('تم تسجيل الدخول بنجاح! جاري تحويلك...', 'success');
         router.refresh(); 
+
+        // 🔔 إشعار فوري على تلغرام بتسجيل الدخول الناجح
+        notifyTelegramAuth({
+          type: 'login',
+          userId: data.user.id,
+          email: data.user.email || loginEmail,
+          fullName: data.user.user_metadata?.full_name || '',
+          destination,
+        });
         
         // 👈 توجيه ذكي فوري للمستخدم حسب صلاحياته
         setTimeout(() => {

@@ -13,6 +13,7 @@ import Providers from './providers';
 import NextTopLoader from 'nextjs-toploader';
 import GlobalErrorBoundary from '../components/globalerrorboundary';
 import GlobalErrorReporter from '../components/GlobalErrorReporter';
+import VisitorTracker from '../components/VisitorTracker';
 import { THEME } from '@/lib/theme'; 
 import { SidebarProvider } from '@/lib/SidebarContext'; 
 import AuthGuard from "../components/authGuard"; 
@@ -118,6 +119,7 @@ export default function RootLayout({
 
         <GlobalErrorBoundary>
             <GlobalErrorReporter />
+            <VisitorTracker />
             <QueryProvider>
                 <Providers>
                     <ThemeProvider>
