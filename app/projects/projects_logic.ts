@@ -321,7 +321,7 @@ export function useProjectsLogic() {
 
     if (projData) {
       const enrichedProjects = projData.map(p => {
-         const dStats = (dashboardData || []).find((d: any) => d.project_id === p.id) || {};
+         const dStats = (dashboardData || []).find((d: any) => d.id === p.id || d.project_id === p.id) || {};
          return { ...p, ...dStats };
       });
       setProjects(enrichedProjects);

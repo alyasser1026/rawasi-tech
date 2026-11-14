@@ -23,7 +23,7 @@ import ExpensesTab from './ExpensesTab'; // 👈 استدعاء تاب المص�
 import BimTab from './BimTab'; // 👈 استدعاء تاب النماذج ثلاثية الأبعاد BIM
 import ReportsTab from './ReportsTab'; // 👈 استدعاء تاب التقارير الهندسية والمالية الشاملة
 import LoadingScreen from '@/components/LoadingScreen';
-import { Activity, Building2, CirclePause, Layers, TriangleAlert } from 'lucide-react';
+import { Activity, Building2, CirclePause, Layers, TriangleAlert, HardHat, Phone, Handshake, ChevronLeft, CheckCircle2, Clock, User, Home, ArrowUpRight } from 'lucide-react';
 import KpiStrip from '@/components/KpiStrip';
 
 export default function AdvancedProjectsPage() {
@@ -170,12 +170,26 @@ export default function AdvancedProjectsPage() {
             .glass-card { background: rgba(255,255,255,0.6); backdrop-filter: blur(20px); padding: 1.5625rem; borderRadius: 24px; border: 1px solid rgba(255,255,255,0.8); boxShadow: 0 10px 30px rgba(0,0,0,0.03); margin-bottom: 1.5625rem; }
             .labor-stat-item { display: flex; flex-direction: column; background: rgba(255,255,255,0.5); padding: 0.75rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.7); }
             
-            .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(18.125rem, 1fr)); gap: 1rem; }
-            .project-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(15px); border-radius: 14px; padding: 1.25rem; border: 1px solid rgba(255,255,255,0.8); transition: 0.3s; cursor: pointer; position: relative; overflow: hidden; }
-            .project-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.08); border-color: ${THEME.goldAccent}; }
-            .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px dashed rgba(0,0,0,0.05); fontSize: 12px; font-weight: 800; color: #475569; }
-            .stat-row:last-child { border-bottom: none; }
-            .stage-badge { position: absolute; top: 1.25rem; left: 1.25rem; background: linear-gradient(135deg, ${THEME.goldAccent}, #d97706); color: white; padding: 0.3125rem 0.75rem; border-radius: 8px; font-size: var(--fs-xs); font-weight: 900; box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3); z-index: 2; }
+            .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr)); gap: 1.25rem; }
+            .project-card { 
+              background: var(--surface-card, #ffffff); 
+              border-radius: 16px; 
+              padding: 1.25rem; 
+              border: 1px solid var(--border-color, #e2e8f0); 
+              transition: all 0.25s ease; 
+              cursor: pointer; 
+              position: relative; 
+              overflow: hidden; 
+              display: flex;
+              flex-direction: column;
+              gap: 0.85rem;
+              box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+            }
+            .project-card:hover { 
+              transform: translateY(-4px); 
+              box-shadow: 0 16px 36px rgba(0, 0, 0, 0.08); 
+              border-color: rgba(249, 115, 22, 0.4); 
+            }
           `}</style>
 
           {logic.isLoading ? (
@@ -184,62 +198,349 @@ export default function AdvancedProjectsPage() {
                
                <div className="projects-grid" style={{ animation: 'fadeIn 0.5s ease-out' }}>
                    {logic.projects.map(proj => {
-                       let timeProgress = 0;
+                       // 1. القيم المالية المحسوبة
+                       const budgetAmount = Number(proj.estimated_budget || proj.contract_value || 0);
+                       const totalActualCost = Number(proj.total_cost || 0);
+                       const variance = budgetAmount - totalActualCost;
+                       const budgetUsagePercent = budgetAmount > 0 ? (totalActualCost / budgetAmount) * 100 : 0;
+                       const progressColor = budgetUsagePercent > 95 ? '#ef4444' : (budgetUsagePercent > 80 ? '#f59e0b' : '#10b981');
+
+                       // 2. نسبة الإنجاز الفعلي
+                       const physicalProgress = Number(proj.overall_completion_percentage || 0).toFixed(1);
+
+                       // 3. الموقف الزمني
+                       let timelineText = 'المدة قيد التحديد';
+                       let timelineToneColor = '#64748b';
+                       let timelineToneBg = 'rgba(100, 116, 139, 0.08)';
+
                        if (proj.start_date && proj.end_date) {
                            const start = new Date(proj.start_date).getTime();
                            const end = new Date(proj.end_date).getTime();
                            const now = new Date().getTime();
-                           if (now > end) timeProgress = 100;
-                           else if (now > start) timeProgress = Math.round(((now - start) / (end - start)) * 100);
+                           const daysDiff = Math.round((now - end) / (1000 * 60 * 60 * 24));
+                           
+                           if (proj.status === 'منتهي') {
+                               timelineText = 'منتهي ومكتمل';
+                               timelineToneColor = '#10b981';
+                               timelineToneBg = 'rgba(16, 185, 129, 0.1)';
+                           } else if (now > end) {
+                               timelineText = `متأخر زمنياً بـ ${daysDiff} يوم`;
+                               timelineToneColor = '#dc2626';
+                               timelineToneBg = 'rgba(239, 68, 68, 0.1)';
+                           } else {
+                               const remaining = Math.abs(daysDiff);
+                               timelineText = remaining === 0 ? 'اليوم الموعد النهائي' : `ضمن الجدول (متبقي ${remaining} يوم)`;
+                               timelineToneColor = '#0284c7';
+                               timelineToneBg = 'rgba(2, 132, 199, 0.1)';
+                           }
                        }
 
-                       // 🚀 إظهار نسبة الإنجاز والتكلفة
-                       const physicalProgress = Number(proj.overall_completion_percentage || 0).toFixed(1);
-                       const totalActualCost = Number(proj.total_cost || 0);
+                       // كود أو إشارة المشروع
+                       const projectRef = proj.project_code || (proj.Property ? `PRJ-${String(proj.Property).replace(/[^0-9]/g, '') || proj.id.slice(0, 4)}` : `#${proj.id.slice(0, 4)}`);
+                       const clientName = proj.client?.name || proj.client_name || 'شركة المواطن الدولية';
+                       const subList = Array.isArray(proj.subcontractors) ? proj.subcontractors : [];
 
                        return (
                            <div key={proj.id} className="project-card" onClick={() => logic.loadProjectDetails(proj)}>
-                               {proj.current_stage && <div className="stage-badge">{proj.current_stage}</div>}
-
-                               <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.9375rem' }}>
-                                   <span style={{ fontSize: 'var(--fs-xs)', color: THEME.white, fontWeight: 900, backgroundColor: THEME.coffeeDark, padding: '0.25rem 0.625rem', borderRadius: '8px' }}>
-                                       {proj.project_code || 'بدون كود'}
-                                   </span>
+                               {/* 1️⃣ ترويسة الكارت المنظمة بدون تداخل نهائياً */}
+                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.45rem' }}>
+                                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                                       <span
+                                           dir="ltr"
+                                           style={{
+                                               fontSize: '11.5px',
+                                               fontWeight: 900,
+                                               color: '#0369a1',
+                                               backgroundColor: 'rgba(2, 132, 199, 0.08)',
+                                               border: '1px solid rgba(2, 132, 199, 0.25)',
+                                               padding: '0.2rem 0.55rem',
+                                               borderRadius: '6px'
+                                           }}
+                                       >
+                                           #{projectRef}
+                                       </span>
+                                       {proj.current_stage && (
+                                           <span
+                                               style={{
+                                                   fontSize: '11px',
+                                                   fontWeight: 800,
+                                                   background: 'rgba(249, 115, 22, 0.09)',
+                                                   color: '#ea580c',
+                                                   border: '1px solid rgba(249, 115, 22, 0.25)',
+                                                   padding: '0.2rem 0.55rem',
+                                                   borderRadius: '6px',
+                                                   whiteSpace: 'nowrap',
+                                                   maxWidth: '12rem',
+                                                   overflow: 'hidden',
+                                                   textOverflow: 'ellipsis'
+                                               }}
+                                               title={`المرحلة الحالية: ${proj.current_stage}`}
+                                           >
+                                               {proj.current_stage}
+                                           </span>
+                                       )}
+                                   </div>
                                    <StatusBadge status={proj.status || 'قيد الدراسة'} />
                                </div>
-                               
-                               <h3 style={{ margin: '0 0 0.3125rem 0', color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-xl)', paddingLeft: '5.625rem' }}>
-                                   {proj.Property} 
-                                   {proj.unit_type && <span style={{ fontSize: 'var(--fs-sm)', color: THEME.goldAccent, marginRight: '0.5rem' }}>({proj.unit_type})</span>}
-                               </h3>
-                               <p style={{ margin: '0 0 0.5rem 0', fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>العميل: {proj.client?.name || proj.client_name || '---'}</p>
-                               
-                               {(proj.engineer_in_charge || proj.engineer_phone) && (
-                                  <div style={{ background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: '8px', fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#334155', marginBottom: '0.9375rem', display: 'flex', justifyContent: 'space-between' }}>
-                                      <span>{proj.engineer_in_charge || 'غير محدد'}</span>
-                                      {proj.engineer_phone && <span>{proj.engineer_phone}</span>}
-                                  </div>
-                               )}
 
-                               <div style={{ background: 'rgba(255,255,255,0.5)', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.25rem' }}>
-                                   <div className="stat-row">
-                                       <span>الميزانية المعتمدة:</span>
-                                       <span style={{ color: THEME.primary, fontWeight: 900 }}>{formatCurrency(proj.estimated_budget || 0)}</span>
+                               {/* 2️⃣ كتلة هوية العقار والعميل */}
+                               <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                                   <div
+                                       style={{
+                                           width: '38px',
+                                           height: '38px',
+                                           borderRadius: '10px',
+                                           background: 'rgba(249, 115, 22, 0.1)',
+                                           color: '#ea580c',
+                                           display: 'flex',
+                                           alignItems: 'center',
+                                           justifyContent: 'center',
+                                           flexShrink: 0
+                                       }}
+                                   >
+                                       <Building2 size={20} />
                                    </div>
-                                   <div className="stat-row">
-                                       <span>التكلفة الفعليّة (مواد+عمالة):</span>
-                                       <span style={{ color: THEME.danger, fontWeight: 900 }}>{formatCurrency(totalActualCost)}</span>
+                                   <div style={{ minWidth: 0, flex: 1 }}>
+                                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
+                                           <h3
+                                               style={{
+                                                   margin: 0,
+                                                   color: 'var(--text-primary, #0f172a)',
+                                                   fontWeight: 900,
+                                                   fontSize: 'var(--fs-md, 16px)',
+                                                   lineHeight: 1.3
+                                               }}
+                                           >
+                                               {proj.Property}
+                                           </h3>
+                                           {proj.unit_type && (
+                                               <span
+                                                   style={{
+                                                       fontSize: '11px',
+                                                       fontWeight: 800,
+                                                       padding: '0.15rem 0.45rem',
+                                                       borderRadius: '6px',
+                                                       background: 'rgba(99, 102, 241, 0.08)',
+                                                       color: '#4338ca',
+                                                       border: '1px solid rgba(99, 102, 241, 0.2)'
+                                                   }}
+                                               >
+                                                   ({proj.unit_type})
+                                               </span>
+                                           )}
+                                       </div>
+                                       <p
+                                           style={{
+                                               margin: '0.2rem 0 0',
+                                               fontSize: 'var(--fs-xs, 12px)',
+                                               color: 'var(--text-secondary, #64748b)',
+                                               fontWeight: 700,
+                                               display: 'flex',
+                                               alignItems: 'center',
+                                               gap: '0.3rem'
+                                           }}
+                                       >
+                                           <User size={12} />
+                                           <span>العميل: {clientName}</span>
+                                       </p>
                                    </div>
                                </div>
 
-                               <div>
-                                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.coffeeDark, marginBottom: '0.5rem' }}>
-                                       <span>نسبة الإنجاز الفعلي للموقع</span>
-                                       <span>{physicalProgress}%</span>
+                               {/* 3️⃣ كتلة المهندس المسؤول والمقاولين */}
+                               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                                   {(proj.engineer_in_charge || proj.engineer_phone) && (
+                                       <div
+                                           style={{
+                                               background: 'var(--surface-sunken, #f8fafc)',
+                                               border: '1px solid var(--border-color, #e2e8f0)',
+                                               borderRadius: '8px',
+                                               padding: '0.4rem 0.65rem',
+                                               display: 'flex',
+                                               justifyContent: 'space-between',
+                                               alignItems: 'center',
+                                               fontSize: '11.5px',
+                                               color: '#334155',
+                                               fontWeight: 700
+                                           }}
+                                       >
+                                           <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                               <HardHat size={13} color="#ea580c" />
+                                               <span>{proj.engineer_in_charge || 'مهندس الموقع'}</span>
+                                           </span>
+                                           {proj.engineer_phone && (
+                                               <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#0284c7' }} dir="ltr">
+                                                   <Phone size={11} />
+                                                   <span>{proj.engineer_phone}</span>
+                                               </span>
+                                           )}
+                                       </div>
+                                   )}
+                                   {subList.length > 0 && (
+                                       <div
+                                           style={{
+                                               display: 'flex',
+                                               alignItems: 'center',
+                                               gap: '0.35rem',
+                                               fontSize: '11px',
+                                               color: '#7c3aed',
+                                               fontWeight: 800,
+                                               padding: '0.15rem 0.35rem'
+                                           }}
+                                       >
+                                           <Handshake size={12} />
+                                           <span>مقاول: {subList.join(' ، ')}</span>
+                                       </div>
+                                   )}
+                               </div>
+
+                               {/* 4️⃣ الكتلة المالية المنظمة والمتناسقة */}
+                               <div
+                                   style={{
+                                       background: 'var(--surface-sunken, #f8fafc)',
+                                       border: '1px solid var(--border-color, #e2e8f0)',
+                                       borderRadius: '12px',
+                                       padding: '0.85rem',
+                                       display: 'flex',
+                                       flexDirection: 'column',
+                                       gap: '0.45rem',
+                                       fontSize: 'var(--fs-xs, 12px)'
+                                   }}
+                               >
+                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                       <span style={{ color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>الميزانية المعتمدة</span>
+                                       <span style={{ color: '#0284c7', fontWeight: 900, fontSize: '13px' }} dir="ltr">
+                                           {formatCurrency(budgetAmount)}
+                                       </span>
                                    </div>
-                                   <div style={{ height: '0.5rem', backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: '10px', overflow: 'hidden' }}>
-                                       <div style={{ width: `${physicalProgress}%`, height: '100%', backgroundColor: Number(physicalProgress) === 100 ? THEME.success : THEME.goldAccent, borderRadius: '10px' }}></div>
+
+                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b' }}>
+                                       <span style={{ fontWeight: 700 }}>التكلفة الفعلية (مواد + عمالة)</span>
+                                       <span style={{ color: '#dc2626', fontWeight: 900, fontSize: '13px' }} dir="ltr">
+                                           - {formatCurrency(totalActualCost)}
+                                       </span>
                                    </div>
+
+                                   <div
+                                       style={{
+                                           borderTop: '1px dashed var(--border-color, #cbd5e1)',
+                                           paddingTop: '0.4rem',
+                                           marginTop: '0.1rem',
+                                           display: 'flex',
+                                           justifyContent: 'space-between',
+                                           alignItems: 'center'
+                                       }}
+                                   >
+                                       <span style={{ color: variance >= 0 ? '#16a34a' : '#dc2626', fontWeight: 900 }}>
+                                           {variance >= 0 ? 'الوفر المتبقي:' : 'تجاوز الميزانية:'}
+                                       </span>
+                                       <span style={{ color: variance >= 0 ? '#16a34a' : '#dc2626', fontWeight: 900, fontSize: '13px' }} dir="ltr">
+                                           {variance >= 0 ? '+ ' : ''}{formatCurrency(Math.abs(variance))}
+                                       </span>
+                                   </div>
+
+                                   {/* شريط استهلاك الميزانية */}
+                                   <div style={{ marginTop: '0.35rem' }}>
+                                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginBottom: '0.3rem', fontWeight: 800 }}>
+                                           <span>استهلاك الميزانية</span>
+                                           <span style={{ color: progressColor, fontWeight: 900 }}>{budgetUsagePercent.toFixed(1)}%</span>
+                                       </div>
+                                       <div style={{ width: '100%', height: '6px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
+                                           <div
+                                               style={{
+                                                   width: `${Math.min(budgetUsagePercent, 100)}%`,
+                                                   height: '100%',
+                                                   background: progressColor,
+                                                   borderRadius: '999px',
+                                                   transition: 'width 0.4s ease'
+                                               }}
+                                           />
+                                       </div>
+                                   </div>
+                               </div>
+
+                               {/* 5️⃣ مؤشر الإنجاز الفعلي والموقف الزمني */}
+                               <div
+                                   style={{
+                                       background: 'var(--surface-sunken, #f8fafc)',
+                                       border: '1px solid var(--border-color, #e2e8f0)',
+                                       borderRadius: '10px',
+                                       padding: '0.65rem 0.75rem',
+                                       display: 'flex',
+                                       flexDirection: 'column',
+                                       gap: '0.45rem'
+                                   }}
+                               >
+                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                       <span style={{ fontSize: '11.5px', color: 'var(--text-secondary, #64748b)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                           <CheckCircle2 size={13} color={Number(physicalProgress) === 100 ? '#16a34a' : '#ea580c'} />
+                                           نسبة الإنجاز الفعلي للموقع
+                                       </span>
+                                       <span style={{ fontSize: '11.5px', fontWeight: 900, color: Number(physicalProgress) === 100 ? '#16a34a' : '#ea580c' }}>
+                                           {physicalProgress}%
+                                       </span>
+                                   </div>
+                                   <div style={{ width: '100%', height: '5px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
+                                       <div
+                                           style={{
+                                               width: `${Math.min(Number(physicalProgress), 100)}%`,
+                                               height: '100%',
+                                               background: Number(physicalProgress) === 100 ? '#16a34a' : 'linear-gradient(90deg, #f97316, #ea580c)',
+                                               borderRadius: '999px',
+                                               transition: 'width 0.4s ease'
+                                           }}
+                                       />
+                                   </div>
+
+                                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.2rem', borderTop: '1px dashed var(--border-color, #e2e8f0)', marginTop: '0.1rem' }}>
+                                       <span style={{ fontSize: '11px', color: 'var(--text-secondary, #64748b)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                                           <Clock size={12} color={timelineToneColor} />
+                                           الموقف الزمني:
+                                       </span>
+                                       <span
+                                           style={{
+                                               display: 'inline-flex',
+                                               alignItems: 'center',
+                                               gap: '0.25rem',
+                                               padding: '0.15rem 0.5rem',
+                                               borderRadius: '6px',
+                                               fontSize: '10.5px',
+                                               fontWeight: 800,
+                                               backgroundColor: timelineToneBg,
+                                               color: timelineToneColor,
+                                               border: `1px solid ${timelineToneColor}35`
+                                           }}
+                                       >
+                                           {timelineText}
+                                       </span>
+                                   </div>
+                               </div>
+
+                               {/* 6️⃣ تذييل الكارت التفاعلي */}
+                               <div
+                                   style={{
+                                       display: 'flex',
+                                       justifyContent: 'space-between',
+                                       alignItems: 'center',
+                                       marginTop: 'auto',
+                                       paddingTop: '0.45rem',
+                                       borderTop: '1px solid var(--border-color, #f1f5f9)'
+                                   }}
+                               >
+                                   <span style={{ fontSize: '11px', color: 'var(--text-secondary, #64748b)', fontWeight: 800 }}>
+                                       {proj.start_date ? `بدء: ${new Date(proj.start_date).toLocaleDateString('en-GB')}` : 'المشروع قيد المتابعة'}
+                                   </span>
+                                   <span
+                                       style={{
+                                           fontSize: '12px',
+                                           fontWeight: 900,
+                                           color: THEME.goldAccent,
+                                           display: 'inline-flex',
+                                           alignItems: 'center',
+                                           gap: '0.25rem'
+                                       }}
+                                   >
+                                       فتح غرفة المشروع <ChevronLeft size={14} />
+                                   </span>
                                </div>
                            </div>
                        );
