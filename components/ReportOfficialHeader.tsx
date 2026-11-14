@@ -272,18 +272,11 @@ export default function ReportOfficialHeader({
           {subtitle && <p>{subtitle}</p>}
         </div>
 
-        {/* التحقق: الباركود + الرقم المرجعي + التاريخ + QR */}
+        {/* التحقق: الرقم المرجعي + التاريخ + QR المربع للتحقق */}
         <div className="phi-orh-verify">
           <div className="phi-orh-ref">
-            <svg viewBox={`0 0 ${barcodeTotalWidth} 28`} preserveAspectRatio="none" aria-label={`Barcode ${resolvedRefCode}`}>
-              <rect x="0" y="0" width={barcodeTotalWidth} height="28" fill="#ffffff" />
-              {barcodeBars.map((bar, idx) => (
-                <rect key={idx} x={bar.x} y="1" width={bar.w} height="26" fill="#0f172a" />
-              ))}
-            </svg>
-            {refLabel && <div className="phi-orh-ref-label">{refLabel}</div>}
-            <div className="phi-orh-ref-code" dir="ltr">{resolvedRefCode}</div>
             <dl>
+              <div><dt>{refLabel || 'الرقم المرجعي'}</dt><dd dir="ltr" style={{ fontWeight: 900 }}>{resolvedRefCode}</dd></div>
               <div><dt>تاريخ الإصدار</dt><dd dir="ltr">{resolvedDate}</dd></div>
               {metaRows.map(m => (
                 <div key={m.label}><dt>{m.label}</dt><dd dir={m.ltr ? 'ltr' : undefined}>{m.value}</dd></div>
@@ -291,7 +284,7 @@ export default function ReportOfficialHeader({
             </dl>
           </div>
           <div className={`phi-orh-qr${qrNode ? ' is-custom' : ''}`}>
-            {qrNode || <QRCodeSVG value={qrVerificationValue} size={compact ? 58 : 66} level="M" bgColor="#ffffff" fgColor="#0f172a" />}
+            {qrNode || <QRCodeSVG value={qrVerificationValue} size={compact ? 60 : 70} level="M" bgColor="#ffffff" fgColor="#0f172a" />}
             <span>{qrCaption}</span>
           </div>
         </div>
@@ -353,16 +346,13 @@ const ORH_CSS = `
 .phi-orh-title-en { font-size:10px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted); }
 .phi-orh-title p { margin:0; font-size:11px; font-weight:700; color:#475569; text-wrap:balance; }
 
-.phi-orh-verify { display:flex; align-items:center; justify-content:flex-end; gap:10px; border-right:1px solid var(--line); }
-.phi-orh-ref { flex:1; min-width:0; max-width:170px; display:flex; flex-direction:column; align-items:stretch; gap:3px; }
-.phi-orh-ref svg { width:100%; height:26px; display:block; }
-.phi-orh-ref-label { text-align:center; font-size:9px; font-weight:900; color:var(--muted); }
-.phi-orh-ref-code { text-align:center; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:9px; font-weight:800; letter-spacing:.6px; color:var(--ink); }
-.phi-orh-ref dl { margin:4px 0 0; padding-top:5px; border-top:1px dashed var(--line); }
+.phi-orh-verify { display:flex; align-items:center; justify-content:flex-end; gap:12px; border-right:1px solid var(--line); }
+.phi-orh-ref { flex:1; min-width:0; max-width:180px; display:flex; flex-direction:column; justify-content:center; gap:4px; }
+.phi-orh-ref dl { margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
 .phi-orh-ref dl > div { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:0 8px; }
 .phi-orh-ref dt { color:var(--muted); font-weight:800; font-size:9.5px; white-space:nowrap; }
 .phi-orh-ref dd { margin:0; font-weight:900; font-size:10.5px; font-variant-numeric:tabular-nums; white-space:nowrap; }
-.phi-orh-qr { display:flex; flex-direction:column; align-items:center; gap:3px; padding:5px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; flex-shrink:0; }
+.phi-orh-qr { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; flex-shrink:0; }
 .phi-orh-qr span { font-size:8px; font-weight:900; color:var(--muted); text-align:center; max-width:84px; line-height:1.3; }
 .phi-orh-qr.is-custom { border:0; padding:0; background:transparent; }
 .phi-orh-qr.is-custom svg, .phi-orh-qr.is-custom canvas, .phi-orh-qr.is-custom img { width:78px !important; height:78px !important; display:block; }
