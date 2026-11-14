@@ -184,20 +184,11 @@ export default function ReportOfficialHeader({
 
   const qrVerificationValue = useMemo(() => {
     if (qrValue) return qrValue;
-    const lines = [
-      `${PHI_COMPANY_CONTACTS.nameAr} | ${PHI_COMPANY_CONTACTS.nameEn}`,
-      `REF: ${resolvedRefCode}`,
-      `TITLE: ${title}`,
-      safeProjectName ? `PROJECT: ${safeProjectName}${safeProjectCode ? ` (${safeProjectCode})` : ''}` : null,
-      safeClientName ? `CLIENT: ${safeClientName}${safeClientPhone ? ` - ${safeClientPhone}` : ''}` : null,
-      safeEngineerName ? `ENGINEER: ${safeEngineerName}${safeEngineerPhone ? ` - ${safeEngineerPhone}` : ''}` : null,
-      issuerTax ? `VAT: ${issuerTax}` : null,
-      `DATE: ${resolvedDate}`,
-      `TEL: ${PHI_COMPANY_CONTACTS.phone1} | ${PHI_COMPANY_CONTACTS.phone2}`,
-      `EMAIL: ${PHI_COMPANY_CONTACTS.email}`,
-    ].filter(Boolean);
-    return lines.join('\n');
-  }, [qrValue, resolvedRefCode, title, safeProjectName, safeProjectCode, safeClientName, safeClientPhone, safeEngineerName, safeEngineerPhone, issuerTax, resolvedDate]);
+    const origin = typeof window !== 'undefined' && window.location?.origin
+      ? window.location.origin
+      : 'https://phi-tech.org';
+    return `${origin}/website/verify?doc=${encodeURIComponent(resolvedRefCode)}`;
+  }, [qrValue, resolvedRefCode]);
 
   const barcodeBars = useMemo(() => buildLinearBarcodeBars(resolvedRefCode), [resolvedRefCode]);
   const barcodeTotalWidth = useMemo(() => {

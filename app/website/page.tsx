@@ -1222,6 +1222,10 @@ export default function WebsitePage() {
             <a href="#turnkey-calculator" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>حاسبة المقايسة</a>
             <a href="#portfolio" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>مشاريعنا الميدانية</a>
             <a href="#brand-identity" className="px-3 py-2 rounded-xl text-sm font-bold transition-all" style={{ color: 'var(--text-secondary)' }}>استوديو الهوية</a>
+            <Link href="/website/verify" className="px-3 py-2 rounded-xl text-sm font-black transition-all flex items-center gap-1.5 border border-amber-500/30 bg-amber-500/10 text-amber-400 hover:text-amber-300" title="التحقق الفوري من صحة السندات والفواتير عبر الباركود">
+              <i className="fa-solid fa-barcode text-amber-400"></i>
+              <span>التحقق من المستندات</span>
+            </Link>
           </nav>
 
           {/* Controls: Sector Accent Dots + Theme Switcher + Dual Login + CTA */}
@@ -2983,6 +2987,11 @@ export default function WebsitePage() {
             <a href="#turnkey-calculator" className="hover:text-slate-200 transition-colors">
               حاسبة المقايسة 3×1
             </a>
+            <span>•</span>
+            <Link href="/website/verify" className="hover:text-amber-400 text-amber-400 font-bold transition-colors flex items-center gap-1.5">
+              <i className="fa-solid fa-barcode"></i>
+              <span>التحقق من صحة المستندات والباركود</span>
+            </Link>
           </div>
 
           <div className="text-xs text-center md:text-left" style={{ color: 'var(--text-muted)' }}>
