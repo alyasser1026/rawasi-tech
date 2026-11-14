@@ -15,6 +15,8 @@ function LoginForm({ onClose }: { onClose: () => void }) {
     toggleSignUp,
     fullName,
     setFullName,
+    phone,
+    setPhone,
     email,
     setEmail,
     password,
@@ -76,19 +78,37 @@ function LoginForm({ onClose }: { onClose: () => void }) {
 
       <form onSubmit={handleSubmit} style={{ width: '100%' }}>
         {isSignUp && (
-          <div className="login-input-group" style={{ animation: 'loginFadeInUp 0.3s ease-out' }}>
-            <input
-              type="text"
-              className="login-input-field"
-              placeholder=" "
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required={isSignUp}
-            />
-            <label className={`login-floating-label ${fullName ? 'forced-float' : ''}`}>
-              الاسم الكامل
-            </label>
-          </div>
+          <>
+            <div className="login-input-group" style={{ animation: 'loginFadeInUp 0.3s ease-out' }}>
+              <input
+                type="text"
+                className="login-input-field"
+                placeholder=" "
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required={isSignUp}
+              />
+              <label className={`login-floating-label ${fullName ? 'forced-float' : ''}`}>
+                الاسم الكامل
+              </label>
+            </div>
+
+            <div className="login-input-group" style={{ animation: 'loginFadeInUp 0.3s ease-out' }}>
+              <input
+                type="tel"
+                dir="ltr"
+                className="login-input-field"
+                placeholder=" "
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required={isSignUp}
+                autoComplete="tel"
+              />
+              <label className={`login-floating-label ${phone ? 'forced-float' : ''}`}>
+                رقم الجوال (يتضمن واتساب)
+              </label>
+            </div>
+          </>
         )}
 
         <div className="login-input-group">

@@ -10,6 +10,10 @@ import EngTools from './EngTools';
 import ChecklistExplorer from './ChecklistExplorer';
 import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } from '@/components/HeroVideoBackdrop';
 import LoginModal from './LoginModal';
+import {
+  collectClientDeviceDetails,
+  rememberVisitorContact,
+} from '@/lib/client-device-info';
 
 const BimModel = dynamic(() => import('./BimModel'), {
   ssr: false,
@@ -77,6 +81,31 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanName = name.trim();
+    const cleanPhone = phone.trim();
+    rememberVisitorContact({ name: cleanName, phone: cleanPhone });
+
+    void collectClientDeviceDetails(false)
+      .then((deviceDetails) =>
+        fetch('/api/notify/visit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'lead_action',
+            action: 'inquiry_form',
+            label: 'إرسال طلب معاينة ومقايسة',
+            name: cleanName,
+            phone: cleanPhone,
+            projectKind: kind,
+            projectLocation: place.trim(),
+            notes: notes.trim(),
+            deviceDetails,
+          }),
+          keepalive: true,
+        })
+      )
+      .catch(() => {});
+
     const text = message();
     if (whatsapp) window.open(`https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer');
     else if (email) window.location.href = `mailto:${email}?subject=${encodeURIComponent('طلب معاينة ومقايسة')}&body=${encodeURIComponent(text)}`;

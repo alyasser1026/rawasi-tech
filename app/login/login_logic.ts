@@ -4,21 +4,29 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/toast-context'; 
 import { getDestinationForUser } from '@/lib/roleRouter';
+import {
+  collectClientDeviceDetails,
+  rememberVisitorContact,
+  type ClientDeviceDetails,
+} from '@/lib/client-device-info';
 
 function notifyTelegramAuth(payload: {
   type: 'login' | 'signup';
   userId?: string;
   email: string;
   fullName?: string;
+  phone?: string;
   role?: string;
   destination?: string;
   status?: string;
+  deviceDetails?: ClientDeviceDetails;
 }) {
   try {
     fetch('/api/notify/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
+      keepalive: true,
     }).catch(() => {});
   } catch {
     // Fail silently
@@ -32,6 +40,7 @@ export function useLoginLogic() {
   
   const [isSignUp, setIsSignUp] = useState(false);
   const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -89,6 +98,7 @@ export function useLoginLogic() {
   const toggleSignUp = () => {
     setIsSignUp(!isSignUp);
     setFullName('');
+    setPhone('');
     setPassword('');
   };
 
@@ -105,28 +115,49 @@ export function useLoginLogic() {
     try {
       if (isSignUp) {
         if (!fullName.trim()) throw new Error('يرجى إدخال الاسم الكامل');
+        if (!phone.trim() || phone.replace(/\D/g, '').length < 8) {
+          throw new Error('يرجى إدخال رقم الجوال بشكل صحيح');
+        }
         if (password.length < 6) throw new Error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
 
+        const cleanPhone = phone.trim();
+        const cleanName = fullName.trim();
+        const cleanEmail = email.trim();
+
         const { error, data } = await supabase.auth.signUp({
-          email, password, options: { data: { full_name: fullName, role: 'client' } }
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              full_name: cleanName,
+              phone: cleanPhone,
+              phone_number: cleanPhone,
+              role: 'client',
+            },
+          },
         });
 
         if (error) throw error;
+
+        rememberVisitorContact({ name: cleanName, phone: cleanPhone, email: cleanEmail });
+        const deviceDetails = await collectClientDeviceDetails(false).catch(() => ({}));
 
         // 🔔 إشعار فوري على تلغرام بإنشاء الحساب الجديد
         notifyTelegramAuth({
           type: 'signup',
           userId: data?.user?.id,
-          email,
-          fullName,
+          email: cleanEmail,
+          fullName: cleanName,
+          phone: cleanPhone,
           role: 'client',
           status: data?.session ? 'مفعّل ومسجّل فورياً' : 'في انتظار تأكيد البريد الإلكتروني',
+          deviceDetails,
         });
 
         // في حال تفعيل تأكيد البريد في Supabase وعدم وجود جلسة فورية
         if (data?.user && !data.session) {
           showToast('تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني (ومجلد Spam) والضغط على رابط التفعيل لتسجيل الدخول.', 'info');
-          setIsSignUp(false); setPassword(''); setIsLoading(false);
+          setIsSignUp(false); setPhone(''); setPassword(''); setIsLoading(false);
           return;
         }
 
@@ -142,7 +173,7 @@ export function useLoginLogic() {
         }
         
         showToast('تم إنشاء الحساب بنجاح! يمكنك تسجيل الدخول الآن.', 'success');
-        setIsSignUp(false); setPassword(''); setIsLoading(false);
+        setIsSignUp(false); setPhone(''); setPassword(''); setIsLoading(false);
         
       } else {
         // 🔑 دعم تسجيل الدخول باسم المستخدم أو البريد الإلكتروني
@@ -204,6 +235,19 @@ export function useLoginLogic() {
             destination = portalParam === 'partner' ? '/PartnerBalances' : '/Dashboard';
           }
         }
+
+        const resolvedEmail = data.user.email || loginEmail;
+        const metaPhone =
+          data.user.phone ||
+          (typeof data.user.user_metadata?.phone === 'string' ? data.user.user_metadata.phone : '') ||
+          (typeof data.user.user_metadata?.phone_number === 'string' ? data.user.user_metadata.phone_number : '');
+
+        rememberVisitorContact({
+          name: data.user.user_metadata?.full_name || '',
+          phone: metaPhone,
+          email: resolvedEmail,
+        });
+        const deviceDetails = await collectClientDeviceDetails(false).catch(() => ({}));
         
         showToast('تم تسجيل الدخول بنجاح! جاري تحويلك...', 'success');
         router.refresh(); 
@@ -212,9 +256,11 @@ export function useLoginLogic() {
         notifyTelegramAuth({
           type: 'login',
           userId: data.user.id,
-          email: data.user.email || loginEmail,
+          email: resolvedEmail,
           fullName: data.user.user_metadata?.full_name || '',
+          phone: metaPhone || undefined,
           destination,
+          deviceDetails,
         });
         
         // 👈 توجيه ذكي فوري للمستخدم حسب صلاحياته
@@ -229,7 +275,7 @@ export function useLoginLogic() {
   };
 
   return {
-    isSignUp, toggleSignUp, fullName, setFullName, email, setEmail, password, setPassword,
+    isSignUp, toggleSignUp, fullName, setFullName, phone, setPhone, email, setEmail, password, setPassword,
     isLoading, handleAutoFill, handleSubmit
   };
 }
