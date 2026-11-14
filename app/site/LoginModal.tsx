@@ -197,9 +197,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           align-items: center;
           justify-content: center;
           padding: 1.25rem;
-          background: rgba(10, 14, 20, 0.62);
-          backdrop-filter: blur(14px);
-          -webkit-backdrop-filter: blur(14px);
+          background: rgba(8, 12, 18, 0.48);
+          backdrop-filter: blur(18px);
+          -webkit-backdrop-filter: blur(18px);
           animation: loginModalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           overflow-y: auto;
           direction: rtl;
@@ -219,18 +219,27 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         .login-modal-card {
           width: 100%;
           max-width: 29.5rem;
-          background: rgba(18, 22, 28, 0.88);
-          backdrop-filter: blur(28px);
-          -webkit-backdrop-filter: blur(28px);
-          border: 1px solid rgba(234, 88, 12, 0.45);
-          border-radius: 22px;
-          padding: 2.25rem 2rem;
-          box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.85), 0 0 45px rgba(234, 88, 12, 0.2);
+          background: linear-gradient(145deg, rgba(255, 255, 255, 0.14) 0%, rgba(22, 26, 35, 0.52) 40%, rgba(10, 14, 22, 0.72) 100%);
+          backdrop-filter: blur(32px) saturate(200%);
+          -webkit-backdrop-filter: blur(32px) saturate(200%);
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          border-radius: 24px;
+          padding: 2.35rem 2.1rem;
+          box-shadow: 
+            0 35px 90px -15px rgba(0, 0, 0, 0.9),
+            0 0 0 1px rgba(255, 255, 255, 0.08) inset,
+            0 1.5px 1.5px 0 rgba(255, 255, 255, 0.6) inset,
+            0 0 45px rgba(249, 115, 22, 0.22);
           animation: loginFadeInUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           position: relative;
           overflow: hidden;
           box-sizing: border-box;
           color: #ffffff;
+        }
+
+        .login-modal-card > * {
+          position: relative;
+          z-index: 2;
         }
 
         .login-modal-card::before {
@@ -240,32 +249,52 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           left: 0;
           right: 0;
           height: 3px;
-          background: linear-gradient(90deg, #ea580c, #f97316, #fb923c);
+          background: linear-gradient(90deg, transparent 0%, #ea580c 20%, #f97316 50%, #fb923c 80%, transparent 100%);
+          box-shadow: 0 0 14px rgba(249, 115, 22, 0.7);
+          z-index: 5;
+        }
+
+        /* Glossy curved reflection sheen */
+        .login-modal-card::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: -25%;
+          right: -25%;
+          height: 52%;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.03) 60%, transparent 100%);
+          border-radius: 0 0 100% 100% / 0 0 35% 35%;
+          pointer-events: none;
+          z-index: 1;
         }
 
         .login-modal-close {
           position: absolute;
-          top: 1rem;
-          left: 1rem;
-          width: 36px;
-          height: 36px;
+          top: 1.1rem;
+          left: 1.1rem;
+          width: 38px;
+          height: 38px;
           border-radius: 50%;
-          background: rgba(255, 255, 255, 0.08);
-          border: 1px solid rgba(255, 255, 255, 0.15);
-          color: rgba(255, 255, 255, 0.75);
+          background: rgba(255, 255, 255, 0.1);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3);
+          color: rgba(255, 255, 255, 0.85);
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s ease;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           z-index: 20;
         }
 
         .login-modal-close:hover {
-          background: rgba(239, 68, 68, 0.2);
-          border-color: rgba(239, 68, 68, 0.4);
-          color: #ef4444;
-          transform: scale(1.06);
+          background: rgba(239, 68, 68, 0.28);
+          border-color: rgba(239, 68, 68, 0.6);
+          color: #ffffff;
+          transform: scale(1.08) rotate(90deg);
+          box-shadow: 0 0 18px rgba(239, 68, 68, 0.45);
         }
 
         .login-modal-logo {
@@ -280,10 +309,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           margin: 0 0 0.3rem 0;
           color: #ffffff;
           letter-spacing: -0.01em;
+          text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .login-modal-subtitle {
-          color: rgba(255, 255, 255, 0.68);
+          color: rgba(255, 255, 255, 0.72);
           text-align: center;
           font-size: 0.825rem;
           font-weight: 600;
@@ -300,23 +330,26 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         .login-input-field {
           width: 100%;
           padding: 0.95rem 1.15rem;
-          background: rgba(12, 16, 22, 0.72) !important;
-          border: 1px solid rgba(255, 255, 255, 0.14);
+          background: rgba(255, 255, 255, 0.07) !important;
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1px solid rgba(255, 255, 255, 0.18);
           border-radius: 12px;
           color: #ffffff !important;
           font-size: 0.95rem;
           font-weight: 700;
           font-family: inherit;
           outline: none;
-          transition: all 0.25s ease;
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
           text-align: right;
           box-sizing: border-box;
+          box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
         }
 
         .login-input-field:focus {
           border-color: #f97316;
-          background: rgba(18, 24, 34, 0.9) !important;
-          box-shadow: 0 0 16px rgba(249, 115, 22, 0.28);
+          background: rgba(255, 255, 255, 0.13) !important;
+          box-shadow: 0 0 22px rgba(249, 115, 22, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
 
         .login-floating-label {
@@ -352,17 +385,17 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         .login-submit-btn {
           width: 100%;
           padding: 0.95rem;
-          margin-top: 0.4rem;
-          background: linear-gradient(135deg, #ea580c, #f97316);
+          margin-top: 0.5rem;
+          background: linear-gradient(180deg, rgba(255, 255, 255, 0.28) 0%, rgba(255, 255, 255, 0.05) 50%, rgba(0, 0, 0, 0.15) 100%), linear-gradient(135deg, #f97316 0%, #ea580c 100%);
           color: #ffffff;
-          border: none;
+          border: 1px solid rgba(255, 255, 255, 0.3);
           border-radius: 12px;
           font-size: 0.975rem;
           font-weight: 900;
           font-family: inherit;
           cursor: pointer;
-          transition: all 0.3s ease;
-          box-shadow: 0 10px 25px rgba(234, 88, 12, 0.32);
+          transition: all 0.25s ease;
+          box-shadow: 0 12px 30px rgba(234, 88, 12, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.6);
           display: flex;
           justify-content: center;
           align-items: center;
@@ -371,7 +404,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         .login-submit-btn:hover:not(:disabled) {
           transform: translateY(-2px);
-          box-shadow: 0 15px 30px rgba(234, 88, 12, 0.45);
+          box-shadow: 0 16px 36px rgba(234, 88, 12, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.75);
           filter: brightness(1.08);
         }
 
@@ -384,7 +417,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           width: 100%;
           background: none;
           border: none;
-          color: rgba(255, 255, 255, 0.72);
+          color: rgba(255, 255, 255, 0.75);
           font-family: inherit;
           font-size: 0.825rem;
           font-weight: 700;
@@ -406,12 +439,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         .login-back-btn {
           width: 100%;
           margin-top: 1rem;
-          padding: 0.7rem;
+          padding: 0.75rem;
           border-radius: 10px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          color: rgba(255, 255, 255, 0.75);
-          font-size: 0.8rem;
+          background: rgba(255, 255, 255, 0.07);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.15);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
+          color: rgba(255, 255, 255, 0.82);
+          font-size: 0.825rem;
           font-weight: 700;
           font-family: inherit;
           cursor: pointer;
@@ -422,9 +458,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
 
         .login-back-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.13);
           color: #ffffff;
-          border-color: rgba(255, 255, 255, 0.2);
+          border-color: rgba(255, 255, 255, 0.28);
+          box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 14px rgba(0, 0, 0, 0.25);
         }
 
         .login-spinner {
