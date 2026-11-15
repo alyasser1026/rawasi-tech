@@ -29,17 +29,17 @@ export default function MaterialCatalogPage() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [logic.isModalOpen, logic.isSaving, logic.handleSave]);
 
-  // 🚀 اختصار إضافة جديد (Alt + N)
+  // 🚀 اختصار إضافة جديد (Alt + N) مع التكويد التلقائي
   useEffect(() => {
     const handleAddShortcut = (e: KeyboardEvent) => {
       if (!logic.isModalOpen && e.altKey && (e.code === 'KeyN' || e.key.toLowerCase() === 'n' || e.key === 'ى')) {
         e.preventDefault();
-        logic.setCurrentRecord({}); logic.setIsModalOpen(true);
+        logic.openNewItemModal();
       }
     };
     window.addEventListener('keydown', handleAddShortcut);
     return () => window.removeEventListener('keydown', handleAddShortcut);
-  }, [logic.isModalOpen, logic.setCurrentRecord, logic.setIsModalOpen]);
+  }, [logic.isModalOpen, logic.openNewItemModal]);
 
   if (!mounted) return null;
 
@@ -75,8 +75,7 @@ export default function MaterialCatalogPage() {
 
   const sidebarActions = (
     <button className="btn-main-glass gold" style={{ color: 'var(--action-ink)' }} onClick={() => {
-      logic.setCurrentRecord({ item_code: '', item_name: '', main_category: '', default_unit: 'حبة', default_unit_price: 0, notes: '' });
-      logic.setIsModalOpen(true);
+      logic.openNewItemModal();
     }}>إضافة صنف جديد</button>
   );
 
@@ -121,7 +120,7 @@ export default function MaterialCatalogPage() {
           </div>
         )}
 
-        {/* 🧱 مودال الإضافة والتعديل المخصص للأصناف */}
+        {/* 🧱 مودال الإضافة والتعديل المخصص للأصناف مع التكويد التلقائي */}
         {logic.isModalOpen && createPortal(
           <div style={{ position: 'fixed', inset: 0, zIndex: 9999999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--modal-scrim)', padding: '1rem', backdropFilter: 'blur(15px)', direction: 'rtl' }}>
             <div style={{ background: 'var(--surface-card)', color: 'var(--text-primary)', padding: 'clamp(1rem, 6vw, 2.5rem)', borderRadius: '14px', width: '100%', maxWidth: '37.5rem', maxHeight: 'calc(100dvh - 2rem)', overflowY: 'auto', boxShadow: 'var(--shadow-elevation)' }}>
@@ -129,7 +128,39 @@ export default function MaterialCatalogPage() {
               
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9375rem' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '0.9375rem' }}>
-                  <div><label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>كود الصنف</label><input type="text" className="glass-input-field material-catalog-field" placeholder="MAT-001" value={logic.currentRecord.item_code || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, item_code: e.target.value})} /></div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>كود الصنف</label>
+                      {!logic.currentRecord.id && (
+                        <button
+                          type="button"
+                          onClick={() => logic.regenerateCode()}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: 'var(--accent-ink)',
+                            fontSize: 'var(--fs-xs)',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                            padding: 0,
+                          }}
+                          title="إعادة توليد الكود التالي تلقائياً"
+                        >
+                          🔄 كود تلقائي
+                        </button>
+                      )}
+                    </div>
+                    <input 
+                      type="text" 
+                      className="glass-input-field material-catalog-field" 
+                      placeholder="MAT-001" 
+                      value={logic.currentRecord.item_code || ''} 
+                      onChange={e => logic.setCurrentRecord({...logic.currentRecord, item_code: e.target.value})} 
+                    />
+                    <span style={{ fontSize: '0.68rem', color: 'var(--text-muted)', display: 'block', marginTop: '2px' }}>
+                      ينزل تلقائياً لمنع التكرار (ويمكن تعديله).
+                    </span>
+                  </div>
                   <div><label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900 }}>اسم الخامة / الصنف الموحد</label><input type="text" className="glass-input-field material-catalog-field" placeholder="مثال: حديد تسليح عز 16 مم" value={logic.currentRecord.item_name || ''} onChange={e => logic.setCurrentRecord({...logic.currentRecord, item_name: e.target.value})} /></div>
                 </div>
 
