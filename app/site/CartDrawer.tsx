@@ -288,6 +288,84 @@ export function useCustomerCart(onRequireLogin?: () => void) {
   };
 }
 
+export function CartButton({
+  count,
+  onClick,
+}: {
+  count: number;
+  onClick: () => void;
+}) {
+  const hasItems = count > 0;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`سلة المشتريات (${count})`}
+      className="phi-cart-btn"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        height: '40px',
+        padding: '0 13px',
+        borderRadius: '11px',
+        border: hasItems
+          ? '1px solid rgba(249, 115, 22, 0.85)'
+          : '1px solid rgba(255, 255, 255, 0.22)',
+        background: hasItems
+          ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.95) 0%, rgba(199, 85, 23, 0.95) 100%)'
+          : 'rgba(255, 255, 255, 0.08)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        color: '#ffffff',
+        fontWeight: 800,
+        fontSize: '0.84rem',
+        cursor: 'pointer',
+        boxShadow: hasItems
+          ? '0 8px 20px -6px rgba(249, 115, 22, 0.65)'
+          : '0 4px 12px rgba(0, 0, 0, 0.18)',
+        transition: 'transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease',
+        whiteSpace: 'nowrap',
+      }}
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+        <path d="M3 6h18" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </svg>
+      <span>السلة</span>
+      <span
+        style={{
+          minWidth: '22px',
+          height: '22px',
+          padding: '0 6px',
+          borderRadius: '999px',
+          background: hasItems ? '#ffffff' : 'rgba(249, 115, 22, 0.28)',
+          color: hasItems ? '#c75517' : '#fde68a',
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '0.75rem',
+          fontWeight: 900,
+          lineHeight: 1,
+        }}
+      >
+        {count}
+      </span>
+    </button>
+  );
+}
+
 export function CartDrawer({
   isOpen,
   onClose,
@@ -397,25 +475,48 @@ export function CartDrawer({
         position: 'fixed',
         inset: 0,
         zIndex: 99980,
-        background: 'rgba(9, 12, 18, 0.65)',
+        background: 'rgba(9, 12, 18, 0.62)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
         display: 'flex',
         justifyContent: 'flex-start',
         direction: 'rtl',
         fontFamily: "'Cairo', sans-serif",
+        animation: 'phiCartFade 0.2s ease-out',
       }}
       onClick={onClose}
     >
+      <style>{`
+        @keyframes phiCartFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes phiCartSlide { from { transform: translateX(-28px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .phi-cart-panel { animation: phiCartSlide 0.24s cubic-bezier(0.16, 1, 0.3, 1); }
+        .phi-cart-input {
+          width: 100%;
+          padding: 10px 12px;
+          border-radius: 11px;
+          border: 1.5px solid #e2e8f0;
+          background: #ffffff;
+          font-size: 15px;
+          font-weight: 700;
+          color: #14181b;
+          transition: border-color 0.16s ease, box-shadow 0.16s ease;
+        }
+        .phi-cart-input:focus {
+          outline: none;
+          border-color: #f97316;
+          box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.16);
+        }
+      `}</style>
       <aside
+        className="phi-cart-panel"
         style={{
-          width: 'min(100vw, 460px)',
+          width: 'min(100vw, 470px)',
           height: '100%',
-          background: '#ffffff',
+          background: '#f8fafc',
           color: '#14181b',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '-12px 0 40px rgba(0,0,0,0.35)',
+          boxShadow: '16px 0 48px rgba(0,0,0,0.34)',
           overflow: 'hidden',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -423,42 +524,84 @@ export function CartDrawer({
         {/* Header */}
         <div
           style={{
-            padding: '18px 20px',
-            background: '#0f141c',
+            padding: '18px 20px 14px',
+            background: 'linear-gradient(135deg, #0b1018 0%, #172030 100%)',
             color: '#ffffff',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            borderBottom: '1px solid rgba(255,255,255,0.1)',
+            borderBottom: '2px solid #ea580c',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span style={{ fontSize: '1.35rem' }}>🛍️</span>
-            <div>
-              <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900 }}>
-                سلة مشترياتك وطلبات التوريد
-              </h3>
-              <span style={{ fontSize: '0.76rem', color: '#fb923c', fontWeight: 700 }}>
-                {user ? `حساب نشط: ${user.fullName}` : 'يرجى تسجيل الدخول لتفعيل السلة'}
-              </span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div
+                style={{
+                  width: '42px',
+                  height: '42px',
+                  borderRadius: '12px',
+                  background: 'rgba(249, 115, 22, 0.18)',
+                  border: '1px solid rgba(249, 115, 22, 0.45)',
+                  color: '#fb923c',
+                  display: 'grid',
+                  placeItems: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+                  <path d="M3 6h18" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, lineHeight: 1.3 }}>
+                  سلة المشتريات والتوريد
+                </h3>
+                <span style={{ fontSize: '0.76rem', color: '#cbd5e1', fontWeight: 700, display: 'block' }}>
+                  {user ? `👤 ${user.fullName} · ${items.length} صنف` : 'بوابة الطلبات الهندسية — فاي تك'}
+                </span>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="إغلاق السلة"
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '10px',
+                background: 'rgba(255,255,255,0.08)',
+                border: '1px solid rgba(255,255,255,0.18)',
+                color: '#fff',
+                cursor: 'pointer',
+                display: 'grid',
+                placeItems: 'center',
+                fontWeight: 900,
+                fontSize: '1rem',
+              }}
+            >
+              ✕
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: 'rgba(255,255,255,0.1)',
-              border: '1px solid rgba(255,255,255,0.2)',
-              color: '#fff',
-              borderRadius: '10px',
-              padding: '6px 12px',
-              cursor: 'pointer',
-              fontWeight: 800,
-              fontSize: '0.82rem',
-            }}
-          >
-            ✕ إغلاق
-          </button>
+          {items.length > 0 && !orderSuccessRef && (
+            <div
+              style={{
+                marginTop: '12px',
+                paddingTop: '10px',
+                borderTop: '1px solid rgba(255,255,255,0.1)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                fontSize: '0.72rem',
+                color: '#cbd5e1',
+                fontWeight: 700,
+              }}
+            >
+              <span style={{ color: '#fb923c' }}>1. مراجعة الأصناف</span>
+              <span>←</span>
+              <span>2. بيانات الموقع</span>
+              <span>←</span>
+              <span>3. إرسال للمبيعات</span>
+            </div>
+          )}
         </div>
 
         {/* Body */}
@@ -581,98 +724,139 @@ export function CartDrawer({
             <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {/* Cart Items List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong style={{ fontSize: '0.84rem', color: '#47525c' }}>
+                    الأصناف المضافة ({items.length})
+                  </strong>
+                  <button
+                    type="button"
+                    onClick={onClearCart}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#dc2626',
+                      fontSize: '0.76rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    إفراغ السلة
+                  </button>
+                </div>
                 {items.map((item) => {
                   const unitEffective = item.price + (item.withInstall ? item.installPrice : 0);
                   return (
                     <div
                       key={item.productId}
                       style={{
-                        border: '1px solid #e3e6e9',
-                        borderRadius: '14px',
-                        padding: '12px 14px',
-                        background: '#fafaf9',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '16px',
+                        padding: '14px',
+                        background: '#ffffff',
+                        boxShadow: '0 4px 14px -8px rgba(15, 23, 42, 0.12)',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '8px',
+                        gap: '10px',
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'flex-start' }}>
                         <div>
-                          <span style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: '#c75517', fontWeight: 800 }}>
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              fontSize: '0.68rem',
+                              fontFamily: 'monospace',
+                              color: '#c75517',
+                              background: '#fff3ea',
+                              padding: '2px 7px',
+                              borderRadius: '6px',
+                              fontWeight: 800,
+                              marginBottom: '4px',
+                            }}
+                          >
                             {item.code}
                           </span>
-                          <strong style={{ display: 'block', fontSize: '0.9rem', lineHeight: 1.4 }}>
+                          <strong style={{ display: 'block', fontSize: '0.9rem', lineHeight: 1.45, color: '#0f172a' }}>
                             {item.name}
                           </strong>
                         </div>
                         <button
                           type="button"
                           onClick={() => onRemoveItem(item.productId)}
+                          aria-label={`حذف ${item.name}`}
+                          title="حذف الصنف"
                           style={{
-                            border: 'none',
-                            background: '#fee2e2',
-                            color: '#b91c1c',
-                            borderRadius: '8px',
-                            padding: '4px 8px',
-                            fontSize: '0.74rem',
-                            fontWeight: 800,
+                            width: '30px',
+                            height: '30px',
+                            border: '1px solid #fecaca',
+                            background: '#fef2f2',
+                            color: '#dc2626',
+                            borderRadius: '9px',
+                            display: 'grid',
+                            placeItems: 'center',
                             cursor: 'pointer',
                             flexShrink: 0,
                           }}
                         >
-                          حذف
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18" />
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                          </svg>
                         </button>
                       </div>
 
-                      {item.installPrice > 0 && (
-                        <label
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            fontSize: '0.78rem',
-                            fontWeight: 700,
-                            color: item.withInstall ? '#065f46' : '#47525c',
-                            background: item.withInstall ? '#ecfdf5' : '#ffffff',
-                            border: item.withInstall ? '1px solid #6ee7b7' : '1px solid #e3e6e9',
-                            padding: '6px 10px',
-                            borderRadius: '9px',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={item.withInstall}
-                            onChange={() => onToggleInstall(item.productId)}
-                            style={{ accentColor: '#10b981' }}
-                          />
-                          <span>
-                            شامل التركيب الهندسي (+{item.installPrice.toLocaleString('en-US')} {item.currency} / {item.unit})
-                          </span>
-                        </label>
-                      )}
+                      <label
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                          fontSize: '0.77rem',
+                          fontWeight: 800,
+                          color: item.withInstall ? '#065f46' : '#47525c',
+                          background: item.withInstall ? '#ecfdf5' : '#f8fafc',
+                          border: item.withInstall ? '1px solid #6ee7b7' : '1px solid #e2e8f0',
+                          padding: '7px 10px',
+                          borderRadius: '10px',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={item.withInstall}
+                          onChange={() => onToggleInstall(item.productId)}
+                          style={{ accentColor: '#10b981' }}
+                        />
+                        <span>
+                          {item.installPrice > 0
+                            ? `شامل التركيب الهندسي (+${item.installPrice.toLocaleString('en-US')} ${item.currency} / ${item.unit})`
+                            : 'مطلوب مع التركيب الهندسي المعتمد'}
+                        </span>
+                      </label>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#fff', border: '1px solid #e3e6e9', borderRadius: '9px', padding: '3px 8px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '999px', padding: '3px 6px' }}>
                           <button
                             type="button"
                             onClick={() => onUpdateQty(item.productId, -1)}
-                            style={{ border: 'none', background: 'none', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', padding: '0 6px' }}
+                            aria-label="تقليل الكمية"
+                            style={{ width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: '#ffffff', color: '#0f172a', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
                           >
                             −
                           </button>
-                          <strong style={{ fontSize: '0.88rem', minWidth: '22px', textAlign: 'center' }}>{item.qty}</strong>
+                          <strong style={{ fontSize: '0.88rem', minWidth: '24px', textAlign: 'center' }}>{item.qty}</strong>
                           <button
                             type="button"
                             onClick={() => onUpdateQty(item.productId, 1)}
-                            style={{ border: 'none', background: 'none', fontWeight: 900, fontSize: '1rem', cursor: 'pointer', padding: '0 6px', color: '#c75517' }}
+                            aria-label="زيادة الكمية"
+                            style={{ width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: '#ea580c', color: '#ffffff', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer' }}
                           >
                             +
                           </button>
-                          <span style={{ fontSize: '0.74rem', color: '#64748b' }}>{item.unit}</span>
+                          <span style={{ fontSize: '0.73rem', color: '#64748b', paddingInline: '6px', fontWeight: 700 }}>{item.unit}</span>
                         </div>
 
-                        <strong style={{ fontSize: '0.96rem', color: '#c75517', fontWeight: 900 }}>
+                        <strong style={{ fontSize: '0.94rem', color: '#c75517', fontWeight: 900 }}>
                           {item.price > 0
                             ? `${(unitEffective * item.qty).toLocaleString('en-US')} ${item.currency}`
                             : 'تسعير عند الطلب'}
@@ -686,83 +870,58 @@ export function CartDrawer({
               {/* Delivery & Contact Form */}
               <div
                 style={{
-                  borderTop: '1px dashed #cbd5e1',
-                  paddingTop: '14px',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '16px',
+                  padding: '14px',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '10px',
                 }}
               >
-                <strong style={{ fontSize: '0.9rem', color: '#14181b' }}>
-                  📍 بيانات التواصل والتوريد:
+                <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>
+                  📍 بيانات التواصل وموقع التوريد
                 </strong>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                   <input
+                    className="phi-cart-input"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     placeholder="الاسم الكامل *"
                     required
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #e3e6e9',
-                      fontSize: '16px',
-                      fontWeight: 700,
-                    }}
                   />
                   <input
+                    className="phi-cart-input"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     placeholder="رقم الجوال *"
                     dir="ltr"
                     inputMode="tel"
                     required
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #e3e6e9',
-                      fontSize: '16px',
-                      fontWeight: 700,
-                      textAlign: 'right',
-                    }}
+                    style={{ textAlign: 'right' }}
                   />
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: '8px' }}>
                   <input
+                    className="phi-cart-input"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    placeholder="المدينة (القاهرة، المنصورة، الرياض...)"
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #e3e6e9',
-                      fontSize: '16px',
-                    }}
+                    placeholder="المدينة (القاهرة، المنصورة...)"
                   />
                   <input
+                    className="phi-cart-input"
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="عنوان الموقع / الشقة"
-                    style={{
-                      padding: '10px 12px',
-                      borderRadius: '10px',
-                      border: '1.5px solid #e3e6e9',
-                      fontSize: '16px',
-                    }}
                   />
                 </div>
                 <textarea
+                  className="phi-cart-input"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="ملاحظات إضافية (مثال: موعد التوريد المفضل أو طلب معاينة موقع للتركيب)"
+                  placeholder="ملاحظات إضافية (موعد التوريد المفضل أو طلب معاينة)"
                   rows={2}
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: '10px',
-                    border: '1.5px solid #e3e6e9',
-                    fontSize: '16px',
-                    resize: 'vertical',
-                  }}
+                  style={{ resize: 'vertical' }}
                 />
               </div>
 

@@ -10,7 +10,7 @@ import EngTools from './EngTools';
 import ChecklistExplorer from './ChecklistExplorer';
 import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } from '@/components/HeroVideoBackdrop';
 import LoginModal from './LoginModal';
-import { CartDrawer, useCustomerCart } from './CartDrawer';
+import { CartButton, CartDrawer, useCustomerCart } from './CartDrawer';
 import FloatingContactChat from './FloatingContactChat';
 import { PRODUCT_CATEGORIES } from './store-catalog';
 import {
@@ -232,28 +232,13 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
                 <span className="pw-nav-arrow" aria-hidden="true">←</span>
               </Link>
             ))}
-            <button
-              type="button"
+            <CartButton
+              count={cart.totalCount}
               onClick={() => {
                 setOpen(false);
                 cart.setCartOpen(true);
               }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '10px',
-                border: '1.5px solid #f97316',
-                background: cart.totalCount > 0 ? '#ea580c' : 'rgba(249,115,22,0.14)',
-                color: '#fff',
-                fontWeight: 800,
-                fontSize: '0.84rem',
-                cursor: 'pointer',
-              }}
-            >
-              <span>🛍️ السلة ({cart.totalCount})</span>
-            </button>
+            />
             <a href="/login" className="pw-btn pw-btn-primary pw-nav-cta" onClick={handleOpenLogin}>
               {cart.user ? `👤 ${cart.user.fullName.split(' ')[0]}` : 'دخول النظام'}
             </a>
@@ -592,7 +577,13 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           onClick={() => (cart.user ? cart.setCartOpen(true) : handleOpenLogin())}
           aria-label="السلة / دخول النظام"
         >
-          <span className="pw-dock-icon">🛍️</span>
+          <span className="pw-dock-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+              <path d="M3 6h18" />
+              <path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+          </span>
           <span className="pw-dock-label">
             {cart.totalCount > 0 ? `السلة (${cart.totalCount})` : cart.user ? 'السلة' : 'دخول / سلة'}
           </span>

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { CSS } from './site-styles';
 import { mergeContent, type SiteContentOverride } from './site-content';
 import type { WebsiteProperty } from './store-catalog';
-import { CartDrawer, useCustomerCart } from './CartDrawer';
+import { CartButton, CartDrawer, useCustomerCart } from './CartDrawer';
 import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import { rememberVisitorContact } from '@/lib/client-device-info';
@@ -153,25 +153,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
           </nav>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              type="button"
-              onClick={() => cart.setCartOpen(true)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '7px',
-                padding: '8px 14px',
-                borderRadius: '12px',
-                border: '1.5px solid #f97316',
-                background: 'rgba(249,115,22,0.16)',
-                color: '#ffffff',
-                fontWeight: 900,
-                fontSize: '0.84rem',
-                cursor: 'pointer',
-              }}
-            >
-              <span>🛍️ السلة ({cart.totalCount})</span>
-            </button>
+            <CartButton count={cart.totalCount} onClick={() => cart.setCartOpen(true)} />
           </div>
         </div>
       </header>
