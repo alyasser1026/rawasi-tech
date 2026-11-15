@@ -36,8 +36,8 @@ test('site-content merges and sanitizes products, properties, and promoBanner', 
   assert.match(siteContent, /products\?:\s*WebsiteProduct\[\]/);
   assert.match(siteContent, /properties\?:\s*WebsiteProperty\[\]/);
   assert.match(siteContent, /promoBanner\?:/);
-  assert.match(siteContent, /PRODUCTS:\s*o\.products\?\.length\s*\?\s*o\.products\s*:\s*DEFAULT_PRODUCTS/);
-  assert.match(siteContent, /PROPERTIES:\s*o\.properties\?\.length\s*\?\s*o\.properties\s*:\s*DEFAULT_PROPERTIES/);
+  assert.match(siteContent, /PRODUCTS:\s*o\.products\s*\?\?\s*DEFAULT_PRODUCTS/);
+  assert.match(siteContent, /PROPERTIES:\s*o\.properties\s*\?\?\s*DEFAULT_PROPERTIES/);
 });
 
 test('authenticated customer shopping cart and live chat components exist with required features', () => {

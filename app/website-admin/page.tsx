@@ -89,14 +89,14 @@ function fromStored(raw: any): Content {
       offices: s.site?.offices?.length ? s.site.offices : d.site.offices,
     } as Content['site'],
     projects: (s.projects ?? d.projects) as Content['projects'],
-    commitments: s.commitments?.length ? s.commitments : d.commitments,
-    faqs: s.faqs?.length ? s.faqs : d.faqs,
+    commitments: s.commitments ?? d.commitments,
+    faqs: s.faqs ?? d.faqs,
     seo: { title: s.seo?.title || d.seo.title, description: s.seo?.description || '' },
-    products: s.products?.length ? s.products : d.products,
-    properties: s.properties?.length ? s.properties : d.properties,
+    products: s.products ?? d.products,
+    properties: s.properties ?? d.properties,
     promoBanner: {
       enabled: s.promoBanner?.enabled ?? d.promoBanner.enabled,
-      text: s.promoBanner?.text || d.promoBanner.text,
+      text: s.promoBanner?.text ?? d.promoBanner.text,
     },
   };
 }
@@ -288,24 +288,30 @@ export default function WebsiteAdminPage() {
       return;
     }
     const { error } = await supabase.rpc('website_publish', { p_note: null });
-    setBusy(false);
-    if (error) setErr(error.message);
-    else {
-      setMsg('✅ تم النشر بنجاح على الموقع الخارجي (phi-tech.org)!');
-      void load();
+    if (error) {
+      setBusy(false);
+      setErr(error.message);
+      return;
     }
+    await fetch('/api/website-revalidate', { method: 'POST' }).catch(() => {});
+    await load();
+    setBusy(false);
+    setMsg('✅ تم النشر وتحديث الموقع الخارجي (phi-tech.org) فوراً!');
   };
 
   const restore = async (id: string) => {
     if (!window.confirm('استرجاع هذه النسخة كنسخة منشورة؟')) return;
     setBusy(true);
     const { error } = await supabase.rpc('website_restore', { p_version_id: id });
-    setBusy(false);
-    if (error) setErr(error.message);
-    else {
-      setMsg('تم الاسترجاع.');
-      void load();
+    if (error) {
+      setBusy(false);
+      setErr(error.message);
+      return;
     }
+    await fetch('/api/website-revalidate', { method: 'POST' }).catch(() => {});
+    await load();
+    setBusy(false);
+    setMsg('تم الاسترجاع وتحديث الموقع.');
   };
 
   const handleUpdateOrderStatus = async (orderId: string, status: string, adminNote?: string) => {

@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import RealEstateClient from '../site/RealEstateClient';
 import { sanitizeContent } from '../site/site-content';
 
-export const revalidate = 120;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 async function getPublished() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -13,7 +14,7 @@ async function getPublished() {
       method: 'POST',
       headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: '{}',
-      next: { revalidate: 120 },
+      cache: 'no-store',
     });
     if (!r.ok) return {};
     return sanitizeContent(await r.json());

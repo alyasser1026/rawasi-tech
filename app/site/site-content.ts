@@ -262,13 +262,13 @@ export function mergeContent(o: SiteContentOverride = {}) {
   return {
     SITE: site,
     PROJECTS: o.projects ?? PROJECTS,
-    COMMITMENTS: o.commitments?.length ? o.commitments : COMMITMENTS,
-    FAQS: o.faqs?.length ? o.faqs : FAQS,
-    PRODUCTS: o.products?.length ? o.products : DEFAULT_PRODUCTS,
-    PROPERTIES: o.properties?.length ? o.properties : DEFAULT_PROPERTIES,
+    COMMITMENTS: o.commitments ?? COMMITMENTS,
+    FAQS: o.faqs ?? FAQS,
+    PRODUCTS: o.products ?? DEFAULT_PRODUCTS,
+    PROPERTIES: o.properties ?? DEFAULT_PROPERTIES,
     PROMO_BANNER: {
       enabled: o.promoBanner?.enabled ?? DEFAULT_PROMO_BANNER.enabled,
-      text: o.promoBanner?.text || DEFAULT_PROMO_BANNER.text,
+      text: o.promoBanner?.text ?? DEFAULT_PROMO_BANNER.text,
     },
   };
 }

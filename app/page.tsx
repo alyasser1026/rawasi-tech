@@ -3,7 +3,8 @@ import PhiSite from './site/PhiSite';
 import { sanitizeContent } from './site/site-content';
 
 // الموقع العام يقرأ فقط النسخة «المنشورة» من إدارة الموقع (دالة عامة)، ولا يلمس بيانات النظام الداخلية.
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 async function getPublished() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -14,7 +15,7 @@ async function getPublished() {
       method: 'POST',
       headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
       body: '{}',
-      next: { revalidate: 300 },
+      cache: 'no-store',
     });
     if (!r.ok) return {};
     return sanitizeContent(await r.json());
