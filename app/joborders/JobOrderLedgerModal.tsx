@@ -17,6 +17,7 @@ import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import { printReportElement } from '@/lib/printReportElement';
 import { computeJobOrderProgressAndTimeline } from '@/lib/jobOrderProgress';
+import { fetchDailyWorkerExpenseAllocations } from '@/lib/dailyWorkerExpenseAllocation';
 
 export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) {
     const [activeTab, setActiveTab] = useState('الكل');
@@ -41,23 +42,28 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
                 .eq('job_order_id', targetId)
                 .order('trans_date', { ascending: false });
 
-            // 2. جلب التحميل المالي (ABC) المرتبط بأمر الشغل
-            const { data: allocatedOverheads } = await supabase
-                .from('advanced_cost_allocation_view')
-                .select('*')
-                .eq('job_order_id', targetId);
+            // 2. جلب التحميل المالي (ABC) المرتبط بأمر الشغل حسب اليوم وعدد العمالة
+            const allocatedOverheads = await fetchDailyWorkerExpenseAllocations(supabase, {
+                jobOrderId: targetId,
+            });
 
             const allLedger = [
                 ...(ledger || []),
-                ...(allocatedOverheads || []).map(ao => ({
-                    source_id: ao.id,
-                    trans_date: ao["تاريخ المصروف الأصلي"],
-                    trans_desc: `[تحميل مالي ABC] ${ao["البيان / الوصف"]} (${ao["آلية التوزيع"]})`,
-                    amount: Number(ao["المبلغ المحمل (ر.س)"] || 0),
-                    trans_type: 'مصروفات نثرية',
-                    qty: 1,
-                    is_abc: true
-                }))
+                ...(allocatedOverheads || [])
+                    .filter((ao: any) => !ao.source_has_job_order)
+                    .map((ao: any) => {
+                        const workers = ao['عمال اليوم للأمر'] || ao['يوميات الشهر للأمر'] || 1;
+                        const totalPool = ao['إجمالي عمال اليوم'] || workers;
+                        return {
+                            source_id: ao.id,
+                            trans_date: ao["تاريخ المصروف الأصلي"],
+                            trans_desc: `[تحميل مالي ABC - ${workers}/${totalPool} عامل (${ao["نسبة التحميل (%)"]}%)] ${ao["البيان / الوصف"]} (${ao["آلية التوزيع"]})`,
+                            amount: Number(ao["المبلغ المحمل (ر.س)"] || 0),
+                            trans_type: 'مصروفات نثرية',
+                            qty: 1,
+                            is_abc: true
+                        };
+                    })
             ];
 
             // 3. جلب تكليفات المقاولين ومستخلصاتهم على أمر الشغل

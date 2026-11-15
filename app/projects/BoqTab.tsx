@@ -90,7 +90,7 @@ export default function BoqTab({ logic, setDeleteAlert }: { logic: any, setDelet
       }
     });
 
-    const totalActualCosts = totalActualLabor + totalActualMaterial + totalDirectExpenses;
+    const totalActualCosts = totalActualLabor + totalActualMaterial + totalDirectExpenses + totalAllocatedExpensesABC;
     const remainingBudget = totalEstimatedCosts - totalActualCosts;
     const isActualStarted = totalActualCosts > 0;
 

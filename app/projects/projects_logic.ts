@@ -7,6 +7,11 @@ import { useToast } from '@/lib/toast-context';
 import { fetchAllSupabaseData } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
 import { resolveMilestoneStatus, localToday } from '@/lib/milestoneSchedule';
+import {
+  fetchDailyWorkerExpenseAllocations,
+  getExpenseNetAmount,
+  isExpenseEligibleForDailyWorkerAllocation,
+} from '@/lib/dailyWorkerExpenseAllocation';
 
 // دالة تطهير النصوص لضمان تطابق البحث في المصروفات
 const normalizeArabic = (str: string) => {
@@ -315,14 +320,40 @@ export function useProjectsLogic() {
   const fetchData = async () => {
     setIsLoading(true);
     
-    const projData = await fetchAllSupabaseData(supabase, 'projects', `*, client:partners!client_id(*)`, 'created_at', false);
-    
-    const { data: dashboardData } = await supabase.rpc('get_project_dashboard');
+    const [projData, { data: dashboardData }, allAllocations] = await Promise.all([
+      fetchAllSupabaseData(supabase, 'projects', `*, client:partners!client_id(*)`, 'created_at', false),
+      supabase.rpc('get_project_dashboard'),
+      fetchDailyWorkerExpenseAllocations(supabase),
+    ]);
 
     if (projData) {
-      const enrichedProjects = projData.map(p => {
+      const enrichedProjects = projData.map((p: any) => {
          const dStats = (dashboardData || []).find((d: any) => d.id === p.id || d.project_id === p.id) || {};
-         return { ...p, ...dStats };
+         const projectAllocations = (allAllocations || []).filter(
+           (a) => String(a.project_id) === String(p.id)
+         );
+         // إذا كان المصروف غير محدد له فيلا أصلاً (source_has_project = false)، نضيف نصيب الفيلا من التوزيع اليومي بالعمالة إلى تكلفة الفيلا
+         const allocatedFromGeneral = projectAllocations
+           .filter((a) => !a.source_has_project)
+           .reduce((sum, a) => sum + Number(a['المبلغ المحمل (ر.س)'] || 0), 0);
+         const totalAllocatedAbc = projectAllocations.reduce(
+           (sum, a) => sum + Number(a['المبلغ المحمل (ر.س)'] || 0),
+           0
+         );
+         const baseDirectAndLaborCost =
+           Number(dStats.total_material_cost || 0) +
+           Number(dStats.total_direct_expenses || 0) +
+           Number(dStats.direct_labor_cost || 0);
+         const updatedTotalCost =
+           Math.round((baseDirectAndLaborCost + allocatedFromGeneral + Number.EPSILON) * 100) / 100;
+
+         return {
+           ...p,
+           ...dStats,
+           allocated_labor_cost: Math.round((totalAllocatedAbc + Number.EPSILON) * 100) / 100,
+           allocated_expenses_cost: Math.round((totalAllocatedAbc + Number.EPSILON) * 100) / 100,
+           total_cost: updatedTotalCost,
+         };
       });
       setProjects(enrichedProjects);
     }
@@ -352,30 +383,78 @@ export function useProjectsLogic() {
     setIsDetailsLoading(true);
 
     try {
-      const { data: fullDetails, error } = await supabase.rpc('get_project_full_details', { p_project_id: project.id });
+      const [{ data: fullDetails, error }, abcAllocations] = await Promise.all([
+        supabase.rpc('get_project_full_details', { p_project_id: project.id }),
+        fetchDailyWorkerExpenseAllocations(supabase, {
+          projectId: project.id,
+          companyId: project.company_id || null,
+        }),
+      ]);
       if (error) throw error;
 
-      const { data: abcAllocations } = await supabase.from('advanced_cost_allocation_view').select('*').eq('project_id', project.id);
+      const rawBoqData = fullDetails.boq || [];
+      const rawExpensesData = fullDetails.expenses || [];
+      const rawLaborLogsData = fullDetails.labor_logs || [];
+      const materialsData = fullDetails.materials || [];
+      const invoicesData = fullDetails.invoices || [];
+      const projectReceiptsData = fullDetails.receipt_vouchers || [];
+      const subClaimsData = fullDetails.sub_claims || [];
+      const contractorAssignmentsData = fullDetails.contractor_assignments || [];
 
       const abcMap: Record<string, number> = {};
+      const leafBoqItems = rawBoqData.filter(
+        (b: any) => !rawBoqData.some((child: any) => child.parent_id === b.id)
+      );
+
       abcAllocations?.forEach((alloc: any) => {
+          const amt = Number(alloc['المبلغ المحمل (ر.س)'] || alloc['loaded_amount'] || 0);
           const bId = alloc.boq_budget_id || alloc.boq_item_id;
-          if (bId) {
-              abcMap[bId] = (abcMap[bId] || 0) + Number(alloc['المبلغ المحمل (ر.س)'] || alloc['loaded_amount'] || 0);
+          const matchedBoq = bId
+            ? rawBoqData.find(
+                (b: any) => String(b.id) === String(bId) || String(b.boq_item_id) === String(bId)
+              )
+            : null;
+          if (matchedBoq?.id) {
+              abcMap[matchedBoq.id] = (abcMap[matchedBoq.id] || 0) + amt;
+          } else if (leafBoqItems.length > 0) {
+              const firstLeafId = leafBoqItems[0].id;
+              abcMap[firstLeafId] = (abcMap[firstLeafId] || 0) + amt;
           }
       });
 
-      const rawBoqData = fullDetails.boq || [];
+      const round2 = (n: number) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
       const boqDataWithAllocations = rawBoqData.map((item: any) => {
           if (item.item_type === 'فرعي' || !item.item_type) {
-              const allocated = abcMap[item.id] || 0;
-              const rawActualExpenses = Number(item.actual_expenses_cost || 0);
-              const directPlusSubOnly = Math.max(0, rawActualExpenses - allocated);
+              const allocated = round2(abcMap[item.id] || 0);
+              const directForBoq = rawExpensesData
+                .filter(
+                  (e: any) =>
+                    !isExpenseEligibleForDailyWorkerAllocation(e) &&
+                    (String(e.job_order_boq_id) === String(item.id) ||
+                      (item.boq_item_id && String(e.job_order_boq_id) === String(item.boq_item_id)))
+                )
+                .reduce((sum: number, e: any) => sum + getExpenseNetAmount(e), 0);
+              const subClaimForBoq = Number(item.actual_subcontractor_cost || 0);
+              const directPlusSubOnly = round2(directForBoq + subClaimForBoq);
+
+              const totalEstimated =
+                Number(item.estimated_labor_cost || 0) +
+                Number(item.estimated_material_cost || 0) +
+                Number(item.estimated_expenses_cost || 0) +
+                Number(item.estimated_subcontractor_cost || 0);
+              const totalActual =
+                Number(item.actual_labor_cost || 0) +
+                Number(item.actual_material_cost || 0) +
+                directPlusSubOnly +
+                allocated;
+
               return {
                   ...item,
                   actual_expenses_cost: directPlusSubOnly,
-                  allocated_expenses: allocated
+                  allocated_expenses: allocated,
+                  total_budget_variance: round2(totalEstimated - totalActual),
+                  item_net_profit: round2(Number(item.actual_revenue || 0) - totalActual),
               };
           }
           return item; 
@@ -387,19 +466,11 @@ export function useProjectsLogic() {
               const totalAllocated = children.reduce((sum: number, child: any) => sum + (Number(child.allocated_expenses) || 0), 0);
               return {
                   ...item,
-                  allocated_expenses: totalAllocated
+                  allocated_expenses: round2(totalAllocated)
               };
           }
           return item;
       });
-
-      const rawExpensesData = fullDetails.expenses || [];
-      const rawLaborLogsData = fullDetails.labor_logs || [];
-      const materialsData = fullDetails.materials || [];
-      const invoicesData = fullDetails.invoices || [];
-      const projectReceiptsData = fullDetails.receipt_vouchers || [];
-      const subClaimsData = fullDetails.sub_claims || [];
-      const contractorAssignmentsData = fullDetails.contractor_assignments || [];
 
       const isHelperRole = (l: any) => {
           const roleText = `${l.skill_level || ''} ${l.partner_job_role || ''}`.trim();
@@ -534,6 +605,7 @@ export function useProjectsLogic() {
         stages: [],
         boq: finalBoqData,
         expenses: expensesData,
+        abcAllocations: abcAllocations || [],
         ledger: [],
         materials: materialsData,
         invoices: [...processedInvoices, ...processedProjectReceipts, ...processedSubClaims],

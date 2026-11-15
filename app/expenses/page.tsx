@@ -213,14 +213,59 @@ export default function ExpensesPage() {
       exportValue: (row: any) => row.main_category || 'غير مصنف'
     },
     { 
-      header: renderSortableHeader('المشروع', 'site_ref'), 
+      header: renderSortableHeader('المشروع / التحميل', 'site_ref'), 
       accessor: 'site_ref', 
-      render: (row: any) => row ? (
-        <span style={{ fontSize: '0.6875rem', background: 'var(--surface-sunken)', padding: '0.15rem 0.45rem', borderRadius: '6px', color: 'var(--text-secondary)', fontWeight: 800, whiteSpace: 'nowrap', display: 'inline-block' }}>
-          {row.is_auto_distributed ? 'توزيع ذكي' : row.site_ref || 'عام'}
-        </span>
-      ) : null,
-      exportValue: (row: any) => row.is_auto_distributed ? 'توزيع ذكي' : (row.site_ref || 'عام')
+      render: (row: any) => {
+        if (!row) return null;
+        if (row._dailyAllocations && row._dailyAllocations.length > 0) {
+          return (
+            <div
+              style={{ display: 'flex', flexDirection: 'column', gap: '2px', maxWidth: '11rem' }}
+              title={row._allocationDetailsTooltip || ''}
+            >
+              <span
+                style={{
+                  fontSize: '0.6875rem',
+                  background: 'rgba(22, 163, 74, 0.12)',
+                  border: '1px solid rgba(22, 163, 74, 0.3)',
+                  padding: '0.15rem 0.45rem',
+                  borderRadius: '6px',
+                  color: '#15803d',
+                  fontWeight: 900,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'inline-block',
+                }}
+              >
+                ⚡ {row._allocatedVillasLabel || 'موزع بالعمالة'}
+              </span>
+              {row._allocatedOrdersLabel && (
+                <span
+                  style={{
+                    fontSize: '0.625rem',
+                    color: 'var(--text-secondary)',
+                    fontWeight: 800,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {row._allocatedOrdersLabel}
+                </span>
+              )}
+            </div>
+          );
+        }
+        return (
+          <span style={{ fontSize: '0.6875rem', background: 'var(--surface-sunken)', padding: '0.15rem 0.45rem', borderRadius: '6px', color: 'var(--text-secondary)', fontWeight: 800, whiteSpace: 'nowrap', display: 'inline-block' }}>
+            {row.is_auto_distributed || !row.project_id || !row.job_order_id ? (row.site_ref ? `${row.site_ref} (توزيع بالعمالة)` : 'توزيع يومي بالعمالة') : row.site_ref}
+          </span>
+        );
+      },
+      exportValue: (row: any) =>
+        row._allocationDetailsTooltip ||
+        (row.is_auto_distributed ? 'توزيع يومي بالعمالة' : row.site_ref || 'توزيع يومي بالعمالة')
     },
     { 
       header: renderSortableHeader('المدين', 'creditor_account'), 

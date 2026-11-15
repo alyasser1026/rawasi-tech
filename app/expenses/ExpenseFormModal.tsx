@@ -130,7 +130,8 @@ export default function ExpenseFormModal({
             return showToast("يرجى إدخال صنف أو بيان واحد على الأقل بسعر أكبر من صفر", "error");
         }
 
-        const isSubContractorExpense = record.creditor_account === 'التزام مقاولي الباطن' || !!record.payee_id;
+        const isSubContractorExpense = record.creditor_account === 'التزام مقاولي الباطن' || (!!record.payee_id && !!record.project_id && !!record.job_order_id);
+        const shouldAutoDistribute = !record.project_id || !record.job_order_id || Boolean(record.is_auto_distributed);
 
         onSave({
             ...record,
@@ -145,6 +146,7 @@ export default function ExpenseFormModal({
             project_id: record.project_id || null,
             payee_id: record.payee_id || null,
             job_order_id: record.job_order_id || null,
+            is_auto_distributed: shouldAutoDistribute,
             is_deducted_from_contractor: isSubContractorExpense,
             is_posted: false
         });
@@ -284,6 +286,31 @@ export default function ExpenseFormModal({
                     </div>
                 </div>
 
+                {(!record?.project_id || !record?.job_order_id) && (
+                    <div
+                        style={{
+                            marginBottom: '1.25rem',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '12px',
+                            background: 'rgba(22, 163, 74, 0.1)',
+                            border: '1px solid rgba(22, 163, 74, 0.28)',
+                            color: 'var(--text-primary)',
+                            fontSize: 'var(--fs-xs)',
+                            fontWeight: 800,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                        }}
+                    >
+                        <span>⚡</span>
+                        <span>
+                            {!record?.project_id
+                                ? 'لم يتم تحديد فيلا أو أمر شغل: سيتم تحميل وتوزيع هذا المصروف تلقائياً على جميع الفلل وأوامر الشغل العاملة في نفس اليوم حسب عدد العمالة.'
+                                : 'تم تحديد الفيلا بدون أمر شغل: سيتم تحميل وتوزيع هذا المصروف تلقائياً على أوامر الشغل الخاصة بهذه الفيلا في نفس اليوم حسب عدد العمالة.'}
+                        </span>
+                    </div>
+                )}
+
                 <div style={{ marginBottom: '1.5625rem', zIndex: 60, position: 'relative' }}>
                     <SmartCombo 
                         label="التصنيف الرئيسي *" 
@@ -342,7 +369,6 @@ export default function ExpenseFormModal({
                                             ...prev,
                                             custody_id: val.id,
                                             payment_account: '125 - عُهد الموظفين والمواقع',
-                                            project_id: prev?.project_id || val.project_id || null,
                                         }));
                                     } else {
                                         setRecord((prev: any) => ({ ...prev, custody_id: null }));

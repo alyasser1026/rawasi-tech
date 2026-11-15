@@ -2,8 +2,11 @@
 import { useState, useMemo, useDeferredValue } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
+import { fetchDailyWorkerExpenseAllocations } from '@/lib/dailyWorkerExpenseAllocation';
+import { useCompany } from '@/lib/CompanyContext';
 
 export function useOverheadAllocationsLogic() {
+    const { activeCompanyId } = useCompany();
     const [globalSearch, setGlobalSearch] = useState('');
     const deferredSearch = useDeferredValue(globalSearch);
     const [selectedMonth, setSelectedMonth] = useState('');
@@ -11,55 +14,13 @@ export function useOverheadAllocationsLogic() {
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(20);
 
-    // 📡 سحب البيانات على دفعات (Pagination Loop) مع منع التكرار والانحراف
+    // 📡 جلب البيانات الموزعة حسب اليوم وعدد العمالة على الفلل وأوامر الشغل
     const { data: allocationsData = [], isLoading } = useQuery({
-        queryKey: ['advanced_cost_allocation_view'],
+        queryKey: ['advanced_cost_allocation_view', activeCompanyId],
         queryFn: async () => {
-            let allFetchedData: any[] = [];
-            let from = 0;
-            const step = 1000;
-            let hasMoreData = true;
-
-            // 1. السحب المتتالي لحد ما السيرفر يرجع داتا أقل من 1000
-            while (hasMoreData) {
-                const { data, error } = await supabase
-                    .from('advanced_cost_allocation_view')
-                    .select('*')
-                    .order('تاريخ المصروف الأصلي', { ascending: false }) // الترتيب الأساسي
-                    .order('id', { ascending: true }) // 🚀 الترتيب المزدوج (Stable Sort) لمنع انحراف الترقيم نهائياً
-                    .range(from, from + step - 1);
-                
-                if (error) throw error;
-
-                if (data && data.length > 0) {
-                    allFetchedData = [...allFetchedData, ...data];
-                    from += step; // الاستعداد لسحب الـ 1000 اللي بعدهم
-                    
-                    // لو الداتا اللي راجعة أقل من الليميت، يبقى دي آخر دفعة
-                    if (data.length < step) {
-                        hasMoreData = false;
-                    }
-                } else {
-                    hasMoreData = false;
-                }
-            }
-
-            // 2. تنقية الداتا (Deduplication) لضمان عدم وجود أي ID متكرر نهائياً
-            const uniqueDataMap = new Map();
-            allFetchedData.forEach((item) => {
-                // بنستخدم الـ id كـ Key، فاللو اتكرر بالغلط هيعمل Overwrite ومش هيتكرر في الـ Array
-                if (item.id) {
-                    uniqueDataMap.set(item.id, item);
-                }
+            return await fetchDailyWorkerExpenseAllocations(supabase, {
+                companyId: activeCompanyId || null,
             });
-
-            // تحويل الـ Map لمصفوفة نهائية نظيفة
-            const finalCleanData = Array.from(uniqueDataMap.values());
-            
-            // ترتيب نهائي للمصفوفة بالكامل حسب الشهر
-            return finalCleanData.sort((a, b) => 
-                (b["شهر التحميل المالي"] || "").localeCompare(a["شهر التحميل المالي"] || "")
-            );
         }
     });
 

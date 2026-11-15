@@ -5,6 +5,7 @@ import { useToast } from '@/lib/toast-context';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; 
 import { fetchAllSupabaseData } from '@/lib/helpers';
 import { computeJobOrderProgressAndTimeline } from '@/lib/jobOrderProgress';
+import { fetchDailyWorkerExpenseAllocations } from '@/lib/dailyWorkerExpenseAllocation';
 
 export function useJobOrdersLogic() {
     const { showToast } = useToast(); 
@@ -111,11 +112,11 @@ export function useJobOrdersLogic() {
         }
     });
 
-    // 3. جلب مصروفات الشركة العامة الموزعة على أوامر الشغل
+    // 3. جلب المصروفات غير المحدد لها فيلا أو أمر شغل وتوزيعها حسب اليوم وعدد العمالة
     const { data: generalAllocations = [], isLoading: isAllocLoading } = useQuery({
         queryKey: ['advanced_cost_allocation'],
         queryFn: async () => {
-            return await fetchAllSupabaseData(supabase, 'advanced_cost_allocation_view', '*') || [];
+            return await fetchDailyWorkerExpenseAllocations(supabase) || [];
         }
     });
 
@@ -128,9 +129,14 @@ export function useJobOrdersLogic() {
             const perf = joPerformance.find((p: any) => p.job_order_id === jo.id) || {};
             let effectiveCost = Number(perf.effective_cost || 0); // التكلفة المسحوبة من عرض الأداء
 
-            // إضافة المصروفات العامة (العمالة والإعاشة اليومية/الشهرية) من view التوزيع
-            const joAllocations = generalAllocations.filter((a: any) => a.job_order_id === jo.id);
-            const totalAllocatedOverhead = joAllocations.reduce((sum: number, curr: any) => sum + Number(curr['المبلغ المحمل (ر.س)'] || 0), 0);
+            // إضافة المصروفات العامة أو غير المحدد لها أمر شغل (حسب اليوم وعدد العمالة)
+            const joAllocations = generalAllocations.filter(
+                (a: any) => String(a.job_order_id) === String(jo.id) && !a.source_has_job_order
+            );
+            const totalAllocatedOverhead = joAllocations.reduce(
+                (sum: number, curr: any) => sum + Number(curr['المبلغ المحمل (ر.س)'] || 0),
+                0
+            );
             
             effectiveCost += totalAllocatedOverhead;
             

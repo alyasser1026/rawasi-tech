@@ -14,6 +14,7 @@ import { useCompany } from '@/lib/CompanyContext';
 import { useAuth } from '@/components/authGuard';
 import { executeDraftWithOfflineQueue } from '@/lib/offline/offlineExecutor';
 import { useOfflineSync } from '@/lib/offline/useOfflineSync';
+import { fetchDailyWorkerExpenseAllocations } from '@/lib/dailyWorkerExpenseAllocation';
 
 export function useExpensesLogic() {
     const queryClient = useQueryClient();
@@ -136,6 +137,54 @@ export function useExpensesLogic() {
         return Array.from(map.values());
     }, [queuedExpenses, serverExpenses]);
 
+    // 📥 جلب توزيعات المصروفات اليومية حسب عدد العمالة لربطها بجدول المصروفات
+    const dailyAllocationsQuery = useQuery({
+        queryKey: ['expenses_daily_worker_allocations', activeCompanyId, serverExpenses.length],
+        enabled: canLoadExpenses,
+        queryFn: async () => {
+            return await fetchDailyWorkerExpenseAllocations(supabase, {
+                companyId: activeCompanyId || null,
+            });
+        },
+        staleTime: 1000 * 60 * 2,
+    });
+
+    const enrichedExpenses = useMemo(() => {
+        const allocs = dailyAllocationsQuery.data || [];
+        const byExpenseId = new Map<string, any[]>();
+        for (const a of allocs) {
+            const eid = String(a.expense_id || a['كود الحركة المرجعي'] || '');
+            if (!eid) continue;
+            const list = byExpenseId.get(eid) || [];
+            list.push(a);
+            byExpenseId.set(eid, list);
+        }
+
+        return expenses.map((exp: any) => {
+            const expAllocs = byExpenseId.get(String(exp.id)) || [];
+            if (expAllocs.length === 0) return exp;
+            const villas = Array.from(
+                new Set(expAllocs.map((a: any) => a['اسم الفيلا المحمل عليها']).filter(Boolean))
+            );
+            const orders = Array.from(
+                new Set(expAllocs.map((a: any) => a['رقم أمر التشغيل']).filter(Boolean))
+            );
+            const detailsText = expAllocs
+                .map(
+                    (a: any) =>
+                        `${a['اسم الفيلا المحمل عليها']} (${a['رقم أمر التشغيل'] || 'عام'}): ${Number(a['المبلغ المحمل (ر.س)'] || 0).toLocaleString()} [${a['عمال اليوم للأمر'] || a['يوميات الشهر للأمر'] || 1} عامل - ${a['نسبة التحميل (%)']}%]`
+                )
+                .join(' | ');
+            return {
+                ...exp,
+                _dailyAllocations: expAllocs,
+                _allocatedVillasLabel: villas.join(' + '),
+                _allocatedOrdersLabel: orders.join(' + '),
+                _allocationDetailsTooltip: detailsText,
+            };
+        });
+    }, [expenses, dailyAllocationsQuery.data]);
+
     // 📥 جلب البيانات المساعدة
     const supportDataQuery = useQuery({
         queryKey: ['expenses_support_data'],
@@ -193,8 +242,8 @@ export function useExpensesLogic() {
 
     // 🚀 3. الفلترة الذكية
     const { filteredData: allFiltered, setFilter, customFilters, globalSearch, setGlobalSearch } = useSmartFilter(
-        expenses, 
-        ['payee_name', 'sub_contractor', 'description', 'notes', 'site_ref', 'creditor_account', 'main_category'], 
+        enrichedExpenses, 
+        ['payee_name', 'sub_contractor', 'description', 'notes', 'site_ref', 'creditor_account', 'main_category', '_allocatedVillasLabel', '_allocatedOrdersLabel'], 
         'exp_date' 
     );
 

@@ -7,11 +7,67 @@ import RawasiSmartTable from '@/components/rawasismarttable';
 import { supabase } from '@/lib/supabase'; // 👈 استدعاء قاعدة البيانات للسحب المباشر
 import LoadingScreen from '@/components/LoadingScreen';
 import { Search } from 'lucide-react';
+import { fetchDailyWorkerExpenseAllocations } from '@/lib/dailyWorkerExpenseAllocation';
 
 export default function ExpensesTab({ logic }: { logic: any }) {
+  // 🚀 2. سحب المصروفات الموزعة (ABC) حسب اليوم وعدد العمالة لضمان دمجها في كشف الحساب
+  const [abcRawData, setAbcRawData] = useState<any[]>(() => logic.projectDetails?.abcAllocations || []);
+  const [isLoadingAbc, setIsLoadingAbc] = useState(false);
+
+  useEffect(() => {
+    if (Array.isArray(logic.projectDetails?.abcAllocations) && logic.projectDetails.abcAllocations.length > 0) {
+      setAbcRawData(logic.projectDetails.abcAllocations);
+    }
+  }, [logic.projectDetails?.abcAllocations]);
+
+  useEffect(() => {
+    if (!logic.selectedProject?.id) return;
+    
+    const fetchAbcData = async () => {
+        setIsLoadingAbc(true);
+        try {
+          const data = await fetchDailyWorkerExpenseAllocations(supabase, {
+            projectId: logic.selectedProject.id,
+            companyId: logic.selectedProject.company_id || null,
+          });
+          setAbcRawData(data || []);
+        } finally {
+          setIsLoadingAbc(false);
+        }
+    };
+
+    fetchAbcData();
+  }, [logic.selectedProject?.id, logic.selectedProject?.company_id]);
+
+  const allocatedSourceExpenseIds = useMemo(() => {
+    return new Set(
+      (abcRawData || [])
+        .map((item: any) => String(item.expense_id || item['كود الحركة المرجعي'] || ''))
+        .filter(Boolean)
+    );
+  }, [abcRawData]);
+
+  const abcLedger = useMemo(() => {
+    return (abcRawData || []).map((item: any) => {
+      const workersCount = item['عمال اليوم للأمر'] || item['يوميات الشهر للأمر'] || 1;
+      const totalWorkers = item['إجمالي عمال اليوم'] || workersCount;
+      const orderNum = item['رقم أمر التشغيل'] ? `أمر شغل: ${item['رقم أمر التشغيل']} | ` : '';
+      return {
+        id: item.id,
+        'التاريخ': item['تاريخ المصروف الأصلي']?.split('T')[0] || '---',
+        'الشهر المالي': item['شهر التحميل المالي'] || '---',
+        'نوع التكلفة': 'توزيعات غير مباشرة (ABC)',
+        'البيان / البند': `[${orderNum}بند: ${item['البند المحمل عليه'] || 'المشروع عام'} | ${workersCount}/${totalWorkers} عامل (${item['نسبة التحميل (%)']}%)] - ${item['البيان / الوصف']}`,
+        'التكلفة المحملة (ر.س)': Number(item['المبلغ المحمل (ر.س)'] ?? item['المبلغ المحمل (جنيه)'] ?? 0),
+      };
+    });
+  }, [abcRawData]);
+
   // 🚀 1. سحب كشف الحساب المباشر من اللوجيك (مصروفات + يوميات فنيين ومساعدين + مستخلصات مقاولي باطن)
   const directLedger = useMemo(() => {
-    const expenses = logic.projectDetails?.expenses || [];
+    const expenses = (logic.projectDetails?.expenses || []).filter(
+      (exp: any) => exp.row_type === 'labor_direct' || !allocatedSourceExpenseIds.has(String(exp.id))
+    );
     const subClaims = (logic.projectDetails?.subClaims || []).filter((c: any) => c.is_posted !== false);
     const monthNames = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
@@ -61,38 +117,7 @@ export default function ExpensesTab({ logic }: { logic: any }) {
     });
 
     return [...expRows, ...subClaimRows];
-  }, [logic.projectDetails?.expenses, logic.projectDetails?.subClaims]);
-
-  // 🚀 2. سحب المصروفات الموزعة (ABC) بشكل مستقل لضمان دمجها في كشف الحساب
-  const [abcLedger, setAbcLedger] = useState<any[]>([]);
-  const [isLoadingAbc, setIsLoadingAbc] = useState(false);
-
-  useEffect(() => {
-    if (!logic.selectedProject?.id) return;
-    
-    const fetchAbcData = async () => {
-        setIsLoadingAbc(true);
-        const { data } = await supabase
-            .from('advanced_cost_allocation_view')
-            .select('*')
-            .eq('project_id', logic.selectedProject.id);
-        
-        if (data) {
-            const mappedAbc = data.map((item: any) => ({
-                'id': item.id,
-                'التاريخ': item['تاريخ المصروف الأصلي']?.split('T')[0] || '---',
-                'الشهر المالي': item['شهر التحميل المالي'] || '---',
-                'نوع التكلفة': 'توزيعات غير مباشرة (ABC)',
-                'البيان / البند': `[بند: ${item['البند المحمل عليه'] || 'المشروع عام'}] - ${item['البيان / الوصف']}`,
-                'التكلفة المحملة (ر.س)': Number(item['المبلغ المحمل (ر.س)'] ?? item['المبلغ المحمل (جنيه)'] ?? 0)
-            }));
-            setAbcLedger(mappedAbc);
-        }
-        setIsLoadingAbc(false);
-    };
-
-    fetchAbcData();
-  }, [logic.selectedProject?.id]);
+  }, [logic.projectDetails?.expenses, logic.projectDetails?.subClaims, allocatedSourceExpenseIds]);
 
   // 🎯 3. الدمج الذكي بين الكشفين وترتيبهم بالتاريخ الأحدث
   const combinedLedger = useMemo(() => {

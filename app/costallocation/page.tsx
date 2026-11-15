@@ -28,17 +28,17 @@ export default function CostAllocationPage() {
     // 💎 ربط أعمدة الجدول بالمسميات (Aliases) الخارجة من الـ View بتاعك بالملي
     const tableColumns = useMemo(() => [
         { 
-            key: 'month', label: 'شهر التحميل', 
-            render: (row: any) => <CompactCell justify="center"><span className="badge-month">{row["شهر التحميل المالي"]}</span></CompactCell> 
+            key: 'month', label: 'تاريخ التحميل', 
+            render: (row: any) => <CompactCell justify="center"><span className="badge-month">{row["تاريخ المصروف الأصلي"] || row["شهر التحميل المالي"]}</span></CompactCell> 
         },
         { 
-            key: 'villa_boq', label: 'المشروع وبند الموازنة المتأثر', 
-            // 🎯 تم دمج الفيلا والبند هنا بشكل احترافي
+            key: 'villa_boq', label: 'الفيلا وأمر الشغل المحمل عليه', 
             render: (row: any) => (
                 <CompactCell justify="flex-start">
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1875rem' }}>
                         <span style={{ fontWeight: 900, color: '#1e293b', fontSize: 'var(--fs-sm)' }}>
                             {row["اسم الفيلا المحمل عليها"] || 'عام/غير موزع'}
+                            {row["رقم أمر التشغيل"] ? ` (${row["رقم أمر التشغيل"]})` : ''}
                         </span>
                         <span style={{ fontSize: 'var(--fs-xs)', color: '#c2410c', fontWeight: 800 }}>
                             بند: {row["البند المحمل عليه"] || 'مصروف عام (لم يوجه لبند)'}
@@ -56,22 +56,28 @@ export default function CostAllocationPage() {
             render: (row: any) => <CompactCell><span style={{color: '#475569', fontSize:'var(--fs-xs)'}}>{row["البيان / الوصف"]}</span></CompactCell> 
         },
         { 
-            key: 'percentage', label: 'نسبة الاستهلاك', 
-            // 🎯 عرض النسبة المئوية لتحميل التكلفة على البند
-            render: (row: any) => <CompactCell justify="center"><span style={{ fontWeight: 900, color: '#64748b' }}>{row["نسبة التحميل (%)"]}%</span></CompactCell> 
+            key: 'percentage', label: 'العمالة والنسبة', 
+            render: (row: any) => (
+                <CompactCell justify="center">
+                    <span style={{ fontWeight: 900, color: '#64748b' }}>
+                        {row["عمال اليوم للأمر"] ? `${row["عمال اليوم للأمر"]}/${row["إجمالي عمال اليوم"] || row["عمال اليوم للأمر"]} عامل • ` : ''}
+                        {row["نسبة التحميل (%)"]}%
+                    </span>
+                </CompactCell>
+            ) 
         },
         { 
             key: 'amount', label: 'التكلفة المحملة للبند', 
             render: (row: any) => (
                 <CompactCell justify="center">
                     <strong style={{color: '#16a34a', background: 'rgba(22,163,74,0.08)', padding: '0.25rem 0.625rem', borderRadius: '6px', fontSize:'var(--fs-sm)'}}>
-                        {formatCurrency(row["المبلغ المحمل (جنيه)"])}
+                        {formatCurrency(row["المبلغ المحمل (ر.س)"] ?? row["المبلغ المحمل (جنيه)"])}
                     </strong>
                 </CompactCell>
             ) 
         },
         { 
-            key: 'mechanism', label: 'آلية التوزيع (حسب التواجد)', 
+            key: 'mechanism', label: 'آلية التوزيع (حسب اليوم والعمالة)', 
             render: (row: any) => <CompactCell><span className="badge-mechanism">{row["آلية التوزيع"]}</span></CompactCell> 
         }
     ], []);

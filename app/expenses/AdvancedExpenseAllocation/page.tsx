@@ -7,8 +7,11 @@ import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { RefreshCw } from 'lucide-react';
+import { fetchDailyWorkerExpenseAllocations } from '@/lib/dailyWorkerExpenseAllocation';
+import { useCompany } from '@/lib/CompanyContext';
 
 export default function AdvancedExpenseAllocation() {
+  const { activeCompanyId } = useCompany();
   const [allocations, setAllocations] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -50,25 +53,16 @@ export default function AdvancedExpenseAllocation() {
     loadFilterLookups();
   }, []);
 
-  // 2️⃣ التعديل الجوهري: سحب البيانات الموزعة مـفـلـتـرة جـاهـزة من السيرفر (Server-Side)
+  // 2️⃣ التعديل الجوهري: حساب وتوزيع المصروفات حسب اليوم وعدد العمالة على الفلل وأوامر الشغل
   const fetchAllocationData = async () => {
     setIsLoading(true);
     try {
-      let query = supabase.from('advanced_cost_allocation_view').select('*');
-      
-      // تطبيق الفلاتر مباشرة في السيرفر قبل السحب من الداتا بيز
-      if (filterMonth !== 'الكل') {
-        query = query.eq('شهر التحميل المالي', filterMonth);
-      }
-      if (filterVilla !== 'الكل') {
-        query = query.eq('اسم الفيلا المحمل عليها', filterVilla);
-      }
-      if (filterCategory !== 'الكل') {
-        query = query.eq('التصنيف الرئيسي', filterCategory);
-      }
-      
-      const { data, error } = await query;
-      if (error) throw error;
+      const data = await fetchDailyWorkerExpenseAllocations(supabase, {
+        companyId: activeCompanyId || null,
+        month: filterMonth !== 'الكل' ? filterMonth : null,
+        villaName: filterVilla !== 'الكل' ? filterVilla : null,
+        category: filterCategory !== 'الكل' ? filterCategory : null,
+      });
       setAllocations(data || []);
     } catch (err: any) {
       console.error("❌ خطأ سحب البيانات الموزعة:", err.message);
@@ -80,13 +74,17 @@ export default function AdvancedExpenseAllocation() {
   // إعادة سحب البيانات أوتوماتيكياً فور تغيير أي فلتر من القوائم المنسدلة
   useEffect(() => {
     fetchAllocationData();
-  }, [filterMonth, filterVilla, filterCategory]);
+  }, [filterMonth, filterVilla, filterCategory, activeCompanyId]);
 
   // 3️⃣ تصفية النصية (البحث السريع) في جافا سكريبت على الداتا القادمة
   const filteredData = useMemo(() => {
     return allocations.filter(item => {
-      return (item["التصنيف الرئيسي"] || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-             (item["وصف المصروف التلقائي"] || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const q = searchQuery.toLowerCase();
+      return (item["التصنيف الرئيسي"] || '').toLowerCase().includes(q) ||
+             (item["البيان / الوصف"] || '').toLowerCase().includes(q) ||
+             (item["وصف المصروف التلقائي"] || '').toLowerCase().includes(q) ||
+             (item["رقم أمر التشغيل"] || '').toLowerCase().includes(q) ||
+             (item["اسم الفيلا المحمل عليها"] || '').toLowerCase().includes(q);
     });
   }, [allocations, searchQuery]);
 
@@ -99,14 +97,14 @@ export default function AdvancedExpenseAllocation() {
     const activeVillas = new Set();
 
     filteredData.forEach(item => {
-      const amt = Number(item["المبلغ المحمل (جنيه)"] || 0);
+      const amt = Number(item["المبلغ المحمل (ر.س)"] ?? item["المبلغ المحمل (جنيه)"] ?? 0);
       totalAllocated += amt;
       if (item["اسم الفيلا المحمل عليها"]) activeVillas.add(item["اسم الفيلا المحمل عليها"]);
 
-      const mech = item["آلية التوزيع الهندسية"] || '';
+      const mech = item["آلية التوزيع الهندسية"] || item["آلية التوزيع"] || '';
       if (mech.includes('يومي')) dailyLaborTotal += amt;
-      else if (mech.includes('شهري')) monthlyEqualTotal += amt;
-      else if (mech.includes('إداري')) annualOfficeTotal += amt;
+      else if (mech.includes('شهري') || mech.includes('الشهر')) monthlyEqualTotal += amt;
+      else annualOfficeTotal += amt;
     });
 
     const getPercentage = (part: number) => totalAllocated > 0 ? ((part / totalAllocated) * 100).toFixed(1) : "0";
@@ -123,15 +121,16 @@ export default function AdvancedExpenseAllocation() {
   // 5️⃣ دالة تصدير البيانات إلى ملف CSV
   const exportToCSV = () => {
     if (filteredData.length === 0) return;
-    const headers = ["شهر التحميل المالي", "تاريخ المصروف الأصلي", "اسم الفيلا", "التصنيف الرئيسي", "البيان التلقائي", "المبلغ المحمل", "آلية التوزيع"];
+    const headers = ["شهر التحميل المالي", "تاريخ المصروف الأصلي", "اسم الفيلا", "رقم أمر الشغل", "التصنيف الرئيسي", "البيان التلقائي", "المبلغ المحمل", "آلية التوزيع"];
     const rows = filteredData.map(item => [
       item["شهر التحميل المالي"],
       item["تاريخ المصروف الأصلي"],
       item["اسم الفيلا المحمل عليها"],
+      item["رقم أمر التشغيل"] || '---',
       item["التصنيف الرئيسي"],
-      `"${item["وصف المصروف التلقائي"]}"`,
-      item["المبلغ المحمل (جنيه)"],
-      item["آلية التوزيع الهندسية"]
+      `"${item["وصف المصروف التلقائي"] || item["البيان / الوصف"]}"`,
+      item["المبلغ المحمل (ر.س)"] ?? item["المبلغ المحمل (جنيه)"],
+      item["آلية التوزيع الهندسية"] || item["آلية التوزيع"]
     ]);
 
     const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
@@ -148,19 +147,24 @@ export default function AdvancedExpenseAllocation() {
   // 6️⃣ إعداد أعمدة الجدول الذكي
   const columns = useMemo(() => [
     {
-      header: 'الشهر المالي',
+      header: 'تاريخ المصروف',
       render: (row: any) => (
         <span style={{ fontWeight: 800, color: THEME.coffeeDark, backgroundColor: '#f5ebe0', padding: '0.375rem 0.75rem', borderRadius: '8px', fontSize: 'var(--fs-sm)' }}>
-          {row["شهر التحميل المالي"]}
+          {row["تاريخ المصروف الأصلي"] || row["شهر التحميل المالي"]}
         </span>
       )
     },
     {
-      header: 'الفيلا المحمل عليها',
+      header: 'الفيلا وأمر الشغل',
       render: (row: any) => (
-        <span style={{ fontWeight: 900, color: '#0f172a', fontSize: 'var(--fs-md)' }}>
-          {row["اسم الفيلا المحمل عليها"]}
-        </span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <span style={{ fontWeight: 900, color: '#0f172a', fontSize: 'var(--fs-md)' }}>
+            {row["اسم الفيلا المحمل عليها"]}
+          </span>
+          <span style={{ fontWeight: 800, color: '#0284c7', fontSize: 'var(--fs-xs)' }}>
+            {row["رقم أمر التشغيل"] ? `أمر شغل: ${row["رقم أمر التشغيل"]}` : row["البند المحمل عليه"]}
+          </span>
+        </div>
       )
     },
     {
@@ -173,23 +177,23 @@ export default function AdvancedExpenseAllocation() {
     },
     {
       header: 'وصف المصروف والبيان التلقائي',
-      render: (row: any) => <span style={{ color: '#475569', fontWeight: 700, fontSize: 'var(--fs-sm)' }}>{row["وصف المصروف التلقائي"]}</span>
+      render: (row: any) => <span style={{ color: '#475569', fontWeight: 700, fontSize: 'var(--fs-sm)' }}>{row["وصف المصروف التلقائي"] || row["البيان / الوصف"]}</span>
     },
     {
       header: 'المبلغ المحمل',
       render: (row: any) => (
         <strong style={{ fontWeight: 900, color: '#c2410c', fontSize: 'var(--fs-lg)', fontFamily: 'monospace' }}>
-          {formatCurrency(row["المبلغ المحمل (جنيه)"])}
+          {formatCurrency(row["المبلغ المحمل (ر.س)"] ?? row["المبلغ المحمل (جنيه)"])}
         </strong>
       )
     },
     {
       header: 'آلية التوزيع الهندسي المحاسبية',
       render: (row: any) => {
-        const mech = row["آلية التوزيع الهندسية"] || '';
+        const mech = row["آلية التوزيع الهندسية"] || row["آلية التوزيع"] || '';
         let color = '#0284C7'; let bg = '#F0F9FF';
         if (mech.includes('يومي')) { color = '#16a34a'; bg = '#F0FDF4'; }
-        else if (mech.includes('شهري')) { color = '#ea580c'; bg = '#FFF7ED'; }
+        else if (mech.includes('شهري') || mech.includes('الشهر')) { color = '#ea580c'; bg = '#FFF7ED'; }
 
         return (
           <span style={{ fontWeight: 800, color: color, backgroundColor: bg, padding: '0.375rem 0.75rem', borderRadius: '8px', fontSize: 'var(--fs-sm)', display: 'inline-flex', alignItems: 'center', gap: '0.3125rem' }}>

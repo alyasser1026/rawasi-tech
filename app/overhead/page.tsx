@@ -44,24 +44,31 @@ const ProjectGroupCard = ({ group }: { group: any }) => {
                     <table className="nested-table">
                         <thead>
                             <tr>
-                                <th>الشهر</th>
+                                <th>التاريخ</th>
+                                <th>أمر الشغل</th>
                                 <th>التصنيف</th>
                                 <th>البيان والوصف</th>
                                 <th style={{textAlign:'center'}}>قيمة الفاتورة الأصلية</th>
                                 <th style={{textAlign:'center'}}>نصيب المشروع</th>
-                                <th style={{textAlign:'center'}}>نسبة التحميل</th>
+                                <th style={{textAlign:'center'}}>العمالة والنسبة</th>
                                 <th>آلية التوزيع</th>
                             </tr>
                         </thead>
                         <tbody>
                             {group.items.map((item: any, idx: number) => (
                                 <tr key={item.id || idx}>
-                                    <td style={{width:'5rem'}}><span className="badge-month">{item["شهر التحميل المالي"]}</span></td>
+                                    <td style={{width:'6rem'}}><span className="badge-month">{item["تاريخ المصروف الأصلي"] || item["شهر التحميل المالي"]}</span></td>
+                                    <td style={{width:'6.5rem'}}><span className="badge-category">{item["رقم أمر التشغيل"] || '---'}</span></td>
                                     <td style={{width:'7.5rem'}}><span className="badge-category">{item["التصنيف الرئيسي"]}</span></td>
                                     <td><span style={{fontSize:'var(--fs-xs)', color:'#334155', fontWeight:700}}>{item["البيان / الوصف"]}</span></td>
                                     <td align="center"><span style={{color: '#94a3b8', textDecoration: 'line-through', fontSize:'var(--fs-xs)'}}>{formatCurrency(item["قيمة الفاتورة الأصلية (ر.س)"])}</span></td>
-                                    <td align="center"><strong style={{color: '#b91c1c', fontSize:'var(--fs-sm)'}}>{formatCurrency(item["المبلغ المحمل (ر.س)"])}</strong></td>
-                                    <td align="center"><span className="badge-percentage">{item["نسبة التحميل (%)"]}%</span></td>
+                                    <td align="center"><strong style={{color: '#b91c1c', fontSize:'var(--fs-sm)'}}>{formatCurrency(item["المبلغ المحمل (ر.س)"] ?? item["المبلغ المحمل (جنيه)"])}</strong></td>
+                                    <td align="center">
+                                        <span className="badge-percentage">
+                                            {item["عمال اليوم للأمر"] ? `${item["عمال اليوم للأمر"]}/${item["إجمالي عمال اليوم"] || item["عمال اليوم للأمر"]} عامل • ` : ''}
+                                            {item["نسبة التحميل (%)"]}%
+                                        </span>
+                                    </td>
                                     <td><span className="badge-mechanism">{item["آلية التوزيع"]}</span></td>
                                 </tr>
                             ))}
