@@ -510,21 +510,61 @@ export default function CapitalTower3D() {
         @media (max-width: 1080px) {
           .ct3d-tabs-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
         }
-        @media (max-width: 600px) {
+        @media (max-width: 680px) {
           .ct3d-shell {
             padding: 14px 12px !important;
             border-radius: 16px !important;
           }
-          .ct3d-tabs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 6px !important; }
+          .ct3d-cta-group {
+            width: 100%;
+            display: flex !important;
+            gap: 8px !important;
+          }
+          .ct3d-cta-group button {
+            flex: 1;
+            justify-content: center;
+            text-align: center;
+            padding: 10px 12px !important;
+            font-size: 0.82rem !important;
+          }
+          .ct3d-cta-group a {
+            white-space: nowrap;
+            padding: 10px 11px !important;
+            font-size: 0.76rem !important;
+            display: inline-flex;
+            align-items: center;
+          }
+          .ct3d-tabs-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 6px !important; padding: 6px !important; }
           .ct3d-pill {
-            padding: 7px 6px !important;
-            font-size: 0.74rem !important;
+            padding: 8px 6px !important;
+            font-size: 0.75rem !important;
             border-radius: 10px !important;
             gap: 4px !important;
           }
+          .ct3d-pill-bar {
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            width: 100%;
+            padding-bottom: 2px;
+          }
+          .ct3d-pill-bar::-webkit-scrollbar { display: none; }
+          .ct3d-pill-bar > * { flex: 0 0 auto; white-space: nowrap; }
           .ct3d-stage {
-            min-height: 320px !important;
+            min-height: 330px !important;
             border-radius: 14px !important;
+          }
+          .ct3d-stage-hint {
+            left: 10px !important;
+            right: 10px !important;
+            top: 10px !important;
+            font-size: 0.68rem !important;
+            padding: 5px 10px !important;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
         }
         .ct3d-pill {
@@ -608,7 +648,7 @@ export default function CapitalTower3D() {
         </div>
 
         {/* Highlight Conversion Action Button */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+        <div className="ct3d-cta-group" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
           <button
             type="button"
             data-testid="toggle-3d-to-bim"
@@ -811,6 +851,7 @@ export default function CapitalTower3D() {
           )}
 
           <div
+            className="ct3d-stage-hint"
             style={{
               position: 'absolute',
               top: '12px',

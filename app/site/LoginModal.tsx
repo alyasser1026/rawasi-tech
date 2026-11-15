@@ -497,13 +497,47 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           to { transform: rotate(360deg); }
         }
 
-        @media (max-width: 480px) {
+        @media (max-width: 540px) {
+          .login-modal-overlay {
+            padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+            align-items: center;
+          }
           .login-modal-card {
-            padding: 1.85rem 1.25rem;
-            border-radius: 18px;
+            padding: 1.45rem 1.15rem 1.25rem;
+            border-radius: 20px;
+            max-height: calc(100dvh - 24px);
+            overflow-y: auto;
+          }
+          .login-modal-logo {
+            margin-bottom: 0.65rem;
+          }
+          .login-modal-logo img {
+            height: 44px !important;
           }
           .login-modal-title {
-            font-size: 1.25rem;
+            font-size: 1.22rem;
+          }
+          .login-modal-subtitle {
+            font-size: 0.78rem;
+            margin-bottom: 1.1rem;
+          }
+          .login-input-group {
+            margin-bottom: 0.95rem;
+          }
+          .login-input-field {
+            font-size: 16px !important;
+            padding: 0.82rem 1rem;
+          }
+          .login-submit-btn {
+            padding: 0.85rem;
+            font-size: 0.94rem;
+          }
+          .login-toggle-btn {
+            margin-top: 0.85rem;
+          }
+          .login-back-btn {
+            margin-top: 0.75rem;
+            padding: 0.65rem;
           }
         }
       `}</style>

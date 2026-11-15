@@ -71,5 +71,11 @@ test('Mobile hero starts with video first and scales typography smoothly without
   assert.match(siteStyles, /\.pw-hero \.phi-hb\{[^\}]*height:clamp\(300px/);
   assert.match(siteStyles, /\.pw-hero-grid\{[^\}]*order:2/);
   assert.match(siteStyles, /\.pw-mobile-scroll-cue/);
+
+  // Verify mobile dock is hidden on desktop and iOS auto-zoom prevention (16px inputs) is enforced on mobile
+  assert.match(siteStyles, /\.pw-dock-pad,\.pw-mobile-dock\{display:none\}/);
+  assert.match(siteStyles, /font-size:16px!important/);
+  assert.doesNotMatch(siteStyles, /padding-top:84px/);
 });
+
 
