@@ -287,7 +287,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 className="pw-btn pw-btn-primary"
                 style={{ minHeight: '44px', padding: '0 20px', fontSize: '0.9rem' }}
               >
-                🛍️ استعراض سلة مشترياتك ({cart.totalCount} صنف — {cart.totalAmount.toLocaleString('en-US')} ج.م)
+                🛍️ استعراض سلة مشترياتك ({cart.totalCount} صنف{cart.totalAmount > 0 ? ` — ${cart.totalAmount.toLocaleString('en-US')} ج.م` : ''})
               </button>
             )}
             <Link
@@ -371,19 +371,29 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                   }}
                 >
                   <div>
-                    <span
-                      style={{
-                        fontSize: '0.8rem',
-                        color: '#94a3b8',
-                        textDecoration: 'line-through',
-                        display: 'block',
-                      }}
-                    >
-                      {b.oldPrice.toLocaleString('en-US')} {b.currency}
-                    </span>
-                    <strong style={{ fontSize: '1.35rem', fontWeight: 900, color: '#fb923c' }}>
-                      {b.price.toLocaleString('en-US')} {b.currency}
-                    </strong>
+                    {b.price > 0 ? (
+                      <>
+                        {b.oldPrice && b.oldPrice > b.price ? (
+                          <span
+                            style={{
+                              fontSize: '0.8rem',
+                              color: '#94a3b8',
+                              textDecoration: 'line-through',
+                              display: 'block',
+                            }}
+                          >
+                            {b.oldPrice.toLocaleString('en-US')} {b.currency}
+                          </span>
+                        ) : null}
+                        <strong style={{ fontSize: '1.35rem', fontWeight: 900, color: '#fb923c' }}>
+                          {b.price.toLocaleString('en-US')} {b.currency}
+                        </strong>
+                      </>
+                    ) : (
+                      <strong style={{ fontSize: '1.05rem', fontWeight: 900, color: '#fb923c' }}>
+                        السعر عند الطلب (عرض سعر)
+                      </strong>
+                    )}
                   </div>
 
                   <button
@@ -600,63 +610,76 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     gap: '10px',
                   }}
                 >
-                  {p.installPrice && p.installPrice > 0 ? (
-                    <label
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        fontSize: '0.78rem',
-                        fontWeight: 800,
-                        padding: '7px 10px',
-                        borderRadius: '10px',
-                        background: withInstall ? '#ecfdf5' : '#ffffff',
-                        border: withInstall ? '1.5px solid #10b981' : '1px solid #e3e6e9',
-                        color: withInstall ? '#065f46' : '#47525c',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={withInstall}
-                        onChange={() => handleToggleCardInstall(p.id)}
-                        style={{ accentColor: '#10b981' }}
-                      />
-                      <span>
-                        إضافة خدمة التركيب الهندسي (+{p.installPrice.toLocaleString('en-US')} {p.currency})
-                      </span>
-                    </label>
-                  ) : null}
+                  <label
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      padding: '7px 10px',
+                      borderRadius: '10px',
+                      background: withInstall ? '#ecfdf5' : '#ffffff',
+                      border: withInstall ? '1.5px solid #10b981' : '1px solid #e3e6e9',
+                      color: withInstall ? '#065f46' : '#47525c',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={withInstall}
+                      onChange={() => handleToggleCardInstall(p.id)}
+                      style={{ accentColor: '#10b981' }}
+                    />
+                    <span>
+                      {p.installPrice && p.installPrice > 0
+                        ? `إضافة خدمة التركيب الهندسي (+${p.installPrice.toLocaleString('en-US')} ${p.currency})`
+                        : 'إضافة خدمة التركيب الهندسي المعتمد'}
+                    </span>
+                  </label>
 
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px' }}>
                     <div>
-                      {p.oldPrice && p.oldPrice > p.price && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <span style={{ fontSize: '0.76rem', color: '#94a3b8', textDecoration: 'line-through' }}>
-                            {p.oldPrice.toLocaleString('en-US')}
-                          </span>
-                          <span
-                            style={{
-                              fontSize: '0.68rem',
-                              fontWeight: 900,
-                              background: '#dcfce7',
-                              color: '#15803d',
-                              padding: '1px 6px',
-                              borderRadius: '6px',
-                            }}
-                          >
-                            خصم {discountPct}%
+                      {p.price > 0 ? (
+                        <>
+                          {p.oldPrice && p.oldPrice > p.price && (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <span style={{ fontSize: '0.76rem', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                {p.oldPrice.toLocaleString('en-US')}
+                              </span>
+                              <span
+                                style={{
+                                  fontSize: '0.68rem',
+                                  fontWeight: 900,
+                                  background: '#dcfce7',
+                                  color: '#15803d',
+                                  padding: '1px 6px',
+                                  borderRadius: '6px',
+                                }}
+                              >
+                                خصم {discountPct}%
+                              </span>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                            <strong style={{ fontSize: '1.28rem', fontWeight: 900, color: '#c75517' }}>
+                              {(p.price + (withInstall && p.installPrice ? p.installPrice : 0)).toLocaleString('en-US')}
+                            </strong>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#47525c' }}>
+                              {p.currency} / {p.unit}
+                            </span>
+                          </div>
+                        </>
+                      ) : (
+                        <div>
+                          <strong style={{ fontSize: '1rem', fontWeight: 900, color: '#c75517', display: 'block' }}>
+                            السعر عند الطلب
+                          </strong>
+                          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b' }}>
+                            أضف للسلة لطلب عرض سعر ({p.unit})
                           </span>
                         </div>
                       )}
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                        <strong style={{ fontSize: '1.28rem', fontWeight: 900, color: '#c75517' }}>
-                          {(p.price + (withInstall && p.installPrice ? p.installPrice : 0)).toLocaleString('en-US')}
-                        </strong>
-                        <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#47525c' }}>
-                          {p.currency} / {p.unit}
-                        </span>
-                      </div>
                     </div>
 
                     <button

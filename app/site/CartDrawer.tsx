@@ -333,6 +333,7 @@ export function CartDrawer({
 
   const currency = items[0]?.currency || 'ج.م';
   const hasAnyInstall = items.some((i) => i.withInstall);
+  const hasUnpricedItems = items.some((i) => i.price <= 0);
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -672,7 +673,9 @@ export function CartDrawer({
                         </div>
 
                         <strong style={{ fontSize: '0.96rem', color: '#c75517', fontWeight: 900 }}>
-                          {(unitEffective * item.qty).toLocaleString('en-US')} {item.currency}
+                          {item.price > 0
+                            ? `${(unitEffective * item.qty).toLocaleString('en-US')} ${item.currency}`
+                            : 'تسعير عند الطلب'}
                         </strong>
                       </div>
                     </div>
@@ -791,12 +794,14 @@ export function CartDrawer({
                   gap: '10px',
                 }}
               >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
                   <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#47525c' }}>
-                    الإجمالي التقديري للسلة:
+                    {hasUnpricedItems && totalAmount <= 0 ? 'نوع الطلب:' : 'الإجمالي التقديري للسلة:'}
                   </span>
-                  <strong style={{ fontSize: '1.35rem', fontWeight: 900, color: '#c75517' }}>
-                    {totalAmount.toLocaleString('en-US')} {currency}
+                  <strong style={{ fontSize: totalAmount > 0 ? '1.35rem' : '1.05rem', fontWeight: 900, color: '#c75517' }}>
+                    {totalAmount > 0
+                      ? `${totalAmount.toLocaleString('en-US')} ${currency}${hasUnpricedItems ? ' (+ أصناف للتسعير)' : ''}`
+                      : 'طلب عرض سعر وتوريد'}
                   </strong>
                 </div>
                 <button

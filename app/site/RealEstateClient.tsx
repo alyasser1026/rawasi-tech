@@ -429,22 +429,30 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                 >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexWrap: 'wrap', gap: '8px' }}>
                     <div>
-                      {prop.oldPrice && prop.oldPrice > prop.price && (
-                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', textDecoration: 'line-through', display: 'block' }}>
-                          {prop.oldPrice.toLocaleString('en-US')} {prop.currency}
-                        </span>
+                      {prop.price > 0 ? (
+                        <>
+                          {prop.oldPrice && prop.oldPrice > prop.price && (
+                            <span style={{ fontSize: '0.8rem', color: '#94a3b8', textDecoration: 'line-through', display: 'block' }}>
+                              {prop.oldPrice.toLocaleString('en-US')} {prop.currency}
+                            </span>
+                          )}
+                          <strong style={{ fontSize: '1.38rem', fontWeight: 900, color: '#c75517' }}>
+                            {prop.price.toLocaleString('en-US')} {prop.currency}
+                          </strong>
+                        </>
+                      ) : (
+                        <strong style={{ fontSize: '1.12rem', fontWeight: 900, color: '#c75517' }}>
+                          السعر عند التواصل / عرض مالي
+                        </strong>
                       )}
-                      <strong style={{ fontSize: '1.38rem', fontWeight: 900, color: '#c75517' }}>
-                        {prop.price.toLocaleString('en-US')} {prop.currency}
-                      </strong>
                     </div>
 
-                    {downPaymentVal && (
+                    {prop.downPaymentPct ? (
                       <div style={{ textAlign: 'left', fontSize: '0.78rem', fontWeight: 800, color: '#065f46', background: '#ecfdf5', padding: '4px 10px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
-                        مقدم {prop.downPaymentPct}% ({downPaymentVal.toLocaleString('en-US')} {prop.currency})
+                        مقدم {prop.downPaymentPct}%{downPaymentVal && downPaymentVal > 0 ? ` (${downPaymentVal.toLocaleString('en-US')} ${prop.currency})` : ''}
                         {prop.installmentYears ? ` · تقسيط ${prop.installmentYears} سنوات` : ''}
                       </div>
-                    )}
+                    ) : null}
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
@@ -573,8 +581,10 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                 <div style={{ background: '#fff3ea', border: '1px solid #fed7aa', borderRadius: '12px', padding: '10px 12px', fontSize: '0.82rem' }}>
                   <strong style={{ color: '#c75517', display: 'block' }}>{selectedProperty.title}</strong>
                   <span>
-                    المساحة: {selectedProperty.areaSqm} م² · السعر: {selectedProperty.price.toLocaleString('en-US')}{' '}
-                    {selectedProperty.currency}
+                    المساحة: {selectedProperty.areaSqm} م²
+                    {selectedProperty.price > 0
+                      ? ` · السعر: ${selectedProperty.price.toLocaleString('en-US')} ${selectedProperty.currency}`
+                      : ' · طلب عرض مالي ومعاينة'}
                   </span>
                 </div>
 

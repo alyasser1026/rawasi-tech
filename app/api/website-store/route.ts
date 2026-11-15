@@ -132,13 +132,21 @@ async function sendStoreTelegramNotification(order: {
       const unitTotal =
         (Number(item.price) + (item.withInstall && item.installPrice ? Number(item.installPrice) : 0)) *
         Number(item.qty || 1);
+      const priceLabel =
+        Number(item.price) > 0
+          ? `${unitTotal.toLocaleString('en-US')} ${escapeHtml(order.currency || 'ج.م')}`
+          : 'تسعير عند الطلب';
       lines.push(
-        `${idx + 1}. <b>${escapeHtml(item.name)}</b>\n   • الكمية: <code>${item.qty}</code> ${escapeHtml(item.unit || '')}${item.withInstall ? ' (+تركيب)' : ''} — الإجمالي: <b>${unitTotal.toLocaleString('en-US')} ${escapeHtml(order.currency || 'ج.م')}</b>`
+        `${idx + 1}. <b>${escapeHtml(item.name)}</b>\n   • الكمية: <code>${item.qty}</code> ${escapeHtml(item.unit || '')}${item.withInstall ? ' (+تركيب)' : ''} — الإجمالي: <b>${priceLabel}</b>`
       );
     }
     lines.push('━━━━━━━━━━━━━━━━━━━━');
+    const grandTotalLabel =
+      Number(order.totalAmount || 0) > 0
+        ? `${Number(order.totalAmount || 0).toLocaleString('en-US')} ${escapeHtml(order.currency || 'ج.م')}`
+        : 'طلب عرض سعر وتوريد';
     lines.push(
-      `💰 <b>الإجمالي الكلي للطلب:</b> <b>${Number(order.totalAmount || 0).toLocaleString('en-US')} ${escapeHtml(order.currency || 'ج.م')}</b>`
+      `💰 <b>الإجمالي الكلي للطلب:</b> <b>${grandTotalLabel}</b>`
     );
     if (order.notes) {
       lines.push(`📝 <b>ملاحظات التوريد/التركيب:</b>\n<i>${escapeHtml(order.notes)}</i>`);
