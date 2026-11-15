@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 import type { ChatMessageItem } from '@/app/api/website-chat/route';
 
@@ -24,6 +25,9 @@ export default function FloatingContactChat({
   const [started, setStarted] = useState(false);
   const [inputMsg, setInputMsg] = useState('');
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
+  const [escalatedToHuman, setEscalatedToHuman] = useState(false);
+  const [botPaused, setBotPaused] = useState(false);
+  const [showQuickMenu, setShowQuickMenu] = useState(false);
   const [sending, setSending] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
@@ -48,6 +52,8 @@ export default function FloatingContactChat({
           setVisitorName(parsed.visitorName);
           setVisitorPhone(parsed.visitorPhone);
           setStarted(true);
+          setEscalatedToHuman(Boolean(parsed.escalatedToHuman));
+          setBotPaused(Boolean(parsed.botPaused));
           if (Array.isArray(parsed.messages)) {
             setMessages(parsed.messages);
             lastMsgCountRef.current = parsed.messages.length;
@@ -68,7 +74,12 @@ export default function FloatingContactChat({
         const res = await fetch(`/api/website-chat?sessionId=${encodeURIComponent(sessionId)}`);
         if (!res.ok) return;
         const data = await res.json();
-        const serverMsgs: ChatMessageItem[] | undefined = data?.session?.messages;
+        const serverSession = data?.session;
+        const serverMsgs: ChatMessageItem[] | undefined = serverSession?.messages;
+        if (serverSession) {
+          setEscalatedToHuman(Boolean(serverSession.escalatedToHuman));
+          setBotPaused(Boolean(serverSession.botPaused));
+        }
         if (Array.isArray(serverMsgs) && serverMsgs.length > 0) {
           setMessages(serverMsgs);
           if (serverMsgs.length > lastMsgCountRef.current) {
@@ -87,6 +98,8 @@ export default function FloatingContactChat({
                 sessionId,
                 visitorName,
                 visitorPhone,
+                escalatedToHuman: Boolean(serverSession?.escalatedToHuman),
+                botPaused: Boolean(serverSession?.botPaused),
                 messages: serverMsgs,
               })
             );
@@ -111,9 +124,9 @@ export default function FloatingContactChat({
         }
       }, 60);
     }
-  }, [chatOpen, messages.length]);
+  }, [chatOpen, messages.length, sending]);
 
-  const sendMessage = async (textToSend: string) => {
+  const sendMessage = async (textToSend: string, requestHuman = false) => {
     const cleanName = visitorName.trim();
     const cleanPhone = visitorPhone.trim();
     const cleanText = textToSend.trim();
@@ -122,10 +135,11 @@ export default function FloatingContactChat({
       setErrorMsg('يرجى كتابة الاسم ورقم الجوال الصحيح لبدء المحادثة');
       return;
     }
-    if (!cleanText) return;
+    if (!cleanText || sending) return;
 
     setErrorMsg('');
     setSending(true);
+    setShowQuickMenu(false);
 
     rememberVisitorContact({ name: cleanName, phone: cleanPhone });
 
@@ -138,6 +152,7 @@ export default function FloatingContactChat({
           visitorName: cleanName,
           visitorPhone: cleanPhone,
           message: cleanText,
+          requestHuman,
           pageUrl: typeof window !== 'undefined' ? window.location.pathname : contextLabel,
         }),
       });
@@ -147,12 +162,15 @@ export default function FloatingContactChat({
       }
 
       const activeSid = data.sessionId;
-      const updatedMsgs: ChatMessageItem[] = data.session?.messages || [];
+      const serverSession = data.session;
+      const updatedMsgs: ChatMessageItem[] = serverSession?.messages || [];
       setSessionId(activeSid);
       setStarted(true);
       setMessages(updatedMsgs);
+      setEscalatedToHuman(Boolean(serverSession?.escalatedToHuman));
+      setBotPaused(Boolean(serverSession?.botPaused));
       lastMsgCountRef.current = updatedMsgs.length;
-      setInputMsg('');
+      if (!requestHuman) setInputMsg('');
 
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(
@@ -161,6 +179,8 @@ export default function FloatingContactChat({
             sessionId: activeSid,
             visitorName: cleanName,
             visitorPhone: cleanPhone,
+            escalatedToHuman: Boolean(serverSession?.escalatedToHuman),
+            botPaused: Boolean(serverSession?.botPaused),
             messages: updatedMsgs,
           })
         );
@@ -191,10 +211,13 @@ export default function FloatingContactChat({
   )}`;
 
   const QUICK_QUESTIONS = [
-    'استفسار عن أسعار منتجات التشطيب والسمارت هوم',
-    'عروض الشقق والوحدات العقارية المتاحة',
-    'طلب معاينة ومقايسة تشطيب / مقاولات',
-    'استفسار عن منظومة حساسات الغاز والمياه والحريق',
+    '💰 أسعار التشطيب والمقايسة للمتر',
+    '⚡ أسعار منتجات الكهرباء والسباكة والسمارت هوم',
+    '🛠️ طلب تنفيذ أو صيانة (كهرباء/سباكة/تكييف)',
+    '🚨 منظومة حساسات الغاز والمياه والحريق',
+    '🏢 عروض الشقق والوحدات العقارية والتقسيط',
+    '🛡️ الضمان الهندسي ومراحل الاستلام',
+    '📍 عناوين الفروع ومواعيد العمل',
   ];
 
   return (
@@ -251,13 +274,13 @@ export default function FloatingContactChat({
           position: fixed;
           bottom: 84px;
           left: 20px;
-          width: min(calc(100vw - 24px), 370px);
-          max-height: min(540px, calc(100dvh - 150px));
+          width: min(calc(100vw - 24px), 390px);
+          max-height: min(580px, calc(100dvh - 140px));
           background: #ffffff;
           color: #14181b;
           border-radius: 20px;
           border: 1px solid #e3e6e9;
-          box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.45);
+          box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.35);
           z-index: 99970;
           display: flex;
           flex-direction: column;
@@ -326,13 +349,13 @@ export default function FloatingContactChat({
           {/* Header */}
           <div
             style={{
-              background: 'linear-gradient(135deg, #14181b 0%, #1e252b 100%)',
+              background: 'linear-gradient(135deg, #c75517 0%, #ea580c 100%)',
               color: '#ffffff',
-              padding: '14px 16px',
+              padding: '13px 16px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              borderBottom: '2px solid #f97316',
+              borderBottom: '1px solid rgba(255,255,255,0.2)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -341,16 +364,20 @@ export default function FloatingContactChat({
                   width: '10px',
                   height: '10px',
                   borderRadius: '50%',
-                  background: '#22c55e',
-                  boxShadow: '0 0 10px #22c55e',
+                  background: '#4ade80',
+                  boxShadow: '0 0 8px #4ade80',
                 }}
               />
               <div>
                 <strong style={{ display: 'block', fontSize: '0.92rem', lineHeight: 1.2 }}>
                   المحادثة الحية — فاي تك الهندسية
                 </strong>
-                <span style={{ fontSize: '0.72rem', color: '#cbd5e1' }}>
-                  متصل الآن • يرد عليك مهندس المبيعات والدعم مباشرة
+                <span style={{ fontSize: '0.72rem', color: '#ffedd5', fontWeight: 700 }}>
+                  {botPaused
+                    ? 'متصل الآن • يرد عليك المهندس المختص مباشرة'
+                    : escalatedToHuman
+                      ? 'تم التحويل للمهندس • بانتظار المداخلة البشرية'
+                      : 'رد آلي هندسي فوري + تحويل مباشر للمهندس'}
                 </span>
               </div>
             </div>
@@ -358,7 +385,7 @@ export default function FloatingContactChat({
               type="button"
               onClick={() => setChatOpen(false)}
               style={{
-                background: 'rgba(255,255,255,0.1)',
+                background: 'rgba(255,255,255,0.18)',
                 border: 'none',
                 color: '#fff',
                 borderRadius: '8px',
@@ -490,6 +517,103 @@ export default function FloatingContactChat({
           ) : (
             /* Step 2: Active Live Chat Thread */
             <>
+              {/* Interactive Status & Escalation Bar */}
+              <div
+                style={{
+                  padding: '8px 12px',
+                  background: escalatedToHuman ? '#fffbeb' : '#f8fafc',
+                  borderBottom: '1px solid #e2e8f0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '6px',
+                  fontSize: '0.73rem',
+                }}
+              >
+                <span
+                  style={{
+                    fontWeight: 800,
+                    color: escalatedToHuman ? '#b45309' : botPaused ? '#0369a1' : '#334155',
+                  }}
+                >
+                  {escalatedToHuman
+                    ? '🔔 تم تحويلك للمهندس المختص'
+                    : botPaused
+                      ? '👨‍💼 متابعة مهندس بشري مباشرة'
+                      : '🤖 رد تفاعلي فوري + إشراف هندسي'}
+                </span>
+                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowQuickMenu((s) => !s)}
+                    style={{
+                      border: '1px solid #cbd5e1',
+                      background: showQuickMenu ? '#e2e8f0' : '#ffffff',
+                      color: '#334155',
+                      borderRadius: '8px',
+                      padding: '4px 8px',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    📋 الأسئلة السريعة
+                  </button>
+                  <button
+                    type="button"
+                    disabled={sending}
+                    onClick={() => void sendMessage('أرغب في التحدث المباشر مع المهندس المختص', true)}
+                    style={{
+                      border: '1px solid #fed7aa',
+                      background: '#fff3ea',
+                      color: '#c75517',
+                      borderRadius: '8px',
+                      padding: '4px 8px',
+                      fontSize: '0.72rem',
+                      fontWeight: 900,
+                      cursor: sending ? 'wait' : 'pointer',
+                    }}
+                  >
+                    👨‍💼 تحويل لمهندس الآن
+                  </button>
+                </div>
+              </div>
+
+              {showQuickMenu && (
+                <div
+                  style={{
+                    padding: '8px 12px',
+                    background: '#fffaf5',
+                    borderBottom: '1px solid #fed7aa',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '5px',
+                  }}
+                >
+                  {QUICK_QUESTIONS.map((q) => (
+                    <button
+                      key={q}
+                      type="button"
+                      disabled={sending}
+                      onClick={() => void sendMessage(q)}
+                      style={{
+                        fontSize: '0.71rem',
+                        fontWeight: 800,
+                        padding: '4px 9px',
+                        borderRadius: '999px',
+                        border: '1px solid #fed7aa',
+                        background: '#ffffff',
+                        color: '#c75517',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <div
                 ref={listRef}
                 style={{
@@ -505,15 +629,20 @@ export default function FloatingContactChat({
               >
                 {messages.map((m) => {
                   const isVisitor = m.sender === 'visitor';
+                  const isHumanAdmin = m.sender === 'admin' && m.isAutoReply === false;
                   return (
                     <div
                       key={m.id}
                       style={{
                         alignSelf: isVisitor ? 'flex-start' : 'flex-end',
-                        maxWidth: '86%',
-                        background: isVisitor ? '#ea580c' : '#ffffff',
+                        maxWidth: '88%',
+                        background: isVisitor ? '#ea580c' : isHumanAdmin ? '#f0fdf4' : '#ffffff',
                         color: isVisitor ? '#ffffff' : '#14181b',
-                        border: isVisitor ? 'none' : '1px solid #e2e8f0',
+                        border: isVisitor
+                          ? 'none'
+                          : isHumanAdmin
+                            ? '1.5px solid #86efac'
+                            : '1px solid #e2e8f0',
                         borderRadius: isVisitor ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                         padding: '9px 12px',
                         boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
@@ -521,21 +650,133 @@ export default function FloatingContactChat({
                     >
                       <div
                         style={{
-                          fontSize: '0.68rem',
-                          fontWeight: 800,
-                          opacity: 0.85,
-                          marginBottom: '3px',
-                          color: isVisitor ? '#ffedd5' : '#c75517',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '6px',
+                          marginBottom: '4px',
                         }}
                       >
-                        {m.senderName}
+                        <span
+                          style={{
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            opacity: 0.9,
+                            color: isVisitor ? '#ffedd5' : isHumanAdmin ? '#15803d' : '#c75517',
+                          }}
+                        >
+                          {m.senderName}
+                        </span>
+                        {!isVisitor && (
+                          <span
+                            style={{
+                              fontSize: '0.62rem',
+                              fontWeight: 800,
+                              padding: '1px 6px',
+                              borderRadius: '999px',
+                              background: isHumanAdmin ? '#dcfce7' : '#fff3ea',
+                              color: isHumanAdmin ? '#166534' : '#c75517',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {isHumanAdmin ? '👨‍💼 مهندس مختص' : '🤖 رد آلي تفاعلي'}
+                          </span>
+                        )}
                       </div>
-                      <div style={{ fontSize: '0.84rem', lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
+                      <div style={{ fontSize: '0.84rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
                         {m.text}
                       </div>
+                      {Array.isArray(m.actions) && m.actions.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                          {m.actions.map((act, idx) =>
+                            act.external || /^https?:|^wa\.me|^tel:/i.test(act.href) ? (
+                              <a
+                                key={idx}
+                                href={act.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{
+                                  fontSize: '0.73rem',
+                                  fontWeight: 800,
+                                  padding: '5px 10px',
+                                  borderRadius: '8px',
+                                  background: '#16a34a',
+                                  color: '#ffffff',
+                                  textDecoration: 'none',
+                                }}
+                              >
+                                {act.label} ↗
+                              </a>
+                            ) : (
+                              <Link
+                                key={idx}
+                                href={act.href}
+                                onClick={() => setChatOpen(false)}
+                                style={{
+                                  fontSize: '0.73rem',
+                                  fontWeight: 800,
+                                  padding: '5px 10px',
+                                  borderRadius: '8px',
+                                  background: '#fff3ea',
+                                  border: '1px solid #fed7aa',
+                                  color: '#c75517',
+                                  textDecoration: 'none',
+                                }}
+                              >
+                                {act.label} ←
+                              </Link>
+                            )
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
+
+                {sending && (
+                  <div
+                    style={{
+                      alignSelf: 'flex-end',
+                      background: '#ffffff',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '14px 14px 14px 4px',
+                      padding: '8px 12px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      color: '#64748b',
+                    }}
+                  >
+                    🤖 جاري كتابة الرد الهندسي...
+                  </div>
+                )}
+
+                {!sending &&
+                  messages.length > 0 &&
+                  Array.isArray(messages[messages.length - 1]?.quickReplies) &&
+                  messages[messages.length - 1].quickReplies!.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px' }}>
+                      {messages[messages.length - 1].quickReplies!.map((qr) => (
+                        <button
+                          key={qr}
+                          type="button"
+                          onClick={() => void sendMessage(qr, qr.includes('تحويل لمهندس'))}
+                          style={{
+                            fontSize: '0.73rem',
+                            fontWeight: 800,
+                            padding: '6px 10px',
+                            borderRadius: '999px',
+                            border: '1px solid #fed7aa',
+                            background: '#ffffff',
+                            color: '#c75517',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 6px rgba(199,85,23,0.08)',
+                          }}
+                        >
+                          {qr}
+                        </button>
+                      ))}
+                    </div>
+                  )}
               </div>
 
               <form
@@ -551,7 +792,7 @@ export default function FloatingContactChat({
                 <input
                   value={inputMsg}
                   onChange={(e) => setInputMsg(e.target.value)}
-                  placeholder="اكتب رسالتك..."
+                  placeholder="اكتب رسالتك أو سؤالك..."
                   style={{
                     flex: 1,
                     padding: '9px 12px',

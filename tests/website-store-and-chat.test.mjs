@@ -125,3 +125,43 @@ test('execution & maintenance services tab covers all trades with recommendation
   const storeApi = read('app/api/website-store/route.ts');
   assert.match(storeApi, /maintenance_request/);
 });
+
+test('interactive live-chat auto-responder covers expected scenarios, human escalation, and CMS controls', () => {
+  const responder = read('app/site/chat-auto-responder.ts');
+  assert.match(responder, /export function generateSmartAutoReply/);
+  assert.match(responder, /export const DEFAULT_CHAT_BOT_CONFIG/);
+  for (const intentName of [
+    'human_handoff',
+    'lead_qualified',
+    'finishing_quote',
+    'safety_sensors',
+    'smart_home_low_current',
+    'maintenance_execution',
+    'real_estate',
+    'fallback_escalate',
+  ]) {
+    assert.match(responder, new RegExp(`intent:\\s*'${intentName}'`), `Missing intent ${intentName}`);
+  }
+  assert.match(responder, /needsHuman:\s*true/);
+
+  const siteContent = read('app/site/site-content.ts');
+  assert.match(siteContent, /chatBotConfig\?:\s*Partial<ChatBotConfig>/);
+  assert.match(siteContent, /CHAT_BOT:/);
+
+  const chatApi = read('app/api/website-chat/route.ts');
+  assert.match(chatApi, /generateSmartAutoReply/);
+  assert.match(chatApi, /escalatedToHuman/);
+  assert.match(chatApi, /botPaused/);
+  assert.match(chatApi, /تحويل عاجل من الرد الآلي/);
+
+  const floatingChat = read('app/site/FloatingContactChat.tsx');
+  assert.match(floatingChat, /requestHuman/);
+  assert.match(floatingChat, /quickReplies/);
+  assert.match(floatingChat, /actions/);
+  assert.match(floatingChat, /تحويل لمهندس/);
+
+  const adminPage = read('app/website-admin/page.tsx');
+  assert.match(adminPage, /chatBotConfig/);
+  assert.match(adminPage, /escalatedToHuman/);
+  assert.match(adminPage, /botPaused/);
+});

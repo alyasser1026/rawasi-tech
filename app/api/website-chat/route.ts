@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { normalizePhoneForWhatsApp } from '@/lib/telegram-notifier';
+import { mergeContent, sanitizeContent } from '@/app/site/site-content';
+import {
+  generateSmartAutoReply,
+  type ChatBotActionLink,
+} from '@/app/site/chat-auto-responder';
 
 export const runtime = 'nodejs';
 
@@ -10,6 +15,10 @@ export interface ChatMessageItem {
   senderName: string;
   text: string;
   createdAt: string;
+  isAutoReply?: boolean;
+  intent?: string;
+  quickReplies?: string[];
+  actions?: ChatBotActionLink[];
 }
 
 export interface ChatSessionPayload {
@@ -19,6 +28,11 @@ export interface ChatSessionPayload {
   pageUrl?: string;
   updatedAt: string;
   unreadByAdmin?: number;
+  escalatedToHuman?: boolean;
+  escalationReason?: string;
+  escalatedAt?: string;
+  botPaused?: boolean;
+  lastIntent?: string;
   messages: ChatMessageItem[];
 }
 
@@ -69,6 +83,17 @@ async function verifyAdminAuth(req: Request): Promise<boolean> {
   }
 }
 
+async function loadMergedSiteContent(sb: ReturnType<typeof getServiceSupabase>) {
+  if (!sb) return mergeContent({});
+  try {
+    const { data, error } = await sb.rpc('website_public_content');
+    if (error || !data) return mergeContent({});
+    return mergeContent(sanitizeContent(data));
+  } catch {
+    return mergeContent({});
+  }
+}
+
 async function sendLiveChatTelegramNotification(params: {
   sessionId: string;
   visitorName: string;
@@ -76,6 +101,9 @@ async function sendLiveChatTelegramNotification(params: {
   messageText: string;
   pageUrl?: string;
   isFirstMessage: boolean;
+  needsHuman?: boolean;
+  escalationReason?: string;
+  autoReplyPreview?: string;
 }) {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
@@ -88,14 +116,24 @@ async function sendLiveChatTelegramNotification(params: {
     timeStyle: 'medium',
   }).format(new Date());
 
-  const lines = [
-    params.isFirstMessage
+  const headerLine = params.needsHuman
+    ? '🚨🔔 <b>تحويل عاجل من الرد الآلي — العميل يحتاج تدخلك!</b>'
+    : params.isFirstMessage
       ? '💬 <b>محادثة شات حي جديدة على الموقع — فاي تك</b>'
-      : '💬 <b>رسالة جديدة في الشات الحي — فاي تك</b>',
+      : '💬 <b>رسالة جديدة في الشات الحي — فاي تك</b>';
+
+  const lines = [
+    headerLine,
     '━━━━━━━━━━━━━━━━━━━━',
     `👤 <b>اسم العميل:</b> ${escapeHtml(params.visitorName)}`,
     `📱 <b>رقم الجوال:</b> <code>${escapeHtml(params.visitorPhone)}</code>`,
-    `💌 <b>الرسالة:</b>\n<b>"${escapeHtml(params.messageText)}"</b>`,
+    `💌 <b>رسالة العميل:</b>\n<b>"${escapeHtml(params.messageText)}"</b>`,
+    params.needsHuman && params.escalationReason
+      ? `⚠️ <b>سبب التحويل:</b> ${escapeHtml(params.escalationReason)}`
+      : null,
+    params.autoReplyPreview
+      ? `🤖 <b>رد المساعد الآلي:</b>\n<i>${escapeHtml(params.autoReplyPreview.slice(0, 280))}${params.autoReplyPreview.length > 280 ? '…' : ''}</i>`
+      : null,
     params.pageUrl ? `📄 <b>الصفحة:</b> <code>${escapeHtml(params.pageUrl)}</code>` : null,
     `🆔 <b>كود الجلسة:</b> <code>${escapeHtml(params.sessionId)}</code>`,
     `⏰ <b>التوقيت:</b> ${escapeHtml(nowStr)}`,
@@ -106,7 +144,7 @@ async function sendLiveChatTelegramNotification(params: {
   const buttons: Array<Array<{ text: string; url: string }>> = [];
   if (waPhone) {
     const waText = encodeURIComponent(
-      `مرحباً أستاذ ${params.visitorName}، معك فريق فاي تك الهندسي بخصوص استفسارك على الموقع: "${params.messageText.slice(0, 80)}"`
+      `مرحباً أستاذ ${params.visitorName}، معك المهندس المختص من شركة فاي تك بخصوص استفسارك على الموقع: "${params.messageText.slice(0, 80)}"`
     );
     buttons.push([{ text: `💬 الرد عبر واتساب (${params.visitorPhone})`, url: `https://wa.me/${waPhone}?text=${waText}` }]);
   }
@@ -135,6 +173,7 @@ export async function POST(req: Request) {
     const visitorPhone = String(body.visitorPhone || '').trim().slice(0, 30);
     const messageText = String(body.message || '').trim().slice(0, 1000);
     const pageUrl = String(body.pageUrl || '/').trim().slice(0, 120);
+    const requestHuman = Boolean(body.requestHuman);
     const rawSessionId = String(body.sessionId || '').trim();
     const sessionId =
       rawSessionId && /^CHAT-[A-Z0-9-]{4,32}$/i.test(rawSessionId)
@@ -152,6 +191,7 @@ export async function POST(req: Request) {
     }
 
     const sb = getServiceSupabase();
+    const siteContent = await loadMergedSiteContent(sb);
     const nowIso = new Date().toISOString();
     const newMsg: ChatMessageItem = {
       id: `m-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -161,25 +201,8 @@ export async function POST(req: Request) {
       createdAt: nowIso,
     };
 
-    let sessionData: ChatSessionPayload = {
-      sessionId,
-      visitorName,
-      visitorPhone,
-      pageUrl,
-      updatedAt: nowIso,
-      unreadByAdmin: 1,
-      messages: [
-        {
-          id: 'welcome-auto',
-          sender: 'admin',
-          senderName: 'خدمة عملاء فاي تك الهندسية',
-          text: `أهلاً بك يا أستاذ ${visitorName} في شركة فاي تك 👷‍♂️✨ تم استلام رسالتك وإشعار المهندس المختص فوراً، وسنرد عليك هنا مباشرة أو عبر جوالك (${visitorPhone}).`,
-          createdAt: nowIso,
-        },
-        newMsg,
-      ],
-    };
-
+    let existingRowId: string | null = null;
+    let existingParsed: ChatSessionPayload | null = null;
     let isFirstMessage = true;
 
     if (sb) {
@@ -192,40 +215,102 @@ export async function POST(req: Request) {
 
       if (existing) {
         isFirstMessage = false;
-        let parsed: ChatSessionPayload | null = null;
+        existingRowId = existing.id;
         try {
-          parsed = existing.details ? JSON.parse(existing.details) : null;
+          existingParsed = existing.details ? JSON.parse(existing.details) : null;
         } catch {
-          parsed = null;
+          existingParsed = null;
         }
-        const prevMessages = Array.isArray(parsed?.messages) ? parsed!.messages : [];
-        sessionData = {
-          sessionId,
-          visitorName: visitorName || parsed?.visitorName || 'زائر',
-          visitorPhone: visitorPhone || parsed?.visitorPhone || '',
-          pageUrl: pageUrl || parsed?.pageUrl,
-          updatedAt: nowIso,
-          unreadByAdmin: Number(parsed?.unreadByAdmin || 0) + 1,
-          messages: [...prevMessages.slice(-60), newMsg],
-        };
+      }
+    }
 
+    const prevMessages = Array.isArray(existingParsed?.messages) ? existingParsed!.messages : [];
+    const shouldRunBot = requestHuman || (siteContent.CHAT_BOT.enabled !== false && !existingParsed?.botPaused);
+
+    const autoReply = shouldRunBot
+      ? generateSmartAutoReply({
+          messageText,
+          visitorName,
+          visitorPhone,
+          pageUrl,
+          requestHuman,
+          previousMessages: prevMessages,
+          siteContent,
+        })
+      : null;
+
+    const botMsg: ChatMessageItem | null =
+      autoReply && autoReply.shouldReply
+        ? {
+            id: `bot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            sender: 'admin',
+            senderName: autoReply.senderName,
+            text: autoReply.replyText,
+            createdAt: new Date(Date.now() + 5).toISOString(),
+            isAutoReply: true,
+            intent: autoReply.intent,
+            quickReplies: autoReply.quickReplies,
+            actions: autoReply.actions,
+          }
+        : null;
+
+    const welcomeMsg: ChatMessageItem = {
+      id: 'welcome-auto',
+      sender: 'admin',
+      senderName: 'خدمة عملاء فاي تك الهندسية',
+      text: botMsg
+        ? `أهلاً بك يا أستاذ ${visitorName} في شركة فاي تك 👷‍♂️✨ تم فتح تذكرة محادثة فورية (${sessionId}) لمتابعة طلبك.`
+        : `أهلاً بك يا أستاذ ${visitorName} في شركة فاي تك 👷‍♂️✨ تم استلام رسالتك وإشعار المهندس المختص فوراً، وسنرد عليك هنا مباشرة أو عبر جوالك (${visitorPhone}).`,
+      createdAt: nowIso,
+      isAutoReply: true,
+    };
+
+    const nextMessages: ChatMessageItem[] = isFirstMessage
+      ? [welcomeMsg, newMsg, ...(botMsg ? [botMsg] : [])]
+      : [...prevMessages.slice(-60), newMsg, ...(botMsg ? [botMsg] : [])];
+
+    const escalatedToHuman = Boolean(existingParsed?.escalatedToHuman || autoReply?.needsHuman);
+    const escalationReason = autoReply?.needsHuman
+      ? autoReply.escalationReason
+      : existingParsed?.escalationReason;
+    const escalatedAt = autoReply?.needsHuman ? nowIso : existingParsed?.escalatedAt;
+
+    const sessionData: ChatSessionPayload = {
+      sessionId,
+      visitorName: visitorName || existingParsed?.visitorName || 'زائر',
+      visitorPhone: visitorPhone || existingParsed?.visitorPhone || '',
+      pageUrl: pageUrl || existingParsed?.pageUrl,
+      updatedAt: nowIso,
+      unreadByAdmin: Number(existingParsed?.unreadByAdmin || 0) + 1,
+      escalatedToHuman,
+      escalationReason,
+      escalatedAt,
+      botPaused: Boolean(existingParsed?.botPaused),
+      lastIntent: autoReply?.intent || existingParsed?.lastIntent,
+      messages: nextMessages,
+    };
+
+    const rowStatus = escalatedToHuman ? '🚨 يطلب تدخل المهندس' : 'نشط';
+
+    if (sb) {
+      if (existingRowId) {
         await sb
           .from('user_requests')
           .update({
             subject: `${sessionData.visitorName} — ${sessionData.visitorPhone}`,
             details: JSON.stringify(sessionData),
-            status: 'نشط',
-            admin_note: messageText.slice(0, 160),
+            status: rowStatus,
+            admin_note: (escalatedToHuman && escalationReason ? `[تحويل] ${escalationReason}` : messageText).slice(0, 160),
           })
-          .eq('id', existing.id);
+          .eq('id', existingRowId);
       } else {
         await sb.from('user_requests').insert({
           type: 'live_chat',
           category: sessionId,
           subject: `${visitorName} — ${visitorPhone}`,
           details: JSON.stringify(sessionData),
-          status: 'نشط',
-          admin_note: messageText.slice(0, 160),
+          status: rowStatus,
+          admin_note: (escalatedToHuman && escalationReason ? `[تحويل] ${escalationReason}` : messageText).slice(0, 160),
         });
       }
     }
@@ -237,6 +322,9 @@ export async function POST(req: Request) {
       messageText,
       pageUrl,
       isFirstMessage,
+      needsHuman: Boolean(autoReply?.needsHuman),
+      escalationReason: autoReply?.escalationReason,
+      autoReplyPreview: botMsg?.text,
     });
 
     return NextResponse.json({
@@ -296,11 +384,21 @@ export async function GET(req: Request) {
           status: row.status || 'نشط',
           updatedAt: parsed.updatedAt || row.created_at,
           unreadByAdmin: Number(parsed.unreadByAdmin || 0),
+          escalatedToHuman: Boolean(parsed.escalatedToHuman),
+          escalationReason: parsed.escalationReason || '',
+          escalatedAt: parsed.escalatedAt || '',
+          botPaused: Boolean(parsed.botPaused),
+          lastIntent: parsed.lastIntent || '',
           messages: Array.isArray(parsed.messages) ? parsed.messages : [],
         };
       });
 
-      sessions.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      sessions.sort((a, b) => {
+        if (a.escalatedToHuman !== b.escalatedToHuman) {
+          return a.escalatedToHuman ? -1 : 1;
+        }
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
       return NextResponse.json({ sessions });
     }
 
@@ -340,7 +438,7 @@ export async function PATCH(req: Request) {
     }
 
     const body = await req.json();
-    const { sessionId, replyText, status, senderName } = body;
+    const { sessionId, replyText, status, senderName, botPaused, clearEscalation } = body;
     if (!sessionId) {
       return NextResponse.json({ error: 'معرف الجلسة مطلوب' }, { status: 400 });
     }
@@ -376,25 +474,47 @@ export async function PATCH(req: Request) {
     }
 
     const nowIso = new Date().toISOString();
-    if (replyText && String(replyText).trim()) {
+    const hasReply = Boolean(replyText && String(replyText).trim());
+    if (hasReply) {
       const adminMsg: ChatMessageItem = {
         id: `adm-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
         sender: 'admin',
-        senderName: String(senderName || 'الإدارة الهندسية — فاي تك').trim(),
+        senderName: String(senderName || '👨‍💼 المهندس المختص — فاي تك').trim(),
         text: String(replyText).trim().slice(0, 1500),
         createdAt: nowIso,
+        isAutoReply: false,
       };
       parsed.messages = [...(Array.isArray(parsed.messages) ? parsed.messages : []), adminMsg];
       parsed.updatedAt = nowIso;
+      parsed.botPaused = true;
+      parsed.escalatedToHuman = false;
+      parsed.escalationReason = '';
+    }
+
+    if (typeof botPaused === 'boolean') {
+      parsed.botPaused = botPaused;
+    }
+    if (clearEscalation === true) {
+      parsed.escalatedToHuman = false;
+      parsed.escalationReason = '';
     }
     parsed.unreadByAdmin = 0;
+
+    const nextStatus =
+      typeof status === 'string'
+        ? status
+        : hasReply
+          ? 'تم الرد'
+          : parsed.escalatedToHuman
+            ? '🚨 يطلب تدخل المهندس'
+            : existing.status || 'نشط';
 
     const { error: updErr } = await sb
       .from('user_requests')
       .update({
         details: JSON.stringify(parsed),
-        status: typeof status === 'string' ? status : 'تم الرد',
-        ...(replyText ? { admin_note: `رد الإدارة: ${String(replyText).trim().slice(0, 120)}` } : {}),
+        status: nextStatus,
+        ...(hasReply ? { admin_note: `رد المهندس: ${String(replyText).trim().slice(0, 120)}` } : {}),
       })
       .eq('id', existing.id);
 

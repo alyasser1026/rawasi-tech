@@ -21,6 +21,13 @@ import {
   type WebsiteProduct,
   type WebsiteProperty,
 } from './store-catalog';
+import {
+  DEFAULT_CHAT_BOT_CONFIG,
+  type ChatBotConfig,
+  type ChatBotCustomRule,
+} from './chat-auto-responder';
+
+export { DEFAULT_CHAT_BOT_CONFIG, type ChatBotConfig, type ChatBotCustomRule };
 
 export type Service = { id: string; title: string; summary: string; items: string[] };
 export type Project = { name: string; kind: string; area: string; status: string; place?: string };
@@ -128,6 +135,7 @@ export type SiteContentOverride = {
   properties?: WebsiteProperty[];
   maintenanceServices?: WebsiteMaintenanceService[];
   promoBanner?: Partial<PromoBannerConfig>;
+  chatBotConfig?: Partial<ChatBotConfig>;
 };
 
 const str = (v: unknown, max = 400) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
@@ -282,6 +290,37 @@ export function sanitizeContent(raw: any): SiteContentOverride {
     };
   }
 
+  if (raw.chatBotConfig && typeof raw.chatBotConfig === 'object') {
+    const cb = raw.chatBotConfig;
+    out.chatBotConfig = {
+      enabled: cb.enabled !== false,
+      botName: str(cb.botName, 80) || DEFAULT_CHAT_BOT_CONFIG.botName,
+      welcomeText: str(cb.welcomeText, 500) || DEFAULT_CHAT_BOT_CONFIG.welcomeText,
+      escalationText: str(cb.escalationText, 500) || DEFAULT_CHAT_BOT_CONFIG.escalationText,
+      ...(Array.isArray(cb.customRules) && {
+        customRules: arr<ChatBotCustomRule>(
+          cb.customRules,
+          (r) => {
+            const title = str(r?.title, 120);
+            const keywords = str(r?.keywords, 300);
+            const reply = str(r?.reply, 1200);
+            if (!title && !keywords && !reply) return null;
+            return {
+              id: str(r?.id, 60) || `rule-${Math.random().toString(36).slice(2, 8)}`,
+              title: title || 'قاعدة رد آلي',
+              keywords,
+              reply,
+              ...(Array.isArray(r?.quickReplies) && {
+                quickReplies: r.quickReplies.map((q: any) => str(q, 80)).filter(Boolean).slice(0, 6),
+              }),
+            };
+          },
+          30
+        ),
+      }),
+    };
+  }
+
   return out;
 }
 
@@ -311,6 +350,13 @@ export function mergeContent(o: SiteContentOverride = {}) {
     PROMO_BANNER: {
       enabled: o.promoBanner?.enabled ?? DEFAULT_PROMO_BANNER.enabled,
       text: o.promoBanner?.text ?? DEFAULT_PROMO_BANNER.text,
+    },
+    CHAT_BOT: {
+      enabled: o.chatBotConfig?.enabled ?? DEFAULT_CHAT_BOT_CONFIG.enabled,
+      botName: o.chatBotConfig?.botName || DEFAULT_CHAT_BOT_CONFIG.botName,
+      welcomeText: o.chatBotConfig?.welcomeText || DEFAULT_CHAT_BOT_CONFIG.welcomeText,
+      escalationText: o.chatBotConfig?.escalationText || DEFAULT_CHAT_BOT_CONFIG.escalationText,
+      customRules: o.chatBotConfig?.customRules ?? DEFAULT_CHAT_BOT_CONFIG.customRules,
     },
   };
 }

@@ -9,7 +9,9 @@ import {
   COMMITMENTS,
   FAQS,
   DEFAULT_PROMO_BANNER,
+  DEFAULT_CHAT_BOT_CONFIG,
   sanitizeContent,
+  type ChatBotConfig,
   type PromoBannerConfig,
 } from '../site/site-content';
 import {
@@ -49,6 +51,7 @@ type Content = {
   properties: WebsiteProperty[];
   maintenanceServices: WebsiteMaintenanceService[];
   promoBanner: PromoBannerConfig;
+  chatBotConfig: ChatBotConfig;
 };
 
 const TABS = [
@@ -89,6 +92,13 @@ function defaults(): Content {
       maintenanceScope: [...m.maintenanceScope],
     })),
     promoBanner: { ...DEFAULT_PROMO_BANNER },
+    chatBotConfig: {
+      ...DEFAULT_CHAT_BOT_CONFIG,
+      customRules: DEFAULT_CHAT_BOT_CONFIG.customRules.map((r) => ({
+        ...r,
+        quickReplies: r.quickReplies ? [...r.quickReplies] : undefined,
+      })),
+    },
   };
 }
 
@@ -112,6 +122,13 @@ function fromStored(raw: any): Content {
     promoBanner: {
       enabled: s.promoBanner?.enabled ?? d.promoBanner.enabled,
       text: s.promoBanner?.text ?? d.promoBanner.text,
+    },
+    chatBotConfig: {
+      enabled: s.chatBotConfig?.enabled ?? d.chatBotConfig.enabled,
+      botName: s.chatBotConfig?.botName || d.chatBotConfig.botName,
+      welcomeText: s.chatBotConfig?.welcomeText || d.chatBotConfig.welcomeText,
+      escalationText: s.chatBotConfig?.escalationText || d.chatBotConfig.escalationText,
+      customRules: s.chatBotConfig?.customRules ?? d.chatBotConfig.customRules,
     },
   };
 }
@@ -345,34 +362,55 @@ export default function WebsiteAdminPage() {
     void loadOrders();
   };
 
-  const handleSendAdminReply = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeChatSessionId || !replyText.trim() || sendingReply) return;
+  const patchChatSession = async (payload: Record<string, unknown>): Promise<boolean> => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.access_token) return false;
+    const res = await fetch('/api/website-chat', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+    if (res.ok) {
+      await loadChats();
+      return true;
+    }
+    return false;
+  };
+
+  const sendAdminReplyText = async (text: string) => {
+    const clean = text.trim();
+    if (!activeChatSessionId || !clean || sendingReply) return;
     setSendingReply(true);
     try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session?.access_token) return;
-      const res = await fetch('/api/website-chat', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          sessionId: activeChatSessionId,
-          replyText: replyText.trim(),
-          senderName: 'الإدارة الهندسية — فاي تك',
-        }),
+      const ok = await patchChatSession({
+        sessionId: activeChatSessionId,
+        replyText: clean,
+        senderName: '👨‍💼 المهندس المختص — فاي تك',
       });
-      if (res.ok) {
+      if (ok && clean === replyText.trim()) {
         setReplyText('');
-        void loadChats();
       }
     } finally {
       setSendingReply(false);
     }
+  };
+
+  const handleSendAdminReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await sendAdminReplyText(replyText);
+  };
+
+  const handleToggleBotPaused = async (sessionId: string, nextPaused: boolean) => {
+    await patchChatSession({
+      sessionId,
+      botPaused: nextPaused,
+      clearEscalation: true,
+    });
   };
 
   const score = useMemo(() => {
@@ -1166,116 +1204,285 @@ export default function WebsiteAdminPage() {
 
           {/* 4. الشات الحي مع الزوار */}
           {tab === 'livechat' && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 300px) 1fr', gap: '14px', minHeight: '440px' }}>
-              <div className="wa-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong>المحادثات ({chatSessions.length})</strong>
-                  <button type="button" className="wa-btn" onClick={loadChats} style={{ padding: '4px 8px', fontSize: '12px' }}>
-                    تحديث
+            <>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(250px, 320px) 1fr', gap: '14px', minHeight: '460px' }}>
+                <div className="wa-card" style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <strong>المحادثات ({chatSessions.length})</strong>
+                    <button type="button" className="wa-btn" onClick={loadChats} style={{ padding: '4px 8px', fontSize: '12px' }}>
+                      تحديث
+                    </button>
+                  </div>
+                  {chatSessions.length === 0 && <p className="wa-muted" style={{ fontSize: '13px' }}>لا توجد محادثات حية بعد.</p>}
+                  {chatSessions.map((s) => (
+                    <button
+                      key={s.sessionId}
+                      type="button"
+                      onClick={() => setActiveChatSessionId(s.sessionId)}
+                      style={{
+                        textAlign: 'right',
+                        padding: '10px',
+                        borderRadius: '8px',
+                        border: activeChatSessionId === s.sessionId
+                          ? '2px solid var(--acc)'
+                          : s.escalatedToHuman
+                            ? '1.5px solid #dc2626'
+                            : '1px solid var(--line)',
+                        background: activeChatSessionId === s.sessionId ? 'var(--bg)' : 'var(--card)',
+                        color: 'var(--ink)',
+                        cursor: 'pointer',
+                        display: 'grid',
+                        gap: '4px',
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '6px' }}>
+                        <strong style={{ fontSize: '14px' }}>{s.visitorName}</strong>
+                        <div style={{ display: 'flex', gap: '4px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          {s.escalatedToHuman && (
+                            <span style={{ background: '#dc2626', color: '#fff', borderRadius: '99px', padding: '1px 7px', fontSize: '11px', fontWeight: 800 }}>
+                              🚨 يطلب تدخلك
+                            </span>
+                          )}
+                          <span style={{ background: 'var(--bg)', border: '1px solid var(--line)', color: 'var(--ink)', borderRadius: '99px', padding: '1px 6px', fontSize: '11px', fontWeight: 700 }}>
+                            {s.botPaused ? '👨‍💼 بشري' : '🤖 آلي'}
+                          </span>
+                          {s.unreadByAdmin > 0 && (
+                            <span style={{ background: '#ef4444', color: '#fff', borderRadius: '99px', padding: '1px 7px', fontSize: '11px', fontWeight: 800 }}>
+                              {s.unreadByAdmin} جديد
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div dir="ltr" style={{ fontSize: '12px', color: 'var(--mut)', fontFamily: 'monospace', textAlign: 'right' }}>
+                        📱 {s.visitorPhone}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="wa-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '12px' }}>
+                  {!activeChat ? (
+                    <p className="wa-muted">اختر محادثة من القائمة الجانبية لعرض الرسائل والرد المباشر على العميل.</p>
+                  ) : (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
+                        <div>
+                          <strong style={{ fontSize: '16px' }}>👤 {activeChat.visitorName}</strong>
+                          <span style={{ marginRight: '10px', fontFamily: 'monospace', fontSize: '14px' }} dir="ltr">
+                            {activeChat.visitorPhone}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                          <button
+                            type="button"
+                            className="wa-btn"
+                            onClick={() => handleToggleBotPaused(activeChat.sessionId, !activeChat.botPaused)}
+                            style={{ fontWeight: 800 }}
+                          >
+                            {activeChat.botPaused ? '🤖 الرد الآلي: متوقف (تحكم بشري)' : '🤖 الرد الآلي: مفعل'}
+                          </button>
+                          {activeChat.visitorPhone && (
+                            <a
+                              href={`https://wa.me/${String(activeChat.visitorPhone).replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="wa-btn wa-primary"
+                              style={{ background: '#16a34a', borderColor: '#16a34a' }}
+                            >
+                              💬 فتح واتساب مع العميل
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      {activeChat.escalatedToHuman && (
+                        <div
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            border: '1.5px solid #dc2626',
+                            background: 'var(--bg)',
+                            color: 'var(--ink)',
+                            fontSize: '13.5px',
+                            fontWeight: 700,
+                          }}
+                        >
+                          ⚠️ سبب التحويل للمهندس: {activeChat.escalationReason || 'طلب التحدث مع مهندس مختص'}
+                        </div>
+                      )}
+
+                      <div style={{ flex: 1, maxHeight: '340px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', padding: '10px', background: 'var(--bg)', borderRadius: '8px', border: '1px solid var(--line)' }}>
+                        {(activeChat.messages || []).map((m: any) => {
+                          const isVisitor = m.sender === 'visitor';
+                          const isAuto = m.sender === 'admin' && m.isAutoReply !== false;
+                          return (
+                            <div
+                              key={m.id}
+                              style={{
+                                alignSelf: isVisitor ? 'flex-start' : 'flex-end',
+                                background: isVisitor ? 'var(--card)' : isAuto ? 'var(--card)' : 'var(--acc)',
+                                color: isVisitor || isAuto ? 'var(--ink)' : '#fff',
+                                border: isAuto ? '1px dashed var(--acc)' : '1px solid var(--line)',
+                                borderRadius: '10px',
+                                padding: '8px 12px',
+                                maxWidth: '84%',
+                              }}
+                            >
+                              <small style={{ display: 'block', opacity: 0.85, fontSize: '11px', marginBottom: '3px', fontWeight: 700 }}>
+                                {!isVisitor ? (isAuto ? '🤖 ' : '👨‍💼 ') : ''}
+                                {m.senderName}
+                              </small>
+                              <div style={{ fontSize: '14px', whiteSpace: 'pre-wrap' }}>{m.text}</div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                        {[
+                          'أهلاً بحضرتك، معك المهندس المختص الآن، تحت أمرك',
+                          'سنتواصل معك هاتفياً خلال دقائق لتحديد موعد المعاينة',
+                          'تم استلام تفاصيل الوحدة وجارٍ تجهيز المقايسة التقديرية',
+                          'تم إرسال التفاصيل عبر واتساب',
+                        ].map((quickText) => (
+                          <button
+                            key={quickText}
+                            type="button"
+                            className="wa-btn"
+                            disabled={sendingReply}
+                            onClick={() => void sendAdminReplyText(quickText)}
+                            style={{ fontSize: '12px', padding: '5px 9px' }}
+                          >
+                            ⚡ {quickText}
+                          </button>
+                        ))}
+                      </div>
+
+                      <form onSubmit={handleSendAdminReply} style={{ display: 'flex', gap: '8px' }}>
+                        <input
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder={`اكتب ردك الفوري للأستاذ ${activeChat.visitorName} (سيظهر أمامه على الموقع فوراً ويوقف الرد الآلي)...`}
+                          style={{
+                            flex: 1,
+                            padding: '10px 12px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--line)',
+                            background: 'var(--bg)',
+                            color: 'var(--ink)',
+                          }}
+                        />
+                        <button type="submit" className="wa-btn wa-primary" disabled={sendingReply || !replyText.trim()}>
+                          {sendingReply ? 'جاري الإرسال...' : 'إرسال الرد ↵'}
+                        </button>
+                      </form>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* إعدادات وسيناريوهات الرد الآلي التفاعلي */}
+              <div className="wa-card wa-form" style={{ marginTop: '14px' }}>
+                <div className="wa-wide" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h3 style={{ margin: 0 }}>🤖 إعدادات وسيناريوهات الرد الآلي التفاعلي</h3>
+                    <p className="wa-muted" style={{ margin: '4px 0 0', fontSize: '13px' }}>
+                      يرد البوت تلقائياً على أسئلة التشطيب والمنتجات والسمارت هوم والحساسات والعقارات والصيانة، ويحوّل المحادثة لك عند الطلب أو عند عدم تطابق السؤال — اضغط «نشر التعديلات على الموقع» لتفعيل أي تعديل.
+                    </p>
+                  </div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800 }}>
+                    <input
+                      type="checkbox"
+                      checked={c.chatBotConfig.enabled}
+                      onChange={(e) => upd((d) => { d.chatBotConfig.enabled = e.target.checked; })}
+                      style={{ width: '18px', height: '18px' }}
+                    />
+                    <span>تفعيل الرد الآلي التفاعلي</span>
+                  </label>
+                </div>
+
+                <F
+                  label="اسم المساعد الهندسي في الشات"
+                  v={c.chatBotConfig.botName}
+                  on={(v) => upd((d) => { d.chatBotConfig.botName = v; })}
+                  wide
+                />
+                <F
+                  label="رسالة الترحيب الافتراضية"
+                  v={c.chatBotConfig.welcomeText}
+                  on={(v) => upd((d) => { d.chatBotConfig.welcomeText = v; })}
+                  wide
+                  area
+                />
+                <F
+                  label="رسالة التحويل المباشر للمهندس (تظهر عند التحويل أو عندما يتزنق البوت)"
+                  v={c.chatBotConfig.escalationText}
+                  on={(v) => upd((d) => { d.chatBotConfig.escalationText = v; })}
+                  wide
+                  area
+                />
+
+                <div className="wa-wide" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '6px' }}>
+                  <strong>قواعد وردود مخصصة إضافية ({c.chatBotConfig.customRules.length})</strong>
+                  <button
+                    type="button"
+                    className="wa-btn wa-primary"
+                    onClick={() =>
+                      upd((d) => {
+                        d.chatBotConfig.customRules.push({
+                          id: `rule-${Date.now()}`,
+                          title: 'سيناريو رد مخصص جديد',
+                          keywords: 'كلمة مفتاحية 1, كلمة مفتاحية 2',
+                          reply: 'اكتب هنا الرد الهندسي أو التجاري الذي سيظهر للعميل عند كتابة أي من الكلمات المفتاحية.',
+                        });
+                      })
+                    }
+                  >
+                    + إضافة قاعدة رد آلي مخصصة
                   </button>
                 </div>
-                {chatSessions.length === 0 && <p className="wa-muted" style={{ fontSize: '13px' }}>لا توجد محادثات حية بعد.</p>}
-                {chatSessions.map((s) => (
-                  <button
-                    key={s.sessionId}
-                    type="button"
-                    onClick={() => setActiveChatSessionId(s.sessionId)}
+
+                {c.chatBotConfig.customRules.map((rule, rIdx) => (
+                  <div
+                    key={rule.id || rIdx}
+                    className="wa-wide wa-form"
                     style={{
-                      textAlign: 'right',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: activeChatSessionId === s.sessionId ? '2px solid var(--acc)' : '1px solid var(--line)',
-                      background: activeChatSessionId === s.sessionId ? 'var(--bg)' : 'var(--card)',
-                      cursor: 'pointer',
+                      padding: '12px',
+                      borderRadius: '10px',
+                      border: '1px solid var(--line)',
+                      background: 'var(--bg)',
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <strong style={{ fontSize: '14px' }}>{s.visitorName}</strong>
-                      {s.unreadByAdmin > 0 && (
-                        <span style={{ background: '#ef4444', color: '#fff', borderRadius: '99px', padding: '1px 7px', fontSize: '11px', fontWeight: 800 }}>
-                          {s.unreadByAdmin} جديد
-                        </span>
-                      )}
+                    <F
+                      label="عنوان السيناريو"
+                      v={rule.title}
+                      on={(v) => upd((d) => { d.chatBotConfig.customRules[rIdx].title = v; })}
+                    />
+                    <F
+                      label="الكلمات المفتاحية (افصل بينها بفاصلة ،)"
+                      v={rule.keywords}
+                      on={(v) => upd((d) => { d.chatBotConfig.customRules[rIdx].keywords = v; })}
+                    />
+                    <F
+                      label="نص الرد التفاعلي"
+                      v={rule.reply}
+                      on={(v) => upd((d) => { d.chatBotConfig.customRules[rIdx].reply = v; })}
+                      wide
+                      area
+                    />
+                    <div className="wa-wide" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        type="button"
+                        className="wa-btn wa-danger"
+                        onClick={() => upd((d) => { d.chatBotConfig.customRules.splice(rIdx, 1); })}
+                      >
+                        🗑️ حذف القاعدة
+                      </button>
                     </div>
-                    <div dir="ltr" style={{ fontSize: '12px', color: 'var(--mut)', fontFamily: 'monospace', textAlign: 'right' }}>
-                      📱 {s.visitorPhone}
-                    </div>
-                  </button>
+                  </div>
                 ))}
               </div>
-
-              <div className="wa-card" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '12px' }}>
-                {!activeChat ? (
-                  <p className="wa-muted">اختر محادثة من القائمة الجانبية لعرض الرسائل والرد المباشر على العميل.</p>
-                ) : (
-                  <>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--line)', paddingBottom: '10px', flexWrap: 'wrap', gap: '8px' }}>
-                      <div>
-                        <strong style={{ fontSize: '16px' }}>👤 {activeChat.visitorName}</strong>
-                        <span style={{ marginRight: '10px', fontFamily: 'monospace', fontSize: '14px' }} dir="ltr">
-                          {activeChat.visitorPhone}
-                        </span>
-                      </div>
-                      {activeChat.visitorPhone && (
-                        <a
-                          href={`https://wa.me/${String(activeChat.visitorPhone).replace(/\D/g, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="wa-btn wa-primary"
-                          style={{ background: '#16a34a', borderColor: '#16a34a' }}
-                        >
-                          💬 فتح واتساب مع العميل
-                        </a>
-                      )}
-                    </div>
-
-                    <div style={{ flex: 1, maxHeight: '340px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', padding: '8px', background: 'var(--bg)', borderRadius: '8px' }}>
-                      {(activeChat.messages || []).map((m: any) => {
-                        const isVisitor = m.sender === 'visitor';
-                        return (
-                          <div
-                            key={m.id}
-                            style={{
-                              alignSelf: isVisitor ? 'flex-start' : 'flex-end',
-                              background: isVisitor ? 'var(--card)' : 'var(--acc)',
-                              color: isVisitor ? 'var(--ink)' : '#fff',
-                              border: '1px solid var(--line)',
-                              borderRadius: '10px',
-                              padding: '8px 12px',
-                              maxWidth: '82%',
-                            }}
-                          >
-                            <small style={{ display: 'block', opacity: 0.75, fontSize: '11px', marginBottom: '2px' }}>
-                              {m.senderName}
-                            </small>
-                            <div style={{ fontSize: '14px', whiteSpace: 'pre-wrap' }}>{m.text}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <form onSubmit={handleSendAdminReply} style={{ display: 'flex', gap: '8px' }}>
-                      <input
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        placeholder={`اكتب ردك الفوري للأستاذ ${activeChat.visitorName} (سيظهر أمامه على الموقع فوراً)...`}
-                        style={{
-                          flex: 1,
-                          padding: '10px 12px',
-                          borderRadius: '8px',
-                          border: '1px solid var(--line)',
-                          background: 'var(--bg)',
-                          color: 'var(--ink)',
-                        }}
-                      />
-                      <button type="submit" className="wa-btn wa-primary" disabled={sendingReply || !replyText.trim()}>
-                        {sendingReply ? 'جاري الإرسال...' : 'إرسال الرد ↵'}
-                      </button>
-                    </form>
-                  </>
-                )}
-              </div>
-            </div>
+            </>
           )}
 
           {tab === 'ready' && (
