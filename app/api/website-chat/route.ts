@@ -3,7 +3,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { normalizePhoneForWhatsApp } from '@/lib/telegram-notifier';
 import { mergeContent, sanitizeContent } from '@/app/site/site-content';
 import {
-  generateSmartAutoReply,
+  generateEgyptianColloquialAiReply,
   type ChatBotActionLink,
   type ChatConversationStage,
 } from '@/app/site/chat-auto-responder';
@@ -244,7 +244,7 @@ export async function POST(req: Request) {
     const shouldRunBot = requestHuman || (siteContent.CHAT_BOT.enabled !== false && !existingParsed?.botPaused);
 
     const autoReply = shouldRunBot
-      ? generateSmartAutoReply({
+      ? await generateEgyptianColloquialAiReply({
           messageText,
           visitorName: knownName,
           visitorPhone: knownPhone,
@@ -297,10 +297,10 @@ export async function POST(req: Request) {
     const welcomeMsg: ChatMessageItem = {
       id: 'welcome-auto',
       sender: 'admin',
-      senderName: siteContent.CHAT_BOT.botName || 'خدمة عملاء فاي تك الهندسية',
+      senderName: siteContent.CHAT_BOT.botName || '🤖 المستشار الهندسي الذكي — فاي تك',
       text:
         siteContent.CHAT_BOT.welcomeText ||
-        'أهلاً بحضرتك في شركة فاي تك للمقاولات والتشطيبات والأنظمة الذكية 👷‍♂️✨ تفضل بطرح سؤالك أو استفسارك مباشرةً وسأكون سعيداً بمساعدتك.',
+        'أهلاً بيك في شركة فاي تك للمقاولات والتشطيبات والسمارت هوم 👷‍♂️✨\nقولي بتفكر في إيه أو إيه اللي شاغل بالك في شقتك أو مشروعك، وأنا معاك خطوة بخطوة!',
       createdAt: nowIso,
       isAutoReply: true,
     };

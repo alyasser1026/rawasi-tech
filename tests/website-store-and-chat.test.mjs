@@ -149,10 +149,15 @@ test('interactive live-chat auto-responder covers expected scenarios, human esca
   assert.match(siteContent, /CHAT_BOT:/);
 
   const chatApi = read('app/api/website-chat/route.ts');
-  assert.match(chatApi, /generateSmartAutoReply/);
+  assert.match(chatApi, /generateEgyptianColloquialAiReply/);
   assert.match(chatApi, /escalatedToHuman/);
   assert.match(chatApi, /botPaused/);
   assert.match(chatApi, /تحويل عاجل من الرد الآلي/);
+
+  assert.match(responder, /export async function generateEgyptianColloquialAiReply/);
+  assert.match(responder, /منورنا يا أستاذ/);
+  assert.match(responder, /ع الطوب/);
+  assert.match(responder, /من غير تكسير/);
 
   const floatingChat = read('app/site/FloatingContactChat.tsx');
   assert.match(floatingChat, /requestHuman/);
