@@ -5,6 +5,7 @@ import { mergeContent, sanitizeContent } from '@/app/site/site-content';
 import {
   generateSmartAutoReply,
   type ChatBotActionLink,
+  type ChatConversationStage,
 } from '@/app/site/chat-auto-responder';
 
 export const runtime = 'nodejs';
@@ -28,6 +29,8 @@ export interface ChatSessionPayload {
   pageUrl?: string;
   updatedAt: string;
   unreadByAdmin?: number;
+  stage?: ChatConversationStage;
+  pendingQuestion?: string;
   escalatedToHuman?: boolean;
   escalationReason?: string;
   escalatedAt?: string;
@@ -169,8 +172,8 @@ async function sendLiveChatTelegramNotification(params: {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const visitorName = String(body.visitorName || '').trim().slice(0, 80);
-    const visitorPhone = String(body.visitorPhone || '').trim().slice(0, 30);
+    const inputVisitorName = String(body.visitorName || '').trim().slice(0, 80);
+    const inputVisitorPhone = String(body.visitorPhone || '').trim().slice(0, 30);
     const messageText = String(body.message || '').trim().slice(0, 1000);
     const pageUrl = String(body.pageUrl || '/').trim().slice(0, 120);
     const requestHuman = Boolean(body.requestHuman);
@@ -180,12 +183,6 @@ export async function POST(req: Request) {
         ? rawSessionId
         : `CHAT-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
-    if (!visitorName || visitorPhone.replace(/\D/g, '').length < 8) {
-      return NextResponse.json(
-        { error: 'يرجى إدخال الاسم ورقم الجوال الصحيح لبدء المحادثة' },
-        { status: 400 }
-      );
-    }
     if (!messageText) {
       return NextResponse.json({ error: 'يرجى كتابة رسالتك' }, { status: 400 });
     }
@@ -193,13 +190,6 @@ export async function POST(req: Request) {
     const sb = getServiceSupabase();
     const siteContent = await loadMergedSiteContent(sb);
     const nowIso = new Date().toISOString();
-    const newMsg: ChatMessageItem = {
-      id: `m-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      sender: 'visitor',
-      senderName: visitorName,
-      text: messageText,
-      createdAt: nowIso,
-    };
 
     let existingRowId: string | null = null;
     let existingParsed: ChatSessionPayload | null = null;
@@ -224,20 +214,70 @@ export async function POST(req: Request) {
       }
     }
 
-    const prevMessages = Array.isArray(existingParsed?.messages) ? existingParsed!.messages : [];
+    const clientPrevMessages: ChatMessageItem[] = Array.isArray(body.previousMessages) ? body.previousMessages : [];
+    const prevMessages =
+      Array.isArray(existingParsed?.messages) && existingParsed!.messages.length > 0
+        ? existingParsed!.messages
+        : clientPrevMessages;
+    if (prevMessages.length > 0) {
+      isFirstMessage = false;
+    }
+    const knownName =
+      inputVisitorName ||
+      (existingParsed?.visitorName && existingParsed.visitorName !== 'زائر' && existingParsed.visitorName !== 'زائر جديد'
+        ? existingParsed.visitorName
+        : '');
+    const knownPhone = inputVisitorPhone || existingParsed?.visitorPhone || '';
+    const clientStage = body.stage as ChatConversationStage | undefined;
+    const currentStage: ChatConversationStage =
+      existingParsed?.stage ||
+      clientStage ||
+      (knownName && knownPhone
+        ? 'active'
+        : knownName
+          ? 'awaiting_phone'
+          : isFirstMessage
+            ? 'ask_question'
+            : 'awaiting_name');
+    const currentPendingQuestion = existingParsed?.pendingQuestion ?? String(body.pendingQuestion || '');
+
     const shouldRunBot = requestHuman || (siteContent.CHAT_BOT.enabled !== false && !existingParsed?.botPaused);
 
     const autoReply = shouldRunBot
       ? generateSmartAutoReply({
           messageText,
-          visitorName,
-          visitorPhone,
+          visitorName: knownName,
+          visitorPhone: knownPhone,
           pageUrl,
           requestHuman,
+          conversationStage: currentStage,
+          pendingQuestion: currentPendingQuestion,
           previousMessages: prevMessages,
           siteContent,
         })
       : null;
+
+    const resolvedName = autoReply?.extractedName || knownName || '';
+    const resolvedPhone = autoReply?.extractedPhone || knownPhone || '';
+    const nextStage: ChatConversationStage =
+      autoReply?.nextStage ||
+      (resolvedName && resolvedPhone
+        ? 'active'
+        : resolvedName
+          ? 'awaiting_phone'
+          : 'awaiting_name');
+    const nextPendingQuestion =
+      autoReply?.pendingQuestion !== undefined
+        ? autoReply.pendingQuestion
+        : currentPendingQuestion;
+
+    const newMsg: ChatMessageItem = {
+      id: `m-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      sender: 'visitor',
+      senderName: resolvedName || 'زائر الموقع',
+      text: messageText,
+      createdAt: nowIso,
+    };
 
     const botMsg: ChatMessageItem | null =
       autoReply && autoReply.shouldReply
@@ -257,17 +297,25 @@ export async function POST(req: Request) {
     const welcomeMsg: ChatMessageItem = {
       id: 'welcome-auto',
       sender: 'admin',
-      senderName: 'خدمة عملاء فاي تك الهندسية',
-      text: botMsg
-        ? `أهلاً بك يا أستاذ ${visitorName} في شركة فاي تك 👷‍♂️✨ تم فتح تذكرة محادثة فورية (${sessionId}) لمتابعة طلبك.`
-        : `أهلاً بك يا أستاذ ${visitorName} في شركة فاي تك 👷‍♂️✨ تم استلام رسالتك وإشعار المهندس المختص فوراً، وسنرد عليك هنا مباشرة أو عبر جوالك (${visitorPhone}).`,
+      senderName: siteContent.CHAT_BOT.botName || 'خدمة عملاء فاي تك الهندسية',
+      text:
+        siteContent.CHAT_BOT.welcomeText ||
+        'أهلاً بحضرتك في شركة فاي تك للمقاولات والتشطيبات والأنظمة الذكية 👷‍♂️✨ تفضل بطرح سؤالك أو استفسارك مباشرةً وسأكون سعيداً بمساعدتك.',
       createdAt: nowIso,
       isAutoReply: true,
     };
 
+    const normalizedPrevMessages = resolvedName
+      ? prevMessages.map((m) =>
+          m.sender === 'visitor' && (!m.senderName || m.senderName === 'زائر الموقع' || m.senderName === 'زائر')
+            ? { ...m, senderName: resolvedName }
+            : m
+        )
+      : prevMessages;
+
     const nextMessages: ChatMessageItem[] = isFirstMessage
       ? [welcomeMsg, newMsg, ...(botMsg ? [botMsg] : [])]
-      : [...prevMessages.slice(-60), newMsg, ...(botMsg ? [botMsg] : [])];
+      : [...normalizedPrevMessages.slice(-60), newMsg, ...(botMsg ? [botMsg] : [])];
 
     const escalatedToHuman = Boolean(existingParsed?.escalatedToHuman || autoReply?.needsHuman);
     const escalationReason = autoReply?.needsHuman
@@ -277,11 +325,13 @@ export async function POST(req: Request) {
 
     const sessionData: ChatSessionPayload = {
       sessionId,
-      visitorName: visitorName || existingParsed?.visitorName || 'زائر',
-      visitorPhone: visitorPhone || existingParsed?.visitorPhone || '',
+      visitorName: resolvedName,
+      visitorPhone: resolvedPhone,
       pageUrl: pageUrl || existingParsed?.pageUrl,
       updatedAt: nowIso,
       unreadByAdmin: Number(existingParsed?.unreadByAdmin || 0) + 1,
+      stage: nextStage,
+      pendingQuestion: nextPendingQuestion,
       escalatedToHuman,
       escalationReason,
       escalatedAt,
@@ -291,13 +341,14 @@ export async function POST(req: Request) {
     };
 
     const rowStatus = escalatedToHuman ? '🚨 يطلب تدخل المهندس' : 'نشط';
+    const rowSubject = `${resolvedName || 'زائر جديد'} — ${resolvedPhone || 'بانتظار الرقم'}`;
 
     if (sb) {
       if (existingRowId) {
         await sb
           .from('user_requests')
           .update({
-            subject: `${sessionData.visitorName} — ${sessionData.visitorPhone}`,
+            subject: rowSubject,
             details: JSON.stringify(sessionData),
             status: rowStatus,
             admin_note: (escalatedToHuman && escalationReason ? `[تحويل] ${escalationReason}` : messageText).slice(0, 160),
@@ -307,7 +358,7 @@ export async function POST(req: Request) {
         await sb.from('user_requests').insert({
           type: 'live_chat',
           category: sessionId,
-          subject: `${visitorName} — ${visitorPhone}`,
+          subject: rowSubject,
           details: JSON.stringify(sessionData),
           status: rowStatus,
           admin_note: (escalatedToHuman && escalationReason ? `[تحويل] ${escalationReason}` : messageText).slice(0, 160),
@@ -317,8 +368,8 @@ export async function POST(req: Request) {
 
     await sendLiveChatTelegramNotification({
       sessionId,
-      visitorName,
-      visitorPhone,
+      visitorName: resolvedName || 'زائر جديد (جاري التعرف)',
+      visitorPhone: resolvedPhone || 'لم يُكتب بعد',
       messageText,
       pageUrl,
       isFirstMessage,

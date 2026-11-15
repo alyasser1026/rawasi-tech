@@ -159,6 +159,14 @@ test('interactive live-chat auto-responder covers expected scenarios, human esca
   assert.match(floatingChat, /quickReplies/);
   assert.match(floatingChat, /actions/);
   assert.match(floatingChat, /تحويل لمهندس/);
+  assert.match(floatingChat, /phi-chat-input/);
+  assert.match(floatingChat, /-webkit-text-fill-color:\s*#0f172a/);
+
+  assert.match(responder, /export function extractNameFromMessage/);
+  assert.match(responder, /export function extractPhoneFromMessage/);
+  assert.match(responder, /intent:\s*'ask_for_name'/);
+  assert.match(responder, /nextStage:\s*'awaiting_name'/);
+  assert.match(responder, /nextStage:\s*'awaiting_phone'/);
 
   const adminPage = read('app/website-admin/page.tsx');
   assert.match(adminPage, /chatBotConfig/);

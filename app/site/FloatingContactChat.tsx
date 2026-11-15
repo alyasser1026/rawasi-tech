@@ -4,8 +4,18 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 import type { ChatMessageItem } from '@/app/api/website-chat/route';
+import type { ChatConversationStage } from '@/app/site/chat-auto-responder';
 
-const CHAT_SESSION_STORAGE_KEY = 'phi_live_chat_session_v1';
+const CHAT_SESSION_STORAGE_KEY = 'phi_live_chat_session_v2';
+
+const INITIAL_WELCOME_MESSAGE: ChatMessageItem = {
+  id: 'welcome-initial',
+  sender: 'admin',
+  senderName: '🤖 المستشار الهندسي — فاي تك',
+  text: 'أهلاً بحضرتك في شركة فاي تك للمقاولات والتشطيبات والأنظمة الذكية 👷‍♂️✨\nتفضل بطرح سؤالك أو استفسارك مباشرةً وسأكون سعيداً بمساعدتك.',
+  createdAt: '',
+  isAutoReply: true,
+};
 
 export default function FloatingContactChat({
   whatsappNumber = '201558888744',
@@ -20,9 +30,10 @@ export default function FloatingContactChat({
 }) {
   const [chatOpen, setChatOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string>('');
-  const [visitorName, setVisitorName] = useState(defaultName);
-  const [visitorPhone, setVisitorPhone] = useState(defaultPhone);
-  const [started, setStarted] = useState(false);
+  const [visitorName, setVisitorName] = useState('');
+  const [visitorPhone, setVisitorPhone] = useState('');
+  const [stage, setStage] = useState<ChatConversationStage>('ask_question');
+  const [pendingQuestion, setPendingQuestion] = useState<string>('');
   const [inputMsg, setInputMsg] = useState('');
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [escalatedToHuman, setEscalatedToHuman] = useState(false);
@@ -33,12 +44,8 @@ export default function FloatingContactChat({
   const [unreadCount, setUnreadCount] = useState(0);
 
   const listRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const lastMsgCountRef = useRef<number>(0);
-
-  useEffect(() => {
-    if (defaultName && !visitorName) setVisitorName(defaultName);
-    if (defaultPhone && !visitorPhone) setVisitorPhone(defaultPhone);
-  }, [defaultName, defaultPhone, visitorName, visitorPhone]);
 
   // Restore saved chat session from localStorage
   useEffect(() => {
@@ -47,17 +54,16 @@ export default function FloatingContactChat({
       const saved = window.localStorage.getItem(CHAT_SESSION_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed?.sessionId && parsed?.visitorName && parsed?.visitorPhone) {
+        if (parsed?.sessionId && Array.isArray(parsed?.messages) && parsed.messages.length > 0) {
           setSessionId(parsed.sessionId);
-          setVisitorName(parsed.visitorName);
-          setVisitorPhone(parsed.visitorPhone);
-          setStarted(true);
+          setVisitorName(parsed.visitorName || '');
+          setVisitorPhone(parsed.visitorPhone || '');
+          setStage(parsed.stage || 'ask_question');
+          setPendingQuestion(parsed.pendingQuestion || '');
           setEscalatedToHuman(Boolean(parsed.escalatedToHuman));
           setBotPaused(Boolean(parsed.botPaused));
-          if (Array.isArray(parsed.messages)) {
-            setMessages(parsed.messages);
-            lastMsgCountRef.current = parsed.messages.length;
-          }
+          setMessages(parsed.messages);
+          lastMsgCountRef.current = parsed.messages.length;
         }
       }
     } catch {
@@ -67,7 +73,7 @@ export default function FloatingContactChat({
 
   // Poll for live replies from Admin when a session is active
   useEffect(() => {
-    if (!started || !sessionId) return;
+    if (!sessionId) return;
 
     const fetchLatest = async () => {
       try {
@@ -79,6 +85,10 @@ export default function FloatingContactChat({
         if (serverSession) {
           setEscalatedToHuman(Boolean(serverSession.escalatedToHuman));
           setBotPaused(Boolean(serverSession.botPaused));
+          if (serverSession.visitorName) setVisitorName(serverSession.visitorName);
+          if (serverSession.visitorPhone) setVisitorPhone(serverSession.visitorPhone);
+          if (serverSession.stage) setStage(serverSession.stage);
+          if (serverSession.pendingQuestion !== undefined) setPendingQuestion(serverSession.pendingQuestion);
         }
         if (Array.isArray(serverMsgs) && serverMsgs.length > 0) {
           setMessages(serverMsgs);
@@ -96,8 +106,10 @@ export default function FloatingContactChat({
               CHAT_SESSION_STORAGE_KEY,
               JSON.stringify({
                 sessionId,
-                visitorName,
-                visitorPhone,
+                visitorName: serverSession?.visitorName || visitorName,
+                visitorPhone: serverSession?.visitorPhone || visitorPhone,
+                stage: serverSession?.stage || stage,
+                pendingQuestion: serverSession?.pendingQuestion ?? pendingQuestion,
                 escalatedToHuman: Boolean(serverSession?.escalatedToHuman),
                 botPaused: Boolean(serverSession?.botPaused),
                 messages: serverMsgs,
@@ -113,7 +125,7 @@ export default function FloatingContactChat({
     void fetchLatest();
     const timer = setInterval(fetchLatest, 4500);
     return () => clearInterval(timer);
-  }, [started, sessionId, chatOpen, visitorName, visitorPhone]);
+  }, [sessionId, chatOpen, visitorName, visitorPhone, stage, pendingQuestion]);
 
   useEffect(() => {
     if (chatOpen) {
@@ -122,26 +134,37 @@ export default function FloatingContactChat({
         if (listRef.current) {
           listRef.current.scrollTop = listRef.current.scrollHeight;
         }
+        inputRef.current?.focus();
       }, 60);
     }
   }, [chatOpen, messages.length, sending]);
 
-  const sendMessage = async (textToSend: string, requestHuman = false) => {
-    const cleanName = visitorName.trim();
-    const cleanPhone = visitorPhone.trim();
-    const cleanText = textToSend.trim();
-
-    if (!cleanName || cleanPhone.replace(/\D/g, '').length < 8) {
-      setErrorMsg('يرجى كتابة الاسم ورقم الجوال الصحيح لبدء المحادثة');
-      return;
+  const handleResetChat = () => {
+    setSessionId('');
+    setVisitorName('');
+    setVisitorPhone('');
+    setStage('ask_question');
+    setPendingQuestion('');
+    setMessages([]);
+    setEscalatedToHuman(false);
+    setBotPaused(false);
+    setShowQuickMenu(false);
+    setErrorMsg('');
+    lastMsgCountRef.current = 0;
+    if (typeof window !== 'undefined') {
+      window.localStorage.removeItem(CHAT_SESSION_STORAGE_KEY);
     }
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const sendMessage = async (textToSend: string, requestHuman = false) => {
+    const cleanText = textToSend.trim();
     if (!cleanText || sending) return;
 
     setErrorMsg('');
     setSending(true);
     setShowQuickMenu(false);
-
-    rememberVisitorContact({ name: cleanName, phone: cleanPhone });
+    if (!requestHuman) setInputMsg('');
 
     try {
       const res = await fetch('/api/website-chat', {
@@ -149,8 +172,11 @@ export default function FloatingContactChat({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           sessionId: sessionId || undefined,
-          visitorName: cleanName,
-          visitorPhone: cleanPhone,
+          visitorName: visitorName.trim() || undefined,
+          visitorPhone: visitorPhone.trim() || undefined,
+          stage,
+          pendingQuestion,
+          previousMessages: messages,
           message: cleanText,
           requestHuman,
           pageUrl: typeof window !== 'undefined' ? window.location.pathname : contextLabel,
@@ -164,21 +190,34 @@ export default function FloatingContactChat({
       const activeSid = data.sessionId;
       const serverSession = data.session;
       const updatedMsgs: ChatMessageItem[] = serverSession?.messages || [];
+      const updatedName = serverSession?.visitorName || visitorName;
+      const updatedPhone = serverSession?.visitorPhone || visitorPhone;
+      const updatedStage: ChatConversationStage = serverSession?.stage || stage;
+      const updatedPending = serverSession?.pendingQuestion ?? '';
+
       setSessionId(activeSid);
-      setStarted(true);
+      setVisitorName(updatedName);
+      setVisitorPhone(updatedPhone);
+      setStage(updatedStage);
+      setPendingQuestion(updatedPending);
       setMessages(updatedMsgs);
       setEscalatedToHuman(Boolean(serverSession?.escalatedToHuman));
       setBotPaused(Boolean(serverSession?.botPaused));
       lastMsgCountRef.current = updatedMsgs.length;
-      if (!requestHuman) setInputMsg('');
+
+      if (updatedName && updatedPhone) {
+        rememberVisitorContact({ name: updatedName, phone: updatedPhone });
+      }
 
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(
           CHAT_SESSION_STORAGE_KEY,
           JSON.stringify({
             sessionId: activeSid,
-            visitorName: cleanName,
-            visitorPhone: cleanPhone,
+            visitorName: updatedName,
+            visitorPhone: updatedPhone,
+            stage: updatedStage,
+            pendingQuestion: updatedPending,
             escalatedToHuman: Boolean(serverSession?.escalatedToHuman),
             botPaused: Boolean(serverSession?.botPaused),
             messages: updatedMsgs,
@@ -189,14 +228,8 @@ export default function FloatingContactChat({
       setErrorMsg(err?.message || 'حدث خطأ أثناء إرسال الرسالة');
     } finally {
       setSending(false);
+      setTimeout(() => inputRef.current?.focus(), 60);
     }
-  };
-
-  const handleStartForm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const initialQuestion =
-      inputMsg.trim() || `مرحباً، أرغب في الاستفسار من فريق فاي تك (${contextLabel})`;
-    await sendMessage(initialQuestion);
   };
 
   const handleSendInChat = async (e: React.FormEvent) => {
@@ -219,6 +252,19 @@ export default function FloatingContactChat({
     '🛡️ الضمان الهندسي ومراحل الاستلام',
     '📍 عناوين الفروع ومواعيد العمل',
   ];
+
+  const displayedMessages = messages.length > 0 ? messages : [INITIAL_WELCOME_MESSAGE];
+  const visitorHasSpoken = messages.some((m) => m.sender === 'visitor');
+  const canShowOptionsMenu = visitorHasSpoken && (stage === 'active' || stage === 'awaiting_phone');
+
+  const inputPlaceholder =
+    stage === 'awaiting_name'
+      ? 'اكتب اسمك الكريم هنا...'
+      : stage === 'awaiting_phone'
+        ? 'اكتب رقم جوالك هنا (أو أي سؤال إضافي)...'
+        : visitorHasSpoken
+          ? 'اكتب رسالتك أو سؤالك...'
+          : 'اكتب سؤالك أو استفسارك هنا...';
 
   return (
     <>
@@ -271,15 +317,16 @@ export default function FloatingContactChat({
           position: relative;
         }
         .phi-chat-window {
+          color-scheme: light !important;
           position: fixed;
           bottom: 84px;
           left: 20px;
-          width: min(calc(100vw - 24px), 390px);
+          width: min(calc(100vw - 24px), 395px);
           max-height: min(580px, calc(100dvh - 140px));
-          background: #ffffff;
-          color: #14181b;
+          background: #ffffff !important;
+          color: #0f172a !important;
           border-radius: 20px;
-          border: 1px solid #e3e6e9;
+          border: 1.5px solid #cbd5e1 !important;
           box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.35);
           z-index: 99970;
           display: flex;
@@ -287,6 +334,35 @@ export default function FloatingContactChat({
           overflow: hidden;
           direction: rtl;
           font-family: 'Cairo', -apple-system, sans-serif;
+        }
+        .phi-chat-input {
+          color-scheme: light !important;
+          flex: 1;
+          background-color: #f8fafc !important;
+          color: #0f172a !important;
+          -webkit-text-fill-color: #0f172a !important;
+          caret-color: #ea580c !important;
+          border: 2px solid #94a3b8 !important;
+          border-radius: 12px !important;
+          padding: 11px 14px !important;
+          font-size: 15px !important;
+          font-weight: 700 !important;
+          font-family: 'Cairo', -apple-system, sans-serif !important;
+          line-height: 1.4 !important;
+          box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.08) !important;
+          transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
+        }
+        .phi-chat-input::placeholder {
+          color: #64748b !important;
+          -webkit-text-fill-color: #64748b !important;
+          opacity: 1 !important;
+          font-weight: 600 !important;
+        }
+        .phi-chat-input:focus {
+          background-color: #ffffff !important;
+          border-color: #ea580c !important;
+          box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.2) !important;
+          outline: none !important;
         }
         @media (max-width: 980px) {
           .phi-chat-window {
@@ -343,7 +419,7 @@ export default function FloatingContactChat({
         </button>
       </div>
 
-      {/* Live Chat Window */}
+      {/* Live Chat Window — Opens directly into conversation without upfront registration form */}
       {chatOpen && (
         <div className="phi-chat-window" role="dialog" aria-label="المحادثة الحية مع فاي تك">
           {/* Header */}
@@ -377,173 +453,83 @@ export default function FloatingContactChat({
                     ? 'متصل الآن • يرد عليك المهندس المختص مباشرة'
                     : escalatedToHuman
                       ? 'تم التحويل للمهندس • بانتظار المداخلة البشرية'
-                      : 'رد آلي هندسي فوري + تحويل مباشر للمهندس'}
+                      : visitorName
+                        ? `أهلاً بك يا أستاذ ${visitorName}`
+                        : 'متصل الآن • اطرح سؤالك مباشرة'}
                 </span>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setChatOpen(false)}
-              style={{
-                background: 'rgba(255,255,255,0.18)',
-                border: 'none',
-                color: '#fff',
-                borderRadius: '8px',
-                padding: '4px 9px',
-                cursor: 'pointer',
-                fontWeight: 800,
-              }}
-            >
-              ✕
-            </button>
-          </div>
-
-          {!started ? (
-            /* Step 1: Enter Name & Phone to start chat */
-            <form
-              onSubmit={handleStartForm}
-              style={{
-                padding: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '11px',
-                overflowY: 'auto',
-              }}
-            >
-              <div
-                style={{
-                  background: '#fff3ea',
-                  border: '1px solid #fed7aa',
-                  borderRadius: '12px',
-                  padding: '10px 12px',
-                  fontSize: '0.8rem',
-                  color: '#7c2d12',
-                  lineHeight: 1.55,
-                }}
-              >
-                👋 أهلاً بك! اكتب <strong>اسمك ورقم جوالك</strong> وابدأ المحادثة الحية فوراً مع مهندسي فاي تك.
-              </div>
-
-              <input
-                value={visitorName}
-                onChange={(e) => setVisitorName(e.target.value)}
-                placeholder="الاسم الكريم *"
-                required
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1.5px solid #e3e6e9',
-                  fontSize: '16px',
-                  fontWeight: 700,
-                }}
-              />
-
-              <input
-                value={visitorPhone}
-                onChange={(e) => setVisitorPhone(e.target.value)}
-                placeholder="رقم الجوال (للتواصل والواتساب) *"
-                dir="ltr"
-                inputMode="tel"
-                required
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1.5px solid #e3e6e9',
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  textAlign: 'right',
-                }}
-              />
-
-              <textarea
-                value={inputMsg}
-                onChange={(e) => setInputMsg(e.target.value)}
-                placeholder="اكتب سؤالك أو استفسارك هنا..."
-                rows={2}
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: '10px',
-                  border: '1.5px solid #e3e6e9',
-                  fontSize: '16px',
-                  resize: 'none',
-                }}
-              />
-
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
-                {QUICK_QUESTIONS.map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    onClick={() => setInputMsg(q)}
-                    style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 700,
-                      padding: '4px 9px',
-                      borderRadius: '999px',
-                      border: '1px solid #fed7aa',
-                      background: inputMsg === q ? '#ea580c' : '#fff3ea',
-                      color: inputMsg === q ? '#ffffff' : '#c75517',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-
-              {errorMsg && (
-                <div style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 700 }}>
-                  ⚠️ {errorMsg}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={sending}
-                style={{
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #f97316, #c75517)',
-                  color: '#fff',
-                  fontWeight: 900,
-                  fontSize: '0.92rem',
-                  cursor: sending ? 'wait' : 'pointer',
-                }}
-              >
-                {sending ? 'جاري بدء المحادثة...' : '🚀 بدء المحادثة الفورية'}
-              </button>
-            </form>
-          ) : (
-            /* Step 2: Active Live Chat Thread */
-            <>
-              {/* Interactive Status & Escalation Bar */}
-              <div
-                style={{
-                  padding: '8px 12px',
-                  background: escalatedToHuman ? '#fffbeb' : '#f8fafc',
-                  borderBottom: '1px solid #e2e8f0',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: '6px',
-                  fontSize: '0.73rem',
-                }}
-              >
-                <span
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              {visitorHasSpoken && (
+                <button
+                  type="button"
+                  onClick={handleResetChat}
+                  title="بدء محادثة جديدة"
                   style={{
+                    background: 'rgba(255,255,255,0.18)',
+                    border: 'none',
+                    color: '#fff',
+                    borderRadius: '8px',
+                    padding: '4px 8px',
+                    cursor: 'pointer',
+                    fontSize: '0.72rem',
                     fontWeight: 800,
-                    color: escalatedToHuman ? '#b45309' : botPaused ? '#0369a1' : '#334155',
                   }}
                 >
-                  {escalatedToHuman
-                    ? '🔔 تم تحويلك للمهندس المختص'
-                    : botPaused
-                      ? '👨‍💼 متابعة مهندس بشري مباشرة'
-                      : '🤖 رد تفاعلي فوري + إشراف هندسي'}
-                </span>
-                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                  🔄 جديد
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => setChatOpen(false)}
+                style={{
+                  background: 'rgba(255,255,255,0.18)',
+                  border: 'none',
+                  color: '#fff',
+                  borderRadius: '8px',
+                  padding: '4px 9px',
+                  cursor: 'pointer',
+                  fontWeight: 800,
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+
+          {/* Interactive Status & Escalation Bar — Shown only AFTER visitor starts talking */}
+          {visitorHasSpoken && (
+            <div
+              style={{
+                padding: '7px 12px',
+                background: escalatedToHuman ? '#fffbeb' : '#f8fafc',
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: '6px',
+                fontSize: '0.72rem',
+              }}
+            >
+              <span
+                style={{
+                  fontWeight: 800,
+                  color: escalatedToHuman ? '#b45309' : botPaused ? '#0369a1' : '#334155',
+                }}
+              >
+                {escalatedToHuman
+                  ? '🔔 تم تحويلك للمهندس المختص'
+                  : botPaused
+                    ? '👨‍💼 متابعة مهندس بشري مباشرة'
+                    : stage === 'awaiting_name'
+                      ? '🤝 نتشرف باسم حضرتك الكريم'
+                      : stage === 'awaiting_phone'
+                        ? '📱 بانتظار رقم جوالك للتنسيق'
+                        : '🤖 مستشار هندسي تفاعلي'}
+              </span>
+              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                {canShowOptionsMenu && (
                   <button
                     type="button"
                     onClick={() => setShowQuickMenu((s) => !s)}
@@ -553,273 +539,296 @@ export default function FloatingContactChat({
                       color: '#334155',
                       borderRadius: '8px',
                       padding: '4px 8px',
-                      fontSize: '0.72rem',
+                      fontSize: '0.71rem',
                       fontWeight: 800,
                       cursor: 'pointer',
                     }}
                   >
-                    📋 الأسئلة السريعة
+                    📋 مواضيع سريعة
                   </button>
-                  <button
-                    type="button"
-                    disabled={sending}
-                    onClick={() => void sendMessage('أرغب في التحدث المباشر مع المهندس المختص', true)}
-                    style={{
-                      border: '1px solid #fed7aa',
-                      background: '#fff3ea',
-                      color: '#c75517',
-                      borderRadius: '8px',
-                      padding: '4px 8px',
-                      fontSize: '0.72rem',
-                      fontWeight: 900,
-                      cursor: sending ? 'wait' : 'pointer',
-                    }}
-                  >
-                    👨‍💼 تحويل لمهندس الآن
-                  </button>
-                </div>
-              </div>
-
-              {showQuickMenu && (
-                <div
+                )}
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={() => void sendMessage('أرغب في التحدث المباشر مع المهندس المختص', true)}
                   style={{
-                    padding: '8px 12px',
-                    background: '#fffaf5',
-                    borderBottom: '1px solid #fed7aa',
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: '5px',
+                    border: '1px solid #fed7aa',
+                    background: '#fff3ea',
+                    color: '#c75517',
+                    borderRadius: '8px',
+                    padding: '4px 8px',
+                    fontSize: '0.71rem',
+                    fontWeight: 900,
+                    cursor: sending ? 'wait' : 'pointer',
                   }}
                 >
-                  {QUICK_QUESTIONS.map((q) => (
-                    <button
-                      key={q}
-                      type="button"
-                      disabled={sending}
-                      onClick={() => void sendMessage(q)}
+                  👨‍💼 تحويل لمهندس الآن
+                </button>
+              </div>
+            </div>
+          )}
+
+          {canShowOptionsMenu && showQuickMenu && (
+            <div
+              style={{
+                padding: '8px 12px',
+                background: '#fffaf5',
+                borderBottom: '1px solid #fed7aa',
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: '5px',
+              }}
+            >
+              {QUICK_QUESTIONS.map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  disabled={sending}
+                  onClick={() => void sendMessage(q)}
+                  style={{
+                    fontSize: '0.71rem',
+                    fontWeight: 800,
+                    padding: '4px 9px',
+                    borderRadius: '999px',
+                    border: '1px solid #fed7aa',
+                    background: '#ffffff',
+                    color: '#c75517',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Conversation Messages List */}
+          <div
+            ref={listRef}
+            style={{
+              flex: 1,
+              padding: '14px',
+              overflowY: 'auto',
+              background: '#f8fafc',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '10px',
+              minHeight: '250px',
+            }}
+          >
+            {displayedMessages.map((m) => {
+              const isVisitor = m.sender === 'visitor';
+              const isHumanAdmin = m.sender === 'admin' && m.isAutoReply === false;
+              return (
+                <div
+                  key={m.id}
+                  style={{
+                    alignSelf: isVisitor ? 'flex-start' : 'flex-end',
+                    maxWidth: '88%',
+                    background: isVisitor ? '#ea580c' : isHumanAdmin ? '#f0fdf4' : '#ffffff',
+                    color: isVisitor ? '#ffffff' : '#0f172a',
+                    border: isVisitor
+                      ? 'none'
+                      : isHumanAdmin
+                        ? '1.5px solid #86efac'
+                        : '1px solid #e2e8f0',
+                    borderRadius: isVisitor ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+                    padding: '10px 13px',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '6px',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    <span
                       style={{
-                        fontSize: '0.71rem',
+                        fontSize: '0.68rem',
                         fontWeight: 800,
-                        padding: '4px 9px',
+                        opacity: 0.9,
+                        color: isVisitor ? '#ffedd5' : isHumanAdmin ? '#15803d' : '#c75517',
+                      }}
+                    >
+                      {m.senderName}
+                    </span>
+                    {!isVisitor && (
+                      <span
+                        style={{
+                          fontSize: '0.62rem',
+                          fontWeight: 800,
+                          padding: '1px 6px',
+                          borderRadius: '999px',
+                          background: isHumanAdmin ? '#dcfce7' : '#fff3ea',
+                          color: isHumanAdmin ? '#166534' : '#c75517',
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {isHumanAdmin ? '👨‍💼 مهندس مختص' : '🤖 مستشار فاي تك'}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '0.85rem', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+                    {m.text}
+                  </div>
+                  {Array.isArray(m.actions) && m.actions.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
+                      {m.actions.map((act, idx) =>
+                        act.external || /^https?:|^wa\.me|^tel:/i.test(act.href) ? (
+                          <a
+                            key={idx}
+                            href={act.href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{
+                              fontSize: '0.73rem',
+                              fontWeight: 800,
+                              padding: '5px 10px',
+                              borderRadius: '8px',
+                              background: '#16a34a',
+                              color: '#ffffff',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            {act.label} ↗
+                          </a>
+                        ) : (
+                          <Link
+                            key={idx}
+                            href={act.href}
+                            onClick={() => setChatOpen(false)}
+                            style={{
+                              fontSize: '0.73rem',
+                              fontWeight: 800,
+                              padding: '5px 10px',
+                              borderRadius: '8px',
+                              background: '#fff3ea',
+                              border: '1px solid #fed7aa',
+                              color: '#c75517',
+                              textDecoration: 'none',
+                            }}
+                          >
+                            {act.label} ←
+                          </Link>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {sending && (
+              <div
+                style={{
+                  alignSelf: 'flex-end',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '14px 14px 14px 4px',
+                  padding: '8px 12px',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  color: '#64748b',
+                }}
+              >
+                🤖 جاري كتابة الرد الهندسي...
+              </div>
+            )}
+
+            {/* Quick replies shown ONLY when visitor has spoken and current message provides follow-ups */}
+            {!sending &&
+              visitorHasSpoken &&
+              messages.length > 0 &&
+              Array.isArray(messages[messages.length - 1]?.quickReplies) &&
+              messages[messages.length - 1].quickReplies!.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px' }}>
+                  {messages[messages.length - 1].quickReplies!.map((qr) => (
+                    <button
+                      key={qr}
+                      type="button"
+                      onClick={() => void sendMessage(qr, qr.includes('تحويل لمهندس'))}
+                      style={{
+                        fontSize: '0.73rem',
+                        fontWeight: 800,
+                        padding: '6px 10px',
                         borderRadius: '999px',
                         border: '1px solid #fed7aa',
                         background: '#ffffff',
                         color: '#c75517',
                         cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(199,85,23,0.08)',
                       }}
                     >
-                      {q}
+                      {qr}
                     </button>
                   ))}
                 </div>
               )}
+          </div>
 
-              <div
-                ref={listRef}
-                style={{
-                  flex: 1,
-                  padding: '14px',
-                  overflowY: 'auto',
-                  background: '#f8fafc',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                  minHeight: '230px',
-                }}
-              >
-                {messages.map((m) => {
-                  const isVisitor = m.sender === 'visitor';
-                  const isHumanAdmin = m.sender === 'admin' && m.isAutoReply === false;
-                  return (
-                    <div
-                      key={m.id}
-                      style={{
-                        alignSelf: isVisitor ? 'flex-start' : 'flex-end',
-                        maxWidth: '88%',
-                        background: isVisitor ? '#ea580c' : isHumanAdmin ? '#f0fdf4' : '#ffffff',
-                        color: isVisitor ? '#ffffff' : '#14181b',
-                        border: isVisitor
-                          ? 'none'
-                          : isHumanAdmin
-                            ? '1.5px solid #86efac'
-                            : '1px solid #e2e8f0',
-                        borderRadius: isVisitor ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-                        padding: '9px 12px',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: '6px',
-                          marginBottom: '4px',
-                        }}
-                      >
-                        <span
-                          style={{
-                            fontSize: '0.68rem',
-                            fontWeight: 800,
-                            opacity: 0.9,
-                            color: isVisitor ? '#ffedd5' : isHumanAdmin ? '#15803d' : '#c75517',
-                          }}
-                        >
-                          {m.senderName}
-                        </span>
-                        {!isVisitor && (
-                          <span
-                            style={{
-                              fontSize: '0.62rem',
-                              fontWeight: 800,
-                              padding: '1px 6px',
-                              borderRadius: '999px',
-                              background: isHumanAdmin ? '#dcfce7' : '#fff3ea',
-                              color: isHumanAdmin ? '#166534' : '#c75517',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {isHumanAdmin ? '👨‍💼 مهندس مختص' : '🤖 رد آلي تفاعلي'}
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: '0.84rem', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
-                        {m.text}
-                      </div>
-                      {Array.isArray(m.actions) && m.actions.length > 0 && (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
-                          {m.actions.map((act, idx) =>
-                            act.external || /^https?:|^wa\.me|^tel:/i.test(act.href) ? (
-                              <a
-                                key={idx}
-                                href={act.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                  fontSize: '0.73rem',
-                                  fontWeight: 800,
-                                  padding: '5px 10px',
-                                  borderRadius: '8px',
-                                  background: '#16a34a',
-                                  color: '#ffffff',
-                                  textDecoration: 'none',
-                                }}
-                              >
-                                {act.label} ↗
-                              </a>
-                            ) : (
-                              <Link
-                                key={idx}
-                                href={act.href}
-                                onClick={() => setChatOpen(false)}
-                                style={{
-                                  fontSize: '0.73rem',
-                                  fontWeight: 800,
-                                  padding: '5px 10px',
-                                  borderRadius: '8px',
-                                  background: '#fff3ea',
-                                  border: '1px solid #fed7aa',
-                                  color: '#c75517',
-                                  textDecoration: 'none',
-                                }}
-                              >
-                                {act.label} ←
-                              </Link>
-                            )
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {sending && (
-                  <div
-                    style={{
-                      alignSelf: 'flex-end',
-                      background: '#ffffff',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '14px 14px 14px 4px',
-                      padding: '8px 12px',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      color: '#64748b',
-                    }}
-                  >
-                    🤖 جاري كتابة الرد الهندسي...
-                  </div>
-                )}
-
-                {!sending &&
-                  messages.length > 0 &&
-                  Array.isArray(messages[messages.length - 1]?.quickReplies) &&
-                  messages[messages.length - 1].quickReplies!.length > 0 && (
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px' }}>
-                      {messages[messages.length - 1].quickReplies!.map((qr) => (
-                        <button
-                          key={qr}
-                          type="button"
-                          onClick={() => void sendMessage(qr, qr.includes('تحويل لمهندس'))}
-                          style={{
-                            fontSize: '0.73rem',
-                            fontWeight: 800,
-                            padding: '6px 10px',
-                            borderRadius: '999px',
-                            border: '1px solid #fed7aa',
-                            background: '#ffffff',
-                            color: '#c75517',
-                            cursor: 'pointer',
-                            boxShadow: '0 2px 6px rgba(199,85,23,0.08)',
-                          }}
-                        >
-                          {qr}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-              </div>
-
-              <form
-                onSubmit={handleSendInChat}
-                style={{
-                  padding: '10px 12px',
-                  borderTop: '1px solid #e3e6e9',
-                  background: '#ffffff',
-                  display: 'flex',
-                  gap: '8px',
-                }}
-              >
-                <input
-                  value={inputMsg}
-                  onChange={(e) => setInputMsg(e.target.value)}
-                  placeholder="اكتب رسالتك أو سؤالك..."
-                  style={{
-                    flex: 1,
-                    padding: '9px 12px',
-                    borderRadius: '10px',
-                    border: '1.5px solid #e3e6e9',
-                    fontSize: '16px',
-                  }}
-                />
-                <button
-                  type="submit"
-                  disabled={sending || !inputMsg.trim()}
-                  style={{
-                    padding: '0 16px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: '#ea580c',
-                    color: '#fff',
-                    fontWeight: 900,
-                    fontSize: '0.86rem',
-                    cursor: 'pointer',
-                  }}
-                >
-                  إرسال
-                </button>
-              </form>
-            </>
+          {errorMsg && (
+            <div
+              style={{
+                padding: '6px 12px',
+                background: '#fef2f2',
+                borderTop: '1px solid #fecaca',
+                fontSize: '0.76rem',
+                color: '#dc2626',
+                fontWeight: 700,
+              }}
+            >
+              ⚠️ {errorMsg}
+            </div>
           )}
+
+          {/* High-Visibility Input Bar */}
+          <form
+            onSubmit={handleSendInChat}
+            style={{
+              padding: '10px 12px',
+              borderTop: '1.5px solid #cbd5e1',
+              background: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+            }}
+          >
+            <input
+              ref={inputRef}
+              type="text"
+              className="phi-chat-input"
+              value={inputMsg}
+              onChange={(e) => setInputMsg(e.target.value)}
+              placeholder={inputPlaceholder}
+              style={{
+                backgroundColor: '#f8fafc',
+                color: '#0f172a',
+                WebkitTextFillColor: '#0f172a',
+                caretColor: '#ea580c',
+              }}
+            />
+            <button
+              type="submit"
+              disabled={sending || !inputMsg.trim()}
+              style={{
+                padding: '11px 18px',
+                borderRadius: '12px',
+                border: 'none',
+                background: sending || !inputMsg.trim() ? '#94a3b8' : 'linear-gradient(135deg, #f97316, #c75517)',
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: '0.88rem',
+                cursor: sending || !inputMsg.trim() ? 'not-allowed' : 'pointer',
+                flexShrink: 0,
+              }}
+            >
+              إرسال
+            </button>
+          </form>
         </div>
       )}
     </>
