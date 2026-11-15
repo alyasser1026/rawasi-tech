@@ -64,6 +64,9 @@ export function useLoginLogic() {
               .eq('id', session.user.id)
               .maybeSingle();
             target = getDestinationForUser(profile, portalParam);
+            if (target === '/profile') {
+              target = '/store';
+            }
           } catch {
             target = portalParam === 'partner' ? '/PartnerBalances' : '/Dashboard';
           }
@@ -163,9 +166,10 @@ export function useLoginLogic() {
 
         // في حال كان تأكيد البريد معطلاً وتم إنشاء الجلسة فوراً
         if (data?.session) {
-          showToast('تم إنشاء الحساب وتفعيله بنجاح! جاري توجيهك...', 'success');
+          showToast('تم إنشاء الحساب وتفعيله بنجاح! جاري فتح متجر المنتجات وسلة المشتريات...', 'success');
           router.refresh();
-          const target = getDestinationForUser({ role: 'client' }, searchParams?.get('portal'));
+          const rawTarget = getDestinationForUser({ role: 'client' }, searchParams?.get('portal'));
+          const target = rawTarget === '/profile' ? '/store' : rawTarget;
           setTimeout(() => {
             router.replace(target);
           }, 350);
@@ -231,6 +235,9 @@ export function useLoginLogic() {
               .maybeSingle();
 
             destination = getDestinationForUser(profile, portalParam);
+            if (destination === '/profile') {
+              destination = '/store';
+            }
           } catch {
             destination = portalParam === 'partner' ? '/PartnerBalances' : '/Dashboard';
           }

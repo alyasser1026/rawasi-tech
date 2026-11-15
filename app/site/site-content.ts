@@ -9,10 +9,22 @@
  *  - بيانات التواصل: مش موجودة في السيستم، فاتسابت فاضية. أي حقل فاضي بيتخفي من الموقع تلقائيًا.
  */
 
+import {
+  DEFAULT_PRODUCTS,
+  DEFAULT_PROPERTIES,
+  PRODUCT_CATEGORIES,
+  type ProductCategoryId,
+  type PropertyOfferType,
+  type PropertyStatus,
+  type WebsiteProduct,
+  type WebsiteProperty,
+} from './store-catalog';
+
 export type Service = { id: string; title: string; summary: string; items: string[] };
 export type Project = { name: string; kind: string; area: string; status: string; place?: string };
 export type Commitment = { title: string; text: string };
 export type Faq = { q: string; a: string };
+export type PromoBannerConfig = { enabled: boolean; text: string };
 
 export const SITE = {
   name: 'فاي تك',
@@ -27,11 +39,11 @@ export const SITE = {
 
   // املأ اللي عندك بس. اللي يفضل فاضي بيتخفي.
   contact: {
-    phone: '', // مثال: '+966 5X XXX XXXX'
-    whatsapp: '', // أرقام فقط بكود الدولة، مثال: '9665XXXXXXXX'
-    email: '', // مثال: 'info@yourdomain.com'
-    address: '', // العنوان الرئيسي
-    hours: '', // مثال: 'السبت – الخميس، 9 ص – 6 م'
+    phone: '+20 102 633 2733',
+    whatsapp: '201026332733',
+    email: 'phi.tech.eg@gmail.com',
+    address: 'الرياض · القاهرة · المنصورة',
+    hours: 'السبت – الخميس، 9 صباحاً – 9 مساءً',
   },
 };
 
@@ -98,6 +110,11 @@ export const FAQS: Faq[] = [
   { q: 'ما المقصود بنموذج BIM في الموقع؟', a: 'نموذج توضيحي مبسّط يشرح كيف تتداخل طبقات الهيكل والمباني والتأسيسات والتشطيبات، ويوضح أهمية التنسيق المبكر.' },
 ];
 
+export const DEFAULT_PROMO_BANNER: PromoBannerConfig = {
+  enabled: true,
+  text: '🔥 عروض فاي تك الحصرية: خصم حتى 18% على باقات السمارت هوم وحساسات الأمان (الحريق والغاز والمياه) وأطقم السباكة والكهرباء عند طلب التوريد والتركيب!',
+};
+
 /** ما يُدار من صفحة «إدارة الموقع» (website-admin). أي حقل غير موجود يرجع للقيمة الافتراضية أعلاه. */
 export type SiteContentOverride = {
   site?: Partial<Omit<typeof SITE, 'contact' | 'offices'>> & { contact?: Partial<typeof SITE.contact>; offices?: string[] };
@@ -105,11 +122,22 @@ export type SiteContentOverride = {
   commitments?: Commitment[];
   faqs?: Faq[];
   seo?: { title?: string; description?: string };
+  products?: WebsiteProduct[];
+  properties?: WebsiteProperty[];
+  promoBanner?: Partial<PromoBannerConfig>;
 };
 
 const str = (v: unknown, max = 400) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+const num = (v: unknown, def = 0) => {
+  const n = Number(v);
+  return Number.isFinite(n) && n >= 0 ? n : def;
+};
 const arr = <T,>(v: unknown, f: (x: any) => T | null, max = 30): T[] =>
   Array.isArray(v) ? (v.slice(0, max).map(f).filter(Boolean) as T[]) : [];
+
+const VALID_CATS = new Set<string>(PRODUCT_CATEGORIES.map((c) => c.id));
+const VALID_PROP_TYPES = new Set<string>(['apartment', 'duplex', 'villa', 'commercial', ' penthouse']);
+const VALID_PROP_STATUS = new Set<string>(['available', 'reserved', 'sold']);
 
 /** تنظيف المحتوى القادم من قاعدة البيانات: نصوص فقط بأطوال محدودة (يُعرض كنص عادي دائمًا). */
 export function sanitizeContent(raw: any): SiteContentOverride {
@@ -132,15 +160,115 @@ export function sanitizeContent(raw: any): SiteContentOverride {
   if (Array.isArray(raw.commitments)) out.commitments = arr(raw.commitments, (p) => str(p?.title, 100) ? { title: str(p.title, 100), text: str(p.text, 500) } : null, 12);
   if (Array.isArray(raw.faqs)) out.faqs = arr(raw.faqs, (p) => str(p?.q, 200) ? { q: str(p.q, 200), a: str(p.a, 1000) } : null, 20);
   if (raw.seo && typeof raw.seo === 'object') out.seo = { title: str(raw.seo.title, 120), description: str(raw.seo.description, 300) };
+
+  if (Array.isArray(raw.products)) {
+    out.products = arr<WebsiteProduct>(
+      raw.products,
+      (p) => {
+        const name = str(p?.name, 160);
+        if (!name) return null;
+        const cat = VALID_CATS.has(String(p?.category)) ? (p.category as ProductCategoryId) : 'electrical';
+        return {
+          id: str(p?.id, 60) || `prod-${Math.random().toString(36).slice(2, 8)}`,
+          code: str(p?.code, 40) || 'PHI-ITEM',
+          name,
+          category: cat,
+          brand: str(p?.brand, 80) || 'PhiTech',
+          unit: str(p?.unit, 40) || 'قطعة',
+          price: num(p?.price, 0),
+          oldPrice: p?.oldPrice ? num(p.oldPrice, 0) : undefined,
+          installPrice: p?.installPrice !== undefined ? num(p.installPrice, 0) : undefined,
+          currency: p?.currency === 'ر.س' ? 'ر.س' : 'ج.م',
+          badge: str(p?.badge, 60) || undefined,
+          description: str(p?.description, 600),
+          specs: Array.isArray(p?.specs)
+            ? p.specs.map((s: any) => str(s, 140)).filter(Boolean).slice(0, 8)
+            : [],
+          imageUrl: str(p?.imageUrl, 60000) || undefined,
+          inStock: p?.inStock !== false,
+          featured: Boolean(p?.featured),
+        };
+      },
+      120
+    );
+  }
+
+  if (Array.isArray(raw.properties)) {
+    out.properties = arr<WebsiteProperty>(
+      raw.properties,
+      (p) => {
+        const title = str(p?.title, 180);
+        if (!title) return null;
+        const type = VALID_PROP_TYPES.has(String(p?.type)) ? (p.type as PropertyOfferType) : 'apartment';
+        const status = VALID_PROP_STATUS.has(String(p?.status)) ? (p.status as PropertyStatus) : 'available';
+        return {
+          id: str(p?.id, 60) || `prop-${Math.random().toString(36).slice(2, 8)}`,
+          code: str(p?.code, 40) || 'PHI-UNIT',
+          title,
+          subtitle: str(p?.subtitle, 240),
+          type,
+          typeLabel: str(p?.typeLabel, 60) || 'وحدة عقارية',
+          city: str(p?.city, 80) || 'القاهرة / المنصورة',
+          location: str(p?.location, 160),
+          areaSqm: num(p?.areaSqm, 150),
+          bedrooms: num(p?.bedrooms, 3),
+          bathrooms: num(p?.bathrooms, 2),
+          floorLabel: str(p?.floorLabel, 80),
+          finishingLabel: str(p?.finishingLabel, 120),
+          deliveryLabel: str(p?.deliveryLabel, 80),
+          price: num(p?.price, 0),
+          oldPrice: p?.oldPrice ? num(p.oldPrice, 0) : undefined,
+          downPaymentPct: p?.downPaymentPct !== undefined ? num(p.downPaymentPct, 0) : undefined,
+          installmentYears: p?.installmentYears !== undefined ? num(p.installmentYears, 0) : undefined,
+          currency: p?.currency === 'ر.س' ? 'ر.س' : 'ج.م',
+          status,
+          badge: str(p?.badge, 60) || undefined,
+          features: Array.isArray(p?.features)
+            ? p.features.map((f: any) => str(f, 180)).filter(Boolean).slice(0, 10)
+            : [],
+          imageUrl: str(p?.imageUrl, 60000) || undefined,
+          featured: Boolean(p?.featured),
+        };
+      },
+      60
+    );
+  }
+
+  if (raw.promoBanner && typeof raw.promoBanner === 'object') {
+    out.promoBanner = {
+      enabled: raw.promoBanner.enabled !== false,
+      text: str(raw.promoBanner.text, 300) || DEFAULT_PROMO_BANNER.text,
+    };
+  }
+
   return out;
 }
 
 export function mergeContent(o: SiteContentOverride = {}) {
-  const site = { ...SITE, ...(o.site || {}), contact: { ...SITE.contact, ...(o.site?.contact || {}) }, offices: o.site?.offices?.length ? o.site.offices : SITE.offices };
+  const rawContact = o.site?.contact || {};
+  const mergedContact = {
+    phone: rawContact.phone || SITE.contact.phone,
+    whatsapp: rawContact.whatsapp || SITE.contact.whatsapp,
+    email: rawContact.email || SITE.contact.email,
+    address: rawContact.address || SITE.contact.address,
+    hours: rawContact.hours || SITE.contact.hours,
+  };
+  const site = {
+    ...SITE,
+    ...(o.site || {}),
+    contact: mergedContact,
+    offices: o.site?.offices?.length ? o.site.offices : SITE.offices,
+  };
   return {
     SITE: site,
     PROJECTS: o.projects ?? PROJECTS,
     COMMITMENTS: o.commitments?.length ? o.commitments : COMMITMENTS,
     FAQS: o.faqs?.length ? o.faqs : FAQS,
+    PRODUCTS: o.products?.length ? o.products : DEFAULT_PRODUCTS,
+    PROPERTIES: o.properties?.length ? o.properties : DEFAULT_PROPERTIES,
+    PROMO_BANNER: {
+      enabled: o.promoBanner?.enabled ?? DEFAULT_PROMO_BANNER.enabled,
+      text: o.promoBanner?.text || DEFAULT_PROMO_BANNER.text,
+    },
   };
 }

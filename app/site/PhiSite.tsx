@@ -10,6 +10,9 @@ import EngTools from './EngTools';
 import ChecklistExplorer from './ChecklistExplorer';
 import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } from '@/components/HeroVideoBackdrop';
 import LoginModal from './LoginModal';
+import { CartDrawer, useCustomerCart } from './CartDrawer';
+import FloatingContactChat from './FloatingContactChat';
+import { PRODUCT_CATEGORIES } from './store-catalog';
 import {
   collectClientDeviceDetails,
   rememberVisitorContact,
@@ -26,13 +29,13 @@ const CapitalTower3D = dynamic(() => import('./CapitalTower3D'), {
 });
 
 const NAV = [
+  { href: '/store', label: '🛒 المتجر' },
+  { href: '/real-estate', label: '🏢 العقارات' },
   { href: '#services', label: 'الخدمات' },
   { href: '#capital-tower', label: 'المجسم المعماري 3D' },
   { href: '#bim', label: 'نموذج BIM' },
   { href: '#tools', label: 'الأدوات' },
   { href: '#checklist', label: 'دليل التنفيذ' },
-  { href: '#process', label: 'طريقة العمل' },
-  { href: '#projects', label: 'أعمالنا' },
   { href: '/verify', label: 'التحقق من المستندات' },
   { href: '#contact', label: 'تواصل' },
 ];
@@ -133,12 +136,13 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
 }
 
 export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
-  const { SITE, PROJECTS, COMMITMENTS, FAQS } = mergeContent(content);
+  const { SITE, PROJECTS, COMMITMENTS, FAQS, PRODUCTS, PROPERTIES } = mergeContent(content);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [heroControls, setHeroControls] = useState<HeroVideoControlsState | null>(null);
   const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
+  const cart = useCustomerCart(() => setLoginOpen(true));
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -228,7 +232,31 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
                 <span className="pw-nav-arrow" aria-hidden="true">←</span>
               </Link>
             ))}
-            <a href="/login" className="pw-btn pw-btn-primary pw-nav-cta" onClick={handleOpenLogin}>دخول النظام</a>
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                cart.setCartOpen(true);
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '10px',
+                border: '1.5px solid #f97316',
+                background: cart.totalCount > 0 ? '#ea580c' : 'rgba(249,115,22,0.14)',
+                color: '#fff',
+                fontWeight: 800,
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+              }}
+            >
+              <span>🛍️ السلة ({cart.totalCount})</span>
+            </button>
+            <a href="/login" className="pw-btn pw-btn-primary pw-nav-cta" onClick={handleOpenLogin}>
+              {cart.user ? `👤 ${cart.user.fullName.split(' ')[0]}` : 'دخول النظام'}
+            </a>
           </nav>
           <button className="pw-burger" aria-label="القائمة" aria-expanded={open} onClick={() => setOpen(v => !v)}><span /><span /><span /></button>
         </div>
@@ -247,12 +275,16 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
               </h1>
               <p className="pw-lead">{SITE.intro}</p>
               <div className="pw-actions">
-                <a href={primaryContact.href} className="pw-btn pw-btn-primary" {...(primaryContact.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{primaryContact.label}</a>
-                <Link href="/verify" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(249,115,22,0.6)', color: '#fbbf24' }}>
-                  التحقق من المستندات والباركود
+                <Link href="/store" className="pw-btn pw-btn-primary">
+                  🛒 متجر المنتجات والسمارت هوم
+                </Link>
+                <Link href="/real-estate" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(249,115,22,0.7)', color: '#fbbf24' }}>
+                  🏢 عروض العقارات والوحدات
+                </Link>
+                <Link href="/verify" className="pw-btn pw-btn-light">
+                  التحقق من المستندات
                 </Link>
                 <a href="#capital-tower" className="pw-btn pw-btn-light">المجسم المعماري 3D</a>
-                <a href="#bim" className="pw-btn pw-btn-light">استكشف نموذج BIM</a>
               </div>
             </div>
             <div className="pw-hero-art" aria-hidden>
@@ -309,6 +341,75 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
                   <ul>{s.items.map(i => (<li key={i}><Check /><span>{i}</span></li>))}</ul>
                 </article>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Store & Real Estate Quick Showcase */}
+        <section id="store-showcase" className="pw-section">
+          <div className="pw-wrap">
+            <div className="pw-head">
+              <p className="pw-eyebrow">متجر التشطيبات والأنظمة الذكية وعروض العقارات</p>
+              <h2>تسوّق خامات التشطيب والسمارت هوم أو تصفح الوحدات العقارية</h2>
+              <p>
+                سجّل دخولك وأضف منتجاتك (كهرباء، سباكة، دهانات، سيراميك، رخام، ديكورات، سمارت هوم، تيار خفيف، وحساسات حريق وغاز ومياه) إلى سلة مشترياتك مع خيار التركيب الهندسي المعتمد.
+              </p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '14px', marginBottom: '22px' }}>
+              {PRODUCT_CATEGORIES.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href="/store"
+                  style={{
+                    background: '#ffffff',
+                    border: '1px solid #e3e6e9',
+                    borderRadius: '16px',
+                    padding: '16px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '12px',
+                    textDecoration: 'none',
+                    transition: 'transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '12px',
+                      background: `${cat.accent}18`,
+                      border: `1px solid ${cat.accent}44`,
+                      display: 'grid',
+                      placeItems: 'center',
+                      fontSize: '1.35rem',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {cat.icon}
+                  </span>
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '0.96rem', fontWeight: 900, color: '#14181b', marginBottom: '3px' }}>
+                      {cat.title}
+                    </strong>
+                    <span style={{ fontSize: '0.8rem', color: '#47525c', lineHeight: 1.5, display: 'block' }}>
+                      {cat.description}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
+              <Link href="/store" className="pw-btn pw-btn-primary">
+                🛒 فتح متجر المنتجات الكامل ({PRODUCTS.length} منتج وعرض)
+              </Link>
+              <Link href="/real-estate" className="pw-btn pw-btn-ghost" style={{ borderColor: '#c75517', color: '#c75517' }}>
+                🏢 استعراض عروض العقارات والوحدات ({PROPERTIES.length} وحدات متاحة)
+              </Link>
+              <button type="button" onClick={() => cart.setCartOpen(true)} className="pw-btn pw-btn-ghost">
+                🛍️ فتح سلة مشترياتك ({cart.totalCount})
+              </button>
             </div>
           </div>
         </section>
@@ -480,46 +581,26 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           <span className="pw-dock-label">الرئيسية</span>
         </a>
 
-        <a href="#capital-tower" className="pw-dock-item" onClick={() => setOpen(false)}>
-          <span className="pw-dock-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect width="16" height="20" x="4" y="2" rx="2" />
-              <path d="M9 22v-4h6v4" />
-              <path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M8 14h.01M16 14h.01" />
-            </svg>
-          </span>
-          <span className="pw-dock-label">المجسم 3D</span>
-        </a>
+        <Link href="/store" className="pw-dock-item" onClick={() => setOpen(false)}>
+          <span className="pw-dock-icon">🛒</span>
+          <span className="pw-dock-label">المنتجات</span>
+        </Link>
 
         <button
           type="button"
           className="pw-dock-item pw-dock-cta"
-          onClick={handleOpenLogin}
-          aria-label="دخول النظام"
+          onClick={() => (cart.user ? cart.setCartOpen(true) : handleOpenLogin())}
+          aria-label="السلة / دخول النظام"
         >
-          <span className="pw-dock-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" x2="3" y1="12" y2="12" />
-            </svg>
+          <span className="pw-dock-icon">🛍️</span>
+          <span className="pw-dock-label">
+            {cart.totalCount > 0 ? `السلة (${cart.totalCount})` : cart.user ? 'السلة' : 'دخول / سلة'}
           </span>
-          <span className="pw-dock-label">دخول النظام</span>
         </button>
 
-        <Link href="/verify" className="pw-dock-item" onClick={() => setOpen(false)}>
-          <span className="pw-dock-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M3 7V5a2 2 0 0 1 2-2h2" />
-              <path d="M17 3h2a2 2 0 0 1 2 2v2" />
-              <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
-              <path d="M7 21H5a2 2 0 0 1-2-2v-2" />
-              <line x1="7" x2="7" y1="8" y2="16" />
-              <line x1="12" x2="12" y1="8" y2="16" />
-              <line x1="17" x2="17" y1="8" y2="16" />
-            </svg>
-          </span>
-          <span className="pw-dock-label">التحقق</span>
+        <Link href="/real-estate" className="pw-dock-item" onClick={() => setOpen(false)}>
+          <span className="pw-dock-icon">🏢</span>
+          <span className="pw-dock-label">العقارات</span>
         </Link>
 
         <button
@@ -546,6 +627,27 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           <span className="pw-dock-label">{open ? 'إغلاق' : 'القائمة'}</span>
         </button>
       </nav>
+
+      <CartDrawer
+        isOpen={cart.cartOpen}
+        onClose={() => cart.setCartOpen(false)}
+        user={cart.user}
+        items={cart.items}
+        totalAmount={cart.totalAmount}
+        onUpdateQty={cart.updateQty}
+        onToggleInstall={cart.toggleItemInstall}
+        onRemoveItem={cart.removeItem}
+        onClearCart={cart.clearCart}
+        onRequireLogin={() => setLoginOpen(true)}
+        whatsappNumber={SITE.contact.whatsapp}
+      />
+
+      <FloatingContactChat
+        whatsappNumber={SITE.contact.whatsapp}
+        defaultName={cart.user?.fullName || ''}
+        defaultPhone={cart.user?.phone || ''}
+        contextLabel="الصفحة الرئيسية — فاي تك"
+      />
 
       <LoginModal isOpen={loginOpen} onClose={handleCloseLogin} />
     </div>

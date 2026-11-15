@@ -20,6 +20,10 @@ export default function VisitorTracker() {
       pathname === '/' ||
       pathname === '/website' ||
       pathname === '/login' ||
+      pathname === '/store' ||
+      pathname?.startsWith('/store/') ||
+      pathname === '/real-estate' ||
+      pathname?.startsWith('/real-estate/') ||
       pathname?.startsWith('/verify');
 
     if (!isPublic) return;

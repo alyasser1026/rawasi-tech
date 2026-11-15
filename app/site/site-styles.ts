@@ -28,7 +28,7 @@ body:has(.pw){padding:0!important}
 .pw-brand-text{display:flex;flex-direction:column;gap:5px;line-height:1.35}
 .pw-brand-text strong{font-size:1.24rem;font-weight:900;line-height:1.3;letter-spacing:0;display:block;color:#fefcf9;text-shadow:0 2px 10px rgba(0,0,0,.6)}
 .pw-brand-text small{font-size:.72rem;font-weight:800;letter-spacing:.16em;line-height:1.15;color:#f97316;direction:ltr;unicode-bidi:isolate;text-align:right;display:block}
-.pw-nav{display:flex;align-items:center;gap:18px;font-weight:700;font-size:.92rem;color:#ede5da;white-space:nowrap}
+.pw-nav{display:flex;align-items:center;gap:13px;font-weight:700;font-size:.86rem;color:#ede5da;white-space:nowrap}
 .pw-nav a.pw-nav-verify{color:#fb923c!important;font-weight:800;text-shadow:0 0 14px rgba(249,115,22,.4)}
 .pw-nav a.pw-nav-verify:hover{color:#fdba74!important;text-shadow:0 0 18px rgba(249,115,22,.65)}
 .pw-nav a:not(.pw-btn){position:relative;padding:6px 0;color:#ede5da;transition:color .2s ease,text-shadow .2s ease}
@@ -226,9 +226,10 @@ body:has(.pw){padding:0!important}
 .pw-footer-link:hover{background:var(--o);border-color:var(--o)}
 .pw-footer-bottom{margin-top:28px;padding-top:18px;border-top:1px solid rgba(255,255,255,.1);font-size:.8rem;color:#8f9ba5}
 
-@media (max-width:1160px){
-  .pw-nav{gap:12px;font-size:.82rem}
+@media (max-width:1180px){
+  .pw-nav{gap:9px;font-size:.78rem}
   .pw-brand-text small{display:none}
+  .pw-nav-cta{min-height:38px;padding:0 14px;font-size:.82rem}
 }
 @media (max-width:960px){
   html:has(.pw),.pw{scroll-behavior:smooth}
