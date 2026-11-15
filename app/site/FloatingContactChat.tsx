@@ -17,6 +17,76 @@ const INITIAL_WELCOME_MESSAGE: ChatMessageItem = {
   isAutoReply: true,
 };
 
+export interface ChatQuestionCategory {
+  id: string;
+  title: string;
+  icon: string;
+  badge?: string;
+  questions: Array<{ label: string; text: string }>;
+}
+
+export const CHAT_QUESTION_CATEGORIES: ChatQuestionCategory[] = [
+  {
+    id: 'finishing',
+    title: 'التشطيب والمقايسة',
+    icon: '🏗️',
+    badge: 'مقايسات',
+    questions: [
+      { label: 'شقة ع الطوب (التكلفة والخطوات)', text: 'شقتي ع الطوب وعايز أعرف تكلفة وخطوات التشطيب' },
+      { label: 'شقة نص تشطيب (ع المحارة)', text: 'شقتي نص تشطيب ع المحارة وعايز أستلمها ع المفتاح' },
+      { label: 'نظام الدفعات والمستخلصات', text: 'إيه هو نظام الدفعات والمستخلصات وطرق السداد؟' },
+      { label: 'المعاينة والرفع المساحي بالليزر', text: 'عايز مهندس يجي يعاين ويعمل رفع مساحي بالليزر' },
+    ],
+  },
+  {
+    id: 'smart_safety',
+    title: 'السمارت هوم والأمان',
+    icon: '📱',
+    badge: 'بدون تكسير',
+    questions: [
+      { label: 'سمارت هوم بدون تكسير', text: 'عايز أقلب الشقة سمارت هوم من غير تكسير في الحيطان' },
+      { label: 'حساسات الغاز والمية والمحبس الذكي', text: 'خايف من تسريب الغاز والمية وعايز حساسات مع محبس أوتوماتيك' },
+      { label: 'كاميرات المراقبة وشبكات Wi-Fi', text: 'عايز كاميرات مراقبة وشبكة واي فاي قوية في كل الشقة' },
+      { label: 'باقات السمارت الجاهزة بالمتجر', text: 'إيه هي باقات السمارت هوم المتكاملة المتاحة في المتجر؟' },
+    ],
+  },
+  {
+    id: 'maintenance',
+    title: 'الصيانة والتنفيذ',
+    icon: '🛠️',
+    badge: '10 بنود',
+    questions: [
+      { label: 'سباكة وكشف تسريب بالموجات', text: 'عندي مشكلة سباكة أو تسريب مية ومحتاج كشف وإصلاح' },
+      { label: 'علاج رطوبة وتقشير الحوائط', text: 'الحيطة عندي بتقشر وفيها رطوبة وعايز علاج جذري ونقاشة' },
+      { label: 'كهرباء وقفلات لوحة التوزيع', text: 'عندي قفلة في الكهرباء والمفتاح بيفصل ومحتاج فني' },
+      { label: 'تأسيس وصيانة تكييف (دكت/اسبليت)', text: 'عايز تأسيس أو صيانة تكييف كونسيلد أو اسبليت' },
+      { label: 'بورسلان وسيراميك ورخام وديكور', text: 'محتاج فنيين لتركيب البورسلان بالليزر والديكورات' },
+    ],
+  },
+  {
+    id: 'real_estate',
+    title: 'العقارات والتقسيط',
+    icon: '🏢',
+    badge: 'استلام فوري',
+    questions: [
+      { label: 'عروض الشقق والدوبلكس للبيع', text: 'إيه هي عروض الشقق والدوبلكس المتشطبة المتاحة عندكم؟' },
+      { label: 'أنظمة التقسيط وسنوات السداد', text: 'إيه أنظمة التقسيط وسنوات السداد المتاحة في العقارات؟' },
+      { label: 'مقرات إدارية وعيادات ومحلات', text: 'عندكم مكاتب أو عيادات أو مقرات تجارية للبيع؟' },
+    ],
+  },
+  {
+    id: 'guarantee_contact',
+    title: 'الضمان والمهندس',
+    icon: '🛡️',
+    badge: 'إشراف',
+    questions: [
+      { label: 'الضمان الهندسي ومراحل الاستلام', text: 'إيه الضمان اللي بتقدموه على التأسيس والتشطيب؟' },
+      { label: 'عناوين الفروع ومواعيد العمل', text: 'عناوين فروع فاي تك ومواعيد العمل وأرقام التواصل' },
+      { label: '👨‍💼 تحويل مباشر لمهندس بشري', text: 'أرغب في التحدث المباشر مع المهندس المختص' },
+    ],
+  },
+];
+
 export default function FloatingContactChat({
   whatsappNumber = '201558888744',
   defaultName = '',
@@ -38,7 +108,8 @@ export default function FloatingContactChat({
   const [messages, setMessages] = useState<ChatMessageItem[]>([]);
   const [escalatedToHuman, setEscalatedToHuman] = useState(false);
   const [botPaused, setBotPaused] = useState(false);
-  const [showQuickMenu, setShowQuickMenu] = useState(false);
+  const [showCategories, setShowCategories] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
@@ -148,7 +219,8 @@ export default function FloatingContactChat({
     setMessages([]);
     setEscalatedToHuman(false);
     setBotPaused(false);
-    setShowQuickMenu(false);
+    setShowCategories(false);
+    setActiveCategory(null);
     setErrorMsg('');
     lastMsgCountRef.current = 0;
     if (typeof window !== 'undefined') {
@@ -163,7 +235,8 @@ export default function FloatingContactChat({
 
     setErrorMsg('');
     setSending(true);
-    setShowQuickMenu(false);
+    setShowCategories(false);
+    setActiveCategory(null);
     if (!requestHuman) setInputMsg('');
 
     try {
@@ -243,16 +316,6 @@ export default function FloatingContactChat({
     `مرحباً شركة فاي تك، أستفسر من خلال الموقع (${contextLabel})`
   )}`;
 
-  const QUICK_QUESTIONS = [
-    '💰 شقتي ع الطوب وعايز أعرف تكلفة التشطيب',
-    '📱 عايز أقلب الشقة سمارت هوم من غير تكسير',
-    '🛠️ محتاج صنايعي أو مهندس صيانة وتنفيذ',
-    '🚨 خايف من تسريب الغاز والمية (حساسات الأمان)',
-    '🏢 عندكم شقق متشطبة أو بالتقسيط؟',
-    '🛡️ إيه الضمان اللي بتدوه ومراحل الاستلام؟',
-    '📍 عناوين الفروع ومواعيد الشغل',
-  ];
-
   const displayedMessages = messages.length > 0 ? messages : [INITIAL_WELCOME_MESSAGE];
   const visitorHasSpoken = messages.some((m) => m.sender === 'visitor');
   const canShowOptionsMenu = visitorHasSpoken && (stage === 'active' || stage === 'awaiting_phone');
@@ -321,8 +384,8 @@ export default function FloatingContactChat({
           position: fixed;
           bottom: 84px;
           left: 20px;
-          width: min(calc(100vw - 24px), 395px);
-          max-height: min(580px, calc(100dvh - 140px));
+          width: min(calc(100vw - 24px), 415px);
+          max-height: min(640px, calc(100dvh - 110px));
           background: #ffffff !important;
           color: #0f172a !important;
           border-radius: 20px;
@@ -367,10 +430,10 @@ export default function FloatingContactChat({
         @media (max-width: 980px) {
           .phi-chat-window {
             bottom: calc(134px + env(safe-area-inset-bottom, 0px));
-            left: 12px;
-            right: 12px;
+            left: 10px;
+            right: 10px;
             width: auto;
-            max-height: calc(100dvh - 165px);
+            max-height: calc(100dvh - 145px);
           }
           .phi-float-btn {
             padding: 9px 13px;
@@ -532,19 +595,28 @@ export default function FloatingContactChat({
                 {canShowOptionsMenu && (
                   <button
                     type="button"
-                    onClick={() => setShowQuickMenu((s) => !s)}
+                    onClick={() => {
+                      setShowCategories((s) => !s);
+                      setTimeout(() => {
+                        if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+                      }, 50);
+                    }}
                     style={{
                       border: '1px solid #cbd5e1',
-                      background: showQuickMenu ? '#e2e8f0' : '#ffffff',
+                      background: showCategories ? '#e2e8f0' : '#ffffff',
                       color: '#334155',
                       borderRadius: '8px',
                       padding: '4px 8px',
                       fontSize: '0.71rem',
                       fontWeight: 800,
                       cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
                     }}
                   >
-                    📋 مواضيع سريعة
+                    <span>📂</span>
+                    <span>{showCategories ? 'إخفاء الأقسام ▲' : 'أقسام الأسئلة ▼'}</span>
                   </button>
                 )}
                 <button
@@ -565,40 +637,6 @@ export default function FloatingContactChat({
                   👨‍💼 تحويل لمهندس الآن
                 </button>
               </div>
-            </div>
-          )}
-
-          {canShowOptionsMenu && showQuickMenu && (
-            <div
-              style={{
-                padding: '8px 12px',
-                background: '#fffaf5',
-                borderBottom: '1px solid #fed7aa',
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '5px',
-              }}
-            >
-              {QUICK_QUESTIONS.map((q) => (
-                <button
-                  key={q}
-                  type="button"
-                  disabled={sending}
-                  onClick={() => void sendMessage(q)}
-                  style={{
-                    fontSize: '0.71rem',
-                    fontWeight: 800,
-                    padding: '4px 9px',
-                    borderRadius: '999px',
-                    border: '1px solid #fed7aa',
-                    background: '#ffffff',
-                    color: '#c75517',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {q}
-                </button>
-              ))}
             </div>
           )}
 
@@ -739,28 +777,28 @@ export default function FloatingContactChat({
               </div>
             )}
 
-            {/* Quick replies shown ONLY when visitor has spoken and current message provides follow-ups */}
+            {/* Quick replies shown ONLY when visitor has spoken and current message provides follow-ups — compact chips */}
             {!sending &&
               visitorHasSpoken &&
               messages.length > 0 &&
               Array.isArray(messages[messages.length - 1]?.quickReplies) &&
               messages[messages.length - 1].quickReplies!.length > 0 && (
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px' }}>
-                  {messages[messages.length - 1].quickReplies!.map((qr) => (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', paddingTop: '4px' }}>
+                  {messages[messages.length - 1].quickReplies!.slice(0, 3).map((qr) => (
                     <button
                       key={qr}
                       type="button"
                       onClick={() => void sendMessage(qr, qr.includes('تحويل لمهندس'))}
                       style={{
-                        fontSize: '0.73rem',
+                        fontSize: '0.71rem',
                         fontWeight: 800,
-                        padding: '6px 10px',
+                        padding: '4px 9px',
                         borderRadius: '999px',
                         border: '1px solid #fed7aa',
                         background: '#ffffff',
                         color: '#c75517',
                         cursor: 'pointer',
-                        boxShadow: '0 2px 6px rgba(199,85,23,0.08)',
+                        boxShadow: '0 1px 3px rgba(199,85,23,0.06)',
                       }}
                     >
                       {qr}
@@ -768,6 +806,194 @@ export default function FloatingContactChat({
                   ))}
                 </div>
               )}
+
+            {/* أقسام الاستفسارات السريعة جوه المحادثة — كل قسم يفتح قسم */}
+            {canShowOptionsMenu && (
+              <div
+                style={{
+                  marginTop: '8px',
+                  background: '#ffffff',
+                  borderRadius: '12px',
+                  border: '1.5px solid #fed7aa',
+                  padding: '8px 10px',
+                  boxShadow: '0 2px 8px rgba(199,85,23,0.06)',
+                }}
+              >
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                  onClick={() => {
+                    setShowCategories((s) => !s);
+                    setTimeout(() => {
+                      if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+                    }, 50);
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ fontSize: '0.88rem' }}>📂</span>
+                    <strong style={{ fontSize: '0.74rem', color: '#c75517' }}>
+                      أقسام الأسئلة السريعة
+                    </strong>
+                    <span style={{ fontSize: '0.64rem', color: '#94a3b8', fontWeight: 700 }}>
+                      (كل قسم يفتح أسئلته)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: '#ea580c',
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      padding: '2px 6px',
+                    }}
+                  >
+                    {showCategories ? 'إخفاء الأقسام ▲' : 'استعراض الأقسام ▼'}
+                  </button>
+                </div>
+
+                {showCategories && (
+                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #ffedd5' }}>
+                    {/* أزرار الأقسام الرئيسية */}
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                      {CHAT_QUESTION_CATEGORIES.map((cat) => {
+                        const isActive = activeCategory === cat.id;
+                        return (
+                          <button
+                            key={cat.id}
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveCategory(isActive ? null : cat.id);
+                              setTimeout(() => {
+                                if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
+                              }, 50);
+                            }}
+                            style={{
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              padding: '5px 9px',
+                              borderRadius: '8px',
+                              border: isActive ? '1.5px solid #ea580c' : '1px solid #e2e8f0',
+                              background: isActive ? '#fff3ea' : '#f8fafc',
+                              color: isActive ? '#c75517' : '#334155',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              boxShadow: isActive ? '0 1px 4px rgba(234,88,12,0.15)' : 'none',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <span>{cat.icon}</span>
+                            <span>{cat.title}</span>
+                            <span style={{ fontSize: '0.62rem', opacity: 0.7 }}>{isActive ? '▲' : '▼'}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* الأسئلة الفرعية الخاصة بالقسم المختار — يفتح قسم */}
+                    {activeCategory && (() => {
+                      const currentCat = CHAT_QUESTION_CATEGORIES.find((c) => c.id === activeCategory);
+                      if (!currentCat) return null;
+                      return (
+                        <div
+                          style={{
+                            marginTop: '8px',
+                            padding: '8px 10px',
+                            background: '#fffaf5',
+                            borderRadius: '8px',
+                            border: '1px dashed #fed7aa',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '6px',
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              borderBottom: '1px solid rgba(254, 215, 170, 0.6)',
+                              paddingBottom: '4px',
+                            }}
+                          >
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#9a3412' }}>
+                              {currentCat.icon} {currentCat.title} — اختر سؤالك:
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setActiveCategory(null);
+                              }}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#94a3b8',
+                                fontSize: '0.7rem',
+                                cursor: 'pointer',
+                                fontWeight: 700,
+                              }}
+                              title="إغلاق هذا القسم"
+                            >
+                              ✕ إغلاق القسم
+                            </button>
+                          </div>
+
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {currentCat.questions.map((q, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                disabled={sending}
+                                onClick={() => {
+                                  void sendMessage(q.text, q.text.includes('تحويل لمهندس'));
+                                  setActiveCategory(null);
+                                  setShowCategories(false);
+                                }}
+                                style={{
+                                  fontSize: '0.74rem',
+                                  fontWeight: 700,
+                                  padding: '6px 10px',
+                                  borderRadius: '8px',
+                                  border: '1px solid #fed7aa',
+                                  background: '#ffffff',
+                                  color: '#c75517',
+                                  cursor: sending ? 'wait' : 'pointer',
+                                  textAlign: 'right',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  transition: 'background-color 0.15s ease',
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#fff7ed';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#ffffff';
+                                }}
+                              >
+                                <span style={{ color: '#ea580c' }}>←</span>
+                                <span>{q.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {errorMsg && (
