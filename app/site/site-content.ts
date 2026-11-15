@@ -10,12 +10,14 @@
  */
 
 import {
+  DEFAULT_MAINTENANCE_SERVICES,
   DEFAULT_PRODUCTS,
   DEFAULT_PROPERTIES,
   PRODUCT_CATEGORIES,
   type ProductCategoryId,
   type PropertyOfferType,
   type PropertyStatus,
+  type WebsiteMaintenanceService,
   type WebsiteProduct,
   type WebsiteProperty,
 } from './store-catalog';
@@ -124,6 +126,7 @@ export type SiteContentOverride = {
   seo?: { title?: string; description?: string };
   products?: WebsiteProduct[];
   properties?: WebsiteProperty[];
+  maintenanceServices?: WebsiteMaintenanceService[];
   promoBanner?: Partial<PromoBannerConfig>;
 };
 
@@ -234,6 +237,44 @@ export function sanitizeContent(raw: any): SiteContentOverride {
     );
   }
 
+  if (Array.isArray(raw.maintenanceServices)) {
+    out.maintenanceServices = arr<WebsiteMaintenanceService>(
+      raw.maintenanceServices,
+      (m) => {
+        const title = str(m?.title, 180);
+        if (!title) return null;
+        const rawCat = String(m?.category || '');
+        const category: ProductCategoryId | 'hvac' =
+          rawCat === 'hvac'
+            ? 'hvac'
+            : VALID_CATS.has(rawCat)
+              ? (rawCat as ProductCategoryId)
+              : 'electrical';
+        return {
+          id: str(m?.id, 60) || `srv-${Math.random().toString(36).slice(2, 8)}`,
+          code: str(m?.code, 40) || 'PHI-MNT',
+          title,
+          category,
+          icon: str(m?.icon, 16) || '🛠️',
+          badge: str(m?.badge, 80),
+          executionScope: Array.isArray(m?.executionScope)
+            ? m.executionScope.map((x: any) => str(x, 260)).filter(Boolean).slice(0, 12)
+            : [],
+          maintenanceScope: Array.isArray(m?.maintenanceScope)
+            ? m.maintenanceScope.map((x: any) => str(x, 260)).filter(Boolean).slice(0, 12)
+            : [],
+          recommendation: str(m?.recommendation, 800),
+          warrantyLabel: str(m?.warrantyLabel, 120) || 'ضمان هندسي معتمد',
+          visitFee: num(m?.visitFee, 0),
+          currency: m?.currency === 'ر.س' ? 'ر.س' : 'ج.م',
+          imageUrl: str(m?.imageUrl, 60000) || undefined,
+          available: m?.available !== false,
+        };
+      },
+      60
+    );
+  }
+
   if (raw.promoBanner && typeof raw.promoBanner === 'object') {
     out.promoBanner = {
       enabled: raw.promoBanner.enabled !== false,
@@ -266,6 +307,7 @@ export function mergeContent(o: SiteContentOverride = {}) {
     FAQS: o.faqs ?? FAQS,
     PRODUCTS: o.products ?? DEFAULT_PRODUCTS,
     PROPERTIES: o.properties ?? DEFAULT_PROPERTIES,
+    MAINTENANCE_SERVICES: o.maintenanceServices ?? DEFAULT_MAINTENANCE_SERVICES,
     PROMO_BANNER: {
       enabled: o.promoBanner?.enabled ?? DEFAULT_PROMO_BANNER.enabled,
       text: o.promoBanner?.text ?? DEFAULT_PROMO_BANNER.text,

@@ -13,15 +13,22 @@ import {
   type PromoBannerConfig,
 } from '../site/site-content';
 import {
+  DEFAULT_MAINTENANCE_SERVICES,
   DEFAULT_PRODUCTS,
   DEFAULT_PROPERTIES,
   PRODUCT_CATEGORIES,
   type ProductCategoryId,
   type PropertyOfferType,
   type PropertyStatus,
+  type WebsiteMaintenanceService,
   type WebsiteProduct,
   type WebsiteProperty,
 } from '../site/store-catalog';
+
+const MAINTENANCE_CATEGORIES = [
+  ...PRODUCT_CATEGORIES.map((c) => ({ id: c.id, icon: c.icon, title: c.title })),
+  { id: 'hvac', icon: '❄️', title: 'التكييف المخفي والاسبليت والتهوية' },
+];
 
 type Content = {
   site: {
@@ -40,12 +47,14 @@ type Content = {
   seo: { title: string; description: string };
   products: WebsiteProduct[];
   properties: WebsiteProperty[];
+  maintenanceServices: WebsiteMaintenanceService[];
   promoBanner: PromoBannerConfig;
 };
 
 const TABS = [
   { id: 'products', label: '📦 المنتجات والعروض' },
   { id: 'properties', label: '🏢 عروض العقارات' },
+  { id: 'maintenance', label: '🛠️ التنفيذ والصيانة' },
   { id: 'orders', label: '🛍️ طلبات السلة والعقارات' },
   { id: 'livechat', label: '💬 الشات الحي مع الزوار' },
   { id: 'identity', label: '🎨 الهوية والتواصل' },
@@ -74,6 +83,11 @@ function defaults(): Content {
     seo: { title: 'فاي تك | مقاولات عامة وتشطيبات فاخرة ومتجر الأنظمة الذكية', description: '' },
     products: DEFAULT_PRODUCTS.map((p) => ({ ...p, specs: [...p.specs] })),
     properties: DEFAULT_PROPERTIES.map((p) => ({ ...p, features: [...p.features] })),
+    maintenanceServices: DEFAULT_MAINTENANCE_SERVICES.map((m) => ({
+      ...m,
+      executionScope: [...m.executionScope],
+      maintenanceScope: [...m.maintenanceScope],
+    })),
     promoBanner: { ...DEFAULT_PROMO_BANNER },
   };
 }
@@ -94,6 +108,7 @@ function fromStored(raw: any): Content {
     seo: { title: s.seo?.title || d.seo.title, description: s.seo?.description || '' },
     products: s.products ?? d.products,
     properties: s.properties ?? d.properties,
+    maintenanceServices: s.maintenanceServices ?? d.maintenanceServices,
     promoBanner: {
       enabled: s.promoBanner?.enabled ?? d.promoBanner.enabled,
       text: s.promoBanner?.text ?? d.promoBanner.text,
@@ -851,6 +866,208 @@ export default function WebsiteAdminPage() {
             </>
           )}
 
+          {/* 2.5. إدارة التنفيذ والصيانة والتوصيات الهندسية */}
+          {tab === 'maintenance' && (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
+                <div>
+                  <h3 style={{ margin: 0 }}>🛠️ بنود التنفيذ والصيانة والتوصيات الهندسية ({c.maintenanceServices.length})</h3>
+                  <p className="wa-muted" style={{ margin: '4px 0 0', fontSize: '13px' }}>
+                    ضع قيمة «رسوم المعاينة = 0» لعدم إظهار أي سعر مسبق وتظهر للعميل عبارة «المعاينة والتسعير حسب البند».
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="wa-btn wa-primary"
+                  onClick={() =>
+                    upd((d) => {
+                      d.maintenanceServices.unshift({
+                        id: `srv-${Date.now()}`,
+                        code: `PHI-MNT-${String(d.maintenanceServices.length + 1).padStart(2, '0')}`,
+                        title: 'خدمة تنفيذ وصيانة هندسية جديدة',
+                        category: 'electrical',
+                        icon: '🛠️',
+                        badge: 'إشراف واستلام هندسي معتمد',
+                        executionScope: ['توريد وتأسيس وفق المواصفة الهندسية المعتمدة'],
+                        maintenanceScope: ['فحص دوري ومعالجة الأعطال الطارئة'],
+                        recommendation: 'توصية فاي تك الهندسية: اكتب هنا النصيحة الفنية أو الاحتياطات الهندسية المهمة للعميل.',
+                        warrantyLabel: 'ضمان هندسي معتمد على التنفيذ',
+                        visitFee: 0,
+                        currency: 'ج.م',
+                        available: true,
+                      });
+                    })
+                  }
+                >
+                  + إضافة بند تنفيذ وصيانة جديد
+                </button>
+              </div>
+
+              {c.maintenanceServices.map((m, idx) => (
+                <div key={m.id || idx} className="wa-card wa-form">
+                  <F
+                    label="اسم بند التنفيذ والصيانة"
+                    v={m.title}
+                    on={(v) => upd((d) => { d.maintenanceServices[idx].title = v; })}
+                    wide
+                  />
+                  <label className="wa-f">
+                    <span>التخصص الهندسي</span>
+                    <select
+                      value={m.category}
+                      onChange={(e) =>
+                        upd((d) => {
+                          d.maintenanceServices[idx].category = e.target.value as WebsiteMaintenanceService['category'];
+                        })
+                      }
+                      style={{ padding: '9px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--bg)', color: 'var(--ink)' }}
+                    >
+                      {MAINTENANCE_CATEGORIES.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.icon} {cat.title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <F
+                    label="الكود المرجعي"
+                    v={m.code}
+                    on={(v) => upd((d) => { d.maintenanceServices[idx].code = v; })}
+                    dir="ltr"
+                  />
+                  <F
+                    label="الأيقونة (إيموجي)"
+                    v={m.icon}
+                    on={(v) => upd((d) => { d.maintenanceServices[idx].icon = v || '🛠️'; })}
+                  />
+                  <F
+                    label="شارة الميزة / الاستلام"
+                    v={m.badge || ''}
+                    on={(v) => upd((d) => { d.maintenanceServices[idx].badge = v; })}
+                  />
+                  <F
+                    label="وصف الضمان الهندسي"
+                    v={m.warrantyLabel}
+                    on={(v) => upd((d) => { d.maintenanceServices[idx].warrantyLabel = v; })}
+                  />
+                  <F
+                    label="رسوم المعاينة (0 = حسب البند بدون سعر مسبق)"
+                    v={String(m.visitFee || 0)}
+                    on={(v) => upd((d) => { d.maintenanceServices[idx].visitFee = Math.max(0, Number(v) || 0); })}
+                    dir="ltr"
+                  />
+
+                  <label className="wa-f wa-wide">
+                    <span>نطاق التنفيذ والتأسيس الجديد (سطر لكل نقطة)</span>
+                    <textarea
+                      rows={3}
+                      value={m.executionScope.join('\n')}
+                      onChange={(e) =>
+                        upd((d) => {
+                          d.maintenanceServices[idx].executionScope = e.target.value.split('\n');
+                        })
+                      }
+                      onBlur={() =>
+                        upd((d) => {
+                          d.maintenanceServices[idx].executionScope = d.maintenanceServices[idx].executionScope
+                            .map((s) => s.trim())
+                            .filter(Boolean);
+                        })
+                      }
+                      style={{ padding: '9px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--bg)', color: 'var(--ink)' }}
+                    />
+                  </label>
+
+                  <label className="wa-f wa-wide">
+                    <span>نطاق الصيانة وإصلاح الأعطال (سطر لكل نقطة)</span>
+                    <textarea
+                      rows={3}
+                      value={m.maintenanceScope.join('\n')}
+                      onChange={(e) =>
+                        upd((d) => {
+                          d.maintenanceServices[idx].maintenanceScope = e.target.value.split('\n');
+                        })
+                      }
+                      onBlur={() =>
+                        upd((d) => {
+                          d.maintenanceServices[idx].maintenanceScope = d.maintenanceServices[idx].maintenanceScope
+                            .map((s) => s.trim())
+                            .filter(Boolean);
+                        })
+                      }
+                      style={{ padding: '9px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--bg)', color: 'var(--ink)' }}
+                    />
+                  </label>
+
+                  <F
+                    label="💡 التوصية الهندسية الاحترافية للعميل"
+                    v={m.recommendation}
+                    on={(v) => upd((d) => { d.maintenanceServices[idx].recommendation = v; })}
+                    wide
+                    area
+                  />
+
+                  <div className="wa-wide" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+                    <label className="wa-f" style={{ flex: 1, minWidth: '240px' }}>
+                      <span>رابط صورة توضيحية للبند (أو ارفع صورة من جهازك)</span>
+                      <input
+                        value={m.imageUrl || ''}
+                        dir="ltr"
+                        placeholder="https://... أو ارفع صورة بالزر المجاور"
+                        onChange={(e) => upd((d) => { d.maintenanceServices[idx].imageUrl = e.target.value || undefined; })}
+                      />
+                    </label>
+                    <label className="wa-btn" style={{ alignSelf: 'end', cursor: 'pointer' }}>
+                      📷 رفع صورة من الجهاز
+                      <input
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          try {
+                            const dataUrl = await compressImageToDataUrl(file);
+                            upd((d) => {
+                              d.maintenanceServices[idx].imageUrl = dataUrl;
+                            });
+                          } catch (err: any) {
+                            alert(err?.message || 'تعذر رفع الصورة');
+                          }
+                        }}
+                      />
+                    </label>
+                    {m.imageUrl && (
+                      <button
+                        type="button"
+                        className="wa-btn"
+                        style={{ alignSelf: 'end' }}
+                        onClick={() => upd((d) => { d.maintenanceServices[idx].imageUrl = undefined; })}
+                      >
+                        🧹 إزالة الصورة
+                      </button>
+                    )}
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '6px', alignSelf: 'end', paddingBottom: '8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={m.available}
+                        onChange={(e) => upd((d) => { d.maintenanceServices[idx].available = e.target.checked; })}
+                      />
+                      <span>متاح للحجز عبر الموقع</span>
+                    </label>
+                    <button
+                      type="button"
+                      className="wa-btn wa-danger"
+                      onClick={() => upd((d) => { d.maintenanceServices.splice(idx, 1); })}
+                    >
+                      🗑️ حذف البند
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+
           {/* 3. طلبات السلة وحجوزات العقارات */}
           {tab === 'orders' && (
             <>
@@ -881,7 +1098,7 @@ export default function WebsiteAdminPage() {
                         <select
                           value={ord.status || 'جديد'}
                           onChange={(e) => handleUpdateOrderStatus(ord.id, e.target.value)}
-                          style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--line)', fontWeight: 700 }}
+                          style={{ padding: '6px 10px', borderRadius: '8px', border: '1px solid var(--line)', background: 'var(--bg)', color: 'var(--ink)', fontWeight: 700 }}
                         >
                           <option value="جديد">🆕 جديد</option>
                           <option value="جاري التواصل والتجهيز">⏳ جاري التواصل والتجهيز</option>
@@ -903,7 +1120,17 @@ export default function WebsiteAdminPage() {
                       </div>
                     </div>
 
-                    {ord.type === 'property_inquiry' && ord.property ? (
+                    {ord.type === 'maintenance_request' && ord.maintenanceService ? (
+                      <div style={{ fontSize: '14px', background: 'var(--bg)', padding: '10px', borderRadius: '8px', border: '1px solid var(--line)' }}>
+                        🛠️ <strong>طلب تنفيذ / صيانة هندسية:</strong> {ord.maintenanceService.title}
+                        {ord.maintenanceService.code ? ` (${ord.maintenanceService.code})` : ''}
+                        {ord.maintenanceService.mode ? ` — نوع الخدمة: ${ord.maintenanceService.mode}` : ''}
+                        {ord.maintenanceService.serviceType ? ` — نوع الخدمة: ${ord.maintenanceService.serviceType}` : ''}
+                        {Number(ord.maintenanceService.visitFee || 0) > 0
+                          ? ` — رسوم المعاينة: ${Number(ord.maintenanceService.visitFee).toLocaleString('en-US')} ${ord.maintenanceService.currency || 'ج.م'}`
+                          : ' — المعاينة والتسعير حسب البند'}
+                      </div>
+                    ) : ord.type === 'property_inquiry' && ord.property ? (
                       <div style={{ fontSize: '14px', background: 'var(--bg)', padding: '10px', borderRadius: '8px' }}>
                         🏢 <strong>طلب معاينة وحدة عقارية:</strong> {ord.property.title} ({ord.property.code}) — السعر:{' '}
                         {Number(ord.property.price || 0).toLocaleString('en-US')} {ord.property.currency || 'ج.م'}

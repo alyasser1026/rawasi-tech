@@ -53,7 +53,7 @@ async function verifyAdminAuth(req: Request): Promise<boolean> {
 
 async function sendStoreTelegramNotification(order: {
   refCode: string;
-  orderType: 'store_order' | 'property_inquiry';
+  orderType: 'store_order' | 'property_inquiry' | 'maintenance_request';
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
@@ -77,6 +77,12 @@ async function sendStoreTelegramNotification(order: {
     price?: number;
     currency?: string;
   };
+  maintenanceService?: {
+    code?: string;
+    title: string;
+    mode?: string;
+    preferredDate?: string;
+  };
   totalAmount?: number;
   currency?: string;
 }) {
@@ -92,7 +98,33 @@ async function sendStoreTelegramNotification(order: {
   }).format(new Date());
 
   const lines: string[] = [];
-  if (order.orderType === 'property_inquiry') {
+  if (order.orderType === 'maintenance_request') {
+    lines.push('🛠️ <b>طلب تنفيذ / صيانة هندسية جديد — فاي تك</b>');
+    lines.push('━━━━━━━━━━━━━━━━━━━━');
+    lines.push(`🔖 <b>رقم الطلب:</b> <code>${escapeHtml(order.refCode)}</code>`);
+    lines.push(`👤 <b>العميل:</b> ${escapeHtml(order.customerName)}`);
+    lines.push(`📱 <b>رقم الجوال:</b> <code>${escapeHtml(order.customerPhone)}</code>`);
+    if (order.customerEmail) lines.push(`📧 <b>البريد:</b> <code>${escapeHtml(order.customerEmail)}</code>`);
+    if (order.city || order.address) {
+      lines.push(`📍 <b>الموقع:</b> ${escapeHtml([order.city, order.address].filter(Boolean).join(' — '))}`);
+    }
+    if (order.maintenanceService) {
+      lines.push('━━━━━━━━━━━━━━━━━━━━');
+      lines.push(`🔧 <b>البند المطلوب:</b> <b>${escapeHtml(order.maintenanceService.title)}</b>`);
+      if (order.maintenanceService.code) {
+        lines.push(`🔢 <b>كود الخدمة:</b> <code>${escapeHtml(order.maintenanceService.code)}</code>`);
+      }
+      if (order.maintenanceService.mode) {
+        lines.push(`⚙️ <b>نوع الطلب:</b> <b>${escapeHtml(order.maintenanceService.mode)}</b>`);
+      }
+      if (order.maintenanceService.preferredDate) {
+        lines.push(`🗓️ <b>الموعد المفضل:</b> ${escapeHtml(order.maintenanceService.preferredDate)}`);
+      }
+    }
+    if (order.notes) {
+      lines.push(`📝 <b>وصف المشكلة / المطلوب:</b>\n<i>${escapeHtml(order.notes)}</i>`);
+    }
+  } else if (order.orderType === 'property_inquiry') {
     lines.push('🏢 <b>طلب حجز / معاينة عقار جديد — فاي تك</b>');
     lines.push('━━━━━━━━━━━━━━━━━━━━');
     lines.push(`🔖 <b>رقم الطلب:</b> <code>${escapeHtml(order.refCode)}</code>`);
@@ -182,8 +214,12 @@ async function sendStoreTelegramNotification(order: {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const orderType: 'store_order' | 'property_inquiry' =
-      body.orderType === 'property_inquiry' ? 'property_inquiry' : 'store_order';
+    const orderType: 'store_order' | 'property_inquiry' | 'maintenance_request' =
+      body.orderType === 'property_inquiry'
+        ? 'property_inquiry'
+        : body.orderType === 'maintenance_request'
+          ? 'maintenance_request'
+          : 'store_order';
     const customerName = String(body.customerName || '').trim();
     const customerPhone = String(body.customerPhone || '').trim();
     const customerEmail = String(body.customerEmail || '').trim();
@@ -196,7 +232,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const prefix = orderType === 'property_inquiry' ? 'PRP' : 'ORD';
+    const prefix =
+      orderType === 'property_inquiry'
+        ? 'PRP'
+        : orderType === 'maintenance_request'
+          ? 'MNT'
+          : 'ORD';
     const refCode = `${prefix}-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
     const payloadDetails = {
@@ -211,6 +252,7 @@ export async function POST(req: Request) {
       withInstallation: Boolean(body.withInstallation),
       items: Array.isArray(body.items) ? body.items : [],
       property: body.property || null,
+      maintenanceService: body.maintenanceService || null,
       totalAmount: Number(body.totalAmount || 0),
       currency: body.currency === 'ر.س' ? 'ر.س' : 'ج.م',
       createdAt: new Date().toISOString(),
@@ -266,7 +308,7 @@ export async function GET(req: Request) {
     const { data, error } = await sb
       .from('user_requests')
       .select('id, user_id, type, category, subject, details, status, admin_note, created_at')
-      .in('type', ['store_order', 'property_inquiry'])
+      .in('type', ['store_order', 'property_inquiry', 'maintenance_request'])
       .order('created_at', { ascending: false })
       .limit(150);
 

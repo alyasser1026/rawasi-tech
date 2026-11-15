@@ -263,6 +263,9 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
                 <Link href="/store" className="pw-btn pw-btn-primary">
                   🛒 متجر المنتجات والسمارت هوم
                 </Link>
+                <Link href="/store?tab=maintenance" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(56,189,248,0.65)', color: '#bae6fd' }}>
+                  🛠️ التنفيذ والصيانة
+                </Link>
                 <Link href="/real-estate" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(249,115,22,0.7)', color: '#fbbf24' }}>
                   🏢 عروض العقارات والوحدات
                 </Link>
@@ -388,6 +391,9 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
               <Link href="/store" className="pw-btn pw-btn-primary">
                 🛒 فتح متجر المنتجات الكامل ({PRODUCTS.length} منتج وعرض)
+              </Link>
+              <Link href="/store?tab=maintenance" className="pw-btn pw-btn-ghost" style={{ borderColor: '#0284c7', color: '#0369a1' }}>
+                🛠️ التنفيذ والصيانة الشاملة والتوصيات الهندسية
               </Link>
               <Link href="/real-estate" className="pw-btn pw-btn-ghost" style={{ borderColor: '#c75517', color: '#c75517' }}>
                 🏢 استعراض عروض العقارات والوحدات ({PROPERTIES.length} وحدات متاحة)

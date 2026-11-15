@@ -95,3 +95,33 @@ test('backend APIs for website-store and website-chat notify Telegram and store 
   assert.match(chatApi, /api\.telegram\.org/);
   assert.match(chatApi, /live_chat/);
 });
+
+test('execution & maintenance services tab covers all trades with recommendations and CMS/API support', () => {
+  const catalog = read('app/site/store-catalog.ts');
+  assert.match(catalog, /export const DEFAULT_MAINTENANCE_SERVICES/);
+  assert.match(catalog, /category:\s*'hvac'/);
+  assert.match(catalog, /executionScope:/);
+  assert.match(catalog, /maintenanceScope:/);
+  assert.match(catalog, /recommendation:/);
+  assert.match(catalog, /visitFee:\s*0/);
+
+  const siteContent = read('app/site/site-content.ts');
+  assert.match(siteContent, /maintenanceServices\?:\s*WebsiteMaintenanceService\[\]/);
+  assert.match(siteContent, /MAINTENANCE_SERVICES:\s*o\.maintenanceServices\s*\?\?\s*DEFAULT_MAINTENANCE_SERVICES/);
+
+  const storeClient = read('app/site/StoreClient.tsx');
+  assert.match(storeClient, /handleOpenMaintenanceModal/);
+  assert.match(storeClient, /handleAddMaintenanceToCart/);
+  assert.match(storeClient, /handleSubmitMaintenanceRequest/);
+  assert.match(storeClient, /حجز خدمة تنفيذ أو صيانة هندسية/);
+
+  const phiSite = read('app/site/PhiSite.tsx');
+  assert.match(phiSite, /\/store\?tab=maintenance/);
+
+  const adminPage = read('app/website-admin/page.tsx');
+  assert.match(adminPage, /id:\s*'maintenance',\s*label:\s*'🛠️ التنفيذ والصيانة'/);
+  assert.match(adminPage, /maintenance_request/);
+
+  const storeApi = read('app/api/website-store/route.ts');
+  assert.match(storeApi, /maintenance_request/);
+});
