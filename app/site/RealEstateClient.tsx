@@ -295,9 +295,10 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                   ) : (
                     <div
                       style={{
-                        padding: '20px 22px',
-                        background: 'linear-gradient(135deg, #14181b 0%, #1e293b 100%)',
-                        color: '#ffffff',
+                        padding: '18px 22px',
+                        background: 'linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%)',
+                        borderBottom: '1px solid #fed7aa',
+                        color: '#14181b',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'flex-start',
@@ -309,7 +310,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                         <span
                           style={{
                             fontSize: '0.74rem',
-                            color: '#fb923c',
+                            color: '#c75517',
                             fontWeight: 800,
                             fontFamily: 'monospace',
                             display: 'block',
@@ -317,7 +318,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                         >
                           {prop.code} · {prop.typeLabel}
                         </span>
-                        <strong style={{ fontSize: '0.88rem', color: '#e2e8f0' }}>
+                        <strong style={{ fontSize: '0.88rem', color: '#334155' }}>
                           📍 {prop.city} — {prop.location}
                         </strong>
                       </div>

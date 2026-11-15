@@ -315,16 +315,16 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
               <div
                 key={b.id}
                 style={{
-                  background: 'linear-gradient(145deg, #14181b 0%, #1e2630 100%)',
-                  color: '#ffffff',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fff8f3 100%)',
+                  color: '#14181b',
                   borderRadius: '20px',
                   padding: '22px',
-                  border: '1px solid rgba(249, 115, 22, 0.35)',
+                  border: '1.5px solid #fed7aa',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   gap: '14px',
-                  boxShadow: '0 16px 36px -18px rgba(0,0,0,0.4)',
+                  boxShadow: '0 14px 32px -18px rgba(199, 85, 23, 0.22)',
                 }}
               >
                 <div>
@@ -341,18 +341,18 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     >
                       {b.badge}
                     </span>
-                    <span style={{ fontSize: '0.76rem', color: '#94a3b8' }}>شامل البرمجة والتطبيق</span>
+                    <span style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 700 }}>شامل البرمجة والتطبيق</span>
                   </div>
-                  <h3 style={{ fontSize: '1.12rem', fontWeight: 900, marginBottom: '6px', color: '#fff' }}>
+                  <h3 style={{ fontSize: '1.12rem', fontWeight: 900, marginBottom: '6px', color: '#14181b' }}>
                     {b.title}
                   </h3>
-                  <p style={{ fontSize: '0.84rem', color: '#cbd5e1', marginBottom: '12px', lineHeight: 1.55 }}>
+                  <p style={{ fontSize: '0.84rem', color: '#47525c', marginBottom: '12px', lineHeight: 1.55 }}>
                     {b.subtitle}
                   </p>
-                  <ul style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.82rem', color: '#e2e8f0' }}>
+                  <ul style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.82rem', color: '#334155', fontWeight: 700 }}>
                     {b.items.map((it) => (
                       <li key={it} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
-                        <span style={{ color: '#22c55e', fontWeight: 900 }}>✓</span>
+                        <span style={{ color: '#16a34a', fontWeight: 900 }}>✓</span>
                         <span>{it}</span>
                       </li>
                     ))}
@@ -367,7 +367,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     flexWrap: 'wrap',
                     gap: '12px',
                     paddingTop: '14px',
-                    borderTop: '1px solid rgba(255,255,255,0.12)',
+                    borderTop: '1px solid #fed7aa',
                   }}
                 >
                   <div>
@@ -385,12 +385,12 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                             {b.oldPrice.toLocaleString('en-US')} {b.currency}
                           </span>
                         ) : null}
-                        <strong style={{ fontSize: '1.35rem', fontWeight: 900, color: '#fb923c' }}>
+                        <strong style={{ fontSize: '1.35rem', fontWeight: 900, color: '#c75517' }}>
                           {b.price.toLocaleString('en-US')} {b.currency}
                         </strong>
                       </>
                     ) : (
-                      <strong style={{ fontSize: '1.05rem', fontWeight: 900, color: '#fb923c' }}>
+                      <strong style={{ fontSize: '1.05rem', fontWeight: 900, color: '#c75517' }}>
                         السعر عند الطلب (عرض سعر)
                       </strong>
                     )}
