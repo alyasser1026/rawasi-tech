@@ -82,7 +82,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
     }
   };
 
-  const cleanWa = (SITE.contact.whatsapp || '201026332733').replace(/\D/g, '') || '201026332733';
+  const cleanWa = (SITE.contact.whatsapp || '201558888744').replace(/\D/g, '') || '201558888744';
 
   return (
     <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">

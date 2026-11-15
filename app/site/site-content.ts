@@ -39,8 +39,8 @@ export const SITE = {
 
   // املأ اللي عندك بس. اللي يفضل فاضي بيتخفي.
   contact: {
-    phone: '+20 102 633 2733',
-    whatsapp: '201026332733',
+    phone: '+201558888744',
+    whatsapp: '201558888744',
     email: 'phi.tech.eg@gmail.com',
     address: 'الرياض · القاهرة · المنصورة',
     hours: 'السبت – الخميس، 9 صباحاً – 9 مساءً',

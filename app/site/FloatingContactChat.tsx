@@ -7,7 +7,7 @@ import type { ChatMessageItem } from '@/app/api/website-chat/route';
 const CHAT_SESSION_STORAGE_KEY = 'phi_live_chat_session_v1';
 
 export default function FloatingContactChat({
-  whatsappNumber = '201026332733',
+  whatsappNumber = '201558888744',
   defaultName = '',
   defaultPhone = '',
   contextLabel = 'الموقع العام',
@@ -185,7 +185,7 @@ export default function FloatingContactChat({
     await sendMessage(inputMsg);
   };
 
-  const cleanWa = (whatsappNumber || '201026332733').replace(/\D/g, '') || '201026332733';
+  const cleanWa = (whatsappNumber || '201558888744').replace(/\D/g, '') || '201558888744';
   const waHref = `https://wa.me/${cleanWa}?text=${encodeURIComponent(
     `مرحباً شركة فاي تك، أستفسر من خلال الموقع (${contextLabel})`
   )}`;
