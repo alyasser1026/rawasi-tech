@@ -188,17 +188,11 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
     c.hours && { label: 'ساعات العمل', value: c.hours, href: '', dir: 'rtl' as const },
   ].filter(Boolean) as { label: string; value: string; href: string; dir: 'ltr' | 'rtl' }[];
 
-  const primaryContact = waDigits
-    ? { href: `https://wa.me/${waDigits}`, label: 'تواصل عبر واتساب', external: true }
-    : c.phone
-      ? { href: `tel:${c.phone.replace(/\s+/g, '')}`, label: 'اتصل بنا', external: false }
-      : { href: '#contact', label: 'تواصل معنا', external: false };
-
   return (
     <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
 
-      <header className={`pw-header ${scrolled ? 'is-scrolled' : ''}`}>
+      <header className={`pw-header is-scrolled pw-header-solid ${scrolled ? 'is-scrolled' : ''}`}>
         <div className="pw-wrap pw-header-row">
           <a href="#top" className="pw-brand" aria-label={`${SITE.name} — الرئيسية`}>
             <img src="/brand/phitech-mark-color.svg" alt="" className="pw-brand-mark" />
@@ -246,88 +240,7 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
       </header>
 
       <main id="top">
-        {/* Hero */}
-        <section className="pw-hero">
-          <HeroVideoBackdrop variant="showcase-left" controlsMode="none" onControlsReady={setHeroControls} />
-          <div className="pw-wrap pw-hero-grid" id="hero-content">
-            <div>
-              <p className="pw-eyebrow">{SITE.tagline} · {SITE.offices.join(' • ')}</p>
-              <h1>
-                <span className="pw-hero-part">نبني <em>الهيكل</em>، ونُتقن <em>التشطيب</em>،</span>{' '}
-                <span className="pw-hero-part">ونُنفّذ <em>التأسيسات</em></span>
-              </h1>
-              <p className="pw-lead">{SITE.intro}</p>
-              <div className="pw-actions">
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('maintenance')}
-                  className="pw-btn pw-btn-primary"
-                >
-                  🛠️ الصيانة والتنفيذ
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('contracting')}
-                  className="pw-btn pw-btn-light"
-                  style={{ borderColor: 'rgba(249,115,22,0.75)', color: '#fed7aa' }}
-                >
-                  🏗️ المقاولات والتشطيبات
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('real_estate')}
-                  className="pw-btn pw-btn-light"
-                  style={{ borderColor: 'rgba(251,191,36,0.65)', color: '#fde68a' }}
-                >
-                  🏢 العقارات
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('building_materials')}
-                  className="pw-btn pw-btn-light"
-                >
-                  🧱 مواد البناء
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('smart_tech')}
-                  className="pw-btn pw-btn-light"
-                  style={{ borderColor: 'rgba(16,185,129,0.65)', color: '#a7f3d0' }}
-                >
-                  📱 السمارت هوم والتكنولوجيا
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('general_info')}
-                  className="pw-btn pw-btn-light"
-                  style={{ borderColor: 'rgba(56,189,248,0.65)', color: '#bae6fd' }}
-                >
-                  📚 معلومات عامة
-                </button>
-              </div>
-            </div>
-            <div className="pw-hero-art" aria-hidden>
-              <div className="pw-emblem"><img src="/brand/phitech-mark-light.svg" alt="" /></div>
-            </div>
-          </div>
-          {heroControls && (
-            <div className="pw-wrap pw-hero-toolbar">
-              <HeroVideoControls controls={heroControls} />
-              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="التمرير لاختيار القسم">
-                <span>اختر قسمك واستعرض التفاصيل</span>
-                <span className="pw-cue-arrow" aria-hidden>↓</span>
-              </a>
-            </div>
-          )}
-          <ul className="pw-wrap pw-stats">
-            <li><strong>6 أقسام متكاملة</strong><span>صيانة · مقاولات · عقارات · مواد · سمارت هوم</span></li>
-            <li><strong>جهة تنفيذ واحدة</strong><span>إشراف هندسي وضمان موحّد</span></li>
-            <li><strong>تجارب تفاعلية</strong><span>حاسبة 3×1 · مصمم سمارت · مجسم 3D</span></li>
-            <li><strong>{SITE.offices.length} مكاتب</strong><span>{SITE.offices.join(' · ')}</span></li>
-          </ul>
-        </section>
-
-        {/* البوابات الستة الرئيسية + مستكشف تفاصيل كل قسم + المستشار الذكي + أهم العروض والمنتجات */}
+        {/* البوابات الستة الرئيسية + دلالة سهلة للاستخدام + مستكشف تفاصيل كل قسم + المستشار الذكي + أهم العروض والمنتجات */}
         <HomePortalSections
           activeSection={activePortalSection}
           onSelectSection={setActivePortalSection}
@@ -442,6 +355,87 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
               {FAQS.map(f => (<details key={f.q}><summary>{f.q}</summary><p>{f.a}</p></details>))}
             </div>
           </div>
+        </section>
+
+        {/* عرض الهوية والشركة بالصوت والصورة (تم نقله إلى نهاية الصفحة بناءً على رغبة العميل) */}
+        <section className="pw-hero" id="about-phitech">
+          <HeroVideoBackdrop variant="showcase-left" controlsMode="none" onControlsReady={setHeroControls} />
+          <div className="pw-wrap pw-hero-grid" id="hero-content">
+            <div>
+              <p className="pw-eyebrow">{SITE.tagline} · {SITE.offices.join(' • ')}</p>
+              <h2>
+                <span className="pw-hero-part">نبني <em>الهيكل</em>، ونُتقن <em>التشطيب</em>،</span>{' '}
+                <span className="pw-hero-part">ونُنفّذ <em>التأسيسات</em></span>
+              </h2>
+              <p className="pw-lead">{SITE.intro}</p>
+              <div className="pw-actions">
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('maintenance')}
+                  className="pw-btn pw-btn-primary"
+                >
+                  🛠️ الصيانة والتنفيذ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('contracting')}
+                  className="pw-btn pw-btn-light"
+                  style={{ borderColor: 'rgba(249,115,22,0.75)', color: '#fed7aa' }}
+                >
+                  🏗️ المقاولات والتشطيبات
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('real_estate')}
+                  className="pw-btn pw-btn-light"
+                  style={{ borderColor: 'rgba(251,191,36,0.65)', color: '#fde68a' }}
+                >
+                  🏢 العقارات
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('building_materials')}
+                  className="pw-btn pw-btn-light"
+                >
+                  🧱 مواد البناء
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('smart_tech')}
+                  className="pw-btn pw-btn-light"
+                  style={{ borderColor: 'rgba(16,185,129,0.65)', color: '#a7f3d0' }}
+                >
+                  📱 السمارت هوم والتكنولوجيا
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('general_info')}
+                  className="pw-btn pw-btn-light"
+                  style={{ borderColor: 'rgba(56,189,248,0.65)', color: '#bae6fd' }}
+                >
+                  📚 معلومات عامة
+                </button>
+              </div>
+            </div>
+            <div className="pw-hero-art" aria-hidden>
+              <div className="pw-emblem"><img src="/brand/phitech-mark-light.svg" alt="" /></div>
+            </div>
+          </div>
+          {heroControls && (
+            <div className="pw-wrap pw-hero-toolbar">
+              <HeroVideoControls controls={heroControls} />
+              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="العودة لأعلى لاختيار القسم">
+                <span>العودة إلى الأقسام الستة</span>
+                <span className="pw-cue-arrow" aria-hidden>↑</span>
+              </a>
+            </div>
+          )}
+          <ul className="pw-wrap pw-stats">
+            <li><strong>6 أقسام متكاملة</strong><span>صيانة · مقاولات · عقارات · مواد · سمارت هوم</span></li>
+            <li><strong>جهة تنفيذ واحدة</strong><span>إشراف هندسي وضمان موحّد</span></li>
+            <li><strong>تجارب تفاعلية</strong><span>حاسبة 3×1 · مصمم سمارت · مجسم 3D</span></li>
+            <li><strong>{SITE.offices.length} مكاتب</strong><span>{SITE.offices.join(' · ')}</span></li>
+          </ul>
         </section>
 
         {/* Contact */}

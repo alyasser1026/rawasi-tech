@@ -25,6 +25,8 @@ interface PortalDef {
   icon: string;
   badge: string;
   title: string;
+  whenToChoose: string;
+  intentShortcut: string;
   subtitle: string;
   highlights: string[];
   ctaLabel: string;
@@ -35,31 +37,37 @@ const PORTAL_SECTIONS: PortalDef[] = [
   {
     id: 'maintenance',
     icon: '🛠️',
-    badge: 'التأسيس والإصلاح والصيانة',
+    badge: 'الإصلاح والتنفيذ الفردي',
     title: 'قسم الصيانة والتنفيذ',
+    whenToChoose: 'عندك عطل كهرباء أو سباكة أو تكييف، أو عاوز تنفذ/ترمم بند محدد في بيتك بضمان هندسي.',
+    intentShortcut: '🔧 عاوز صيانة أو تنفيذ بند',
     subtitle: 'تنفيذ وصيانة الكهرباء والسباكة والدهانات والسيراميك والرخام والجبس والتكييف المخفي بضمان هندسي.',
     highlights: ['كشف أعطال وتسريبات بدون تكسير', 'صيانة وتأسيس 10 تخصصات هندسية', 'توصيات فنية ومقايسة فورية'],
-    ctaLabel: 'ادخل لقسم الصيانة والتنفيذ',
+    ctaLabel: 'افتح قسم الصيانة والتنفيذ',
     accent: '#0284c7',
   },
   {
     id: 'contracting',
     icon: '🏗️',
-    badge: 'عظم · تشطيبات · MEP',
+    badge: 'بناء وتشطيب كامل',
     title: 'قسم المقاولات',
+    whenToChoose: 'هتبني أرض من الصفر (عظم) أو عاوز تشطب فيلا/شقة/مقر تسليم مفتاح وتعرف التكلفة والمواد فوراً.',
+    intentShortcut: '🏗️ هبني أو هشطب مشروع كامل',
     subtitle: 'منظومة مقاولات متكاملة 3×1 للفلل والأبراج والمقرات التجارية: إنشاءات وتشطيب فندقي وتكييف مخفي.',
     highlights: ['حاسبة تكلفة ومواد فورية للمشروع', 'مخططات تنفيذية قبل بدء العمل', 'تسليم مفتاح بإشراف مهندس مقيم'],
-    ctaLabel: 'ادخل لقسم المقاولات والحاسبة',
+    ctaLabel: 'افتح قسم المقاولات والحاسبة',
     accent: '#c75517',
   },
   {
     id: 'real_estate',
     icon: '🏢',
-    badge: 'شقق · دوبلكس · معارض',
+    badge: 'وحدات للبيع والتقسيط',
     title: 'قسم العقارات',
+    whenToChoose: 'بتدور على شقة تمليك أو دوبلكس بحديقة أو معرض تجاري جاهز وموثق وتحسب المقدم والقسط الشهري.',
+    intentShortcut: '🏢 بدور على شقة أو معرض',
     subtitle: 'وحدات سكنية فاخرة ودوبلكس بحديقة ومعارض تجارية جاهزة أو بأنظمة سداد مرنة وتشطيب موثّق.',
     highlights: ['وحدات شاملة السمارت هوم وحساسات الأمان', 'حاسبة أقساط ومقدم فورية', 'معاينة هندسية ومجسم 3D للمبنى'],
-    ctaLabel: 'استكشف قسم العقارات والوحدات',
+    ctaLabel: 'افتح قسم العقارات والوحدات',
     accent: '#d97706',
   },
   {
@@ -67,9 +75,11 @@ const PORTAL_SECTIONS: PortalDef[] = [
     icon: '🧱',
     badge: 'بيع وشراء الجملة والقطاعي',
     title: 'قسم بيع وشراء مواد البناء',
+    whenToChoose: 'محتاج تشتري دهانات ومعجون وبورسلان ورخام وكابلات بسعر المصنع، أو عندك خامات عاوز تبيعها لنا.',
+    intentShortcut: '🧱 هشتري أو هبيع مواد بناء',
     subtitle: 'اطلب خامات البناء والتشطيب المعتمدة بأفضل سعر، أو اعرض خاماتك وفائض المشاريع للبيع لإدارة المشتريات.',
     highlights: ['شراء دهانات ومعجون وبورسلان ورخام وكابلات', 'أسعار جملة وتوريد مباشر للموقع', 'بوابة عرض بيع خامات الموردين والفائض'],
-    ctaLabel: 'تصفح سوق بيع وشراء مواد البناء',
+    ctaLabel: 'افتح سوق بيع وشراء مواد البناء',
     accent: '#ea580c',
   },
   {
@@ -77,19 +87,23 @@ const PORTAL_SECTIONS: PortalDef[] = [
     icon: '📱',
     badge: 'منزل ذكي وأمان 24/7',
     title: 'قسم التكنولوجيا والسمارت هوم',
+    whenToChoose: 'عاوز تتحكم في بيتك من الموبايل (أقفال ببصمة، مفاتيح لمس، كاميرات 4K، ومحابس غاز ومياه تلقائية).',
+    intentShortcut: '📱 عاوز سمارت هوم وكاميرات',
     subtitle: 'تحويل منزلك لمنزل ذكي بالكامل بدون تكسير: أقفال ببصمة وكاميرا، تيار خفيف، وحساسات غاز ومياه وحريق.',
     highlights: ['مُصمم باقة السمارت هوم التفاعلي', 'حساسات غاز ومياه بمحبس غلق تلقائي', 'كاميرات 4K وإنتركم مرئي على الجوال'],
-    ctaLabel: 'صمّم منزلك الذكي الآن',
+    ctaLabel: 'افتح قسم السمارت هوم',
     accent: '#059669',
   },
   {
     id: 'general_info',
     icon: '📚',
-    badge: 'موسوعة ونصائح وأدوات',
+    badge: 'نصائح ودليل وحاسبات مجانية',
     title: 'قسم معلومات عامة',
+    whenToChoose: 'عاوز تتعلم أخطاء التشطيب وتتفاداها، تحسب كميات الحديد والخرسانة والبلاط، أو تراجع دليل الاستلام.',
+    intentShortcut: '💡 عاوز نصائح وحاسبات مجانية',
     subtitle: 'كل ما تحتاجه قبل البناء والتشطيب: نصائح هندسية ذهبية، دليل الفحص والاستلام، حاسبات مجانية وأسئلة شائعة.',
     highlights: ['نصائح مهندسين توفر 20% من أخطاء الموقع', 'دليل التنفيذ والفحص وقوائم الاستلام', 'حاسبات خرسانة وحديد ودهان وبلاط مجانية'],
-    ctaLabel: 'تصفح المعلومات والدليل الهندسي',
+    ctaLabel: 'افتح المعلومات والدليل الهندسي',
     accent: '#4f46e5',
   },
 ];
@@ -411,15 +425,42 @@ export default function HomePortalSections({
 
   return (
     <>
-      {/* 1. بوابة الأقسام الستة الرئيسية — تظهر فور فتح الموقع */}
+      {/* 1. بوابة الأقسام الستة الرئيسية + دلالة سهلة للاستخدام — تظهر أولاً عند فتح الموقع */}
       <section id="portals" className="pw-section pw-portal-gateway" aria-labelledby="portals-heading">
         <div className="pw-wrap">
-          <div className="pw-head">
-            <p className="pw-eyebrow">بوابة خدمات فاي تك الشاملة — اختر قسمك مباشرة</p>
-            <h2 id="portals-heading">6 أقسام متخصصة تغطي احتياجك الهندسي والعقاري بالكامل</h2>
+          <div className="pw-head" style={{ marginBottom: '26px' }}>
+            <p className="pw-eyebrow">أهلاً بك في فاي تك — ابدأ باختيار قسمك مباشرة</p>
+            <h1 id="portals-heading" className="pw-portal-main-h1">
+              اختر القسم الذي يناسب احتياجك وادخل إلى التفاصيل فوراً
+            </h1>
             <p>
-              اضغط على القسم الذي تبحث عنه للدخول فوراً إلى التفاصيل الكاملة، الأسعار والباقات، حاسبات الكميات، وطلب التنفيذ أو الصيانة أو الشراء.
+              رتّبنا لك الموقع في <strong>6 أقسام واضحة</strong> مع دلالة إرشادية لكل قسم لكي تصل إلى خدمتك أو منتجك أو عرضك في ثوانٍ بدون أي تعقيد.
             </p>
+          </div>
+
+          {/* شريط الدلالة الإرشادية السريعة */}
+          <div className="pw-guide-banner" role="region" aria-label="دليل اختيار القسم السريع">
+            <div className="pw-guide-steps">
+              <span><strong>١.</strong> حدد ما تبحث عنه أو اختر من البطاقات الستة</span>
+              <span><strong>٢.</strong> ستفتح تفاصيل القسم وأدواته بالأسفل تلقائياً</span>
+              <span><strong>٣.</strong> اطلب الخدمة أو أضف للسلة أو تواصل واتساب بضغطة واحدة</span>
+            </div>
+            <div className="pw-guide-intents">
+              <span className="pw-guide-intents-label">🧭 اختصار سريع — بتدور على إيه الآن؟</span>
+              <div className="pw-guide-chips">
+                {PORTAL_SECTIONS.map((sec) => (
+                  <button
+                    key={sec.id}
+                    type="button"
+                    onClick={() => handlePortalClick(sec.id)}
+                    className={`pw-guide-chip ${activeSection === sec.id ? 'is-active' : ''}`}
+                    style={{ '--portal-accent': sec.accent } as React.CSSProperties}
+                  >
+                    {sec.intentShortcut}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="pw-portal-grid" role="tablist" aria-label="أقسام الموقع الرئيسية">
@@ -443,6 +484,10 @@ export default function HomePortalSections({
                     <span className="pw-portal-num">0{idx + 1}</span>
                   </div>
                   <h3>{sec.title}</h3>
+                  <div className="pw-portal-hint-box">
+                    <strong>📌 الدلالة — متى تدخل هذا القسم؟</strong>
+                    <span>{sec.whenToChoose}</span>
+                  </div>
                   <p className="pw-portal-desc">{sec.subtitle}</p>
                   <ul className="pw-portal-list">
                     {sec.highlights.map((item) => (
@@ -453,7 +498,7 @@ export default function HomePortalSections({
                     ))}
                   </ul>
                   <div className="pw-portal-cta">
-                    <span>{isSelected ? '✓ القسم مفتوح بالأسفل — تصفح التفاصيل' : sec.ctaLabel}</span>
+                    <span>{isSelected ? '✓ القسم مفتوح بالأسفل — اضغط للاستعراض' : sec.ctaLabel}</span>
                     <span aria-hidden="true">↓</span>
                   </div>
                 </button>
