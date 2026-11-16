@@ -12,7 +12,7 @@ import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } fro
 import LoginModal from './LoginModal';
 import { CartButton, CartDrawer, useCustomerCart } from './CartDrawer';
 import FloatingContactChat from './FloatingContactChat';
-import { PRODUCT_CATEGORIES } from './store-catalog';
+import HomePortalSections, { type HomePortalSectionId } from './HomePortalSections';
 import {
   collectClientDeviceDetails,
   rememberVisitorContact,
@@ -29,27 +29,16 @@ const CapitalTower3D = dynamic(() => import('./CapitalTower3D'), {
 });
 
 const NAV = [
-  { href: '/store', label: '🛒 المتجر' },
+  { href: '#portals', label: 'الأقسام' },
+  { href: '/store?tab=maintenance', label: '🛠️ الصيانة والتنفيذ' },
+  { href: '/store', label: '🧱 المتجر ومواد البناء' },
   { href: '/real-estate', label: '🏢 العقارات' },
-  { href: '#services', label: 'الخدمات' },
-  { href: '#capital-tower', label: 'المجسم المعماري 3D' },
-  { href: '#bim', label: 'نموذج BIM' },
-  { href: '#tools', label: 'الأدوات' },
+  { href: '#capital-tower', label: 'المجسم 3D' },
+  { href: '#tools', label: 'حاسبات المهندس' },
   { href: '#checklist', label: 'دليل التنفيذ' },
-  { href: '/verify', label: 'التحقق من المستندات' },
+  { href: '/verify', label: 'التحقق' },
   { href: '#contact', label: 'تواصل' },
 ];
-
-function Icon({ name }: { name: string }) {
-  const common = { width: 26, height: 26, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
-  if (name === 'structure') return (<svg {...common}><path d="M3 21h18" /><path d="M5 21V8l7-4 7 4v13" /><path d="M9 21v-6h6v6" /><path d="M9 11h.01M15 11h.01" /></svg>);
-  if (name === 'finishing') return (<svg {...common}><rect x="3" y="3" width="18" height="6" rx="1.5" /><path d="M12 9v5" /><rect x="10" y="14" width="4" height="7" rx="1" /></svg>);
-  return (<svg {...common}><circle cx="12" cy="12" r="2" /><path d="M12 10c0-3 1-6 4-6 2 0 3 2 2 4-1 2-3 2-6 2z" /><path d="M14 12c3 0 6 1 6 4 0 2-2 3-4 2-2-1-2-3-2-6z" /><path d="M12 14c0 3-1 6-4 6-2 0-3-2-2-4 1-2 3-2 6-2z" /><path d="M10 12c-3 0-6-1-6-4 0-2 2-3 4-2 2 1 2 3 2 6z" /></svg>);
-}
-
-function Check() {
-  return (<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M20 6 9 17l-5-5" /></svg>);
-}
 
 /** يركّب المحتوى الثقيل (نموذج 3D) لما القسم يقرب من الشاشة بس. */
 function LazyMount({ children, minHeight = 440 }: { children: React.ReactNode; minHeight?: number }) {
@@ -136,13 +125,22 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
 }
 
 export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
-  const { SITE, PROJECTS, COMMITMENTS, FAQS, PRODUCTS, PROPERTIES } = mergeContent(content);
+  const { SITE, PROJECTS, COMMITMENTS, FAQS, PRODUCTS, PROPERTIES, MAINTENANCE_SERVICES } = mergeContent(content);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [heroControls, setHeroControls] = useState<HeroVideoControlsState | null>(null);
   const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
+  const [activePortalSection, setActivePortalSection] = useState<HomePortalSectionId>('maintenance');
   const cart = useCustomerCart(() => setLoginOpen(true));
+
+  const jumpToPortalSection = (id: HomePortalSectionId) => {
+    setActivePortalSection(id);
+    if (typeof document !== 'undefined') {
+      const target = document.getElementById('portal-explorer') || document.getElementById('portals');
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -260,19 +258,52 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
               </h1>
               <p className="pw-lead">{SITE.intro}</p>
               <div className="pw-actions">
-                <Link href="/store" className="pw-btn pw-btn-primary">
-                  🛒 متجر المنتجات والسمارت هوم
-                </Link>
-                <Link href="/store?tab=maintenance" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(56,189,248,0.65)', color: '#bae6fd' }}>
-                  🛠️ التنفيذ والصيانة
-                </Link>
-                <Link href="/real-estate" className="pw-btn pw-btn-light" style={{ borderColor: 'rgba(249,115,22,0.7)', color: '#fbbf24' }}>
-                  🏢 عروض العقارات والوحدات
-                </Link>
-                <Link href="/verify" className="pw-btn pw-btn-light">
-                  التحقق من المستندات
-                </Link>
-                <a href="#capital-tower" className="pw-btn pw-btn-light">المجسم المعماري 3D</a>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('maintenance')}
+                  className="pw-btn pw-btn-primary"
+                >
+                  🛠️ الصيانة والتنفيذ
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('contracting')}
+                  className="pw-btn pw-btn-light"
+                  style={{ borderColor: 'rgba(249,115,22,0.75)', color: '#fed7aa' }}
+                >
+                  🏗️ المقاولات والتشطيبات
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('real_estate')}
+                  className="pw-btn pw-btn-light"
+                  style={{ borderColor: 'rgba(251,191,36,0.65)', color: '#fde68a' }}
+                >
+                  🏢 العقارات
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('building_materials')}
+                  className="pw-btn pw-btn-light"
+                >
+                  🧱 مواد البناء
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('smart_tech')}
+                  className="pw-btn pw-btn-light"
+                  style={{ borderColor: 'rgba(16,185,129,0.65)', color: '#a7f3d0' }}
+                >
+                  📱 السمارت هوم والتكنولوجيا
+                </button>
+                <button
+                  type="button"
+                  onClick={() => jumpToPortalSection('general_info')}
+                  className="pw-btn pw-btn-light"
+                  style={{ borderColor: 'rgba(56,189,248,0.65)', color: '#bae6fd' }}
+                >
+                  📚 معلومات عامة
+                </button>
               </div>
             </div>
             <div className="pw-hero-art" aria-hidden>
@@ -282,128 +313,37 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           {heroControls && (
             <div className="pw-wrap pw-hero-toolbar">
               <HeroVideoControls controls={heroControls} />
-              <a href="#hero-content" className="pw-mobile-scroll-cue" aria-label="التمرير لبقية محتوى الصفحة">
-                <span>اسحب للأسفل لاستعراض التفاصيل</span>
+              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="التمرير لاختيار القسم">
+                <span>اختر قسمك واستعرض التفاصيل</span>
                 <span className="pw-cue-arrow" aria-hidden>↓</span>
               </a>
             </div>
           )}
           <ul className="pw-wrap pw-stats">
-            <li><strong>3 قطاعات</strong><span>إنشاء · تشطيب · تأسيسات</span></li>
-            <li><strong>جهة تنفيذ واحدة</strong><span>مسؤولية موحّدة</span></li>
-            <li><strong>مخططات تنفيذية</strong><span>قبل أول يوم عمل</span></li>
+            <li><strong>6 أقسام متكاملة</strong><span>صيانة · مقاولات · عقارات · مواد · سمارت هوم</span></li>
+            <li><strong>جهة تنفيذ واحدة</strong><span>إشراف هندسي وضمان موحّد</span></li>
+            <li><strong>تجارب تفاعلية</strong><span>حاسبة 3×1 · مصمم سمارت · مجسم 3D</span></li>
             <li><strong>{SITE.offices.length} مكاتب</strong><span>{SITE.offices.join(' · ')}</span></li>
           </ul>
         </section>
 
-        {/* Commitments */}
-        <section className="pw-section" aria-labelledby="trust-h">
-          <div className="pw-wrap">
-            <div className="pw-head">
-              <p className="pw-eyebrow">كيف نعمل</p>
-              <h2 id="trust-h">التزامات تحكم كل مشروع</h2>
-              <p>أربعة مبادئ نطبّقها في كل موقع، بصرف النظر عن حجم المشروع.</p>
-            </div>
-            <ul className="pw-trust">
-              {COMMITMENTS.map((t, i) => (
-                <li key={t.title}><span className="pw-trust-n">0{i + 1}</span><h3>{t.title}</h3><p>{t.text}</p></li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* Services */}
-        <section id="services" className="pw-section pw-tint">
-          <div className="pw-wrap">
-            <div className="pw-head">
-              <p className="pw-eyebrow">خدماتنا</p>
-              <h2>ثلاثة قطاعات تعمل كمنظومة واحدة</h2>
-              <p>تنسيق مبكر بين الإنشاء والتأسيسات والتشطيب يمنع التكسير وإعادة العمل، ويوفّر الوقت والتكلفة.</p>
-            </div>
-            <div className="pw-cards">
-              {SERVICES.map(s => (
-                <article key={s.id} className="pw-card">
-                  <div className="pw-icon"><Icon name={s.id} /></div>
-                  <h3>{s.title}</h3>
-                  <p>{s.summary}</p>
-                  <ul>{s.items.map(i => (<li key={i}><Check /><span>{i}</span></li>))}</ul>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Store & Real Estate Quick Showcase */}
-        <section id="store-showcase" className="pw-section">
-          <div className="pw-wrap">
-            <div className="pw-head">
-              <p className="pw-eyebrow">متجر التشطيبات والأنظمة الذكية وعروض العقارات</p>
-              <h2>تسوّق خامات التشطيب والسمارت هوم أو تصفح الوحدات العقارية</h2>
-              <p>
-                سجّل دخولك وأضف منتجاتك (كهرباء، سباكة، دهانات، سيراميك، رخام، ديكورات، سمارت هوم، تيار خفيف، وحساسات حريق وغاز ومياه) إلى سلة مشترياتك مع خيار التركيب الهندسي المعتمد.
-              </p>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '14px', marginBottom: '22px' }}>
-              {PRODUCT_CATEGORIES.map((cat) => (
-                <Link
-                  key={cat.id}
-                  href="/store"
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid #e3e6e9',
-                    borderRadius: '16px',
-                    padding: '16px',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '12px',
-                    textDecoration: 'none',
-                    transition: 'transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease',
-                  }}
-                >
-                  <span
-                    style={{
-                      width: '44px',
-                      height: '44px',
-                      borderRadius: '12px',
-                      background: `${cat.accent}18`,
-                      border: `1px solid ${cat.accent}44`,
-                      display: 'grid',
-                      placeItems: 'center',
-                      fontSize: '1.35rem',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {cat.icon}
-                  </span>
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '0.96rem', fontWeight: 900, color: '#14181b', marginBottom: '3px' }}>
-                      {cat.title}
-                    </strong>
-                    <span style={{ fontSize: '0.8rem', color: '#47525c', lineHeight: 1.5, display: 'block' }}>
-                      {cat.description}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', justifyContent: 'center' }}>
-              <Link href="/store" className="pw-btn pw-btn-primary">
-                🛒 فتح متجر المنتجات الكامل ({PRODUCTS.length} منتج وعرض)
-              </Link>
-              <Link href="/store?tab=maintenance" className="pw-btn pw-btn-ghost" style={{ borderColor: '#0284c7', color: '#0369a1' }}>
-                🛠️ التنفيذ والصيانة الشاملة والتوصيات الهندسية
-              </Link>
-              <Link href="/real-estate" className="pw-btn pw-btn-ghost" style={{ borderColor: '#c75517', color: '#c75517' }}>
-                🏢 استعراض عروض العقارات والوحدات ({PROPERTIES.length} وحدات متاحة)
-              </Link>
-              <button type="button" onClick={() => cart.setCartOpen(true)} className="pw-btn pw-btn-ghost">
-                🛍️ فتح سلة مشترياتك ({cart.totalCount})
-              </button>
-            </div>
-          </div>
-        </section>
+        {/* البوابات الستة الرئيسية + مستكشف تفاصيل كل قسم + المستشار الذكي + أهم العروض والمنتجات */}
+        <HomePortalSections
+          activeSection={activePortalSection}
+          onSelectSection={setActivePortalSection}
+          services={SERVICES}
+          commitments={COMMITMENTS}
+          steps={STEPS}
+          faqs={FAQS}
+          products={PRODUCTS}
+          properties={PROPERTIES}
+          maintenanceServices={MAINTENANCE_SERVICES}
+          whatsappNumber={c.whatsapp}
+          onAddToCart={cart.addToCart}
+          onAddBundleToCart={cart.addBundleToCart}
+          cartCount={cart.totalCount}
+          onOpenCart={() => cart.setCartOpen(true)}
+        />
 
         {/* Capital Tower 3D -> BIM */}
         <section id="capital-tower" className="pw-section">

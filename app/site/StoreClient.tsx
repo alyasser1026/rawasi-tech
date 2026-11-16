@@ -47,6 +47,11 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
       if (params.get('tab') === 'maintenance') {
         setActiveStoreTab('maintenance');
       }
+      const cat = params.get('category');
+      if (cat && PRODUCT_CATEGORIES.some((c) => c.id === cat)) {
+        setSelectedCategory(cat as ProductCategoryId);
+        setActiveStoreTab('products');
+      }
     }
   }, []);
 
