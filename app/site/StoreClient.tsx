@@ -11,7 +11,8 @@ import {
   type WebsiteMaintenanceService,
   type WebsiteProduct,
 } from './store-catalog';
-import { CartButton, CartDrawer, useCustomerCart } from './CartDrawer';
+import { CartDrawer, useCustomerCart } from './CartDrawer';
+import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import { supabase } from '@/lib/supabase';
@@ -198,20 +199,6 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
     <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
       <style>{`
-        .st-hero {
-          background: radial-gradient(900px 420px at 20% 20%, rgba(249,115,22,0.22), transparent 70%), linear-gradient(180deg, #0b0f15 0%, #141a22 100%);
-          color: #ffffff;
-          padding: 108px 0 44px;
-          border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .st-promo {
-          background: linear-gradient(90deg, #9a3412 0%, #ea580c 50%, #c2410c 100%);
-          color: #fff;
-          padding: 10px 16px;
-          text-align: center;
-          font-size: 0.85rem;
-          font-weight: 800;
-        }
         .st-cats-bar {
           display: flex;
           gap: 8px;
@@ -275,7 +262,6 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           .st-products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
         }
         @media (max-width: 680px) {
-          .st-hero { padding: 84px 0 28px; }
           .st-cats-bar {
             flex-wrap: nowrap;
             overflow-x: auto;
@@ -290,115 +276,63 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         }
       `}</style>
 
-      {/* Top Sticky Header */}
-      <header className="pw-header is-scrolled">
-        <div className="pw-wrap pw-header-row">
-          <Link href="/" className="pw-brand" aria-label={`${SITE.name} — الرئيسية`}>
-            <img src="/brand/phitech-mark-color.svg" alt="" className="pw-brand-mark" />
-            <span className="pw-brand-text">
-              <strong>{SITE.name}</strong>
-              <small>STORE & SMART SYSTEMS</small>
-            </span>
-          </Link>
+      {/* Unified Light Header (matches Homepage Standard) */}
+      <PublicHeader
+        siteName={SITE.name}
+        siteNameEn={SITE.nameEn}
+        activeKey="store"
+        cartCount={cart.totalCount}
+        onOpenCart={() => cart.setCartOpen(true)}
+        userName={cart.user?.fullName}
+        onOpenLogin={() => (cart.user ? cart.setCartOpen(true) : setLoginOpen(true))}
+      />
 
-          <nav className="pw-nav" aria-label="التنقل الرئيسي">
+      {/* Unified Light Hero (matches Homepage Standard) */}
+      <section className="pw-unified-hero">
+        <div className="pw-wrap">
+          {PROMO_BANNER.enabled && (
+            <div className="pw-unified-promo">{PROMO_BANNER.text}</div>
+          )}
+
+          <nav className="pw-unified-crumb" aria-label="مسار التنقل">
             <Link href="/">الرئيسية</Link>
-            <Link href="/store" style={{ color: '#fb923c', fontWeight: 900 }}>
-              🛒 متجر المنتجات
-            </Link>
-            <Link href="/real-estate">🏢 عروض العقارات</Link>
-            <Link href="/sections/contracting?view=tower3d">المجسم 3D</Link>
-            <Link href="/verify" className="pw-nav-verify">
-              التحقق من المستندات
-            </Link>
+            <span className="sep">/</span>
+            <span>🛒 المتجر والتنفيذ الهندسي</span>
           </nav>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CartButton count={cart.totalCount} onClick={() => cart.setCartOpen(true)} />
-
-            {cart.user ? (
-              <button
-                type="button"
-                onClick={handleSignOut}
-                title="تسجيل الخروج"
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: '10px',
-                  border: '1px solid rgba(255,255,255,0.2)',
-                  background: 'rgba(255,255,255,0.08)',
-                  color: '#fde68a',
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                }}
-              >
-                👤 {cart.user.fullName.split(' ')[0]} (خروج)
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setLoginOpen(true)}
-                className="pw-btn pw-btn-primary pw-nav-cta"
-                style={{ minHeight: '38px', padding: '0 14px', fontSize: '0.82rem' }}
-              >
-                دخول / حساب جديد
-              </button>
-            )}
+          <div className="pw-head" style={{ marginBottom: '26px' }}>
+            <p className="pw-eyebrow">متجر فاي تك الهندسي — توريد معتمد وتركيب بإشراف هندسي</p>
+            <h1>
+              كل ما يحتاجه مشروعك من{' '}
+              <span style={{ color: 'var(--o)' }}>التأسيسات والتشطيبات</span> إلى{' '}
+              <span style={{ color: '#0284c7' }}>السمارت هوم وحساسات الأمان</span>
+            </h1>
+            <p>
+              اختر منتجاتك من الكهرباء، السباكة، الدهانات، السيراميك، الرخام، الديكورات، أجهزة التحكم الذكي، التيار
+              الخفيف، وحساسات الحريق والغاز والمياه — وأضفها لسلتك لطلب التوريد المباشر أو التركيب الهندسي بالضمان.
+            </p>
           </div>
-        </div>
-      </header>
 
-      {/* Hero Header */}
-      <section className="st-hero">
-        {PROMO_BANNER.enabled && (
-          <div className="st-promo" style={{ marginBottom: '22px', borderRadius: '0' }}>
-            <div className="pw-wrap">{PROMO_BANNER.text}</div>
-          </div>
-        )}
-        <div className="pw-wrap">
-          <p className="pw-eyebrow" style={{ color: '#fb923c' }}>
-            متجر فاي تك الهندسي — توريد معتمد وتركيب بإشراف هندسي
-          </p>
-          <h1 style={{ fontSize: 'clamp(1.45rem, 3.2vw, 2.45rem)', fontWeight: 900, lineHeight: 1.32, marginBottom: '12px' }}>
-            كل ما يحتاجه مشروعك من <span style={{ color: '#f97316' }}>التأسيسات والتشطيبات</span> إلى{' '}
-            <span style={{ color: '#38bdf8' }}>السمارت هوم وحساسات الأمان</span>
-          </h1>
-          <p style={{ color: '#cbd5e1', maxWidth: '48rem', fontSize: '0.96rem', marginBottom: '20px' }}>
-            اختر منتجاتك من الكهرباء، السباكة، الدهانات، السيراميك، الرخام، الديكورات، أجهزة التحكم الذكي، التيار الخفيف،
-            وحساسات الحريق والغاز والمياه — وأضفها لسلتك لطلب التوريد المباشر أو التوريد مع التركيب الهندسي بالضمان.
-          </p>
-
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center', alignItems: 'center' }}>
             <button
               type="button"
               onClick={() => setActiveStoreTab('products')}
-              style={{
-                minHeight: '44px',
-                padding: '0 20px',
-                borderRadius: '12px',
-                border: activeStoreTab === 'products' ? '1.5px solid #f97316' : '1.5px solid rgba(255,255,255,0.22)',
-                background: activeStoreTab === 'products' ? '#ea580c' : 'rgba(255,255,255,0.08)',
-                color: '#ffffff',
-                fontWeight: 900,
-                fontSize: '0.9rem',
-                cursor: 'pointer',
-              }}
+              className={activeStoreTab === 'products' ? 'pw-btn pw-btn-primary' : 'pw-btn pw-btn-ghost'}
+              style={{ minHeight: '44px', padding: '0 20px', fontSize: '0.9rem' }}
             >
               🛒 كتالوج المنتجات ({PRODUCTS.length})
             </button>
             <button
               type="button"
               onClick={() => setActiveStoreTab('maintenance')}
+              className="pw-btn pw-btn-ghost"
               style={{
                 minHeight: '44px',
                 padding: '0 20px',
-                borderRadius: '12px',
-                border: activeStoreTab === 'maintenance' ? '1.5px solid #38bdf8' : '1.5px solid rgba(255,255,255,0.22)',
-                background: activeStoreTab === 'maintenance' ? '#0284c7' : 'rgba(255,255,255,0.08)',
-                color: '#ffffff',
-                fontWeight: 900,
                 fontSize: '0.9rem',
-                cursor: 'pointer',
+                ...(activeStoreTab === 'maintenance'
+                  ? { background: '#0284c7', color: '#ffffff', borderColor: '#0284c7' }
+                  : {}),
               }}
             >
               🛠️ التنفيذ والصيانة الشاملة ({MAINTENANCE_SERVICES.filter((s) => s.available).length})
@@ -407,27 +341,38 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
               <button
                 type="button"
                 onClick={() => setLoginOpen(true)}
-                className="pw-btn pw-btn-primary"
-                style={{ minHeight: '44px', padding: '0 20px', fontSize: '0.9rem' }}
+                className="pw-btn pw-btn-ghost"
+                style={{ minHeight: '44px', padding: '0 20px', fontSize: '0.88rem' }}
               >
-                🔐 سجّل دخولك أو أنشئ حسابك لتفعيل سلة المشتريات
+                🔐 سجّل دخولك أو أنشئ حسابك لتفعيل السلة
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={() => cart.setCartOpen(true)}
-                className="pw-btn pw-btn-primary"
-                style={{ minHeight: '44px', padding: '0 20px', fontSize: '0.9rem' }}
-              >
-                🛍️ استعراض سلة مشترياتك ({cart.totalCount} صنف{cart.totalAmount > 0 ? ` — ${cart.totalAmount.toLocaleString('en-US')} ج.م` : ''})
-              </button>
+              <>
+                <button
+                  type="button"
+                  onClick={() => cart.setCartOpen(true)}
+                  className="pw-btn pw-btn-ghost"
+                  style={{ minHeight: '44px', padding: '0 20px', fontSize: '0.88rem' }}
+                >
+                  🛍️ السلة ({cart.totalCount} صنف{cart.totalAmount > 0 ? ` — ${cart.totalAmount.toLocaleString('en-US')} ج.م` : ''})
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="pw-btn pw-btn-ghost"
+                  title="تسجيل الخروج"
+                  style={{ minHeight: '44px', padding: '0 14px', fontSize: '0.82rem', color: '#b91c1c', borderColor: '#fecaca' }}
+                >
+                  خروج ({cart.user.fullName.split(' ')[0]})
+                </button>
+              </>
             )}
             <Link
               href="/real-estate"
-              className="pw-btn pw-btn-light"
+              className="pw-btn pw-btn-ghost"
               style={{ minHeight: '44px', padding: '0 18px', fontSize: '0.88rem' }}
             >
-              🏢 تصفح عروض العقارات والوحدات السكنية ←
+              🏢 عروض العقارات والوحدات ←
             </Link>
           </div>
         </div>
@@ -1389,44 +1334,31 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         </div>
       )}
 
-      {/* Mobile Bottom Dock */}
+      {/* Unified Footer (matches Homepage Standard) */}
+      <footer className="pw-footer">
+        <div className="pw-wrap">
+          <div className="pw-footer-row">
+            <div className="pw-footer-brand">
+              <img src="/brand/phitech-mark-color.svg" alt="" />
+              <div>
+                <strong>{SITE.name}</strong>
+                <small>{SITE.tagline}</small>
+              </div>
+            </div>
+            <nav className="pw-footer-nav" aria-label="روابط التذييل">
+              {PUBLIC_NAV_ITEMS.map((n) => (
+                <Link key={n.href} href={n.href}>{n.label}</Link>
+              ))}
+            </nav>
+            <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>
+              التحقق من صحة المستندات
+            </Link>
+          </div>
+          <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
+        </div>
+      </footer>
+
       <div className="pw-dock-pad" aria-hidden="true" />
-      <nav className="pw-mobile-dock" aria-label="شريط الوصول السريع">
-        <Link href="/" className="pw-dock-item">
-          <span className="pw-dock-icon">🏠</span>
-          <span className="pw-dock-label">الرئيسية</span>
-        </Link>
-        <Link href="/store" className="pw-dock-item is-active">
-          <span className="pw-dock-icon">🛒</span>
-          <span className="pw-dock-label">المنتجات</span>
-        </Link>
-        <button
-          type="button"
-          className="pw-dock-item pw-dock-cta"
-          onClick={() => cart.setCartOpen(true)}
-        >
-          <span className="pw-dock-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-              <path d="M3 6h18" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
-          </span>
-          <span className="pw-dock-label">السلة ({cart.totalCount})</span>
-        </button>
-        <Link href="/real-estate" className="pw-dock-item">
-          <span className="pw-dock-icon">🏢</span>
-          <span className="pw-dock-label">العقارات</span>
-        </Link>
-        <button
-          type="button"
-          className="pw-dock-item"
-          onClick={() => (cart.user ? cart.setCartOpen(true) : setLoginOpen(true))}
-        >
-          <span className="pw-dock-icon">👤</span>
-          <span className="pw-dock-label">{cart.user ? 'حسابي' : 'دخول'}</span>
-        </button>
-      </nav>
 
       {/* Cart Drawer */}
       <CartDrawer

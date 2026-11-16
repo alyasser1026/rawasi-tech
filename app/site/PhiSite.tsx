@@ -7,24 +7,15 @@ import { mergeContent, type SiteContentOverride } from './site-content';
 import { CSS } from './site-styles';
 import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } from '@/components/HeroVideoBackdrop';
 import LoginModal from './LoginModal';
-import { CartButton, CartDrawer, useCustomerCart } from './CartDrawer';
+import { CartDrawer, useCustomerCart } from './CartDrawer';
 import FloatingContactChat from './FloatingContactChat';
 import HomePortalSections from './HomePortalSections';
+import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
+import { PORTAL_SECTIONS } from './section-defs';
 import {
   collectClientDeviceDetails,
   rememberVisitorContact,
 } from '@/lib/client-device-info';
-
-const NAV = [
-  { href: '#portals', label: 'الأقسام' },
-  { href: '/sections/maintenance', label: '🛠️ الصيانة' },
-  { href: '/sections/contracting', label: '🏗️ المقاولات' },
-  { href: '/sections/real-estate', label: '🏢 العقارات' },
-  { href: '/sections/materials', label: '🧱 مواد البناء' },
-  { href: '/sections/smart-home', label: '📱 السمارت هوم' },
-  { href: '/sections/info', label: '📚 معلومات' },
-  { href: '#contact', label: 'تواصل' },
-];
 
 function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
   const [name, setName] = useState('');
@@ -98,8 +89,6 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
 export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
   const { SITE, PRODUCTS, PROPERTIES } = mergeContent(content);
   const router = useRouter();
-  const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const [heroControls, setHeroControls] = useState<HeroVideoControlsState | null>(null);
   const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
   const cart = useCustomerCart(() => setLoginOpen(true));
@@ -115,7 +104,6 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
 
   const handleOpenLogin = (e?: React.MouseEvent) => {
     if (e) e.preventDefault();
-    setOpen(false);
     setLoginOpen(true);
     if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
       window.history.pushState(null, '', '/login');
@@ -133,13 +121,6 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
     }
   };
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   const c = SITE.contact;
   const waDigits = c.whatsapp.replace(/\D/g, '');
   const contactRows = [
@@ -154,52 +135,15 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
     <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
 
-      <header className={`pw-header pw-header-glass ${scrolled ? 'is-scrolled' : ''}`}>
-        <div className="pw-wrap pw-header-row">
-          <a href="#top" className="pw-brand" aria-label={`${SITE.name} — الرئيسية`}>
-            <img src="/brand/phitech-mark-color.svg" alt="" className="pw-brand-mark" />
-            <span className="pw-brand-text"><strong>{SITE.name}</strong><small>{SITE.nameEn}</small></span>
-          </a>
-          <nav className={`pw-nav ${open ? 'is-open' : ''}`} aria-label="التنقل الرئيسي">
-            <div className="pw-nav-head">
-              <span className="pw-nav-head-title">
-                <img src="/brand/phitech-mark-color.svg" alt="" style={{ height: '26px', width: 'auto' }} />
-                <span>قائمة الموقع</span>
-              </span>
-              <button
-                type="button"
-                className="pw-nav-close"
-                onClick={() => setOpen(false)}
-                aria-label="إغلاق القائمة"
-              >
-                ✕ إغلاق
-              </button>
-            </div>
-            {NAV.map(n => n.href.startsWith('#') ? (
-              <a key={n.href} href={n.href} onClick={() => setOpen(false)}>
-                <span>{n.label}</span>
-                <span className="pw-nav-arrow" aria-hidden="true">←</span>
-              </a>
-            ) : (
-              <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="pw-nav-verify">
-                <span>{n.label}</span>
-                <span className="pw-nav-arrow" aria-hidden="true">←</span>
-              </Link>
-            ))}
-            <CartButton
-              count={cart.totalCount}
-              onClick={() => {
-                setOpen(false);
-                cart.setCartOpen(true);
-              }}
-            />
-            <a href="/login" className="pw-btn pw-btn-primary pw-nav-cta" onClick={handleOpenLogin}>
-              {cart.user ? `👤 ${cart.user.fullName.split(' ')[0]}` : 'دخول النظام'}
-            </a>
-          </nav>
-          <button className="pw-burger" aria-label="القائمة" aria-expanded={open} onClick={() => setOpen(v => !v)}><span /><span /><span /></button>
-        </div>
-      </header>
+      <PublicHeader
+        siteName={SITE.name}
+        siteNameEn={SITE.nameEn}
+        activeKey="home"
+        cartCount={cart.totalCount}
+        onOpenCart={() => cart.setCartOpen(true)}
+        userName={cart.user?.fullName}
+        onOpenLogin={() => handleOpenLogin()}
+      />
 
       <main id="top">
         {/* 1. مربعات الأقسام الستة الرئيسية + الأداة السريعة + أهم العروض والمنتجات (بدون تعقيد أو لبخة) */}
@@ -290,10 +234,8 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
               <div><strong>{SITE.legalName}</strong><small>{SITE.offices.join(' · ')}</small></div>
             </div>
             <nav className="pw-footer-nav" aria-label="روابط التذييل">
-              {NAV.map(n => n.href.startsWith('#') ? (
-                <a key={n.href} href={n.href}>{n.label}</a>
-              ) : (
-                <Link key={n.href} href={n.href}>{n.label}</Link>
+              {PUBLIC_NAV_ITEMS.map(n => (
+                <Link key={n.key} href={n.href}>{n.label}</Link>
               ))}
             </nav>
             <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>التحقق من صحة المستندات</Link>
@@ -305,71 +247,6 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
 
       {/* Spacer for mobile dock */}
       <div className="pw-dock-pad" aria-hidden="true" />
-
-      {/* Mobile Fixed Bottom Action Bar / Dock */}
-      <nav className="pw-mobile-dock" aria-label="شريط الوصول السريع">
-        <a href="#top" className="pw-dock-item" onClick={() => setOpen(false)}>
-          <span className="pw-dock-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-          </span>
-          <span className="pw-dock-label">الرئيسية</span>
-        </a>
-
-        <Link href="/store" className="pw-dock-item" onClick={() => setOpen(false)}>
-          <span className="pw-dock-icon">🛒</span>
-          <span className="pw-dock-label">المنتجات</span>
-        </Link>
-
-        <button
-          type="button"
-          className="pw-dock-item pw-dock-cta"
-          onClick={() => (cart.user ? cart.setCartOpen(true) : handleOpenLogin())}
-          aria-label="السلة / دخول النظام"
-        >
-          <span className="pw-dock-icon">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-              <path d="M3 6h18" />
-              <path d="M16 10a4 4 0 0 1-8 0" />
-            </svg>
-          </span>
-          <span className="pw-dock-label">
-            {cart.totalCount > 0 ? `السلة (${cart.totalCount})` : cart.user ? 'السلة' : 'دخول / سلة'}
-          </span>
-        </button>
-
-        <Link href="/real-estate" className="pw-dock-item" onClick={() => setOpen(false)}>
-          <span className="pw-dock-icon">🏢</span>
-          <span className="pw-dock-label">العقارات</span>
-        </Link>
-
-        <button
-          type="button"
-          className={`pw-dock-item ${open ? 'is-active' : ''}`}
-          onClick={() => setOpen(v => !v)}
-          aria-label={open ? 'إغلاق القائمة' : 'فتح القائمة'}
-          aria-expanded={open}
-        >
-          <span className="pw-dock-icon">
-            {open ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <line x1="4" x2="20" y1="6" y2="6" />
-                <line x1="4" x2="20" y1="12" y2="12" />
-                <line x1="4" x2="20" y1="18" y2="18" />
-              </svg>
-            )}
-          </span>
-          <span className="pw-dock-label">{open ? 'إغلاق' : 'القائمة'}</span>
-        </button>
-      </nav>
 
       <CartDrawer
         isOpen={cart.cartOpen}

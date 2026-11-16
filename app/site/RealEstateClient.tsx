@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { CSS } from './site-styles';
 import { mergeContent, type SiteContentOverride } from './site-content';
 import type { WebsiteProperty } from './store-catalog';
-import { CartButton, CartDrawer, useCustomerCart } from './CartDrawer';
+import { CartDrawer, useCustomerCart } from './CartDrawer';
+import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import { rememberVisitorContact } from '@/lib/client-device-info';
@@ -88,12 +89,6 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
     <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
       <style>{`
-        .re-hero {
-          background: radial-gradient(900px 440px at 80% 20%, rgba(249,115,22,0.24), transparent 70%), linear-gradient(180deg, #0b0f15 0%, #141a22 100%);
-          color: #ffffff;
-          padding: 108px 0 44px;
-          border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
         .re-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -124,69 +119,49 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
           .re-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 680px) {
-          .re-hero { padding: 84px 0 28px; }
           .re-specs-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
       `}</style>
 
-      {/* Top Sticky Header */}
-      <header className="pw-header is-scrolled">
-        <div className="pw-wrap pw-header-row">
-          <Link href="/" className="pw-brand" aria-label={`${SITE.name} — الرئيسية`}>
-            <img src="/brand/phitech-mark-color.svg" alt="" className="pw-brand-mark" />
-            <span className="pw-brand-text">
-              <strong>{SITE.name}</strong>
-              <small>REAL ESTATE & UNITS</small>
-            </span>
-          </Link>
+      {/* Unified Light Header (matches Homepage Standard) */}
+      <PublicHeader
+        siteName={SITE.name}
+        siteNameEn={SITE.nameEn}
+        activeKey="real-estate"
+        cartCount={cart.totalCount}
+        onOpenCart={() => cart.setCartOpen(true)}
+        userName={cart.user?.fullName}
+        onOpenLogin={() => (cart.user ? cart.setCartOpen(true) : setLoginOpen(true))}
+      />
 
-          <nav className="pw-nav" aria-label="التنقل الرئيسي">
+      {/* Unified Light Hero (matches Homepage Standard) */}
+      <section className="pw-unified-hero">
+        <div className="pw-wrap">
+          {PROMO_BANNER.enabled && (
+            <div className="pw-unified-promo">{PROMO_BANNER.text}</div>
+          )}
+
+          <nav className="pw-unified-crumb" aria-label="مسار التنقل">
             <Link href="/">الرئيسية</Link>
-            <Link href="/store">🛒 متجر المنتجات</Link>
-            <Link href="/real-estate" style={{ color: '#fb923c', fontWeight: 900 }}>
-              🏢 عروض العقارات
-            </Link>
-            <Link href="/sections/contracting?view=tower3d">المجسم 3D</Link>
-            <Link href="/verify" className="pw-nav-verify">
-              التحقق من المستندات
-            </Link>
+            <span className="sep">/</span>
+            <Link href="/sections/real-estate">قسم العقارات</Link>
+            <span className="sep">/</span>
+            <span>العروض والوحدات المتاحة</span>
           </nav>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <CartButton count={cart.totalCount} onClick={() => cart.setCartOpen(true)} />
+          <div className="pw-head" style={{ marginBottom: '26px' }}>
+            <p className="pw-eyebrow">العروض العقارية والوحدات السكنية والتجارية — فاي تك</p>
+            <h1>
+              امتلك وحدتك السكنية أو التجارية{' '}
+              <span style={{ color: 'var(--o)' }}>بتنفيذ وتشطيب هندسي موثّق</span>
+            </h1>
+            <p>
+              شقق تمليك، وحدات دوبلكس، ومعارض تجارية بمواقع استراتيجية وتصميمات معمارية مدروسة، مع إمكانية استلام وحدتك
+              كاملة التشطيب والسمارت هوم بأنظمة سداد مرنة.
+            </p>
           </div>
-        </div>
-      </header>
 
-      {/* Hero */}
-      <section className="re-hero">
-        {PROMO_BANNER.enabled && (
-          <div
-            style={{
-              background: 'linear-gradient(90deg, #9a3412 0%, #ea580c 50%, #c2410c 100%)',
-              color: '#fff',
-              padding: '10px 16px',
-              textAlign: 'center',
-              fontSize: '0.84rem',
-              fontWeight: 800,
-              marginBottom: '22px',
-            }}
-          >
-            <div className="pw-wrap">{PROMO_BANNER.text}</div>
-          </div>
-        )}
-        <div className="pw-wrap">
-          <p className="pw-eyebrow" style={{ color: '#fb923c' }}>
-            العروض العقارية والوحدات السكنية والتجارية — فاي تك
-          </p>
-          <h1 style={{ fontSize: 'clamp(1.45rem, 3.2vw, 2.4rem)', fontWeight: 900, lineHeight: 1.32, marginBottom: '12px' }}>
-            امتلك وحدتك السكنية أو التجارية <span style={{ color: '#f97316' }}>بتنفيذ وتشطيب هندسي موثّق</span>
-          </h1>
-          <p style={{ color: '#cbd5e1', maxWidth: '46rem', fontSize: '0.96rem', marginBottom: '20px' }}>
-            شقق تمليك، وحدات دوبلكس، ومعارض تجارية بمواقع استراتيجية وتصميمات معمارية مدروسة، مع إمكانية استلام وحدتك
-            كاملة التشطيب والسمارت هوم بأنظمة سداد مرنة.
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
             <Link
               href="/sections/contracting?view=tower3d"
               className="pw-btn pw-btn-primary"
@@ -195,11 +170,18 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
               🏙️ استعرض المجسم المعماري 3D والمساقط للوحدات
             </Link>
             <Link
-              href="/store"
-              className="pw-btn pw-btn-light"
+              href="/sections/real-estate"
+              className="pw-btn pw-btn-ghost"
               style={{ minHeight: '44px', padding: '0 18px', fontSize: '0.88rem' }}
             >
-              🛒 تصفح متجر مواد التشطيب والسمارت هوم ←
+              📐 حاسبة المقدم والأقساط
+            </Link>
+            <Link
+              href="/store"
+              className="pw-btn pw-btn-ghost"
+              style={{ minHeight: '44px', padding: '0 18px', fontSize: '0.88rem' }}
+            >
+              🛒 متجر مواد التشطيب والسمارت هوم ←
             </Link>
           </div>
         </div>
@@ -234,7 +216,41 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
           ))}
         </div>
 
-        {/* Properties Grid */}
+        {/* Properties Grid / Empty State */}
+        {filteredProps.length === 0 ? (
+          <div
+            style={{
+              background: '#ffffff',
+              border: '1px solid #e3e6e9',
+              borderRadius: '20px',
+              padding: '38px 24px',
+              textAlign: 'center',
+              maxWidth: '640px',
+              margin: '12px auto',
+            }}
+          >
+            <div style={{ fontSize: '2.2rem', marginBottom: '10px' }}>🏢</div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, marginBottom: '8px', color: '#14181b' }}>
+              لا توجد وحدات مطابقة حالياً في هذا التصنيف
+            </h3>
+            <p style={{ fontSize: '0.9rem', color: '#47525c', marginBottom: '18px', lineHeight: 1.7 }}>
+              يتم تحديث قائمة الوحدات المتاحة باستمرار. يمكنك استعراض المجسم المعماري 3D أو التواصل مع مستشار العقارات لمعرفة الطرح القادم.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
+              <Link href="/sections/contracting?view=tower3d" className="pw-btn pw-btn-primary">
+                🏙️ استعرض المجسم المعماري 3D
+              </Link>
+              <a
+                href={`https://wa.me/${cleanWa}?text=${encodeURIComponent('مرحباً فاي تك، أستفسر عن الوحدات العقارية المتاحة والطرح القادم')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pw-btn pw-btn-ghost"
+              >
+                💬 استفسر عبر واتساب
+              </a>
+            </div>
+          </div>
+        ) : (
         <div className="re-grid">
           {filteredProps.map((prop) => {
             const downPaymentVal = prop.downPaymentPct
@@ -489,6 +505,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
             );
           })}
         </div>
+        )}
       </main>
 
       {/* Property Inquiry / Booking Modal */}
@@ -621,38 +638,31 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
         </div>
       )}
 
-      {/* Mobile Bottom Dock */}
+      {/* Unified Footer (matches Homepage Standard) */}
+      <footer className="pw-footer">
+        <div className="pw-wrap">
+          <div className="pw-footer-row">
+            <div className="pw-footer-brand">
+              <img src="/brand/phitech-mark-color.svg" alt="" />
+              <div>
+                <strong>{SITE.name}</strong>
+                <small>{SITE.tagline}</small>
+              </div>
+            </div>
+            <nav className="pw-footer-nav" aria-label="روابط التذييل">
+              {PUBLIC_NAV_ITEMS.map((n) => (
+                <Link key={n.href} href={n.href}>{n.label}</Link>
+              ))}
+            </nav>
+            <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>
+              التحقق من صحة المستندات
+            </Link>
+          </div>
+          <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
+        </div>
+      </footer>
+
       <div className="pw-dock-pad" aria-hidden="true" />
-      <nav className="pw-mobile-dock" aria-label="شريط الوصول السريع">
-        <Link href="/" className="pw-dock-item">
-          <span className="pw-dock-icon">🏠</span>
-          <span className="pw-dock-label">الرئيسية</span>
-        </Link>
-        <Link href="/store" className="pw-dock-item">
-          <span className="pw-dock-icon">🛒</span>
-          <span className="pw-dock-label">المنتجات</span>
-        </Link>
-        <button
-          type="button"
-          className="pw-dock-item pw-dock-cta"
-          onClick={() => cart.setCartOpen(true)}
-        >
-          <span className="pw-dock-icon">🛍️</span>
-          <span className="pw-dock-label">السلة ({cart.totalCount})</span>
-        </button>
-        <Link href="/real-estate" className="pw-dock-item is-active">
-          <span className="pw-dock-icon">🏢</span>
-          <span className="pw-dock-label">العقارات</span>
-        </Link>
-        <button
-          type="button"
-          className="pw-dock-item"
-          onClick={() => (cart.user ? cart.setCartOpen(true) : setLoginOpen(true))}
-        >
-          <span className="pw-dock-icon">👤</span>
-          <span className="pw-dock-label">{cart.user ? 'حسابي' : 'دخول'}</span>
-        </button>
-      </nav>
 
       {/* Cart Drawer */}
       <CartDrawer

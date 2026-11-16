@@ -11,7 +11,8 @@ import {
   type WebsiteProduct,
 } from './store-catalog';
 import { PORTAL_SECTIONS, type SectionSlug } from './section-defs';
-import { CartButton, CartDrawer, useCustomerCart } from './CartDrawer';
+import { CartDrawer, useCustomerCart } from './CartDrawer';
+import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import EngTools from './EngTools';
@@ -263,70 +264,38 @@ export default function SectionDetailClient({
     <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
 
-      {/* Top Sticky Navbar */}
-      <header className="pw-header is-scrolled pw-header-solid">
-        <div className="pw-wrap pw-header-row">
-          <Link href="/" className="pw-brand" aria-label={`${SITE.name} — الرئيسية`}>
-            <img src="/brand/phitech-mark-color.svg" alt="" className="pw-brand-mark" />
-            <span className="pw-brand-text">
-              <strong>{SITE.name}</strong>
-              <small>{SITE.nameEn}</small>
-            </span>
-          </Link>
-
-          <nav className="pw-nav" aria-label="التنقل الرئيسي">
-            <Link href="/">🏠 كل الأقسام</Link>
-            <Link href="/store">🛒 المتجر الكامل</Link>
-            <Link href="/real-estate">🏢 العقارات</Link>
-            <Link href="/verify" className="pw-nav-verify">
-              التحقق من المستندات
-            </Link>
-            <CartButton count={cart.totalCount} onClick={() => cart.setCartOpen(true)} />
-            <button
-              type="button"
-              onClick={() => setLoginOpen(true)}
-              className="pw-btn pw-btn-primary pw-nav-cta"
-            >
-              {cart.user ? `👤 ${cart.user.fullName.split(' ')[0]}` : 'دخول النظام'}
-            </button>
-          </nav>
-        </div>
-      </header>
+      <PublicHeader
+        siteName={SITE.name}
+        siteNameEn={SITE.nameEn}
+        activeKey={slug}
+        cartCount={cart.totalCount}
+        onOpenCart={() => cart.setCartOpen(true)}
+        userName={cart.user?.fullName}
+        onOpenLogin={() => setLoginOpen(true)}
+      />
 
       <main className="pw-section-page">
-        {/* Clean Focused Header Strip for This Section Only */}
-        <div className="pw-sec-hero" style={{ '--portal-accent': sectionMeta.accent } as React.CSSProperties}>
+        {/* Clean Unified Architectural Page Header matching Homepage Standard */}
+        <section
+          className="pw-unified-hero"
+          style={{ '--portal-accent': sectionMeta.accent } as React.CSSProperties}
+        >
           <div className="pw-wrap">
-            <div className="pw-sec-breadcrumb">
-              <Link href="/" className="pw-back-btn">
-                → الرجوع إلى مربعات الأقسام الرئيسية
-              </Link>
-              <div className="pw-sec-hops">
-                {PORTAL_SECTIONS.map((s) => (
-                  <Link
-                    key={s.slug}
-                    href={s.href}
-                    className={`pw-sec-hop ${s.slug === slug ? 'is-current' : ''}`}
-                  >
-                    <span>{s.icon}</span>
-                    <span>{s.title}</span>
-                  </Link>
-                ))}
+            <div className="pw-head" style={{ marginBottom: 0 }}>
+              <div className="pw-unified-crumb">
+                <Link href="/">الأقسام الرئيسية</Link>
+                <span>/</span>
+                <span>{sectionMeta.title}</span>
               </div>
-            </div>
-
-            <div className="pw-sec-title-row">
-              <span className="pw-sec-big-icon" aria-hidden="true">
-                {sectionMeta.icon}
-              </span>
-              <div>
-                <span className="pw-sec-kicker">قسم رقم {sectionMeta.num} — {SITE.name}</span>
-                <h1>{sectionMeta.title}</h1>
-                <p>{sectionMeta.guideHint}</p>
-              </div>
+              <p className="pw-eyebrow">قسم رقم {sectionMeta.num} · {SITE.name}</p>
+              <h1>
+                <span style={{ marginInlineEnd: '8px' }} aria-hidden="true">{sectionMeta.icon}</span>
+                {sectionMeta.title}
+              </h1>
+              <p>{sectionMeta.guideHint}</p>
             </div>
           </div>
-        </div>
+        </section>
 
         {/* Dedicated Content Area */}
         <div className="pw-wrap pw-sec-content">
@@ -658,50 +627,69 @@ export default function SectionDetailClient({
                 </Link>
               </div>
 
-              <div className="pw-re-grid">
-                {filteredProperties.map((prop) => (
-                  <article key={prop.id} className="pw-re-card">
-                    <div>
-                      <div className="pw-re-card-top">
-                        <span className="pw-badge">{prop.code} · {prop.typeLabel}</span>
-                        {prop.badge && <span className="pw-re-hot">{prop.badge}</span>}
+              {filteredProperties.length === 0 ? (
+                <div className="pw-calc-box" style={{ textAlign: 'center', padding: '32px 24px', marginBottom: '24px' }}>
+                  <p style={{ fontSize: '2rem', marginBottom: '8px' }}>🏢</p>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 900, marginBottom: '6px' }}>
+                    تُحدَّث قائمة الوحدات العقارية المتاحة دورياً من الإدارة الهندسية
+                  </h3>
+                  <p className="pw-muted" style={{ maxWidth: '34rem', margin: '0 auto 16px', fontSize: '0.9rem' }}>
+                    استخدم حاسبة المقدم والأقساط بالأسفل أو تواصل معنا مباشرة لإرسال أحدث عروض الشقق والدوبلكس والمعارض المتاحة حالياً.
+                  </p>
+                  <button
+                    type="button"
+                    className="pw-btn pw-btn-primary"
+                    onClick={() => openWhatsApp('مرحباً فاي تك، أرجو تزويدي بقائمة الوحدات السكنية والتجارية المتاحة وأنظمة السداد الحالية.')}
+                  >
+                    📲 اطلب أحدث عروض العقارات المتاحة
+                  </button>
+                </div>
+              ) : (
+                <div className="pw-re-grid">
+                  {filteredProperties.map((prop) => (
+                    <article key={prop.id} className="pw-re-card">
+                      <div>
+                        <div className="pw-re-card-top">
+                          <span className="pw-badge">{prop.code} · {prop.typeLabel}</span>
+                          {prop.badge && <span className="pw-re-hot">{prop.badge}</span>}
+                        </div>
+                        <h3>{prop.title}</h3>
+                        <p className="pw-re-sub">{prop.subtitle}</p>
+                        <div className="pw-re-specs">
+                          <div><small>المساحة</small><strong>{prop.areaSqm} م²</strong></div>
+                          <div><small>الغرف / الحمام</small><strong>{prop.bedrooms > 0 ? `${prop.bedrooms} غرف · ${prop.bathrooms} حمام` : 'معرض مفتوح'}</strong></div>
+                          <div><small>الموقع</small><strong>{prop.city}</strong></div>
+                          <div><small>التشطيب</small><strong>{prop.finishingLabel}</strong></div>
+                        </div>
+                        <ul className="pw-re-features">
+                          {prop.features.map((feat) => (
+                            <li key={feat}>✓ {feat}</li>
+                          ))}
+                        </ul>
                       </div>
-                      <h3>{prop.title}</h3>
-                      <p className="pw-re-sub">{prop.subtitle}</p>
-                      <div className="pw-re-specs">
-                        <div><small>المساحة</small><strong>{prop.areaSqm} م²</strong></div>
-                        <div><small>الغرف / الحمام</small><strong>{prop.bedrooms > 0 ? `${prop.bedrooms} غرف · ${prop.bathrooms} حمام` : 'معرض مفتوح'}</strong></div>
-                        <div><small>الموقع</small><strong>{prop.city}</strong></div>
-                        <div><small>التشطيب</small><strong>{prop.finishingLabel}</strong></div>
+                      <div className="pw-re-foot">
+                        <span className="pw-re-terms">
+                          💳 مقدم {prop.downPaymentPct || 25}% · تقسيط حتى {prop.installmentYears || 3} سنوات ({prop.deliveryLabel})
+                        </span>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            className="pw-btn pw-btn-primary"
+                            style={{ minHeight: '38px', padding: '0 14px', fontSize: '0.82rem' }}
+                            onClick={() =>
+                              openWhatsApp(
+                                `استفسار عقاري عن (${prop.title} - كود ${prop.code} - مساحة ${prop.areaSqm} م²). أرجو تزويدي بالمسقط المعماري وتفاصيل السعر والسداد.`
+                              )
+                            }
+                          >
+                            📋 طلب عرض السعر والمعاينة
+                          </button>
+                        </div>
                       </div>
-                      <ul className="pw-re-features">
-                        {prop.features.map((feat) => (
-                          <li key={feat}>✓ {feat}</li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="pw-re-foot">
-                      <span className="pw-re-terms">
-                        💳 مقدم {prop.downPaymentPct || 25}% · تقسيط حتى {prop.installmentYears || 3} سنوات ({prop.deliveryLabel})
-                      </span>
-                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                        <button
-                          type="button"
-                          className="pw-btn pw-btn-primary"
-                          style={{ minHeight: '38px', padding: '0 14px', fontSize: '0.82rem' }}
-                          onClick={() =>
-                            openWhatsApp(
-                              `استفسار عقاري عن (${prop.title} - كود ${prop.code} - مساحة ${prop.areaSqm} م²). أرجو تزويدي بالمسقط المعماري وتفاصيل السعر والسداد.`
-                            )
-                          }
-                        >
-                          📋 طلب عرض السعر والمعاينة
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                    </article>
+                  ))}
+                </div>
+              )}
 
               <div className="pw-calc-box" style={{ marginTop: '24px' }}>
                 <div className="pw-calc-head">
@@ -1102,11 +1090,18 @@ export default function SectionDetailClient({
               <img src="/brand/phitech-mark-light.svg" alt="" />
               <div><strong>{SITE.legalName}</strong><small>{SITE.offices.join(' · ')}</small></div>
             </div>
-            <Link href="/" className="pw-footer-link">← الرجوع للأقسام الرئيسية</Link>
+            <nav className="pw-footer-nav" aria-label="روابط التذييل">
+              {PUBLIC_NAV_ITEMS.map((n) => (
+                <Link key={n.key} href={n.href}>{n.label}</Link>
+              ))}
+            </nav>
+            <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>التحقق من صحة المستندات</Link>
           </div>
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
         </div>
       </footer>
+
+      <div className="pw-dock-pad" aria-hidden="true" />
 
       <CartDrawer
         isOpen={cart.cartOpen}

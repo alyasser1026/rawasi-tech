@@ -55,7 +55,11 @@ test('authenticated customer shopping cart and live chat components exist with r
 
   const phiSite = read('app/site/PhiSite.tsx');
   assert.match(phiSite, /wa\.me/);
-  assert.match(phiSite, /pw-header-glass/);
+  assert.match(phiSite, /PublicHeader/);
+
+  const publicHeader = read('app/site/PublicHeader.tsx');
+  assert.match(publicHeader, /pw-header-glass/);
+  assert.match(publicHeader, /pw-mobile-dock/);
 });
 
 test('store and real-estate pages and clients are wired with cart, live chat, and login modal', () => {
@@ -119,8 +123,10 @@ test('execution & maintenance services tab covers all trades with recommendation
   assert.match(storeClient, /handleSubmitMaintenanceRequest/);
   assert.match(storeClient, /حجز خدمة تنفيذ أو صيانة هندسية/);
 
+  const publicHeader = read('app/site/PublicHeader.tsx');
+  assert.match(publicHeader, /\/sections\/maintenance/);
   const phiSite = read('app/site/PhiSite.tsx');
-  assert.match(phiSite, /\/sections\/maintenance/);
+  assert.match(phiSite, /PUBLIC_NAV_ITEMS/);
 
   const sectionClient = read('app/site/SectionDetailClient.tsx');
   assert.match(sectionClient, /\/store\?tab=maintenance/);
@@ -185,4 +191,46 @@ test('interactive live-chat auto-responder covers expected scenarios, human esca
   assert.match(adminPage, /chatBotConfig/);
   assert.match(adminPage, /escalatedToHuman/);
   assert.match(adminPage, /botPaused/);
+});
+
+test('all public website pages share unified Homepage standard header, hero band, and footer', () => {
+  const publicHeader = read('app/site/PublicHeader.tsx');
+  assert.match(publicHeader, /export const PUBLIC_NAV_ITEMS/);
+  assert.match(publicHeader, /pw-header-glass/);
+  assert.match(publicHeader, /pw-mobile-dock/);
+
+  const siteStyles = read('app/site/site-styles.ts');
+  assert.match(siteStyles, /\.pw-unified-hero\{/);
+  assert.match(siteStyles, /\.pw-unified-crumb\{/);
+  assert.match(siteStyles, /\.pw-header\.pw-header-glass \.pw-nav a\.is-nav-active/);
+
+  for (const rel of [
+    'app/site/PhiSite.tsx',
+    'app/site/SectionDetailClient.tsx',
+    'app/site/StoreClient.tsx',
+    'app/site/RealEstateClient.tsx',
+  ]) {
+    const src = read(rel);
+    assert.match(src, /<PublicHeader/, `${rel} must mount shared PublicHeader`);
+    assert.match(src, /PUBLIC_NAV_ITEMS/, `${rel} footer must use PUBLIC_NAV_ITEMS`);
+    assert.match(src, /className="pw-footer"/, `${rel} must use unified .pw-footer`);
+    assert.doesNotMatch(src, /pw-header-solid/, `${rel} must not use legacy dark header`);
+  }
+
+  for (const rel of [
+    'app/site/SectionDetailClient.tsx',
+    'app/site/StoreClient.tsx',
+    'app/site/RealEstateClient.tsx',
+  ]) {
+    const src = read(rel);
+    assert.match(src, /pw-unified-hero/, `${rel} must use light unified hero`);
+    assert.match(src, /pw-unified-crumb/, `${rel} must use clean unified breadcrumb`);
+  }
+
+  const realEstateClient = read('app/site/RealEstateClient.tsx');
+  assert.doesNotMatch(realEstateClient, /\.re-hero/);
+  assert.match(realEstateClient, /filteredProps\.length === 0/);
+
+  const storeClient = read('app/site/StoreClient.tsx');
+  assert.doesNotMatch(storeClient, /\.st-hero/);
 });
