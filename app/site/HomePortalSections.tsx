@@ -4,10 +4,13 @@ import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { SMART_BUNDLES, type WebsiteProduct, type WebsiteProperty } from './store-catalog';
 import { PORTAL_SECTIONS, type SectionSlug } from './section-defs';
+import NewsTicker from './NewsTicker';
+import { DEFAULT_NEWS_TICKER, type NewsTickerConfig } from './site-content';
 
 interface HomePortalSectionsProps {
   products: WebsiteProduct[];
   properties: WebsiteProperty[];
+  newsTicker?: NewsTickerConfig;
   whatsappNumber: string;
   onAddToCart: (product: WebsiteProduct, qty: number, withInstall: boolean) => void;
   onAddBundleToCart: (items: { product: WebsiteProduct; qty: number }[], withInstall: boolean) => void;
@@ -16,6 +19,7 @@ interface HomePortalSectionsProps {
 export default function HomePortalSections({
   products,
   properties,
+  newsTicker = DEFAULT_NEWS_TICKER,
   whatsappNumber,
   onAddToCart,
   onAddBundleToCart,
@@ -99,6 +103,8 @@ export default function HomePortalSections({
       {/* 1. مربعات الأقسام الستة الرئيسية — واجهة فتح الموقع بدون أي زحمة */}
       <section id="portals" className="pw-section pw-portal-gateway" aria-labelledby="portals-heading">
         <div className="pw-wrap">
+          <NewsTicker config={newsTicker} />
+
           <div className="pw-head" style={{ marginBottom: '28px' }}>
             <p className="pw-eyebrow">أهلاً بك في فاي تك — اختر قسمك مباشرة</p>
             <h1 id="portals-heading" className="pw-portal-main-h1">

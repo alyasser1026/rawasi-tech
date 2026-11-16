@@ -87,7 +87,7 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
 }
 
 export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
-  const { SITE, PRODUCTS, PROPERTIES } = mergeContent(content);
+  const { SITE, PRODUCTS, PROPERTIES, NEWS_TICKER } = mergeContent(content);
   const router = useRouter();
   const [heroControls, setHeroControls] = useState<HeroVideoControlsState | null>(null);
   const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
@@ -150,6 +150,7 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
         <HomePortalSections
           products={PRODUCTS}
           properties={PROPERTIES}
+          newsTicker={NEWS_TICKER}
           whatsappNumber={c.whatsapp}
           onAddToCart={cart.addToCart}
           onAddBundleToCart={cart.addBundleToCart}

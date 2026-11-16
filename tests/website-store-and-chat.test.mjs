@@ -234,3 +234,32 @@ test('all public website pages share unified Homepage standard header, hero band
   const storeClient = read('app/site/StoreClient.tsx');
   assert.doesNotMatch(storeClient, /\.st-hero/);
 });
+
+test('home screen renders seamless infinite looping news ticker with CMS controls', () => {
+  const tickerComp = read('app/site/NewsTicker.tsx');
+  assert.match(tickerComp, /phi-ticker-bar/);
+  assert.match(tickerComp, /phi-ticker-track/);
+  assert.match(tickerComp, /renderGroup\('g1', false\)/);
+  assert.match(tickerComp, /renderGroup\('g2', true\)/);
+
+  const siteStyles = read('app/site/site-styles.ts');
+  assert.match(siteStyles, /@keyframes phiTickerScroll/);
+  assert.match(siteStyles, /animation:phiTickerScroll/);
+  assert.match(siteStyles, /animation-play-state:paused/);
+
+  const siteContent = read('app/site/site-content.ts');
+  assert.match(siteContent, /export const DEFAULT_NEWS_TICKER/);
+  assert.match(siteContent, /NEWS_TICKER:/);
+  assert.match(siteContent, /if \(raw\.newsTicker/);
+
+  const homePortal = read('app/site/HomePortalSections.tsx');
+  assert.match(homePortal, /<NewsTicker/);
+
+  const phiSite = read('app/site/PhiSite.tsx');
+  assert.match(phiSite, /NEWS_TICKER/);
+  assert.match(phiSite, /newsTicker=\{NEWS_TICKER\}/);
+
+  const adminPage = read('app/website-admin/page.tsx');
+  assert.match(adminPage, /newsTicker/);
+  assert.match(adminPage, /شريط آخر الأخبار المتحرك/);
+});

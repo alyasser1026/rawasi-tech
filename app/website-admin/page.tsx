@@ -9,9 +9,11 @@ import {
   COMMITMENTS,
   FAQS,
   DEFAULT_PROMO_BANNER,
+  DEFAULT_NEWS_TICKER,
   DEFAULT_CHAT_BOT_CONFIG,
   sanitizeContent,
   type ChatBotConfig,
+  type NewsTickerConfig,
   type PromoBannerConfig,
 } from '../site/site-content';
 import {
@@ -51,6 +53,7 @@ type Content = {
   properties: WebsiteProperty[];
   maintenanceServices: WebsiteMaintenanceService[];
   promoBanner: PromoBannerConfig;
+  newsTicker: NewsTickerConfig;
   chatBotConfig: ChatBotConfig;
 };
 
@@ -92,6 +95,10 @@ function defaults(): Content {
       maintenanceScope: [...m.maintenanceScope],
     })),
     promoBanner: { ...DEFAULT_PROMO_BANNER },
+    newsTicker: {
+      ...DEFAULT_NEWS_TICKER,
+      items: DEFAULT_NEWS_TICKER.items.map((item) => ({ ...item })),
+    },
     chatBotConfig: {
       ...DEFAULT_CHAT_BOT_CONFIG,
       customRules: DEFAULT_CHAT_BOT_CONFIG.customRules.map((r) => ({
@@ -122,6 +129,12 @@ function fromStored(raw: any): Content {
     promoBanner: {
       enabled: s.promoBanner?.enabled ?? d.promoBanner.enabled,
       text: s.promoBanner?.text ?? d.promoBanner.text,
+    },
+    newsTicker: {
+      enabled: s.newsTicker?.enabled ?? d.newsTicker.enabled,
+      label: s.newsTicker?.label ?? d.newsTicker.label,
+      speedSeconds: s.newsTicker?.speedSeconds ?? d.newsTicker.speedSeconds,
+      items: s.newsTicker?.items ?? d.newsTicker.items,
     },
     chatBotConfig: {
       enabled: s.chatBotConfig?.enabled ?? d.chatBotConfig.enabled,
@@ -501,6 +514,116 @@ export default function WebsiteAdminPage() {
                   on={(v) => upd((d) => { d.promoBanner.text = v; })}
                   wide
                 />
+              </div>
+
+              <div className="wa-card wa-form">
+                <div className="wa-wide" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <h3 style={{ margin: 0 }}>
+                    📰 شريط آخر الأخبار المتحرك في الشاشة الرئيسية
+                  </h3>
+                  <button
+                    type="button"
+                    className="wa-btn wa-primary"
+                    onClick={() =>
+                      upd((d) => {
+                        d.newsTicker.items.unshift({
+                          id: `news-${Date.now().toString(36)}`,
+                          tag: 'جديد',
+                          text: 'خبر أو عرض جديد من فاي تك — اضغط للتفاصيل',
+                          href: '/store',
+                          active: true,
+                        });
+                      })
+                    }
+                  >
+                    + إضافة خبر جديد
+                  </button>
+                </div>
+
+                <label className="wa-f" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={c.newsTicker.enabled}
+                    onChange={(e) => upd((d) => { d.newsTicker.enabled = e.target.checked; })}
+                    style={{ width: '18px', height: '18px' }}
+                  />
+                  <strong>تفعيل الشريط المتحرك في الصفحة الرئيسية</strong>
+                </label>
+
+                <F
+                  label="عنوان الشارة (مثال: آخر الأخبار)"
+                  v={c.newsTicker.label}
+                  on={(v) => upd((d) => { d.newsTicker.label = v; })}
+                />
+
+                <label className="wa-f">
+                  <span>سرعة الدورة بالثواني (16 سريع - 90 بطيء)</span>
+                  <input
+                    type="number"
+                    min={16}
+                    max={90}
+                    value={c.newsTicker.speedSeconds}
+                    onChange={(e) =>
+                      upd((d) => {
+                        const n = Number(e.target.value);
+                        d.newsTicker.speedSeconds = Number.isFinite(n) ? Math.min(90, Math.max(16, n)) : 38;
+                      })
+                    }
+                  />
+                </label>
+
+                <div className="wa-wide" style={{ display: 'grid', gap: '10px' }}>
+                  {c.newsTicker.items.map((item, idx) => (
+                    <div
+                      key={item.id}
+                      style={{
+                        border: '1px solid var(--line)',
+                        borderRadius: '12px',
+                        padding: '12px',
+                        background: 'var(--bg)',
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))',
+                        gap: '10px',
+                        alignItems: 'end',
+                      }}
+                    >
+                      <F
+                        label="تصنيف قصير (Tag)"
+                        v={item.tag || ''}
+                        on={(v) => upd((d) => { d.newsTicker.items[idx].tag = v; })}
+                      />
+                      <F
+                        label="نص الخبر أو العرض"
+                        v={item.text}
+                        on={(v) => upd((d) => { d.newsTicker.items[idx].text = v; })}
+                        wide
+                      />
+                      <F
+                        label="الرابط عند الضغط (مثال: /store أو /sections/smart-home)"
+                        v={item.href || ''}
+                        dir="ltr"
+                        on={(v) => upd((d) => { d.newsTicker.items[idx].href = v; })}
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '12.5px', fontWeight: 700 }}>
+                          <input
+                            type="checkbox"
+                            checked={item.active !== false}
+                            onChange={(e) => upd((d) => { d.newsTicker.items[idx].active = e.target.checked; })}
+                          />
+                          <span>ظاهر</span>
+                        </label>
+                        <button
+                          type="button"
+                          className="wa-btn wa-danger"
+                          onClick={() => upd((d) => { d.newsTicker.items.splice(idx, 1); })}
+                        >
+                          حذف
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', margin: '8px 0' }}>

@@ -34,6 +34,8 @@ export type Project = { name: string; kind: string; area: string; status: string
 export type Commitment = { title: string; text: string };
 export type Faq = { q: string; a: string };
 export type PromoBannerConfig = { enabled: boolean; text: string };
+export type NewsTickerItem = { id: string; tag?: string; text: string; href?: string; active?: boolean };
+export type NewsTickerConfig = { enabled: boolean; label: string; speedSeconds: number; items: NewsTickerItem[] };
 
 export const SITE = {
   name: 'فاي تك',
@@ -124,6 +126,56 @@ export const DEFAULT_PROMO_BANNER: PromoBannerConfig = {
   text: '✨ متجر فاي تك للتشطيبات والسمارت هوم وحساسات الأمان — اطلب التوريد والتركيب الهندسي المعتمد مباشرة لمشروعك',
 };
 
+export const DEFAULT_NEWS_TICKER: NewsTickerConfig = {
+  enabled: true,
+  label: 'آخر الأخبار',
+  speedSeconds: 38,
+  items: [
+    {
+      id: 'news-smart',
+      tag: 'سمارت هوم',
+      text: 'باقة التحول للمنزل الذكي بدون تكسير — تحكم بالإضاءة والتكييف والستائر بالصوت والموبايل',
+      href: '/sections/smart-home',
+      active: true,
+    },
+    {
+      id: 'news-sensors',
+      tag: 'عروض المتجر',
+      text: 'توريد وتركيب حساسات الأمان للغاز والمياه والحريق مع إشعار فوري على الجوال وضمان هندسي معتمد',
+      href: '/store',
+      active: true,
+    },
+    {
+      id: 'news-3d',
+      tag: 'المجسم 3D',
+      text: 'استعرض المخططات الهندسية والطبقات المعمارية التفاعلية ثلاثية الأبعاد قبل التعاقد',
+      href: '/sections/contracting?view=tower3d',
+      active: true,
+    },
+    {
+      id: 'news-maint',
+      tag: 'صيانة وتنفيذ',
+      text: 'تأسيسات كهرباء وسباكة وتكييف مخفي بمعاينة هندسية موثقة وخطة صيانة شاملة',
+      href: '/sections/maintenance',
+      active: true,
+    },
+    {
+      id: 'news-materials',
+      tag: 'مواد البناء',
+      text: 'توريد خامات التشطيب بسعر الجملة مع خدمة بيع وتسويق فائض مواد البناء في مشروعك',
+      href: '/sections/materials',
+      active: true,
+    },
+    {
+      id: 'news-re',
+      tag: 'العقارات',
+      text: 'حاسبة المقدم والأقساط العقارية التفاعلية واستشارات معاينة الوحدات السكنية والتجارية',
+      href: '/sections/real-estate',
+      active: true,
+    },
+  ],
+};
+
 /** ما يُدار من صفحة «إدارة الموقع» (website-admin). أي حقل غير موجود يرجع للقيمة الافتراضية أعلاه. */
 export type SiteContentOverride = {
   site?: Partial<Omit<typeof SITE, 'contact' | 'offices'>> & { contact?: Partial<typeof SITE.contact>; offices?: string[] };
@@ -135,6 +187,7 @@ export type SiteContentOverride = {
   properties?: WebsiteProperty[];
   maintenanceServices?: WebsiteMaintenanceService[];
   promoBanner?: Partial<PromoBannerConfig>;
+  newsTicker?: Partial<NewsTickerConfig>;
   chatBotConfig?: Partial<ChatBotConfig>;
 };
 
@@ -290,6 +343,40 @@ export function sanitizeContent(raw: any): SiteContentOverride {
     };
   }
 
+  if (raw.newsTicker && typeof raw.newsTicker === 'object') {
+    const nt = raw.newsTicker;
+    const rawSpeed = Number(nt.speedSeconds);
+    out.newsTicker = {
+      enabled: nt.enabled !== false,
+      label: str(nt.label, 40) || DEFAULT_NEWS_TICKER.label,
+      speedSeconds: Number.isFinite(rawSpeed)
+        ? Math.min(90, Math.max(16, Math.round(rawSpeed)))
+        : DEFAULT_NEWS_TICKER.speedSeconds,
+      ...(Array.isArray(nt.items) && {
+        items: arr<NewsTickerItem>(
+          nt.items,
+          (it) => {
+            const text = str(it?.text, 220);
+            if (!text) return null;
+            const rawHref = str(it?.href, 220);
+            const safeHref =
+              rawHref && (rawHref.startsWith('/') || rawHref.startsWith('#') || /^https?:\/\//i.test(rawHref))
+                ? rawHref
+                : undefined;
+            return {
+              id: str(it?.id, 60) || `news-${Math.random().toString(36).slice(2, 8)}`,
+              tag: str(it?.tag, 40) || undefined,
+              text,
+              href: safeHref,
+              active: it?.active !== false,
+            };
+          },
+          20
+        ),
+      }),
+    };
+  }
+
   if (raw.chatBotConfig && typeof raw.chatBotConfig === 'object') {
     const cb = raw.chatBotConfig;
     out.chatBotConfig = {
@@ -350,6 +437,12 @@ export function mergeContent(o: SiteContentOverride = {}) {
     PROMO_BANNER: {
       enabled: o.promoBanner?.enabled ?? DEFAULT_PROMO_BANNER.enabled,
       text: o.promoBanner?.text ?? DEFAULT_PROMO_BANNER.text,
+    },
+    NEWS_TICKER: {
+      enabled: o.newsTicker?.enabled ?? DEFAULT_NEWS_TICKER.enabled,
+      label: o.newsTicker?.label || DEFAULT_NEWS_TICKER.label,
+      speedSeconds: o.newsTicker?.speedSeconds ?? DEFAULT_NEWS_TICKER.speedSeconds,
+      items: o.newsTicker?.items ?? DEFAULT_NEWS_TICKER.items,
     },
     CHAT_BOT: {
       enabled: o.chatBotConfig?.enabled ?? DEFAULT_CHAT_BOT_CONFIG.enabled,
