@@ -23,15 +23,15 @@ body:has(.pw){padding:0!important}
 .pw-header{position:sticky;top:0;z-index:60;margin-bottom:-72px;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:1px solid transparent;transition:background .25s ease,border-color .25s ease,box-shadow .25s ease,backdrop-filter .25s ease}
 .pw-header.is-scrolled{background:rgba(10,14,20,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom-color:rgba(255,255,255,.12);box-shadow:0 8px 30px rgba(0,0,0,.45)}
 .pw-header.pw-header-solid{margin-bottom:0!important;background:rgba(12,16,22,.68)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.12)}
-.pw-header.pw-header-glass{margin-bottom:0!important;background:rgba(255,255,255,.45)!important;backdrop-filter:blur(18px) saturate(165%)!important;-webkit-backdrop-filter:blur(18px) saturate(165%)!important;border-bottom:1px solid rgba(20,24,27,.08)!important;box-shadow:none!important}
-.pw-header.pw-header-glass.is-scrolled{background:rgba(255,255,255,.72)!important;box-shadow:0 8px 28px -14px rgba(20,24,27,.16)!important}
-.pw-header.pw-header-glass .pw-brand-text strong{color:#14181b!important;text-shadow:none!important}
+.pw-header.pw-header-glass{margin-bottom:-72px!important;background:rgba(255,255,255,.16)!important;backdrop-filter:blur(7px) saturate(140%)!important;-webkit-backdrop-filter:blur(7px) saturate(140%)!important;border-bottom:1px solid rgba(20,24,27,.07)!important;box-shadow:inset 0 -1px 0 rgba(255,255,255,.38)!important}
+.pw-header.pw-header-glass.is-scrolled{background:rgba(255,255,255,.28)!important;backdrop-filter:blur(9px) saturate(150%)!important;-webkit-backdrop-filter:blur(9px) saturate(150%)!important;box-shadow:0 6px 24px -12px rgba(20,24,27,.14),inset 0 -1px 0 rgba(255,255,255,.45)!important}
+.pw-header.pw-header-glass .pw-brand-text strong{color:#14181b!important;text-shadow:0 1px 8px rgba(255,255,255,.8)!important}
 .pw-header.pw-header-glass .pw-brand-mark{filter:none!important}
-.pw-header.pw-header-glass .pw-nav a:not(.pw-btn){color:#1e293b!important;text-shadow:none!important}
-.pw-header.pw-header-glass .pw-nav a:not(.pw-btn):hover{color:var(--o)!important;text-shadow:none!important}
-.pw-header.pw-header-glass .pw-burger{background:rgba(255,255,255,.72);border-color:rgba(20,24,27,.15)}
+.pw-header.pw-header-glass .pw-nav a:not(.pw-btn){color:#14181b!important;text-shadow:0 1px 8px rgba(255,255,255,.85)!important}
+.pw-header.pw-header-glass .pw-nav a:not(.pw-btn):hover{color:var(--o)!important}
+.pw-header.pw-header-glass .pw-burger{background:rgba(255,255,255,.38);backdrop-filter:blur(6px);border-color:rgba(20,24,27,.14)}
 .pw-header.pw-header-glass .pw-burger span{background:#14181b}
-.pw-header.pw-header-glass .phi-cart-btn{color:#14181b!important;background:rgba(255,255,255,.6)!important;border-color:rgba(20,24,27,.18)!important}
+.pw-header.pw-header-glass .phi-cart-btn{color:#14181b!important;background:rgba(255,255,255,.32)!important;backdrop-filter:blur(6px);border-color:rgba(20,24,27,.16)!important}
 @media (max-width:960px){.pw-header.pw-header-glass .pw-nav.is-open a:not(.pw-btn){color:#f8fafc!important}}
 .pw-header-row{display:flex;align-items:center;justify-content:space-between;height:72px;gap:16px}
 .pw-brand{display:flex;align-items:center;gap:12px;flex-shrink:0}
@@ -755,7 +755,7 @@ body:has(.pw){padding:0!important}
 }
 
 /* ===== بوابة الأقسام الستة الرئيسية ومستكشف القسم والمنتجات التفاعلية ===== */
-.pw-portal-gateway{padding-top:34px!important;padding-bottom:54px!important;background:linear-gradient(180deg,#fffaf5 0%,#ffffff 100%)!important;border-bottom:1px solid var(--line)}
+.pw-portal-gateway{padding-top:98px!important;padding-bottom:54px!important;background:linear-gradient(180deg,#fffaf5 0%,#ffffff 100%)!important;border-bottom:1px solid var(--line)}
 .pw-portal-main-h1{font-size:clamp(1.6rem,3.1vw,2.35rem);font-weight:900;line-height:1.3;margin-bottom:10px;color:var(--ink)}
 .pw-guide-banner{background:#fff;border:1.5px solid #fed7aa;border-radius:18px;padding:16px 20px;margin-bottom:24px;display:flex;flex-direction:column;gap:12px;box-shadow:0 12px 28px -22px rgba(199,85,23,.45)}
 .pw-guide-steps{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:.86rem;color:var(--ink-2);padding-bottom:10px;border-bottom:1px dashed #fed7aa}
@@ -936,6 +936,6 @@ body:has(.pw){padding:0!important}
 @media (max-width:760px){
   .pw-portal-grid,.pw-portal-clean-grid,.pw-mnt-grid,.pw-mnt-cols,.pw-re-grid,.pw-prod-grid,.pw-info-shortcuts,.pw-tips-grid,.pw-offers-grid,.pw-calc-metrics,.pw-advisor-metrics{grid-template-columns:1fr}
   .pw-explorer-header,.pw-calc-box,.pw-advisor-shell,.pw-quick-finder{padding:16px}
-  .pw-portal-gateway{padding-top:26px!important;padding-bottom:36px!important}
+  .pw-portal-gateway{padding-top:86px!important;padding-bottom:36px!important}
 }
 `;
