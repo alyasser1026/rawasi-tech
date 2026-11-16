@@ -63,7 +63,22 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
 
 export const isPublicRoute = (path?: string | null) => {
   if (!path) return false;
-  return path === '/' || path === '/login' || path === '/signup' || path === '/website' || path.startsWith('/website/') || path === '/store' || path.startsWith('/store/') || path === '/real-estate' || path.startsWith('/real-estate/') || path === '/verify' || path.startsWith('/verify') || path.startsWith('/construct');
+  return (
+    path === '/' ||
+    path === '/login' ||
+    path === '/signup' ||
+    path === '/website' ||
+    path.startsWith('/website/') ||
+    path === '/sections' ||
+    path.startsWith('/sections/') ||
+    path === '/store' ||
+    path.startsWith('/store/') ||
+    path === '/real-estate' ||
+    path.startsWith('/real-estate/') ||
+    path === '/verify' ||
+    path.startsWith('/verify') ||
+    path.startsWith('/construct')
+  );
 };
 
 export default function AuthGuard({ children, requiredRoles }: { children: React.ReactNode; requiredRoles?: readonly string[] }) {
@@ -97,7 +112,10 @@ export default function AuthGuard({ children, requiredRoles }: { children: React
         setUser(null);
         setProfile(null);
         void sharedQueryClient.cancelQueries();
-        if (!isPublicRoute(pathname)) router.replace("/login");
+        if (!isPublicRoute(pathname)) {
+          const next = pathname && pathname !== '/login' ? `?redirect=${encodeURIComponent(pathname)}` : '';
+          router.replace(`/login${next}`);
+        }
         setLoading(false);
         return;
       }

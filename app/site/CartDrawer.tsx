@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { rememberVisitorContact } from '@/lib/client-device-info';
+import { getDestinationForUser } from '@/lib/roleRouter';
 import type { WebsiteProduct } from './store-catalog';
 
 export interface CartItem {
@@ -25,6 +27,7 @@ export interface CustomerSessionUser {
 }
 
 const LOCAL_CART_PREFIX = 'phi_customer_cart_v1_';
+const GUEST_CART_KEY = 'phi_guest_cart_v1';
 const PENDING_CART_KEY = 'phi_pending_cart_add_v1';
 
 export function queuePendingCartProduct(product: WebsiteProduct, qty = 1, withInstall = false) {
@@ -57,16 +60,25 @@ export function consumePendingCartProduct(): {
   }
 }
 
-export function useCustomerCart(onRequireLogin?: () => void) {
+export function useCustomerCart(_onRequireLogin?: () => void) {
   const [user, setUser] = useState<CustomerSessionUser | null>(null);
+  const [portalHref, setPortalHref] = useState<string | null>(null);
   const [items, setItems] = useState<CartItem[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
-  // Persist cart to localStorage + Supabase Auth metadata
+  // Persist cart to localStorage (guest or user) + Supabase Auth metadata when signed in
   const persistCart = (nextItems: CartItem[], currentUser: CustomerSessionUser | null) => {
     setItems(nextItems);
-    if (!currentUser || typeof window === 'undefined') return;
+    if (typeof window === 'undefined') return;
+    if (!currentUser) {
+      try {
+        window.localStorage.setItem(GUEST_CART_KEY, JSON.stringify(nextItems));
+      } catch {
+        // ignore storage quota
+      }
+      return;
+    }
     try {
       window.localStorage.setItem(`${LOCAL_CART_PREFIX}${currentUser.id}`, JSON.stringify(nextItems));
     } catch {
@@ -88,18 +100,61 @@ export function useCustomerCart(onRequireLogin?: () => void) {
           data: { session },
         } = await supabase.auth.getSession();
         if (!mounted) return;
+
+        let guestItems: CartItem[] = [];
+        if (typeof window !== 'undefined') {
+          const rawGuest = window.localStorage.getItem(GUEST_CART_KEY);
+          if (rawGuest) {
+            try {
+              const parsed = JSON.parse(rawGuest);
+              if (Array.isArray(parsed)) guestItems = parsed;
+            } catch {
+              guestItems = [];
+            }
+          }
+        }
+
         if (session?.user) {
           const u = session.user;
           const meta = u.user_metadata || {};
+
+          let prof: any = null;
+          try {
+            const { data: profData } = await supabase
+              .from('profiles')
+              .select('id, full_name, role, is_admin, linked_partner_id, permissions, default_page')
+              .eq('id', u.id)
+              .maybeSingle();
+            prof = profData;
+          } catch {
+            prof = null;
+          }
+          if (!mounted) return;
+
+          const resolvedPortal = prof
+            ? getDestinationForUser(prof)
+            : meta.role === 'admin'
+              ? '/Dashboard'
+              : null;
+          const isEmployeeOrPartner = Boolean(
+            prof &&
+              (prof.is_admin ||
+                (prof.role && prof.role !== 'client') ||
+                prof.linked_partner_id ||
+                (resolvedPortal && resolvedPortal !== '/profile'))
+          );
+          setPortalHref(isEmployeeOrPartner ? resolvedPortal || '/Dashboard' : null);
+
           const customer: CustomerSessionUser = {
             id: u.id,
             email: u.email || '',
-            fullName: meta.full_name || meta.name || u.email?.split('@')[0] || 'عميل فاي تك',
+            fullName:
+              prof?.full_name || meta.full_name || meta.name || u.email?.split('@')[0] || 'مستخدم فاي تك',
             phone: meta.phone_number || meta.phone || '',
           };
           setUser(customer);
 
-          // Load cart from localStorage or user_metadata
+          // Load cart from localStorage or user_metadata and merge any guest cart items
           let loadedCart: CartItem[] = [];
           if (typeof window !== 'undefined') {
             const rawLocal = window.localStorage.getItem(`${LOCAL_CART_PREFIX}${u.id}`);
@@ -113,6 +168,27 @@ export function useCustomerCart(onRequireLogin?: () => void) {
           }
           if (!loadedCart.length && Array.isArray(meta.phi_cart)) {
             loadedCart = meta.phi_cart;
+          }
+          if (guestItems.length > 0) {
+            for (const gItem of guestItems) {
+              const existingIdx = loadedCart.findIndex((x) => x.productId === gItem.productId);
+              if (existingIdx >= 0) {
+                loadedCart[existingIdx] = {
+                  ...loadedCart[existingIdx],
+                  qty: loadedCart[existingIdx].qty + gItem.qty,
+                  withInstall: loadedCart[existingIdx].withInstall || gItem.withInstall,
+                };
+              } else {
+                loadedCart.push(gItem);
+              }
+            }
+            if (typeof window !== 'undefined') {
+              try {
+                window.localStorage.removeItem(GUEST_CART_KEY);
+              } catch {
+                // ignore
+              }
+            }
           }
 
           // Check if there was a pending item queued before login
@@ -144,7 +220,8 @@ export function useCustomerCart(onRequireLogin?: () => void) {
           }
         } else {
           setUser(null);
-          setItems([]);
+          setPortalHref(null);
+          setItems(guestItems);
         }
       } finally {
         if (mounted) setAuthChecked(true);
@@ -158,7 +235,17 @@ export function useCustomerCart(onRequireLogin?: () => void) {
         void loadUserAndCart();
       } else {
         setUser(null);
-        setItems([]);
+        setPortalHref(null);
+        if (typeof window !== 'undefined') {
+          try {
+            const rawGuest = window.localStorage.getItem(GUEST_CART_KEY);
+            setItems(rawGuest ? JSON.parse(rawGuest) : []);
+          } catch {
+            setItems([]);
+          }
+        } else {
+          setItems([]);
+        }
       }
     });
 
@@ -169,12 +256,6 @@ export function useCustomerCart(onRequireLogin?: () => void) {
   }, []);
 
   const addToCart = (product: WebsiteProduct, qty = 1, withInstall = false): boolean => {
-    if (!user) {
-      queuePendingCartProduct(product, qty, withInstall);
-      onRequireLogin?.();
-      return false;
-    }
-
     const next = [...items];
     const idx = next.findIndex((x) => x.productId === product.id);
     if (idx >= 0) {
@@ -205,14 +286,6 @@ export function useCustomerCart(onRequireLogin?: () => void) {
     productsList: Array<{ product: WebsiteProduct; qty: number }>,
     withInstall = true
   ): boolean => {
-    if (!user) {
-      if (productsList[0]?.product) {
-        queuePendingCartProduct(productsList[0].product, productsList[0].qty, withInstall);
-      }
-      onRequireLogin?.();
-      return false;
-    }
-
     const next = [...items];
     for (const entry of productsList) {
       const p = entry.product;
@@ -271,8 +344,17 @@ export function useCustomerCart(onRequireLogin?: () => void) {
     0
   );
 
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // ignore
+    }
+  };
+
   return {
     user,
+    portalHref,
     authChecked,
     items,
     cartOpen,
@@ -283,6 +365,7 @@ export function useCustomerCart(onRequireLogin?: () => void) {
     toggleItemInstall,
     removeItem,
     clearCart,
+    signOut,
     totalCount,
     totalAmount,
   };
@@ -370,6 +453,8 @@ export function CartDrawer({
   isOpen,
   onClose,
   user,
+  portalHref,
+  onSignOut,
   items,
   totalAmount,
   onUpdateQty,
@@ -382,6 +467,8 @@ export function CartDrawer({
   isOpen: boolean;
   onClose: () => void;
   user: CustomerSessionUser | null;
+  portalHref?: string | null;
+  onSignOut?: () => void;
   items: CartItem[];
   totalAmount: number;
   onUpdateQty: (productId: string, delta: number) => void;
@@ -417,12 +504,6 @@ export function CartDrawer({
     e.preventDefault();
     setErrorMsg('');
 
-    if (!user) {
-      onClose();
-      onRequireLogin();
-      return;
-    }
-
     if (!customerName.trim() || customerPhone.replace(/\D/g, '').length < 8) {
       setErrorMsg('يرجى التأكد من كتابة الاسم ورقم الجوال الصحيح للتواصل وتأكيد التسليم');
       return;
@@ -433,7 +514,7 @@ export function CartDrawer({
       rememberVisitorContact({
         name: customerName.trim(),
         phone: customerPhone.trim(),
-        email: user.email,
+        email: user?.email || '',
       });
 
       const res = await fetch('/api/website-store', {
@@ -441,10 +522,10 @@ export function CartDrawer({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderType: 'store_order',
-          userId: user.id,
+          userId: user?.id || null,
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
-          customerEmail: user.email,
+          customerEmail: user?.email || '',
           city: city.trim(),
           address: address.trim(),
           notes: notes.trim(),
@@ -556,7 +637,7 @@ export function CartDrawer({
                   سلة المشتريات والتوريد
                 </h3>
                 <span style={{ fontSize: '0.76rem', color: '#cbd5e1', fontWeight: 700, display: 'block' }}>
-                  {user ? `👤 ${user.fullName} · ${items.length} صنف` : 'بوابة الطلبات الهندسية — فاي تك'}
+                  {user ? `👤 ${user.fullName} · ${items.length} صنف` : `التسوق السريع بدون تسجيل إلزامي · ${items.length} صنف`}
                 </span>
               </div>
             </div>
@@ -581,6 +662,53 @@ export function CartDrawer({
               ✕
             </button>
           </div>
+          {user && (portalHref || onSignOut) && (
+            <div style={{ marginTop: '10px', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'space-between' }}>
+              {portalHref && (
+                <Link
+                  href={portalHref}
+                  onClick={onClose}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '6px 12px',
+                    borderRadius: '10px',
+                    background: 'rgba(249, 115, 22, 0.2)',
+                    border: '1px solid rgba(249, 115, 22, 0.5)',
+                    color: '#fed7aa',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    textDecoration: 'none',
+                  }}
+                >
+                  🏢 بوابة الموظفين
+                </Link>
+              )}
+              {onSignOut && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSignOut();
+                    onClose();
+                  }}
+                  style={{
+                    marginInlineStart: 'auto',
+                    padding: '6px 11px',
+                    borderRadius: '10px',
+                    background: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.18)',
+                    color: '#cbd5e1',
+                    fontSize: '0.76rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  تسجيل الخروج
+                </button>
+              )}
+            </div>
+          )}
           {items.length > 0 && !orderSuccessRef && (
             <div
               style={{
@@ -672,56 +800,79 @@ export function CartDrawer({
                 متابعة التصفح
               </button>
             </div>
-          ) : !user ? (
-            <div
-              style={{
-                padding: '32px 18px',
-                textAlign: 'center',
-                background: '#fff3ea',
-                borderRadius: '18px',
-                border: '1px solid #fed7aa',
-              }}
-            >
-              <div style={{ fontSize: '2.4rem', marginBottom: '10px' }}>🔐</div>
-              <h4 style={{ margin: '0 0 8px', fontSize: '1.08rem', fontWeight: 900 }}>
-                سلة المشتريات مخصصة للأعضاء المسجلين
-              </h4>
-              <p style={{ margin: '0 0 18px', fontSize: '0.88rem', color: '#47525c', lineHeight: 1.6 }}>
-                أنشئ حساباً مجانياً في ثوانٍ أو سجّل دخولك لحفظ منتجاتك في السلة وطلب التوريد والتركيب المباشر.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onRequireLogin();
-                }}
-                style={{
-                  width: '100%',
-                  padding: '13px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: 'linear-gradient(135deg, #f97316, #c75517)',
-                  color: '#fff',
-                  fontWeight: 900,
-                  fontSize: '0.95rem',
-                  cursor: 'pointer',
-                }}
-              >
-                تسجيل الدخول / إنشاء حساب فوري
-              </button>
-            </div>
           ) : items.length === 0 ? (
-            <div style={{ padding: '44px 16px', textAlign: 'center', color: '#64748b' }}>
-              <div style={{ fontSize: '2.8rem', marginBottom: '10px' }}>🛒</div>
-              <strong style={{ display: 'block', fontSize: '1.05rem', color: '#14181b', marginBottom: '6px' }}>
+            <div style={{ padding: '36px 16px', textAlign: 'center', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
+              <div style={{ fontSize: '2.8rem' }}>🛒</div>
+              <strong style={{ display: 'block', fontSize: '1.05rem', color: '#14181b' }}>
                 سلة مشترياتك فارغة حالياً
               </strong>
-              <p style={{ fontSize: '0.86rem', margin: 0 }}>
-                تصفح أقسام الكهرباء والسباكة والدهانات والسمارت هوم والحساسات وأضف ما تحتاجه لمشروعك.
+              <p style={{ fontSize: '0.86rem', margin: 0, maxWidth: '30ch', lineHeight: 1.6 }}>
+                تصفح أقسام الكهرباء والسباكة والدهانات والسمارت هوم والحساسات وأضف ما تحتاجه لمشروعك بحرية وبدون تسجيل دخول إلزامي.
               </p>
+              {!user && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onRequireLogin();
+                  }}
+                  style={{
+                    marginTop: '6px',
+                    padding: '10px 18px',
+                    borderRadius: '11px',
+                    border: '1px solid #fed7aa',
+                    background: '#fff3ea',
+                    color: '#c75517',
+                    fontWeight: 800,
+                    fontSize: '0.84rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  🔐 تسجيل الدخول (اختياري)
+                </button>
+              )}
             </div>
           ) : (
             <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {!user && (
+                <div
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '12px',
+                    background: '#fff7ed',
+                    border: '1px solid #fed7aa',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '10px',
+                    fontSize: '0.8rem',
+                    color: '#7c2d12',
+                    fontWeight: 700,
+                  }}
+                >
+                  <span>💡 يمكنك إتمام الطلب مباشرة أو حفظ بياناتك.</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onRequireLogin();
+                    }}
+                    style={{
+                      flexShrink: 0,
+                      padding: '5px 10px',
+                      borderRadius: '8px',
+                      border: '1px solid #fdba74',
+                      background: '#fff',
+                      color: '#c75517',
+                      fontWeight: 800,
+                      fontSize: '0.76rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    تسجيل دخول
+                  </button>
+                </div>
+              )}
               {/* Cart Items List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

@@ -19,6 +19,9 @@ export default function VisitorTracker() {
     const isPublic =
       pathname === '/' ||
       pathname === '/website' ||
+      pathname?.startsWith('/website/') ||
+      pathname === '/sections' ||
+      pathname?.startsWith('/sections/') ||
       pathname === '/login' ||
       pathname === '/store' ||
       pathname?.startsWith('/store/') ||

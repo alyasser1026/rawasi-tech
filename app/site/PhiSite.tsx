@@ -142,7 +142,8 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
         cartCount={cart.totalCount}
         onOpenCart={() => cart.setCartOpen(true)}
         userName={cart.user?.fullName}
-        onOpenLogin={() => handleOpenLogin()}
+        portalHref={cart.portalHref}
+        onOpenLogin={() => (cart.user ? cart.setCartOpen(true) : handleOpenLogin())}
       />
 
       <main id="top">
@@ -240,7 +241,12 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
               ))}
             </nav>
             <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>التحقق من صحة المستندات</Link>
-            <a href="/login" className="pw-footer-link" onClick={handleOpenLogin}>دخول النظام</a>
+            {(cart.portalHref || !cart.user) && (
+              <Link href={cart.portalHref || '/login?portal=employee'} className="pw-footer-link">🏢 بوابة الموظفين</Link>
+            )}
+            {!cart.user && (
+              <a href="/login" className="pw-footer-link" onClick={handleOpenLogin}>تسجيل الدخول</a>
+            )}
           </div>
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
         </div>
@@ -253,6 +259,8 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
         isOpen={cart.cartOpen}
         onClose={() => cart.setCartOpen(false)}
         user={cart.user}
+        portalHref={cart.portalHref}
+        onSignOut={cart.signOut}
         items={cart.items}
         totalAmount={cart.totalAmount}
         onUpdateQty={cart.updateQty}

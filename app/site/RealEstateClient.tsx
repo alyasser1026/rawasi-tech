@@ -131,6 +131,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
         cartCount={cart.totalCount}
         onOpenCart={() => cart.setCartOpen(true)}
         userName={cart.user?.fullName}
+        portalHref={cart.portalHref}
         onOpenLogin={() => (cart.user ? cart.setCartOpen(true) : setLoginOpen(true))}
       />
 
@@ -657,6 +658,11 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
             <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>
               التحقق من صحة المستندات
             </Link>
+            {(cart.portalHref || !cart.user) && (
+              <Link href={cart.portalHref || '/login?portal=employee'} className="pw-footer-link">
+                🏢 بوابة الموظفين
+              </Link>
+            )}
           </div>
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
         </div>
@@ -669,6 +675,8 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
         isOpen={cart.cartOpen}
         onClose={() => cart.setCartOpen(false)}
         user={cart.user}
+        portalHref={cart.portalHref}
+        onSignOut={cart.signOut}
         items={cart.items}
         totalAmount={cart.totalAmount}
         onUpdateQty={cart.updateQty}

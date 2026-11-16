@@ -336,3 +336,43 @@ test('panoramic split portal showcase has panorama + all 6 section images wired 
 
   assert.match(sectionDefs, /highlights:\s*\[/);
 });
+
+test('all public sections allow optional guest browsing while keeping employee portal button accessible after login', () => {
+  const authGuard = read('components/authGuard.tsx');
+  assert.match(authGuard, /path === '\/sections'/);
+  assert.match(authGuard, /path\.startsWith\('\/sections\/'\)/);
+
+  const visitorTracker = read('components/VisitorTracker.tsx');
+  assert.match(visitorTracker, /pathname\?\.startsWith\('\/sections\/'\)/);
+
+  const loginLogic = read('app/login/login_logic.ts');
+  assert.match(loginLogic, /stayOnPage = false/);
+  assert.match(loginLogic, /shouldRedirectToPortal/);
+  assert.match(loginLogic, /portalParam === 'employee'/);
+
+  const loginModal = read('app/site/LoginModal.tsx');
+  assert.match(loginModal, /stayOnPage:\s*true/);
+  assert.match(loginModal, /اختياري/);
+
+  const publicHeader = read('app/site/PublicHeader.tsx');
+  assert.match(publicHeader, /بوابة الموظفين/);
+  assert.match(publicHeader, /portalHref/);
+  assert.match(publicHeader, /\/login\?portal=employee/);
+
+  const cartDrawer = read('app/site/CartDrawer.tsx');
+  assert.match(cartDrawer, /phi_guest_cart_v1/);
+  assert.match(cartDrawer, /portalHref/);
+  assert.match(cartDrawer, /signOut/);
+  assert.match(cartDrawer, /بوابة الموظفين/);
+
+  for (const pageFile of [
+    'app/site/PhiSite.tsx',
+    'app/site/SectionDetailClient.tsx',
+    'app/site/StoreClient.tsx',
+    'app/site/RealEstateClient.tsx',
+  ]) {
+    const src = read(pageFile);
+    assert.match(src, /portalHref=\{cart\.portalHref\}/, `${pageFile} missing portalHref`);
+    assert.match(src, /onSignOut=\{cart\.signOut\}/, `${pageFile} missing onSignOut`);
+  }
+});

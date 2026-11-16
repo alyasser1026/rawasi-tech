@@ -26,6 +26,7 @@ export default function PublicHeader({
   cartCount = 0,
   onOpenCart,
   userName,
+  portalHref,
   onOpenLogin,
 }: {
   siteName?: string;
@@ -34,6 +35,7 @@ export default function PublicHeader({
   cartCount?: number;
   onOpenCart: () => void;
   userName?: string | null;
+  portalHref?: string | null;
   onOpenLogin: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -98,15 +100,31 @@ export default function PublicHeader({
               }}
             />
 
+            {(portalHref || !userName) && (
+              <Link
+                href={portalHref || '/login?portal=employee'}
+                onClick={() => setOpen(false)}
+                className={`pw-btn pw-nav-portal ${portalHref ? 'is-ready' : 'is-guest'}`}
+              >
+                <span>🏢 بوابة الموظفين</span>
+                <span className="pw-nav-arrow" aria-hidden="true">←</span>
+              </Link>
+            )}
+
             <button
               type="button"
               onClick={() => {
                 setOpen(false);
-                onOpenLogin();
+                if (userName) {
+                  onOpenCart();
+                } else {
+                  onOpenLogin();
+                }
               }}
               className="pw-btn pw-btn-primary pw-nav-cta"
+              title={userName ? 'حسابك وسلة المشتريات' : 'تسجيل الدخول (اختياري)'}
             >
-              {userName ? `👤 ${userName.split(' ')[0]}` : 'دخول النظام'}
+              {userName ? `👤 ${userName.split(' ')[0]}` : 'تسجيل الدخول'}
             </button>
           </nav>
 
@@ -143,8 +161,8 @@ export default function PublicHeader({
         <button
           type="button"
           className="pw-dock-item pw-dock-cta"
-          onClick={() => (userName ? onOpenCart() : onOpenLogin())}
-          aria-label="السلة / دخول النظام"
+          onClick={onOpenCart}
+          aria-label="سلة المشتريات"
         >
           <span className="pw-dock-icon">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -154,7 +172,7 @@ export default function PublicHeader({
             </svg>
           </span>
           <span className="pw-dock-label">
-            {cartCount > 0 ? `السلة (${cartCount})` : userName ? 'السلة' : 'دخول / سلة'}
+            {cartCount > 0 ? `السلة (${cartCount})` : 'السلة'}
           </span>
         </button>
 

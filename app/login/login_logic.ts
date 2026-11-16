@@ -33,7 +33,13 @@ function notifyTelegramAuth(payload: {
   }
 }
 
-export function useLoginLogic() {
+export interface UseLoginLogicOptions {
+  stayOnPage?: boolean;
+  onSuccess?: () => void;
+}
+
+export function useLoginLogic(options: UseLoginLogicOptions = {}) {
+  const { stayOnPage = false, onSuccess } = options;
   const router = useRouter();
   const searchParams = useSearchParams();
   const { showToast } = useToast();
@@ -45,14 +51,25 @@ export function useLoginLogic() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // 🛡️ 1. الحارس الذكي للجلسات القائمة
+  const redirectParam = searchParams?.get('redirect');
+  const portalParam = searchParams?.get('portal');
+  const shouldRedirectToPortal = Boolean(
+    (redirectParam && redirectParam !== '/' && redirectParam !== '/website') ||
+      portalParam === 'employee' ||
+      portalParam === 'partner'
+  );
+
+  // 🛡️ 1. الحارس الذكي للجلسات القائمة (يوجه فقط لو كان الدخول مخصصاً لبوابة النظام أو redirect محدد)
   useEffect(() => {
     const checkExistingSession = async () => {
+      if (stayOnPage && !shouldRedirectToPortal) return;
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        const redirectParam = searchParams?.get('redirect');
-        const portalParam = searchParams?.get('portal');
-        
+        if (!shouldRedirectToPortal) {
+          // دخول اختياري بدون مسار إداري محدد: أبقِ الزائر في صفحته أو افتح الرئيسية
+          if (onSuccess) onSuccess();
+          return;
+        }
         let target = '';
         if (redirectParam && redirectParam !== '/' && redirectParam !== '/website') {
           target = redirectParam;
@@ -60,12 +77,12 @@ export function useLoginLogic() {
           try {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('id, role, is_admin, linked_partner_id, permissions')
+              .select('id, role, is_admin, linked_partner_id, permissions, default_page')
               .eq('id', session.user.id)
               .maybeSingle();
             target = getDestinationForUser(profile, portalParam);
             if (target === '/profile') {
-              target = '/store';
+              target = '/';
             }
           } catch {
             target = portalParam === 'partner' ? '/PartnerBalances' : '/Dashboard';
@@ -75,7 +92,7 @@ export function useLoginLogic() {
       }
     };
     checkExistingSession();
-  }, [router, searchParams]);
+  }, [router, redirectParam, portalParam, shouldRedirectToPortal, stayOnPage, onSuccess]);
 
   // 2. مزامنة قيم المتصفح (Autofill)
   useEffect(() => {
@@ -166,13 +183,20 @@ export function useLoginLogic() {
 
         // في حال كان تأكيد البريد معطلاً وتم إنشاء الجلسة فوراً
         if (data?.session) {
-          showToast('تم إنشاء الحساب وتفعيله بنجاح! جاري فتح متجر المنتجات وسلة المشتريات...', 'success');
+          showToast('تم إنشاء الحساب وتفعيله بنجاح! أهلاً بك في فاي تك.', 'success');
           router.refresh();
-          const rawTarget = getDestinationForUser({ role: 'client' }, searchParams?.get('portal'));
-          const target = rawTarget === '/profile' ? '/store' : rawTarget;
-          setTimeout(() => {
-            router.replace(target);
-          }, 350);
+          setIsLoading(false);
+          if (shouldRedirectToPortal) {
+            const rawTarget = redirectParam || getDestinationForUser({ role: 'client' }, portalParam);
+            const target = rawTarget === '/profile' ? '/' : rawTarget;
+            setTimeout(() => {
+              router.replace(target);
+            }, 350);
+          } else if (onSuccess) {
+            onSuccess();
+          } else {
+            router.replace('/');
+          }
           return;
         }
         
@@ -219,24 +243,21 @@ export function useLoginLogic() {
           });
         }
 
-        // 🧭 جلب ملف الصلاحيات للتوجيه الدقيق
+        // 🧭 جلب ملف الصلاحيات للتوجيه الدقيق (عند الحاجة لبوابة الموظفين أو وجود redirect)
         let destination = '';
-        const redirectParam = searchParams?.get('redirect');
-        const portalParam = searchParams?.get('portal');
-
         if (redirectParam && redirectParam !== '/' && redirectParam !== '/website') {
           destination = redirectParam;
         } else {
           try {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('id, role, is_admin, linked_partner_id, permissions')
+              .select('id, role, is_admin, linked_partner_id, permissions, default_page')
               .eq('id', data.user.id)
               .maybeSingle();
 
             destination = getDestinationForUser(profile, portalParam);
             if (destination === '/profile') {
-              destination = '/store';
+              destination = '/Dashboard';
             }
           } catch {
             destination = portalParam === 'partner' ? '/PartnerBalances' : '/Dashboard';
@@ -256,7 +277,6 @@ export function useLoginLogic() {
         });
         const deviceDetails = await collectClientDeviceDetails(false).catch(() => ({}));
         
-        showToast('تم تسجيل الدخول بنجاح! جاري تحويلك...', 'success');
         router.refresh(); 
 
         // 🔔 إشعار فوري على تلغرام بتسجيل الدخول الناجح
@@ -266,14 +286,24 @@ export function useLoginLogic() {
           email: resolvedEmail,
           fullName: data.user.user_metadata?.full_name || '',
           phone: metaPhone || undefined,
-          destination,
+          destination: shouldRedirectToPortal ? destination : 'تصفح الموقع العام',
           deviceDetails,
         });
         
-        // 👈 توجيه ذكي فوري للمستخدم حسب صلاحياته
-        setTimeout(() => {
-          router.replace(destination); 
-        }, 350);
+        if (shouldRedirectToPortal) {
+          showToast('تم تسجيل الدخول بنجاح! جاري تحويلك لبوابة النظام...', 'success');
+          setTimeout(() => {
+            router.replace(destination); 
+          }, 350);
+        } else {
+          showToast('تم تسجيل الدخول بنجاح! يمكنك التصفح أو الدخول من «بوابة الموظفين».', 'success');
+          setIsLoading(false);
+          if (onSuccess) {
+            onSuccess();
+          } else if (!stayOnPage) {
+            router.replace('/');
+          }
+        }
       }
     } catch (error: any) {
       showToast(error.message, 'error'); 

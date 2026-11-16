@@ -24,7 +24,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
     isLoading,
     handleAutoFill,
     handleSubmit,
-  } = useLoginLogic();
+  } = useLoginLogic({ stayOnPage: true, onSuccess: onClose });
 
   return (
     <div className="login-modal-card" onClick={(e) => e.stopPropagation()}>
@@ -68,12 +68,12 @@ function LoginForm({ onClose }: { onClose: () => void }) {
       </div>
 
       <h2 className="login-modal-title">
-        {isSignUp ? 'إنشاء حساب جديد' : 'دخول المنظومة'}
+        {isSignUp ? 'إنشاء حساب جديد' : 'تسجيل الدخول (اختياري)'}
       </h2>
       <p className="login-modal-subtitle">
         {isSignUp
-          ? 'أنشئ حسابك للوصول إلى لوحة المتابعة'
-          : 'للموظفين والمهندسين والعملاء — يتم توجيهك تلقائيًا حسب صلاحياتك'}
+          ? 'أنشئ حسابك لمتابعة طلباتك ومشاريعك في فاي تك'
+          : 'التصفح متاح للجميع بدون تسجيل — وبعد الدخول تبقى في نفس الصفحة ويمكن للموظفين فتح «بوابة الموظفين»'}
       </p>
 
       <form onSubmit={handleSubmit} style={{ width: '100%' }}>
