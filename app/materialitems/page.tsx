@@ -45,7 +45,7 @@ export default function MaterialCatalogPage() {
 
   const tableColumns = [
     { header: 'كود الصنف', render: (row: any) => <strong style={{ color: 'var(--text-primary)' }}>{row.item_code || '---'}</strong> },
-    { header: 'اسم الخريطة / الصنف', render: (row: any) => <span style={{ fontWeight: 900 }}>{row.item_name}</span> },
+    { header: 'اسم الخامة / الصنف', render: (row: any) => <span style={{ fontWeight: 900 }}>{row.item_name}</span> },
     { header: 'التصنيف الرئيسي', render: (row: any) => <span style={{ background: 'var(--surface-subcard)', color: 'var(--text-primary)', padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>{row.main_category || 'عام'}</span> },
     { header: 'الوحدة الافتراضية', render: (row: any) => <span style={{ fontWeight: 700 }}>{row.default_unit}</span> },
     { header: 'السعر الاسترشادي', render: (row: any) => <span style={{ color: 'var(--status-positive)', fontWeight: 900 }}>{formatCurrency(row.default_unit_price)}</span> },

@@ -5,8 +5,10 @@ import { useMutation } from '@tanstack/react-query';
 import { useToast } from '@/lib/toast-context'; 
 import { fetchAllSupabaseData } from '@/lib/helpers';
 import { generateNextMaterialCode } from '@/lib/materialCodeGenerator';
+import { useCompany } from '@/lib/CompanyContext';
 
 export function useMaterialItemsLogic() {
+  const { activeCompanyId } = useCompany();
   const { showToast } = useToast();
   const [items, setItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -151,6 +153,7 @@ export function useMaterialItemsLogic() {
       item_name: trimmedName,
       default_unit: currentRecord.default_unit || 'حبة',
       default_unit_price: Number(currentRecord.default_unit_price) || 0,
+      company_id: currentRecord.company_id || activeCompanyId || '72918f4d-10c3-43a0-884e-2f84f1224335',
     };
 
     saveMutation.mutate(payload);
