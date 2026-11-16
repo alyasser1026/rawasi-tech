@@ -240,13 +240,15 @@ test('home screen renders seamless infinite looping news ticker with CMS control
   const tickerComp = read('app/site/NewsTicker.tsx');
   assert.match(tickerComp, /phi-ticker-bar/);
   assert.match(tickerComp, /phi-ticker-track/);
+  assert.match(tickerComp, /requestAnimationFrame/);
+  assert.match(tickerComp, /\/api\/news-feed/);
   assert.match(tickerComp, /renderGroup\('g1', false\)/);
   assert.match(tickerComp, /renderGroup\('g2', true\)/);
 
   const siteStyles = read('app/site/site-styles.ts');
-  assert.match(siteStyles, /@keyframes phiTickerScroll/);
-  assert.match(siteStyles, /animation:phiTickerScroll/);
-  assert.match(siteStyles, /animation-play-state:paused/);
+  assert.match(siteStyles, /\.phi-ticker-viewport\{[^}]*direction:ltr/);
+  assert.match(siteStyles, /\.phi-ticker-track\{display:flex;flex-direction:row/);
+  assert.doesNotMatch(siteStyles, /\.phi-ticker-track\{animation:none\}/);
 
   const siteContent = read('app/site/site-content.ts');
   assert.match(siteContent, /export const DEFAULT_NEWS_TICKER/);

@@ -35,7 +35,7 @@ export type Commitment = { title: string; text: string };
 export type Faq = { q: string; a: string };
 export type PromoBannerConfig = { enabled: boolean; text: string };
 export type NewsTickerItem = { id: string; tag?: string; text: string; href?: string; active?: boolean };
-export type NewsTickerConfig = { enabled: boolean; label: string; speedSeconds: number; items: NewsTickerItem[] };
+export type NewsTickerConfig = { enabled: boolean; autoFeedEnabled?: boolean; label: string; speedSeconds: number; items: NewsTickerItem[] };
 
 export const SITE = {
   name: 'فاي تك',
@@ -128,6 +128,7 @@ export const DEFAULT_PROMO_BANNER: PromoBannerConfig = {
 
 export const DEFAULT_NEWS_TICKER: NewsTickerConfig = {
   enabled: true,
+  autoFeedEnabled: true,
   label: 'آخر الأخبار',
   speedSeconds: 38,
   items: [
@@ -348,6 +349,7 @@ export function sanitizeContent(raw: any): SiteContentOverride {
     const rawSpeed = Number(nt.speedSeconds);
     out.newsTicker = {
       enabled: nt.enabled !== false,
+      autoFeedEnabled: nt.autoFeedEnabled !== false,
       label: str(nt.label, 40) || DEFAULT_NEWS_TICKER.label,
       speedSeconds: Number.isFinite(rawSpeed)
         ? Math.min(90, Math.max(16, Math.round(rawSpeed)))
@@ -440,6 +442,7 @@ export function mergeContent(o: SiteContentOverride = {}) {
     },
     NEWS_TICKER: {
       enabled: o.newsTicker?.enabled ?? DEFAULT_NEWS_TICKER.enabled,
+      autoFeedEnabled: o.newsTicker?.autoFeedEnabled ?? DEFAULT_NEWS_TICKER.autoFeedEnabled,
       label: o.newsTicker?.label || DEFAULT_NEWS_TICKER.label,
       speedSeconds: o.newsTicker?.speedSeconds ?? DEFAULT_NEWS_TICKER.speedSeconds,
       items: o.newsTicker?.items ?? DEFAULT_NEWS_TICKER.items,

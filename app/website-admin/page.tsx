@@ -133,6 +133,7 @@ function fromStored(raw: any): Content {
     },
     newsTicker: {
       enabled: s.newsTicker?.enabled ?? d.newsTicker.enabled,
+      autoFeedEnabled: s.newsTicker?.autoFeedEnabled ?? d.newsTicker.autoFeedEnabled,
       label: s.newsTicker?.label ?? d.newsTicker.label,
       speedSeconds: s.newsTicker?.speedSeconds ?? d.newsTicker.speedSeconds,
       items: s.newsTicker?.items ?? d.newsTicker.items,
@@ -578,6 +579,16 @@ export default function WebsiteAdminPage() {
                     style={{ width: '18px', height: '18px' }}
                   />
                   <strong>تفعيل الشريط المتحرك في الصفحة الرئيسية</strong>
+                </label>
+
+                <label className="wa-f" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={c.newsTicker.autoFeedEnabled !== false}
+                    onChange={(e) => upd((d) => { d.newsTicker.autoFeedEnabled = e.target.checked; })}
+                    style={{ width: '18px', height: '18px' }}
+                  />
+                  <strong>مزامنة أخبار الاقتصاد والعقارات اليومية تلقائياً في الشريط</strong>
                 </label>
 
                 <F
