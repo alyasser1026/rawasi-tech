@@ -326,4 +326,13 @@ test('every portal section has a valid local showcase image wired into home card
   assert.match(detailClient, /pw-sec-hero-visual/);
   assert.match(detailClient, /src=\{sectionMeta\.image\}/);
   assert.match(detailClient, /alt=\{sectionMeta\.imageAlt\}/);
+
+  assert.match(sectionDefs, /related:\s*\[/);
+  assert.match(sectionDefs, /highlights:\s*\[/);
+  assert.match(sectionDefs, /flowNote:\s*'/);
+  assert.match(homePortal, /pw-portal-mosaic-frame/);
+  assert.match(homePortal, /pw-portal-cad-svg/);
+  assert.match(homePortal, /pw-seam-bridge/);
+  assert.match(homePortal, /handleTilePointerMove/);
+  assert.match(homePortal, /pw-mosaic-status/);
 });

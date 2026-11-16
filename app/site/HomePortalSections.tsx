@@ -56,6 +56,51 @@ export default function HomePortalSections({
       .slice(0, 4);
   }, [products, featuredTab]);
 
+  // --- تفاعل الماوس والترابط البصري بين صور الأقسام الستة ---
+  const [hoveredSlug, setHoveredSlug] = useState<SectionSlug | null>(null);
+
+  const activeHoverSection = useMemo(
+    () => (hoveredSlug ? PORTAL_SECTIONS.find((s) => s.slug === hoveredSlug) || null : null),
+    [hoveredSlug]
+  );
+
+  const relatedSlugSet = useMemo(
+    () => new Set<SectionSlug>(activeHoverSection?.related || []),
+    [activeHoverSection]
+  );
+
+  const relatedSectionObjects = useMemo(
+    () => (activeHoverSection ? PORTAL_SECTIONS.filter((s) => relatedSlugSet.has(s.slug)) : []),
+    [activeHoverSection, relatedSlugSet]
+  );
+
+  const handleTilePointerMove = (e: React.PointerEvent<HTMLAnchorElement>) => {
+    if (e.pointerType === 'touch') return;
+    const el = e.currentTarget;
+    const rect = el.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const ny = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+    const mx = (nx - 0.5) * 2;
+    const my = (ny - 0.5) * 2;
+    el.style.setProperty('--px', `${(nx * 100).toFixed(1)}%`);
+    el.style.setProperty('--py', `${(ny * 100).toFixed(1)}%`);
+    el.style.setProperty('--mx', mx.toFixed(3));
+    el.style.setProperty('--my', my.toFixed(3));
+    el.style.setProperty('--rx', `${(-my * 3.6).toFixed(2)}deg`);
+    el.style.setProperty('--ry', `${(mx * 4.2).toFixed(2)}deg`);
+  };
+
+  const resetTileTransform = (el: HTMLAnchorElement, slug: SectionSlug) => {
+    el.style.removeProperty('--px');
+    el.style.removeProperty('--py');
+    el.style.removeProperty('--mx');
+    el.style.removeProperty('--my');
+    el.style.removeProperty('--rx');
+    el.style.removeProperty('--ry');
+    setHoveredSlug((prev) => (prev === slug ? null : prev));
+  };
+
   // --- مستشار تفاعلي مضغوط وسهل جداً يوجه العميل للقسم المناسب ---
   const [quickGoal, setQuickGoal] = useState<SectionSlug>('maintenance');
   const [quickArea, setQuickArea] = useState<number>(180);
@@ -113,41 +158,194 @@ export default function HomePortalSections({
             <p>اضغط على المربع المناسب لطلبك، وهتلاقي جواه كل التفاصيل والأدوات اللي تخصه وبس.</p>
           </div>
 
-          <div className="pw-portal-clean-grid">
-            {PORTAL_SECTIONS.map((sec, idx) => (
-              <Link
-                key={sec.slug}
-                href={sec.href}
-                className="pw-portal-box"
-                style={{ '--portal-accent': sec.accent } as React.CSSProperties}
-              >
-                <div className="pw-portal-media">
-                  <img
-                    src={sec.image}
-                    alt={sec.imageAlt}
-                    width={1280}
-                    height={720}
-                    loading={idx < 3 ? 'eager' : 'lazy'}
-                    decoding="async"
-                  />
-                  <div className="pw-portal-media-scrim" aria-hidden="true" />
-                  <div className="pw-portal-media-top">
-                    <span className="pw-portal-icon" aria-hidden="true">
-                      {sec.icon}
-                    </span>
-                    <span className="pw-portal-num">{sec.num}</span>
+          <div
+            className="pw-portal-mosaic-frame"
+            style={
+              activeHoverSection
+                ? ({ '--mosaic-active': activeHoverSection.accent } as React.CSSProperties)
+                : undefined
+            }
+          >
+            <div className={`pw-portal-clean-grid ${hoveredSlug ? 'has-hover' : ''}`}>
+              {PORTAL_SECTIONS.map((sec, idx) => {
+                const isHovered = hoveredSlug === sec.slug;
+                const isRelated = hoveredSlug !== null && !isHovered && relatedSlugSet.has(sec.slug);
+                const isDimmed = hoveredSlug !== null && !isHovered && !isRelated;
+
+                const colInRow = idx % 3;
+                const row = Math.floor(idx / 3);
+                // في RTL يبدأ الصف من اليمين إلى اليسار (الخانة الأولى تقع في الشريحة الأيمن 800..1200)
+                const sliceX = (2 - colInRow) * 400;
+                const sliceY = row * 225;
+
+                const nextHorizontal = colInRow < 2 ? PORTAL_SECTIONS[idx + 1] : null;
+                const hBridgeActive = Boolean(
+                  nextHorizontal &&
+                    activeHoverSection &&
+                    ((activeHoverSection.slug === sec.slug && sec.related.includes(nextHorizontal.slug)) ||
+                      (activeHoverSection.slug === nextHorizontal.slug &&
+                        nextHorizontal.related.includes(sec.slug)))
+                );
+
+                const nextVertical = row === 0 ? PORTAL_SECTIONS[idx + 3] : null;
+                const vBridgeActive = Boolean(
+                  nextVertical &&
+                    activeHoverSection &&
+                    ((activeHoverSection.slug === sec.slug && sec.related.includes(nextVertical.slug)) ||
+                      (activeHoverSection.slug === nextVertical.slug &&
+                        nextVertical.related.includes(sec.slug)))
+                );
+
+                return (
+                  <div
+                    key={sec.slug}
+                    className={`pw-portal-slot ${isHovered ? 'is-hovered' : ''} ${isRelated ? 'is-related' : ''} ${isDimmed ? 'is-dimmed' : ''}`}
+                    style={{ '--portal-accent': sec.accent } as React.CSSProperties}
+                  >
+                    <Link
+                      href={sec.href}
+                      className="pw-portal-box"
+                      onPointerEnter={(e) => {
+                        if (e.pointerType !== 'touch') setHoveredSlug(sec.slug);
+                      }}
+                      onPointerMove={handleTilePointerMove}
+                      onPointerLeave={(e) => resetTileTransform(e.currentTarget, sec.slug)}
+                      onFocus={() => setHoveredSlug(sec.slug)}
+                      onBlur={(e) => resetTileTransform(e.currentTarget, sec.slug)}
+                    >
+                      <div className="pw-portal-media">
+                        <img
+                          src={sec.image}
+                          alt={sec.imageAlt}
+                          width={1280}
+                          height={720}
+                          loading={idx < 3 ? 'eager' : 'lazy'}
+                          decoding="async"
+                        />
+                        <div className="pw-portal-media-scrim" aria-hidden="true" />
+                        <div className="pw-portal-spotlight" aria-hidden="true" />
+
+                        {/* شبكة المسارات المعمارية المتصلة عبر حدود الصور الستة */}
+                        <svg
+                          className="pw-portal-cad-svg"
+                          viewBox={`${sliceX} ${sliceY} 400 225`}
+                          preserveAspectRatio="none"
+                          aria-hidden="true"
+                        >
+                          <path
+                            className="pw-cad-rail"
+                            d="M 1200 112 L 0 112 M 1200 337 L 0 337 M 1000 0 L 1000 450 M 600 0 L 600 450 M 200 0 L 200 450"
+                          />
+                          <path
+                            className="pw-cad-wave"
+                            d="M 1200 112 C 1100 58, 900 166, 800 112 C 700 58, 500 166, 400 112 C 300 58, 100 166, 0 112"
+                          />
+                          <path
+                            className="pw-cad-wave"
+                            d="M 1200 337 C 1100 283, 900 391, 800 337 C 700 283, 500 391, 400 337 C 300 283, 100 391, 0 337"
+                          />
+                          <circle className="pw-cad-node" cx="1000" cy="112" r="24" />
+                          <circle className="pw-cad-node" cx="600" cy="112" r="24" />
+                          <circle className="pw-cad-node" cx="200" cy="112" r="24" />
+                          <circle className="pw-cad-node" cx="1000" cy="337" r="24" />
+                          <circle className="pw-cad-node" cx="600" cy="337" r="24" />
+                          <circle className="pw-cad-node" cx="200" cy="337" r="24" />
+                        </svg>
+
+                        {/* زوايا عدسة تحديد تفاعلية تظهر عند تمرير الماوس */}
+                        <div className="pw-portal-reticle" aria-hidden="true">
+                          <span className="r-tl" />
+                          <span className="r-tr" />
+                          <span className="r-bl" />
+                          <span className="r-br" />
+                        </div>
+
+                        <div className="pw-portal-media-top">
+                          <span className="pw-portal-icon" aria-hidden="true">
+                            {sec.icon}
+                          </span>
+                          <span className="pw-portal-num">
+                            {isRelated ? `مترابط · ${sec.num}` : sec.num}
+                          </span>
+                        </div>
+
+                        {/* شريط مميزات سريع ينزلق داخل الصورة عند التفاعل */}
+                        <div className="pw-portal-media-dock" aria-hidden="true">
+                          {sec.highlights.map((tag) => (
+                            <span key={tag} className="pw-portal-dock-tag">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="pw-portal-body">
+                        <h2>{sec.title}</h2>
+                        <p className="pw-portal-guide">{sec.guideHint}</p>
+                        <p className="pw-portal-flow-note">
+                          <span className="pw-portal-flow-dot" aria-hidden="true" />
+                          {isRelated && activeHoverSection
+                            ? `يتكامل مباشرة مع ${activeHoverSection.title}`
+                            : sec.flowNote}
+                        </p>
+                        <span className="pw-portal-enter">
+                          <span>ادخل القسم</span>
+                          <span aria-hidden="true">←</span>
+                        </span>
+                      </div>
+                    </Link>
+
+                    {/* وصلات الربط المعمارية بين أجزاء الصور المتجاورة أفقياً ورأسياً */}
+                    {nextHorizontal && (
+                      <span
+                        className={`pw-seam-bridge ${hBridgeActive ? 'is-lit' : ''}`}
+                        aria-hidden="true"
+                      >
+                        <span className="pw-seam-dot" />
+                      </span>
+                    )}
+                    {nextVertical && (
+                      <span
+                        className={`pw-vertical-bridge ${vBridgeActive ? 'is-lit' : ''}`}
+                        aria-hidden="true"
+                      >
+                        <span className="pw-seam-dot" />
+                      </span>
+                    )}
                   </div>
-                </div>
-                <div className="pw-portal-body">
-                  <h2>{sec.title}</h2>
-                  <p className="pw-portal-guide">{sec.guideHint}</p>
-                  <span className="pw-portal-enter">
-                    <span>ادخل القسم</span>
-                    <span aria-hidden="true">←</span>
+                );
+              })}
+            </div>
+
+            {/* شريط حي يوضح ترابط الأجزاء عند الوقوف بالماوس على أي صورة */}
+            <div className="pw-mosaic-status" aria-live="polite">
+              {activeHoverSection ? (
+                <>
+                  <span className="pw-mosaic-status-lead">
+                    <span>{activeHoverSection.icon}</span>
+                    <strong>{activeHoverSection.title}</strong>
+                    <span className="pw-mosaic-status-sep">·</span>
+                    <span>مترابط مع:</span>
                   </span>
-                </div>
-              </Link>
-            ))}
+                  <div className="pw-mosaic-links">
+                    {relatedSectionObjects.map((rel) => (
+                      <span
+                        key={rel.slug}
+                        className="pw-mosaic-link-pill"
+                        style={{ '--pill-accent': rel.accent } as React.CSSProperties}
+                      >
+                        <span className="pw-mosaic-link-dot" aria-hidden="true" />
+                        {rel.icon} {rel.title}
+                      </span>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <span className="pw-mosaic-idle-hint">
+                  ✨ مرّر الماوس فوق أي قسم لاكتشاف الترابط الهندسي التفاعلي بين جميع أجزاء المنظومة
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </section>

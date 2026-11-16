@@ -16,6 +16,9 @@ export interface PortalSectionDef {
   href: `/sections/${SectionSlug}`;
   image: string;
   imageAlt: string;
+  related: SectionSlug[];
+  flowNote: string;
+  highlights: [string, string, string];
 }
 
 export const PORTAL_SECTIONS: PortalSectionDef[] = [
@@ -29,6 +32,9 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     href: '/sections/maintenance',
     image: '/sections/maintenance.jpg',
     imageAlt: 'فحص لوحات الكهرباء والتكييف المخفي وأنظمة الصيانة الهندسية الاحترافية',
+    related: ['contracting', 'materials', 'smart-home'],
+    flowNote: 'تشغيل وصيانة وضمان ما بعد التنفيذ',
+    highlights: ['كهرباء وسباكة', 'تكييف مخفي', 'ضمان هندسي'],
   },
   {
     slug: 'contracting',
@@ -40,6 +46,9 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     href: '/sections/contracting',
     image: '/sections/contracting.jpg',
     imageAlt: 'مبنى معماري حديث من الخرسانة والزجاج يعبر عن مشاريع المقاولات والإنشاءات',
+    related: ['maintenance', 'real-estate', 'materials', 'smart-home'],
+    flowNote: 'العصب الإنشائي الرابط بين الخامات والتسليم',
+    highlights: ['عظم وتشطيب', 'حاسبة المقايسة', 'مجسم 3D تفاعلي'],
   },
   {
     slug: 'real-estate',
@@ -51,6 +60,9 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     href: '/sections/real-estate',
     image: '/sections/real-estate.jpg',
     imageAlt: 'واجهة مشروع عقاري سكني فاخر بإضاءة مسائية ومسطحات خضراء',
+    related: ['contracting', 'smart-home', 'info'],
+    flowNote: 'ثمرات البناء الجاهزة للسكن والاستثمار',
+    highlights: ['وحدات فاخرة', 'حاسبة الأقساط', 'معاينة فورية'],
   },
   {
     slug: 'materials',
@@ -62,6 +74,9 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     href: '/sections/materials',
     image: '/sections/materials.jpg',
     imageAlt: 'معرض عينات مواد البناء والتشطيب من الرخام والبورسلان والأخشاب والإكسسوارات المعدنية',
+    related: ['maintenance', 'contracting', 'smart-home'],
+    flowNote: 'شريان الخامات المورّدة للمقاولات والصيانة',
+    highlights: ['توريد للموقع', 'بيع وشراء خامات', 'تسعير مباشر'],
   },
   {
     slug: 'smart-home',
@@ -73,6 +88,9 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     href: '/sections/smart-home',
     image: '/sections/smart-home.jpg',
     imageAlt: 'لوحة تحكم منزل ذكي زجاجية وقفل إلكتروني وإضاءة داخلية مؤتمتة',
+    related: ['contracting', 'materials', 'real-estate', 'info'],
+    flowNote: 'أتمتة وأمان ذكي يتكامل مع التأسيس والسكن',
+    highlights: ['أقفال ومفاتيح ذكية', 'كاميرات 4K', 'حساسات أمان'],
   },
   {
     slug: 'info',
@@ -84,6 +102,9 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     href: '/sections/info',
     image: '/sections/info.jpg',
     imageAlt: 'مكتب هندسي يضم مخططات معمارية وحاسوب لوحي لرسومات التصميم الهندسي',
+    related: ['real-estate', 'smart-home', 'contracting'],
+    flowNote: 'المرجع الهندسي قبل التعاقد والاستلام',
+    highlights: ['نصائح تشطيب', 'دليل الفحص', 'حاسبات مجانية'],
   },
 ];
 
