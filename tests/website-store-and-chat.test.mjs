@@ -306,9 +306,13 @@ test('rssNewsParser parses Arabic RSS feeds cleanly and maps topics to PhiTech s
   assert.match(apiRoute, /news\.google\.com\/rss\/search/);
 });
 
-test('every portal section has a valid local showcase image wired into home cards and detail hero', () => {
+test('panoramic split portal showcase has panorama + all 6 section images wired with hover accordion interactivity', () => {
   const sectionDefs = read('app/site/section-defs.ts');
   const slugs = ['maintenance', 'contracting', 'real-estate', 'materials', 'smart-home', 'info'];
+
+  const absPanorama = path.join(root, 'public', 'sections', 'panorama.jpg');
+  assert.equal(fs.existsSync(absPanorama), true, 'Missing public/sections/panorama.jpg');
+  assert.ok(fs.statSync(absPanorama).size > 20_000, 'Expected non-trivial image for panorama.jpg');
 
   for (const slug of slugs) {
     assert.match(sectionDefs, new RegExp(`image:\\s*'/sections/${slug}\\.jpg'`));
@@ -318,21 +322,17 @@ test('every portal section has a valid local showcase image wired into home card
   }
 
   const homePortal = read('app/site/HomePortalSections.tsx');
-  assert.match(homePortal, /pw-portal-media/);
+  assert.match(homePortal, /pw-split-stage/);
+  assert.match(homePortal, /pw-split-backdrop/);
+  assert.match(homePortal, /\/sections\/panorama\.jpg/);
+  assert.match(homePortal, /pw-split-cols/);
   assert.match(homePortal, /src=\{sec\.image\}/);
-  assert.match(homePortal, /alt=\{sec\.imageAlt\}/);
+  assert.match(homePortal, /handleStagePointerMove/);
 
   const detailClient = read('app/site/SectionDetailClient.tsx');
   assert.match(detailClient, /pw-sec-hero-visual/);
   assert.match(detailClient, /src=\{sectionMeta\.image\}/);
   assert.match(detailClient, /alt=\{sectionMeta\.imageAlt\}/);
 
-  assert.match(sectionDefs, /related:\s*\[/);
   assert.match(sectionDefs, /highlights:\s*\[/);
-  assert.match(sectionDefs, /flowNote:\s*'/);
-  assert.match(homePortal, /pw-portal-mosaic-frame/);
-  assert.match(homePortal, /pw-portal-cad-svg/);
-  assert.match(homePortal, /pw-seam-bridge/);
-  assert.match(homePortal, /handleTilePointerMove/);
-  assert.match(homePortal, /pw-mosaic-status/);
 });
