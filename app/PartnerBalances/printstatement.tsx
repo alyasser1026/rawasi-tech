@@ -6,6 +6,8 @@ import { formatCurrency } from '@/lib/helpers';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocSignatures, DocStats, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { computeReportRefCode } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { currencyCode, currencyName } from '@/lib/currency';
 import LoadingScreen from '@/components/LoadingScreen';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
@@ -66,8 +68,25 @@ export default function PrintStatement() {
     const finalBalance = totalCredit - totalDebit;
     const finalBalInfo = getBalanceInfo(finalBalance);
 
+    const stmtRefCode = partner
+        ? computeReportRefCode({
+              explicitCode: partner.code ? `STM-${partner.code}` : undefined,
+              prefix: 'STM',
+              seedParts: [partner.id, partner.name, ledger.length],
+          })
+        : 'STM';
+
     if (isLoading) return <LoadingScreen message="جاري تحضير كشف الحساب..." fullScreen={false} />;
     if (!partner) return <div style={{ textAlign: 'center', padding: '100px', color: '#dc2626' }}>خطأ: لم يتم العثور على بيانات الحساب</div>;
+
+    const handlePrintStatement = () => {
+        printWithDocumentTitle({
+            docType: 'كشف_حساب_شريك',
+            docNumber: stmtRefCode,
+            subject: partner.name,
+            prefix: 'STM',
+        });
+    };
 
     return (
         <div className="print-wrapper phi-doc phi-doc-page">
@@ -88,14 +107,15 @@ export default function PrintStatement() {
             `}</style>
 
             <div className="print-controls">
-                <button className="btn btn-p" onClick={() => window.print()}>طباعة الآن</button>
+                <button className="btn btn-p" onClick={handlePrintStatement}>طباعة الآن</button>
                 <button className="btn btn-c" onClick={() => window.close()}>إغلاق</button>
             </div>
 
             <ReportOfficialHeader
                 title="كشف حساب تفصيلي (Detailed Account Statement)"
                 badgeText="كشف حساب معتمد • ACCOUNT STATEMENT"
-                reportRefCode={partner.code ? `STM-${partner.code}` : undefined}
+                reportRefCode={stmtRefCode}
+                refPrefix="STM"
                 refLabel="رقم الكشف"
                 currency={`${currencyName()} (${currencyCode()})`}
                 compact

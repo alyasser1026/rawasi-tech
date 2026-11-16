@@ -6,6 +6,8 @@ import { formatCurrency } from '@/lib/helpers';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocNote, DocSection, DocSignatures, DocTotals, PHI_DOC_CSS, type DocTotalRow } from '@/components/PrintDocument';
+import { computeReportRefCode } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 export default function PrintClaimModal({ isOpen, onClose, claim, contractorName, assignments = [], deductions = [] }: any) {
     const [mounted, setMounted] = useState(false);
@@ -43,9 +45,21 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
     }, [assignments]);
 
     // 🖨️ دالة الطباعة (window.print)
+    const claimRefCode = computeReportRefCode({
+        explicitCode: claim?.claim_number ? `CLM-${claim.claim_number}` : claim?.id?.slice(0, 8)?.toUpperCase(),
+        prefix: 'CLM',
+        issueDate: claim?.date || undefined,
+        seedParts: [contractorName, claim?.net_amount],
+    });
+
     const handlePrint = () => {
-        document.title = `مستخلص_${contractorName}_${claim?.claim_number}`;
-        window.print();
+        printWithDocumentTitle({
+            docType: 'مستخلص_مقاول',
+            docNumber: claimRefCode,
+            subject: contractorName,
+            prefix: 'CLM',
+            issueDate: claim?.date || undefined,
+        });
     };
 
     if (!isOpen || !mounted || !claim) return null;
@@ -244,7 +258,8 @@ export default function PrintClaimModal({ isOpen, onClose, claim, contractorName
                     <ReportOfficialHeader
                         title="مستخلص أعمال مقاول باطن (Subcontractor Payment Certificate)"
                         badgeText="مستخلص معتمد • PAYMENT CERTIFICATE"
-                        reportRefCode={claim.claim_number ? `CLM-${claim.claim_number}` : undefined}
+                        reportRefCode={claimRefCode}
+                        refPrefix="CLM"
                         refLabel="رقم المستخلص"
                         issueDate={claim.date || undefined}
                         meta={[{ label: 'حالة السداد', value: <span style={{ color: statusColor }}>{paymentStatus}</span> }]}

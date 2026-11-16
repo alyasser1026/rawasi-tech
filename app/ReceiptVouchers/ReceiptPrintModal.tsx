@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocAmount, DocNote, DocSignatures, DocWords, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { computeReportRefCode } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 /*
  * طباعة سند القبض بنفس هوية نماذج الطباعة في السيستم (الترويسة الرسمية + المبلغ + التفقيط + التوقيعات).
@@ -67,14 +69,22 @@ export default function ReceiptPrintModal({ isOpen, onClose, record }: { isOpen:
     const issued = record.created_at ? new Date(record.created_at) : (record.date ? new Date(record.date) : new Date());
     const issueTime = issued.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     const voucherDate = record.date ? new Date(record.date).toLocaleDateString('en-GB') : issued.toLocaleDateString('en-GB');
-    const refCode = record.receipt_number || record.id?.slice(0, 8)?.toUpperCase() || undefined;
-    const signatureData = `تم الاعتماد إلكترونياً\nسند قبض: ${refCode || ''}\nالتاريخ: ${voucherDate}\nبواسطة: ${creator}`;
+    const refCode = computeReportRefCode({
+        explicitCode: record.receipt_number || record.id?.slice(0, 8)?.toUpperCase(),
+        prefix: 'RV',
+        issueDate: voucherDate,
+        seedParts: [partnerName, record.amount],
+    });
+    const signatureData = `تم الاعتماد إلكترونياً\nسند قبض: ${refCode}\nالتاريخ: ${voucherDate}\nبواسطة: ${creator}`;
 
     const handlePrint = () => {
-        const prev = document.title;
-        document.title = record.receipt_number ? `سند_قبض_${record.receipt_number}` : 'سند_قبض';
-        window.print();
-        setTimeout(() => { document.title = prev; }, 1000);
+        printWithDocumentTitle({
+            docType: 'سند_قبض',
+            docNumber: refCode,
+            subject: partnerName,
+            prefix: 'RV',
+            issueDate: voucherDate,
+        });
     };
 
     const modalContent = (

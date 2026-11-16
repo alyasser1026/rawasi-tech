@@ -5,6 +5,7 @@ import { formatCurrency } from '@/lib/helpers';
 import { currencyCode, currencyName } from '@/lib/currency';
 import { printReportElement } from '@/lib/printReportElement';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import { DocSignatures, DocTotals, PHI_DOC_CSS } from '@/components/PrintDocument';
 
 /*
@@ -166,7 +167,22 @@ export default function ExpenseCategorySummary({ expenses, category, onSelectCat
               </p>
             </div>
             <div className="ecs-actions">
-              <button type="button" className="ecs-btn" onClick={() => printReportElement(PRINT_ID, `ملخص_${category}`)}>طباعة الملخص</button>
+              <button
+                type="button"
+                className="ecs-btn"
+                onClick={() =>
+                  printReportElement(
+                    PRINT_ID,
+                    buildDocumentFileName({
+                      docType: `ملخص_مصروفات_${category}`,
+                      prefix: 'EXP-CAT',
+                      seedParts: [category, detail.from, detail.to, detail.count],
+                    }).baseName
+                  )
+                }
+              >
+                طباعة الملخص
+              </button>
               <button type="button" className="ecs-btn ecs-btn-ghost" onClick={() => onSelectCategory(null)}>كل التصنيفات</button>
             </div>
           </div>
@@ -227,6 +243,7 @@ export default function ExpenseCategorySummary({ expenses, category, onSelectCat
               <ReportOfficialHeader
                 title={`ملخص مصروفات: ${category}`}
                 subtitle={detail.from ? `الفترة من ${detail.from} إلى ${detail.to}` : undefined}
+                refPrefix="EXP-CAT"
                 refLabel="رقم التقرير"
                 currency={`${currencyName()} (${cur})`}
                 compact

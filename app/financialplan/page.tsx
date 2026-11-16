@@ -10,6 +10,8 @@ import * as XLSX from 'xlsx-js-style';
 import LoadingScreen from '@/components/LoadingScreen';
 import { Trash2, Plus, Download, Printer, Save } from 'lucide-react';
 import { notify } from '@/lib/notify';
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 const THEME = {
   primary: '#0f172a',    
@@ -256,7 +258,14 @@ export default function FinancialPlanPage() {
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, `خطة_${monthNameArabic}`);
-    XLSX.writeFile(wb, `الخطة_المالية_والإيرادات_شهر_${monthNameArabic}_لسنة_${logic.selectedYear}.xlsx`);
+    const budgetCode = `BGT-${logic.selectedYear}-${String(logic.selectedMonth).padStart(2, '0')}`;
+    const { fileName } = buildDocumentFileName({
+      docType: 'تقرير_الخطة_المالية_والإيرادات',
+      docNumber: budgetCode,
+      subject: monthNameArabic,
+      ext: 'xlsx',
+    });
+    XLSX.writeFile(wb, fileName);
   };
 
   // مكون فرعي لرسم الجدول التفاعلي في شاشة الويب
@@ -528,7 +537,16 @@ export default function FinancialPlanPage() {
               <Download size={15} aria-hidden="true" />
               <span>تصدير إكسيل الاحترافي</span>
             </button>
-            <button className="ent-button" onClick={() => window.print()}>
+            <button
+              className="ent-button"
+              onClick={() =>
+                printWithDocumentTitle({
+                  docType: 'الخطة_المالية_والموازنة',
+                  docNumber: `BGT-${logic.selectedYear}-${String(logic.selectedMonth).padStart(2, '0')}`,
+                  subject: monthNameArabic,
+                })
+              }
+            >
               <Printer size={15} aria-hidden="true" />
               <span>طباعة التقرير الورقي</span>
             </button>

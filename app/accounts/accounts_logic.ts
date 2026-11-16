@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/lib/toast-context';
 import * as XLSX from 'xlsx'; // 🚀 استدعاء مكتبة الإكسل
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import { getAccountTypeByCode, generateNextAccountCode } from '@/lib/accountCodeGenerator';
 
 export function useHierarchicalAccountsLogic() {
@@ -193,7 +194,12 @@ export function useHierarchicalAccountsLogic() {
     XLSX.utils.book_append_sheet(workbook, worksheet, "ميزان المراجعة");
     
     // التنزيل الفوري
-    const fileName = `ميزان_المراجعة_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const { fileName } = buildDocumentFileName({
+        docType: 'تقرير_ميزان_المراجعة',
+        prefix: 'TB',
+        seedParts: [accountsReport.length, totalDebit, totalCredit],
+        ext: 'xlsx',
+    });
     XLSX.writeFile(workbook, fileName);
     
     showToast("تم تصدير ميزان المراجعة بنجاح", "success");

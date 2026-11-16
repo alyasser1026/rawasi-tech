@@ -10,6 +10,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 import { useCompany } from '@/lib/CompanyContext';
 import { usePermissions } from '@/lib/PermissionsContext';
 import { notify } from '@/lib/notify';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { supabase } from '@/lib/supabase';
 import {
   categoryLabels, currentTaxMonth, exportVatReturn, formatReviewReason, formatVatAmount, getPeriod, movementLabels,
@@ -189,7 +190,20 @@ export default function VatReturnPage() {
   return <MasterPage title="إقرار ضريبة القيمة المضافة" subtitle="مراجعة داخلية لخانات الإقرار ومطابقتها مع الأستاذ"
     headerContent={report && <>
       <button type="button" className="ent-button" onClick={() => void exportReport()} disabled={exporting}><FileSpreadsheet size={16} aria-hidden="true" />{exporting ? 'جاري التصدير…' : 'تصدير Excel'}</button>
-      <button type="button" className="ent-button" onClick={() => window.print()}><Printer size={16} aria-hidden="true" />طباعة الملخص A4</button>
+      <button
+        type="button"
+        className="ent-button"
+        onClick={() =>
+          printWithDocumentTitle({
+            docType: 'تقرير_إقرار_ضريبة_القيمة_المضافة',
+            prefix: 'VAT',
+            seedParts: [report?.period.from, report?.period.to],
+          })
+        }
+      >
+        <Printer size={16} aria-hidden="true" />
+        طباعة الملخص A4
+      </button>
     </>}>
     <div className={styles.page} dir="rtl">
       {loading ? <LoadingScreen message="جاري تحميل الشركة والصلاحيات…" fullScreen={false} /> : !canView ?

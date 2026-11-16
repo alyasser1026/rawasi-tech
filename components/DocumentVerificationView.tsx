@@ -28,6 +28,7 @@ import {
   LogIn
 } from 'lucide-react';
 import { PHI_COMPANY_CONTACTS } from '@/lib/company-contacts';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 export interface VerifiedDocData {
   docType: string;
@@ -959,7 +960,11 @@ export default function DocumentVerificationView({
 
   const handlePrintCertificate = () => {
     if (typeof window !== 'undefined') {
-      window.print();
+      printWithDocumentTitle({
+        docType: 'شهادة_تحقق_مستند_رسمي',
+        docNumber: verifiedData?.docNumber || docQuery,
+        prefix: 'VER',
+      });
     }
   };
 

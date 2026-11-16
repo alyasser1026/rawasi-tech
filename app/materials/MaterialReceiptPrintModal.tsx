@@ -6,6 +6,7 @@ import { formatCurrency } from '@/lib/helpers';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocNote, DocSignatures, DocTotals, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, receiptId }: any) {
     const [mounted, setMounted] = useState(false);
@@ -23,6 +24,17 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
     // استخراج بيانات الرأس (الماستر) من أول صنف
     const masterData = receiptItems[0];
     const totalAmount = receiptItems.reduce((sum: number, item: any) => sum + (Number(item.total_price) || 0), 0);
+    const mrnCode = `MRN-${String(receiptId).slice(-6).toUpperCase()}`;
+
+    const handlePrintReceipt = () => {
+        printWithDocumentTitle({
+            docType: 'إذن_استلام_خامات',
+            docNumber: mrnCode,
+            subject: masterData.supplier?.name || masterData.project?.Property,
+            prefix: 'MRN',
+            issueDate: masterData.exp_date || undefined,
+        });
+    };
 
     return createPortal(
         <div className="print-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', padding: '40px 15px', direction: 'rtl' }}>
@@ -78,7 +90,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
 
             {/* 🖨️ أزرار التحكم */}
             <div className="no-print" style={{ display: 'flex', gap: '15px', marginBottom: '20px', width: '100%', maxWidth: '800px' }}>
-                <button onClick={() => window.print()} style={{ flex: 1, padding: '15px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: '16px', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', transition: '0.2s' }}>
+                <button onClick={handlePrintReceipt} style={{ flex: 1, padding: '15px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: '16px', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', transition: '0.2s' }}>
                     طباعة إذن التوريد
                 </button>
                 <button onClick={onClose} style={{ padding: '15px 30px', background: 'white', color: '#ef4444', border: 'none', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', transition: '0.2s' }}>
@@ -93,7 +105,8 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
                 <ReportOfficialHeader
                     title="إذن استلام خامات (Material Receipt Note)"
                     badgeText="مستند مخزني معتمد • STORE NOTE"
-                    reportRefCode={`MRN-${String(receiptId).slice(-6).toUpperCase()}`}
+                    reportRefCode={mrnCode}
+                    refPrefix="MRN"
                     refLabel="رقم الإذن"
                     issueDate={masterData.exp_date || undefined}
                     currency={`${currencyName()} (${currencyCode()})`}

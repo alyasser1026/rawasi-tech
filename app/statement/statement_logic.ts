@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/lib/toast-context'; 
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 
 // 🚀 المترجم المالي - تم تحديث المسمى لـ "قيد غرامة / استقطاع" ليطابق الهوية المحاسبية الجديدة
 const translateVType = (type: string) => {
@@ -137,7 +138,14 @@ export function useStatementLogic() {
         ];
         const csvContent = "\uFEFF" + csvRows.map(e => e.join(",")).join("\n"); 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `كشف_حساب_${actualName}.csv`; link.click();
+        const { fileName } = buildDocumentFileName({
+            docType: 'كشف_حساب_تفصيلي',
+            prefix: 'STM',
+            subject: actualName,
+            seedParts: [partnerId, dateFrom, dateTo],
+            ext: 'csv',
+        });
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = fileName; link.click();
     };
 
     // 🚀🚀 المحرك الشامل المحدث لتوليد التقارير بـ HTML نقي عبر السيرفر وضغطها في ZIP 🚀🚀
@@ -297,11 +305,19 @@ export function useStatementLogic() {
                         </html>
                     `;
 
+                    const { fileName: workerPdfFileName } = buildDocumentFileName({
+                        docType: 'كشف_حساب_تفصيلي',
+                        prefix: 'STM',
+                        subject: pName,
+                        seedParts: [pId, dateFrom, dateTo],
+                        ext: 'pdf',
+                    });
+
                     // إرسال الكود النظيف إلى السيرفر المستقر
                     const response = await fetch('/api/print-statement', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ htmlContent })
+                        body: JSON.stringify({ htmlContent, fileName: workerPdfFileName })
                     });
 
                     if (!response.ok) {
@@ -310,14 +326,19 @@ export function useStatementLogic() {
                     }
 
                     const pdfBlob = await response.blob();
-                    const cleanName = pName.replace(/[/\\?%*:|"<>]/g, '-');
-                    zip.file(`كشف_حساب_${cleanName}.pdf`, pdfBlob);
+                    zip.file(workerPdfFileName, pdfBlob);
                 }
             }
 
             setExportProgress("جاري ضغط التقارير وتجهيز ملف الـ ZIP المجمع...");
             const content = await zip.generateAsync({ type: 'blob' });
-            saveAs(content, `كشوفات_العمالة_فاي_تك_${new Date().toISOString().split('T')[0]}.zip`);
+            const { fileName: zipFileName } = buildDocumentFileName({
+                docType: 'كشوفات_حساب_العمالة_المجمعة',
+                prefix: 'STM-ZIP',
+                seedParts: [totalWorkers, dateFrom, dateTo],
+                ext: 'zip',
+            });
+            saveAs(content, zipFileName);
 
             showToast("تم تنزيل الملف المضغوط المحمي بنجاح!", "success");
 

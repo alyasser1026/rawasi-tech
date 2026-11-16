@@ -6,6 +6,7 @@ import { useToast } from '@/lib/toast-context';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
 import { generateNextPartnerCode } from '@/lib/partnerCodeGenerator';
 import * as XLSX from 'xlsx';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 
 export function useSubClaimsLogic() {
     const { showToast } = useToast();
@@ -635,7 +636,13 @@ export function useSubClaimsLogic() {
         const ws = XLSX.utils.json_to_sheet(rows);
         ws['!cols'] = [{ wch: 5 }, { wch: 15 }, { wch: 25 }, { wch: 20 }, { wch: 16 }, { wch: 18 }, { wch: 25 }, { wch: 10 }];
         XLSX.utils.book_append_sheet(wb, ws, 'المقاولين');
-        XLSX.writeFile(wb, `Phi_Contractors_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        const { fileName } = buildDocumentFileName({
+            docType: 'تقرير_دليل_المقاولين',
+            prefix: 'SUB',
+            seedParts: [contractors?.length],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(wb, fileName);
         showToast('تم تصدير ملف المقاولين بنجاح', 'success');
     };
 
@@ -660,7 +667,14 @@ export function useSubClaimsLogic() {
         }));
         const ws = XLSX.utils.json_to_sheet(rows);
         XLSX.utils.book_append_sheet(wb, ws, 'الأعمال المسندة');
-        XLSX.writeFile(wb, `Contractor_${selectedContractor?.name || 'Assignments'}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        const { fileName } = buildDocumentFileName({
+            docType: 'تقرير_أعمال_مقاول',
+            prefix: 'JO-SUB',
+            subject: selectedContractor?.name || 'الكل',
+            seedParts: [selectedContractor?.id, assignments?.length],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(wb, fileName);
         showToast('تم تصدير جدول الأعمال بنجاح', 'success');
     };
 
@@ -687,7 +701,14 @@ export function useSubClaimsLogic() {
         }));
         const ws = XLSX.utils.json_to_sheet(rows);
         XLSX.utils.book_append_sheet(wb, ws, 'سجل المستخلصات');
-        XLSX.writeFile(wb, `Contractor_${selectedContractor?.name || 'Claims'}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        const { fileName } = buildDocumentFileName({
+            docType: 'سجل_مستخلصات_مقاول',
+            prefix: 'CLM-LIST',
+            subject: selectedContractor?.name || 'الكل',
+            seedParts: [selectedContractor?.id, claimsHistory?.length],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(wb, fileName);
         showToast('تم تصدير سجل المستخلصات بنجاح', 'success');
     };
 

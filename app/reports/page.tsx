@@ -8,6 +8,7 @@ import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
 import { Hourglass, Users } from 'lucide-react';
 import PhiIcon from '@/components/PhiIcon';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 export default function ReportsPage() {
   // نقطة الاستدعاء (Single Source)
@@ -25,7 +26,13 @@ export default function ReportsPage() {
       </button>
       <button 
         className="btn-main-glass white" 
-        onClick={() => window.print()}
+        onClick={() =>
+          printWithDocumentTitle({
+            docType: 'تقرير_مركز_القيادة_الشامل',
+            prefix: 'EXEC-CMD',
+            seedParts: [logic.dateRange?.start, logic.dateRange?.end],
+          })
+        }
       >
         طباعة التقرير
       </button>

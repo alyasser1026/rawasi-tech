@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocSignatures, DocTotals, DocWords, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { computeReportRefCode } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 export default function ExpensePrintModal({ isOpen, onClose, record, projects }: any) {
     const [mounted, setMounted] = useState(false); 
@@ -62,11 +64,21 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
 
     if (!isOpen || !mounted || !record) return null;
 
+    const expenseRefCode = computeReportRefCode({
+        explicitCode: record.expense_number || record.id?.slice(0, 8)?.toUpperCase(),
+        prefix: 'EXP',
+        issueDate: record?.exp_date || undefined,
+        seedParts: [record?.sub_contractor, record?.payee_name, record?.amount],
+    });
+
     const handlePrintOrPDF = () => {
-        const originalTitle = document.title;
-        document.title = record?.expense_number ? `مصروف_${record.expense_number}` : 'سند_صرف';
-        window.print();
-        setTimeout(() => { document.title = originalTitle; }, 1000);
+        printWithDocumentTitle({
+            docType: 'سند_مصروف',
+            docNumber: expenseRefCode,
+            subject: record?.sub_contractor || record?.payee_name,
+            prefix: 'EXP',
+            issueDate: record?.exp_date || undefined,
+        });
     };
 
     // 🚀 التحديث السحري: دعم طباعة الأصناف المتعددة (Hybrid Model)
@@ -150,7 +162,8 @@ export default function ExpensePrintModal({ isOpen, onClose, record, projects }:
                 <ReportOfficialHeader
                     title="سند مصروف (Expense Voucher)"
                     badgeText="مستند مالي معتمد • FINANCIAL VOUCHER"
-                    reportRefCode={record.expense_number || record.id?.slice(0, 8)?.toUpperCase() || undefined}
+                    reportRefCode={expenseRefCode}
+                    refPrefix="EXP"
                     refLabel="رقم السند"
                     issueDate={creationDate}
                     meta={[{ label: 'وقت الإصدار', value: creationTime, ltr: true }]}

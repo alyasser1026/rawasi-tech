@@ -16,6 +16,7 @@ import {
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import { printReportElement } from '@/lib/printReportElement';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import { computeJobOrderProgressAndTimeline } from '@/lib/jobOrderProgress';
 import { fetchDailyWorkerExpenseAllocations } from '@/lib/dailyWorkerExpenseAllocation';
 
@@ -311,7 +312,13 @@ export default function JobOrderLedgerModal({ isOpen, onClose, jobOrder }: any) 
 
     const handlePrint = useCallback(() => {
         const orderNum = jobOrder?.order_number || 'JO-0000';
-        printReportElement('job-order-ledger-printable', `تقرير_أستاذ_أمر_شغل_${orderNum}`);
+        const title = buildDocumentFileName({
+            docType: 'تقرير_أستاذ_أمر_شغل',
+            docNumber: orderNum,
+            subject: jobOrder?.projects?.Property,
+            prefix: 'JO',
+        }).baseName;
+        printReportElement('job-order-ledger-printable', title);
     }, [jobOrder]);
 
     useEffect(() => {

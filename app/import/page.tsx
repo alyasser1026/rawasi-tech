@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import * as XLSX from 'xlsx';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import MasterPage from '@/components/MasterPage';
 import GlassContainer from '@/components/GlassContainer';
 import { useToast } from '@/lib/toast-context';
@@ -86,7 +87,12 @@ export default function UnifiedImportHub() {
             wsVouchers['!cols'] = [{wch:15}, {wch:15}, {wch:30}, {wch:20}, {wch:40}, {wch:15}, {wch:30}];
             XLSX.utils.book_append_sheet(workbook, wsVouchers, 'سندات الصرف');
 
-            XLSX.writeFile(workbook, `Phi_Tech_Master_Template_${new Date().toISOString().split('T')[0]}.xlsx`);
+            const { fileName } = buildDocumentFileName({
+                docType: 'قالب_الاستيراد_الشامل',
+                prefix: 'TPL',
+                ext: 'xlsx',
+            });
+            XLSX.writeFile(workbook, fileName);
             showToast("تم تحميل القالب الشامل بنجاح", "success");
         } catch (e: any) {
             showToast("فشل تحميل القالب: " + e.message, "error");

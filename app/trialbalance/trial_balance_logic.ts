@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import * as XLSX from 'xlsx';
 import { notify } from '@/lib/notify';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 
 export function useTrialBalanceLogic() {
     const [records, setRecords] = useState<any[]>([]);
@@ -66,7 +67,13 @@ export function useTrialBalanceLogic() {
         
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "ميزان المراجعة");
-        XLSX.writeFile(wb, `ميزان_المراجعة_${startDate}_إلى_${endDate}.xlsx`);
+        const { fileName } = buildDocumentFileName({
+            docType: 'تقرير_ميزان_المراجعة',
+            prefix: 'TB',
+            seedParts: [startDate, endDate, records.length],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(wb, fileName);
     };
 
     return {

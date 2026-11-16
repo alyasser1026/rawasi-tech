@@ -246,6 +246,7 @@ export default function PartnersDirectory() {
             title="دليل الشركاء (Partners Directory)"
             subtitle="الموردون والمقاولون والعملاء والعمالة"
             badgeText="تقرير معتمد • OFFICIAL REPORT"
+            refPrefix="PRT"
             refLabel="رقم التقرير"
             compact
             details={[{ label: 'عدد السجلات', value: String(filteredPartners.length) }]}

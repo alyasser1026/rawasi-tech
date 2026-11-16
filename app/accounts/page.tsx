@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useHierarchicalAccountsLogic } from './accounts_logic';
 import { THEME } from '@/lib/theme';
 import { formatCurrency } from '@/lib/helpers';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import { usePermissions } from '@/lib/PermissionsContext'; 
@@ -126,10 +127,15 @@ export default function HierarchicalLedgerPage() {
                   }).join('');
               };
 
+              const { baseName: treeReportTitle, refCode: treeReportRef } = buildDocumentFileName({
+                  docType: 'تقرير_ميزان_المراجعة_الشجري',
+                  prefix: 'TB-TREE',
+                  seedParts: [startDate, endDate, paginatedTree.length],
+              });
               printWindow.document.write(`
                   <html dir="rtl">
                   <head>
-                      <title>ميزان المراجعة</title>
+                      <title>${treeReportTitle}</title>
                       <style>
                           body { font-family: 'Arial', sans-serif; padding: 20px; direction: rtl; }
                           table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -143,7 +149,7 @@ export default function HierarchicalLedgerPage() {
                   <body>
                       <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #ddd; padding-bottom: 15px;">
                           <h2>ميزان المراجعة الشجري</h2>
-                          <p>تاريخ التقرير: ${new Date().toLocaleDateString('en-GB')}</p>
+                          <p>رقم التقرير: <strong dir="ltr">${treeReportRef}</strong> | تاريخ التقرير: ${new Date().toLocaleDateString('en-GB')}</p>
                           ${startDate ? `<p>من: ${startDate} | إلى: ${endDate}</p>` : ''}
                       </div>
                       <table>

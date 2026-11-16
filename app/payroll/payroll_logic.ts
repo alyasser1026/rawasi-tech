@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
 import * as XLSX from 'xlsx-js-style';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
 import { decimalSum, decimalSubtract, savePayrollDrafts, postPayroll, unpostPayroll } from '@/lib/payroll-workflow';
 import { notify } from '@/lib/notify';
@@ -368,10 +369,17 @@ export function usePayrollLogic() {
             { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }  
         ];
         
-        // 10. إنشاء وتنزيل الملف باسم ديناميكي واضح
+        // 10. إنشاء وتنزيل الملف باسم ديناميكي واضح يحتوي على نوع التقرير ورقم المسير
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, `مسير_${monthNameArabic}`);
-        XLSX.writeFile(wb, `مسير_رواتب_شهر_${monthNameArabic}_لسنة_${selectedYear}.xlsx`);
+        const payrollCode = `PAY-${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+        const { fileName } = buildDocumentFileName({
+            docType: 'مسير_الرواتب_والأجور',
+            docNumber: payrollCode,
+            subject: monthNameArabic,
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(wb, fileName);
     };
 
     const importLaborLogs = async () => {

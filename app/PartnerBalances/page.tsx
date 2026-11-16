@@ -4,6 +4,7 @@ import MasterPage from '@/components/MasterPage';
 import { formatCurrency } from '@/lib/helpers';
 import { THEME } from '@/lib/theme';
 import * as XLSX from 'xlsx';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import { supabase } from '@/lib/supabase'; 
 import PrintStatement from './printstatement'; 
 import LoadingScreen from '@/components/LoadingScreen';
@@ -354,7 +355,13 @@ export default function PartnerBalancesPage() {
         const blob = new Blob(['\uFEFF' + htmlContent], { type: 'application/vnd.ms-excel;charset=utf-8;' });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `التقرير_المالي_للشركاء_${new Date().toISOString().split('T')[0]}.xls`;
+        const { fileName } = buildDocumentFileName({
+            docType: 'التقرير_المالي_لأرصدة_الشركاء',
+            prefix: 'PB',
+            seedParts: [stats.net, filteredData.length],
+            ext: 'xls',
+        });
+        link.download = fileName;
         link.click();
     };
 

@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import * as XLSX from 'xlsx';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import { Banknote, Plus, Download, Printer, Search, SlidersHorizontal, CircleCheck, Clock3, Pencil, RotateCcw, Trash2, X, ChevronLeft, ChevronRight, Landmark, FileText, ArrowUpDown } from 'lucide-react';
 import MasterPage from '@/components/MasterPage';
 import WorkspaceDialog from '@/components/WorkspaceDialog';
@@ -61,7 +62,13 @@ export default function PaymentVouchersPage() {
     const sheet = XLSX.utils.json_to_sheet(orderedRows.map(row => ({ 'رقم السند': row.voucher_number, 'التاريخ': row.date, 'المستفيد': row.payee?.name || row.payee_name || '', 'الحساب الدائن': row.credit_account?.name || '', 'الحساب المدين': row.debit_account?.name || '', 'البيان': row.description || '', 'المبلغ': Number(row.amount || 0), 'الحالة': row.is_posted ? 'معتمد' : 'معلق' })));
     sheet['!cols'] = Array.from({ length: 8 }, () => ({ wch: 22 }));
     XLSX.utils.book_append_sheet(workbook, sheet, 'سندات الصرف');
-    XLSX.writeFile(workbook, `Phi_Tech_Payments_${new Date().toISOString().slice(0, 10)}.xlsx`);
+    const { fileName } = buildDocumentFileName({
+      docType: 'سجل_سندات_الصرف',
+      prefix: 'PV-LIST',
+      seedParts: [orderedRows.length, state.dateRange.start, state.dateRange.end],
+      ext: 'xlsx',
+    });
+    XLSX.writeFile(workbook, fileName);
   };
   const setDate = (key: 'start' | 'end', value: string) => { actions.setDateRange({ ...state.dateRange, [key]: value }); actions.setCurrentPage(1); };
   return <>

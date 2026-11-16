@@ -11,6 +11,7 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import { supabase } from '@/lib/supabase';
 import { normalizeArabicText } from '@/lib/helpers';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import LoadingScreen from '@/components/LoadingScreen';
 import VoiceFormTrigger from '@/components/voice/VoiceFormTrigger';
 import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
@@ -254,7 +255,18 @@ export default function LaborLogsDirectory() {
       )}
 
       <button className="btn-main-glass white" onClick={logic.exportToExcel}>تصدير إكسل</button>
-      <button className="btn-main-glass white" onClick={() => window.print()}>طباعة الكشف</button>
+      <button
+        className="btn-main-glass white"
+        onClick={() =>
+          printWithDocumentTitle({
+            docType: 'كشف_يوميات_العمالة',
+            prefix: 'LBR',
+            seedParts: [logic.filteredLogs?.length],
+          })
+        }
+      >
+        طباعة الكشف
+      </button>
     </div>
   ), [logic.selectedIds, isOneSelected, logic]); 
   

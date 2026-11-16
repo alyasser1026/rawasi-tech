@@ -11,6 +11,8 @@ import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocSignatures, DocTotals, DocWords, PHI_DOC_CSS, type DocTotalRow } from '@/components/PrintDocument';
 import { useCompany } from '@/lib/CompanyContext';
+import { computeReportRefCode } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 // --- [المودال الرئيسي لطباعة ومعاينة الفاتورة] ---
 export default function InvoicePrintModal({ isOpen, onClose, record, setRecord = () => {}, onSave, isSaving, projects }: any) {
@@ -202,11 +204,23 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
     // =========================================================================
     // 🚀 دالة الطباعة السحرية
     // =========================================================================
+    const invoiceRefCode = computeReportRefCode({
+        explicitCode: record.invoice_number
+            ? `INV-${record.invoice_number}`
+            : record.id?.slice(0, 8)?.toUpperCase(),
+        prefix: 'INV',
+        issueDate: record.date || record.created_at || undefined,
+        seedParts: [record.client_name, record.partners?.name, record.total_amount],
+    });
+
     const handlePrintOrPDF = () => {
-        const originalTitle = document.title;
-        document.title = record?.invoice_number ? `فاتورة_${record.invoice_number}` : 'فاتورة_ضريبية';
-        window.print();
-        setTimeout(() => { document.title = originalTitle; }, 1000);
+        printWithDocumentTitle({
+            docType: record.skip_zatca ? 'فاتورة' : 'فاتورة_ضريبية',
+            docNumber: invoiceRefCode,
+            subject: record.client_name || record.partners?.name,
+            prefix: 'INV',
+            issueDate: record.date || record.created_at || undefined,
+        });
     };
 
     // 🚀 تهيئة بيانات التوقيع والباركود
@@ -478,7 +492,8 @@ export default function InvoicePrintModal({ isOpen, onClose, record, setRecord =
                 <ReportOfficialHeader
                     title={record.skip_zatca ? 'فاتورة (Invoice)' : 'فاتورة ضريبية (Tax Invoice)'}
                     badgeText={record.skip_zatca ? 'فاتورة مبيعات معتمدة • SALES INVOICE' : 'فاتورة ضريبية معتمدة • VAT INVOICE'}
-                    reportRefCode={record.invoice_number ? `INV-${record.invoice_number}` : undefined}
+                    reportRefCode={invoiceRefCode}
+                    refPrefix="INV"
                     refLabel="رقم الفاتورة"
                     issueDate={record.date ? new Date(record.date).toLocaleDateString('en-GB') : creationDate}
                     meta={[

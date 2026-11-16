@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as XLSX from 'xlsx';
 import { useToast } from '@/lib/toast-context';
 import { fetchAllSupabaseData } from '@/lib/helpers';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 
 export function useAdvancedAuditLogic() {
     const { showToast } = useToast();
@@ -118,7 +119,13 @@ export function useAdvancedAuditLogic() {
         })));
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "System_Audit_Report");
-        XLSX.writeFile(wb, `System_Audit_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const { fileName } = buildDocumentFileName({
+            docType: 'تقرير_فحص_وتدقيق_النظام',
+            prefix: 'AUD',
+            seedParts: [errors.length],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(wb, fileName);
     };
 
     // 🔍 فلترة البيانات 

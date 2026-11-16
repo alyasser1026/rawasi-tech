@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import MasterPage from '@/components/MasterPage';
 import LoadingScreen from '@/components/LoadingScreen';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { useCompany } from '@/lib/CompanyContext';
 import { usePermissions } from '@/lib/PermissionsContext';
 import { notify } from '@/lib/notify';
@@ -91,7 +92,17 @@ export default function ArAgingPage() {
   };
 
   const handlePrint = () => {
-    window.print();
+    printWithDocumentTitle({
+      docType:
+        partyType === 'suppliers'
+          ? 'تقرير_أعمار_ذمم_الموردين'
+          : partyType === 'subcontractors'
+            ? 'تقرير_أعمار_ذمم_مقاولي_الباطن'
+            : 'تقرير_أعمار_ذمم_العملاء',
+      prefix: 'AGR',
+      issueDate: report?.as_of_date || undefined,
+      seedParts: [partyType, report?.as_of_date, report?.partners?.length],
+    });
   };
 
   if (isLoading && !report) {

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import puppeteer, { type Browser } from 'puppeteer';
+import { buildContentDispositionAttachment, buildDocumentFileName } from '@/lib/documentFileName';
 
 export async function POST(request: Request) {
     let browser: Browser | undefined;
     try {
-        const { htmlContent } = await request.json();
+        const { htmlContent, fileName } = await request.json();
 
         // 🚀 تشغيل متصفح سيرفر مخفي
         browser = await puppeteer.launch({
@@ -25,12 +26,19 @@ export async function POST(request: Request) {
             margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' }
         });
 
+        const defaultName = buildDocumentFileName({
+            docType: 'كشف_حساب_تفصيلي',
+            prefix: 'STM',
+            ext: 'pdf',
+        }).fileName;
+        const resolvedFileName = typeof fileName === 'string' && fileName.trim() ? fileName.trim() : defaultName;
+
         // 🚀 إرسال الملف
         return new NextResponse(new Uint8Array(pdfBuffer), {
             status: 200,
             headers: {
                 'Content-Type': 'application/pdf',
-                'Content-Disposition': 'attachment; filename=statement.pdf',
+                'Content-Disposition': buildContentDispositionAttachment(resolvedFileName),
             },
         });
 

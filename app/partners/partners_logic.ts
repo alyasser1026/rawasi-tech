@@ -3,6 +3,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { fetchAllSupabaseData } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { generateNextPartnerCode } from '@/lib/partnerCodeGenerator';
 
 export function usePartnersLogic() {
@@ -256,12 +258,24 @@ export function usePartnersLogic() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `RYC_Data_${new Date().getTime()}.csv`);
+    const { fileName } = buildDocumentFileName({
+      docType: 'تقرير_دليل_الشركاء',
+      prefix: 'PRT',
+      seedParts: [allFilteredData.length, filterType],
+      ext: 'csv',
+    });
+    link.setAttribute("download", fileName);
     link.click();
   };
 
   // 🖨️ الطباعة
-  const handlePrint = () => { window.print(); };
+  const handlePrint = () => {
+    printWithDocumentTitle({
+      docType: 'دليل_الشركاء',
+      prefix: 'PRT',
+      seedParts: [allFilteredData.length, filterType],
+    });
+  };
 
   const getTypeStyle = (type: string) => {
     switch(type) {

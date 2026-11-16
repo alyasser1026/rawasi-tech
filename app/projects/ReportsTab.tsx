@@ -15,6 +15,7 @@ import SecureAction from '@/components/SecureAction';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { printReportElement } from '@/lib/printReportElement';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import { buildMilestoneSchedule, localToday, MILESTONE_STATUS_META, MILESTONE_CONTRACTUAL_DISCLAIMER } from '@/lib/milestoneSchedule';
 import { buildProjectDailyReport } from '@/lib/projectDailyReport';
 import { buildEvmAnalysis, EVM_STATUS_META } from '@/lib/evmAnalysis';
@@ -57,7 +58,13 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isPrintDossierOpen && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
         e.preventDefault();
-        printReportElement('printable-dossier', customReportTitle || 'تقرير_المشروع_فاي_تك');
+        const title = buildDocumentFileName({
+          docType: customReportTitle || 'التقرير_التنفيذي_الشامل_للمشروع',
+          prefix: 'PRJ-EXEC',
+          subject: logic?.selectedProject?.Property || 'فاي_تك',
+          seedParts: [logic?.selectedProject?.id, logic?.selectedProject?.Property],
+        }).baseName;
+        printReportElement('printable-dossier', title);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -3005,7 +3012,17 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
 
               <div style={{ display: 'flex', gap: '0.625rem' }}>
                 <button
-                  onClick={() => printReportElement('printable-dossier', customReportTitle || project.Property || 'تقرير_المشروع_فاي_تك')}
+                  onClick={() =>
+                    printReportElement(
+                      'printable-dossier',
+                      buildDocumentFileName({
+                        docType: customReportTitle || 'التقرير_التنفيذي_الشامل_للمشروع',
+                        prefix: 'PRJ-EXEC',
+                        subject: project.Property || 'فاي_تك',
+                        seedParts: [project.id, project.Property],
+                      }).baseName
+                    )
+                  }
                   style={{
                     backgroundColor: THEME.primary,
                     color: 'white',
@@ -3164,6 +3181,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
               <ReportOfficialHeader
                 title={customReportTitle || 'التقرير التنفيذي الشامل للمشروع (Project Executive Dossier)'}
                 subtitle="تقرير رقابي معتمد صادر عن منظومة فاي تك لإدارة المشروعات والمقاولات"
+                refPrefix="PRJ-EXEC"
                 projectName={project.Property || '—'}
                 projectCode={project.project_code || undefined}
                 unitType={project.unit_type || undefined}

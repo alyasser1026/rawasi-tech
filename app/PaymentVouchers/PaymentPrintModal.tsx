@@ -7,6 +7,8 @@ import { supabase } from '@/lib/supabase';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocAmount, DocNote, DocSignatures, DocWords, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { computeReportRefCode } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
     const [mounted, setMounted] = useState(false); 
@@ -42,15 +44,26 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
 
     if (!isOpen || !mounted || !record) return null;
 
-    const handlePrint = () => {
-        document.title = record?.voucher_number ? `سند_صرف_${record.voucher_number}` : 'سند_صرف';
-        window.print();
-    };
-
     const finalFullName = creatorInfo?.fullName || 'المحاسب المعتمد';
     const creationDateObj = record?.created_at ? new Date(record.created_at) : (record?.date ? new Date(record.date) : new Date());
     const creationTime = creationDateObj.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
     const creationDate = creationDateObj.toLocaleDateString('en-GB');
+    const voucherRefCode = computeReportRefCode({
+        explicitCode: record.voucher_number || record.id?.slice(0, 8)?.toUpperCase(),
+        prefix: 'PV',
+        issueDate: creationDate,
+        seedParts: [record.payee_name, record.amount],
+    });
+
+    const handlePrint = () => {
+        printWithDocumentTitle({
+            docType: 'سند_صرف',
+            docNumber: voucherRefCode,
+            subject: record?.payee_name,
+            prefix: 'PV',
+            issueDate: creationDate,
+        });
+    };
     
     const signatureData = `تم الاعتماد إلكترونياً\nتاريخ الإصدار: ${creationDate}\nوقت الإصدار: ${creationTime}\nبواسطة: ${finalFullName}`;
     const amountInWords = tafqeet(Number(record.amount || 0));
@@ -86,7 +99,8 @@ export default function PaymentPrintModal({ isOpen, onClose, record }: any) {
                 <ReportOfficialHeader
                     title="سند صرف (Payment Voucher)"
                     badgeText="مستند مالي معتمد • FINANCIAL VOUCHER"
-                    reportRefCode={record.voucher_number || record.id?.slice(0, 8)?.toUpperCase() || undefined}
+                    reportRefCode={voucherRefCode}
+                    refPrefix="PV"
                     refLabel="رقم السند"
                     issueDate={creationDate}
                     meta={[{ label: 'وقت الإصدار', value: creationTime, ltr: true }]}

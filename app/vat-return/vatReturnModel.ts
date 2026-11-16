@@ -1,4 +1,5 @@
 import { currencyCode } from '@/lib/currency';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 export type VatSource = 'invoice' | 'expense' | 'note';
 export type VatAmount = number | string | null;
 
@@ -139,5 +140,11 @@ export async function exportVatReturn(report: VatReturn) {
     ['التاريخ', 'النوع', 'الوصف', 'معرّف القيد', 'المصدر', 'معرّف المستند', 'الحركة'],
     ...rec.lines.map(line => [line.date, movementLabels[line.kind] ?? line.kind, line.description, line.header_id, line.source, line.source_id, numeric(line.amount)]),
   ]);
-  XLSX.writeFile(workbook, `VAT_${report.period.from}_${report.period.to}.xlsx`);
+  const { fileName } = buildDocumentFileName({
+    docType: 'تقرير_إقرار_ضريبة_القيمة_المضافة',
+    prefix: 'VAT',
+    seedParts: [report.period.from, report.period.to],
+    ext: 'xlsx',
+  });
+  XLSX.writeFile(workbook, fileName);
 }

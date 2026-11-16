@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { CSS } from './client-styles';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { MILESTONE_CONTRACTUAL_DISCLAIMER } from '@/lib/milestoneSchedule';
 
 /* ===== أنواع البيانات القادمة من الدالة public.client_portal_data ===== */
@@ -147,7 +148,20 @@ function Portal() {
         </div>
         <span className="cl-spacer" />
         {data.client?.name && <span className="cl-user">{data.client.name}</span>}
-        <button type="button" className="cl-btn" onClick={() => window.print()}>طباعة التقرير</button>
+        <button
+          type="button"
+          className="cl-btn"
+          onClick={() =>
+            printWithDocumentTitle({
+              docType: 'تقرير_متابعة_المشروع',
+              prefix: 'CL-PRG',
+              subject: project?.name,
+              seedParts: [project?.id, project?.name],
+            })
+          }
+        >
+          طباعة التقرير
+        </button>
         <button type="button" className="cl-btn" onClick={logout}>تسجيل الخروج</button>
       </div>
     </header>
@@ -183,6 +197,7 @@ function Portal() {
             title="تقرير متابعة المشروع (Project Progress Report)"
             subtitle={project.stage ? `المرحلة الحالية: ${project.stage}` : undefined}
             badgeText="تقرير للعميل • CLIENT REPORT"
+            refPrefix="CL-PRG"
             refLabel="رقم التقرير"
             issuer={false}
             compact

@@ -2,7 +2,8 @@
 import * as XLSX from 'xlsx';
 import { supabase } from '@/lib/supabase';
 import { fetchAllSupabaseData } from '@/lib/helpers';
-import { useToast } from '@/lib/toast-context'; 
+import { useToast } from '@/lib/toast-context';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 
 // 🗺️ خريطة حقول الجداول (الأسماء الإنجليزية المطابقة للداتابيز بالضبط)
 export const TABLE_SCHEMAS: Record<string, string[]> = {
@@ -96,7 +97,13 @@ export const useBackupLogic = () => {
                 }
             }
             
-            XLSX.writeFile(workbook, `Phi_Tech_Backup_${new Date().toISOString().split('T')[0]}.xlsx`);
+            const { fileName } = buildDocumentFileName({
+                docType: 'نسخة_احتياطية_قاعدة_البيانات',
+                prefix: 'BKP',
+                seedParts: [selectedTables.length],
+                ext: 'xlsx',
+            });
+            XLSX.writeFile(workbook, fileName);
             showToast('تم تصدير نسخة الإكسل بنجاح', 'success');
             return { success: true };
         } catch (error: any) {
@@ -121,7 +128,13 @@ export const useBackupLogic = () => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `Phi_Tech_Snapshot_${new Date().toISOString().split('T')[0]}.json`;
+            const { fileName } = buildDocumentFileName({
+                docType: 'نسخة_احتياطية_JSON',
+                prefix: 'BKP',
+                seedParts: [selectedTables.length],
+                ext: 'json',
+            });
+            link.download = fileName;
             link.click();
             URL.revokeObjectURL(url);
             
@@ -279,7 +292,13 @@ else if (tableName === 'expenses') {
 
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, tableName); 
-            XLSX.writeFile(workbook, `Template_${tableName}.xlsx`);
+            const { fileName } = buildDocumentFileName({
+                docType: `قالب_بيانات_${displayName}`,
+                docNumber: `TPL-${tableName}`,
+                seedParts: [tableName],
+                ext: 'xlsx',
+            });
+            XLSX.writeFile(workbook, fileName);
             
             showToast(`تم تحميل قالب ${displayName} بنجاح`, 'success');
         } catch (error: any) {

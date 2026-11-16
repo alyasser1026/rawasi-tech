@@ -6,6 +6,8 @@ import { formatCurrency } from '@/lib/helpers';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { RefreshCw } from 'lucide-react';
 import { fetchDailyWorkerExpenseAllocations } from '@/lib/dailyWorkerExpenseAllocation';
 import { useCompany } from '@/lib/CompanyContext';
@@ -138,7 +140,13 @@ export default function AdvancedExpenseAllocation() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `تقرير_توزيع_المصروفات_${new Date().toISOString().split('T')[0]}.csv`);
+    const { fileName } = buildDocumentFileName({
+      docType: 'تقرير_توزيع_المصروفات_غير_المباشرة',
+      prefix: 'EXP-ALLOC',
+      seedParts: [filteredData.length],
+      ext: 'csv',
+    });
+    link.setAttribute("download", fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -213,6 +221,7 @@ export default function AdvancedExpenseAllocation() {
           title="تقرير توزيع المصروفات غير المباشرة (Indirect Cost Allocation)"
           subtitle="توزيع وتحميل المصروفات العامة غير المباشرة على الفلل والمشاريع"
           badgeText="تقرير مالي معتمد • FINANCIAL REPORT"
+          refPrefix="EXP-ALLOC"
           refLabel="رقم التقرير"
           compact
         />
@@ -228,7 +237,17 @@ export default function AdvancedExpenseAllocation() {
           <button onClick={exportToCSV} className="btn-action-premium" style={{ backgroundColor: '#16a34a', color: 'white', padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 10px rgba(22,163,74,0.15)' }}>
             تصدير لـ Excel
           </button>
-          <button onClick={() => window.print()} className="btn-action-premium" style={{ backgroundColor: THEME.primary, color: 'white', padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 10px rgba(0,0,0,0.08)' }}>
+          <button
+            onClick={() =>
+              printWithDocumentTitle({
+                docType: 'تقرير_توزيع_المصروفات_غير_المباشرة',
+                prefix: 'EXP-ALLOC',
+                seedParts: [filteredData.length],
+              })
+            }
+            className="btn-action-premium"
+            style={{ backgroundColor: THEME.primary, color: 'white', padding: '0.625rem 1.25rem', borderRadius: '12px', border: 'none', fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 4px 10px rgba(0,0,0,0.08)' }}
+          >
             طباعة التقرير
           </button>
         </div>

@@ -5,6 +5,8 @@ import { formatCurrency, formatDate } from '@/lib/helpers';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocSection, DocSignatures, DocStats, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { computeReportRefCode } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { currencyCode, currencyName } from '@/lib/currency';
 import { THEME } from '@/lib/theme';
 
@@ -48,8 +50,20 @@ export default function StatementPrintModal({
 
     if (!isOpen || !mounted) return null;
 
+    const stmtRefCode = computeReportRefCode({
+        prefix: 'STM',
+        issueDate: dateTo || undefined,
+        seedParts: [partnerName, dateFrom, dateTo, statementLines.length],
+    });
+
     const handlePrint = () => {
-        window.print();
+        printWithDocumentTitle({
+            docType: 'كشف_حساب_تفصيلي',
+            docNumber: stmtRefCode,
+            subject: partnerName,
+            prefix: 'STM',
+            issueDate: dateTo || undefined,
+        });
     };
 
     const safeLines = Array.isArray(statementLines) ? [...statementLines] : [];
@@ -71,6 +85,8 @@ export default function StatementPrintModal({
                     <ReportOfficialHeader
                         title="كشف حساب تفصيلي (Detailed Account Statement)"
                         badgeText="كشف حساب معتمد • ACCOUNT STATEMENT"
+                        reportRefCode={stmtRefCode}
+                        refPrefix="STM"
                         refLabel="رقم الكشف"
                         currency={`${currencyName()} (${currencyCode()})`}
                         compact

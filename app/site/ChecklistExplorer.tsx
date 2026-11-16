@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { CHECKLIST } from './checklist-data';
 import ExecutionGuideDossier from './ExecutionGuideDossier';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 const KEY = 'phi-checklist-v1';
 
@@ -109,7 +110,17 @@ export default function ChecklistExplorer() {
   const expandAll = () => setOpen(new Set(visibleSections.map(s => s.id)));
   const collapseAll = () => setOpen(new Set());
   const resetAll = () => { if (window.confirm('تصفير كل علامات الإنجاز على هذا الجهاز؟')) setDone(new Set()); };
-  const printNow = () => { setPrinting(true); setTimeout(() => window.print(), 150); };
+  const printNow = () => {
+    setPrinting(true);
+    setTimeout(
+      () =>
+        printWithDocumentTitle({
+          docType: 'دليل_فحص_استلام_الأعمال_الهندسية',
+          prefix: 'CHK',
+        }),
+      150
+    );
+  };
   const checkSection = (ids: string[]) => {
     const all = ids.every(id => done.has(id));
     setDone(prev => { const n = new Set(prev); ids.forEach(id => (all ? n.delete(id) : n.add(id))); return n; });

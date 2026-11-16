@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { PHI_COMPANY_CONTACTS, type DocumentIssuer } from '@/lib/company-contacts';
+import { buildDocumentFileName, computeReportRefCode } from '@/lib/documentFileName';
+import { installGlobalPrintTitleSync } from '@/lib/printWithTitle';
 
 /** خانة بيانات في جدول الترويسة: عنوان صغير فوق وقيمة تحت. */
 export interface ReportHeaderDetail {
@@ -44,6 +46,8 @@ export interface ReportOfficialHeaderProps {
   /** محفوظة للتوافق: العملة مابقتش بتظهر في الترويسة. */
   currency?: string;
   reportRefCode?: string;
+  /** بادئة مختصرة عند توليد رقم التقرير تلقائيًا (مثل TB, BS, PAY). */
+  refPrefix?: string;
   /** محفوظة للتوافق: الشارة مابقتش بتظهر في الترويسة. */
   badgeText?: string;
   compact?: boolean;
@@ -138,6 +142,7 @@ export default function ReportOfficialHeader({
   contractValueText,
   issueDate,
   reportRefCode,
+  refPrefix,
   compact = false,
   details: extraDetails,
   meta,
@@ -173,14 +178,30 @@ export default function ReportOfficialHeader({
   const safeProjectManager = cleanValue(projectManager);
   const safeContractValue = cleanValue(contractValueText);
 
-  const resolvedRefCode = useMemo(() => {
-    if (reportRefCode) return reportRefCode;
-    const dateDigits = resolvedDate.replace(/[^0-9]/g, '').slice(0, 8) || '20261111';
-    const projHash = (safeProjectName || title || 'PHI')
-      .split('')
-      .reduce((acc, ch) => (acc * 31 + ch.charCodeAt(0)) % 9000 + 1000, 1024);
-    return `PHI-REP-${dateDigits}-${projHash}`;
-  }, [reportRefCode, resolvedDate, safeProjectName, title]);
+  const resolvedRefCode = useMemo(
+    () =>
+      computeReportRefCode({
+        explicitCode: reportRefCode,
+        prefix: refPrefix || 'PHI-REP',
+        issueDate: resolvedDate,
+        seedParts: [titleAr, subtitle, safeProjectName, safeClientName],
+      }),
+    [reportRefCode, refPrefix, resolvedDate, titleAr, subtitle, safeProjectName, safeClientName]
+  );
+
+  const officialFileMeta = useMemo(
+    () =>
+      buildDocumentFileName({
+        docType: titleAr,
+        docNumber: resolvedRefCode,
+        subject: safeProjectName || safeClientName,
+        prefix: refPrefix || 'PHI-REP',
+        issueDate: resolvedDate,
+      }),
+    [titleAr, resolvedRefCode, safeProjectName, safeClientName, refPrefix, resolvedDate]
+  );
+
+  useEffect(() => installGlobalPrintTitleSync(), []);
 
   const qrVerificationValue = useMemo(() => {
     if (qrValue) return qrValue;
@@ -236,7 +257,13 @@ export default function ReportOfficialHeader({
   if (cellSpans.length && usedInLastRow) cellSpans[cellSpans.length - 1] += 4 - usedInLastRow;
 
   return (
-    <header className={`phi-official-report-header phi-orh dossier-keep-together${compact ? ' is-compact' : ''}`} dir="rtl">
+    <header
+      className={`phi-official-report-header phi-orh dossier-keep-together${compact ? ' is-compact' : ''}`}
+      dir="rtl"
+      data-phi-doc-title={officialFileMeta.baseName}
+      data-phi-doc-type={officialFileMeta.docType}
+      data-phi-doc-ref={resolvedRefCode}
+    >
       <style>{ORH_CSS}</style>
 
       <div className="phi-orh-stripe" aria-hidden="true"><span /><span /><span /></div>

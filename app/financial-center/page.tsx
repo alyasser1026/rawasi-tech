@@ -8,6 +8,7 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import LoadingScreen from '@/components/LoadingScreen';
 import KpiStrip from '@/components/KpiStrip';
 import { formatCurrency } from '@/lib/helpers';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 type Movement = { created_at: string; kind: 'expense' | 'journal'; description?: string | null; amount: number; side: 'in' | 'out' };
 type Totals = { totalIn: number; totalOut: number; netCash: number; liquidityIndex: number; syncedAt: Date };
@@ -77,7 +78,20 @@ export default function FinancialCenter() {
 
   const actions = useMemo(() => <>
     <button type="button" className="ent-button ent-primary" onClick={() => void refreshCore()} disabled={refreshing}><RefreshCw size={16} aria-hidden="true" />{refreshing ? 'جاري التحديث…' : 'تحديث البيانات'}</button>
-    <button type="button" className="ent-button" onClick={() => window.print()}><Printer size={16} aria-hidden="true" />طباعة</button>
+    <button
+      type="button"
+      className="ent-button"
+      onClick={() =>
+        printWithDocumentTitle({
+          docType: 'تقرير_المركز_المالي',
+          prefix: 'FIN-CTR',
+          seedParts: [movements.length, totals?.netCash],
+        })
+      }
+    >
+      <Printer size={16} aria-hidden="true" />
+      طباعة
+    </button>
   </>, [refreshCore, refreshing]);
 
   return (

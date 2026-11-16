@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useProfileLogic } from './profile_logic';
 import { formatCurrency, formatDate } from '@/lib/helpers';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import SignaturePad from '@/components/signaturepad';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager'; 
@@ -66,7 +67,7 @@ export default function EmployeeProfilePage() {
                         <h3 style={{ margin: '0.3125rem 0 0 0', fontWeight: 900, fontSize: 'var(--fs-3xl)', color: 'var(--text-primary)' }}>{pTasks} <small style={{fontSize:'var(--fs-sm)'}}>مهمة</small></h3>
                     </div>
                 );
-                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'var(--fs-xl)'}}><Printer size={15} aria-hidden="true" /></span> طباعة المهام</button>;
+                actions = <button style={actionBtnStyle} onClick={() => printWithDocumentTitle({ docType: 'تقرير_مهام_الموظف', prefix: 'USR-TSK', subject: displayName })}><span style={{fontSize:'var(--fs-xl)'}}><Printer size={15} aria-hidden="true" /></span> طباعة المهام</button>;
                 break;
 
             case 'requests':
@@ -86,7 +87,7 @@ export default function EmployeeProfilePage() {
                             <span style={{fontSize:'var(--fs-xl)'}}><ClipboardList size={15} aria-hidden="true" /></span> عرض السجل
                         </button>
                         <div style={{ height: '1px', background: 'var(--control-edge)', margin: '0.625rem 0' }} />
-                        <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'var(--fs-xl)'}}><Printer size={15} aria-hidden="true" /></span> طباعة السجل</button>
+                        <button style={actionBtnStyle} onClick={() => printWithDocumentTitle({ docType: 'سجل_طلبات_الموظف', prefix: 'USR-REQ', subject: displayName })}><span style={{fontSize:'var(--fs-xl)'}}><Printer size={15} aria-hidden="true" /></span> طباعة السجل</button>
                     </>
                 );
                 break;
@@ -114,7 +115,7 @@ export default function EmployeeProfilePage() {
                         </div>
                     </div>
                 );
-                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'var(--fs-xl)'}}><Printer size={15} aria-hidden="true" /></span> طباعة الكشف</button>;
+                actions = <button style={actionBtnStyle} onClick={() => printWithDocumentTitle({ docType: 'كشف_الحساب_الشخصي', prefix: 'USR-STM', subject: displayName })}><span style={{fontSize:'var(--fs-xl)'}}><Printer size={15} aria-hidden="true" /></span> طباعة الكشف</button>;
                 break;
             
             case 'kpi':
@@ -137,7 +138,7 @@ export default function EmployeeProfilePage() {
                         </div>
                     </div>
                 );
-                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'var(--fs-xl)'}}><ChartColumn size={15} aria-hidden="true" /></span> طباعة التقييم</button>;
+                actions = <button style={actionBtnStyle} onClick={() => printWithDocumentTitle({ docType: 'تقرير_تقييم_الأداء', prefix: 'USR-KPI', subject: displayName })}><span style={{fontSize:'var(--fs-xl)'}}><ChartColumn size={15} aria-hidden="true" /></span> طباعة التقييم</button>;
                 break;
 
             default:
@@ -148,7 +149,7 @@ export default function EmployeeProfilePage() {
                         <h3 style={{ margin: '0.3125rem 0 0 0', fontWeight: 900, fontSize: 'var(--fs-3xl)', color: 'var(--text-primary)' }}>{totalProd}</h3>
                     </div>
                 );
-                actions = <button style={actionBtnStyle} onClick={() => window.print()}><span style={{fontSize:'var(--fs-xl)'}}><Files size={15} aria-hidden="true" /></span> طباعة التقرير</button>;
+                actions = <button style={actionBtnStyle} onClick={() => printWithDocumentTitle({ docType: 'تقرير_العمل_الشخصي', prefix: 'USR-REP', subject: displayName })}><span style={{fontSize:'var(--fs-xl)'}}><Files size={15} aria-hidden="true" /></span> طباعة التقرير</button>;
                 break;
         }
 
@@ -350,8 +351,8 @@ export default function EmployeeProfilePage() {
                     {activeTab === 'report' && !isKpiOnly && (
                          <div className="animate-fade-in">
                             <RawasiSmartTable 
-                                title="أرشيف يوميات العمل والإنتاجية (مفلتر)"
-                                fileName={`WorkReport_${displayName}`}
+                                title={`أرشيف يوميات العمل والإنتاجية - ${displayName}`}
+                                fileName={`تقرير_أداء_العمل_${displayName}`}
                                 data={filteredData?.logs || []}
                                 columns={[
                                     { header: 'التاريخ', accessor: 'work_date', render: (row: any) => `${formatDate(row.work_date || row.Date)}` },
@@ -505,8 +506,8 @@ export default function EmployeeProfilePage() {
                     {activeTab === 'statement' && !isKpiOnly && (
                         <div className="animate-fade-in">
                             <RawasiSmartTable 
-                                title="كشف الحساب التفصيلي"
-                                fileName={`AccountStatement_${displayName}`}
+                                title={`كشف الحساب التفصيلي - ${displayName}`}
+                                fileName={`كشف_الحساب_الشخصي_${displayName}`}
                                 data={combinedStatement || []}
                                 columns={[
                                     { header: 'التاريخ', accessor: 'date', render: (row: any) => formatDate(row.date) },

@@ -1,4 +1,5 @@
 import { currencySymbol } from '@/lib/currency';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 export type AgingPartyType = 'customers' | 'subcontractors' | 'suppliers';
 
 export type AgingBucket = 'current' | 'days_1_30' | 'days_31_60' | 'days_61_90' | 'over_90' | 'unspecified';
@@ -271,5 +272,12 @@ export async function exportAgingToExcel(report: AgingReport, partyType: AgingPa
   ]);
   XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([projectHeaders, ...projectRows]), 'الأرصدة حسب المشاريع');
 
-  XLSX.writeFile(workbook, `Aging_Report_${partyType}_${report.as_of_date}.xlsx`);
+  const { fileName } = buildDocumentFileName({
+    docType: partyTypeLabels[partyType] || 'تقرير_أعمار_الذمم',
+    prefix: 'AGR',
+    issueDate: report.as_of_date,
+    seedParts: [partyType, report.as_of_date, report.partners?.length],
+    ext: 'xlsx',
+  });
+  XLSX.writeFile(workbook, fileName);
 }

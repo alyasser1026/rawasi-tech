@@ -6,6 +6,8 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { toast } from 'react-hot-toast';
 import { ArrowDown, ArrowUp, Download, Printer } from 'lucide-react';
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printWithDocumentTitle, resolveActivePrintableDocMeta } from '@/lib/printWithTitle';
 
 // 🟢 التعديل الأهم: تغيير النوع ليقبل React.ReactNode (مثل الـ Checkbox) بالإضافة للنصوص
 interface Column {
@@ -128,6 +130,25 @@ export default function RawasiSmartTable({
         return sortedData.slice(startIndex, startIndex + activeRows);
     }, [sortedData, enablePagination, activePage, activeRows]);
 
+    const resolveTableReportMeta = () => {
+        const activeMeta = resolveActivePrintableDocMeta();
+        const headingText =
+            typeof document !== 'undefined'
+                ? document.querySelector('.enterprise-page > .ent-page-heading h1')?.textContent?.trim()
+                : '';
+        const customFileType = fileName && fileName !== 'Phi_Tech_Report' ? fileName : '';
+        const docType =
+            (title && title.trim()) ||
+            customFileType ||
+            activeMeta?.docType ||
+            headingText ||
+            'تقرير_جدول_بيانات';
+        return {
+            docType,
+            refCode: !title && !customFileType ? activeMeta?.refCode : undefined,
+        };
+    };
+
     const exportToExcel = () => {
         if (!data || data.length === 0) return toast.error('عفواً، لا توجد بيانات للتصدير');
         const toastId = toast.loading('جاري تحضير ملف Excel...');
@@ -153,7 +174,15 @@ export default function RawasiSmartTable({
             const worksheet = XLSX.utils.json_to_sheet(exportData);
             const workbook = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(workbook, worksheet, "التقرير");
-            XLSX.writeFile(workbook, `${fileName}_${new Date().toLocaleDateString('en-GB')}.xlsx`);
+            const { docType, refCode } = resolveTableReportMeta();
+            const resolved = buildDocumentFileName({
+                docType,
+                docNumber: refCode,
+                prefix: 'TBL',
+                seedParts: [fileName, sortedData.length],
+                ext: 'xlsx',
+            });
+            XLSX.writeFile(workbook, resolved.fileName);
             toast.success('تم تصدير ملف Excel بنجاح', { id: toastId });
         } catch (error) {
             toast.error('حدث خطأ أثناء التصدير', { id: toastId });
@@ -165,7 +194,13 @@ export default function RawasiSmartTable({
         const toastId = toast.loading('جاري تحضير ملف PDF...');
         try {
             // استخدام نافذة الطباعة كحل أمثل للغة العربية
-            window.print();
+            const { docType, refCode } = resolveTableReportMeta();
+            printWithDocumentTitle({
+                docType,
+                docNumber: refCode,
+                prefix: 'TBL',
+                seedParts: [fileName, sortedData.length],
+            });
             toast.success('تم فتح نافذة الطباعة بنجاح', { id: toastId });
         } catch (error) {
             toast.error('حدث خطأ أثناء التصدير', { id: toastId });

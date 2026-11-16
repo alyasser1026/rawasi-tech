@@ -11,15 +11,17 @@ import ReportOfficialHeader from './ReportOfficialHeader';
  * وساعتها الترويسة العامة دي بتختفي عشان ما تتكررش.
  */
 
-type Props = { title: string; subtitle?: string };
+type Props = { title: string; subtitle?: string; reportRefCode?: string; refPrefix?: string };
 
-function PrintMasthead({ title, subtitle }: Props) {
+function PrintMasthead({ title, subtitle, reportRefCode, refPrefix }: Props) {
   return (
     <div className="phi-print-masthead">
       <style>{MASTHEAD_CSS}</style>
       <ReportOfficialHeader
         title={title}
         subtitle={subtitle}
+        reportRefCode={reportRefCode}
+        refPrefix={refPrefix}
         badgeText="تقرير معتمد • OFFICIAL REPORT"
         refLabel="رقم التقرير"
         compact

@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { fetchAllSupabaseData } from '@/lib/helpers';
 import * as XLSX from 'xlsx';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import { useToast } from '@/lib/toast-context'; 
 
 export function useJournalErrorsLogic() {
@@ -262,7 +263,13 @@ export function useJournalErrorsLogic() {
         const ws = XLSX.utils.json_to_sheet(allErrors);
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "Audit_Report");
-        XLSX.writeFile(wb, `Journal_Audit_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const { fileName } = buildDocumentFileName({
+            docType: 'تقرير_تدقيق_القيود_اليومية',
+            prefix: 'JRN-AUD',
+            seedParts: [allErrors.length],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(wb, fileName);
     };
 
     const filterBySearch = (logs: any[]) => logs.filter(l => String(l.id).includes(searchQuery) || l.description?.includes(searchQuery));

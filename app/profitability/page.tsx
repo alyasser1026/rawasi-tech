@@ -5,6 +5,8 @@ import MasterPage from '@/components/MasterPage';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import LoadingScreen from '@/components/LoadingScreen';
 import styles from './profitability.module.css';
 import { fetchProjectsProfitabilityFallback } from './profitabilityFallback';
@@ -150,7 +152,13 @@ export default function ProjectProfitabilityPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `Projects_Profitability_${startDate}_${endDate}.csv`);
+    const { fileName } = buildDocumentFileName({
+      docType: 'تقرير_ربحية_المشاريع',
+      prefix: 'PRF',
+      seedParts: [startDate, endDate],
+      ext: 'csv',
+    });
+    link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -219,7 +227,17 @@ export default function ProjectProfitabilityPage() {
                   <FileSpreadsheet size={15} />
                   تصدير إكسل
                 </button>
-                <button type="button" className={styles.btnSecondary} onClick={() => window.print()}>
+                <button
+                  type="button"
+                  className={styles.btnSecondary}
+                  onClick={() =>
+                    printWithDocumentTitle({
+                      docType: 'تقرير_ربحية_المشاريع',
+                      prefix: 'PRF',
+                      seedParts: [startDate, endDate],
+                    })
+                  }
+                >
                   <Printer size={15} />
                   طباعة
                 </button>

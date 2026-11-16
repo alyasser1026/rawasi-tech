@@ -11,6 +11,7 @@ import LoadingScreen from '@/components/LoadingScreen';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocSignatures, DocWords, PHI_DOC_CSS } from '@/components/PrintDocument';
 import { currencyCode, currencyName } from '@/lib/currency';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 const THEME = {
   primary: '#0f172a',    
@@ -38,7 +39,12 @@ export default function PayrollPage() {
     
     <button 
       key="print_payroll"
-      onClick={() => window.print()}
+      onClick={() =>
+        printWithDocumentTitle({
+          docType: 'مسير_الرواتب_والأجور',
+          docNumber: `PAY-${logic.selectedYear}-${String(logic.selectedMonth).padStart(2, '0')}`,
+        })
+      }
       style={{ padding: '0.75rem', borderRadius: '8px', border: `1px solid ${THEME.border}`, background: THEME.slate, color: THEME.textMain, fontWeight: 'bold', cursor: 'pointer', width: '100%', marginBottom: '0.5rem' }}
     >
       طباعة المسير الرسمي

@@ -2,6 +2,8 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import SecureAction from '@/components/SecureAction';
 import * as XLSX from 'xlsx'; // 🚀 استدعاء مكتبة الإكسل
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { useMaterialsLogic } from './materials_logic';
 import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
@@ -247,14 +249,24 @@ export default function MaterialsPage() {
         ];
         worksheet['!dir'] = 'rtl';
 
-        XLSX.writeFile(workbook, `Material_Receipts_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const { fileName } = buildDocumentFileName({
+            docType: 'تقرير_توريدات_الخامات',
+            prefix: 'MRN',
+            seedParts: [groupedData.length],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(workbook, fileName);
     };
 
     const handlePrintPDF = () => {
         const allGroupIds = groupedData.map((g: any) => g.id);
         setExpandedGroups(allGroupIds);
         setTimeout(() => {
-            window.print();
+            printWithDocumentTitle({
+                docType: 'تقرير_توريدات_الخامات',
+                prefix: 'MRN',
+                seedParts: [groupedData.length],
+            });
         }, 500);
     };
 

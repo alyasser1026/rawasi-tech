@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase, getActiveCompanyId } from '@/lib/supabase';
 import { useCompany } from '@/lib/CompanyContext';
 import { notify } from '@/lib/notify';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import {
   AttendanceStatus,
   EmployeeMonthlyAttendance,
@@ -266,7 +267,13 @@ export function useAttendanceLogic() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `كشف_حضور_الموظفين_${selectedMonth}.csv`);
+    const { fileName } = buildDocumentFileName({
+      docType: 'كشف_حضور_الموظفين',
+      docNumber: `ATT-${selectedMonth}`,
+      seedParts: [selectedMonth],
+      ext: 'csv',
+    });
+    link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

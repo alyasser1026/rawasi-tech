@@ -6,6 +6,8 @@ import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
 import LoadingScreen from '@/components/LoadingScreen';
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import styles from './financial-statements.module.css';
 import {
   TrendingUp, TrendingDown, Scale, Printer, RefreshCw, Landmark,
@@ -145,7 +147,13 @@ export default function FinancialStatementsPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `Income_Statement_${startDate}_${endDate}.csv`);
+      const { fileName } = buildDocumentFileName({
+        docType: 'تقرير_قائمة_الدخل',
+        prefix: 'IS',
+        seedParts: [startDate, endDate],
+        ext: 'csv',
+      });
+      link.setAttribute('download', fileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -177,7 +185,14 @@ export default function FinancialStatementsPage() {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.setAttribute('href', url);
-      link.setAttribute('download', `Balance_Sheet_${asOfDate}.csv`);
+      const { fileName } = buildDocumentFileName({
+        docType: 'تقرير_قائمة_المركز_المالي',
+        prefix: 'BS',
+        issueDate: asOfDate,
+        seedParts: [asOfDate],
+        ext: 'csv',
+      });
+      link.setAttribute('download', fileName);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -274,7 +289,18 @@ export default function FinancialStatementsPage() {
                 <FileSpreadsheet size={15} />
                 تصدير إكسل
               </button>
-              <button type="button" className={styles.btnSecondary} onClick={() => window.print()}>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={() =>
+                  printWithDocumentTitle({
+                    docType: activeTab === 'balance' ? 'تقرير_قائمة_المركز_المالي' : 'تقرير_قائمة_الدخل',
+                    prefix: activeTab === 'balance' ? 'BS' : 'IS',
+                    issueDate: activeTab === 'balance' ? asOfDate : endDate,
+                    seedParts: [startDate, endDate, asOfDate, activeTab],
+                  })
+                }
+              >
                 <Printer size={15} />
                 طباعة
               </button>

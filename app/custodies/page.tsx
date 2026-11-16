@@ -28,6 +28,8 @@ import { StagedAttachment } from '@/lib/attachments/telegramAttachments';
 import { useCompany } from '@/lib/CompanyContext';
 import { usePermissions } from '@/lib/PermissionsContext';
 import { notify } from '@/lib/notify';
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { supabase } from '@/lib/supabase';
 import { executeDraftWithOfflineQueue } from '@/lib/offline/offlineExecutor';
 import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
@@ -1760,7 +1762,18 @@ export default function CustodiesPage() {
 
         {/* Modal: Printable Settlement Slip */}
         {isPrintModalOpen && selectedCustodyForPrint && (
-          <div className={`${styles.modalOverlay} custody-settlement-modal`}>
+          <div
+            className={`${styles.modalOverlay} custody-settlement-modal`}
+            data-phi-doc-title={
+              buildDocumentFileName({
+                docType: 'محضر_تسوية_عهدة',
+                docNumber: selectedCustodyForPrint.custody_number || selectedCustodyForPrint.id?.slice(0, 8)?.toUpperCase(),
+                prefix: 'CUS',
+                subject: selectedCustodyForPrint.partner_name,
+                issueDate: selectedCustodyForPrint.opened_date,
+              }).baseName
+            }
+          >
             <style jsx global>{`
               @media print {
                 body:has(.custody-settlement-modal) *:not(:has(.custody-print-area)):not(.custody-print-area):not(.custody-print-area *):not(style):not(script) {
@@ -1953,7 +1966,15 @@ export default function CustodiesPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() =>
+                    printWithDocumentTitle({
+                      docType: 'محضر_تسوية_عهدة',
+                      docNumber: selectedCustodyForPrint.custody_number || selectedCustodyForPrint.id?.slice(0, 8)?.toUpperCase(),
+                      prefix: 'CUS',
+                      subject: selectedCustodyForPrint.partner_name,
+                      issueDate: selectedCustodyForPrint.opened_date,
+                    })
+                  }
                   className={styles.btnPrimary}
                 >
                   <Printer size={16} />

@@ -8,6 +8,8 @@ import { formatCurrency } from '@/lib/helpers';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocSignatures, PHI_DOC_CSS } from '@/components/PrintDocument';
 import { currencyCode, currencyName } from '@/lib/currency';
+import { computeReportRefCode } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 const PRINT_THEME = {
   primary: '#0f172a',
@@ -18,13 +20,24 @@ const PRINT_THEME = {
 export default function TrialBalancePage() {
   const logic = useTrialBalanceLogic();
 
+  const tbRefCode = useMemo(
+    () => computeReportRefCode({ prefix: 'TB', seedParts: [logic.startDate, logic.endDate] }),
+    [logic.startDate, logic.endDate]
+  );
+
   // 🚀 الحل السحري لمشكلة الجافاسكريبت: نتجاهل الكسور الوهمية اللي أقل من هللة/قرش
   const isBalanced = Math.abs((logic.totals.end_debit || 0) - (logic.totals.end_credit || 0)) < 0.01;
 
   const sidebarActions = useMemo(() => [
     <button 
       key="print_tb"
-      onClick={() => window.print()}
+      onClick={() =>
+        printWithDocumentTitle({
+          docType: 'تقرير_ميزان_المراجعة',
+          docNumber: tbRefCode,
+          prefix: 'TB',
+        })
+      }
       style={{ padding: '0.75rem', borderRadius: '12px', border: 'none', background: 'var(--surface-subcard)', color: 'var(--text-primary)', fontWeight: '900', cursor: 'pointer', width: '100%', marginBottom: '0.5rem', boxShadow: 'var(--shadow-elevation)' }}
     >
       طباعة الميزان الرسمي
@@ -259,6 +272,8 @@ export default function TrialBalancePage() {
           <style>{PHI_DOC_CSS}</style>
           <ReportOfficialHeader
             title="ميزان المراجعة (Trial Balance)"
+            reportRefCode={tbRefCode}
+            refPrefix="TB"
             subtitle={`عن الفترة من ${logic.startDate} إلى ${logic.endDate}`}
             badgeText="تقرير مالي معتمد • FINANCIAL REPORT"
             refLabel="رقم التقرير"

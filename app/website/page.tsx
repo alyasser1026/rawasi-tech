@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabase';
 import { PHITECH_RINGS_PATH, PHITECH_PILLARS_PATH, PHITECH_TIGHT_VIEWBOX } from '@/lib/brand-logo-paths';
 import HeroVideoBackdrop from '@/components/HeroVideoBackdrop';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 
 const CapitalTower3D = dynamic(() => import('../site/CapitalTower3D'), {
   ssr: false,
@@ -2658,7 +2659,18 @@ export default function WebsitePage() {
                       </button>
                     </div>
 
-                    <button type="button" onClick={() => window.print()} className="btn-secondary text-xs py-2 px-3.5">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        printWithDocumentTitle({
+                          docType: 'نموذج_مطبوعات_فاي_تك',
+                          docNumber: studioMockupTab === 'letterhead' ? 'PHI-BOQ-2026-104' : undefined,
+                          prefix: 'PHI-DOC',
+                          seedParts: [studioMockupTab],
+                        })
+                      }
+                      className="btn-secondary text-xs py-2 px-3.5"
+                    >
                       <div className="specular-beam"></div>
                       <i className="fa-solid fa-print" style={{ color: 'var(--accent-main)' }}></i>
                       <span>طباعة نموذج المطبوعات</span>
@@ -2733,7 +2745,14 @@ export default function WebsitePage() {
 
                   {/* Mockup 2: A4 Letterhead */}
                   {studioMockupTab === 'letterhead' && (
-                    <div id="printable-a4-sheet" className="rounded-2xl p-6 sm:p-8 relative overflow-hidden" style={{ background: '#ffffff', color: '#14100d', boxShadow: '0 22px 48px rgba(0,0,0,0.55)' }}>
+                    <div
+                      id="printable-a4-sheet"
+                      data-phi-doc-title="نموذج_ورق_المراسلات_PHI-BOQ-2026-104"
+                      data-phi-doc-ref="PHI-BOQ-2026-104"
+                      data-phi-doc-type="نموذج ورق المراسلات"
+                      className="rounded-2xl p-6 sm:p-8 relative overflow-hidden"
+                      style={{ background: '#ffffff', color: '#14100d', boxShadow: '0 22px 48px rgba(0,0,0,0.55)' }}
+                    >
                       <div className="flex flex-wrap items-center justify-between gap-4 pb-5" style={{ background: 'linear-gradient(90deg, rgba(249,115,22,0.08), transparent)', padding: '16px', borderRadius: '14px' }}>
                         <div className="flex items-center gap-3.5">
                           <svg viewBox={logoGeometry.tightViewBox} className="w-16 h-16">

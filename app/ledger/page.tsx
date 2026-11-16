@@ -6,6 +6,7 @@ import RawasiSmartTable from '@/components/rawasismarttable';
 import SmartCombo from '@/components/SmartCombo';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import { formatCurrency } from '@/lib/helpers';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { Printer } from 'lucide-react';
 
 export default function AccountLedger() {
@@ -189,7 +190,13 @@ export default function AccountLedger() {
             />
           </div>
           <button 
-            onClick={() => window.print()}
+            onClick={() =>
+              printWithDocumentTitle({
+                docType: 'كشف_حساب_الأستاذ_العام',
+                prefix: 'GL',
+                seedParts: [logic.selectedAccountId, logic.entries?.length],
+              })
+            }
             className="ent-button ent-primary"
             style={{ height: '3.125rem', padding: '0 1.5rem', borderRadius: '12px', fontWeight: 900 }}
           >

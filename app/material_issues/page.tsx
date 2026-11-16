@@ -10,6 +10,8 @@ import { useMaterialIssuesLogic } from './material_issues_logic';
 import MaterialIssueModal from './MaterialIssueModal';
 import { useConfirm } from '@/components/ConfirmContext';
 import * as XLSX from 'xlsx'; // 🚀 استدعاء مكتبة الإكسل
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import { notify } from '@/lib/notify';
 import SendPartnerMessageButton from '@/components/SendPartnerMessageButton';
 
@@ -183,12 +185,22 @@ export default function MaterialIssuesPage() {
         worksheet['!cols'] = wscols;
         worksheet['!dir'] = 'rtl'; // لدعم اللغة العربية من اليمين لليسار
 
-        XLSX.writeFile(workbook, `تقرير_صرف_خامات_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const { fileName } = buildDocumentFileName({
+            docType: 'تقرير_منصرف_الخامات',
+            prefix: 'MIS',
+            seedParts: [filteredIssues.length],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(workbook, fileName);
     };
 
     const handlePrintPDF = () => {
         setTimeout(() => {
-            window.print();
+            printWithDocumentTitle({
+                docType: 'تقرير_منصرف_الخامات',
+                prefix: 'MIS',
+                seedParts: [filteredIssues.length],
+            });
         }, 500);
     };
 

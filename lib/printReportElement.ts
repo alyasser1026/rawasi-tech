@@ -1,10 +1,16 @@
+import { buildDocumentFileName, sanitizeFileNameSegment, type DocumentFileNameOptions } from './documentFileName';
+
 /**
  * Prints a specific report DOM container (#printable-dossier, #printable-report, etc.)
  * inside an isolated, pure-white A4 Landscape iframe so the main application shell,
  * theme backgrounds (--bg-canvas: #f7eee2 / #0c0907), and modal scroll containers
  * can never clip or tint the printed pages.
  */
-export function printReportElement(elementId: string, documentTitle?: string): void {
+export function printReportElement(
+  elementId: string,
+  documentTitle?: string,
+  namingOptions?: Partial<DocumentFileNameOptions>
+): void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
   const sourceEl = document.getElementById(elementId);
@@ -14,7 +20,43 @@ export function printReportElement(elementId: string, documentTitle?: string): v
   }
 
   const prevTitle = document.title;
-  const printTitle = documentTitle || prevTitle || 'PHI TECH Official Report';
+  const headerMetaEl = sourceEl.querySelector('[data-phi-doc-title]');
+  const domTitle = headerMetaEl?.getAttribute('data-phi-doc-title')?.trim() || '';
+  const domRef = headerMetaEl?.getAttribute('data-phi-doc-ref')?.trim() || '';
+
+  let printTitle = '';
+  if (namingOptions?.docType) {
+    printTitle = buildDocumentFileName({
+      docType: namingOptions.docType,
+      docNumber: namingOptions.docNumber ?? (domRef || undefined),
+      subject: namingOptions.subject,
+      prefix: namingOptions.prefix,
+      issueDate: namingOptions.issueDate,
+      seedParts: namingOptions.seedParts,
+    }).baseName;
+  } else if (documentTitle) {
+    const cleanRequested = sanitizeFileNameSegment(documentTitle, 80);
+    if (domRef && !cleanRequested.includes(sanitizeFileNameSegment(domRef, 48))) {
+      printTitle = buildDocumentFileName({
+        docType: documentTitle,
+        docNumber: domRef,
+      }).baseName;
+    } else if (domRef || /\d{3,}/.test(cleanRequested)) {
+      printTitle = cleanRequested;
+    } else {
+      printTitle = buildDocumentFileName({
+        docType: documentTitle,
+        prefix: 'REP',
+      }).baseName;
+    }
+  } else if (domTitle) {
+    printTitle = domTitle;
+  } else {
+    printTitle = buildDocumentFileName({
+      docType: prevTitle || 'تقرير_فاي_تك',
+      prefix: 'REP',
+    }).baseName;
+  }
 
   try {
     const existingIframe = document.getElementById('phi-report-print-iframe');

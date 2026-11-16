@@ -7,6 +7,7 @@ import * as XLSX from 'xlsx';
 import LoadingScreen from '@/components/LoadingScreen';
 import { Download, Upload, Scale, Eye } from 'lucide-react';
 import { notify } from '@/lib/notify';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 
 // =========================================================================
 // 🧩 مكون ذكي للقائمة المنسدلة متعددة الاختيارات
@@ -284,7 +285,13 @@ export default function CashFlowsPage() {
         
         worksheet['!cols'] = [{wch: 15}, {wch: 15}, {wch: 15}, {wch: 20}, {wch: 35}, {wch: 15}, {wch: 15}, {wch: 25}, {wch: 25}, {wch: 25}, {wch: 40}, {wch: 15}];
         worksheet['!dir'] = 'rtl';
-        XLSX.writeFile(workbook, `تقرير_التدفقات_النقدية_${new Date().toISOString().split('T')[0]}.xlsx`);
+        const { fileName } = buildDocumentFileName({
+            docType: 'تقرير_التدفقات_النقدية',
+            prefix: 'CF',
+            seedParts: [filteredData.length, logic.dateFrom, logic.dateTo],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(workbook, fileName);
     };
 
     const [rowsPerPage, setRowsPerPage] = useState(50);

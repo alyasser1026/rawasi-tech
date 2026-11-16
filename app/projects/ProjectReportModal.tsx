@@ -6,6 +6,7 @@ import { Printer } from 'lucide-react';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { printReportElement } from '@/lib/printReportElement';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 
 export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, flatBoqData }: any) {
   useEffect(() => {
@@ -14,7 +15,13 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isOpen && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'p') {
         e.preventDefault();
-        printReportElement('printable-report', 'التقرير_المالي_فاي_تك');
+        const title = buildDocumentFileName({
+          docType: 'التقرير_المالي_والتحليلي_للمشروع',
+          prefix: 'PRJ-FIN',
+          subject: logic?.selectedProject?.Property || 'فاي_تك',
+          seedParts: [logic?.selectedProject?.id, logic?.selectedProject?.Property],
+        }).baseName;
+        printReportElement('printable-report', title);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -83,7 +90,21 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
         <div className="no-print sticky top-0 bg-white border-b border-gray-100 p-4 flex justify-between items-center z-10">
           <h2 style={{ color: THEME.coffeeDark, fontWeight: 900, fontSize: 'var(--fs-xl)', margin: 0 }}>معاينة التقرير المالي والتحليلي (يشمل تكاليف ABC)</h2>
           <div style={{ display: 'flex', gap: '0.625rem' }}>
-            <button onClick={() => printReportElement('printable-report', `التقرير_المالي_${project.Property || 'فاي_تك'}`)} style={{ backgroundColor: THEME.primary, color: 'white', padding: '0.5rem 1.25rem', borderRadius: '8px', fontWeight: 800, display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            <button
+              onClick={() =>
+                printReportElement(
+                  'printable-report',
+                  buildDocumentFileName({
+                    docType: 'التقرير_المالي_والتحليلي_للمشروع',
+                    prefix: 'PRJ-FIN',
+                    subject: project.Property || 'فاي_تك',
+                    issueDate: today,
+                    seedParts: [project.id, project.Property],
+                  }).baseName
+                )
+              }
+              style={{ backgroundColor: THEME.primary, color: 'white', padding: '0.5rem 1.25rem', borderRadius: '8px', fontWeight: 800, display: 'flex', gap: '0.5rem', alignItems: 'center' }}
+            >
               <span><Printer size={16} aria-hidden="true" /></span> طباعة الآن
             </button>
             <button onClick={onClose} style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '0.5rem 1.25rem', borderRadius: '8px', fontWeight: 800 }}>
@@ -168,6 +189,7 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
           <ReportOfficialHeader
             title="التقرير المالي والتحليلي للمشروع"
             subtitle="إدارة المشاريع والتكاليف • نظام الرقابة المالية (ABC Costing)"
+            refPrefix="PRJ-FIN"
             projectName={project.Property || '—'}
             projectCode={project.project_code || undefined}
             unitType={project.unit_type || undefined}

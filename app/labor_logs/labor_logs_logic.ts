@@ -3,6 +3,7 @@ import { useState, useMemo, useEffect, useDeferredValue } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'; 
 import { supabase } from '@/lib/supabase';
 import * as XLSX from 'xlsx-js-style';
+import { buildDocumentFileName } from '@/lib/documentFileName';
 import { fetchAllSupabaseData, formatCurrency, formatDate, normalizeArabicText } from '@/lib/helpers'; 
 import { useToast } from '@/lib/toast-context'; 
 import { useCompany } from '@/lib/CompanyContext';
@@ -434,7 +435,13 @@ export function useLaborLogsLogic() {
 
         const wb = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(wb, ws, "يوميات_العمالة_كشف_حساب");
-        XLSX.writeFile(wb, "يوميات_العمالة.xlsx");
+        const { fileName } = buildDocumentFileName({
+            docType: 'تقرير_يوميات_العمالة',
+            prefix: 'LBR',
+            seedParts: [data.length],
+            ext: 'xlsx',
+        });
+        XLSX.writeFile(wb, fileName);
         showToast('تم تصدير الإكسل بتنسيق جديد', 'success');
     };
 
