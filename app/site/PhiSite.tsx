@@ -10,7 +10,6 @@ import LoginModal from './LoginModal';
 import { CartButton, CartDrawer, useCustomerCart } from './CartDrawer';
 import FloatingContactChat from './FloatingContactChat';
 import HomePortalSections from './HomePortalSections';
-import { PORTAL_SECTIONS } from './section-defs';
 import {
   collectClientDeviceDetails,
   rememberVisitorContact,
@@ -212,27 +211,22 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           onAddBundleToCart={cart.addBundleToCart}
         />
 
-        {/* عرض الهوية والشركة بالصوت والصورة في نهاية الصفحة */}
+        {/* عرض الهوية والفلسفة الهندسية للشركة في نهاية الصفحة */}
         <section className="pw-hero" id="about-phitech">
           <HeroVideoBackdrop variant="showcase-left" controlsMode="none" onControlsReady={setHeroControls} />
           <div className="pw-wrap pw-hero-grid" id="hero-content">
             <div>
-              <p className="pw-eyebrow">{SITE.tagline} · {SITE.offices.join(' • ')}</p>
+              <p className="pw-eyebrow">فلسفة فاي تك الهندسية · {SITE.offices.join(' · ')}</p>
               <h2>
-                <span className="pw-hero-part">نبني <em>الهيكل</em>، ونُتقن <em>التشطيب</em>،</span>{' '}
-                <span className="pw-hero-part">ونُنفّذ <em>التأسيسات</em></span>
+                <span className="pw-hero-part">دقّة <em>التخطيط</em>،</span>{' '}
+                <span className="pw-hero-part">وفخامة <em>التنفيذ</em> التي تدوم</span>
               </h2>
-              <p className="pw-lead">{SITE.intro}</p>
-              <div className="pw-actions">
-                {PORTAL_SECTIONS.map((sec, i) => (
-                  <Link
-                    key={sec.slug}
-                    href={sec.href}
-                    className={`pw-btn ${i === 0 ? 'pw-btn-primary' : 'pw-btn-light'}`}
-                  >
-                    {sec.icon} {sec.title.replace('قسم ', '')}
-                  </Link>
-                ))}
+              <p className="pw-lead">
+                نؤمن في فاي تك أن الفخامة الحقيقية تبدأ من التفاصيل الدقيقة خلف الجدران وتكتمل بجمال التشطيب أمامك؛ شغفنا تحويل كل مشروع إلى مساحة متقنة تجمع بين متانة الهندسة، وذكاء التقنية الحديثة، وراحة بالك في كل خطوة.
+              </p>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '10px 18px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(249,115,22,0.38)', color: '#fed7aa', fontSize: '0.9rem', fontWeight: 700, backdropFilter: 'blur(10px)' }}>
+                <span style={{ color: '#f97316' }}>✦</span>
+                <span>إتقان هندسي · التزام بالمواعيد · شراكة ثقة تمتد لما بعد التسليم</span>
               </div>
             </div>
             <div className="pw-hero-art" aria-hidden>
@@ -242,17 +236,17 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           {heroControls && (
             <div className="pw-wrap pw-hero-toolbar">
               <HeroVideoControls controls={heroControls} />
-              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="العودة لأعلى لاختيار القسم">
-                <span>العودة إلى الأقسام الستة</span>
+              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="العودة لأعلى">
+                <span>العودة للأعلى</span>
                 <span className="pw-cue-arrow" aria-hidden>↑</span>
               </a>
             </div>
           )}
           <ul className="pw-wrap pw-stats">
-            <li><strong>6 أقسام متكاملة</strong><span>صيانة · مقاولات · عقارات · مواد · سمارت هوم</span></li>
-            <li><strong>جهة تنفيذ واحدة</strong><span>إشراف هندسي وضمان موحّد</span></li>
-            <li><strong>تجارب تفاعلية</strong><span>حاسبة 3×1 · مصمم سمارت · مجسم 3D</span></li>
-            <li><strong>{SITE.offices.length} مكاتب</strong><span>{SITE.offices.join(' · ')}</span></li>
+            <li><strong>التخطيط المسبق</strong><span>تنسيق هندسي قبل بدء الموقع</span></li>
+            <li><strong>جودة موثّقة</strong><span>فحص واستلام في كل مرحلة</span></li>
+            <li><strong>منزل ذكي وآمن</strong><span>تقنية حديثة ترفع قيمة وحدتك</span></li>
+            <li><strong>التزام ممتد</strong><span>مسؤولية وضمان ما بعد التسليم</span></li>
           </ul>
         </section>
 
