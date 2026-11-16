@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import { decodeHtmlEntities, inferNewsTopicAndHref, parseRssXml } from '../lib/rssNewsParser.ts';
 
 const root = process.cwd();
 const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
@@ -262,4 +263,43 @@ test('home screen renders seamless infinite looping news ticker with CMS control
   const adminPage = read('app/website-admin/page.tsx');
   assert.match(adminPage, /newsTicker/);
   assert.match(adminPage, /شريط آخر الأخبار المتحرك/);
+  assert.match(adminPage, /\/api\/news-feed/);
+  assert.match(adminPage, /fetchDailyNews/);
+});
+
+test('rssNewsParser parses Arabic RSS feeds cleanly and maps topics to PhiTech sections', () => {
+  assert.equal(decodeHtmlEntities('<![CDATA[ارتفاع &quot;أسعار الأسمنت&quot; &amp; الحديد]]>'), 'ارتفاع "أسعار الأسمنت" & الحديد');
+  assert.deepEqual(inferNewsTopicAndHref('استقرار أسعار الأسمنت والحديد اليوم'), {
+    tag: 'مواد البناء',
+    suggestedHref: '/sections/materials',
+  });
+  assert.deepEqual(inferNewsTopicAndHref('انتعاش السوق العقاري وبيع شقق جديدة'), {
+    tag: 'عقارات',
+    suggestedHref: '/sections/real-estate',
+  });
+
+  const sampleXml = `<rss><channel>
+    <item>
+      <title><![CDATA[ارتفاع الرقم القياسي لأسعار العقارات في السعودية بنسبة 1.2% - العربية]]></title>
+      <link>https://example.com/news/1</link>
+      <pubDate>Mon, 16 Nov 2026 07:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>تجاهل رابط غير آمن</title>
+      <link>javascript:alert(1)</link>
+    </item>
+  </channel></rss>`;
+
+  const parsed = parseRssXml(sampleXml, 'مصدر افتراضي', 'اقتصاد', 10);
+  assert.equal(parsed.length, 2);
+  assert.equal(parsed[0].title, 'ارتفاع الرقم القياسي لأسعار العقارات في السعودية بنسبة 1.2%');
+  assert.equal(parsed[0].source, 'العربية');
+  assert.equal(parsed[0].tag, 'عقارات');
+  assert.equal(parsed[0].suggestedHref, '/sections/real-estate');
+  assert.equal(parsed[1].link, '');
+
+  const apiRoute = read('app/api/news-feed/route.ts');
+  assert.match(apiRoute, /snabusiness\.com\/rss\/iqtisad\/rss\.xml/);
+  assert.match(apiRoute, /cnnbusinessarabic\.com\/rssFeed\/0/);
+  assert.match(apiRoute, /news\.google\.com\/rss\/search/);
 });

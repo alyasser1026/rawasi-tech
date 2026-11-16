@@ -16,6 +16,7 @@ import {
   type NewsTickerConfig,
   type PromoBannerConfig,
 } from '../site/site-content';
+import type { ParsedNewsFeedItem } from '@/lib/rssNewsParser';
 import {
   DEFAULT_MAINTENANCE_SERVICES,
   DEFAULT_PRODUCTS,
@@ -224,6 +225,35 @@ export default function WebsiteAdminPage() {
   const [activeChatSessionId, setActiveChatSessionId] = useState<string>('');
   const [replyText, setReplyText] = useState('');
   const [sendingReply, setSendingReply] = useState(false);
+
+  // Live daily news feed importer states
+  const [newsFeedTopic, setNewsFeedTopic] = useState<'all' | 'real_estate_eg' | 'real_estate_sa' | 'economy'>('all');
+  const [newsFeedBusy, setNewsFeedBusy] = useState(false);
+  const [newsFeedErr, setNewsFeedErr] = useState('');
+  const [fetchedNews, setFetchedNews] = useState<ParsedNewsFeedItem[]>([]);
+  const [newsUseSourceLink, setNewsUseSourceLink] = useState(false);
+
+  const fetchDailyNews = useCallback(async () => {
+    setNewsFeedBusy(true);
+    setNewsFeedErr('');
+    try {
+      const res = await fetch(`/api/news-feed?topic=${encodeURIComponent(newsFeedTopic)}`, {
+        cache: 'no-store',
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || 'تعذر سحب الأخبار من المصادر الحالية');
+      }
+      setFetchedNews(Array.isArray(json.items) ? json.items : []);
+      if (!json.items?.length) {
+        setNewsFeedErr('لم يتم استرجاع عناوين حالياً، حاول مرة أخرى بعد لحظات.');
+      }
+    } catch (e: any) {
+      setNewsFeedErr(e?.message || 'حدث خطأ أثناء الاتصال بخلاصة الأخبار');
+    } finally {
+      setNewsFeedBusy(false);
+    }
+  }, [newsFeedTopic]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -571,6 +601,171 @@ export default function WebsiteAdminPage() {
                     }
                   />
                 </label>
+
+                <div
+                  className="wa-wide"
+                  style={{
+                    border: '1px dashed var(--acc)',
+                    borderRadius: '14px',
+                    padding: '14px',
+                    background: 'rgba(249,115,22,0.04)',
+                    display: 'grid',
+                    gap: '10px',
+                  }}
+                >
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <strong style={{ display: 'block', fontSize: '14px' }}>
+                        🌐 سحب آخر الأخبار الاقتصادية والعقارية اليوم تلقائياً (RSS)
+                      </strong>
+                      <small style={{ color: 'var(--mut)' }}>
+                        يجلب أحدث العناوين من سكاي نيوز اقتصاد وCNN الاقتصادية وأخبار العقارات ومواد البناء في مصر والسعودية.
+                      </small>
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                      <select
+                        value={newsFeedTopic}
+                        onChange={(e) => setNewsFeedTopic(e.target.value as any)}
+                        style={{
+                          background: 'var(--bg)',
+                          color: 'var(--ink)',
+                          border: '1px solid var(--line)',
+                          borderRadius: '10px',
+                          padding: '8px 12px',
+                          fontSize: '13px',
+                          fontWeight: 700,
+                        }}
+                      >
+                        <option value="all">الكل: عقارات واقتصاد (مصر + السعودية)</option>
+                        <option value="real_estate_eg">عقارات ومواد بناء — مصر</option>
+                        <option value="real_estate_sa">عقارات ومشاريع — السعودية</option>
+                        <option value="economy">اقتصاد وأسواق عربية وعالمية</option>
+                      </select>
+                      <button
+                        type="button"
+                        className="wa-btn wa-primary"
+                        disabled={newsFeedBusy}
+                        onClick={() => void fetchDailyNews()}
+                      >
+                        {newsFeedBusy ? 'جاري السحب...' : '📥 سحب أخبار اليوم'}
+                      </button>
+                    </div>
+                  </div>
+
+                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', fontSize: '12.5px', fontWeight: 700, color: 'var(--mut)' }}>
+                    <input
+                      type="checkbox"
+                      checked={newsUseSourceLink}
+                      onChange={(e) => setNewsUseSourceLink(e.target.checked)}
+                    />
+                    <span>عند الإضافة، اربط الخبر بموقعه الإخباري الأصلي (بدلاً من توجيهه لقسم فاي تك المناسب داخل موقعك)</span>
+                  </label>
+
+                  {newsFeedErr && <div className="wa-alert wa-err">{newsFeedErr}</div>}
+
+                  {fetchedNews.length > 0 && (
+                    <div style={{ display: 'grid', gap: '8px' }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <strong style={{ fontSize: '13px' }}>تم جلب {fetchedNews.length} خبر — اختر ما تريد نشره ثم اضغط «نشر»:</strong>
+                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                          <button
+                            type="button"
+                            className="wa-btn wa-primary"
+                            onClick={() =>
+                              upd((d) => {
+                                d.newsTicker.items = fetchedNews.slice(0, 8).map((n) => ({
+                                  id: `${n.id}-${Date.now().toString(36)}`,
+                                  tag: n.tag,
+                                  text: n.title,
+                                  href: newsUseSourceLink && n.link ? n.link : n.suggestedHref,
+                                  active: true,
+                                }));
+                              })
+                            }
+                          >
+                            ⚡ استبدال الشريط بأهم 8 أخبار
+                          </button>
+                          <button
+                            type="button"
+                            className="wa-btn"
+                            onClick={() =>
+                              upd((d) => {
+                                const mapped = fetchedNews.slice(0, 5).map((n) => ({
+                                  id: `${n.id}-${Date.now().toString(36)}`,
+                                  tag: n.tag,
+                                  text: n.title,
+                                  href: newsUseSourceLink && n.link ? n.link : n.suggestedHref,
+                                  active: true,
+                                }));
+                                d.newsTicker.items = [...mapped, ...d.newsTicker.items].slice(0, 20);
+                              })
+                            }
+                          >
+                            ➕ إضافة أهم 5 أخبار أعلى الشريط
+                          </button>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gap: '6px', maxHeight: '280px', overflowY: 'auto' }}>
+                        {fetchedNews.map((item) => (
+                          <div
+                            key={item.id}
+                            style={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              gap: '10px',
+                              padding: '8px 10px',
+                              borderRadius: '10px',
+                              border: '1px solid var(--line)',
+                              background: 'var(--card)',
+                            }}
+                          >
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap', marginBottom: '2px' }}>
+                                <span className="wa-pill p-متوسطة">{item.tag}</span>
+                                <small style={{ color: 'var(--mut)', fontWeight: 700 }}>{item.source}</small>
+                              </div>
+                              <div style={{ fontSize: '13px', fontWeight: 800, lineHeight: 1.5 }}>{item.title}</div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
+                              {item.link && (
+                                <a
+                                  href={item.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="wa-btn"
+                                  style={{ padding: '6px 10px', fontSize: '12px' }}
+                                >
+                                  المصدر ↗
+                                </a>
+                              )}
+                              <button
+                                type="button"
+                                className="wa-btn wa-primary"
+                                style={{ padding: '6px 10px', fontSize: '12px' }}
+                                onClick={() =>
+                                  upd((d) => {
+                                    d.newsTicker.items.unshift({
+                                      id: `${item.id}-${Date.now().toString(36)}`,
+                                      tag: item.tag,
+                                      text: item.title,
+                                      href: newsUseSourceLink && item.link ? item.link : item.suggestedHref,
+                                      active: true,
+                                    });
+                                    d.newsTicker.items = d.newsTicker.items.slice(0, 20);
+                                  })
+                                }
+                              >
+                                + إضافة
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 <div className="wa-wide" style={{ display: 'grid', gap: '10px' }}>
                   {c.newsTicker.items.map((item, idx) => (
