@@ -14,6 +14,8 @@ export interface PortalSectionDef {
   guideHint: string; // دلالة واضحة ومختصرة يفهمها العميل فوراً بدون تعقيد
   accent: string;
   href: `/sections/${SectionSlug}`;
+  image: string;
+  imageAlt: string;
 }
 
 export const PORTAL_SECTIONS: PortalSectionDef[] = [
@@ -25,6 +27,8 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     guideHint: 'لو عندك عطل كهرباء أو سباكة أو تكييف، أو عاوز تنفذ بند محدد بضمان هندسي',
     accent: '#0284c7',
     href: '/sections/maintenance',
+    image: '/sections/maintenance.jpg',
+    imageAlt: 'فحص لوحات الكهرباء والتكييف المخفي وأنظمة الصيانة الهندسية الاحترافية',
   },
   {
     slug: 'contracting',
@@ -34,6 +38,8 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     guideHint: 'لبناء العظم والتشطيب المتكامل للفلل والأبراج + حاسبة المقايسة والمجسم 3D',
     accent: '#c75517',
     href: '/sections/contracting',
+    image: '/sections/contracting.jpg',
+    imageAlt: 'مبنى معماري حديث من الخرسانة والزجاج يعبر عن مشاريع المقاولات والإنشاءات',
   },
   {
     slug: 'real-estate',
@@ -43,6 +49,8 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     guideHint: 'شقق تمليك فاخرة ودوبلكس ومعارض تجارية جاهزة + حاسبة المقدم والأقساط',
     accent: '#d97706',
     href: '/sections/real-estate',
+    image: '/sections/real-estate.jpg',
+    imageAlt: 'واجهة مشروع عقاري سكني فاخر بإضاءة مسائية ومسطحات خضراء',
   },
   {
     slug: 'materials',
@@ -52,6 +60,8 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     guideHint: 'اطلب دهانات وبورسلان ورخام وكابلات للموقع، أو اعرض خاماتك للبيع لدينا',
     accent: '#ea580c',
     href: '/sections/materials',
+    image: '/sections/materials.jpg',
+    imageAlt: 'معرض عينات مواد البناء والتشطيب من الرخام والبورسلان والأخشاب والإكسسوارات المعدنية',
   },
   {
     slug: 'smart-home',
@@ -61,6 +71,8 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     guideHint: 'أقفال ببصمة، مفاتيح ذكية، كاميرات 4K، وحساسات غاز ومياه بتفصل تلقائياً',
     accent: '#059669',
     href: '/sections/smart-home',
+    image: '/sections/smart-home.jpg',
+    imageAlt: 'لوحة تحكم منزل ذكي زجاجية وقفل إلكتروني وإضاءة داخلية مؤتمتة',
   },
   {
     slug: 'info',
@@ -70,6 +82,8 @@ export const PORTAL_SECTIONS: PortalSectionDef[] = [
     guideHint: 'نصائح هندسية قبل التشطيب، دليل التنفيذ والفحص، وحاسبات المهندس المجانية',
     accent: '#4f46e5',
     href: '/sections/info',
+    image: '/sections/info.jpg',
+    imageAlt: 'مكتب هندسي يضم مخططات معمارية وحاسوب لوحي لرسومات التصميم الهندسي',
   },
 ];
 

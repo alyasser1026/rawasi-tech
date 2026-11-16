@@ -281,18 +281,30 @@ export default function SectionDetailClient({
           style={{ '--portal-accent': sectionMeta.accent } as React.CSSProperties}
         >
           <div className="pw-wrap">
-            <div className="pw-head" style={{ marginBottom: 0 }}>
-              <div className="pw-unified-crumb">
-                <Link href="/">الأقسام الرئيسية</Link>
-                <span>/</span>
-                <span>{sectionMeta.title}</span>
+            <div className="pw-sec-hero-split">
+              <div className="pw-head" style={{ marginBottom: 0 }}>
+                <div className="pw-unified-crumb">
+                  <Link href="/">الأقسام الرئيسية</Link>
+                  <span>/</span>
+                  <span>{sectionMeta.title}</span>
+                </div>
+                <p className="pw-eyebrow">قسم رقم {sectionMeta.num} · {SITE.name}</p>
+                <h1>
+                  <span style={{ marginInlineEnd: '8px' }} aria-hidden="true">{sectionMeta.icon}</span>
+                  {sectionMeta.title}
+                </h1>
+                <p>{sectionMeta.guideHint}</p>
               </div>
-              <p className="pw-eyebrow">قسم رقم {sectionMeta.num} · {SITE.name}</p>
-              <h1>
-                <span style={{ marginInlineEnd: '8px' }} aria-hidden="true">{sectionMeta.icon}</span>
-                {sectionMeta.title}
-              </h1>
-              <p>{sectionMeta.guideHint}</p>
+              <div className="pw-sec-hero-visual">
+                <img
+                  src={sectionMeta.image}
+                  alt={sectionMeta.imageAlt}
+                  width={1280}
+                  height={720}
+                  decoding="async"
+                />
+                <span className="pw-sec-hero-badge">{sectionMeta.num}</span>
+              </div>
             </div>
           </div>
         </section>

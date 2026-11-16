@@ -114,25 +114,38 @@ export default function HomePortalSections({
           </div>
 
           <div className="pw-portal-clean-grid">
-            {PORTAL_SECTIONS.map((sec) => (
+            {PORTAL_SECTIONS.map((sec, idx) => (
               <Link
                 key={sec.slug}
                 href={sec.href}
                 className="pw-portal-box"
                 style={{ '--portal-accent': sec.accent } as React.CSSProperties}
               >
-                <div className="pw-portal-box-top">
-                  <span className="pw-portal-icon" aria-hidden="true">
-                    {sec.icon}
-                  </span>
-                  <span className="pw-portal-num">{sec.num}</span>
+                <div className="pw-portal-media">
+                  <img
+                    src={sec.image}
+                    alt={sec.imageAlt}
+                    width={1280}
+                    height={720}
+                    loading={idx < 3 ? 'eager' : 'lazy'}
+                    decoding="async"
+                  />
+                  <div className="pw-portal-media-scrim" aria-hidden="true" />
+                  <div className="pw-portal-media-top">
+                    <span className="pw-portal-icon" aria-hidden="true">
+                      {sec.icon}
+                    </span>
+                    <span className="pw-portal-num">{sec.num}</span>
+                  </div>
                 </div>
-                <h2>{sec.title}</h2>
-                <p className="pw-portal-guide">{sec.guideHint}</p>
-                <span className="pw-portal-enter">
-                  <span>ادخل القسم</span>
-                  <span aria-hidden="true">←</span>
-                </span>
+                <div className="pw-portal-body">
+                  <h2>{sec.title}</h2>
+                  <p className="pw-portal-guide">{sec.guideHint}</p>
+                  <span className="pw-portal-enter">
+                    <span>ادخل القسم</span>
+                    <span aria-hidden="true">←</span>
+                  </span>
+                </div>
               </Link>
             ))}
           </div>

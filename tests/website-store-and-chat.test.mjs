@@ -305,3 +305,25 @@ test('rssNewsParser parses Arabic RSS feeds cleanly and maps topics to PhiTech s
   assert.match(apiRoute, /cnnbusinessarabic\.com\/rssFeed\/0/);
   assert.match(apiRoute, /news\.google\.com\/rss\/search/);
 });
+
+test('every portal section has a valid local showcase image wired into home cards and detail hero', () => {
+  const sectionDefs = read('app/site/section-defs.ts');
+  const slugs = ['maintenance', 'contracting', 'real-estate', 'materials', 'smart-home', 'info'];
+
+  for (const slug of slugs) {
+    assert.match(sectionDefs, new RegExp(`image:\\s*'/sections/${slug}\\.jpg'`));
+    const absImg = path.join(root, 'public', 'sections', `${slug}.jpg`);
+    assert.equal(fs.existsSync(absImg), true, `Missing public/sections/${slug}.jpg`);
+    assert.ok(fs.statSync(absImg).size > 20_000, `Expected non-trivial image for ${slug}.jpg`);
+  }
+
+  const homePortal = read('app/site/HomePortalSections.tsx');
+  assert.match(homePortal, /pw-portal-media/);
+  assert.match(homePortal, /src=\{sec\.image\}/);
+  assert.match(homePortal, /alt=\{sec\.imageAlt\}/);
+
+  const detailClient = read('app/site/SectionDetailClient.tsx');
+  assert.match(detailClient, /pw-sec-hero-visual/);
+  assert.match(detailClient, /src=\{sectionMeta\.image\}/);
+  assert.match(detailClient, /alt=\{sectionMeta\.imageAlt\}/);
+});
