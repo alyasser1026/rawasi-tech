@@ -1,59 +1,31 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import { SERVICES, STEPS, mergeContent, type SiteContentOverride } from './site-content';
+import { mergeContent, type SiteContentOverride } from './site-content';
 import { CSS } from './site-styles';
-import EngTools from './EngTools';
-import ChecklistExplorer from './ChecklistExplorer';
 import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } from '@/components/HeroVideoBackdrop';
 import LoginModal from './LoginModal';
 import { CartButton, CartDrawer, useCustomerCart } from './CartDrawer';
 import FloatingContactChat from './FloatingContactChat';
-import HomePortalSections, { type HomePortalSectionId } from './HomePortalSections';
+import HomePortalSections from './HomePortalSections';
+import { PORTAL_SECTIONS } from './section-defs';
 import {
   collectClientDeviceDetails,
   rememberVisitorContact,
 } from '@/lib/client-device-info';
 
-const BimModel = dynamic(() => import('./BimModel'), {
-  ssr: false,
-  loading: () => <div className="pw-bim-stage"><div className="pw-bim-note">جاري تحميل النموذج…</div></div>,
-});
-
-const CapitalTower3D = dynamic(() => import('./CapitalTower3D'), {
-  ssr: false,
-  loading: () => <div className="pw-bim-stage"><div className="pw-bim-note">جاري تحميل المجسم المعماري ثلاثي الأبعاد…</div></div>,
-});
-
 const NAV = [
   { href: '#portals', label: 'الأقسام' },
-  { href: '/store?tab=maintenance', label: '🛠️ الصيانة والتنفيذ' },
-  { href: '/store', label: '🧱 المتجر ومواد البناء' },
-  { href: '/real-estate', label: '🏢 العقارات' },
-  { href: '#capital-tower', label: 'المجسم 3D' },
-  { href: '#tools', label: 'حاسبات المهندس' },
-  { href: '#checklist', label: 'دليل التنفيذ' },
-  { href: '/verify', label: 'التحقق' },
+  { href: '/sections/maintenance', label: '🛠️ الصيانة' },
+  { href: '/sections/contracting', label: '🏗️ المقاولات' },
+  { href: '/sections/real-estate', label: '🏢 العقارات' },
+  { href: '/sections/materials', label: '🧱 مواد البناء' },
+  { href: '/sections/smart-home', label: '📱 السمارت هوم' },
+  { href: '/sections/info', label: '📚 معلومات' },
   { href: '#contact', label: 'تواصل' },
 ];
-
-/** يركّب المحتوى الثقيل (نموذج 3D) لما القسم يقرب من الشاشة بس. */
-function LazyMount({ children, minHeight = 440 }: { children: React.ReactNode; minHeight?: number }) {
-  const ref = useRef<HTMLDivElement | null>(null);
-  const [on, setOn] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || on) return;
-    if (typeof IntersectionObserver === 'undefined') { setOn(true); return; }
-    const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { setOn(true); io.disconnect(); } }, { rootMargin: '300px' });
-    io.observe(el);
-    return () => io.disconnect();
-  }, [on]);
-  return <div ref={ref} style={{ minHeight: on ? undefined : minHeight }}>{on ? children : null}</div>;
-}
 
 function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
   const [name, setName] = useState('');
@@ -125,22 +97,13 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
 }
 
 export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
-  const { SITE, PROJECTS, COMMITMENTS, FAQS, PRODUCTS, PROPERTIES, MAINTENANCE_SERVICES } = mergeContent(content);
+  const { SITE, PRODUCTS, PROPERTIES } = mergeContent(content);
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [heroControls, setHeroControls] = useState<HeroVideoControlsState | null>(null);
   const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
-  const [activePortalSection, setActivePortalSection] = useState<HomePortalSectionId>('maintenance');
   const cart = useCustomerCart(() => setLoginOpen(true));
-
-  const jumpToPortalSection = (id: HomePortalSectionId) => {
-    setActivePortalSection(id);
-    if (typeof document !== 'undefined') {
-      const target = document.getElementById('portal-explorer') || document.getElementById('portals');
-      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -240,124 +203,16 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
       </header>
 
       <main id="top">
-        {/* البوابات الستة الرئيسية + دلالة سهلة للاستخدام + مستكشف تفاصيل كل قسم + المستشار الذكي + أهم العروض والمنتجات */}
+        {/* 1. مربعات الأقسام الستة الرئيسية + الأداة السريعة + أهم العروض والمنتجات (بدون تعقيد أو لبخة) */}
         <HomePortalSections
-          activeSection={activePortalSection}
-          onSelectSection={setActivePortalSection}
-          services={SERVICES}
-          commitments={COMMITMENTS}
-          steps={STEPS}
-          faqs={FAQS}
           products={PRODUCTS}
           properties={PROPERTIES}
-          maintenanceServices={MAINTENANCE_SERVICES}
           whatsappNumber={c.whatsapp}
           onAddToCart={cart.addToCart}
           onAddBundleToCart={cart.addBundleToCart}
-          cartCount={cart.totalCount}
-          onOpenCart={() => cart.setCartOpen(true)}
         />
 
-        {/* Capital Tower 3D -> BIM */}
-        <section id="capital-tower" className="pw-section">
-          <div className="pw-wrap">
-            <div className="pw-head">
-              <p className="pw-eyebrow">معرض المجسم المعماري ثلاثي الأبعاد والتحول إلى BIM</p>
-              <h2>المجسم المعماري 3D — الواجهة، المدخل، ونماذج الوحدات السكنية</h2>
-              <p>استعرض المجسم المعماري ثلاثي الأبعاد بكل تفاصيله المعمارية (الأركيد التجاري، المدخل والمصاعد، والمسقط المتكرر للوحدات)، وحوّله بضغطة واحدة إلى توأم رقمي BIM / IFC متكامل.</p>
-            </div>
-            <LazyMount minHeight={540}><CapitalTower3D /></LazyMount>
-          </div>
-        </section>
-
-        {/* BIM */}
-        <section id="bim" className="pw-section">
-          <div className="pw-wrap">
-            <div className="pw-head">
-              <p className="pw-eyebrow">نموذج BIM تفاعلي — التوأم الرقمي</p>
-              <h2>شاهد كيف تتكامل الطبقات الإنشائية والمعمارية وMEP داخل المبنى</h2>
-              <p>أخفِ الطبقات وأظهرها، افصل الأدوار الـ 12 + البوديوم، اقطع المستويات أفقياً، واضغط على أي عنصر لعرض فئته في معيار IFC وحصره التقديري.</p>
-            </div>
-            <LazyMount minHeight={500}><BimModel /></LazyMount>
-          </div>
-        </section>
-
-        {/* Tools */}
-        <section id="tools" className="pw-section pw-tint">
-          <div className="pw-wrap">
-            <div className="pw-head">
-              <p className="pw-eyebrow">أدوات المهندس</p>
-              <h2>حاسبات ومعاملات تحويل مجانية</h2>
-              <p>محوّل وحدات بمعاملات قياسية، وتقدير سريع للخرسانة والحديد والبلاط والدهان. للاسترشاد الأولي، وليست بديلًا عن المقايسة.</p>
-            </div>
-            <EngTools />
-          </div>
-        </section>
-
-        {/* Execution Guide & Inspection checklist */}
-        <section id="checklist" className="pw-section">
-          <div className="pw-wrap">
-            <div className="pw-head">
-              <p className="pw-eyebrow">منظومة الجودة والتنفيذ الميداني</p>
-              <h2>دليل وبطاقات التنفيذ الهندسي وقوائم التفقد</h2>
-              <p>منظومة تنفيذية شاملة لكل بند ترتكز على محاور هندسية: ما يسبقه، الاعتمادات، الحسابات والكميات، ما يُراجع قبل التنفيذ، تسلسل الخطوات، الاستلام والتسليم، مسار الاعتماد، وأسعار استرشادية محدثة (نوفمبر 2026)، بجانب قائمة التفقد التفاعلية.</p>
-            </div>
-            <ChecklistExplorer />
-          </div>
-        </section>
-
-        {/* Process */}
-        <section id="process" className="pw-section">
-          <div className="pw-wrap">
-            <div className="pw-head">
-              <p className="pw-eyebrow">طريقة العمل</p>
-              <h2>من المعاينة إلى التسليم</h2>
-            </div>
-            <ol className="pw-steps">
-              {STEPS.map(s => (<li key={s.n}><span className="pw-step-n">{s.n}</span><h3>{s.title}</h3><p>{s.text}</p></li>))}
-            </ol>
-          </div>
-        </section>
-
-        {/* Projects */}
-        {PROJECTS.length > 0 && (
-          <section id="projects" className="pw-section pw-tint">
-            <div className="pw-wrap">
-              <div className="pw-head">
-                <p className="pw-eyebrow">أعمالنا</p>
-                <h2>مشاريع قيد التنفيذ</h2>
-              </div>
-              <div className="pw-projects">
-                {PROJECTS.map(p => (
-                  <article key={p.name} className="pw-project">
-                    <span className="pw-badge">{p.status}</span>
-                    <h3>{p.name}</h3>
-                    <p>{p.kind}</p>
-                    <dl>
-                      <div><dt>المساحة</dt><dd>{p.area}</dd></div>
-                      {p.place && (<div><dt>الموقع</dt><dd>{p.place}</dd></div>)}
-                    </dl>
-                  </article>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* FAQ */}
-        <section id="faq" className="pw-section">
-          <div className="pw-wrap">
-            <div className="pw-head pw-head-center">
-              <p className="pw-eyebrow">أسئلة شائعة</p>
-              <h2>قبل أن تتواصل معنا</h2>
-            </div>
-            <div className="pw-faq">
-              {FAQS.map(f => (<details key={f.q}><summary>{f.q}</summary><p>{f.a}</p></details>))}
-            </div>
-          </div>
-        </section>
-
-        {/* عرض الهوية والشركة بالصوت والصورة (تم نقله إلى نهاية الصفحة بناءً على رغبة العميل) */}
+        {/* عرض الهوية والشركة بالصوت والصورة في نهاية الصفحة */}
         <section className="pw-hero" id="about-phitech">
           <HeroVideoBackdrop variant="showcase-left" controlsMode="none" onControlsReady={setHeroControls} />
           <div className="pw-wrap pw-hero-grid" id="hero-content">
@@ -369,52 +224,15 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
               </h2>
               <p className="pw-lead">{SITE.intro}</p>
               <div className="pw-actions">
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('maintenance')}
-                  className="pw-btn pw-btn-primary"
-                >
-                  🛠️ الصيانة والتنفيذ
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('contracting')}
-                  className="pw-btn pw-btn-light"
-                  style={{ borderColor: 'rgba(249,115,22,0.75)', color: '#fed7aa' }}
-                >
-                  🏗️ المقاولات والتشطيبات
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('real_estate')}
-                  className="pw-btn pw-btn-light"
-                  style={{ borderColor: 'rgba(251,191,36,0.65)', color: '#fde68a' }}
-                >
-                  🏢 العقارات
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('building_materials')}
-                  className="pw-btn pw-btn-light"
-                >
-                  🧱 مواد البناء
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('smart_tech')}
-                  className="pw-btn pw-btn-light"
-                  style={{ borderColor: 'rgba(16,185,129,0.65)', color: '#a7f3d0' }}
-                >
-                  📱 السمارت هوم والتكنولوجيا
-                </button>
-                <button
-                  type="button"
-                  onClick={() => jumpToPortalSection('general_info')}
-                  className="pw-btn pw-btn-light"
-                  style={{ borderColor: 'rgba(56,189,248,0.65)', color: '#bae6fd' }}
-                >
-                  📚 معلومات عامة
-                </button>
+                {PORTAL_SECTIONS.map((sec, i) => (
+                  <Link
+                    key={sec.slug}
+                    href={sec.href}
+                    className={`pw-btn ${i === 0 ? 'pw-btn-primary' : 'pw-btn-light'}`}
+                  >
+                    {sec.icon} {sec.title.replace('قسم ', '')}
+                  </Link>
+                ))}
               </div>
             </div>
             <div className="pw-hero-art" aria-hidden>

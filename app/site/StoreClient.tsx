@@ -307,7 +307,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
               🛒 متجر المنتجات
             </Link>
             <Link href="/real-estate">🏢 عروض العقارات</Link>
-            <Link href="/#capital-tower">المجسم 3D</Link>
+            <Link href="/sections/contracting?view=tower3d">المجسم 3D</Link>
             <Link href="/verify" className="pw-nav-verify">
               التحقق من المستندات
             </Link>

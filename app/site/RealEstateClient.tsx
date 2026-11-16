@@ -146,7 +146,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
             <Link href="/real-estate" style={{ color: '#fb923c', fontWeight: 900 }}>
               🏢 عروض العقارات
             </Link>
-            <Link href="/#capital-tower">المجسم 3D</Link>
+            <Link href="/sections/contracting?view=tower3d">المجسم 3D</Link>
             <Link href="/verify" className="pw-nav-verify">
               التحقق من المستندات
             </Link>
@@ -188,7 +188,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
             <Link
-              href="/#capital-tower"
+              href="/sections/contracting?view=tower3d"
               className="pw-btn pw-btn-primary"
               style={{ minHeight: '44px', padding: '0 20px', fontSize: '0.9rem' }}
             >
