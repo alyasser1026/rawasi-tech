@@ -62,14 +62,15 @@ test('Mobile hero starts with video first and scales typography smoothly without
   assert.match(phiSite, /pw-mobile-scroll-cue/);
 
   // Verify desktop typography styling
-  assert.match(siteStyles, /\.pw-hero h1\{font-size:clamp\(1\.9rem/);
+  assert.match(siteStyles, /\.pw-hero h1,\.pw-hero h2\{font-size:clamp\(1\.9rem/);
   assert.match(siteStyles, /\.pw-hero-part\{display:inline-block/);
+  assert.match(siteStyles, /\.pw-header\.pw-header-glass/);
 
   // Verify mobile video-first order and dimensions
   assert.match(siteStyles, /\.pw-hero\{display:flex;flex-direction:column/);
   assert.match(siteStyles, /\.pw-hero \.phi-hb\{[^\}]*order:0/);
   assert.match(siteStyles, /\.pw-hero \.phi-hb\{[^\}]*height:clamp\(300px/);
-  assert.match(siteStyles, /\.pw-hero-grid\{[^\}]*order:2/);
+  assert.match(siteStyles, /\.pw-hero-grid,[^\}]*\{[^}]*order:2/s);
   assert.match(siteStyles, /\.pw-mobile-scroll-cue/);
 
   // Verify mobile dock is hidden on desktop and iOS auto-zoom prevention (16px inputs) is enforced on mobile

@@ -22,7 +22,17 @@ body:has(.pw){padding:0!important}
 /* header */
 .pw-header{position:sticky;top:0;z-index:60;margin-bottom:-72px;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none;border-bottom:1px solid transparent;transition:background .25s ease,border-color .25s ease,box-shadow .25s ease,backdrop-filter .25s ease}
 .pw-header.is-scrolled{background:rgba(10,14,20,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom-color:rgba(255,255,255,.12);box-shadow:0 8px 30px rgba(0,0,0,.45)}
-.pw-header.pw-header-solid{margin-bottom:0!important;background:#0a0e14!important;border-bottom:1px solid rgba(255,255,255,.12)}
+.pw-header.pw-header-solid{margin-bottom:0!important;background:rgba(12,16,22,.68)!important;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid rgba(255,255,255,.12)}
+.pw-header.pw-header-glass{margin-bottom:0!important;background:rgba(255,255,255,.45)!important;backdrop-filter:blur(18px) saturate(165%)!important;-webkit-backdrop-filter:blur(18px) saturate(165%)!important;border-bottom:1px solid rgba(20,24,27,.08)!important;box-shadow:none!important}
+.pw-header.pw-header-glass.is-scrolled{background:rgba(255,255,255,.72)!important;box-shadow:0 8px 28px -14px rgba(20,24,27,.16)!important}
+.pw-header.pw-header-glass .pw-brand-text strong{color:#14181b!important;text-shadow:none!important}
+.pw-header.pw-header-glass .pw-brand-mark{filter:none!important}
+.pw-header.pw-header-glass .pw-nav a:not(.pw-btn){color:#1e293b!important;text-shadow:none!important}
+.pw-header.pw-header-glass .pw-nav a:not(.pw-btn):hover{color:var(--o)!important;text-shadow:none!important}
+.pw-header.pw-header-glass .pw-burger{background:rgba(255,255,255,.72);border-color:rgba(20,24,27,.15)}
+.pw-header.pw-header-glass .pw-burger span{background:#14181b}
+.pw-header.pw-header-glass .phi-cart-btn{color:#14181b!important;background:rgba(255,255,255,.6)!important;border-color:rgba(20,24,27,.18)!important}
+@media (max-width:960px){.pw-header.pw-header-glass .pw-nav.is-open a:not(.pw-btn){color:#f8fafc!important}}
 .pw-header-row{display:flex;align-items:center;justify-content:space-between;height:72px;gap:16px}
 .pw-brand{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .pw-brand-mark{height:44px;width:auto;filter:drop-shadow(0 0 1px rgba(255,255,255,.45)) drop-shadow(0 2px 8px rgba(0,0,0,.5))}
@@ -55,7 +65,9 @@ body:has(.pw){padding:0!important}
 /* hero (dark) */
 .pw-hero{position:relative;isolation:isolate;background:#090b0f;color:#fff;overflow:hidden;min-height:clamp(620px,90vh,900px);display:flex;flex-direction:column;justify-content:center}
 .pw-hero-art{visibility:hidden;min-height:340px}
-.pw-hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,0.95fr);gap:40px;align-items:center;padding-top:108px;padding-bottom:54px;width:100%}
+.pw-hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.28fr);gap:40px;align-items:center;padding-top:88px;padding-bottom:54px;width:100%}
+#about-phitech .pw-wrap{max-width:1360px}
+#about-phitech .pw-hero-grid>div:first-child{max-width:540px;justify-self:start;text-align:right;padding-inline-start:12px}
 .pw-eyebrow{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:clamp(0.76rem,0.92vw,0.84rem);font-weight:700;color:var(--o);letter-spacing:.02em;margin-bottom:14px;line-height:1.4}
 .pw-eyebrow::before{content:'';width:28px;height:2px;background:currentColor}
 .pw-hero .pw-eyebrow{color:var(--o-hi);text-shadow:0 2px 14px rgba(0,0,0,.65)}
@@ -306,16 +318,17 @@ body:has(.pw){padding:0!important}
     color:#fff;
     border-color:rgba(249,115,22,.55);
   }
-  .pw-hero-grid{
+  .pw-hero-grid,#about-phitech .pw-hero-grid{
     order:2;
-    grid-template-columns:1fr;
+    grid-template-columns:1fr!important;
     gap:18px;
     padding-top:14px;
     padding-bottom:20px;
     position:relative;
     z-index:3;
   }
-  .pw-hero h1{
+  #about-phitech .pw-hero-grid>div:first-child{max-width:100%;padding-inline-start:0}
+  .pw-hero h1,.pw-hero h2{
     font-size:clamp(1.48rem,5.8vw,2.05rem);
     line-height:1.36;
     margin-bottom:12px;

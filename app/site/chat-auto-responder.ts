@@ -86,44 +86,38 @@ export interface AutoReplyResult {
 
 export const DEFAULT_CHAT_BOT_CONFIG: ChatBotConfig = {
   enabled: true,
-  botName: '🤖 المستشار الهندسي الذكي — فاي تك',
+  botName: '🤖 مستشار فاي تك الذكي',
   welcomeText:
-    'أهلاً بيك في شركة فاي تك للمقاولات والتشطيبات والسمارت هوم 👷‍♂️✨\nقولي بتفكر في إيه أو إيه اللي شاغل بالك في شقتك أو مشروعك، وأنا معاك خطوة بخطوة!',
+    'أهلاً بيك في فاي تك 👋 قولي بتسأل عن إيه (تشطيب، صيانة، سمارت هوم، عقارات) وهرد عليك فوراً.',
   escalationText:
-    'حولت محادثتك دلوقتي حالاً للمهندس المختص 👨‍💻🔔 وبعتله إشعار فوري بكل التفاصيل اللي كتبتها عشان يدخل يكلمك هنا أو على الواتساب في دقايق.',
+    'حولت محادثتك للمهندس المختص دلوقتي، وهيرد عليك خلال دقايق.',
   customRules: [
     {
       id: 'rule-contracts',
-      title: 'نظام الدفعات والميزانية ("الأسعار حنينة ولا غالية؟")',
+      title: 'نظام الدفعات والميزانية',
       keywords:
         'نظام الدفعات, دفعات, تعاقد, عقد, مستخلص, مستخلصات, نسبه الاشراف, طرق الدفع, غالي, غاليه, حنينه, علي قد الايد, ميزانيه, بتقسطوا التشطيب',
       reply:
-        'بص يا فندم، إحنا في فاي تك شغالين بنظام مريح وشفاف جداً عشان متشيلش هم التكلفة ولا تدفع جنيه غير في مكانه الصح 💯:\n' +
-        '• **مقايسة مفتوحة (Open Book) على قد ميزانيتك:** بنفصّل الخامات والبنود حسب الميزانية اللي مريحاك من غير أي مصاريف مخفية.\n' +
-        '• **دفعات مرتبطة بالإنجاز الفعلي:** يعني كل مرحلة بتخلص (تأسيس كهرباء وسباكة، محارة، سيراميك، تشطيب) حضرتك بتستلمها الأول بالليزر وبالاختبار وبعدين نصرف مستخلص المرحلة اللي بعدها.\n' +
-        '• **متابعة رقمية بالفاتورة:** كل مسمار أو سلك بيدخل الموقع بيبقى موثق قدامك.',
-      quickReplies: ['💰 إزاي بنحسب تكلفة تشطيب الشقة؟', '👨‍💼 حولني لمهندس الآن'],
+        'شغالين بمقايسة واضحة على قد ميزانيتك (Open Book):\n' +
+        '• الدفعات مرتبطة بالاستلام الفعلي لكل مرحلة.\n' +
+        '• تسعير واضح للخامات والمصنعيات بدون مصاريف مخفية.',
+      quickReplies: ['💰 تكلفة تشطيب الشقة', '👨‍💼 تحويل لمهندس'],
     },
     {
       id: 'rule-survey',
-      title: 'المعاينة والرفع المساحي بالليزر ("تقدروا تيجوا تعاينوا امتى؟")',
+      title: 'المعاينة والرفع المساحي بالليزر',
       keywords: 'معاينه, رفع مساحي, شوب درونج, مخططات تنفيذيه, هندسي بالليزر, هتيجو امتى, تيجوا تعاينوا, مهندس يعاين',
       reply:
-        'من عنيا يا فندم! إحنا بنبدأ أي شغلانة صح بـ **معاينة هندسية ورفع مساحي بالليزر (Laser Survey)** على الطبيعة 📐:\n' +
-        '• المهندس بينزل يرفع مقاسات الشقة بالملي ويشيك على الرطوبة ومناسيب الصرف والكهرباء.\n' +
-        '• قبل ما ندق مسمار واحد، بنعملك **مخططات تنفيذية (Shop Drawings)** توضح مكان كل فيشة، خلاط دفن، تكييف، وقطعة عفش عشان منكسرش حاجة مرتين.\n' +
-        '• نقدر نرتبلك أقرب ميعاد معاينة يناسب وقتك خلال 24 لـ 48 ساعة.',
-      quickReplies: ['عندي شقة 150 متر ع الطوب', 'عندي فيلا / دوبلكس للمعاينة', '👨‍💼 حولني لمهندس الآن'],
+        'بنبدأ برفع مساحي بالليزر ومخططات تنفيذية لتوزيع الكهرباء والسباكة والتكييف قبل الشغل عشان منكسرش حاجة مرتين، ونقدر نعاين خلال 24–48 ساعة.',
+      quickReplies: ['عندي شقة ع الطوب', 'عندي فيلا للمعاينة', '👨‍💼 تحويل لمهندس'],
     },
     {
       id: 'rule-locations',
       title: 'المحافظات ونطاق الشغل والشحن',
       keywords: 'محافظات, شحن, توصيل خارج, اسكندريه, الدلتا, الجيزه, اكتوبر, التجمع, العاصمه, زايد, المنصوره, بتشتغلوا فين',
       reply:
-        'إحنا معاك في كل مكان يا فندم 📍:\n' +
-        '• **التنفيذ والتشطيبات والصيانة الهندسية:** مغطيين القاهرة الكبرى بالكامل (التجمع، مدينة نصر، مصر الجديدة، المعادي، الشيخ زايد، 6 أكتوبر، العاصمة الإدارية، الشروق، مدينتي) وكمان المنصورة ومحافظات الدلتا.\n' +
-        '• **منتجات المتجر والسمارت هوم وحساسات الأمان:** بنشحنها لحد باب البيت في أي محافظة في مصر مع دعم فني كامل للتركيب والبرمجة.',
-      quickReplies: ['أطلب معاينة ومقايسة', '🛒 أفتح المتجر وأشوف المنتجات', '👨‍💼 حولني لمهندس الآن'],
+        'التنفيذ والصيانة في القاهرة الكبرى والمنصورة والدلتا (وفروع السعودية)، ومنتجات المتجر والسمارت هوم متاح شحنها لجميع المحافظات.',
+      quickReplies: ['أطلب معاينة', '🛒 فتح المتجر', '👨‍💼 تحويل لمهندس'],
     },
   ],
 };
@@ -474,6 +468,7 @@ function buildTopicExplanation(params: {
   visitorName: string;
   visitorPhone: string;
   requestHuman?: boolean;
+  skipGreeting?: boolean;
   previousMessages?: Array<{ sender: 'visitor' | 'admin'; text: string; intent?: string }>;
   siteContent?: AutoResponderSiteContent;
   chatBot: ChatBotConfig;
@@ -483,13 +478,14 @@ function buildTopicExplanation(params: {
     visitorName,
     visitorPhone,
     requestHuman = false,
+    skipGreeting = false,
     previousMessages = [],
     siteContent,
     chatBot,
   } = params;
 
-  const displayVisitor = visitorName || 'يا فندم';
-  const honorific = visitorName ? `يا أستاذ ${visitorName}` : 'يا فندم';
+  const honorific = !skipGreeting && visitorName ? `يا أستاذ ${visitorName}` : '';
+  const leadHonorific = honorific ? `${honorific}، ` : '';
   const products = siteContent?.PRODUCTS ?? DEFAULT_PRODUCTS;
   const properties = siteContent?.PROPERTIES ?? DEFAULT_PROPERTIES;
   const maintenanceServices = siteContent?.MAINTENANCE_SERVICES ?? DEFAULT_MAINTENANCE_SERVICES;
@@ -509,7 +505,7 @@ function buildTopicExplanation(params: {
   const senderName = chatBot.botName;
   const normMsg = normalizeArabic(questionText);
 
-  // 1. Direct Human Handoff Request ("عايز أكلم مهندس / حولني لمهندس")
+  // 1. Direct Human Handoff Request
   const humanKeywords = [
     'تحويل لمهندس',
     'حولني لمهندس',
@@ -542,13 +538,9 @@ function buildTopicExplanation(params: {
       needsHuman: true,
       escalationReason: 'طلب العميل التحدث المباشر مع المهندس المسؤول',
       replyText:
-        `من عنيا ${honorific}! 🙌\n` +
-        `${chatBot.escalationText}\n\n` +
-        (visitorName ? `👤 الاسم المسجل: أستاذ ${visitorName}\n` : '') +
-        (visitorPhone
-          ? `📱 رقم التليفون المسجل: ${visitorPhone}`
-          : `📱 ياريت بس تكتبلي رقم تليفونك أو الواتساب هنا في الشات عشان المهندس يكلمك عليه فوراً.`),
-      quickReplies: ['📍 عناوين الفروع ومواعيد الشغل', '🛒 أفتح المتجر والكتالوج'],
+        `حاضر${honorific ? ` ${honorific}` : ''}، ${chatBot.escalationText}` +
+        (visitorPhone ? `\nرقمك المسجل للمتابعة: ${visitorPhone}` : ''),
+      quickReplies: ['📍 الفروع ومواعيد العمل', '🛒 المتجر والكتالوج'],
       actions: buildContactActions(siteContent),
     };
   }
@@ -605,12 +597,9 @@ function buildTopicExplanation(params: {
   if (asksFinishing) {
     const qualifiedWithDetails = hasArea || hasLocationOrCondition;
     const baseReply =
-      `بص ${honorific}، خليني أجيبلك الخلاصة الهندسية في موضوع **التشطيب والمقاولات** عندنا في فاي تك عشان تبقى مطمن على كل جنيه بتحطه 🏗️✨:\n\n` +
-      `إحنا مابنشتغلش عشوائي ولا بنرمي سعر جزافي للمتر وبعدين نفاجئك بمصاريف زيادة في النص؛ إحنا بنمشي معاك 4 خطوات على الفرازة:\n` +
-      `1️⃣ **معاينة ورفع مساحي بالليزر (Laser Survey):** مهندسنا بينزل يرفع مقاسات الشقة بالملي ويفحص الحوائط ومناسيب الصرف.\n` +
-      `2️⃣ **رسومات تنفيذية (Shop Drawings 2D/3D):** بنفرش الشقة على الورق الأول ونحدد مكان كل فيشة ومفتاح وتكييف وخلاط دفن عشان منكسرش طوبة واحدة مرتين.\n` +
-      `3️⃣ **مقايسة مفتوحة البنود (Open Book) على قد ميزانيتك:** بنحسبلك الكميات الفعلية بالظبط سواء شقتك ع الطوب الأحمر أو نص تشطيب (ع المحارة)، وبنختار سوا الخامات المعتمدة اللي تناسبك (سويدي، جروهي، جوتن، كناوف).\n` +
-      `4️⃣ **إشراف هندسي وضمان 10 سنين:** بنستلم السباكة بضغط 10 بار، والسيراميك والمحارة بالليزر، وبتستلم شقتك على المفتاح بضمان موثق.`;
+      `${leadHonorific}شغلنا في التشطيب والمقاولات بيمشي بنظام واضح ومفتوح (Open Book):\n` +
+      `• معاينة ورفع مساحي بالليزر + رسومات تنفيذية قبل التكسير.\n` +
+      `• مقايسة مفتوحة على قد ميزانيتك (طوب أحمر أو محارة) بضمان موثق 10 سنين.`;
 
     if (qualifiedWithDetails) {
       return {
@@ -621,14 +610,13 @@ function buildTopicExplanation(params: {
         needsHuman: true,
         escalationReason: `عميل تشطيبات شارك تفاصيل وحدته: "${questionText.slice(0, 100)}"`,
         replyText:
-          `${baseReply}\n\n` +
-          `✅ سجلت عندي تفاصيل وحدتك («${questionText}») وبعتها للمهندس المختص عشان يجهزلك المقايسة التقديرية المظبوطة.`,
+          `${baseReply}\n✅ سجلت تفاصيلك وبعتها للمهندس المختص لتجهيز المقايسة التقديرية.`,
         quickReplies: [
-          '🛡️ إيه الضمان اللي بتدوه على الشغل؟',
-          '📱 عايز أدخل سمارت هوم في التشطيب',
-          '👨‍💼 حولني لمهندس الآن',
+          '🛡️ الضمان ومراحل الاستلام',
+          '📱 سمارت هوم في التشطيب',
+          '👨‍💼 تحويل لمهندس',
         ],
-        actions: [{ label: '🛠️ شوف بنود التنفيذ والتأسيس', href: '/store?tab=maintenance' }],
+        actions: [{ label: '🛠️ بنود التنفيذ والتأسيس', href: '/sections/maintenance' }],
       };
     }
 
@@ -639,19 +627,18 @@ function buildTopicExplanation(params: {
       confidence: 'high',
       needsHuman: false,
       replyText:
-        `${baseReply}\n\n` +
-        `💡 قولي برضه شقتك مساحتها كام متر تقريباً؟ وفي أنهي منطقة؟ وهل هي ع الطوب الأحمر ولا ع المحارة عشان أظبطلك الحسبة الهندسية الصح!`,
+        `${baseReply}\nقولي مساحة الشقة والمنطقة وهل هي ع الطوب ولا ع المحارة عشان نحسبلك صح.`,
       quickReplies: [
         'شقة 150 متر ع الطوب الأحمر',
-        'شقة 180 متر نص تشطيب (ع المحارة)',
-        '🛡️ إيه الضمان ومراحل الاستلام؟',
-        '👨‍💼 حولني لمهندس الآن',
+        'شقة 180 متر ع المحارة',
+        '🛡️ الضمان ومراحل الاستلام',
+        '👨‍💼 تحويل لمهندس',
       ],
-      actions: [{ label: '🛠️ شوف بنود التنفيذ والتأسيس', href: '/store?tab=maintenance' }],
+      actions: [{ label: '🛠️ قسم المقاولات والحاسبة', href: '/sections/contracting' }],
     };
   }
 
-  // 3. Lead Qualification (Visitor sent concrete area/location measurements)
+  // 3. Lead Qualification
   const hasUnitOrProjectContext =
     hasAny(normMsg, ['شقه', 'فيلا', 'دوبلكس', 'مكتب', 'عياده', 'محل', 'معاينه', 'تاسيس']) ||
     previousMessages.some((m) => m.intent === 'finishing_quote' || m.intent === 'maintenance_execution');
@@ -665,15 +652,9 @@ function buildTopicExplanation(params: {
       needsHuman: true,
       escalationReason: `عميل مؤهل شارك تفاصيل المشروع: "${questionText.slice(0, 100)}"`,
       replyText:
-        `الله ينور عليك ${honorific} 👍 كده الصورة بقت واضحة جداً! سجلت عندي مواصفات وحدتك:\n` +
-        `📝 «${questionText}»\n\n` +
-        `الخطوة الجاية عندنا في فاي تك إن المهندس ينزل يعمل رفع مساحي بالليزر ونرسم الـ (Shop Drawings) لتوزيع الفرش والكهرباء والسباكة والتكييفات قبل ما نبدأ، وبعدها نقدملك مقايسة تفصيلية واضحة لكل بند.\n` +
-        `✅ بلغت المهندس المختص بتفاصيل وحدتك حالاً عشان يرتب معاك المعاينة والمقايسة.`,
-      quickReplies: ['🛡️ إيه الضمان ومراحل الاستلام؟', '📍 عناوين الفروع ومواعيد الشغل'],
-      actions: [
-        { label: `💬 متابعة سريعة على واتساب`, href: `https://wa.me/${cleanWa}`, external: true },
-        { label: '🛠️ خدمات التنفيذ والصيانة', href: '/store?tab=maintenance' },
-      ],
+        `${leadHonorific}الصورة واضحة جداً 👍 سجلت مواصفات وحدتك («${questionText}») وبعتها للمهندس المختص عشان يرتب معاك المعاينة والمقايسة.`,
+      quickReplies: ['🛡️ الضمان ومراحل الاستلام', '📍 الفروع ومواعيد الشغل'],
+      actions: [{ label: '🛠️ خدمات التنفيذ والصيانة', href: '/sections/maintenance' }],
     };
   }
 
@@ -694,7 +675,7 @@ function buildTopicExplanation(params: {
         quickReplies:
           Array.isArray(rule.quickReplies) && rule.quickReplies.length > 0
             ? rule.quickReplies
-            : ['👨‍💼 حولني لمهندس الآن', '💰 شقتي ع الطوب وعايز أعرف تكلفة التشطيب'],
+            : ['👨‍💼 تحويل لمهندس', '💰 تكلفة التشطيب'],
         actions: [{ label: '🛒 تصفح المتجر', href: '/store' }],
       };
     }
@@ -713,13 +694,13 @@ function buildTopicExplanation(params: {
         intent: 'site_faq',
         confidence: 'high',
         needsHuman: false,
-        replyText: `سؤال مهم جداً ${honorific} 📌\n**${faq.q}**\n\n${faq.a}`,
-        quickReplies: ['👨‍💼 حولني لمهندس الآن', '💰 شقتي ع الطوب وعايز أعرف تكلفة التشطيب'],
+        replyText: `${leadHonorific}**${faq.q}**\n${faq.a}`,
+        quickReplies: ['👨‍💼 تحويل لمهندس', '💰 تكلفة التشطيب'],
       };
     }
   }
 
-  // 6. Safety Sensors (Gas, Fire, Water Leak + Auto Shutoff) ("خايف من تسريب الغاز والمية")
+  // 6. Safety Sensors (Gas, Fire, Water Leak + Auto Shutoff)
   if (
     hasAny(normMsg, [
       'حساس',
@@ -736,7 +717,7 @@ function buildTopicExplanation(params: {
       'خايف من الغاز',
     ])
   ) {
-    const sensorProducts = products.filter((p) => p.category === 'safety_sensors').slice(0, 3);
+    const sensorProducts = products.filter((p) => p.category === 'safety_sensors').slice(0, 2);
     const listText = sensorProducts
       .map((p) => `• ${p.name}${p.price > 0 ? ` — ${p.price.toLocaleString('en-US')} ${p.currency}` : ''}`)
       .join('\n');
@@ -748,21 +729,16 @@ function buildTopicExplanation(params: {
       confidence: 'high',
       needsHuman: false,
       replyText:
-        `أهم قرار تاخده لبيتك ${honorific}! 🚨 **منظومة حساسات الأمان الذكية في فاي تك** بتحرس الشقة 24 ساعة حتى لو إنت مسافر:\n\n` +
-        `• **حساس الغاز الذكي + محبس يقفل لوحده (Auto Shut-off):** أول ما يشم أي بداية تسريب غاز، بيصفر ويبعتلك إنذار على الموبايل، والأهم إنه **بيقفل محبس الغاز الرئيسي أوتوماتيك في ثواني** من غير ما حد يلمسه.\n` +
-        `• **حساس تسريب المية الأرضي:** بيتحط تحت الحوض أو الغسالة، ولو نزلت نقطة مية على الأرض بيقفل محبس المية العمومي فوراً عشان الشقة والباركيه مايغرقوش.\n` +
-        `• **حساس الدخان والحرارة الذكي:** بيلقط أي دخان في أوله وينبهك على تليفونك فوراً.\n\n` +
-        `💡 *نصيحة هندسية من الموقع:* لو عندك غاز طبيعي (أخف من الهوا) بنركب الحساس فوق قريب من السقف بـ 30 سم، إنما لو أنبوبة بوتاجاز (أتقل من الهوا) بيركب تحت قريب من الأرض بـ 30 سم.\n\n` +
-        (listText ? `ودول أشهر القطع المتوفرة في المتجر عندنا:\n${listText}` : ''),
-      quickReplies: ['🛠️ عايز أركب منظومة الحساسات دي', '📱 عايز أقلب الشقة سمارت هوم', '👨‍💼 حولني لمهندس الآن'],
-      actions: [
-        { label: '🚨 افتح قسم حساسات الأمان', href: '/store?cat=safety_sensors' },
-        { label: '🛠️ احجز تركيب وصيانة', href: '/store?tab=maintenance' },
-      ],
+        `${leadHonorific}منظومة الأمان الذكية بتحرس الشقة 24 ساعة:\n` +
+        `• حساس غاز بمحبس فصل أوتوماتيك بيقفل الغاز في ثواني.\n` +
+        `• حساس مياه أرضي بيقفل المحبس الرئيسي فوراً لو حصل تسريب، بجانب حساس دخان Wi-Fi.` +
+        (listText ? `\n${listText}` : ''),
+      quickReplies: ['🛠️ عايز أركب الحساسات', '📱 سمارت هوم', '👨‍💼 تحويل لمهندس'],
+      actions: [{ label: '📱 قسم السمارت هوم والأمان', href: '/sections/smart-home' }],
     };
   }
 
-  // 7. Smart Home & Low Current Systems ("عايز أقلب الشقة سمارت من غير تكسير")
+  // 7. Smart Home & Low Current Systems
   if (
     hasAny(normMsg, [
       'سمارت',
@@ -788,13 +764,6 @@ function buildTopicExplanation(params: {
       'من غير تكسير',
     ])
   ) {
-    const smartProducts = products
-      .filter((p) => p.category === 'smart_home' || p.category === 'low_current')
-      .slice(0, 4);
-    const listText = smartProducts
-      .map((p) => `• ${p.name}${p.price > 0 ? ` — ${p.price.toLocaleString('en-US')} ${p.currency}` : ''}`)
-      .join('\n');
-
     return {
       shouldReply: true,
       senderName,
@@ -802,19 +771,11 @@ function buildTopicExplanation(params: {
       confidence: 'high',
       needsHuman: false,
       replyText:
-        `أحلى حاجة في **السمارت هوم والتيار الخفيف** عندنا في فاي تك ${honorific} إننا نقدر ننفذهولك سواء لسه بتأسس ع الطوب أو حتى **بعد ما شطبت وسكنت من غير تكسير ولا بهدلة خالص!** 📱✨\n\n` +
-        `إيه اللي نقدر نعملهولك في الشقة؟\n` +
-        `✅ **مفاتيح تاتش وريليهات ذكية (Zigbee 3.0 & Wi-Fi):** بتركب مكان المفاتيح العادية أو وراها، تتحكم في النور والتكييف والسخان والشتر من موبايلك أو بصوتك (Alexa / Google).\n` +
-        `✅ **أقفال ذكية للباب المصفح:** تفتح بالبصمة، الكارت، الباسورد، أو تبعت كود مؤقت لأي ضيف وإنت بره البيت.\n` +
-        `✅ **تأسيس تيار خفيف مظبوط:** نقاط Wi-Fi سقفية (Access Points) تنهي مشكلة تقطيع النت، كاميرات مراقبة 4K، إنتركم ذكي، وساوند سيستم في السقف.\n` +
-        `🎁 وعاملين **${SMART_BUNDLES.length} باقات سمارت جاهزة** في المتجر تقدر تختار منها اللي يناسب حجم شقتك.\n\n` +
-        (listText ? `أمثلة من القطع المتاحة:\n${listText}\n\n` : '') +
-        `💡 *نصيحة مهندس:* لو لسه بتأسس كهرباء، خلي الكهربائي ينزل فردة نيوترال (Neutral) جوه كل علبة مفتاح؛ دي بتريحك جداً في تركيب أي مفتاح سمارت قدام!`,
-      quickReplies: ['🚨 منظومة حساسات الغاز والمية', '🛠️ عايز مهندس يأسس أو يركب سمارت', '👨‍💼 حولني لمهندس الآن'],
-      actions: [
-        { label: '📱 افتح قسم السمارت هوم', href: '/store?cat=smart_home' },
-        { label: '📡 قسم التيار الخفيف والشبكات', href: '/store?cat=low_current' },
-      ],
+        `${leadHonorific}تقدر تحوّل شقتك لسمارت هوم من غير تكسير حتى بعد السكن 📱:\n` +
+        `• مفاتيح تاتش (Zigbee/Wi-Fi) وأقفال ذكية بالبصمة والكاميرا.\n` +
+        `• كاميرات 4K، إنتركم مرئي، ونقاط Wi-Fi سقفية تغطي البيت كله، مع باقات جاهزة (${SMART_BUNDLES.length} باقات).`,
+      quickReplies: ['🚨 حساسات الغاز والمية', '🛠️ حجز معاينة سمارت', '👨‍💼 تحويل لمهندس'],
+      actions: [{ label: '📱 صمم باقة السمارت هوم', href: '/sections/smart-home' }],
     };
   }
 
@@ -854,7 +815,7 @@ function buildTopicExplanation(params: {
       const feeText =
         matchedMnt.visitFee > 0
           ? `${matchedMnt.visitFee.toLocaleString('en-US')} ${matchedMnt.currency}`
-          : 'المعاينة والتسعير حسب البند على الطبيعة (من غير أي تسعير جزافي مسبق)';
+          : 'المعاينة والتسعير على الطبيعة';
 
       return {
         shouldReply: true,
@@ -863,13 +824,12 @@ function buildTopicExplanation(params: {
         confidence: 'high',
         needsHuman: false,
         replyText:
-          `ولا تشيل هم ${honorific}! في فاي تك عندنا فريق متخصص لبند **${matchedMnt.title}** ${matchedMnt.icon} تحت إشراف هندسي مباشر:\n\n` +
-          `🏗️ **لو بتأسس أو بتنفذ جديد بنعمل إيه؟**\n• ${matchedMnt.executionScope.slice(0, 3).join('\n• ')}\n\n` +
-          `🔧 **لو عندك عطل أو محتاج صيانة وعلاج جذري:**\n• ${matchedMnt.maintenanceScope.slice(0, 3).join('\n• ')}\n\n` +
-          `💡 **الخلاصة الهندسية من واقع خبرتنا:**\n${matchedMnt.recommendation}\n\n` +
-          `🛡️ **الضمان:** ${matchedMnt.warrantyLabel}\n💰 **التكلفة:** ${feeText}`,
-        quickReplies: ['🛠️ احجز معاينة أو فني للبند ده', '💰 تكلفة التشطيب الكامل للشقة', '👨‍💼 حولني لمهندس الآن'],
-        actions: [{ label: '🛠️ اطلب خدمة التنفيذ أو الصيانة الآن', href: '/store?tab=maintenance' }],
+          `${leadHonorific}متخصصين في **${matchedMnt.title}** ${matchedMnt.icon}:\n` +
+          `• **التنفيذ:** ${matchedMnt.executionScope.slice(0, 2).join('، ')}.\n` +
+          `• **الصيانة:** ${matchedMnt.maintenanceScope.slice(0, 2).join('، ')}.\n` +
+          `• **الضمان والتكلفة:** ${matchedMnt.warrantyLabel} (${feeText}).`,
+        quickReplies: ['🛠️ احجز معاينة للبند ده', '👨‍💼 تحويل لمهندس'],
+        actions: [{ label: '🛠️ قسم الصيانة والتنفيذ', href: '/sections/maintenance' }],
       };
     }
 
@@ -880,26 +840,18 @@ function buildTopicExplanation(params: {
       confidence: 'high',
       needsHuman: false,
       replyText:
-        `من عنيا ${honorific}! قسم **التنفيذ والصيانة الهندسية** في فاي تك بيغطي الـ 10 بنود الأساسية للشقة بصنايعية وفنيين معتمدين وتحت إشراف مهندس موقع 🛠️👷‍♂️:\n\n` +
-        `⚡ **الكهرباء واللوحات:** تأسيس، علاج القفلات، وموازنة الأحمال.\n` +
-        `🚰 **السباكة والعزل:** كشف تسريب بدون تكسير، خلاطات دفن، واختبار كبس 10 بار.\n` +
-        `🎨 **الدهانات وعلاج الرطوبة:** تقشير وعلاج التمليح والنشع من الجذور ودهان جوتن.\n` +
-        `🟫 **البورسلان والسيراميك والرخام:** تركيب بالليزر والكلبسات وعلاج التطبيل.\n` +
-        `🛋️ **الجبس بورد والديكور:** أسقف معلقة، بديل خشب وبديل رخام، وبروفايل ليد.\n` +
-        `❄️ **التكييفات (كونسيلد واسبليت):** تأسيس نحاس وصرف، صيانة، وشحن فريون.\n` +
-        `📱 **السمارت هوم، التيار الخفيف، وحساسات الأمان.**\n\n` +
-        `قولي أنهي بند فيهم اللي محتاجه دلوقتي وأنا أشرحلك تفاصيله بالتفصيل!`,
+        `${leadHonorific}قسم **التنفيذ والصيانة** بيغطي 10 تخصصات (كهرباء، سباكة، دهانات وعلاج رطوبة، بورسلان ورخام، جبس وديكور، تكييف، وسمارت هوم) بإشراف مهندس. قولي محتاج أنهي بند؟`,
       quickReplies: [
-        '🚰 عندي مشكلة سباكة أو تسريب مية',
-        '⚡ عندي مشكلة كهرباء أو تأسيس',
-        '❄️ تأسيس أو صيانة تكييف',
-        '👨‍💼 حولني لمهندس الآن',
+        '🚰 سباكة أو تسريب مية',
+        '⚡ كهرباء أو تأسيس',
+        '❄️ تكييف كونسيلد / اسبليت',
+        '👨‍💼 تحويل لمهندس',
       ],
-      actions: [{ label: '🛠️ افتح قسم التنفيذ والصيانة', href: '/store?tab=maintenance' }],
+      actions: [{ label: '🛠️ افتح قسم الصيانة والتنفيذ', href: '/sections/maintenance' }],
     };
   }
 
-  // 9. Store Products & Trade Catalog ("بكام الخامات / عندكم سلك سويدي أو خلاطات جروهي؟")
+  // 9. Store Products & Trade Catalog
   const matchedProductCat = findMatchingProductCategory(normMsg);
   const asksStoreOrProducts =
     Boolean(matchedProductCat) ||
@@ -913,13 +865,13 @@ function buildTopicExplanation(params: {
       ? PRODUCT_CATEGORIES.find((c) => c.id === matchedProductCat)
       : null;
     const topItems = filtered
-      .slice(0, 4)
+      .slice(0, 3)
       .map((p) => {
         const priceLabel =
           p.price > 0
             ? `${p.price.toLocaleString('en-US')} ${p.currency} / ${p.unit}`
-            : `التسعير حسب الكمية (${p.unit}) — ضيفه في السلة وهنبعتلك عرض سعر فوري`;
-        return `• ${p.name} — **${priceLabel}**`;
+            : `حسب الكمية (${p.unit})`;
+        return `• ${p.name} (${priceLabel})`;
       })
       .join('\n');
 
@@ -930,20 +882,19 @@ function buildTopicExplanation(params: {
       confidence: 'high',
       needsHuman: false,
       replyText:
-        `يا هلا بيك ${honorific}! في **${catMeta ? `قسم ${catMeta.title} ${catMeta.icon}` : 'متجر فاي تك الهندسي 🛒'}** بنوفرلك الخامات والأنظمة الأصلية المعتمدة بضمان الوكيل:\n` +
-        `تقدر تطلب **توريد الخامات بس** لحد باب موقعك، أو تطلبها **شاملة التركيب الهندسي المعتمد** بمعرفتنا.\n\n` +
-        (topItems ? `ودي عينة من البنود الموجودة في القسم ده:\n${topItems}` : ''),
-      quickReplies: ['🛒 إزاي أطلب من المتجر والسلة؟', '🛠️ ممكن توريد بالتركيب؟', '👨‍💼 حولني لمهندس الآن'],
+        `${leadHonorific}في **${catMeta ? catMeta.title : 'المتجر الهندسي'}** بنوفر الخامات الأصلية (توريد بس أو شامل التركيب):\n` +
+        (topItems || ''),
+      quickReplies: ['🛒 إزاي أطلب من السلة؟', '👨‍💼 تحويل لمهندس'],
       actions: [
         {
-          label: catMeta ? `تصفح قسم ${catMeta.shortTitle}` : '🛒 افتح المتجر الكامل',
-          href: catMeta ? `/store?cat=${catMeta.id}` : '/store',
+          label: catMeta ? `تصفح ${catMeta.shortTitle}` : '🧱 قسم مواد البناء والمنتجات',
+          href: catMeta ? `/store?cat=${catMeta.id}` : '/sections/materials',
         },
       ],
     };
   }
 
-  // 10. Real Estate Offers & Installments ("عندكم شقق متشطبة أو بالتقسيط؟")
+  // 10. Real Estate Offers & Installments
   if (
     hasAny(normMsg, [
       'عقار',
@@ -962,16 +913,9 @@ function buildTopicExplanation(params: {
       'استلام فوري',
     ])
   ) {
-    const availableProps = properties.filter((pr) => pr.status !== 'sold').slice(0, 3);
+    const availableProps = properties.filter((pr) => pr.status !== 'sold').slice(0, 2);
     const propLines = availableProps
-      .map((pr) => {
-        const pricePart = pr.price > 0 ? ` — ${pr.price.toLocaleString('en-US')} ${pr.currency}` : '';
-        const payPart =
-          pr.downPaymentPct !== undefined
-            ? ` (بمقدم ${pr.downPaymentPct}%${pr.installmentYears ? ` وتقسيط مريح لحد ${pr.installmentYears} سنين` : ''})`
-            : '';
-        return `🏢 **${pr.title}** (${pr.areaSqm} م² — ${pr.city})${pricePart}${payPart}`;
-      })
+      .map((pr) => `🏢 **${pr.title}** (${pr.areaSqm} م² — ${pr.city})`)
       .join('\n');
 
     return {
@@ -981,20 +925,15 @@ function buildTopicExplanation(params: {
       confidence: 'high',
       needsHuman: false,
       replyText:
-        `أيوه طبعاً ${honorific}! 🏢 عندنا في **قسم الاستثمار العقاري بفاي تك** وحدات سكنية وإدارية وتجارية مختارة بعناية، ومتشطبة بأعلى مواصفة هندسية وتجهيز سمارت هوم:\n\n` +
-        (propLines || 'متاح شقق، دوبلكس، فيلات، وعيادات ومقرات إدارية في مواقع مميزة بالقاهرة والمنصورة.') +
-        `\n\nتقدر تتفرج على تفاصيل وصور كل وحدة وتحجز ميعاد معاينة على الطبيعة في الوقت اللي يناسبك.`,
-      quickReplies: ['👨‍💼 حولني لمهندس العقارات الآن', '📍 عناوين الفروع ومواعيد الشغل'],
-      actions: [{ label: '🏢 شوف كل عروض العقارات المتاحة', href: '/real-estate' }],
+        `${leadHonorific}متاح شقق، دوبلكس، ومعارض تجارية بتشطيب هندسي ومقدمات وتقسيط مرن:\n` +
+        (propLines || 'تواصل معنا لتحديد المعاينة وعرض المساحات المتاحة.'),
+      quickReplies: ['👨‍💼 تحويل لمهندس العقارات', '📍 الفروع ومواعيد الشغل'],
+      actions: [{ label: '🏢 افتح قسم العقارات', href: '/sections/real-estate' }],
     };
   }
 
-  // 11. Warranty, Engineering Supervision & Work Stages ("إيه الضمان اللي بتدوه؟")
+  // 11. Warranty, Engineering Supervision & Work Stages
   if (hasAny(normMsg, ['ضمان', 'اشراف', 'استلام', 'جوده', 'مراحل العمل', 'خطوات', 'التزام', 'bim', 'ايه اللي يضمن'])) {
-    const compList = commitments
-      .slice(0, 3)
-      .map((cm) => `✅ **${cm.title}:** ${cm.text}`)
-      .join('\n');
     return {
       shouldReply: true,
       senderName,
@@ -1002,18 +941,12 @@ function buildTopicExplanation(params: {
       confidence: 'high',
       needsHuman: false,
       replyText:
-        `ده أهم سؤال تسأله قبل ما تبدأ مع أي شركة ${honorific}! 🛡️\n` +
-        `إحنا في **فاي تك الهندسية** بنضمنلك حقك هندسياً وقانونياً في العقد:\n` +
-        (compList ||
-          '✅ **رسومات تنفيذية (Shop Drawings)** معتمدة قبل ما نبدأ عشان مفيش حاجة تتعمل بالتخمين.\n' +
-            '✅ **إشراف هندسي واستلام بالأجهزة:** استلام المحارة والسيراميك بالليزر، وكبس السباكة بضغط 10 بار، واختبار الكهرباء بالميجر.\n' +
-            '✅ **شفافية كاملة في الحسابات:** كل بند بيتسلم بمحضره ومستخلصه.') +
-        `\n\n📌 وفوق ده كله بتاخد **ضمان هندسي موثق يوصل لـ 10 سنين** على التأسيسات والعزل والسمارت هوم، يعني إحنا معاك حتى بعد ما تسكن!`,
-      quickReplies: ['💰 شقتي ع الطوب وعايز أعرف تكلفة التشطيب', '👨‍💼 حولني لمهندس الآن'],
+        `${leadHonorific}بنضمنلك شغلك برسومات تنفيذية قبل التكسير، واستلام هندسي بالليزر وضغط 10 بار للسباكة، مع ضمان موثق يوصل لـ 10 سنين على التأسيسات والعزل.`,
+      quickReplies: ['💰 تكلفة التشطيب', '👨‍💼 تحويل لمهندس'],
     };
   }
 
-  // 12. Cart, Account Registration & How to Order ("إزاي أطلب من السلة؟")
+  // 12. Cart, Account Registration & How to Order
   if (hasAny(normMsg, ['سله', 'حساب', 'تسجيل دخول', 'ازاي اطلب', 'طريقه الطلب', 'حجز', 'طلب عرض سعر'])) {
     return {
       shouldReply: true,
@@ -1022,16 +955,13 @@ function buildTopicExplanation(params: {
       confidence: 'high',
       needsHuman: false,
       replyText:
-        `الطلب من متجر فاي تك سهل وبسيط جداً ${honorific} 🛒✨:\n` +
-        `1️⃣ ادخل على **المتجر** أو تبويب **التنفيذ والصيانة** واختار البنود أو الخامات اللي محتاجها.\n` +
-        `2️⃣ دوس **«أضف للسلة»**، وممكن كمان تعلم صح على خيار **«شامل التركيب الهندسي»** لو عايزنا نركبهولك.\n` +
-        `3️⃣ دوس إرسال الطلب، هيطلعلك رقم مرجعي فوراً والمهندس هيكلمك يأكد معاك المقايسة وميعاد التوريد أو المعاينة.`,
-      quickReplies: ['⚡ شوف منتجات الكهرباء والسباكة والسمارت', '👨‍💼 حولني لمهندس الآن'],
-      actions: [{ label: '🛒 افتح المتجر الآن', href: '/store' }],
+        `${leadHonorific}اختار المنتجات أو خدمات الصيانة، دوس «أضف للسلة» (تقدر تعلم صح على التركيب الهندسي لو تحب)، وأرسل الطلب وهيوصلك رقم مرجعي للمتابعة فوراً.`,
+      quickReplies: ['⚡ منتجات الكهرباء والسمارت', '👨‍💼 تحويل لمهندس'],
+      actions: [{ label: '🛒 افتح المتجر', href: '/store' }],
     };
   }
 
-  // 13. Contact Info, Branches & Working Hours ("عنوانكم فين ورقمكم كام؟")
+  // 13. Contact Info, Branches & Working Hours
   if (hasAny(normMsg, ['عنوان', 'فرع', 'فروع', 'مكانكم', 'مواعيد', 'ساعات العمل', 'رقم', 'تليفون', 'واتس', 'تواصل', 'ايميل'])) {
     return {
       shouldReply: true,
@@ -1040,13 +970,9 @@ function buildTopicExplanation(params: {
       confidence: 'high',
       needsHuman: false,
       replyText:
-        `تنورنا في أي وقت ${honorific}! 📍 دي عناويننا وأرقام التواصل المباشرة في **فاي تك الهندسية**:\n` +
-        `• **الفروع ونطاق العمل:** ${offices.join(' · ')}\n` +
-        `• **العنوان:** ${contact.address}\n` +
-        `• **رقم التليفون والواتساب الرسمي:** ${contact.phone}\n` +
-        `• **مواعيد العمل:** ${contact.hours}\n` +
-        (contact.email ? `• **الإيميل:** ${contact.email}` : ''),
-      quickReplies: ['💰 شقتي ع الطوب وعايز أعرف تكلفة التشطيب', '👨‍💼 حولني لمهندس الآن'],
+        `${leadHonorific}عناويننا: ${offices.join(' · ')} (${contact.address})\n` +
+        `التليفون/واتساب: ${contact.phone} | المواعيد: ${contact.hours}`,
+      quickReplies: ['💰 تكلفة التشطيب', '👨‍💼 تحويل لمهندس'],
       actions: buildContactActions(siteContent),
     };
   }
@@ -1079,29 +1005,21 @@ function buildTopicExplanation(params: {
       intent: 'greeting',
       confidence: 'high',
       needsHuman: false,
-      replyText:
-        `حبيبي ${honorific}، منورنا في فاي تك الهندسية والله! 👷‍♂️✨\n` +
-        `أنا تحت أمرك في أي سؤال هندسي أو فني — قولي بتفكر في إيه وأنا معاك.`,
+      replyText: `أهلاً بيك ${honorific ? honorific : ''} 👋 قولي حابب تستفسر عن إيه وأنا تحت أمرك.`,
       quickReplies: DEFAULT_QUICK_MENU,
-      actions: [
-        { label: '🛒 المتجر والسمارت هوم', href: '/store' },
-        { label: '🛠️ التنفيذ والصيانة', href: '/store?tab=maintenance' },
-      ],
     };
   }
 
-  // 15. Fallback / Bot Stuck -> Automatic Human Handover in natural Egyptian Colloquial
+  // 15. Fallback / Bot Stuck -> Concise Handover to Human Engineer
   return {
     shouldReply: true,
     senderName,
     intent: 'fallback_escalate',
     confidence: 'low',
     needsHuman: true,
-    escalationReason: `سؤال خاص/معقد لم يتطابق مع السيناريوهات الآلية ويحتاج رد المهندس: "${questionText.slice(0, 110)}"`,
+    escalationReason: `سؤال خاص/معقد يحتاج رد المهندس: "${questionText.slice(0, 110)}"`,
     replyText:
-      `سؤالك ده تفصيلي ومهم جداً ${honorific} 🤝\n` +
-      `وعشان ما أفتيش أو أديك معلومة عامة، النقطة دي محتاجة رأي المهندس المختص بنفسه عشان يحسبهالك صح على الطبيعة.\n\n` +
-      `${chatBot.escalationText}`,
+      `${leadHonorific}سؤالك ده محتاج مراجعة المهندس المختص عشان يحسبهالك بدقة.\n${chatBot.escalationText}`,
     quickReplies: DEFAULT_QUICK_MENU.slice(0, 4),
     actions: buildContactActions(siteContent),
   };
@@ -1202,16 +1120,15 @@ export function generateSmartAutoReply(params: {
       needsHuman: false,
       nextStage: 'awaiting_name',
       pendingQuestion: greetingOnly ? '' : messageText,
-      quickReplies: [], // No options before getting acquainted!
+      quickReplies: [],
       replyText: greetingOnly
-        ? `وعليكم السلام ورحمة الله وبركاته، أهلاً بيك ومنورنا في فاي تك الهندسية 👷‍♂️✨\n\nنتشرف باسم حضرتك الكريم الأول؟`
-        : `أهلاً بيك ومنورنا في فاي تك الهندسية 👷‍♂️✨\nسؤالك في الجون، ومن عنيا هشرحلك كل تفصيلة هندسية حالاً.. بس نتشرف باسم حضرتك الكريم الأول؟`,
+        ? `أهلاً بيك في فاي تك 👋 اتشرف باسم حضرتك الأول؟`
+        : `أهلاً بيك في فاي تك 👋 هرد عليك فوراً، بس اتشرف باسم حضرتك الأول؟`,
     };
   }
 
   // =========================================================================
-  // STAGE 2: We asked for Visitor's Name -> Visitor replies with Name
-  //          -> Greet by Name + Explain Question in detail + Ask for Phone!
+  // STAGE 2: Visitor replied with Name -> Concise greeting ONCE + Answer + Ask Phone
   // =========================================================================
   if (effectiveStage === 'awaiting_name' && !currentName) {
     const { name: parsedName, additionalQuestion } = extractNameFromMessage(messageText);
@@ -1219,7 +1136,6 @@ export function generateSmartAutoReply(params: {
     if (parsedName) {
       const questionToExplain = additionalQuestion || pendingQuestion;
 
-      // If visitor had only said "السلام عليكم" in Turn 1 and only said "أحمد" in Turn 2 (no question yet):
       if (!questionToExplain || isSimpleGreeting(questionToExplain)) {
         return {
           shouldReply: true,
@@ -1231,26 +1147,24 @@ export function generateSmartAutoReply(params: {
           nextStage: 'awaiting_phone',
           pendingQuestion: '',
           quickReplies: [],
-          replyText:
-            `منورنا يا أستاذ ${parsedName} 🌟 تشرفنا بمعرفتك والله!\n\n` +
-            `قولي بقى يا هندسة، إيه السؤال أو البند اللي شاغل بالك في الشقة أو التشطيب أو السمارت هوم عشان أشرحهولك بالتفصيل؟`,
+          replyText: `أهلاً يا أستاذ ${parsedName} 👋 تحت أمرك، قولي سؤالك أو البند اللي محتاج تفاصيله؟`,
         };
       }
 
-      // Explain their question in full detail now!
       const explanation = buildTopicExplanation({
         questionText: questionToExplain,
         visitorName: parsedName,
         visitorPhone: detectedPhoneInMsg || '',
+        skipGreeting: true,
         previousMessages,
         siteContent,
         chatBot,
       });
 
       const resolvedPhone = detectedPhoneInMsg || '';
-      const askPhoneFooter = resolvedPhone
-        ? `\n\n✅ وكمان سجلت رقم تليفونك (${resolvedPhone}) عشان المهندس المختص يتابع معاك بنفسه.`
-        : `\n\n━━━━━━━━━━━━━━━━━━━━\n📱 تشرفنا بيك يا أستاذ ${parsedName}.. ممكن تسيبلنا **رقم تليفونك (أو الواتساب)** هنا في الشات عشان المهندس المختص يبعتلك المقايسة أو الكتالوج التفصيلي ويتابع معاك؟`;
+      const phonePrompt = resolvedPhone
+        ? `\nتم تسجيل رقمك (${resolvedPhone}) للمتابعة.`
+        : `\nلو تحب نتابع معاك، ممكن تسيبلنا رقم تليفونك هنا؟`;
 
       return {
         ...explanation,
@@ -1259,20 +1173,17 @@ export function generateSmartAutoReply(params: {
         nextStage: resolvedPhone ? 'active' : 'awaiting_phone',
         pendingQuestion: '',
         quickReplies: resolvedPhone ? explanation.quickReplies : [],
-        replyText:
-          `منورنا يا أستاذ ${parsedName} 🌟 تشرفنا بحضرتك!\n` +
-          `بص يا سيدي، دي الخلاصة الهندسية بخصوص سؤالك:\n\n` +
-          `${explanation.replyText}` +
-          askPhoneFooter,
+        replyText: `تشرفنا يا أستاذ ${parsedName} 🤝\n${explanation.replyText}${phonePrompt}`,
       };
     }
 
-    // Visitor typed another question instead of their name — explain it AND politely ask for name & phone
+    // Visitor typed another question instead of name
     const combinedQuestion = pendingQuestion ? `${pendingQuestion} — ${messageText}` : messageText;
     const explanation = buildTopicExplanation({
       questionText: combinedQuestion,
       visitorName: '',
       visitorPhone: detectedPhoneInMsg || '',
+      skipGreeting: true,
       previousMessages,
       siteContent,
       chatBot,
@@ -1284,16 +1195,12 @@ export function generateSmartAutoReply(params: {
       nextStage: 'awaiting_name',
       pendingQuestion: '',
       quickReplies: [],
-      replyText:
-        `من عنيا يا فندم، دي التفاصيل الهندسية بخصوص سؤالك 👇\n\n` +
-        `${explanation.replyText}\n\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n🤝 ونتشرف إنك تكتبلنا **اسم حضرتك الكريم ورقم تليفونك** هنا في الشات عشان نسجل طلبك باسمك ويتابع معاك المهندس المختص.`,
+      replyText: `${explanation.replyText}\nلو تحب نتابع معاك، اكتبلي اسمك ورقم تليفونك.`,
     };
   }
 
   // =========================================================================
-  // STAGE 3: We explained the question & asked for Phone Number
-  //          -> Visitor provides Phone Number (or asks a follow-up question)
+  // STAGE 3: Waiting for Phone Number
   // =========================================================================
   if (effectiveStage === 'awaiting_phone' && !currentPhone) {
     if (detectedPhoneInMsg) {
@@ -1307,6 +1214,7 @@ export function generateSmartAutoReply(params: {
           questionText: textWithoutPhone,
           visitorName: currentName,
           visitorPhone: detectedPhoneInMsg,
+          skipGreeting: true,
           previousMessages,
           siteContent,
           chatBot,
@@ -1319,9 +1227,7 @@ export function generateSmartAutoReply(params: {
           escalationReason:
             followUp.escalationReason ||
             `اكتمال بيانات العميل (${currentName} — ${detectedPhoneInMsg}) ومتابعة الاستفسار`,
-          replyText:
-            `تسلم يا أستاذ ${currentName} 🙏 سجلت رقم تليفونك (${detectedPhoneInMsg}) وبلغت المهندس المختص فوراً.\n\n` +
-            `وبالنسبة لسؤالك التاني:\n${followUp.replyText}`,
+          replyText: `سجلت رقمك (${detectedPhoneInMsg}) يا أستاذ ${currentName} وهيتواصل معاك المهندس.\n${followUp.replyText}`,
         };
       }
 
@@ -1336,18 +1242,15 @@ export function generateSmartAutoReply(params: {
         nextStage: 'active',
         quickReplies: DEFAULT_QUICK_MENU,
         actions: buildContactActions(siteContent),
-        replyText:
-          `تسلم يا أستاذ ${currentName}، نورتنا والله! 🙏✨\n` +
-          `تم تسجيل رقمك (${detectedPhoneInMsg}) بنجاح، وبعتنا ملف استفسارك للمهندس المختص وهيتواصل معاك في أقرب وقت.\n\n` +
-          `لو في بالك أي سؤال تاني اكتبهولي هنا براحتك، أو اختار من المواضيع دي:`,
+        replyText: `تسلم يا أستاذ ${currentName} 🙏 سجلت رقمك (${detectedPhoneInMsg}) وبعته للمهندس المختص وهيتواصل معاك قريب.`,
       };
     }
 
-    // Visitor asked a question instead of typing a phone number -> Explain it & gently ask for phone
     const explanation = buildTopicExplanation({
       questionText: messageText,
       visitorName: currentName,
       visitorPhone: '',
+      skipGreeting: true,
       previousMessages,
       siteContent,
       chatBot,
@@ -1357,9 +1260,7 @@ export function generateSmartAutoReply(params: {
       ...explanation,
       nextStage: 'awaiting_phone',
       quickReplies: [],
-      replyText:
-        `${explanation.replyText}\n\n` +
-        `━━━━━━━━━━━━━━━━━━━━\n📱 يا أستاذ ${currentName}، متنساش تسيبلنا **رقم تليفونك (أو الواتساب)** هنا في الشات عشان المهندس المختص يقدر يبعتلك المقايسة والكتالوج ويتابع معاك.`,
+      replyText: `${explanation.replyText}\nسيبلنا رقم تليفونك هنا لو حابب المهندس يكلمك.`,
     };
   }
 
@@ -1371,6 +1272,7 @@ export function generateSmartAutoReply(params: {
     visitorName: currentName,
     visitorPhone: currentPhone || detectedPhoneInMsg || '',
     requestHuman,
+    skipGreeting: true,
     previousMessages,
     siteContent,
     chatBot,
@@ -1385,7 +1287,6 @@ export function generateSmartAutoReply(params: {
 
 /**
  * تعزيز الرد بالذكاء الاصطناعي التوليدي (Gemini) باللهجة العامية المصرية عند توفر GEMINI_API_KEY
- * مع الحفاظ الكامل على قواعد التدفق المرحلي، عدم اختلاق أي أسعار، والرجوع الفوري للرد الهندسي المدمج عند عدم توفر المفتاح.
  */
 export async function generateEgyptianColloquialAiReply(params: {
   messageText: string;
@@ -1405,7 +1306,6 @@ export async function generateEgyptianColloquialAiReply(params: {
     return baseResult;
   }
 
-  // Stage transition turns that only ask for name or confirm phone are already optimal & fast
   if (
     baseResult.intent === 'ask_for_name' ||
     baseResult.intent === 'name_captured_ask_question' ||
@@ -1427,25 +1327,23 @@ export async function generateEgyptianColloquialAiReply(params: {
     .join('\n');
 
   const systemInstruction = [
-    'أنت "المستشار الهندسي الذكي" لشركة فاي تك (Phi Tech) للمقاولات والتشطيبات والأنظمة الذكية (Smart Home & Low Current) في مصر.',
-    'تحدث باللهجة العامية المصرية الطبيعية جداً والاحترافية والودودة (مثل مهندس استشاري مصري خبير وفاهم شغله كويس: "بص يا فندم"، "منورنا يا أستاذ..."، "خليني أجيبلك الخلاصة الهندسية"، "من غير تكسير ولا بهدلة").',
-    'قواعد صارمة لا يمكن مخالفتها:',
-    '1. اعتمد حصرياً على الحقائق الهندسية الموجودة في "الرد المرجعي المعتمد" أدناه ولا تخترع أي أسعار أو أرقام غير مذكورة فيه.',
-    '2. إذا كان العميل قد عرّف نفسه باسمه، نادِه باسمه بود واحترام (يا أستاذ ...).',
+    'أنت "مستشار فاي تك الذكي" للمقاولات والتشطيبات والأنظمة الذكية في مصر.',
+    'تحدث باللهجة العامية المصرية المهذبة والمباشرة، وكن مختصراً جداً وواضحاً.',
+    'قواعد صارمة:',
+    '1. اجعل الرد مختصراً (من 2 إلى 4 سطور فقط) بدون مقدمات طويلة أو تحيات مكررة.',
+    '2. لا تكرر اسم العميل أو الترحيب إذا ذُكر في بداية الرد.',
+    '3. التزم فقط بالمعلومات الموجودة في الرد المرجعي ولا تخترع أي أسعار.',
     needsPhoneAsk
-      ? '3. اختم ردك 반드시 بطلب رقم التليفون أو الواتساب داخل الشات بلطف حتى يرسل له المهندس المختص المقايسة أو الكتالوج.'
-      : '3. لا تطلب الاسم أو رقم التليفون إذا كان مسجلاً بالفعل.',
-    baseResult.needsHuman
-      ? '4. أبلغ العميل بوضوح أنه تم تحويل المحادثة وإرسال إشعار للمهندس المختص ليتابع معه خلال دقائق.'
-      : '4. قدم إجابة هندسية شافية وواضحة في نقاط منظمة وسهلة القراءة.',
+      ? '4. اختم بطلب رقم التليفون في جملة قصيرة واحدة.'
+      : '4. لا تطلب الاسم أو الرقم إذا كان مسجلاً.',
   ].join('\n');
 
   const userPrompt = [
-    recentTranscript ? `سياق المحادثة السابقة:\n${recentTranscript}\n` : '',
-    `اسم العميل الحالي: ${effectiveName || 'غير معروف بعد'}`,
-    `سؤال العميل: "${questionAnalyzed}"`,
-    `الرد المرجعي المعتمد من قاعدة بيانات فاي تك:\n${baseResult.replyText}`,
-    '\nأعد صياغة الرد المرجعي أعلاه بأسلوب ذكاء اصطناعي مصري طبيعي وجذاب ومقنع (بين 4 إلى 9 أسطر منظمة) مع الحفاظ على جميع المعلومات الفنية وطلب الرقم أو التحويل للمهندس إن وُجد في الرد المرجعي.',
+    recentTranscript ? `المحادثة السابقة:\n${recentTranscript}\n` : '',
+    `اسم العميل: ${effectiveName || 'غير معروف'}`,
+    `السؤال: "${questionAnalyzed}"`,
+    `الرد المرجعي:\n${baseResult.replyText}`,
+    '\nأعد صياغة الرد بلهجة مصرية احترافية مختصرة في 2 إلى 4 سطور بدون تحية مكررة.',
   ]
     .filter(Boolean)
     .join('\n');
@@ -1464,8 +1362,8 @@ export async function generateEgyptianColloquialAiReply(params: {
           systemInstruction: { parts: [{ text: systemInstruction }] },
           contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
           generationConfig: {
-            temperature: 0.45,
-            maxOutputTokens: 550,
+            temperature: 0.35,
+            maxOutputTokens: 260,
           },
         }),
       }

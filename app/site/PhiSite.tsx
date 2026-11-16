@@ -154,7 +154,7 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
     <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
 
-      <header className={`pw-header is-scrolled pw-header-solid ${scrolled ? 'is-scrolled' : ''}`}>
+      <header className={`pw-header pw-header-glass ${scrolled ? 'is-scrolled' : ''}`}>
         <div className="pw-wrap pw-header-row">
           <a href="#top" className="pw-brand" aria-label={`${SITE.name} — الرئيسية`}>
             <img src="/brand/phitech-mark-color.svg" alt="" className="pw-brand-mark" />

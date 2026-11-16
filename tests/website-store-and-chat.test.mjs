@@ -49,9 +49,13 @@ test('authenticated customer shopping cart and live chat components exist with r
   assert.match(cartDrawer, /phi_pending_cart_add_v1/);
 
   const floatingChat = read('app/site/FloatingContactChat.tsx');
-  assert.match(floatingChat, /wa\.me/);
+  assert.doesNotMatch(floatingChat, /wa\.me/);
   assert.match(floatingChat, /\/api\/website-chat/);
   assert.match(floatingChat, /شات حي فوري/);
+
+  const phiSite = read('app/site/PhiSite.tsx');
+  assert.match(phiSite, /wa\.me/);
+  assert.match(phiSite, /pw-header-glass/);
 });
 
 test('store and real-estate pages and clients are wired with cart, live chat, and login modal', () => {
@@ -116,7 +120,10 @@ test('execution & maintenance services tab covers all trades with recommendation
   assert.match(storeClient, /حجز خدمة تنفيذ أو صيانة هندسية/);
 
   const phiSite = read('app/site/PhiSite.tsx');
-  assert.match(phiSite, /\/store\?tab=maintenance/);
+  assert.match(phiSite, /\/sections\/maintenance/);
+
+  const sectionClient = read('app/site/SectionDetailClient.tsx');
+  assert.match(sectionClient, /\/store\?tab=maintenance/);
 
   const adminPage = read('app/website-admin/page.tsx');
   assert.match(adminPage, /id:\s*'maintenance',\s*label:\s*'🛠️ التنفيذ والصيانة'/);
@@ -155,7 +162,8 @@ test('interactive live-chat auto-responder covers expected scenarios, human esca
   assert.match(chatApi, /تحويل عاجل من الرد الآلي/);
 
   assert.match(responder, /export async function generateEgyptianColloquialAiReply/);
-  assert.match(responder, /منورنا يا أستاذ/);
+  assert.match(responder, /تشرفنا يا أستاذ/);
+  assert.match(responder, /skipGreeting:\s*true/);
   assert.match(responder, /ع الطوب/);
   assert.match(responder, /من غير تكسير/);
 
