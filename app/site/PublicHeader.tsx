@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { CartButton } from './CartDrawer';
 import type { SectionSlug } from './section-defs';
@@ -26,8 +26,10 @@ export default function PublicHeader({
   cartCount = 0,
   onOpenCart,
   userName,
+  userEmail,
   portalHref,
   onOpenLogin,
+  onSignOut,
 }: {
   siteName?: string;
   siteNameEn?: string;
@@ -35,11 +37,15 @@ export default function PublicHeader({
   cartCount?: number;
   onOpenCart: () => void;
   userName?: string | null;
+  userEmail?: string | null;
   portalHref?: string | null;
   onOpenLogin: () => void;
+  onSignOut?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const accountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -47,6 +53,24 @@ export default function PublicHeader({
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
+
+  useEffect(() => {
+    if (!accountOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setAccountOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    window.addEventListener('keydown', handleEsc);
+    return () => {
+      document.removeEventListener('mousedown', handleOutside);
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, [accountOpen]);
 
   return (
     <>
@@ -111,21 +135,107 @@ export default function PublicHeader({
               </Link>
             )}
 
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                if (userName) {
-                  onOpenCart();
-                } else {
+            {userName ? (
+              <div className="pw-user-wrap" ref={accountRef}>
+                <button
+                  type="button"
+                  onClick={() => setAccountOpen((v) => !v)}
+                  aria-expanded={accountOpen}
+                  aria-haspopup="menu"
+                  className="pw-btn pw-btn-primary pw-nav-cta"
+                  title="قائمة الحساب وبوابة الموظفين"
+                >
+                  <span>👤 {userName.split(' ')[0]}</span>
+                  <span style={{ fontSize: '0.7rem', opacity: 0.9 }} aria-hidden="true">
+                    {accountOpen ? '▴' : '▾'}
+                  </span>
+                </button>
+
+                {accountOpen && (
+                  <div className="pw-user-menu" role="menu" aria-label="قائمة الحساب">
+                    <div className="pw-user-menu-head">
+                      <strong>{userName}</strong>
+                      {userEmail && <small dir="ltr">{userEmail}</small>}
+                      <span className={`pw-user-role-tag ${portalHref ? 'is-staff' : ''}`}>
+                        {portalHref ? 'حساب موظف / صلاحية نظام' : 'حساب عميل فاي تك'}
+                      </span>
+                    </div>
+
+                    {portalHref && (
+                      <Link
+                        href={portalHref}
+                        role="menuitem"
+                        className="pw-user-menu-item is-portal"
+                        onClick={() => {
+                          setAccountOpen(false);
+                          setOpen(false);
+                        }}
+                      >
+                        <span>🏢 دخول بوابة الموظفين</span>
+                        <span aria-hidden="true">←</span>
+                      </Link>
+                    )}
+
+                    <Link
+                      href="/profile"
+                      role="menuitem"
+                      className="pw-user-menu-item"
+                      onClick={() => {
+                        setAccountOpen(false);
+                        setOpen(false);
+                      }}
+                    >
+                      <span>👤 الملف الشخصي</span>
+                      <span aria-hidden="true">←</span>
+                    </Link>
+
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="pw-user-menu-item"
+                      onClick={() => {
+                        setAccountOpen(false);
+                        setOpen(false);
+                        onOpenCart();
+                      }}
+                    >
+                      <span>🛒 سلة المشتريات ({cartCount})</span>
+                      <span aria-hidden="true">←</span>
+                    </button>
+
+                    {onSignOut && (
+                      <>
+                        <div className="pw-user-menu-sep" />
+                        <button
+                          type="button"
+                          role="menuitem"
+                          className="pw-user-menu-item is-danger"
+                          onClick={() => {
+                            setAccountOpen(false);
+                            setOpen(false);
+                            onSignOut();
+                          }}
+                        >
+                          <span>🚪 تسجيل الخروج</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
                   onOpenLogin();
-                }
-              }}
-              className="pw-btn pw-btn-primary pw-nav-cta"
-              title={userName ? 'حسابك وسلة المشتريات' : 'تسجيل الدخول (اختياري)'}
-            >
-              {userName ? `👤 ${userName.split(' ')[0]}` : 'تسجيل الدخول'}
-            </button>
+                }}
+                className="pw-btn pw-btn-primary pw-nav-cta"
+                title="تسجيل الدخول (اختياري)"
+              >
+                تسجيل الدخول
+              </button>
+            )}
           </nav>
 
           <button

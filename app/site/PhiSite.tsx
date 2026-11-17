@@ -142,8 +142,10 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
         cartCount={cart.totalCount}
         onOpenCart={() => cart.setCartOpen(true)}
         userName={cart.user?.fullName}
+        userEmail={cart.user?.email}
         portalHref={cart.portalHref}
         onOpenLogin={() => (cart.user ? cart.setCartOpen(true) : handleOpenLogin())}
+        onSignOut={cart.signOut}
       />
 
       <main id="top">

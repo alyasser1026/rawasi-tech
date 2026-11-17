@@ -120,14 +120,24 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
 
           let prof: any = null;
           try {
-            const { data: profData } = await supabase
+            const { data: profData, error: profErr } = await supabase
               .from('profiles')
-              .select('id, full_name, role, is_admin, linked_partner_id, permissions, default_page')
+              .select('id, full_name, role, is_admin, linked_partner_id, permissions')
               .eq('id', u.id)
               .maybeSingle();
-            prof = profData;
+            if (!profErr && profData) {
+              prof = profData;
+            }
           } catch {
             prof = null;
+          }
+          if (!prof && typeof window !== 'undefined') {
+            try {
+              const cached = window.localStorage.getItem(`phi_cached_profile_${u.id}`);
+              if (cached) prof = JSON.parse(cached);
+            } catch {
+              prof = null;
+            }
           }
           if (!mounted) return;
 
@@ -137,11 +147,12 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
               ? '/Dashboard'
               : null;
           const isEmployeeOrPartner = Boolean(
-            prof &&
+            (prof &&
               (prof.is_admin ||
                 (prof.role && prof.role !== 'client') ||
                 prof.linked_partner_id ||
-                (resolvedPortal && resolvedPortal !== '/profile'))
+                (resolvedPortal && resolvedPortal !== '/profile'))) ||
+              (meta.role && meta.role !== 'client')
           );
           setPortalHref(isEmployeeOrPartner ? resolvedPortal || '/Dashboard' : null);
 

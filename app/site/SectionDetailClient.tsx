@@ -279,8 +279,10 @@ export default function SectionDetailClient({
         cartCount={cart.totalCount}
         onOpenCart={() => cart.setCartOpen(true)}
         userName={cart.user?.fullName}
+        userEmail={cart.user?.email}
         portalHref={cart.portalHref}
         onOpenLogin={() => (cart.user ? cart.setCartOpen(true) : setLoginOpen(true))}
+        onSignOut={cart.signOut}
       />
 
       <main className="pw-section-page">

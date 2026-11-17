@@ -364,6 +364,12 @@ test('all public sections allow optional guest browsing while keeping employee p
   assert.match(cartDrawer, /portalHref/);
   assert.match(cartDrawer, /signOut/);
   assert.match(cartDrawer, /بوابة الموظفين/);
+  assert.doesNotMatch(cartDrawer, /select\([^)]*default_page/);
+  assert.doesNotMatch(loginLogic, /select\([^)]*default_page/);
+
+  assert.match(publicHeader, /pw-user-menu/);
+  assert.match(publicHeader, /دخول بوابة الموظفين/);
+  assert.match(publicHeader, /onSignOut/);
 
   for (const pageFile of [
     'app/site/PhiSite.tsx',

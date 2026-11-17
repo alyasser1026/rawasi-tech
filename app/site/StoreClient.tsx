@@ -284,8 +284,10 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         cartCount={cart.totalCount}
         onOpenCart={() => cart.setCartOpen(true)}
         userName={cart.user?.fullName}
+        userEmail={cart.user?.email}
         portalHref={cart.portalHref}
         onOpenLogin={() => (cart.user ? cart.setCartOpen(true) : setLoginOpen(true))}
+        onSignOut={cart.signOut}
       />
 
       {/* Unified Light Hero (matches Homepage Standard) */}

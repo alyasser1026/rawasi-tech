@@ -77,7 +77,7 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
           try {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('id, role, is_admin, linked_partner_id, permissions, default_page')
+              .select('id, role, is_admin, linked_partner_id, permissions')
               .eq('id', session.user.id)
               .maybeSingle();
             target = getDestinationForUser(profile, portalParam);
@@ -251,7 +251,7 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
           try {
             const { data: profile } = await supabase
               .from('profiles')
-              .select('id, role, is_admin, linked_partner_id, permissions, default_page')
+              .select('id, role, is_admin, linked_partner_id, permissions')
               .eq('id', data.user.id)
               .maybeSingle();
 
