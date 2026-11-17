@@ -414,11 +414,14 @@ test('pearl theme is preserved and lightweight transparent GIF LogoMotionIntro p
   const phiSite = read('app/site/PhiSite.tsx');
   assert.match(phiSite, /LogoMotionIntro/);
   const portalsIdx = phiSite.indexOf('<HomePortalSections');
-  const heroIdx = phiSite.indexOf('className="pw-hero"');
-  assert.ok(portalsIdx > 0 && heroIdx > portalsIdx, 'Pearl HomePortalSections renders first at top of /');
+  const contactHeroIdx = phiSite.indexOf('id="contact"');
+  assert.ok(portalsIdx > 0 && contactHeroIdx > portalsIdx, 'Pearl HomePortalSections renders first and Contact replaces philosophy section below');
+  assert.doesNotMatch(phiSite, /فلسفة فاي تك الهندسية/);
+  assert.doesNotMatch(phiSite, /دقّة <em>التخطيط<\/em>/);
 
   const siteStyles = read('app/site/site-styles.ts');
   assert.match(siteStyles, /--bg:#fbfaf7/);
   assert.match(siteStyles, /phi-brand-landed/);
   assert.match(siteStyles, /pw-motion-replay-btn/);
+  assert.match(siteStyles, /pw-hero-pearl/);
 });

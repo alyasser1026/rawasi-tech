@@ -28,9 +28,9 @@ export type HeroVideoBackdropProps = {
 
 const BACKDROP_CSS = `
 .phi-hb{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:#090b0f}
-.phi-hb.is-light{background:#f7eee2}
+.phi-hb.is-light{background:#f5efe6}
 .phi-hb-ambient{position:absolute;inset:0;pointer-events:none;background:radial-gradient(680px 460px at 24% 48%,rgba(249,115,22,.22),transparent 72%),radial-gradient(520px 380px at 78% 12%,rgba(56,189,248,.08),transparent 70%)}
-.phi-hb.is-light .phi-hb-ambient{background:radial-gradient(680px 460px at 24% 48%,rgba(249,115,22,.16),transparent 72%),radial-gradient(520px 380px at 78% 12%,rgba(217,119,6,.08),transparent 70%)}
+.phi-hb.is-light .phi-hb-ambient{background:radial-gradient(680px 460px at 24% 48%,rgba(199,85,23,.09),transparent 72%),radial-gradient(520px 380px at 78% 12%,rgba(217,119,6,.06),transparent 70%)}
 
 .phi-hb-stage{position:absolute;top:0;bottom:0;left:0;width:100%;overflow:hidden}
 .phi-hb.is-showcase-left .phi-hb-stage{left:max(0px,calc(50% - 760px));width:min(1080px,74vw);-webkit-mask-image:linear-gradient(90deg,#000 0%,#000 66%,rgba(0,0,0,.62) 85%,transparent 100%);mask-image:linear-gradient(90deg,#000 0%,#000 66%,rgba(0,0,0,.62) 85%,transparent 100%)}
@@ -42,15 +42,15 @@ const BACKDROP_CSS = `
 .phi-hb-video{opacity:0;transition:opacity .6s cubic-bezier(.22,1,.36,1)}
 .phi-hb-video.is-ready{opacity:1}
 .phi-hb.is-light .phi-hb-video{opacity:0}
-.phi-hb.is-light .phi-hb-video.is-ready{opacity:.28}
-.phi-hb.is-light .phi-hb-poster{opacity:.24}
+.phi-hb.is-light .phi-hb-video.is-ready{opacity:.14}
+.phi-hb.is-light .phi-hb-poster{opacity:.12}
 
 .phi-hb-scrim{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(270deg,rgba(9,11,15,.94) 0%,rgba(9,11,15,.82) 34%,rgba(9,11,15,.38) 58%,rgba(9,11,15,.08) 80%,rgba(9,11,15,.18) 100%),linear-gradient(180deg,transparent 0%,transparent 80%,rgba(9,11,15,.9) 100%)}
 .phi-hb.is-full .phi-hb-scrim{background:radial-gradient(64rem 42rem at 28% 45%,rgba(12,9,7,.42),rgba(12,9,7,.84) 72%),linear-gradient(270deg,rgba(12,9,7,.92) 0%,rgba(12,9,7,.68) 46%,rgba(12,9,7,.45) 100%),linear-gradient(180deg,rgba(12,9,7,.48) 0%,transparent 24%,rgba(12,9,7,.9) 100%)}
-.phi-hb.is-light .phi-hb-scrim{background:linear-gradient(270deg,rgba(247,238,226,.92) 0%,rgba(247,238,226,.8) 52%,rgba(247,238,226,.68) 100%),linear-gradient(180deg,rgba(247,238,226,.72) 0%,transparent 25%,rgba(247,238,226,.92) 100%)}
+.phi-hb.is-light .phi-hb-scrim{background:linear-gradient(270deg,rgba(247,241,232,.95) 0%,rgba(247,241,232,.86) 54%,rgba(247,241,232,.78) 100%),linear-gradient(180deg,rgba(250,247,242,.88) 0%,rgba(244,239,230,.65) 50%,rgba(244,239,230,.94) 100%)}
 
 .phi-hb-grid{position:absolute;inset:0;z-index:2;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:linear-gradient(180deg,#000 0%,transparent 88%);mask-image:linear-gradient(180deg,#000 0%,transparent 88%)}
-.phi-hb.is-light .phi-hb-grid{background-image:linear-gradient(rgba(199,85,23,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(199,85,23,.06) 1px,transparent 1px)}
+.phi-hb.is-light .phi-hb-grid{background-image:linear-gradient(rgba(199,85,23,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(199,85,23,.05) 1px,transparent 1px)}
 
 .phi-hb-hud{display:inline-flex;align-items:center;gap:6px;padding:5px;border-radius:999px;background:rgba(10,13,18,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:inset 0 0 0 1px rgba(255,255,255,.15),0 12px 28px -10px rgba(0,0,0,.75);pointer-events:auto;direction:rtl}
 .phi-hb-hud.is-corner{position:absolute;left:24px;bottom:20px;z-index:25}
@@ -64,6 +64,7 @@ const BACKDROP_CSS = `
 @media (max-width:960px){
   .phi-hb.is-showcase-left .phi-hb-stage{left:0;width:100%;-webkit-mask-image:none;mask-image:none}
   .phi-hb.is-showcase-left .phi-hb-scrim{background:linear-gradient(180deg,rgba(9,11,15,.35) 0%,transparent 20%,transparent 72%,rgba(9,11,15,.96) 100%),radial-gradient(ellipse at center,transparent 40%,rgba(9,11,15,.45) 100%)}
+  .phi-hb.is-light.is-showcase-left .phi-hb-scrim{background:linear-gradient(180deg,rgba(250,247,242,.92) 0%,rgba(244,239,230,.85) 100%)}
   .phi-hb-hud.is-corner{left:14px;bottom:14px}
 }
 @media print{

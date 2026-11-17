@@ -163,55 +163,19 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           onReplayLogoMotion={() => setIntroReplayCount((n) => n + 1)}
         />
 
-        {/* عرض الهوية والفلسفة الهندسية للشركة في نهاية الصفحة */}
-        <section className="pw-hero" id="about-phitech">
-          <HeroVideoBackdrop variant="showcase-left" controlsMode="none" onControlsReady={setHeroControls} />
-          <div className="pw-wrap pw-hero-grid" id="hero-content">
-            <div>
-              <p className="pw-eyebrow">فلسفة فاي تك الهندسية · {SITE.offices.join(' · ')}</p>
-              <h2>
-                <span className="pw-hero-part">دقّة <em>التخطيط</em>،</span>{' '}
-                <span className="pw-hero-part">وفخامة <em>التنفيذ</em> التي تدوم</span>
-              </h2>
-              <p className="pw-lead">
-                نؤمن في فاي تك أن الفخامة الحقيقية تبدأ من التفاصيل الدقيقة خلف الجدران وتكتمل بجمال التشطيب أمامك؛ شغفنا تحويل كل مشروع إلى مساحة متقنة تجمع بين متانة الهندسة، وذكاء التقنية الحديثة، وراحة بالك في كل خطوة.
-              </p>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '10px 18px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(249,115,22,0.38)', color: '#fed7aa', fontSize: '0.9rem', fontWeight: 700, backdropFilter: 'blur(10px)' }}>
-                <span style={{ color: '#f97316' }}>✦</span>
-                <span>إتقان هندسي · التزام بالمواعيد · شراكة ثقة تمتد لما بعد التسليم</span>
+        {/* قسم التواصل في مكانه المباشر على الصفحة اللؤلؤية بدلاً من كتلة الفلسفة */}
+        <section id="contact" className="pw-hero pw-hero-pearl pw-section pw-tint">
+          <HeroVideoBackdrop variant="showcase-left" tone="light" controlsMode="none" onControlsReady={setHeroControls} />
+          <div className={`pw-wrap pw-hero-grid ${waDigits || c.email ? '' : 'is-solo'}`} id="hero-content">
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <div className="pw-head" style={{ margin: '0 0 22px', maxWidth: 'none', textAlign: 'start' }}>
+                <p className="pw-eyebrow" style={{ justifyContent: 'flex-start' }}>تواصل</p>
+                <h2>
+                  <span className="pw-hero-part">ابدأ بمعاينة <em>ومقايسة</em> لمشروعك</span>
+                </h2>
+                <p className="pw-lead" style={{ marginInline: 0 }}>أخبرنا بنوع المشروع وموقعه، وسيتواصل معك فريقنا الهندسي.</p>
               </div>
-            </div>
-            <div className="pw-hero-art" aria-hidden>
-              <div className="pw-emblem"><img src="/brand/phitech-mark-light.svg" alt="" /></div>
-            </div>
-          </div>
-          {heroControls && (
-            <div className="pw-wrap pw-hero-toolbar">
-              <HeroVideoControls controls={heroControls} />
-              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="العودة لأعلى">
-                <span>العودة للأعلى</span>
-                <span className="pw-cue-arrow" aria-hidden>↑</span>
-              </a>
-            </div>
-          )}
-          <ul className="pw-wrap pw-stats">
-            <li><strong>التخطيط المسبق</strong><span>تنسيق هندسي قبل بدء الموقع</span></li>
-            <li><strong>جودة موثّقة</strong><span>فحص واستلام في كل مرحلة</span></li>
-            <li><strong>منزل ذكي وآمن</strong><span>تقنية حديثة ترفع قيمة وحدتك</span></li>
-            <li><strong>التزام ممتد</strong><span>مسؤولية وضمان ما بعد التسليم</span></li>
-          </ul>
-        </section>
-
-        {/* Contact */}
-        <section id="contact" className="pw-section pw-tint">
-          <div className={`pw-wrap pw-contact ${waDigits || c.email ? '' : 'pw-contact-solo'}`}>
-            <div>
-              <div className="pw-head" style={{ marginBottom: 20 }}>
-                <p className="pw-eyebrow">تواصل</p>
-                <h2>ابدأ بمعاينة ومقايسة لمشروعك</h2>
-                <p>أخبرنا بنوع المشروع وموقعه، وسيتواصل معك فريقنا الهندسي.</p>
-              </div>
-              <div className="pw-contact-card">
+              <div className="pw-contact-card" style={{ flex: 1 }}>
                 {contactRows.length > 0 ? (
                   <ul>
                     {contactRows.map(r => (
@@ -228,9 +192,20 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
               </div>
             </div>
             {(waDigits || c.email) && (
-              <div className="pw-contact-card"><InquiryForm whatsapp={c.whatsapp} email={c.email} /></div>
+              <div className="pw-contact-card" style={{ height: '100%' }}>
+                <InquiryForm whatsapp={c.whatsapp} email={c.email} />
+              </div>
             )}
           </div>
+          {heroControls && (
+            <div className="pw-wrap pw-hero-toolbar">
+              <HeroVideoControls controls={heroControls} />
+              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="العودة لأعلى">
+                <span>العودة للأعلى</span>
+                <span className="pw-cue-arrow" aria-hidden>↑</span>
+              </a>
+            </div>
+          )}
         </section>
       </main>
 

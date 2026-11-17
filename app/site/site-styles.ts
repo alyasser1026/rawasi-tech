@@ -94,6 +94,18 @@ body:has(.pw){padding:0!important}
 .pw-hero{position:relative;isolation:isolate;background:#090b0f;color:#fff;overflow:hidden;min-height:clamp(620px,90vh,900px);display:flex;flex-direction:column;justify-content:center}
 .pw-hero-art{visibility:hidden;min-height:340px}
 .pw-hero-grid{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,0.92fr) minmax(0,1.28fr);gap:40px;align-items:center;padding-top:88px;padding-bottom:54px;width:100%}
+.pw .pw-hero.pw-hero-pearl{background:linear-gradient(180deg,#f8f4ec 0%,#f2ece0 100%)!important;color:var(--ink);min-height:auto;padding:0;border-top:1px solid var(--line)}
+.pw .pw-hero.pw-hero-pearl .pw-hero-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:stretch;padding-top:76px;padding-bottom:32px;max-width:1200px}
+.pw .pw-hero.pw-hero-pearl .pw-hero-grid.is-solo{grid-template-columns:minmax(0,680px);justify-content:center}
+.pw .pw-hero.pw-hero-pearl .pw-eyebrow{color:var(--o);text-shadow:none}
+.pw .pw-hero.pw-hero-pearl h1,.pw .pw-hero.pw-hero-pearl h2{font-size:clamp(1.65rem,3vw,2.3rem);color:var(--ink);text-shadow:none;margin-bottom:12px}
+.pw .pw-hero.pw-hero-pearl h2 em{color:var(--o)}
+.pw .pw-hero.pw-hero-pearl .pw-lead{color:var(--ink-2);text-shadow:none;margin-bottom:18px;font-size:1.02rem}
+.pw .pw-hero.pw-hero-pearl .pw-contact-card{box-shadow:0 16px 36px -24px rgba(20,24,27,.18)}
+.pw .pw-hero.pw-hero-pearl .pw-hero-toolbar{padding-bottom:26px;justify-content:space-between;align-items:center}
+.pw .pw-hero.pw-hero-pearl .phi-hb-hud{background:rgba(255,255,255,.82);box-shadow:inset 0 0 0 1px rgba(20,24,27,.1),0 8px 20px -10px rgba(20,24,27,.16)}
+.pw .pw-hero.pw-hero-pearl .phi-hb-btn{background:rgba(20,24,27,.06);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(20,24,27,.1)}
+.pw .pw-hero.pw-hero-pearl .phi-hb-btn:hover,.pw .pw-hero.pw-hero-pearl .phi-hb-btn.is-active{background:rgba(199,85,23,.14);color:var(--o-dark);box-shadow:inset 0 0 0 1px rgba(199,85,23,.35)}
 #about-phitech .pw-wrap{max-width:1360px}
 #about-phitech .pw-hero-grid>div:first-child{max-width:540px;justify-self:start;text-align:right;padding-inline-start:12px}
 .pw-eyebrow{display:inline-flex;flex-wrap:wrap;align-items:center;gap:8px 10px;font-size:clamp(0.76rem,0.92vw,0.84rem);font-weight:700;color:var(--o);letter-spacing:.02em;margin-bottom:14px;line-height:1.4}
@@ -369,6 +381,12 @@ body:has(.pw){padding:0!important}
     text-align:right;
     color:#cbd5e1;
   }
+  .pw .pw-hero.pw-hero-pearl{background:var(--tint)!important;padding-top:0}
+  .pw .pw-hero.pw-hero-pearl .phi-hb{position:absolute!important;inset:0;height:100%!important;box-shadow:none;border-bottom:0}
+  .pw .pw-hero.pw-hero-pearl .pw-hero-grid{grid-template-columns:1fr!important;padding-top:46px;padding-bottom:18px}
+  .pw .pw-hero.pw-hero-pearl .pw-hero-toolbar{margin-top:0;padding:0 20px 26px}
+  .pw .pw-hero.pw-hero-pearl .pw-lead{color:var(--ink-2)}
+  .pw .pw-hero.pw-hero-pearl .pw-mobile-scroll-cue{background:rgba(255,255,255,.88);border-color:var(--line);color:var(--ink);box-shadow:0 6px 16px -8px rgba(20,24,27,.18)}
   .pw-eyebrow{
     font-size:.78rem;
     margin-bottom:8px;
