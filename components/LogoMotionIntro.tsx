@@ -5,17 +5,115 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 let introPlayedThisPageLoad = false;
 
 const INTRO_CSS = `
-@keyframes phiLmiEnter {
-  0% { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.92); }
-  100% { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+@keyframes phiLmiLeftConverge {
+  0% {
+    opacity: 0;
+    transform: translate3d(-24%, 0, 0) scale(1.06) rotate(-2.4deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate3d(-15%, 0, 0) scale(1.02) rotate(-0.6deg);
+  }
+  52% {
+    opacity: 1;
+    transform: translate3d(2.02%, 0, 0) scale(1.032) rotate(0deg);
+  }
+  64%, 100% {
+    opacity: 1;
+    transform: translate3d(1.98%, 0, 0) scale(1) rotate(0deg);
+  }
 }
+
+@keyframes phiLmiRightConverge {
+  0% {
+    opacity: 0;
+    transform: translate3d(24%, 0, 0) scale(1.06) rotate(2.4deg);
+  }
+  20% {
+    opacity: 1;
+    transform: translate3d(15%, 0, 0) scale(1.02) rotate(0.6deg);
+  }
+  52% {
+    opacity: 1;
+    transform: translate3d(-2.02%, 0, 0) scale(1.032) rotate(0deg);
+  }
+  64%, 100% {
+    opacity: 1;
+    transform: translate3d(-1.98%, 0, 0) scale(1) rotate(0deg);
+  }
+}
+
+@keyframes phiLmiSeamBeam {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) scaleY(0.25) scaleX(2.4);
+  }
+  20% {
+    opacity: 0.72;
+    transform: translateX(-50%) scaleY(0.86) scaleX(1.3);
+  }
+  51% {
+    opacity: 1;
+    transform: translateX(-50%) scaleY(1.12) scaleX(1.75);
+  }
+  64% {
+    opacity: 0.42;
+    transform: translateX(-50%) scaleY(0.95) scaleX(0.7);
+  }
+  84%, 100% {
+    opacity: 0;
+    transform: translateX(-50%) scaleY(0.6) scaleX(0.4);
+  }
+}
+
+@keyframes phiLmiImpactRing {
+  0%, 49% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.32);
+  }
+  54% {
+    opacity: 0.86;
+    transform: translate(-50%, -50%) scale(0.65);
+  }
+  84%, 100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.75);
+  }
+}
+
+@keyframes phiLmiSheenSweep {
+  0%, 54% {
+    opacity: 0;
+    transform: translate3d(-135%, 0, 0) skewX(-22deg);
+  }
+  62% {
+    opacity: 0.85;
+  }
+  86%, 100% {
+    opacity: 0;
+    transform: translate3d(175%, 0, 0) skewX(-22deg);
+  }
+}
+
+@keyframes phiLmiWordmarkReveal {
+  0%, 38% {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.96);
+  }
+  64%, 100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
 @keyframes phiLmiProgress {
   0% { transform: scaleX(0); }
   100% { transform: scaleX(1); }
 }
+
 @keyframes phiLmiAuraPulse {
-  0%, 100% { opacity: 0.72; transform: scale(0.96); }
-  50% { opacity: 1; transform: scale(1.04); }
+  0%, 100% { opacity: 0.7; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.06); }
 }
 
 .phi-lmi-veil {
@@ -27,11 +125,11 @@ const INTRO_CSS = `
   align-items: center;
   justify-content: center;
   padding: 24px;
-  background: radial-gradient(880px 540px at 50% 45%, rgba(255, 253, 249, 0.96) 0%, rgba(247, 242, 234, 0.95) 58%, rgba(240, 233, 222, 0.92) 100%);
+  background: radial-gradient(880px 540px at 50% 45%, rgba(255, 253, 249, 0.97) 0%, rgba(247, 242, 234, 0.96) 58%, rgba(240, 233, 222, 0.93) 100%);
   backdrop-filter: blur(20px) saturate(145%);
   -webkit-backdrop-filter: blur(20px) saturate(145%);
   opacity: 1;
-  transition: opacity 0.68s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, backdrop-filter 0.68s ease 0.1s;
+  transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s, backdrop-filter 0.65s ease 0.08s;
   direction: rtl;
   font-family: 'Cairo', -apple-system, 'Segoe UI', sans-serif;
   overflow: hidden;
@@ -45,14 +143,14 @@ const INTRO_CSS = `
 
 .phi-lmi-aura {
   position: absolute;
-  width: min(560px, 88vw);
+  width: min(520px, 88vw);
   height: min(360px, 52vh);
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(201, 119, 45, 0.16) 0%, rgba(224, 141, 60, 0.06) 46%, transparent 72%);
-  filter: blur(20px);
+  background: radial-gradient(circle, rgba(201, 119, 45, 0.17) 0%, rgba(224, 141, 60, 0.06) 48%, transparent 74%);
+  filter: blur(22px);
   pointer-events: none;
-  animation: phiLmiAuraPulse 2.8s ease-in-out infinite;
-  transition: opacity 0.35s ease;
+  animation: phiLmiAuraPulse 2.5s ease-in-out infinite;
+  transition: opacity 0.32s ease;
 }
 .phi-lmi-veil.is-docking .phi-lmi-aura {
   opacity: 0;
@@ -60,34 +158,123 @@ const INTRO_CSS = `
 
 .phi-lmi-stage {
   position: relative;
-  width: min(440px, 86vw);
-  aspect-ratio: 400 / 286;
+  z-index: 2;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  will-change: transform, opacity;
-  animation: phiLmiEnter 0.52s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  gap: 14px;
 }
 
-.phi-lmi-gif {
+.phi-lmi-emblem {
+  position: relative;
+  direction: ltr;
+  width: clamp(190px, 34vw, 244px);
+  aspect-ratio: 458 / 442;
+  will-change: transform, opacity;
+  overflow: visible;
+}
+
+.phi-lmi-half {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
   pointer-events: none;
   user-select: none;
-  filter: drop-shadow(0 18px 34px rgba(154, 72, 20, 0.14));
+  will-change: transform, opacity;
+}
+
+/* Exact geometric split along x = 293.05 (51.98% of 458-unit viewBox) between the twin towers */
+.phi-lmi-half.is-left {
+  clip-path: inset(0 48.02% 0 0);
+  animation: phiLmiLeftConverge 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.phi-lmi-half.is-right {
+  clip-path: inset(0 0 0 51.98%);
+  animation: phiLmiRightConverge 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.phi-lmi-seam {
+  position: absolute;
+  left: 51.98%;
+  top: 4%;
+  bottom: 4%;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent 0%, rgba(255, 212, 160, 0.85) 24%, #ff9336 50%, rgba(255, 212, 160, 0.85) 76%, transparent 100%);
+  box-shadow: 0 0 18px 4px rgba(224, 90, 16, 0.55), 0 0 36px 8px rgba(245, 166, 78, 0.32);
+  pointer-events: none;
+  animation: phiLmiSeamBeam 2.5s ease-out forwards;
+}
+
+.phi-lmi-ring {
+  position: absolute;
+  left: 51.98%;
+  top: 50%;
+  width: 82%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1.5px solid rgba(199, 85, 23, 0.42);
+  background: radial-gradient(circle, rgba(255, 198, 130, 0.22) 0%, transparent 62%);
+  pointer-events: none;
+  animation: phiLmiImpactRing 2.5s ease-out forwards;
+}
+
+.phi-lmi-sheen-wrap {
+  position: absolute;
+  inset: -6%;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 50%;
+}
+.phi-lmi-sheen {
+  position: absolute;
+  inset: 0;
+  width: 44%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.62), transparent);
+  animation: phiLmiSheenSweep 2.5s ease-out forwards;
+}
+
+.phi-lmi-wordmark {
+  position: relative;
+  direction: ltr;
+  width: clamp(176px, 30vw, 224px);
+  aspect-ratio: 464 / 382;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+  animation: phiLmiWordmarkReveal 2.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transition: opacity 0.26s ease, transform 0.26s ease;
+}
+.phi-lmi-wordmark-img {
+  position: absolute;
+  top: -5%;
+  right: 0;
+  width: 198.3%;
+  max-width: none;
+  height: auto;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+.phi-lmi-veil.is-docking .phi-lmi-wordmark {
+  opacity: 0 !important;
+  transform: translate3d(0, 8px, 0) scale(0.92);
 }
 
 .phi-lmi-footer {
   position: relative;
   z-index: 2;
-  margin-top: 14px;
+  margin-top: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  gap: 11px;
+  transition: opacity 0.24s ease, transform 0.24s ease;
 }
 .phi-lmi-veil.is-docking .phi-lmi-footer {
   opacity: 0;
@@ -95,7 +282,7 @@ const INTRO_CSS = `
 }
 
 .phi-lmi-progress-track {
-  width: 180px;
+  width: 170px;
   height: 2.5px;
   border-radius: 999px;
   background: rgba(199, 85, 23, 0.14);
@@ -106,7 +293,7 @@ const INTRO_CSS = `
   height: 100%;
   transform-origin: right center;
   background: linear-gradient(90deg, #e08d3c, #c75517);
-  animation: phiLmiProgress 3.65s cubic-bezier(0.25, 0.8, 0.45, 1) forwards;
+  animation: phiLmiProgress 2.55s cubic-bezier(0.25, 0.8, 0.45, 1) forwards;
 }
 
 .phi-lmi-tagline {
@@ -124,7 +311,7 @@ const INTRO_CSS = `
   padding: 0 16px;
   border-radius: 999px;
   border: 1px solid rgba(199, 85, 23, 0.24);
-  background: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.88);
   color: #14181b;
   font-family: inherit;
   font-size: 0.78rem;
@@ -141,11 +328,28 @@ const INTRO_CSS = `
 }
 
 @media (max-width: 680px) {
-  .phi-lmi-stage {
-    width: min(350px, 90vw);
+  .phi-lmi-emblem {
+    width: clamp(156px, 44vw, 196px);
+  }
+  .phi-lmi-wordmark {
+    width: clamp(160px, 44vw, 198px);
   }
   .phi-lmi-tagline {
     font-size: 0.76rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phi-lmi-veil,
+  .phi-lmi-half,
+  .phi-lmi-seam,
+  .phi-lmi-ring,
+  .phi-lmi-sheen,
+  .phi-lmi-wordmark,
+  .phi-lmi-progress-fill,
+  .phi-lmi-aura {
+    animation: none !important;
+    transition: none !important;
   }
 }
 `;
@@ -153,31 +357,28 @@ const INTRO_CSS = `
 export interface LogoMotionIntroProps {
   /** Incrementing counter triggers replaying the logo motion on demand. */
   replayCount?: number;
-  gifSrc?: string;
-  posterSrc?: string;
+  logoSrc?: string;
+  lockupSrc?: string;
 }
 
 /**
- * Lightweight transparent PhiTech logo motion intro on a frosted Pearl veil.
- * Plays on entry (or on manual replay) and glides along a spring arc directly
- * into the navbar `.pw-brand-mark` slot.
+ * Ultra-lightweight cinematic split-logo intro using the static vector brand image.
+ * Both halves of the PhiTech emblem start separated across the center seam,
+ * magnetically converge together with a copper fusion flash, reveal the lockup,
+ * and dock smoothly along a spring arc into `.pw-header .pw-brand-mark`.
  */
 export default function LogoMotionIntro({
   replayCount = 0,
-  gifSrc = '/brand/logo-intro.gif',
-  posterSrc = '/brand/logo-intro-poster.webp',
+  logoSrc = '/brand/phitech-mark-color.svg',
+  lockupSrc = '/brand/phitech-lockup-color.svg',
 }: LogoMotionIntroProps) {
   const [phase, setPhase] = useState<'playing' | 'docking' | 'done'>(() => {
     if (introPlayedThisPageLoad) return 'done';
-    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
-      return 'done';
-    }
     return 'playing';
   });
   const [runId, setRunId] = useState(0);
-  const [gifLoaded, setGifLoaded] = useState(false);
 
-  const stageRef = useRef<HTMLDivElement | null>(null);
+  const emblemRef = useRef<HTMLDivElement | null>(null);
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
   const lastReplayRef = useRef(replayCount);
@@ -190,11 +391,19 @@ export default function LogoMotionIntro({
   }, []);
 
   useEffect(() => {
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches &&
+      replayCount === 0
+    ) {
+      introPlayedThisPageLoad = true;
+      setPhase('done');
+    }
     return () => {
       clearScheduled();
       animRef.current?.cancel();
     };
-  }, [clearScheduled]);
+  }, [clearScheduled, replayCount]);
 
   const startDocking = useCallback(() => {
     if (phaseRef.current !== 'playing') return;
@@ -202,17 +411,17 @@ export default function LogoMotionIntro({
     clearScheduled();
     setPhase('docking');
 
-    const stage = stageRef.current;
+    const emblem = emblemRef.current;
     const brandTarget =
       (document.querySelector('.pw-header .pw-brand-mark') as HTMLElement | null) ||
       (document.querySelector('.pw-header .pw-brand') as HTMLElement | null);
 
     let dx = 0;
     let dy = -260;
-    let scale = 0.14;
+    let scale = 0.2;
 
-    if (stage && brandTarget) {
-      const sRect = stage.getBoundingClientRect();
+    if (emblem && brandTarget) {
+      const sRect = emblem.getBoundingClientRect();
       const tRect = brandTarget.getBoundingClientRect();
       if (sRect.width > 0 && tRect.width > 0) {
         const sCx = sRect.left + sRect.width / 2;
@@ -221,18 +430,18 @@ export default function LogoMotionIntro({
         const tCy = tRect.top + tRect.height / 2;
         dx = tCx - sCx;
         dy = tCy - sCy;
-        scale = Math.max(0.1, Math.min(0.26, (tRect.height * 1.55) / sRect.height));
+        scale = Math.max(0.14, Math.min(0.35, tRect.height / sRect.height));
       }
     }
 
-    if (stage && typeof stage.animate === 'function') {
+    if (emblem && typeof emblem.animate === 'function') {
       animRef.current?.cancel();
-      animRef.current = stage.animate(
+      animRef.current = emblem.animate(
         [
           { transform: 'translate3d(0, 0, 0) scale(1)', opacity: 1, offset: 0 },
-          { transform: 'translate3d(0, 7px, 0) scale(1.045)', opacity: 1, offset: 0.14 },
+          { transform: 'translate3d(0, 6px, 0) scale(1.05)', opacity: 1, offset: 0.14 },
           {
-            transform: `translate3d(${(dx * 0.68).toFixed(1)}px, ${(dy * 0.48).toFixed(1)}px, 0) scale(${((1 + scale) * 0.46).toFixed(3)})`,
+            transform: `translate3d(${(dx * 0.68).toFixed(1)}px, ${(dy * 0.48).toFixed(1)}px, 0) scale(${((1 + scale) * 0.44).toFixed(3)})`,
             opacity: 0.96,
             offset: 0.58,
           },
@@ -243,7 +452,7 @@ export default function LogoMotionIntro({
           },
         ],
         {
-          duration: 860,
+          duration: 820,
           easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
           fill: 'forwards',
         }
@@ -253,13 +462,13 @@ export default function LogoMotionIntro({
     const brandWrap = document.querySelector('.pw-header .pw-brand');
     const arriveTimer = window.setTimeout(() => {
       brandWrap?.classList.add('phi-brand-landed');
-    }, 640);
+    }, 610);
     const cleanupPulseTimer = window.setTimeout(() => {
       brandWrap?.classList.remove('phi-brand-landed');
-    }, 1850);
+    }, 1780);
     const doneTimer = window.setTimeout(() => {
       setPhase('done');
-    }, 890);
+    }, 840);
 
     timersRef.current.push(arriveTimer, cleanupPulseTimer, doneTimer);
   }, [clearScheduled]);
@@ -269,28 +478,23 @@ export default function LogoMotionIntro({
       lastReplayRef.current = replayCount;
       clearScheduled();
       animRef.current?.cancel();
-      setGifLoaded(false);
       setRunId((n) => n + 1);
       setPhase('playing');
     }
   }, [replayCount, clearScheduled]);
 
-  // Safety timeout if network stalls; once GIF paints from frame 0, dock cleanly after its 3.6s sequence
   useEffect(() => {
     if (phase !== 'playing') return;
-    const delayMs = gifLoaded ? 3680 : 6500;
     const dockTimer = window.setTimeout(() => {
       startDocking();
-    }, delayMs);
+    }, 2560);
     timersRef.current.push(dockTimer);
     return () => {
       window.clearTimeout(dockTimer);
     };
-  }, [phase, runId, gifLoaded, startDocking]);
+  }, [phase, runId, startDocking]);
 
   if (phase === 'done') return null;
-
-  const activeSrc = `${gifSrc}?r=${runId}`;
 
   return (
     <div
@@ -302,28 +506,46 @@ export default function LogoMotionIntro({
       <style>{INTRO_CSS}</style>
       <div className="phi-lmi-aura" aria-hidden="true" />
 
-      <div
-        ref={stageRef}
-        className="phi-lmi-stage"
-        style={!gifLoaded ? { opacity: 0, transition: 'opacity 0.25s ease' } : undefined}
-      >
-        <img
-          key={runId}
-          src={activeSrc}
-          alt="شعار فاي تك المتحرك — PhiTech"
-          className="phi-lmi-gif"
-          onLoad={() => setGifLoaded(true)}
-          onError={() => startDocking()}
-        />
+      <div key={runId} className="phi-lmi-stage">
+        <div ref={emblemRef} className="phi-lmi-emblem">
+          <div className="phi-lmi-ring" aria-hidden="true" />
+          <div className="phi-lmi-seam" aria-hidden="true" />
+          <img
+            src={logoSrc}
+            alt="شعار فاي تك"
+            className="phi-lmi-half is-left"
+            decoding="sync"
+            draggable={false}
+          />
+          <img
+            src={logoSrc}
+            alt=""
+            aria-hidden="true"
+            className="phi-lmi-half is-right"
+            decoding="sync"
+            draggable={false}
+          />
+          <div className="phi-lmi-sheen-wrap" aria-hidden="true">
+            <div className="phi-lmi-sheen" />
+          </div>
+        </div>
+
+        <div className="phi-lmi-wordmark" aria-hidden="true">
+          <img
+            src={lockupSrc}
+            alt="فاي تك للمقاولات والتوريدات PhiTech"
+            className="phi-lmi-wordmark-img"
+            decoding="sync"
+            draggable={false}
+          />
+        </div>
       </div>
 
       <div className="phi-lmi-footer">
-        {gifLoaded && (
-          <div className="phi-lmi-progress-track" aria-hidden="true">
-            <div key={runId} className="phi-lmi-progress-fill" />
-          </div>
-        )}
-        <span className="phi-lmi-tagline">فاي تك للمقاولات والتوريدات · نبني الهيكل ونتقن التشطيب</span>
+        <div className="phi-lmi-progress-track" aria-hidden="true">
+          <div key={runId} className="phi-lmi-progress-fill" />
+        </div>
+        <span className="phi-lmi-tagline">نبني الهيكل بدقة… ونتقن التشطيب بفخامة</span>
         <button type="button" className="phi-lmi-skip" onClick={startDocking}>
           <span>دخول للموقع</span>
           <span aria-hidden="true">←</span>

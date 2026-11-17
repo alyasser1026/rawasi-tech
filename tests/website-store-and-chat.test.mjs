@@ -396,17 +396,26 @@ test('estimative calculator is removed from Homepage and housed inside Info & To
   assert.match(detailClient, /<EngTools propertiesCount=\{PROPERTIES\.length\} \/>/);
 });
 
-test('pearl theme is preserved and lightweight transparent GIF LogoMotionIntro plays then docks into the navbar brand mark', () => {
-  const logoGif = path.join(root, 'public/brand/logo-intro.gif');
-  const logoPoster = path.join(root, 'public/brand/logo-intro-poster.webp');
-  assert.equal(fs.existsSync(logoGif), true, 'public/brand/logo-intro.gif must exist');
-  assert.equal(fs.existsSync(logoPoster), true, 'public/brand/logo-intro-poster.webp must exist');
-  assert.ok(fs.statSync(logoGif).size > 100_000 && fs.statSync(logoGif).size < 1_500_000, 'logo-intro.gif should be lightweight (< 1.5 MB)');
-  assert.ok(fs.statSync(logoPoster).size > 5_000, 'logo-intro-poster.webp must be non-trivial');
+test('pearl theme is preserved and lightweight vector split-converge LogoMotionIntro plays then docks into the navbar brand mark', () => {
+  const legacyGif = path.join(root, 'public/brand/logo-intro.gif');
+  const legacyPoster = path.join(root, 'public/brand/logo-intro-poster.webp');
+  assert.equal(fs.existsSync(legacyGif), false, 'heavy legacy logo-intro.gif must be removed');
+  assert.equal(fs.existsSync(legacyPoster), false, 'legacy logo-intro-poster.webp must be removed');
+
+  const markSvg = path.join(root, 'public/brand/phitech-mark-color.svg');
+  const lockupSvg = path.join(root, 'public/brand/phitech-lockup-color.svg');
+  assert.equal(fs.existsSync(markSvg), true, 'public/brand/phitech-mark-color.svg must exist');
+  assert.equal(fs.existsSync(lockupSvg), true, 'public/brand/phitech-lockup-color.svg must exist');
+  assert.ok(fs.statSync(markSvg).size < 50_000, 'phitech-mark-color.svg must stay lightweight (< 50 KB)');
+  assert.ok(fs.statSync(lockupSvg).size < 50_000, 'phitech-lockup-color.svg must stay lightweight (< 50 KB)');
 
   const introSrc = read('components/LogoMotionIntro.tsx');
-  assert.match(introSrc, /\/brand\/logo-intro\.gif/);
-  assert.match(introSrc, /\/brand\/logo-intro-poster\.webp/);
+  assert.match(introSrc, /\/brand\/phitech-mark-color\.svg/);
+  assert.match(introSrc, /\/brand\/phitech-lockup-color\.svg/);
+  assert.doesNotMatch(introSrc, /logo-intro\.gif/);
+  assert.match(introSrc, /phi-lmi-half is-left/);
+  assert.match(introSrc, /phi-lmi-half is-right/);
+  assert.match(introSrc, /phi-lmi-seam/);
   assert.match(introSrc, /\.pw-header \.pw-brand-mark/);
   assert.match(introSrc, /phi-brand-landed/);
   assert.match(introSrc, /startDocking/);
