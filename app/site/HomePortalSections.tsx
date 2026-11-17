@@ -14,6 +14,7 @@ interface HomePortalSectionsProps {
   whatsappNumber: string;
   onAddToCart: (product: WebsiteProduct, qty: number, withInstall: boolean) => void;
   onAddBundleToCart: (items: { product: WebsiteProduct; qty: number }[], withInstall: boolean) => void;
+  onReplayLogoMotion?: () => void;
 }
 
 export default function HomePortalSections({
@@ -22,6 +23,7 @@ export default function HomePortalSections({
   whatsappNumber,
   onAddToCart,
   onAddBundleToCart,
+  onReplayLogoMotion,
 }: HomePortalSectionsProps) {
   const waDigits = (whatsappNumber || '201558888744').replace(/\D/g, '') || '201558888744';
   const openWhatsApp = (message: string) => {
@@ -94,11 +96,24 @@ export default function HomePortalSections({
           <NewsTicker config={newsTicker} />
 
           <div className="pw-head" style={{ marginBottom: '28px' }}>
-            <p className="pw-eyebrow">أهلاً بك في فاي تك — اختر قسمك مباشرة</p>
-            <h2 id="portals-heading" className="pw-portal-main-h1">
+            <div style={{ display: 'inline-flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '12px' }}>
+              <p className="pw-eyebrow" style={{ marginBottom: 0 }}>أهلاً بك في فاي تك — اختر قسمك مباشرة</p>
+              {onReplayLogoMotion && (
+                <button
+                  type="button"
+                  onClick={onReplayLogoMotion}
+                  className="pw-motion-replay-btn"
+                  title="إعادة عرض موشن شعار فاي تك"
+                >
+                  <span>✨</span>
+                  <span>عرض موشن الشعار</span>
+                </button>
+              )}
+            </div>
+            <h1 id="portals-heading" className="pw-portal-main-h1">
               ماذا تحتاج اليوم؟ اختر القسم للدخول
-            </h2>
-            <p>اضغط على أي جزء لاستعراض تفاصيل القسم وأدواته مباشرة.</p>
+            </h1>
+            <p>اضغط على المربع المناسب لطلبك، وهتلاقي جواه كل التفاصيل والأدوات اللي تخصه وبس.</p>
           </div>
 
           {/* لوحة بانورامية واحدة مقسومة إلى 6 أعمدة متصلة تفاعلية عند مرور الماوس */}

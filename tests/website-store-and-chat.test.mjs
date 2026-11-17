@@ -180,7 +180,7 @@ test('interactive live-chat auto-responder covers expected scenarios, human esca
   assert.match(floatingChat, /actions/);
   assert.match(floatingChat, /تحويل لمهندس/);
   assert.match(floatingChat, /phi-chat-input/);
-  assert.match(floatingChat, /-webkit-text-fill-color:\s*#f1f5f9/);
+  assert.match(floatingChat, /-webkit-text-fill-color:\s*#0f172a/);
 
   assert.match(responder, /export function extractNameFromMessage/);
   assert.match(responder, /export function extractPhoneFromMessage/);
@@ -396,20 +396,29 @@ test('estimative calculator is removed from Homepage and housed inside Info & To
   assert.match(detailClient, /<EngTools propertiesCount=\{PROPERTIES\.length\} \/>/);
 });
 
-test('homepage places PhiTech molten-copper hero video stage at top with dark obsidian architecture theme', () => {
+test('pearl theme is preserved and molten-copper LogoMotionIntro plays then docks into the navbar brand mark', () => {
+  const logoVideo = path.join(root, 'public/brand/logo-intro.mp4');
+  const logoPoster = path.join(root, 'public/brand/logo-intro-poster.webp');
+  assert.equal(fs.existsSync(logoVideo), true, 'public/brand/logo-intro.mp4 must exist');
+  assert.equal(fs.existsSync(logoPoster), true, 'public/brand/logo-intro-poster.webp must exist');
+  assert.ok(fs.statSync(logoVideo).size > 200_000, 'logo-intro.mp4 must be non-trivial');
+  assert.ok(fs.statSync(logoPoster).size > 5_000, 'logo-intro-poster.webp must be non-trivial');
+
+  const introSrc = read('components/LogoMotionIntro.tsx');
+  assert.match(introSrc, /\/brand\/logo-intro\.mp4/);
+  assert.match(introSrc, /\/brand\/logo-intro-poster\.webp/);
+  assert.match(introSrc, /\.pw-header \.pw-brand-mark/);
+  assert.match(introSrc, /phi-brand-landed/);
+  assert.match(introSrc, /startDocking/);
+
   const phiSite = read('app/site/PhiSite.tsx');
-  const heroIdx = phiSite.indexOf('className="pw-hero"');
+  assert.match(phiSite, /LogoMotionIntro/);
   const portalsIdx = phiSite.indexOf('<HomePortalSections');
-  assert.ok(heroIdx > 0 && portalsIdx > heroIdx, 'Hero video stage must render above HomePortalSections on /');
-  assert.match(phiSite, /HeroVideoBackdrop/);
-  assert.match(phiSite, /\/brand\/phitech-mark-light\.svg/);
+  const heroIdx = phiSite.indexOf('className="pw-hero"');
+  assert.ok(portalsIdx > 0 && heroIdx > portalsIdx, 'Pearl HomePortalSections renders first at top of /');
 
   const siteStyles = read('app/site/site-styles.ts');
-  assert.match(siteStyles, /--bg:#0b0e13/);
-  assert.match(siteStyles, /--o:#c9772d/);
-  assert.match(siteStyles, /--surface:#141a23/);
-
-  const loginModal = read('app/site/LoginModal.tsx');
-  assert.match(loginModal, /\/brand\/phitech-mark-light\.svg/);
-  assert.match(loginModal, /#11161d/);
+  assert.match(siteStyles, /--bg:#fbfaf7/);
+  assert.match(siteStyles, /phi-brand-landed/);
+  assert.match(siteStyles, /pw-motion-replay-btn/);
 });

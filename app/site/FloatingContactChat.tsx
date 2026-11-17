@@ -370,22 +370,22 @@ export default function FloatingContactChat({
           border: 1px solid rgba(255, 255, 255, 0.28);
         }
         .phi-float-chat {
-          background: linear-gradient(135deg, #c9772d 0%, #a65c1b 100%);
-          border: 1px solid rgba(255, 255, 255, 0.22);
+          background: linear-gradient(135deg, #f97316 0%, #c75517 100%);
+          border: 1px solid rgba(255, 255, 255, 0.28);
           position: relative;
         }
         .phi-chat-window {
-          color-scheme: dark !important;
+          color-scheme: light !important;
           position: fixed;
           bottom: 84px;
           left: 20px;
           width: min(calc(100vw - 24px), 415px);
           max-height: min(640px, calc(100dvh - 110px));
-          background: #10151d !important;
-          color: #f1f5f9 !important;
+          background: #ffffff !important;
+          color: #0f172a !important;
           border-radius: 20px;
-          border: 1.5px solid rgba(255, 255, 255, 0.12) !important;
-          box-shadow: 0 28px 68px -12px rgba(0, 0, 0, 0.72);
+          border: 1.5px solid #cbd5e1 !important;
+          box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.35);
           z-index: 99970;
           display: flex;
           flex-direction: column;
@@ -394,20 +394,20 @@ export default function FloatingContactChat({
           font-family: 'Cairo', -apple-system, sans-serif;
         }
         .phi-chat-input {
-          color-scheme: dark !important;
+          color-scheme: light !important;
           flex: 1;
-          background-color: #0d1118 !important;
-          color: #f1f5f9 !important;
-          -webkit-text-fill-color: #f1f5f9 !important;
-          caret-color: #e08d3c !important;
-          border: 1.5px solid rgba(255, 255, 255, 0.14) !important;
+          background-color: #f8fafc !important;
+          color: #0f172a !important;
+          -webkit-text-fill-color: #0f172a !important;
+          caret-color: #ea580c !important;
+          border: 2px solid #94a3b8 !important;
           border-radius: 12px !important;
           padding: 11px 14px !important;
           font-size: 15px !important;
           font-weight: 700 !important;
           font-family: 'Cairo', -apple-system, sans-serif !important;
           line-height: 1.4 !important;
-          box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.35) !important;
+          box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.08) !important;
           transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease !important;
         }
         .phi-chat-input::placeholder {
@@ -417,9 +417,9 @@ export default function FloatingContactChat({
           font-weight: 600 !important;
         }
         .phi-chat-input:focus {
-          background-color: #0b0e13 !important;
-          border-color: #c9772d !important;
-          box-shadow: 0 0 0 3px rgba(201, 119, 45, 0.22) !important;
+          background-color: #ffffff !important;
+          border-color: #ea580c !important;
+          box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.2) !important;
           outline: none !important;
         }
         @media (max-width: 980px) {
@@ -547,8 +547,8 @@ export default function FloatingContactChat({
             <div
               style={{
                 padding: '7px 12px',
-                background: escalatedToHuman ? 'rgba(245, 158, 11, 0.12)' : '#141a23',
-                borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                background: escalatedToHuman ? '#fffbeb' : '#f8fafc',
+                borderBottom: '1px solid #e2e8f0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -560,7 +560,7 @@ export default function FloatingContactChat({
               <span
                 style={{
                   fontWeight: 800,
-                  color: escalatedToHuman ? '#fbbf24' : botPaused ? '#7dd3fc' : '#cbd5e1',
+                  color: escalatedToHuman ? '#b45309' : botPaused ? '#0369a1' : '#334155',
                 }}
               >
                 {escalatedToHuman
@@ -584,9 +584,9 @@ export default function FloatingContactChat({
                       }, 50);
                     }}
                     style={{
-                      border: '1px solid rgba(255, 255, 255, 0.14)',
-                      background: showCategories ? 'rgba(201, 119, 45, 0.2)' : '#0d1118',
-                      color: showCategories ? '#fed7aa' : '#e2e8f0',
+                      border: '1px solid #cbd5e1',
+                      background: showCategories ? '#e2e8f0' : '#ffffff',
+                      color: '#334155',
                       borderRadius: '8px',
                       padding: '4px 8px',
                       fontSize: '0.71rem',
@@ -606,9 +606,9 @@ export default function FloatingContactChat({
                   disabled={sending}
                   onClick={() => void sendMessage('أرغب في التحدث المباشر مع المهندس المختص', true)}
                   style={{
-                    border: '1px solid rgba(201, 119, 45, 0.42)',
-                    background: 'rgba(201, 119, 45, 0.16)',
-                    color: '#fed7aa',
+                    border: '1px solid #fed7aa',
+                    background: '#fff3ea',
+                    color: '#c75517',
                     borderRadius: '8px',
                     padding: '4px 8px',
                     fontSize: '0.71rem',
@@ -629,7 +629,7 @@ export default function FloatingContactChat({
               flex: 1,
               padding: '14px',
               overflowY: 'auto',
-              background: '#0d1118',
+              background: '#f8fafc',
               display: 'flex',
               flexDirection: 'column',
               gap: '10px',
@@ -645,16 +645,16 @@ export default function FloatingContactChat({
                   style={{
                     alignSelf: isVisitor ? 'flex-start' : 'flex-end',
                     maxWidth: '88%',
-                    background: isVisitor ? 'linear-gradient(135deg, #c9772d, #a65c1b)' : isHumanAdmin ? 'rgba(16, 185, 129, 0.14)' : '#141a23',
-                    color: isVisitor ? '#ffffff' : '#f1f5f9',
+                    background: isVisitor ? '#ea580c' : isHumanAdmin ? '#f0fdf4' : '#ffffff',
+                    color: isVisitor ? '#ffffff' : '#0f172a',
                     border: isVisitor
                       ? 'none'
                       : isHumanAdmin
-                        ? '1.5px solid rgba(52, 211, 153, 0.4)'
-                        : '1px solid rgba(255, 255, 255, 0.1)',
+                        ? '1.5px solid #86efac'
+                        : '1px solid #e2e8f0',
                     borderRadius: isVisitor ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
                     padding: '10px 13px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.32)',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
                   }}
                 >
                   <div
@@ -671,7 +671,7 @@ export default function FloatingContactChat({
                         fontSize: '0.68rem',
                         fontWeight: 800,
                         opacity: 0.9,
-                        color: isVisitor ? '#ffedd5' : isHumanAdmin ? '#6ee7b7' : '#f3a85b',
+                        color: isVisitor ? '#ffedd5' : isHumanAdmin ? '#15803d' : '#c75517',
                       }}
                     >
                       {m.senderName}
@@ -683,8 +683,8 @@ export default function FloatingContactChat({
                           fontWeight: 800,
                           padding: '1px 6px',
                           borderRadius: '999px',
-                          background: isHumanAdmin ? 'rgba(16, 185, 129, 0.2)' : 'rgba(201, 119, 45, 0.18)',
-                          color: isHumanAdmin ? '#6ee7b7' : '#fed7aa',
+                          background: isHumanAdmin ? '#dcfce7' : '#fff3ea',
+                          color: isHumanAdmin ? '#166534' : '#c75517',
                           whiteSpace: 'nowrap',
                         }}
                       >
@@ -726,9 +726,9 @@ export default function FloatingContactChat({
                               fontWeight: 800,
                               padding: '5px 10px',
                               borderRadius: '8px',
-                              background: 'rgba(201, 119, 45, 0.16)',
-                              border: '1px solid rgba(224, 141, 60, 0.36)',
-                              color: '#fed7aa',
+                              background: '#fff3ea',
+                              border: '1px solid #fed7aa',
+                              color: '#c75517',
                               textDecoration: 'none',
                             }}
                           >
@@ -746,13 +746,13 @@ export default function FloatingContactChat({
               <div
                 style={{
                   alignSelf: 'flex-end',
-                  background: '#141a23',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
                   borderRadius: '14px 14px 14px 4px',
                   padding: '8px 12px',
                   fontSize: '0.78rem',
                   fontWeight: 700,
-                  color: '#94a3b8',
+                  color: '#64748b',
                 }}
               >
                 🤖 جاري كتابة الرد الهندسي...
@@ -776,11 +776,11 @@ export default function FloatingContactChat({
                         fontWeight: 800,
                         padding: '4px 9px',
                         borderRadius: '999px',
-                        border: '1px solid rgba(201, 119, 45, 0.38)',
-                        background: '#141a23',
-                        color: '#fed7aa',
+                        border: '1px solid #fed7aa',
+                        background: '#ffffff',
+                        color: '#c75517',
                         cursor: 'pointer',
-                        boxShadow: '0 2px 6px rgba(0,0,0,0.25)',
+                        boxShadow: '0 1px 3px rgba(199,85,23,0.06)',
                       }}
                     >
                       {qr}
@@ -794,11 +794,11 @@ export default function FloatingContactChat({
               <div
                 style={{
                   marginTop: '8px',
-                  background: '#141a23',
+                  background: '#ffffff',
                   borderRadius: '12px',
-                  border: '1.5px solid rgba(201, 119, 45, 0.34)',
+                  border: '1.5px solid #fed7aa',
                   padding: '8px 10px',
-                  boxShadow: '0 6px 16px rgba(0,0,0,0.32)',
+                  boxShadow: '0 2px 8px rgba(199,85,23,0.06)',
                 }}
               >
                 <div
@@ -818,7 +818,7 @@ export default function FloatingContactChat({
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <span style={{ fontSize: '0.88rem' }}>📂</span>
-                    <strong style={{ fontSize: '0.74rem', color: '#f3a85b' }}>
+                    <strong style={{ fontSize: '0.74rem', color: '#c75517' }}>
                       أقسام الأسئلة السريعة
                     </strong>
                     <span style={{ fontSize: '0.64rem', color: '#94a3b8', fontWeight: 700 }}>
@@ -830,7 +830,7 @@ export default function FloatingContactChat({
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#e08d3c',
+                      color: '#ea580c',
                       fontSize: '0.72rem',
                       fontWeight: 800,
                       cursor: 'pointer',
@@ -842,7 +842,7 @@ export default function FloatingContactChat({
                 </div>
 
                 {showCategories && (
-                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid rgba(201, 119, 45, 0.24)' }}>
+                  <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid #ffedd5' }}>
                     {/* أزرار الأقسام الرئيسية */}
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                       {CHAT_QUESTION_CATEGORIES.map((cat) => {
@@ -863,14 +863,14 @@ export default function FloatingContactChat({
                               fontWeight: 800,
                               padding: '5px 9px',
                               borderRadius: '8px',
-                              border: isActive ? '1.5px solid #e08d3c' : '1px solid rgba(255, 255, 255, 0.1)',
-                              background: isActive ? 'rgba(201, 119, 45, 0.2)' : '#0d1118',
-                              color: isActive ? '#fed7aa' : '#cbd5e1',
+                              border: isActive ? '1.5px solid #ea580c' : '1px solid #e2e8f0',
+                              background: isActive ? '#fff3ea' : '#f8fafc',
+                              color: isActive ? '#c75517' : '#334155',
                               cursor: 'pointer',
                               display: 'inline-flex',
                               alignItems: 'center',
                               gap: '4px',
-                              boxShadow: isActive ? '0 2px 8px rgba(201,119,45,0.22)' : 'none',
+                              boxShadow: isActive ? '0 1px 4px rgba(234,88,12,0.15)' : 'none',
                               transition: 'all 0.15s ease',
                             }}
                           >
@@ -891,9 +891,9 @@ export default function FloatingContactChat({
                           style={{
                             marginTop: '8px',
                             padding: '8px 10px',
-                            background: '#0d1118',
+                            background: '#fffaf5',
                             borderRadius: '8px',
-                            border: '1px dashed rgba(201, 119, 45, 0.42)',
+                            border: '1px dashed #fed7aa',
                             display: 'flex',
                             flexDirection: 'column',
                             gap: '6px',
@@ -904,11 +904,11 @@ export default function FloatingContactChat({
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              borderBottom: '1px solid rgba(201, 119, 45, 0.26)',
+                              borderBottom: '1px solid rgba(254, 215, 170, 0.6)',
                               paddingBottom: '4px',
                             }}
                           >
-                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f3a85b' }}>
+                            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#9a3412' }}>
                               {currentCat.icon} {currentCat.title} — اختر سؤالك:
                             </span>
                             <button
@@ -947,9 +947,9 @@ export default function FloatingContactChat({
                                   fontWeight: 700,
                                   padding: '6px 10px',
                                   borderRadius: '8px',
-                                  border: '1px solid rgba(201, 119, 45, 0.34)',
-                                  background: '#141a23',
-                                  color: '#fed7aa',
+                                  border: '1px solid #fed7aa',
+                                  background: '#ffffff',
+                                  color: '#c75517',
                                   cursor: sending ? 'wait' : 'pointer',
                                   textAlign: 'right',
                                   display: 'flex',
@@ -958,13 +958,13 @@ export default function FloatingContactChat({
                                   transition: 'background-color 0.15s ease',
                                 }}
                                 onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#1e2633';
+                                  e.currentTarget.style.backgroundColor = '#fff7ed';
                                 }}
                                 onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#141a23';
+                                  e.currentTarget.style.backgroundColor = '#ffffff';
                                 }}
                               >
-                                <span style={{ color: '#e08d3c' }}>←</span>
+                                <span style={{ color: '#ea580c' }}>←</span>
                                 <span>{q.label}</span>
                               </button>
                             ))}
@@ -982,10 +982,10 @@ export default function FloatingContactChat({
             <div
               style={{
                 padding: '6px 12px',
-                background: 'rgba(239, 68, 68, 0.14)',
-                borderTop: '1px solid rgba(248, 113, 113, 0.3)',
+                background: '#fef2f2',
+                borderTop: '1px solid #fecaca',
                 fontSize: '0.76rem',
-                color: '#fca5a5',
+                color: '#dc2626',
                 fontWeight: 700,
               }}
             >
@@ -998,8 +998,8 @@ export default function FloatingContactChat({
             onSubmit={handleSendInChat}
             style={{
               padding: '10px 12px',
-              borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-              background: '#141a23',
+              borderTop: '1.5px solid #cbd5e1',
+              background: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
@@ -1013,10 +1013,10 @@ export default function FloatingContactChat({
               onChange={(e) => setInputMsg(e.target.value)}
               placeholder={inputPlaceholder}
               style={{
-                backgroundColor: '#0d1118',
-                color: '#f1f5f9',
-                WebkitTextFillColor: '#f1f5f9',
-                caretColor: '#e08d3c',
+                backgroundColor: '#f8fafc',
+                color: '#0f172a',
+                WebkitTextFillColor: '#0f172a',
+                caretColor: '#ea580c',
               }}
             />
             <button
@@ -1026,7 +1026,7 @@ export default function FloatingContactChat({
                 padding: '11px 18px',
                 borderRadius: '12px',
                 border: 'none',
-                background: sending || !inputMsg.trim() ? '#334155' : 'linear-gradient(135deg, #c9772d, #e08d3c)',
+                background: sending || !inputMsg.trim() ? '#94a3b8' : 'linear-gradient(135deg, #f97316, #c75517)',
                 color: '#ffffff',
                 fontWeight: 900,
                 fontSize: '0.88rem',

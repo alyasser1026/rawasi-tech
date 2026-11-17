@@ -211,9 +211,9 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           gap: 7px;
           padding: 10px 16px;
           border-radius: 14px;
-          border: 1.5px solid rgba(255, 255, 255, 0.1);
-          background: #141a23;
-          color: #f1f5f9;
+          border: 1.5px solid #e3e6e9;
+          background: #ffffff;
+          color: #14181b;
           font-weight: 800;
           font-size: 0.86rem;
           cursor: pointer;
@@ -221,15 +221,15 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           white-space: nowrap;
         }
         .st-cat-btn:hover {
-          border-color: #c9772d;
-          color: #fed7aa;
+          border-color: #f97316;
+          color: #c75517;
           transform: translateY(-1px);
         }
         .st-cat-btn.is-active {
-          background: linear-gradient(135deg, #c9772d 0%, #e08d3c 100%);
+          background: #ea580c;
           color: #ffffff;
-          border-color: #e08d3c;
-          box-shadow: 0 8px 20px -6px rgba(201, 119, 45, 0.5);
+          border-color: #ea580c;
+          box-shadow: 0 8px 20px -6px rgba(234, 88, 12, 0.5);
         }
         .st-bundles-grid {
           display: grid;
@@ -243,8 +243,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           gap: 22px;
         }
         .st-prod-card {
-          background: #141a23;
-          border: 1px solid rgba(255, 255, 255, 0.09);
+          background: #ffffff;
+          border: 1px solid #e3e6e9;
           border-radius: 20px;
           overflow: hidden;
           display: flex;
@@ -254,8 +254,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         }
         .st-prod-card:hover {
           transform: translateY(-3px);
-          border-color: rgba(201, 119, 45, 0.48);
-          box-shadow: 0 22px 46px -22px rgba(0, 0, 0, 0.65);
+          border-color: rgba(234, 88, 12, 0.45);
+          box-shadow: 0 20px 40px -24px rgba(20, 28, 34, 0.22);
         }
         @media (max-width: 980px) {
           .st-bundles-grid { grid-template-columns: 1fr; }
@@ -364,7 +364,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                   onClick={handleSignOut}
                   className="pw-btn pw-btn-ghost"
                   title="تسجيل الخروج"
-                  style={{ minHeight: '44px', padding: '0 14px', fontSize: '0.82rem', color: '#fca5a5', borderColor: 'rgba(248, 113, 113, 0.35)' }}
+                  style={{ minHeight: '44px', padding: '0 14px', fontSize: '0.82rem', color: '#b91c1c', borderColor: '#fecaca' }}
                 >
                   خروج ({cart.user.fullName.split(' ')[0]})
                 </button>
@@ -389,10 +389,10 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
             gap: '12px',
             marginBottom: '26px',
-            background: '#10151d',
+            background: '#f8fafc',
             padding: '10px',
             borderRadius: '18px',
-            border: '1px solid rgba(255, 255, 255, 0.09)',
+            border: '1px solid #e2e8f0',
           }}
         >
           <button
@@ -401,13 +401,13 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             style={{
               padding: '14px 18px',
               borderRadius: '14px',
-              border: activeStoreTab === 'products' ? '1.5px solid #e08d3c' : '1px solid rgba(255, 255, 255, 0.08)',
-              background: activeStoreTab === 'products' ? 'rgba(201, 119, 45, 0.16)' : 'transparent',
-              color: activeStoreTab === 'products' ? '#fed7aa' : '#94a3b8',
+              border: activeStoreTab === 'products' ? '1.5px solid #ea580c' : '1px solid #e2e8f0',
+              background: activeStoreTab === 'products' ? '#ffffff' : 'transparent',
+              color: activeStoreTab === 'products' ? '#c75517' : '#47525c',
               fontWeight: 900,
               fontSize: '0.95rem',
               cursor: 'pointer',
-              boxShadow: activeStoreTab === 'products' ? '0 8px 20px -10px rgba(201,119,45,0.45)' : 'none',
+              boxShadow: activeStoreTab === 'products' ? '0 8px 20px -10px rgba(199,85,23,0.35)' : 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -423,13 +423,13 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             style={{
               padding: '14px 18px',
               borderRadius: '14px',
-              border: activeStoreTab === 'maintenance' ? '1.5px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.08)',
-              background: activeStoreTab === 'maintenance' ? 'rgba(14, 165, 233, 0.16)' : 'transparent',
-              color: activeStoreTab === 'maintenance' ? '#7dd3fc' : '#94a3b8',
+              border: activeStoreTab === 'maintenance' ? '1.5px solid #0284c7' : '1px solid #e2e8f0',
+              background: activeStoreTab === 'maintenance' ? '#ffffff' : 'transparent',
+              color: activeStoreTab === 'maintenance' ? '#0369a1' : '#47525c',
               fontWeight: 900,
               fontSize: '0.95rem',
               cursor: 'pointer',
-              boxShadow: activeStoreTab === 'maintenance' ? '0 8px 20px -10px rgba(14,165,233,0.45)' : 'none',
+              boxShadow: activeStoreTab === 'maintenance' ? '0 8px 20px -10px rgba(2,132,199,0.35)' : 'none',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -446,8 +446,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             {/* Engineering Recommendations Banner */}
             <div
               style={{
-                background: 'linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(201, 119, 45, 0.12) 100%)',
-                border: '1.5px solid rgba(56, 189, 248, 0.28)',
+                background: 'linear-gradient(135deg, #f0f9ff 0%, #fff7ed 100%)',
+                border: '1.5px solid #bae6fd',
                 borderRadius: '20px',
                 padding: '22px',
                 marginBottom: '22px',
@@ -457,28 +457,28 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
                 <div>
-                  <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#7dd3fc', display: 'block', marginBottom: '4px' }}>
+                  <span style={{ fontSize: '0.78rem', fontWeight: 900, color: '#0369a1', display: 'block', marginBottom: '4px' }}>
                     💡 منهجية فاي تك في التنفيذ والصيانة الموثّقة
                   </span>
-                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#f8fafc' }}>
+                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#0f172a' }}>
                     تنفيذ متكامل لجميع البنود + صيانة وتشخيص أعطال بأحدث الأجهزة
                   </h2>
                 </div>
-                <span style={{ background: 'rgba(201, 119, 45, 0.16)', border: '1px solid rgba(224, 141, 60, 0.36)', color: '#fed7aa', padding: '6px 14px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 900 }}>
+                <span style={{ background: '#ffffff', border: '1px solid #fed7aa', color: '#c75517', padding: '6px 14px', borderRadius: '999px', fontSize: '0.8rem', fontWeight: 900 }}>
                   ✅ إشراف مهندس مختص · ضمان موثّق
                 </span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', fontSize: '0.82rem', color: '#cbd5e1' }}>
-                <div style={{ background: '#141a23', borderRadius: '12px', padding: '12px', border: '1px solid rgba(255, 255, 255, 0.09)' }}>
-                  <strong style={{ color: '#7dd3fc', display: 'block', marginBottom: '4px' }}>1️⃣ قاعدة الكشف المبكر قبل التشطيب</strong>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '10px', fontSize: '0.82rem', color: '#334155' }}>
+                <div style={{ background: '#ffffff', borderRadius: '12px', padding: '12px', border: '1px solid #e2e8f0' }}>
+                  <strong style={{ color: '#0369a1', display: 'block', marginBottom: '4px' }}>1️⃣ قاعدة الكشف المبكر قبل التشطيب</strong>
                   <span>اختبار ضغط السباكة 10 بار، واختبار الميجر للكهرباء، وضغط النيتروجين للتكييف قبل أي إغلاق أو تبليط.</span>
                 </div>
-                <div style={{ background: '#141a23', borderRadius: '12px', padding: '12px', border: '1px solid rgba(255, 255, 255, 0.09)' }}>
-                  <strong style={{ color: '#f3a85b', display: 'block', marginBottom: '4px' }}>2️⃣ قاعدة الصيانة بدون تكسير</strong>
+                <div style={{ background: '#ffffff', borderRadius: '12px', padding: '12px', border: '1px solid #e2e8f0' }}>
+                  <strong style={{ color: '#c75517', display: 'block', marginBottom: '4px' }}>2️⃣ قاعدة الصيانة بدون تكسير</strong>
                   <span>استخدام أجهزة كشف تسريبات المياه والكاميرا الحرارية وإصلاح الدوائر والسمارت هوم بأقل تدخل ممكن.</span>
                 </div>
-                <div style={{ background: '#141a23', borderRadius: '12px', padding: '12px', border: '1px solid rgba(255, 255, 255, 0.09)' }}>
-                  <strong style={{ color: '#6ee7b7', display: 'block', marginBottom: '4px' }}>3️⃣ باقة الصيانة الوقائية الدورية</strong>
+                <div style={{ background: '#ffffff', borderRadius: '12px', padding: '12px', border: '1px solid #e2e8f0' }}>
+                  <strong style={{ color: '#15803d', display: 'block', marginBottom: '4px' }}>3️⃣ باقة الصيانة الوقائية الدورية</strong>
                   <span>فحص نصف سنوي للكهرباء، الحساسات، التكييف، والعزل يوفر حتى 40% من تكاليف الأعطال المفاجئة.</span>
                 </div>
               </div>
@@ -487,8 +487,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             {/* Maintenance Search & Category Filter */}
             <div
               style={{
-                background: '#10151d',
-                border: '1px solid rgba(255, 255, 255, 0.09)',
+                background: '#f6f5f3',
+                border: '1px solid #e3e6e9',
                 borderRadius: '18px',
                 padding: '16px',
                 marginBottom: '22px',
@@ -504,15 +504,14 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     flex: '1 1 280px',
                     padding: '11px 16px',
                     borderRadius: '12px',
-                    border: '1.5px solid rgba(255, 255, 255, 0.12)',
-                    background: '#0d1118',
-                    color: '#f1f5f9',
+                    border: '1.5px solid #e3e6e9',
+                    background: '#ffffff',
                     fontSize: '16px',
                     fontWeight: 700,
                   }}
                 />
-                <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#94a3b8' }}>
-                  إجمالي الخدمات المتاحة: <strong style={{ color: '#7dd3fc' }}>{filteredMaintenance.length}</strong> قطاع
+                <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#47525c' }}>
+                  إجمالي الخدمات المتاحة: <strong style={{ color: '#0369a1' }}>{filteredMaintenance.length}</strong> قطاع
                 </span>
               </div>
               <div className="st-cats-bar" role="tablist" aria-label="أقسام التنفيذ والصيانة">
@@ -552,19 +551,19 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 <article
                   key={srv.id}
                   style={{
-                    background: '#141a23',
-                    border: '1px solid rgba(255, 255, 255, 0.09)',
+                    background: '#ffffff',
+                    border: '1px solid #e2e8f0',
                     borderRadius: '20px',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
-                    boxShadow: '0 14px 32px -18px rgba(0, 0, 0, 0.55)',
+                    boxShadow: '0 10px 30px -18px rgba(15, 23, 42, 0.14)',
                   }}
                 >
                   <div>
                     {srv.imageUrl ? (
-                      <div style={{ position: 'relative', height: '200px', background: '#0b0e13', overflow: 'hidden' }}>
+                      <div style={{ position: 'relative', height: '200px', background: '#f8fafc', overflow: 'hidden' }}>
                         <img src={srv.imageUrl} alt={srv.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         {srv.badge && (
                           <span
@@ -588,8 +587,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                       <div
                         style={{
                           padding: '16px 20px',
-                          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(201, 119, 45, 0.14) 100%)',
-                          borderBottom: '1px solid rgba(201, 119, 45, 0.25)',
+                          background: 'linear-gradient(135deg, #f8fafc 0%, #fff7ed 100%)',
+                          borderBottom: '1px solid #fed7aa',
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
@@ -603,8 +602,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                               width: '44px',
                               height: '44px',
                               borderRadius: '12px',
-                              background: '#0d1118',
-                              border: '1.5px solid rgba(201, 119, 45, 0.38)',
+                              background: '#ffffff',
+                              border: '1.5px solid #fed7aa',
                               display: 'grid',
                               placeItems: 'center',
                               fontSize: '1.4rem',
@@ -613,18 +612,18 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                             {srv.icon}
                           </span>
                           <div>
-                            <span style={{ fontSize: '0.72rem', fontFamily: 'monospace', fontWeight: 800, color: '#f3a85b', display: 'block' }}>
+                            <span style={{ fontSize: '0.72rem', fontFamily: 'monospace', fontWeight: 800, color: '#c75517', display: 'block' }}>
                               {srv.code} · {srv.warrantyLabel}
                             </span>
-                            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#f8fafc' }}>{srv.title}</h3>
+                            <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 900, color: '#0f172a' }}>{srv.title}</h3>
                           </div>
                         </div>
                         {srv.badge && (
                           <span
                             style={{
-                              background: 'rgba(14, 165, 233, 0.16)',
-                              color: '#7dd3fc',
-                              border: '1px solid rgba(56, 189, 248, 0.34)',
+                              background: '#e0f2fe',
+                              color: '#0369a1',
+                              border: '1px solid #bae6fd',
                               padding: '4px 10px',
                               borderRadius: '999px',
                               fontSize: '0.72rem',
@@ -639,32 +638,32 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
 
                     <div style={{ padding: '18px 20px', display: 'grid', gap: '14px' }}>
                       {srv.imageUrl && (
-                        <h3 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 900, color: '#f8fafc' }}>{srv.title}</h3>
+                        <h3 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 900, color: '#0f172a' }}>{srv.title}</h3>
                       )}
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '12px' }}>
-                        <div style={{ background: 'rgba(201, 119, 45, 0.1)', border: '1px solid rgba(201, 119, 45, 0.28)', borderRadius: '14px', padding: '12px' }}>
-                          <strong style={{ display: 'block', fontSize: '0.84rem', color: '#f3a85b', marginBottom: '8px' }}>
+                        <div style={{ background: '#fffaf5', border: '1px solid #fed7aa', borderRadius: '14px', padding: '12px' }}>
+                          <strong style={{ display: 'block', fontSize: '0.84rem', color: '#c75517', marginBottom: '8px' }}>
                             🏗️ بنود التنفيذ والتأسيس
                           </strong>
-                          <ul style={{ margin: 0, padding: 0, display: 'grid', gap: '6px', fontSize: '0.79rem', color: '#cbd5e1', fontWeight: 700 }}>
+                          <ul style={{ margin: 0, padding: 0, display: 'grid', gap: '6px', fontSize: '0.79rem', color: '#334155', fontWeight: 700 }}>
                             {srv.executionScope.map((item) => (
                               <li key={item} style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                                <span style={{ color: '#e08d3c' }}>✓</span>
+                                <span style={{ color: '#ea580c' }}>✓</span>
                                 <span>{item}</span>
                               </li>
                             ))}
                           </ul>
                         </div>
 
-                        <div style={{ background: 'rgba(14, 165, 233, 0.1)', border: '1px solid rgba(56, 189, 248, 0.28)', borderRadius: '14px', padding: '12px' }}>
-                          <strong style={{ display: 'block', fontSize: '0.84rem', color: '#7dd3fc', marginBottom: '8px' }}>
+                        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '14px', padding: '12px' }}>
+                          <strong style={{ display: 'block', fontSize: '0.84rem', color: '#0369a1', marginBottom: '8px' }}>
                             🔧 بنود الصيانة والإصلاح
                           </strong>
-                          <ul style={{ margin: 0, padding: 0, display: 'grid', gap: '6px', fontSize: '0.79rem', color: '#cbd5e1', fontWeight: 700 }}>
+                          <ul style={{ margin: 0, padding: 0, display: 'grid', gap: '6px', fontSize: '0.79rem', color: '#334155', fontWeight: 700 }}>
                             {srv.maintenanceScope.map((item) => (
                               <li key={item} style={{ display: 'flex', gap: '6px', alignItems: 'flex-start' }}>
-                                <span style={{ color: '#38bdf8' }}>•</span>
+                                <span style={{ color: '#0284c7' }}>•</span>
                                 <span>{item}</span>
                               </li>
                             ))}
@@ -675,13 +674,13 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                       {srv.recommendation && (
                         <div
                           style={{
-                            background: 'rgba(245, 158, 11, 0.12)',
-                            border: '1px solid rgba(251, 191, 36, 0.32)',
+                            background: '#fefce8',
+                            border: '1px solid #fde047',
                             borderRadius: '12px',
                             padding: '11px 14px',
                             fontSize: '0.8rem',
                             lineHeight: 1.65,
-                            color: '#fde68a',
+                            color: '#713f12',
                             fontWeight: 700,
                           }}
                         >
@@ -695,8 +694,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                   <div
                     style={{
                       padding: '14px 20px 18px',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                      background: '#0d1118',
+                      borderTop: '1px solid #f1f5f9',
+                      background: '#fafaf9',
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -707,19 +706,19 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     <div>
                       {srv.visitFee > 0 ? (
                         <>
-                          <span style={{ fontSize: '0.74rem', color: '#94a3b8', display: 'block', fontWeight: 700 }}>
+                          <span style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', fontWeight: 700 }}>
                             رسوم المعاينة / الفحص
                           </span>
-                          <strong style={{ fontSize: '1.15rem', fontWeight: 900, color: '#7dd3fc' }}>
+                          <strong style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0369a1' }}>
                             {srv.visitFee.toLocaleString('en-US')} {srv.currency}
                           </strong>
                         </>
                       ) : (
                         <>
-                          <strong style={{ fontSize: '0.94rem', fontWeight: 900, color: '#7dd3fc', display: 'block' }}>
+                          <strong style={{ fontSize: '0.94rem', fontWeight: 900, color: '#0369a1', display: 'block' }}>
                             المعاينة والتسعير حسب البند
                           </strong>
-                          <span style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 700 }}>
+                          <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700 }}>
                             {srv.warrantyLabel}
                           </span>
                         </>
@@ -749,9 +748,9 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                         style={{
                           padding: '10px 14px',
                           borderRadius: '12px',
-                          border: '1.5px solid #c9772d',
-                          background: 'rgba(201, 119, 45, 0.16)',
-                          color: '#fed7aa',
+                          border: '1.5px solid #ea580c',
+                          background: '#fff7ed',
+                          color: '#c75517',
                           fontWeight: 900,
                           fontSize: '0.84rem',
                           cursor: 'pointer',
@@ -772,7 +771,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           <h2 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '6px' }}>
             ⚡ باقات السمارت هوم وحساسات الأمان الجاهزة (توفير فوري)
           </h2>
-          <p style={{ fontSize: '0.88rem', color: '#94a3b8', marginBottom: '16px' }}>
+          <p style={{ fontSize: '0.88rem', color: '#47525c', marginBottom: '16px' }}>
             باقات متكاملة تم اختيارها هندسياً لحماية الشقق والفلل والتحكم الكامل بها من الجوال بضغطة واحدة:
           </p>
           <div className="st-bundles-grid">
@@ -780,23 +779,23 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
               <div
                 key={b.id}
                 style={{
-                  background: 'linear-gradient(145deg, #171d27 0%, #12161f 100%)',
-                  color: '#f1f5f9',
+                  background: 'linear-gradient(145deg, #ffffff 0%, #fff8f3 100%)',
+                  color: '#14181b',
                   borderRadius: '20px',
                   padding: '22px',
-                  border: '1.5px solid rgba(201, 119, 45, 0.36)',
+                  border: '1.5px solid #fed7aa',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
                   gap: '14px',
-                  boxShadow: '0 18px 36px -18px rgba(0, 0, 0, 0.6)',
+                  boxShadow: '0 14px 32px -18px rgba(199, 85, 23, 0.22)',
                 }}
               >
                 <div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
                     <span
                       style={{
-                        background: '#c9772d',
+                        background: '#ea580c',
                         color: '#fff',
                         padding: '3px 12px',
                         borderRadius: '999px',
@@ -806,18 +805,18 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     >
                       {b.badge}
                     </span>
-                    <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 700 }}>شامل البرمجة والتطبيق</span>
+                    <span style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 700 }}>شامل البرمجة والتطبيق</span>
                   </div>
-                  <h3 style={{ fontSize: '1.12rem', fontWeight: 900, marginBottom: '6px', color: '#f8fafc' }}>
+                  <h3 style={{ fontSize: '1.12rem', fontWeight: 900, marginBottom: '6px', color: '#14181b' }}>
                     {b.title}
                   </h3>
-                  <p style={{ fontSize: '0.84rem', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.55 }}>
+                  <p style={{ fontSize: '0.84rem', color: '#47525c', marginBottom: '12px', lineHeight: 1.55 }}>
                     {b.subtitle}
                   </p>
-                  <ul style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.82rem', color: '#cbd5e1', fontWeight: 700 }}>
+                  <ul style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '0.82rem', color: '#334155', fontWeight: 700 }}>
                     {b.items.map((it) => (
                       <li key={it} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px' }}>
-                        <span style={{ color: '#34d399', fontWeight: 900 }}>✓</span>
+                        <span style={{ color: '#16a34a', fontWeight: 900 }}>✓</span>
                         <span>{it}</span>
                       </li>
                     ))}
@@ -832,7 +831,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     flexWrap: 'wrap',
                     gap: '12px',
                     paddingTop: '14px',
-                    borderTop: '1px solid rgba(201, 119, 45, 0.25)',
+                    borderTop: '1px solid #fed7aa',
                   }}
                 >
                   <div>
@@ -842,7 +841,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                           <span
                             style={{
                               fontSize: '0.8rem',
-                              color: '#64748b',
+                              color: '#94a3b8',
                               textDecoration: 'line-through',
                               display: 'block',
                             }}
@@ -850,12 +849,12 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                             {b.oldPrice.toLocaleString('en-US')} {b.currency}
                           </span>
                         ) : null}
-                        <strong style={{ fontSize: '1.35rem', fontWeight: 900, color: '#f3a85b' }}>
+                        <strong style={{ fontSize: '1.35rem', fontWeight: 900, color: '#c75517' }}>
                           {b.price.toLocaleString('en-US')} {b.currency}
                         </strong>
                       </>
                     ) : (
-                      <strong style={{ fontSize: '1.05rem', fontWeight: 900, color: '#f3a85b' }}>
+                      <strong style={{ fontSize: '1.05rem', fontWeight: 900, color: '#c75517' }}>
                         السعر عند الطلب (عرض سعر)
                       </strong>
                     )}
@@ -868,7 +867,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                       padding: '11px 18px',
                       borderRadius: '12px',
                       border: 'none',
-                      background: 'linear-gradient(135deg, #c9772d, #e08d3c)',
+                      background: 'linear-gradient(135deg, #f97316, #c75517)',
                       color: '#fff',
                       fontWeight: 900,
                       fontSize: '0.86rem',
@@ -886,8 +885,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         {/* Search & Category Filter Bar */}
         <div
           style={{
-            background: '#10151d',
-            border: '1px solid rgba(255, 255, 255, 0.09)',
+            background: '#f6f5f3',
+            border: '1px solid #e3e6e9',
             borderRadius: '18px',
             padding: '16px',
             marginBottom: '22px',
@@ -903,15 +902,14 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 flex: '1 1 280px',
                 padding: '11px 16px',
                 borderRadius: '12px',
-                border: '1.5px solid rgba(255, 255, 255, 0.12)',
-                background: '#0d1118',
-                color: '#f1f5f9',
+                border: '1.5px solid #e3e6e9',
+                background: '#ffffff',
                 fontSize: '16px',
                 fontWeight: 700,
               }}
             />
-            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#94a3b8' }}>
-              إجمالي المعروض: <strong style={{ color: '#f3a85b' }}>{filteredProducts.length}</strong> منتج
+            <span style={{ fontSize: '0.84rem', fontWeight: 800, color: '#47525c' }}>
+              إجمالي المعروض: <strong style={{ color: '#c75517' }}>{filteredProducts.length}</strong> منتج
             </span>
           </div>
 
@@ -957,7 +955,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 <div>
                   {/* Visual Top Header or Uploaded Image */}
                   {p.imageUrl ? (
-                    <div style={{ position: 'relative', height: '190px', background: '#0b0e13', overflow: 'hidden' }}>
+                    <div style={{ position: 'relative', height: '190px', background: '#f8fafc', overflow: 'hidden' }}>
                       <img
                         src={p.imageUrl}
                         alt={p.name}
@@ -969,7 +967,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                             position: 'absolute',
                             top: '12px',
                             right: '12px',
-                            background: '#c9772d',
+                            background: '#ea580c',
                             color: '#fff',
                             padding: '3px 10px',
                             borderRadius: '999px',
@@ -985,8 +983,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     <div
                       style={{
                         padding: '16px 18px 14px',
-                        background: `linear-gradient(135deg, ${cat.accent}22 0%, #0d1118 100%)`,
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+                        background: `linear-gradient(135deg, ${cat.accent}18 0%, #f8fafc 100%)`,
+                        borderBottom: '1px solid #f1f5f9',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
@@ -998,8 +996,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                             width: '42px',
                             height: '42px',
                             borderRadius: '12px',
-                            background: '#141a23',
-                            border: `1.5px solid ${cat.accent}55`,
+                            background: '#ffffff',
+                            border: `1.5px solid ${cat.accent}44`,
                             display: 'grid',
                             placeItems: 'center',
                             fontSize: '1.35rem',
@@ -1008,10 +1006,10 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                           {cat.icon}
                         </span>
                         <div>
-                          <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#f3a85b', display: 'block' }}>
+                          <span style={{ fontSize: '0.72rem', fontWeight: 800, color: cat.accent, display: 'block' }}>
                             {cat.shortTitle}
                           </span>
-                          <span style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: '#94a3b8' }}>
+                          <span style={{ fontSize: '0.7rem', fontFamily: 'monospace', color: '#64748b' }}>
                             {p.code} · {p.brand}
                           </span>
                         </div>
@@ -1019,9 +1017,9 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                       {p.badge && (
                         <span
                           style={{
-                            background: 'rgba(201, 119, 45, 0.16)',
-                            color: '#fed7aa',
-                            border: '1px solid rgba(224, 141, 60, 0.36)',
+                            background: '#fff3ea',
+                            color: '#c75517',
+                            border: '1px solid #fed7aa',
                             padding: '3px 9px',
                             borderRadius: '999px',
                             fontSize: '0.7rem',
@@ -1036,10 +1034,10 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
 
                   {/* Content */}
                   <div style={{ padding: '16px 18px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                    <h3 style={{ fontSize: '1.02rem', fontWeight: 900, lineHeight: 1.4, color: '#f8fafc', margin: 0 }}>
+                    <h3 style={{ fontSize: '1.02rem', fontWeight: 900, lineHeight: 1.4, color: '#14181b', margin: 0 }}>
                       {p.name}
                     </h3>
-                    <p style={{ fontSize: '0.84rem', color: '#94a3b8', lineHeight: 1.58, margin: 0 }}>
+                    <p style={{ fontSize: '0.84rem', color: '#47525c', lineHeight: 1.58, margin: 0 }}>
                       {p.description}
                     </p>
                     {p.specs.length > 0 && (
@@ -1049,14 +1047,14 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                             key={s}
                             style={{
                               fontSize: '0.78rem',
-                              color: '#cbd5e1',
+                              color: '#334155',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '6px',
                               fontWeight: 700,
                             }}
                           >
-                            <span style={{ color: '#e08d3c' }}>•</span>
+                            <span style={{ color: '#ea580c' }}>•</span>
                             <span>{s}</span>
                           </li>
                         ))}
@@ -1069,8 +1067,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 <div
                   style={{
                     padding: '14px 18px 18px',
-                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-                    background: '#0d1118',
+                    borderTop: '1px solid #f1f5f9',
+                    background: '#fafaf9',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '10px',
@@ -1085,9 +1083,9 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                       fontWeight: 800,
                       padding: '7px 10px',
                       borderRadius: '10px',
-                      background: withInstall ? 'rgba(16, 185, 129, 0.14)' : '#141a23',
-                      border: withInstall ? '1.5px solid rgba(52, 211, 153, 0.45)' : '1px solid rgba(255, 255, 255, 0.09)',
-                      color: withInstall ? '#6ee7b7' : '#cbd5e1',
+                      background: withInstall ? '#ecfdf5' : '#ffffff',
+                      border: withInstall ? '1.5px solid #10b981' : '1px solid #e3e6e9',
+                      color: withInstall ? '#065f46' : '#47525c',
                       cursor: 'pointer',
                     }}
                   >
@@ -1110,15 +1108,15 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                         <>
                           {p.oldPrice && p.oldPrice > p.price && (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontSize: '0.76rem', color: '#64748b', textDecoration: 'line-through' }}>
+                              <span style={{ fontSize: '0.76rem', color: '#94a3b8', textDecoration: 'line-through' }}>
                                 {p.oldPrice.toLocaleString('en-US')}
                               </span>
                               <span
                                 style={{
                                   fontSize: '0.68rem',
                                   fontWeight: 900,
-                                  background: 'rgba(16, 185, 129, 0.18)',
-                                  color: '#6ee7b7',
+                                  background: '#dcfce7',
+                                  color: '#15803d',
                                   padding: '1px 6px',
                                   borderRadius: '6px',
                                 }}
@@ -1128,20 +1126,20 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                             </div>
                           )}
                           <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                            <strong style={{ fontSize: '1.28rem', fontWeight: 900, color: '#f3a85b' }}>
+                            <strong style={{ fontSize: '1.28rem', fontWeight: 900, color: '#c75517' }}>
                               {(p.price + (withInstall && p.installPrice ? p.installPrice : 0)).toLocaleString('en-US')}
                             </strong>
-                            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8' }}>
+                            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#47525c' }}>
                               {p.currency} / {p.unit}
                             </span>
                           </div>
                         </>
                       ) : (
                         <div>
-                          <strong style={{ fontSize: '1rem', fontWeight: 900, color: '#f3a85b', display: 'block' }}>
+                          <strong style={{ fontSize: '1rem', fontWeight: 900, color: '#c75517', display: 'block' }}>
                             السعر عند الطلب
                           </strong>
-                          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#94a3b8' }}>
+                          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b' }}>
                             أضف للسلة لطلب عرض سعر ({p.unit})
                           </span>
                         </div>
@@ -1157,13 +1155,13 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                         borderRadius: '12px',
                         border: 'none',
                         background: p.inStock
-                          ? 'linear-gradient(135deg, #c9772d 0%, #e08d3c 100%)'
-                          : '#334155',
+                          ? 'linear-gradient(135deg, #f97316 0%, #c75517 100%)'
+                          : '#cbd5e1',
                         color: '#ffffff',
                         fontWeight: 900,
                         fontSize: '0.85rem',
                         cursor: p.inStock ? 'pointer' : 'not-allowed',
-                        boxShadow: p.inStock ? '0 6px 16px -4px rgba(201, 119, 45, 0.45)' : 'none',
+                        boxShadow: p.inStock ? '0 6px 16px -4px rgba(249, 115, 22, 0.45)' : 'none',
                       }}
                     >
                       {p.inStock ? '🛒 أضف للسلة' : 'نفد حالياً'}
@@ -1199,23 +1197,22 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             style={{
               width: '100%',
               maxWidth: '480px',
-              background: '#141a23',
-              color: '#f1f5f9',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              background: '#ffffff',
+              color: '#14181b',
               borderRadius: '20px',
               padding: '22px',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.4)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {mntRef ? (
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ fontSize: '2.5rem' }}>🛠️</div>
-                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#7dd3fc' }}>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#0369a1' }}>
                   تم تسجيل طلب التنفيذ والصيانة بنجاح!
                 </h3>
-                <p style={{ margin: 0, fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.65 }}>
-                  رقم المرجع: <strong style={{ fontFamily: 'monospace', color: '#f1f5f9' }}>{mntRef}</strong>
+                <p style={{ margin: 0, fontSize: '0.88rem', color: '#47525c', lineHeight: 1.65 }}>
+                  رقم المرجع: <strong style={{ fontFamily: 'monospace' }}>{mntRef}</strong>
                   <br />
                   تم إشعار فريق الصيانة والهندسة في فاي تك فوراً، وسيتواصل معك المهندس المختص على الرقم{' '}
                   <strong dir="ltr">{mntPhone}</strong> لتحديد المعاينة.
@@ -1239,27 +1236,27 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             ) : (
               <form onSubmit={handleSubmitMaintenanceRequest} style={{ display: 'flex', flexDirection: 'column', gap: '11px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong style={{ fontSize: '1.05rem', fontWeight: 900, color: '#f8fafc' }}>
+                  <strong style={{ fontSize: '1.05rem', fontWeight: 900 }}>
                     🛠️ حجز خدمة تنفيذ أو صيانة هندسية
                   </strong>
                   <button
                     type="button"
                     onClick={() => setSelectedMaintenance(null)}
-                    style={{ border: '1px solid rgba(255,255,255,0.12)', background: '#0d1118', color: '#cbd5e1', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontWeight: 800 }}
+                    style={{ border: 'none', background: '#f1f5f9', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontWeight: 800 }}
                   >
                     ✕
                   </button>
                 </div>
 
-                <div style={{ background: 'rgba(14, 165, 233, 0.12)', border: '1px solid rgba(56, 189, 248, 0.3)', borderRadius: '12px', padding: '10px 12px', fontSize: '0.82rem' }}>
-                  <strong style={{ color: '#7dd3fc', display: 'block' }}>{selectedMaintenance.title}</strong>
-                  <span style={{ color: '#94a3b8' }}>الكود: {selectedMaintenance.code} · {selectedMaintenance.warrantyLabel}</span>
+                <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', padding: '10px 12px', fontSize: '0.82rem' }}>
+                  <strong style={{ color: '#0369a1', display: 'block' }}>{selectedMaintenance.title}</strong>
+                  <span style={{ color: '#47525c' }}>الكود: {selectedMaintenance.code} · {selectedMaintenance.warrantyLabel}</span>
                 </div>
 
                 <select
                   value={mntMode}
                   onChange={(e) => setMntMode(e.target.value)}
-                  style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', fontSize: '15px', fontWeight: 800, background: '#0d1118', color: '#f1f5f9' }}
+                  style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '15px', fontWeight: 800, background: '#ffffff' }}
                 >
                   <option value="تنفيذ وتأسيس جديد">🏗️ تنفيذ وتأسيس جديد</option>
                   <option value="صيانة وإصلاح عطل">🔧 صيانة وإصلاح عطل</option>
@@ -1273,7 +1270,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     onChange={(e) => setMntName(e.target.value)}
                     placeholder="الاسم الكامل *"
                     required
-                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', background: '#0d1118', color: '#f1f5f9', fontSize: '16px', fontWeight: 700 }}
+                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '16px', fontWeight: 700 }}
                   />
                   <input
                     value={mntPhone}
@@ -1282,7 +1279,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     dir="ltr"
                     inputMode="tel"
                     required
-                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', background: '#0d1118', color: '#f1f5f9', fontSize: '16px', fontWeight: 700, textAlign: 'right' }}
+                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '16px', fontWeight: 700, textAlign: 'right' }}
                   />
                 </div>
 
@@ -1291,13 +1288,13 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     value={mntCity}
                     onChange={(e) => setMntCity(e.target.value)}
                     placeholder="المدينة والمنطقة"
-                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', background: '#0d1118', color: '#f1f5f9', fontSize: '15px' }}
+                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '15px' }}
                   />
                   <input
                     value={mntDate}
                     onChange={(e) => setMntDate(e.target.value)}
                     placeholder="الموعد المفضل (مثال: غداً 4 عصراً)"
-                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', background: '#0d1118', color: '#f1f5f9', fontSize: '15px' }}
+                    style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '15px' }}
                   />
                 </div>
 
@@ -1305,7 +1302,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                   value={mntAddress}
                   onChange={(e) => setMntAddress(e.target.value)}
                   placeholder="العنوان التفصيلي للموقع"
-                  style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', background: '#0d1118', color: '#f1f5f9', fontSize: '15px' }}
+                  style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '15px' }}
                 />
 
                 <textarea
@@ -1313,10 +1310,10 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                   onChange={(e) => setMntNotes(e.target.value)}
                   placeholder="وصف العطل أو الأعمال المطلوب تنفيذها (مساحة تقريبية / تفاصيل)"
                   rows={3}
-                  style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', background: '#0d1118', color: '#f1f5f9', fontSize: '15px' }}
+                  style={{ padding: '10px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '15px' }}
                 />
 
-                {mntErr && <div style={{ color: '#fca5a5', fontSize: '0.8rem', fontWeight: 700 }}>⚠️ {mntErr}</div>}
+                {mntErr && <div style={{ color: '#dc2626', fontSize: '0.8rem', fontWeight: 700 }}>⚠️ {mntErr}</div>}
 
                 <button
                   type="submit"
@@ -1345,7 +1342,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         <div className="pw-wrap">
           <div className="pw-footer-row">
             <div className="pw-footer-brand">
-              <img src="/brand/phitech-mark-light.svg" alt="" />
+              <img src="/brand/phitech-mark-color.svg" alt="" />
               <div>
                 <strong>{SITE.name}</strong>
                 <small>{SITE.tagline}</small>

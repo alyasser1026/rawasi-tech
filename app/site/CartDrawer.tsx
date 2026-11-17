@@ -586,21 +586,17 @@ export function CartDrawer({
           width: 100%;
           padding: 10px 12px;
           border-radius: 11px;
-          border: 1.5px solid rgba(255, 255, 255, 0.12);
-          background: #0d1118;
+          border: 1.5px solid #e2e8f0;
+          background: #ffffff;
           font-size: 15px;
           font-weight: 700;
-          color: #f1f5f9;
-          transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
-        }
-        .phi-cart-input::placeholder {
-          color: #64748b;
+          color: #14181b;
+          transition: border-color 0.16s ease, box-shadow 0.16s ease;
         }
         .phi-cart-input:focus {
           outline: none;
-          border-color: #c9772d;
-          background: #0b0e13;
-          box-shadow: 0 0 0 3px rgba(201, 119, 45, 0.2);
+          border-color: #f97316;
+          box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.16);
         }
       `}</style>
       <aside
@@ -608,12 +604,11 @@ export function CartDrawer({
         style={{
           width: 'min(100vw, 470px)',
           height: '100%',
-          background: '#10151d',
-          color: '#f1f5f9',
-          borderInlineEnd: '1px solid rgba(255, 255, 255, 0.1)',
+          background: '#f8fafc',
+          color: '#14181b',
           display: 'flex',
           flexDirection: 'column',
-          boxShadow: '16px 0 48px rgba(0,0,0,0.55)',
+          boxShadow: '16px 0 48px rgba(0,0,0,0.34)',
           overflow: 'hidden',
         }}
         onClick={(e) => e.stopPropagation()}
@@ -624,7 +619,7 @@ export function CartDrawer({
             padding: '18px 20px 14px',
             background: 'linear-gradient(135deg, #0b1018 0%, #172030 100%)',
             color: '#ffffff',
-            borderBottom: '2px solid #c9772d',
+            borderBottom: '2px solid #ea580c',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
@@ -753,8 +748,8 @@ export function CartDrawer({
           {orderSuccessRef ? (
             <div
               style={{
-                background: 'rgba(16, 185, 129, 0.12)',
-                border: '1.5px solid rgba(52, 211, 153, 0.35)',
+                background: '#ecfdf5',
+                border: '1.5px solid #6ee7b7',
                 borderRadius: '18px',
                 padding: '24px 18px',
                 textAlign: 'center',
@@ -764,10 +759,10 @@ export function CartDrawer({
               }}
             >
               <div style={{ fontSize: '2.6rem' }}>✅</div>
-              <h4 style={{ margin: 0, fontSize: '1.18rem', fontWeight: 900, color: '#6ee7b7' }}>
+              <h4 style={{ margin: 0, fontSize: '1.18rem', fontWeight: 900, color: '#065f46' }}>
                 تم استلام طلبك بنجاح!
               </h4>
-              <p style={{ margin: 0, fontSize: '0.88rem', color: '#a7f3d0', lineHeight: 1.6 }}>
+              <p style={{ margin: 0, fontSize: '0.88rem', color: '#047857', lineHeight: 1.6 }}>
                 رقم مرجع الطلب: <strong style={{ fontFamily: 'monospace', fontSize: '1rem' }}>{orderSuccessRef}</strong>
                 <br />
                 تم إرسال تفاصيل سلتك فوراً إلى الإدارة الهندسية والمبيعات في فاي تك، وسنتواصل معك على الرقم{' '}
@@ -806,9 +801,9 @@ export function CartDrawer({
                 style={{
                   padding: '10px',
                   borderRadius: '10px',
-                  border: '1px solid rgba(52, 211, 153, 0.35)',
-                  background: '#141a23',
-                  color: '#6ee7b7',
+                  border: '1px solid #a7f3d0',
+                  background: '#ffffff',
+                  color: '#065f46',
                   fontWeight: 800,
                   cursor: 'pointer',
                 }}
@@ -817,9 +812,9 @@ export function CartDrawer({
               </button>
             </div>
           ) : items.length === 0 ? (
-            <div style={{ padding: '36px 16px', textAlign: 'center', color: '#94a3b8', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
+            <div style={{ padding: '36px 16px', textAlign: 'center', color: '#64748b', display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
               <div style={{ fontSize: '2.8rem' }}>🛒</div>
-              <strong style={{ display: 'block', fontSize: '1.05rem', color: '#f1f5f9' }}>
+              <strong style={{ display: 'block', fontSize: '1.05rem', color: '#14181b' }}>
                 سلة مشترياتك فارغة حالياً
               </strong>
               <p style={{ fontSize: '0.86rem', margin: 0, maxWidth: '30ch', lineHeight: 1.6 }}>
@@ -836,9 +831,9 @@ export function CartDrawer({
                     marginTop: '6px',
                     padding: '10px 18px',
                     borderRadius: '11px',
-                    border: '1px solid rgba(201, 119, 45, 0.4)',
-                    background: 'rgba(201, 119, 45, 0.14)',
-                    color: '#fed7aa',
+                    border: '1px solid #fed7aa',
+                    background: '#fff3ea',
+                    color: '#c75517',
                     fontWeight: 800,
                     fontSize: '0.84rem',
                     cursor: 'pointer',
@@ -855,14 +850,14 @@ export function CartDrawer({
                   style={{
                     padding: '10px 12px',
                     borderRadius: '12px',
-                    background: 'rgba(201, 119, 45, 0.12)',
-                    border: '1px solid rgba(201, 119, 45, 0.34)',
+                    background: '#fff7ed',
+                    border: '1px solid #fed7aa',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: '10px',
                     fontSize: '0.8rem',
-                    color: '#fed7aa',
+                    color: '#7c2d12',
                     fontWeight: 700,
                   }}
                 >
@@ -877,9 +872,9 @@ export function CartDrawer({
                       flexShrink: 0,
                       padding: '5px 10px',
                       borderRadius: '8px',
-                      border: '1px solid rgba(224, 141, 60, 0.42)',
-                      background: '#141a23',
-                      color: '#f3a85b',
+                      border: '1px solid #fdba74',
+                      background: '#fff',
+                      color: '#c75517',
                       fontWeight: 800,
                       fontSize: '0.76rem',
                       cursor: 'pointer',
@@ -892,7 +887,7 @@ export function CartDrawer({
               {/* Cart Items List */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong style={{ fontSize: '0.84rem', color: '#cbd5e1' }}>
+                  <strong style={{ fontSize: '0.84rem', color: '#47525c' }}>
                     الأصناف المضافة ({items.length})
                   </strong>
                   <button
@@ -901,7 +896,7 @@ export function CartDrawer({
                     style={{
                       border: 'none',
                       background: 'transparent',
-                      color: '#fca5a5',
+                      color: '#dc2626',
                       fontSize: '0.76rem',
                       fontWeight: 800,
                       cursor: 'pointer',
@@ -916,11 +911,11 @@ export function CartDrawer({
                     <div
                       key={item.productId}
                       style={{
-                        border: '1px solid rgba(255, 255, 255, 0.09)',
+                        border: '1px solid #e2e8f0',
                         borderRadius: '16px',
                         padding: '14px',
-                        background: '#141a23',
-                        boxShadow: '0 8px 20px -8px rgba(0, 0, 0, 0.45)',
+                        background: '#ffffff',
+                        boxShadow: '0 4px 14px -8px rgba(15, 23, 42, 0.12)',
                         display: 'flex',
                         flexDirection: 'column',
                         gap: '10px',
@@ -933,8 +928,8 @@ export function CartDrawer({
                               display: 'inline-block',
                               fontSize: '0.68rem',
                               fontFamily: 'monospace',
-                              color: '#fed7aa',
-                              background: 'rgba(201, 119, 45, 0.16)',
+                              color: '#c75517',
+                              background: '#fff3ea',
                               padding: '2px 7px',
                               borderRadius: '6px',
                               fontWeight: 800,
@@ -943,7 +938,7 @@ export function CartDrawer({
                           >
                             {item.code}
                           </span>
-                          <strong style={{ display: 'block', fontSize: '0.9rem', lineHeight: 1.45, color: '#f1f5f9' }}>
+                          <strong style={{ display: 'block', fontSize: '0.9rem', lineHeight: 1.45, color: '#0f172a' }}>
                             {item.name}
                           </strong>
                         </div>
@@ -955,9 +950,9 @@ export function CartDrawer({
                           style={{
                             width: '30px',
                             height: '30px',
-                            border: '1px solid rgba(248, 113, 113, 0.3)',
-                            background: 'rgba(239, 68, 68, 0.14)',
-                            color: '#fca5a5',
+                            border: '1px solid #fecaca',
+                            background: '#fef2f2',
+                            color: '#dc2626',
                             borderRadius: '9px',
                             display: 'grid',
                             placeItems: 'center',
@@ -980,9 +975,9 @@ export function CartDrawer({
                           gap: '8px',
                           fontSize: '0.77rem',
                           fontWeight: 800,
-                          color: item.withInstall ? '#6ee7b7' : '#cbd5e1',
-                          background: item.withInstall ? 'rgba(16, 185, 129, 0.14)' : '#0d1118',
-                          border: item.withInstall ? '1px solid rgba(52, 211, 153, 0.35)' : '1px solid rgba(255, 255, 255, 0.09)',
+                          color: item.withInstall ? '#065f46' : '#47525c',
+                          background: item.withInstall ? '#ecfdf5' : '#f8fafc',
+                          border: item.withInstall ? '1px solid #6ee7b7' : '1px solid #e2e8f0',
                           padding: '7px 10px',
                           borderRadius: '10px',
                           cursor: 'pointer',
@@ -1001,29 +996,29 @@ export function CartDrawer({
                         </span>
                       </label>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#0d1118', border: '1px solid rgba(255, 255, 255, 0.1)', borderRadius: '999px', padding: '3px 6px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '999px', padding: '3px 6px' }}>
                           <button
                             type="button"
                             onClick={() => onUpdateQty(item.productId, -1)}
                             aria-label="تقليل الكمية"
-                            style={{ width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: '#1e2633', color: '#f1f5f9', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.25)' }}
+                            style={{ width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: '#ffffff', color: '#0f172a', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
                           >
                             −
                           </button>
-                          <strong style={{ fontSize: '0.88rem', minWidth: '24px', textAlign: 'center', color: '#f1f5f9' }}>{item.qty}</strong>
+                          <strong style={{ fontSize: '0.88rem', minWidth: '24px', textAlign: 'center' }}>{item.qty}</strong>
                           <button
                             type="button"
                             onClick={() => onUpdateQty(item.productId, 1)}
                             aria-label="زيادة الكمية"
-                            style={{ width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: '#c9772d', color: '#ffffff', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer' }}
+                            style={{ width: '26px', height: '26px', borderRadius: '50%', border: 'none', background: '#ea580c', color: '#ffffff', fontWeight: 900, fontSize: '0.95rem', cursor: 'pointer' }}
                           >
                             +
                           </button>
-                          <span style={{ fontSize: '0.73rem', color: '#94a3b8', paddingInline: '6px', fontWeight: 700 }}>{item.unit}</span>
+                          <span style={{ fontSize: '0.73rem', color: '#64748b', paddingInline: '6px', fontWeight: 700 }}>{item.unit}</span>
                         </div>
 
-                        <strong style={{ fontSize: '0.94rem', color: '#f3a85b', fontWeight: 900 }}>
+                        <strong style={{ fontSize: '0.94rem', color: '#c75517', fontWeight: 900 }}>
                           {item.price > 0
                             ? `${(unitEffective * item.qty).toLocaleString('en-US')} ${item.currency}`
                             : 'تسعير عند الطلب'}
@@ -1037,8 +1032,8 @@ export function CartDrawer({
               {/* Delivery & Contact Form */}
               <div
                 style={{
-                  background: '#141a23',
-                  border: '1px solid rgba(255, 255, 255, 0.09)',
+                  background: '#ffffff',
+                  border: '1px solid #e2e8f0',
                   borderRadius: '16px',
                   padding: '14px',
                   display: 'flex',
@@ -1046,7 +1041,7 @@ export function CartDrawer({
                   gap: '10px',
                 }}
               >
-                <strong style={{ fontSize: '0.88rem', color: '#f1f5f9' }}>
+                <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>
                   📍 بيانات التواصل وموقع التوريد
                 </strong>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
@@ -1097,9 +1092,9 @@ export function CartDrawer({
                   style={{
                     padding: '10px 12px',
                     borderRadius: '10px',
-                    background: 'rgba(239, 68, 68, 0.14)',
-                    color: '#fecaca',
-                    border: '1px solid rgba(248, 113, 113, 0.34)',
+                    background: '#fef2f2',
+                    color: '#b91c1c',
+                    border: '1px solid #fecaca',
                     fontSize: '0.82rem',
                     fontWeight: 700,
                   }}
@@ -1111,8 +1106,8 @@ export function CartDrawer({
               {/* Total & Submit */}
               <div
                 style={{
-                  background: 'rgba(201, 119, 45, 0.14)',
-                  border: '1px solid rgba(201, 119, 45, 0.34)',
+                  background: '#fff3ea',
+                  border: '1px solid #fed7aa',
                   borderRadius: '14px',
                   padding: '14px 16px',
                   display: 'flex',
@@ -1121,10 +1116,10 @@ export function CartDrawer({
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#cbd5e1' }}>
+                  <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#47525c' }}>
                     {hasUnpricedItems && totalAmount <= 0 ? 'نوع الطلب:' : 'الإجمالي التقديري للسلة:'}
                   </span>
-                  <strong style={{ fontSize: totalAmount > 0 ? '1.35rem' : '1.05rem', fontWeight: 900, color: '#fed7aa' }}>
+                  <strong style={{ fontSize: totalAmount > 0 ? '1.35rem' : '1.05rem', fontWeight: 900, color: '#c75517' }}>
                     {totalAmount > 0
                       ? `${totalAmount.toLocaleString('en-US')} ${currency}${hasUnpricedItems ? ' (+ أصناف للتسعير)' : ''}`
                       : 'طلب عرض سعر وتوريد'}
@@ -1138,12 +1133,12 @@ export function CartDrawer({
                     padding: '13px 18px',
                     borderRadius: '12px',
                     border: 'none',
-                    background: 'linear-gradient(135deg, #c9772d, #e08d3c)',
+                    background: 'linear-gradient(135deg, #f97316, #c75517)',
                     color: '#ffffff',
                     fontWeight: 900,
                     fontSize: '0.96rem',
                     cursor: submitting ? 'wait' : 'pointer',
-                    boxShadow: '0 8px 20px -6px rgba(201, 119, 45, 0.5)',
+                    boxShadow: '0 8px 20px -6px rgba(249, 115, 22, 0.55)',
                   }}
                 >
                   {submitting ? 'جاري تسجيل الطلب وإشعار المبيعات...' : '✅ اعتماد الطلب وإرسال للتنفيذ والمبيعات'}

@@ -494,10 +494,10 @@ export default function CapitalTower3D() {
       style={{
         borderRadius: '24px',
         padding: '24px',
-        background: '#141a23',
-        color: '#f1f5f9',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 22px 48px -18px rgba(0, 0, 0, 0.65)',
+        background: '#ffffff',
+        color: '#14181b',
+        border: '1px solid #e3e6e9',
+        boxShadow: '0 12px 36px -12px rgba(20, 28, 34, 0.08)',
       }}
     >
       <style>{`
@@ -568,7 +568,7 @@ export default function CapitalTower3D() {
           }
         }
         .ct3d-pill {
-          border: 1px solid rgba(255, 255, 255, 0.1);
+          border: 1px solid #e3e6e9;
           border-radius: 12px;
           padding: 9px 12px;
           font-size: 0.81rem;
@@ -579,17 +579,17 @@ export default function CapitalTower3D() {
           align-items: center;
           justify-content: center;
           gap: 6px;
-          background: #141a23;
-          color: #cbd5e1;
-          box-shadow: 0 2px 6px rgba(0,0,0,0.22);
+          background: #ffffff;
+          color: #47525c;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.03);
           white-space: nowrap;
         }
-        .ct3d-pill:hover { transform: translateY(-1px); border-color: #c9772d; color: #f3a85b; }
+        .ct3d-pill:hover { transform: translateY(-1px); border-color: #f97316; color: #f97316; }
         .ct3d-pill.is-active {
-          background: linear-gradient(135deg, #c9772d, #e08d3c) !important;
+          background: #ea580c !important;
           color: #ffffff !important;
-          border-color: #e08d3c !important;
-          box-shadow: 0 6px 16px rgba(201, 119, 45, 0.35) !important;
+          border-color: #ea580c !important;
+          box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35) !important;
         }
         .ct3d-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.78fr); gap: 18px; align-items: stretch; }
         .ct3d-units { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
@@ -619,9 +619,9 @@ export default function CapitalTower3D() {
                 gap: '6px',
                 padding: '4px 12px',
                 borderRadius: '999px',
-                background: 'rgba(201, 119, 45, 0.16)',
-                color: '#fed7aa',
-                border: '1px solid rgba(201, 119, 45, 0.35)',
+                background: '#fff3ea',
+                color: '#c75517',
+                border: '1px solid rgba(249, 115, 22, 0.25)',
                 fontSize: '0.76rem',
                 fontWeight: 900,
               }}
@@ -632,9 +632,9 @@ export default function CapitalTower3D() {
               style={{
                 padding: '4px 10px',
                 borderRadius: '999px',
-                background: engineMode === 'bim' ? 'rgba(14, 165, 233, 0.16)' : 'rgba(16, 185, 129, 0.16)',
-                color: engineMode === 'bim' ? '#7dd3fc' : '#6ee7b7',
-                border: engineMode === 'bim' ? '1px solid rgba(56, 189, 248, 0.32)' : '1px solid rgba(52, 211, 153, 0.32)',
+                background: engineMode === 'bim' ? 'rgba(14, 165, 233, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                color: engineMode === 'bim' ? '#0284c7' : '#059669',
+                border: engineMode === 'bim' ? '1px solid rgba(14, 165, 233, 0.25)' : '1px solid rgba(16, 185, 129, 0.25)',
                 fontSize: '0.74rem',
                 fontWeight: 800,
               }}
@@ -642,7 +642,7 @@ export default function CapitalTower3D() {
               {engineMode === 'bim' ? 'وضع BIM الهندسي (IFC Twin)' : 'وضع العرض المعماري 3D'}
             </span>
           </div>
-          <h3 style={{ margin: 0, fontSize: 'clamp(1.15rem, 2vw, 1.45rem)', fontWeight: 900, color: '#f8fafc' }}>
+          <h3 style={{ margin: 0, fontSize: 'clamp(1.15rem, 2vw, 1.45rem)', fontWeight: 900, color: '#14181b' }}>
             التجسيم المعماري الاحترافي ثلاثي الأبعاد وتحويله الفوري إلى نموذج BIM
           </h3>
         </div>
@@ -663,9 +663,9 @@ export default function CapitalTower3D() {
               background:
                 engineMode === 'bim'
                   ? 'linear-gradient(135deg, #0ea5e9, #0284c7)'
-                  : 'linear-gradient(135deg, #c9772d, #e08d3c)',
+                  : 'linear-gradient(135deg, #f97316, #ea580c)',
               color: '#fff',
-              boxShadow: '0 8px 20px -6px rgba(201, 119, 45, 0.45)',
+              boxShadow: '0 8px 20px -6px rgba(249, 115, 22, 0.5)',
             }}
           >
             {engineMode === 'bim'
@@ -678,9 +678,9 @@ export default function CapitalTower3D() {
             style={{
               padding: '9px 14px',
               borderRadius: '12px',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
-              background: '#0d1118',
-              color: '#cbd5e1',
+              border: '1px solid #e3e6e9',
+              background: '#f6f5f3',
+              color: '#47525c',
               textDecoration: 'none',
               fontWeight: 800,
               fontSize: '0.8rem',
@@ -697,8 +697,8 @@ export default function CapitalTower3D() {
         style={{
           padding: '8px',
           borderRadius: '16px',
-          background: '#0d1118',
-          border: '1px solid rgba(255, 255, 255, 0.09)',
+          background: '#f6f5f3',
+          border: '1px solid #e3e6e9',
           marginBottom: '14px',
         }}
       >
@@ -731,7 +731,7 @@ export default function CapitalTower3D() {
         }}
       >
         <div className="ct3d-pill-bar">
-          <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8' }}>الإضاءة:</span>
+          <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#47525c' }}>الإضاءة:</span>
           {[
             { id: 'brochure' as TowerLightingPreset, label: '✨ ذهبية (البروشور)' },
             { id: 'daylight' as TowerLightingPreset, label: '☀️ نهارية' },
@@ -744,10 +744,10 @@ export default function CapitalTower3D() {
               style={{
                 padding: '5px 12px',
                 borderRadius: '999px',
-                border: lighting === l.id ? '1.5px solid #e08d3c' : '1px solid rgba(255, 255, 255, 0.1)',
-                background: lighting === l.id ? 'rgba(201, 119, 45, 0.18)' : '#0d1118',
-                color: lighting === l.id ? '#fed7aa' : '#cbd5e1',
-                boxShadow: lighting === l.id ? '0 2px 8px rgba(201, 119, 45, 0.25)' : '0 1px 3px rgba(0,0,0,0.2)',
+                border: lighting === l.id ? '1.5px solid #ea580c' : '1px solid #e3e6e9',
+                background: lighting === l.id ? '#fff3ea' : '#ffffff',
+                color: lighting === l.id ? '#ea580c' : '#47525c',
+                boxShadow: lighting === l.id ? '0 2px 8px rgba(234, 88, 12, 0.2)' : '0 1px 3px rgba(0,0,0,0.03)',
                 fontSize: '0.76rem',
                 fontWeight: 800,
                 cursor: 'pointer',
@@ -769,10 +769,10 @@ export default function CapitalTower3D() {
                 style={{
                   padding: '5px 11px',
                   borderRadius: '9px',
-                  border: extCamKey === key ? '1px solid #e08d3c' : '1px solid rgba(255, 255, 255, 0.1)',
-                  background: extCamKey === key ? '#c9772d' : '#0d1118',
-                  color: extCamKey === key ? '#fff' : '#cbd5e1',
-                  boxShadow: extCamKey === key ? '0 2px 8px rgba(201, 119, 45, 0.35)' : 'none',
+                  border: extCamKey === key ? '1px solid #ea580c' : '1px solid #e3e6e9',
+                  background: extCamKey === key ? '#ea580c' : '#ffffff',
+                  color: extCamKey === key ? '#fff' : '#47525c',
+                  boxShadow: extCamKey === key ? '0 2px 8px rgba(234, 88, 12, 0.25)' : '0 1px 3px rgba(0,0,0,0.03)',
                   fontSize: '0.75rem',
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -788,9 +788,9 @@ export default function CapitalTower3D() {
             style={{
               padding: '5px 12px',
               borderRadius: '9px',
-              border: autoRotate ? 'none' : '1px solid rgba(52, 211, 153, 0.35)',
-              background: autoRotate ? '#10b981' : 'rgba(16, 185, 129, 0.14)',
-              color: autoRotate ? '#fff' : '#6ee7b7',
+              border: autoRotate ? 'none' : '1px solid #a7f3d0',
+              background: autoRotate ? '#10b981' : '#ecfdf5',
+              color: autoRotate ? '#fff' : '#059669',
               fontSize: '0.75rem',
               fontWeight: 800,
               cursor: 'pointer',
@@ -810,8 +810,8 @@ export default function CapitalTower3D() {
             minHeight: '500px',
             borderRadius: '20px',
             overflow: 'hidden',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            background: lighting === 'night' ? '#070a10' : lighting === 'daylight' ? '#1e2530' : '#0c0b0e',
+            border: '1px solid #e3e6e9',
+            background: lighting === 'night' ? '#090d14' : lighting === 'daylight' ? '#f4f0eb' : '#141210',
           }}
         >
           <div ref={hostRef} style={{ position: 'absolute', inset: 0 }} />
@@ -825,7 +825,7 @@ export default function CapitalTower3D() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 800,
-                color: '#f3a85b',
+                color: '#f97316',
               }}
             >
               جاري بناء المجسم المعماري ثلاثي الأبعاد…
@@ -843,7 +843,7 @@ export default function CapitalTower3D() {
                 padding: '24px',
                 textAlign: 'center',
                 fontWeight: 800,
-                color: '#94a3b8',
+                color: '#47525c',
               }}
             >
               المتصفح الحالي لا يدعم WebGL؛ استعرض بيانات الوحدات والطبقات في اللوحة المجاورة.
@@ -856,15 +856,15 @@ export default function CapitalTower3D() {
               position: 'absolute',
               top: '12px',
               right: '12px',
-              background: 'rgba(13, 17, 24, 0.84)',
+              background: 'rgba(255, 255, 255, 0.92)',
               backdropFilter: 'blur(8px)',
-              color: '#f1f5f9',
+              color: '#14181b',
               padding: '6px 14px',
               borderRadius: '999px',
               fontSize: '0.74rem',
               fontWeight: 800,
-              border: '1px solid rgba(255, 255, 255, 0.14)',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.45)',
+              border: '1px solid #e3e6e9',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.06)',
               pointerEvents: 'none',
             }}
           >
@@ -879,9 +879,9 @@ export default function CapitalTower3D() {
           style={{
             borderRadius: '20px',
             padding: '18px',
-            background: '#0d1118',
-            border: '1px solid rgba(255, 255, 255, 0.09)',
-            color: '#f1f5f9',
+            background: '#f6f5f3',
+            border: '1px solid #e3e6e9',
+            color: '#14181b',
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between',
@@ -891,7 +891,7 @@ export default function CapitalTower3D() {
           {/* When in BIM Mode: Live Layer Controls + Floor Explode & Section Slice */}
           {engineMode === 'bim' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#7dd3fc' }}>
+              <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#0284c7' }}>
                 طبقات نموذج BIM الهندسي (13 مستوى)
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -909,9 +909,9 @@ export default function CapitalTower3D() {
                         gap: '6px',
                         padding: '6px 11px',
                         borderRadius: '999px',
-                        border: on ? `1.5px solid ${layer.color}` : '1px solid rgba(255, 255, 255, 0.1)',
-                        background: on ? `${layer.color}26` : '#141a23',
-                        color: on ? '#f8fafc' : '#64748b',
+                        border: on ? `1.5px solid ${layer.color}` : '1px solid #e3e6e9',
+                        background: on ? `${layer.color}18` : '#ffffff',
+                        color: on ? '#14181b' : '#64748b',
                         fontSize: '0.76rem',
                         fontWeight: 800,
                         cursor: 'pointer',
@@ -933,7 +933,7 @@ export default function CapitalTower3D() {
                 })}
               </div>
 
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem', fontWeight: 800, color: '#cbd5e1' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem', fontWeight: 800, color: '#47525c' }}>
                 <span>فصل الأدوار رأسياً (Explode: {Math.round(explode * 100)}%)</span>
                 <input
                   type="range"
@@ -942,11 +942,11 @@ export default function CapitalTower3D() {
                   step={0.02}
                   value={explode}
                   onChange={(e) => setExplode(Number(e.target.value))}
-                  style={{ accentColor: '#38bdf8' }}
+                  style={{ accentColor: '#0284c7' }}
                 />
               </label>
 
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem', fontWeight: 800, color: '#cbd5e1' }}>
+              <label style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '0.8rem', fontWeight: 800, color: '#47525c' }}>
                 <span>القطع الأفقي للأدوار (إظهار حتى الدور: {floorCut === 13 ? 'السطح الكامل' : floorCut === 0 ? 'الأركيد' : `الدور ${floorCut}`})</span>
                 <input
                   type="range"
@@ -955,7 +955,7 @@ export default function CapitalTower3D() {
                   step={1}
                   value={floorCut}
                   onChange={(e) => setFloorCut(Number(e.target.value))}
-                  style={{ accentColor: '#e08d3c' }}
+                  style={{ accentColor: '#f97316' }}
                 />
               </label>
             </div>
@@ -967,7 +967,7 @@ export default function CapitalTower3D() {
                   style={{
                     padding: '4px 10px',
                     borderRadius: '8px',
-                    background: `${activeUnitSpec.accent}24`,
+                    background: `${activeUnitSpec.accent}18`,
                     color: activeUnitSpec.accent,
                     fontSize: '0.78rem',
                     fontWeight: 900,
@@ -979,17 +979,17 @@ export default function CapitalTower3D() {
                   {activeUnitSpec.areaSqm} م²
                 </strong>
               </div>
-              <h4 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 900, color: '#f8fafc' }}>
+              <h4 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 900, color: '#14181b' }}>
                 {activeUnitSpec.title} ({activeUnitSpec.enTitle})
               </h4>
-              <p style={{ margin: 0, fontSize: '0.83rem', color: '#94a3b8', lineHeight: 1.55 }}>
+              <p style={{ margin: 0, fontSize: '0.83rem', color: '#47525c', lineHeight: 1.55 }}>
                 {activeUnitSpec.summary}
               </p>
-              <div style={{ display: 'flex', gap: '10px', fontSize: '0.82rem', fontWeight: 800, color: '#e2e8f0' }}>
+              <div style={{ display: 'flex', gap: '10px', fontSize: '0.82rem', fontWeight: 800, color: '#14181b' }}>
                 <span>🛏️ {activeUnitSpec.bedrooms} غرف نوم</span>
                 <span>🚿 {activeUnitSpec.bathrooms} حمامات</span>
               </div>
-              <ul style={{ margin: 0, paddingInlineStart: '18px', fontSize: '0.79rem', lineHeight: 1.6, color: '#cbd5e1' }}>
+              <ul style={{ margin: 0, paddingInlineStart: '18px', fontSize: '0.79rem', lineHeight: 1.6, color: '#47525c' }}>
                 {activeUnitSpec.features.map((f) => (
                   <li key={f}>{f}</li>
                 ))}
@@ -998,17 +998,17 @@ export default function CapitalTower3D() {
           ) : (
             /* Exterior / Entrance / Typical Overview summary */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ fontSize: '0.86rem', fontWeight: 900, color: '#f3a85b' }}>
+              <div style={{ fontSize: '0.86rem', fontWeight: 900, color: '#c75517' }}>
                 بطاقة المواصفات — نموذج برج سكني وتجاري
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '0.78rem' }}>
-                <div style={{ padding: '8px 10px', borderRadius: '10px', background: '#141a23', border: '1px solid rgba(255, 255, 255, 0.09)' }}>
-                  <div style={{ color: '#94a3b8' }}>الارتفاع</div>
-                  <strong style={{ color: '#f8fafc' }}>أرضي تجاري + {TOWER_DIMS.residentialFloors} دور</strong>
+                <div style={{ padding: '8px 10px', borderRadius: '10px', background: '#ffffff', border: '1px solid #e3e6e9' }}>
+                  <div style={{ color: '#64748b' }}>الارتفاع</div>
+                  <strong style={{ color: '#14181b' }}>أرضي تجاري + {TOWER_DIMS.residentialFloors} دور</strong>
                 </div>
-                <div style={{ padding: '8px 10px', borderRadius: '10px', background: '#141a23', border: '1px solid rgba(255, 255, 255, 0.09)' }}>
-                  <div style={{ color: '#94a3b8' }}>صافي الدور المتكرر</div>
-                  <strong style={{ color: '#f8fafc' }}>{TOTAL_NET_RESIDENTIAL_AREA} م² (3 شقق)</strong>
+                <div style={{ padding: '8px 10px', borderRadius: '10px', background: '#ffffff', border: '1px solid #e3e6e9' }}>
+                  <div style={{ color: '#64748b' }}>صافي الدور المتكرر</div>
+                  <strong style={{ color: '#14181b' }}>{TOTAL_NET_RESIDENTIAL_AREA} م² (3 شقق)</strong>
                 </div>
               </div>
             </div>
@@ -1019,10 +1019,10 @@ export default function CapitalTower3D() {
             style={{
               borderRadius: '14px',
               padding: '14px',
-              background: '#141a23',
-              border: '1px solid rgba(255, 255, 255, 0.09)',
+              background: '#ffffff',
+              border: '1px solid #e3e6e9',
               borderRight: `4px solid ${selectedCard.color}`,
-              boxShadow: '0 6px 18px rgba(0,0,0,0.35)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
               display: 'flex',
               flexDirection: 'column',
               gap: '7px',
@@ -1036,24 +1036,24 @@ export default function CapitalTower3D() {
                   fontWeight: 800,
                   padding: '2px 8px',
                   borderRadius: '6px',
-                  background: `${selectedCard.color}24`,
+                  background: `${selectedCard.color}18`,
                   color: selectedCard.color,
                 }}
               >
                 {selectedCard.ifc}
               </span>
-              <span style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: '#94a3b8' }}>{selectedCard.code}</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.72rem', color: '#64748b' }}>{selectedCard.code}</span>
             </div>
-            <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 900, color: '#f8fafc' }}>{selectedCard.title}</h4>
-            <p style={{ margin: 0, fontSize: '0.8rem', lineHeight: 1.55, color: '#cbd5e1' }}>
-              <strong style={{ color: '#f3a85b' }}>الخامات: </strong>
+            <h4 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 900, color: '#14181b' }}>{selectedCard.title}</h4>
+            <p style={{ margin: 0, fontSize: '0.8rem', lineHeight: 1.55, color: '#47525c' }}>
+              <strong style={{ color: '#c75517' }}>الخامات: </strong>
               {selectedCard.material}
             </p>
-            <p style={{ margin: 0, fontSize: '0.78rem', lineHeight: 1.5, color: '#cbd5e1' }}>
-              <strong style={{ color: '#34d399' }}>أصول التنفيذ: </strong>
+            <p style={{ margin: 0, fontSize: '0.78rem', lineHeight: 1.5, color: '#47525c' }}>
+              <strong style={{ color: '#059669' }}>أصول التنفيذ: </strong>
               {selectedCard.executionNote}
             </p>
-            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: selectedCard.color, paddingTop: '4px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, color: selectedCard.color, paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
               الحصر التقديري: {selectedCard.boqMetric}
             </div>
           </div>
@@ -1075,22 +1075,22 @@ export default function CapitalTower3D() {
                 padding: '14px 16px',
                 borderRadius: '16px',
                 cursor: 'pointer',
-                border: isSelected ? `2px solid ${apt.accent}` : '1px solid rgba(255, 255, 255, 0.09)',
-                background: '#0d1118',
-                boxShadow: isSelected ? `0 8px 24px ${apt.accent}2e` : '0 4px 12px rgba(0,0,0,0.3)',
-                color: '#f1f5f9',
+                border: isSelected ? `2px solid ${apt.accent}` : '1px solid #e3e6e9',
+                background: '#ffffff',
+                boxShadow: isSelected ? `0 8px 24px ${apt.accent}26` : '0 2px 8px rgba(0,0,0,0.03)',
+                color: '#14181b',
                 transition: 'all 0.18s ease',
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                <strong style={{ fontSize: '0.96rem', color: isSelected ? apt.accent : '#f8fafc' }}>
+                <strong style={{ fontSize: '0.96rem', color: isSelected ? apt.accent : '#14181b' }}>
                   {apt.title} · {apt.enTitle}
                 </strong>
                 <span
                   style={{
                     padding: '2px 9px',
                     borderRadius: '999px',
-                    background: `${apt.accent}24`,
+                    background: `${apt.accent}18`,
                     color: apt.accent,
                     fontSize: '0.82rem',
                     fontWeight: 900,
@@ -1099,7 +1099,7 @@ export default function CapitalTower3D() {
                   {apt.areaSqm} م²
                 </span>
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+              <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
                 {apt.bedrooms} غرف نوم · {apt.bathrooms} حمام · {apt.wingLabel}
               </div>
             </button>
