@@ -27,8 +27,11 @@ body:has(.pw){padding:0!important}
 .pw-header.pw-header-glass.is-scrolled{background:rgba(255,253,249,.92)!important;backdrop-filter:blur(14px) saturate(160%)!important;-webkit-backdrop-filter:blur(14px) saturate(160%)!important;box-shadow:0 8px 26px -14px rgba(20,24,27,.16),inset 0 -1px 0 rgba(255,255,255,.65)!important}
 .pw-header.pw-header-glass .pw-brand-text strong{color:#14181b!important;text-shadow:0 1px 8px rgba(255,255,255,.8)!important}
 .pw-header.pw-header-glass .pw-brand-mark{filter:none!important}
-@keyframes phiBrandArrive{0%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(201,119,45,0))}40%{transform:scale(1.16);filter:drop-shadow(0 0 18px rgba(201,119,45,.88))}100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(201,119,45,0))}}
+@keyframes phiBrandArrive{0%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(199,85,23,0))}36%{transform:scale(1.18);filter:drop-shadow(0 0 20px rgba(201,119,45,.9))}70%{transform:scale(.96)}100%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(199,85,23,0))}}
+@keyframes phiBrandRipple{0%{opacity:.85;transform:scale(.7)}100%{opacity:0;transform:scale(2.15)}}
+.pw-brand{position:relative}
 .pw-brand.phi-brand-landed .pw-brand-mark{animation:phiBrandArrive 1.05s cubic-bezier(.22,1,.36,1)}
+.pw-brand.phi-brand-landed::before{content:'';position:absolute;inset-inline-start:-4px;top:50%;width:52px;height:52px;margin-top:-26px;border-radius:999px;border:2px solid rgba(201,119,45,.7);pointer-events:none;animation:phiBrandRipple .95s cubic-bezier(.16,1,.3,1) forwards}
 .pw-motion-replay-btn{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;border:1px solid rgba(199,85,23,.28);background:#fff;color:var(--o-dark);font-size:.76rem;font-weight:800;cursor:pointer;box-shadow:0 4px 12px -6px rgba(199,85,23,.28);transition:all .16s ease}
 .pw-motion-replay-btn:hover{background:var(--o-soft);border-color:var(--o);transform:translateY(-1px)}
 .pw-header.pw-header-glass .pw-nav a:not(.pw-btn){color:#14181b!important;text-shadow:0 1px 8px rgba(255,255,255,.85)!important}
