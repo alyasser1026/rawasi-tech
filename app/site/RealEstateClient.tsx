@@ -95,8 +95,8 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
           gap: 24px;
         }
         .re-card {
-          background: #ffffff;
-          border: 1px solid #e3e6e9;
+          background: #141a23;
+          border: 1px solid rgba(255, 255, 255, 0.09);
           border-radius: 22px;
           overflow: hidden;
           display: flex;
@@ -106,8 +106,8 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
         }
         .re-card:hover {
           transform: translateY(-3px);
-          border-color: rgba(234, 88, 12, 0.45);
-          box-shadow: 0 22px 44px -24px rgba(20, 28, 34, 0.22);
+          border-color: rgba(201, 119, 45, 0.48);
+          box-shadow: 0 22px 46px -22px rgba(0, 0, 0, 0.65);
         }
         .re-specs-row {
           display: grid;
@@ -206,9 +206,9 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
               style={{
                 padding: '9px 18px',
                 borderRadius: '12px',
-                border: filterType === tab.id ? '1.5px solid #ea580c' : '1.5px solid #e3e6e9',
-                background: filterType === tab.id ? '#ea580c' : '#ffffff',
-                color: filterType === tab.id ? '#ffffff' : '#14181b',
+                border: filterType === tab.id ? '1.5px solid #e08d3c' : '1.5px solid rgba(255, 255, 255, 0.1)',
+                background: filterType === tab.id ? 'linear-gradient(135deg, #c9772d, #e08d3c)' : '#141a23',
+                color: filterType === tab.id ? '#ffffff' : '#f1f5f9',
                 fontWeight: 800,
                 fontSize: '0.86rem',
                 cursor: 'pointer',
@@ -223,8 +223,8 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
         {filteredProps.length === 0 ? (
           <div
             style={{
-              background: '#ffffff',
-              border: '1px solid #e3e6e9',
+              background: '#141a23',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               borderRadius: '20px',
               padding: '38px 24px',
               textAlign: 'center',
@@ -233,10 +233,10 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
             }}
           >
             <div style={{ fontSize: '2.2rem', marginBottom: '10px' }}>🏢</div>
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, marginBottom: '8px', color: '#14181b' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, marginBottom: '8px', color: '#f8fafc' }}>
               لا توجد وحدات مطابقة حالياً في هذا التصنيف
             </h3>
-            <p style={{ fontSize: '0.9rem', color: '#47525c', marginBottom: '18px', lineHeight: 1.7 }}>
+            <p style={{ fontSize: '0.9rem', color: '#94a3b8', marginBottom: '18px', lineHeight: 1.7 }}>
               يتم تحديث قائمة الوحدات المتاحة باستمرار. يمكنك استعراض المجسم المعماري 3D أو التواصل مع مستشار العقارات لمعرفة الطرح القادم.
             </p>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'center' }}>
@@ -261,17 +261,17 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
               : null;
             const statusMeta =
               prop.status === 'available'
-                ? { label: 'متاحة للحجز', bg: '#dcfce7', color: '#15803d' }
+                ? { label: 'متاحة للحجز', bg: 'rgba(16, 185, 129, 0.2)', color: '#6ee7b7' }
                 : prop.status === 'reserved'
-                  ? { label: 'محجوزة مبدئياً', bg: '#fef3c7', color: '#b45309' }
-                  : { label: 'تم البيع', bg: '#fee2e2', color: '#b91c1c' };
+                  ? { label: 'محجوزة مبدئياً', bg: 'rgba(245, 158, 11, 0.2)', color: '#fde68a' }
+                  : { label: 'تم البيع', bg: 'rgba(239, 68, 68, 0.2)', color: '#fca5a5' };
 
             return (
               <article key={prop.id} className="re-card">
                 <div>
                   {/* Image or Architectural Header */}
                   {prop.imageUrl ? (
-                    <div style={{ position: 'relative', height: '220px', overflow: 'hidden', background: '#0f172a' }}>
+                    <div style={{ position: 'relative', height: '220px', overflow: 'hidden', background: '#0b0e13' }}>
                       <img
                         src={prop.imageUrl}
                         alt={prop.title}
@@ -282,7 +282,9 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                           position: 'absolute',
                           top: '12px',
                           right: '12px',
-                          background: statusMeta.bg,
+                          background: 'rgba(11, 14, 19, 0.85)',
+                          backdropFilter: 'blur(6px)',
+                          border: '1px solid rgba(255, 255, 255, 0.16)',
                           color: statusMeta.color,
                           padding: '4px 12px',
                           borderRadius: '999px',
@@ -297,9 +299,9 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                     <div
                       style={{
                         padding: '18px 22px',
-                        background: 'linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%)',
-                        borderBottom: '1px solid #fed7aa',
-                        color: '#14181b',
+                        background: 'linear-gradient(135deg, rgba(201, 119, 45, 0.16) 0%, #0d1118 100%)',
+                        borderBottom: '1px solid rgba(201, 119, 45, 0.25)',
+                        color: '#f1f5f9',
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'flex-start',
@@ -311,7 +313,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                         <span
                           style={{
                             fontSize: '0.74rem',
-                            color: '#c75517',
+                            color: '#f3a85b',
                             fontWeight: 800,
                             fontFamily: 'monospace',
                             display: 'block',
@@ -319,7 +321,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                         >
                           {prop.code} · {prop.typeLabel}
                         </span>
-                        <strong style={{ fontSize: '0.88rem', color: '#334155' }}>
+                        <strong style={{ fontSize: '0.88rem', color: '#cbd5e1' }}>
                           📍 {prop.city} — {prop.location}
                         </strong>
                       </div>
@@ -327,7 +329,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                         {prop.badge && (
                           <span
                             style={{
-                              background: '#ea580c',
+                              background: '#c9772d',
                               color: '#fff',
                               padding: '4px 10px',
                               borderRadius: '999px',
@@ -356,41 +358,41 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
 
                   {/* Body */}
                   <div style={{ padding: '20px 22px' }}>
-                    <h3 style={{ fontSize: '1.16rem', fontWeight: 900, lineHeight: 1.38, marginBottom: '6px' }}>
+                    <h3 style={{ fontSize: '1.16rem', fontWeight: 900, lineHeight: 1.38, marginBottom: '6px', color: '#f8fafc' }}>
                       {prop.title}
                     </h3>
-                    <p style={{ fontSize: '0.86rem', color: '#47525c', marginBottom: '12px', lineHeight: 1.55 }}>
+                    <p style={{ fontSize: '0.86rem', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.55 }}>
                       {prop.subtitle}
                     </p>
 
                     <div className="re-specs-row">
-                      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '8px 10px' }}>
-                        <small style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>المساحة الإجمالية</small>
-                        <strong style={{ fontSize: '0.92rem', color: '#c75517' }}>{prop.areaSqm} م²</strong>
+                      <div style={{ background: '#0d1118', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '8px 10px' }}>
+                        <small style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem' }}>المساحة الإجمالية</small>
+                        <strong style={{ fontSize: '0.92rem', color: '#f3a85b' }}>{prop.areaSqm} م²</strong>
                       </div>
                       {prop.bedrooms > 0 && (
-                        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '8px 10px' }}>
-                          <small style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>التقسيم الداخلي</small>
-                          <strong style={{ fontSize: '0.86rem' }}>
+                        <div style={{ background: '#0d1118', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '8px 10px' }}>
+                          <small style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem' }}>التقسيم الداخلي</small>
+                          <strong style={{ fontSize: '0.86rem', color: '#f1f5f9' }}>
                             {prop.bedrooms} غرف · {prop.bathrooms} حمام
                           </strong>
                         </div>
                       )}
-                      <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '8px 10px' }}>
-                        <small style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>الأدوار والاستلام</small>
-                        <strong style={{ fontSize: '0.82rem' }}>{prop.deliveryLabel}</strong>
+                      <div style={{ background: '#0d1118', border: '1px solid rgba(255, 255, 255, 0.08)', borderRadius: '10px', padding: '8px 10px' }}>
+                        <small style={{ color: '#94a3b8', display: 'block', fontSize: '0.72rem' }}>الأدوار والاستلام</small>
+                        <strong style={{ fontSize: '0.82rem', color: '#f1f5f9' }}>{prop.deliveryLabel}</strong>
                       </div>
                     </div>
 
                     <div
                       style={{
-                        background: '#fff3ea',
-                        border: '1px solid #fed7aa',
+                        background: 'rgba(201, 119, 45, 0.14)',
+                        border: '1px solid rgba(201, 119, 45, 0.34)',
                         borderRadius: '10px',
                         padding: '8px 12px',
                         fontSize: '0.8rem',
                         fontWeight: 800,
-                        color: '#9a3412',
+                        color: '#fed7aa',
                         marginBottom: '12px',
                       }}
                     >
@@ -403,14 +405,14 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                           key={f}
                           style={{
                             fontSize: '0.82rem',
-                            color: '#334155',
+                            color: '#cbd5e1',
                             display: 'flex',
                             alignItems: 'flex-start',
                             gap: '7px',
                             fontWeight: 700,
                           }}
                         >
-                          <span style={{ color: '#ea580c', fontWeight: 900 }}>✓</span>
+                          <span style={{ color: '#e08d3c', fontWeight: 900 }}>✓</span>
                           <span>{f}</span>
                         </li>
                       ))}
@@ -422,8 +424,8 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                 <div
                   style={{
                     padding: '16px 22px 20px',
-                    background: '#fafaf9',
-                    borderTop: '1px solid #e3e6e9',
+                    background: '#0d1118',
+                    borderTop: '1px solid rgba(255, 255, 255, 0.08)',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '12px',
@@ -434,23 +436,23 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                       {prop.price > 0 ? (
                         <>
                           {prop.oldPrice && prop.oldPrice > prop.price && (
-                            <span style={{ fontSize: '0.8rem', color: '#94a3b8', textDecoration: 'line-through', display: 'block' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#64748b', textDecoration: 'line-through', display: 'block' }}>
                               {prop.oldPrice.toLocaleString('en-US')} {prop.currency}
                             </span>
                           )}
-                          <strong style={{ fontSize: '1.38rem', fontWeight: 900, color: '#c75517' }}>
+                          <strong style={{ fontSize: '1.38rem', fontWeight: 900, color: '#f3a85b' }}>
                             {prop.price.toLocaleString('en-US')} {prop.currency}
                           </strong>
                         </>
                       ) : (
-                        <strong style={{ fontSize: '1.12rem', fontWeight: 900, color: '#c75517' }}>
+                        <strong style={{ fontSize: '1.12rem', fontWeight: 900, color: '#f3a85b' }}>
                           السعر عند التواصل / عرض مالي
                         </strong>
                       )}
                     </div>
 
                     {prop.downPaymentPct ? (
-                      <div style={{ textAlign: 'left', fontSize: '0.78rem', fontWeight: 800, color: '#065f46', background: '#ecfdf5', padding: '4px 10px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+                      <div style={{ textAlign: 'left', fontSize: '0.78rem', fontWeight: 800, color: '#6ee7b7', background: 'rgba(16, 185, 129, 0.14)', padding: '4px 10px', borderRadius: '8px', border: '1px solid rgba(52, 211, 153, 0.35)' }}>
                         مقدم {prop.downPaymentPct}%{downPaymentVal && downPaymentVal > 0 ? ` (${downPaymentVal.toLocaleString('en-US')} ${prop.currency})` : ''}
                         {prop.installmentYears ? ` · تقسيط ${prop.installmentYears} سنوات` : ''}
                       </div>
@@ -469,8 +471,8 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                         border: 'none',
                         background:
                           prop.status === 'sold'
-                            ? '#cbd5e1'
-                            : 'linear-gradient(135deg, #f97316 0%, #c75517 100%)',
+                            ? '#334155'
+                            : 'linear-gradient(135deg, #c9772d 0%, #e08d3c 100%)',
                         color: '#ffffff',
                         fontWeight: 900,
                         fontSize: '0.86rem',
@@ -489,9 +491,9 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                       style={{
                         padding: '11px 14px',
                         borderRadius: '12px',
-                        border: '1px solid #22c55e',
-                        background: '#f0fdf4',
-                        color: '#15803d',
+                        border: '1px solid rgba(52, 211, 153, 0.42)',
+                        background: 'rgba(16, 185, 129, 0.14)',
+                        color: '#6ee7b7',
                         fontWeight: 800,
                         fontSize: '0.84rem',
                         textDecoration: 'none',
@@ -531,21 +533,23 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
             style={{
               width: '100%',
               maxWidth: '460px',
-              background: '#ffffff',
+              background: '#141a23',
+              color: '#f1f5f9',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
               borderRadius: '20px',
               padding: '22px',
-              boxShadow: '0 24px 60px rgba(0,0,0,0.4)',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             {submittedRef ? (
               <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ fontSize: '2.5rem' }}>🎉</div>
-                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#065f46' }}>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#6ee7b7' }}>
                   تم تسجيل طلب المعاينة والعرض المالي!
                 </h3>
-                <p style={{ margin: 0, fontSize: '0.88rem', color: '#47525c', lineHeight: 1.6 }}>
-                  رقم الطلب: <strong style={{ fontFamily: 'monospace' }}>{submittedRef}</strong>
+                <p style={{ margin: 0, fontSize: '0.88rem', color: '#cbd5e1', lineHeight: 1.6 }}>
+                  رقم الطلب: <strong style={{ fontFamily: 'monospace', color: '#f1f5f9' }}>{submittedRef}</strong>
                   <br />
                   تم إشعار الإدارة العقارية والهندسية في فاي تك فوراً، وسيتواصل معك مستشار المبيعات على الرقم{' '}
                   <strong dir="ltr">{leadPhone}</strong>.
@@ -557,7 +561,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                     padding: '11px',
                     borderRadius: '10px',
                     border: 'none',
-                    background: '#ea580c',
+                    background: '#c9772d',
                     color: '#fff',
                     fontWeight: 900,
                     cursor: 'pointer',
@@ -569,20 +573,20 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
             ) : (
               <form onSubmit={handlePropertySubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong style={{ fontSize: '1.05rem', fontWeight: 900 }}>
+                  <strong style={{ fontSize: '1.05rem', fontWeight: 900, color: '#f8fafc' }}>
                     📅 طلب معاينة / حجز وحدة عقارية
                   </strong>
                   <button
                     type="button"
                     onClick={() => setSelectedProperty(null)}
-                    style={{ border: 'none', background: '#f1f5f9', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontWeight: 800 }}
+                    style={{ border: '1px solid rgba(255,255,255,0.12)', background: '#0d1118', color: '#cbd5e1', borderRadius: '8px', padding: '5px 10px', cursor: 'pointer', fontWeight: 800 }}
                   >
                     ✕
                   </button>
                 </div>
 
-                <div style={{ background: '#fff3ea', border: '1px solid #fed7aa', borderRadius: '12px', padding: '10px 12px', fontSize: '0.82rem' }}>
-                  <strong style={{ color: '#c75517', display: 'block' }}>{selectedProperty.title}</strong>
+                <div style={{ background: 'rgba(201, 119, 45, 0.14)', border: '1px solid rgba(201, 119, 45, 0.34)', borderRadius: '12px', padding: '10px 12px', fontSize: '0.82rem', color: '#fed7aa' }}>
+                  <strong style={{ color: '#f3a85b', display: 'block' }}>{selectedProperty.title}</strong>
                   <span>
                     المساحة: {selectedProperty.areaSqm} م²
                     {selectedProperty.price > 0
@@ -596,7 +600,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                   onChange={(e) => setLeadName(e.target.value)}
                   placeholder="الاسم الكامل *"
                   required
-                  style={{ padding: '11px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '16px', fontWeight: 700 }}
+                  style={{ padding: '11px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', background: '#0d1118', color: '#f1f5f9', fontSize: '16px', fontWeight: 700 }}
                 />
 
                 <input
@@ -606,7 +610,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                   dir="ltr"
                   inputMode="tel"
                   required
-                  style={{ padding: '11px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '16px', fontWeight: 700, textAlign: 'right' }}
+                  style={{ padding: '11px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', background: '#0d1118', color: '#f1f5f9', fontSize: '16px', fontWeight: 700, textAlign: 'right' }}
                 />
 
                 <textarea
@@ -614,10 +618,10 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                   onChange={(e) => setLeadNotes(e.target.value)}
                   placeholder="ملاحظاتك (مثال: الموعد المناسب للمعاينة أو الاستفسار عن خطة التقسيط والتشطيب)"
                   rows={3}
-                  style={{ padding: '11px 12px', borderRadius: '10px', border: '1.5px solid #e3e6e9', fontSize: '16px' }}
+                  style={{ padding: '11px 12px', borderRadius: '10px', border: '1.5px solid rgba(255, 255, 255, 0.12)', background: '#0d1118', color: '#f1f5f9', fontSize: '16px' }}
                 />
 
-                {errMsg && <div style={{ color: '#dc2626', fontSize: '0.8rem', fontWeight: 700 }}>⚠️ {errMsg}</div>}
+                {errMsg && <div style={{ color: '#fca5a5', fontSize: '0.8rem', fontWeight: 700 }}>⚠️ {errMsg}</div>}
 
                 <button
                   type="submit"
@@ -626,7 +630,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
                     padding: '12px',
                     borderRadius: '12px',
                     border: 'none',
-                    background: 'linear-gradient(135deg, #f97316, #c75517)',
+                    background: 'linear-gradient(135deg, #c9772d, #e08d3c)',
                     color: '#fff',
                     fontWeight: 900,
                     fontSize: '0.92rem',
@@ -646,7 +650,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
         <div className="pw-wrap">
           <div className="pw-footer-row">
             <div className="pw-footer-brand">
-              <img src="/brand/phitech-mark-color.svg" alt="" />
+              <img src="/brand/phitech-mark-light.svg" alt="" />
               <div>
                 <strong>{SITE.name}</strong>
                 <small>{SITE.tagline}</small>

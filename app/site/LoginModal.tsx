@@ -35,7 +35,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
       {/* Header */}
       <div className="phi-auth-top">
         <div className="phi-auth-brand">
-          <img src="/brand/phitech-mark-color.svg" alt="" />
+          <img src="/brand/phitech-mark-light.svg" alt="" />
           <div>
             <strong>فاي تك</strong>
             <small>PhiTech</small>
@@ -251,9 +251,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           align-items: center;
           justify-content: center;
           padding: 1rem;
-          background: rgba(14, 18, 22, 0.42);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          background: rgba(6, 9, 13, 0.72);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
           overflow-y: auto;
           direction: rtl;
           font-family: 'Cairo', -apple-system, 'Segoe UI', sans-serif;
@@ -274,12 +274,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           position: relative;
           width: 100%;
           max-width: 28rem;
-          background: linear-gradient(180deg, #fffaf5 0%, #ffffff 36%, #ffffff 100%);
-          border: 1.5px solid #e3e6e9;
+          background: linear-gradient(165deg, #161d27 0%, #11161d 55%, #0d1117 100%);
+          border: 1.5px solid rgba(255, 255, 255, 0.12);
           border-radius: 24px;
           padding: 24px 26px 22px;
-          box-shadow: 0 32px 72px -24px rgba(15, 20, 25, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
-          color: #14181b;
+          box-shadow: 0 36px 84px -20px rgba(0, 0, 0, 0.78), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+          color: #f1f5f9;
           overflow: hidden;
           box-sizing: border-box;
           animation: phiAuthRise 0.26s cubic-bezier(0.16, 1, 0.3, 1);
@@ -290,7 +290,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           top: 0;
           inset-inline: 0;
           height: 3.5px;
-          background: linear-gradient(90deg, #c75517 0%, #f97316 55%, #d97706 100%);
+          background: linear-gradient(90deg, #a65c1b 0%, #c9772d 45%, #e08d3c 100%);
         }
 
         .phi-auth-top {
@@ -311,6 +311,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           height: 36px;
           width: auto;
           display: block;
+          filter: brightness(1.3) drop-shadow(0 2px 10px rgba(201, 119, 45, 0.35));
         }
 
         .phi-auth-brand div {
@@ -322,13 +323,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         .phi-auth-brand strong {
           font-size: 1rem;
           font-weight: 900;
-          color: #14181b;
+          color: #f8fafc;
         }
 
         .phi-auth-brand small {
           font-size: 0.68rem;
           font-weight: 800;
-          color: #c75517;
+          color: #e08d3c;
           letter-spacing: 0.14em;
           direction: ltr;
           text-align: right;
@@ -338,9 +339,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           width: 34px;
           height: 34px;
           border-radius: 10px;
-          border: 1px solid #e3e6e9;
-          background: #ffffff;
-          color: #47525c;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.06);
+          color: #94a3b8;
           display: grid;
           place-items: center;
           cursor: pointer;
@@ -348,9 +349,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
 
         .phi-auth-close:hover {
-          background: #fff3ea;
-          border-color: #fed7aa;
-          color: #c75517;
+          background: rgba(201, 119, 45, 0.16);
+          border-color: rgba(224, 141, 60, 0.45);
+          color: #f3a85b;
         }
 
         .phi-auth-head {
@@ -368,7 +369,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           margin: 0;
           font-size: 1.32rem;
           font-weight: 900;
-          color: #14181b;
+          color: #f8fafc;
           line-height: 1.3;
         }
 
@@ -377,9 +378,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           align-items: center;
           padding: 2px 10px;
           border-radius: 999px;
-          background: #fff3ea;
-          border: 1px solid #fed7aa;
-          color: #c75517;
+          background: rgba(201, 119, 45, 0.16);
+          border: 1px solid rgba(224, 141, 60, 0.35);
+          color: #fed7aa;
           font-size: 0.72rem;
           font-weight: 800;
         }
@@ -388,7 +389,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           margin: 0;
           font-size: 0.83rem;
           font-weight: 600;
-          color: #47525c;
+          color: #94a3b8;
           line-height: 1.6;
         }
 
@@ -396,8 +397,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 4px;
-          background: #f6f5f3;
-          border: 1px solid #e3e6e9;
+          background: #0d1117;
+          border: 1px solid rgba(255, 255, 255, 0.09);
           border-radius: 12px;
           padding: 4px;
           margin-bottom: 16px;
@@ -406,7 +407,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         .phi-auth-tabs button {
           border: 0;
           background: transparent;
-          color: #47525c;
+          color: #94a3b8;
           font-family: inherit;
           font-size: 0.84rem;
           font-weight: 800;
@@ -417,9 +418,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
 
         .phi-auth-tabs button.is-on {
-          background: #ffffff;
-          color: #14181b;
-          box-shadow: 0 4px 12px -6px rgba(15, 20, 25, 0.25);
+          background: #1e2633;
+          color: #ffffff;
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 4px 12px -6px rgba(0, 0, 0, 0.55);
         }
 
         .phi-auth-form {
@@ -444,7 +446,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         .phi-auth-field > span {
           font-size: 0.78rem;
           font-weight: 800;
-          color: #14181b;
+          color: #e2e8f0;
         }
 
         .phi-auth-pass-wrap {
@@ -458,9 +460,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           height: 45px;
           padding: 0 13px;
           border-radius: 12px;
-          border: 1.5px solid #e2e8f0;
-          background: #f8fafc;
-          color: #14181b;
+          border: 1.5px solid rgba(255, 255, 255, 0.12);
+          background: #0d1117;
+          color: #f1f5f9;
           font-family: inherit;
           font-size: 0.92rem;
           font-weight: 700;
@@ -478,23 +480,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
 
         .phi-auth-input::placeholder {
-          color: #94a3b8;
+          color: #64748b;
           font-weight: 600;
         }
 
         .phi-auth-input:focus {
-          background: #ffffff;
-          border-color: #c75517;
-          box-shadow: 0 0 0 3px rgba(199, 85, 23, 0.14);
+          background: #090c11;
+          border-color: #c9772d;
+          box-shadow: 0 0 0 3px rgba(201, 119, 45, 0.2);
         }
 
         .phi-auth-input:-webkit-autofill,
         .phi-auth-input:-webkit-autofill:hover,
         .phi-auth-input:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0 1000px #f8fafc inset !important;
-          -webkit-text-fill-color: #14181b !important;
-          caret-color: #14181b !important;
-          border-color: #cbd5e1 !important;
+          -webkit-box-shadow: 0 0 0 1000px #0d1117 inset !important;
+          -webkit-text-fill-color: #f1f5f9 !important;
+          caret-color: #f1f5f9 !important;
+          border-color: rgba(255, 255, 255, 0.2) !important;
         }
 
         .phi-auth-eye {
@@ -505,7 +507,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           border-radius: 8px;
           border: 0;
           background: transparent;
-          color: #64748b;
+          color: #94a3b8;
           display: grid;
           place-items: center;
           cursor: pointer;
@@ -513,8 +515,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
 
         .phi-auth-eye:hover {
-          color: #c75517;
-          background: rgba(199, 85, 23, 0.08);
+          color: #e08d3c;
+          background: rgba(201, 119, 45, 0.14);
         }
 
         .phi-auth-submit {
@@ -523,20 +525,20 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           margin-top: 4px;
           border: 0;
           border-radius: 12px;
-          background: linear-gradient(135deg, #c75517 0%, #ea580c 100%);
+          background: linear-gradient(135deg, #c9772d 0%, #e08d3c 100%);
           color: #ffffff;
           font-family: inherit;
           font-size: 0.94rem;
           font-weight: 900;
           cursor: pointer;
-          box-shadow: 0 12px 24px -12px rgba(199, 85, 23, 0.8);
+          box-shadow: 0 12px 26px -10px rgba(201, 119, 45, 0.65);
           transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
         }
 
         .phi-auth-submit:hover:not(:disabled) {
           transform: translateY(-1px);
-          filter: brightness(1.04);
-          box-shadow: 0 16px 28px -12px rgba(199, 85, 23, 0.9);
+          filter: brightness(1.06);
+          box-shadow: 0 16px 30px -10px rgba(201, 119, 45, 0.8);
         }
 
         .phi-auth-submit:disabled {
@@ -568,9 +570,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           height: 40px;
           margin-top: 10px;
           border-radius: 11px;
-          border: 1px solid #e3e6e9;
-          background: #f8fafc;
-          color: #47525c;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          background: rgba(255, 255, 255, 0.04);
+          color: #cbd5e1;
           font-family: inherit;
           font-size: 0.82rem;
           font-weight: 800;
@@ -583,9 +585,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
 
         .phi-auth-dismiss:hover {
-          background: #ffffff;
-          border-color: #cbd5e1;
-          color: #14181b;
+          background: rgba(255, 255, 255, 0.08);
+          border-color: rgba(224, 141, 60, 0.4);
+          color: #ffffff;
         }
 
         @media (max-width: 540px) {
@@ -606,7 +608,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
       <Suspense
         fallback={
-          <div style={{ background: '#fff', padding: '16px 22px', borderRadius: '14px', color: '#14181b', fontSize: '0.9rem', fontWeight: 800 }}>
+          <div style={{ background: '#141a23', border: '1px solid rgba(255, 255, 255, 0.12)', padding: '16px 22px', borderRadius: '14px', color: '#f1f5f9', fontSize: '0.9rem', fontWeight: 800 }}>
             جاري تحميل نموذج الدخول...
           </div>
         }

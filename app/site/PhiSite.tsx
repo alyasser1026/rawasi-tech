@@ -149,32 +149,22 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
       />
 
       <main id="top">
-        {/* 1. مربعات الأقسام الستة الرئيسية + الأداة السريعة + أهم العروض والمنتجات (بدون تعقيد أو لبخة) */}
-        <HomePortalSections
-          products={PRODUCTS}
-          properties={PROPERTIES}
-          newsTicker={NEWS_TICKER}
-          whatsappNumber={c.whatsapp}
-          onAddToCart={cart.addToCart}
-          onAddBundleToCart={cart.addBundleToCart}
-        />
-
-        {/* عرض الهوية والفلسفة الهندسية للشركة في نهاية الصفحة */}
+        {/* الواجهة الافتتاحية المظلمة بفيديو فاي تك المصهور مع إطلالة هندسية متطابقة مع الفيديو */}
         <section className="pw-hero" id="about-phitech">
           <HeroVideoBackdrop variant="showcase-left" controlsMode="none" onControlsReady={setHeroControls} />
           <div className="pw-wrap pw-hero-grid" id="hero-content">
             <div>
-              <p className="pw-eyebrow">فلسفة فاي تك الهندسية · {SITE.offices.join(' · ')}</p>
-              <h2>
-                <span className="pw-hero-part">دقّة <em>التخطيط</em>،</span>{' '}
-                <span className="pw-hero-part">وفخامة <em>التنفيذ</em> التي تدوم</span>
-              </h2>
+              <p className="pw-eyebrow">الرئيسية › فاي تك للمقاولات والتوريدات · {SITE.offices.join(' · ')}</p>
+              <h1>
+                <span className="pw-hero-part">نبني <em>الهيكل</em>،</span>{' '}
+                <span className="pw-hero-part">ونتقن <em>التشطيب</em> والحلول الهندسية</span>
+              </h1>
               <p className="pw-lead">
-                نؤمن في فاي تك أن الفخامة الحقيقية تبدأ من التفاصيل الدقيقة خلف الجدران وتكتمل بجمال التشطيب أمامك؛ شغفنا تحويل كل مشروع إلى مساحة متقنة تجمع بين متانة الهندسة، وذكاء التقنية الحديثة، وراحة بالك في كل خطوة.
+                نحول كل مشروع إلى مساحة متقنة تجمع بين متانة الإنشاءات، فخامة التشطيب، وذكاء التقنية الحديثة تحت إشراف هندسي موحّد من المعاينة وحتى ما بعد التسليم.
               </p>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '10px 18px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(249,115,22,0.38)', color: '#fed7aa', fontSize: '0.9rem', fontWeight: 700, backdropFilter: 'blur(10px)' }}>
-                <span style={{ color: '#f97316' }}>✦</span>
-                <span>إتقان هندسي · التزام بالمواعيد · شراكة ثقة تمتد لما بعد التسليم</span>
+              <div className="pw-actions">
+                <a href="#portals" className="pw-btn pw-btn-primary">استكشف الأقسام ←</a>
+                <a href="#contact" className="pw-btn pw-btn-light">تواصل الآن</a>
               </div>
             </div>
             <div className="pw-hero-art" aria-hidden>
@@ -184,9 +174,9 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           {heroControls && (
             <div className="pw-wrap pw-hero-toolbar">
               <HeroVideoControls controls={heroControls} />
-              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="العودة لأعلى">
-                <span>العودة للأعلى</span>
-                <span className="pw-cue-arrow" aria-hidden>↑</span>
+              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="استكشف الأقسام">
+                <span>استكشف الأقسام</span>
+                <span className="pw-cue-arrow" aria-hidden>↓</span>
               </a>
             </div>
           )}
@@ -197,6 +187,16 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
             <li><strong>التزام ممتد</strong><span>مسؤولية وضمان ما بعد التسليم</span></li>
           </ul>
         </section>
+
+        {/* بوابة الأقسام الستة المتصلة + شريط الأخبار + العروض والمنتجات */}
+        <HomePortalSections
+          products={PRODUCTS}
+          properties={PROPERTIES}
+          newsTicker={NEWS_TICKER}
+          whatsappNumber={c.whatsapp}
+          onAddToCart={cart.addToCart}
+          onAddBundleToCart={cart.addBundleToCart}
+        />
 
         {/* Contact */}
         <section id="contact" className="pw-section pw-tint">

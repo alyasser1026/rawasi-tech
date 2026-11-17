@@ -95,10 +95,10 @@ export default function HomePortalSections({
 
           <div className="pw-head" style={{ marginBottom: '28px' }}>
             <p className="pw-eyebrow">أهلاً بك في فاي تك — اختر قسمك مباشرة</p>
-            <h1 id="portals-heading" className="pw-portal-main-h1">
+            <h2 id="portals-heading" className="pw-portal-main-h1">
               ماذا تحتاج اليوم؟ اختر القسم للدخول
-            </h1>
-            <p>اضغط على المربع المناسب لطلبك، وهتلاقي جواه كل التفاصيل والأدوات اللي تخصه وبس.</p>
+            </h2>
+            <p>اضغط على أي جزء لاستعراض تفاصيل القسم وأدواته مباشرة.</p>
           </div>
 
           {/* لوحة بانورامية واحدة مقسومة إلى 6 أعمدة متصلة تفاعلية عند مرور الماوس */}

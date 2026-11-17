@@ -180,7 +180,7 @@ test('interactive live-chat auto-responder covers expected scenarios, human esca
   assert.match(floatingChat, /actions/);
   assert.match(floatingChat, /تحويل لمهندس/);
   assert.match(floatingChat, /phi-chat-input/);
-  assert.match(floatingChat, /-webkit-text-fill-color:\s*#0f172a/);
+  assert.match(floatingChat, /-webkit-text-fill-color:\s*#f1f5f9/);
 
   assert.match(responder, /export function extractNameFromMessage/);
   assert.match(responder, /export function extractPhoneFromMessage/);
@@ -394,4 +394,22 @@ test('estimative calculator is removed from Homepage and housed inside Info & To
 
   const detailClient = read('app/site/SectionDetailClient.tsx');
   assert.match(detailClient, /<EngTools propertiesCount=\{PROPERTIES\.length\} \/>/);
+});
+
+test('homepage places PhiTech molten-copper hero video stage at top with dark obsidian architecture theme', () => {
+  const phiSite = read('app/site/PhiSite.tsx');
+  const heroIdx = phiSite.indexOf('className="pw-hero"');
+  const portalsIdx = phiSite.indexOf('<HomePortalSections');
+  assert.ok(heroIdx > 0 && portalsIdx > heroIdx, 'Hero video stage must render above HomePortalSections on /');
+  assert.match(phiSite, /HeroVideoBackdrop/);
+  assert.match(phiSite, /\/brand\/phitech-mark-light\.svg/);
+
+  const siteStyles = read('app/site/site-styles.ts');
+  assert.match(siteStyles, /--bg:#0b0e13/);
+  assert.match(siteStyles, /--o:#c9772d/);
+  assert.match(siteStyles, /--surface:#141a23/);
+
+  const loginModal = read('app/site/LoginModal.tsx');
+  assert.match(loginModal, /\/brand\/phitech-mark-light\.svg/);
+  assert.match(loginModal, /#11161d/);
 });

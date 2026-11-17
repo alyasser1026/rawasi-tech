@@ -77,7 +77,7 @@ export default function PublicHeader({
       <header className={`pw-header pw-header-glass ${scrolled ? 'is-scrolled' : ''}`}>
         <div className="pw-wrap pw-header-row">
           <Link href="/" className="pw-brand" aria-label={`${siteName} — الرئيسية`}>
-            <img src="/brand/phitech-mark-color.svg" alt="" className="pw-brand-mark" />
+            <img src="/brand/phitech-mark-light.svg" alt="" className="pw-brand-mark" />
             <span className="pw-brand-text">
               <strong>{siteName}</strong>
               <small>{siteNameEn}</small>
@@ -87,7 +87,7 @@ export default function PublicHeader({
           <nav className={`pw-nav ${open ? 'is-open' : ''}`} aria-label="التنقل الرئيسي">
             <div className="pw-nav-head">
               <span className="pw-nav-head-title">
-                <img src="/brand/phitech-mark-color.svg" alt="" style={{ height: '26px', width: 'auto' }} />
+                <img src="/brand/phitech-mark-light.svg" alt="" style={{ height: '26px', width: 'auto' }} />
                 <span>قائمة الموقع</span>
               </span>
               <button
