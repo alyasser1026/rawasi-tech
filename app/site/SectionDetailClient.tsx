@@ -228,6 +228,14 @@ export default function SectionDetailClient({
 
   // --- Info state ---
   const [infoTab, setInfoTab] = useState<'tips' | 'tools' | 'checklist' | 'faq'>('tips');
+  useEffect(() => {
+    if (typeof window !== 'undefined' && slug === 'info') {
+      const t = new URLSearchParams(window.location.search).get('tab');
+      if (t === 'tips' || t === 'tools' || t === 'checklist' || t === 'faq') {
+        setInfoTab(t);
+      }
+    }
+  }, [slug]);
 
   const handleSellSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1021,7 +1029,7 @@ export default function SectionDetailClient({
                   💡 نصائح ذهبية والتزاماتنا
                 </button>
                 <button type="button" className={infoTab === 'tools' ? 'is-on' : ''} onClick={() => setInfoTab('tools')}>
-                  📐 حاسبات المهندس المجانية
+                  📐 الحاسبة التقديرية والأدوات الهندسية
                 </button>
                 <button type="button" className={infoTab === 'checklist' ? 'is-on' : ''} onClick={() => setInfoTab('checklist')}>
                   📋 دليل التنفيذ والفحص الهندسي
@@ -1072,7 +1080,7 @@ export default function SectionDetailClient({
                 </div>
               )}
 
-              {infoTab === 'tools' && <EngTools />}
+              {infoTab === 'tools' && <EngTools propertiesCount={PROPERTIES.length} />}
               {infoTab === 'checklist' && <ChecklistExplorer />}
               {infoTab === 'faq' && (
                 <div>

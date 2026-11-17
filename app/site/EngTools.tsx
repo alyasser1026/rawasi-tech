@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useMemo, useState } from 'react';
+import Link from 'next/link';
 import {
   CATEGORIES, convert, fmt, rebarKgPerMeter, REBAR_DIAMETERS,
   concreteEstimate, ELEMENT_DEFAULTS, roomEstimate, type ConcreteElement,
 } from './eng-math';
+import { PORTAL_SECTIONS, type SectionSlug } from './section-defs';
 
 type Tab = 'convert' | 'concrete' | 'room' | 'rebar';
 const TABS: { id: Tab; label: string }[] = [
@@ -212,20 +214,108 @@ function Rebar() {
   );
 }
 
-export default function EngTools() {
+function QuickEstimator({ propertiesCount = 0 }: { propertiesCount?: number }) {
+  const estimatorSections = useMemo(
+    () => PORTAL_SECTIONS.filter((s) => s.slug !== 'info'),
+    []
+  );
+  const [quickGoal, setQuickGoal] = useState<SectionSlug>('contracting');
+  const [quickArea, setQuickArea] = useState<number>(180);
+
+  const quickSummary = useMemo(() => {
+    const meta = estimatorSections.find((s) => s.slug === quickGoal) || estimatorSections[0];
+    if (quickGoal === 'maintenance') {
+      return {
+        meta,
+        hint: `معاينة وتنفيذ أو صيانة مضمونة لمساحة ${quickArea} م² خلال 24 ساعة مع توصية هندسية مجانية.`,
+      };
+    }
+    if (quickGoal === 'contracting') {
+      return {
+        meta,
+        hint: `تقدير مبسط لمساحة ${quickArea} م²: ~${Math.round(quickArea * 0.046)} طن حديد · ~${Math.round(quickArea * 0.42)} م³ خرسانة · تكييف ~${Math.max(2, Math.round(quickArea / 18))} طن.`,
+      };
+    }
+    if (quickGoal === 'real-estate') {
+      return {
+        meta,
+        hint: `${propertiesCount} وحدات سكنية وتجارية جاهزة (بمساحات تبدأ من ${quickArea} م²) بأنظمة سداد من 20% مقدم وتقسيط حتى 4 سنوات.`,
+      };
+    }
+    if (quickGoal === 'materials') {
+      return {
+        meta,
+        hint: `توريد مباشر لخامات مساحة ${quickArea} م² بسعر الجملة، أو عرض خاماتك للبيع لدينا فوراً.`,
+      };
+    }
+    return {
+      meta,
+      hint: `ترقية وحدة ${quickArea} م² بنظام سمارت هوم كامل (${Math.max(3, Math.round(quickArea / 40))} غرف ذكية + درع أمان الغاز والمياه بدون تكسير).`,
+    };
+  }, [quickGoal, quickArea, propertiesCount, estimatorSections]);
+
+  return (
+    <div className="pw-quick-finder" style={{ marginBottom: '24px' }}>
+      <div className="pw-quick-finder-head">
+        <div>
+          <span className="pw-explorer-kicker">الحاسبة التقديرية السريعة</span>
+          <h2>احسب احتياجك التقديري حسب المساحة</h2>
+        </div>
+        <Link href={quickSummary.meta.href} className="pw-btn pw-btn-primary">
+          {quickSummary.meta.icon} ادخل على {quickSummary.meta.title} ←
+        </Link>
+      </div>
+
+      <div className="pw-quick-finder-controls">
+        <div className="pw-seg">
+          {estimatorSections.map((s) => (
+            <button
+              key={s.slug}
+              type="button"
+              className={quickGoal === s.slug ? 'is-on' : ''}
+              onClick={() => setQuickGoal(s.slug)}
+            >
+              {s.icon} {s.title.replace('قسم ', '')}
+            </button>
+          ))}
+        </div>
+        <label className="pw-range" style={{ minWidth: '220px' }}>
+          <span>المساحة التقريبية: <strong>{quickArea} م²</strong></span>
+          <input
+            type="range"
+            min={60}
+            max={800}
+            step={10}
+            value={quickArea}
+            onChange={(e) => setQuickArea(Number(e.target.value))}
+          />
+        </label>
+      </div>
+
+      <div className="pw-quick-finder-result">
+        <span>{quickSummary.hint}</span>
+      </div>
+    </div>
+  );
+}
+
+export default function EngTools({ propertiesCount = 0 }: { propertiesCount?: number }) {
   const [tab, setTab] = useState<Tab>('convert');
   return (
-    <div className="pw-tools">
-      <div className="pw-tools-tabs" role="tablist" aria-label="الأدوات الهندسية">
-        {TABS.map(t => (
-          <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'is-on' : ''} onClick={() => setTab(t.id)}>{t.label}</button>
-        ))}
-      </div>
-      <div className="pw-tools-body" role="tabpanel">
-        {tab === 'convert' && <Converter />}
-        {tab === 'concrete' && <Concrete />}
-        {tab === 'room' && <Room />}
-        {tab === 'rebar' && <Rebar />}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <QuickEstimator propertiesCount={propertiesCount} />
+      <div className="pw-tools">
+        <div className="pw-tools-tabs" role="tablist" aria-label="الأدوات الهندسية التفصيلية">
+          {TABS.map(t => (
+            <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} className={tab === t.id ? 'is-on' : ''} onClick={() => setTab(t.id)}>{t.label}</button>
+          ))}
+        </div>
+        <div className="pw-tools-body" role="tabpanel">
+          {tab === 'convert' && <Converter />}
+          {tab === 'concrete' && <Concrete />}
+          {tab === 'room' && <Room />}
+          {tab === 'rebar' && <Rebar />}
+        </div>
       </div>
     </div>
   );

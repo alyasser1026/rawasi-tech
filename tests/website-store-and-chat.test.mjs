@@ -376,3 +376,16 @@ test('all public sections allow optional guest browsing while keeping employee p
     assert.match(src, /onSignOut=\{cart\.signOut\}/, `${pageFile} missing onSignOut`);
   }
 });
+
+test('estimative calculator is removed from Homepage and housed inside Info & Tools', () => {
+  const homePortal = read('app/site/HomePortalSections.tsx');
+  assert.doesNotMatch(homePortal, /pw-quick-finder/);
+
+  const engTools = read('app/site/EngTools.tsx');
+  assert.match(engTools, /function QuickEstimator/);
+  assert.match(engTools, /pw-quick-finder/);
+  assert.match(engTools, /الحاسبة التقديرية السريعة/);
+
+  const detailClient = read('app/site/SectionDetailClient.tsx');
+  assert.match(detailClient, /<EngTools propertiesCount=\{PROPERTIES\.length\} \/>/);
+});

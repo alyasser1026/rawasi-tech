@@ -9,7 +9,7 @@ import { DEFAULT_NEWS_TICKER, type NewsTickerConfig } from './site-content';
 
 interface HomePortalSectionsProps {
   products: WebsiteProduct[];
-  properties: WebsiteProperty[];
+  properties?: WebsiteProperty[];
   newsTicker?: NewsTickerConfig;
   whatsappNumber: string;
   onAddToCart: (product: WebsiteProduct, qty: number, withInstall: boolean) => void;
@@ -18,7 +18,6 @@ interface HomePortalSectionsProps {
 
 export default function HomePortalSections({
   products,
-  properties,
   newsTicker = DEFAULT_NEWS_TICKER,
   whatsappNumber,
   onAddToCart,
@@ -86,48 +85,6 @@ export default function HomePortalSections({
     el.style.removeProperty('--stage-my');
     setHoveredSlug(null);
   };
-
-  // --- مستشار تفاعلي مضغوط وسهل جداً يوجه العميل للقسم المناسب ---
-  const [quickGoal, setQuickGoal] = useState<SectionSlug>('maintenance');
-  const [quickArea, setQuickArea] = useState<number>(180);
-
-  const quickSummary = useMemo(() => {
-    const meta = PORTAL_SECTIONS.find((s) => s.slug === quickGoal) || PORTAL_SECTIONS[0];
-    if (quickGoal === 'maintenance') {
-      return {
-        meta,
-        hint: `معاينة وتنفيذ أو صيانة مضمونة لمساحة ${quickArea} م² خلال 24 ساعة مع توصية هندسية مجانية.`,
-      };
-    }
-    if (quickGoal === 'contracting') {
-      return {
-        meta,
-        hint: `تقدير مبسط لمساحة ${quickArea} م²: ~${Math.round(quickArea * 0.046)} طن حديد · ~${Math.round(quickArea * 0.42)} م³ خرسانة · تكييف ~${Math.max(2, Math.round(quickArea / 18))} طن.`,
-      };
-    }
-    if (quickGoal === 'real-estate') {
-      return {
-        meta,
-        hint: `${properties.length} وحدات سكنية وتجارية جاهزة بأنظمة سداد تبدأ من 20% مقدم وتقسيط حتى 4 سنوات.`,
-      };
-    }
-    if (quickGoal === 'materials') {
-      return {
-        meta,
-        hint: `توريد مباشر لخامات مساحة ${quickArea} م² بسعر الجملة، أو عرض خاماتك للبيع لدينا فوراً.`,
-      };
-    }
-    if (quickGoal === 'smart-home') {
-      return {
-        meta,
-        hint: `ترقية وحدة ${quickArea} م² بنظام سمارت هوم كامل (${Math.max(3, Math.round(quickArea / 40))} غرف ذكية + درع أمان الغاز والمياه بدون تكسير).`,
-      };
-    }
-    return {
-      meta,
-      hint: 'تصفح نصائح المهندسين الذهبية، احسب كميات الحديد والبلاط مجاناً، أو راجع دليل الاستلام.',
-    };
-  }, [quickGoal, quickArea, properties.length]);
 
   return (
     <>
@@ -231,55 +188,8 @@ export default function HomePortalSections({
         </div>
       </section>
 
-      {/* 2. أداة تفاعلية مبسطة ومختصرة لتوجيه العميل */}
-      <section className="pw-section pw-tint" style={{ paddingBlock: '48px' }}>
-        <div className="pw-wrap">
-          <div className="pw-quick-finder">
-            <div className="pw-quick-finder-head">
-              <div>
-                <span className="pw-explorer-kicker">أداة سريعة في 10 ثوانٍ</span>
-                <h2>احسب احتياجك أو اوصل لطلبك فوراً</h2>
-              </div>
-              <Link href={quickSummary.meta.href} className="pw-btn pw-btn-primary">
-                {quickSummary.meta.icon} ادخل على {quickSummary.meta.title} ←
-              </Link>
-            </div>
-
-            <div className="pw-quick-finder-controls">
-              <div className="pw-seg">
-                {PORTAL_SECTIONS.map((s) => (
-                  <button
-                    key={s.slug}
-                    type="button"
-                    className={quickGoal === s.slug ? 'is-on' : ''}
-                    onClick={() => setQuickGoal(s.slug)}
-                  >
-                    {s.icon} {s.title.replace('قسم ', '')}
-                  </button>
-                ))}
-              </div>
-              <label className="pw-range" style={{ minWidth: '220px' }}>
-                <span>المساحة التقريبية: <strong>{quickArea} م²</strong></span>
-                <input
-                  type="range"
-                  min={60}
-                  max={800}
-                  step={10}
-                  value={quickArea}
-                  onChange={(e) => setQuickArea(Number(e.target.value))}
-                />
-              </label>
-            </div>
-
-            <div className="pw-quick-finder-result">
-              <span>{quickSummary.hint}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. أهم العروض والباقات الحصرية */}
-      <section className="pw-section" aria-labelledby="offers-heading" style={{ paddingBlock: '56px' }}>
+      {/* 2. أهم العروض والباقات الحصرية */}
+      <section className="pw-section pw-tint" aria-labelledby="offers-heading" style={{ paddingBlock: '56px' }}>
         <div className="pw-wrap">
           <div className="pw-head" style={{ marginBottom: '32px' }}>
             <p className="pw-eyebrow">أهم العروض التوفيرية</p>
@@ -348,8 +258,8 @@ export default function HomePortalSections({
         </div>
       </section>
 
-      {/* 4. أهم المنتجات الأكثر طلباً */}
-      <section className="pw-section pw-tint" aria-labelledby="featured-products-heading" style={{ paddingBlock: '56px' }}>
+      {/* 3. أهم المنتجات الأكثر طلباً */}
+      <section className="pw-section" aria-labelledby="featured-products-heading" style={{ paddingBlock: '56px' }}>
         <div className="pw-wrap">
           <div className="pw-head" style={{ marginBottom: '26px' }}>
             <p className="pw-eyebrow">أهم المنتجات</p>
