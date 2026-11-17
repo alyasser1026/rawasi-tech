@@ -8,6 +8,8 @@ import { registerOperation, resolveOperationByNumberOrCode, setActiveCompany, ge
 import { generateNextPartnerCode } from '../lib/partnerCodeGenerator.ts';
 import { buildMilestoneSchedule } from '../lib/milestoneSchedule.ts';
 import { isHelperWorker, recordMatchesProject } from '../lib/projectDailyReport.ts';
+import { createSectionQuery } from './copilot-section-query.mjs';
+import { getPublicWebsiteInfo, websitePricing } from './copilot-website-knowledge.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -286,6 +288,13 @@ export function createCopilotTools({
     if (error) return { ok: false, error };
     return { ok: true, data, totalCount: total };
   }
+
+  // استعلام أي قسم (قراءة فقط) — كل طلب بيعدّي على fetchScopedRows فـ company_id مفروض دايمًا.
+  const websiteDeps = { supabaseUrl, supabaseKey, fetchImpl };
+  const querySection = createSectionQuery({
+    fetchRows: (table, params) => fetchScopedRows(table, params),
+    sitePricing: term => websitePricing(term, websiteDeps),
+  });
 
   // Helper for inserting draft records (is_posted = false)
   async function insertScopedDraft(table, payload) {
@@ -3349,6 +3358,17 @@ export function createCopilotTools({
     },
 
     // 15. التبديل بين الشركات (شركة 1 / شركة 2)
+    // args متحققة في copilot-tool-policy.mjs، ومعاها allowed_sections و show_money حسب الدور.
+    async query_company_data(args = {}) {
+      if (!hasDataScope()) return { success: false, error: MISSING_DATA_SCOPE };
+      return querySection(args);
+    },
+
+    // محتوى الموقع العام المنشور للزوار (مفيش بيانات شركة داخلية).
+    async get_public_website_info(args = {}) {
+      return getPublicWebsiteInfo(args, websiteDeps);
+    },
+
     async switch_company(rawArgs = {}) {
       const ident = rawArgs?.company_identifier || '1';
       const target = setActiveCompany(ident);

@@ -13,7 +13,8 @@ const rootDir = path.resolve(__dirname, '..');
 export const USERS_PATH = path.join(rootDir, 'work', 'copilot_users.json');
 export const AUDIT_PATH = path.join(rootDir, 'work', 'copilot_audit.log');
 
-const READ_TOOLS = ['get_labor_daily_logs', 'get_engineering_checklist_and_specs', 'get_tareeha_deficits', 'get_all_projects_and_villas', 'get_daily_comprehensive_report'];
+const READ_TOOLS = ['get_labor_daily_logs', 'get_engineering_checklist_and_specs', 'get_tareeha_deficits', 'get_all_projects_and_villas', 'get_daily_comprehensive_report',
+  'query_company_data', 'get_public_website_info'];
 const V = ['view'];
 const VCE = ['view', 'create', 'edit'];
 
@@ -24,19 +25,22 @@ export const ROLES = Object.freeze({
     label: 'محاسب',
     tools: [...READ_TOOLS, 'get_worker_month_statement', 'add_labor_daily_log_draft', 'add_expense_draft', 'add_payment_voucher_draft',
       'add_journal_entry_draft', 'add_job_order_draft', 'add_partner', 'update_operation_draft', 'link_expense_job_order'],
-    modules: { labor_logs: VCE, laborcost: V, projects: V, expenses: VCE, payments: VCE, journal: VCE, partners: VCE, violations: V, sub_claims: V, subclaims: V, receipts: V, inventory: V },
+    modules: { labor_logs: VCE, laborcost: V, projects: V, expenses: VCE, payments: VCE, journal: VCE, partners: VCE, violations: V, sub_claims: V, subclaims: V, receipts: V, inventory: V,
+      materials: V, materialitems: V, material_issues: V, boqcatalog: V, boqbudget: V, invoices: V, assets: V, accounting: V },
     callbacks: ['any', 'write', 'finance'],
   },
   engineer: {
     label: 'مهندس موقع',
     tools: [...READ_TOOLS, 'get_worker_month_statement', 'add_labor_daily_log_draft', 'add_job_order_draft'],
-    modules: { labor_logs: VCE, projects: V, partners: V, sub_claims: V, subclaims: V, inventory: V },
+    // المبالغ مخفية للدور ده في query_company_data (canSeeQueryMoney).
+    modules: { labor_logs: VCE, projects: V, partners: V, sub_claims: V, subclaims: V, inventory: V,
+      materials: V, materialitems: V, material_issues: V, boqcatalog: V, boqbudget: V },
     callbacks: ['any', 'write'],
   },
   viewer: {
     label: 'قراءة فقط',
     tools: [...READ_TOOLS],
-    modules: { labor_logs: V, projects: V },
+    modules: { labor_logs: V, projects: V, materialitems: V, boqcatalog: V, inventory: V },
     callbacks: ['any'],
   },
 });

@@ -7,6 +7,10 @@ import {
   type ChatBotActionLink,
   type ChatConversationStage,
 } from '@/app/site/chat-auto-responder';
+import { buildSiteKnowledgeDigest, searchSiteKnowledge } from '@/app/site/chat-knowledge';
+
+/** معرفة كل أقسام الموقع العام (المتجر، العقارات، الصيانة، الدليل، قائمة التفقد...) للرد الآلي. */
+const SITE_KNOWLEDGE = { search: searchSiteKnowledge, digest: buildSiteKnowledgeDigest };
 
 export const runtime = 'nodejs';
 
@@ -254,6 +258,7 @@ export async function POST(req: Request) {
           pendingQuestion: currentPendingQuestion,
           previousMessages: prevMessages,
           siteContent,
+          knowledge: SITE_KNOWLEDGE,
         })
       : null;
 

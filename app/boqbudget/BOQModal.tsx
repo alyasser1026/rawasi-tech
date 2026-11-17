@@ -168,11 +168,11 @@ export default function BOQModal({ isOpen, onClose, record, setRecord, onSave, i
                             </div>
 
                             <div><label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#15803d', display: 'block', marginBottom: '0.25rem' }}>التشغيل (فعلي)</label><input type="number" value={record.actual_operational_cost ?? ''} onChange={(e) => setRecord({...record, actual_operational_cost: e.target.value})} className="glass-input-field" /></div>
-                            <div><label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#15803d', display: 'block', marginBottom: '0.25rem' }}>مصروفات (فعلي)</label><input type="number" value={record.actual_expenses_cost ?? ''} onChange={(e) => setRecord({...record, actual_expenses_cost: e.target.value})} className="glass-input-field" /></div>
+                            <div><label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#15803d', display: 'block', marginBottom: '0.25rem' }}>مصروفات (تلقائي)</label><input type="number" value={record.actual_expenses_cost ?? ''} readOnly className="glass-input-field" style={{ background:'rgba(0,0,0,0.05)', cursor: 'not-allowed', color: '#15803d' }} title="بتتحسب تلقائياً عند الحفظ: المصروفات المباشرة على أوامر شغل البند + مستخلصات المقاولين المرحّلة + المصروفات الموزعة" /></div>
                             
                             <div style={{ gridColumn: 'span 2' }}>
-                                <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#15803d', display: 'block', marginBottom: '0.25rem' }}>الإيراد الفعلي (إن وجد)</label>
-                                <input type="number" value={record.actual_revenue ?? ''} onChange={(e) => setRecord({...record, actual_revenue: e.target.value})} className="glass-input-field" style={{borderColor: '#22c55e', background:'#fff'}} />
+                                <label style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: '#15803d', display: 'block', marginBottom: '0.25rem' }}>الإيراد الفعلي (تلقائي)</label>
+                                <input type="number" value={record.actual_revenue ?? ''} readOnly className="glass-input-field" style={{ borderColor: '#22c55e', background:'rgba(0,0,0,0.05)', cursor: 'not-allowed' }} title="بتتحسب تلقائياً عند الحفظ من فواتير العملاء المعتمدة وسندات القبض المرتبطة بأوامر شغل البند" />
                             </div>
                         </div>
                     </div>

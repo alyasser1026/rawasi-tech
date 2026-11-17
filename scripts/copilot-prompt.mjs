@@ -85,6 +85,14 @@ const FIELD_OPS_ROUTING_INSTRUCTIONS = `
 13) إضافة شريك أو فني أو عامل جديد (عبر كارت الاتصال أو المحادثة): إذا قال المستخدم «ضيف شريك/عامل جديد اسمه كذا ورقمه كذا ومهنته كذا ويوميته كذا» أو شارك كارت اتصال (Contact): استدعِ فوراً add_partner بالبيانات (name, phone, job_role, daily_wage, partner_type). إذا ذكر يومية أو مهنة صنايعي، حددي partner_type="عامل يومية".
 `;
 
+const ANY_QUESTION_ROUTING = `
+قواعد الرد على أي سؤال عن السيستم أو الموقع العام:
+• أي سؤال عن بيانات الشركة (صنف، خامة، بضاعة، سعر، كمية، رصيد مخزن، توريد، صرف خامات، أمر شراء، فاتورة مورد أو عميل، بند مقايسة أو كتالوج، مصروف، سند صرف أو قبض، مستخلص، أمر شغل، شريك أو مورد أو مقاول، عهدة، جزاء، أصل أو معدة، مشروع أو فيلا): استدعي query_company_data. مثال: «سعر الاسمنت كام؟» → section="prices" و search="اسمنت». «فاضل كام حديد في المخزن؟» → section="stock" و search="حديد». «صرفنا كام لمؤسسة الأمل الشهر ده؟» → section="payment_vouchers" و partner="الأمل" مع الفترة. «مصروفات فيلا 12» → section="expenses" و project="12". لو مش متأكدة من القسم: section="all" مع كلمة البحث.
+• search = اسم الحاجة بس من غير كلمات السؤال («سعر»، «كام»، «عندنا»، «فيه»).
+• أي سؤال عن الموقع العام (الشركة وخدماتها، التواصل، المتجر ومنتجاته وأسعاره، باقات السمارت هوم، العقارات المعروضة وأسعارها وأقساطها، الصيانة ورسومها، دليل تنفيذ بند أو سعره الاسترشادي، قائمة التفقد، الأسئلة الشائعة): استدعي get_public_website_info بالقسم المناسب. لو السؤال عن سعر صنف، query_company_data(prices) بيجيب سعر المتجر والدليل كمان.
+• ما تقوليش «مش متاح» أو «معنديش» قبل ما تجربي الأداة المناسبة. وما تخترعيش أرقام: كل رقم لازم يكون من نتيجة أداة.
+`;
+
 export const MODEL_MESSAGES = Object.freeze({
   multipleCalls: 'ابعت كل استعلام في رسالة لوحده.',
   undeclared: 'العملية دي مش متاحة من البوت بالإعدادات والصلاحيات الحالية. افتح الشاشة المختصة في فاي تك.',
@@ -98,6 +106,7 @@ export function buildSystemInstructions({ knowledge = '', declarations = [], ref
   const hasFieldOps = declarations.some(t =>
     ['get_all_projects_and_villas', 'get_daily_comprehensive_report', 'add_labor_daily_log_draft', 'add_expense_draft', 'add_payment_voucher_draft'].includes(t.name)
   );
+  const hasAnyQuestionTools = declarations.some(t => ['query_company_data', 'get_public_website_info'].includes(t.name));
   const cleanQuoted = typeof quotedMessageText === 'string' ? quotedMessageText.trim().slice(0, 1200) : '';
   const personaLine = botPersona?.botName
     ? `هويتك واسمك التعريفي في المحادثة: اسمك هو «${botPersona.botName}» (${botPersona.botTitle || 'المساعدة الهندسية والمحاسبية الذكية لفاي تك'}). عرّفي نفسك بهذا الاسم دائماً بصيغة المؤنث وبالعامية المصرية الاحترافية الراقية عند الترحيب أو بدء الحديث أو عند سؤالك عن اسمك.`
@@ -120,6 +129,7 @@ export function buildSystemInstructions({ knowledge = '', declarations = [], ref
     ...(companyLine ? [companyLine] : []),
     mozzaLine,
     ...(hasFieldOps ? [FIELD_OPS_ROUTING_INSTRUCTIONS.trim()] : []),
+    ...(hasAnyQuestionTools ? [ANY_QUESTION_ROUTING.trim()] : []),
     knowledge,
     'الأدوات المفعلة في هذه المحادثة فقط: ' + declarations.map(tool => tool.name).join('، '),
     'تابع موضوع الرسائل السابقة لما السؤال الجديد يعتمد عليه. مثال: «طب امبارح؟» يقصد نفس الاستعلام لليوم السابق، و«2» أو «مباشر» بعد اختيارات يقصد الاختيار الموافق. خذ التاريخ والفلاتر من الرسائل وسياق اليوم. أعد أي استعلام رقمي بأداة مصرح بها؛ تاريخ المحادثة لا يحتوي نتائج قاعدة البيانات.',

@@ -1,5 +1,7 @@
 import { TOOL_STATUS, isToolFlagEnabled, registryEntry } from './copilot-tool-registry.mjs';
 import { getBotSettings, resolveCompanyCurrencyLabel } from './copilot-bot-settings.mjs';
+import { SECTIONS, allowedSectionsFor, formatSectionReply, validateQueryArgs } from './copilot-section-query.mjs';
+import { validateWebsiteArgs } from './copilot-website-knowledge.mjs';
 
 function resolveCurrency(result, access) {
   return resolveCompanyCurrencyLabel({
@@ -21,6 +23,16 @@ const ADD_JOURNAL = 'add_journal_entry_draft';
 const ADD_JOB_ORDER = 'add_job_order_draft';
 const ADD_PARTNER = 'add_partner';
 const UPDATE_OPERATION = 'update_operation_draft';
+const QUERY = 'query_company_data';
+const WEBSITE = 'get_public_website_info';
+/** أدوار البوت اللي ما بتشوفش مبالغ في استعلام الأقسام. */
+const NO_MONEY_ROLES = new Set(['engineer', 'viewer']);
+export function canSeeQueryMoney(access) {
+  return !NO_MONEY_ROLES.has(access?.telegramRole);
+}
+export function allowedQuerySections(access) {
+  return allowedSectionsFor(module => hasModulePermission(access, module, 'view'), canSeeQueryMoney(access));
+}
 const DAY_MS = 86_400_000;
 const TOOLS_ENABLED = process.env.COPILOT_TOOLS_ENABLED !== 'false';
 
@@ -108,6 +120,9 @@ function getToolArgs(name, supplied, now) {
     const topic = supplied.topic === undefined ? null : safeText(supplied.topic, 120);
     return item && (topic || supplied.topic === undefined) ? { item_name: item, ...(topic && { topic }) } : null;
   }
+
+  if (name === QUERY) return validateQueryArgs(supplied, value => resolveDateToken(value, now));
+  if (name === WEBSITE) return validateWebsiteArgs(supplied);
 
   if (name === TAREEHA) {
     // لا تقبل أي args من المستخدم — company_id في الـ closure
@@ -1077,13 +1092,26 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
     if (name === ADD_JOB_ORDER) return 'اذكر بند العمل والكمية وسعر الوحدة والمقاول لتسجيل أمر الشغل.';
     if (name === UPDATE_OPERATION) return 'اذكر كود أو تفاصيل العملية والتعديل المطلوب.';
     if (name === PROJECTS || name === DAILY_REPORT) return 'حدّد التاريخ بصيغة YYYY-MM-DD أو اكتب «النهارده».';
+    if (name === QUERY) return 'قولّي بتسأل عن إيه بالظبط (اسم الصنف أو البند أو المستند)، ولو فيه فترة تكون لحد سنة بصيغة YYYY-MM-DD.';
+    if (name === WEBSITE) return 'قولّي بتسأل عن إيه في الموقع (منتج، وحدة عقارية، صيانة، بند تنفيذ...).';
     return 'اذكر اسم البند الهندسي ونوع الفحص المطلوب.';
   }
 
   const isFieldOpsMode = process.env.COPILOT_LIVE_FIELD_OPS_ENABLED === 'true';
   const canViewWages = hasModulePermission(access, 'laborcost', 'view');
   const execArgs = { ...args };
-  if ((name === LABOR || name === PROJECTS) && isFieldOpsMode) {
+  if (name === QUERY) {
+    const allowed = allowedQuerySections(access);
+    if (!allowed.length) return 'صلاحياتك الحالية ما بتسمحش بالاستعلام عن أقسام الشركة من البوت. اطلب الصلاحية من المدير.';
+    if (args.section !== 'all' && !allowed.includes(args.section)) {
+      const label = SECTIONS[args.section]?.label || 'القسم ده';
+      return SECTIONS[args.section]?.moneyOnly && !canSeeQueryMoney(access)
+        ? `«${label}» فيها مبالغ مالية ومش متاحة لدورك في البوت.`
+        : `مالكش صلاحية على «${label}». اطلبها من المدير أو اسأل عن قسم تاني.`;
+    }
+    execArgs.allowed_sections = allowed;
+    execArgs.show_money = canSeeQueryMoney(access);
+  } else if ((name === LABOR || name === PROJECTS) && isFieldOpsMode) {
     execArgs.include_wages = canViewWages;
   } else if (name === DAILY_REPORT) {
     execArgs.section_permissions = {
@@ -1180,6 +1208,12 @@ export async function runEnabledCopilotTool(call, tools, access, now = new Date(
   }
   if (name === 'switch_company') {
     return result.message || 'تم التبديل بنجاح.';
+  }
+  if (name === QUERY) {
+    return formatSectionReply(result, { companyLabel, cur }).slice(0, 3900);
+  }
+  if (name === WEBSITE) {
+    return typeof result.text === 'string' && result.text.trim() ? result.text : 'مالقيتش محتوى مطابق في الموقع العام.';
   }
 
   if (name === TAREEHA) {

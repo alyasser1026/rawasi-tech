@@ -12,6 +12,9 @@
  *   retired  — implementation removed; createCopilotTools exposes a stub that makes no request
  */
 
+import { QUERY_TOOL_DECLARATION } from './copilot-section-query.mjs';
+import { WEBSITE_TOOL_DECLARATION } from './copilot-website-knowledge.mjs';
+
 export const TOOL_STATUS = Object.freeze({ ACTIVE: 'active', PILOT: 'pilot', INTERNAL: 'internal', RETIRED: 'retired' });
 
 export const TOOL_REGISTRY = Object.freeze([
@@ -433,6 +436,32 @@ export const TOOL_REGISTRY = Object.freeze([
     requiresCompany: false,
     limits: 'التبديل الفوري للشركة النشطة للبوت',
     output: 'تأكيد التبديل وبيانات الشركة الجديدة',
+  },
+
+  {
+    name: 'query_company_data',
+    status: TOOL_STATUS.ACTIVE,
+    declaration: QUERY_TOOL_DECLARATION,
+    source: { kind: 'table', name: 'material_items, material_receipts(+lines), material_issues(+lines), purchase_orders(+lines), inventory, supplier_invoices, boq_items, boq_budget, expenses, payment_vouchers, receipt_vouchers, invoices, sub_claims, job_orders, partners(code/name/type/role), site_custodies, violations, fixed_assets, projects' },
+    // الصلاحية لكل قسم على حدة (نفس موديول RLS بتاع الجدول) — copilot-section-query.mjs SECTIONS[].perms، وبتتفحص في السياسة.
+    permission: null,
+    requiresCompany: true,
+    flag: null,
+    definition: 'copilot-section-query.mjs: company_id=eq دايمًا عبر fetchScopedRows، البحث بيتنضف لحروف وأرقام بس قبل ilike، أعمدة محددة لكل قسم، ومفيش تليفونات/هويات/صور. المبالغ مخفية لمهندس الموقع والقراءة فقط.',
+    limits: 'حتى 1000 سطر للحساب لكل قسم، عرض 12، فترة ≤ سنة، 3 لكل قسم في البحث الشامل',
+    output: 'العدد والإجمالي وأول النتايج، وللأصناف: آخر سعر وأقل/أعلى/متوسط ومورّد آخر توريد، والمخزون = المورّد − المنصرف.',
+  },
+  {
+    name: 'get_public_website_info',
+    status: TOOL_STATUS.ACTIVE,
+    declaration: WEBSITE_TOOL_DECLARATION,
+    source: { kind: 'file', name: 'RPC website_public_content + app/site/{site-content,store-catalog,section-defs,execution-guide-data,checklist-data}.ts' },
+    permission: null,
+    requiresCompany: false,
+    flag: null,
+    definition: 'copilot-website-knowledge.mjs: نفس المحتوى اللي الزائر شايفه (المنشور من إدارة الموقع + الافتراضي)، كاش 5 دقايق.',
+    limits: 'حتى 8 نتايج لكل قسم، الرد ≤ 3600 حرف',
+    output: 'نص جاهز: الشركة والتواصل والخدمات والمتجر والباقات والعقارات والصيانة ودليل التنفيذ وقائمة التفقد والأسئلة الشائعة.',
   },
 
   // ─── Retired (implementation removed; stubs make no request) ───────────────
