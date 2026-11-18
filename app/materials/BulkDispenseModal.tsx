@@ -325,7 +325,12 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
                                         </div>
                                     </td>
                                     <td style={{ padding: '0.65rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
-                                        {item.available_qty} {item.unit}
+                                        <div style={{ color: 'var(--status-positive, #10b981)', fontWeight: 900, fontSize: 'var(--fs-xs)' }}>
+                                            إجمالي الصنف: {item.item_remaining_balance ?? item.available_qty} {item.unit}
+                                        </div>
+                                        <div style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                                            متبقي بالسطر: {item.available_qty} {item.unit}
+                                        </div>
                                     </td>
                                     <td style={{ padding: '0.65rem' }}>
                                         <input

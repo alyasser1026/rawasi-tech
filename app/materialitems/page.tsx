@@ -48,6 +48,31 @@ export default function MaterialCatalogPage() {
     { header: 'اسم الخامة / الصنف', render: (row: any) => <span style={{ fontWeight: 900 }}>{row.item_name}</span> },
     { header: 'التصنيف الرئيسي', render: (row: any) => <span style={{ background: 'var(--surface-subcard)', color: 'var(--text-primary)', padding: '0.25rem 0.625rem', borderRadius: '8px', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>{row.main_category || 'عام'}</span> },
     { header: 'الوحدة الافتراضية', render: (row: any) => <span style={{ fontWeight: 700 }}>{row.default_unit}</span> },
+    {
+      header: 'إجمالي الرصيد المتبقي',
+      render: (row: any) => {
+        const qty = Number(row.available_quantity) || 0;
+        const hasStock = qty > 0;
+        return (
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.28rem 0.7rem',
+              borderRadius: '999px',
+              fontWeight: 900,
+              fontSize: 'var(--fs-sm)',
+              fontVariantNumeric: 'tabular-nums',
+              background: hasStock ? 'rgba(16, 185, 129, 0.15)' : 'var(--surface-subcard)',
+              color: hasStock ? 'var(--status-positive, #10b981)' : 'var(--text-muted)',
+            }}
+          >
+            {qty.toLocaleString('en-US')} {row.default_unit || ''}
+          </span>
+        );
+      },
+    },
     { header: 'السعر الاسترشادي', render: (row: any) => <span style={{ color: 'var(--status-positive)', fontWeight: 900 }}>{formatCurrency(row.default_unit_price)}</span> },
     {
       header: 'الإجراءات',
@@ -95,14 +120,25 @@ export default function MaterialCatalogPage() {
         
         <RawasiSidebarManager 
           summary={
-            <div className="material-catalog-summary">
-              <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 800, color: 'var(--text-secondary)' }}>إجمالي الأصناف المسجلة</span>
-              <div className="val" style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: 'var(--text-primary)', marginTop: '0.3125rem' }}>{logic.items.length} صنف</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              <div className="material-catalog-summary">
+                <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary)' }}>إجمالي الأصناف المسجلة</span>
+                <div className="val" style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: 'var(--text-primary)', marginTop: '0.25rem' }}>{logic.items.length} صنف</div>
+              </div>
+              <div className="material-catalog-summary" style={{ background: 'var(--accent-soft-bg)' }}>
+                <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary)' }}>إجمالي الرصيد المتبقي بالمخزن</span>
+                <div className="val" style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: 'var(--accent-ink)', marginTop: '0.25rem', fontVariantNumeric: 'tabular-nums' }}>
+                  {(logic.totalRemainingQty || 0).toLocaleString('en-US')} وحدة
+                </div>
+                <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 700, color: 'var(--text-secondary)' }}>
+                  متوفر في {logic.inStockCount || 0} صنف
+                </span>
+              </div>
             </div>
           }
           actions={sidebarActions}
           customFilters={sidebarFilters}
-          watchDeps={[logic.items.length, logic.searchQuery, logic.filterCategory]}
+          watchDeps={[logic.items.length, logic.totalRemainingQty, logic.inStockCount, logic.searchQuery, logic.filterCategory]}
         />
 
         <style>{`

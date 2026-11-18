@@ -33,8 +33,26 @@ export function useMaterialItemsLogic() {
 
   const fetchData = async () => {
     setIsLoading(true);
-    const data = await fetchAllSupabaseData(supabase, 'material_items', '*', 'created_at', false);
-    if (data) setItems(data);
+    const [data, balRes] = await Promise.all([
+      fetchAllSupabaseData(supabase, 'material_items', '*', 'created_at', false),
+      supabase.rpc('rpc_get_inventory_balances'),
+    ]);
+    const balances: any[] = balRes?.data || [];
+
+    if (data) {
+      const enriched = data.map((item: any) => {
+        const matched = balances.find(
+          (b: any) =>
+            (b.item_id && item.id && b.item_id === item.id) ||
+            (b.item_name && item.item_name && String(b.item_name).trim() === String(item.item_name).trim())
+        );
+        return {
+          ...item,
+          available_quantity: matched ? Number(matched.available_quantity) || 0 : 0,
+        };
+      });
+      setItems(enriched);
+    }
     setIsLoading(false);
   };
 
@@ -88,6 +106,14 @@ export function useMaterialItemsLogic() {
       return matchSearch && matchCat;
     });
   }, [items, searchQuery, filterCategory]);
+
+  const totalRemainingQty = useMemo(() => {
+    return filteredItems.reduce((sum, i) => sum + (Number(i.available_quantity) || 0), 0);
+  }, [filteredItems]);
+
+  const inStockCount = useMemo(() => {
+    return filteredItems.filter((i) => (Number(i.available_quantity) || 0) > 0).length;
+  }, [filteredItems]);
 
   // Mutation الحفظ (إضافة أو تعديل) مع حماية ضد الأكواد المكررة أو الفارغة
   const saveMutation = useMutation({
@@ -161,6 +187,8 @@ export function useMaterialItemsLogic() {
 
   return {
     items: filteredItems,
+    totalRemainingQty,
+    inStockCount,
     categories,
     isLoading,
     searchQuery,

@@ -200,7 +200,8 @@ export function useMaterialsLogic() {
                     work_item: line.item_name,
                     item_name: line.item_name,
                     quantity: line.quantity,
-                    available_qty: finalSafeQty, 
+                    available_qty: finalSafeQty,
+                    item_remaining_balance: globalBalance,
                     unit: line.unit,
                     unit_price: line.unit_price,
                     total_price: line.total_price,
@@ -520,6 +521,7 @@ export function useMaterialsLogic() {
 
     return {
         data: filteredData, projects, kpis, isLoading,
+        inventoryBalances,
         globalSearch, setGlobalSearch, filterProject, setFilterProject, dateFrom, setDateFrom, dateTo, setDateTo,
         isModalOpen, setIsModalOpen, openAddModal: () => { setInvoiceData(initialInvoiceState); setIsModalOpen(true); },
         isPrintModalOpen, setIsPrintModalOpen, printReceiptId, setPrintReceiptId,

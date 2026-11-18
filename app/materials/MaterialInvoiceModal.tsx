@@ -504,17 +504,28 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                         <table className="mat-lines-table">
                             <thead>
                                 <tr>
-                                    <th style={{ textAlign: 'right', width: '26%' }}>اسم الخامة (من الدليل الموحد)</th>
-                                    <th style={{ width: '24%' }}>توجيه لبند (BOQ) - اختياري</th>
-                                    <th style={{ width: '10%' }}>الكمية</th>
-                                    <th style={{ width: '10%' }}>الوحدة</th>
-                                    <th style={{ width: '12%' }}>السعر</th>
-                                    <th style={{ width: '13%' }}>الإجمالي</th>
-                                    <th style={{ width: '5%' }}>حذف</th>
+                                    <th style={{ textAlign: 'right', width: '24%' }}>اسم الخامة (من الدليل الموحد)</th>
+                                    <th style={{ width: '20%' }}>توجيه لبند (BOQ) - اختياري</th>
+                                    <th style={{ width: '13%' }}>الرصيد المتبقي للصنف</th>
+                                    <th style={{ width: '9%' }}>الكمية</th>
+                                    <th style={{ width: '9%' }}>الوحدة</th>
+                                    <th style={{ width: '10%' }}>السعر</th>
+                                    <th style={{ width: '11%' }}>الإجمالي</th>
+                                    <th style={{ width: '4%' }}>حذف</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {logic.invoiceData.items.map((item: any, idx: number) => (
+                                {logic.invoiceData.items.map((item: any, idx: number) => {
+                                    const matchedBalance = (logic.inventoryBalances || []).find(
+                                        (inv: any) =>
+                                            (inv.item_id && item.item_id && inv.item_id === item.item_id) ||
+                                            (inv.item_name &&
+                                                (item.item_name || item.work_item) &&
+                                                String(inv.item_name).trim() === String(item.item_name || item.work_item).trim())
+                                    );
+                                    const itemRemainingQty = matchedBalance ? Number(matchedBalance.available_quantity) || 0 : 0;
+                                    const hasStock = itemRemainingQty > 0;
+                                    return (
                                     <tr key={idx}>
                                         <td style={{ zIndex: 70 - idx, position: 'relative', textAlign: 'right' }}>
                                             <SmartCombo
@@ -548,6 +559,22 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                                                     logic.handleItemChange(idx, 'boq_selection', selectedBoq);
                                                 }}
                                             />
+                                        </td>
+                                        <td>
+                                            <span
+                                                style={{
+                                                    display: 'inline-block',
+                                                    padding: '0.28rem 0.6rem',
+                                                    borderRadius: '999px',
+                                                    fontWeight: 900,
+                                                    fontSize: 'var(--fs-xs)',
+                                                    fontVariantNumeric: 'tabular-nums',
+                                                    background: hasStock ? 'rgba(16, 185, 129, 0.15)' : 'var(--surface-sunken)',
+                                                    color: hasStock ? 'var(--status-positive, #10b981)' : 'var(--text-muted)',
+                                                }}
+                                            >
+                                                {itemRemainingQty} {matchedBalance?.unit || item.unit || ''}
+                                            </span>
                                         </td>
                                         <td>
                                             <input
@@ -597,7 +624,8 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                                             )}
                                         </td>
                                     </tr>
-                                ))}
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

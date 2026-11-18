@@ -266,15 +266,23 @@ export default function MaterialsPage() {
                     account: row.account,
                     is_posted: row.is_posted,
                     total_receipt_price: 0,
+                    total_receipt_qty: 0,
+                    total_remaining_qty: 0,
                     items: [],
                     _selected: logic.selectedIds?.includes(id),
                 };
             }
+            const lineQty = Number(row.quantity) || 0;
+            const availQty = row.available_qty !== undefined ? Number(row.available_qty) : lineQty;
             groups[id].total_receipt_price += Number(row.total_price) || 0;
+            groups[id].total_receipt_qty += lineQty;
+            groups[id].total_remaining_qty += availQty;
             groups[id].items.push({
                 ...row,
-                quantity: row.quantity || 0,
-                available_qty: row.available_qty !== undefined ? row.available_qty : row.quantity || 0,
+                quantity: lineQty,
+                available_qty: availQty,
+                item_remaining_balance:
+                    row.item_remaining_balance !== undefined ? Number(row.item_remaining_balance) : availQty,
                 project_id: row.project_id || groups[id].project_id,
                 project: row.project || groups[id].project,
                 job_order_id: row.job_order_id || groups[id].job_order_id || null,
@@ -315,7 +323,9 @@ export default function MaterialsPage() {
                     'المورد': group.supplier?.name || '---',
                     'نوع الفاتورة': group.receipt_type || '---',
                     'الخامة الموردة': item.work_item || item.item_name,
-                    'الكمية': item.quantity,
+                    'الكمية الموردة': item.quantity,
+                    'الرصيد المتبقي بالسطر': item.available_qty,
+                    'إجمالي رصيد الصنف بالمخزن': item.item_remaining_balance,
                     'الوحدة': item.unit,
                     'سعر الوحدة': Number(item.unit_price || 0),
                     'إجمالي السطر': Number(item.total_price || 0),
@@ -809,23 +819,35 @@ export default function MaterialsPage() {
                                                     />
                                                 </td>
                                                 <td>
-                                                    <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                        <span className={`arrow-icon no-print ${isExpanded ? 'arrow-expanded' : ''}`}>
-                                                            <ChevronLeft size={14} aria-hidden="true" />
-                                                        </span>
+                                                    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem' }}>
+                                                        <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                            <span className={`arrow-icon no-print ${isExpanded ? 'arrow-expanded' : ''}`}>
+                                                                <ChevronLeft size={14} aria-hidden="true" />
+                                                            </span>
+                                                            <span
+                                                                style={{
+                                                                    display: 'inline-block',
+                                                                    fontWeight: 900,
+                                                                    color: 'var(--accent-ink)',
+                                                                    background: 'var(--accent-soft-bg)',
+                                                                    padding: '0.28rem 0.65rem',
+                                                                    borderRadius: '8px',
+                                                                    fontSize: 'var(--fs-sm)',
+                                                                    fontVariantNumeric: 'tabular-nums',
+                                                                }}
+                                                            >
+                                                                #{group.receipt_no || '---'}
+                                                            </span>
+                                                        </div>
                                                         <span
                                                             style={{
-                                                                display: 'inline-block',
-                                                                fontWeight: 900,
-                                                                color: 'var(--accent-ink)',
-                                                                background: 'var(--accent-soft-bg)',
-                                                                padding: '0.28rem 0.65rem',
-                                                                borderRadius: '8px',
-                                                                fontSize: 'var(--fs-sm)',
+                                                                fontSize: 'var(--fs-xs)',
+                                                                fontWeight: 800,
+                                                                color: group.total_remaining_qty > 0 ? 'var(--status-positive, #10b981)' : 'var(--text-muted)',
                                                                 fontVariantNumeric: 'tabular-nums',
                                                             }}
                                                         >
-                                                            #{group.receipt_no || '---'}
+                                                            {group.items.length} أصناف • متبقي {group.total_remaining_qty} من {group.total_receipt_qty}
                                                         </span>
                                                     </div>
                                                 </td>
@@ -1037,19 +1059,21 @@ export default function MaterialsPage() {
                                                             <table className="child-table">
                                                                 <thead>
                                                                     <tr>
-                                                                        <th className="no-print" style={{ width: '6%', textAlign: 'center' }}>تحديد</th>
-                                                                        <th style={{ width: '25%', textAlign: 'right' }}>الخامة الموردة</th>
-                                                                        <th style={{ width: '20%' }}>توجيه الميزانية (BOQ)</th>
-                                                                        <th style={{ width: '14%' }}>الكمية الموردة</th>
-                                                                        <th style={{ width: '13%' }}>سعر الوحدة</th>
-                                                                        <th style={{ width: '13%' }}>إجمالي السطر</th>
-                                                                        <th className="no-print" style={{ width: '9%', textAlign: 'center' }}>الصرف</th>
+                                                                        <th className="no-print" style={{ width: '5%', textAlign: 'center' }}>تحديد</th>
+                                                                        <th style={{ width: '22%', textAlign: 'right' }}>الخامة الموردة</th>
+                                                                        <th style={{ width: '17%' }}>توجيه الميزانية (BOQ)</th>
+                                                                        <th style={{ width: '12%' }}>الكمية الموردة</th>
+                                                                        <th style={{ width: '17%' }}>الرصيد المتبقي للصنف</th>
+                                                                        <th style={{ width: '10%' }}>سعر الوحدة</th>
+                                                                        <th style={{ width: '10%' }}>إجمالي السطر</th>
+                                                                        <th className="no-print" style={{ width: '7%', textAlign: 'center' }}>الصرف</th>
                                                                     </tr>
                                                                 </thead>
                                                                 <tbody>
                                                                     {group.items.map((item: any, idx: number) => {
                                                                         const isLineSelected = !!logic.selectedLineItems?.find((i: any) => i.id === item.id);
                                                                         const canDispense = group.is_posted && item.available_qty > 0;
+                                                                        const hasRemaining = Number(item.item_remaining_balance) > 0;
                                                                         return (
                                                                             <tr
                                                                                 key={item.id || idx}
@@ -1095,6 +1119,26 @@ export default function MaterialsPage() {
                                                                                     <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
                                                                                         {item.unit}
                                                                                     </span>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <div style={{ display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: '0.2rem' }}>
+                                                                                        <span
+                                                                                            style={{
+                                                                                                display: 'inline-block',
+                                                                                                padding: '2px 0.55rem',
+                                                                                                borderRadius: '999px',
+                                                                                                fontWeight: 900,
+                                                                                                fontSize: 'var(--fs-xs)',
+                                                                                                background: hasRemaining ? 'rgba(16, 185, 129, 0.15)' : 'var(--surface-subcard)',
+                                                                                                color: hasRemaining ? 'var(--status-positive, #10b981)' : 'var(--text-muted)',
+                                                                                            }}
+                                                                                        >
+                                                                                            إجمالي الصنف: {item.item_remaining_balance ?? 0} {item.unit}
+                                                                                        </span>
+                                                                                        <span style={{ fontSize: '0.72rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
+                                                                                            متبقي بالسطر: {item.available_qty ?? 0} {item.unit}
+                                                                                        </span>
+                                                                                    </div>
                                                                                 </td>
                                                                                 <td style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>
                                                                                     {formatCurrency(item.unit_price)}
