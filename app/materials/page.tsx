@@ -864,7 +864,7 @@ export default function MaterialsPage() {
                                                                 color: 'var(--text-secondary)',
                                                             }}
                                                         >
-                                                            {group.account?.name || '---'}
+                                                            {group.account?.name || (isClientSupply ? 'حساب 217 • خامات عملاء' : '---')}
                                                         </span>
                                                         <span
                                                             style={{
