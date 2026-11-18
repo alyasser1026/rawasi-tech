@@ -59,9 +59,12 @@ export function useMaterialsLogic() {
             const safeProjectId = cleanId(payload.project_id);
             if (!safeProjectId) throw new Error("المشروع الإلزامي غير محدد للصرف.");
 
-            const issuePayload = {
+            const safeJobOrderId = cleanId(payload.job_order_id) || cleanId(payload.items?.[0]?.job_order_id);
+
+            const issuePayload: Record<string, any> = {
                 issue_number: `ISS-${Date.now().toString().slice(-6)}`,
                 project_id: safeProjectId,
+                job_order_id: safeJobOrderId,
                 subcontractor_id: payload.issue_type === 'صرف لمقاول' ? cleanId(payload.subcontractor_id) : null,
                 issue_date: payload.issue_date || new Date().toISOString().split('T')[0],
                 issue_type: payload.issue_type || 'استهلاك مباشر',
@@ -86,7 +89,8 @@ export function useMaterialsLogic() {
                 unit_price: cleanNum(item.unit_price),
                 total_price: cleanNum(item.dispense_qty, 1) * cleanNum(item.unit_price),
                 boq_id: cleanId(item.boq_id), 
-                boq_item_id: cleanId(item.boq_item_id) 
+                boq_item_id: cleanId(item.boq_item_id),
+                job_order_id: cleanId(item.job_order_id) || safeJobOrderId
             }));
 
             const { error: lineError } = await supabase.from('material_issue_lines').insert(linesPayload);
@@ -145,6 +149,7 @@ export function useMaterialsLogic() {
                     id, 
                     receipt_id,
                     project_id,
+                    job_order_id,
                     item_id, 
                     item_name, 
                     quantity, 
@@ -157,7 +162,9 @@ export function useMaterialsLogic() {
                     receipt:material_receipts!receipt_id (
                         id,
                         receipt_number,
-                        receipt_date, 
+                        receipt_date,
+                        project_id,
+                        job_order_id,
                         notes, 
                         status, 
                         receipt_type, 
@@ -187,7 +194,7 @@ export function useMaterialsLogic() {
 
                 return {
                     id: line.id,
-                    receipt_id: line.receipt_id, // 🎯 رجعنا نسحب הـ ID صراحة عشان التجميع
+                    receipt_id: line.receipt_id,
                     receipt_no: rec?.receipt_number, 
                     item_id: line.item_id,
                     work_item: line.item_name,
@@ -202,14 +209,14 @@ export function useMaterialsLogic() {
                     boq_item: line.boq?.work_item,   
                     exp_date: rec?.receipt_date,
                     created_at: rec?.created_at,
-                    project_id: line.project_id, // 🎯 رجعنا نسحب הـ Project صراحة
+                    project_id: line.project_id || rec?.project_id,
                     project: rec?.project,
                     supplier: rec?.supplier,
                     account: rec?.account,
                     status: rec?.status,
                     notes: rec?.notes,
                     receipt_type: rec?.receipt_type, 
-                    job_order_id: rec?.job_order_id,
+                    job_order_id: line.job_order_id || rec?.job_order_id || null,
                     is_posted: isStrictlyPosted, 
                     jv_id: rec?.jv_id 
                 };
@@ -370,6 +377,7 @@ export function useMaterialsLogic() {
             const linesPayload = invoiceData.items.map((item: any) => ({
                 receipt_id: receiptId,
                 project_id: safeProjectId,
+                job_order_id: safeJobOrderId,
                 item_id: cleanId(item.item_id), 
                 item_name: String(item.work_item || item.item_name || 'صنف غير معروف').trim(),
                 quantity: cleanNum(item.quantity, 1),
@@ -426,9 +434,12 @@ export function useMaterialsLogic() {
             const safeProjectId = cleanId(data.project_id);
             if (!safeProjectId) throw new Error("المشروع الإلزامي غير محدد للصرف.");
 
-            const issuePayload = {
+            const safeJobOrderId = cleanId(data.job_order_id) || cleanId(data.item?.job_order_id);
+
+            const issuePayload: Record<string, any> = {
                 issue_number: `ISS-${Date.now().toString().slice(-6)}`,
                 project_id: safeProjectId,
+                job_order_id: safeJobOrderId,
                 subcontractor_id: data.issue_type === 'صرف لمقاول' ? cleanId(data.subcontractor_id) : null,
                 issue_date: data.issue_date || new Date().toISOString().split('T')[0],
                 issue_type: data.issue_type || 'استهلاك مباشر',
@@ -453,7 +464,8 @@ export function useMaterialsLogic() {
                 unit_price: cleanNum(data.item.unit_price),
                 total_price: cleanNum(data.quantity, 1) * cleanNum(data.item.unit_price),
                 boq_id: cleanId(data.boq_id), 
-                boq_item_id: cleanId(data.boq_item_id)
+                boq_item_id: cleanId(data.boq_item_id),
+                job_order_id: safeJobOrderId
             };
     
             const { error: lineError } = await supabase.from('material_issue_lines').insert([linePayload]);
@@ -581,7 +593,8 @@ export function useMaterialsLogic() {
         handleOpenDispense,
         dispenseMaterialMutation,
 
-        selectedLineItems, 
+        selectedLineItems,
+        setSelectedLineItems,
         handleToggleLineSelection, 
         clearLineSelection,
         isBulkDispenseModalOpen, 

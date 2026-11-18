@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import SmartCombo from '@/components/SmartCombo';
+import JobOrderSelector from '@/components/JobOrderSelector';
+import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/helpers';
 import { notify } from '@/lib/notify';
 import { X } from 'lucide-react';
@@ -13,6 +15,7 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
         issue_date: new Date().toISOString().split('T')[0],
         project_id: '',
         project_name: '',
+        job_order_id: '',
         issue_type: 'استهلاك مباشر',
         subcontractor_id: '',
         subcontractor_name: '',
@@ -27,13 +30,52 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
                 ...prev,
                 project_id: firstItem.project_id || '',
                 project_name: firstItem.project?.Property || '',
-                items: selectedLines.map((line: any) => ({
-                    ...line,
-                    dispense_qty: line.available_qty || 0,
-                })),
+                job_order_id: firstItem.job_order_id || '',
+                items: selectedLines.map((line: any) => {
+                    const lineQty = Number(line.quantity) || Number(line.available_qty) || 0;
+                    const availQty = Number(line.available_qty) || lineQty;
+                    const defaultQty = availQty > 0 ? Math.min(lineQty || availQty, availQty) : lineQty;
+                    return {
+                        ...line,
+                        dispense_qty: defaultQty,
+                        job_order_id: line.job_order_id || firstItem.job_order_id || null,
+                    };
+                }),
             }));
         }
     }, [isOpen, selectedLines]);
+
+    // 🚀 مطابقة أمر الشغل تلقائياً من الفيلا وبند الميزانية لو لم يكن محفوظاً مباشرة على الفاتورة
+    useEffect(() => {
+        let cancelled = false;
+        const resolveJobOrder = async () => {
+            if (!isOpen || !formData.project_id || formData.job_order_id) return;
+            try {
+                const { data } = await supabase
+                    .from('job_orders')
+                    .select('id, boq_budget_id')
+                    .eq('project_id', formData.project_id)
+                    .order('created_at', { ascending: false });
+
+                if (cancelled || !data || data.length === 0) return;
+
+                const firstBoqId = formData.items?.[0]?.boq_id;
+                const matched =
+                    (firstBoqId && data.find((jo: any) => jo.boq_budget_id === firstBoqId)) ||
+                    data[0];
+
+                if (matched?.id) {
+                    setFormData((prev) => (prev.job_order_id ? prev : { ...prev, job_order_id: matched.id }));
+                }
+            } catch (err) {
+                console.error('Error auto-resolving job order:', err);
+            }
+        };
+        resolveJobOrder();
+        return () => {
+            cancelled = true;
+        };
+    }, [isOpen, formData.project_id, formData.job_order_id, formData.items]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -59,7 +101,8 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
             ...prev,
             items: prev.items.map((item) => {
                 if (item.id === id) {
-                    const safeQty = Math.max(0, Math.min(newQty, item.available_qty));
+                    const maxAllowed = Number(item.available_qty) || Number(item.quantity) || 0;
+                    const safeQty = Math.max(0, Math.min(newQty, maxAllowed));
                     return { ...item, dispense_qty: safeQty };
                 }
                 return item;
@@ -71,7 +114,10 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
         if (!formData.project_id) return notify('يرجى اختيار الفيلا/المشروع العقاري');
         if (formData.issue_type === 'صرف لمقاول' && !formData.subcontractor_id) return notify('يرجى اختيار المقاول المستلم');
 
-        const invalidItem = formData.items.find((i) => i.dispense_qty <= 0 || i.dispense_qty > i.available_qty);
+        const invalidItem = formData.items.find((i) => {
+            const maxAllowed = Number(i.available_qty) || Number(i.quantity) || 0;
+            return i.dispense_qty <= 0 || i.dispense_qty > maxAllowed;
+        });
         if (invalidItem) return notify(`كمية الصرف غير صحيحة للخامة: ${invalidItem.item_name}`);
 
         onSave(formData);
@@ -131,7 +177,7 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
                             صرف مجمع للخامات ({formData.items.length} أصناف)
                         </h2>
                         <p style={{ margin: '0.25rem 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 700 }}>
-                            تحديد الكميات المصروفة وتوجيهها كاستهلاك مشروع أو عهدة على مقاول
+                            تم تحميل نفس الفيلا والكميات وأمر الشغل تلقائياً — يمكنك التأكيد مباشرة أو التعديل
                         </p>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
@@ -170,7 +216,28 @@ export default function BulkDispenseModal({ isOpen, onClose, selectedLines, onSa
                             searchCols="Property"
                             value={formData.project_id}
                             initialDisplay={formData.project_name}
-                            onSelect={(v: any) => setFormData({ ...formData, project_id: v?.id || '', project_name: v?.Property || '' })}
+                            onSelect={(v: any) =>
+                                setFormData({
+                                    ...formData,
+                                    project_id: v?.id || '',
+                                    project_name: v?.Property || '',
+                                    job_order_id: '',
+                                })
+                            }
+                        />
+                    </div>
+                    <div style={{ zIndex: 95, position: 'relative' }}>
+                        <JobOrderSelector
+                            label="أمر الشغل (ربط الميزانية)"
+                            projectId={formData.project_id || null}
+                            value={formData.job_order_id || null}
+                            onChange={(id) =>
+                                setFormData((prev) => ({
+                                    ...prev,
+                                    job_order_id: id || '',
+                                    items: prev.items.map((item) => ({ ...item, job_order_id: id || null })),
+                                }))
+                            }
                         />
                     </div>
                     <div>

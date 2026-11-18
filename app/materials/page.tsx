@@ -261,6 +261,7 @@ export default function MaterialsPage() {
                     receipt_type: row.receipt_type,
                     project: row.project,
                     project_id: row.project_id,
+                    job_order_id: row.job_order_id,
                     supplier: row.supplier,
                     account: row.account,
                     is_posted: row.is_posted,
@@ -275,6 +276,8 @@ export default function MaterialsPage() {
                 quantity: row.quantity || 0,
                 available_qty: row.available_qty !== undefined ? row.available_qty : row.quantity || 0,
                 project_id: row.project_id || groups[id].project_id,
+                project: row.project || groups[id].project,
+                job_order_id: row.job_order_id || groups[id].job_order_id || null,
             });
         });
 
@@ -973,28 +976,55 @@ export default function MaterialsPage() {
                                                                 </button>
                                                             </>
                                                         ) : (
-                                                            <button
-                                                                type="button"
-                                                                className="mat-row-action"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    if (typeof logic.handleAction === 'function') {
-                                                                        logic.handleAction('unpost', group.id);
-                                                                    } else if (typeof logic.handleBulkAction === 'function') {
-                                                                        logic.setSelectedIds([group.id]);
-                                                                        setTimeout(() => logic.handleBulkAction('unpost'), 50);
-                                                                    }
-                                                                }}
-                                                                disabled={logic.isActionPending}
-                                                                style={{
-                                                                    background: 'rgba(245, 158, 11, 0.16)',
-                                                                    color: 'var(--status-warning, #f59e0b)',
-                                                                    borderColor: 'rgba(245, 158, 11, 0.35)',
-                                                                    padding: '0.38rem 0.85rem',
-                                                                }}
-                                                            >
-                                                                فك
-                                                            </button>
+                                                            <>
+                                                                <button
+                                                                    type="button"
+                                                                    className="mat-row-action"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        const availableItems = (group.items || []).filter((i: any) => Number(i.available_qty) > 0);
+                                                                        if (availableItems.length === 0) {
+                                                                            notify('عفواً، رصيد جميع أصناف هذه الفاتورة صفر بالمخزن.');
+                                                                            return;
+                                                                        }
+                                                                        if (availableItems.length === 1) {
+                                                                            logic.handleOpenDispense(availableItems[0]);
+                                                                        } else {
+                                                                            logic.setSelectedLineItems(availableItems);
+                                                                            logic.setIsBulkDispenseModalOpen(true);
+                                                                        }
+                                                                    }}
+                                                                    style={{
+                                                                        background: 'var(--action-fill)',
+                                                                        color: 'var(--action-ink)',
+                                                                    }}
+                                                                >
+                                                                    صرف
+                                                                </button>
+
+                                                                <button
+                                                                    type="button"
+                                                                    className="mat-row-action"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (typeof logic.handleAction === 'function') {
+                                                                            logic.handleAction('unpost', group.id);
+                                                                        } else if (typeof logic.handleBulkAction === 'function') {
+                                                                            logic.setSelectedIds([group.id]);
+                                                                            setTimeout(() => logic.handleBulkAction('unpost'), 50);
+                                                                        }
+                                                                    }}
+                                                                    disabled={logic.isActionPending}
+                                                                    style={{
+                                                                        background: 'rgba(245, 158, 11, 0.16)',
+                                                                        color: 'var(--status-warning, #f59e0b)',
+                                                                        borderColor: 'rgba(245, 158, 11, 0.35)',
+                                                                        padding: '0.38rem 0.85rem',
+                                                                    }}
+                                                                >
+                                                                    فك
+                                                                </button>
+                                                            </>
                                                         )}
                                                     </div>
                                                 </td>

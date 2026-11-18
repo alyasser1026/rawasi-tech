@@ -1,8 +1,8 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import SmartCombo from '@/components/SmartCombo';
-// 🚀 استدعاء الكمبوننت الذكي المخصص لأوامر الشغل وبنود المشروع
+import JobOrderSelector from '@/components/JobOrderSelector';
 import ProjectBoqCombo from '@/components/ProjectBoqCombo';
 import { formatCurrency } from '@/lib/helpers';
 import { supabase } from '@/lib/supabase';
@@ -20,6 +20,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
     // 🎯 حالات جديدة لجلب الرصيد الحي من المخزن
     const [realAvailableQty, setRealAvailableQty] = useState<number>(0);
     const [isFetchingQty, setIsFetchingQty] = useState(true);
+    const userEditedQtyRef = useRef(false);
 
     const [formData, setFormData] = useState({
         issue_date: new Date().toISOString().split('T')[0],
@@ -31,8 +32,8 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
         subcontractor_name: '',
         quantity: 0,
         notes: '',
-        boq_id: null,
-        boq_item_id: null,
+        boq_id: null as string | null,
+        boq_item_id: null as string | null,
         boq_item_name: '',
         debit_account_id: ACCOUNT_COMPANY_COST,
         credit_account_id: ACCOUNT_INVENTORY,
@@ -41,18 +42,54 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
     useEffect(() => {
         setMounted(true);
         if (invoiceItem) {
+            userEditedQtyRef.current = false;
+            const lineQty = Number(invoiceItem.quantity) || Number(invoiceItem.available_qty) || 0;
+            const availQty = Number(invoiceItem.available_qty) || lineQty;
+            const defaultQty = availQty > 0 ? Math.min(lineQty || availQty, availQty) : lineQty;
+
             setFormData((prev) => ({
                 ...prev,
-                // مبدئياً نحط 1 لحد ما الرصيد الحقيقي ييجي من الداتابيز
-                quantity: 1,
+                quantity: defaultQty,
                 project_id: invoiceItem.project_id || '',
                 project_name: invoiceItem.project?.Property || '',
+                job_order_id: invoiceItem.job_order_id || '',
                 boq_id: invoiceItem.boq_id || null,
                 boq_item_id: invoiceItem.boq_item_id || null,
                 boq_item_name: invoiceItem.boq_item || '',
             }));
         }
-    }, [invoiceItem]);
+    }, [invoiceItem, isOpen]);
+
+    // 🚀 مطابقة أمر الشغل تلقائياً من الفيلا وبند الميزانية لو لم يكن محفوظاً مباشرة على الفاتورة
+    useEffect(() => {
+        let cancelled = false;
+        const resolveJobOrder = async () => {
+            if (!isOpen || !formData.project_id || formData.job_order_id) return;
+            try {
+                const { data } = await supabase
+                    .from('job_orders')
+                    .select('id, boq_budget_id')
+                    .eq('project_id', formData.project_id)
+                    .order('created_at', { ascending: false });
+
+                if (cancelled || !data || data.length === 0) return;
+
+                const matched =
+                    (formData.boq_id && data.find((jo: any) => jo.boq_budget_id === formData.boq_id)) ||
+                    data[0];
+
+                if (matched?.id) {
+                    setFormData((prev) => (prev.job_order_id ? prev : { ...prev, job_order_id: matched.id }));
+                }
+            } catch (err) {
+                console.error('Error auto-resolving job order:', err);
+            }
+        };
+        resolveJobOrder();
+        return () => {
+            cancelled = true;
+        };
+    }, [isOpen, formData.project_id, formData.boq_id, formData.job_order_id]);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -66,16 +103,24 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
         return () => document.removeEventListener('keydown', onKey);
     }, [isOpen, onClose]);
 
-    // 🚀 جلب الرصيد الفعلي اللحظي من vw_inventory_balances_v2
+    // 🚀 جلب الرصيد الفعلي اللحظي من vw_inventory_balances_v2 وضبط الكمية تلقائياً على رصيد السطر
     useEffect(() => {
         const fetchRealBalance = async () => {
             if (!isOpen || !invoiceItem) return;
 
-            // تحديد الـ ID بتاع الخامة (سواء جاي باسم item_id أو id حسب الأوبجكت بتاعك)
             const itemId = invoiceItem.item_id || invoiceItem.id;
+            const lineQty = Number(invoiceItem.quantity) || Number(invoiceItem.available_qty) || 0;
+
+            const applyBalance = (avail: number) => {
+                setRealAvailableQty(avail);
+                if (!userEditedQtyRef.current) {
+                    const targetQty = avail > 0 ? Math.min(lineQty || avail, avail) : lineQty;
+                    setFormData((prev) => ({ ...prev, quantity: targetQty }));
+                }
+            };
 
             if (!itemId) {
-                setRealAvailableQty(invoiceItem.available_qty || 0);
+                applyBalance(Number(invoiceItem.available_qty) || lineQty);
                 setIsFetchingQty(false);
                 return;
             }
@@ -89,13 +134,13 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     .maybeSingle();
 
                 if (data && !error) {
-                    setRealAvailableQty(Number(data.available_quantity) || 0);
+                    applyBalance(Number(data.available_quantity) || 0);
                 } else {
-                    setRealAvailableQty(invoiceItem.available_qty || 0);
+                    applyBalance(Number(invoiceItem.available_qty) || lineQty);
                 }
             } catch (err) {
                 console.error('Error fetching balance:', err);
-                setRealAvailableQty(invoiceItem.available_qty || 0);
+                applyBalance(Number(invoiceItem.available_qty) || lineQty);
             } finally {
                 setIsFetchingQty(false);
             }
@@ -159,7 +204,8 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
             }}
         >
             <style>{`
-                .dispense-input {
+                .dispense-input,
+                .phi-modal-panel .glass-input-field {
                     width: 100%;
                     padding: 0.65rem 0.85rem;
                     border-radius: 12px;
@@ -173,7 +219,13 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                     color: var(--text-primary);
                     color-scheme: var(--native-color-scheme);
                 }
-                .dispense-input:focus {
+                .dispense-input option,
+                .phi-modal-panel .glass-input-field option {
+                    background: var(--surface-card);
+                    color: var(--text-primary);
+                }
+                .dispense-input:focus,
+                .phi-modal-panel .glass-input-field:focus {
                     border-color: var(--accent-main, #f97316);
                     box-shadow: var(--shadow-sunken), 0 0 0 2px var(--accent-glow);
                 }
@@ -256,7 +308,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                             صرف مباشر للموقع
                         </h2>
                         <p style={{ margin: '0.25rem 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 700 }}>
-                            توجيه كمية الخامة من المخزون إلى المشروع أو كعهدة على مقاول
+                            تم تحميل نفس الفيلا والرصيد وأمر الشغل تلقائياً — يمكنك التأكيد مباشرة أو التعديل
                         </p>
                     </div>
                     <button
@@ -299,7 +351,9 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                             {invoiceItem?.item_name || invoiceItem?.work_item}
                         </div>
                         <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '0.25rem', fontWeight: 800 }}>
-                            المتاح للصرف:{' '}
+                            رصيد الفاتورة: <span style={{ color: 'var(--accent-ink)' }}>{invoiceItem?.quantity} {invoiceItem?.unit}</span>
+                            {' • '}
+                            المتاح بالمخزن:{' '}
                             {isFetchingQty ? (
                                 <span style={{ color: 'var(--accent-ink)' }}>جاري حساب الرصيد...</span>
                             ) : (
@@ -332,6 +386,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                                     ...formData,
                                     project_id: v?.id || '',
                                     project_name: v?.Property || '',
+                                    job_order_id: '',
                                     boq_id: null,
                                     boq_item_id: null,
                                     boq_item_name: '',
@@ -340,27 +395,18 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                         />
                     </div>
                     <div style={{ zIndex: 90, position: 'relative' }}>
-                        <SmartCombo
-                            label="أمر الشغل (ربط الميزانية) *"
-                            table="job_orders"
-                            displayCol="order_number"
-                            searchCols="order_number,notes"
-                            freeText={false}
-                            strict={true}
-                            filterColumn="project_id"
-                            filterValue={formData.project_id}
-                            customQuery={(q: any) => q.select('*, boq_budget:boq_budget_id(work_item)')}
-                            displayFormat={(item: any) => `${item.order_number} - ${item.boq_budget?.work_item || 'بدون بند'}`}
-                            key={formData.project_id || 'empty-jo'}
-                            initialDisplay={formData.job_order_id ? `أمر شغل مرتبط` : ''}
-                            onSelect={async (v: any) => {
-                                const updates: any = { job_order_id: v?.id || null };
+                        <JobOrderSelector
+                            label="أمر الشغل (ربط الميزانية)"
+                            projectId={formData.project_id || null}
+                            value={formData.job_order_id || null}
+                            onChange={async (id, jo) => {
+                                const updates: any = { job_order_id: id || '' };
 
-                                if (v?.boq_budget_id) {
+                                if (jo?.boq_budget_id) {
                                     const { data } = await supabase
                                         .from('boq_budget_distinct')
                                         .select('*')
-                                        .eq('id', v.boq_budget_id)
+                                        .eq('id', jo.boq_budget_id)
                                         .single();
 
                                     if (data) {
@@ -370,7 +416,7 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                                     }
                                 }
 
-                                setFormData({ ...formData, ...updates });
+                                setFormData((prev) => ({ ...prev, ...updates }));
                             }}
                         />
                     </div>
@@ -414,7 +460,10 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                                 borderColor: isQtyExceeded ? 'var(--status-negative, #f43f5e)' : undefined,
                             }}
                             value={formData.quantity}
-                            onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
+                            onChange={(e) => {
+                                userEditedQtyRef.current = true;
+                                setFormData({ ...formData, quantity: Number(e.target.value) });
+                            }}
                         />
                     </div>
                 </div>
