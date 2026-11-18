@@ -810,8 +810,8 @@ body:has(.pw){padding:0!important}
 
 /* ===== بوابة الأقسام الستة الرئيسية: لكل قسم صورته وهنت عائم بالسكلول بدون حاويات ===== */
 .pw-portal-gateway{position:relative;z-index:2;padding:0!important;background:transparent!important;border-bottom:none}
-.pw-panoramic-top-overlay{position:relative;z-index:3;padding-top:88px;padding-bottom:44px;min-height:54vh;display:flex;flex-direction:column;justify-content:space-between}
-.pw-panoramic-floating-hero{max-width:720px;margin:28px auto 0;text-align:center;color:#fff;background:transparent!important;border:none!important;box-shadow:none!important;padding:0}
+.pw-panoramic-top-overlay{position:relative;z-index:3;padding-top:88px;padding-bottom:68px;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;justify-content:space-between}
+.pw-panoramic-floating-hero{max-width:760px;margin:auto;text-align:center;color:#fff;background:transparent!important;border:none!important;box-shadow:none!important;padding:0}
 .pw-panoramic-eyebrow-row{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;margin-bottom:10px}
 .pw-panoramic-floating-hero .pw-eyebrow{color:#ffb074;text-shadow:0 2px 14px rgba(0,0,0,.8)}
 .pw-portal-main-h1{font-size:clamp(1.85rem,3.6vw,2.85rem);font-weight:900;line-height:1.28;margin-bottom:10px;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.85)}
@@ -847,13 +847,13 @@ body:has(.pw){padding:0!important}
 
 /* لكل قسم صورته الكاملة وهنت عائم يظهر مع السكرول يميناً ويساراً بدون أي حاويات */
 .pw-split-stage{position:relative;width:100%;min-height:100vh;background:#0c1016}
-.pw-split-backdrop{position:absolute;inset:0 0 auto 0;height:62vh;min-height:440px;z-index:0;pointer-events:none;overflow:hidden;background:#0c1016}
+.pw-split-backdrop{position:absolute;inset:0 0 auto 0;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;z-index:0;pointer-events:none;overflow:hidden;background:#0c1016}
 .pw-split-bg-base,.pw-split-bg-layer{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;will-change:transform,opacity}
 .pw-split-bg-base{opacity:1;transform:scale(1.03) translate3d(calc(var(--stage-mx,0) * -8px),calc(var(--stage-my,0) * -6px),0);transition:transform .85s cubic-bezier(.22,1,.36,1)}
 .pw-split-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,12,18,.48) 0%,rgba(8,12,18,.32) 55%,rgba(12,16,22,1) 100%)}
 .pw-split-cursor-glow{position:absolute;inset:0;opacity:.65;transition:opacity .3s ease;mix-blend-mode:screen;background:radial-gradient(520px circle at var(--stage-px,50%) var(--stage-py,50%),color-mix(in srgb,var(--stage-accent,#c75517) 38%,rgba(255,255,255,.14)),transparent 72%)}
 .pw-split-cols{position:relative;z-index:2;display:flex;flex-direction:column;gap:0;width:100%;padding:0}
-.pw-split-station-row{position:relative;width:100%;min-height:clamp(500px,82vh,780px);display:flex;align-items:flex-end;padding:64px 0;overflow:hidden;scroll-margin-top:72px}
+.pw-split-station-row{position:relative;width:100%;height:100vh;height:100dvh;min-height:100vh;min-height:100dvh;display:flex;align-items:flex-end;padding:72px 0;overflow:hidden;scroll-margin-top:0}
 .pw-sec-photo-canvas{position:absolute;inset:0;z-index:0;overflow:hidden;background:#0c1016}
 .pw-sec-photo-canvas .pw-split-bg-layer{opacity:1;transform:scale(1.07);transition:transform 1.15s cubic-bezier(.22,1,.36,1)}
 .pw-split-station-row.is-in-view .pw-sec-photo-canvas .pw-split-bg-layer,.pw-split-station-row:hover .pw-sec-photo-canvas .pw-split-bg-layer{transform:scale(1)}
@@ -1051,7 +1051,7 @@ body:has(.pw){padding:0!important}
   .pw-calc-grid,.pw-advisor-shell{grid-template-columns:1fr}
 }
 @media (max-width:960px){
-  .pw-split-station-row{min-height:clamp(420px,70vh,620px);padding:44px 0}
+  .pw-split-station-row{height:100vh;height:100svh;min-height:100vh;min-height:100svh;padding:56px 0}
   .pw-split-station-row.is-side-left .pw-sec-floating-wrap{justify-content:flex-start}
   .pw-split-station-row.is-side-left .pw-split-col{text-align:right}
   .pw-split-station-row.is-side-left .pw-split-col-inner,.pw-split-station-row.is-side-left .pw-split-reveal{align-items:flex-start}
@@ -1065,7 +1065,7 @@ body:has(.pw){padding:0!important}
   .pw-unified-hero,.pw-sec-hero{padding:86px 0 28px}
 }
 @media (max-width:600px){
-  .pw-split-station-row{min-height:420px;padding:36px 0}
+  .pw-split-station-row{height:100vh;height:100svh;min-height:100vh;min-height:100svh;padding:48px 0}
   .pw-split-col h2{font-size:1.55rem}
   .pw-split-hint{font-size:.98rem}
 }
