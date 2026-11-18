@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { isNetworkError } from '@/lib/offline/offlineExecutor';
 import { usePermissions } from '@/lib/PermissionsContext';
+import { isPublicRoute } from '@/components/authGuard';
 import LoadingScreen from '@/components/LoadingScreen';
 import EnterpriseShell from '@/components/EnterpriseShell';
 
@@ -13,7 +14,7 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const { loading } = usePermissions();
   const [isInitialized, setIsInitialized] = useState(false);
-  const isPublicPage = pathname === '/' || pathname === '/login' || pathname === '/signup' || pathname === '/website' || pathname.startsWith('/website/') || pathname === '/store' || pathname.startsWith('/store/') || pathname === '/real-estate' || pathname.startsWith('/real-estate/') || pathname === '/verify' || pathname.startsWith('/verify') || pathname.startsWith('/construct');
+  const isPublicPage = isPublicRoute(pathname);
 
   useEffect(() => {
     if (isPublicPage) return;

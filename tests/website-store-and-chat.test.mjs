@@ -434,3 +434,24 @@ test('pearl theme is preserved and lightweight vector split-converge LogoMotionI
   assert.match(siteStyles, /pw-motion-replay-btn/);
   assert.match(siteStyles, /pw-hero-pearl/);
 });
+
+test('bandwidth quota-draining loops are disabled on public website routes', () => {
+  const heroVideo = read('components/HeroVideoBackdrop.tsx');
+  assert.match(heroVideo, /preload="none"/);
+  assert.match(heroVideo, /shouldStreamVideo/);
+  assert.match(heroVideo, /loop=\{false\}/);
+
+  const floatingChat = read('app/site/FloatingContactChat.tsx');
+  assert.match(floatingChat, /if \(!sessionId \|\| !chatOpen \|\| \(!escalatedToHuman && !botPaused\)\) return;/);
+  assert.doesNotMatch(floatingChat, /setInterval\(fetchLatest,\s*4500\)/);
+
+  const realtimeSync = read('lib/useRealtimeSync.tsx');
+  assert.match(realtimeSync, /isPublicRoute\(pathname\)/);
+  assert.match(realtimeSync, /onPublicSite/);
+
+  const refCache = read('lib/offline/referenceCache.ts');
+  assert.match(refCache, /WARM_COOLDOWN_MS/);
+
+  const layoutClient = read('components/layout/LayoutClient.tsx');
+  assert.match(layoutClient, /isPublicRoute\(pathname\)/);
+});

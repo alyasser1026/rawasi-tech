@@ -17,6 +17,9 @@ export type CachedReferenceTable = (typeof REFERENCE_TABLES)[number];
 export const JOB_ORDER_REFERENCE_SELECT =
   '*, boq_budget:boq_budget_id (work_item, unit, unit_contract_price, contract_quantity)';
 
+const lastWarmedByCompany = new Map<string, number>();
+const WARM_COOLDOWN_MS = 15 * 60 * 1000;
+
 /**
  * Warms local IndexedDB reference caches for the active company while online so dropdowns
  * (`SmartCombo`, `JobOrderSelector`, `labor_logs`, `expenses`, `custodies`) work seamlessly offline.
@@ -25,6 +28,11 @@ export async function warmCompanyReferenceCache(companyId?: string | null): Prom
   if (typeof window === 'undefined' || !navigator.onLine) return;
   const cid = companyId || getActiveCompanyId();
   if (!cid) return;
+
+  const now = Date.now();
+  const lastWarmed = lastWarmedByCompany.get(cid) || 0;
+  if (now - lastWarmed < WARM_COOLDOWN_MS) return;
+  lastWarmedByCompany.set(cid, now);
 
   try {
     const [projRes, joRes, partRes, accRes] = await Promise.all([

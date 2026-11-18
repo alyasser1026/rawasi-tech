@@ -142,11 +142,15 @@ export default function FloatingContactChat({
     }
   }, []);
 
-  // Poll for live replies from Admin when a session is active
+  const sessionMetaRef = useRef({ visitorName, visitorPhone, stage, pendingQuestion });
+  sessionMetaRef.current = { visitorName, visitorPhone, stage, pendingQuestion };
+
+  // Poll for live replies from Admin ONLY while chat is open and escalated to a human agent
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId || !chatOpen || (!escalatedToHuman && !botPaused)) return;
 
     const fetchLatest = async () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
       try {
         const res = await fetch(`/api/website-chat?sessionId=${encodeURIComponent(sessionId)}`);
         if (!res.ok) return;
@@ -173,14 +177,15 @@ export default function FloatingContactChat({
             lastMsgCountRef.current = serverMsgs.length;
           }
           if (typeof window !== 'undefined') {
+            const meta = sessionMetaRef.current;
             window.localStorage.setItem(
               CHAT_SESSION_STORAGE_KEY,
               JSON.stringify({
                 sessionId,
-                visitorName: serverSession?.visitorName || visitorName,
-                visitorPhone: serverSession?.visitorPhone || visitorPhone,
-                stage: serverSession?.stage || stage,
-                pendingQuestion: serverSession?.pendingQuestion ?? pendingQuestion,
+                visitorName: serverSession?.visitorName || meta.visitorName,
+                visitorPhone: serverSession?.visitorPhone || meta.visitorPhone,
+                stage: serverSession?.stage || meta.stage,
+                pendingQuestion: serverSession?.pendingQuestion ?? meta.pendingQuestion,
                 escalatedToHuman: Boolean(serverSession?.escalatedToHuman),
                 botPaused: Boolean(serverSession?.botPaused),
                 messages: serverMsgs,
@@ -194,9 +199,9 @@ export default function FloatingContactChat({
     };
 
     void fetchLatest();
-    const timer = setInterval(fetchLatest, 4500);
+    const timer = setInterval(fetchLatest, 12000);
     return () => clearInterval(timer);
-  }, [sessionId, chatOpen, visitorName, visitorPhone, stage, pendingQuestion]);
+  }, [sessionId, chatOpen, escalatedToHuman, botPaused]);
 
   useEffect(() => {
     if (chatOpen) {

@@ -140,12 +140,13 @@ export default function HeroVideoBackdrop({
   onControlsReadyRef.current = onControlsReady;
 
   const [isReady, setIsReady] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
+  const [isPaused, setIsPaused] = useState(true);
   const [isMuted, setIsMuted] = useState(true);
+  const [shouldStreamVideo, setShouldStreamVideo] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !shouldStreamVideo) return;
 
     if (video.readyState >= 2) {
       setIsReady(true);
@@ -162,14 +163,16 @@ export default function HeroVideoBackdrop({
       return;
     }
 
-    video.muted = true;
+    video.muted = isMuted;
     const playPromise = video.play();
     if (playPromise && typeof playPromise.catch === 'function') {
-      playPromise.catch(() => {
-        setIsPaused(true);
-      });
+      playPromise
+        .then(() => setIsPaused(false))
+        .catch(() => {
+          setIsPaused(true);
+        });
     }
-  }, [videoSrc]);
+  }, [videoSrc, shouldStreamVideo, isMuted]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -177,13 +180,18 @@ export default function HeroVideoBackdrop({
     video.muted = isMuted;
     if (!isMuted) {
       video.volume = 0.85;
-      if (video.paused) {
+      if (shouldStreamVideo && video.paused) {
         video.play().then(() => setIsPaused(false)).catch(() => {});
       }
     }
-  }, [isMuted]);
+  }, [isMuted, shouldStreamVideo]);
 
   const togglePlay = useCallback(() => {
+    if (!shouldStreamVideo) {
+      setShouldStreamVideo(true);
+      setIsPaused(false);
+      return;
+    }
     const video = videoRef.current;
     if (!video) return;
     if (video.paused) {
@@ -192,7 +200,7 @@ export default function HeroVideoBackdrop({
       video.pause();
       setIsPaused(true);
     }
-  }, []);
+  }, [shouldStreamVideo]);
 
   const toggleMute = useCallback(() => {
     setIsMuted((prev) => !prev);
@@ -214,18 +222,19 @@ export default function HeroVideoBackdrop({
           <img src={posterSrc} alt="" className="phi-hb-poster" />
           <video
             ref={videoRef}
-            src={videoSrc}
+            src={shouldStreamVideo ? videoSrc : undefined}
             poster={posterSrc}
-            autoPlay
-            loop
+            autoPlay={shouldStreamVideo}
+            loop={false}
             muted={isMuted}
             playsInline
-            preload="auto"
+            preload="none"
             onLoadedData={() => setIsReady(true)}
             onCanPlay={() => setIsReady(true)}
             onPlay={() => setIsPaused(false)}
             onPause={() => setIsPaused(true)}
-            className={`phi-hb-video ${isReady ? 'is-ready' : ''}`.trim()}
+            onEnded={() => setIsPaused(true)}
+            className={`phi-hb-video ${isReady && shouldStreamVideo ? 'is-ready' : ''}`.trim()}
           />
         </div>
         <div className="phi-hb-scrim" />

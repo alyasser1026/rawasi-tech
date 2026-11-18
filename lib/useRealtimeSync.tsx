@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { useCompany } from '@/lib/CompanyContext';
 import { useToast } from '@/lib/toast-context';
+import { isPublicRoute } from '@/components/authGuard';
 import {
   FlushSyncResult,
   OFFLINE_SYNC_COMPLETED_EVENT,
@@ -101,12 +102,14 @@ export function RealtimeSyncProvider({ children }: { children: React.ReactNode }
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const router = useRouter();
+  const pathname = usePathname();
+  const onPublicSite = isPublicRoute(pathname);
   const pendingTablesRef = useRef<Set<string>>(new Set());
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 1. Register PWA Service Worker & prefetch key field screens
+  // 1. Register PWA Service Worker & prefetch key field screens (ERP routes only)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || onPublicSite) return;
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch(() => {
         /* ignore SW registration errors in unsupported contexts */
@@ -124,11 +127,11 @@ export function RealtimeSyncProvider({ children }: { children: React.ReactNode }
       }
     }, 1800);
     return () => clearTimeout(prefetchTimer);
-  }, [router]);
+  }, [router, onPublicSite]);
 
-  // 2. Warm per-company offline reference cache & flush queued offline drafts on reconnect/visibility
+  // 2. Warm per-company offline reference cache & flush queued offline drafts on reconnect/visibility (ERP routes only)
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    if (typeof window === 'undefined' || onPublicSite) return;
 
     if (activeCompanyId && navigator.onLine) {
       void warmCompanyReferenceCache(activeCompanyId);
@@ -177,11 +180,11 @@ export function RealtimeSyncProvider({ children }: { children: React.ReactNode }
       document.removeEventListener('visibilitychange', onVisibility);
       window.removeEventListener(OFFLINE_SYNC_COMPLETED_EVENT, onSyncCompleted);
     };
-  }, [activeCompanyId, queryClient, showToast]);
+  }, [activeCompanyId, queryClient, showToast, onPublicSite]);
 
-  // 3. Company-filtered Supabase Realtime channel + cross-tab BroadcastChannel
+  // 3. Company-filtered Supabase Realtime channel + cross-tab BroadcastChannel (ERP routes only)
   useEffect(() => {
-    if (typeof window === 'undefined' || !activeCompanyId) return;
+    if (typeof window === 'undefined' || !activeCompanyId || onPublicSite) return;
 
     const flushTableInvalidations = (broadcastToTabs: boolean) => {
       const tables = Array.from(pendingTablesRef.current);
@@ -272,7 +275,7 @@ export function RealtimeSyncProvider({ children }: { children: React.ReactNode }
       }
       void supabase.removeChannel(channel);
     };
-  }, [activeCompanyId, queryClient]);
+  }, [activeCompanyId, queryClient, onPublicSite]);
 
   return <>{children}</>;
 }
