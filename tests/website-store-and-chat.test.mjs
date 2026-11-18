@@ -326,6 +326,10 @@ test('panoramic split portal showcase has panorama + all 6 section images wired 
   assert.match(homePortal, /pw-split-backdrop/);
   assert.match(homePortal, /\/sections\/panorama\.jpg/);
   assert.match(homePortal, /pw-split-cols/);
+  assert.match(homePortal, /is-side-right/);
+  assert.match(homePortal, /is-side-left/);
+  assert.match(homePortal, /pw-sec-widget/);
+  assert.match(homePortal, /renderSectionIndicator/);
   assert.match(homePortal, /src=\{sec\.image\}/);
   assert.match(homePortal, /handleStagePointerMove/);
 
