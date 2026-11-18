@@ -15,6 +15,18 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
         setMounted(true); 
     }, []);
 
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                onClose();
+            }
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
+
     if (!isOpen || !mounted || !receiptId) return null;
 
     // 🚀 تجميع أصناف الفاتورة الحالية من الداتا المحملة
@@ -37,7 +49,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
     };
 
     return createPortal(
-        <div className="print-modal-overlay" style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'rgba(15, 23, 42, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', padding: '40px 15px', direction: 'rtl' }}>
+        <div className="print-modal-overlay" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'var(--modal-scrim, rgba(5, 7, 11, 0.82))', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', padding: '32px 15px', direction: 'rtl' }}>
             
             {/* 🖨️ ستايلات الطباعة والتصميم العصري */}
             <style dangerouslySetInnerHTML={{__html: `
@@ -89,17 +101,17 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
             <style>{PHI_DOC_CSS}</style>
 
             {/* 🖨️ أزرار التحكم */}
-            <div className="no-print" style={{ display: 'flex', gap: '15px', marginBottom: '20px', width: '100%', maxWidth: '800px' }}>
-                <button onClick={handlePrintReceipt} style={{ flex: 1, padding: '15px', background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: 'white', border: 'none', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', fontSize: '16px', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.3)', transition: '0.2s' }}>
+            <div className="no-print" onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '12px', marginBottom: '20px', width: '100%', maxWidth: '800px' }}>
+                <button onClick={handlePrintReceipt} style={{ flex: 1, padding: '14px 20px', background: 'var(--action-fill)', color: 'var(--action-ink)', border: 'none', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-md)', boxShadow: '0 8px 24px -6px var(--accent-glow)', transition: '0.2s' }}>
                     طباعة إذن التوريد
                 </button>
-                <button onClick={onClose} style={{ padding: '15px 30px', background: 'white', color: '#ef4444', border: 'none', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', transition: '0.2s' }}>
+                <button onClick={onClose} style={{ padding: '14px 28px', background: 'var(--surface-card)', color: 'var(--text-primary)', border: '1px solid var(--control-edge, rgba(148, 163, 184, 0.2))', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', boxShadow: 'var(--shadow-elevation)', transition: '0.2s' }}>
                     إلغاء وإغلاق
                 </button>
             </div>
 
             {/* 📄 ورقة الطباعة (Auto-fit on screen, A4 on print) */}
-            <div className="print-page phi-doc phi-doc-page" style={{ position: 'relative', width: '95%', maxWidth: '800px', minHeight: 'fit-content', background: 'white', padding: '45px', borderRadius: '14px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', color: 'black', overflow: 'hidden' }}>
+            <div className="print-page phi-doc phi-doc-page" onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '95%', maxWidth: '800px', minHeight: 'fit-content', background: 'white', padding: '45px', borderRadius: '14px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', color: 'black', overflow: 'hidden' }}>
                 
                 {/* 1️⃣ الترويسة الرسمية الموحدة + بيانات الإذن */}
                 <ReportOfficialHeader

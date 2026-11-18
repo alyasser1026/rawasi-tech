@@ -1,13 +1,13 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
 // 🚀 استدعاء الكمبوننت الذكي المخصص لأوامر الشغل وبنود المشروع
-import ProjectBoqCombo from '@/components/ProjectBoqCombo'; 
+import ProjectBoqCombo from '@/components/ProjectBoqCombo';
 import { formatCurrency } from '@/lib/helpers';
-import { supabase } from '@/lib/supabase'; // 🚀 تأكد من مسار الاستدعاء الصحيح للـ Supabase عندك
+import { supabase } from '@/lib/supabase';
 import { notify } from '@/lib/notify';
+import { X } from 'lucide-react';
 
 // 🚀 الثوابت المحاسبية (الـ UUIDs الخاصة بشجرة الحسابات)
 const ACCOUNT_INVENTORY = '4f828d0d-a1f4-4762-83e3-c17dafae802d'; // حساب الخامات والمخزون (دائن)
@@ -16,7 +16,7 @@ const ACCOUNT_COMPANY_COST = 'ضع_اي_دي_حساب_تكلفة_الخامات_
 
 export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, onSave, isSaving }: any) {
     const [mounted, setMounted] = useState(false);
-    
+
     // 🎯 حالات جديدة لجلب الرصيد الحي من المخزن
     const [realAvailableQty, setRealAvailableQty] = useState<number>(0);
     const [isFetchingQty, setIsFetchingQty] = useState(true);
@@ -26,42 +26,54 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
         project_id: '',
         job_order_id: '',
         project_name: '',
-        issue_type: 'استهلاك مباشر', 
+        issue_type: 'استهلاك مباشر',
         subcontractor_id: '',
-        subcontractor_name: '', 
+        subcontractor_name: '',
         quantity: 0,
         notes: '',
         boq_id: null,
         boq_item_id: null,
-        boq_item_name: '', 
+        boq_item_name: '',
         debit_account_id: ACCOUNT_COMPANY_COST,
-        credit_account_id: ACCOUNT_INVENTORY
+        credit_account_id: ACCOUNT_INVENTORY,
     });
 
     useEffect(() => {
         setMounted(true);
         if (invoiceItem) {
-            setFormData(prev => ({ 
-                ...prev, 
+            setFormData((prev) => ({
+                ...prev,
                 // مبدئياً نحط 1 لحد ما الرصيد الحقيقي ييجي من الداتابيز
-                quantity: 1, 
+                quantity: 1,
                 project_id: invoiceItem.project_id || '',
                 project_name: invoiceItem.project?.Property || '',
                 boq_id: invoiceItem.boq_id || null,
                 boq_item_id: invoiceItem.boq_item_id || null,
-                boq_item_name: invoiceItem.boq_item || ''
+                boq_item_name: invoiceItem.boq_item || '',
             }));
         }
     }, [invoiceItem]);
+
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                onClose();
+            }
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
 
     // 🚀 جلب الرصيد الفعلي اللحظي من vw_inventory_balances_v2
     useEffect(() => {
         const fetchRealBalance = async () => {
             if (!isOpen || !invoiceItem) return;
-            
+
             // تحديد الـ ID بتاع الخامة (سواء جاي باسم item_id أو id حسب الأوبجكت بتاعك)
-            const itemId = invoiceItem.item_id || invoiceItem.id; 
-            
+            const itemId = invoiceItem.item_id || invoiceItem.id;
+
             if (!itemId) {
                 setRealAvailableQty(invoiceItem.available_qty || 0);
                 setIsFetchingQty(false);
@@ -79,10 +91,10 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
                 if (data && !error) {
                     setRealAvailableQty(Number(data.available_quantity) || 0);
                 } else {
-                    setRealAvailableQty(invoiceItem.available_qty || 0); // كحل بديل لو الفيو مرجعش حاجة
+                    setRealAvailableQty(invoiceItem.available_qty || 0);
                 }
             } catch (err) {
-                console.error("Error fetching balance:", err);
+                console.error('Error fetching balance:', err);
                 setRealAvailableQty(invoiceItem.available_qty || 0);
             } finally {
                 setIsFetchingQty(false);
@@ -95,218 +107,425 @@ export default function DispenseMaterialModal({ isOpen, onClose, invoiceItem, on
     // 🎯 المراقبة الذكية للتوجيه المحاسبي
     useEffect(() => {
         const isContractor = formData.issue_type === 'صرف لمقاول';
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             debit_account_id: isContractor ? ACCOUNT_CONTRACTOR : ACCOUNT_COMPANY_COST,
-            credit_account_id: ACCOUNT_INVENTORY
+            credit_account_id: ACCOUNT_INVENTORY,
         }));
     }, [formData.issue_type]);
 
     if (!isOpen || !mounted || !invoiceItem) return null;
 
     const totalPrice = (Number(formData.quantity) || 0) * (Number(invoiceItem.unit_price) || 0);
+    const isQtyExceeded = formData.quantity > realAvailableQty;
 
     const handleSubmit = () => {
         if (!formData.project_id) return notify('يرجى اختيار الفيلا/المشروع العقاري');
         if (formData.issue_type === 'صرف لمقاول' && !formData.subcontractor_id) return notify('يرجى اختيار المقاول المستلم');
-        
+
         // 🚀 الفالديشن بقى على الرصيد الفعلي المجلوب من الفيو
         if (formData.quantity <= 0 || formData.quantity > realAvailableQty) {
             return notify(`كمية الصرف غير صحيحة أو تتجاوز الرصيد المتاح حالياً بالمخزن (${realAvailableQty})`);
         }
-        
+
         const finalData = {
             ...formData,
             boq_id: formData.boq_id || null,
             boq_item_id: formData.boq_item_id || null,
             job_order_id: formData.job_order_id || null,
-            item: invoiceItem
+            item: invoiceItem,
         };
 
         onSave(finalData);
     };
 
     return createPortal(
-        <div className="warm-portal-overlay-fullscreen" onClick={onClose}>
+        <div
+            className="phi-modal-backdrop"
+            onClick={onClose}
+            style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 1000000001,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1.5rem 1rem',
+                background: 'var(--modal-scrim, rgba(5, 7, 11, 0.78))',
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                overflowY: 'auto',
+                direction: 'rtl',
+            }}
+        >
             <style>{`
-                .warm-portal-overlay-fullscreen {
-                    position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important;
-                    background: radial-gradient(circle at center, rgba(40, 24, 10, 0.4) 0%, rgba(15, 7, 0, 0.9) 100%) !important;
-                    backdrop-filter: blur(20px) !important; display: flex !important; align-items: center !important; justify-content: center !important;
-                    z-index: 999999999 !important;
+                .dispense-input {
+                    width: 100%;
+                    padding: 0.65rem 0.85rem;
+                    border-radius: 12px;
+                    background: var(--surface-sunken);
+                    border: 1px solid var(--control-edge, rgba(148, 163, 184, 0.16));
+                    box-shadow: var(--shadow-sunken);
+                    outline: none;
+                    transition: 0.2s;
+                    font-weight: 700;
+                    font-size: var(--fs-sm);
+                    color: var(--text-primary);
+                    color-scheme: var(--native-color-scheme);
                 }
-                .glass-input-field {
-                    width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px; background: var(--surface-sunken, #f8fafc); border: none; box-shadow: var(--shadow-sunken, inset 0 2px 4px rgba(0,0,0,0.06));
-                    outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
+                .dispense-input:focus {
+                    border-color: var(--accent-main, #f97316);
+                    box-shadow: var(--shadow-sunken), 0 0 0 2px var(--accent-glow);
                 }
-                .glass-input-field:focus { background: #fff; box-shadow: 0 0 0 3px rgba(202, 138, 4, 0.25); }
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); width: 100%; }
-                .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
+                .dispense-label {
+                    font-size: var(--fs-xs);
+                    font-weight: 800;
+                    color: var(--text-secondary);
+                    display: block;
+                    margin-bottom: 0.4rem;
+                }
+                .dispense-btn-primary {
+                    background: var(--action-fill);
+                    color: var(--action-ink);
+                    border: none;
+                    padding: 0.85rem 1.25rem;
+                    border-radius: 14px;
+                    font-weight: 900;
+                    font-size: var(--fs-md);
+                    cursor: pointer;
+                    transition: 0.2s;
+                    box-shadow: 0 8px 24px -6px var(--accent-glow);
+                }
+                .dispense-btn-primary:hover:not(:disabled) {
+                    filter: brightness(1.08);
+                    transform: translateY(-1px);
+                }
+                .dispense-btn-primary:disabled {
+                    opacity: 0.6;
+                    cursor: not-allowed;
+                }
+                .dispense-btn-secondary {
+                    padding: 0.85rem 1.25rem;
+                    background: var(--surface-subcard);
+                    color: var(--text-secondary);
+                    border: 1px solid var(--control-edge, rgba(148, 163, 184, 0.16));
+                    border-radius: 14px;
+                    font-weight: 800;
+                    font-size: var(--fs-md);
+                    cursor: pointer;
+                    transition: 0.2s;
+                }
+                .dispense-btn-secondary:hover:not(:disabled) {
+                    background: var(--surface-card-hover);
+                    color: var(--text-primary);
+                }
             `}</style>
 
-            <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
-                width: '43.75rem', maxHeight: '95vh',  
-                backdropFilter: 'blur(30px)', borderRadius: '24px', padding: '2.5rem', background: 'var(--surface-card, #ffffff)', 
-                boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
-            }}>
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.5625rem', borderBottom: 'none', paddingBottom:'0.9375rem'}}>
-                    <h2 style={{ color: THEME.coffeeDark || '#2d1a11', fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>صرف مباشر للموقع</h2>
+            <div
+                className="phi-modal-panel cinematic-scroll"
+                onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                style={{
+                    position: 'relative',
+                    width: 'min(46rem, 100%)',
+                    maxHeight: 'calc(100dvh - 3rem)',
+                    background: 'var(--surface-card)',
+                    color: 'var(--text-primary)',
+                    borderRadius: 'var(--phi-radius-dialog, 20px)',
+                    padding: '1.75rem',
+                    boxShadow: 'var(--shadow-ambient)',
+                    border: '1px solid var(--control-edge, rgba(255, 255, 255, 0.08))',
+                    overflowY: 'auto',
+                    direction: 'rtl',
+                }}
+            >
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        marginBottom: '1.25rem',
+                        borderBottom: '1px solid rgba(148, 163, 184, 0.14)',
+                        paddingBottom: '1rem',
+                    }}
+                >
+                    <div>
+                        <h2 style={{ color: 'var(--text-primary)', fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>
+                            صرف مباشر للموقع
+                        </h2>
+                        <p style={{ margin: '0.25rem 0 0', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 700 }}>
+                            توجيه كمية الخامة من المخزون إلى المشروع أو كعهدة على مقاول
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="إغلاق"
+                        style={{
+                            width: '2.5rem',
+                            height: '2.5rem',
+                            borderRadius: '12px',
+                            border: 'none',
+                            background: 'var(--surface-subcard)',
+                            color: 'var(--text-primary)',
+                            display: 'grid',
+                            placeItems: 'center',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <X size={18} aria-hidden="true" />
+                    </button>
                 </div>
 
-                <div style={{ background: 'white', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: 'none', boxShadow: 'var(--shadow-ambient)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {/* بطاقة ملخص الخامة */}
+                <div
+                    style={{
+                        background: 'var(--surface-subcard)',
+                        padding: '1rem 1.15rem',
+                        borderRadius: '16px',
+                        marginBottom: '1.25rem',
+                        border: '1px solid rgba(148, 163, 184, 0.14)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: '1rem',
+                        flexWrap: 'wrap',
+                    }}
+                >
                     <div>
-                        <div style={{ fontWeight: 900, color: '#0f172a', fontSize: 'var(--fs-xl)' }}>{invoiceItem?.item_name}</div>
-                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', marginTop: '0.25rem', fontWeight: 800 }}>
-                            المتاح للصرف: {' '}
+                        <div style={{ fontWeight: 900, color: 'var(--text-primary)', fontSize: 'var(--fs-lg)' }}>
+                            {invoiceItem?.item_name || invoiceItem?.work_item}
+                        </div>
+                        <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', marginTop: '0.25rem', fontWeight: 800 }}>
+                            المتاح للصرف:{' '}
                             {isFetchingQty ? (
-                                <span style={{color: '#f59e0b', animation: 'pulse 1.5s infinite'}}>جاري حساب الرصيد...</span>
+                                <span style={{ color: 'var(--accent-ink)' }}>جاري حساب الرصيد...</span>
                             ) : (
-                                <span style={{color: realAvailableQty > 0 ? THEME.success : '#ef4444'}}>{realAvailableQty} {invoiceItem?.unit}</span>
+                                <span style={{ color: realAvailableQty > 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)' }}>
+                                    {realAvailableQty} {invoiceItem?.unit}
+                                </span>
                             )}
                         </div>
                     </div>
-                    <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 900 }}>سعر الوحدة</div>
-                        <div style={{ fontWeight: 900, color: THEME.primary }}>{formatCurrency(invoiceItem?.unit_price)}</div>
+                    <div style={{ textAlign: 'left', background: 'var(--accent-soft-bg)', padding: '0.45rem 0.9rem', borderRadius: '12px' }}>
+                        <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 800 }}>سعر الوحدة</div>
+                        <div style={{ fontWeight: 900, color: 'var(--accent-ink)', fontSize: 'var(--fs-md)', fontVariantNumeric: 'tabular-nums' }}>
+                            {formatCurrency(invoiceItem?.unit_price)}
+                        </div>
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
                     <div style={{ zIndex: 100, position: 'relative' }}>
-                        <SmartCombo 
-                            label="المشروع المستفيد *" 
-                            icon="🏢" 
-                            table="projects" 
-                            displayCol="Property" 
-                            searchCols="Property" 
+                        <SmartCombo
+                            label="المشروع المستفيد *"
+                            icon="🏢"
+                            table="projects"
+                            displayCol="Property"
+                            searchCols="Property"
                             value={formData.project_id}
-                            initialDisplay={formData.project_name} 
-                            onSelect={(v: any) => setFormData({ ...formData, project_id: v?.id || '', project_name: v?.Property || '', boq_id: null, boq_item_id: null, boq_item_name: '' })}
+                            initialDisplay={formData.project_name}
+                            onSelect={(v: any) =>
+                                setFormData({
+                                    ...formData,
+                                    project_id: v?.id || '',
+                                    project_name: v?.Property || '',
+                                    boq_id: null,
+                                    boq_item_id: null,
+                                    boq_item_name: '',
+                                })
+                            }
                         />
                     </div>
                     <div style={{ zIndex: 90, position: 'relative' }}>
-                        <SmartCombo 
-                            label="أمر الشغل (ربط الميزانية) *" 
-                            table="job_orders" 
-                            displayCol="order_number" 
-                            searchCols="order_number,notes" 
-                            freeText={false} 
-                            strict={true} 
-                            filterColumn="project_id" 
+                        <SmartCombo
+                            label="أمر الشغل (ربط الميزانية) *"
+                            table="job_orders"
+                            displayCol="order_number"
+                            searchCols="order_number,notes"
+                            freeText={false}
+                            strict={true}
+                            filterColumn="project_id"
                             filterValue={formData.project_id}
                             customQuery={(q: any) => q.select('*, boq_budget:boq_budget_id(work_item)')}
                             displayFormat={(item: any) => `${item.order_number} - ${item.boq_budget?.work_item || 'بدون بند'}`}
-                            key={formData.project_id || 'empty-jo'} 
-                            initialDisplay={formData.job_order_id ? `أمر شغل مرتبط` : ''} 
-                            onSelect={async (v:any) => {
-                                let updates: any = { job_order_id: v?.id || null };
-                                
-                                // 🚀 سحب البند مباشرة زي يوميات العمالة
+                            key={formData.project_id || 'empty-jo'}
+                            initialDisplay={formData.job_order_id ? `أمر شغل مرتبط` : ''}
+                            onSelect={async (v: any) => {
+                                const updates: any = { job_order_id: v?.id || null };
+
                                 if (v?.boq_budget_id) {
                                     const { data } = await supabase
                                         .from('boq_budget_distinct')
                                         .select('*')
                                         .eq('id', v.boq_budget_id)
                                         .single();
-                                        
+
                                     if (data) {
                                         updates.boq_id = data.id;
                                         updates.boq_item_id = data.boq_item_id;
                                         updates.boq_item_name = data.work_item;
                                     }
                                 }
-                                
+
                                 setFormData({ ...formData, ...updates });
-                            }} 
+                            }}
                         />
                     </div>
                     <div style={{ zIndex: 85, position: 'relative' }}>
-                        {/* 🚀 السحب باستخدام الكمبوننت الذكي المخصص للبند */}
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>
-                            تحميل على بند (BOQ)
-                        </label>
-                        <ProjectBoqCombo 
+                        <label className="dispense-label">تحميل على بند (BOQ)</label>
+                        <ProjectBoqCombo
                             projectId={formData.project_id}
                             value={formData.boq_item_id || formData.boq_id}
                             initialDisplay={formData.boq_item_name}
                             onSelect={(selectedBoq: any) => {
-                                setFormData({ 
-                                    ...formData, 
+                                setFormData({
+                                    ...formData,
                                     boq_id: selectedBoq?.id || null,
-                                    boq_item_id: selectedBoq?.boq_item_id || null, 
-                                    boq_item_name: selectedBoq?.display_name || selectedBoq?.work_item || '' 
-                                })
-                            }} 
+                                    boq_item_id: selectedBoq?.boq_item_id || null,
+                                    boq_item_name: selectedBoq?.display_name || selectedBoq?.work_item || '',
+                                });
+                            }}
                         />
                     </div>
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.25rem', marginBottom: '1.25rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>تاريخ الصرف</label>
-                        <input type="date" className="glass-input-field" value={formData.issue_date} onChange={e => setFormData({...formData, issue_date: e.target.value})} />
+                        <label className="dispense-label">تاريخ الصرف</label>
+                        <input
+                            type="date"
+                            className="dispense-input"
+                            value={formData.issue_date}
+                            onChange={(e) => setFormData({ ...formData, issue_date: e.target.value })}
+                        />
                     </div>
                     <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.375rem' }}>الكمية المراد صرفها</label>
-                        <input 
-                            type="number" 
-                            max={realAvailableQty} 
-                            min="0.1" 
-                            step="0.1" 
-                            className="glass-input-field" 
-                            style={{ borderColor: formData.quantity > realAvailableQty ? '#ef4444' : '' }} 
-                            value={formData.quantity} 
-                            onChange={e => setFormData({...formData, quantity: Number(e.target.value)})} 
+                        <label className="dispense-label">الكمية المراد صرفها</label>
+                        <input
+                            type="number"
+                            max={realAvailableQty}
+                            min="0.1"
+                            step="0.1"
+                            className="dispense-input"
+                            style={{
+                                borderColor: isQtyExceeded ? 'var(--status-negative, #f43f5e)' : undefined,
+                            }}
+                            value={formData.quantity}
+                            onChange={(e) => setFormData({ ...formData, quantity: Number(e.target.value) })}
                         />
                     </div>
                 </div>
 
-                <div style={{ background: '#f8fafc', padding: '0.9375rem', borderRadius: '16px', marginBottom: '1.5625rem', border: 'none', boxShadow: 'var(--shadow-ambient)' }}>
-                    <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.coffeeDark, display: 'block', marginBottom: '0.9375rem' }}>التوجيه المحاسبي (جهة التحميل) *</label>
-                    <div style={{ display: 'flex', gap: '1.25rem', marginBottom: formData.issue_type === 'صرف لمقاول' ? '0.9375rem' : '0' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)' }}>
-                            <input type="radio" checked={formData.issue_type === 'استهلاك مباشر'} onChange={() => setFormData({...formData, issue_type: 'استهلاك مباشر', subcontractor_id: ''})} style={{ accentColor: THEME.primary, transform: 'scale(1.2)' }} />
+                {/* التوجيه المحاسبي */}
+                <div
+                    style={{
+                        background: 'var(--surface-subcard)',
+                        padding: '1rem 1.15rem',
+                        borderRadius: '16px',
+                        marginBottom: '1.25rem',
+                        border: '1px solid rgba(148, 163, 184, 0.14)',
+                    }}
+                >
+                    <label className="dispense-label" style={{ marginBottom: '0.75rem' }}>
+                        التوجيه المحاسبي (جهة التحميل) *
+                    </label>
+                    <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap', marginBottom: formData.issue_type === 'صرف لمقاول' ? '0.9rem' : '0' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)', color: 'var(--text-primary)' }}>
+                            <input
+                                type="radio"
+                                checked={formData.issue_type === 'استهلاك مباشر'}
+                                onChange={() => setFormData({ ...formData, issue_type: 'استهلاك مباشر', subcontractor_id: '' })}
+                                style={{ accentColor: 'var(--accent-main, #f97316)', transform: 'scale(1.15)' }}
+                            />
                             استهلاك للشركة (تكلفة مشروع)
                         </label>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)', color: '#be123c' }}>
-                            <input type="radio" checked={formData.issue_type === 'صرف لمقاول'} onChange={() => setFormData({...formData, issue_type: 'صرف لمقاول'})} style={{ accentColor: '#be123c', transform: 'scale(1.2)' }} />
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontWeight: 800, fontSize: 'var(--fs-sm)', color: 'var(--status-negative, #f43f5e)' }}>
+                            <input
+                                type="radio"
+                                checked={formData.issue_type === 'صرف لمقاول'}
+                                onChange={() => setFormData({ ...formData, issue_type: 'صرف لمقاول' })}
+                                style={{ accentColor: 'var(--status-negative, #f43f5e)', transform: 'scale(1.15)' }}
+                            />
                             تحميل كسلفة على مقاول
                         </label>
                     </div>
 
-                    <div style={{ zIndex: 80, position: 'relative', animation: 'fadeIn 0.3s' }}>
+                    <div style={{ zIndex: 80, position: 'relative' }}>
                         {formData.issue_type === 'صرف لمقاول' ? (
-                            <SmartCombo 
-                                label="اختر المقاول المراد الخصم منه *" 
-                                icon="👷" 
-                                table="partners" 
-                                displayCol="name" 
-                                searchCols="name" 
-                                customFilter="partner_type=eq.مقاول" 
+                            <SmartCombo
+                                label="اختر المقاول المراد الخصم منه *"
+                                icon="👷"
+                                table="partners"
+                                displayCol="name"
+                                searchCols="name"
+                                customFilter="partner_type=eq.مقاول"
                                 value={formData.subcontractor_id}
-                                initialDisplay={formData.subcontractor_name} 
-                                onSelect={(v: any) => setFormData({ ...formData, subcontractor_id: v?.id || '', subcontractor_name: v?.name || '' })} 
+                                initialDisplay={formData.subcontractor_name}
+                                onSelect={(v: any) =>
+                                    setFormData({
+                                        ...formData,
+                                        subcontractor_id: v?.id || '',
+                                        subcontractor_name: v?.name || '',
+                                    })
+                                }
                             />
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', marginTop: '0.625rem' }}>
-                                <div style={{ background: 'rgba(34, 197, 94, 0.1)', color: '#166534', padding: '0.75rem', borderRadius: '12px', textAlign: 'center', fontWeight: 900, border: 'none', boxShadow: 'var(--shadow-elevation)' }}>
-                                    سيتم تحميل التكلفة مباشرة على حساب تكلفة المشروع
-                                </div>
+                            <div
+                                style={{
+                                    marginTop: '0.75rem',
+                                    background: 'rgba(16, 185, 129, 0.12)',
+                                    color: 'var(--status-positive, #10b981)',
+                                    padding: '0.7rem 0.9rem',
+                                    borderRadius: '12px',
+                                    textAlign: 'center',
+                                    fontWeight: 800,
+                                    fontSize: 'var(--fs-sm)',
+                                }}
+                            >
+                                سيتم تحميل التكلفة مباشرة على حساب تكلفة المشروع
                             </div>
                         )}
                     </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: `linear-gradient(135deg, ${THEME.goldAccent || '#c2410c'}20, transparent)`, padding: '0.9375rem 1.25rem', borderRadius: '16px', border: 'none', boxShadow: 'var(--shadow-elevation)', marginBottom: '1.5625rem' }}>
-                    <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: THEME.coffeeDark }}>إجمالي قيمة الصرف:</div>
-                    <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: THEME.goldAccent || '#c2410c' }}>{formatCurrency(totalPrice)}</div>
+                {/* إجمالي قيمة الصرف */}
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        background: 'var(--accent-soft-bg)',
+                        padding: '0.95rem 1.25rem',
+                        borderRadius: '16px',
+                        marginBottom: '1.25rem',
+                    }}
+                >
+                    <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: 'var(--text-primary)' }}>إجمالي قيمة الصرف:</div>
+                    <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900, color: 'var(--accent-ink)', fontVariantNumeric: 'tabular-nums' }}>
+                        {formatCurrency(totalPrice)}
+                    </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.9375rem' }}>
-                    <button onClick={handleSubmit} disabled={isSaving || isFetchingQty} className="btn-glass-save" style={{ flex: 2, opacity: isFetchingQty ? 0.7 : 1 }}>
+                <div style={{ display: 'flex', gap: '0.85rem' }}>
+                    <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={isSaving || isFetchingQty}
+                        className="dispense-btn-primary"
+                        style={{ flex: 2 }}
+                    >
                         {isSaving ? 'جاري الصرف والترحيل...' : 'تأكيد الصرف والترحيل'}
                     </button>
-                    <button onClick={onClose} disabled={isSaving} style={{ flex: 1, padding: '1rem', background: '#e2e8f0', color: '#475569', borderRadius: '16px', fontWeight: 900, border: 'none', cursor: 'pointer' }}>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={isSaving}
+                        className="dispense-btn-secondary"
+                        style={{ flex: 1 }}
+                    >
                         إلغاء
                     </button>
                 </div>

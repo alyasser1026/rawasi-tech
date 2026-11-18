@@ -1,21 +1,17 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { THEME } from '@/lib/theme';
 import SmartCombo from '@/components/SmartCombo';
 import JobOrderSelector from '@/components/JobOrderSelector';
-// 🚀 استدعاء الكمبوننت الذكي الجديد الخاص ببنود المشروع
-import ProjectBoqCombo from '@/components/ProjectBoqCombo'; 
+import ProjectBoqCombo from '@/components/ProjectBoqCombo';
 import { formatCurrency } from '@/lib/helpers';
-import { useToast } from '@/lib/toast-context'; 
-import { Trash2 } from 'lucide-react';
+import { Trash2, Plus, Upload, Camera, X } from 'lucide-react';
 import { notify } from '@/lib/notify';
 
 export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
-    const { showToast } = useToast();
     const [mounted, setMounted] = useState(false);
-    
-    // 📸 حالات ومراجع الكاميرا والمرفقات 
+
+    // 📸 حالات ومراجع الكاميرا والمرفقات
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [isCameraOpen, setIsCameraOpen] = useState(false);
@@ -26,17 +22,26 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
         setMounted(true);
     }, []);
 
-    // =========================================================================
-    // 📷 دوال التقاط الصور والمرفقات للفاتورة
-    // =========================================================================
+    useEffect(() => {
+        if (!isOpen) return;
+        const onKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                onClose();
+            }
+        };
+        document.addEventListener('keydown', onKey);
+        return () => document.removeEventListener('keydown', onKey);
+    }, [isOpen, onClose]);
+
     const startCamera = async () => {
         setIsCameraOpen(true);
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             if (videoRef.current) videoRef.current.srcObject = stream;
-        } catch (err) { 
-            notify("خطأ في تشغيل الكاميرا"); 
-            setIsCameraOpen(false); 
+        } catch {
+            notify('خطأ في تشغيل الكاميرا');
+            setIsCameraOpen(false);
         }
     };
 
@@ -48,158 +53,476 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
             context?.drawImage(videoRef.current, 0, 0);
             const imageDataUrl = canvasRef.current.toDataURL('image/jpeg');
             setImagePreview(imageDataUrl);
-            logic.setInvoiceData({ ...logic.invoiceData, attachments: [imageDataUrl] }); // حفظ المرفق في الـ State
+            logic.setInvoiceData({ ...logic.invoiceData, attachments: [imageDataUrl] });
             stopCamera();
         }
     };
 
     const stopCamera = () => {
-        if (videoRef.current?.srcObject) { 
-            (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop()); 
+        if (videoRef.current?.srcObject) {
+            (videoRef.current.srcObject as MediaStream).getTracks().forEach((track) => track.stop());
         }
         setIsCameraOpen(false);
     };
 
-    // حارس الرندر
     if (!isOpen || !mounted) return null;
 
-    // حساب إجمالي الكميات للملخص السفلي
     const totalQuantity = logic.invoiceData.items.reduce((sum: number, item: any) => sum + (Number(item.quantity) || 0), 0);
     const customerReceipt = logic.invoiceData.receipt_type === 'توريد عميل';
+    const isEditMode = Boolean(logic.invoiceData.id);
 
     return createPortal(
-        <div className="warm-portal-overlay-fullscreen" onClick={onClose}>
+        <div className="phi-modal-backdrop mat-modal-backdrop" onClick={onClose}>
             <style>{`
-                .warm-portal-overlay-fullscreen {
-                    position: fixed !important; inset: 0 !important;
-                    width: 100vw !important; height: 100vh !important;
-                    background: radial-gradient(circle at center, rgba(40, 24, 10, 0.4) 0%, rgba(15, 7, 0, 0.9) 100%) !important;
-                    backdrop-filter: blur(20px) !important;
-                    display: flex !important; align-items: center !important; justify-content: center !important;
-                    z-index: 999999999 !important;
+                .mat-modal-backdrop {
+                    position: fixed !important;
+                    inset: 0 !important;
+                    z-index: 1000000001 !important;
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: center !important;
+                    padding: 1.5rem 1rem !important;
+                    background: var(--modal-scrim, rgba(5, 7, 11, 0.78)) !important;
+                    backdrop-filter: blur(16px) !important;
+                    -webkit-backdrop-filter: blur(16px) !important;
+                    overflow-y: auto !important;
+                    direction: rtl;
                 }
-                .glass-input-field {
-                    width: 100%; padding: 0.625rem 0.75rem; border-radius: 12px;
-                    background: rgba(255, 255, 255, 0.65);
-                    border: 1px solid rgba(255, 255, 255, 0.8);
-                    outline: none; transition: 0.2s; font-weight: 700; color: #1e293b;
+                .mat-modal-panel {
+                    position: relative;
+                    width: min(72rem, 100%);
+                    max-height: calc(100dvh - 3rem);
+                    overflow-y: auto;
+                    background: var(--surface-card) !important;
+                    color: var(--text-primary) !important;
+                    border-radius: var(--phi-radius-dialog, 20px) !important;
+                    box-shadow: var(--shadow-ambient, 0 25px 70px -15px rgba(0, 0, 0, 0.85)) !important;
+                    padding: 1.75rem !important;
+                    border: 1px solid rgba(255, 255, 255, 0.08);
+                    direction: rtl;
                 }
-                .glass-input-field:focus { background: #fff; border-color: ${THEME.accent}; box-shadow: 0 0 0 4px rgba(202, 138, 4, 0.15); }
-                
-                .btn-glass-save { background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4); }
-                .btn-glass-save:hover:not(:disabled) { transform: translateY(-3px); filter: brightness(1.1); }
-                .btn-glass-cancel { background: rgba(255, 255, 255, 0.6); color: #1e293b; border: 1px solid rgba(255, 255, 255, 0.8); padding: 0.75rem 1.25rem; border-radius: 12px; font-weight: 900; font-size: var(--fs-md); cursor: pointer; transition: 0.3s; }
-                .btn-glass-cancel:hover { background: rgba(255, 255, 255, 0.9); transform: translateY(-2px); }
-                
-                .lines-table-container {
-                    background: rgba(255, 255, 255, 0.5);
-                    border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.7);
-                    overflow: visible; /* تعديل مهم لتجنب قص القوائم المنسدلة */
-                    margin-top: 15px;
+                .mat-modal-panel::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: 10%; right: 10%;
+                    height: 1px;
+                    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.22) 50%, transparent 100%);
+                    pointer-events: none;
                 }
-                .item-row { transition: 0.2s; border-bottom: 1px solid rgba(0,0,0,0.05); }
-                .item-row:hover { background: rgba(255, 255, 255, 0.8); }
+                .mat-modal-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 1rem;
+                    flex-wrap: wrap;
+                    padding-bottom: 1.125rem;
+                    margin-bottom: 1.375rem;
+                    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+                }
+                .mat-modal-title h2 {
+                    margin: 0;
+                    font-size: var(--fs-2xl);
+                    font-weight: 900;
+                    color: var(--text-primary);
+                }
+                .mat-modal-title p {
+                    margin: 0.25rem 0 0;
+                    font-size: var(--fs-xs);
+                    color: var(--text-secondary);
+                    font-weight: 700;
+                }
+                .mat-modal-header-meta {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                }
+                .mat-modal-total-pill {
+                    background: var(--accent-soft-bg, rgba(249, 115, 22, 0.13));
+                    padding: 0.5rem 1rem;
+                    border-radius: 14px;
+                    text-align: left;
+                    border: 1px solid rgba(249, 115, 22, 0.25);
+                }
+                .mat-modal-total-pill small {
+                    display: block;
+                    font-size: var(--fs-xs);
+                    color: var(--text-secondary);
+                    font-weight: 800;
+                }
+                .mat-modal-total-pill strong {
+                    font-size: var(--fs-xl);
+                    font-weight: 900;
+                    color: var(--accent-ink);
+                }
+                .mat-modal-close {
+                    width: 2.5rem;
+                    height: 2.5rem;
+                    border-radius: 12px;
+                    border: none;
+                    background: var(--surface-subcard);
+                    color: var(--text-primary);
+                    display: grid;
+                    place-items: center;
+                    cursor: pointer;
+                    transition: background 0.18s ease, transform 0.18s ease;
+                }
+                .mat-modal-close:hover {
+                    background: var(--surface-card-hover);
+                    transform: scale(1.04);
+                }
+                .mat-modal-section {
+                    background: var(--surface-subcard);
+                    border-radius: 16px;
+                    padding: 1.25rem;
+                    margin-bottom: 1.25rem;
+                    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+                }
+                .mat-modal-label {
+                    display: block;
+                    font-size: var(--fs-xs);
+                    font-weight: 800;
+                    color: var(--text-secondary);
+                    margin-bottom: 0.4rem;
+                }
+                .mat-modal-input {
+                    width: 100%;
+                    padding: 0.65rem 0.85rem;
+                    border-radius: 12px;
+                    background: var(--surface-sunken) !important;
+                    color: var(--text-primary) !important;
+                    border: 1px solid rgba(148, 163, 184, 0.16) !important;
+                    box-shadow: var(--shadow-sunken);
+                    outline: none;
+                    font-weight: 700;
+                    font-size: var(--fs-sm);
+                    color-scheme: var(--native-color-scheme);
+                    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+                }
+                .mat-modal-input option {
+                    background: var(--surface-card);
+                    color: var(--text-primary);
+                }
+                .mat-modal-input:focus {
+                    border-color: var(--accent-main, #f97316) !important;
+                    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.18) !important;
+                }
+                .mat-lines-shell {
+                    background: var(--surface-card);
+                    border-radius: 14px;
+                    border: 1px solid rgba(148, 163, 184, 0.14);
+                    overflow: visible;
+                    margin-top: 0.75rem;
+                }
+                .mat-lines-table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    text-align: center;
+                }
+                .mat-lines-table thead {
+                    background: var(--surface-sunken);
+                }
+                .mat-lines-table th {
+                    padding: 0.75rem 0.6rem;
+                    font-size: var(--fs-xs);
+                    font-weight: 900;
+                    color: var(--text-secondary);
+                    border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+                }
+                .mat-lines-table td {
+                    padding: 0.6rem 0.5rem;
+                    border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+                    vertical-align: middle;
+                }
+                .mat-lines-table tbody tr:last-child td {
+                    border-bottom: none;
+                }
+                .mat-lines-table tbody tr:hover {
+                    background: var(--surface-card-hover);
+                }
+                .mat-btn-add-line {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 0.4rem;
+                    background: var(--accent-soft-bg, rgba(249, 115, 22, 0.14));
+                    color: var(--accent-ink);
+                    border: 1px solid rgba(249, 115, 22, 0.32);
+                    padding: 0.5rem 0.95rem;
+                    border-radius: 11px;
+                    font-weight: 800;
+                    font-size: var(--fs-xs);
+                    cursor: pointer;
+                    transition: all 0.18s ease;
+                }
+                .mat-btn-add-line:hover {
+                    background: var(--action-fill);
+                    color: var(--action-ink);
+                    border-color: transparent;
+                }
+                .mat-attach-btn {
+                    flex: 1;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    padding: 0.9rem 1rem;
+                    border-radius: 14px;
+                    font-weight: 800;
+                    font-size: var(--fs-sm);
+                    cursor: pointer;
+                    transition: all 0.18s ease;
+                }
+                .mat-attach-btn.is-file {
+                    background: var(--surface-sunken);
+                    color: var(--text-secondary);
+                    border: 1.5px dashed rgba(148, 163, 184, 0.32);
+                }
+                .mat-attach-btn.is-file:hover {
+                    border-color: var(--accent-main, #f97316);
+                    color: var(--text-primary);
+                }
+                .mat-attach-btn.is-camera {
+                    background: var(--surface-subcard);
+                    color: var(--accent-ink);
+                    border: 1px solid rgba(249, 115, 22, 0.28);
+                }
+                .mat-attach-btn.is-camera:hover {
+                    background: var(--accent-soft-bg);
+                }
+                .mat-summary-strip {
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+                    gap: 0.9rem;
+                    margin-top: 1.25rem;
+                }
+                .mat-summary-card {
+                    background: var(--surface-subcard);
+                    border-radius: 14px;
+                    padding: 0.95rem 1.1rem;
+                    text-align: center;
+                    border: 1px solid rgba(148, 163, 184, 0.12);
+                }
+                .mat-summary-card.is-accent {
+                    background: var(--accent-soft-bg, rgba(249, 115, 22, 0.14));
+                    border-color: rgba(249, 115, 22, 0.34);
+                }
+                .mat-summary-card small {
+                    display: block;
+                    font-size: var(--fs-xs);
+                    color: var(--text-secondary);
+                    font-weight: 800;
+                    margin-bottom: 0.25rem;
+                }
+                .mat-summary-card strong {
+                    font-size: var(--fs-2xl);
+                    font-weight: 900;
+                    color: var(--text-primary);
+                }
+                .mat-summary-card.is-accent strong {
+                    color: var(--accent-ink);
+                }
+                .mat-footer-actions {
+                    display: flex;
+                    gap: 0.9rem;
+                    margin-top: 1.5rem;
+                    padding-top: 1.125rem;
+                    border-top: 1px solid rgba(148, 163, 184, 0.14);
+                }
+                .mat-btn-primary {
+                    flex: 2;
+                    padding: 0.85rem 1.25rem;
+                    border-radius: 13px;
+                    border: none;
+                    background: var(--action-fill);
+                    color: var(--action-ink);
+                    font-weight: 900;
+                    font-size: var(--fs-md);
+                    cursor: pointer;
+                    box-shadow: 0 10px 26px -10px rgba(249, 115, 22, 0.55);
+                    transition: filter 0.18s ease, transform 0.18s ease;
+                }
+                .mat-btn-primary:hover:not(:disabled) {
+                    filter: brightness(1.08);
+                    transform: translateY(-1px);
+                }
+                .mat-btn-secondary {
+                    flex: 1;
+                    padding: 0.85rem 1.25rem;
+                    border-radius: 13px;
+                    border: 1px solid rgba(148, 163, 184, 0.2);
+                    background: var(--surface-subcard);
+                    color: var(--text-primary);
+                    font-weight: 800;
+                    font-size: var(--fs-md);
+                    cursor: pointer;
+                    transition: background 0.18s ease;
+                }
+                .mat-btn-secondary:hover {
+                    background: var(--surface-card-hover);
+                }
+                @media (max-width: 768px) {
+                    .mat-modal-panel { padding: 1.15rem !important; }
+                    .mat-lines-shell { overflow-x: auto; }
+                    .mat-footer-actions { flex-direction: column; }
+                }
             `}</style>
 
-            <div className="cinematic-scroll glass-modal-container" onClick={(e) => e.stopPropagation()} style={{ 
-                width: '68.75rem', maxHeight: '95vh', background: 'rgba(248, 250, 252, 0.9)', 
-                backdropFilter: 'blur(30px)', borderRadius: '14px', padding: '2.5rem', 
-                boxShadow: '0 40px 80px rgba(0,0,0,0.4)', overflowY: 'auto', direction: 'rtl'
-            }}>
-                
-                {/* 📝 الهيدر */}
-                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'1.875rem', borderBottom:`2px solid ${THEME.accent}50`, paddingBottom:'0.9375rem'}}>
-                    <h2 style={{ color: THEME.primary, fontWeight: 900, margin: 0, fontSize: 'var(--fs-2xl)' }}>إصدار فاتورة توريد خامات</h2>
-                    <div style={{ textAlign: 'left' }}>
-                        <div style={{ fontSize: 'var(--fs-sm)', color: '#64748b', fontWeight: 900 }}>الصافي النهائي</div>
-                        <div style={{ color: THEME.accent, fontWeight: 900, fontSize: 'var(--fs-3xl)' }}>{formatCurrency(logic.grandTotal)}</div>
+            <div className="phi-modal-panel mat-modal-panel cinematic-scroll" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+                {/* الترويسة الموحدة */}
+                <div className="mat-modal-header">
+                    <div className="mat-modal-title">
+                        <h2>{isEditMode ? 'تعديل فاتورة توريد خامات' : 'إصدار فاتورة توريد خامات'}</h2>
+                        <p>توجيه الخامات إلى المشروع وبند المقايسة (BOQ) مع حفظها كمسودة جاهزة للترحيل</p>
                     </div>
-                </div>
-
-                {/* 📋 البيانات الأساسية (Master Data) */}
-                <div className="responsive-form-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(12.5rem, 1fr))', gap: '1.5625rem', marginBottom: '1.5625rem' }}>
-                    <div style={{ zIndex: 100, position: 'relative' }}>
-                        <SmartCombo 
-                            label="المشروع المستفيد (مركز التكلفة) *" 
-                            icon="🏢" 
-                            table="projects" 
-                            displayCol="Property" 
-                            searchCols="Property,project_code" 
-                            value={logic.invoiceData.project_id}
-                            onSelect={(v: any) => logic.setInvoiceData({ 
-                                ...logic.invoiceData, 
-                                project_id: v?.id,
-                                job_order_id: null,
-                                // 🚀 تصفير البنود لو المشروع اتغير عشان ميحصلش تضارب
-                                items: logic.invoiceData.items.map((i:any) => ({...i, boq_item_id: null, boq_id: null, boq_item: ''})) 
-                            })} 
-                        />
-                    </div>
-                    <div style={{ zIndex: 90, position: 'relative' }}>
-                        <label htmlFor="material-receipt-type" style={{ display: 'block', fontWeight: 900, marginBottom: '0.375rem' }}>مصدر الخامات</label>
-                        <select id="material-receipt-type" className="glass-input-field" value={logic.invoiceData.receipt_type}
-                            onChange={e => logic.setInvoiceData({ ...logic.invoiceData, receipt_type: e.target.value,
-                                payee_id: '', payee_name: '', account_id: '', job_order_id: null })}>
-                            <option value="توريد شركة">توريد شركة</option>
-                            <option value="توريد عميل">توريد عميل</option>
-                        </select>
-                    </div>
-                    <div style={{ zIndex: 85, position: 'relative' }}>
-                        <SmartCombo key={logic.invoiceData.receipt_type} label={customerReceipt ? 'العميل الذي سلّم الخامات *' : 'المورد / التاجر *'}
-                            icon="👤" table="partners" displayCol="name" searchCols="name"
-                            customFilter={customerReceipt ? 'partner_type=eq.عميل' : 'partner_type=eq.مورد'}
-                            value={logic.invoiceData.payee_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, payee_id: v?.id })} />
-                    </div>
-                    {customerReceipt && <JobOrderSelector projectId={logic.invoiceData.project_id || null}
-                        value={logic.invoiceData.job_order_id || null}
-                        onChange={id => logic.setInvoiceData((current: any) => ({ ...current, job_order_id: id }))} />}
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5625rem', background: 'var(--surface-sunken)', padding: '1.5625rem', borderRadius: '14px', marginBottom: '1.5625rem', border: 'none', boxShadow: 'var(--shadow-sunken)' }}>
-                    <div style={{ zIndex: 80, position: 'relative' }}>
-                        {customerReceipt
-                            ? <p className="ent-field-note">رصيد خامات العميل يُرحّل إلى حساب 217 عند ترحيل السند.</p>
-                            : <SmartCombo label="حساب التوجيه المالي *" icon="💳" table="accounts" displayCol="name" searchCols="name,code" value={logic.invoiceData.account_id} onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, account_id: v?.id })} />}
-                    </div>
-                    <div>
-                        <label style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.primary, display: 'block', marginBottom: '0.375rem' }}>تاريخ الفاتورة *</label>
-                        <input type="date" className="glass-input-field" value={logic.invoiceData.exp_date} onChange={e => logic.setInvoiceData({...logic.invoiceData, exp_date: e.target.value})} />
-                    </div>
-                </div>
-                
-                {/* 🚀 قسم إدخال الأصناف (متعدد الأصناف مع الـ BOQ والكتالوج الموحد) */}
-                <div style={{ background: 'rgba(202, 138, 4, 0.05)', padding: '1.25rem', borderRadius: '14px', marginBottom: '1.5625rem', border: `1px dashed ${THEME.accent}` }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.9375rem' }}>
-                        <h3 style={{ margin: 0, fontSize: 'var(--fs-xl)', fontWeight: 900, color: THEME.brand?.coffee || THEME.coffeeDark }}>أصناف الفاتورة (الخامات) وربطها بالبنود</h3>
-                        <button onClick={logic.handleAddItem} style={{ background: 'white', color: THEME.primary, border: `1px solid ${THEME.accent}`, padding: '0.5rem 0.9375rem', borderRadius: '10px', fontWeight: 900, cursor: 'pointer', transition: '0.2s' }}>
-                            إضافة صنف آخر
+                    <div className="mat-modal-header-meta">
+                        <div className="mat-modal-total-pill">
+                            <small>الصافي النهائي</small>
+                            <strong>{formatCurrency(logic.grandTotal)}</strong>
+                        </div>
+                        <button type="button" className="mat-modal-close" onClick={onClose} aria-label="إغلاق النافذة">
+                            <X size={18} aria-hidden="true" />
                         </button>
                     </div>
-                    
-                    <div className="lines-table-container">
-                        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
-                            <thead style={{ background: THEME.primary, color: 'white' }}>
+                </div>
+
+                {/* البيانات الأساسية */}
+                <div className="mat-modal-section">
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13.5rem, 1fr))', gap: '1.1rem', marginBottom: '1.1rem' }}>
+                        <div style={{ zIndex: 100, position: 'relative' }}>
+                            <SmartCombo
+                                label="المشروع المستفيد (مركز التكلفة) *"
+                                icon="🏢"
+                                table="projects"
+                                displayCol="Property"
+                                searchCols="Property,project_code"
+                                value={logic.invoiceData.project_id}
+                                onSelect={(v: any) =>
+                                    logic.setInvoiceData({
+                                        ...logic.invoiceData,
+                                        project_id: v?.id,
+                                        job_order_id: null,
+                                        items: logic.invoiceData.items.map((i: any) => ({ ...i, boq_item_id: null, boq_id: null, boq_item: '' })),
+                                    })
+                                }
+                            />
+                        </div>
+                        <div style={{ zIndex: 90, position: 'relative' }}>
+                            <label htmlFor="material-receipt-type" className="mat-modal-label">مصدر الخامات</label>
+                            <select
+                                id="material-receipt-type"
+                                className="mat-modal-input"
+                                value={logic.invoiceData.receipt_type}
+                                onChange={(e) =>
+                                    logic.setInvoiceData({
+                                        ...logic.invoiceData,
+                                        receipt_type: e.target.value,
+                                        payee_id: '',
+                                        payee_name: '',
+                                        account_id: '',
+                                        job_order_id: null,
+                                    })
+                                }
+                            >
+                                <option value="توريد شركة">توريد شركة</option>
+                                <option value="توريد عميل">توريد عميل</option>
+                            </select>
+                        </div>
+                        <div style={{ zIndex: 85, position: 'relative' }}>
+                            <SmartCombo
+                                key={logic.invoiceData.receipt_type}
+                                label={customerReceipt ? 'العميل الذي سلّم الخامات *' : 'المورد / التاجر *'}
+                                icon="👤"
+                                table="partners"
+                                displayCol="name"
+                                searchCols="name"
+                                customFilter={customerReceipt ? 'partner_type=eq.عميل' : 'partner_type=eq.مورد'}
+                                value={logic.invoiceData.payee_id}
+                                onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, payee_id: v?.id })}
+                            />
+                        </div>
+                        {customerReceipt && (
+                            <JobOrderSelector
+                                projectId={logic.invoiceData.project_id || null}
+                                value={logic.invoiceData.job_order_id || null}
+                                onChange={(id) => logic.setInvoiceData((current: any) => ({ ...current, job_order_id: id }))}
+                            />
+                        )}
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(14rem, 1fr))', gap: '1.1rem', alignItems: 'end' }}>
+                        <div style={{ zIndex: 80, position: 'relative' }}>
+                            {customerReceipt ? (
+                                <p className="ent-field-note" style={{ margin: 0, padding: '0.65rem 0.9rem', borderRadius: '12px', background: 'var(--accent-soft-bg)', color: 'var(--accent-ink)', fontWeight: 700, fontSize: 'var(--fs-xs)' }}>
+                                    رصيد خامات العميل يُرحّل تلقائياً إلى حساب 217 عند ترحيل السند.
+                                </p>
+                            ) : (
+                                <SmartCombo
+                                    label="حساب التوجيه المالي *"
+                                    icon="💳"
+                                    table="accounts"
+                                    displayCol="name"
+                                    searchCols="name,code"
+                                    value={logic.invoiceData.account_id}
+                                    onSelect={(v: any) => logic.setInvoiceData({ ...logic.invoiceData, account_id: v?.id })}
+                                />
+                            )}
+                        </div>
+                        <div>
+                            <label className="mat-modal-label">تاريخ الفاتورة *</label>
+                            <input
+                                type="date"
+                                className="mat-modal-input"
+                                value={logic.invoiceData.exp_date}
+                                onChange={(e) => logic.setInvoiceData({ ...logic.invoiceData, exp_date: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <label className="mat-modal-label">ملاحظات / رقم الإذن الورقي</label>
+                            <input
+                                type="text"
+                                placeholder="مثال: إذن صرف رقم 1 — مخزن معماري"
+                                className="mat-modal-input"
+                                value={logic.invoiceData.notes || ''}
+                                onChange={(e) => logic.setInvoiceData({ ...logic.invoiceData, notes: e.target.value })}
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* جدول الأصناف */}
+                <div className="mat-modal-section">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                        <h3 style={{ margin: 0, fontSize: 'var(--fs-lg)', fontWeight: 900, color: 'var(--text-primary)' }}>
+                            أصناف الفاتورة (الخامات) وربطها بالبنود
+                        </h3>
+                        <button type="button" onClick={logic.handleAddItem} className="mat-btn-add-line">
+                            <Plus size={15} aria-hidden="true" />
+                            <span>إضافة صنف آخر</span>
+                        </button>
+                    </div>
+
+                    <div className="mat-lines-shell">
+                        <table className="mat-lines-table">
+                            <thead>
                                 <tr>
-                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', textAlign: 'right', width: '25%' }}>اسم الخامة (من الدليل الموحد)</th>
-                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '25%' }}>توجيه لبند (BOQ) - اختياري</th>
-                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '10%' }}>الكمية</th>
-                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '10%' }}>الوحدة</th>
-                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '12%' }}>السعر</th>
-                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '13%' }}>الإجمالي</th>
-                                    <th style={{ padding: '0.75rem', fontSize: 'var(--fs-xs)', width: '5%' }}>حذف</th>
+                                    <th style={{ textAlign: 'right', width: '26%' }}>اسم الخامة (من الدليل الموحد)</th>
+                                    <th style={{ width: '24%' }}>توجيه لبند (BOQ) - اختياري</th>
+                                    <th style={{ width: '10%' }}>الكمية</th>
+                                    <th style={{ width: '10%' }}>الوحدة</th>
+                                    <th style={{ width: '12%' }}>السعر</th>
+                                    <th style={{ width: '13%' }}>الإجمالي</th>
+                                    <th style={{ width: '5%' }}>حذف</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {logic.invoiceData.items.map((item: any, idx: number) => (
-                                    <tr key={idx} className="item-row">
-                                        {/* 🚀 السحب من الدليل الموحد */}
-                                        <td style={{ padding: '0.625rem', zIndex: 70 - idx, position: 'relative' }}>
-                                            <SmartCombo 
-                                                table="material_items" 
+                                    <tr key={idx}>
+                                        <td style={{ zIndex: 70 - idx, position: 'relative', textAlign: 'right' }}>
+                                            <SmartCombo
+                                                table="material_items"
                                                 searchCols="item_name,item_code"
-                                                displayCol="item_name" 
-                                                initialDisplay={item.item_name || item.work_item} 
-                                                freeText={true} 
+                                                displayCol="item_name"
+                                                initialDisplay={item.item_name || item.work_item}
+                                                freeText={true}
                                                 onSelect={(selectedItem: any) => {
                                                     const isObject = typeof selectedItem === 'object' && selectedItem !== null;
                                                     if (isObject) {
@@ -213,38 +536,65 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                                                         logic.handleItemChange(idx, 'item_name', selectedItem);
                                                         logic.handleItemChange(idx, 'work_item', selectedItem);
                                                     }
-                                                }} 
+                                                }}
                                             />
                                         </td>
-                                        
-                                        {/* 🚀 تم التعديل: القراءة من boq_id لضمان الربط السليم */}
-                                        <td style={{ padding: '0.625rem', zIndex: 60 - idx, position: 'relative' }}>
-                                            <ProjectBoqCombo 
-                                                projectId={logic.invoiceData.project_id} 
-                                                value={item.boq_id} /* 🎯 تم التعديل ليقرأ boq_id بدلاً من boq_item_id */
+                                        <td style={{ zIndex: 60 - idx, position: 'relative' }}>
+                                            <ProjectBoqCombo
+                                                projectId={logic.invoiceData.project_id}
+                                                value={item.boq_id}
                                                 initialDisplay={item.boq_item}
                                                 onSelect={(selectedBoq: any) => {
                                                     logic.handleItemChange(idx, 'boq_selection', selectedBoq);
-                                                }} 
+                                                }}
                                             />
                                         </td>
-
-                                        <td style={{ padding: '0.625rem' }}>
-                                            <input type="number" placeholder="0" className="glass-input-field" style={{ padding: '0.5rem', textAlign: 'center', background: 'white' }} value={item.quantity} onChange={e => logic.handleItemChange(idx, 'quantity', e.target.value)} />
+                                        <td>
+                                            <input
+                                                type="number"
+                                                placeholder="0"
+                                                className="mat-modal-input"
+                                                style={{ padding: '0.5rem', textAlign: 'center' }}
+                                                value={item.quantity}
+                                                onChange={(e) => logic.handleItemChange(idx, 'quantity', e.target.value)}
+                                            />
                                         </td>
-                                        <td style={{ padding: '0.625rem' }}>
-                                            <input type="text" placeholder="طن" className="glass-input-field" style={{ padding: '0.5rem', textAlign: 'center', background: 'white' }} value={item.unit} onChange={e => logic.handleItemChange(idx, 'unit', e.target.value)} />
+                                        <td>
+                                            <input
+                                                type="text"
+                                                placeholder="كيس / بستلة"
+                                                className="mat-modal-input"
+                                                style={{ padding: '0.5rem', textAlign: 'center' }}
+                                                value={item.unit}
+                                                onChange={(e) => logic.handleItemChange(idx, 'unit', e.target.value)}
+                                            />
                                         </td>
-                                        <td style={{ padding: '0.625rem' }}>
-                                            <input type="number" placeholder="0.00" className="glass-input-field" style={{ padding: '0.5rem', textAlign: 'center', background: 'white' }} value={item.unit_price} onChange={e => logic.handleItemChange(idx, 'unit_price', e.target.value)} />
+                                        <td>
+                                            <input
+                                                type="number"
+                                                placeholder="0.00"
+                                                className="mat-modal-input"
+                                                style={{ padding: '0.5rem', textAlign: 'center' }}
+                                                value={item.unit_price}
+                                                onChange={(e) => logic.handleItemChange(idx, 'unit_price', e.target.value)}
+                                            />
                                         </td>
-                                        <td style={{ padding: '0.625rem', fontWeight: 900, color: THEME.primary, fontSize: 'var(--fs-lg)' }}>
+                                        <td style={{ fontWeight: 900, color: 'var(--accent-ink)', fontSize: 'var(--fs-md)' }}>
                                             {formatCurrency(item.total_price)}
                                         </td>
-                                        <td style={{ padding: '0.625rem' }}>
+                                        <td>
                                             {idx > 0 ? (
-                                                <button onClick={() => logic.handleRemoveItem(idx)} style={{ background: 'none', border: 'none', color: THEME.ruby || '#ef4444', cursor: 'pointer', fontSize: 'var(--fs-xl)' }} title="حذف الصنف"><Trash2 size={15} aria-hidden="true" /></button>
-                                            ) : <div style={{width: '1.5rem'}}></div>}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => logic.handleRemoveItem(idx)}
+                                                    style={{ background: 'none', border: 'none', color: 'var(--status-negative, #ef4444)', cursor: 'pointer', padding: '0.25rem' }}
+                                                    title="حذف الصنف"
+                                                >
+                                                    <Trash2 size={16} aria-hidden="true" />
+                                                </button>
+                                            ) : (
+                                                <div style={{ width: '1.5rem' }} />
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
@@ -253,49 +603,99 @@ export default function MaterialInvoiceModal({ isOpen, onClose, logic }: any) {
                     </div>
                 </div>
 
-                {/* 📂 المرفقات والكاميرا */}
-                <div style={{ display: 'flex', gap: '1.25rem', marginBottom: '1.875rem' }}>
-                    <button onClick={() => fileInputRef.current?.click()} style={{ flex: 1, padding: '1.125rem', background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '16px', fontWeight: 900, cursor: 'pointer', color: '#475569', transition: '0.2s' }}>
-                        إرفاق مستند (صورة الفاتورة / إذن الاستلام)
+                {/* المرفقات والكاميرا */}
+                <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap' }}>
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="mat-attach-btn is-file">
+                        <Upload size={16} aria-hidden="true" />
+                        <span>إرفاق مستند (صورة الفاتورة / إذن الاستلام)</span>
                     </button>
-                    <button onClick={isCameraOpen ? takePhoto : startCamera} style={{ flex: 1, padding: '1.125rem', background: 'var(--accent-ink)', color: 'white', borderRadius: '16px', border: 'none', fontWeight: 800, cursor: 'pointer', boxShadow: 'var(--shadow-elevation)' }}>
-                        {isCameraOpen ? 'التقاط الفاتورة' : 'مسح بالكاميرا'}
+                    <button type="button" onClick={isCameraOpen ? takePhoto : startCamera} className="mat-attach-btn is-camera">
+                        <Camera size={16} aria-hidden="true" />
+                        <span>{isCameraOpen ? 'التقاط الفاتورة' : 'مسح بالكاميرا'}</span>
                     </button>
                 </div>
-                
+
                 {imagePreview && !isCameraOpen && (
-                    <div style={{ marginBottom: '1.25rem', position: 'relative', display: 'inline-block' }}>
-                        <img src={imagePreview} alt="مرفق الفاتورة" style={{ maxHeight: '12.5rem', borderRadius: '16px', border: `2px solid ${THEME.accent}` }} />
-                        <button onClick={() => { setImagePreview(null); logic.setInvoiceData({ ...logic.invoiceData, attachments: [] }); }} style={{ position: 'absolute', top: '-0.625rem', right: '-0.625rem', background: THEME.danger || '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: '1.875rem', height: '1.875rem', cursor: 'pointer', fontWeight: 'bold' }}>X</button>
+                    <div style={{ marginTop: '1rem', position: 'relative', display: 'inline-block' }}>
+                        <img
+                            src={imagePreview}
+                            alt="مرفق الفاتورة"
+                            style={{ maxHeight: '11rem', borderRadius: '14px', border: '1.5px solid var(--accent-main)' }}
+                        />
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setImagePreview(null);
+                                logic.setInvoiceData({ ...logic.invoiceData, attachments: [] });
+                            }}
+                            style={{
+                                position: 'absolute',
+                                top: '-0.5rem',
+                                right: '-0.5rem',
+                                background: 'var(--status-negative, #ef4444)',
+                                color: '#fff',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '1.75rem',
+                                height: '1.75rem',
+                                cursor: 'pointer',
+                                fontWeight: 900,
+                            }}
+                        >
+                            ×
+                        </button>
                     </div>
                 )}
-                
-                {isCameraOpen && <video ref={videoRef} autoPlay playsInline style={{ width: '100%', borderRadius: '14px', marginBottom: '1.25rem', border: `4px solid ${THEME.accent}` }} />}
-                <canvas ref={canvasRef} style={{ display: 'none' }} />
-                <input type="file" ref={fileInputRef} hidden accept="image/*,.pdf" onChange={(e) => { const file = e.target.files?.[0]; if(file) { const r = new FileReader(); r.onload = () => { setImagePreview(r.result as string); logic.setInvoiceData({ ...logic.invoiceData, attachments: [r.result] }); }; r.readAsDataURL(file); } }} />
 
-                {/* 🚀 الملخص المالي السفلي */}
-                <div className="responsive-summary-grid" style={{ marginTop: '1.875rem', padding: '1.5625rem', background: 'linear-gradient(135deg, #1e293b, #0f172a)', borderRadius: '14px', color: 'white', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(11.25rem, 1fr))', gap: '1.25rem', textAlign: 'center', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>عدد الأصناف المُسجلة</div>
-                        <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{logic.invoiceData.items.length}</div>
+                {isCameraOpen && (
+                    <video
+                        ref={videoRef}
+                        autoPlay
+                        playsInline
+                        style={{ width: '100%', borderRadius: '14px', marginTop: '1rem', border: '2px solid var(--accent-main)' }}
+                    />
+                )}
+                <canvas ref={canvasRef} style={{ display: 'none' }} />
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    hidden
+                    accept="image/*,.pdf"
+                    onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                            const r = new FileReader();
+                            r.onload = () => {
+                                setImagePreview(r.result as string);
+                                logic.setInvoiceData({ ...logic.invoiceData, attachments: [r.result] });
+                            };
+                            r.readAsDataURL(file);
+                        }
+                    }}
+                />
+
+                {/* الملخص المالي الموحد */}
+                <div className="mat-summary-strip">
+                    <div className="mat-summary-card">
+                        <small>عدد الأصناف المُسجلة</small>
+                        <strong>{logic.invoiceData.items.length}</strong>
                     </div>
-                    <div style={{ background: 'rgba(255,255,255,0.05)', padding: '0.9375rem', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
-                        <div style={{ fontSize: 'var(--fs-sm)', color: '#94a3b8', fontWeight: 800 }}>إجمالي الكميات</div>
-                        <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: 900 }}>{totalQuantity}</div>
+                    <div className="mat-summary-card">
+                        <small>إجمالي الكميات</small>
+                        <strong>{totalQuantity}</strong>
                     </div>
-                    <div style={{ background: `linear-gradient(135deg, ${THEME.accent}40, transparent)`, padding: '0.9375rem', borderRadius: '16px', border: `1px solid ${THEME.accent}80`, boxShadow: `0 0 20px ${THEME.accent}20` }}>
-                        <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: THEME.accentLight || '#fcd34d' }}>الصافي النهائي للتوريد</div>
-                        <div style={{ fontSize: 'var(--fs-3xl)', fontWeight: 900, color: '#ffffff', textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>{formatCurrency(logic.grandTotal)}</div>
+                    <div className="mat-summary-card is-accent">
+                        <small>الصافي النهائي للتوريد</small>
+                        <strong>{formatCurrency(logic.grandTotal)}</strong>
                     </div>
                 </div>
 
                 {/* أزرار الحفظ والإغلاق */}
-                <div className="responsive-actions" style={{ display: 'flex', gap: '1.25rem', marginTop: '2.1875rem' }}>
-                    <button onClick={logic.handleSave} className="btn-glass-save" style={{ flex: 2 }}>
-                        حفظ وترحيل الخامات للمشروع
+                <div className="mat-footer-actions">
+                    <button type="button" onClick={logic.handleSave} className="mat-btn-primary">
+                        {isEditMode ? 'حفظ التعديلات على الفاتورة' : 'حفظ الفاتورة (كمسودة جاهزة للترحيل)'}
                     </button>
-                    <button onClick={onClose} className="btn-glass-cancel" style={{ flex: 1 }}>
+                    <button type="button" onClick={onClose} className="mat-btn-secondary">
                         إغلاق وإلغاء
                     </button>
                 </div>
