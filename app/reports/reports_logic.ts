@@ -220,11 +220,11 @@ export function useReportsLogic() {
 
     laborLogs.forEach((l: any) => {
       const name = (partnerMap.get(String(l.worker_partner_id))?.name || l.worker_name || 'عامل').trim();
-      const cur = workerMap.get(name) || { name, days: 0, earned: 0, paid: 0, remaining: 0, villas: {} };
+      const cur = workerMap.get(name) || { name, days: 0, earned: 0, paid: 0, remaining: 0, villas: {} as Record<string, number> };
       cur.days = round2(cur.days + (Number(l.attendance_value) || 1));
       const wage = Number(l.daily_wage) || 0;
       cur.earned = round2(cur.earned + wage);
-      const vName = projectMap.get(String(l.project_id))?.Property || l.site_ref || 'عام';
+      const vName = String(projectMap.get(String(l.project_id))?.Property || l.site_ref || 'عام');
       cur.villas[vName] = round2((cur.villas[vName] || 0) + wage);
       workerMap.set(name, cur);
     });
@@ -234,7 +234,7 @@ export function useReportsLogic() {
         const pInfo = partnerMap.get(String(pv.partner_id));
         const name = (pInfo?.name || '').trim();
         if (name) {
-          const cur = workerMap.get(name) || { name, days: 0, earned: 0, paid: 0, remaining: 0, villas: {} };
+          const cur = workerMap.get(name) || { name, days: 0, earned: 0, paid: 0, remaining: 0, villas: {} as Record<string, number> };
           cur.paid = round2(cur.paid + (Number(pv.amount) || 0));
           workerMap.set(name, cur);
         }

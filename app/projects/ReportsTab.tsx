@@ -20,13 +20,14 @@ import { buildMilestoneSchedule, localToday, MILESTONE_STATUS_META, MILESTONE_CO
 import { buildProjectDailyReport } from '@/lib/projectDailyReport';
 import { buildEvmAnalysis, EVM_STATUS_META } from '@/lib/evmAnalysis';
 import DailyProjectReportSection from './DailyProjectReportSection';
+import AllProjectsReportEmbed from '../reports/AllProjectsReportEmbed';
 
 interface ReportsTabProps {
   logic: any;
 }
 
 export default function ReportsTab({ logic }: ReportsTabProps) {
-  const [subTab, setSubTab] = useState<'milestones' | 'daily' | 'timeline' | 'visits' | 'evm' | 'subcontractors'>('milestones');
+  const [subTab, setSubTab] = useState<'all_projects' | 'milestones' | 'daily' | 'timeline' | 'visits' | 'evm' | 'subcontractors'>('all_projects');
   const [selectedDailyDate, setSelectedDailyDate] = useState<string>(() => localToday());
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<any>(null);
@@ -305,6 +306,28 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
       }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
           <button
+            onClick={() => setSubTab('all_projects')}
+            style={{
+              padding: '0.625rem 1.125rem',
+              borderRadius: '12px',
+              border: 'none',
+              fontWeight: 900,
+              fontSize: 'var(--fs-sm)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.2s ease',
+              backgroundColor: subTab === 'all_projects' ? '#ea580c' : '#f8fafc',
+              color: subTab === 'all_projects' ? 'white' : '#475569',
+              boxShadow: subTab === 'all_projects' ? '0 4px 12px rgba(234, 88, 12, 0.3)' : 'none'
+            }}
+          >
+            <Building2 size={16} />
+            التقرير المالي الشامل لجميع المشاريع والحسابات
+          </button>
+
+          <button
             onClick={() => setSubTab('milestones')}
             style={{
               padding: '0.625rem 1.125rem',
@@ -495,6 +518,11 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
           خيارات وطباعة التقرير المجمع 🖨️
         </button>
       </div>
+
+      {/* =====================================================================
+          التقرير المالي الشامل لجميع المشاريع والحسابات
+          ===================================================================== */}
+      {subTab === 'all_projects' && <AllProjectsReportEmbed />}
 
       {/* =====================================================================
           التقرير اليومي الشامل للمشروع

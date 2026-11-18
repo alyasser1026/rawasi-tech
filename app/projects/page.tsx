@@ -22,6 +22,7 @@ import VisitGalleryTab from './VisitGalleryTab'; // معرض صور الزيار
 import ExpensesTab from './ExpensesTab'; // 👈 استدعاء تاب المصروفات الجديد
 import BimTab from './BimTab'; // 👈 استدعاء تاب النماذج ثلاثية الأبعاد BIM
 import ReportsTab from './ReportsTab'; // 👈 استدعاء تاب التقارير الهندسية والمالية الشاملة
+import AllProjectsReportEmbed from '../reports/AllProjectsReportEmbed';
 import LoadingScreen from '@/components/LoadingScreen';
 import { Activity, Building2, CirclePause, Layers, TriangleAlert, HardHat, Phone, Handshake, ChevronLeft, CheckCircle2, Clock, User, Home, ArrowUpRight, FileText } from 'lucide-react';
 import KpiStrip from '@/components/KpiStrip';
@@ -29,6 +30,7 @@ import KpiStrip from '@/components/KpiStrip';
 export default function AdvancedProjectsPage() {
     const logic = useProjectsLogic();
     const [mounted, setMounted] = useState(false);
+    const [showMasterReport, setShowMasterReport] = useState(false);
     
     // 🚀 حالة التحكم في المودال (الطباعة)
     const [isPrintOpen, setIsPrintOpen] = useState(false);
@@ -92,9 +94,18 @@ export default function AdvancedProjectsPage() {
         )}
 
         {!logic.selectedProject && (
-            <button onClick={logic.resetFilters} className="btn-main-glass white">
-                إعادة ضبط الفلاتر
-            </button>
+            <>
+                <button
+                    type="button"
+                    onClick={() => setShowMasterReport((prev) => !prev)}
+                    className="btn-main-glass blue"
+                >
+                    {showMasterReport ? 'عرض بطاقات المشاريع' : '📊 التقرير المالي الشامل لجميع المشاريع'}
+                </button>
+                <button onClick={logic.resetFilters} className="btn-main-glass white">
+                    إعادة ضبط الفلاتر
+                </button>
+            </>
         )}
       </div>
     );
@@ -195,7 +206,47 @@ export default function AdvancedProjectsPage() {
           {logic.isLoading ? (
                <LoadingScreen message="جاري تحميل بيانات المشاريع..." fullScreen={false} />
           ) : !logic.selectedProject ? (
-               
+               <div>
+                   <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '1rem' }}>
+                       <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
+                           <button
+                               type="button"
+                               onClick={() => setShowMasterReport(false)}
+                               style={{
+                                   padding: '0.65rem 1.2rem',
+                                   borderRadius: '12px',
+                                   border: 'none',
+                                   fontWeight: 900,
+                                   fontSize: 'var(--fs-sm)',
+                                   cursor: 'pointer',
+                                   background: !showMasterReport ? 'var(--action-fill)' : 'var(--surface-subcard)',
+                                   color: !showMasterReport ? 'var(--action-ink)' : 'var(--text-secondary)',
+                               }}
+                           >
+                               🏗️ بطاقات المشاريع ({logic.projects.length})
+                           </button>
+                           <button
+                               type="button"
+                               onClick={() => setShowMasterReport(true)}
+                               style={{
+                                   padding: '0.65rem 1.2rem',
+                                   borderRadius: '12px',
+                                   border: 'none',
+                                   fontWeight: 900,
+                                   fontSize: 'var(--fs-sm)',
+                                   cursor: 'pointer',
+                                   background: showMasterReport ? 'var(--action-fill)' : 'var(--surface-subcard)',
+                                   color: showMasterReport ? 'var(--action-ink)' : 'var(--text-secondary)',
+                               }}
+                           >
+                               📊 التقرير المالي الشامل لجميع المشاريع والحسابات
+                           </button>
+                       </div>
+                   </div>
+
+                   {showMasterReport ? (
+                       <AllProjectsReportEmbed />
+                   ) : (
                <div className="projects-grid" style={{ animation: 'fadeIn 0.5s ease-out' }}>
                    {logic.projects.map(proj => {
                        // 1. القيم المالية المحسوبة
@@ -560,6 +611,8 @@ export default function AdvancedProjectsPage() {
                        <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3.125rem', color: '#94a3b8', fontWeight: 900 }}>
                            لا توجد مشاريع تطابق شروط البحث أو الفلاتر المحددة.
                        </div>
+                   )}
+               </div>
                    )}
                </div>
 
