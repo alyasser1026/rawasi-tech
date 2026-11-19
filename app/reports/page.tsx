@@ -60,7 +60,14 @@ export default function ReportsPage() {
       'المصاريف الموزعة (ABC)': p.abc_expenses_total,
       'إجمالي التكلفة الفعلية': p.total_actual_cost,
       'المتبقي من الموازنة': p.remaining_budget,
-      'صافي هامش العقد (المتبقي من العقد)': p.net_contract_margin,
+      'الربح المتوقع EAC (غير شامل الضمان)': p.expected_profit_eac_ex_retention,
+      'الربح المتوقع EAC (شامل الضمان)': p.expected_profit_eac,
+      'هامش الربح المتوقع %': p.expected_margin_pct,
+      'الربح الفعلي (غير شامل الضمان)': p.actual_profit_ex_retention,
+      'الربح الفعلي (شامل الضمان)': p.net_contract_margin,
+      'معامل الانحراف (CPI)': p.deviation_factor ?? '---',
+      'نسبة الانحراف %': p.variance_pct,
+      'حالة الانحراف': p.variance_status,
       'سندات الصرف المباشرة': p.direct_pv_total,
     }));
     projectsSheetData.push({
@@ -82,7 +89,14 @@ export default function ReportsPage() {
       'المصاريف الموزعة (ABC)': t.totalExpensesAmount,
       'إجمالي التكلفة الفعلية': t.totalActualProjectCosts,
       'المتبقي من الموازنة': t.totalRemainingBudget,
-      'صافي هامش العقد (المتبقي من العقد)': t.totalNetContractMargin,
+      'الربح المتوقع EAC (غير شامل الضمان)': t.totalExpectedProfitEacExRetention,
+      'الربح المتوقع EAC (شامل الضمان)': t.totalExpectedProfitEac,
+      'هامش الربح المتوقع %': t.totalExpectedMarginPct,
+      'الربح الفعلي (غير شامل الضمان)': t.totalActualProfitExRetention,
+      'الربح الفعلي (شامل الضمان)': t.totalNetContractMargin,
+      'معامل الانحراف (CPI)': t.overallDeviationFactor ?? '---',
+      'نسبة الانحراف %': t.overallVariancePct,
+      'حالة الانحراف': t.overallVariancePct >= 0 ? 'ضمن الموازنة' : 'تجاوز للموازنة',
       'سندات الصرف المباشرة': t.pvClaimsTotal,
     });
     const wsProjects = XLSX.utils.json_to_sheet(projectsSheetData);
@@ -431,29 +445,37 @@ export default function ReportsPage() {
                 </span>
               </div>
               <div className="rpt-kpi-card">
-                <small>إجمالي التكاليف الفعلية للمشاريع</small>
-                <strong style={{ color: 'var(--status-warning, #f59e0b)' }}>{formatCurrency(t.totalActualProjectCosts)}</strong>
+                <small>الربح المتوقع الواقعي EAC (غير شامل الضمان)</small>
+                <strong style={{ color: t.totalExpectedProfitEacExRetention >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)' }}>
+                  {t.totalExpectedProfitEacExRetention > 0 ? '+' : ''}
+                  {formatCurrency(t.totalExpectedProfitEacExRetention)}
+                </strong>
                 <span>
-                  الموازنة: {formatCurrency(t.totalEstimatedBudget)} (وفر: {formatCurrency(t.totalRemainingBudget)})
+                  شامل الضمان: {formatCurrency(t.totalExpectedProfitEac)} ({t.totalExpectedMarginPct}%)
+                </span>
+              </div>
+              <div className="rpt-kpi-card">
+                <small>الربح الفعلي ومعامل الانحراف (CPI)</small>
+                <strong style={{ color: t.totalActualProfitExRetention >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)' }}>
+                  {t.totalActualProfitExRetention > 0 ? '+' : ''}
+                  {formatCurrency(t.totalActualProfitExRetention)}
+                </strong>
+                <span>
+                  شامل الضمان: {formatCurrency(t.totalNetContractMargin)} • معامل الانحراف:{' '}
+                  <b style={{ color: (t.overallDeviationFactor ?? 1) >= 1 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)' }}>
+                    {t.overallDeviationFactor !== null ? t.overallDeviationFactor.toFixed(2) : '---'} ({t.overallVariancePct > 0 ? '+' : ''}{t.overallVariancePct}%)
+                  </b>
                 </span>
               </div>
               <div className="rpt-kpi-card">
                 <small>سندات القبض المستلمة (غير شامل ضمان الأعمال)</small>
                 <strong style={{ color: 'var(--status-positive, #10b981)' }}>{formatCurrency(t.totalReceiptVouchers)}</strong>
-                <span>عدد السندات: {d.receiptVouchers.length} سند قبض (غير شامل ضمان الأعمال)</span>
+                <span>صرف: {formatCurrency(t.totalPaymentVouchers)} • سيولة الخزينة: {formatCurrency(t.netCashTreasury)}</span>
               </div>
               <div className="rpt-kpi-card">
-                <small>إجمالي سندات الصرف (المنصرف نقداً)</small>
-                <strong style={{ color: 'var(--status-negative, #f43f5e)' }}>{formatCurrency(t.totalPaymentVouchers)}</strong>
-                <span>
-                  مقاولين: {formatCurrency(t.pvClaimsTotal)} • مصاريف: {formatCurrency(t.pvExpensesTotal)} • عمال:{' '}
-                  {formatCurrency(t.pvWorkersTotal)}
-                </span>
-              </div>
-              <div className="rpt-kpi-card">
-                <small>السيولة المتبقية بالخزينة والأرصدة المستحقة</small>
-                <strong style={{ color: t.netCashTreasury >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)' }}>
-                  {formatCurrency(t.netCashTreasury)}
+                <small>الأرصدة المستحقة للعمالة والمقاولين</small>
+                <strong style={{ color: 'var(--status-negative, #f43f5e)' }}>
+                  {formatCurrency(t.totalLaborRemaining + t.totalClaimsRemaining)}
                 </strong>
                 <span>
                   متبقي عمالة: {formatCurrency(t.totalLaborRemaining)} • متبقي مقاولين: {formatCurrency(t.totalClaimsRemaining)}
@@ -505,8 +527,9 @@ export default function ReportsPage() {
                       <th>الخامات المحملة</th>
                       <th>المصاريف (ABC)</th>
                       <th>إجمالي التكلفة الفعلية</th>
-                      <th>المتبقي من الموازنة</th>
-                      <th>صافي ربح العقد</th>
+                      <th>الربح المتوقع (EAC)</th>
+                      <th>الربح الفعلي</th>
+                      <th>معامل الانحراف (CPI)</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -566,26 +589,48 @@ export default function ReportsPage() {
                             <td
                               style={{
                                 fontWeight: 900,
-                                color: p.remaining_budget >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)',
+                                color: p.expected_profit_eac_ex_retention >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)',
                               }}
                             >
-                              {p.remaining_budget > 0 ? '+' : ''}
-                              {formatCurrency(p.remaining_budget)}
+                              {p.expected_profit_eac_ex_retention > 0 ? '+' : ''}
+                              {formatCurrency(p.expected_profit_eac_ex_retention)}
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                شامل: {formatCurrency(p.expected_profit_eac)} ({p.expected_margin_pct}%)
+                              </div>
                             </td>
                             <td
                               style={{
                                 fontWeight: 900,
-                                color: p.net_contract_margin >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)',
+                                color: p.actual_profit_ex_retention >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)',
                               }}
                             >
-                              {p.net_contract_margin > 0 ? '+' : ''}
-                              {formatCurrency(p.net_contract_margin)}
+                              {p.actual_profit_ex_retention > 0 ? '+' : ''}
+                              {formatCurrency(p.actual_profit_ex_retention)}
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                شامل: {formatCurrency(p.net_contract_margin)}
+                              </div>
+                            </td>
+                            <td
+                              style={{
+                                fontWeight: 900,
+                                color:
+                                  p.deviation_factor === null
+                                    ? 'var(--text-muted)'
+                                    : p.deviation_factor >= 1
+                                      ? 'var(--status-positive, #10b981)'
+                                      : 'var(--status-negative, #f43f5e)',
+                              }}
+                            >
+                              <span dir="ltr">{p.deviation_factor !== null ? p.deviation_factor.toFixed(2) : '---'}</span>
+                              <div style={{ fontSize: '0.7rem', color: p.variance_pct >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)' }}>
+                                {p.variance_pct > 0 ? '+' : ''}{p.variance_pct}% • {p.variance_status}
+                              </div>
                             </td>
                           </tr>
 
                           {isExpanded && (
                             <tr>
-                              <td colSpan={14} style={{ background: 'var(--surface-sunken)', padding: '1rem 1.25rem', textAlign: 'right' }}>
+                              <td colSpan={15} style={{ background: 'var(--surface-sunken)', padding: '1rem 1.25rem', textAlign: 'right' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(22rem, 1fr))', gap: '1rem' }}>
                                   {/* أوامر الشغل والمستخلصات */}
                                   <div style={{ background: 'var(--surface-card)', padding: '0.9rem', borderRadius: '12px' }}>
@@ -675,12 +720,24 @@ export default function ReportsPage() {
                       <td>{formatCurrency(t.totalExpensesAmount)}</td>
                       <td>{formatCurrency(t.totalActualProjectCosts)}</td>
                       <td>
-                        {t.totalRemainingBudget > 0 ? '+' : ''}
-                        {formatCurrency(t.totalRemainingBudget)}
+                        {t.totalExpectedProfitEacExRetention > 0 ? '+' : ''}
+                        {formatCurrency(t.totalExpectedProfitEacExRetention)}
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          شامل الضمان: {formatCurrency(t.totalExpectedProfitEac)} ({t.totalExpectedMarginPct}%)
+                        </div>
                       </td>
                       <td>
-                        {t.totalNetContractMargin > 0 ? '+' : ''}
-                        {formatCurrency(t.totalNetContractMargin)}
+                        {t.totalActualProfitExRetention > 0 ? '+' : ''}
+                        {formatCurrency(t.totalActualProfitExRetention)}
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          شامل: {formatCurrency(t.totalNetContractMargin)}
+                        </div>
+                      </td>
+                      <td>
+                        <span dir="ltr">{t.overallDeviationFactor !== null ? t.overallDeviationFactor.toFixed(2) : '---'}</span>
+                        <div style={{ fontSize: '0.7rem', color: t.overallVariancePct >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)' }}>
+                          {t.overallVariancePct > 0 ? '+' : ''}{t.overallVariancePct}%
+                        </div>
                       </td>
                     </tr>
                   </tfoot>
