@@ -128,14 +128,41 @@ export default function HomePortalSections({
       onPointerMove={handleStagePointerMove}
       onPointerLeave={(e) => resetStagePointer(e.currentTarget)}
     >
-      {/* مشهد البانوراما الافتتاحي: صورة بانورامية يتجمع فوقها الهيكل الخرساني لأعلى مع السكرول ثم تترص الخامات بجواره */}
+      {/* مشهد البانوراما ثلاثي الأبعاد في الخلفية بدلاً من الصور الثابتة: أعمدة خرسانية 3D واقعية تتجمع وتبني الهيكل وتترص الخامات ويتشطب البيت بالكامل مع السكرول عبر الأقسام */}
       <section id="portals" className="pw-portal-gateway" aria-labelledby="portals-heading">
-        <PanoramicStructureScroll
-          onReplayLogoMotion={onReplayLogoMotion}
-          newsComponent={<NewsTicker config={newsTicker} />}
-        />
+        <div className="pw-split-backdrop" aria-hidden="true">
+          <PanoramicStructureScroll activeSlug={activeSlug} />
+          <div className="pw-split-cursor-glow" />
+        </div>
 
-        {/* الأقسام الستة: لكل قسم صورته الكاملة الخاصة به + هنت عائم يميناً ويساراً بدون أي حاويات أو صناديق */}
+        <div className="pw-wrap pw-panoramic-top-overlay">
+          <NewsTicker config={newsTicker} />
+
+          <div className="pw-panoramic-floating-hero">
+            <div className="pw-panoramic-eyebrow-row">
+              <p className="pw-eyebrow" style={{ marginBottom: 0 }}>فاي تك للمقاولات والتوريدات · جولة معمارية 3D</p>
+              {onReplayLogoMotion && (
+                <button
+                  type="button"
+                  onClick={onReplayLogoMotion}
+                  className="pw-motion-replay-btn"
+                  title="إعادة عرض موشن شعار فاي تك"
+                >
+                  <span>✨</span>
+                  <span>عرض موشن الشعار</span>
+                </button>
+              )}
+            </div>
+            <h1 id="portals-heading" className="pw-portal-main-h1">
+              انزل بالسكرول لبناء الهيكل وتشطيب الفيلا واستكشاف الأقسام
+            </h1>
+            <p className="pw-panoramic-sub">
+              مع كل سكرول لأسفل عبر الأقسام تتجمع أعمدة الخرسانة المسلحة 3D وتُبنى البلاطات وتترص الخامات حتى يكتمل تشطيب البيت بالكامل.
+            </p>
+          </div>
+        </div>
+
+        {/* الأقسام الستة: تطفو مباشرة فوق المشهد الثلاثي الأبعاد بدون صور خلفية تحجب البناء */}
         <div className={`pw-split-cols ${activeSlug ? 'has-active' : ''}`}>
           {PORTAL_SECTIONS.map((sec, idx) => {
             const isActive = activeSlug === sec.slug;
@@ -155,17 +182,8 @@ export default function HomePortalSections({
                   if (e.pointerType !== 'touch') setHoveredSlug(sec.slug);
                 }}
               >
-                {/* الصورة الكاملة الخاصة بالقسم من الحافة للحافة */}
+                {/* تظليل جانبي خفيف وشفاف فقط لإبراز نص القسم مع إبقاء مشهد الـ 3D واضحاً بالكامل في الخلفية */}
                 <div className="pw-sec-photo-canvas" aria-hidden="true">
-                  <img
-                    src={sec.image}
-                    alt={sec.imageAlt}
-                    width={1600}
-                    height={900}
-                    loading={idx === 0 ? 'eager' : 'lazy'}
-                    decoding="async"
-                    className={`pw-split-bg-layer ${isInView || isActive ? 'is-visible' : ''}`}
-                  />
                   <div className={`pw-sec-photo-shade ${sideClass}`} />
                 </div>
 
