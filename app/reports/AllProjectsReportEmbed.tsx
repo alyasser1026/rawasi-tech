@@ -30,9 +30,9 @@ export default function AllProjectsReportEmbed() {
       'المساحة (م2)': p.unit_area,
       'العميل': p.client_name,
       'قيمة التعاقد (BOQ)': p.contract_value,
-      'محتجز ضمان الأعمال (10%)': p.retention_amount,
-      'صافي العقد غير شامل الضمان': p.net_contract_ex_retention,
       'خصم خامات العميل (217)': p.client_materials_deduction,
+      'صافي العقد بعد الخامات': p.contract_after_materials,
+      'محتجز ضمان الأعمال (10%)': p.retention_amount,
       'المبلغ المستلم (غير شامل ضمان الأعمال)': p.client_net_ex_retention,
       'المتبقي عند العميل (شامل الضمان)': p.client_remaining,
       'الموازنة التقديرية الشاملة': p.estimated_budget,
@@ -60,9 +60,9 @@ export default function AllProjectsReportEmbed() {
       'المساحة (م2)': d.projectsMatrix.reduce((s: number, p: any) => s + p.unit_area, 0),
       'العميل': '---',
       'قيمة التعاقد (BOQ)': t.totalContractValue,
-      'محتجز ضمان الأعمال (10%)': t.totalRetentionAmount,
-      'صافي العقد غير شامل الضمان': t.totalNetContractExRetention,
       'خصم خامات العميل (217)': t.totalClientMaterialsDeduction,
+      'صافي العقد بعد الخامات': t.totalContractAfterMaterials,
+      'محتجز ضمان الأعمال (10%)': t.totalRetentionAmount,
       'المبلغ المستلم (غير شامل ضمان الأعمال)': t.totalClientNetExRetention,
       'المتبقي عند العميل (شامل الضمان)': t.totalClientRemaining,
       'الموازنة التقديرية الشاملة': t.totalEstimatedBudget,
@@ -330,15 +330,15 @@ export default function AllProjectsReportEmbed() {
           <small>إجمالي عقود المشاريع (BOQ)</small>
           <strong style={{ color: 'var(--accent-ink)' }}>{formatCurrency(t.totalContractValue)}</strong>
           <span>
-            ضمان الأعمال (10%): {formatCurrency(t.totalRetentionAmount)} • صافي بدون الضمان:{' '}
-            {formatCurrency(t.totalNetContractExRetention)}
+            خصم خامات (217): {formatCurrency(t.totalClientMaterialsDeduction)} • صافي بعد الخامات:{' '}
+            {formatCurrency(t.totalContractAfterMaterials)}
           </span>
         </div>
         <div className="embed-rpt-kpi-card">
           <small>المبلغ المستلم للمشاريع (غير شامل ضمان الأعمال)</small>
           <strong style={{ color: 'var(--status-positive, #10b981)' }}>{formatCurrency(t.totalClientNetExRetention)}</strong>
           <span>
-            بعد خصم خامات العميل ({formatCurrency(t.totalClientMaterialsDeduction)}) وضمان الأعمال ({formatCurrency(t.totalRetentionAmount)})
+            بعد خصم الخامات ({formatCurrency(t.totalClientMaterialsDeduction)}) ثم خصم ضمان الأعمال 10% ({formatCurrency(t.totalRetentionAmount)})
           </span>
         </div>
         <div className="embed-rpt-kpi-card">
@@ -386,8 +386,8 @@ export default function AllProjectsReportEmbed() {
               <th>المشروع / الفيلا</th>
               <th>النموذج والمساحة</th>
               <th>قيمة التعاقد (BOQ)</th>
-              <th>ضمان الأعمال (10%)</th>
               <th>خصم خامات العميل</th>
+              <th>ضمان الأعمال (10%)</th>
               <th>المبلغ المستلم (غير شامل ضمان الأعمال)</th>
               <th>موازنة التنفيذ</th>
               <th>مستخلصات المقاولين</th>
@@ -432,15 +432,15 @@ export default function AllProjectsReportEmbed() {
                       {p.unit_area > 0 ? ` • ${p.unit_area} م²` : ''}
                     </td>
                     <td style={{ fontWeight: 900 }}>{formatCurrency(p.contract_value)}</td>
+                    <td style={{ color: 'var(--status-info, #38bdf8)' }}>{formatCurrency(p.client_materials_deduction)}</td>
                     <td style={{ color: 'var(--status-warning, #f59e0b)', fontWeight: 800 }}>
                       {formatCurrency(p.retention_amount)}
-                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>({p.retention_percentage}%)</div>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>({p.retention_percentage}%) بعد الخامات</div>
                     </td>
-                    <td style={{ color: 'var(--status-info, #38bdf8)' }}>{formatCurrency(p.client_materials_deduction)}</td>
                     <td style={{ fontWeight: 900, color: 'var(--status-positive, #10b981)' }}>
                       {formatCurrency(p.client_net_ex_retention)}
                       <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                        شامل الضمان: {formatCurrency(p.client_remaining)}
+                        قبل الضمان: {formatCurrency(p.contract_after_materials)} • شامل الضمان: {formatCurrency(p.client_remaining)}
                       </div>
                     </td>
                     <td style={{ color: 'var(--text-secondary)', fontWeight: 800 }}>
@@ -573,12 +573,12 @@ export default function AllProjectsReportEmbed() {
               <td style={{ textAlign: 'right' }}>الإجمالي العام ({d.projectsMatrix.length} فلل)</td>
               <td>{d.projectsMatrix.reduce((s: number, p: any) => s + p.unit_area, 0).toFixed(2)} م²</td>
               <td>{formatCurrency(t.totalContractValue)}</td>
-              <td>{formatCurrency(t.totalRetentionAmount)}</td>
               <td>{formatCurrency(t.totalClientMaterialsDeduction)}</td>
+              <td>{formatCurrency(t.totalRetentionAmount)}</td>
               <td>
                 {formatCurrency(t.totalClientNetExRetention)}
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
-                  شامل الضمان: {formatCurrency(t.totalClientRemaining)}
+                  قبل الضمان: {formatCurrency(t.totalContractAfterMaterials)} • شامل الضمان: {formatCurrency(t.totalClientRemaining)}
                 </div>
               </td>
               <td>{formatCurrency(t.totalEstimatedExecutionBudget)}</td>

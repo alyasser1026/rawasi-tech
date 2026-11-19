@@ -139,20 +139,16 @@ export function useReportsLogic() {
         );
         const contractValue = boqContractValue > 0 ? boqContractValue : round2(Number(p.contract_value) || 0);
 
-        // محتجز ضمان الأعمال (10% أو حسب نسبة كل بند في المقايسة)
-        const boqRetentionAmount = round2(
-          boqsToSum.reduce((s: number, b: any) => {
-            const itemContract =
-              Number(b.total_contract_amount) || (Number(b.contract_quantity) || 0) * (Number(b.unit_contract_price) || 0);
-            const itemRet =
-              Number(b.actual_retention_amount) || round2((itemContract * (Number(b.retention_percentage) || 10)) / 100);
-            return s + itemRet;
-          }, 0)
-        );
-        const retentionAmount = boqRetentionAmount > 0 ? boqRetentionAmount : round2(contractValue * 0.1);
+        // نسبة ضمان الأعمال المرجّحة من بنود المقايسة (افتراضي 10% — تُخصم لاحقاً بعد خصم خامات العميل)
+        const weightedRetAmountOnGross = boqsToSum.reduce((s: number, b: any) => {
+          const itemContract =
+            Number(b.total_contract_amount) || (Number(b.contract_quantity) || 0) * (Number(b.unit_contract_price) || 0);
+          return s + (itemContract * (Number(b.retention_percentage) || 10)) / 100;
+        }, 0);
         const retentionPercentage =
-          contractValue > 0 ? round2((retentionAmount / contractValue) * 100) : Number(boqsToSum[0]?.retention_percentage) || 10;
-        const netContractExRetention = round2(contractValue - retentionAmount);
+          boqContractValue > 0
+            ? round2((weightedRetAmountOnGross / boqContractValue) * 100)
+            : Number(boqsToSum[0]?.retention_percentage) || 10;
 
         const estLabor = round2(boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_labor_cost) || 0), 0));
         const estMaterials = round2(boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_material_cost) || 0), 0));
@@ -235,11 +231,15 @@ export function useReportsLogic() {
           pDirectPvs.reduce((s: number, v: any) => s + (Number(v.amount) || 0), 0)
         );
 
+        // 1) قيمة التعاقد (BOQ) -> 2) (-) خصم خامات العميل (217) = صافي العقد بعد الخامات
+        const contractAfterClientMaterials = round2(Math.max(0, contractValue - clientMaterialsDeduction));
+        // 3) (-) محتجز ضمان الأعمال (10% أو النسبة المرجّحة) يُحتسب بعد خصم خامات العميل
+        const retentionAmount = round2((contractAfterClientMaterials * retentionPercentage) / 100);
+        // 4) (=) المبلغ المستلم (غير شامل ضمان الأعمال)
+        const clientNetExRetention = round2(contractAfterClientMaterials - retentionAmount);
+        const netContractExRetention = clientNetExRetention;
         // صافي المتبقي عند العميل بعد خصم خامات العميل وسندات قبض العميل (شامل الضمان)
-        const clientRemaining = round2(contractValue - clientMaterialsDeduction - receiptsTotal);
-        // المبلغ المستلم / الصافي غير شامل ضمان الأعمال (بعد خصم ضمان الأعمال 10% وخامات العميل لمرة واحدة فقط)
-        const clientNetExRetention = round2(contractValue - retentionAmount - clientMaterialsDeduction);
-        const contractAfterClientMaterials = round2(contractValue - clientMaterialsDeduction);
+        const clientRemaining = round2(contractAfterClientMaterials - receiptsTotal);
 
         // تكلفة التنفيذ الفعلية على الشركة فقط (بدون إعادة جمع خامات العميل)
         const totalActualCost = round2(claimsTotal + laborTotal + companyMaterialsCost + abcExpensesTotal);
@@ -280,10 +280,11 @@ export function useReportsLogic() {
           status: p.status || 'قيد التنفيذ',
           current_stage: p.current_stage || '---',
           contract_value: contractValue,
+          client_materials_deduction: clientMaterialsDeduction,
+          contract_after_materials: contractAfterClientMaterials,
           retention_percentage: retentionPercentage,
           retention_amount: retentionAmount,
           net_contract_ex_retention: netContractExRetention,
-          client_materials_deduction: clientMaterialsDeduction,
           client_remaining: clientRemaining,
           client_net_ex_retention: clientNetExRetention,
           estimated_budget: estimatedBudget,
@@ -459,12 +460,15 @@ export function useReportsLogic() {
 
     // الإجماليات العامة للنظام
     const totalContractValue = round2(projectsMatrix.reduce((s, p) => s + p.contract_value, 0));
+    const totalClientMaterialsDeduction = round2(
+      projectsMatrix.reduce((s, p) => s + p.client_materials_deduction, 0)
+    );
+    const totalContractAfterMaterials = round2(
+      projectsMatrix.reduce((s, p) => s + p.contract_after_materials, 0)
+    );
     const totalRetentionAmount = round2(projectsMatrix.reduce((s, p) => s + p.retention_amount, 0));
     const totalNetContractExRetention = round2(
       projectsMatrix.reduce((s, p) => s + p.net_contract_ex_retention, 0)
-    );
-    const totalClientMaterialsDeduction = round2(
-      projectsMatrix.reduce((s, p) => s + p.client_materials_deduction, 0)
     );
     const totalClientRemaining = round2(projectsMatrix.reduce((s, p) => s + p.client_remaining, 0));
     const totalClientNetExRetention = round2(
@@ -541,9 +545,10 @@ export function useReportsLogic() {
       abcAllocations,
       totals: {
         totalContractValue,
+        totalClientMaterialsDeduction,
+        totalContractAfterMaterials,
         totalRetentionAmount,
         totalNetContractExRetention,
-        totalClientMaterialsDeduction,
         totalClientRemaining,
         totalClientNetExRetention,
         totalEstimatedBudget,
