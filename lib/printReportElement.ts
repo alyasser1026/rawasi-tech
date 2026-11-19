@@ -180,7 +180,9 @@ export function printReportElement(
       width: 100% !important;
       max-width: 100% !important;
       table-layout: fixed !important;
-      border-collapse: collapse !important;
+      border-collapse: separate !important;
+      border-spacing: 0 !important;
+      border: 0 !important;
       page-break-inside: auto !important;
       break-inside: auto !important;
       background: #ffffff !important;
@@ -196,15 +198,24 @@ export function printReportElement(
     tr {
       page-break-inside: avoid !important;
       break-inside: avoid !important;
+      border: 0 !important;
     }
     thead th, tbody td, tfoot td {
       position: static !important;
       top: auto !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+      border: 0 !important;
+      border-top: 0 !important;
+      border-bottom: 0 !important;
+      border-left: 0 !important;
+      border-right: 0 !important;
       word-wrap: break-word !important;
       overflow-wrap: break-word !important;
       white-space: normal !important;
+    }
+    div, section, header, footer {
+      border: 0 !important;
     }
   </style>
 </head>

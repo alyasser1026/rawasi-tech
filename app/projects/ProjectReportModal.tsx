@@ -123,9 +123,17 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
             }
+            #printable-report * {
+              border: 0 !important;
+              border-top: 0 !important;
+              border-bottom: 0 !important;
+              border-left: 0 !important;
+              border-right: 0 !important;
+            }
             #printable-report table {
               width: 100% !important;
-              border-collapse: collapse !important;
+              border-collapse: separate !important;
+              border-spacing: 0 !important;
               border: 0 !important;
               border-radius: 10px !important;
               overflow: hidden !important;

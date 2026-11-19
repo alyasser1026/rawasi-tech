@@ -297,6 +297,16 @@ export default function AllProjectsPrintModal({
           }
           #printable-all-projects-report * {
             visibility: visible !important;
+            border: 0 !important;
+            border-top: 0 !important;
+            border-bottom: 0 !important;
+            border-left: 0 !important;
+            border-right: 0 !important;
+            outline: 0 !important;
+          }
+          #printable-all-projects-report table {
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
           }
         }
       `}</style>
@@ -420,7 +430,8 @@ export default function AllProjectsPrintModal({
             width: 100% !important;
             max-width: 100% !important;
             table-layout: fixed !important;
-            border-collapse: collapse !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
             border: 0 !important;
             border-radius: 10px !important;
             overflow: hidden !important;

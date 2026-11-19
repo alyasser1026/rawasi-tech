@@ -358,8 +358,11 @@ export default function RawasiSmartTable({
                     .hide-on-print { display: none !important; }
                     /* إخفاء عمود التحديد والـ Actions عند الطباعة */
                     .rawasi-printable-table th:first-child, .rawasi-printable-table td:first-child { display: none !important; }
-                    .rawasi-printable-table { border: 1px solid #000; }
-                    .rawasi-printable-table th, .rawasi-printable-table td { border: 1px solid #000; padding: 8px; }
+                    .rawasi-printable-table { border: 0 !important; border-collapse: separate !important; border-spacing: 0 !important; }
+                    .rawasi-printable-table th { border: 0 !important; background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important; color: #ffffff !important; padding: 8px; }
+                    .rawasi-printable-table td { border: 0 !important; padding: 8px; }
+                    .rawasi-printable-table tbody tr:nth-child(even) td { background: #f1f5f9 !important; }
+                    .rawasi-printable-table tbody tr:nth-child(odd) td { background: #ffffff !important; }
                 }
             `}</style>
         </div>
