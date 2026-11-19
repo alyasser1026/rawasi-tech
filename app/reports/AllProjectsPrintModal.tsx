@@ -564,7 +564,7 @@ export default function AllProjectsPrintModal({
 
           #printable-all-projects-report .phi-villa-card-grid {
             display: grid !important;
-            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             gap: 8px !important;
             width: 100% !important;
           }
@@ -871,6 +871,7 @@ export default function AllProjectsPrintModal({
                     p.jobOrders.length > 0 ||
                     p.claims.length > 0 ||
                     p.laborLogs.length > 0 ||
+                    p.materialIssues.length > 0 ||
                     p.materialReceipts.length > 0 ||
                     p.expenseAllocations.length > 0
                 )
@@ -952,7 +953,33 @@ export default function AllProjectsPrintModal({
                         )}
                       </div>
 
-                      {/* العمود 2: يوميات العمالة وفواتير الخامات */}
+                      {/* العمود 2: يوميات العمالة */}
+                      <div
+                        style={{
+                          background: 'linear-gradient(180deg, #ffffff 0%, #ecfdf5 100%)',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '7px 9px',
+                          fontSize: '8.8px',
+                          lineHeight: 1.5,
+                          minWidth: 0,
+                        }}
+                      >
+                        <div style={{ fontWeight: 900, color: '#047857', marginBottom: '4px', fontSize: '9.2px' }}>
+                          يوميات العمالة ({p.labor_days} يوم • {formatCurrency(p.labor_total)})
+                        </div>
+                        {p.laborLogs.length === 0 ? (
+                          <div style={{ color: '#94a3b8' }}>لا توجد يوميات عمالة مسجلة</div>
+                        ) : (
+                          p.laborLogs.map((l: any) => (
+                            <div key={l.id} style={{ padding: '2px 0' }}>
+                              {l.work_date} — <b>{l.worker_name}</b>: <b>{formatCurrency(l.daily_wage)}</b>
+                            </div>
+                          ))
+                        )}
+                      </div>
+
+                      {/* العمود 3: الخامات المنصرفة وتفاصيل الأصناف */}
                       <div
                         style={{
                           background: 'linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%)',
@@ -965,23 +992,56 @@ export default function AllProjectsPrintModal({
                         }}
                       >
                         <div style={{ fontWeight: 900, color: '#0369a1', marginBottom: '4px', fontSize: '9.2px' }}>
-                          يوميات العمالة ({p.labor_days} يوم) والخامات
+                          الخامات المنصرفة وتفاصيل الأصناف ({formatCurrency(p.materials_cost_effective)})
                         </div>
-                        {p.laborLogs.length === 0 && p.materialReceipts.length === 0 ? (
-                          <div style={{ color: '#94a3b8' }}>لا توجد يوميات أو خامات مسجلة</div>
-                        ) : (
+                        {(p.client_materials_deduction > 0 || p.company_materials_cost > 0) && (
+                          <div style={{ fontSize: '7.8px', color: '#475569', marginBottom: '4px' }}>
+                            توريد عميل (خصم 217): <b>{formatCurrency(p.client_materials_deduction)}</b> • على حساب الشركة:{' '}
+                            <b>{formatCurrency(p.company_materials_cost)}</b>
+                          </div>
+                        )}
+                        {p.materialIssues.length === 0 && p.materialReceipts.length === 0 ? (
+                          <div style={{ color: '#94a3b8' }}>لا توجد خامات منصرفة على هذه الفيلا</div>
+                        ) : p.materialIssues.length > 0 ? (
                           <>
-                            {p.laborLogs.map((l: any) => (
-                              <div key={l.id} style={{ padding: '2px 0' }}>
-                                {l.work_date} — <b>{l.worker_name}</b>: <b>{formatCurrency(l.daily_wage)}</b>
+                            {p.materialIssues.map((iss: any) => (
+                              <div key={iss.id} style={{ padding: '2px 0' }}>
+                                <div style={{ color: '#0369a1', fontWeight: 800 }}>
+                                  إذن صرف <b>{iss.issue_number}</b> ({iss.issue_date} • {iss.issue_type || 'صرف خامات'}):{' '}
+                                  <b>{formatCurrency(iss.total_amount)}</b>
+                                </div>
+                                {(iss.lines || []).map((line: any) => (
+                                  <div key={line.id} style={{ paddingRight: '8px', fontSize: '8.3px', color: '#1e293b' }}>
+                                    • {line.item_name}: {line.quantity} {line.unit || ''} × {formatCurrency(line.unit_price)} ={' '}
+                                    <b>{formatCurrency(line.total_price)}</b>
+                                  </div>
+                                ))}
                               </div>
                             ))}
-                            {p.materialReceipts.map((m: any) => (
-                              <div key={m.id} style={{ color: '#0369a1', padding: '2px 0' }}>
-                                • فاتورة خامات <b>{m.receipt_number}</b> ({m.receipt_type}): <b>{formatCurrency(m.total_amount)}</b>
+                            {p.materialReceipts.length > 0 && (
+                              <div style={{ fontSize: '7.6px', color: '#64748b', marginTop: '3px' }}>
+                                مرتبط بفاتورة توريد:{' '}
+                                {p.materialReceipts
+                                  .map((m: any) => `${m.receipt_number} (${m.receipt_type}: ${formatCurrency(m.total_amount)})`)
+                                  .join(' ، ')}
                               </div>
-                            ))}
+                            )}
                           </>
+                        ) : (
+                          p.materialReceipts.map((m: any) => (
+                            <div key={m.id} style={{ padding: '2px 0' }}>
+                              <div style={{ color: '#0369a1', fontWeight: 800 }}>
+                                فاتورة خامات <b>{m.receipt_number}</b> ({m.receipt_date} • {m.receipt_type}):{' '}
+                                <b>{formatCurrency(m.total_amount)}</b>
+                              </div>
+                              {(m.lines || []).map((line: any) => (
+                                <div key={line.id} style={{ paddingRight: '8px', fontSize: '8.3px', color: '#1e293b' }}>
+                                  • {line.item_name}: {line.quantity} {line.unit || ''} × {formatCurrency(line.unit_price)} ={' '}
+                                  <b>{formatCurrency(line.total_price)}</b>
+                                </div>
+                              ))}
+                            </div>
+                          ))
                         )}
                       </div>
 

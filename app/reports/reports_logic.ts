@@ -38,7 +38,9 @@ export function useReportsLogic() {
         sub_claims,
         labor_daily_logs,
         material_receipts,
+        material_receipt_lines,
         material_issues,
+        material_issue_lines,
         expenses,
         partners,
       ] = await Promise.all([
@@ -50,7 +52,9 @@ export function useReportsLogic() {
         fetchAllSupabaseData(supabase, 'sub_claims', '*', 'date', false),
         fetchAllSupabaseData(supabase, 'labor_daily_logs', '*', 'work_date', false),
         fetchAllSupabaseData(supabase, 'material_receipts', '*', 'receipt_date', false),
+        fetchAllSupabaseData(supabase, 'material_receipt_lines', '*', 'id', true),
         fetchAllSupabaseData(supabase, 'material_issues', '*', 'issue_date', false),
+        fetchAllSupabaseData(supabase, 'material_issue_lines', '*', 'id', true),
         fetchAllSupabaseData(supabase, 'expenses', '*', 'exp_date', false),
         fetchAllSupabaseData(supabase, 'partners', 'id,name,partner_type,company_id', 'created_at', false),
       ]);
@@ -67,7 +71,9 @@ export function useReportsLogic() {
         sub_claims: byCompany(sub_claims),
         labor_daily_logs: byCompany(labor_daily_logs),
         material_receipts: byCompany(material_receipts),
+        material_receipt_lines: byCompany(material_receipt_lines),
         material_issues: byCompany(material_issues),
+        material_issue_lines: byCompany(material_issue_lines),
         expenses: byCompany(expenses).filter((e: any) => !e.is_deleted),
         partners: byCompany(partners),
       };
@@ -103,6 +109,22 @@ export function useReportsLogic() {
     const materialReceipts = rawData.material_receipts.filter((m: any) => inDateRange(m.receipt_date));
     const materialIssues = rawData.material_issues.filter((m: any) => inDateRange(m.issue_date));
     const expenses = rawData.expenses.filter((e: any) => inDateRange(e.exp_date));
+
+    const receiptLinesByReceiptId = new Map<string, any[]>();
+    (rawData.material_receipt_lines || []).forEach((line: any) => {
+      const rid = String(line.receipt_id || '');
+      if (!rid) return;
+      if (!receiptLinesByReceiptId.has(rid)) receiptLinesByReceiptId.set(rid, []);
+      receiptLinesByReceiptId.get(rid)!.push(line);
+    });
+
+    const issueLinesByIssueId = new Map<string, any[]>();
+    (rawData.material_issue_lines || []).forEach((line: any) => {
+      const iid = String(line.issue_id || '');
+      if (!iid) return;
+      if (!issueLinesByIssueId.has(iid)) issueLinesByIssueId.set(iid, []);
+      issueLinesByIssueId.get(iid)!.push(line);
+    });
 
     // توزيع المصاريف المشتركة (ABC) على المشاريع حسب يوميات العمالة
     const abcAllocations = computeDailyWorkerExpenseAllocations({
@@ -192,6 +214,7 @@ export function useReportsLogic() {
           .map((m: any) => ({
             ...m,
             supplier_name: partnerMap.get(String(m.supplier_id))?.name || '---',
+            lines: receiptLinesByReceiptId.get(String(m.id)) || [],
           }));
         const materialsReceivedTotal = round2(
           pMatReceipts.reduce((s: number, m: any) => s + (Number(m.total_amount) || 0), 0)
@@ -202,7 +225,15 @@ export function useReportsLogic() {
             .reduce((s: number, m: any) => s + (Number(m.total_amount) || 0), 0)
         );
 
-        const pMatIssues = materialIssues.filter((m: any) => String(m.project_id) === pid);
+        const pMatIssues = materialIssues
+          .filter((m: any) => String(m.project_id) === pid)
+          .map((m: any) => ({
+            ...m,
+            contractor_name:
+              m.contractor_text_name ||
+              (m.subcontractor_id ? partnerMap.get(String(m.subcontractor_id))?.name || '' : ''),
+            lines: issueLinesByIssueId.get(String(m.id)) || [],
+          }));
         const materialsIssuedTotal = round2(
           pMatIssues.reduce((s: number, m: any) => s + (Number(m.total_amount) || 0), 0)
         );
@@ -556,6 +587,58 @@ export function useReportsLogic() {
     const totalExpensesAmount = round2(enrichedExpenses.reduce((s, e) => s + e.net_amount, 0));
     const totalCustomerMaterials = totalClientMaterialsDeduction;
 
+    const materialIssuesDetailed: any[] = [];
+    const pushMaterialLines = (
+      projectName: string,
+      doc: any,
+      docNumber: string,
+      docDate: string,
+      docType: string,
+      fallbackLabel: string
+    ) => {
+      if (doc.lines && doc.lines.length > 0) {
+        doc.lines.forEach((line: any) => {
+          materialIssuesDetailed.push({
+            project_name: projectName,
+            doc_number: docNumber,
+            doc_date: docDate,
+            doc_type: docType,
+            item_name: line.item_name || doc.notes || fallbackLabel,
+            quantity: Number(line.quantity) || 1,
+            unit: line.unit || '---',
+            unit_price: Number(line.unit_price) || Number(doc.total_amount) || 0,
+            total_price: Number(line.total_price) || Number(doc.total_amount) || 0,
+            notes: doc.notes || '',
+          });
+        });
+      } else {
+        materialIssuesDetailed.push({
+          project_name: projectName,
+          doc_number: docNumber,
+          doc_date: docDate,
+          doc_type: docType,
+          item_name: doc.notes || fallbackLabel,
+          quantity: 1,
+          unit: '---',
+          unit_price: Number(doc.total_amount) || 0,
+          total_price: Number(doc.total_amount) || 0,
+          notes: doc.notes || '',
+        });
+      }
+    };
+
+    projectsMatrix.forEach((p: any) => {
+      if (p.materialIssues && p.materialIssues.length > 0) {
+        p.materialIssues.forEach((iss: any) => {
+          pushMaterialLines(p.name, iss, iss.issue_number, iss.issue_date, iss.issue_type || 'صرف خامات', 'خامات منصرفة');
+        });
+      } else if (p.materialReceipts && p.materialReceipts.length > 0) {
+        p.materialReceipts.forEach((m: any) => {
+          pushMaterialLines(p.name, m, m.receipt_number, m.receipt_date, m.receipt_type || 'استلام خامات', 'خامات');
+        });
+      }
+    });
+
     return {
       projectsList: rawData.projects,
       projectsMatrix,
@@ -565,6 +648,7 @@ export function useReportsLogic() {
       paymentVouchers: enrichedPayments,
       expenses: enrichedExpenses,
       abcAllocations,
+      materialIssuesDetailed,
       totals: {
         totalContractValue,
         totalClientMaterialsDeduction,

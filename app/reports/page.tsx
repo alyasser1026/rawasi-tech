@@ -164,6 +164,23 @@ export default function ReportsPage() {
     wsExp['!dir'] = 'rtl';
     XLSX.utils.book_append_sheet(wb, wsExp, 'المصاريف_وتوزيعها');
 
+    // 6. شيت تفاصيل الخامات المنصرفة
+    const matSheetData = (d.materialIssuesDetailed || []).map((m: any) => ({
+      'المشروع / الفيلا': m.project_name,
+      'رقم الإذن / الفاتورة': m.doc_number,
+      'التاريخ': m.doc_date,
+      'نوع الحركة': m.doc_type,
+      'اسم الصنف / الخامة': m.item_name,
+      'الكمية': m.quantity,
+      'الوحدة': m.unit,
+      'سعر الوحدة': m.unit_price,
+      'الإجمالي': m.total_price,
+      'ملاحظات': m.notes || '---',
+    }));
+    const wsMat = XLSX.utils.json_to_sheet(matSheetData);
+    wsMat['!dir'] = 'rtl';
+    XLSX.utils.book_append_sheet(wb, wsMat, 'تفاصيل_الخامات_المنصرفة');
+
     const { fileName } = buildDocumentFileName({
       docType: 'التقرير_المالي_الشامل_للمشاريع',
       prefix: 'MASTER-FIN',
@@ -660,7 +677,7 @@ export default function ReportsPage() {
                           {isExpanded && (
                             <tr>
                               <td colSpan={16} style={{ background: 'var(--surface-sunken)', padding: '1rem 1.25rem', textAlign: 'right' }}>
-                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(22rem, 1fr))', gap: '1rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(18rem, 1fr))', gap: '1rem' }}>
                                   {/* أوامر الشغل والمستخلصات */}
                                   <div style={{ background: 'var(--surface-card)', padding: '0.9rem', borderRadius: '12px' }}>
                                     <div style={{ fontWeight: 900, color: 'var(--accent-ink)', marginBottom: '0.5rem', fontSize: 'var(--fs-sm)' }}>
@@ -684,10 +701,10 @@ export default function ReportsPage() {
                                     ))}
                                   </div>
 
-                                  {/* يوميات العمالة والخامات */}
+                                  {/* يوميات العمالة */}
                                   <div style={{ background: 'var(--surface-card)', padding: '0.9rem', borderRadius: '12px' }}>
                                     <div style={{ fontWeight: 900, color: 'var(--accent-ink)', marginBottom: '0.5rem', fontSize: 'var(--fs-sm)' }}>
-                                      يوميات العمالة والخامات ({p.name})
+                                      يوميات العمالة ({p.labor_days} يوم • {formatCurrency(p.labor_total)})
                                     </div>
                                     {p.laborLogs.length === 0 ? (
                                       <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>لا توجد يوميات مسجلة</div>
@@ -698,11 +715,62 @@ export default function ReportsPage() {
                                         </div>
                                       ))
                                     )}
-                                    {p.materialReceipts.map((m: any) => (
-                                      <div key={m.id} style={{ fontSize: 'var(--fs-xs)', padding: '0.3rem 0', color: 'var(--status-info, #38bdf8)' }}>
-                                        فاتورة خامات <b>{m.receipt_number}</b> ({m.receipt_type}): <b>{formatCurrency(m.total_amount)}</b>
+                                  </div>
+
+                                  {/* الخامات المنصرفة وتفاصيل الأصناف */}
+                                  <div style={{ background: 'var(--surface-card)', padding: '0.9rem', borderRadius: '12px' }}>
+                                    <div style={{ fontWeight: 900, color: 'var(--status-info, #38bdf8)', marginBottom: '0.5rem', fontSize: 'var(--fs-sm)' }}>
+                                      الخامات المنصرفة وتفاصيل الأصناف ({formatCurrency(p.materials_cost_effective)})
+                                    </div>
+                                    {(p.client_materials_deduction > 0 || p.company_materials_cost > 0) && (
+                                      <div style={{ fontSize: '0.74rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                                        توريد عميل (خصم 217): <b>{formatCurrency(p.client_materials_deduction)}</b> • على حساب الشركة:{' '}
+                                        <b>{formatCurrency(p.company_materials_cost)}</b>
                                       </div>
-                                    ))}
+                                    )}
+                                    {p.materialIssues.length === 0 && p.materialReceipts.length === 0 ? (
+                                      <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)' }}>لا توجد خامات منصرفة على هذه الفيلا</div>
+                                    ) : p.materialIssues.length > 0 ? (
+                                      <>
+                                        {p.materialIssues.map((iss: any) => (
+                                          <div key={iss.id} style={{ fontSize: 'var(--fs-xs)', padding: '0.3rem 0', borderBottom: '1px solid var(--table-zebra-bg)' }}>
+                                            <div style={{ color: 'var(--status-info, #38bdf8)', fontWeight: 800 }}>
+                                              إذن صرف <b>{iss.issue_number}</b> ({iss.issue_date} • {iss.issue_type || 'صرف خامات'}):{' '}
+                                              <b>{formatCurrency(iss.total_amount)}</b>
+                                            </div>
+                                            {(iss.lines || []).map((line: any) => (
+                                              <div key={line.id} style={{ paddingRight: '0.75rem', marginTop: '0.2rem' }}>
+                                                • {line.item_name}: {line.quantity} {line.unit || ''} × {formatCurrency(line.unit_price)} ={' '}
+                                                <b>{formatCurrency(line.total_price)}</b>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        ))}
+                                        {p.materialReceipts.length > 0 && (
+                                          <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+                                            مرتبط بفاتورة توريد:{' '}
+                                            {p.materialReceipts
+                                              .map((m: any) => `${m.receipt_number} (${m.receipt_type}: ${formatCurrency(m.total_amount)})`)
+                                              .join(' ، ')}
+                                          </div>
+                                        )}
+                                      </>
+                                    ) : (
+                                      p.materialReceipts.map((m: any) => (
+                                        <div key={m.id} style={{ fontSize: 'var(--fs-xs)', padding: '0.3rem 0', borderBottom: '1px solid var(--table-zebra-bg)' }}>
+                                          <div style={{ color: 'var(--status-info, #38bdf8)', fontWeight: 800 }}>
+                                            فاتورة خامات <b>{m.receipt_number}</b> ({m.receipt_date} • {m.receipt_type}):{' '}
+                                            <b>{formatCurrency(m.total_amount)}</b>
+                                          </div>
+                                          {(m.lines || []).map((line: any) => (
+                                            <div key={line.id} style={{ paddingRight: '0.75rem', marginTop: '0.2rem' }}>
+                                              • {line.item_name}: {line.quantity} {line.unit || ''} × {formatCurrency(line.unit_price)} ={' '}
+                                              <b>{formatCurrency(line.total_price)}</b>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ))
+                                    )}
                                   </div>
 
                                   {/* نصيب الفيلا من المصاريف الموزعة ABC */}
