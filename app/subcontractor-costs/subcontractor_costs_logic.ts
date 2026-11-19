@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
 
 type ClaimCostGroup = { name: string; gross: number; deduction: number; net: number; claims: Record<string, unknown>[] };
 type ProjectCostGroup = { name: string; gross: number; deduction: number; net: number; itemsMap: Map<string, ClaimCostGroup> };
@@ -14,49 +15,28 @@ export function useSubcontractorCostsLogic() {
   const [filterProject, setFilterProject] = useState('الكل');
   const [filterItem, setFilterItem] = useState('الكل');
 
-  // 🚀 سحب البيانات من الـ View الجديد (يتجاوز حد الـ 1000 سطر)
+  // 🚀 سحب البيانات على دفعات 1000 بـ 1000 بدون تكرار
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
-      let allData: any[] = [];
-      let from = 0;
-      const step = 1000;
-      let hasMore = true;
-
       try {
-        while (hasMore) {
-          const { data: batch, error } = await supabase
-            .from('vw_subcontractor_itemized_costs')
-            .select('*')
-            .range(from, from + step - 1)
-            .order('claim_date', { ascending: false });
-
-          if (error) {
-            console.error("خطأ في سحب تكاليف المقاولين:", error.message);
-            break;
-          }
-
-          if (batch && batch.length > 0) {
-            // إضافة مفتاح فريد لمنع أي تداخل في الـ UI
-            const processedBatch = batch.map((item, index) => ({
-              ...item,
-              _unique_key: `${item.id || 'row'}-${from + index}`
-            }));
-            
-            allData = [...allData, ...processedBatch];
-            
-            if (batch.length < step) {
-              hasMore = false;
-            } else {
-              from += step;
-            }
-          } else {
-            hasMore = false;
-          }
-        }
-        setData(allData);
+        const allRows = await fetchPaginatedData(
+          () =>
+            supabase
+              .from('vw_subcontractor_itemized_costs')
+              .select('*')
+              .order('claim_date', { ascending: false })
+              .order('id', { ascending: true }),
+          'id'
+        );
+        setData(
+          allRows.map((item: any, index: number) => ({
+            ...item,
+            _unique_key: String(item.id || index),
+          }))
+        );
       } catch (err) {
-        console.error("حدث خطأ غير متوقع:", err);
+        console.error("خطأ في سحب تكاليف المقاولين:", err);
       } finally {
         setIsLoading(false);
       }

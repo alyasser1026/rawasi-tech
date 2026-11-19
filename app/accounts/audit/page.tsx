@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchAllSupabaseData } from '@/lib/helpers';
 import LoadingScreen from '@/components/LoadingScreen';
 
 export default function DetailedAuditPage() {
@@ -10,14 +11,24 @@ export default function DetailedAuditPage() {
     useEffect(() => {
         async function runAudit() {
             setLoading(true);
-            // جلب الرؤوس والأطراف
-            const { data: headers } = await supabase.from('journal_headers').select('*');
-            const { data: lines } = await supabase.from('journal_lines').select('*');
+            // جلب الرؤوس والأطراف بنظام 1000 بـ 1000 بدون تكرار وتجميعها بكفاءة O(N+M)
+            const [headers, lines] = await Promise.all([
+                fetchAllSupabaseData(supabase, 'journal_headers', 'id, entry_date, description', 'id', true),
+                fetchAllSupabaseData(supabase, 'journal_lines', 'id, header_id, account_id, description, debit, credit', 'id', true),
+            ]);
+
+            const linesByHeader = new Map<string, any[]>();
+            (lines || []).forEach((l: any) => {
+                const hid = String(l.header_id || '');
+                const bucket = linesByHeader.get(hid);
+                if (bucket) bucket.push(l);
+                else linesByHeader.set(hid, [l]);
+            });
 
             const auditResults: any[] = [];
 
-            headers?.forEach(h => {
-                const entries = lines?.filter(l => l.header_id === h.id) || [];
+            headers?.forEach((h: any) => {
+                const entries = linesByHeader.get(String(h.id || '')) || [];
                 const totalDebit = entries.reduce((sum, l) => sum + Number(l.debit || 0), 0);
                 const totalCredit = entries.reduce((sum, l) => sum + Number(l.credit || 0), 0);
                 

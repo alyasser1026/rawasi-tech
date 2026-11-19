@@ -4,6 +4,7 @@ import { useToast } from '@/lib/toast-context';
 import LoadingScreen from '@/components/LoadingScreen';
 import { supabase } from '@/lib/supabase';
 import { fetchAllSupabaseData, formatCurrency } from '@/lib/helpers';
+import { runWithConcurrency } from '@/lib/supabase-pagination';
 import GlassContainer from '@/components/GlassContainer';
 import { THEME } from '@/lib/theme';
 import MasterPage from '@/components/MasterPage';
@@ -22,16 +23,16 @@ export default function MasterDashboard() {
         const loadMasterData = async () => {
             setLoading(true);
             try {
-                // 🚀 سحب البيانات من كافة موديولات النظام (البلدوزر الشامل)
-                const [lines, headers, projects, labor, invoices, expenses, receipts] = await Promise.all([
-                    fetchAllSupabaseData(supabase, 'journal_lines'),
-                    fetchAllSupabaseData(supabase, 'journal_headers'),
-                    fetchAllSupabaseData(supabase, 'projects'),
-                    fetchAllSupabaseData(supabase, 'labor_daily_logs'),
-                    fetchAllSupabaseData(supabase, 'invoices'),
-                    fetchAllSupabaseData(supabase, 'expenses'),
-                    fetchAllSupabaseData(supabase, 'receipt_vouchers')
-                ]);
+                // 🚀 سحب البيانات من كافة موديولات النظام بتزامن مضبوط وأعمدة محددة لمنع الحمل الثقيل
+                const [lines, headers, projects, labor, invoices, expenses, receipts] = await runWithConcurrency([
+                    () => fetchAllSupabaseData(supabase, 'journal_lines', 'id, account_id, debit, credit', 'id', true),
+                    () => fetchAllSupabaseData(supabase, 'journal_headers', 'id, reference_id', 'id', true),
+                    () => fetchAllSupabaseData(supabase, 'projects', 'id, total_budget, estimated_hours', 'id', true),
+                    () => fetchAllSupabaseData(supabase, 'labor_daily_logs', 'id, daily_wage, work_date, hours_worked', 'id', true),
+                    () => fetchAllSupabaseData(supabase, 'invoices', 'id, status, total_amount', 'id', true),
+                    () => fetchAllSupabaseData(supabase, 'expenses', 'id, amount, total_price', 'id', true),
+                    () => fetchAllSupabaseData(supabase, 'receipt_vouchers', 'id', 'id', true)
+                ], 4);
 
                 // --- 1. التحليل المالي (السيولة والمصروفات) ---
                 const cash = lines?.filter(l => l.account_id?.startsWith('11')).reduce((a, c) => a + (Number(c.debit) - Number(c.credit)), 0);

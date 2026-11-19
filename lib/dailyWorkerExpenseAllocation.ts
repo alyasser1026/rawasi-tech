@@ -1,3 +1,5 @@
+import { getRelationPrimaryKey, runWithConcurrency } from './supabase-pagination';
+
 export interface DailyExpenseAllocationRow {
   id: string;
   expense_id: string;
@@ -618,6 +620,7 @@ async function fetchAllTableRows(
 ): Promise<any[]> {
   const allRows: any[] = [];
   const seenIds = new Set<string>();
+  const pk = getRelationPrimaryKey(tableName);
   const step = 1000;
   let from = 0;
   let loopGuard = 0;
@@ -627,6 +630,7 @@ async function fetchAllTableRows(
     const { data, error } = await supabaseClient
       .from(tableName)
       .select(selectColumns)
+      .order(pk, { ascending: true })
       .range(from, from + step - 1);
 
     if (error) {
@@ -636,7 +640,7 @@ async function fetchAllTableRows(
 
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
-      const key = row?.id != null ? String(row.id) : `${from + i}`;
+      const key = row?.[pk] != null ? String(row[pk]) : row?.id != null ? String(row.id) : `${from + i}`;
       if (!seenIds.has(key)) {
         seenIds.add(key);
         allRows.push(row);
@@ -644,7 +648,7 @@ async function fetchAllTableRows(
     }
 
     if (data.length < step) break;
-    from += step;
+    from += data.length;
   }
 
   return allRows;
@@ -658,33 +662,33 @@ export async function fetchDailyWorkerExpenseAllocations(
   supabaseClient: any,
   options: FetchDailyExpenseAllocationsOptions = {}
 ): Promise<DailyExpenseAllocationRow[]> {
-  const [expenses, laborLogs, jobOrders, projects, boqItems] = await Promise.all([
-    fetchAllTableRows(
+  const [expenses, laborLogs, jobOrders, projects, boqItems] = await runWithConcurrency([
+    () => fetchAllTableRows(
       supabaseClient,
       'expenses',
       'id, company_id, exp_date, created_at, main_category, description, notes, lines_data, quantity, unit_price, vat_amount, discount_amount, total_price, paid_amount, project_id, job_order_id, site_ref, creditor_account, is_auto_distributed, is_deducted_from_contractor, is_deleted'
     ),
-    fetchAllTableRows(
+    () => fetchAllTableRows(
       supabaseClient,
       'labor_daily_logs',
       'id, company_id, work_date, worker_name, site_ref, project_id, job_order_id, work_item_id, attendance_value, number_of_workers, daily_wage'
     ),
-    fetchAllTableRows(
+    () => fetchAllTableRows(
       supabaseClient,
       'job_orders',
       'id, company_id, order_number, project_id, boq_budget_id, status, notes'
     ),
-    fetchAllTableRows(
+    () => fetchAllTableRows(
       supabaseClient,
       'projects',
       'id, company_id, Property, project_name, status'
     ),
-    fetchAllTableRows(
+    () => fetchAllTableRows(
       supabaseClient,
       'boq_budget',
       'id, project_id, boq_item_id, parent_id, item_type, work_item'
     ),
-  ]);
+  ], 3);
 
   let rows = computeDailyWorkerExpenseAllocations({
     expenses: expenses || [],

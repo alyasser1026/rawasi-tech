@@ -73,14 +73,14 @@ export function useSubClaimsLogic() {
 
     const { data: contractors = [], isLoading } = useQuery({
         queryKey: ['sub_contractors_list'],
-        staleTime: 0,
-        refetchOnMount: 'always',
+        staleTime: 1000 * 60 * 2,
         queryFn: async () => {
             const buildQuery = () => supabase
                 .from('partners')
                 .select('*')
                 .or('partner_type.ilike.%مقاول%,job_role.ilike.%مقاول%')
-                .order('name', { ascending: true });
+                .order('name', { ascending: true })
+                .order('id', { ascending: true });
             const matchedPartners = await fetchPaginatedData(buildQuery, 'id') || [];
 
             // سحب أي شركاء لديهم إسنادات مقاولين أو أوامر شغل حالية حتى لو تصنيفهم مختلف في البارتنر
@@ -117,7 +117,8 @@ export function useSubClaimsLogic() {
         queryFn: async () => {
             const buildQuery = () => supabase.from('subcontractor_claim_engine_view')
                 .select('*, projects:project_id(Property)')
-                .eq('contractor_id', selectedContractor.id);
+                .eq('contractor_id', selectedContractor.id)
+                .order('assignment_id', { ascending: true });
                 
             const data = await fetchPaginatedData(buildQuery, 'assignment_id');
             
@@ -146,7 +147,8 @@ export function useSubClaimsLogic() {
                 .select('*, projects:project_id(Property)')
                 .eq('contractor_id', selectedContractor.id)
                 .order('date', { ascending: false })
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .order('id', { ascending: true });
             
             const data = await fetchPaginatedData(buildQuery, 'id');
 

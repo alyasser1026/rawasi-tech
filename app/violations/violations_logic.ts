@@ -39,7 +39,8 @@ export function useViolationsLogic() {
                     credit_acc:accounts!violations_credit_account_id_fkey(name)
                 `)
                 .order('date', { ascending: false })
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .order('id', { ascending: true });
             return await fetchPaginatedData(buildQuery, 'id');
         }
     });

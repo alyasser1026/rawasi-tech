@@ -5,6 +5,7 @@ import { THEME } from '@/lib/theme';
 import RawasiSmartTable from '@/components/rawasismarttable';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/helpers';
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
 import { createPortal } from 'react-dom';
 import { RefreshCw, ShieldCheck } from 'lucide-react';
 import { notify } from '@/lib/notify';
@@ -86,13 +87,17 @@ export default function AuditLogs() {
     const fetchLogs = async () => {
         setIsLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('audit_logs')
-                .select('*, profiles(full_name, role)')
-                .order('created_at', { ascending: false })
-                .limit(5000); // إحضار آخر 5000 حركة كحد أقصى للأداء
-            
-            if (error) throw error;
+            const data = await fetchPaginatedData(
+                () =>
+                    supabase
+                        .from('audit_logs')
+                        .select('*, profiles(full_name, role)')
+                        .order('created_at', { ascending: false })
+                        .order('id', { ascending: false }),
+                'id',
+                5000,
+                1000
+            );
             setLogs(data || []);
         } catch (error: any) {
             console.error("Fetch Error:", error);

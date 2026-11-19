@@ -18,7 +18,8 @@ export function usePartnerPhones() {
         supabase
           .from('partners')
           .select('id, name, phone, partner_type')
-          .order('name', { ascending: true });
+          .order('name', { ascending: true })
+          .order('id', { ascending: true });
       const rows = await fetchPaginatedData(buildQuery, 'id');
       return (rows || []) as PartnerPhoneLookupRow[];
     },

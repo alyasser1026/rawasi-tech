@@ -1,58 +1,54 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/helpers';
+import { fetchPaginatedData, runWithConcurrency } from '@/lib/supabase-pagination';
 
-// 🚀 دالة البلدوزر السريعة لسحب البيانات الضخمة
+// 🚀 دالة البلدوزر السريعة لسحب البيانات الضخمة (1000 صف ثم 1000 صف بدون تكرار)
 const fetchAllForDashboard = async (
-  tableName: string, 
-  columns: string, 
-  filters?: { col: string, val: any, op?: 'eq' | 'neq' }[]
+  tableName: string,
+  columns: string,
+  filters?: { col: string; val: any; op?: 'eq' | 'neq' }[]
 ) => {
-  let allData: any[] = [];
-  let currentOffset = 0;
-  const limit = 1000;
-  while (true) {
-    let query = supabase.from(tableName).select(columns).range(currentOffset, currentOffset + limit - 1);
+  const colList = columns.split(',').map((c) => c.trim()).filter(Boolean);
+  if (!colList.includes('*') && !colList.includes('id')) {
+    colList.unshift('id');
+  }
+  const selectCols = colList.join(', ');
+
+  return await fetchPaginatedData(() => {
+    let query = supabase.from(tableName).select(selectCols).order('id', { ascending: true });
     if (filters) {
-      filters.forEach(f => {
+      filters.forEach((f) => {
         if (f.op === 'neq') query = query.neq(f.col, f.val);
         else query = query.eq(f.col, f.val);
       });
     }
-    const { data, error } = await query;
-    if (error) break;
-    if (data && data.length > 0) {
-      allData = [...allData, ...data];
-      if (data.length < limit) break;
-      currentOffset += limit;
-    } else break;
-  }
-  return allData;
+    return query;
+  }, 'id');
 };
 
 export const useDashboardLogic = () => {
   const query = useQuery({
     queryKey: ['dashboard_stats_comprehensive'],
     queryFn: async () => {
-      // 1. 📡 سحب كافة البيانات
+      // 1. 📡 سحب كافة البيانات بتزامن مضبوط (4 جداول كحد أقصى في نفس اللحظة) لمنع الحمل الثقيل
       const [
         expenses, invoices, labor, payments, receipts, projects,
         journalLines, accounts, subClaims, materialReceipts, jobOrders, materialIssueLines
-      ] = await Promise.all([
-        fetchAllForDashboard('expenses', 'total_price, is_posted, main_category, job_order_id'),
-        fetchAllForDashboard('invoices', 'total_amount, status'), 
-        fetchAllForDashboard('labor_daily_logs', 'daily_wage, attendance_value, is_posted, job_order_id'),
-        fetchAllForDashboard('payment_vouchers', 'amount, is_posted, status'),
-        fetchAllForDashboard('receipt_vouchers', 'amount, status'), 
-        // 🚀 سحب كل المشاريع (عشان نجيب كل الحالات)
-        fetchAllForDashboard('projects', 'id, status'),
-        fetchAllForDashboard('journal_lines', 'debit, credit, account_id'),
-        fetchAllForDashboard('accounts', 'id, account_type'),
-        fetchAllForDashboard('sub_claims', 'net_amount, is_posted, status'),
-        fetchAllForDashboard('material_receipts', 'total_amount, is_posted, status'),
-        fetchAllForDashboard('job_orders', 'id, order_number, assigned_qty, unit_price'),
-        fetchAllForDashboard('material_issue_lines', 'total_price, job_order_id')
-      ]);
+      ] = await runWithConcurrency([
+        () => fetchAllForDashboard('expenses', 'total_price, is_posted, main_category, job_order_id'),
+        () => fetchAllForDashboard('invoices', 'total_amount, status'),
+        () => fetchAllForDashboard('labor_daily_logs', 'daily_wage, attendance_value, is_posted, job_order_id'),
+        () => fetchAllForDashboard('payment_vouchers', 'amount, is_posted, status'),
+        () => fetchAllForDashboard('receipt_vouchers', 'amount, status'),
+        () => fetchAllForDashboard('projects', 'id, status'),
+        () => fetchAllForDashboard('journal_lines', 'debit, credit, account_id'),
+        () => fetchAllForDashboard('accounts', 'id, account_type'),
+        () => fetchAllForDashboard('sub_claims', 'net_amount, is_posted, status'),
+        () => fetchAllForDashboard('material_receipts', 'total_amount, is_posted, status'),
+        () => fetchAllForDashboard('job_orders', 'id, order_number, assigned_qty, unit_price'),
+        () => fetchAllForDashboard('material_issue_lines', 'total_price, job_order_id')
+      ], 4);
 
       // --- 🏗️ تحليل حالات المشاريع والفلل ---
       const projectStatusMap: Record<string, number> = {};
@@ -207,6 +203,7 @@ export const useDashboardLogic = () => {
       };
     },
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    refetchOnWindowFocus: false,
   });
 
   return {

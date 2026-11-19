@@ -1,6 +1,7 @@
 "use client";
 
 import { getActiveCompanyId, supabase } from '@/lib/supabase';
+import { fetchPaginatedData, runWithConcurrency } from '@/lib/supabase-pagination';
 import { getReferenceTableCache, saveReferenceTableCache } from './offlineStore';
 
 const REFERENCE_TABLES = [
@@ -35,29 +36,50 @@ export async function warmCompanyReferenceCache(companyId?: string | null): Prom
   lastWarmedByCompany.set(cid, now);
 
   try {
-    const [projRes, joRes, partRes, accRes] = await Promise.all([
-      supabase.from('projects').select('*').setHeader('x-company-id', cid).limit(500),
-      supabase
-        .from('job_orders')
-        .select(JOB_ORDER_REFERENCE_SELECT)
-        .setHeader('x-company-id', cid)
-        .order('created_at', { ascending: false })
-        .limit(1000),
-      supabase.from('partners').select('*').setHeader('x-company-id', cid).limit(1500),
-      supabase.from('accounts').select('*').setHeader('x-company-id', cid).limit(1000),
-    ]);
+    const [projRows, joRows, partRows, accRows] = await runWithConcurrency([
+      () =>
+        fetchPaginatedData(
+          () => supabase.from('projects').select('*').setHeader('x-company-id', cid).order('id', { ascending: true }),
+          'id',
+          10000
+        ),
+      () =>
+        fetchPaginatedData(
+          () =>
+            supabase
+              .from('job_orders')
+              .select(JOB_ORDER_REFERENCE_SELECT)
+              .setHeader('x-company-id', cid)
+              .order('created_at', { ascending: false })
+              .order('id', { ascending: true }),
+          'id',
+          10000
+        ),
+      () =>
+        fetchPaginatedData(
+          () => supabase.from('partners').select('*').setHeader('x-company-id', cid).order('id', { ascending: true }),
+          'id',
+          10000
+        ),
+      () =>
+        fetchPaginatedData(
+          () => supabase.from('accounts').select('*').setHeader('x-company-id', cid).order('id', { ascending: true }),
+          'id',
+          10000
+        ),
+    ], 2);
 
-    if (!projRes.error && projRes.data) {
-      await saveReferenceTableCache(cid, 'projects', projRes.data);
+    if (projRows) {
+      await saveReferenceTableCache(cid, 'projects', projRows);
     }
-    if (!joRes.error && joRes.data) {
-      await saveReferenceTableCache(cid, 'job_orders', joRes.data);
+    if (joRows) {
+      await saveReferenceTableCache(cid, 'job_orders', joRows);
     }
-    if (!partRes.error && partRes.data) {
-      await saveReferenceTableCache(cid, 'partners', partRes.data);
+    if (partRows) {
+      await saveReferenceTableCache(cid, 'partners', partRows);
     }
-    if (!accRes.error && accRes.data) {
-      await saveReferenceTableCache(cid, 'accounts', accRes.data);
+    if (accRows) {
+      await saveReferenceTableCache(cid, 'accounts', accRows);
     }
   } catch {
     /* ignore background warm errors */

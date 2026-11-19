@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { usePermissions } from '@/lib/PermissionsContext';
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
 
 /**
  * العقل المدبر لإدارة الإيرادات - النسخة الماسية V9
@@ -17,29 +18,19 @@ export function useRevenueLogic() {
     const [dateFrom, setDateFrom] = useState('');
     const [dateTo, setDateTo] = useState('');
 
-    // 📥 1. جلب البيانات بمحرك React Query (يدعم Caching و Chunking)
+    // 📥 1. جلب البيانات بمحرك React Query (1000 بـ 1000 مع ترتيب حتمي)
     const { data: allRevenues = [], isLoading, refetch } = useQuery({
         queryKey: ['revenues_list'],
         queryFn: async () => {
-            let allData: any[] = [];
-            let start = 0;
-            const step = 1000;
-            let hasMore = true;
-
-            while (hasMore) {
-                const { data, error } = await supabase
+            const buildQuery = () =>
+                supabase
                     .from('invoices')
                     .select('*, partners:partners!invoices_partner_id_company_fkey(name)')
                     .eq('status', 'معتمد') // الميثاق: الإيراد يُحسب فقط للفواتير المعتمدة
-                    .range(start, start + step - 1)
-                    .order('date', { ascending: false });
+                    .order('date', { ascending: false })
+                    .order('id', { ascending: true });
 
-                if (error) throw error;
-                if (data) allData.push(...data);
-                hasMore = data?.length === step;
-                start += step;
-            }
-            return allData;
+            return await fetchPaginatedData(buildQuery, 'id');
         }
     });
 

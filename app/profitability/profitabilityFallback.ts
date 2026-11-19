@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
 
 export interface ProfitabilityParams {
   startDate: string;
@@ -10,26 +11,27 @@ export async function fetchProjectsProfitabilityFallback(params: ProfitabilityPa
   const { startDate, endDate, projectId } = params;
 
   // 1. Fetch Projects
-  let projectsQuery = supabase
-    .from('projects')
-    .select('id, project_name, "Property", project_code, client_name, status, contract_value, estimated_budget');
-
-  if (projectId && projectId !== 'all') {
-    projectsQuery = projectsQuery.eq('id', projectId);
-  }
-
-  const { data: projectsData, error: projErr } = await projectsQuery;
-  if (projErr) throw projErr;
-
-  const projects = projectsData || [];
+  const projects = await fetchPaginatedData(() => {
+    let projectsQuery = supabase
+      .from('projects')
+      .select('id, project_name, "Property", project_code, client_name, status, contract_value, estimated_budget')
+      .order('id', { ascending: true });
+    if (projectId && projectId !== 'all') {
+      projectsQuery = projectsQuery.eq('id', projectId);
+    }
+    return projectsQuery;
+  }, 'id');
 
   // 2. Fetch Accounts (Revenue 4% and Direct Costs 51%)
-  const { data: accountsData, error: accErr } = await supabase
-    .from('accounts')
-    .select('id, code')
-    .or('code.like.4%,code.like.51%');
-
-  if (accErr) throw accErr;
+  const accountsData = await fetchPaginatedData(
+    () =>
+      supabase
+        .from('accounts')
+        .select('id, code')
+        .or('code.like.4%,code.like.51%')
+        .order('id', { ascending: true }),
+    'id'
+  );
 
   const accountMap = new Map<string, string>();
   (accountsData || []).forEach(acc => {
@@ -37,9 +39,14 @@ export async function fetchProjectsProfitabilityFallback(params: ProfitabilityPa
   });
 
   // 3. Fetch BOQ Budget data for projects
-  const { data: boqData } = await supabase
-    .from('boq_budget')
-    .select('project_id, contract_quantity, unit_contract_price, estimated_labor_cost, estimated_material_cost, estimated_expenses_cost');
+  const boqData = await fetchPaginatedData(
+    () =>
+      supabase
+        .from('boq_budget')
+        .select('id, project_id, contract_quantity, unit_contract_price, estimated_labor_cost, estimated_material_cost, estimated_expenses_cost')
+        .order('id', { ascending: true }),
+    'id'
+  );
 
   const boqMap = new Map<string, { contract_value: number; estimated_cost: number }>();
   (boqData || []).forEach(item => {
@@ -54,31 +61,39 @@ export async function fetchProjectsProfitabilityFallback(params: ProfitabilityPa
   });
 
   // 4. Fetch Journal Headers in range
-  const { data: headersData, error: headErr } = await supabase
-    .from('journal_headers')
-    .select('id, entry_date, status')
-    .gte('entry_date', startDate)
-    .lte('entry_date', endDate)
-    .in('status', ['posted', 'مرحل', 'معتمد']);
-
-  if (headErr) throw headErr;
+  const headersData = await fetchPaginatedData(
+    () =>
+      supabase
+        .from('journal_headers')
+        .select('id, entry_date, status')
+        .gte('entry_date', startDate)
+        .lte('entry_date', endDate)
+        .in('status', ['posted', 'مرحل', 'معتمد'])
+        .order('id', { ascending: true }),
+    'id'
+  );
 
   const headerIds = (headersData || []).map(h => h.id);
 
   // 5. Fetch Journal Lines for these headers
   let lines: any[] = [];
   if (headerIds.length > 0) {
-    // Chunk headerIds by 500 to prevent URL length limits
-    const chunkSize = 500;
+    // Chunk headerIds by 200 to keep URL well under limits, and paginate each batch by 1000
+    const chunkSize = 200;
     for (let i = 0; i < headerIds.length; i += chunkSize) {
       const chunk = headerIds.slice(i, i + chunkSize);
-      const { data: linesChunk, error: lineErr } = await supabase
-        .from('journal_lines')
-        .select('id, header_id, account_id, debit, credit, project_id')
-        .in('header_id', chunk);
-
-      if (lineErr) throw lineErr;
-      if (linesChunk) lines = lines.concat(linesChunk);
+      const linesChunk = await fetchPaginatedData(
+        () =>
+          supabase
+            .from('journal_lines')
+            .select('id, header_id, account_id, debit, credit, project_id')
+            .in('header_id', chunk)
+            .order('id', { ascending: true }),
+        'id'
+      );
+      if (linesChunk && linesChunk.length > 0) {
+        lines.push(...linesChunk);
+      }
     }
   }
 

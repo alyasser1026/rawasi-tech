@@ -88,7 +88,8 @@ export function useInvoicesLogic() {
             const buildQuery = () => supabase
                 .from('invoices')
                 .select('*, partners:partners!invoices_partner_id_company_fkey(*), debit_acc:accounts!invoices_debit_acc_fkey(name), credit_acc:accounts!invoices_credit_acc_fkey(name)')
-                .order('date', { ascending: false });
+                .order('date', { ascending: false })
+                .order('id', { ascending: true });
             const rows = await fetchPaginatedData(buildQuery, 'id');
             if (!rows || rows.length === 0) return [];
 

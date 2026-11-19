@@ -208,21 +208,8 @@ export async function processExcelInBackend(formData: FormData) {
         return s.replace(/[^\u0621-\u064A0-9a-zA-Z]/g, '').toLowerCase();
     };
 
-    // 🚀🚀 التعديل الجذري الثاني: جلب العقارات بـ Loop لتخطي حد الـ 1000 مشروع الخاص بـ Supabase
-    let allProjects: any[] = [];
-    let from = 0, to = 999;
-    let hasMore = true;
-    while(hasMore) {
-        // بنسحب الـ Property والـ project_name بس عشان الأداء يبقى طلقة
-        const { data, error } = await supabase.from('projects').select('id, "Property", project_name').range(from, to);
-        if (data && data.length > 0) {
-            allProjects.push(...data);
-            from += 1000;
-            to += 1000;
-        } else {
-            hasMore = false;
-        }
-    }
+    // 🚀🚀 التعديل الجذري الثاني: جلب العقارات بـ fetchAllSupabaseData لتخطي حد الـ 1000 بدون تكرار
+    const allProjects = await fetchAllSupabaseData(supabase, 'projects', 'id, "Property", project_name', 'id', true);
 
     const [partners, accounts, boqItems] = await Promise.all([
       fetchAllSupabaseData(supabase, 'partners', '*', 'id', false),

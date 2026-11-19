@@ -72,9 +72,14 @@ export function useExpensesLogic() {
         queryFn: async ({ signal }) => {
             const buildQuery = () => {
                 signal.throwIfAborted();
-                return supabase.from('expenses').select('*').order('exp_date', { ascending: false }).abortSignal(signal);
+                return supabase
+                    .from('expenses')
+                    .select('*')
+                    .order('exp_date', { ascending: false })
+                    .order('id', { ascending: true })
+                    .abortSignal(signal);
             };
-            const allData = await fetchPaginatedData(buildQuery, 'id');
+            const allData = await fetchPaginatedData(buildQuery, 'id', undefined, undefined, signal);
 
             return allData.map(exp => {
                 let parsedLines = [];
@@ -190,11 +195,22 @@ export function useExpensesLogic() {
         queryKey: ['expenses_support_data'],
         enabled: canLoadExpenses,
         queryFn: async ({ signal }) => {
-            const [proj, part, acc, boq] = await Promise.all([
+            const [proj, part, acc, boqRows] = await Promise.all([
                 supabase.from('projects').select('*').abortSignal(signal),
                 supabase.from('partners').select('name, partner_type').abortSignal(signal),
                 supabase.from('accounts').select('id, code, name').abortSignal(signal),
-                supabase.from('boq_items').select('item_code, item_name').limit(3000).abortSignal(signal)
+                fetchPaginatedData(
+                    () =>
+                        supabase
+                            .from('boq_items')
+                            .select('id, item_code, item_name')
+                            .order('id', { ascending: true })
+                            .abortSignal(signal),
+                    'id',
+                    10000,
+                    1000,
+                    signal
+                ),
             ]);
             const partnersData = part.data || [];
             return {
@@ -203,7 +219,7 @@ export function useExpensesLogic() {
                 payees: partnersData,
                 accounts_raw: acc.data || [], 
                 accounts: (acc.data || []).map(a => ({ id: `${a.code} - ${a.name}`, name: `${a.code} - ${a.name}` })),
-                boqItems: Array.from(new Set((boq.data || []).map((b: any) => `${b.item_code} - ${b.item_name}`)))
+                boqItems: Array.from(new Set((boqRows || []).map((b: any) => `${b.item_code} - ${b.item_name}`)))
             };
         },
         staleTime: 1000 * 60 * 5,

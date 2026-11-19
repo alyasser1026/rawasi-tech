@@ -64,7 +64,7 @@ export const sharedQueryClient = new QueryClient({
       networkMode: 'offlineFirst',
       staleTime: 1000 * 60 * 5, // 5 دقائق
       gcTime: 1000 * 60 * 60 * 24, // 24 ساعة
-      refetchOnWindowFocus: true,
+      refetchOnWindowFocus: false,
       retry: (failureCount) => {
         if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
         return failureCount < 2;

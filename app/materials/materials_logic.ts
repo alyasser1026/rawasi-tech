@@ -176,7 +176,8 @@ export function useMaterialsLogic() {
                         account:accounts!account_id(id, name)
                     )
                 `)
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .order('id', { ascending: true });
 
             const allRecords = await fetchPaginatedData(buildQuery, 'id');
 
@@ -231,7 +232,8 @@ export function useMaterialsLogic() {
             const buildQuery = () => supabase
                 .from('projects')
                 .select('id, Property, project_code')
-                .neq('status', 'منتهي');
+                .neq('status', 'منتهي')
+                .order('id', { ascending: true });
             const data = await fetchPaginatedData(buildQuery, 'id');
             return data || [];
         }

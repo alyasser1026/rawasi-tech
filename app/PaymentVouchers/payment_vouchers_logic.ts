@@ -72,7 +72,8 @@ export function usePaymentVouchersLogic() {
                     debit_account:accounts!debit_account_id(name, code)
                 `)
                 .order('date', { ascending: false })
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .order('id', { ascending: true });
 
             const allData = await fetchPaginatedData(buildQuery, 'id');
 

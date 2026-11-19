@@ -2,6 +2,7 @@
 import { useState, useMemo, useDeferredValue } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
 
 export function useLaborCostsLogic() {
     const [globalSearch, setGlobalSearch] = useState('');
@@ -11,48 +12,20 @@ export function useLaborCostsLogic() {
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(20);
 
-    // 📡 سحب البيانات من الفيو مباشرة 
+    // 📡 سحب البيانات من الفيو مباشرة 1000 صف ثم 1000 صف بدون تكرار
     const { data: laborData = [], isLoading } = useQuery({
         queryKey: ['vw_project_labor_costs'],
         queryFn: async () => {
-            let allFetchedData: any[] = [];
-            let pageIndex = 0;
-            const pageSize = 1000;
-            let hasMoreData = true;
-
-            while (hasMoreData) {
-                const { data, error } = await supabase
+            const buildQuery = () =>
+                supabase
                     .from('vw_project_labor_costs')
                     .select('*')
                     .order('تاريخ اليومية', { ascending: false })
-                    .order('id', { ascending: true }) // 🚀 الترتيب المزدوج لمنع انحراف الداتا
-                    .range(pageIndex * pageSize, (pageIndex + 1) * pageSize - 1);
-                
-                if (error) {
-                    console.error("Supabase Fetch Error:", error);
-                    throw error;
-                }
+                    .order('id', { ascending: true });
 
-                if (data && data.length > 0) {
-                    allFetchedData = [...allFetchedData, ...data];
-                    if (data.length < pageSize) {
-                        hasMoreData = false;
-                    } else {
-                        pageIndex++;
-                    }
-                } else {
-                    hasMoreData = false;
-                }
-            }
-
-            // 🛡️ فلتر أمان أخير لمنع أي تكرار للسطور
-            const uniqueDataMap = new Map();
-            allFetchedData.forEach((item) => {
-                if (item.id) uniqueDataMap.set(item.id, item);
-            });
-
-            return Array.from(uniqueDataMap.values());
-        }
+            return await fetchPaginatedData(buildQuery, 'id');
+        },
+        staleTime: 1000 * 60 * 5,
     });
 
     // 🔍 استخراج قوائم الفلترة

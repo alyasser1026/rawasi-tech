@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDownLeft, ArrowUpRight, Droplets, Printer, RefreshCw, Scale, Landmark } from 'lucide-react';
 import { supabase } from "@/lib/supabase";
+import { fetchPaginatedData } from "@/lib/supabase-pagination";
 import MasterPage from '@/components/MasterPage';
 import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import LoadingScreen from '@/components/LoadingScreen';
@@ -26,20 +27,25 @@ export default function FinancialCenter() {
   const refreshCore = useCallback(async () => {
     setRefreshing(true);
     try {
-      const [expRes, journalRes] = await Promise.all([
-        supabase.from('expenses').select('total_price, created_at, description'),
-        supabase.from('journal_lines').select('debit, credit, created_at')
+      const [expRows, journalRows] = await Promise.all([
+        fetchPaginatedData(
+          () => supabase.from('expenses').select('id, total_price, created_at, description').order('id', { ascending: true }),
+          'id'
+        ),
+        fetchPaginatedData(
+          () => supabase.from('journal_lines').select('id, debit, credit, created_at').order('id', { ascending: true }),
+          'id'
+        ),
       ]);
-      if (expRes.error || journalRes.error) throw expRes.error || journalRes.error;
 
-      const totalOut = expRes.data?.reduce((sum, i) => sum + (Number(i.total_price) || 0), 0) || 0;
-      const totalIn = journalRes.data?.reduce((sum, i) => sum + (Number(i.credit) || 0), 0) || 0;
+      const totalOut = expRows.reduce((sum, i) => sum + (Number(i.total_price) || 0), 0);
+      const totalIn = journalRows.reduce((sum, i) => sum + (Number(i.credit) || 0), 0);
       const liquidityIndex = totalIn > 0 ? Number(((totalIn - totalOut) / totalIn * 100).toFixed(1)) : 0;
       setTotals({ totalIn, totalOut, netCash: totalIn - totalOut, liquidityIndex, syncedAt: new Date() });
 
       const all: Movement[] = [
-        ...(expRes.data || []).map(e => ({ created_at: e.created_at, kind: 'expense' as const, description: e.description, amount: Number(e.total_price) || 0, side: 'out' as const })),
-        ...(journalRes.data || []).map(j => {
+        ...expRows.map(e => ({ created_at: e.created_at, kind: 'expense' as const, description: e.description, amount: Number(e.total_price) || 0, side: 'out' as const })),
+        ...journalRows.map(j => {
           const credit = Number(j.credit) || 0;
           return { created_at: j.created_at, kind: 'journal' as const, amount: credit || Number(j.debit) || 0, side: credit > 0 ? 'in' as const : 'out' as const };
         })
@@ -57,16 +63,27 @@ export default function FinancialCenter() {
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel> | undefined;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefresh = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        void refreshCore();
+      }, 1500);
+    };
     const boot = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { router.push("/login"); return; }
       await refreshCore();
       channel = supabase.channel('financial_center_live')
-        .on('postgres_changes', { event: '*', schema: 'public' }, () => refreshCore())
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, scheduleRefresh)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_lines' }, scheduleRefresh)
         .subscribe();
     };
     boot();
-    return () => { if (channel) supabase.removeChannel(channel); };
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [refreshCore, router]);
 
   const summary = useMemo(() => totals && <KpiStrip items={[

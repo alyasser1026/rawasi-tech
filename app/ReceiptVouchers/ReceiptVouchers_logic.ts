@@ -48,7 +48,8 @@ export function useReceiptVouchersLogic() {
                 .from('receipt_vouchers')
                 .select(`*, partners:partners!receipt_vouchers_partner_id_company_fkey(name), invoices:invoices!receipt_vouchers_invoice_id_company_fkey(invoice_number)`)
                 .order('date', { ascending: false })
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false })
+                .order('id', { ascending: true });
 
             const rec = await fetchPaginatedData(buildQuery, 'id');
             const { data: allProjects } = await supabase.from('projects').select('id, "Property"');

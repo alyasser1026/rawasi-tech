@@ -63,7 +63,8 @@ export function useMaterialIssuesLogic() {
                         project:projects!material_issues_project_id_fkey(Property),
                         subcontractor:partners!material_issues_subcontractor_id_fkey(name)
                     )
-                `).order('created_at', { foreignTable: 'material_issues', ascending: false });
+                `).order('created_at', { foreignTable: 'material_issues', ascending: false })
+                .order('id', { ascending: false });
             
             const data = await fetchPaginatedData(buildQuery, 'id');
             

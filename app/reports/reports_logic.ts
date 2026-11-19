@@ -5,6 +5,7 @@ import { getActiveCompanyId, supabase } from '@/lib/supabase';
 import { useCompany } from '@/lib/CompanyContext';
 import { useToast } from '@/lib/toast-context';
 import { fetchAllSupabaseData } from '@/lib/helpers';
+import { runWithConcurrency } from '@/lib/supabase-pagination';
 import {
   computeDailyWorkerExpenseAllocations,
   getExpenseNetAmount,
@@ -43,21 +44,21 @@ export function useReportsLogic() {
         material_issue_lines,
         expenses,
         partners,
-      ] = await Promise.all([
-        fetchAllSupabaseData(supabase, 'projects', '*', 'created_at', true),
-        fetchAllSupabaseData(supabase, 'boq_budget', '*', 'created_at', true),
-        fetchAllSupabaseData(supabase, 'job_orders', '*', 'created_at', true),
-        fetchAllSupabaseData(supabase, 'receipt_vouchers', '*', 'date', false),
-        fetchAllSupabaseData(supabase, 'payment_vouchers', '*', 'date', false),
-        fetchAllSupabaseData(supabase, 'sub_claims', '*', 'date', false),
-        fetchAllSupabaseData(supabase, 'labor_daily_logs', '*', 'work_date', false),
-        fetchAllSupabaseData(supabase, 'material_receipts', '*', 'receipt_date', false),
-        fetchAllSupabaseData(supabase, 'material_receipt_lines', '*', 'id', true),
-        fetchAllSupabaseData(supabase, 'material_issues', '*', 'issue_date', false),
-        fetchAllSupabaseData(supabase, 'material_issue_lines', '*', 'id', true),
-        fetchAllSupabaseData(supabase, 'expenses', '*', 'exp_date', false),
-        fetchAllSupabaseData(supabase, 'partners', 'id,name,partner_type,company_id', 'created_at', false),
-      ]);
+      ] = await runWithConcurrency([
+        () => fetchAllSupabaseData(supabase, 'projects', '*', 'created_at', true),
+        () => fetchAllSupabaseData(supabase, 'boq_budget', '*', 'created_at', true),
+        () => fetchAllSupabaseData(supabase, 'job_orders', '*', 'created_at', true),
+        () => fetchAllSupabaseData(supabase, 'receipt_vouchers', '*', 'date', false),
+        () => fetchAllSupabaseData(supabase, 'payment_vouchers', '*', 'date', false),
+        () => fetchAllSupabaseData(supabase, 'sub_claims', '*', 'date', false),
+        () => fetchAllSupabaseData(supabase, 'labor_daily_logs', '*', 'work_date', false),
+        () => fetchAllSupabaseData(supabase, 'material_receipts', '*', 'receipt_date', false),
+        () => fetchAllSupabaseData(supabase, 'material_receipt_lines', '*', 'id', true),
+        () => fetchAllSupabaseData(supabase, 'material_issues', '*', 'issue_date', false),
+        () => fetchAllSupabaseData(supabase, 'material_issue_lines', '*', 'id', true),
+        () => fetchAllSupabaseData(supabase, 'expenses', '*', 'exp_date', false),
+        () => fetchAllSupabaseData(supabase, 'partners', 'id,name,partner_type,company_id', 'created_at', false),
+      ], 4);
 
       const byCompany = (rows: any[]) =>
         (rows || []).filter((r: any) => !r.company_id || !activeCompanyId || String(r.company_id) === String(activeCompanyId));

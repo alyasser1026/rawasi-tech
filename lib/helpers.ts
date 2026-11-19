@@ -1,5 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import { currencyInfo } from '@/lib/currency';
+import {
+  SUPABASE_DEFAULT_MAX_ROWS,
+  SUPABASE_PAGE_SIZE,
+  extractRowKey,
+  getRelationPrimaryKey,
+} from '@/lib/supabase-pagination';
 
 /** تفقيط المبلغ بعملة الشركة المفتوحة (أو عملة محددة). */
 export const tafqeet = (value: number | string | null | undefined, currency?: string | null): string => {
@@ -461,56 +467,76 @@ export const getSingleInvoiceStatus = (invoiceDate: string, isPaid: boolean) => 
 // =========================================================================
 // 🚀 دالة البلدوزر المطورة: سحب تكراري لضمان جلب كل البيانات (بدون سقف الـ 1000)
 // =========================================================================
-// دالة البلدوزر لسحب الجداول الضخمة تلقائياً (تتخطى 1000 سطر)
+// دالة البلدوزر لسحب الجداول الضخمة تلقائياً (1000 صف ثم 1000 صف بدون تكرار أو سقوط سطور)
 export const fetchAllSupabaseData = async (
-  supabase: any,
+  supabaseClient: any,
   tableName: string,
   selectFields: string = '*',
   orderByColumn?: string,
-  ascending: boolean = false
+  ascending: boolean = false,
+  maxRows: number = SUPABASE_DEFAULT_MAX_ROWS
 ) => {
-  let allData: any[] = [];
+  const allData: any[] = [];
   const seenIds = new Set<string>(); // 🛡️ حماية من التكرار
+  const pk = getRelationPrimaryKey(tableName);
+  let useTieBreaker = true;
   let currentOffset = 0;
-  const limit = 1000;
-  let keepFetching = true;
+  let loopGuard = 0;
+  const safeMaxRows = Math.max(1, Math.floor(maxRows || SUPABASE_DEFAULT_MAX_ROWS));
+  const maxLoops = Math.ceil(safeMaxRows / SUPABASE_PAGE_SIZE);
 
-  console.log(`📡 جاري بدء سحب بيانات جدول: [${tableName}]...`);
+  while (loopGuard < maxLoops && allData.length < safeMaxRows) {
+    loopGuard++;
+    const chunkLimit = Math.min(SUPABASE_PAGE_SIZE, safeMaxRows - allData.length);
+    if (chunkLimit <= 0) break;
 
-  while (keepFetching) {
-    let query = supabase.from(tableName).select(selectFields).range(currentOffset, currentOffset + limit - 1);
-    
+    let query = supabaseClient
+      .from(tableName)
+      .select(selectFields)
+      .range(currentOffset, currentOffset + chunkLimit - 1);
+
     if (orderByColumn) {
       query = query.order(orderByColumn, { ascending });
+    }
+    if (useTieBreaker && pk && orderByColumn !== pk) {
+      query = query.order(pk, { ascending: true });
     }
 
     const { data, error } = await query;
 
     if (error) {
+      if (currentOffset === 0 && useTieBreaker) {
+        useTieBreaker = false;
+        loopGuard--;
+        continue;
+      }
       console.error(`❌ خطأ في سحب [${tableName}]:`, error.message);
-      break; 
+      break;
     }
 
     if (data && data.length > 0) {
       for (const row of data) {
-          const id = String(row.id || row.line_id || row.code || JSON.stringify(row));
-          if (!seenIds.has(id)) {
-              seenIds.add(id);
-              allData.push(row);
+        const key = extractRowKey(row, pk);
+        if (key !== null) {
+          if (!seenIds.has(key)) {
+            seenIds.add(key);
+            allData.push(row);
           }
+        } else {
+          allData.push(row);
+        }
+        if (allData.length >= safeMaxRows) break;
       }
-      currentOffset += limit;
-      console.log(`✅ تم سحب ${allData.length} صف من جدول [${tableName}] حتى الآن...`);
-      
-      if (data.length < limit) {
-        keepFetching = false;
+
+      currentOffset += data.length;
+      if (data.length < chunkLimit || allData.length >= safeMaxRows) {
+        break;
       }
     } else {
-      keepFetching = false;
+      break;
     }
   }
 
-  console.log(`🏁 اكتمل السحب! إجمالي بيانات [${tableName}]: ${allData.length} صف.`);
   return allData;
 };
 // 🛡️ دالة فحص الصلاحيات الموحدة (Global Permission Checker)

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useMemo, useCallback, useEffect, useDeferredValue } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/lib/toast-context';
 import { THEME } from '@/lib/theme';
@@ -42,60 +43,32 @@ function useJournalLogic() {
         setCurrentPage(1);
     }, [globalSearch, dateFrom, dateTo, filterAccountId, filterPartnerId, filterProjectId, filterVType, filterStatus, rowsPerPage]);
 
-    // 🟢 السحب من السيرفر (بيسحب الداتا 1000 بـ 1000 عشان Supabase ميقفلش الطلب)
+    // 🟢 السحب من السيرفر (بيسحب الداتا 1000 بـ 1000 بدون تكرار عبر المحرك الموحد)
     const { data: journalMaster = [], isLoading, isError } = useQuery({
         queryKey: ['journal_master_view', dateFrom, dateTo, filterAccountId, filterPartnerId, filterProjectId, filterVType, filterStatus], 
         queryFn: async () => {
-            const allData: any[] = [];
-            const seenIds = new Set<string>(); // 🛡️ حماية من التكرار
-            const step = 1000; // 🟢 الرقم ده ثابت عشان Supabase بيرفض يبعت أكتر منه في المرة
-            let from = 0; 
-            let hasMore = true;
-            let loopGuard = 0;
-
-            // 🟢 يقدر يسحب لحد 50 مرة (يعني 50 ألف سطر)
-            while (hasMore && loopGuard < 50) {
-                loopGuard++;
+            const buildQuery = () => {
                 let query = supabase
                     .from('journal_master_view') 
                     .select('*')
                     .order('entry_date', { ascending: false })
                     .order('line_created_at', { ascending: false })
-                    .order('line_id', { ascending: false }) // 🚀 تم إضافته هنا لضمان استقرار الترتيب وعدم سقوط أو تكرار أي مبالغ محاسبية
-                    .range(from, from + step - 1);
-                
+                    .order('line_id', { ascending: false });
+
                 if (dateFrom) query = query.gte('entry_date', dateFrom);
                 if (dateTo) query = query.lte('entry_date', dateTo);
                 if (filterAccountId) query = query.eq('account_id', filterAccountId);
                 if (filterPartnerId) query = query.eq('partner_id', filterPartnerId);
-                
+
                 if (filterStatus === 'معتمد') query = query.eq('header_status', 'معتمد');
                 if (filterStatus === 'مسودة') query = query.eq('header_status', 'draft');
                 if (filterProjectId) query = query.eq('project_id', filterProjectId);
                 if (filterVType && filterVType !== 'الكل') query = query.eq('v_type', filterVType);
 
-                const { data, error } = await query;
-                if (error) throw error;
+                return query;
+            };
 
-                if (data && data.length > 0) {
-                    // 🛡️ إضافة فقط الأسطر الغير مكررة
-                    for (const row of data) {
-                        const id = String(row.line_id);
-                        if (!seenIds.has(id)) {
-                            seenIds.add(id);
-                            allData.push(row);
-                        }
-                    }
-                    from += step;
-                    
-                    if (data.length < step) {
-                        hasMore = false; 
-                    }
-                } else {
-                    hasMore = false;
-                }
-            }
-            return allData;
+            return await fetchPaginatedData(buildQuery, 'line_id');
         },
         staleTime: 60 * 1000 
     });

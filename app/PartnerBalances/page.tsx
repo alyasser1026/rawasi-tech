@@ -6,6 +6,7 @@ import { THEME } from '@/lib/theme';
 import * as XLSX from 'xlsx';
 import { buildDocumentFileName } from '@/lib/documentFileName';
 import { supabase } from '@/lib/supabase'; 
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
 import PrintStatement from './printstatement'; 
 import LoadingScreen from '@/components/LoadingScreen';
 import { ArrowDownLeft, ArrowUpRight, ChartColumn, CircleCheck, Scale } from 'lucide-react';
@@ -44,40 +45,23 @@ export default function PartnerBalancesPage() {
         }
     }, []);
 
-    // 🚀 دالة جلب كشف الحساب التفصيلي لشريك واحد (بترتيب حتمي لمنع السقوط والتكرار)
+    // 🚀 دالة جلب كشف الحساب التفصيلي لشريك واحد (1000 بـ 1000 بترتيب حتمي لمنع السقوط والتكرار)
     const fetchSingleLedger = async (partnerId: string) => {
         setLoadingLedgers(prev => ({ ...prev, [partnerId]: true }));
         try {
-            let allLedgerData: any[] = [];
-            let fromRow = 0;
-            const step = 999;
-            let hasMore = true;
-
-            while (hasMore) {
+            const allLedgerData = await fetchPaginatedData(() => {
                 let query = supabase.from('partner_statement_ledger')
                     .select('*')
                     .eq('partner_id', partnerId);
-                
+
                 if (dateFrom) query = query.gte('transaction_date', dateFrom);
                 if (dateTo) query = query.lte('transaction_date', `${dateTo}T23:59:59.999Z`);
 
-                // 🚀 ترتيب حتمي صارم يمنع تداخل الصفحات في الداتابيز
-                query = query.order('transaction_date', { ascending: true })
-                             .order('created_at', { ascending: true })
-                             .order('line_id', { ascending: true })
-                             .range(fromRow, fromRow + step);
-
-                const { data: ledgerData, error } = await query;
-                if (error) throw error;
-
-                if (ledgerData && ledgerData.length > 0) {
-                    allLedgerData.push(...ledgerData);
-                    fromRow += ledgerData.length;
-                    if (ledgerData.length <= step) hasMore = false;
-                } else {
-                    hasMore = false;
-                }
-            }
+                return query
+                    .order('transaction_date', { ascending: true })
+                    .order('created_at', { ascending: true })
+                    .order('line_id', { ascending: true });
+            }, 'line_id');
 
             setLedgers(prev => ({ ...prev, [partnerId]: allLedgerData }));
         } catch (err) {
@@ -91,43 +75,31 @@ export default function PartnerBalancesPage() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const { data: accountsData, error } = await supabase
-                .from('all_partners_account_summary')
-                .select('*');
+            const accountsData = await fetchPaginatedData(
+                () => supabase
+                    .from('all_partners_account_summary')
+                    .select('*')
+                    .order('partner_id', { ascending: true }),
+                'partner_id'
+            );
 
-            if (error) throw error;
             let finalData = accountsData || [];
 
             if (dateFrom || dateTo) {
-                let allLedgerData: any[] = [];
-                let fromRow = 0;
-                const step = 999;
-                let hasMore = true;
-
-                while (hasMore) {
+                const allLedgerData = await fetchPaginatedData(() => {
                     // 🚀 نسحب التاريخ لنتمكن من فصل الرصيد السابق عن رصيد الفترة
-                    let query = supabase.from('partner_statement_ledger').select('line_id, partner_id, debit, credit, transaction_date, created_at');
+                    let query = supabase
+                        .from('partner_statement_ledger')
+                        .select('line_id, partner_id, debit, credit, transaction_date, created_at');
                     // إذا كان هناك تاريخ بداية، نسحب كل الحركات السابقة له أيضاً لحساب الرصيد السابق
                     if (dateTo) query = query.lte('transaction_date', `${dateTo}T23:59:59.999Z`);
-                    
+
                     // 🚀 الترتيب الحتمي لضمان سحب الآلاف من السطور بدون ضياع أو تكرار أي سجل
-                    query = query.order('transaction_date', { ascending: true })
-                                 .order('created_at', { ascending: true })
-                                 .order('line_id', { ascending: true })
-                                 .range(fromRow, fromRow + step);
-                    
-                    const { data: ledgerData, error: ledgerError } = await query;
-                    
-                    if (ledgerError) throw ledgerError;
-                    
-                    if (ledgerData && ledgerData.length > 0) {
-                        allLedgerData.push(...ledgerData);
-                        fromRow += ledgerData.length;
-                        if (ledgerData.length <= step) hasMore = false;
-                    } else {
-                        hasMore = false;
-                    }
-                }
+                    return query
+                        .order('transaction_date', { ascending: true })
+                        .order('created_at', { ascending: true })
+                        .order('line_id', { ascending: true });
+                }, 'line_id');
 
                 // 🎯 تجميع الأرصدة مع فصل الرصيد السابق عن حركات الفترة
                 const sums: Record<string, { credit: number, debit: number, prevBalance: number }> = {};

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
+import { fetchPaginatedData } from '@/lib/supabase-pagination';
 
 type CostGroup = { name: string; total: number; items: Record<string, unknown>[] };
 type ProjectGroup = { name: string; total: number; types: Map<string, CostGroup> };
@@ -14,48 +15,28 @@ export function useLedgerLogic() {
   const [filterType, setFilterType] = useState('الكل');
   const [filterProject, setFilterProject] = useState('الكل');
 
-  // 🚀 سحب البيانات مع رفع حساسية التعامل مع الـ Unique Keys
+  // 🚀 سحب البيانات على دفعات 1000 صف بـ 1000 صف بدون تكرار
   useEffect(() => {
     const fetchLedger = async () => {
       setIsLoading(true);
-      let allData: any[] = [];
-      let from = 0;
-      const step = 1000;
-      let hasMore = true;
-
       try {
-        while (hasMore) {
-          const { data, error } = await supabase
-            .from('vw_project_comprehensive_ledger')
-            .select('*')
-            .range(from, from + step - 1)
-            .order('التاريخ', { ascending: false });
-
-          if (error) {
-            console.error("خطأ في سحب كشف الحساب:", error.message);
-            break;
-          }
-
-          if (data && data.length > 0) {
-            // 👈 رفع الحساسية: إضافة مفتاح فريد لكل صف فور وصوله
-            const processedBatch = data.map((item, index) => ({
-              ...item,
-              _unique_key: `${item.id || 'row'}-${from + index}` 
-            }));
-            allData = [...allData, ...processedBatch];
-            
-            if (data.length < step) {
-              hasMore = false;
-            } else {
-              from += step;
-            }
-          } else {
-            hasMore = false;
-          }
-        }
-        setLedgerData(allData);
+        const allRows = await fetchPaginatedData(
+          () =>
+            supabase
+              .from('vw_project_comprehensive_ledger')
+              .select('*')
+              .order('التاريخ', { ascending: false })
+              .order('id', { ascending: true }),
+          'id'
+        );
+        setLedgerData(
+          allRows.map((item: any, index: number) => ({
+            ...item,
+            _unique_key: String(item.id || index),
+          }))
+        );
       } catch (err) {
-        console.error("حدث خطأ غير متوقع:", err);
+        console.error("خطأ في سحب كشف الحساب:", err);
       } finally {
         setIsLoading(false);
       }
