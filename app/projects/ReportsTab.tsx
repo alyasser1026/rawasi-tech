@@ -22,12 +22,24 @@ import { buildEvmAnalysis, EVM_STATUS_META } from '@/lib/evmAnalysis';
 import DailyProjectReportSection from './DailyProjectReportSection';
 import AllProjectsReportEmbed from '../reports/AllProjectsReportEmbed';
 
+type ReportSubTab = 'all_projects' | 'milestones' | 'daily' | 'timeline' | 'visits' | 'evm' | 'subcontractors';
+
 interface ReportsTabProps {
   logic: any;
+  hideAllProjectsTab?: boolean;
+  initialSubTab?: ReportSubTab;
+  onOpenBoqReport?: () => void;
 }
 
-export default function ReportsTab({ logic }: ReportsTabProps) {
-  const [subTab, setSubTab] = useState<'all_projects' | 'milestones' | 'daily' | 'timeline' | 'visits' | 'evm' | 'subcontractors'>('all_projects');
+export default function ReportsTab({
+  logic,
+  hideAllProjectsTab = false,
+  initialSubTab,
+  onOpenBoqReport,
+}: ReportsTabProps) {
+  const [subTab, setSubTab] = useState<ReportSubTab>(
+    initialSubTab || (hideAllProjectsTab ? 'milestones' : 'all_projects')
+  );
   const [selectedDailyDate, setSelectedDailyDate] = useState<string>(() => localToday());
   const [isMilestoneModalOpen, setIsMilestoneModalOpen] = useState(false);
   const [editingMilestone, setEditingMilestone] = useState<any>(null);
@@ -312,27 +324,29 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
         boxShadow: 'var(--shadow-ambient)'
       }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-          <button
-            onClick={() => setSubTab('all_projects')}
-            style={{
-              padding: '0.625rem 1.125rem',
-              borderRadius: '12px',
-              border: 'none',
-              fontWeight: 900,
-              fontSize: 'var(--fs-sm)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s ease',
-              backgroundColor: subTab === 'all_projects' ? '#ea580c' : '#f8fafc',
-              color: subTab === 'all_projects' ? 'white' : '#475569',
-              boxShadow: subTab === 'all_projects' ? '0 4px 12px rgba(234, 88, 12, 0.3)' : 'none'
-            }}
-          >
-            <Building2 size={16} />
-            التقرير المالي الشامل لجميع المشاريع والحسابات
-          </button>
+          {!hideAllProjectsTab && (
+            <button
+              onClick={() => setSubTab('all_projects')}
+              style={{
+                padding: '0.625rem 1.125rem',
+                borderRadius: '12px',
+                border: 'none',
+                fontWeight: 900,
+                fontSize: 'var(--fs-sm)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.2s ease',
+                backgroundColor: subTab === 'all_projects' ? '#ea580c' : '#f8fafc',
+                color: subTab === 'all_projects' ? 'white' : '#475569',
+                boxShadow: subTab === 'all_projects' ? '0 4px 12px rgba(234, 88, 12, 0.3)' : 'none'
+              }}
+            >
+              <Building2 size={16} />
+              التقرير المالي الشامل لجميع المشاريع والحسابات
+            </button>
+          )}
 
           <button
             onClick={() => setSubTab('milestones')}
@@ -503,33 +517,58 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
           </button>
         </div>
 
-        {/* زر فتح مودال خيارات طباعة التقرير المجمع */}
-        <button
-          onClick={() => setIsPrintOptionsModalOpen(true)}
-          style={{
-            padding: '0.625rem 1.25rem',
-            borderRadius: '12px',
-            border: 'none',
-            fontWeight: 900,
-            fontSize: 'var(--fs-sm)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            backgroundColor: '#0f172a',
-            color: '#f8fafc',
-            boxShadow: '0 4px 15px rgba(15, 23, 42, 0.25)'
-          }}
-        >
-          <Printer size={16} />
-          خيارات وطباعة التقرير المجمع 🖨️
-        </button>
+        {/* أزرار التقارير التحليلية وطباعة التقرير المجمع */}
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          {onOpenBoqReport && (
+            <button
+              type="button"
+              onClick={onOpenBoqReport}
+              style={{
+                padding: '0.625rem 1.1rem',
+                borderRadius: '12px',
+                border: 'none',
+                fontWeight: 900,
+                fontSize: 'var(--fs-sm)',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                backgroundColor: '#1e293b',
+                color: '#f8fafc',
+                boxShadow: '0 4px 12px rgba(15, 23, 42, 0.2)'
+              }}
+            >
+              <FileText size={16} />
+              التقرير المالي والتحليلي للمقايسة (BOQ)
+            </button>
+          )}
+          <button
+            onClick={() => setIsPrintOptionsModalOpen(true)}
+            style={{
+              padding: '0.625rem 1.25rem',
+              borderRadius: '12px',
+              border: 'none',
+              fontWeight: 900,
+              fontSize: 'var(--fs-sm)',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: '#0f172a',
+              color: '#f8fafc',
+              boxShadow: '0 4px 15px rgba(15, 23, 42, 0.25)'
+            }}
+          >
+            <Printer size={16} />
+            خيارات وطباعة التقرير المجمع 🖨️
+          </button>
+        </div>
       </div>
 
       {/* =====================================================================
           التقرير المالي الشامل لجميع المشاريع والحسابات
           ===================================================================== */}
-      {subTab === 'all_projects' && <AllProjectsReportEmbed />}
+      {!hideAllProjectsTab && subTab === 'all_projects' && <AllProjectsReportEmbed />}
 
       {/* =====================================================================
           التقرير اليومي الشامل للمشروع

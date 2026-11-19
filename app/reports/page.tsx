@@ -8,7 +8,9 @@ import KpiStrip from '@/components/KpiStrip';
 import LoadingScreen from '@/components/LoadingScreen';
 import { formatCurrency } from '@/lib/helpers';
 import { buildDocumentFileName } from '@/lib/documentFileName';
+import { useCompany } from '@/lib/CompanyContext';
 import AllProjectsPrintModal from './AllProjectsPrintModal';
+import ProjectReportsHub from './ProjectReportsHub';
 import {
   ContractWaterfallChart,
   ProjectsPerformanceCharts,
@@ -21,6 +23,7 @@ import {
   ChevronLeft,
   DollarSign,
   FileSpreadsheet,
+  FolderKanban,
   HardHat,
   Layers,
   Printer,
@@ -32,7 +35,9 @@ import {
 } from 'lucide-react';
 
 export default function ReportsPage() {
+  const { activeCompanyId } = useCompany();
   const logic = useReportsLogic();
+  const [reportScope, setReportScope] = useState<'master' | 'project_reports'>('master');
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
@@ -206,8 +211,8 @@ export default function ReportsPage() {
   return (
     <div className="clean-page print-container">
       <MasterPage
-        title="التقرير المالي الشامل للمشاريع والحسابات"
-        subtitle="بيان تفصيلي وتراكمي لجميع الفلل، المقايسات، المصاريف، سندات القبض، سندات الصرف، الخامات، العمالة، والأرصدة المتبقية"
+        title="مركز التقارير المالية والهندسية الشامل"
+        subtitle="التقرير المالي المجمّع لجميع المشاريع والحسابات + كافة تقارير المشاريع التفصيلية (الدفعات، اليومي، جانت، الزيارات، EVM، المقايسات، والمقاولين)"
       >
         <RawasiSidebarManager
           actions={
@@ -455,7 +460,35 @@ export default function ReportsPage() {
           }
         `}</style>
 
-        {logic.isLoading || !d || !t ? (
+        {/* شريط التبديل بين التقرير المالي الشامل وتقارير المشاريع التفصيلية */}
+        <div className="rpt-tabs no-print" style={{ marginBottom: '1.15rem' }}>
+          <button
+            type="button"
+            onClick={() => setReportScope('master')}
+            className={`rpt-tab-btn ${reportScope === 'master' ? 'is-active' : ''}`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <Building2 size={16} aria-hidden="true" />
+            <span>التقرير المالي الشامل لجميع المشاريع والحسابات</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setReportScope('project_reports')}
+            className={`rpt-tab-btn ${reportScope === 'project_reports' ? 'is-active' : ''}`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <FolderKanban size={16} aria-hidden="true" />
+            <span>تقارير المشاريع التفصيلية (الدفعات • اليومي • جانت • الزيارات • EVM • المقايسة)</span>
+          </button>
+        </div>
+
+        {reportScope === 'project_reports' ? (
+          <ProjectReportsHub
+            key={activeCompanyId || 'default'}
+            selectedProjectId={logic.selectedProjectId}
+            onSelectProjectId={logic.setSelectedProjectId}
+          />
+        ) : logic.isLoading || !d || !t ? (
           <LoadingScreen message="جاري تجميع الحسابات والمصاريف والسندات لجميع المشاريع..." fullScreen={false} />
         ) : (
           <div>
