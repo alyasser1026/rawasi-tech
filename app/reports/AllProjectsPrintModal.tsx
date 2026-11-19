@@ -3,8 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { formatCurrency } from '@/lib/helpers';
 import { currencyCode, currencyName } from '@/lib/currency';
-import { buildDocumentFileName } from '@/lib/documentFileName';
-import { printReportElement } from '@/lib/printReportElement';
+import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import { DocNote, DocSection, DocSignatures, DocStats, DocTotals, PHI_DOC_CSS } from '@/components/PrintDocument';
@@ -80,16 +79,11 @@ export default function AllProjectsPrintModal({
   const totalLaborDays = d.projectsMatrix.reduce((s: number, p: any) => s + (Number(p.labor_days) || 0), 0);
 
   const handlePrintNow = () => {
-    const fileMeta = buildDocumentFileName({
+    printWithDocumentTitle({
       docType: 'التقرير_المالي_الشامل_للمشاريع_والحسابات',
       prefix: 'MASTER-FIN',
       subject: selectedProjectObj ? selectedProjectObj.Property : 'جميع_المشاريع',
       seedParts: [d.projectsMatrix.length, t.totalContractValue],
-    });
-    printReportElement('printable-all-projects-report', fileMeta.baseName, {
-      docType: 'التقرير_المالي_الشامل_للمشاريع_والحسابات',
-      prefix: 'MASTER-FIN',
-      subject: selectedProjectObj ? selectedProjectObj.Property : 'جميع_المشاريع',
     });
   };
 
@@ -239,10 +233,78 @@ export default function AllProjectsPrintModal({
         </div>
       </div>
 
+      <style>{PHI_DOC_CSS}</style>
+      <style>{`
+        @media print {
+          @page {
+            size: A4 landscape;
+            margin: 8mm 10mm;
+          }
+          html, body {
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            background-color: #ffffff !important;
+            background-image: none !important;
+            color: #0f172a !important;
+            overflow: visible !important;
+          }
+          body > *:not(.print-modal-overlay) {
+            display: none !important;
+          }
+          .no-print {
+            display: none !important;
+          }
+          .print-modal-overlay {
+            position: static !important;
+            inset: auto !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: #ffffff !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            display: block !important;
+            overflow: visible !important;
+            visibility: visible !important;
+          }
+          #printable-all-projects-report {
+            position: static !important;
+            display: block !important;
+            max-width: 100% !important;
+            width: 100% !important;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            border: 0 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            overflow: visible !important;
+            visibility: visible !important;
+            page-break-inside: auto !important;
+            break-inside: auto !important;
+          }
+          #printable-all-projects-report * {
+            visibility: visible !important;
+          }
+        }
+      `}</style>
+
       {/* 📄 الورقة الرسمية المطبوعة (محكمة داخل إطار A4 Landscape وقابلة للتمرير الكامل بالماوس) */}
       <div
         id="printable-all-projects-report"
-        className="print-page phi-doc phi-doc-page"
+        className="print-page phi-doc"
         onClick={(e) => e.stopPropagation()}
         style={{
           position: 'relative',
@@ -262,8 +324,6 @@ export default function AllProjectsPrintModal({
           direction: 'rtl',
         }}
       >
-        {/* تضمين كافة الستايلات داخل العنصر المطبوع لضمان تطابق المعاينة والـ Iframe والـ PDF بنسبة 100% */}
-        <style>{PHI_DOC_CSS}</style>
         <style>{`
           #printable-all-projects-report {
             font-family: 'Cairo', 'Tajawal', 'Segoe UI', Tahoma, sans-serif !important;
@@ -365,46 +425,6 @@ export default function AllProjectsPrintModal({
             gap: 10px !important;
             width: 100% !important;
             align-items: start !important;
-          }
-          @page {
-            size: A4 landscape;
-            margin: 8mm 10mm;
-          }
-          @media print {
-            html, body {
-              width: 100% !important;
-              height: auto !important;
-              margin: 0 !important;
-              padding: 0 !important;
-              background: #ffffff !important;
-              overflow: visible !important;
-            }
-            body > *:not(.print-modal-overlay) {
-              display: none !important;
-            }
-            .no-print {
-              display: none !important;
-            }
-            .print-modal-overlay {
-              position: static !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              background: #ffffff !important;
-              display: block !important;
-              overflow: visible !important;
-            }
-            #printable-all-projects-report {
-              page: auto !important;
-              max-width: 100% !important;
-              width: 100% !important;
-              min-height: 0 !important;
-              padding: 0 !important;
-              margin: 0 !important;
-              border: 0 !important;
-              border-radius: 0 !important;
-              box-shadow: none !important;
-              overflow: visible !important;
-            }
           }
         `}</style>
 

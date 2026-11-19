@@ -67,10 +67,9 @@ export function printReportElement(
     const iframe = document.createElement('iframe');
     iframe.id = 'phi-report-print-iframe';
     iframe.setAttribute('aria-hidden', 'true');
-    // Off-screen with real A4 landscape dimensions and full opacity so Chromium/Edge
-    // always computes full layout and never paints a 0x0 / opacity:0 blank frame.
+    // In-viewport behind UI so Chromium/Edge never culls off-screen iframes into blank print pages.
     iframe.style.cssText =
-      'position:fixed;left:-10000px;top:0;width:277mm;min-height:194mm;border:0;opacity:1;pointer-events:none;z-index:-1;background:#ffffff;';
+      'position:fixed;left:0;top:0;width:277mm;height:194mm;border:0;opacity:0.001;pointer-events:none;z-index:-9999;background:#ffffff;';
     document.body.appendChild(iframe);
 
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -81,6 +80,7 @@ export function printReportElement(
     }
 
     const clone = sourceEl.cloneNode(true) as HTMLElement;
+    clone.classList.add('phi-print-root');
     clone.removeAttribute('aria-hidden');
     clone.style.display = 'block';
     clone.style.visibility = 'visible';
@@ -150,11 +150,15 @@ export function printReportElement(
       direction: rtl !important;
       line-height: 1.4;
     }
-    body > * {
+    body > *,
+    body > .phi-print-root {
+      display: block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
       width: 100% !important;
       max-width: 100% !important;
       box-sizing: border-box !important;
-      overflow-x: hidden !important;
+      overflow-x: visible !important;
     }
     .no-print, .dossier-no-print {
       display: none !important;
