@@ -232,6 +232,25 @@ export const PHI_DOC_CSS = `
   .phi-doc-page { page:phi-doc-a4; box-sizing:border-box !important; position:static !important; width:auto !important; height:auto !important; min-height:276mm !important; margin:0 !important; padding:0 14mm !important; overflow:visible !important; box-shadow:none !important; border:0 !important; border-radius:0 !important; display:flex !important; flex-direction:column !important; break-inside:auto !important; page-break-inside:auto !important; }
 }
 
+@media screen {
+  .print-modal-overlay:has(.phi-doc) {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior: contain !important;
+  }
+  .print-modal-overlay > * {
+    flex-shrink: 0 !important;
+  }
+  .phi-doc-page, .print-page.phi-doc {
+    flex-shrink: 0 !important;
+    height: auto !important;
+    min-height: fit-content !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+}
+
 @media screen and (max-width: 760px) {
   .phi-doc-summary { grid-template-columns:1fr; }
   .phi-doc-stats { grid-template-columns:repeat(2, minmax(0,1fr)); }

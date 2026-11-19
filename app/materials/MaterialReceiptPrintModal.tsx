@@ -49,7 +49,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
     };
 
     return createPortal(
-        <div className="print-modal-overlay" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'var(--modal-scrim, rgba(5, 7, 11, 0.82))', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'flex', flexDirection: 'column', alignItems: 'center', overflowY: 'auto', padding: '32px 15px', direction: 'rtl' }}>
+        <div className="print-modal-overlay" onClick={onClose} style={{ position: 'fixed', inset: 0, zIndex: 999999, background: 'var(--modal-scrim, rgba(5, 7, 11, 0.82))', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', display: 'block', overflowY: 'auto', overflowX: 'hidden', WebkitOverflowScrolling: 'touch', overscrollBehavior: 'contain', padding: '24px 15px 48px', direction: 'rtl' }}>
             
             {/* 🖨️ ستايلات الطباعة والتصميم العصري */}
             <style dangerouslySetInnerHTML={{__html: `
@@ -101,7 +101,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
             <style>{PHI_DOC_CSS}</style>
 
             {/* 🖨️ أزرار التحكم */}
-            <div className="no-print" onClick={(e) => e.stopPropagation()} style={{ display: 'flex', gap: '12px', marginBottom: '20px', width: '100%', maxWidth: '800px' }}>
+            <div className="no-print" onClick={(e) => e.stopPropagation()} style={{ position: 'sticky', top: 0, zIndex: 30, display: 'flex', gap: '12px', margin: '0 auto 20px', width: '100%', maxWidth: '800px' }}>
                 <button onClick={handlePrintReceipt} style={{ flex: 1, padding: '14px 20px', background: 'var(--action-fill)', color: 'var(--action-ink)', border: 'none', borderRadius: '14px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-md)', boxShadow: '0 8px 24px -6px var(--accent-glow)', transition: '0.2s' }}>
                     طباعة إذن التوريد
                 </button>
@@ -111,7 +111,7 @@ export default function MaterialReceiptPrintModal({ isOpen, onClose, logic, rece
             </div>
 
             {/* 📄 ورقة الطباعة (Auto-fit on screen, A4 on print) */}
-            <div className="print-page phi-doc phi-doc-page" onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '95%', maxWidth: '800px', minHeight: 'fit-content', background: 'white', padding: '45px', borderRadius: '14px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', color: 'black', overflow: 'hidden' }}>
+            <div className="print-page phi-doc phi-doc-page" onClick={(e) => e.stopPropagation()} style={{ position: 'relative', width: '95%', maxWidth: '800px', height: 'auto', minHeight: 'fit-content', margin: '0 auto', background: 'white', padding: '45px', borderRadius: '14px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', color: 'black', overflow: 'visible' }}>
                 
                 {/* 1️⃣ الترويسة الرسمية الموحدة + بيانات الإذن */}
                 <ReportOfficialHeader

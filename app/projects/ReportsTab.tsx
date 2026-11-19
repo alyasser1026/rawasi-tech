@@ -2926,10 +2926,13 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 position: fixed;
                 inset: 0;
                 z-index: 999999;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                background-color: rgba(15, 23, 42, 0.75);
+                display: block;
+                overflow-y: auto;
+                overflow-x: hidden;
+                -webkit-overflow-scrolling: touch;
+                overscroll-behavior: contain;
+                padding: 16px 14px 48px;
+                background-color: rgba(15, 23, 42, 0.78);
                 backdrop-filter: blur(8px);
                 -webkit-backdrop-filter: blur(8px);
                 direction: rtl;
@@ -2939,17 +2942,21 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 border-radius: 20px;
                 width: 95%;
                 max-width: 75rem;
-                max-height: 92vh;
-                display: flex;
-                flex-direction: column;
-                overflow: hidden;
+                height: auto;
+                max-height: none;
+                margin: 0 auto;
+                display: block;
+                overflow: visible;
                 box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);
               }
               #printable-dossier {
                 padding: 1.5rem 1.75rem;
-                overflow-y: auto;
+                height: auto;
+                max-height: none;
+                overflow: visible;
                 color: #0f172a;
                 background: #ffffff;
+                border-radius: 0 0 20px 20px;
               }
             }
             @media print {
@@ -3033,6 +3040,10 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
           <div className="phi-dossier-card">
             {/* بار تحكم علوي يختفي بالطباعة */}
             <div className="dossier-no-print" style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 30,
+              borderRadius: '20px 20px 0 0',
               padding: '1rem 1.5rem',
               display: 'flex',
               justifyContent: 'space-between',
@@ -3120,7 +3131,6 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   width: 100% !important;
                   max-width: 100% !important;
                   box-sizing: border-box !important;
-                  overflow-x: hidden !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                 }

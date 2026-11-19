@@ -105,26 +105,30 @@ export default function AllProjectsPrintModal({
         background: 'rgba(15, 23, 42, 0.82)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        display: 'block',
         overflowY: 'auto',
-        padding: '20px 14px 36px',
+        overflowX: 'hidden',
+        WebkitOverflowScrolling: 'touch',
+        overscrollBehavior: 'contain',
+        padding: '16px 14px 48px',
         direction: 'rtl',
       }}
     >
-      {/* شريط التحكم العلوي في المعاينة (لا يظهر في الطباعة) */}
+      {/* شريط التحكم العلوي في المعاينة (ثابت بالأعلى أثناء النزول بالماوس ولا يظهر في الطباعة) */}
       <div
         className="no-print"
         onClick={(e) => e.stopPropagation()}
         style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 30,
           width: '100%',
           maxWidth: '277mm',
+          margin: '0 auto 14px',
           background: '#ffffff',
           border: '1px solid #cbd5e1',
           borderRadius: '14px',
           padding: '12px 16px',
-          marginBottom: '14px',
           boxShadow: '0 12px 32px rgba(0,0,0,0.28)',
           display: 'flex',
           flexDirection: 'column',
@@ -235,7 +239,7 @@ export default function AllProjectsPrintModal({
         </div>
       </div>
 
-      {/* 📄 الورقة الرسمية المطبوعة (محكمة داخل إطار A4 Landscape بدون أي خروج للنصوص) */}
+      {/* 📄 الورقة الرسمية المطبوعة (محكمة داخل إطار A4 Landscape وقابلة للتمرير الكامل بالماوس) */}
       <div
         id="printable-all-projects-report"
         className="print-page phi-doc phi-doc-page"
@@ -244,13 +248,17 @@ export default function AllProjectsPrintModal({
           position: 'relative',
           width: '100%',
           maxWidth: '277mm',
+          height: 'auto',
+          minHeight: 'fit-content',
+          maxHeight: 'none',
+          margin: '0 auto',
           background: '#ffffff',
           color: '#0f172a',
           padding: '10mm 11mm',
           borderRadius: '14px',
           boxShadow: '0 25px 50px -12px rgba(0,0,0,0.45)',
           boxSizing: 'border-box',
-          overflow: 'hidden',
+          overflow: 'visible',
           direction: 'rtl',
         }}
       >
