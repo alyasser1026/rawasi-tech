@@ -10,6 +10,13 @@ import { formatCurrency } from '@/lib/helpers';
 import { buildDocumentFileName } from '@/lib/documentFileName';
 import AllProjectsPrintModal from './AllProjectsPrintModal';
 import {
+  ContractWaterfallChart,
+  ProjectsPerformanceCharts,
+  WorkersContractorsChart,
+  CashFlowVouchersCharts,
+  CostStructureAndAbcCharts,
+} from './ReportExecutiveCharts';
+import {
   Building2,
   ChevronLeft,
   DollarSign,
@@ -511,6 +518,10 @@ export default function ReportsPage() {
               </div>
             </div>
 
+            {(logic.activeTab === 'all' || logic.activeTab === 'projects') && (
+              <ContractWaterfallChart reportData={d} variant="web" />
+            )}
+
             {/* تبويبات التقرير */}
             <div className="rpt-tabs no-print">
               {[
@@ -540,6 +551,7 @@ export default function ReportsPage() {
                     اضغط على أي فيلا لعرض تفاصيل البنود وأوامر الشغل واليوميات والخامات والمصاريف والسندات
                   </span>
                 </div>
+                <ProjectsPerformanceCharts reportData={d} variant="web" />
                 <table className="rpt-table">
                   <thead>
                     <tr>
@@ -866,6 +878,7 @@ export default function ReportsPage() {
                 <div className="rpt-section-title">
                   <h3>2. حسابات العمالة ومقاولي الباطن (المستحق • المنصرف • المتبقي)</h3>
                 </div>
+                <WorkersContractorsChart reportData={d} variant="web" />
                 <table className="rpt-table">
                   <thead>
                     <tr>
@@ -931,7 +944,9 @@ export default function ReportsPage() {
 
             {/* 3️⃣ جدول سندات القبض وسندات الصرف */}
             {(logic.activeTab === 'all' || logic.activeTab === 'vouchers') && (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(28rem, 1fr))', gap: '1.25rem' }}>
+              <div>
+                <CashFlowVouchersCharts reportData={d} variant="web" />
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(28rem, 1fr))', gap: '1.25rem' }}>
                 <div className="rpt-section-card">
                   <div className="rpt-section-title">
                     <h3>3. سجل سندات القبض ({d.receiptVouchers.length} سندات)</h3>
@@ -1004,6 +1019,7 @@ export default function ReportsPage() {
                     </tfoot>
                   </table>
                 </div>
+                </div>
               </div>
             )}
 
@@ -1014,6 +1030,7 @@ export default function ReportsPage() {
                   <h3>5. سجل المصاريف التشغيلية وتوزيعها على الفلل ({d.expenses.length} مصروفاً)</h3>
                   <strong style={{ color: 'var(--accent-ink)' }}>{formatCurrency(t.totalExpensesAmount)}</strong>
                 </div>
+                <CostStructureAndAbcCharts reportData={d} variant="web" />
                 <table className="rpt-table">
                   <thead>
                     <tr>

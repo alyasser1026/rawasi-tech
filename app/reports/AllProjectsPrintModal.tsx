@@ -7,6 +7,13 @@ import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import ReportContactFooter from '@/components/ReportContactFooter';
 import { DocNote, DocSection, DocSignatures, DocStats, DocTotals, PHI_DOC_CSS } from '@/components/PrintDocument';
+import {
+  ContractWaterfallChart,
+  ProjectsPerformanceCharts,
+  WorkersContractorsChart,
+  CashFlowVouchersCharts,
+  CostStructureAndAbcCharts,
+} from './ReportExecutiveCharts';
 import { CheckSquare, Printer, Square, X } from 'lucide-react';
 
 interface AllProjectsPrintModalProps {
@@ -27,6 +34,7 @@ export default function AllProjectsPrintModal({
   const [mounted, setMounted] = useState(false);
   const [sections, setSections] = useState({
     kpis: true,
+    charts: true,
     projectsMatrix: true,
     projectDetails: true,
     workersAndContractors: true,
@@ -198,6 +206,7 @@ export default function AllProjectsPrintModal({
           <span style={{ fontSize: '11px', fontWeight: 900, color: '#475569', marginLeft: '4px' }}>أقسام الطباعة:</span>
           {[
             { key: 'kpis', label: 'المؤشرات المالية' },
+            { key: 'charts', label: 'الرسوم البيانية (Charts)' },
             { key: 'projectsMatrix', label: 'مصفوفة المشاريع (الفلل)' },
             { key: 'projectDetails', label: 'تفصيل حركات الفلل' },
             { key: 'workersAndContractors', label: 'العمالة والمقاولين' },
@@ -681,6 +690,7 @@ export default function AllProjectsPrintModal({
             ]}
           />
         )}
+        {sections.kpis && sections.charts && <ContractWaterfallChart reportData={d} variant="print" />}
 
         {/* 3️⃣ القسم الأول: مصفوفة حسابات المشاريع (الفلل) والأرباح المتوقعة والفعلية ومعامل الانحراف */}
         {sections.projectsMatrix && (
@@ -904,6 +914,7 @@ export default function AllProjectsPrintModal({
                 </tr>
               </tfoot>
             </table>
+            {sections.charts && <ProjectsPerformanceCharts reportData={d} variant="print" />}
           </div>
         )}
 
@@ -1195,12 +1206,14 @@ export default function AllProjectsPrintModal({
                 </tr>
               </tfoot>
             </table>
+            {sections.charts && <WorkersContractorsChart reportData={d} variant="print" />}
           </div>
         )}
 
         {/* 5️⃣ القسم الثالث والرابع: سجل سندات القبض وسجل سندات الصرف */}
         {sections.vouchers && (
-          <div className="phi-vouchers-two-col">
+          <>
+            <div className="phi-vouchers-two-col">
             <div>
               <DocSection
                 title={`3. سجل سندات القبض (${d.receiptVouchers.length} سندات)`}
@@ -1287,7 +1300,9 @@ export default function AllProjectsPrintModal({
                 </tfoot>
               </table>
             </div>
-          </div>
+            </div>
+            {sections.charts && <CashFlowVouchersCharts reportData={d} variant="print" />}
+          </>
         )}
 
         {/* 6️⃣ القسم الخامس: سجل المصاريف التشغيلية وتوزيعها على الفلل (ABC) */}
@@ -1333,6 +1348,7 @@ export default function AllProjectsPrintModal({
                 </tr>
               </tfoot>
             </table>
+            {sections.charts && <CostStructureAndAbcCharts reportData={d} variant="print" />}
           </div>
         )}
 

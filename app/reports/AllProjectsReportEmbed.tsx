@@ -6,6 +6,13 @@ import LoadingScreen from '@/components/LoadingScreen';
 import { formatCurrency } from '@/lib/helpers';
 import { buildDocumentFileName } from '@/lib/documentFileName';
 import AllProjectsPrintModal from './AllProjectsPrintModal';
+import {
+  ContractWaterfallChart,
+  ProjectsPerformanceCharts,
+  WorkersContractorsChart,
+  CashFlowVouchersCharts,
+  CostStructureAndAbcCharts,
+} from './ReportExecutiveCharts';
 import { ChevronLeft, FileSpreadsheet, Printer, RefreshCw } from 'lucide-react';
 
 export default function AllProjectsReportEmbed() {
@@ -400,11 +407,14 @@ export default function AllProjectsReportEmbed() {
         </div>
       </div>
 
+      <ContractWaterfallChart reportData={d} variant="web" />
+
       {/* 1. جدول حسابات المشاريع (الفلل) */}
       <div className="embed-rpt-section">
         <h4 style={{ margin: '0 0 0.85rem', fontWeight: 900, color: 'var(--text-primary)' }}>
           1. مصفوفة حسابات المشاريع (الفلل) والتكاليف والمبلغ المستلم غير شامل ضمان الأعمال (اضغط على الفيلا للتفاصيل)
         </h4>
+        <ProjectsPerformanceCharts reportData={d} variant="web" />
         <table className="embed-rpt-table">
           <thead>
             <tr>
@@ -723,6 +733,7 @@ export default function AllProjectsReportEmbed() {
         <h4 style={{ margin: '0 0 0.85rem', fontWeight: 900, color: 'var(--text-primary)' }}>
           2. حسابات العمالة ومقاولي الباطن (المستحق • المدفوع • المتبقي)
         </h4>
+        <WorkersContractorsChart reportData={d} variant="web" />
         <table className="embed-rpt-table">
           <thead>
             <tr>
@@ -775,6 +786,7 @@ export default function AllProjectsReportEmbed() {
       </div>
 
       {/* 3. سندات القبض وسندات الصرف */}
+      <CashFlowVouchersCharts reportData={d} variant="web" />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(26rem, 1fr))', gap: '1.25rem' }}>
         <div className="embed-rpt-section">
           <h4 style={{ margin: '0 0 0.85rem', fontWeight: 900, color: 'var(--text-primary)' }}>
@@ -853,6 +865,7 @@ export default function AllProjectsReportEmbed() {
         <h4 style={{ margin: '0 0 0.85rem', fontWeight: 900, color: 'var(--text-primary)' }}>
           5. سجل المصاريف التشغيلية وتوزيعها على الفلل ({d.expenses.length} مصروفاً — {formatCurrency(t.totalExpensesAmount)})
         </h4>
+        <CostStructureAndAbcCharts reportData={d} variant="web" />
         <table className="embed-rpt-table">
           <thead>
             <tr>
