@@ -32,6 +32,7 @@ const ROUTE_MODULE_MAP: Record<string, string> = {
   '/invoices': 'invoices',
   '/fieldops': 'fieldops',
   '/projects': 'projects',
+  '/requests-handovers': 'projects',
   '/materials': 'materials',
   '/materialitems': 'materialitems',
   '/material_issues': 'material_issues',

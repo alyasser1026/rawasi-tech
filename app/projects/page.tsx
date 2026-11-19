@@ -23,6 +23,7 @@ import ExpensesTab from './ExpensesTab'; // 👈 استدعاء تاب المص�
 import BimTab from './BimTab'; // 👈 استدعاء تاب النماذج ثلاثية الأبعاد BIM
 import ReportsTab from './ReportsTab'; // 👈 استدعاء تاب التقارير الهندسية والمالية الشاملة
 import AllProjectsReportEmbed from '../reports/AllProjectsReportEmbed';
+import RequestsHandoversView from '../requests-handovers/RequestsHandoversView';
 import LoadingScreen from '@/components/LoadingScreen';
 import { Activity, Building2, CirclePause, Layers, TriangleAlert, HardHat, Phone, Handshake, ChevronLeft, CheckCircle2, Clock, User, Home, ArrowUpRight, FileText } from 'lucide-react';
 import KpiStrip from '@/components/KpiStrip';
@@ -677,6 +678,7 @@ export default function AdvancedProjectsPage() {
                   <TabButton active={logic.activeTab === 'expenses'} onClick={() => logic.setActiveTab('expenses')} text="المصروفات المباشرة" />
                   <TabButton active={logic.activeTab === 'materials'} onClick={() => logic.setActiveTab('materials')} text="الخامات المسحوبة" />
                   <TabButton active={logic.activeTab === 'financials'} onClick={() => logic.setActiveTab('financials')} text="المستخلصات والماليات" />
+                  <TabButton active={logic.activeTab === 'requests_handovers'} onClick={() => logic.setActiveTab('requests_handovers')} text="الركوستات والتسليمات 📋" />
                   <TabButton active={logic.activeTab === 'qc'} onClick={() => logic.setActiveTab('qc')} text="الشوب دروينج والزيارات الميدانية 📐" />
                   <TabButton active={logic.activeTab === 'gallery'} onClick={() => logic.setActiveTab('gallery')} text="معرض صور الزيارات (للعميل) 📷" />
                   <TabButton active={logic.activeTab === 'bim'} onClick={() => logic.setActiveTab('bim')} text="النموذج الهندسي 3D BIM 🏛️" />
@@ -689,6 +691,13 @@ export default function AdvancedProjectsPage() {
                 {logic.activeTab === 'expenses' && <ExpensesTab logic={logic} />} {/* 👈 تاب المصروفات الجديد */}
                 {logic.activeTab === 'materials' && <MaterialsTab logic={logic} />}
                 {logic.activeTab === 'financials' && <FinancialsTab logic={logic} />}
+                {logic.activeTab === 'requests_handovers' && (
+                  <RequestsHandoversView
+                    lockedProjectId={logic.selectedProject?.id ? String(logic.selectedProject.id) : undefined}
+                    lockedProjectName={String(logic.selectedProject?.Property || logic.selectedProject?.project_name || '')}
+                    embeddedInProject
+                  />
+                )}
                 {logic.activeTab === 'qc' && <QcTab logic={logic} />}
                 {logic.activeTab === 'gallery' && <VisitGalleryTab logic={logic} />}
                 {logic.activeTab === 'bim' && <BimTab logic={logic} />}

@@ -6,6 +6,7 @@ import { SMART_BUNDLES, type WebsiteProduct, type WebsiteProperty } from './stor
 import { PORTAL_SECTIONS, type SectionSlug } from './section-defs';
 import NewsTicker from './NewsTicker';
 import { DEFAULT_NEWS_TICKER, type NewsTickerConfig } from './site-content';
+import PanoramicStructureScroll from './PanoramicStructureScroll';
 
 interface HomePortalSectionsProps {
   products: WebsiteProduct[];
@@ -127,48 +128,12 @@ export default function HomePortalSections({
       onPointerMove={handleStagePointerMove}
       onPointerLeave={(e) => resetStagePointer(e.currentTarget)}
     >
-      {/* مشهد البانوراما الافتتاحي من تحت الهيدر الشفاف مباشرة بدون أي حاويات */}
+      {/* مشهد البانوراما الافتتاحي: صورة بانورامية يتجمع فوقها الهيكل الخرساني لأعلى مع السكرول ثم تترص الخامات بجواره */}
       <section id="portals" className="pw-portal-gateway" aria-labelledby="portals-heading">
-        <div className="pw-split-backdrop" aria-hidden="true">
-          <img
-            src="/sections/panorama.jpg"
-            alt="منظومة فاي تك المعمارية المتكاملة"
-            width={1600}
-            height={900}
-            loading="eager"
-            decoding="async"
-            className="pw-split-bg-base"
-          />
-          <div className="pw-split-scrim" />
-          <div className="pw-split-cursor-glow" />
-        </div>
-
-        <div className="pw-wrap pw-panoramic-top-overlay">
-          <NewsTicker config={newsTicker} />
-
-          <div className="pw-panoramic-floating-hero">
-            <div className="pw-panoramic-eyebrow-row">
-              <p className="pw-eyebrow" style={{ marginBottom: 0 }}>فاي تك للمقاولات والتوريدات · جولة معمارية</p>
-              {onReplayLogoMotion && (
-                <button
-                  type="button"
-                  onClick={onReplayLogoMotion}
-                  className="pw-motion-replay-btn"
-                  title="إعادة عرض موشن شعار فاي تك"
-                >
-                  <span>✨</span>
-                  <span>عرض موشن الشعار</span>
-                </button>
-              )}
-            </div>
-            <h1 id="portals-heading" className="pw-portal-main-h1">
-              انزل بالسكرول لاستكشاف الأقسام
-            </h1>
-            <p className="pw-panoramic-sub">
-              لكل قسم صورته الخاصة ولمحة سريعة تظهر تلقائياً مع السكرول — اضغط على أي قسم للدخول المباشر.
-            </p>
-          </div>
-        </div>
+        <PanoramicStructureScroll
+          onReplayLogoMotion={onReplayLogoMotion}
+          newsComponent={<NewsTicker config={newsTicker} />}
+        />
 
         {/* الأقسام الستة: لكل قسم صورته الكاملة الخاصة به + هنت عائم يميناً ويساراً بدون أي حاويات أو صناديق */}
         <div className={`pw-split-cols ${activeSlug ? 'has-active' : ''}`}>
