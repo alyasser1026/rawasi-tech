@@ -160,18 +160,20 @@ export default function PanoramicStructureScroll({ containerRef }: PanoramicStru
   const [hudProgress, setHudProgress] = useState(0);
   const [useFallback, setUseFallback] = useState(false);
 
-  // حساب نسبة السكرول عبر كامل قسم #portals (الأقسام الستة + الهيرو)
+  // حساب نسبة السكرول من أول الصفحة بالكامل حتى آخر الصفحة
   useEffect(() => {
     let rafId = 0;
     const computeScroll = () => {
-      const targetEl =
-        containerRef?.current ||
-        (typeof document !== 'undefined' ? document.getElementById('portals') : null);
-      if (!targetEl) return;
-      const rect = targetEl.getBoundingClientRect();
       const vh = window.innerHeight || 900;
-      const totalScrollable = Math.max(1, rect.height - vh);
-      const traveled = -rect.top;
+      const docEl = document.documentElement;
+      const bodyEl = document.body;
+      const totalHeight = Math.max(
+        docEl?.scrollHeight || 0,
+        bodyEl?.scrollHeight || 0,
+        vh + 1
+      );
+      const totalScrollable = Math.max(1, totalHeight - vh);
+      const traveled = window.scrollY || window.pageYOffset || 0;
       const p = clamp(traveled / totalScrollable, 0, 1);
       scrollProgressRef.current = p;
       setHudProgress(Math.round(p * 100));
@@ -232,7 +234,7 @@ export default function PanoramicStructureScroll({ containerRef }: PanoramicStru
       try {
         renderer = new THREE.WebGLRenderer({
           antialias: true,
-          alpha: false,
+          alpha: true,
           powerPreference: 'high-performance',
         });
       } catch {
@@ -245,8 +247,8 @@ export default function PanoramicStructureScroll({ containerRef }: PanoramicStru
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.12;
-      renderer.setClearColor(0x070d17, 1);
+      renderer.toneMappingExposure = 1.18;
+      renderer.setClearColor(0x000000, 0);
 
       host.innerHTML = '';
       host.appendChild(renderer.domElement);
@@ -255,17 +257,16 @@ export default function PanoramicStructureScroll({ containerRef }: PanoramicStru
       renderer.domElement.style.height = '100%';
 
       const scene = new THREE.Scene();
-      scene.fog = new THREE.FogExp2(0x080f1c, 0.0155);
 
       const pmremGenerator = new THREE.PMREMGenerator(renderer);
       const envTexture = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
       scene.environment = envTexture;
 
       const camera = new THREE.PerspectiveCamera(
-        38,
+        40,
         (host.clientWidth || window.innerWidth) / Math.max(1, host.clientHeight || window.innerHeight),
         0.2,
-        220
+        240
       );
 
       // الإضاءة الواقعية (شمس غروب معمارية + إضاءة سماء + إضاءة دافئة للتشطيب)
@@ -315,8 +316,10 @@ export default function PanoramicStructureScroll({ containerRef }: PanoramicStru
 
       const matGround = new THREE.MeshStandardMaterial({
         color: 0x0f172a,
-        roughness: 0.92,
-        metalness: 0.05,
+        roughness: 0.9,
+        metalness: 0.08,
+        transparent: true,
+        opacity: 0.55,
       });
 
       const matConcrete = new THREE.MeshStandardMaterial({
@@ -1105,7 +1108,28 @@ export default function PanoramicStructureScroll({ containerRef }: PanoramicStru
         background: '#070d17',
       }}
     >
-      {/* مسرح الـ 3D الواقعي الكامل في الخلفية */}
+      {/* الصورة البانورامية الممتدة من أول الصفحة لآخر الصفحة كخلفية بانورامية شاملة */}
+      <img
+        src="/sections/panorama.jpg"
+        alt="بانوراما فاي تك المعمارية من أول الصفحة لآخرها"
+        width={1920}
+        height={1080}
+        loading="eager"
+        decoding="async"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          objectPosition: `50% ${42 + hudProgress * 0.14}%`,
+          transform: `scale(${1.03 + hudProgress * 0.0007})`,
+          filter: 'brightness(0.58) contrast(1.08) saturate(1.12)',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* مسرح الـ 3D الواقعي الكامل (الأعمدة الخرسانية + الخامات + تشطيب الفيلا) فوق البانوراما من أول الصفحة لآخرها */}
       <div
         ref={hostRef}
         style={{

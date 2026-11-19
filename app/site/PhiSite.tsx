@@ -163,9 +163,8 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           onReplayLogoMotion={() => setIntroReplayCount((n) => n + 1)}
         />
 
-        {/* قسم التواصل في مكانه المباشر على الصفحة اللؤلؤية بدلاً من كتلة الفلسفة */}
+        {/* قسم التواصل فوق الخلفية البانورامية الممتدة من أول الصفحة لآخرها */}
         <section id="contact" className="pw-hero pw-hero-pearl pw-section pw-tint">
-          <HeroVideoBackdrop variant="showcase-left" tone="light" controlsMode="none" onControlsReady={setHeroControls} />
           <div className={`pw-wrap pw-hero-grid ${waDigits || c.email ? '' : 'is-solo'}`} id="hero-content">
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <div className="pw-head" style={{ margin: '0 0 22px', maxWidth: 'none', textAlign: 'start' }}>
