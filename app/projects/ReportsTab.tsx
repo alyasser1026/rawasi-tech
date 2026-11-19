@@ -3141,7 +3141,9 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   max-width: 100% !important;
                   table-layout: fixed !important;
                   border-collapse: collapse !important;
-                  border: 1.5px solid #94a3b8 !important;
+                  border: 0 !important;
+                  border-radius: 10px !important;
+                  overflow: hidden !important;
                   background: #ffffff !important;
                   margin-bottom: 1rem !important;
                   word-wrap: break-word !important;
@@ -3156,6 +3158,10 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 #printable-dossier tr {
                   page-break-inside: avoid !important;
                   break-inside: avoid !important;
+                  border: 0 !important;
+                }
+                #printable-dossier thead tr {
+                  background: linear-gradient(90deg, #0f172a 0%, #1e293b 65%, #334155 100%) !important;
                 }
                 #printable-dossier thead th {
                   position: static !important;
@@ -3163,22 +3169,21 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   z-index: auto !important;
                   backdrop-filter: none !important;
                   -webkit-backdrop-filter: none !important;
-                  background: #0f172a !important;
+                  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
                   color: #ffffff !important;
                   font-weight: 900 !important;
                   font-size: 10px !important;
-                  padding: 6px 6px !important;
-                  border: 1px solid #334155 !important;
-                  border-bottom: 2.5px solid #ea580c !important;
+                  padding: 7px 6px !important;
+                  border: 0 !important;
                   line-height: 1.35 !important;
                   white-space: normal !important;
                   word-wrap: break-word !important;
                   overflow-wrap: break-word !important;
                 }
-                #printable-dossier tbody tr:nth-child(even) {
-                  background-color: #f8fafc !important;
+                #printable-dossier tbody tr:nth-child(even) td {
+                  background-color: #f1f5f9 !important;
                 }
-                #printable-dossier tbody tr:nth-child(odd) {
+                #printable-dossier tbody tr:nth-child(odd) td {
                   background-color: #ffffff !important;
                 }
                 #printable-dossier tbody td {
@@ -3186,37 +3191,46 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   font-size: 10px !important;
                   font-weight: 700 !important;
                   padding: 6px 6px !important;
-                  border: 1px solid #cbd5e1 !important;
+                  border: 0 !important;
                   line-height: 1.35 !important;
                   vertical-align: middle !important;
                   white-space: normal !important;
                   word-wrap: break-word !important;
                   overflow-wrap: break-word !important;
                 }
-                #printable-dossier tfoot tr,
+                #printable-dossier tfoot tr {
+                  background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 55%, #fef3c7 100%) !important;
+                }
                 #printable-dossier tfoot td {
-                  background: #f1f5f9 !important;
+                  background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%) !important;
                   color: #0f172a !important;
                   font-weight: 900 !important;
                   font-size: 10px !important;
-                  padding: 6px 6px !important;
-                  border: 1.5px solid #64748b !important;
+                  padding: 7px 6px !important;
+                  border: 0 !important;
                   white-space: normal !important;
                   word-wrap: break-word !important;
                   overflow-wrap: break-word !important;
                 }
                 #printable-dossier h3 {
-                  background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%) !important;
-                  border: 1px solid #cbd5e1 !important;
-                  border-right: 4px solid #ea580c !important;
-                  border-radius: 6px !important;
-                  padding: 6px 12px !important;
+                  background: linear-gradient(270deg, #fff7ed 0%, #f1f5f9 65%, #f8fafc 100%) !important;
+                  border: 0 !important;
+                  border-radius: 8px !important;
+                  padding: 7px 12px !important;
                   color: #0f172a !important;
-                  font-size: 13.5px !important;
+                  font-size: 13px !important;
                   font-weight: 900 !important;
                   margin-bottom: 0.65rem !important;
                   page-break-after: avoid !important;
                   break-after: avoid !important;
+                }
+                #printable-dossier .phi-orh,
+                #printable-dossier .phi-orh *,
+                #printable-dossier .report-contact-footer,
+                #printable-dossier .dossier-keep-together,
+                #printable-dossier .dossier-keep-together > div,
+                #printable-dossier .dossier-keep-together > div > div {
+                  border: 0 !important;
                 }
                 @media print {
                   html, body {

@@ -401,10 +401,11 @@ export default function ReportsPage() {
           @media print {
             @page { size: A4 landscape; margin: 8mm 10mm; }
             .no-print { display: none !important; }
-            .rpt-section-card, .rpt-kpi-card { background: #fff !important; color: #0f172a !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; overflow: visible !important; padding: 0.5rem !important; }
-            .rpt-table { min-width: 0 !important; width: 100% !important; max-width: 100% !important; table-layout: fixed !important; font-size: 9px !important; }
-            .rpt-table th { background: #0f172a !important; color: #fff !important; border: 1px solid #334155 !important; white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 4px 3px !important; font-size: 9px !important; }
-            .rpt-table td { color: #0f172a !important; border: 1px solid #cbd5e1 !important; white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 4px 3px !important; font-size: 9px !important; }
+            .rpt-section-card, .rpt-kpi-card { background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important; color: #0f172a !important; box-shadow: none !important; border: 0 !important; overflow: visible !important; padding: 0.5rem !important; }
+            .rpt-table { min-width: 0 !important; width: 100% !important; max-width: 100% !important; table-layout: fixed !important; border: 0 !important; font-size: 9px !important; }
+            .rpt-table th { background: #1e293b !important; color: #fff !important; border: 0 !important; white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 5px 3px !important; font-size: 9px !important; }
+            .rpt-table td { color: #0f172a !important; border: 0 !important; white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 5px 3px !important; font-size: 9px !important; }
+            .rpt-table tbody tr:nth-child(even) td { background: #f1f5f9 !important; }
           }
         `}</style>
 

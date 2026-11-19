@@ -226,9 +226,11 @@ export default function AllProjectsReportEmbed() {
         @media print {
           @page { size: A4 landscape; margin: 8mm 10mm; }
           .no-print { display: none !important; }
-          .embed-rpt-section { overflow: visible !important; padding: 0.5rem !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; background: #fff !important; }
-          .embed-rpt-table { min-width: 0 !important; width: 100% !important; max-width: 100% !important; table-layout: fixed !important; font-size: 9px !important; }
-          .embed-rpt-table th, .embed-rpt-table td { white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 4px 3px !important; font-size: 9px !important; }
+          .embed-rpt-section { overflow: visible !important; padding: 0.5rem !important; box-shadow: none !important; border: 0 !important; background: #fff !important; }
+          .embed-rpt-table { min-width: 0 !important; width: 100% !important; max-width: 100% !important; table-layout: fixed !important; border: 0 !important; font-size: 9px !important; }
+          .embed-rpt-table th { background: #1e293b !important; color: #fff !important; border: 0 !important; white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 5px 3px !important; font-size: 9px !important; }
+          .embed-rpt-table td { border: 0 !important; white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 5px 3px !important; font-size: 9px !important; }
+          .embed-rpt-table tbody tr:nth-child(even) td { background: #f1f5f9 !important; }
         }
       `}</style>
 

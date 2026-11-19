@@ -126,7 +126,9 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
             #printable-report table {
               width: 100% !important;
               border-collapse: collapse !important;
-              border: 1.5px solid #94a3b8 !important;
+              border: 0 !important;
+              border-radius: 10px !important;
+              overflow: hidden !important;
               background: #ffffff !important;
             }
             #printable-report thead {
@@ -138,29 +140,38 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
             #printable-report tr {
               page-break-inside: avoid !important;
               break-inside: avoid !important;
+              border: 0 !important;
+            }
+            #printable-report thead tr {
+              background: linear-gradient(90deg, #0f172a 0%, #1e293b 65%, #334155 100%) !important;
             }
             #printable-report thead th {
               position: static !important;
               top: auto !important;
               backdrop-filter: none !important;
               -webkit-backdrop-filter: none !important;
-              background: #0f172a !important;
+              background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
               color: #ffffff !important;
               font-weight: 900 !important;
               font-size: 11px !important;
               padding: 8px 10px !important;
-              border: 1px solid #334155 !important;
-              border-bottom: 2.5px solid #ea580c !important;
+              border: 0 !important;
             }
-            #printable-report tbody tr:nth-child(even) {
-              background-color: #f8fafc !important;
+            #printable-report tbody tr:nth-child(even) td {
+              background-color: #f1f5f9 !important;
+            }
+            #printable-report tbody tr:nth-child(odd) td {
+              background-color: #ffffff !important;
             }
             #printable-report tbody td {
               color: #0f172a;
               font-size: 11px !important;
               font-weight: 700 !important;
               padding: 7px 10px !important;
-              border: 1px solid #cbd5e1 !important;
+              border: 0 !important;
+            }
+            #printable-report div {
+              border: 0 !important;
             }
             @media print {
               html, body {

@@ -339,12 +339,91 @@ export default function AllProjectsPrintModal({
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+
+          /* إزالة جميع الحدود من الترويسة والكونتينرات والبطاقات والاعتماد على تدرج واختلاف الألوان فقط */
+          #printable-all-projects-report .phi-orh {
+            border: 0 !important;
+            border-radius: 14px !important;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+            margin-bottom: 12px !important;
+          }
+          #printable-all-projects-report .phi-orh-brand,
+          #printable-all-projects-report .phi-orh-verify,
+          #printable-all-projects-report .phi-orh-qr,
+          #printable-all-projects-report .phi-orh-details,
+          #printable-all-projects-report .phi-orh-cell,
+          #printable-all-projects-report .phi-orh-foot {
+            border: 0 !important;
+          }
+          #printable-all-projects-report .phi-orh-qr {
+            background: #ffffff !important;
+            border-radius: 10px !important;
+            padding: 6px !important;
+          }
+          #printable-all-projects-report .phi-orh-details {
+            background: linear-gradient(270deg, #fff7ed 0%, #f8fafc 50%, #f1f5f9 100%) !important;
+            margin: 0 !important;
+            gap: 2px !important;
+          }
+          #printable-all-projects-report .phi-orh-cell {
+            background: rgba(255, 255, 255, 0.55) !important;
+          }
+          #printable-all-projects-report .phi-orh-foot {
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 65%, #334155 100%) !important;
+            color: #e2e8f0 !important;
+          }
+          #printable-all-projects-report .phi-orh-foot b {
+            color: #fdba74 !important;
+          }
+
+          /* شريط المؤشرات بدون حدود - تدرجات ألوان ناعمة */
+          #printable-all-projects-report .phi-doc-stats {
+            gap: 8px !important;
+            margin: 0 0 12px 0 !important;
+          }
+          #printable-all-projects-report .phi-doc-stats > div {
+            border: 0 !important;
+            border-radius: 10px !important;
+            background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%) !important;
+            padding: 8px 10px !important;
+          }
+          #printable-all-projects-report .phi-doc-stats > div.is-highlight {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #334155 100%) !important;
+          }
+          #printable-all-projects-report .phi-doc-stats > div.is-positive {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%) !important;
+          }
+          #printable-all-projects-report .phi-doc-stats > div.is-warn {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%) !important;
+          }
+          #printable-all-projects-report .phi-doc-stats > div.is-tax {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%) !important;
+          }
+          #printable-all-projects-report .phi-doc-stats > div.is-discount {
+            background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%) !important;
+          }
+
+          /* عناوين الأقسام بدون خطوط - شريط متدرج */
+          #printable-all-projects-report .phi-doc-section {
+            margin: 12px 0 7px !important;
+            padding: 6px 10px !important;
+            border-radius: 8px !important;
+            background: linear-gradient(270deg, #fff7ed 0%, #f1f5f9 65%, #f8fafc 100%) !important;
+          }
+          #printable-all-projects-report .phi-doc-section::after {
+            display: none !important;
+          }
+
+          /* الجداول بدون أي حدود للخانات أو الإطار - تباين وتدرج ألوان فقط */
+          #printable-all-projects-report table,
           #printable-all-projects-report .phi-master-table {
             width: 100% !important;
             max-width: 100% !important;
             table-layout: fixed !important;
             border-collapse: collapse !important;
-            border: 1.5px solid #94a3b8 !important;
+            border: 0 !important;
+            border-radius: 10px !important;
+            overflow: hidden !important;
             margin: 0 0 12px 0 !important;
             background: #ffffff !important;
             font-size: 9.5px !important;
@@ -359,15 +438,18 @@ export default function AllProjectsPrintModal({
           #printable-all-projects-report .phi-master-table tr {
             break-inside: avoid !important;
             page-break-inside: avoid !important;
+            border: 0 !important;
+          }
+          #printable-all-projects-report .phi-master-table thead tr {
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 65%, #334155 100%) !important;
           }
           #printable-all-projects-report .phi-master-table thead th {
-            background: #0f172a !important;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
             color: #ffffff !important;
             font-weight: 900 !important;
             font-size: 9.5px !important;
-            padding: 6px 4px !important;
-            border: 1px solid #334155 !important;
-            border-bottom: 2px solid #ea580c !important;
+            padding: 7px 4px !important;
+            border: 0 !important;
             text-align: center !important;
             vertical-align: middle !important;
             white-space: normal !important;
@@ -375,8 +457,8 @@ export default function AllProjectsPrintModal({
             overflow-wrap: break-word !important;
           }
           #printable-all-projects-report .phi-master-table tbody td {
-            padding: 5px 4px !important;
-            border: 1px solid #cbd5e1 !important;
+            padding: 6px 4px !important;
+            border: 0 !important;
             color: #0f172a !important;
             font-weight: 700 !important;
             font-size: 9.5px !important;
@@ -388,19 +470,21 @@ export default function AllProjectsPrintModal({
             overflow-wrap: break-word !important;
           }
           #printable-all-projects-report .phi-master-table tbody tr:nth-child(even) td {
-            background: #f8fafc !important;
+            background: #f1f5f9 !important;
           }
           #printable-all-projects-report .phi-master-table tbody tr:nth-child(odd) td {
             background: #ffffff !important;
           }
+          #printable-all-projects-report .phi-master-table tfoot tr {
+            background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 55%, #fef3c7 100%) !important;
+          }
           #printable-all-projects-report .phi-master-table tfoot td {
-            background: #f1f5f9 !important;
+            background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%) !important;
             color: #0f172a !important;
             font-weight: 900 !important;
             font-size: 9.5px !important;
-            padding: 6px 4px !important;
-            border: 1px solid #64748b !important;
-            border-top: 2px solid #0f172a !important;
+            padding: 7px 4px !important;
+            border: 0 !important;
             text-align: center !important;
             vertical-align: middle !important;
             font-variant-numeric: tabular-nums !important;
@@ -411,8 +495,52 @@ export default function AllProjectsPrintModal({
           #printable-all-projects-report .phi-master-table th.is-right,
           #printable-all-projects-report .phi-master-table td.is-right {
             text-align: right !important;
-            padding-right: 6px !important;
+            padding-right: 7px !important;
           }
+
+          /* كروت التفاصيل والإجماليات والتوقيعات بدون حدود */
+          #printable-all-projects-report .phi-doc-note {
+            border: 0 !important;
+            border-radius: 10px !important;
+            background: linear-gradient(135deg, #fff7ed 0%, #f8fafc 100%) !important;
+          }
+          #printable-all-projects-report .phi-doc-totals {
+            border: 0 !important;
+            border-radius: 10px !important;
+            background: #f8fafc !important;
+          }
+          #printable-all-projects-report .phi-doc-totals > div {
+            border: 0 !important;
+          }
+          #printable-all-projects-report .phi-doc-totals > div:nth-child(even):not(.is-grand) {
+            background: #f1f5f9 !important;
+          }
+          #printable-all-projects-report .phi-doc-totals > div:nth-child(odd):not(.is-grand) {
+            background: #ffffff !important;
+          }
+          #printable-all-projects-report .phi-doc-totals .is-grand {
+            background: linear-gradient(90deg, #0f172a 0%, #1e293b 65%, #334155 100%) !important;
+          }
+          #printable-all-projects-report .phi-doc-signs {
+            gap: 10px !important;
+          }
+          #printable-all-projects-report .phi-doc-sign {
+            border: 0 !important;
+            border-radius: 10px !important;
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important;
+          }
+          #printable-all-projects-report .phi-doc-sign-line {
+            border-bottom: 0 !important;
+            height: 2px !important;
+            background: linear-gradient(90deg, transparent 0%, #cbd5e1 25%, #94a3b8 50%, #cbd5e1 75%, transparent 100%) !important;
+          }
+          #printable-all-projects-report .report-contact-footer {
+            border: 0 !important;
+            border-radius: 10px !important;
+            background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%) !important;
+            padding: 8px 12px !important;
+          }
+
           #printable-all-projects-report .phi-villa-card-grid {
             display: grid !important;
             grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
@@ -621,10 +749,10 @@ export default function AllProjectsPrintModal({
                     key={`detail-${p.id}`}
                     className="dossier-keep-together"
                     style={{
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      background: '#f8fafc',
-                      padding: '7px 9px',
+                      border: 'none',
+                      borderRadius: '10px',
+                      background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
+                      padding: '8px 10px',
                       pageBreakInside: 'avoid',
                       breakInside: 'avoid',
                     }}
@@ -634,9 +762,10 @@ export default function AllProjectsPrintModal({
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        borderBottom: '1px solid #e2e8f0',
-                        paddingBottom: '4px',
-                        marginBottom: '6px',
+                        background: 'linear-gradient(270deg, #fff7ed 0%, #eef2f7 100%)',
+                        borderRadius: '7px',
+                        padding: '5px 8px',
+                        marginBottom: '7px',
                         fontSize: '10px',
                         fontWeight: 900,
                       }}
@@ -656,16 +785,16 @@ export default function AllProjectsPrintModal({
                       {/* العمود 1: أوامر الشغل والمستخلصات وسندات الصرف */}
                       <div
                         style={{
-                          background: '#ffffff',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '6px',
-                          padding: '6px 8px',
+                          background: 'linear-gradient(180deg, #ffffff 0%, #fff7ed 100%)',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '7px 9px',
                           fontSize: '8.8px',
-                          lineHeight: 1.45,
+                          lineHeight: 1.5,
                           minWidth: 0,
                         }}
                       >
-                        <div style={{ fontWeight: 900, color: '#c2410c', marginBottom: '3px', fontSize: '9.2px' }}>
+                        <div style={{ fontWeight: 900, color: '#c2410c', marginBottom: '4px', fontSize: '9.2px' }}>
                           أوامر الشغل والمستخلصات وسندات الصرف
                         </div>
                         {p.jobOrders.length === 0 && p.claims.length === 0 && p.paymentVouchers.length === 0 ? (
@@ -673,18 +802,18 @@ export default function AllProjectsPrintModal({
                         ) : (
                           <>
                             {p.jobOrders.map((jo: any) => (
-                              <div key={jo.id} style={{ borderBottom: '1px dashed #f1f5f9', padding: '1.5px 0' }}>
+                              <div key={jo.id} style={{ padding: '2px 0' }}>
                                 <b>{jo.order_number}</b> ({jo.contractor_name}): {jo.assigned_qty} × {jo.unit_price} ={' '}
                                 <b>{formatCurrency(jo.total_value)}</b>
                               </div>
                             ))}
                             {p.claims.map((clm: any) => (
-                              <div key={clm.id} style={{ color: '#15803d', padding: '1.5px 0' }}>
+                              <div key={clm.id} style={{ color: '#15803d', padding: '2px 0' }}>
                                 • مستخلص <b>{clm.claim_number}</b> ({clm.contractor_name}): <b>{formatCurrency(clm.net_amount)}</b>
                               </div>
                             ))}
                             {p.paymentVouchers.map((pv: any) => (
-                              <div key={pv.id} style={{ color: '#b45309', padding: '1.5px 0' }}>
+                              <div key={pv.id} style={{ color: '#b45309', padding: '2px 0' }}>
                                 • سند صرف <b>{pv.voucher_number}</b> ({pv.date}): <b>{formatCurrency(pv.amount)}</b>
                               </div>
                             ))}
@@ -695,16 +824,16 @@ export default function AllProjectsPrintModal({
                       {/* العمود 2: يوميات العمالة وفواتير الخامات */}
                       <div
                         style={{
-                          background: '#ffffff',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '6px',
-                          padding: '6px 8px',
+                          background: 'linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%)',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '7px 9px',
                           fontSize: '8.8px',
-                          lineHeight: 1.45,
+                          lineHeight: 1.5,
                           minWidth: 0,
                         }}
                       >
-                        <div style={{ fontWeight: 900, color: '#0369a1', marginBottom: '3px', fontSize: '9.2px' }}>
+                        <div style={{ fontWeight: 900, color: '#0369a1', marginBottom: '4px', fontSize: '9.2px' }}>
                           يوميات العمالة ({p.labor_days} يوم) والخامات
                         </div>
                         {p.laborLogs.length === 0 && p.materialReceipts.length === 0 ? (
@@ -712,12 +841,12 @@ export default function AllProjectsPrintModal({
                         ) : (
                           <>
                             {p.laborLogs.map((l: any) => (
-                              <div key={l.id} style={{ borderBottom: '1px dashed #f1f5f9', padding: '1.5px 0' }}>
+                              <div key={l.id} style={{ padding: '2px 0' }}>
                                 {l.work_date} — <b>{l.worker_name}</b>: <b>{formatCurrency(l.daily_wage)}</b>
                               </div>
                             ))}
                             {p.materialReceipts.map((m: any) => (
-                              <div key={m.id} style={{ color: '#0369a1', padding: '1.5px 0' }}>
+                              <div key={m.id} style={{ color: '#0369a1', padding: '2px 0' }}>
                                 • فاتورة خامات <b>{m.receipt_number}</b> ({m.receipt_type}): <b>{formatCurrency(m.total_amount)}</b>
                               </div>
                             ))}
@@ -728,23 +857,23 @@ export default function AllProjectsPrintModal({
                       {/* العمود 3: نصيب الفيلا من المصاريف الموزعة ABC */}
                       <div
                         style={{
-                          background: '#ffffff',
-                          border: '1px solid #e2e8f0',
-                          borderRadius: '6px',
-                          padding: '6px 8px',
+                          background: 'linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%)',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '7px 9px',
                           fontSize: '8.8px',
-                          lineHeight: 1.45,
+                          lineHeight: 1.5,
                           minWidth: 0,
                         }}
                       >
-                        <div style={{ fontWeight: 900, color: '#0f172a', marginBottom: '3px', fontSize: '9.2px' }}>
+                        <div style={{ fontWeight: 900, color: '#0f172a', marginBottom: '4px', fontSize: '9.2px' }}>
                           نصيب الفيلا من المصاريف ({formatCurrency(p.abc_expenses_total)})
                         </div>
                         {p.expenseAllocations.length === 0 ? (
                           <div style={{ color: '#94a3b8' }}>لا توجد مصاريف محملة</div>
                         ) : (
                           p.expenseAllocations.map((a: any) => (
-                            <div key={a.id} style={{ borderBottom: '1px dashed #f1f5f9', padding: '1.5px 0' }}>
+                            <div key={a.id} style={{ padding: '2px 0' }}>
                               {a['تاريخ المصروف الأصلي']} — {a['البيان / الوصف']} ({a['نسبة التحميل (%)']}%):{' '}
                               <b>{formatCurrency(a.allocated_amount)}</b>
                             </div>
