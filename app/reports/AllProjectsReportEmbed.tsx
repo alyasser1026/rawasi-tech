@@ -5,12 +5,13 @@ import { useReportsLogic } from './reports_logic';
 import LoadingScreen from '@/components/LoadingScreen';
 import { formatCurrency } from '@/lib/helpers';
 import { buildDocumentFileName } from '@/lib/documentFileName';
-import { printWithDocumentTitle } from '@/lib/printWithTitle';
+import AllProjectsPrintModal from './AllProjectsPrintModal';
 import { ChevronLeft, FileSpreadsheet, Printer, RefreshCw } from 'lucide-react';
 
 export default function AllProjectsReportEmbed() {
   const logic = useReportsLogic();
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   const toggleProject = (id: string) => {
     setExpandedProjects((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
@@ -126,16 +127,7 @@ export default function AllProjectsReportEmbed() {
   };
 
   const handlePrintAll = () => {
-    if (d) {
-      setExpandedProjects(d.projectsMatrix.map((p: any) => p.id));
-    }
-    setTimeout(() => {
-      printWithDocumentTitle({
-        docType: 'التقرير_المالي_الشامل_للمشاريع_والحسابات',
-        prefix: 'MASTER-FIN',
-        seedParts: [d?.projectsMatrix?.length || 0],
-      });
-    }, 350);
+    setIsPrintModalOpen(true);
   };
 
   if (logic.isLoading || !d || !t) {
@@ -224,6 +216,13 @@ export default function AllProjectsReportEmbed() {
           font-weight: 900;
           color: var(--accent-ink);
           border-top: 2px solid rgba(249, 115, 22, 0.35);
+        }
+        @media print {
+          @page { size: A4 landscape; margin: 8mm 10mm; }
+          .no-print { display: none !important; }
+          .embed-rpt-section { overflow: visible !important; padding: 0.5rem !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; background: #fff !important; }
+          .embed-rpt-table { min-width: 0 !important; width: 100% !important; max-width: 100% !important; table-layout: fixed !important; font-size: 9px !important; }
+          .embed-rpt-table th, .embed-rpt-table td { white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 4px 3px !important; font-size: 9px !important; }
         }
       `}</style>
 
@@ -694,6 +693,15 @@ export default function AllProjectsReportEmbed() {
           </tfoot>
         </table>
       </div>
+
+      {/* مودال المعاينة والطباعة الرسمية الموحدة A4 */}
+      <AllProjectsPrintModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        reportData={d}
+        selectedProjectId={logic.selectedProjectId}
+        dateRange={logic.dateRange}
+      />
     </div>
   );
 }

@@ -373,12 +373,12 @@ const ORH_CSS = `
 .phi-orh-title-en { font-size:10px; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:var(--muted); }
 .phi-orh-title p { margin:0; font-size:11px; font-weight:700; color:#475569; text-wrap:balance; }
 
-.phi-orh-verify { display:flex; align-items:center; justify-content:flex-end; gap:12px; border-right:1px solid var(--line); }
-.phi-orh-ref { flex:1; min-width:0; max-width:180px; display:flex; flex-direction:column; justify-content:center; gap:4px; }
-.phi-orh-ref dl { margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
-.phi-orh-ref dl > div { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:0 8px; }
+.phi-orh-verify { display:flex; align-items:center; justify-content:space-between; gap:10px; border-right:1px solid var(--line); min-width:0; overflow:hidden; }
+.phi-orh-ref { flex:1; min-width:0; display:flex; flex-direction:column; justify-content:center; gap:4px; }
+.phi-orh-ref dl { margin:0; padding:0; display:flex; flex-direction:column; gap:4px; min-width:0; }
+.phi-orh-ref dl > div { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:baseline; gap:2px 6px; min-width:0; }
 .phi-orh-ref dt { color:var(--muted); font-weight:800; font-size:9.5px; white-space:nowrap; }
-.phi-orh-ref dd { margin:0; font-weight:900; font-size:10.5px; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.phi-orh-ref dd { margin:0; font-weight:900; font-size:10px; font-variant-numeric:tabular-nums; white-space:normal; overflow-wrap:anywhere; word-break:break-word; min-width:0; }
 .phi-orh-qr { display:flex; flex-direction:column; align-items:center; gap:3px; padding:6px; border:1px solid #cbd5e1; border-radius:8px; background:#fff; flex-shrink:0; }
 .phi-orh-qr span { font-size:8px; font-weight:900; color:var(--muted); text-align:center; max-width:84px; line-height:1.3; }
 .phi-orh-qr.is-custom { border:0; padding:0; background:transparent; }

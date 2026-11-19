@@ -3117,15 +3117,26 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif;
                   color: #0f172a;
                   background: #ffffff;
+                  width: 100% !important;
+                  max-width: 100% !important;
+                  box-sizing: border-box !important;
+                  overflow-x: hidden !important;
                   -webkit-print-color-adjust: exact !important;
                   print-color-adjust: exact !important;
                 }
+                #printable-dossier * {
+                  box-sizing: border-box !important;
+                }
                 #printable-dossier table {
                   width: 100% !important;
+                  max-width: 100% !important;
+                  table-layout: fixed !important;
                   border-collapse: collapse !important;
                   border: 1.5px solid #94a3b8 !important;
                   background: #ffffff !important;
                   margin-bottom: 1rem !important;
+                  word-wrap: break-word !important;
+                  overflow-wrap: break-word !important;
                 }
                 #printable-dossier thead {
                   display: table-header-group !important;
@@ -3146,11 +3157,14 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   background: #0f172a !important;
                   color: #ffffff !important;
                   font-weight: 900 !important;
-                  font-size: 11px !important;
-                  padding: 8px 10px !important;
+                  font-size: 10px !important;
+                  padding: 6px 6px !important;
                   border: 1px solid #334155 !important;
                   border-bottom: 2.5px solid #ea580c !important;
                   line-height: 1.35 !important;
+                  white-space: normal !important;
+                  word-wrap: break-word !important;
+                  overflow-wrap: break-word !important;
                 }
                 #printable-dossier tbody tr:nth-child(even) {
                   background-color: #f8fafc !important;
@@ -3160,21 +3174,27 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                 }
                 #printable-dossier tbody td {
                   color: #0f172a;
-                  font-size: 11px !important;
+                  font-size: 10px !important;
                   font-weight: 700 !important;
-                  padding: 7px 10px !important;
+                  padding: 6px 6px !important;
                   border: 1px solid #cbd5e1 !important;
-                  line-height: 1.4 !important;
+                  line-height: 1.35 !important;
                   vertical-align: middle !important;
+                  white-space: normal !important;
+                  word-wrap: break-word !important;
+                  overflow-wrap: break-word !important;
                 }
                 #printable-dossier tfoot tr,
                 #printable-dossier tfoot td {
                   background: #f1f5f9 !important;
                   color: #0f172a !important;
                   font-weight: 900 !important;
-                  font-size: 11.5px !important;
-                  padding: 8px 10px !important;
+                  font-size: 10px !important;
+                  padding: 6px 6px !important;
                   border: 1.5px solid #64748b !important;
+                  white-space: normal !important;
+                  word-wrap: break-word !important;
+                  overflow-wrap: break-word !important;
                 }
                 #printable-dossier h3 {
                   background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%) !important;
@@ -3361,11 +3381,11 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                           <td style={{ padding: '6px', fontWeight: 800 }}>{formatCurrency(row.expected)}</td>
                           <td style={{ padding: '6px', fontWeight: 800, color: '#16a34a' }}>{formatCurrency(row.paid)} ({row.paidPct}%)</td>
                           <td style={{ padding: '6px', fontWeight: 800, color: row.remaining > 0 ? '#dc2626' : '#64748b' }}>{formatCurrency(row.remaining)}</td>
-                          <td style={{ padding: '6px' }}>{row.receiptRefs.join('، ') || '---'}</td>
+                           <td style={{ padding: '6px' }}>{row.receiptRefs.join('، ') || '---'}</td>
                           <td style={{ padding: '6px' }}>
-                            <span style={{ padding: '1px 6px', borderRadius: '999px', background: row.status.bg, color: row.status.color, fontWeight: 800, whiteSpace: 'nowrap' }}>{row.status.label}</span>
+                            <span style={{ padding: '1px 6px', borderRadius: '999px', background: row.status.bg, color: row.status.color, fontWeight: 800 }}>{row.status.label}</span>
                           </td>
-                          <td style={{ padding: '6px', whiteSpace: 'nowrap' }}>{row.daysLabel}</td>
+                          <td style={{ padding: '6px' }}>{row.daysLabel}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -3536,7 +3556,7 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                   <h3 style={{ margin: '1rem 0 0.5rem 0', color: '#0f172a', fontWeight: 900, fontSize: '15px', borderBottom: '2px solid #e2e8f0', paddingBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <TrendingUp size={16} /> تحليل الانحراف المالي وإدارة القيمة المكتسبة (EVM Analysis)
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '0.5rem', marginBottom: '0.75rem', pageBreakInside: 'avoid' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: '0.5rem', marginBottom: '0.75rem', pageBreakInside: 'avoid' }}>
                     <div style={{ padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
                       <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>الميزانية الكلية (BAC)</div>
                       <div style={{ fontSize: '12px', fontWeight: 900 }}>{formatCurrency(evmData.bac)}</div>

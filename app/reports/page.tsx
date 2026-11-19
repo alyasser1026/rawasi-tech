@@ -8,7 +8,7 @@ import KpiStrip from '@/components/KpiStrip';
 import LoadingScreen from '@/components/LoadingScreen';
 import { formatCurrency } from '@/lib/helpers';
 import { buildDocumentFileName } from '@/lib/documentFileName';
-import { printWithDocumentTitle } from '@/lib/printWithTitle';
+import AllProjectsPrintModal from './AllProjectsPrintModal';
 import {
   Building2,
   ChevronLeft,
@@ -27,6 +27,7 @@ import {
 export default function ReportsPage() {
   const logic = useReportsLogic();
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   const toggleProject = (id: string) => {
     setExpandedProjects((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]));
@@ -147,16 +148,7 @@ export default function ReportsPage() {
   };
 
   const handlePrintAll = () => {
-    if (d) {
-      setExpandedProjects(d.projectsMatrix.map((p: any) => p.id));
-    }
-    setTimeout(() => {
-      printWithDocumentTitle({
-        docType: 'التقرير_المالي_الشامل_للمشاريع_والحسابات',
-        prefix: 'MASTER-FIN',
-        seedParts: [d?.projectsMatrix?.length || 0],
-      });
-    }, 350);
+    setIsPrintModalOpen(true);
   };
 
   return (
@@ -400,12 +392,12 @@ export default function ReportsPage() {
             border-top: 2px solid rgba(249, 115, 22, 0.35);
           }
           @media print {
-            @page { size: A4 landscape; margin: 8mm; }
+            @page { size: A4 landscape; margin: 8mm 10mm; }
             .no-print { display: none !important; }
-            .rpt-section-card, .rpt-kpi-card { background: #fff !important; color: #000 !important; box-shadow: none !important; border: 1px solid #ccc !important; }
-            .rpt-table { min-width: 0 !important; }
-            .rpt-table th { background: #eee !important; color: #000 !important; border: 1px solid #000 !important; }
-            .rpt-table td { color: #000 !important; border: 1px solid #000 !important; }
+            .rpt-section-card, .rpt-kpi-card { background: #fff !important; color: #0f172a !important; box-shadow: none !important; border: 1px solid #cbd5e1 !important; overflow: visible !important; padding: 0.5rem !important; }
+            .rpt-table { min-width: 0 !important; width: 100% !important; max-width: 100% !important; table-layout: fixed !important; font-size: 9px !important; }
+            .rpt-table th { background: #0f172a !important; color: #fff !important; border: 1px solid #334155 !important; white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 4px 3px !important; font-size: 9px !important; }
+            .rpt-table td { color: #0f172a !important; border: 1px solid #cbd5e1 !important; white-space: normal !important; word-wrap: break-word !important; overflow-wrap: break-word !important; padding: 4px 3px !important; font-size: 9px !important; }
           }
         `}</style>
 
@@ -859,6 +851,15 @@ export default function ReportsPage() {
                 </table>
               </div>
             )}
+
+            {/* مودال المعاينة والطباعة الرسمية الموحدة A4 */}
+            <AllProjectsPrintModal
+              isOpen={isPrintModalOpen}
+              onClose={() => setIsPrintModalOpen(false)}
+              reportData={d}
+              selectedProjectId={logic.selectedProjectId}
+              dateRange={logic.dateRange}
+            />
           </div>
         )}
       </MasterPage>

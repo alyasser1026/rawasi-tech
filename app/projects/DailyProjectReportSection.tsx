@@ -120,48 +120,48 @@ export default function DailyProjectReportSection({
         className="dossier-keep-together"
         style={{
           display: 'grid',
-          gridTemplateColumns: printableOnly ? 'repeat(6, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(12rem, 1fr))',
-          gap: printableOnly ? '0.45rem' : '0.75rem',
+          gridTemplateColumns: printableOnly ? 'repeat(3, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(12rem, 1fr))',
+          gap: printableOnly ? '0.5rem' : '0.75rem',
         }}
       >
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem' }}>
-          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#0369a1', fontWeight: 900, display: 'block', whiteSpace: 'nowrap' }}>
-            👷 يومية الفنيين {!printableOnly && <span dir="ltr" style={{ whiteSpace: 'nowrap' }}>({selectedDate})</span>}
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem', minWidth: 0 }}>
+          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#0369a1', fontWeight: 900, display: 'block' }}>
+            👷 يومية الفنيين {!printableOnly && <span dir="ltr">({selectedDate})</span>}
           </span>
           <div style={{ fontSize: printableOnly ? '13px' : 'var(--fs-lg)', fontWeight: 900, color: '#0284c7', marginTop: '2px' }}>{formatCurrency(today.labor.techCost)}</div>
           <span style={{ fontSize: printableOnly ? '9.5px' : '11px', color: '#0369a1', fontWeight: 700 }}>{today.labor.techDays} يوم عمل</span>
         </div>
 
-        <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem' }}>
-          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#0f766e', fontWeight: 900, display: 'block', whiteSpace: 'nowrap' }}>
-            🤝 يومية المساعدين {!printableOnly && <span dir="ltr" style={{ whiteSpace: 'nowrap' }}>({selectedDate})</span>}
+        <div style={{ background: '#f0fdfa', border: '1px solid #99f6e4', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem', minWidth: 0 }}>
+          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#0f766e', fontWeight: 900, display: 'block' }}>
+            🤝 يومية المساعدين {!printableOnly && <span dir="ltr">({selectedDate})</span>}
           </span>
           <div style={{ fontSize: printableOnly ? '13px' : 'var(--fs-lg)', fontWeight: 900, color: '#0d9488', marginTop: '2px' }}>{formatCurrency(today.labor.helperCost)}</div>
           <span style={{ fontSize: printableOnly ? '9.5px' : '11px', color: '#0f766e', fontWeight: 700 }}>{today.labor.helperDays} يوم عمل</span>
         </div>
 
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem' }}>
-          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#475569', fontWeight: 900, display: 'block', whiteSpace: 'nowrap' }}>🧾 المصروفات اليوم</span>
+        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem', minWidth: 0 }}>
+          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#475569', fontWeight: 900, display: 'block' }}>🧾 المصروفات اليوم</span>
           <div style={{ fontSize: printableOnly ? '13px' : 'var(--fs-lg)', fontWeight: 900, color: '#0f172a', marginTop: '2px' }}>{formatCurrency(today.expenses.total)}</div>
           <span style={{ fontSize: printableOnly ? '9.5px' : '11px', color: '#64748b', fontWeight: 700 }}>{today.expenses.count} عملية</span>
         </div>
 
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem' }}>
-          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#475569', fontWeight: 900, display: 'block', whiteSpace: 'nowrap' }}>💸 سندات الصرف اليوم</span>
+        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem', minWidth: 0 }}>
+          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#475569', fontWeight: 900, display: 'block' }}>💸 سندات الصرف اليوم</span>
           <div style={{ fontSize: printableOnly ? '13px' : 'var(--fs-lg)', fontWeight: 900, color: '#be123c', marginTop: '2px' }}>{formatCurrency(today.vouchers.total)}</div>
           <span style={{ fontSize: printableOnly ? '9.5px' : '11px', color: '#64748b', fontWeight: 700 }}>
             {today.vouchers.count} سند • أجور: {formatCurrency(today.vouchers.wagePayoutsTotal)}
           </span>
         </div>
 
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem' }}>
-          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#92400e', fontWeight: 900, display: 'block', whiteSpace: 'nowrap' }}>💼 عُهد مسلّمة (125)</span>
+        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem', minWidth: 0 }}>
+          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#92400e', fontWeight: 900, display: 'block' }}>💼 عُهد مسلّمة (125)</span>
           <div style={{ fontSize: printableOnly ? '13px' : 'var(--fs-lg)', fontWeight: 900, color: '#b45309', marginTop: '2px' }}>{formatCurrency(today.custodies.total)}</div>
           <span style={{ fontSize: printableOnly ? '9.5px' : '11px', color: '#92400e', fontWeight: 700 }}>{today.custodies.count} عهدة (مستقلة)</span>
         </div>
 
-        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem' }}>
-          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#166534', fontWeight: 900, display: 'block', whiteSpace: 'nowrap' }}>💰 المحصل اليوم (قبض)</span>
+        <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: printableOnly ? '10px' : '14px', padding: printableOnly ? '0.55rem 0.65rem' : '0.875rem 1rem', minWidth: 0 }}>
+          <span style={{ fontSize: printableOnly ? '10px' : '11px', color: '#166534', fontWeight: 900, display: 'block' }}>💰 المحصل اليوم (قبض)</span>
           <div style={{ fontSize: printableOnly ? '13px' : 'var(--fs-lg)', fontWeight: 900, color: '#16a34a', marginTop: '2px' }}>{formatCurrency(today.receipts.total)}</div>
           <span style={{ fontSize: printableOnly ? '9.5px' : '11px', color: '#15803d', fontWeight: 700 }}>{today.receipts.count} سند • خامات: {formatCurrency(today.materials.total)}</span>
         </div>

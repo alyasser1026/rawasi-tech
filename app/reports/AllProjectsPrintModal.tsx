@@ -1,0 +1,966 @@
+"use client";
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { formatCurrency } from '@/lib/helpers';
+import { currencyCode, currencyName } from '@/lib/currency';
+import { buildDocumentFileName } from '@/lib/documentFileName';
+import { printReportElement } from '@/lib/printReportElement';
+import ReportOfficialHeader from '@/components/ReportOfficialHeader';
+import ReportContactFooter from '@/components/ReportContactFooter';
+import { DocNote, DocSection, DocSignatures, DocStats, DocTotals, PHI_DOC_CSS } from '@/components/PrintDocument';
+import { CheckSquare, Printer, Square, X } from 'lucide-react';
+
+interface AllProjectsPrintModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  reportData: any;
+  selectedProjectId?: string;
+  dateRange?: { start: string; end: string };
+}
+
+export default function AllProjectsPrintModal({
+  isOpen,
+  onClose,
+  reportData,
+  selectedProjectId = 'all',
+  dateRange,
+}: AllProjectsPrintModalProps) {
+  const [mounted, setMounted] = useState(false);
+  const [sections, setSections] = useState({
+    kpis: true,
+    projectsMatrix: true,
+    projectDetails: true,
+    workersAndContractors: true,
+    vouchers: true,
+    expenses: true,
+    signatures: true,
+  });
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
+
+  if (!isOpen || !mounted || !reportData || !reportData.totals) return null;
+
+  const d = reportData;
+  const t = d.totals;
+
+  const toggleSection = (key: keyof typeof sections) => {
+    setSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const selectedProjectObj =
+    selectedProjectId && selectedProjectId !== 'all'
+      ? (d.projectsList || []).find((p: any) => p.id === selectedProjectId)
+      : null;
+
+  const scopeLabel = selectedProjectObj
+    ? `${selectedProjectObj.Property || selectedProjectObj.project_name}`
+    : `جميع المشاريع والفلل (${d.projectsMatrix.length} مشاريع)`;
+
+  const periodLabel =
+    dateRange?.start || dateRange?.end
+      ? `من ${dateRange?.start || 'البداية'} إلى ${dateRange?.end || 'اليوم'}`
+      : 'تراكمي شامل حتى تاريخه';
+
+  const issueDateStr = new Date().toLocaleDateString('en-GB');
+  const totalArea = d.projectsMatrix.reduce((s: number, p: any) => s + (Number(p.unit_area) || 0), 0);
+  const totalLaborDays = d.projectsMatrix.reduce((s: number, p: any) => s + (Number(p.labor_days) || 0), 0);
+
+  const handlePrintNow = () => {
+    const fileMeta = buildDocumentFileName({
+      docType: 'التقرير_المالي_الشامل_للمشاريع_والحسابات',
+      prefix: 'MASTER-FIN',
+      subject: selectedProjectObj ? selectedProjectObj.Property : 'جميع_المشاريع',
+      seedParts: [d.projectsMatrix.length, t.totalContractValue],
+    });
+    printReportElement('printable-all-projects-report', fileMeta.baseName, {
+      docType: 'التقرير_المالي_الشامل_للمشاريع_والحسابات',
+      prefix: 'MASTER-FIN',
+      subject: selectedProjectObj ? selectedProjectObj.Property : 'جميع_المشاريع',
+    });
+  };
+
+  return createPortal(
+    <div
+      className="print-modal-overlay"
+      onClick={onClose}
+      dir="rtl"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 999999,
+        background: 'rgba(15, 23, 42, 0.82)',
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        overflowY: 'auto',
+        padding: '20px 14px 36px',
+        direction: 'rtl',
+      }}
+    >
+      {/* شريط التحكم العلوي في المعاينة (لا يظهر في الطباعة) */}
+      <div
+        className="no-print"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%',
+          maxWidth: '277mm',
+          background: '#ffffff',
+          border: '1px solid #cbd5e1',
+          borderRadius: '14px',
+          padding: '12px 16px',
+          marginBottom: '14px',
+          boxShadow: '0 12px 32px rgba(0,0,0,0.28)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+          color: '#0f172a',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 900, color: '#0f172a' }}>
+              معاينة الطباعة الرسمية — التقرير المالي الشامل للمشاريع والحسابات (A4 Landscape)
+            </h3>
+            <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: '#64748b', fontWeight: 700 }}>
+              منسق بالكامل داخل إطار الورقة الرسمية A4 مع ترويسة وباركود وتوقيعات فاي تك المعتمدة
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={handlePrintNow}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '9px 18px',
+                borderRadius: '10px',
+                border: 'none',
+                background: '#ea580c',
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: '13px',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
+              }}
+            >
+              <Printer size={16} />
+              <span>طباعة / حفظ PDF الآن</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '9px 14px',
+                borderRadius: '10px',
+                border: '1px solid #cbd5e1',
+                background: '#f8fafc',
+                color: '#334155',
+                fontWeight: 800,
+                fontSize: '12.5px',
+                cursor: 'pointer',
+              }}
+            >
+              <X size={15} />
+              <span>إغلاق</span>
+            </button>
+          </div>
+        </div>
+
+        {/* خيارات إظهار/إخفاء أقسام التقرير المطبوع */}
+        <div
+          style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '6px',
+            paddingTop: '8px',
+            borderTop: '1px dashed #e2e8f0',
+            alignItems: 'center',
+          }}
+        >
+          <span style={{ fontSize: '11px', fontWeight: 900, color: '#475569', marginLeft: '4px' }}>أقسام الطباعة:</span>
+          {[
+            { key: 'kpis', label: 'المؤشرات المالية' },
+            { key: 'projectsMatrix', label: 'مصفوفة المشاريع (الفلل)' },
+            { key: 'projectDetails', label: 'تفصيل حركات الفلل' },
+            { key: 'workersAndContractors', label: 'العمالة والمقاولين' },
+            { key: 'vouchers', label: 'سندات القبض والصرف' },
+            { key: 'expenses', label: 'المصاريف وتوزيعها (ABC)' },
+            { key: 'signatures', label: 'التوقيعات والاعتماد' },
+          ].map((item) => {
+            const active = sections[item.key as keyof typeof sections];
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => toggleSection(item.key as keyof typeof sections)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '4px 10px',
+                  borderRadius: '8px',
+                  border: `1px solid ${active ? '#ea580c' : '#cbd5e1'}`,
+                  background: active ? '#fff7ed' : '#f8fafc',
+                  color: active ? '#c2410c' : '#64748b',
+                  fontSize: '11px',
+                  fontWeight: 800,
+                  cursor: 'pointer',
+                }}
+              >
+                {active ? <CheckSquare size={13} /> : <Square size={13} />}
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 📄 الورقة الرسمية المطبوعة (محكمة داخل إطار A4 Landscape بدون أي خروج للنصوص) */}
+      <div
+        id="printable-all-projects-report"
+        className="print-page phi-doc phi-doc-page"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '277mm',
+          background: '#ffffff',
+          color: '#0f172a',
+          padding: '10mm 11mm',
+          borderRadius: '14px',
+          boxShadow: '0 25px 50px -12px rgba(0,0,0,0.45)',
+          boxSizing: 'border-box',
+          overflow: 'hidden',
+          direction: 'rtl',
+        }}
+      >
+        {/* تضمين كافة الستايلات داخل العنصر المطبوع لضمان تطابق المعاينة والـ Iframe والـ PDF بنسبة 100% */}
+        <style>{PHI_DOC_CSS}</style>
+        <style>{`
+          #printable-all-projects-report {
+            font-family: 'Cairo', 'Tajawal', 'Segoe UI', Tahoma, sans-serif !important;
+            color: #0f172a !important;
+            background: #ffffff !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          #printable-all-projects-report * {
+            box-sizing: border-box !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          #printable-all-projects-report .phi-master-table {
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+            border: 1.5px solid #94a3b8 !important;
+            margin: 0 0 12px 0 !important;
+            background: #ffffff !important;
+            font-size: 9.5px !important;
+            line-height: 1.35 !important;
+          }
+          #printable-all-projects-report .phi-master-table thead {
+            display: table-header-group !important;
+          }
+          #printable-all-projects-report .phi-master-table tfoot {
+            display: table-footer-group !important;
+          }
+          #printable-all-projects-report .phi-master-table tr {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+          #printable-all-projects-report .phi-master-table thead th {
+            background: #0f172a !important;
+            color: #ffffff !important;
+            font-weight: 900 !important;
+            font-size: 9.5px !important;
+            padding: 6px 4px !important;
+            border: 1px solid #334155 !important;
+            border-bottom: 2px solid #ea580c !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+          }
+          #printable-all-projects-report .phi-master-table tbody td {
+            padding: 5px 4px !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #0f172a !important;
+            font-weight: 700 !important;
+            font-size: 9.5px !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            font-variant-numeric: tabular-nums !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+          }
+          #printable-all-projects-report .phi-master-table tbody tr:nth-child(even) td {
+            background: #f8fafc !important;
+          }
+          #printable-all-projects-report .phi-master-table tbody tr:nth-child(odd) td {
+            background: #ffffff !important;
+          }
+          #printable-all-projects-report .phi-master-table tfoot td {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+            font-weight: 900 !important;
+            font-size: 9.5px !important;
+            padding: 6px 4px !important;
+            border: 1px solid #64748b !important;
+            border-top: 2px solid #0f172a !important;
+            text-align: center !important;
+            vertical-align: middle !important;
+            font-variant-numeric: tabular-nums !important;
+            white-space: normal !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+          }
+          #printable-all-projects-report .phi-master-table th.is-right,
+          #printable-all-projects-report .phi-master-table td.is-right {
+            text-align: right !important;
+            padding-right: 6px !important;
+          }
+          #printable-all-projects-report .phi-villa-card-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+            width: 100% !important;
+          }
+          #printable-all-projects-report .phi-vouchers-two-col {
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 10px !important;
+            width: 100% !important;
+            align-items: start !important;
+          }
+          @page {
+            size: A4 landscape;
+            margin: 8mm 10mm;
+          }
+          @media print {
+            html, body {
+              width: 100% !important;
+              height: auto !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              overflow: visible !important;
+            }
+            body > *:not(.print-modal-overlay) {
+              display: none !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+            .print-modal-overlay {
+              position: static !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              background: #ffffff !important;
+              display: block !important;
+              overflow: visible !important;
+            }
+            #printable-all-projects-report {
+              page: auto !important;
+              max-width: 100% !important;
+              width: 100% !important;
+              min-height: 0 !important;
+              padding: 0 !important;
+              margin: 0 !important;
+              border: 0 !important;
+              border-radius: 0 !important;
+              box-shadow: none !important;
+              overflow: visible !important;
+            }
+          }
+        `}</style>
+
+        {/* 1️⃣ الترويسة الرسمية الموحدة لشركة فاي تك */}
+        <ReportOfficialHeader
+          title="التقرير المالي الشامل للمشاريع والحسابات (Master Financial Dossier)"
+          subtitle="بيان رقابي ومحاسبي معتمد لعقود المشاريع، الموازنات، التكاليف الفعلية، العمالة، الخامات، المصاريف (ABC)، وسندات الخزينة"
+          refPrefix="MASTER-FIN"
+          issueDate={issueDateStr}
+          currency={`${currencyName()} (${currencyCode()})`}
+          compact
+          details={[
+            { label: 'نطاق المشاريع المشمولة', value: scopeLabel },
+            { label: 'الفترة المالية', value: periodLabel },
+            { label: 'إجمالي مساحة المشاريع', value: `${totalArea.toFixed(2)} م² (${d.projectsMatrix.length} فلل)` },
+            { label: 'صافي السيولة المتبقية بالخزينة', value: formatCurrency(t.netCashTreasury), accent: true },
+          ]}
+          meta={[
+            { label: 'سندات القبض', value: `${d.receiptVouchers.length} سند` },
+            { label: 'سندات الصرف', value: `${d.paymentVouchers.length} سند` },
+          ]}
+        />
+
+        {/* 2️⃣ شريط المؤشرات المالية والتدفقات النقدية (6 بطاقات متناسقة داخل الإطار) */}
+        {sections.kpis && (
+          <DocStats
+            items={[
+              {
+                label: `إجمالي عقود المشاريع (خصم خامات: ${formatCurrency(t.totalClientMaterialsDeduction)})`,
+                value: formatCurrency(t.totalContractValue),
+                highlight: true,
+              },
+              {
+                label: `صافي المتبقي عند العملاء (بعد الخامات والسندات)`,
+                value: formatCurrency(t.totalClientRemaining),
+                tone: 'tax',
+              },
+              {
+                label: `الموازنة التقديرية الشاملة (${d.projectsMatrix.length} فلل)`,
+                value: formatCurrency(t.totalEstimatedBudget),
+              },
+              {
+                label: `إجمالي التكاليف الفعلية (وفر الموازنة: ${formatCurrency(t.totalRemainingBudget)})`,
+                value: formatCurrency(t.totalActualProjectCosts),
+                tone: 'warn',
+              },
+              {
+                label: `إجمالي سندات القبض (${d.receiptVouchers.length} سند وارد)`,
+                value: formatCurrency(t.totalReceiptVouchers),
+                tone: 'positive',
+              },
+              {
+                label: `إجمالي سندات الصرف (${d.paymentVouchers.length} سند منصرف)`,
+                value: formatCurrency(t.totalPaymentVouchers),
+                tone: 'discount',
+              },
+            ]}
+          />
+        )}
+
+        {/* 3️⃣ القسم الأول: مصفوفة حسابات المشاريع (الفلل) والتكاليف والمتبقي */}
+        {sections.projectsMatrix && (
+          <div>
+            <DocSection title="1. مصفوفة حسابات المشاريع (الفلل) والتكاليف والأرصدة المتبقية" en="Projects Financial Matrix" />
+            <table className="phi-master-table">
+              <colgroup>
+                <col style={{ width: '12%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+                <col style={{ width: '8%' }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th className="is-right">المشروع / النموذج</th>
+                  <th>قيمة التعاقد (BOQ)</th>
+                  <th>خصم خامات (217)</th>
+                  <th>صافي متبقي العميل</th>
+                  <th>الموازنة التقديرية</th>
+                  <th>مستخلصات المقاولين</th>
+                  <th>يوميات العمالة</th>
+                  <th>الخامات المحملة</th>
+                  <th>المصاريف (ABC)</th>
+                  <th>إجمالي التكلفة الفعلية</th>
+                  <th>المتبقي من الموازنة</th>
+                  <th>صافي ربح العقد</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.projectsMatrix.map((p: any) => (
+                  <tr key={p.id}>
+                    <td className="is-right" style={{ fontWeight: 900 }}>
+                      <div>{p.name}</div>
+                      <div style={{ fontSize: '8.5px', color: '#475569', fontWeight: 800 }}>
+                        {p.unit_type}
+                        {p.unit_area > 0 ? ` • ${p.unit_area} م²` : ''}
+                      </div>
+                    </td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(p.contract_value)}</td>
+                    <td style={{ color: '#0369a1', fontWeight: 800 }}>{formatCurrency(p.client_materials_deduction)}</td>
+                    <td style={{ color: '#c2410c', fontWeight: 900 }}>{formatCurrency(p.client_remaining)}</td>
+                    <td style={{ fontWeight: 800 }}>{formatCurrency(p.estimated_budget)}</td>
+                    <td>{formatCurrency(p.claims_total)}</td>
+                    <td>
+                      <div>{formatCurrency(p.labor_total)}</div>
+                      {p.labor_days > 0 && (
+                        <div style={{ fontSize: '8px', color: '#64748b' }}>({p.labor_days} يومية)</div>
+                      )}
+                    </td>
+                    <td>{formatCurrency(p.materials_cost_effective)}</td>
+                    <td>{formatCurrency(p.abc_expenses_total)}</td>
+                    <td style={{ fontWeight: 900, color: '#b45309' }}>{formatCurrency(p.total_actual_cost)}</td>
+                    <td style={{ fontWeight: 900, color: p.remaining_budget >= 0 ? '#15803d' : '#b91c1c' }}>
+                      {p.remaining_budget > 0 ? '+' : ''}
+                      {formatCurrency(p.remaining_budget)}
+                    </td>
+                    <td style={{ fontWeight: 900, color: p.net_contract_margin >= 0 ? '#15803d' : '#b91c1c' }}>
+                      {p.net_contract_margin > 0 ? '+' : ''}
+                      {formatCurrency(p.net_contract_margin)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td className="is-right">
+                    الإجمالي العام ({d.projectsMatrix.length} فلل • {totalArea.toFixed(0)} م²)
+                  </td>
+                  <td>{formatCurrency(t.totalContractValue)}</td>
+                  <td style={{ color: '#0369a1' }}>{formatCurrency(t.totalClientMaterialsDeduction)}</td>
+                  <td style={{ color: '#c2410c' }}>{formatCurrency(t.totalClientRemaining)}</td>
+                  <td>{formatCurrency(t.totalEstimatedBudget)}</td>
+                  <td>{formatCurrency(t.totalClaimsNet)}</td>
+                  <td>
+                    {formatCurrency(t.totalLaborEarned)} ({totalLaborDays} يوم)
+                  </td>
+                  <td>{formatCurrency(t.totalCustomerMaterials)}</td>
+                  <td>{formatCurrency(t.totalExpensesAmount)}</td>
+                  <td style={{ color: '#b45309' }}>{formatCurrency(t.totalActualProjectCosts)}</td>
+                  <td style={{ color: t.totalRemainingBudget >= 0 ? '#15803d' : '#b91c1c' }}>
+                    {t.totalRemainingBudget > 0 ? '+' : ''}
+                    {formatCurrency(t.totalRemainingBudget)}
+                  </td>
+                  <td style={{ color: t.totalNetContractMargin >= 0 ? '#15803d' : '#b91c1c' }}>
+                    {t.totalNetContractMargin > 0 ? '+' : ''}
+                    {formatCurrency(t.totalNetContractMargin)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+
+        {/* 3️⃣-ب تفصيل أوامر الشغل والمستخلصات واليوميات والخامات والمصاريف لكل فيلا */}
+        {sections.projectDetails && (
+          <div>
+            <DocSection
+              title="1-ب. تفصيل أوامر الشغل والمستخلصات والعمالة والخامات والمصاريف لكل مشروع"
+              en="Per-Project Breakdown"
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '12px' }}>
+              {d.projectsMatrix
+                .filter(
+                  (p: any) =>
+                    p.jobOrders.length > 0 ||
+                    p.claims.length > 0 ||
+                    p.laborLogs.length > 0 ||
+                    p.materialReceipts.length > 0 ||
+                    p.expenseAllocations.length > 0
+                )
+                .map((p: any) => (
+                  <div
+                    key={`detail-${p.id}`}
+                    className="dossier-keep-together"
+                    style={{
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      background: '#f8fafc',
+                      padding: '7px 9px',
+                      pageBreakInside: 'avoid',
+                      breakInside: 'avoid',
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        borderBottom: '1px solid #e2e8f0',
+                        paddingBottom: '4px',
+                        marginBottom: '6px',
+                        fontSize: '10px',
+                        fontWeight: 900,
+                      }}
+                    >
+                      <span style={{ color: '#0f172a' }}>
+                        {p.name} ({p.unit_type} • {p.unit_area} م²)
+                      </span>
+                      <span style={{ color: '#475569', fontSize: '9px' }}>
+                        العقد: <b>{formatCurrency(p.contract_value)}</b> | الموازنة: <b>{formatCurrency(p.estimated_budget)}</b> | التكلفة الفعلية:{' '}
+                        <b style={{ color: '#b45309' }}>{formatCurrency(p.total_actual_cost)}</b> | وفر الموازنة:{' '}
+                        <b style={{ color: p.remaining_budget >= 0 ? '#15803d' : '#b91c1c' }}>
+                          {formatCurrency(p.remaining_budget)}
+                        </b>
+                      </span>
+                    </div>
+
+                    <div className="phi-villa-card-grid">
+                      {/* العمود 1: أوامر الشغل والمستخلصات وسندات الصرف */}
+                      <div
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '6px',
+                          padding: '6px 8px',
+                          fontSize: '8.8px',
+                          lineHeight: 1.45,
+                          minWidth: 0,
+                        }}
+                      >
+                        <div style={{ fontWeight: 900, color: '#c2410c', marginBottom: '3px', fontSize: '9.2px' }}>
+                          أوامر الشغل والمستخلصات وسندات الصرف
+                        </div>
+                        {p.jobOrders.length === 0 && p.claims.length === 0 && p.paymentVouchers.length === 0 ? (
+                          <div style={{ color: '#94a3b8' }}>لا توجد أوامر شغل أو مستخلصات</div>
+                        ) : (
+                          <>
+                            {p.jobOrders.map((jo: any) => (
+                              <div key={jo.id} style={{ borderBottom: '1px dashed #f1f5f9', padding: '1.5px 0' }}>
+                                <b>{jo.order_number}</b> ({jo.contractor_name}): {jo.assigned_qty} × {jo.unit_price} ={' '}
+                                <b>{formatCurrency(jo.total_value)}</b>
+                              </div>
+                            ))}
+                            {p.claims.map((clm: any) => (
+                              <div key={clm.id} style={{ color: '#15803d', padding: '1.5px 0' }}>
+                                • مستخلص <b>{clm.claim_number}</b> ({clm.contractor_name}): <b>{formatCurrency(clm.net_amount)}</b>
+                              </div>
+                            ))}
+                            {p.paymentVouchers.map((pv: any) => (
+                              <div key={pv.id} style={{ color: '#b45309', padding: '1.5px 0' }}>
+                                • سند صرف <b>{pv.voucher_number}</b> ({pv.date}): <b>{formatCurrency(pv.amount)}</b>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+
+                      {/* العمود 2: يوميات العمالة وفواتير الخامات */}
+                      <div
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '6px',
+                          padding: '6px 8px',
+                          fontSize: '8.8px',
+                          lineHeight: 1.45,
+                          minWidth: 0,
+                        }}
+                      >
+                        <div style={{ fontWeight: 900, color: '#0369a1', marginBottom: '3px', fontSize: '9.2px' }}>
+                          يوميات العمالة ({p.labor_days} يوم) والخامات
+                        </div>
+                        {p.laborLogs.length === 0 && p.materialReceipts.length === 0 ? (
+                          <div style={{ color: '#94a3b8' }}>لا توجد يوميات أو خامات مسجلة</div>
+                        ) : (
+                          <>
+                            {p.laborLogs.map((l: any) => (
+                              <div key={l.id} style={{ borderBottom: '1px dashed #f1f5f9', padding: '1.5px 0' }}>
+                                {l.work_date} — <b>{l.worker_name}</b>: <b>{formatCurrency(l.daily_wage)}</b>
+                              </div>
+                            ))}
+                            {p.materialReceipts.map((m: any) => (
+                              <div key={m.id} style={{ color: '#0369a1', padding: '1.5px 0' }}>
+                                • فاتورة خامات <b>{m.receipt_number}</b> ({m.receipt_type}): <b>{formatCurrency(m.total_amount)}</b>
+                              </div>
+                            ))}
+                          </>
+                        )}
+                      </div>
+
+                      {/* العمود 3: نصيب الفيلا من المصاريف الموزعة ABC */}
+                      <div
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '6px',
+                          padding: '6px 8px',
+                          fontSize: '8.8px',
+                          lineHeight: 1.45,
+                          minWidth: 0,
+                        }}
+                      >
+                        <div style={{ fontWeight: 900, color: '#0f172a', marginBottom: '3px', fontSize: '9.2px' }}>
+                          نصيب الفيلا من المصاريف ({formatCurrency(p.abc_expenses_total)})
+                        </div>
+                        {p.expenseAllocations.length === 0 ? (
+                          <div style={{ color: '#94a3b8' }}>لا توجد مصاريف محملة</div>
+                        ) : (
+                          p.expenseAllocations.map((a: any) => (
+                            <div key={a.id} style={{ borderBottom: '1px dashed #f1f5f9', padding: '1.5px 0' }}>
+                              {a['تاريخ المصروف الأصلي']} — {a['البيان / الوصف']} ({a['نسبة التحميل (%)']}%):{' '}
+                              <b>{formatCurrency(a.allocated_amount)}</b>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* 4️⃣ القسم الثاني: حسابات العمالة ومقاولي الباطن والأرصدة المتبقية */}
+        {sections.workersAndContractors && (
+          <div>
+            <DocSection
+              title="2. بيان حسابات العمالة ومقاولي الباطن (المستحق • المنصرف • المتبقي)"
+              en="Contractors & Labor Balances"
+            />
+            <table className="phi-master-table">
+              <colgroup>
+                <col style={{ width: '20%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '13%' }} />
+                <col style={{ width: '23%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '11%' }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th className="is-right">الاسم / الجهة المستفيدة</th>
+                  <th>التصنيف</th>
+                  <th>عدد اليوميات / المستخلصات</th>
+                  <th className="is-right">توزيع العمل على الفلل</th>
+                  <th>إجمالي المستحق</th>
+                  <th>المدفوع بسندات صرف</th>
+                  <th>الرصيد المتبقي المستحق</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.contractorsSummary.map((c: any) => (
+                  <tr key={`p-con-${c.name}`}>
+                    <td className="is-right" style={{ fontWeight: 900 }}>{c.name}</td>
+                    <td>مقاول باطن</td>
+                    <td>{c.claimsCount} مستخلصات</td>
+                    <td className="is-right">{c.villas.join(' ، ')}</td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(c.claimed)}</td>
+                    <td style={{ color: '#15803d', fontWeight: 900 }}>{formatCurrency(c.paid)}</td>
+                    <td style={{ color: c.remaining > 0 ? '#b91c1c' : '#15803d', fontWeight: 900 }}>
+                      {formatCurrency(c.remaining)}
+                    </td>
+                  </tr>
+                ))}
+                {d.workersSummary.map((w: any) => (
+                  <tr key={`p-wrk-${w.name}`}>
+                    <td className="is-right" style={{ fontWeight: 900 }}>{w.name}</td>
+                    <td>عمالة يومية</td>
+                    <td>{w.days} يومية</td>
+                    <td className="is-right">{w.villasText}</td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(w.earned)}</td>
+                    <td style={{ color: '#15803d', fontWeight: 900 }}>{formatCurrency(w.paid)}</td>
+                    <td style={{ color: w.remaining > 0 ? '#b91c1c' : '#15803d', fontWeight: 900 }}>
+                      {formatCurrency(w.remaining)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan={4} className="is-right">
+                    الإجمالي الكلي لمستحقات العمالة ومقاولي الباطن
+                  </td>
+                  <td>{formatCurrency(t.totalLaborEarned + t.totalClaimsNet)}</td>
+                  <td style={{ color: '#15803d' }}>{formatCurrency(t.totalLaborPaid + t.totalClaimsPaid)}</td>
+                  <td style={{ color: '#b91c1c' }}>{formatCurrency(t.totalLaborRemaining + t.totalClaimsRemaining)}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+
+        {/* 5️⃣ القسم الثالث والرابع: سجل سندات القبض وسجل سندات الصرف */}
+        {sections.vouchers && (
+          <div className="phi-vouchers-two-col">
+            <div>
+              <DocSection
+                title={`3. سجل سندات القبض (${d.receiptVouchers.length} سندات)`}
+                en="Receipt Vouchers"
+              />
+              <table className="phi-master-table">
+                <colgroup>
+                  <col style={{ width: '20%' }} />
+                  <col style={{ width: '16%' }} />
+                  <col style={{ width: '22%' }} />
+                  <col style={{ width: '24%' }} />
+                  <col style={{ width: '18%' }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>رقم السند</th>
+                    <th>التاريخ</th>
+                    <th>الجهة / المموّل</th>
+                    <th className="is-right">البيان</th>
+                    <th>المبلغ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d.receiptVouchers.map((r: any) => (
+                    <tr key={r.id}>
+                      <td style={{ fontWeight: 900, color: '#c2410c' }}>{r.receipt_number}</td>
+                      <td>{r.date}</td>
+                      <td style={{ fontWeight: 800 }}>{r.partner_name}</td>
+                      <td className="is-right">{r.notes || '---'}</td>
+                      <td style={{ fontWeight: 900, color: '#15803d' }}>{formatCurrency(r.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={4} className="is-right">إجمالي سندات القبض الواردة</td>
+                    <td style={{ color: '#15803d' }}>{formatCurrency(t.totalReceiptVouchers)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            <div>
+              <DocSection
+                title={`4. سجل سندات الصرف (${d.paymentVouchers.length} سنداً)`}
+                en="Payment Vouchers"
+              />
+              <table className="phi-master-table">
+                <colgroup>
+                  <col style={{ width: '18%' }} />
+                  <col style={{ width: '15%' }} />
+                  <col style={{ width: '18%' }} />
+                  <col style={{ width: '31%' }} />
+                  <col style={{ width: '18%' }} />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th>رقم السند</th>
+                    <th>التاريخ</th>
+                    <th>التصنيف</th>
+                    <th className="is-right">المستفيد / البيان</th>
+                    <th>المبلغ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {d.paymentVouchers.map((v: any) => (
+                    <tr key={v.id}>
+                      <td style={{ fontWeight: 900, color: '#c2410c' }}>{v.voucher_number}</td>
+                      <td>{v.date}</td>
+                      <td>{v.category}</td>
+                      <td className="is-right">
+                        <b>{v.partner_name !== '---' ? v.partner_name : v.projects_label}</b>
+                        {v.description ? ` — ${v.description}` : ''}
+                      </td>
+                      <td style={{ fontWeight: 900, color: '#b91c1c' }}>{formatCurrency(v.amount)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td colSpan={4} className="is-right">إجمالي سندات الصرف المنصرفة</td>
+                    <td style={{ color: '#b91c1c' }}>{formatCurrency(t.totalPaymentVouchers)}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* 6️⃣ القسم الخامس: سجل المصاريف التشغيلية وتوزيعها على الفلل (ABC) */}
+        {sections.expenses && (
+          <div>
+            <DocSection
+              title={`5. سجل المصاريف التشغيلية وتوزيعها الفعلي على المشاريع (${d.expenses.length} مصروفاً)`}
+              en="Operating Expenses & ABC Allocation"
+            />
+            <table className="phi-master-table">
+              <colgroup>
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '25%' }} />
+                <col style={{ width: '13%' }} />
+                <col style={{ width: '37%' }} />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>التاريخ</th>
+                  <th>التصنيف</th>
+                  <th className="is-right">البيان / التفاصيل</th>
+                  <th>المبلغ</th>
+                  <th className="is-right">التوزيع الفعلي على المشاريع (ABC)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {d.expenses.map((e: any) => (
+                  <tr key={e.id}>
+                    <td>{e.exp_date}</td>
+                    <td>{e.main_category || 'مصروف عام'}</td>
+                    <td className="is-right" style={{ fontWeight: 800 }}>{e.display_description}</td>
+                    <td style={{ fontWeight: 900, color: '#c2410c' }}>{formatCurrency(e.net_amount)}</td>
+                    <td className="is-right" style={{ color: '#334155' }}>{e.distribution_text}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan={3} className="is-right">إجمالي المصاريف التشغيلية الموزعة على الفلل</td>
+                  <td style={{ color: '#c2410c' }}>{formatCurrency(t.totalExpensesAmount)}</td>
+                  <td className="is-right">موزعة بالكامل على مراكز تكلفة المشاريع</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+
+        {/* 7️⃣ الملخص الختامي والإقرار المحاسبي */}
+        <div className="phi-doc-summary" style={{ marginTop: '8px' }}>
+          <div className="phi-doc-stack">
+            <DocNote title="إقرار المطابقة المالية والمحاسبية الشاملة">
+              تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة، ويمثل الموقف المالي الفعلي للمشاريع حتى تاريخ الإصدار.
+            </DocNote>
+          </div>
+          <DocTotals
+            rows={[
+              { label: 'إجمالي عقود المشاريع (BOQ)', value: formatCurrency(t.totalContractValue) },
+              { label: 'إجمالي التكاليف الفعلية المحملة', value: formatCurrency(t.totalActualProjectCosts), tone: 'warn' },
+              { label: 'إجمالي سندات القبض (الوارد)', value: formatCurrency(t.totalReceiptVouchers), tone: 'positive' },
+              { label: 'إجمالي سندات الصرف (المنصرف)', value: formatCurrency(t.totalPaymentVouchers), tone: 'discount' },
+            ]}
+            grand={{
+              label: 'صافي السيولة المتبقية بالخزينة',
+              value: formatCurrency(t.netCashTreasury),
+            }}
+          />
+        </div>
+
+        {/* 8️⃣ التوقيعات والاعتماد الرسمي */}
+        {sections.signatures && (
+          <DocSignatures
+            slots={[
+              { title: 'المحاسب المالي', en: 'Financial Accountant' },
+              { title: 'مدير إدارة المشروعات', en: 'Projects Manager (PMO)' },
+              { title: 'اعتماد المدير العام', en: 'General Manager Approval' },
+            ]}
+          />
+        )}
+
+        {/* 9️⃣ الفوتر الرسمي لجهات الاتصال وباركود vCard */}
+        <ReportContactFooter layout="minimal" style={{ marginTop: '12px' }} />
+      </div>
+    </div>,
+    document.body
+  );
+}

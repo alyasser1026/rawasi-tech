@@ -67,10 +67,10 @@ export function printReportElement(
     const iframe = document.createElement('iframe');
     iframe.id = 'phi-report-print-iframe';
     iframe.setAttribute('aria-hidden', 'true');
-    // Off-screen with real A4 dimensions and full opacity so Chromium/Edge
+    // Off-screen with real A4 landscape dimensions and full opacity so Chromium/Edge
     // always computes full layout and never paints a 0x0 / opacity:0 blank frame.
     iframe.style.cssText =
-      'position:fixed;left:-10000px;top:0;width:210mm;min-height:297mm;border:0;opacity:1;pointer-events:none;z-index:-1;background:#ffffff;';
+      'position:fixed;left:-10000px;top:0;width:277mm;min-height:194mm;border:0;opacity:1;pointer-events:none;z-index:-1;background:#ffffff;';
     document.body.appendChild(iframe);
 
     const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
@@ -126,7 +126,7 @@ export function printReportElement(
     }
     @page {
       size: A4 landscape;
-      margin: 10mm 12mm;
+      margin: 8mm 10mm;
     }
     * {
       box-sizing: border-box;
@@ -137,6 +137,7 @@ export function printReportElement(
       margin: 0 !important;
       padding: 0 !important;
       width: 100% !important;
+      max-width: 100% !important;
       height: auto !important;
       min-height: 0 !important;
       max-height: none !important;
@@ -147,7 +148,13 @@ export function printReportElement(
       color: #0f172a !important;
       font-family: 'Cairo', 'Tajawal', system-ui, -apple-system, sans-serif !important;
       direction: rtl !important;
-      line-height: 1.45;
+      line-height: 1.4;
+    }
+    body > * {
+      width: 100% !important;
+      max-width: 100% !important;
+      box-sizing: border-box !important;
+      overflow-x: hidden !important;
     }
     .no-print, .dossier-no-print {
       display: none !important;
@@ -167,10 +174,14 @@ export function printReportElement(
     }
     table {
       width: 100% !important;
+      max-width: 100% !important;
+      table-layout: fixed !important;
       border-collapse: collapse !important;
       page-break-inside: auto !important;
       break-inside: auto !important;
       background: #ffffff !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
     }
     thead {
       display: table-header-group !important;
@@ -182,11 +193,14 @@ export function printReportElement(
       page-break-inside: avoid !important;
       break-inside: avoid !important;
     }
-    thead th {
+    thead th, tbody td, tfoot td {
       position: static !important;
       top: auto !important;
       backdrop-filter: none !important;
       -webkit-backdrop-filter: none !important;
+      word-wrap: break-word !important;
+      overflow-wrap: break-word !important;
+      white-space: normal !important;
     }
   </style>
 </head>
