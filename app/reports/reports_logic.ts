@@ -44,6 +44,8 @@ export function useReportsLogic() {
         material_issue_lines,
         expenses,
         partners,
+        contractor_assignments,
+        project_site_visits,
       ] = await runWithConcurrency([
         () => fetchAllSupabaseData(supabase, 'projects', '*', 'created_at', true),
         () => fetchAllSupabaseData(supabase, 'boq_budget', '*', 'created_at', true),
@@ -58,6 +60,8 @@ export function useReportsLogic() {
         () => fetchAllSupabaseData(supabase, 'material_issue_lines', '*', 'id', true),
         () => fetchAllSupabaseData(supabase, 'expenses', '*', 'exp_date', false),
         () => fetchAllSupabaseData(supabase, 'partners', 'id,name,partner_type,company_id', 'created_at', false),
+        () => fetchAllSupabaseData(supabase, 'contractor_assignments', '*', 'created_at', false),
+        () => fetchAllSupabaseData(supabase, 'project_site_visits', '*', 'visit_date', false),
       ], 4);
 
       const byCompany = (rows: any[]) =>
@@ -77,6 +81,8 @@ export function useReportsLogic() {
         material_issue_lines: byCompany(material_issue_lines),
         expenses: byCompany(expenses).filter((e: any) => !e.is_deleted),
         partners: byCompany(partners),
+        contractor_assignments: byCompany(contractor_assignments),
+        project_site_visits: byCompany(project_site_visits),
       };
     },
     staleTime: 60 * 1000,

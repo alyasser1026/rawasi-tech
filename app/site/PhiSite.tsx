@@ -89,7 +89,6 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
 export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
   const { SITE, PRODUCTS, PROPERTIES, NEWS_TICKER } = mergeContent(content);
   const router = useRouter();
-  const [introReplayCount, setIntroReplayCount] = useState(0);
   const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
   const cart = useCustomerCart(() => setLoginOpen(true));
 
@@ -135,7 +134,7 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
     <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
       <PanoramicStructureScroll />
-      <LogoMotionIntro replayCount={introReplayCount} />
+      <LogoMotionIntro replayCount={0} />
 
       <PublicHeader
         siteName={SITE.name}
@@ -159,7 +158,6 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           whatsappNumber={c.whatsapp}
           onAddToCart={cart.addToCart}
           onAddBundleToCart={cart.addBundleToCart}
-          onReplayLogoMotion={() => setIntroReplayCount((n) => n + 1)}
         />
 
         {/* قسم التواصل فوق الخلفية البانورامية الممتدة من أول الصفحة لآخرها */}

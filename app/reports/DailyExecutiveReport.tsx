@@ -10,9 +10,20 @@ import {
   getExpenseDisplayDescription,
   getExpenseNetAmount,
 } from '@/lib/dailyWorkerExpenseAllocation';
+import {
+  dbStatusToDefaultApprovalCode,
+  parseVisitNotesAndMeta,
+} from '../requests-handovers/requests_handovers_logic';
 import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import ReportContactFooter from '@/components/ReportContactFooter';
-import { DocNote, DocSection, DocSignatures, DocStats, PHI_DOC_CSS } from '@/components/PrintDocument';
+import {
+  DocNote,
+  DocSection,
+  DocSignatures,
+  DocStats,
+  DocTotals,
+  PHI_DOC_CSS,
+} from '@/components/PrintDocument';
 import {
   DailyCategorySlice,
   DailyExecutiveCharts,
@@ -25,16 +36,21 @@ import {
   ArrowUpRight,
   Building2,
   CalendarDays,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  ClipboardCheck,
   FileSpreadsheet,
+  Handshake,
   HardHat,
   Layers,
   Package,
   Printer,
   Receipt,
   Sparkles,
+  Truck,
   Wallet,
+  Wrench,
   X,
 } from 'lucide-react';
 
@@ -95,6 +111,19 @@ function formatShortWeekday(isoDate: string): string {
   } catch {
     return isoDate.slice(5);
   }
+}
+
+function getApprovalPillStyle(code: string) {
+  if (code.includes('Code A')) {
+    return { bg: 'rgba(16, 185, 129, 0.14)', color: '#059669' };
+  }
+  if (code.includes('Code B')) {
+    return { bg: 'rgba(245, 158, 11, 0.16)', color: '#d97706' };
+  }
+  if (code.includes('Code C')) {
+    return { bg: 'rgba(244, 63, 94, 0.15)', color: '#e11d48' };
+  }
+  return { bg: 'rgba(59, 130, 246, 0.14)', color: '#2563eb' };
 }
 
 const SLICE_PALETTE = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#f43f5e', '#06b6d4', '#ec4899'];
@@ -190,11 +219,17 @@ export default function DailyExecutiveReport({
     };
   }, [rawData, selectedProjectId]);
 
-  // استخراج أحدث الأيام النشطة التي تحتوي على حركات (للانتقال السريع)
+  // استخراج أحدث الأيام النشطة شاملة كافة الأنشطة المالية والهندسية
   const activeDays = useMemo(() => {
     const counts = new Map<string, number>();
-    const bump = (dStr?: string | null, rec?: any) => {
-      if (rec && !maps.matchesSelectedProject(rec)) return;
+    const bump = (dStr?: string | null, rec?: any, isDirectProj = false) => {
+      if (rec) {
+        if (isDirectProj) {
+          if (selectedProjectId !== 'all' && String(rec.id) !== String(selectedProjectId)) return;
+        } else if (!maps.matchesSelectedProject(rec)) {
+          return;
+        }
+      }
       const d = extractDateOnly(dStr);
       if (!d) return;
       counts.set(d, (counts.get(d) || 0) + 1);
@@ -207,15 +242,19 @@ export default function DailyExecutiveReport({
     (rawData?.material_issues || []).forEach((m: any) => bump(m.issue_date, m));
     (rawData?.material_receipts || []).forEach((m: any) => bump(m.receipt_date, m));
     (rawData?.sub_claims || []).forEach((c: any) => bump(c.date, c));
+    (rawData?.projects || []).forEach((p: any) => bump(p.created_at, p, true));
+    (rawData?.boq_budget || []).forEach((b: any) => bump(b.created_at, b));
+    (rawData?.job_orders || []).forEach((j: any) => bump(j.created_at || j.start_date, j));
+    (rawData?.contractor_assignments || []).forEach((a: any) => bump(a.created_at, a));
+    (rawData?.project_site_visits || []).forEach((v: any) => bump(v.visit_date || v.created_at, v));
 
     return Array.from(counts.entries())
       .map(([date, count]) => ({ date, count }))
       .sort((a, b) => b.date.localeCompare(a.date));
-  }, [rawData, maps]);
+  }, [rawData, maps, selectedProjectId]);
 
   const latestActiveDate = activeDays[0]?.date || todayIso;
 
-  // دالة مساعدة لتجميع بيانات أي يوم معين (تُستخدم لليوم المختار وللمسار الأسبوعي)
   const buildSnapshotForDate = (targetDate: string) => {
     const dayReceipts = (rawData?.receipt_vouchers || []).filter(
       (r: any) => extractDateOnly(r.date) === targetDate && maps.matchesSelectedProject(r)
@@ -269,7 +308,32 @@ export default function DailyExecutiveReport({
       ? selectedProj.Property || selectedProj.project_name || 'مشروع محدد'
       : `جميع المشاريع (${rawData?.projects?.length || 0} فلل)`;
 
-    // 1. سندات القبض (الفلوس اللي دخلت)
+    // 0. رصيد الخزينة التراكمي (الافتتاحي قبل اليوم، رصيد نهاية اليوم، الرصيد الحالي الكلي)
+    let prevReceipts = 0;
+    let prevPayments = 0;
+    let allReceiptsSum = 0;
+    let allPaymentsSum = 0;
+
+    (rawData?.receipt_vouchers || []).forEach((r: any) => {
+      if (!maps.matchesSelectedProject(r)) return;
+      const amt = Number(r.amount) || 0;
+      allReceiptsSum += amt;
+      const d = extractDateOnly(r.date);
+      if (d && d < selectedDate) prevReceipts += amt;
+    });
+
+    (rawData?.payment_vouchers || []).forEach((v: any) => {
+      if (!maps.matchesSelectedProject(v)) return;
+      const amt = Number(v.amount) || 0;
+      allPaymentsSum += amt;
+      const d = extractDateOnly(v.date);
+      if (d && d < selectedDate) prevPayments += amt;
+    });
+
+    const treasuryOpeningBalance = round2(prevReceipts - prevPayments);
+    const treasuryCurrentTotal = round2(allReceiptsSum - allPaymentsSum);
+
+    // 1. سندات القبض اليوم
     const receipts = (rawData?.receipt_vouchers || [])
       .filter((r: any) => extractDateOnly(r.date) === selectedDate && maps.matchesSelectedProject(r))
       .map((r: any) => {
@@ -287,16 +351,24 @@ export default function DailyExecutiveReport({
         };
       });
 
-    // 2. سندات الصرف (الفلوس اللي اتصرفت)
+    // 2. سندات الصرف اليوم وتصنيف المستحقات المسددة
     const linkedExpenseVoucherIds = new Set<string>();
     const payments = (rawData?.payment_vouchers || [])
       .filter((v: any) => extractDateOnly(v.date) === selectedDate && maps.matchesSelectedProject(v))
       .map((v: any) => {
         if (v.related_expense_id) linkedExpenseVoucherIds.add(String(v.related_expense_id));
         let category = 'صرف عام';
-        if (v.sub_claim_id) category = 'سداد مستخلص مقاول';
-        else if (v.related_expense_id) category = 'سداد مصروف تشغيلي';
-        else if (v.partner_id) category = 'دفعة / يوميات عمالة';
+        let kind: 'claim' | 'expense' | 'worker' | 'general' = 'general';
+        if (v.sub_claim_id) {
+          category = 'سداد مستخلص مقاول';
+          kind = 'claim';
+        } else if (v.related_expense_id) {
+          category = 'سداد مصروف تشغيلي';
+          kind = 'expense';
+        } else if (v.partner_id || v.custody_partner_id) {
+          category = 'دفعة / يوميات عمالة';
+          kind = 'worker';
+        }
 
         const pids = maps.resolveProjectIds(v);
         const projectsLabel =
@@ -306,6 +378,7 @@ export default function DailyExecutiveReport({
 
         return {
           ...v,
+          kind,
           amount_num: round2(Number(v.amount) || 0),
           partner_name:
             maps.partnerMap.get(String(v.partner_id))?.name ||
@@ -316,6 +389,17 @@ export default function DailyExecutiveReport({
           resolved_project_ids: pids,
         };
       });
+
+    const workerPaidRows = payments.filter((v: any) => v.kind === 'worker');
+    const claimPaidRows = payments.filter((v: any) => v.kind === 'claim');
+    const expensePaidRows = payments.filter((v: any) => v.kind === 'expense');
+    const generalPaidRows = payments.filter((v: any) => v.kind === 'general');
+
+    const workersPaidToday = round2(workerPaidRows.reduce((s: number, v: any) => s + v.amount_num, 0));
+    const claimsPaidToday = round2(claimPaidRows.reduce((s: number, v: any) => s + v.amount_num, 0));
+    const expensesPaidToday = round2(expensePaidRows.reduce((s: number, v: any) => s + v.amount_num, 0));
+    const generalPaidToday = round2(generalPaidRows.reduce((s: number, v: any) => s + v.amount_num, 0));
+    const settledDuesToday = round2(workersPaidToday + claimsPaidToday + expensesPaidToday);
 
     // 3. العمال اللي نزلت اشتغلت اليوم
     const laborLogs = (rawData?.labor_daily_logs || [])
@@ -411,7 +495,7 @@ export default function DailyExecutiveReport({
         };
       });
 
-    // 5. الخامات المنصرفة والمستلمة ومستخلصات اليوم
+    // 5. الخامات المنصرفة والموردة ومستخلصات اليوم
     const materialIssues = (rawData?.material_issues || [])
       .filter((m: any) => extractDateOnly(m.issue_date) === selectedDate && maps.matchesSelectedProject(m))
       .map((m: any) => {
@@ -449,6 +533,19 @@ export default function DailyExecutiveReport({
         };
       });
 
+    const materialIssuesLinesCount = materialIssues.reduce((s: number, m: any) => s + (m.lines?.length || 0), 0);
+    const materialReceiptsLinesCount = materialReceipts.reduce((s: number, m: any) => s + (m.lines?.length || 0), 0);
+    const materialReceiptsCompanyTotal = round2(
+      materialReceipts
+        .filter((m: any) => m.receipt_type !== 'توريد عميل')
+        .reduce((s: number, m: any) => s + m.total_num, 0)
+    );
+    const materialReceiptsClientTotal = round2(
+      materialReceipts
+        .filter((m: any) => m.receipt_type === 'توريد عميل')
+        .reduce((s: number, m: any) => s + m.total_num, 0)
+    );
+
     const subClaims = (rawData?.sub_claims || [])
       .filter((c: any) => extractDateOnly(c.date) === selectedDate && maps.matchesSelectedProject(c))
       .map((c: any) => {
@@ -466,11 +563,184 @@ export default function DailyExecutiveReport({
         };
       });
 
-    // 6. تجميع الفلل النشطة اليوم
-    const villaBucketMap = new Map<
-      string,
-      DailyVillaSummary & { workerSet: Set<string> }
-    >();
+    // 6. الأنشطة الهندسية والتعاقدية الجديدة المسجلة اليوم
+    // أ) الفلل الجديدة التي أضيفت اليوم
+    const newVillasToday = (rawData?.projects || [])
+      .filter((p: any) => {
+        if (selectedProjectId !== 'all' && String(p.id) !== String(selectedProjectId)) return false;
+        return extractDateOnly(p.created_at) === selectedDate;
+      })
+      .map((p: any) => ({
+        ...p,
+        display_name: p.Property || p.project_name || 'مشروع جديد',
+        client_display: maps.partnerMap.get(String(p.client_id))?.name || p.client_name || '---',
+        contract_num: round2(Number(p.contract_value) || 0),
+        budget_num: round2(Number(p.estimated_budget) || 0),
+      }));
+
+    // ب) البنود الجديدة التي فتحت اليوم (boq_budget)
+    const newBoqItemsToday = (rawData?.boq_budget || [])
+      .filter((b: any) => {
+        if (!maps.matchesSelectedProject(b)) return false;
+        return extractDateOnly(b.created_at) === selectedDate;
+      })
+      .map((b: any) => {
+        const proj = maps.projectMap.get(String(b.project_id));
+        const val = round2(
+          Number(b.total_contract_amount) ||
+            (Number(b.contract_quantity) || 0) * (Number(b.unit_contract_price) || 0)
+        );
+        return {
+          ...b,
+          project_display_name: proj?.Property || proj?.project_name || b.Property || '---',
+          item_value: val,
+        };
+      });
+    const newBoqTotalValue = round2(
+      newBoqItemsToday.reduce((s: number, b: any) => s + (Number(b.item_value) || 0), 0)
+    );
+
+    // ج) أوامر التشغيل الجديدة التي فتحت اليوم
+    const newJobOrdersToday = (rawData?.job_orders || [])
+      .filter((j: any) => {
+        if (!maps.matchesSelectedProject(j)) return false;
+        return (
+          extractDateOnly(j.created_at) === selectedDate ||
+          extractDateOnly(j.start_date) === selectedDate
+        );
+      })
+      .map((j: any) => {
+        const proj = maps.projectMap.get(String(j.project_id));
+        const boq = maps.boqMap.get(String(j.boq_budget_id));
+        const val = round2((Number(j.assigned_qty) || 0) * (Number(j.unit_price) || 0));
+        return {
+          ...j,
+          project_display_name: proj?.Property || proj?.project_name || '---',
+          boq_item_name: boq?.work_item || '---',
+          contractor_display: j.contractor_id
+            ? maps.partnerMap.get(String(j.contractor_id))?.name || 'مقاول'
+            : 'تنفيذ ذاتي',
+          order_value: val,
+        };
+      });
+    const newJobOrdersTotalValue = round2(
+      newJobOrdersToday.reduce((s: number, j: any) => s + (Number(j.order_value) || 0), 0)
+    );
+
+    // د) أعمال أسندت لمقاولين الباطن اليوم (من contractor_assignments + أوامر الشغل المسندة مباشرة لمقاول دون سجل إسناد منفصل)
+    const assignmentKeysSeen = new Set<string>();
+    const rawAssignmentsToday = (rawData?.contractor_assignments || [])
+      .filter((a: any) => {
+        const jo = a.job_order_id ? maps.jobOrderMap.get(String(a.job_order_id)) : null;
+        const fakeRec = { project_id: a.project_id || jo?.project_id, job_order_id: a.job_order_id };
+        if (!maps.matchesSelectedProject(fakeRec)) return false;
+        return extractDateOnly(a.created_at) === selectedDate;
+      })
+      .map((a: any) => {
+        const jo = a.job_order_id ? maps.jobOrderMap.get(String(a.job_order_id)) : null;
+        const pid = String(a.project_id || jo?.project_id || '');
+        const proj = pid ? maps.projectMap.get(pid) : null;
+        const boq = maps.boqMap.get(String(a.boq_budget_id || jo?.boq_budget_id || ''));
+        if (a.job_order_id && a.contractor_id) {
+          assignmentKeysSeen.add(`${a.job_order_id}::${a.contractor_id}`);
+        }
+        return {
+          id: a.id,
+          contractor_display: maps.partnerMap.get(String(a.contractor_id))?.name || 'مقاول باطن',
+          project_display_name: proj?.Property || proj?.project_name || '---',
+          job_order_number: jo?.order_number || '---',
+          boq_item_name: boq?.work_item || '---',
+          assigned_qty: Number(a.assigned_qty) || 0,
+          unit_price: Number(a.unit_price) || 0,
+          total_value: round2((Number(a.assigned_qty) || 0) * (Number(a.unit_price) || 0)),
+          status: a.status || 'نشط',
+          notes: a.notes || '',
+        };
+      });
+
+    const directJoAssignmentsToday = newJobOrdersToday
+      .filter((j: any) => j.contractor_id && !assignmentKeysSeen.has(`${j.id}::${j.contractor_id}`))
+      .map((j: any) => ({
+        id: `jo-asg-${j.id}`,
+        contractor_display: j.contractor_display,
+        project_display_name: j.project_display_name,
+        job_order_number: j.order_number || '---',
+        boq_item_name: j.boq_item_name,
+        assigned_qty: Number(j.assigned_qty) || 0,
+        unit_price: Number(j.unit_price) || 0,
+        total_value: j.order_value,
+        status: j.status || 'مفتوح',
+        notes: j.notes || '',
+      }));
+
+    const newSubcontractorAssignmentsToday = [...rawAssignmentsToday, ...directJoAssignmentsToday];
+    const newSubcontractorAssignmentsValue = round2(
+      newSubcontractorAssignmentsToday.reduce((s: number, a: any) => s + (Number(a.total_value) || 0), 0)
+    );
+
+    // 7. الركوستات المفتوحة اليوم والتسليمات والزيارات الهندسية (project_site_visits + meta)
+    const parsedVisits = (rawData?.project_site_visits || [])
+      .filter((v: any) => maps.matchesSelectedProject(v))
+      .map((v: any) => {
+        const { cleanNotes, meta } = parseVisitNotesAndMeta(v.notes);
+        const proj = maps.projectMap.get(String(v.project_id));
+        const boq = maps.boqMap.get(String(v.boq_id || ''));
+        const jo = meta.jobOrderId ? maps.jobOrderMap.get(String(meta.jobOrderId)) : null;
+
+        const visitDate = extractDateOnly(v.visit_date || v.created_at);
+        const handoverDt = extractDateOnly(meta.handoverDate);
+        const createdDt = extractDateOnly(v.created_at);
+        const isToday =
+          visitDate === selectedDate || createdDt === selectedDate || handoverDt === selectedDate;
+
+        const reqCode = meta.requestCode || '';
+        const isHandover =
+          meta.recordKind === 'handover' ||
+          reqCode.toUpperCase().startsWith('HND') ||
+          String(v.title || '').includes('تسليم');
+        const isRequest =
+          meta.recordKind === 'request' ||
+          (Boolean(meta.isRequestHandover) && !isHandover) ||
+          /^(WIR|MIR|CPR|IR|MEP)-/i.test(reqCode);
+
+        const approvalCode = meta.approvalCode || dbStatusToDefaultApprovalCode(v.status);
+
+        return {
+          ...v,
+          cleanNotes,
+          meta,
+          requestCode: reqCode || (isHandover ? 'HND' : isRequest ? 'WIR' : 'VISIT'),
+          requestCategory:
+            meta.requestCategory || (isHandover ? 'محضر تسليم' : isRequest ? 'طلب فحص واستلام' : 'زيارة موقعية'),
+          approvalCode,
+          project_display_name: proj?.Property || proj?.project_name || '---',
+          boq_item_name: boq?.work_item || '---',
+          job_order_number: meta.jobOrderNumber || jo?.order_number || '---',
+          contractor_display:
+            meta.contractorName ||
+            (meta.contractorId ? maps.partnerMap.get(String(meta.contractorId))?.name : '') ||
+            '---',
+          consultant_display: meta.consultantName || v.inspector_name || '---',
+          location_zone: meta.locationZone || '',
+          completion_pct: meta.completionPct ?? null,
+          visitDate,
+          isToday,
+          openedToday: createdDt === selectedDate || visitDate === selectedDate,
+          isHandover,
+          isRequest,
+        };
+      });
+
+    const handoversToday = parsedVisits.filter((v: any) => v.isHandover && v.isToday);
+    const openRequestsToday = parsedVisits.filter(
+      (v: any) =>
+        v.isRequest &&
+        (v.isToday || (v.status !== 'تم الإنجاز' && v.visitDate && v.visitDate <= selectedDate))
+    );
+    const siteVisitsToday = parsedVisits.filter((v: any) => !v.isHandover && !v.isRequest && v.isToday);
+
+    // 8. تجميع الفلل النشطة اليوم
+    const villaBucketMap = new Map<string, DailyVillaSummary & { workerSet: Set<string> }>();
 
     const ensureVilla = (pid: string, fallbackName?: string) => {
       const key = pid || `site:${fallbackName || 'عام'}`;
@@ -612,10 +882,11 @@ export default function DailyExecutiveReport({
       })
       .sort((a, b) => b.totalOperationalCost - a.totalOperationalCost || b.workersCount - a.workersCount);
 
-    // 7. الإجماليات والمؤشرات
+    // 9. الإجماليات والمؤشرات
     const cashIn = round2(receipts.reduce((s: number, r: any) => s + r.amount_num, 0));
     const cashOut = round2(payments.reduce((s: number, v: any) => s + v.amount_num, 0));
     const netCash = round2(cashIn - cashOut);
+    const treasuryBalanceEndOfDay = round2(treasuryOpeningBalance + netCash);
     const expensesTotal = round2(enrichedExpenses.reduce((s: number, e: any) => s + e.net_amount, 0));
     const directCashExpensesUnlinked = round2(
       enrichedExpenses
@@ -642,7 +913,7 @@ export default function DailyExecutiveReport({
       laborTotal + expensesTotal + materialIssuesTotal + subClaimsTotal
     );
 
-    // 8. شرائح الرسم الدائري لتصنيف مصروفات اليوم
+    // 10. شرائح الرسم الدائري
     const catTotals = new Map<string, number>();
     enrichedExpenses.forEach((e: any) => {
       const cat = String(e.main_category || 'مصروفات تشغيلية متنوعة').trim();
@@ -664,7 +935,7 @@ export default function DailyExecutiveReport({
       { label: 'سندات صرف عامة', value: cashOut, color: '#f43f5e' },
     ];
 
-    // 9. مسار آخر 7 أيام
+    // 11. مسار آخر 7 أيام
     const trend7Days: DailyTrendPoint[] = [];
     for (let offset = -6; offset <= 0; offset++) {
       const dt = shiftIsoDate(selectedDate, offset);
@@ -685,16 +956,33 @@ export default function DailyExecutiveReport({
       selectedDate,
       weekdayLabel: formatArabicWeekdayDate(selectedDate),
       selectedProjectLabel,
+      treasuryOpeningBalance,
       cashIn,
       cashOut,
       netCash,
+      treasuryBalanceEndOfDay,
+      treasuryCurrentTotal,
+      workersPaidToday,
+      workersPaidCount: workerPaidRows.length,
+      claimsPaidToday,
+      claimsPaidCount: claimPaidRows.length,
+      expensesPaidToday,
+      expensesPaidCount: expensePaidRows.length,
+      generalPaidToday,
+      settledDuesToday,
       expensesTotal,
       directCashExpensesUnlinked,
       laborTotal,
       laborDays,
       distinctWorkersCount: distinctWorkersSet.size,
       materialIssuesTotal,
+      materialIssuesCount: materialIssues.length,
+      materialIssuesLinesCount,
       materialReceiptsTotal,
+      materialReceiptsCount: materialReceipts.length,
+      materialReceiptsCompanyTotal,
+      materialReceiptsClientTotal,
+      materialReceiptsLinesCount,
       subClaimsTotal,
       materialsAndClaimsTotal,
       totalDailyOperationsCost,
@@ -707,6 +995,16 @@ export default function DailyExecutiveReport({
       materialReceipts,
       subClaims,
       activeVillas,
+      newVillasToday,
+      newBoqItemsToday,
+      newBoqTotalValue,
+      newJobOrdersToday,
+      newJobOrdersTotalValue,
+      newSubcontractorAssignmentsToday,
+      newSubcontractorAssignmentsValue,
+      openRequestsToday,
+      handoversToday,
+      siteVisitsToday,
       expenseCategories,
       costComposition,
       trend7Days,
@@ -721,16 +1019,28 @@ export default function DailyExecutiveReport({
     const summaryRows = [
       { 'البند': 'التاريخ', 'القيمة': `${m.weekdayLabel} (${m.selectedDate})` },
       { 'البند': 'نطاق التقرير', 'القيمة': m.selectedProjectLabel },
+      { 'البند': 'رصيد الخزينة الافتتاحي (قبل اليوم)', 'القيمة': m.treasuryOpeningBalance },
       { 'البند': 'الفلوس الداخلة اليوم (سندات قبض)', 'القيمة': m.cashIn },
       { 'البند': 'الفلوس المصروفة اليوم (سندات صرف)', 'القيمة': m.cashOut },
       { 'البند': 'صافي حركة الخزينة اليوم', 'القيمة': m.netCash },
+      { 'البند': 'المتبقي / رصيد الخزينة حتى نهاية اليوم', 'القيمة': m.treasuryBalanceEndOfDay },
+      { 'البند': 'رصيد الخزينة الإجمالي الحالي', 'القيمة': m.treasuryCurrentTotal },
+      { 'البند': 'المصروف للعمالة اليوم (سندات)', 'القيمة': m.workersPaidToday },
+      { 'البند': 'سداد مستخلصات المقاولين اليوم', 'القيمة': m.claimsPaidToday },
+      { 'البند': 'سداد مصروفات تشغيلية اليوم', 'القيمة': m.expensesPaidToday },
+      { 'البند': 'إجمالي المستحقات المسددة اليوم', 'القيمة': m.settledDuesToday },
       { 'البند': 'إجمالي مصروفات اليوم المسجلة', 'القيمة': m.expensesTotal },
       { 'البند': 'عدد العمال الذين نزلوا اليوم', 'القيمة': m.distinctWorkersCount },
-      { 'البند': 'إجمالي اليوميات', 'القيمة': m.laborDays },
-      { 'البند': 'إجمالي أجور العمال اليوم', 'القيمة': m.laborTotal },
-      { 'البند': 'الخامات المنصرفة للمواقع اليوم', 'القيمة': m.materialIssuesTotal },
-      { 'البند': 'مستخلصات المقاولين المعتمدة اليوم', 'القيمة': m.subClaimsTotal },
-      { 'البند': 'عدد الفلل التي تم العمل بها اليوم', 'القيمة': m.activeVillasCount },
+      { 'البند': 'إجمالي اليوميات المستحقة اليوم', 'القيمة': m.laborTotal },
+      { 'البند': 'إجمالي الخامات الموردة اليوم', 'القيمة': m.materialReceiptsTotal },
+      { 'البند': 'إجمالي الخامات المنصرفة اليوم', 'القيمة': m.materialIssuesTotal },
+      { 'البند': 'الفلل النشطة اليوم', 'القيمة': m.activeVillasCount },
+      { 'البند': 'الفلل الجديدة المضافة اليوم', 'القيمة': m.newVillasToday.length },
+      { 'البند': 'البنود الجديدة المفتوحة اليوم (BOQ)', 'القيمة': m.newBoqItemsToday.length },
+      { 'البند': 'أوامر التشغيل الجديدة اليوم', 'القيمة': m.newJobOrdersToday.length },
+      { 'البند': 'أعمال أسندت لمقاولين الباطن اليوم', 'القيمة': m.newSubcontractorAssignmentsToday.length },
+      { 'البند': 'الركوستات المفتوحة اليوم', 'القيمة': m.openRequestsToday.length },
+      { 'البند': 'التسليمات المسجلة اليوم', 'القيمة': m.handoversToday.length },
     ];
     const wsSummary = XLSX.utils.json_to_sheet(summaryRows);
     wsSummary['!dir'] = 'rtl';
@@ -811,18 +1121,22 @@ export default function DailyExecutiveReport({
 
     const matAndClaimsRows = [
       ...m.materialIssues.map((mi: any) => ({
-        'النوع': 'إذن صرف خامات',
+        'النوع': 'خامات منصرفة للموقع',
         'الرقم المرجعي': mi.issue_number || '---',
         'المشروع / الفيلا': mi.project_display_name,
         'المقاول / المورد': mi.contractor_display,
+        'عدد الأصناف': mi.lines?.length || 0,
+        'تفاصيل الأصناف': (mi.lines || []).map((l: any) => `${l.item_name} (${l.quantity})`).join(' | ') || '---',
         'القيمة': mi.total_num,
         'ملاحظات': mi.notes || '---',
       })),
       ...m.materialReceipts.map((mr: any) => ({
-        'النوع': `توريد خامات (${mr.receipt_type || 'شركة'})`,
+        'النوع': `خامات موردة (${mr.receipt_type || 'شركة'})`,
         'الرقم المرجعي': mr.receipt_number || '---',
         'المشروع / الفيلا': mr.project_display_name,
         'المقاول / المورد': mr.supplier_display,
+        'عدد الأصناف': mr.lines?.length || 0,
+        'تفاصيل الأصناف': (mr.lines || []).map((l: any) => `${l.item_name} (${l.quantity})`).join(' | ') || '---',
         'القيمة': mr.total_num,
         'ملاحظات': mr.notes || '---',
       })),
@@ -831,6 +1145,8 @@ export default function DailyExecutiveReport({
         'الرقم المرجعي': sc.claim_number || '---',
         'المشروع / الفيلا': sc.project_display_name,
         'المقاول / المورد': sc.contractor_display,
+        'عدد الأصناف': 1,
+        'تفاصيل الأصناف': '---',
         'القيمة': sc.net_num,
         'ملاحظات': sc.status || '---',
       })),
@@ -838,6 +1154,78 @@ export default function DailyExecutiveReport({
     const wsMatClaims = XLSX.utils.json_to_sheet(matAndClaimsRows);
     wsMatClaims['!dir'] = 'rtl';
     XLSX.utils.book_append_sheet(wb, wsMatClaims, 'الخامات_والمستخلصات');
+
+    const reqHandoverRows = [
+      ...m.handoversToday.map((h: any) => ({
+        'التصنيف': 'محضر تسليم',
+        'الكود المرجعي': h.requestCode,
+        'النوع': h.requestCategory,
+        'العنوان': h.title || '---',
+        'الفيلا / المشروع': h.project_display_name,
+        'البند / أمر الشغل': `${h.boq_item_name} (${h.job_order_number})`,
+        'المقاول / الاستشاري': `${h.contractor_display} / ${h.consultant_display}`,
+        'كود الاعتماد': h.approvalCode,
+        'الحالة': h.status,
+        'الملاحظات': h.cleanNotes || '---',
+      })),
+      ...m.openRequestsToday.map((r: any) => ({
+        'التصنيف': r.openedToday ? 'ركوست مفتوح اليوم' : 'ركوست مفتوح سابق ومستمر',
+        'الكود المرجعي': r.requestCode,
+        'النوع': r.requestCategory,
+        'العنوان': r.title || '---',
+        'الفيلا / المشروع': r.project_display_name,
+        'البند / أمر الشغل': `${r.boq_item_name} (${r.job_order_number})`,
+        'المقاول / الاستشاري': `${r.contractor_display} / ${r.consultant_display}`,
+        'كود الاعتماد': r.approvalCode,
+        'الحالة': r.status,
+        'الملاحظات': r.cleanNotes || '---',
+      })),
+    ];
+    const wsReqHnd = XLSX.utils.json_to_sheet(reqHandoverRows);
+    wsReqHnd['!dir'] = 'rtl';
+    XLSX.utils.book_append_sheet(wb, wsReqHnd, 'الركوستات_والتسليمات_اليوم');
+
+    const newActivitiesRows = [
+      ...m.newVillasToday.map((v: any) => ({
+        'النشاط الجديد': 'فيلا / مشروع جديد',
+        'المرجع / الكود': v.project_code || '---',
+        'الاسم / البند': v.display_name,
+        'المشروع / الفيلا': v.display_name,
+        'الطرف المرتبط': v.client_display,
+        'القيمة': v.contract_num,
+        'الحالة': v.status || 'نشط',
+      })),
+      ...m.newBoqItemsToday.map((b: any) => ({
+        'النشاط الجديد': 'بند مقايسة جديد (BOQ)',
+        'المرجع / الكود': b.budget_code || '---',
+        'الاسم / البند': b.work_item || '---',
+        'المشروع / الفيلا': b.project_display_name,
+        'الطرف المرتبط': b.item_type || 'بند تنفيذي',
+        'القيمة': b.item_value,
+        'الحالة': b.execution_status || 'مفتوح',
+      })),
+      ...m.newJobOrdersToday.map((j: any) => ({
+        'النشاط الجديد': 'أمر تشغيل جديد',
+        'المرجع / الكود': j.order_number || '---',
+        'الاسم / البند': j.boq_item_name,
+        'المشروع / الفيلا': j.project_display_name,
+        'الطرف المرتبط': j.contractor_display,
+        'القيمة': j.order_value,
+        'الحالة': j.status || 'مفتوح',
+      })),
+      ...m.newSubcontractorAssignmentsToday.map((a: any) => ({
+        'النشاط الجديد': 'إسناد لمقاول باطن',
+        'المرجع / الكود': a.job_order_number,
+        'الاسم / البند': a.boq_item_name,
+        'المشروع / الفيلا': a.project_display_name,
+        'الطرف المرتبط': a.contractor_display,
+        'القيمة': a.total_value,
+        'الحالة': a.status,
+      })),
+    ];
+    const wsNewAct = XLSX.utils.json_to_sheet(newActivitiesRows);
+    wsNewAct['!dir'] = 'rtl';
+    XLSX.utils.book_append_sheet(wb, wsNewAct, 'الأنشطة_الجديدة_اليوم');
 
     const { fileName } = buildDocumentFileName({
       docType: 'التقرير_اليومي_التنفيذي',
@@ -888,7 +1276,6 @@ export default function DailyExecutiveReport({
             </div>
           </div>
 
-          {/* أدوات اختيار التاريخ والتصدير والطباعة */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
             <button
               type="button"
@@ -993,7 +1380,6 @@ export default function DailyExecutiveReport({
           </div>
         </div>
 
-        {/* شريط سريع لآخر 5 أيام مسجل بها حركات */}
         {activeDays.length > 0 && (
           <div
             style={{
@@ -1031,8 +1417,29 @@ export default function DailyExecutiveReport({
         )}
       </div>
 
-      {/* 6 كروت KPIs رئيسية لليوم */}
+      {/* 8 كروت سامري تنفيذية رئيسية (الخزينة المتبقية، الداخل، الصرف والمستحقات المسددة، العمالة، الخامات الموردة والمنصرفة، المصروفات، الفلل والركوستات والتسليمات) */}
       <div className="rpt-kpi-grid" style={{ marginBottom: 0 }}>
+        <div className="rpt-kpi-card">
+          <small style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Wallet size={14} color="#059669" />
+            <span>سامري المتبقي في الخزينة (رصيد الخزينة)</span>
+          </small>
+          <strong
+            style={{
+              color:
+                dailyModel.treasuryBalanceEndOfDay >= 0
+                  ? 'var(--status-positive, #10b981)'
+                  : 'var(--status-negative, #f43f5e)',
+            }}
+          >
+            {formatCurrency(dailyModel.treasuryBalanceEndOfDay)}
+          </strong>
+          <span>
+            رصيد سابق: {formatCurrency(dailyModel.treasuryOpeningBalance)} • الرصيد الإجمالي الحالي:{' '}
+            {formatCurrency(dailyModel.treasuryCurrentTotal)}
+          </span>
+        </div>
+
         <div className="rpt-kpi-card">
           <small style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <ArrowDownLeft size={14} color="#10b981" />
@@ -1041,43 +1448,66 @@ export default function DailyExecutiveReport({
           <strong style={{ color: 'var(--status-positive, #10b981)' }}>
             {formatCurrency(dailyModel.cashIn)}
           </strong>
-          <span>عدد سندات القبض: {dailyModel.receipts.length} سند</span>
+          <span>
+            {dailyModel.receipts.length} سند قبض • صافي حركة اليوم:{' '}
+            <b style={{ color: dailyModel.netCash >= 0 ? '#10b981' : '#f43f5e' }}>
+              {dailyModel.netCash > 0 ? '+' : ''}
+              {formatCurrency(dailyModel.netCash)}
+            </b>
+          </span>
         </div>
 
         <div className="rpt-kpi-card">
           <small style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <ArrowUpRight size={14} color="#f43f5e" />
-            <span>الفلوس اللي اتصرفت اليوم (صرف)</span>
+            <span>الفلوس المصروفة والمستحقات المسددة اليوم</span>
           </small>
           <strong style={{ color: 'var(--status-negative, #f43f5e)' }}>
             {formatCurrency(dailyModel.cashOut)}
           </strong>
-          <span>عدد سندات الصرف: {dailyModel.payments.length} سند</span>
+          <span>
+            مستحقات مسددة اليوم: {formatCurrency(dailyModel.settledDuesToday)} ({dailyModel.payments.length} سند)
+          </span>
         </div>
 
         <div className="rpt-kpi-card">
           <small style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Wallet size={14} color="#0ea5e9" />
-            <span>صافي حركة الخزينة اليوم</span>
+            <HardHat size={14} color="#2563eb" />
+            <span>سامري المصروف للعمالة واليوميات اليوم</span>
           </small>
-          <strong
-            style={{
-              color:
-                dailyModel.netCash >= 0
-                  ? 'var(--status-positive, #10b981)'
-                  : 'var(--status-negative, #f43f5e)',
-            }}
-          >
-            {dailyModel.netCash > 0 ? '+' : ''}
-            {formatCurrency(dailyModel.netCash)}
-          </strong>
-          <span>الداخل ناقص سندات الصرف اليوم</span>
+          <strong style={{ color: '#2563eb' }}>{formatCurrency(dailyModel.workersPaidToday)}</strong>
+          <span>
+            منصرف فعلي ({dailyModel.workersPaidCount} سند) • أجور العمل: {formatCurrency(dailyModel.laborTotal)} ({dailyModel.distinctWorkersCount} عامل)
+          </span>
+        </div>
+
+        <div className="rpt-kpi-card">
+          <small style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Truck size={14} color="#0284c7" />
+            <span>سامري الخامات الموردة اليوم</span>
+          </small>
+          <strong style={{ color: '#0284c7' }}>{formatCurrency(dailyModel.materialReceiptsTotal)}</strong>
+          <span>
+            {dailyModel.materialReceiptsCount} إذن ({dailyModel.materialReceiptsLinesCount} صنف) • شركة:{' '}
+            {formatCurrency(dailyModel.materialReceiptsCompanyTotal)}
+          </span>
+        </div>
+
+        <div className="rpt-kpi-card">
+          <small style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <Package size={14} color="#7c3aed" />
+            <span>سامري الخامات المنصرفة للمواقع اليوم</span>
+          </small>
+          <strong style={{ color: '#7c3aed' }}>{formatCurrency(dailyModel.materialIssuesTotal)}</strong>
+          <span>
+            {dailyModel.materialIssuesCount} إذن صرف ({dailyModel.materialIssuesLinesCount} صنف منصرف)
+          </span>
         </div>
 
         <div className="rpt-kpi-card">
           <small style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <Receipt size={14} color="#f59e0b" />
-            <span>مصروفات اليوم المسجلة</span>
+            <span>مصروفات النهارده المسجلة</span>
           </small>
           <strong style={{ color: '#d97706' }}>{formatCurrency(dailyModel.expensesTotal)}</strong>
           <span>
@@ -1087,24 +1517,15 @@ export default function DailyExecutiveReport({
 
         <div className="rpt-kpi-card">
           <small style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <HardHat size={14} color="#3b82f6" />
-            <span>العمال اللي نزلت اشتغلت اليوم</span>
+            <ClipboardCheck size={14} color="#0ea5e9" />
+            <span>الفلل والركوستات والتسليمات اليوم</span>
           </small>
-          <strong style={{ color: '#2563eb' }}>
-            {dailyModel.distinctWorkersCount} عامل ({formatCurrency(dailyModel.laborTotal)})
+          <strong style={{ color: 'var(--accent-ink)' }}>
+            {dailyModel.activeVillasCount} فلل نشطة
           </strong>
           <span>
-            إجمالي اليوميات المسجلة: {dailyModel.laborDays} يومية • {dailyModel.laborLogs.length} قيد ميداني
+            {dailyModel.openRequestsToday.length} ركوست مفتوح • {dailyModel.handoversToday.length} تسليم اليوم
           </span>
-        </div>
-
-        <div className="rpt-kpi-card">
-          <small style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <Building2 size={14} color="#8b5cf6" />
-            <span>الفلل التي تم العمل بها اليوم</span>
-          </small>
-          <strong style={{ color: '#7c3aed' }}>{dailyModel.activeVillasCount} فلل / مشاريع</strong>
-          <span>إجمالي تكلفة تشغيل اليوم: {formatCurrency(dailyModel.totalDailyOperationsCost)}</span>
         </div>
       </div>
 
@@ -1218,7 +1639,7 @@ export default function DailyExecutiveReport({
             2. كشف العمال الذين نزلوا للعمل اليوم ({dailyModel.distinctWorkersCount} عامل • {dailyModel.laborLogs.length} يومية)
           </h3>
           <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: '#2563eb' }}>
-            إجمالي أجور اليوم: {formatCurrency(dailyModel.laborTotal)}
+            أجور اليوم: {formatCurrency(dailyModel.laborTotal)} • المصروف للعمالة اليوم: {formatCurrency(dailyModel.workersPaidToday)}
           </span>
         </div>
 
@@ -1287,7 +1708,7 @@ export default function DailyExecutiveReport({
         )}
       </div>
 
-      {/* 3. الفلوس اللي دخلت واللي اتصرفت اليوم (سندات القبض والصرف) */}
+      {/* 3. الفلوس اللي دخلت واللي اتصرفت والمستحقات المسددة اليوم */}
       <div
         style={{
           display: 'grid',
@@ -1295,7 +1716,6 @@ export default function DailyExecutiveReport({
           gap: '1.15rem',
         }}
       >
-        {/* سندات القبض (الداخل) */}
         <div className="rpt-section-card" style={{ marginBottom: 0 }}>
           <div className="rpt-section-title">
             <h3>
@@ -1342,16 +1762,38 @@ export default function DailyExecutiveReport({
           )}
         </div>
 
-        {/* سندات الصرف (الخارج) */}
         <div className="rpt-section-card" style={{ marginBottom: 0 }}>
           <div className="rpt-section-title">
             <h3>
               <ArrowUpRight size={18} color="#f43f5e" style={{ display: 'inline', marginLeft: '6px', verticalAlign: 'middle' }} />
-              3ب. الفلوس اللي اتصرفت اليوم ({dailyModel.payments.length} سند)
+              3ب. الفلوس المصروفة والمستحقات المسددة ({dailyModel.payments.length} سند)
             </h3>
             <strong style={{ color: '#f43f5e', fontSize: 'var(--fs-md)' }}>
               {formatCurrency(dailyModel.cashOut)}
             </strong>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: '0.5rem',
+              flexWrap: 'wrap',
+              marginBottom: '0.75rem',
+              fontSize: 'var(--fs-xs)',
+              fontWeight: 800,
+            }}
+          >
+            <span style={{ padding: '3px 9px', borderRadius: '8px', background: 'rgba(37,99,235,0.1)', color: '#2563eb' }}>
+              عمالة: {formatCurrency(dailyModel.workersPaidToday)}
+            </span>
+            <span style={{ padding: '3px 9px', borderRadius: '8px', background: 'rgba(124,58,237,0.1)', color: '#7c3aed' }}>
+              مستخلصات مقاولين: {formatCurrency(dailyModel.claimsPaidToday)}
+            </span>
+            <span style={{ padding: '3px 9px', borderRadius: '8px', background: 'rgba(217,119,6,0.1)', color: '#d97706' }}>
+              سداد مصروفات: {formatCurrency(dailyModel.expensesPaidToday)}
+            </span>
+            <span style={{ padding: '3px 9px', borderRadius: '8px', background: 'rgba(100,116,139,0.12)', color: 'var(--text-secondary)' }}>
+              صرف عام: {formatCurrency(dailyModel.generalPaidToday)}
+            </span>
           </div>
           {dailyModel.payments.length === 0 ? (
             <div style={{ padding: '1.15rem', textAlign: 'center', color: 'var(--text-muted)', fontWeight: 800 }}>
@@ -1464,119 +1906,650 @@ export default function DailyExecutiveReport({
         )}
       </div>
 
-      {/* 5. الخامات المنصرفة والموردة ومستخلصات المقاولين اليوم */}
-      {(dailyModel.materialIssues.length > 0 ||
-        dailyModel.materialReceipts.length > 0 ||
-        dailyModel.subClaims.length > 0) && (
-        <div className="rpt-section-card" style={{ marginBottom: 0 }}>
-          <div className="rpt-section-title">
-            <h3>
-              <Package size={18} style={{ display: 'inline', marginLeft: '6px', verticalAlign: 'middle' }} />
-              5. حركات الخامات والمستخلصات اليوم ({dailyModel.materialIssues.length} صرف خامات •{' '}
-              {dailyModel.materialReceipts.length} توريد خامات • {dailyModel.subClaims.length} مستخلص)
-            </h3>
-            <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary)' }}>
-              خامات منصرفة: {formatCurrency(dailyModel.materialIssuesTotal)} • مستخلصات:{' '}
-              {formatCurrency(dailyModel.subClaimsTotal)}
-            </span>
-          </div>
+      {/* 5. سامري وتفاصيل الخامات المنصرفة والخامات الموردة ومستخلصات اليوم */}
+      <div className="rpt-section-card" style={{ marginBottom: 0 }}>
+        <div className="rpt-section-title">
+          <h3>
+            <Package size={18} style={{ display: 'inline', marginLeft: '6px', verticalAlign: 'middle' }} />
+            5. سامري وتفاصيل الخامات المنصرفة والخامات الموردة ومستخلصات اليوم
+          </h3>
+          <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary)' }}>
+            خامات موردة: {formatCurrency(dailyModel.materialReceiptsTotal)} • خامات منصرفة:{' '}
+            {formatCurrency(dailyModel.materialIssuesTotal)} • مستخلصات: {formatCurrency(dailyModel.subClaimsTotal)}
+          </span>
+        </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(22rem, 1fr))',
-              gap: '1rem',
-            }}
-          >
-            {dailyModel.materialIssues.length > 0 && (
-              <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '0.9rem' }}>
-                <div style={{ fontWeight: 900, fontSize: 'var(--fs-sm)', marginBottom: '0.5rem', color: '#7c3aed' }}>
-                  أذونات صرف الخامات ({dailyModel.materialIssues.length})
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                  {dailyModel.materialIssues.map((m: any) => (
-                    <div
-                      key={m.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        gap: '0.5rem',
-                        fontSize: 'var(--fs-xs)',
-                        fontWeight: 700,
-                        paddingBottom: '0.35rem',
-                        borderBottom: '1px solid var(--table-zebra-bg)',
-                      }}
-                    >
-                      <span>
-                        {m.issue_number || '---'} • {m.project_display_name} ({m.contractor_display})
-                      </span>
-                      <strong style={{ color: '#7c3aed' }}>{formatCurrency(m.total_num)}</strong>
-                    </div>
-                  ))}
-                </div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(22rem, 1fr))',
+            gap: '1rem',
+          }}
+        >
+          {/* الخامات الموردة */}
+          <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+              <span style={{ fontWeight: 900, fontSize: 'var(--fs-sm)', color: '#0284c7' }}>
+                الخامات الموردة اليوم ({dailyModel.materialReceipts.length} إذن)
+              </span>
+              <strong style={{ color: '#0284c7' }}>{formatCurrency(dailyModel.materialReceiptsTotal)}</strong>
+            </div>
+            {dailyModel.materialReceipts.length === 0 ? (
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
+                لا توجد توريدات خامات بتاريخ {selectedDate}.
               </div>
-            )}
-
-            {dailyModel.materialReceipts.length > 0 && (
-              <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '0.9rem' }}>
-                <div style={{ fontWeight: 900, fontSize: 'var(--fs-sm)', marginBottom: '0.5rem', color: '#0284c7' }}>
-                  توريدات الخامات ({dailyModel.materialReceipts.length})
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                  {dailyModel.materialReceipts.map((m: any) => (
-                    <div
-                      key={m.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        gap: '0.5rem',
-                        fontSize: 'var(--fs-xs)',
-                        fontWeight: 700,
-                        paddingBottom: '0.35rem',
-                        borderBottom: '1px solid var(--table-zebra-bg)',
-                      }}
-                    >
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {dailyModel.materialReceipts.map((m: any) => (
+                  <div
+                    key={m.id}
+                    style={{
+                      background: 'var(--surface-card)',
+                      borderRadius: '10px',
+                      padding: '0.55rem 0.7rem',
+                      fontSize: 'var(--fs-xs)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, gap: '6px' }}>
                       <span>
                         {m.receipt_number || '---'} • {m.project_display_name} ({m.receipt_type || 'شركة'})
                       </span>
-                      <strong style={{ color: '#0284c7' }}>{formatCurrency(m.total_num)}</strong>
+                      <span style={{ color: '#0284c7' }}>{formatCurrency(m.total_num)}</span>
                     </div>
-                  ))}
-                </div>
+                    <div style={{ color: 'var(--text-secondary)', marginTop: '2px', fontWeight: 700 }}>
+                      المورد: {m.supplier_display}
+                    </div>
+                    {Array.isArray(m.lines) && m.lines.length > 0 && (
+                      <div style={{ marginTop: '4px', color: 'var(--text-muted)', fontSize: '11px' }}>
+                        {m.lines.map((l: any) => `${l.item_name} (${l.quantity} ${l.unit || ''})`).join(' • ')}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
+          </div>
 
-            {dailyModel.subClaims.length > 0 && (
-              <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '0.9rem' }}>
-                <div style={{ fontWeight: 900, fontSize: 'var(--fs-sm)', marginBottom: '0.5rem', color: '#059669' }}>
-                  مستخلصات المقاولين ({dailyModel.subClaims.length})
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-                  {dailyModel.subClaims.map((c: any) => (
-                    <div
-                      key={c.id}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        gap: '0.5rem',
-                        fontSize: 'var(--fs-xs)',
-                        fontWeight: 700,
-                        paddingBottom: '0.35rem',
-                        borderBottom: '1px solid var(--table-zebra-bg)',
-                      }}
-                    >
+          {/* الخامات المنصرفة */}
+          <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+              <span style={{ fontWeight: 900, fontSize: 'var(--fs-sm)', color: '#7c3aed' }}>
+                الخامات المنصرفة للمواقع اليوم ({dailyModel.materialIssues.length} إذن)
+              </span>
+              <strong style={{ color: '#7c3aed' }}>{formatCurrency(dailyModel.materialIssuesTotal)}</strong>
+            </div>
+            {dailyModel.materialIssues.length === 0 ? (
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
+                لا توجد أذونات صرف خامات بتاريخ {selectedDate}.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {dailyModel.materialIssues.map((m: any) => (
+                  <div
+                    key={m.id}
+                    style={{
+                      background: 'var(--surface-card)',
+                      borderRadius: '10px',
+                      padding: '0.55rem 0.7rem',
+                      fontSize: 'var(--fs-xs)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, gap: '6px' }}>
                       <span>
-                        {c.claim_number || '---'} • {c.contractor_display} ({c.project_display_name})
+                        {m.issue_number || '---'} • {m.project_display_name} ({m.contractor_display})
                       </span>
-                      <strong style={{ color: '#059669' }}>{formatCurrency(c.net_num)}</strong>
+                      <span style={{ color: '#7c3aed' }}>{formatCurrency(m.total_num)}</span>
                     </div>
-                  ))}
-                </div>
+                    {Array.isArray(m.lines) && m.lines.length > 0 && (
+                      <div style={{ marginTop: '4px', color: 'var(--text-muted)', fontSize: '11px' }}>
+                        {m.lines.map((l: any) => `${l.item_name} (${l.quantity} ${l.unit || ''})`).join(' • ')}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* مستخلصات المقاولين */}
+          <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+              <span style={{ fontWeight: 900, fontSize: 'var(--fs-sm)', color: '#059669' }}>
+                مستخلصات المقاولين اليوم ({dailyModel.subClaims.length})
+              </span>
+              <strong style={{ color: '#059669' }}>{formatCurrency(dailyModel.subClaimsTotal)}</strong>
+            </div>
+            {dailyModel.subClaims.length === 0 ? (
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
+                لا توجد مستخلصات مقاولين بتاريخ {selectedDate}.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {dailyModel.subClaims.map((c: any) => (
+                  <div
+                    key={c.id}
+                    style={{
+                      background: 'var(--surface-card)',
+                      borderRadius: '10px',
+                      padding: '0.55rem 0.7rem',
+                      fontSize: 'var(--fs-xs)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      gap: '6px',
+                      fontWeight: 800,
+                    }}
+                  >
+                    <span>
+                      {c.claim_number || '---'} • {c.contractor_display} ({c.project_display_name})
+                    </span>
+                    <strong style={{ color: '#059669' }}>{formatCurrency(c.net_num)}</strong>
+                  </div>
+                ))}
               </div>
             )}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* 6. الركوستات المفتوحة اليوم ومحاضر التسليمات اليوم (مع الأكواد وكود الاعتماد والملاحظات) */}
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(26rem, 1fr))',
+          gap: '1.15rem',
+        }}
+      >
+        {/* تسليمات اليوم */}
+        <div className="rpt-section-card" style={{ marginBottom: 0 }}>
+          <div className="rpt-section-title">
+            <h3>
+              <CheckCircle2 size={18} color="#10b981" style={{ display: 'inline', marginLeft: '6px', verticalAlign: 'middle' }} />
+              6أ. تسليمات اليوم وأكوادها وملاحظاتها ({dailyModel.handoversToday.length})
+            </h3>
+            <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#059669' }}>
+              محاضر تسليم بنود وفلل وأعمال مقاولين
+            </span>
+          </div>
+          {dailyModel.handoversToday.length === 0 ? (
+            <div style={{ padding: '1.15rem', textAlign: 'center', color: 'var(--text-muted)', fontWeight: 800 }}>
+              لا توجد تسليمات مسجلة بتاريخ {selectedDate}.
+            </div>
+          ) : (
+            <table className="rpt-table" style={{ minWidth: '30rem' }}>
+              <thead>
+                <tr>
+                  <th>كود التسليم</th>
+                  <th>النوع / العنوان</th>
+                  <th>الفيلا والبند</th>
+                  <th>المقاول / الاستشاري</th>
+                  <th>كود الاعتماد</th>
+                  <th>الملاحظات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dailyModel.handoversToday.map((h: any) => {
+                  const pill = getApprovalPillStyle(h.approvalCode);
+                  return (
+                    <tr key={h.id}>
+                      <td style={{ fontWeight: 900, color: 'var(--accent-ink)' }}>{h.requestCode}</td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 800 }}>{h.title || h.requestCategory}</div>
+                        <small style={{ color: 'var(--text-muted)' }}>{h.requestCategory}</small>
+                      </td>
+                      <td style={{ textAlign: 'right', fontSize: 'var(--fs-xs)' }}>
+                        <strong>{h.project_display_name}</strong>
+                        <div>{h.boq_item_name}</div>
+                      </td>
+                      <td style={{ fontSize: 'var(--fs-xs)' }}>
+                        {h.contractor_display} / {h.consultant_display}
+                      </td>
+                      <td>
+                        <span
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: '999px',
+                            fontSize: '11px',
+                            fontWeight: 900,
+                            background: pill.bg,
+                            color: pill.color,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {h.approvalCode}
+                        </span>
+                      </td>
+                      <td style={{ textAlign: 'right', fontSize: 'var(--fs-xs)' }}>
+                        {h.cleanNotes || '---'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* الركوستات المفتوحة اليوم */}
+        <div className="rpt-section-card" style={{ marginBottom: 0 }}>
+          <div className="rpt-section-title">
+            <h3>
+              <ClipboardCheck size={18} color="#3b82f6" style={{ display: 'inline', marginLeft: '6px', verticalAlign: 'middle' }} />
+              6ب. الركوستات المفتوحة اليوم ({dailyModel.openRequestsToday.length})
+            </h3>
+            <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: '#2563eb' }}>
+              WIR / MIR / CPR / IR / MEP
+            </span>
+          </div>
+          {dailyModel.openRequestsToday.length === 0 ? (
+            <div style={{ padding: '1.15rem', textAlign: 'center', color: 'var(--text-muted)', fontWeight: 800 }}>
+              لا توجد ركوستات مفتوحة بتاريخ {selectedDate}.
+            </div>
+          ) : (
+            <table className="rpt-table" style={{ minWidth: '30rem' }}>
+              <thead>
+                <tr>
+                  <th>كود الركوست</th>
+                  <th>النوع / البيان</th>
+                  <th>الفيلا / البند</th>
+                  <th>كود الاعتماد</th>
+                  <th>الحالة</th>
+                  <th>الملاحظات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dailyModel.openRequestsToday.map((r: any) => {
+                  const pill = getApprovalPillStyle(r.approvalCode);
+                  return (
+                    <tr key={r.id}>
+                      <td style={{ fontWeight: 900, color: '#2563eb' }}>
+                        {r.requestCode}
+                        {!r.openedToday && (
+                          <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>({r.visitDate})</div>
+                        )}
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <div style={{ fontWeight: 800 }}>{r.title || r.requestCategory}</div>
+                        <small style={{ color: 'var(--text-muted)' }}>{r.requestCategory}</small>
+                      </td>
+                      <td style={{ textAlign: 'right', fontSize: 'var(--fs-xs)' }}>
+                        <strong>{r.project_display_name}</strong>
+                        <div>{r.boq_item_name}</div>
+                      </td>
+                      <td>
+                        <span
+                          style={{
+                            padding: '3px 8px',
+                            borderRadius: '999px',
+                            fontSize: '11px',
+                            fontWeight: 900,
+                            background: pill.bg,
+                            color: pill.color,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {r.approvalCode}
+                        </span>
+                      </td>
+                      <td style={{ fontWeight: 800, fontSize: 'var(--fs-xs)' }}>{r.status}</td>
+                      <td style={{ textAlign: 'right', fontSize: 'var(--fs-xs)' }}>
+                        {r.cleanNotes || '---'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      {/* 7. الفلل الجديدة + البنود الجديدة + أوامر التشغيل الجديدة + إسنادات مقاولين الباطن اليوم */}
+      <div className="rpt-section-card" style={{ marginBottom: 0 }}>
+        <div className="rpt-section-title">
+          <h3>
+            <Wrench size={18} style={{ display: 'inline', marginLeft: '6px', verticalAlign: 'middle' }} />
+            7. الأنشطة التعاقدية والهندسية الجديدة المسجلة اليوم
+          </h3>
+          <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary)' }}>
+            {dailyModel.newVillasToday.length} فيلا جديدة • {dailyModel.newBoqItemsToday.length} بند BOQ •{' '}
+            {dailyModel.newJobOrdersToday.length} أمر تشغيل • {dailyModel.newSubcontractorAssignmentsToday.length} إسناد مقاول باطن
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(24rem, 1fr))',
+            gap: '1rem',
+          }}
+        >
+          {/* الفلل الجديدة */}
+          <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '0.95rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontWeight: 900 }}>
+              <span style={{ color: '#059669' }}>
+                <Building2 size={15} style={{ display: 'inline', marginLeft: '4px', verticalAlign: 'middle' }} />
+                الفلل الجديدة اللي اتضافت اليوم ({dailyModel.newVillasToday.length})
+              </span>
+            </div>
+            {dailyModel.newVillasToday.length === 0 ? (
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
+                لم تُضف فلل جديدة بتاريخ {selectedDate}.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {dailyModel.newVillasToday.map((v: any) => (
+                  <div
+                    key={v.id}
+                    style={{
+                      background: 'var(--surface-card)',
+                      borderRadius: '10px',
+                      padding: '0.5rem 0.7rem',
+                      fontSize: 'var(--fs-xs)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontWeight: 800,
+                    }}
+                  >
+                    <span>
+                      {v.display_name} {v.unit_type ? `(${v.unit_type})` : ''} — {v.client_display}
+                    </span>
+                    <strong style={{ color: '#059669' }}>{formatCurrency(v.contract_num)}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* البنود الجديدة BOQ */}
+          <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '0.95rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontWeight: 900 }}>
+              <span style={{ color: '#0284c7' }}>
+                <Layers size={15} style={{ display: 'inline', marginLeft: '4px', verticalAlign: 'middle' }} />
+                البنود الجديدة اللي اتفتحت اليوم ({dailyModel.newBoqItemsToday.length})
+              </span>
+              <strong style={{ color: '#0284c7', fontSize: 'var(--fs-xs)' }}>
+                {formatCurrency(dailyModel.newBoqTotalValue)}
+              </strong>
+            </div>
+            {dailyModel.newBoqItemsToday.length === 0 ? (
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
+                لم تُفتح بنود مقايسة جديدة بتاريخ {selectedDate}.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {dailyModel.newBoqItemsToday.map((b: any) => (
+                  <div
+                    key={b.id}
+                    style={{
+                      background: 'var(--surface-card)',
+                      borderRadius: '10px',
+                      padding: '0.5rem 0.7rem',
+                      fontSize: 'var(--fs-xs)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontWeight: 800,
+                      gap: '6px',
+                    }}
+                  >
+                    <span>
+                      {b.work_item} — <b>{b.project_display_name}</b>
+                    </span>
+                    <strong style={{ color: '#0284c7' }}>{formatCurrency(b.item_value)}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* أوامر التشغيل الجديدة */}
+          <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '0.95rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontWeight: 900 }}>
+              <span style={{ color: '#d97706' }}>
+                <Wrench size={15} style={{ display: 'inline', marginLeft: '4px', verticalAlign: 'middle' }} />
+                أوامر التشغيل الجديدة اليوم ({dailyModel.newJobOrdersToday.length})
+              </span>
+              <strong style={{ color: '#d97706', fontSize: 'var(--fs-xs)' }}>
+                {formatCurrency(dailyModel.newJobOrdersTotalValue)}
+              </strong>
+            </div>
+            {dailyModel.newJobOrdersToday.length === 0 ? (
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
+                لم تُفتح أوامر تشغيل جديدة بتاريخ {selectedDate}.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {dailyModel.newJobOrdersToday.map((j: any) => (
+                  <div
+                    key={j.id}
+                    style={{
+                      background: 'var(--surface-card)',
+                      borderRadius: '10px',
+                      padding: '0.5rem 0.7rem',
+                      fontSize: 'var(--fs-xs)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontWeight: 800,
+                      gap: '6px',
+                    }}
+                  >
+                    <span>
+                      {j.order_number || '---'} • {j.project_display_name} ({j.boq_item_name})
+                    </span>
+                    <strong style={{ color: '#d97706' }}>{formatCurrency(j.order_value)}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* أعمال أسندت لمقاولين الباطن اليوم */}
+          <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '0.95rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontWeight: 900 }}>
+              <span style={{ color: '#7c3aed' }}>
+                <Handshake size={15} style={{ display: 'inline', marginLeft: '4px', verticalAlign: 'middle' }} />
+                أعمال أسندت لمقاولين الباطن اليوم ({dailyModel.newSubcontractorAssignmentsToday.length})
+              </span>
+              <strong style={{ color: '#7c3aed', fontSize: 'var(--fs-xs)' }}>
+                {formatCurrency(dailyModel.newSubcontractorAssignmentsValue)}
+              </strong>
+            </div>
+            {dailyModel.newSubcontractorAssignmentsToday.length === 0 ? (
+              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
+                لا توجد إسنادات جديدة لمقاولي الباطن بتاريخ {selectedDate}.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                {dailyModel.newSubcontractorAssignmentsToday.map((a: any) => (
+                  <div
+                    key={a.id}
+                    style={{
+                      background: 'var(--surface-card)',
+                      borderRadius: '10px',
+                      padding: '0.5rem 0.7rem',
+                      fontSize: 'var(--fs-xs)',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      fontWeight: 800,
+                      gap: '6px',
+                    }}
+                  >
+                    <span>
+                      {a.contractor_display} • {a.project_display_name} ({a.boq_item_name})
+                    </span>
+                    <strong style={{ color: '#7c3aed' }}>{formatCurrency(a.total_value)}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* 8. الملخص التنفيذي الختامي في آخر الصفحة (الشامل للموقف المالي والخزينة والخامات والمشاريع والركوستات والتسليمات) */}
+      <div
+        className="rpt-section-card"
+        style={{
+          marginBottom: 0,
+          background: 'linear-gradient(135deg, var(--surface-card) 0%, var(--surface-subcard) 100%)',
+        }}
+      >
+        <div className="rpt-section-title">
+          <h3>
+            <Wallet size={18} style={{ display: 'inline', marginLeft: '6px', verticalAlign: 'middle' }} />
+            8. الملخص التنفيذي الشامل لنهاية اليوم — {dailyModel.weekdayLabel} ({selectedDate})
+          </h3>
+          <span
+            style={{
+              padding: '4px 12px',
+              borderRadius: '999px',
+              background:
+                dailyModel.treasuryBalanceEndOfDay >= 0
+                  ? 'rgba(16, 185, 129, 0.16)'
+                  : 'rgba(244, 63, 94, 0.16)',
+              color: dailyModel.treasuryBalanceEndOfDay >= 0 ? '#059669' : '#e11d48',
+              fontSize: 'var(--fs-sm)',
+              fontWeight: 900,
+            }}
+          >
+            رصيد الخزينة المتبقي: {formatCurrency(dailyModel.treasuryBalanceEndOfDay)}
+          </span>
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(25rem, 1fr))',
+            gap: '1rem',
+          }}
+        >
+          {/* العمود المالي والخزينة والخامات */}
+          <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '1rem' }}>
+            <h4 style={{ margin: '0 0 0.65rem', fontSize: 'var(--fs-md)', fontWeight: 900, color: 'var(--accent-ink)' }}>
+              أولاً: الموقف المالي والخزينة والمستحقات والخامات
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>رصيد الخزينة الافتتاحي (قبل اليوم):</span>
+                <span>{formatCurrency(dailyModel.treasuryOpeningBalance)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981' }}>
+                <span>(+) الفلوس الداخلة اليوم ({dailyModel.receipts.length} قبض):</span>
+                <span>{formatCurrency(dailyModel.cashIn)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#f43f5e' }}>
+                <span>(-) الفلوس المصروفة اليوم ({dailyModel.payments.length} صرف):</span>
+                <span>{formatCurrency(dailyModel.cashOut)}</span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  padding: '0.45rem 0.65rem',
+                  borderRadius: '10px',
+                  background: 'var(--surface-card)',
+                  fontWeight: 900,
+                  color: dailyModel.treasuryBalanceEndOfDay >= 0 ? '#059669' : '#e11d48',
+                }}
+              >
+                <span>(=) رصيد الخزينة المتبقي حتى نهاية اليوم (الرصيد الكلي: {formatCurrency(dailyModel.treasuryCurrentTotal)}):</span>
+                <span>{formatCurrency(dailyModel.treasuryBalanceEndOfDay)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#2563eb' }}>
+                <span>المستحقات المسددة اليوم (عمالة {formatCurrency(dailyModel.workersPaidToday)} + مقاولين {formatCurrency(dailyModel.claimsPaidToday)} + مصروفات {formatCurrency(dailyModel.expensesPaidToday)}):</span>
+                <span>{formatCurrency(dailyModel.settledDuesToday)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#d97706' }}>
+                <span>مصروفات اليوم المسجلة ({dailyModel.expenses.length} مصروف):</span>
+                <span>{formatCurrency(dailyModel.expensesTotal)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0284c7' }}>
+                <span>الخامات الموردة اليوم ({dailyModel.materialReceiptsCount} إذن • {dailyModel.materialReceiptsLinesCount} صنف):</span>
+                <span>{formatCurrency(dailyModel.materialReceiptsTotal)}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#7c3aed' }}>
+                <span>الخامات المنصرفة اليوم ({dailyModel.materialIssuesCount} إذن • {dailyModel.materialIssuesLinesCount} صنف):</span>
+                <span>{formatCurrency(dailyModel.materialIssuesTotal)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* العمود الهندسي والتشغيلي والركوستات والتسليمات */}
+          <div style={{ background: 'var(--surface-sunken)', borderRadius: '14px', padding: '1rem' }}>
+            <h4 style={{ margin: '0 0 0.65rem', fontSize: 'var(--fs-md)', fontWeight: 900, color: '#2563eb' }}>
+              ثانياً: الموقف الهندسي والمشاريع والركوستات والتسليمات
+            </h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: 'var(--fs-sm)', fontWeight: 800 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>الفلل النشطة التي تم العمل بها اليوم:</span>
+                <span>{dailyModel.activeVillasCount} فلل ({dailyModel.distinctWorkersCount} عامل • {formatCurrency(dailyModel.laborTotal)})</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>الفلل الجديدة اللي اتضافت اليوم:</span>
+                <span>
+                  {dailyModel.newVillasToday.length}
+                  {dailyModel.newVillasToday.length > 0
+                    ? ` (${dailyModel.newVillasToday.map((v: any) => v.display_name).join('، ')})`
+                    : ''}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>البنود الجديدة اللي اتفتحت اليوم (BOQ):</span>
+                <span>
+                  {dailyModel.newBoqItemsToday.length} بند ({formatCurrency(dailyModel.newBoqTotalValue)})
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>أوامر التشغيل الجديدة اليوم:</span>
+                <span>
+                  {dailyModel.newJobOrdersToday.length} أمر ({formatCurrency(dailyModel.newJobOrdersTotalValue)})
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>أعمال أسندت لمقاولين الباطن اليوم:</span>
+                <span>
+                  {dailyModel.newSubcontractorAssignmentsToday.length} إسناد ({formatCurrency(dailyModel.newSubcontractorAssignmentsValue)})
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#2563eb' }}>
+                <span>الركوستات المفتوحة اليوم:</span>
+                <span>
+                  {dailyModel.openRequestsToday.length}
+                  {dailyModel.openRequestsToday.length > 0
+                    ? ` (${dailyModel.openRequestsToday.slice(0, 4).map((r: any) => r.requestCode).join('، ')})`
+                    : ''}
+                </span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669' }}>
+                <span>تسليمات اليوم وأكوادها:</span>
+                <span>
+                  {dailyModel.handoversToday.length}
+                  {dailyModel.handoversToday.length > 0
+                    ? ` (${dailyModel.handoversToday.slice(0, 4).map((h: any) => `${h.requestCode}: ${h.approvalCode}`).join(' | ')})`
+                    : ''}
+                </span>
+              </div>
+              {dailyModel.handoversToday.some((h: any) => h.cleanNotes) && (
+                <div
+                  style={{
+                    marginTop: '0.25rem',
+                    padding: '0.45rem 0.65rem',
+                    borderRadius: '10px',
+                    background: 'var(--surface-card)',
+                    fontSize: 'var(--fs-xs)',
+                    color: 'var(--text-secondary)',
+                  }}
+                >
+                  <strong>ملاحظات التسليمات:</strong>{' '}
+                  {dailyModel.handoversToday
+                    .filter((h: any) => h.cleanNotes)
+                    .map((h: any) => `${h.requestCode} (${h.project_display_name}): ${h.cleanNotes}`)
+                    .join(' • ')}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* نافذة المعاينة والطباعة الرسمية للتقرير اليومي A4 بدون حدود */}
       {isPrintOpen &&
@@ -1713,7 +2686,7 @@ function DailyReportPrintModal({
             معاينة الطباعة الرسمية — التقرير اليومي التنفيذي ({data.selectedDate})
           </h3>
           <p style={{ margin: '2px 0 0', fontSize: '11.5px', color: '#64748b', fontWeight: 700 }}>
-            نموذج A4 Landscape بدون حدود خارجية مع الرسوم البيانية والتوقيعات المعتمدة
+            نموذج A4 Landscape بدون حدود خارجية يشمل الخزينة، العمالة، الخامات، الأنشطة الجديدة، الركوستات والتسليمات، والرسوم البيانية
           </p>
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -1781,22 +2754,26 @@ function DailyReportPrintModal({
           refPrefix="DAILY"
           details={[
             { label: 'التاريخ المعتمد', value: data.selectedDate, ltr: true },
-            { label: 'الفلل النشطة', value: `${data.activeVillasCount} فلل` },
-            { label: 'عدد العمال', value: `${data.distinctWorkersCount} عامل (${data.laborDays} يومية)` },
-            { label: 'إجمالي تشغيل اليوم', value: formatCurrency(data.totalDailyOperationsCost), accent: true },
+            { label: 'الفلل النشطة / الجديدة', value: `${data.activeVillasCount} نشطة / ${data.newVillasToday.length} جديدة` },
+            { label: 'الركوستات / التسليمات', value: `${data.openRequestsToday.length} ركوست / ${data.handoversToday.length} تسليم` },
+            { label: 'المتبقي بالخزينة', value: formatCurrency(data.treasuryBalanceEndOfDay), accent: true },
           ]}
         />
 
         <DocStats
           items={[
-            { label: 'الفلوس الداخلة اليوم (قبض)', value: formatCurrency(data.cashIn), tone: 'positive' },
-            { label: 'الفلوس المصروفة اليوم (صرف)', value: formatCurrency(data.cashOut), tone: 'warn' },
+            { label: 'رصيد الخزينة المتبقي', value: formatCurrency(data.treasuryBalanceEndOfDay), highlight: true },
+            { label: 'الفلوس الداخلة اليوم', value: formatCurrency(data.cashIn), tone: 'positive' },
+            { label: 'المصروف للعمالة اليوم', value: formatCurrency(data.workersPaidToday) },
+            { label: 'المستحقات المسددة اليوم', value: formatCurrency(data.settledDuesToday), tone: 'warn' },
+          ]}
+        />
+        <DocStats
+          items={[
             { label: 'مصروفات اليوم المسجلة', value: formatCurrency(data.expensesTotal) },
-            {
-              label: 'صافي حركة الخزينة اليوم',
-              value: formatCurrency(data.netCash),
-              highlight: true,
-            },
+            { label: 'الخامات الموردة اليوم', value: formatCurrency(data.materialReceiptsTotal) },
+            { label: 'الخامات المنصرفة اليوم', value: formatCurrency(data.materialIssuesTotal) },
+            { label: 'أجور العمالة الميدانية', value: `${formatCurrency(data.laborTotal)} (${data.distinctWorkersCount} عامل)` },
           ]}
         />
 
@@ -1910,7 +2887,7 @@ function DailyReportPrintModal({
 
         {(data.receipts.length > 0 || data.payments.length > 0) && (
           <>
-            <DocSection title="رابعاً: سندات القبض والصرف اليوم (حركة الخزينة)" en="Daily Treasury Vouchers" />
+            <DocSection title="رابعاً: سندات القبض والصرف اليوم والمستحقات المسددة" en="Daily Treasury Vouchers" />
             <table className="phi-doc-table" style={{ width: '100%', marginBottom: '12px' }}>
               <thead>
                 <tr>
@@ -1950,17 +2927,206 @@ function DailyReportPrintModal({
           </>
         )}
 
-        <DocNote title="ملخص المطابقة اليومية">
-          تم إجمال الحركات المسجلة بتاريخ {data.selectedDate}: الفلوس الداخلة ({formatCurrency(data.cashIn)})، والفلوس
-          المصروفة بسندات ({formatCurrency(data.cashOut)})، ومصروفات اليوم المسجلة ({formatCurrency(data.expensesTotal)})،
-          وأجور {data.distinctWorkersCount} عامل نزلوا للمواقع ({formatCurrency(data.laborTotal)}) عبر {data.activeVillasCount} فلل.
-        </DocNote>
+        {(data.materialReceipts.length > 0 || data.materialIssues.length > 0 || data.subClaims.length > 0) && (
+          <>
+            <DocSection title="خامساً: الخامات الموردة والخامات المنصرفة والمستخلصات اليوم" en="Daily Materials & Subcontractor Claims" />
+            <table className="phi-doc-table" style={{ width: '100%', marginBottom: '12px' }}>
+              <thead>
+                <tr>
+                  <th>الحركة</th>
+                  <th>الرقم المرجعي</th>
+                  <th>الفيلا / الموقع</th>
+                  <th>المورد / المقاول</th>
+                  <th>الأصناف والتفاصيل</th>
+                  <th>القيمة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.materialReceipts.map((mr: any) => (
+                  <tr key={`mr-${mr.id}`}>
+                    <td style={{ color: '#0284c7', fontWeight: 900 }}>توريد خامات ({mr.receipt_type || 'شركة'})</td>
+                    <td>{mr.receipt_number || '---'}</td>
+                    <td>{mr.project_display_name}</td>
+                    <td>{mr.supplier_display}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      {(mr.lines || []).map((l: any) => `${l.item_name} (${l.quantity})`).join(' • ') || '---'}
+                    </td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(mr.total_num)}</td>
+                  </tr>
+                ))}
+                {data.materialIssues.map((mi: any) => (
+                  <tr key={`mi-${mi.id}`}>
+                    <td style={{ color: '#7c3aed', fontWeight: 900 }}>صرف خامات</td>
+                    <td>{mi.issue_number || '---'}</td>
+                    <td>{mi.project_display_name}</td>
+                    <td>{mi.contractor_display}</td>
+                    <td style={{ textAlign: 'right' }}>
+                      {(mi.lines || []).map((l: any) => `${l.item_name} (${l.quantity})`).join(' • ') || '---'}
+                    </td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(mi.total_num)}</td>
+                  </tr>
+                ))}
+                {data.subClaims.map((sc: any) => (
+                  <tr key={`sc-${sc.id}`}>
+                    <td style={{ color: '#059669', fontWeight: 900 }}>مستخلص مقاول</td>
+                    <td>{sc.claim_number || '---'}</td>
+                    <td>{sc.project_display_name}</td>
+                    <td>{sc.contractor_display}</td>
+                    <td style={{ textAlign: 'right' }}>{sc.status || 'معتمد'}</td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(sc.net_num)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
 
-        <DocSignatures
-          slots={[
-            { title: 'إعداد المتابعة الميدانية والمحاسبية', date: data.selectedDate },
-          ]}
-        />
+        {(data.handoversToday.length > 0 || data.openRequestsToday.length > 0) && (
+          <>
+            <DocSection title="سادساً: التسليمات اليوم والركوستات المفتوحة بأكوادها وملاحظاتها" en="Daily Requests (WIR/MIR) & Handovers" />
+            <table className="phi-doc-table" style={{ width: '100%', marginBottom: '12px' }}>
+              <thead>
+                <tr>
+                  <th>التصنيف</th>
+                  <th>الكود</th>
+                  <th>النوع / العنوان</th>
+                  <th>الفيلا والبند</th>
+                  <th>المقاول / الاستشاري</th>
+                  <th>كود الاعتماد</th>
+                  <th>الملاحظات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.handoversToday.map((h: any) => (
+                  <tr key={`ph-${h.id}`}>
+                    <td style={{ color: '#059669', fontWeight: 900 }}>تسليم اليوم</td>
+                    <td style={{ fontWeight: 900 }}>{h.requestCode}</td>
+                    <td style={{ textAlign: 'right' }}>{h.title || h.requestCategory}</td>
+                    <td style={{ textAlign: 'right' }}>{h.project_display_name} — {h.boq_item_name}</td>
+                    <td>{h.contractor_display} / {h.consultant_display}</td>
+                    <td style={{ fontWeight: 900 }}>{h.approvalCode}</td>
+                    <td style={{ textAlign: 'right' }}>{h.cleanNotes || '---'}</td>
+                  </tr>
+                ))}
+                {data.openRequestsToday.map((r: any) => (
+                  <tr key={`pr-${r.id}`}>
+                    <td style={{ color: '#2563eb', fontWeight: 900 }}>ركوست مفتوح</td>
+                    <td style={{ fontWeight: 900 }}>{r.requestCode}</td>
+                    <td style={{ textAlign: 'right' }}>{r.title || r.requestCategory}</td>
+                    <td style={{ textAlign: 'right' }}>{r.project_display_name} — {r.boq_item_name}</td>
+                    <td>{r.contractor_display} / {r.consultant_display}</td>
+                    <td style={{ fontWeight: 900 }}>{r.approvalCode}</td>
+                    <td style={{ textAlign: 'right' }}>{r.cleanNotes || '---'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+
+        {(data.newVillasToday.length > 0 ||
+          data.newBoqItemsToday.length > 0 ||
+          data.newJobOrdersToday.length > 0 ||
+          data.newSubcontractorAssignmentsToday.length > 0) && (
+          <>
+            <DocSection title="سابعاً: الأنشطة الهندسية الجديدة اليوم (فلل • بنود • أوامر تشغيل • إسنادات مقاولين)" en="New Daily Projects, BOQ Items & Job Orders" />
+            <table className="phi-doc-table" style={{ width: '100%', marginBottom: '12px' }}>
+              <thead>
+                <tr>
+                  <th>نوع الإضافة</th>
+                  <th>المرجع / الكود</th>
+                  <th>الفيلا / المشروع</th>
+                  <th>البيان / البند</th>
+                  <th>الطرف المرتبط</th>
+                  <th>القيمة</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.newVillasToday.map((v: any) => (
+                  <tr key={`pv-${v.id}`}>
+                    <td style={{ fontWeight: 900, color: '#059669' }}>فيلا جديدة</td>
+                    <td>{v.project_code || '---'}</td>
+                    <td style={{ fontWeight: 800 }}>{v.display_name}</td>
+                    <td>{v.unit_type || 'مشروع سكني'}</td>
+                    <td>{v.client_display}</td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(v.contract_num)}</td>
+                  </tr>
+                ))}
+                {data.newBoqItemsToday.map((b: any) => (
+                  <tr key={`pb-${b.id}`}>
+                    <td style={{ fontWeight: 900, color: '#0284c7' }}>بند BOQ جديد</td>
+                    <td>{b.budget_code || '---'}</td>
+                    <td>{b.project_display_name}</td>
+                    <td style={{ textAlign: 'right' }}>{b.work_item}</td>
+                    <td>{b.item_type || 'بند'}</td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(b.item_value)}</td>
+                  </tr>
+                ))}
+                {data.newJobOrdersToday.map((j: any) => (
+                  <tr key={`pjo-${j.id}`}>
+                    <td style={{ fontWeight: 900, color: '#d97706' }}>أمر تشغيل جديد</td>
+                    <td>{j.order_number || '---'}</td>
+                    <td>{j.project_display_name}</td>
+                    <td style={{ textAlign: 'right' }}>{j.boq_item_name}</td>
+                    <td>{j.contractor_display}</td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(j.order_value)}</td>
+                  </tr>
+                ))}
+                {data.newSubcontractorAssignmentsToday.map((a: any) => (
+                  <tr key={`pasg-${a.id}`}>
+                    <td style={{ fontWeight: 900, color: '#7c3aed' }}>إسناد مقاول باطن</td>
+                    <td>{a.job_order_number}</td>
+                    <td>{a.project_display_name}</td>
+                    <td style={{ textAlign: 'right' }}>{a.boq_item_name}</td>
+                    <td>{a.contractor_display}</td>
+                    <td style={{ fontWeight: 900 }}>{formatCurrency(a.total_value)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
+        )}
+
+        <DocSection title="ثامناً: الملخص التنفيذي الختامي لنهاية اليوم" en="End-of-Day Closing Executive Summary" />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', alignItems: 'start' }}>
+          <DocTotals
+            rows={[
+              { label: 'رصيد الخزينة الافتتاحي (قبل اليوم)', value: formatCurrency(data.treasuryOpeningBalance) },
+              { label: '(+) الفلوس الداخلة اليوم (قبض)', value: formatCurrency(data.cashIn), tone: 'positive' },
+              { label: '(-) الفلوس المصروفة اليوم (صرف)', value: formatCurrency(data.cashOut), tone: 'warn' },
+              { label: 'المصروف للعمالة اليوم (سندات)', value: formatCurrency(data.workersPaidToday) },
+              { label: 'إجمالي المستحقات المسددة اليوم', value: formatCurrency(data.settledDuesToday) },
+              { label: 'مصروفات اليوم المسجلة', value: formatCurrency(data.expensesTotal) },
+              { label: 'الخامات الموردة اليوم', value: formatCurrency(data.materialReceiptsTotal) },
+              { label: 'الخامات المنصرفة اليوم', value: formatCurrency(data.materialIssuesTotal) },
+            ]}
+            grand={{
+              label: '(=) رصيد الخزينة المتبقي حتى نهاية اليوم',
+              value: formatCurrency(data.treasuryBalanceEndOfDay),
+            }}
+          />
+          <div>
+            <DocNote title="ملخص الإنجاز والأنشطة الهندسية لليوم">
+              الفلل النشطة: {data.activeVillasCount} • الفلل الجديدة المضافة اليوم: {data.newVillasToday.length} •
+              البنود الجديدة المفتوحة اليوم (BOQ): {data.newBoqItemsToday.length} • أوامر التشغيل الجديدة:{' '}
+              {data.newJobOrdersToday.length} • إسنادات مقاولين الباطن اليوم: {data.newSubcontractorAssignmentsToday.length} •
+              الركوستات المفتوحة: {data.openRequestsToday.length}{' '}
+              {data.openRequestsToday.length > 0
+                ? `(${data.openRequestsToday.slice(0, 5).map((r: any) => r.requestCode).join('، ')})`
+                : ''}{' '}
+              • تسليمات اليوم: {data.handoversToday.length}{' '}
+              {data.handoversToday.length > 0
+                ? `(${data.handoversToday.slice(0, 5).map((h: any) => `${h.requestCode}: ${h.approvalCode}`).join(' | ')})`
+                : ''}
+              . الرصيد الإجمالي الحالي للخزينة: {formatCurrency(data.treasuryCurrentTotal)}.
+            </DocNote>
+            <DocSignatures
+              slots={[
+                { title: 'اعتماد الإدارة الهندسية والمالية', date: data.selectedDate },
+              ]}
+            />
+          </div>
+        </div>
 
         <ReportContactFooter layout="compact" />
       </div>

@@ -14,7 +14,6 @@ interface HomePortalSectionsProps {
   whatsappNumber: string;
   onAddToCart: (product: WebsiteProduct, qty: number, withInstall: boolean) => void;
   onAddBundleToCart: (items: { product: WebsiteProduct; qty: number }[], withInstall: boolean) => void;
-  onReplayLogoMotion?: () => void;
 }
 
 export default function HomePortalSections({
@@ -23,7 +22,6 @@ export default function HomePortalSections({
   whatsappNumber,
   onAddToCart,
   onAddBundleToCart,
-  onReplayLogoMotion,
 }: HomePortalSectionsProps) {
   const waDigits = (whatsappNumber || '201558888744').replace(/\D/g, '') || '201558888744';
   const openWhatsApp = (message: string) => {
@@ -110,17 +108,6 @@ export default function HomePortalSections({
           <div className="pw-panoramic-floating-hero">
             <div className="pw-panoramic-eyebrow-row">
               <p className="pw-eyebrow" style={{ marginBottom: 0 }}>فاي تك للمقاولات والتوريدات</p>
-              {onReplayLogoMotion && (
-                <button
-                  type="button"
-                  onClick={onReplayLogoMotion}
-                  className="pw-motion-replay-btn"
-                  title="إعادة عرض موشن شعار فاي تك"
-                >
-                  <span>✨</span>
-                  <span>عرض موشن الشعار</span>
-                </button>
-              )}
             </div>
             <h1 id="portals-heading" className="pw-portal-main-h1">
               من الأساس، نبني مشروعك.

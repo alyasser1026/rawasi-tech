@@ -35,8 +35,6 @@ body:has(.pw){padding:0!important}
 .pw-brand{position:relative}
 .pw-brand.phi-brand-landed .pw-brand-mark{animation:phiBrandArrive 1.05s cubic-bezier(.22,1,.36,1)}
 .pw-brand.phi-brand-landed::before{content:'';position:absolute;inset-inline-start:-4px;top:50%;width:52px;height:52px;margin-top:-26px;border-radius:999px;border:2px solid rgba(201,119,45,.7);pointer-events:none;animation:phiBrandRipple .95s cubic-bezier(.16,1,.3,1) forwards}
-.pw-motion-replay-btn{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;border:1px solid rgba(199,85,23,.28);background:#fff;color:var(--o-dark);font-size:.76rem;font-weight:800;cursor:pointer;box-shadow:0 4px 12px -6px rgba(199,85,23,.28);transition:all .16s ease}
-.pw-motion-replay-btn:hover{background:var(--o-soft);border-color:var(--o);transform:translateY(-1px)}
 .pw-header.pw-header-glass .pw-nav a:not(.pw-btn){color:#14181b!important;text-shadow:0 1px 8px rgba(255,255,255,.85)!important}
 .pw-header.pw-header-glass .pw-nav a:not(.pw-btn):hover,.pw-header.pw-header-glass .pw-nav a.is-nav-active:not(.pw-btn){color:#c75517!important}
 .pw-header.pw-header-glass .pw-nav a.is-nav-active:not(.pw-btn)::after{transform:scaleX(1)}

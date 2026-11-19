@@ -40,20 +40,42 @@ export interface DailyReportModel {
   selectedDate: string;
   weekdayLabel: string;
   selectedProjectLabel: string;
+  // حركة الخزينة والأرصدة
+  treasuryOpeningBalance: number;
   cashIn: number;
   cashOut: number;
   netCash: number;
+  treasuryBalanceEndOfDay: number;
+  treasuryCurrentTotal: number;
+  // المستحقات المسددة اليوم وتفصيل الصرف
+  workersPaidToday: number;
+  workersPaidCount: number;
+  claimsPaidToday: number;
+  claimsPaidCount: number;
+  expensesPaidToday: number;
+  expensesPaidCount: number;
+  generalPaidToday: number;
+  settledDuesToday: number;
+  // المصروفات والعمالة
   expensesTotal: number;
   directCashExpensesUnlinked: number;
   laborTotal: number;
   laborDays: number;
   distinctWorkersCount: number;
+  // الخامات الموردة والمنصرفة والمستخلصات
   materialIssuesTotal: number;
+  materialIssuesCount: number;
+  materialIssuesLinesCount: number;
   materialReceiptsTotal: number;
+  materialReceiptsCount: number;
+  materialReceiptsCompanyTotal: number;
+  materialReceiptsClientTotal: number;
+  materialReceiptsLinesCount: number;
   subClaimsTotal: number;
   materialsAndClaimsTotal: number;
   totalDailyOperationsCost: number;
   activeVillasCount: number;
+  // الحركات التفصيلية اليوم
   receipts: any[];
   payments: any[];
   laborLogs: any[];
@@ -62,6 +84,18 @@ export interface DailyReportModel {
   materialReceipts: any[];
   subClaims: any[];
   activeVillas: DailyVillaSummary[];
+  // الحركات الجديدة والركوستات والتسليمات اليوم
+  newVillasToday: any[];
+  newBoqItemsToday: any[];
+  newBoqTotalValue: number;
+  newJobOrdersToday: any[];
+  newJobOrdersTotalValue: number;
+  newSubcontractorAssignmentsToday: any[];
+  newSubcontractorAssignmentsValue: number;
+  openRequestsToday: any[];
+  handoversToday: any[];
+  siteVisitsToday: any[];
+  // بيانات الرسوم البيانية
   expenseCategories: DailyCategorySlice[];
   costComposition: DailyCategorySlice[];
   trend7Days: DailyTrendPoint[];
@@ -176,21 +210,17 @@ export function DailyExecutiveCharts({
   const th = getDailyChartTheme(variant);
   const isPrint = th.isPrint;
 
-  // 1) بيانات الرسم الأول: التدفق النقدي والتشغيلي لليوم
+  // 1) بيانات الرسم الأول: ميزان الفلوس والخزينة والعمالة والخامات لليوم (7 أعمدة)
   const flowBars = [
-    { label: 'الفلوس الداخلة', sub: `${data.receipts.length} قبض`, value: data.cashIn, color: '#10b981' },
-    { label: 'الفلوس المصروفة', sub: `${data.payments.length} صرف`, value: data.cashOut, color: '#f43f5e' },
+    { label: 'الداخل (قبض)', sub: `${data.receipts.length} سند`, value: data.cashIn, color: '#10b981' },
+    { label: 'الصرف (خارج)', sub: `${data.payments.length} سند`, value: data.cashOut, color: '#f43f5e' },
+    { label: 'صرف العمالة', sub: `${data.workersPaidCount} سند`, value: data.workersPaidToday, color: '#0ea5e9' },
     { label: 'مصروفات اليوم', sub: `${data.expenses.length} مصروف`, value: data.expensesTotal, color: '#f59e0b' },
-    { label: 'يوميات العمالة', sub: `${data.distinctWorkersCount} عامل`, value: data.laborTotal, color: '#3b82f6' },
-    {
-      label: 'خامات ومستخلصات',
-      sub: `${data.materialIssues.length + data.subClaims.length} بند`,
-      value: data.materialsAndClaimsTotal,
-      color: '#8b5cf6',
-    },
+    { label: 'خامات موردة', sub: `${data.materialReceiptsCount} إذن`, value: data.materialReceiptsTotal, color: '#0284c7' },
+    { label: 'خامات منصرفة', sub: `${data.materialIssuesCount} إذن`, value: data.materialIssuesTotal, color: '#8b5cf6' },
     {
       label: 'صافي الخزينة',
-      sub: data.netCash >= 0 ? 'فائض' : 'عجز',
+      sub: data.netCash >= 0 ? 'فائض اليوم' : 'عجز اليوم',
       value: data.netCash,
       color: data.netCash >= 0 ? '#059669' : '#e11d48',
     },
@@ -200,20 +230,20 @@ export function DailyExecutiveCharts({
   const barMin = Math.min(0, ...flowBars.map((b) => Math.min(0, b.value)));
   const barSpan = Math.max(1, barMax - barMin);
 
-  const svgW = 540;
-  const svgH = isPrint ? 185 : 210;
-  const padL = 18;
-  const padR = 18;
+  const svgW = 580;
+  const svgH = isPrint ? 190 : 215;
+  const padL = 16;
+  const padR = 16;
   const padT = 26;
-  const padB = 42;
+  const padB = 44;
   const plotH = svgH - padT - padB;
   const zeroY = padT + (barMax / barSpan) * plotH;
   const colW = (svgW - padL - padR) / flowBars.length;
 
-  // 2) بيانات الرسم الثاني: مسار آخر 7 أيام (الداخل vs المنصرف والمصروفات + العمالة)
+  // 2) بيانات الرسم الثاني: مسار آخر 7 أيام (الداخل vs المنصرف والمصروفات + منحنى العمالة)
   const trend = data.trend7Days || [];
   const tSvgW = 540;
-  const tSvgH = isPrint ? 185 : 210;
+  const tSvgH = isPrint ? 190 : 215;
   const tPadL = 22;
   const tPadR = 22;
   const tPadT = 32;
@@ -230,7 +260,6 @@ export function DailyExecutiveCharts({
   const workerPolylinePts = trend
     .map((pt, idx) => {
       const cx = tPadL + idx * tSlotW + tSlotW / 2;
-      // خط العمالة يطفو في النصف العلوي للمخطط لعدم تداخله مع الأعمدة السفلى
       const cy = tPadT + 8 + (1 - pt.workersCount / tMaxWorkers) * (tPlotH * 0.42);
       return `${cx.toFixed(1)},${cy.toFixed(1)}`;
     })
@@ -291,7 +320,7 @@ export function DailyExecutiveCharts({
               fontWeight: 700,
             }}
           >
-            النطاق: {data.selectedProjectLabel} • مقارنة الداخل والمنصرف اليومي ومسار 7 أيام وتوزيع الفلل والعمالة
+            النطاق: {data.selectedProjectLabel} • الخزينة المتبقية والداخل والمنصرف وصرف العمالة والخامات الموردة والمنصرفة
           </p>
         </div>
         <div
@@ -303,6 +332,20 @@ export function DailyExecutiveCharts({
             fontWeight: 800,
           }}
         >
+          <span
+            style={{
+              padding: '3px 9px',
+              borderRadius: '999px',
+              background:
+                data.treasuryBalanceEndOfDay >= 0
+                  ? 'rgba(5, 150, 105, 0.16)'
+                  : 'rgba(225, 29, 72, 0.14)',
+              color: data.treasuryBalanceEndOfDay >= 0 ? '#059669' : '#e11d48',
+              fontWeight: 900,
+            }}
+          >
+            رصيد الخزينة المتبقي: {formatCurrency(data.treasuryBalanceEndOfDay)}
+          </span>
           <span
             style={{
               padding: '3px 9px',
@@ -321,7 +364,7 @@ export function DailyExecutiveCharts({
               color: '#e11d48',
             }}
           >
-            المصروف: {formatCurrency(data.cashOut)}
+            الصرف: {formatCurrency(data.cashOut)}
           </span>
           <span
             style={{
@@ -345,21 +388,21 @@ export function DailyExecutiveCharts({
           gap: isPrint ? '9px' : '0.95rem',
         }}
       >
-        {/* 1️⃣ التدفق النقدي والتشغيلي لليوم */}
+        {/* 1️⃣ ميزان الفلوس وصرف العمالة والخامات لليوم */}
         <div style={th.subCardStyle}>
           <div style={{ marginBottom: '6px' }}>
             <div style={{ fontSize: th.titleSize, fontWeight: 900, color: th.ink }}>
-              1. ميزان الفلوس والتشغيل لليوم
+              1. ميزان الخزينة وصرف العمالة والخامات لليوم
             </div>
             <div style={{ fontSize: th.subSize, color: th.muted, fontWeight: 700 }}>
-              مقارنة مباشرة بين القبض (الداخل) والصرف والمصروفات والعمالة والخامات وصافي الخزينة
+              الداخل، الصرف، المصروف للعمالة، المصروفات، الخامات الموردة والمنصرفة، وصافي اليوم
             </div>
           </div>
           <svg
             viewBox={`0 0 ${svgW} ${svgH}`}
             style={{ width: '100%', height: 'auto', display: 'block', fontFamily: th.svgFont }}
             role="img"
-            aria-label="رسم بياني للتدفق المالي والتشغيلي اليومي"
+            aria-label="رسم بياني للتدفق المالي والخامات والعمالة اليومي"
           >
             <line
               x1={padL}
@@ -372,7 +415,7 @@ export function DailyExecutiveCharts({
             />
             {flowBars.map((b, i) => {
               const cx = padL + i * colW + colW / 2;
-              const bw = Math.min(46, colW * 0.56);
+              const bw = Math.min(40, colW * 0.56);
               const hVal = (Math.abs(b.value) / barSpan) * plotH;
               const y = b.value >= 0 ? zeroY - hVal : zeroY;
               const textY = b.value >= 0 ? Math.max(12, y - 6) : Math.min(svgH - 22, y + hVal + 12);
@@ -393,7 +436,7 @@ export function DailyExecutiveCharts({
                     y={textY}
                     textAnchor="middle"
                     fill={th.ink}
-                    fontSize="10"
+                    fontSize="9.5"
                     fontWeight="900"
                   >
                     {fmtShort(b.value)}
@@ -403,7 +446,7 @@ export function DailyExecutiveCharts({
                     y={svgH - 20}
                     textAnchor="middle"
                     fill={th.ink}
-                    fontSize="9.5"
+                    fontSize="8.8"
                     fontWeight="800"
                   >
                     {b.label}
@@ -413,7 +456,7 @@ export function DailyExecutiveCharts({
                     y={svgH - 7}
                     textAnchor="middle"
                     fill={th.muted}
-                    fontSize="8.5"
+                    fontSize="8"
                     fontWeight="700"
                   >
                     {b.sub}
@@ -424,7 +467,7 @@ export function DailyExecutiveCharts({
           </svg>
         </div>
 
-        {/* 2️⃣ مسار آخر 7 أيام (الداخل vs المنصرف والمصروفات + منحنى العمالة) */}
+        {/* 2️⃣ مسار آخر 7 أيام */}
         <div style={th.subCardStyle}>
           <div
             style={{
