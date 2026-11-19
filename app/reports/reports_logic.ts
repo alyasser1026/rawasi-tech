@@ -757,6 +757,7 @@ export function useReportsLogic() {
   };
 
   return {
+    rawData,
     reportData,
     isLoading: isLoading || isRefetching,
     dateRange,

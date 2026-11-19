@@ -11,6 +11,7 @@ import { buildDocumentFileName } from '@/lib/documentFileName';
 import { useCompany } from '@/lib/CompanyContext';
 import AllProjectsPrintModal from './AllProjectsPrintModal';
 import ProjectReportsHub from './ProjectReportsHub';
+import DailyExecutiveReport from './DailyExecutiveReport';
 import {
   ContractWaterfallChart,
   ProjectsPerformanceCharts,
@@ -20,6 +21,7 @@ import {
 } from './ReportExecutiveCharts';
 import {
   Building2,
+  CalendarDays,
   ChevronLeft,
   DollarSign,
   FileSpreadsheet,
@@ -37,7 +39,7 @@ import {
 export default function ReportsPage() {
   const { activeCompanyId } = useCompany();
   const logic = useReportsLogic();
-  const [reportScope, setReportScope] = useState<'master' | 'project_reports'>('master');
+  const [reportScope, setReportScope] = useState<'daily' | 'master' | 'project_reports'>('master');
   const [expandedProjects, setExpandedProjects] = useState<string[]>([]);
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
@@ -217,6 +219,16 @@ export default function ReportsPage() {
         <RawasiSidebarManager
           actions={
             <div className="no-print" style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+              {reportScope !== 'daily' && (
+                <button
+                  type="button"
+                  className="btn-main-glass rpt-btn-neutral"
+                  onClick={() => setReportScope('daily')}
+                >
+                  <CalendarDays size={16} aria-hidden="true" />
+                  <span>فتح التقرير اليومي والرسوم البيانية</span>
+                </button>
+              )}
               <button type="button" className="btn-main-glass gold" onClick={exportFullExcel} disabled={!d}>
                 <FileSpreadsheet size={16} aria-hidden="true" />
                 <span>تصدير التقرير الشامل (Excel)</span>
@@ -460,7 +472,7 @@ export default function ReportsPage() {
           }
         `}</style>
 
-        {/* شريط التبديل بين التقرير المالي الشامل وتقارير المشاريع التفصيلية */}
+        {/* شريط التبديل بين التقرير اليومي التنفيذي والتقرير المالي الشامل وتقارير المشاريع التفصيلية */}
         <div className="rpt-tabs no-print" style={{ marginBottom: '1.15rem' }}>
           <button
             type="button"
@@ -473,6 +485,15 @@ export default function ReportsPage() {
           </button>
           <button
             type="button"
+            onClick={() => setReportScope('daily')}
+            className={`rpt-tab-btn ${reportScope === 'daily' ? 'is-active' : ''}`}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+          >
+            <CalendarDays size={16} aria-hidden="true" />
+            <span>التقرير اليومي التنفيذي (الداخل والخارج • العمالة • الفلل • المصروفات)</span>
+          </button>
+          <button
+            type="button"
             onClick={() => setReportScope('project_reports')}
             className={`rpt-tab-btn ${reportScope === 'project_reports' ? 'is-active' : ''}`}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
@@ -482,7 +503,17 @@ export default function ReportsPage() {
           </button>
         </div>
 
-        {reportScope === 'project_reports' ? (
+        {reportScope === 'daily' ? (
+          logic.isLoading || !logic.rawData ? (
+            <LoadingScreen message="جاري تجميع بيانات وحركات التقرير اليومي..." fullScreen={false} />
+          ) : (
+            <DailyExecutiveReport
+              rawData={logic.rawData}
+              selectedProjectId={logic.selectedProjectId}
+              activeCompanyId={activeCompanyId || ''}
+            />
+          )
+        ) : reportScope === 'project_reports' ? (
           <ProjectReportsHub
             key={activeCompanyId || 'default'}
             selectedProjectId={logic.selectedProjectId}
