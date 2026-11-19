@@ -212,6 +212,12 @@ export function useReportsLogic() {
         );
         // منع ازدواجية الخامات إذا تم توريدها وصرفها لنفس المشروع
         const materialsCostEffective = materialsIssuedTotal > 0 ? materialsIssuedTotal : materialsReceivedTotal;
+        // خامات على حساب الشركة فقط (بعد استبعاد خامات العميل المخصومة أصلاً في حساب 217)
+        const companyMaterialsCost = round2(Math.max(0, materialsCostEffective - clientMaterialsDeduction));
+        // موازنة التنفيذ المقدرة للشركة (بعد استبعاد جزء الخامات التقديري الذي وردّه العميل)
+        const estimatedExecutionBudget = round2(
+          Math.max(0, estimatedBudget - Math.min(estMaterials, clientMaterialsDeduction))
+        );
 
         const pAbcAllocs = abcAllocations.filter((a) => String(a.project_id) === pid);
         const abcExpensesTotal = round2(pAbcAllocs.reduce((s, a) => s + (Number(a.allocated_amount) || 0), 0));
@@ -229,25 +235,33 @@ export function useReportsLogic() {
           pDirectPvs.reduce((s: number, v: any) => s + (Number(v.amount) || 0), 0)
         );
 
-        // إجمالي التكلفة الفعلية المحملة على المشروع
-        const totalActualCost = round2(claimsTotal + laborTotal + materialsCostEffective + abcExpensesTotal);
-        const remainingBudget = round2(estimatedBudget - totalActualCost);
-        const netContractMargin = round2(contractValue - totalActualCost);
-        const actualProfitExRetention = round2(netContractExRetention - totalActualCost);
+        // صافي المتبقي عند العميل بعد خصم خامات العميل وسندات قبض العميل (شامل الضمان)
+        const clientRemaining = round2(contractValue - clientMaterialsDeduction - receiptsTotal);
+        // المبلغ المستلم / الصافي غير شامل ضمان الأعمال (بعد خصم ضمان الأعمال 10% وخامات العميل لمرة واحدة فقط)
+        const clientNetExRetention = round2(contractValue - retentionAmount - clientMaterialsDeduction);
+        const contractAfterClientMaterials = round2(contractValue - clientMaterialsDeduction);
+
+        // تكلفة التنفيذ الفعلية على الشركة فقط (بدون إعادة جمع خامات العميل)
+        const totalActualCost = round2(claimsTotal + laborTotal + companyMaterialsCost + abcExpensesTotal);
+        const remainingBudget = round2(estimatedExecutionBudget - totalActualCost);
+        const netContractMargin = round2(contractAfterClientMaterials - totalActualCost);
+        const actualProfitExRetention = round2(clientNetExRetention - totalActualCost);
         const actualMarginPct = contractValue > 0 ? round2((netContractMargin / contractValue) * 100) : 0;
 
-        // الربح المتوقع الواقعي عند الإنجاز (EAC = العقد - الأكبر من الموازنة أو التكلفة الفعلية)
-        const forecastedCostEac = round2(Math.max(estimatedBudget, totalActualCost));
-        const expectedProfitEac = round2(contractValue - forecastedCostEac);
-        const expectedProfitEacExRetention = round2(netContractExRetention - forecastedCostEac);
+        // الربح المتوقع الواقعي عند الإنجاز (EAC = صافي العقد - الأكبر من موازنة التنفيذ أو تكلفة التنفيذ الفعلية)
+        const forecastedCostEac = round2(Math.max(estimatedExecutionBudget, totalActualCost));
+        const expectedProfitEac = round2(contractAfterClientMaterials - forecastedCostEac);
+        const expectedProfitEacExRetention = round2(clientNetExRetention - forecastedCostEac);
         const expectedMarginPct = contractValue > 0 ? round2((expectedProfitEac / contractValue) * 100) : 0;
         const expectedMarginExRetentionPct =
-          netContractExRetention > 0 ? round2((expectedProfitEacExRetention / netContractExRetention) * 100) : 0;
+          clientNetExRetention > 0 ? round2((expectedProfitEacExRetention / clientNetExRetention) * 100) : 0;
 
-        // معامل الانحراف (CPI = الموازنة / الفعلي) ونسبة الانحراف %
-        const deviationFactor = totalActualCost > 0 ? round2(estimatedBudget / totalActualCost) : null;
+        // معامل الانحراف (CPI = موازنة التنفيذ / تكلفة التنفيذ الفعلية) ونسبة الانحراف %
+        const deviationFactor = totalActualCost > 0 ? round2(estimatedExecutionBudget / totalActualCost) : null;
         const variancePct =
-          estimatedBudget > 0 ? round2(((estimatedBudget - totalActualCost) / estimatedBudget) * 100) : 0;
+          estimatedExecutionBudget > 0
+            ? round2(((estimatedExecutionBudget - totalActualCost) / estimatedExecutionBudget) * 100)
+            : 0;
         const varianceStatus =
           totalActualCost === 0
             ? 'لم يُصرف'
@@ -256,11 +270,6 @@ export function useReportsLogic() {
               : deviationFactor !== null && deviationFactor < 0.85
                 ? 'تجاوز حاد'
                 : 'تجاوز طفيف';
-
-        // صافي المتبقي عند العميل بعد خصم خامات العميل وسندات قبض العميل (شامل الضمان)
-        const clientRemaining = round2(contractValue - clientMaterialsDeduction - receiptsTotal);
-        // المبلغ المستلم / الصافي غير شامل ضمان الأعمال (بعد خصم ضمان الأعمال 10% وخامات العميل)
-        const clientNetExRetention = round2(contractValue - retentionAmount - clientMaterialsDeduction);
 
         return {
           id: pid,
@@ -278,6 +287,7 @@ export function useReportsLogic() {
           client_remaining: clientRemaining,
           client_net_ex_retention: clientNetExRetention,
           estimated_budget: estimatedBudget,
+          estimated_execution_budget: estimatedExecutionBudget,
           est_labor: estLabor,
           est_materials: estMaterials,
           est_expenses: estExpenses,
@@ -290,6 +300,7 @@ export function useReportsLogic() {
           materials_received_total: materialsReceivedTotal,
           materials_issued_total: materialsIssuedTotal,
           materials_cost_effective: materialsCostEffective,
+          company_materials_cost: companyMaterialsCost,
           abc_expenses_total: abcExpensesTotal,
           total_actual_cost: totalActualCost,
           forecasted_cost_eac: forecastedCostEac,
@@ -460,11 +471,17 @@ export function useReportsLogic() {
       projectsMatrix.reduce((s, p) => s + p.client_net_ex_retention, 0)
     );
     const totalEstimatedBudget = round2(projectsMatrix.reduce((s, p) => s + p.estimated_budget, 0));
+    const totalEstimatedExecutionBudget = round2(
+      projectsMatrix.reduce((s, p) => s + p.estimated_execution_budget, 0)
+    );
+    const totalCompanyMaterials = round2(projectsMatrix.reduce((s, p) => s + p.company_materials_cost, 0));
     const totalActualProjectCosts = round2(projectsMatrix.reduce((s, p) => s + p.total_actual_cost, 0));
     const totalForecastedCostEac = round2(projectsMatrix.reduce((s, p) => s + p.forecasted_cost_eac, 0));
-    const totalRemainingBudget = round2(totalEstimatedBudget - totalActualProjectCosts);
-    const totalNetContractMargin = round2(totalContractValue - totalActualProjectCosts);
-    const totalActualProfitExRetention = round2(totalNetContractExRetention - totalActualProjectCosts);
+    const totalRemainingBudget = round2(totalEstimatedExecutionBudget - totalActualProjectCosts);
+    const totalNetContractMargin = round2(projectsMatrix.reduce((s, p) => s + p.net_contract_margin, 0));
+    const totalActualProfitExRetention = round2(
+      projectsMatrix.reduce((s, p) => s + p.actual_profit_ex_retention, 0)
+    );
     const totalActualMarginPct =
       totalContractValue > 0 ? round2((totalNetContractMargin / totalContractValue) * 100) : 0;
 
@@ -480,10 +497,10 @@ export function useReportsLogic() {
         : 0;
 
     const overallDeviationFactor =
-      totalActualProjectCosts > 0 ? round2(totalEstimatedBudget / totalActualProjectCosts) : null;
+      totalActualProjectCosts > 0 ? round2(totalEstimatedExecutionBudget / totalActualProjectCosts) : null;
     const overallVariancePct =
-      totalEstimatedBudget > 0
-        ? round2(((totalEstimatedBudget - totalActualProjectCosts) / totalEstimatedBudget) * 100)
+      totalEstimatedExecutionBudget > 0
+        ? round2(((totalEstimatedExecutionBudget - totalActualProjectCosts) / totalEstimatedExecutionBudget) * 100)
         : 0;
     const overrunProjects = projectsMatrix.filter((p) => p.remaining_budget < 0 || p.expected_profit_eac < 0);
 
@@ -530,6 +547,8 @@ export function useReportsLogic() {
         totalClientRemaining,
         totalClientNetExRetention,
         totalEstimatedBudget,
+        totalEstimatedExecutionBudget,
+        totalCompanyMaterials,
         totalActualProjectCosts,
         totalForecastedCostEac,
         totalRemainingBudget,

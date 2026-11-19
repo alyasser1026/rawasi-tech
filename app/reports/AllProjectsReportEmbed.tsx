@@ -36,12 +36,13 @@ export default function AllProjectsReportEmbed() {
       'المبلغ المستلم (غير شامل ضمان الأعمال)': p.client_net_ex_retention,
       'المتبقي عند العميل (شامل الضمان)': p.client_remaining,
       'الموازنة التقديرية الشاملة': p.estimated_budget,
+      'موازنة التنفيذ (بدون خامات العميل)': p.estimated_execution_budget,
       'مستخلصات المقاولين': p.claims_total,
       'يوميات العمالة': p.labor_total,
       'عدد اليوميات': p.labor_days,
-      'توريد وصرف الخامات': p.materials_cost_effective,
+      'خامات على حساب الشركة': p.company_materials_cost,
       'المصاريف الموزعة (ABC)': p.abc_expenses_total,
-      'إجمالي التكلفة الفعلية': p.total_actual_cost,
+      'تكلفة التنفيذ الفعلية (بدون خامات العميل)': p.total_actual_cost,
       'المتبقي من الموازنة': p.remaining_budget,
       'الربح المتوقع EAC (غير شامل الضمان)': p.expected_profit_eac_ex_retention,
       'الربح المتوقع EAC (شامل الضمان)': p.expected_profit_eac,
@@ -65,12 +66,13 @@ export default function AllProjectsReportEmbed() {
       'المبلغ المستلم (غير شامل ضمان الأعمال)': t.totalClientNetExRetention,
       'المتبقي عند العميل (شامل الضمان)': t.totalClientRemaining,
       'الموازنة التقديرية الشاملة': t.totalEstimatedBudget,
+      'موازنة التنفيذ (بدون خامات العميل)': t.totalEstimatedExecutionBudget,
       'مستخلصات المقاولين': t.totalClaimsNet,
       'يوميات العمالة': t.totalLaborEarned,
       'عدد اليوميات': d.projectsMatrix.reduce((s: number, p: any) => s + p.labor_days, 0),
-      'توريد وصرف الخامات': t.totalCustomerMaterials,
+      'خامات على حساب الشركة': t.totalCompanyMaterials,
       'المصاريف الموزعة (ABC)': t.totalExpensesAmount,
-      'إجمالي التكلفة الفعلية': t.totalActualProjectCosts,
+      'تكلفة التنفيذ الفعلية (بدون خامات العميل)': t.totalActualProjectCosts,
       'المتبقي من الموازنة': t.totalRemainingBudget,
       'الربح المتوقع EAC (غير شامل الضمان)': t.totalExpectedProfitEacExRetention,
       'الربح المتوقع EAC (شامل الضمان)': t.totalExpectedProfitEac,
@@ -387,12 +389,12 @@ export default function AllProjectsReportEmbed() {
               <th>ضمان الأعمال (10%)</th>
               <th>خصم خامات العميل</th>
               <th>المبلغ المستلم (غير شامل ضمان الأعمال)</th>
-              <th>الموازنة التقديرية</th>
+              <th>موازنة التنفيذ</th>
               <th>مستخلصات المقاولين</th>
               <th>يوميات العمالة</th>
-              <th>الخامات المحملة</th>
+              <th>خامات الشركة</th>
               <th>المصاريف (ABC)</th>
-              <th>إجمالي التكلفة الفعلية</th>
+              <th>تكلفة التنفيذ الفعلية</th>
               <th>الربح المتوقع (EAC)</th>
               <th>الربح الفعلي</th>
               <th>معامل الانحراف (CPI)</th>
@@ -441,13 +443,20 @@ export default function AllProjectsReportEmbed() {
                         شامل الضمان: {formatCurrency(p.client_remaining)}
                       </div>
                     </td>
-                    <td style={{ color: 'var(--text-secondary)', fontWeight: 800 }}>{formatCurrency(p.estimated_budget)}</td>
+                    <td style={{ color: 'var(--text-secondary)', fontWeight: 800 }}>
+                      {formatCurrency(p.estimated_execution_budget)}
+                      {p.estimated_execution_budget !== p.estimated_budget && (
+                        <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                          كلية: {formatCurrency(p.estimated_budget)}
+                        </div>
+                      )}
+                    </td>
                     <td>{formatCurrency(p.claims_total)}</td>
                     <td>
                       {formatCurrency(p.labor_total)}
                       <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>({p.labor_days} يوم)</div>
                     </td>
-                    <td>{formatCurrency(p.materials_cost_effective)}</td>
+                    <td>{formatCurrency(p.company_materials_cost)}</td>
                     <td>{formatCurrency(p.abc_expenses_total)}</td>
                     <td style={{ fontWeight: 900, color: 'var(--status-warning, #f59e0b)' }}>
                       {formatCurrency(p.total_actual_cost)}
@@ -572,10 +581,10 @@ export default function AllProjectsReportEmbed() {
                   شامل الضمان: {formatCurrency(t.totalClientRemaining)}
                 </div>
               </td>
-              <td>{formatCurrency(t.totalEstimatedBudget)}</td>
+              <td>{formatCurrency(t.totalEstimatedExecutionBudget)}</td>
               <td>{formatCurrency(t.totalClaimsNet)}</td>
               <td>{formatCurrency(t.totalLaborEarned)}</td>
-              <td>{formatCurrency(t.totalCustomerMaterials)}</td>
+              <td>{formatCurrency(t.totalCompanyMaterials)}</td>
               <td>{formatCurrency(t.totalExpensesAmount)}</td>
               <td>{formatCurrency(t.totalActualProjectCosts)}</td>
               <td>

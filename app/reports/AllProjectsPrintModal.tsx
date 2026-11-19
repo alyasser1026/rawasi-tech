@@ -655,10 +655,10 @@ export default function AllProjectsPrintModal({
                   <th>ضمان الأعمال (10%)</th>
                   <th>خصم خامات (217)</th>
                   <th>المبلغ المستلم (بدون ضمان)</th>
-                  <th>الموازنة التقديرية</th>
+                  <th>موازنة التنفيذ</th>
                   <th>مقاولين وعمالة</th>
-                  <th>خامات ومصاريف ABC</th>
-                  <th>التكلفة الفعلية</th>
+                  <th>خامات شركة و ABC</th>
+                  <th>تكلفة التنفيذ الفعلية</th>
                   <th>الربح المتوقع EAC</th>
                   <th>الربح الفعلي</th>
                   <th>معامل الانحراف (CPI)</th>
@@ -685,7 +685,14 @@ export default function AllProjectsPrintModal({
                       <div>{formatCurrency(p.client_net_ex_retention)}</div>
                       <div style={{ fontSize: '7.5px', color: '#64748b' }}>شامل: {formatCurrency(p.client_remaining)}</div>
                     </td>
-                    <td style={{ fontWeight: 800 }}>{formatCurrency(p.estimated_budget)}</td>
+                    <td style={{ fontWeight: 800 }}>
+                      <div>{formatCurrency(p.estimated_execution_budget)}</div>
+                      {p.estimated_execution_budget !== p.estimated_budget && (
+                        <div style={{ fontSize: '7.5px', color: '#64748b' }}>
+                          كلية: {formatCurrency(p.estimated_budget)}
+                        </div>
+                      )}
+                    </td>
                     <td>
                       <div>مقاول: {formatCurrency(p.claims_total)}</div>
                       <div style={{ fontSize: '7.8px', color: '#475569' }}>
@@ -693,7 +700,7 @@ export default function AllProjectsPrintModal({
                       </div>
                     </td>
                     <td>
-                      <div>خامات: {formatCurrency(p.materials_cost_effective)}</div>
+                      <div>خامات شركة: {formatCurrency(p.company_materials_cost)}</div>
                       <div style={{ fontSize: '7.8px', color: '#475569' }}>ABC: {formatCurrency(p.abc_expenses_total)}</div>
                     </td>
                     <td style={{ fontWeight: 900, color: '#b45309' }}>{formatCurrency(p.total_actual_cost)}</td>
@@ -741,12 +748,12 @@ export default function AllProjectsPrintModal({
                   <td style={{ color: '#b45309' }}>{formatCurrency(t.totalRetentionAmount)}</td>
                   <td style={{ color: '#0369a1' }}>{formatCurrency(t.totalClientMaterialsDeduction)}</td>
                   <td style={{ color: '#15803d' }}>{formatCurrency(t.totalClientNetExRetention)}</td>
-                  <td>{formatCurrency(t.totalEstimatedBudget)}</td>
+                  <td>{formatCurrency(t.totalEstimatedExecutionBudget)}</td>
                   <td>
                     <div>{formatCurrency(t.totalClaimsNet + t.totalLaborEarned)}</div>
                     <div style={{ fontSize: '7.5px', color: '#475569' }}>({totalLaborDays} يومية)</div>
                   </td>
-                  <td>{formatCurrency(t.totalCustomerMaterials + t.totalExpensesAmount)}</td>
+                  <td>{formatCurrency(t.totalCompanyMaterials + t.totalExpensesAmount)}</td>
                   <td style={{ color: '#b45309' }}>{formatCurrency(t.totalActualProjectCosts)}</td>
                   <td style={{ color: t.totalExpectedProfitEacExRetention >= 0 ? '#15803d' : '#b91c1c' }}>
                     <div>
@@ -1153,7 +1160,7 @@ export default function AllProjectsPrintModal({
         <div className="phi-doc-summary" style={{ marginTop: '8px' }}>
           <div className="phi-doc-stack">
             <DocNote title="إقرار المطابقة المالية والمحاسبية الشاملة">
-              تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة. جميع المبالغ المستلمة للمشاريع موضحة بصافي القيمة غير شاملة محتجز ضمان الأعمال ({formatCurrency(t.totalRetentionAmount)} بنسبة 10%).
+              تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة. جميع المبالغ المستلمة للمشاريع موضحة بصافي القيمة غير شاملة محتجز ضمان الأعمال ({formatCurrency(t.totalRetentionAmount)} بنسبة 10%)، كما أن خامات توريد العميل (حساب 217 بقيمة {formatCurrency(t.totalClientMaterialsDeduction)}) مخصومة لمرة واحدة فقط من العقد ولا تدخل أو تتكرر ضمن تكاليف التنفيذ أو العمالة على الشركة.
             </DocNote>
           </div>
           <DocTotals
