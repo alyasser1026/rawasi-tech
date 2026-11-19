@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { getActiveCompanyId, supabase } from '@/lib/supabase';
 import { readCachedTableRows, writeCachedTableRows } from '@/lib/offline/referenceCache';
 import { usePermissions } from '@/lib/PermissionsContext'; // 🛡️ استدعاء مركز قيادة الصلاحيات
@@ -80,6 +81,15 @@ export default function SmartCombo({
     const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
     const listRef = useRef<HTMLDivElement>(null);
     const comboRef = useRef<HTMLDivElement>(null);
+    const inputWrapperRef = useRef<HTMLDivElement>(null);
+    const [dropdownPos, setDropdownPos] = useState<{
+        top?: number;
+        bottom?: number;
+        left: number;
+        width: number;
+        maxHeight: number;
+        ready: boolean;
+    } | null>(null);
     const lastSelectedRef = useRef<any>(null);
     const isUserTypingRef = useRef<boolean>(false);
     const lastFreeTextEmittedRef = useRef<string | null>(null);
@@ -341,7 +351,12 @@ export default function SmartCombo({
     useEffect(() => {
         if (!show || disabled) return;
         const closeOutside = (event: PointerEvent) => {
-            if (event.target instanceof Node && !comboRef.current?.contains(event.target)) {
+            const target = event.target;
+            if (
+                target instanceof Node &&
+                !comboRef.current?.contains(target) &&
+                !listRef.current?.contains(target)
+            ) {
                 setShow(false);
                 setHighlightedIndex(-1);
             }
@@ -349,6 +364,68 @@ export default function SmartCombo({
         document.addEventListener('pointerdown', closeOutside, true);
         return () => document.removeEventListener('pointerdown', closeOutside, true);
     }, [show, disabled]);
+
+    const updateDropdownPosition = useCallback(() => {
+        if (!inputWrapperRef.current || typeof window === 'undefined') return;
+        const rect = inputWrapperRef.current.getBoundingClientRect();
+        if (rect.width === 0 && rect.height === 0) return;
+
+        const viewportW = window.innerWidth;
+        const viewportH = window.innerHeight;
+        const gap = 5;
+        const preferredMaxH = 250;
+        const spaceBelow = viewportH - rect.bottom - 12;
+        const spaceAbove = rect.top - 12;
+        const openAbove = spaceBelow < 160 && spaceAbove > spaceBelow;
+        const width = Math.min(rect.width, viewportW - 16);
+        const left = Math.max(8, Math.min(rect.left, viewportW - width - 8));
+
+        if (openAbove) {
+            const maxHeight = Math.max(120, Math.min(preferredMaxH, spaceAbove - gap));
+            setDropdownPos({
+                bottom: viewportH - rect.top + gap,
+                left,
+                width,
+                maxHeight,
+                ready: true,
+            });
+        } else {
+            const maxHeight = Math.max(120, Math.min(preferredMaxH, Math.max(spaceBelow - gap, 120)));
+            setDropdownPos({
+                top: rect.bottom + gap,
+                left,
+                width,
+                maxHeight,
+                ready: true,
+            });
+        }
+    }, []);
+
+    useLayoutEffect(() => {
+        if (!show || disabled || (isMobile && isMobileBottomSheet)) {
+            setDropdownPos(null);
+            return;
+        }
+        updateDropdownPosition();
+
+        let rafId = 0;
+        const scheduleUpdate = (event?: Event) => {
+            const target = event?.target;
+            if (target instanceof Node && listRef.current?.contains(target)) {
+                return;
+            }
+            if (rafId) cancelAnimationFrame(rafId);
+            rafId = requestAnimationFrame(() => updateDropdownPosition());
+        };
+
+        window.addEventListener('resize', scheduleUpdate);
+        window.addEventListener('scroll', scheduleUpdate, true);
+        return () => {
+            if (rafId) cancelAnimationFrame(rafId);
+            window.removeEventListener('resize', scheduleUpdate);
+            window.removeEventListener('scroll', scheduleUpdate, true);
+        };
+    }, [show, disabled, isMobile, isMobileBottomSheet, updateDropdownPosition]);
 
     // 🖱️ Scroll
     useEffect(() => {
@@ -391,7 +468,8 @@ export default function SmartCombo({
 
     // 🚨 Strict Mode & Auto-match for IDs
     const handleBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (comboRef.current?.contains(event.relatedTarget)) return;
+        const related = event.relatedTarget as Node | null;
+        if (comboRef.current?.contains(related) || listRef.current?.contains(related)) return;
 
         // 🚀 مطابقة ذكية عند مغادرة الحقل لربط كائن الشريك بـ ID بدلاً من تركه نصاً مجرداً
         if (search && !multi && hasFieldAccess) {
@@ -494,9 +572,28 @@ export default function SmartCombo({
 
     const InputElement = isTextArea ? 'textarea' : 'input';
 
+    const DROPDOWN_Z_INDEX = 2147483500;
+
     const dropdownStyle: React.CSSProperties = (isMobile && isMobileBottomSheet) 
-        ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 99999, background: 'var(--surface-flat)', color: 'var(--text-primary)', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '1.25rem 0.9375rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--shadow-elevation)', animation: 'slideUp 0.3s ease-out' }
-        : { position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 2000, maxHeight: '15.625rem', overflowY: 'auto', background: 'var(--surface-card)', color: 'var(--text-primary)', borderRadius: '16px', padding: '0.5rem', boxShadow: 'var(--shadow-elevation)', border: 'none', marginTop: '0.3125rem' };
+        ? { position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: DROPDOWN_Z_INDEX, background: 'var(--surface-flat)', color: 'var(--text-primary)', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '1.25rem 0.9375rem', maxHeight: '80vh', overflowY: 'auto', boxShadow: 'var(--shadow-elevation)', animation: 'slideUp 0.3s ease-out' }
+        : {
+            position: 'fixed',
+            top: dropdownPos?.top,
+            bottom: dropdownPos?.bottom,
+            left: dropdownPos?.left ?? 0,
+            width: dropdownPos?.width ?? 0,
+            zIndex: DROPDOWN_Z_INDEX,
+            maxHeight: dropdownPos ? `${dropdownPos.maxHeight}px` : '15.625rem',
+            overflowY: 'auto',
+            background: 'var(--surface-card)',
+            color: 'var(--text-primary)',
+            borderRadius: '16px',
+            padding: '0.5rem',
+            boxShadow: 'var(--shadow-elevation)',
+            border: 'none',
+            visibility: dropdownPos?.ready ? 'visible' : 'hidden',
+            direction: 'rtl',
+        };
 
     const renderListItem = (item: any, index: number, isRecent = false) => {
         const isPrimitive = typeof item !== 'object';
@@ -601,7 +698,7 @@ export default function SmartCombo({
                 </label>
             )}
             
-            <div style={{ position: 'relative', display: 'flex', alignItems: isTextArea ? 'flex-start' : 'center' }}>
+            <div ref={inputWrapperRef} style={{ position: 'relative', display: 'flex', alignItems: isTextArea ? 'flex-start' : 'center' }}>
                 <InputElement 
                     aria-label={label || placeholder || 'اختيار قيمة'}
                     disabled={disabled}
@@ -654,11 +751,22 @@ export default function SmartCombo({
                 {isLoading && <div style={{ position: 'absolute', left: enableClear && search ? '4.0625rem' : '2.1875rem', top: isTextArea ? '1.25rem' : '50%', transform: isTextArea ? 'none' : 'translateY(-50%)', fontSize: 'var(--fs-sm)' }}><Hourglass size={14} aria-hidden="true" /></div>}
             </div>
 
-            {show && !disabled && (
+            {show && !disabled && typeof document !== 'undefined' && createPortal(
                 <>
-                    {isMobile && isMobileBottomSheet && <div onClick={() => setShow(false)} style={{ position: 'fixed', inset: 0, zIndex: 1999, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)' }} />}
-                    <div ref={listRef} className="smart-combo-dropdown cinematic-scroll" style={dropdownStyle}>
+                    {isMobile && isMobileBottomSheet && <div onClick={() => setShow(false)} style={{ position: 'fixed', inset: 0, zIndex: DROPDOWN_Z_INDEX - 1, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(5px)' }} />}
+                    <div
+                        ref={listRef}
+                        tabIndex={-1}
+                        onClick={(e) => e.stopPropagation()}
+                        className="smart-combo-dropdown cinematic-scroll"
+                        style={dropdownStyle}
+                    >
                         {isMobile && isMobileBottomSheet && <div style={{ width: '2.5rem', height: '0.3125rem', background: 'var(--table-zebra-bg)', borderRadius: '10px', margin: '0 auto 0.9375rem auto' }} />}
+                        {isLoading && (results?.length || 0) === 0 && (
+                            <div style={{ padding: '0.875rem', textAlign: 'center', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 700 }}>
+                                جاري البحث...
+                            </div>
+                        )}
                         {(results?.length || 0) === 0 && (search?.length || 0) > 0 && !isLoading && (
                             <div style={{ padding: '0.9375rem', textAlign: 'center' }}>
                                 <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 800, margin: '0 0 0.625rem 0' }}>لا توجد نتائج لـ "<span style={{color: 'var(--status-negative)'}}>{search}</span>"</p>
@@ -678,7 +786,8 @@ export default function SmartCombo({
                         )}
                         {results.length > 0 && results.map((item, index) => renderListItem(item, index, false))}
                     </div>
-                </>
+                </>,
+                document.body
             )}
         </div>
     );

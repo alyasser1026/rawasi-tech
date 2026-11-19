@@ -86,7 +86,7 @@ export default function AccountLedger() {
             flex-wrap: wrap;
             align-items: flex-end;
             gap: 1.25rem;
-            overflow: hidden;
+            overflow: visible;
           }
           .ledger-control-panel::before {
             content: '';
@@ -186,6 +186,7 @@ export default function AccountLedger() {
               displayCol="name"
               searchCols="name,code"
               placeholder="اكتب اسم الحساب أو الكود (مثلاً: البنك، العهدة...)"
+              enableClear={true}
               onSelect={(val: any) => logic.setSelectedAccountId(val?.id || '')}
             />
           </div>

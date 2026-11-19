@@ -215,7 +215,9 @@ function PartnerStatementContent() {
                             <div className="filter-col" style={{ position: 'relative', zIndex: 100 }}>
                                 <label>الشريك (عامل / مقاول / مورد)</label>
                                 <SmartCombo 
-                                    label="" table="partners" displayCol="name" initialDisplay={logic.partnerName || logic.partnerId} 
+                                    label="" table="partners" displayCol="name" initialDisplay={logic.partnerName || selectedPartnerName}
+                                    placeholder="ابحث باسم الشريك أو الكود..."
+                                    enableClear={true}
                                     onSelect={(v: any) => { logic.setPartnerId(v?.id || ''); setSelectedPartnerName(v?.name || ''); }} 
                                 />
                             </div>
@@ -287,7 +289,7 @@ function PartnerStatementContent() {
                     padding: 1.25rem 1.5rem !important;
                     border-radius: var(--phi-radius-card, 18px) !important;
                     position: relative !important;
-                    overflow: hidden !important;
+                    overflow: visible !important;
                 }
                 .filter-dashboard-glass::before {
                     content: '';
