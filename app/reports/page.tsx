@@ -54,13 +54,15 @@ export default function ReportsPage() {
       'المتبقي عند العميل (شامل الضمان)': p.client_remaining,
       'الموازنة التقديرية الشاملة': p.estimated_budget,
       'موازنة التنفيذ (بدون خامات العميل)': p.estimated_execution_budget,
-      'مستخلصات المقاولين': p.claims_total,
       'يوميات العمالة': p.labor_total,
       'عدد اليوميات': p.labor_days,
+      'مستخلصات المقاولين': p.claims_total,
       'خامات على حساب الشركة': p.company_materials_cost,
       'المصاريف الموزعة (ABC)': p.abc_expenses_total,
       'تكلفة التنفيذ الفعلية (بدون خامات العميل)': p.total_actual_cost,
       'المتبقي من الموازنة': p.remaining_budget,
+      'الربح المستهدف ضمن الموازنة (غير شامل الضمان)': p.target_profit_budget_ex_retention,
+      'الربح المستهدف ضمن الموازنة (شامل الضمان)': p.target_profit_budget,
       'الربح المتوقع EAC (غير شامل الضمان)': p.expected_profit_eac_ex_retention,
       'الربح المتوقع EAC (شامل الضمان)': p.expected_profit_eac,
       'هامش الربح المتوقع %': p.expected_margin_pct,
@@ -84,13 +86,15 @@ export default function ReportsPage() {
       'المتبقي عند العميل (شامل الضمان)': t.totalClientRemaining,
       'الموازنة التقديرية الشاملة': t.totalEstimatedBudget,
       'موازنة التنفيذ (بدون خامات العميل)': t.totalEstimatedExecutionBudget,
-      'مستخلصات المقاولين': t.totalClaimsNet,
       'يوميات العمالة': t.totalLaborEarned,
       'عدد اليوميات': d.projectsMatrix.reduce((s: number, p: any) => s + p.labor_days, 0),
+      'مستخلصات المقاولين': t.totalClaimsNet,
       'خامات على حساب الشركة': t.totalCompanyMaterials,
       'المصاريف الموزعة (ABC)': t.totalExpensesAmount,
       'تكلفة التنفيذ الفعلية (بدون خامات العميل)': t.totalActualProjectCosts,
       'المتبقي من الموازنة': t.totalRemainingBudget,
+      'الربح المستهدف ضمن الموازنة (غير شامل الضمان)': t.totalTargetProfitBudgetExRetention,
+      'الربح المستهدف ضمن الموازنة (شامل الضمان)': t.totalTargetProfitBudget,
       'الربح المتوقع EAC (غير شامل الضمان)': t.totalExpectedProfitEacExRetention,
       'الربح المتوقع EAC (شامل الضمان)': t.totalExpectedProfitEac,
       'هامش الربح المتوقع %': t.totalExpectedMarginPct,
@@ -453,7 +457,9 @@ export default function ReportsPage() {
                   {formatCurrency(t.totalExpectedProfitEacExRetention)}
                 </strong>
                 <span>
-                  شامل الضمان: {formatCurrency(t.totalExpectedProfitEac)} ({t.totalExpectedMarginPct}%)
+                  شامل الضمان: {formatCurrency(t.totalExpectedProfitEac)} ({t.totalExpectedMarginPct}%) • مستهدف الموازنة:{' '}
+                  {t.totalTargetProfitBudgetExRetention > 0 ? '+' : ''}
+                  {formatCurrency(t.totalTargetProfitBudgetExRetention)}
                 </span>
               </div>
               <div className="rpt-kpi-card">
@@ -524,11 +530,12 @@ export default function ReportsPage() {
                       <th>ضمان الأعمال (10%)</th>
                       <th>المبلغ المستلم (غير شامل ضمان الأعمال)</th>
                       <th>موازنة التنفيذ</th>
-                      <th>مستخلصات المقاولين</th>
                       <th>يوميات العمالة</th>
+                      <th>مستخلصات المقاولين</th>
                       <th>خامات الشركة</th>
                       <th>المصاريف (ABC)</th>
                       <th>تكلفة التنفيذ الفعلية</th>
+                      <th>الربح المستهدف (الموازنة)</th>
                       <th>الربح المتوقع (EAC)</th>
                       <th>الربح الفعلي</th>
                       <th>معامل الانحراف (CPI)</th>
@@ -574,7 +581,8 @@ export default function ReportsPage() {
                             <td style={{ fontWeight: 900, color: 'var(--status-positive, #10b981)' }}>
                               {formatCurrency(p.client_net_ex_retention)}
                               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                قبل الضمان: {formatCurrency(p.contract_after_materials)} • شامل الضمان: {formatCurrency(p.client_remaining)}
+                                قبل الضمان: {formatCurrency(p.contract_after_materials)}
+                                {p.receipts_total > 0 ? ` • متبقي: ${formatCurrency(p.client_remaining)}` : ''}
                               </div>
                             </td>
                             <td style={{ color: 'var(--text-secondary)' }}>
@@ -585,15 +593,27 @@ export default function ReportsPage() {
                                 </div>
                               )}
                             </td>
-                            <td>{formatCurrency(p.claims_total)}</td>
                             <td>
                               {formatCurrency(p.labor_total)}
                               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>({p.labor_days} يومية)</div>
                             </td>
+                            <td>{formatCurrency(p.claims_total)}</td>
                             <td>{formatCurrency(p.company_materials_cost)}</td>
                             <td>{formatCurrency(p.abc_expenses_total)}</td>
                             <td style={{ fontWeight: 900, color: 'var(--status-warning, #f59e0b)' }}>
                               {formatCurrency(p.total_actual_cost)}
+                            </td>
+                            <td
+                              style={{
+                                fontWeight: 900,
+                                color: p.target_profit_budget_ex_retention >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)',
+                              }}
+                            >
+                              {p.target_profit_budget_ex_retention > 0 ? '+' : ''}
+                              {formatCurrency(p.target_profit_budget_ex_retention)}
+                              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                شامل: {formatCurrency(p.target_profit_budget)} ({p.target_margin_pct}%)
+                              </div>
                             </td>
                             <td
                               style={{
@@ -639,7 +659,7 @@ export default function ReportsPage() {
 
                           {isExpanded && (
                             <tr>
-                              <td colSpan={15} style={{ background: 'var(--surface-sunken)', padding: '1rem 1.25rem', textAlign: 'right' }}>
+                              <td colSpan={16} style={{ background: 'var(--surface-sunken)', padding: '1rem 1.25rem', textAlign: 'right' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(22rem, 1fr))', gap: '1rem' }}>
                                   {/* أوامر الشغل والمستخلصات */}
                                   <div style={{ background: 'var(--surface-card)', padding: '0.9rem', borderRadius: '12px' }}>
@@ -719,15 +739,25 @@ export default function ReportsPage() {
                       <td>
                         {formatCurrency(t.totalClientNetExRetention)}
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                          قبل الضمان: {formatCurrency(t.totalContractAfterMaterials)} • شامل الضمان: {formatCurrency(t.totalClientRemaining)}
+                          قبل الضمان: {formatCurrency(t.totalContractAfterMaterials)}
+                          {t.totalClientRemaining !== t.totalContractAfterMaterials
+                            ? ` • متبقي: ${formatCurrency(t.totalClientRemaining)}`
+                            : ''}
                         </div>
                       </td>
                       <td>{formatCurrency(t.totalEstimatedExecutionBudget)}</td>
-                      <td>{formatCurrency(t.totalClaimsNet)}</td>
                       <td>{formatCurrency(t.totalLaborEarned)}</td>
+                      <td>{formatCurrency(t.totalClaimsNet)}</td>
                       <td>{formatCurrency(t.totalCompanyMaterials)}</td>
                       <td>{formatCurrency(t.totalExpensesAmount)}</td>
                       <td>{formatCurrency(t.totalActualProjectCosts)}</td>
+                      <td>
+                        {t.totalTargetProfitBudgetExRetention > 0 ? '+' : ''}
+                        {formatCurrency(t.totalTargetProfitBudgetExRetention)}
+                        <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                          شامل الضمان: {formatCurrency(t.totalTargetProfitBudget)} ({t.totalTargetMarginPct}%)
+                        </div>
+                      </td>
                       <td>
                         {t.totalExpectedProfitEacExRetention > 0 ? '+' : ''}
                         {formatCurrency(t.totalExpectedProfitEacExRetention)}

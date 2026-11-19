@@ -503,6 +503,16 @@ export default function AllProjectsPrintModal({
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
           }
+          #printable-all-projects-report .phi-master-table.is-projects-matrix thead th,
+          #printable-all-projects-report .phi-master-table.is-projects-matrix tbody td,
+          #printable-all-projects-report .phi-master-table.is-projects-matrix tfoot td {
+            font-size: 8.3px !important;
+            padding: 5px 2.5px !important;
+          }
+          #printable-all-projects-report .phi-amt {
+            white-space: nowrap !important;
+            display: inline-block;
+          }
           #printable-all-projects-report .phi-master-table th.is-right,
           #printable-all-projects-report .phi-master-table td.is-right {
             text-align: right !important;
@@ -602,7 +612,7 @@ export default function AllProjectsPrintModal({
                 tone: 'tax',
               },
               {
-                label: `الربح المتوقع EAC بدون ضمان (شامل: ${formatCurrency(t.totalExpectedProfitEac)} • ${t.totalExpectedMarginPct}%)`,
+                label: `الربح المتوقع EAC بدون ضمان (مستهدف الموازنة: ${t.totalTargetProfitBudgetExRetention > 0 ? '+' : ''}${formatCurrency(t.totalTargetProfitBudgetExRetention)})`,
                 value: `${t.totalExpectedProfitEacExRetention > 0 ? '+' : ''}${formatCurrency(t.totalExpectedProfitEacExRetention)}`,
                 tone: t.totalExpectedProfitEacExRetention >= 0 ? 'positive' : 'discount',
               },
@@ -632,21 +642,22 @@ export default function AllProjectsPrintModal({
               title="1. مصفوفة المشاريع (الفلل): المبلغ المستلم، التكاليف، الربح المتوقع (EAC)، الربح الفعلي، ومعامل الانحراف"
               en="Projects Profit & Variance Matrix"
             />
-            <table className="phi-master-table">
+            <table className="phi-master-table is-projects-matrix">
               <colgroup>
-                <col style={{ width: '10.5%' }} />
+                <col style={{ width: '8.6%' }} />
                 <col style={{ width: '6.8%' }} />
-                <col style={{ width: '6.5%' }} />
-                <col style={{ width: '6.5%' }} />
-                <col style={{ width: '7.5%' }} />
-                <col style={{ width: '6.8%' }} />
-                <col style={{ width: '7.6%' }} />
-                <col style={{ width: '7.6%' }} />
+                <col style={{ width: '5.8%' }} />
+                <col style={{ width: '6.2%' }} />
                 <col style={{ width: '7.2%' }} />
-                <col style={{ width: '8.8%' }} />
-                <col style={{ width: '8.2%' }} />
-                <col style={{ width: '8.5%' }} />
-                <col style={{ width: '7.5%' }} />
+                <col style={{ width: '6.6%' }} />
+                <col style={{ width: '7.8%' }} />
+                <col style={{ width: '7.2%' }} />
+                <col style={{ width: '6.8%' }} />
+                <col style={{ width: '7.6%' }} />
+                <col style={{ width: '7.8%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '6.8%' }} />
               </colgroup>
               <thead>
                 <tr>
@@ -656,9 +667,10 @@ export default function AllProjectsPrintModal({
                   <th>ضمان الأعمال (10%)</th>
                   <th>المبلغ المستلم (بدون ضمان)</th>
                   <th>موازنة التنفيذ</th>
-                  <th>مقاولين وعمالة</th>
+                  <th>عمالة ومقاولين</th>
                   <th>خامات شركة و ABC</th>
                   <th>تكلفة التنفيذ الفعلية</th>
+                  <th>الربح المستهدف (الموازنة)</th>
                   <th>الربح المتوقع EAC</th>
                   <th>الربح الفعلي</th>
                   <th>معامل الانحراف (CPI)</th>
@@ -670,57 +682,75 @@ export default function AllProjectsPrintModal({
                   <tr key={p.id}>
                     <td className="is-right" style={{ fontWeight: 900 }}>
                       <div>{p.name}</div>
-                      <div style={{ fontSize: '8px', color: '#475569', fontWeight: 800 }}>
+                      <div style={{ fontSize: '7.6px', color: '#475569', fontWeight: 800 }}>
                         {p.unit_type}
                         {p.unit_area > 0 ? ` • ${p.unit_area} م²` : ''}
                       </div>
                     </td>
-                    <td style={{ fontWeight: 900 }}>{formatCurrency(p.contract_value)}</td>
-                    <td style={{ color: '#0369a1', fontWeight: 800 }}>{formatCurrency(p.client_materials_deduction)}</td>
+                    <td style={{ fontWeight: 900 }}>
+                      <span className="phi-amt">{formatCurrency(p.contract_value)}</span>
+                    </td>
+                    <td style={{ color: '#0369a1', fontWeight: 800 }}>
+                      <span className="phi-amt">{formatCurrency(p.client_materials_deduction)}</span>
+                    </td>
                     <td style={{ color: '#b45309', fontWeight: 800 }}>
-                      <div>{formatCurrency(p.retention_amount)}</div>
-                      <div style={{ fontSize: '7.5px', color: '#64748b' }}>({p.retention_percentage}%) بعد الخامات</div>
+                      <div className="phi-amt">{formatCurrency(p.retention_amount)}</div>
+                      <div style={{ fontSize: '7.2px', color: '#64748b' }}>({p.retention_percentage}%) بعد الخامات</div>
                     </td>
                     <td style={{ color: '#15803d', fontWeight: 900 }}>
-                      <div>{formatCurrency(p.client_net_ex_retention)}</div>
-                      <div style={{ fontSize: '7.5px', color: '#64748b' }}>
-                        بعد الخامات: {formatCurrency(p.contract_after_materials)} • شامل: {formatCurrency(p.client_remaining)}
+                      <div className="phi-amt">{formatCurrency(p.client_net_ex_retention)}</div>
+                      <div style={{ fontSize: '7.2px', color: '#64748b' }}>
+                        قبل الضمان: {formatCurrency(p.contract_after_materials)}
+                        {p.receipts_total > 0 ? ` • متبقي: ${formatCurrency(p.client_remaining)}` : ''}
                       </div>
                     </td>
                     <td style={{ fontWeight: 800 }}>
-                      <div>{formatCurrency(p.estimated_execution_budget)}</div>
+                      <div className="phi-amt">{formatCurrency(p.estimated_execution_budget)}</div>
                       {p.estimated_execution_budget !== p.estimated_budget && (
-                        <div style={{ fontSize: '7.5px', color: '#64748b' }}>
+                        <div style={{ fontSize: '7.2px', color: '#64748b' }}>
                           كلية: {formatCurrency(p.estimated_budget)}
                         </div>
                       )}
                     </td>
                     <td>
-                      <div>مقاول: {formatCurrency(p.claims_total)}</div>
-                      <div style={{ fontSize: '7.8px', color: '#475569' }}>
-                        عمالة: {formatCurrency(p.labor_total)} ({p.labor_days}ي)
+                      <div style={{ fontWeight: 800 }}>
+                        عمالة: <span className="phi-amt">{formatCurrency(p.labor_total)}</span> ({p.labor_days}ي)
+                      </div>
+                      <div style={{ fontSize: '7.4px', color: '#475569' }}>
+                        مقاول: <span className="phi-amt">{formatCurrency(p.claims_total)}</span>
                       </div>
                     </td>
                     <td>
                       <div>خامات شركة: {formatCurrency(p.company_materials_cost)}</div>
-                      <div style={{ fontSize: '7.8px', color: '#475569' }}>ABC: {formatCurrency(p.abc_expenses_total)}</div>
+                      <div style={{ fontSize: '7.4px', color: '#475569' }}>ABC: {formatCurrency(p.abc_expenses_total)}</div>
                     </td>
-                    <td style={{ fontWeight: 900, color: '#b45309' }}>{formatCurrency(p.total_actual_cost)}</td>
+                    <td style={{ fontWeight: 900, color: '#b45309' }}>
+                      <span className="phi-amt">{formatCurrency(p.total_actual_cost)}</span>
+                    </td>
+                    <td style={{ fontWeight: 900, color: p.target_profit_budget_ex_retention >= 0 ? '#15803d' : '#b91c1c' }}>
+                      <div className="phi-amt">
+                        {p.target_profit_budget_ex_retention > 0 ? '+' : ''}
+                        {formatCurrency(p.target_profit_budget_ex_retention)}
+                      </div>
+                      <div style={{ fontSize: '7.2px', color: '#475569' }}>
+                        شامل: {formatCurrency(p.target_profit_budget)} ({p.target_margin_pct}%)
+                      </div>
+                    </td>
                     <td style={{ fontWeight: 900, color: p.expected_profit_eac_ex_retention >= 0 ? '#15803d' : '#b91c1c' }}>
-                      <div>
+                      <div className="phi-amt">
                         {p.expected_profit_eac_ex_retention > 0 ? '+' : ''}
                         {formatCurrency(p.expected_profit_eac_ex_retention)}
                       </div>
-                      <div style={{ fontSize: '7.5px', color: '#475569' }}>
+                      <div style={{ fontSize: '7.2px', color: '#475569' }}>
                         شامل: {formatCurrency(p.expected_profit_eac)} ({p.expected_margin_pct}%)
                       </div>
                     </td>
                     <td style={{ fontWeight: 900, color: p.actual_profit_ex_retention >= 0 ? '#15803d' : '#b91c1c' }}>
-                      <div>
+                      <div className="phi-amt">
                         {p.actual_profit_ex_retention > 0 ? '+' : ''}
                         {formatCurrency(p.actual_profit_ex_retention)}
                       </div>
-                      <div style={{ fontSize: '7.5px', color: '#475569' }}>شامل: {formatCurrency(p.net_contract_margin)}</div>
+                      <div style={{ fontSize: '7.2px', color: '#475569' }}>شامل: {formatCurrency(p.net_contract_margin)}</div>
                     </td>
                     <td
                       style={{
@@ -729,14 +759,16 @@ export default function AllProjectsPrintModal({
                       }}
                     >
                       <div dir="ltr">{p.deviation_factor !== null ? p.deviation_factor.toFixed(2) : '---'}</div>
-                      <div style={{ fontSize: '7.5px', color: p.variance_pct >= 0 ? '#15803d' : '#b91c1c' }}>
+                      <div style={{ fontSize: '7.2px', color: p.variance_pct >= 0 ? '#15803d' : '#b91c1c' }}>
                         {p.variance_pct > 0 ? '+' : ''}
                         {p.variance_pct}% • {p.variance_status}
                       </div>
                     </td>
                     <td style={{ fontWeight: 900, color: p.remaining_budget >= 0 ? '#15803d' : '#b91c1c' }}>
-                      {p.remaining_budget > 0 ? '+' : ''}
-                      {formatCurrency(p.remaining_budget)}
+                      <span className="phi-amt">
+                        {p.remaining_budget > 0 ? '+' : ''}
+                        {formatCurrency(p.remaining_budget)}
+                      </span>
                     </td>
                   </tr>
                 ))}
@@ -746,43 +778,78 @@ export default function AllProjectsPrintModal({
                   <td className="is-right">
                     الإجمالي العام ({d.projectsMatrix.length} فلل • {totalArea.toFixed(0)} م²)
                   </td>
-                  <td>{formatCurrency(t.totalContractValue)}</td>
-                  <td style={{ color: '#0369a1' }}>{formatCurrency(t.totalClientMaterialsDeduction)}</td>
-                  <td style={{ color: '#b45309' }}>{formatCurrency(t.totalRetentionAmount)}</td>
-                  <td style={{ color: '#15803d' }}>{formatCurrency(t.totalClientNetExRetention)}</td>
-                  <td>{formatCurrency(t.totalEstimatedExecutionBudget)}</td>
                   <td>
-                    <div>{formatCurrency(t.totalClaimsNet + t.totalLaborEarned)}</div>
-                    <div style={{ fontSize: '7.5px', color: '#475569' }}>({totalLaborDays} يومية)</div>
+                    <span className="phi-amt">{formatCurrency(t.totalContractValue)}</span>
                   </td>
-                  <td>{formatCurrency(t.totalCompanyMaterials + t.totalExpensesAmount)}</td>
-                  <td style={{ color: '#b45309' }}>{formatCurrency(t.totalActualProjectCosts)}</td>
-                  <td style={{ color: t.totalExpectedProfitEacExRetention >= 0 ? '#15803d' : '#b91c1c' }}>
+                  <td style={{ color: '#0369a1' }}>
+                    <span className="phi-amt">{formatCurrency(t.totalClientMaterialsDeduction)}</span>
+                  </td>
+                  <td style={{ color: '#b45309' }}>
+                    <span className="phi-amt">{formatCurrency(t.totalRetentionAmount)}</span>
+                  </td>
+                  <td style={{ color: '#15803d' }}>
+                    <div className="phi-amt">{formatCurrency(t.totalClientNetExRetention)}</div>
+                    <div style={{ fontSize: '7.2px', color: '#475569' }}>
+                      قبل الضمان: {formatCurrency(t.totalContractAfterMaterials)}
+                      {t.totalClientRemaining !== t.totalContractAfterMaterials
+                        ? ` • متبقي: ${formatCurrency(t.totalClientRemaining)}`
+                        : ''}
+                    </div>
+                  </td>
+                  <td>
+                    <span className="phi-amt">{formatCurrency(t.totalEstimatedExecutionBudget)}</span>
+                  </td>
+                  <td>
                     <div>
+                      عمالة: <span className="phi-amt">{formatCurrency(t.totalLaborEarned)}</span> ({totalLaborDays}ي)
+                    </div>
+                    <div style={{ fontSize: '7.4px', color: '#475569' }}>
+                      مقاول: <span className="phi-amt">{formatCurrency(t.totalClaimsNet)}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="phi-amt">{formatCurrency(t.totalCompanyMaterials + t.totalExpensesAmount)}</span>
+                  </td>
+                  <td style={{ color: '#b45309' }}>
+                    <span className="phi-amt">{formatCurrency(t.totalActualProjectCosts)}</span>
+                  </td>
+                  <td style={{ color: t.totalTargetProfitBudgetExRetention >= 0 ? '#15803d' : '#b91c1c' }}>
+                    <div className="phi-amt">
+                      {t.totalTargetProfitBudgetExRetention > 0 ? '+' : ''}
+                      {formatCurrency(t.totalTargetProfitBudgetExRetention)}
+                    </div>
+                    <div style={{ fontSize: '7.2px', color: '#475569' }}>
+                      شامل: {formatCurrency(t.totalTargetProfitBudget)} ({t.totalTargetMarginPct}%)
+                    </div>
+                  </td>
+                  <td style={{ color: t.totalExpectedProfitEacExRetention >= 0 ? '#15803d' : '#b91c1c' }}>
+                    <div className="phi-amt">
                       {t.totalExpectedProfitEacExRetention > 0 ? '+' : ''}
                       {formatCurrency(t.totalExpectedProfitEacExRetention)}
                     </div>
-                    <div style={{ fontSize: '7.5px', color: '#475569' }}>
+                    <div style={{ fontSize: '7.2px', color: '#475569' }}>
                       شامل: {formatCurrency(t.totalExpectedProfitEac)} ({t.totalExpectedMarginPct}%)
                     </div>
                   </td>
                   <td style={{ color: t.totalActualProfitExRetention >= 0 ? '#15803d' : '#b91c1c' }}>
-                    <div>
+                    <div className="phi-amt">
                       {t.totalActualProfitExRetention > 0 ? '+' : ''}
                       {formatCurrency(t.totalActualProfitExRetention)}
                     </div>
-                    <div style={{ fontSize: '7.5px', color: '#475569' }}>شامل: {formatCurrency(t.totalNetContractMargin)}</div>
+                    <div style={{ fontSize: '7.2px', color: '#475569' }}>شامل: {formatCurrency(t.totalNetContractMargin)}</div>
                   </td>
                   <td style={{ color: (t.overallDeviationFactor ?? 1) >= 1 ? '#15803d' : '#b91c1c' }}>
                     <div dir="ltr">{t.overallDeviationFactor !== null ? t.overallDeviationFactor.toFixed(2) : '---'}</div>
-                    <div style={{ fontSize: '7.5px' }}>
+                    <div style={{ fontSize: '7.2px' }}>
                       {t.overallVariancePct > 0 ? '+' : ''}
                       {t.overallVariancePct}%
                     </div>
                   </td>
                   <td style={{ color: t.totalRemainingBudget >= 0 ? '#15803d' : '#b91c1c' }}>
-                    {t.totalRemainingBudget > 0 ? '+' : ''}
-                    {formatCurrency(t.totalRemainingBudget)}
+                    <span className="phi-amt">
+                      {t.totalRemainingBudget > 0 ? '+' : ''}
+                      {formatCurrency(t.totalRemainingBudget)}
+                    </span>
                   </td>
                 </tr>
               </tfoot>
@@ -1173,6 +1240,11 @@ export default function AllProjectsPrintModal({
               { label: '(=) صافي العقود بعد خصم الخامات', value: formatCurrency(t.totalContractAfterMaterials) },
               { label: '(-) محتجز ضمان الأعمال (10% بعد الخامات)', value: formatCurrency(t.totalRetentionAmount), tone: 'warn' },
               { label: '(=) المبلغ المستلم للمشاريع (غير شامل ضمان الأعمال)', value: formatCurrency(t.totalClientNetExRetention), tone: 'tax' },
+              {
+                label: `الربح المستهدف ضمن الموازنة غير شامل الضمان (شامل: ${formatCurrency(t.totalTargetProfitBudget)} • ${t.totalTargetMarginPct}%)`,
+                value: `${t.totalTargetProfitBudgetExRetention > 0 ? '+' : ''}${formatCurrency(t.totalTargetProfitBudgetExRetention)}`,
+                tone: t.totalTargetProfitBudgetExRetention >= 0 ? 'positive' : 'discount',
+              },
               {
                 label: `الربح المتوقع EAC غير شامل الضمان (شامل: ${formatCurrency(t.totalExpectedProfitEac)} • ${t.totalExpectedMarginPct}%)`,
                 value: `${t.totalExpectedProfitEacExRetention > 0 ? '+' : ''}${formatCurrency(t.totalExpectedProfitEacExRetention)}`,

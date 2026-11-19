@@ -256,6 +256,13 @@ export function useReportsLogic() {
         const expectedMarginExRetentionPct =
           clientNetExRetention > 0 ? round2((expectedProfitEacExRetention / clientNetExRetention) * 100) : 0;
 
+        // الربح المستهدف ضمن الموازنة الأصلية (المبلغ المستلم - موازنة التنفيذ المقدرة)
+        const targetProfitBudget = round2(contractAfterClientMaterials - estimatedExecutionBudget);
+        const targetProfitBudgetExRetention = round2(clientNetExRetention - estimatedExecutionBudget);
+        const targetMarginPct = contractValue > 0 ? round2((targetProfitBudget / contractValue) * 100) : 0;
+        const targetMarginExRetentionPct =
+          clientNetExRetention > 0 ? round2((targetProfitBudgetExRetention / clientNetExRetention) * 100) : 0;
+
         // معامل الانحراف (CPI = موازنة التنفيذ / تكلفة التنفيذ الفعلية) ونسبة الانحراف %
         const deviationFactor = totalActualCost > 0 ? round2(estimatedExecutionBudget / totalActualCost) : null;
         const variancePct =
@@ -309,6 +316,10 @@ export function useReportsLogic() {
           net_contract_margin: netContractMargin,
           actual_profit_ex_retention: actualProfitExRetention,
           actual_margin_pct: actualMarginPct,
+          target_profit_budget: targetProfitBudget,
+          target_profit_budget_ex_retention: targetProfitBudgetExRetention,
+          target_margin_pct: targetMarginPct,
+          target_margin_ex_retention_pct: targetMarginExRetentionPct,
           expected_profit_eac: expectedProfitEac,
           expected_profit_eac_ex_retention: expectedProfitEacExRetention,
           expected_margin_pct: expectedMarginPct,
@@ -489,6 +500,17 @@ export function useReportsLogic() {
     const totalActualMarginPct =
       totalContractValue > 0 ? round2((totalNetContractMargin / totalContractValue) * 100) : 0;
 
+    const totalTargetProfitBudget = round2(projectsMatrix.reduce((s, p) => s + p.target_profit_budget, 0));
+    const totalTargetProfitBudgetExRetention = round2(
+      projectsMatrix.reduce((s, p) => s + p.target_profit_budget_ex_retention, 0)
+    );
+    const totalTargetMarginPct =
+      totalContractValue > 0 ? round2((totalTargetProfitBudget / totalContractValue) * 100) : 0;
+    const totalTargetMarginExRetentionPct =
+      totalClientNetExRetention > 0
+        ? round2((totalTargetProfitBudgetExRetention / totalClientNetExRetention) * 100)
+        : 0;
+
     const totalExpectedProfitEac = round2(projectsMatrix.reduce((s, p) => s + p.expected_profit_eac, 0));
     const totalExpectedProfitEacExRetention = round2(
       projectsMatrix.reduce((s, p) => s + p.expected_profit_eac_ex_retention, 0)
@@ -560,6 +582,10 @@ export function useReportsLogic() {
         totalNetContractMargin,
         totalActualProfitExRetention,
         totalActualMarginPct,
+        totalTargetProfitBudget,
+        totalTargetProfitBudgetExRetention,
+        totalTargetMarginPct,
+        totalTargetMarginExRetentionPct,
         totalExpectedProfitEac,
         totalExpectedProfitEacExRetention,
         totalExpectedMarginPct,
