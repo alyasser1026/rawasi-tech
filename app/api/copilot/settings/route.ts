@@ -1,10 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import path from 'path';
+import { authorizeAdminRequest } from '@/lib/admin-authorization';
 
 const SETTINGS_FILE = path.join(process.cwd(), 'config', 'copilot_bot_settings.json');
 const MEMORY_FILE = path.join(process.cwd(), 'config', 'copilot_learned_memory.json');
 const OPERATIONS_FILE = path.join(process.cwd(), 'work', 'copilot_operations_index.json');
+
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+  if (!url || !serviceKey) throw new Error('Copilot settings authorization is not configured.');
+  return createClient(url, serviceKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
+
+async function requireAdmin(request: Request) {
+  try {
+    const { error } = await authorizeAdminRequest(request, getSupabaseAdmin);
+    return error;
+  } catch {
+    return NextResponse.json({ ok: false, error: 'تعذر التحقق من صلاحية الإدارة.' }, { status: 503 });
+  }
+}
 
 const DEFAULT_SETTINGS = {
   botName: 'م. سلمى',
@@ -44,7 +64,10 @@ function writeJsonSafe(filePath: string, data: unknown) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const authError = await requireAdmin(req);
+  if (authError) return authError;
+
   const settings = {
     ...DEFAULT_SETTINGS,
     ...readJsonSafe<Record<string, unknown>>(SETTINGS_FILE, {}),
@@ -61,10 +84,13 @@ export async function GET() {
     learnedRules: Array.isArray(memoryStore.rules) ? memoryStore.rules : [],
     nextOperationSeq: opsStore.nextSeq || 101,
     recentOperations: Array.isArray(opsStore.operations) ? opsStore.operations.slice(0, 30) : [],
-  });
+  }, { headers: { 'Cache-Control': 'no-store' } });
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
+  const authError = await requireAdmin(req);
+  if (authError) return authError;
+
   try {
     const body = await req.json();
     const action = body?.action || 'save_settings';
@@ -113,7 +139,7 @@ export async function POST(req: NextRequest) {
         updatedAt: new Date().toISOString(),
       };
 
-      writeJsonSafe(SETTINGS_FILE, updated);
+      if (!writeJsonSafe(SETTINGS_FILE, updated)) throw new Error('تعذر حفظ إعدادات البوت.');
       return NextResponse.json({ ok: true, settings: updated });
     }
 
@@ -131,7 +157,9 @@ export async function POST(req: NextRequest) {
         learnedAt: new Date().toISOString(),
       };
       rules.push(newEntry);
-      writeJsonSafe(MEMORY_FILE, { rules, lastUpdated: new Date().toISOString() });
+      if (!writeJsonSafe(MEMORY_FILE, { rules, lastUpdated: new Date().toISOString() })) {
+        throw new Error('تعذر حفظ قاعدة البوت.');
+      }
       return NextResponse.json({ ok: true, learnedRules: rules });
     }
 
@@ -139,7 +167,9 @@ export async function POST(req: NextRequest) {
       const ruleId = String(body?.ruleId || '');
       const memoryStore = readJsonSafe<{ rules?: Array<Record<string, unknown>> }>(MEMORY_FILE, { rules: [] });
       const rules = (Array.isArray(memoryStore.rules) ? memoryStore.rules : []).filter(r => r.id !== ruleId);
-      writeJsonSafe(MEMORY_FILE, { rules, lastUpdated: new Date().toISOString() });
+      if (!writeJsonSafe(MEMORY_FILE, { rules, lastUpdated: new Date().toISOString() })) {
+        throw new Error('تعذر حذف قاعدة البوت.');
+      }
       return NextResponse.json({ ok: true, learnedRules: rules });
     }
 

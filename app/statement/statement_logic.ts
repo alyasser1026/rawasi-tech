@@ -1,11 +1,15 @@
 "use client";
 import { useState, useMemo } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getValidSessionToken, supabase } from '@/lib/supabase';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import { useToast } from '@/lib/toast-context'; 
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
 import { buildDocumentFileName } from '@/lib/documentFileName';
+
+const escapeStatementText = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (char) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char] ?? char)
+);
 
 // 🚀 المترجم المالي - تم تحديث المسمى لـ "قيد غرامة / استقطاع" ليطابق الهوية المحاسبية الجديدة
 const translateVType = (type: string) => {
@@ -234,9 +238,9 @@ export function useStatementLogic() {
 
                         rowsHtml.unshift(`
                             <tr style="border-bottom: 1px solid #e2e8f0; background: #ffffff;">
-                                <td style="padding: 10px; font-weight: bold; border-bottom: 1px solid #e2e8f0;">${lineDate}</td>
-                                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${vTypeTrans}</td>
-                                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: bold;">${finalDesc}</td>
+                                <td style="padding: 10px; font-weight: bold; border-bottom: 1px solid #e2e8f0;">${escapeStatementText(lineDate)}</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0;">${escapeStatementText(vTypeTrans)}</td>
+                                <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; text-align: right; font-weight: bold;">${escapeStatementText(finalDesc)}</td>
                                 <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: #ef4444; font-weight: bold;">${debit > 0 ? debit.toLocaleString() : '-'}</td>
                                 <td style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: #16a34a; font-weight: bold;">${credit > 0 ? credit.toLocaleString() : '-'}</td>
                                 <td dir="ltr" style="padding: 10px; border-bottom: 1px solid #e2e8f0; color: ${balance >= 0 ? '#16a34a' : '#ef4444'}; font-weight: 900;">
@@ -273,8 +277,8 @@ export function useStatementLogic() {
                             </div>
                             <div style="height: 4px; background: #c2410c; margin-bottom: 25px; border-radius: 4px;"></div>
                             <div style="background: #fdfaf6; border: 1px solid #eaddcf; padding: 15px; border-radius: 12px; margin-bottom: 15px; display: flex; justify-content: space-between;">
-                                <div style="display: flex; flex-direction: column; gap: 5px;"><strong>الموظف / المقاول:</strong><span style="font-weight: bold; font-size: 16px;">${pName}</span></div>
-                                <div style="display: flex; flex-direction: column; gap: 5px; text-align: left;"><strong>الفترة المحددة:</strong><span style="font-weight: bold; font-size: 15px;">${dateFrom ? `من ${dateFrom} ` : 'من بداية التعامل '} ${dateTo ? `إلى ${dateTo}` : 'حتى تاريخه'}</span></div>
+                                <div style="display: flex; flex-direction: column; gap: 5px;"><strong>الموظف / المقاول:</strong><span style="font-weight: bold; font-size: 16px;">${escapeStatementText(pName)}</span></div>
+                                <div style="display: flex; flex-direction: column; gap: 5px; text-align: left;"><strong>الفترة المحددة:</strong><span style="font-weight: bold; font-size: 15px;">${dateFrom ? `من ${escapeStatementText(dateFrom)} ` : 'من بداية التعامل '} ${dateTo ? `إلى ${escapeStatementText(dateTo)}` : 'حتى تاريخه'}</span></div>
                             </div>
                             
                             <div style="display: flex; justify-content: space-between; gap: 15px; margin-bottom: 15px;">
@@ -297,7 +301,7 @@ export function useStatementLogic() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    ${openingBalance !== 0 ? `<tr><td style="padding: 10px; border-bottom: 1px dashed #ccc;">${dateFrom || '---'}</td><td style="padding: 10px; border-bottom: 1px dashed #ccc;">رصيد سابق</td><td style="padding: 10px; border-bottom: 1px dashed #ccc; text-align: right;"><strong>رصيد افتتاحي</strong></td><td style="padding: 10px; border-bottom: 1px dashed #ccc;">${openingBalance < 0 ? Math.abs(openingBalance).toLocaleString() : '-'}</td><td style="padding: 10px; border-bottom: 1px dashed #ccc;">${openingBalance > 0 ? openingBalance.toLocaleString() : '-'}</td><td dir="ltr" style="padding: 10px; border-bottom: 1px dashed #ccc;">${Math.abs(openingBalance).toLocaleString()} <span style="font-size:10px;">${openingBalance >= 0 ? '(له)' : '(عليه)'}</span></td></tr>` : ''}
+                                    ${openingBalance !== 0 ? `<tr><td style="padding: 10px; border-bottom: 1px dashed #ccc;">${escapeStatementText(dateFrom || '---')}</td><td style="padding: 10px; border-bottom: 1px dashed #ccc;">رصيد سابق</td><td style="padding: 10px; border-bottom: 1px dashed #ccc; text-align: right;"><strong>رصيد افتتاحي</strong></td><td style="padding: 10px; border-bottom: 1px dashed #ccc;">${openingBalance < 0 ? Math.abs(openingBalance).toLocaleString() : '-'}</td><td style="padding: 10px; border-bottom: 1px dashed #ccc;">${openingBalance > 0 ? openingBalance.toLocaleString() : '-'}</td><td dir="ltr" style="padding: 10px; border-bottom: 1px dashed #ccc;">${Math.abs(openingBalance).toLocaleString()} <span style="font-size:10px;">${openingBalance >= 0 ? '(له)' : '(عليه)'}</span></td></tr>` : ''}
                                     ${rowsHtml.join('')}
                                 </tbody>
                             </table>
@@ -313,10 +317,14 @@ export function useStatementLogic() {
                         ext: 'pdf',
                     });
 
-                    // إرسال الكود النظيف إلى السيرفر المستقر
+                    const session = await getValidSessionToken();
+                    if (!session) throw new Error('انتهت جلسة الدخول. سجّل الدخول لتصدير كشوف الحساب.');
                     const response = await fetch('/api/print-statement', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Authorization: `Bearer ${session.accessToken}`,
+                        },
                         body: JSON.stringify({ htmlContent, fileName: workerPdfFileName })
                     });
 

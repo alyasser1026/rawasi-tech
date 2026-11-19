@@ -5,14 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { mergeContent, type SiteContentOverride } from './site-content';
 import { CSS } from './site-styles';
-import HeroVideoBackdrop, { HeroVideoControls, type HeroVideoControlsState } from '@/components/HeroVideoBackdrop';
 import LogoMotionIntro from '@/components/LogoMotionIntro';
 import LoginModal from './LoginModal';
 import { CartDrawer, useCustomerCart } from './CartDrawer';
 import FloatingContactChat from './FloatingContactChat';
 import HomePortalSections from './HomePortalSections';
+import PanoramicStructureScroll from './PanoramicStructureScroll';
 import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
-import { PORTAL_SECTIONS } from './section-defs';
 import {
   collectClientDeviceDetails,
   rememberVisitorContact,
@@ -90,7 +89,6 @@ function InquiryForm({ whatsapp, email }: { whatsapp: string; email: string }) {
 export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
   const { SITE, PRODUCTS, PROPERTIES, NEWS_TICKER } = mergeContent(content);
   const router = useRouter();
-  const [heroControls, setHeroControls] = useState<HeroVideoControlsState | null>(null);
   const [introReplayCount, setIntroReplayCount] = useState(0);
   const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
   const cart = useCustomerCart(() => setLoginOpen(true));
@@ -136,6 +134,7 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
   return (
     <div className={`pw ${loginOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
+      <PanoramicStructureScroll />
       <LogoMotionIntro replayCount={introReplayCount} />
 
       <PublicHeader
@@ -196,15 +195,13 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
               </div>
             )}
           </div>
-          {heroControls && (
-            <div className="pw-wrap pw-hero-toolbar">
-              <HeroVideoControls controls={heroControls} />
-              <a href="#portals" className="pw-mobile-scroll-cue" aria-label="العودة لأعلى">
-                <span>العودة للأعلى</span>
-                <span className="pw-cue-arrow" aria-hidden>↑</span>
-              </a>
-            </div>
-          )}
+        </section>
+        <section className="pw-construction-finale" aria-labelledby="construction-finale-heading">
+          <div className="pw-wrap">
+            <p className="pw-eyebrow">فاي تك · نبني بثقة</p>
+            <h2 id="construction-finale-heading">أساس قوي. لمشروع يدوم.</h2>
+            <a className="pw-btn pw-btn-primary" href="#contact">خلّينا نبدأ مشروعك ←</a>
+          </div>
         </section>
       </main>
 

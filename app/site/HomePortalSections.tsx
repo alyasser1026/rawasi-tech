@@ -6,7 +6,6 @@ import { SMART_BUNDLES, type WebsiteProduct, type WebsiteProperty } from './stor
 import { PORTAL_SECTIONS, type SectionSlug } from './section-defs';
 import NewsTicker from './NewsTicker';
 import { DEFAULT_NEWS_TICKER, type NewsTickerConfig } from './site-content';
-import PanoramicStructureScroll from './PanoramicStructureScroll';
 
 interface HomePortalSectionsProps {
   products: WebsiteProduct[];
@@ -58,7 +57,7 @@ export default function HomePortalSections({
       .slice(0, 4);
   }, [products, featuredTab]);
 
-  // --- تتبع السكرول والماوس لإظهار الهنت العائم لكل قسم بدون أي حاويات ---
+  // Track the visible service without taking control of page scrolling.
   const [hoveredSlug, setHoveredSlug] = useState<SectionSlug | null>(null);
   const [scrolledSlug, setScrolledSlug] = useState<SectionSlug | null>('maintenance');
   const [visibleSlugs, setVisibleSlugs] = useState<Record<string, boolean>>({ maintenance: true });
@@ -94,29 +93,6 @@ export default function HomePortalSections({
     return () => observer.disconnect();
   }, []);
 
-  const handleStagePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType === 'touch') return;
-    const el = e.currentTarget;
-    const rect = el.getBoundingClientRect();
-    if (!rect.width || !rect.height) return;
-    const nx = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const ny = Math.max(0, Math.min(1, (e.clientY - window.innerHeight * 0.5) / Math.max(window.innerHeight, 1)) + 0.5);
-    const mx = (nx - 0.5) * 2;
-    const my = (ny - 0.5) * 2;
-    el.style.setProperty('--stage-px', `${(nx * 100).toFixed(1)}%`);
-    el.style.setProperty('--stage-py', `${(Math.max(0, Math.min(1, ny)) * 100).toFixed(1)}%`);
-    el.style.setProperty('--stage-mx', mx.toFixed(3));
-    el.style.setProperty('--stage-my', my.toFixed(3));
-  };
-
-  const resetStagePointer = (el: HTMLDivElement) => {
-    el.style.removeProperty('--stage-px');
-    el.style.removeProperty('--stage-py');
-    el.style.removeProperty('--stage-mx');
-    el.style.removeProperty('--stage-my');
-    setHoveredSlug(null);
-  };
-
   return (
     <div
       className={`pw-split-stage ${activeSlug ? 'has-active' : ''}`}
@@ -125,22 +101,15 @@ export default function HomePortalSections({
           ? ({ '--stage-accent': activeHoverSection.accent } as React.CSSProperties)
           : undefined
       }
-      onPointerMove={handleStagePointerMove}
-      onPointerLeave={(e) => resetStagePointer(e.currentTarget)}
+      onPointerLeave={() => setHoveredSlug(null)}
     >
-      {/* مشهد البانوراما ثلاثي الأبعاد في الخلفية بدلاً من الصور الثابتة: أعمدة خرسانية 3D واقعية تتجمع وتبني الهيكل وتترص الخامات ويتشطب البيت بالكامل مع السكرول عبر الأقسام */}
       <section id="portals" className="pw-portal-gateway" aria-labelledby="portals-heading">
-        <div className="pw-split-backdrop" aria-hidden="true">
-          <PanoramicStructureScroll activeSlug={activeSlug} />
-          <div className="pw-split-cursor-glow" />
-        </div>
-
         <div className="pw-wrap pw-panoramic-top-overlay">
           <NewsTicker config={newsTicker} />
 
           <div className="pw-panoramic-floating-hero">
             <div className="pw-panoramic-eyebrow-row">
-              <p className="pw-eyebrow" style={{ marginBottom: 0 }}>فاي تك للمقاولات والتوريدات · جولة معمارية 3D</p>
+              <p className="pw-eyebrow" style={{ marginBottom: 0 }}>فاي تك للمقاولات والتوريدات</p>
               {onReplayLogoMotion && (
                 <button
                   type="button"
@@ -154,12 +123,15 @@ export default function HomePortalSections({
               )}
             </div>
             <h1 id="portals-heading" className="pw-portal-main-h1">
-              انزل بالسكرول لبناء الهيكل وتشطيب الفيلا واستكشاف الأقسام
+              من الأساس، نبني مشروعك.
             </h1>
             <p className="pw-panoramic-sub">
-              مع كل سكرول لأسفل عبر الأقسام تتجمع أعمدة الخرسانة المسلحة 3D وتُبنى البلاطات وتترص الخامات حتى يكتمل تشطيب البيت بالكامل.
+              تنفيذ وإشراف هندسي للمشروعات السكنية والتجارية، بخطوات واضحة من الفكرة للتسليم.
             </p>
           </div>
+          <a className="pw-construction-scroll-cue" href="#portal-station-maintenance">
+            <span>اكتشف خدماتنا</span><span aria-hidden="true">↓</span>
+          </a>
         </div>
 
         {/* الأقسام الستة: تطفو مباشرة فوق المشهد الثلاثي الأبعاد بدون صور خلفية تحجب البناء */}

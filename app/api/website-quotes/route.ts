@@ -1,12 +1,25 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import fs from 'fs/promises';
 import path from 'path';
+import { authorizeAdminRequest } from '@/lib/admin-authorization';
 import { supabase } from '@/lib/supabase';
 
 export const runtime = 'nodejs';
 
 const DATA_DIR = path.join(process.cwd(), 'data0');
 const QUOTES_FILE = path.join(DATA_DIR, 'website_quotes.json');
+const PRIVATE_CACHE_CONTROL = 'private, no-store';
+
+function getAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+  if (!url || !key) throw new Error('Missing Supabase admin configuration');
+
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
 
 async function ensureFileExists() {
   try {
@@ -128,13 +141,28 @@ export async function POST(req: Request) {
   }
 }
 
-export async function GET() {
+export async function GET(req: Request) {
+  const headers = { 'Cache-Control': PRIVATE_CACHE_CONTROL };
+
+  try {
+    const { error } = await authorizeAdminRequest(req, getAdminClient);
+    if (error) {
+      error.headers.set('Cache-Control', PRIVATE_CACHE_CONTROL);
+      return error;
+    }
+  } catch {
+    return NextResponse.json(
+      { error: 'تعذر التحقق من صلاحية عرض طلبات المقايسة.' },
+      { status: 503, headers },
+    );
+  }
+
   try {
     await ensureFileExists();
     const raw = await fs.readFile(QUOTES_FILE, 'utf8');
     const quotes = JSON.parse(raw);
-    return NextResponse.json({ quotes });
+    return NextResponse.json({ quotes }, { headers });
   } catch {
-    return NextResponse.json({ quotes: [] });
+    return NextResponse.json({ quotes: [] }, { headers });
   }
 }

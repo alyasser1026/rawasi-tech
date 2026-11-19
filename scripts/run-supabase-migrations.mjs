@@ -1,8 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import postgres from 'postgres';
-
-const connStr = 'postgresql://postgres.tarhvoszqjfzmfgzuctu:Mm1020304050607080@aws-1-eu-central-1.pooler.supabase.com:5432/postgres';
+import { openMaintenanceDatabase, reportDatabaseFailure } from './maintenance-db.mjs';
 
 const migrationsToRun = [
   '20261105170001_job_order_retention.sql',
@@ -24,7 +22,7 @@ const migrationsToRun = [
 ];
 
 async function run() {
-  const sql = postgres(connStr, { ssl: 'require', max: 1 });
+  const sql = openMaintenanceDatabase();
 
   try {
     const appliedRows = await sql`SELECT version FROM supabase_migrations.schema_migrations`;
@@ -68,11 +66,14 @@ async function run() {
     console.log('PostgREST schema cache reloaded successfully!');
 
   } catch (err) {
-    console.error('\n[FATAL ERROR] Migration failed:', err);
-    process.exit(1);
+    reportDatabaseFailure('Migration', err);
+    process.exitCode = 1;
   } finally {
     await sql.end();
   }
 }
 
-run();
+run().catch((error) => {
+  console.error(error.message);
+  process.exitCode = 1;
+});

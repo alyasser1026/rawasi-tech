@@ -3,8 +3,9 @@ import React, { useState, useEffect, useCallback } from 'react';
 import GlassContainer from '@/components/GlassContainer';
 import { THEME } from '@/lib/theme';
 import { currencySymbol } from '@/lib/currency';
+import { getValidSessionToken } from '@/lib/supabase';
 import {
-  Bot, Volume2, VolumeX, Clock, Hash, Brain, Save, Plus, Trash2, CheckCircle2, RefreshCw, Sparkles, MessageSquare
+  Bot, Volume2, VolumeX, Clock, Hash, Brain, Save, Plus, Trash2, CheckCircle2, RefreshCw, Sparkles
 } from 'lucide-react';
 
 interface BotSettings {
@@ -41,6 +42,24 @@ interface OperationEntry {
   createdAt?: string;
 }
 
+async function requestBotSettings(body?: object) {
+  const session = await getValidSessionToken();
+  if (!session) throw new Error('يلزم تسجيل الدخول لإدارة إعدادات البوت.');
+  const headers: Record<string, string> = { Authorization: `Bearer ${session.accessToken}` };
+  if (body) headers['Content-Type'] = 'application/json';
+  const response = await fetch('/api/copilot/settings', {
+    method: body ? 'POST' : 'GET',
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+    cache: 'no-store',
+  });
+  const data = await response.json();
+  if (!response.ok || !data?.ok) {
+    throw new Error(data?.error || 'تعذر تنفيذ الطلب لإعدادات البوت.');
+  }
+  return data;
+}
+
 export default function BotSettingsManager() {
   const [settings, setSettings] = useState<BotSettings>({
     botName: 'م. سلمى',
@@ -70,16 +89,13 @@ export default function BotSettingsManager() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/copilot/settings');
-      const data = await res.json();
-      if (data?.ok) {
-        if (data.settings) setSettings(data.settings);
-        if (Array.isArray(data.learnedRules)) setLearnedRules(data.learnedRules);
-        if (Array.isArray(data.recentOperations)) setRecentOperations(data.recentOperations);
-        if (data.nextOperationSeq) setNextOperationSeq(data.nextOperationSeq);
-      }
-    } catch {
-      setStatusMsg({ text: 'تعذر تحميل إعدادات البوت', type: 'error' });
+      const data = await requestBotSettings();
+      if (data.settings) setSettings(data.settings);
+      if (Array.isArray(data.learnedRules)) setLearnedRules(data.learnedRules);
+      if (Array.isArray(data.recentOperations)) setRecentOperations(data.recentOperations);
+      if (data.nextOperationSeq) setNextOperationSeq(data.nextOperationSeq);
+    } catch (error) {
+      setStatusMsg({ text: error instanceof Error ? error.message : 'تعذر تحميل إعدادات البوت', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -89,60 +105,47 @@ export default function BotSettingsManager() {
     loadData();
   }, [loadData]);
 
-  const handleSaveSettings = async () => {
+  const saveSettings = async (updated: BotSettings, successMessage: string) => {
     setSaving(true);
     setStatusMsg({ text: '', type: '' });
     try {
-      const res = await fetch('/api/copilot/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'save_settings', settings }),
-      });
-      const data = await res.json();
-      if (data?.ok) {
-        setSettings(data.settings);
-        setStatusMsg({ text: 'تم حفظ إعدادات البوت وتطبيقها بنجاح!', type: 'success' });
-        setTimeout(() => setStatusMsg({ text: '', type: '' }), 4000);
-      } else {
-        setStatusMsg({ text: data?.error || 'فشل حفظ الإعدادات', type: 'error' });
-      }
-    } catch {
-      setStatusMsg({ text: 'حدث خطأ أثناء الاتصال بالخادم', type: 'error' });
+      const data = await requestBotSettings({ action: 'save_settings', settings: updated });
+      setSettings(data.settings);
+      setStatusMsg({ text: successMessage, type: 'success' });
+      setTimeout(() => setStatusMsg({ text: '', type: '' }), 4000);
+    } catch (error) {
+      setStatusMsg({ text: error instanceof Error ? error.message : 'فشل حفظ الإعدادات', type: 'error' });
     } finally {
       setSaving(false);
     }
   };
 
+  const handleSaveSettings = () => saveSettings(settings, 'تم حفظ إعدادات البوت وتطبيقها بنجاح!');
+
   const handleAddRule = async () => {
     if (!newRuleText.trim()) return;
     try {
-      const res = await fetch('/api/copilot/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'add_rule', ruleText: newRuleText.trim() }),
-      });
-      const data = await res.json();
-      if (data?.ok && Array.isArray(data.learnedRules)) {
+      const data = await requestBotSettings({ action: 'add_rule', ruleText: newRuleText.trim() });
+      if (Array.isArray(data.learnedRules)) {
         setLearnedRules(data.learnedRules);
         setNewRuleText('');
         setStatusMsg({ text: 'تمت إضافة القاعدة إلى ذاكرة البوت الدائمة!', type: 'success' });
         setTimeout(() => setStatusMsg({ text: '', type: '' }), 3500);
       }
-    } catch {}
+    } catch (error) {
+      setStatusMsg({ text: error instanceof Error ? error.message : 'تعذر إضافة القاعدة', type: 'error' });
+    }
   };
 
   const handleDeleteRule = async (ruleId: string) => {
     try {
-      const res = await fetch('/api/copilot/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete_rule', ruleId }),
-      });
-      const data = await res.json();
-      if (data?.ok && Array.isArray(data.learnedRules)) {
+      const data = await requestBotSettings({ action: 'delete_rule', ruleId });
+      if (Array.isArray(data.learnedRules)) {
         setLearnedRules(data.learnedRules);
       }
-    } catch {}
+    } catch (error) {
+      setStatusMsg({ text: error instanceof Error ? error.message : 'تعذر حذف القاعدة', type: 'error' });
+    }
   };
 
   const opTypeLabel = (type: string) => {
@@ -280,22 +283,13 @@ export default function BotSettingsManager() {
 
                 <button
                   type="button"
-                  onClick={async () => {
+                  disabled={saving}
+                  onClick={() => {
                     const nextVal = !settings.mozzaModeEnabled;
-                    const updated = { ...settings, mozzaModeEnabled: nextVal };
-                    setSettings(updated);
-                    try {
-                      await fetch('/api/copilot/settings', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'save_settings', settings: updated }),
-                      });
-                      setStatusMsg({
-                        text: nextVal ? '💖 تم فتح «وضع الموزة» فوراً!' : '💼 تم قفل «وضع الموزة» والعودة للوضع الرسمي.',
-                        type: 'success',
-                      });
-                      setTimeout(() => setStatusMsg({ text: '', type: '' }), 3500);
-                    } catch {}
+                    void saveSettings(
+                      { ...settings, mozzaModeEnabled: nextVal },
+                      nextVal ? '💖 تم فتح «وضع الموزة» فوراً!' : '💼 تم قفل «وضع الموزة» والعودة للوضع الرسمي.'
+                    );
                   }}
                   style={{
                     padding: '0.55rem 1rem',
@@ -483,24 +477,15 @@ export default function BotSettingsManager() {
 
               <button
                 type="button"
-                onClick={async () => {
+                disabled={saving}
+                onClick={() => {
                   const nextMode: BotSettings['voiceReplyMode'] = settings.voiceReplyMode === 'off' ? 'always' : 'off';
-                  const updated = { ...settings, voiceReplyMode: nextMode };
-                  setSettings(updated);
-                  try {
-                    await fetch('/api/copilot/settings', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ action: 'save_settings', settings: updated }),
-                    });
-                    setStatusMsg({
-                      text: nextMode === 'off'
-                        ? '🔇 تم إغلاق الرسائل الصوتية بنجاح! البوت سيرد كتابة فقط.'
-                        : '🔊 تم تشغيل الرسائل الصوتية بنجاح!',
-                      type: 'success',
-                    });
-                    setTimeout(() => setStatusMsg({ text: '', type: '' }), 3500);
-                  } catch {}
+                  void saveSettings(
+                    { ...settings, voiceReplyMode: nextMode },
+                    nextMode === 'off'
+                      ? '🔇 تم إغلاق الرسائل الصوتية بنجاح! البوت سيرد كتابة فقط.'
+                      : '🔊 تم تشغيل الرسائل الصوتية بنجاح!'
+                  );
                 }}
                 style={{
                   padding: '0.65rem 1.25rem',
