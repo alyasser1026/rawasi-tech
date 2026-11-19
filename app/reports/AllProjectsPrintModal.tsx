@@ -632,7 +632,7 @@ export default function AllProjectsPrintModal({
           details={[
             { label: 'نطاق المشاريع المشمولة', value: scopeLabel },
             { label: 'المبلغ المستلم (غير شامل ضمان الأعمال)', value: formatCurrency(t.totalClientNetExRetention), accent: true },
-            { label: 'محتجز ضمان الأعمال (10%)', value: formatCurrency(t.totalRetentionAmount) },
+            { label: `محتجز ضمان الأعمال (${t.overallRetentionPercentage}%)`, value: formatCurrency(t.totalRetentionAmount) },
             { label: 'صافي السيولة المتبقية بالخزينة', value: formatCurrency(t.netCashTreasury), accent: true },
           ]}
           meta={[
@@ -651,7 +651,10 @@ export default function AllProjectsPrintModal({
                 highlight: true,
               },
               {
-                label: `المبلغ المستلم (بعد الخامات وضمان 10%: ${formatCurrency(t.totalRetentionAmount)})`,
+                label:
+                  t.totalRetentionAmount > 0
+                    ? `المبلغ المستلم (بعد الخامات وضمان ${t.overallRetentionPercentage}%: ${formatCurrency(t.totalRetentionAmount)})`
+                    : 'المبلغ المستلم (بعد الخامات • بدون ضمان 0%)',
                 value: formatCurrency(t.totalClientNetExRetention),
                 tone: 'tax',
               },
@@ -708,7 +711,7 @@ export default function AllProjectsPrintModal({
                   <th className="is-right">المشروع / النموذج</th>
                   <th>قيمة التعاقد (BOQ)</th>
                   <th>خصم خامات (217)</th>
-                  <th>ضمان الأعمال (10%)</th>
+                  <th>ضمان الأعمال</th>
                   <th>المبلغ المستلم (بدون ضمان)</th>
                   <th>موازنة التنفيذ</th>
                   <th>عمالة ومقاولين</th>
@@ -737,9 +740,11 @@ export default function AllProjectsPrintModal({
                     <td style={{ color: '#0369a1', fontWeight: 800 }}>
                       <span className="phi-amt">{formatCurrency(p.client_materials_deduction)}</span>
                     </td>
-                    <td style={{ color: '#b45309', fontWeight: 800 }}>
+                    <td style={{ color: p.retention_amount > 0 ? '#b45309' : '#64748b', fontWeight: 800 }}>
                       <div className="phi-amt">{formatCurrency(p.retention_amount)}</div>
-                      <div style={{ fontSize: '7.2px', color: '#64748b' }}>({p.retention_percentage}%) بعد الخامات</div>
+                      <div style={{ fontSize: '7.2px', color: '#64748b' }}>
+                        {p.retention_percentage > 0 ? `(${p.retention_percentage}%) بعد الخامات` : '(0% بدون ضمان)'}
+                      </div>
                     </td>
                     <td style={{ color: '#15803d', fontWeight: 900 }}>
                       <div className="phi-amt">{formatCurrency(p.client_net_ex_retention)}</div>
@@ -828,8 +833,9 @@ export default function AllProjectsPrintModal({
                   <td style={{ color: '#0369a1' }}>
                     <span className="phi-amt">{formatCurrency(t.totalClientMaterialsDeduction)}</span>
                   </td>
-                  <td style={{ color: '#b45309' }}>
-                    <span className="phi-amt">{formatCurrency(t.totalRetentionAmount)}</span>
+                  <td style={{ color: t.totalRetentionAmount > 0 ? '#b45309' : '#64748b' }}>
+                    <div className="phi-amt">{formatCurrency(t.totalRetentionAmount)}</div>
+                    <div style={{ fontSize: '7.2px', color: '#64748b' }}>({t.overallRetentionPercentage}%)</div>
                   </td>
                   <td style={{ color: '#15803d' }}>
                     <div className="phi-amt">{formatCurrency(t.totalClientNetExRetention)}</div>
@@ -1334,7 +1340,7 @@ export default function AllProjectsPrintModal({
         <div className="phi-doc-summary" style={{ marginTop: '8px' }}>
           <div className="phi-doc-stack">
             <DocNote title="إقرار المطابقة المالية والمحاسبية الشاملة">
-              تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة. تم احتساب صافي المشاريع بالترتيب المحاسبي: قيمة العقد ({formatCurrency(t.totalContractValue)}) ← خصم خامات توريد العميل حساب 217 ({formatCurrency(t.totalClientMaterialsDeduction)}) لمرة واحدة فقط دون تكرار في التكاليف أو العمالة ← صافي العقد بعد الخامات ({formatCurrency(t.totalContractAfterMaterials)}) ← خصم محتجز ضمان الأعمال 10% ({formatCurrency(t.totalRetentionAmount)}) ← المبلغ المستلم غير شامل الضمان ({formatCurrency(t.totalClientNetExRetention)}).
+              تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة. تم احتساب صافي المشاريع بالترتيب المحاسبي: قيمة العقد ({formatCurrency(t.totalContractValue)}) ← خصم خامات توريد العميل حساب 217 ({formatCurrency(t.totalClientMaterialsDeduction)}) لمرة واحدة فقط دون تكرار في التكاليف أو العمالة ← صافي العقد بعد الخامات ({formatCurrency(t.totalContractAfterMaterials)}) ← خصم محتجز ضمان الأعمال حسب نسب البنود الفعلية ({t.overallRetentionPercentage}% بإجمالي {formatCurrency(t.totalRetentionAmount)}) ← المبلغ المستلم غير شامل الضمان ({formatCurrency(t.totalClientNetExRetention)}).
             </DocNote>
             {sections.signatures && (
               <DocSignatures
@@ -1351,7 +1357,11 @@ export default function AllProjectsPrintModal({
               { label: 'إجمالي عقود المشاريع (BOQ)', value: formatCurrency(t.totalContractValue) },
               { label: '(-) خصم خامات العميل (حساب 217)', value: formatCurrency(t.totalClientMaterialsDeduction), tone: 'warn' },
               { label: '(=) صافي العقود بعد خصم الخامات', value: formatCurrency(t.totalContractAfterMaterials) },
-              { label: '(-) محتجز ضمان الأعمال (10% بعد الخامات)', value: formatCurrency(t.totalRetentionAmount), tone: 'warn' },
+              {
+                label: `(-) محتجز ضمان الأعمال (${t.overallRetentionPercentage}% بعد الخامات)`,
+                value: formatCurrency(t.totalRetentionAmount),
+                tone: t.totalRetentionAmount > 0 ? 'warn' : 'muted',
+              },
               { label: '(=) المبلغ المستلم للمشاريع (غير شامل ضمان الأعمال)', value: formatCurrency(t.totalClientNetExRetention), tone: 'tax' },
               {
                 label: `الربح المستهدف ضمن الموازنة غير شامل الضمان (شامل: ${formatCurrency(t.totalTargetProfitBudget)} • ${t.totalTargetMarginPct}%)`,

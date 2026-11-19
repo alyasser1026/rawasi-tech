@@ -32,7 +32,8 @@ export default function AllProjectsReportEmbed() {
       'قيمة التعاقد (BOQ)': p.contract_value,
       'خصم خامات العميل (217)': p.client_materials_deduction,
       'صافي العقد بعد الخامات': p.contract_after_materials,
-      'محتجز ضمان الأعمال (10%)': p.retention_amount,
+      'نسبة ضمان الأعمال %': p.retention_percentage,
+      'محتجز ضمان الأعمال': p.retention_amount,
       'المبلغ المستلم (غير شامل ضمان الأعمال)': p.client_net_ex_retention,
       'المتبقي عند العميل (شامل الضمان)': p.client_remaining,
       'الموازنة التقديرية الشاملة': p.estimated_budget,
@@ -64,7 +65,8 @@ export default function AllProjectsReportEmbed() {
       'قيمة التعاقد (BOQ)': t.totalContractValue,
       'خصم خامات العميل (217)': t.totalClientMaterialsDeduction,
       'صافي العقد بعد الخامات': t.totalContractAfterMaterials,
-      'محتجز ضمان الأعمال (10%)': t.totalRetentionAmount,
+      'نسبة ضمان الأعمال %': t.overallRetentionPercentage,
+      'محتجز ضمان الأعمال': t.totalRetentionAmount,
       'المبلغ المستلم (غير شامل ضمان الأعمال)': t.totalClientNetExRetention,
       'المتبقي عند العميل (شامل الضمان)': t.totalClientRemaining,
       'الموازنة التقديرية الشاملة': t.totalEstimatedBudget,
@@ -358,7 +360,8 @@ export default function AllProjectsReportEmbed() {
           <small>المبلغ المستلم للمشاريع (غير شامل ضمان الأعمال)</small>
           <strong style={{ color: 'var(--status-positive, #10b981)' }}>{formatCurrency(t.totalClientNetExRetention)}</strong>
           <span>
-            بعد خصم الخامات ({formatCurrency(t.totalClientMaterialsDeduction)}) ثم خصم ضمان الأعمال 10% ({formatCurrency(t.totalRetentionAmount)})
+            بعد خصم الخامات ({formatCurrency(t.totalClientMaterialsDeduction)}) ثم خصم ضمان الأعمال ({t.overallRetentionPercentage}%:{' '}
+            {formatCurrency(t.totalRetentionAmount)})
           </span>
         </div>
         <div className="embed-rpt-kpi-card">
@@ -409,7 +412,7 @@ export default function AllProjectsReportEmbed() {
               <th>النموذج والمساحة</th>
               <th>قيمة التعاقد (BOQ)</th>
               <th>خصم خامات العميل</th>
-              <th>ضمان الأعمال (10%)</th>
+              <th>ضمان الأعمال</th>
               <th>المبلغ المستلم (غير شامل ضمان الأعمال)</th>
               <th>موازنة التنفيذ</th>
               <th>يوميات العمالة</th>
@@ -456,9 +459,11 @@ export default function AllProjectsReportEmbed() {
                     </td>
                     <td style={{ fontWeight: 900 }}>{formatCurrency(p.contract_value)}</td>
                     <td style={{ color: 'var(--status-info, #38bdf8)' }}>{formatCurrency(p.client_materials_deduction)}</td>
-                    <td style={{ color: 'var(--status-warning, #f59e0b)', fontWeight: 800 }}>
+                    <td style={{ color: p.retention_amount > 0 ? 'var(--status-warning, #f59e0b)' : 'var(--text-muted)', fontWeight: 800 }}>
                       {formatCurrency(p.retention_amount)}
-                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>({p.retention_percentage}%) بعد الخامات</div>
+                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>
+                        {p.retention_percentage > 0 ? `(${p.retention_percentage}%) بعد الخامات` : '(0% بدون ضمان)'}
+                      </div>
                     </td>
                     <td style={{ fontWeight: 900, color: 'var(--status-positive, #10b981)' }}>
                       {formatCurrency(p.client_net_ex_retention)}
@@ -662,7 +667,10 @@ export default function AllProjectsReportEmbed() {
               <td>{d.projectsMatrix.reduce((s: number, p: any) => s + p.unit_area, 0).toFixed(2)} م²</td>
               <td>{formatCurrency(t.totalContractValue)}</td>
               <td>{formatCurrency(t.totalClientMaterialsDeduction)}</td>
-              <td>{formatCurrency(t.totalRetentionAmount)}</td>
+              <td>
+                {formatCurrency(t.totalRetentionAmount)}
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>({t.overallRetentionPercentage}%)</div>
+              </td>
               <td>
                 {formatCurrency(t.totalClientNetExRetention)}
                 <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>

@@ -161,17 +161,6 @@ export function useReportsLogic() {
         );
         const contractValue = boqContractValue > 0 ? boqContractValue : round2(Number(p.contract_value) || 0);
 
-        // نسبة ضمان الأعمال المرجّحة من بنود المقايسة (افتراضي 10% — تُخصم لاحقاً بعد خصم خامات العميل)
-        const weightedRetAmountOnGross = boqsToSum.reduce((s: number, b: any) => {
-          const itemContract =
-            Number(b.total_contract_amount) || (Number(b.contract_quantity) || 0) * (Number(b.unit_contract_price) || 0);
-          return s + (itemContract * (Number(b.retention_percentage) || 10)) / 100;
-        }, 0);
-        const retentionPercentage =
-          boqContractValue > 0
-            ? round2((weightedRetAmountOnGross / boqContractValue) * 100)
-            : Number(boqsToSum[0]?.retention_percentage) || 10;
-
         const estLabor = round2(boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_labor_cost) || 0), 0));
         const estMaterials = round2(boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_material_cost) || 0), 0));
         const estExpenses = round2(boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_expenses_cost) || 0), 0));
@@ -264,8 +253,62 @@ export function useReportsLogic() {
 
         // 1) قيمة التعاقد (BOQ) -> 2) (-) خصم خامات العميل (217) = صافي العقد بعد الخامات
         const contractAfterClientMaterials = round2(Math.max(0, contractValue - clientMaterialsDeduction));
-        // 3) (-) محتجز ضمان الأعمال (10% أو النسبة المرجّحة) يُحتسب بعد خصم خامات العميل
-        const retentionAmount = round2((contractAfterClientMaterials * retentionPercentage) / 100);
+
+        const parseRetPct = (val: any) =>
+          val !== null && val !== undefined && val !== '' && Number.isFinite(Number(val))
+            ? Math.max(0, Number(val))
+            : 0;
+
+        // 3) (-) محتجز ضمان الأعمال يُحتسب على مستوى كل بند حسب نسبته الفعلية (الافتراضي 0%) بعد خصم خامات العميل
+        let retentionAmount = 0;
+        let retentionPercentage = 0;
+        if (boqsToSum.length > 0 && boqContractValue > 0 && contractAfterClientMaterials > 0) {
+          const leafIds = new Set(boqsToSum.map((b: any) => String(b.id)));
+          const directMatByBoq = new Map<string, number>();
+
+          pMatReceipts
+            .filter((m: any) => m.receipt_type === 'توريد عميل')
+            .forEach((m: any) => {
+              (m.lines || []).forEach((line: any) => {
+                const bid = String(line.boq_id || '');
+                const price = Number(line.total_price) || 0;
+                if (bid && leafIds.has(bid) && price > 0) {
+                  directMatByBoq.set(bid, (directMatByBoq.get(bid) || 0) + price);
+                }
+              });
+            });
+
+          const itemNetsAfterDirect = boqsToSum.map((b: any) => {
+            const itemContract =
+              Number(b.total_contract_amount) || (Number(b.contract_quantity) || 0) * (Number(b.unit_contract_price) || 0);
+            const directUsed = Math.min(itemContract, directMatByBoq.get(String(b.id)) || 0);
+            return {
+              itemPct: parseRetPct(b.retention_percentage),
+              netAfterDirect: Math.max(0, itemContract - directUsed),
+              directUsed,
+            };
+          });
+
+          const totalDirectUsed = itemNetsAfterDirect.reduce((s, it) => s + it.directUsed, 0);
+          const totalNetAfterDirect = itemNetsAfterDirect.reduce((s, it) => s + it.netAfterDirect, 0);
+          const remainingUnassignedMat = Math.max(0, clientMaterialsDeduction - totalDirectUsed);
+
+          const rawRetentionSum = itemNetsAfterDirect.reduce((s, it) => {
+            const share = totalNetAfterDirect > 0 ? (it.netAfterDirect / totalNetAfterDirect) * remainingUnassignedMat : 0;
+            const itemNetFinal = Math.max(0, it.netAfterDirect - share);
+            return s + (itemNetFinal * it.itemPct) / 100;
+          }, 0);
+
+          retentionAmount = round2(rawRetentionSum);
+          retentionPercentage = round2((retentionAmount / contractAfterClientMaterials) * 100);
+        } else if (boqsToSum.length > 0) {
+          retentionPercentage = parseRetPct(boqsToSum[0]?.retention_percentage);
+          retentionAmount = round2((contractAfterClientMaterials * retentionPercentage) / 100);
+        } else {
+          retentionPercentage = 0;
+          retentionAmount = 0;
+        }
+
         // 4) (=) المبلغ المستلم (غير شامل ضمان الأعمال)
         const clientNetExRetention = round2(contractAfterClientMaterials - retentionAmount);
         const netContractExRetention = clientNetExRetention;
@@ -509,6 +552,8 @@ export function useReportsLogic() {
       projectsMatrix.reduce((s, p) => s + p.contract_after_materials, 0)
     );
     const totalRetentionAmount = round2(projectsMatrix.reduce((s, p) => s + p.retention_amount, 0));
+    const overallRetentionPercentage =
+      totalContractAfterMaterials > 0 ? round2((totalRetentionAmount / totalContractAfterMaterials) * 100) : 0;
     const totalNetContractExRetention = round2(
       projectsMatrix.reduce((s, p) => s + p.net_contract_ex_retention, 0)
     );
@@ -654,6 +699,7 @@ export function useReportsLogic() {
         totalClientMaterialsDeduction,
         totalContractAfterMaterials,
         totalRetentionAmount,
+        overallRetentionPercentage,
         totalNetContractExRetention,
         totalClientRemaining,
         totalClientNetExRetention,
