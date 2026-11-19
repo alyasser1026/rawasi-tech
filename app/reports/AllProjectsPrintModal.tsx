@@ -520,6 +520,22 @@ export default function AllProjectsPrintModal({
           }
 
           /* كروت التفاصيل والإجماليات والتوقيعات بدون حدود */
+          #printable-all-projects-report .phi-doc-summary {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1.08fr) minmax(390px, 0.92fr) !important;
+            gap: 14px !important;
+            align-items: stretch !important;
+            margin: 8px 0 10px !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
+          }
+          #printable-all-projects-report .phi-doc-summary > .phi-doc-stack {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            gap: 10px !important;
+            min-width: 0 !important;
+          }
           #printable-all-projects-report .phi-doc-note {
             border: 0 !important;
             border-radius: 10px !important;
@@ -529,9 +545,17 @@ export default function AllProjectsPrintModal({
             border: 0 !important;
             border-radius: 10px !important;
             background: #f8fafc !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
           }
           #printable-all-projects-report .phi-doc-totals > div {
             border: 0 !important;
+            padding: 6px 12px !important;
+            font-size: 10.5px !important;
+            line-height: 1.4 !important;
+            align-items: center !important;
+            gap: 10px !important;
           }
           #printable-all-projects-report .phi-doc-totals > div:nth-child(even):not(.is-grand) {
             background: #f1f5f9 !important;
@@ -541,14 +565,34 @@ export default function AllProjectsPrintModal({
           }
           #printable-all-projects-report .phi-doc-totals .is-grand {
             background: linear-gradient(90deg, #0f172a 0%, #1e293b 65%, #334155 100%) !important;
+            padding: 9px 12px !important;
+            font-size: 12px !important;
+          }
+          #printable-all-projects-report .phi-doc-totals .is-grand b {
+            font-size: 13.5px !important;
           }
           #printable-all-projects-report .phi-doc-signs {
-            gap: 10px !important;
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+            margin-top: 0 !important;
+            flex: 1 !important;
+            align-items: stretch !important;
           }
           #printable-all-projects-report .phi-doc-sign {
+            width: auto !important;
+            min-width: 0 !important;
+            min-height: 112px !important;
+            padding: 10px 8px 9px !important;
             border: 0 !important;
             border-radius: 10px !important;
             background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%) !important;
+          }
+          #printable-all-projects-report .phi-doc-sign h4 {
+            font-size: 10px !important;
+          }
+          #printable-all-projects-report .phi-doc-sign h4 span {
+            font-size: 7.5px !important;
           }
           #printable-all-projects-report .phi-doc-sign-line {
             border-bottom: 0 !important;
@@ -1286,12 +1330,21 @@ export default function AllProjectsPrintModal({
           </div>
         )}
 
-        {/* 7️⃣ الملخص الختامي والإقرار المحاسبي */}
+        {/* 7️⃣ الملخص الختامي والإقرار المحاسبي + التوقيعات في نفس المساحة */}
         <div className="phi-doc-summary" style={{ marginTop: '8px' }}>
           <div className="phi-doc-stack">
             <DocNote title="إقرار المطابقة المالية والمحاسبية الشاملة">
               تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة. تم احتساب صافي المشاريع بالترتيب المحاسبي: قيمة العقد ({formatCurrency(t.totalContractValue)}) ← خصم خامات توريد العميل حساب 217 ({formatCurrency(t.totalClientMaterialsDeduction)}) لمرة واحدة فقط دون تكرار في التكاليف أو العمالة ← صافي العقد بعد الخامات ({formatCurrency(t.totalContractAfterMaterials)}) ← خصم محتجز ضمان الأعمال 10% ({formatCurrency(t.totalRetentionAmount)}) ← المبلغ المستلم غير شامل الضمان ({formatCurrency(t.totalClientNetExRetention)}).
             </DocNote>
+            {sections.signatures && (
+              <DocSignatures
+                slots={[
+                  { title: 'المحاسب المالي', en: 'Financial Accountant' },
+                  { title: 'مدير إدارة المشروعات', en: 'Projects Manager (PMO)' },
+                  { title: 'اعتماد المدير العام', en: 'General Manager Approval' },
+                ]}
+              />
+            )}
           </div>
           <DocTotals
             rows={[
@@ -1327,17 +1380,6 @@ export default function AllProjectsPrintModal({
             }}
           />
         </div>
-
-        {/* 8️⃣ التوقيعات والاعتماد الرسمي */}
-        {sections.signatures && (
-          <DocSignatures
-            slots={[
-              { title: 'المحاسب المالي', en: 'Financial Accountant' },
-              { title: 'مدير إدارة المشروعات', en: 'Projects Manager (PMO)' },
-              { title: 'اعتماد المدير العام', en: 'General Manager Approval' },
-            ]}
-          />
-        )}
 
         {/* 9️⃣ الفوتر الرسمي لجهات الاتصال وباركود vCard */}
         <ReportContactFooter layout="minimal" style={{ marginTop: '12px' }} />
