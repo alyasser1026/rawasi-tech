@@ -411,20 +411,20 @@ export default function AllProjectsPrintModal({
         {/* 1️⃣ الترويسة الرسمية الموحدة لشركة فاي تك */}
         <ReportOfficialHeader
           title="التقرير المالي الشامل للمشاريع والحسابات (Master Financial Dossier)"
-          subtitle="بيان رقابي ومحاسبي معتمد لعقود المشاريع، الموازنات، التكاليف الفعلية، العمالة، الخامات، المصاريف (ABC)، وسندات الخزينة"
+          subtitle="بيان رقابي ومحاسبي معتمد لعقود المشاريع، الموازنات، التكاليف الفعلية، المبلغ المستلم (غير شامل ضمان الأعمال)، وسندات الخزينة"
           refPrefix="MASTER-FIN"
           issueDate={issueDateStr}
           currency={`${currencyName()} (${currencyCode()})`}
           compact
           details={[
             { label: 'نطاق المشاريع المشمولة', value: scopeLabel },
-            { label: 'الفترة المالية', value: periodLabel },
-            { label: 'إجمالي مساحة المشاريع', value: `${totalArea.toFixed(2)} م² (${d.projectsMatrix.length} فلل)` },
+            { label: 'المبلغ المستلم (غير شامل ضمان الأعمال)', value: formatCurrency(t.totalClientNetExRetention), accent: true },
+            { label: 'محتجز ضمان الأعمال (10%)', value: formatCurrency(t.totalRetentionAmount) },
             { label: 'صافي السيولة المتبقية بالخزينة', value: formatCurrency(t.netCashTreasury), accent: true },
           ]}
           meta={[
-            { label: 'سندات القبض', value: `${d.receiptVouchers.length} سند` },
-            { label: 'سندات الصرف', value: `${d.paymentVouchers.length} سند` },
+            { label: 'الفترة المالية', value: periodLabel },
+            { label: 'سندات القبض والصرف', value: `${d.receiptVouchers.length} قبض / ${d.paymentVouchers.length} صرف` },
           ]}
         />
 
@@ -433,26 +433,27 @@ export default function AllProjectsPrintModal({
           <DocStats
             items={[
               {
-                label: `إجمالي عقود المشاريع (خصم خامات: ${formatCurrency(t.totalClientMaterialsDeduction)})`,
+                label: `إجمالي عقود المشاريع (بدون الضمان: ${formatCurrency(t.totalNetContractExRetention)})`,
                 value: formatCurrency(t.totalContractValue),
                 highlight: true,
               },
               {
-                label: `صافي المتبقي عند العملاء (بعد الخامات والسندات)`,
-                value: formatCurrency(t.totalClientRemaining),
-                tone: 'tax',
+                label: `المبلغ المستلم للمشاريع (غير شامل ضمان الأعمال 10%)`,
+                value: formatCurrency(t.totalClientNetExRetention),
+                tone: 'positive',
               },
               {
-                label: `الموازنة التقديرية الشاملة (${d.projectsMatrix.length} فلل)`,
-                value: formatCurrency(t.totalEstimatedBudget),
-              },
-              {
-                label: `إجمالي التكاليف الفعلية (وفر الموازنة: ${formatCurrency(t.totalRemainingBudget)})`,
-                value: formatCurrency(t.totalActualProjectCosts),
+                label: `محتجز ضمان الأعمال (10%) • خصم خامات: ${formatCurrency(t.totalClientMaterialsDeduction)}`,
+                value: formatCurrency(t.totalRetentionAmount),
                 tone: 'warn',
               },
               {
-                label: `إجمالي سندات القبض (${d.receiptVouchers.length} سند وارد)`,
+                label: `إجمالي التكاليف الفعلية (الموازنة: ${formatCurrency(t.totalEstimatedBudget)})`,
+                value: formatCurrency(t.totalActualProjectCosts),
+                tone: 'tax',
+              },
+              {
+                label: `سندات القبض المستلمة (${d.receiptVouchers.length} سند • غير شامل ضمان الأعمال)`,
                 value: formatCurrency(t.totalReceiptVouchers),
                 tone: 'positive',
               },
@@ -468,28 +469,33 @@ export default function AllProjectsPrintModal({
         {/* 3️⃣ القسم الأول: مصفوفة حسابات المشاريع (الفلل) والتكاليف والمتبقي */}
         {sections.projectsMatrix && (
           <div>
-            <DocSection title="1. مصفوفة حسابات المشاريع (الفلل) والتكاليف والأرصدة المتبقية" en="Projects Financial Matrix" />
+            <DocSection
+              title="1. مصفوفة حسابات المشاريع (الفلل) والتكاليف والمبلغ المستلم غير شامل ضمان الأعمال"
+              en="Projects Financial Matrix"
+            />
             <table className="phi-master-table">
               <colgroup>
-                <col style={{ width: '12%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
-                <col style={{ width: '8%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.8%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.4%' }} />
+                <col style={{ width: '7.3%' }} />
+                <col style={{ width: '7.3%' }} />
               </colgroup>
               <thead>
                 <tr>
                   <th className="is-right">المشروع / النموذج</th>
                   <th>قيمة التعاقد (BOQ)</th>
+                  <th>ضمان الأعمال (10%)</th>
                   <th>خصم خامات (217)</th>
-                  <th>صافي متبقي العميل</th>
+                  <th>المبلغ المستلم (غير شامل الضمان)</th>
                   <th>الموازنة التقديرية</th>
                   <th>مستخلصات المقاولين</th>
                   <th>يوميات العمالة</th>
@@ -511,8 +517,15 @@ export default function AllProjectsPrintModal({
                       </div>
                     </td>
                     <td style={{ fontWeight: 900 }}>{formatCurrency(p.contract_value)}</td>
+                    <td style={{ color: '#b45309', fontWeight: 800 }}>
+                      <div>{formatCurrency(p.retention_amount)}</div>
+                      <div style={{ fontSize: '7.8px', color: '#64748b' }}>({p.retention_percentage}%)</div>
+                    </td>
                     <td style={{ color: '#0369a1', fontWeight: 800 }}>{formatCurrency(p.client_materials_deduction)}</td>
-                    <td style={{ color: '#c2410c', fontWeight: 900 }}>{formatCurrency(p.client_remaining)}</td>
+                    <td style={{ color: '#15803d', fontWeight: 900 }}>
+                      <div>{formatCurrency(p.client_net_ex_retention)}</div>
+                      <div style={{ fontSize: '7.8px', color: '#64748b' }}>شامل: {formatCurrency(p.client_remaining)}</div>
+                    </td>
                     <td style={{ fontWeight: 800 }}>{formatCurrency(p.estimated_budget)}</td>
                     <td>{formatCurrency(p.claims_total)}</td>
                     <td>
@@ -541,8 +554,9 @@ export default function AllProjectsPrintModal({
                     الإجمالي العام ({d.projectsMatrix.length} فلل • {totalArea.toFixed(0)} م²)
                   </td>
                   <td>{formatCurrency(t.totalContractValue)}</td>
+                  <td style={{ color: '#b45309' }}>{formatCurrency(t.totalRetentionAmount)}</td>
                   <td style={{ color: '#0369a1' }}>{formatCurrency(t.totalClientMaterialsDeduction)}</td>
-                  <td style={{ color: '#c2410c' }}>{formatCurrency(t.totalClientRemaining)}</td>
+                  <td style={{ color: '#15803d' }}>{formatCurrency(t.totalClientNetExRetention)}</td>
                   <td>{formatCurrency(t.totalEstimatedBudget)}</td>
                   <td>{formatCurrency(t.totalClaimsNet)}</td>
                   <td>
@@ -611,11 +625,10 @@ export default function AllProjectsPrintModal({
                         {p.name} ({p.unit_type} • {p.unit_area} م²)
                       </span>
                       <span style={{ color: '#475569', fontSize: '9px' }}>
-                        العقد: <b>{formatCurrency(p.contract_value)}</b> | الموازنة: <b>{formatCurrency(p.estimated_budget)}</b> | التكلفة الفعلية:{' '}
-                        <b style={{ color: '#b45309' }}>{formatCurrency(p.total_actual_cost)}</b> | وفر الموازنة:{' '}
-                        <b style={{ color: p.remaining_budget >= 0 ? '#15803d' : '#b91c1c' }}>
-                          {formatCurrency(p.remaining_budget)}
-                        </b>
+                        العقد: <b>{formatCurrency(p.contract_value)}</b> | ضمان الأعمال ({p.retention_percentage}%):{' '}
+                        <b style={{ color: '#b45309' }}>{formatCurrency(p.retention_amount)}</b> | المبلغ المستلم (غير شامل الضمان):{' '}
+                        <b style={{ color: '#15803d' }}>{formatCurrency(p.client_net_ex_retention)}</b> | التكلفة الفعلية:{' '}
+                        <b style={{ color: '#b45309' }}>{formatCurrency(p.total_actual_cost)}</b>
                       </span>
                     </div>
 
@@ -937,15 +950,17 @@ export default function AllProjectsPrintModal({
         <div className="phi-doc-summary" style={{ marginTop: '8px' }}>
           <div className="phi-doc-stack">
             <DocNote title="إقرار المطابقة المالية والمحاسبية الشاملة">
-              تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة، ويمثل الموقف المالي الفعلي للمشاريع حتى تاريخ الإصدار.
+              تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة. جميع المبالغ المستلمة للمشاريع موضحة بصافي القيمة غير شاملة محتجز ضمان الأعمال ({formatCurrency(t.totalRetentionAmount)} بنسبة 10%).
             </DocNote>
           </div>
           <DocTotals
             rows={[
               { label: 'إجمالي عقود المشاريع (BOQ)', value: formatCurrency(t.totalContractValue) },
-              { label: 'إجمالي التكاليف الفعلية المحملة', value: formatCurrency(t.totalActualProjectCosts), tone: 'warn' },
-              { label: 'إجمالي سندات القبض (الوارد)', value: formatCurrency(t.totalReceiptVouchers), tone: 'positive' },
-              { label: 'إجمالي سندات الصرف (المنصرف)', value: formatCurrency(t.totalPaymentVouchers), tone: 'discount' },
+              { label: '(-) محتجز ضمان الأعمال (10%)', value: formatCurrency(t.totalRetentionAmount), tone: 'warn' },
+              { label: '(-) خصم خامات العميل (217)', value: formatCurrency(t.totalClientMaterialsDeduction), tone: 'tax' },
+              { label: 'المبلغ المستلم للمشاريع (غير شامل ضمان الأعمال)', value: formatCurrency(t.totalClientNetExRetention), tone: 'positive' },
+              { label: 'إجمالي سندات القبض المستلمة (غير شامل الضمان)', value: formatCurrency(t.totalReceiptVouchers), tone: 'positive' },
+              { label: 'إجمالي سندات الصرف المنصرفة', value: formatCurrency(t.totalPaymentVouchers), tone: 'discount' },
             ]}
             grand={{
               label: 'صافي السيولة المتبقية بالخزينة',

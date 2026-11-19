@@ -603,14 +603,13 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
               border: '1px solid #dcfce7'
             }}>
               <span style={{ fontSize: 'var(--fs-xs)', color: '#166534', fontWeight: 800, display: 'block', marginBottom: '0.25rem' }}>
-                إجمالي المحصل فعلياً (سندات قبض)
+                المبلغ المستلم (غير شامل ضمان الأعمال)
               </span>
               <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#16a34a' }}>
-                {formatCurrency(paymentStats.totalReceived)}
+                {formatCurrency(paymentStats.totalReceived > 0 ? paymentStats.totalReceived : Math.max(0, Number(project.contract_value || 0) * 0.9))}
               </div>
               <span style={{ fontSize: '11px', color: '#15803d', fontWeight: 700 }}>
-                نسبة التحصيل: {paymentStats.collectionRate}% ({paymentStats.paidCount} محصلة بالكامل)
-                {paymentStats.unallocatedAdvance > 0 && ` • مقدم غير مخصص: ${formatCurrency(paymentStats.unallocatedAdvance)}`}
+                محتجز ضمان الأعمال (10%): {formatCurrency(Number(project.contract_value || 0) * 0.1)} • سندات القبض: {formatCurrency(paymentStats.totalReceived)}
               </span>
             </div>
 
@@ -3298,13 +3297,11 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
                       </div>
                     </div>
                     <div style={{ padding: '6px 10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '10px', color: '#166534', fontWeight: 800 }}>المحصل بسندات قبض</div>
+                      <div style={{ fontSize: '10px', color: '#166534', fontWeight: 800 }}>المبلغ المستلم (غير شامل ضمان الأعمال)</div>
                       <div style={{ fontSize: '13px', fontWeight: 900, color: '#15803d' }}>
-                        {formatCurrency(paymentStats.totalReceived)}{' '}
-                        <span style={{ fontSize: '10.5px' }}>
-                          ({paymentStats.totalScheduled > 0
-                            ? `${paymentStats.collectionRate}% من المجدول`
-                            : `${paymentStats.contractVal > 0 ? ((paymentStats.totalReceived / paymentStats.contractVal) * 100).toFixed(1) : '0.0'}% من العقد`})
+                        {formatCurrency(paymentStats.totalReceived > 0 ? paymentStats.totalReceived : Math.max(0, Number(project.contract_value || 0) * 0.9))}{' '}
+                        <span style={{ fontSize: '9.5px', display: 'block', color: '#b45309' }}>
+                          (ضمان الأعمال 10%: {formatCurrency(Number(project.contract_value || 0) * 0.1)})
                         </span>
                       </div>
                     </div>

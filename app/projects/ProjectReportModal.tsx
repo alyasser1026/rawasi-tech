@@ -228,26 +228,35 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
           </div>
 
           {/* ملخص التحليل المالي الكلي */}
-          <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '0.625rem', color: THEME.coffeeDark, fontWeight: 900 }}>الملخص المالي والتكاليف الموزعة</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.9375rem', marginBottom: '2.5rem' }}>
-            <div style={{ padding: '0.9375rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
+          <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '0.625rem', color: THEME.coffeeDark, fontWeight: 900 }}>الملخص المالي والتكاليف الموزعة والمبلغ المستلم (غير شامل ضمان الأعمال)</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: '0.75rem', marginBottom: '2.5rem' }}>
+            <div style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>إجمالي قيمة التعاقد</div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: THEME.coffeeDark }}>{formatCurrency(boqStats.totalContractValue)}</div>
             </div>
-            <div style={{ padding: '0.9375rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ padding: '0.85rem', border: '1px solid #bbf7d0', backgroundColor: '#f0fdf4', borderRadius: '8px', textAlign: 'center' }}>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#166534', fontWeight: 800 }}>المبلغ المستلم (غير شامل ضمان الأعمال)</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#15803d' }}>
+                {formatCurrency(Math.max(0, Number(boqStats.totalContractValue || 0) - Number(boqStats.totalRetentionValue || 0)))}
+              </div>
+              <div style={{ fontSize: '10px', color: '#b45309', fontWeight: 800, marginTop: '2px' }}>
+                محتجز ضمان الأعمال: {formatCurrency(boqStats.totalRetentionValue || 0)}
+              </div>
+            </div>
+            <div style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>إجمالي الميزانية المعتمدة</div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: THEME.danger }}>{formatCurrency(boqStats.totalEstimatedCosts)}</div>
             </div>
             {/* 🚀 إجمالي التوزيعات ABC */}
-            <div style={{ padding: '0.9375rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center', backgroundColor: '#F3E8FF' }}>
+            <div style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center', backgroundColor: '#F3E8FF' }}>
               <div style={{ fontSize: 'var(--fs-xs)', color: '#6B21A8', fontWeight: 800 }}>المصروفات الموزعة (ABC)</div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#9333EA' }}>{formatCurrency(boqStats.totalAllocatedExpensesABC)}</div>
             </div>
-            <div style={{ padding: '0.9375rem', border: `1px solid ${boqStats.isLoss ? THEME.danger : THEME.success}`, backgroundColor: boqStats.isLoss ? '#FEF2F2' : '#F0FDF4', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ padding: '0.85rem', border: `1px solid ${boqStats.isLoss ? THEME.danger : THEME.success}`, backgroundColor: boqStats.isLoss ? '#FEF2F2' : '#F0FDF4', borderRadius: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--fs-xs)', color: boqStats.isLoss ? THEME.danger : '#166534', fontWeight: 800 }}>{boqStats.isLoss ? 'خسارة المشروع' : 'صافي الأرباح الحقيقية'}</div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: boqStats.isLoss ? THEME.danger : THEME.success }}>{formatCurrency(boqStats.totalNetProfit)}</div>
             </div>
-            <div style={{ padding: '0.9375rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
+            <div style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>هامش الربح الفعلي</div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#1e293b', direction: 'ltr' }}>{boqStats.profitMargin}%</div>
             </div>
