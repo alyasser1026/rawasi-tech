@@ -26,7 +26,7 @@ export default function DailyProjectReportSection({
   const sched = cumulative.paymentSchedule;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: printableOnly ? '0.75rem' : '1.125rem', direction: 'rtl' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: printableOnly ? '0.75rem' : '1.125rem', direction: 'rtl', color: '#0f172a' }}>
       {/* شريط التحكم والتواريخ النشطة (في العرض التفاعلي فقط) */}
       {!printableOnly && (
         <div style={{

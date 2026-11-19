@@ -145,7 +145,18 @@ export function buildProjectDailyReport(
     (v: any) => !project?.id || recordMatchesProject(v, project) || v._matchedProject === true
   );
   const allProjectReceipts: any[] = details.projectReceipts || details.receipt_vouchers || [];
-  const allMaterials: any[] = details.materials || details.materialIssues || [];
+  const rawMaterials: any[] = details.materials || details.materialIssues || [];
+  const hasMaterialIssues = rawMaterials.some((m: any) => m?.movement_type === 'issue');
+  const issuedMaterialNames = new Set(
+    rawMaterials
+      .filter((m: any) => m?.movement_type === 'issue')
+      .map((m: any) => String(m?.item_name || m?.material_name || '').trim())
+  );
+  const allMaterials: any[] = hasMaterialIssues
+    ? rawMaterials.filter(
+        (m: any) => m?.movement_type === 'issue' || !issuedMaterialNames.has(String(m?.item_name || m?.material_name || '').trim())
+      )
+    : rawMaterials;
   const allSubClaims: any[] = details.subClaims || details.sub_claims || [];
   const allVisits: any[] = details.siteVisits || [];
   const allJobOrders: any[] = details.jobOrders || [];
@@ -260,8 +271,14 @@ export function buildProjectDailyReport(
       0
     )
   );
+  const boqContract = round2(
+    leafBoqItems.reduce(
+      (s, b) => s + (num(b.total_contract_amount) || num(b.contract_quantity) * num(b.unit_contract_price)),
+      0
+    )
+  );
   const estimatedBudget = num(project?.estimated_budget) || boqEstimated;
-  const contractValue = num(project?.contract_value);
+  const contractValue = num(project?.contract_value) || boqContract;
   const budgetVariance = round2(estimatedBudget - totalActualCost);
   const physicalProgress = round2(num(project?.overall_completion_percentage));
 

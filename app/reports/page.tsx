@@ -46,6 +46,8 @@ export default function ReportsPage() {
       'المساحة (م2)': p.unit_area,
       'العميل': p.client_name,
       'قيمة التعاقد (BOQ)': p.contract_value,
+      'خصم خامات العميل (217)': p.client_materials_deduction,
+      'صافي المتبقي عند العميل': p.client_remaining,
       'الموازنة التقديرية': p.estimated_budget,
       'مستخلصات المقاولين': p.claims_total,
       'يوميات العمالة': p.labor_total,
@@ -63,6 +65,8 @@ export default function ReportsPage() {
       'المساحة (م2)': d.projectsMatrix.reduce((s: number, p: any) => s + p.unit_area, 0),
       'العميل': '---',
       'قيمة التعاقد (BOQ)': t.totalContractValue,
+      'خصم خامات العميل (217)': t.totalClientMaterialsDeduction,
+      'صافي المتبقي عند العميل': t.totalClientRemaining,
       'الموازنة التقديرية': t.totalEstimatedBudget,
       'مستخلصات المقاولين': t.totalClaimsNet,
       'يوميات العمالة': t.totalLaborEarned,
@@ -414,12 +418,17 @@ export default function ReportsPage() {
               <div className="rpt-kpi-card">
                 <small>إجمالي عقود المشاريع (BOQ)</small>
                 <strong style={{ color: 'var(--accent-ink)' }}>{formatCurrency(t.totalContractValue)}</strong>
-                <span>الموازنة التقديرية: {formatCurrency(t.totalEstimatedBudget)}</span>
+                <span>
+                  خصم خامات العميل: {formatCurrency(t.totalClientMaterialsDeduction)} • متبقي عند العميل:{' '}
+                  {formatCurrency(t.totalClientRemaining)}
+                </span>
               </div>
               <div className="rpt-kpi-card">
                 <small>إجمالي التكاليف الفعلية للمشاريع</small>
                 <strong style={{ color: 'var(--status-warning, #f59e0b)' }}>{formatCurrency(t.totalActualProjectCosts)}</strong>
-                <span>صافي هامش العقود: {formatCurrency(t.totalNetContractMargin)}</span>
+                <span>
+                  الموازنة: {formatCurrency(t.totalEstimatedBudget)} (وفر: {formatCurrency(t.totalRemainingBudget)})
+                </span>
               </div>
               <div className="rpt-kpi-card">
                 <small>إجمالي سندات القبض (الوارد للخزينة)</small>
@@ -487,15 +496,16 @@ export default function ReportsPage() {
                       <th>المشروع / الفيلا</th>
                       <th>النموذج والمساحة</th>
                       <th>قيمة التعاقد (BOQ)</th>
+                      <th>خصم خامات العميل</th>
+                      <th>المتبقي عند العميل</th>
                       <th>الموازنة التقديرية</th>
                       <th>مستخلصات المقاولين</th>
                       <th>يوميات العمالة</th>
                       <th>الخامات المحملة</th>
                       <th>المصاريف (ABC)</th>
                       <th>إجمالي التكلفة الفعلية</th>
-                      <th>سندات الصرف المباشرة</th>
                       <th>المتبقي من الموازنة</th>
-                      <th>صافي المتبقي من العقد</th>
+                      <th>صافي ربح العقد</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -530,6 +540,8 @@ export default function ReportsPage() {
                               {p.unit_area > 0 ? ` • ${p.unit_area} م²` : ''}
                             </td>
                             <td style={{ fontWeight: 900 }}>{formatCurrency(p.contract_value)}</td>
+                            <td style={{ color: 'var(--status-info, #38bdf8)' }}>{formatCurrency(p.client_materials_deduction)}</td>
+                            <td style={{ fontWeight: 900, color: 'var(--accent-ink)' }}>{formatCurrency(p.client_remaining)}</td>
                             <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(p.estimated_budget)}</td>
                             <td>{formatCurrency(p.claims_total)}</td>
                             <td>
@@ -541,13 +553,13 @@ export default function ReportsPage() {
                             <td style={{ fontWeight: 900, color: 'var(--status-warning, #f59e0b)' }}>
                               {formatCurrency(p.total_actual_cost)}
                             </td>
-                            <td>{formatCurrency(p.direct_pv_total)}</td>
                             <td
                               style={{
                                 fontWeight: 900,
                                 color: p.remaining_budget >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)',
                               }}
                             >
+                              {p.remaining_budget > 0 ? '+' : ''}
                               {formatCurrency(p.remaining_budget)}
                             </td>
                             <td
@@ -556,13 +568,14 @@ export default function ReportsPage() {
                                 color: p.net_contract_margin >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)',
                               }}
                             >
+                              {p.net_contract_margin > 0 ? '+' : ''}
                               {formatCurrency(p.net_contract_margin)}
                             </td>
                           </tr>
 
                           {isExpanded && (
                             <tr>
-                              <td colSpan={12} style={{ background: 'var(--surface-sunken)', padding: '1rem 1.25rem', textAlign: 'right' }}>
+                              <td colSpan={13} style={{ background: 'var(--surface-sunken)', padding: '1rem 1.25rem', textAlign: 'right' }}>
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(22rem, 1fr))', gap: '1rem' }}>
                                   {/* أوامر الشغل والمستخلصات */}
                                   <div style={{ background: 'var(--surface-card)', padding: '0.9rem', borderRadius: '12px' }}>
@@ -637,15 +650,22 @@ export default function ReportsPage() {
                       <td style={{ textAlign: 'right' }}>الإجمالي العام ({d.projectsMatrix.length} فلل)</td>
                       <td>{d.projectsMatrix.reduce((s: number, p: any) => s + p.unit_area, 0).toFixed(2)} م²</td>
                       <td>{formatCurrency(t.totalContractValue)}</td>
+                      <td>{formatCurrency(t.totalClientMaterialsDeduction)}</td>
+                      <td>{formatCurrency(t.totalClientRemaining)}</td>
                       <td>{formatCurrency(t.totalEstimatedBudget)}</td>
                       <td>{formatCurrency(t.totalClaimsNet)}</td>
                       <td>{formatCurrency(t.totalLaborEarned)}</td>
                       <td>{formatCurrency(t.totalCustomerMaterials)}</td>
                       <td>{formatCurrency(t.totalExpensesAmount)}</td>
                       <td>{formatCurrency(t.totalActualProjectCosts)}</td>
-                      <td>{formatCurrency(t.pvClaimsTotal)}</td>
-                      <td>{formatCurrency(t.totalRemainingBudget)}</td>
-                      <td>{formatCurrency(t.totalNetContractMargin)}</td>
+                      <td>
+                        {t.totalRemainingBudget > 0 ? '+' : ''}
+                        {formatCurrency(t.totalRemainingBudget)}
+                      </td>
+                      <td>
+                        {t.totalNetContractMargin > 0 ? '+' : ''}
+                        {formatCurrency(t.totalNetContractMargin)}
+                      </td>
                     </tr>
                   </tfoot>
                 </table>

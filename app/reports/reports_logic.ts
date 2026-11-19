@@ -1,15 +1,22 @@
 "use client";
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { getActiveCompanyId, supabase } from '@/lib/supabase';
+import { useCompany } from '@/lib/CompanyContext';
 import { useToast } from '@/lib/toast-context';
 import { fetchAllSupabaseData } from '@/lib/helpers';
-import { computeDailyWorkerExpenseAllocations, getExpenseNetAmount, getExpenseDisplayDescription } from '@/lib/dailyWorkerExpenseAllocation';
+import {
+  computeDailyWorkerExpenseAllocations,
+  getExpenseNetAmount,
+  getExpenseDisplayDescription,
+} from '@/lib/dailyWorkerExpenseAllocation';
 
 const round2 = (n: number) => Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100;
 
 export function useReportsLogic() {
   const { showToast } = useToast();
+  const { activeCompanyId: contextCompanyId } = useCompany();
+  const activeCompanyId = contextCompanyId || getActiveCompanyId() || '72918f4d-10c3-43a0-884e-2f84f1224335';
 
   // فلتر التاريخ (فارغ افتراضياً لعرض التقرير التراكمي الشامل لكل الفترات)
   const [dateRange, setDateRange] = useState({
@@ -20,7 +27,7 @@ export function useReportsLogic() {
   const [activeTab, setActiveTab] = useState<'all' | 'projects' | 'workers' | 'vouchers' | 'expenses'>('all');
 
   const { data: rawData, isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ['comprehensive_projects_report'],
+    queryKey: ['comprehensive_projects_report', activeCompanyId],
     queryFn: async () => {
       const [
         projects,
@@ -45,24 +52,27 @@ export function useReportsLogic() {
         fetchAllSupabaseData(supabase, 'material_receipts', '*', 'receipt_date', false),
         fetchAllSupabaseData(supabase, 'material_issues', '*', 'issue_date', false),
         fetchAllSupabaseData(supabase, 'expenses', '*', 'exp_date', false),
-        fetchAllSupabaseData(supabase, 'partners', 'id,name,partner_type', 'created_at', false),
+        fetchAllSupabaseData(supabase, 'partners', 'id,name,partner_type,company_id', 'created_at', false),
       ]);
 
+      const byCompany = (rows: any[]) =>
+        (rows || []).filter((r: any) => !r.company_id || !activeCompanyId || String(r.company_id) === String(activeCompanyId));
+
       return {
-        projects: projects || [],
-        boq_budget: boq_budget || [],
-        job_orders: job_orders || [],
-        receipt_vouchers: receipt_vouchers || [],
-        payment_vouchers: payment_vouchers || [],
-        sub_claims: sub_claims || [],
-        labor_daily_logs: labor_daily_logs || [],
-        material_receipts: material_receipts || [],
-        material_issues: material_issues || [],
-        expenses: (expenses || []).filter((e: any) => !e.is_deleted),
-        partners: partners || [],
+        projects: byCompany(projects),
+        boq_budget: byCompany(boq_budget),
+        job_orders: byCompany(job_orders),
+        receipt_vouchers: byCompany(receipt_vouchers),
+        payment_vouchers: byCompany(payment_vouchers),
+        sub_claims: byCompany(sub_claims),
+        labor_daily_logs: byCompany(labor_daily_logs),
+        material_receipts: byCompany(material_receipts),
+        material_issues: byCompany(material_issues),
+        expenses: byCompany(expenses).filter((e: any) => !e.is_deleted),
+        partners: byCompany(partners),
       };
     },
-    staleTime: 2 * 60 * 1000,
+    staleTime: 60 * 1000,
   });
 
   const inDateRange = (dateStr?: string | null) => {
@@ -101,6 +111,7 @@ export function useReportsLogic() {
       jobOrders: rawData.job_orders,
       projects: rawData.projects,
       boqItems: rawData.boq_budget,
+      activeCompanyId,
     });
 
     const projectsMatrix = rawData.projects
@@ -108,18 +119,34 @@ export function useReportsLogic() {
       .map((p: any) => {
         const pid = String(p.id);
         const pName = p.Property || p.project_name || 'مشروع بدون اسم';
-        const clientName = partnerMap.get(String(p.client_id))?.name || p.client_name || '---';
+        const clientName = partnerMap.get(String(p.client_id))?.name || p.client_name || 'شركة المواطن الدولية';
 
-        const boqs = rawData.boq_budget.filter((b: any) => String(b.project_id) === pid);
+        const allBoqs = rawData.boq_budget.filter((b: any) => String(b.project_id) === pid);
+        // 🎯 احتساب البنود الفرعية (التنفيذية) فقط لمنع ازدواجية البنود الرئيسية الأب
+        const leafBoqs = allBoqs.filter(
+          (b: any) =>
+            !allBoqs.some((child: any) => String(child.parent_id) === String(b.id)) &&
+            (b.item_type === 'فرعي' || !b.item_type || allBoqs.length === 1)
+        );
+        const boqsToSum = leafBoqs.length > 0 ? leafBoqs : allBoqs;
+
         const boqContractValue = round2(
-          boqs.reduce((s: number, b: any) => s + (Number(b.contract_quantity) || 0) * (Number(b.unit_contract_price) || 0), 0)
+          boqsToSum.reduce(
+            (s: number, b: any) =>
+              s + (Number(b.total_contract_amount) || (Number(b.contract_quantity) || 0) * (Number(b.unit_contract_price) || 0)),
+            0
+          )
         );
         const contractValue = boqContractValue > 0 ? boqContractValue : round2(Number(p.contract_value) || 0);
 
-        const estLabor = round2(boqs.reduce((s: number, b: any) => s + (Number(b.estimated_labor_cost) || 0), 0));
-        const estMaterials = round2(boqs.reduce((s: number, b: any) => s + (Number(b.estimated_material_cost) || 0), 0));
-        const estExpenses = round2(boqs.reduce((s: number, b: any) => s + (Number(b.estimated_expenses_cost) || 0), 0));
-        const estimatedBudget = round2(estLabor + estMaterials + estExpenses) || round2(Number(p.estimated_budget) || 0);
+        const estLabor = round2(boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_labor_cost) || 0), 0));
+        const estMaterials = round2(boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_material_cost) || 0), 0));
+        const estExpenses = round2(boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_expenses_cost) || 0), 0));
+        const estSubcontractors = round2(
+          boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_subcontractor_cost) || 0), 0)
+        );
+        const estimatedBudget =
+          round2(estLabor + estMaterials + estExpenses + estSubcontractors) || round2(Number(p.estimated_budget) || 0);
 
         const jobOrders = rawData.job_orders
           .filter((j: any) => String(j.project_id) === pid)
@@ -135,7 +162,10 @@ export function useReportsLogic() {
         const receiptsTotal = round2(pReceipts.reduce((s: number, r: any) => s + (Number(r.amount) || 0), 0));
 
         const pClaims = subClaims
-          .filter((c: any) => String(c.project_id) === pid || (Array.isArray(c.project_ids) && c.project_ids.map(String).includes(pid)))
+          .filter(
+            (c: any) =>
+              String(c.project_id) === pid || (Array.isArray(c.project_ids) && c.project_ids.map(String).includes(pid))
+          )
           .map((c: any) => ({
             ...c,
             contractor_name: partnerMap.get(String(c.contractor_id))?.name || 'مقاول باطن',
@@ -152,27 +182,44 @@ export function useReportsLogic() {
             ...m,
             supplier_name: partnerMap.get(String(m.supplier_id))?.name || '---',
           }));
-        const materialsReceivedTotal = round2(pMatReceipts.reduce((s: number, m: any) => s + (Number(m.total_amount) || 0), 0));
+        const materialsReceivedTotal = round2(
+          pMatReceipts.reduce((s: number, m: any) => s + (Number(m.total_amount) || 0), 0)
+        );
+        const clientMaterialsDeduction = round2(
+          pMatReceipts
+            .filter((m: any) => m.receipt_type === 'توريد عميل')
+            .reduce((s: number, m: any) => s + (Number(m.total_amount) || 0), 0)
+        );
 
         const pMatIssues = materialIssues.filter((m: any) => String(m.project_id) === pid);
-        const materialsIssuedTotal = round2(pMatIssues.reduce((s: number, m: any) => s + (Number(m.total_amount) || 0), 0));
+        const materialsIssuedTotal = round2(
+          pMatIssues.reduce((s: number, m: any) => s + (Number(m.total_amount) || 0), 0)
+        );
+        // منع ازدواجية الخامات إذا تم توريدها وصرفها لنفس المشروع
         const materialsCostEffective = materialsIssuedTotal > 0 ? materialsIssuedTotal : materialsReceivedTotal;
 
         const pAbcAllocs = abcAllocations.filter((a) => String(a.project_id) === pid);
         const abcExpensesTotal = round2(pAbcAllocs.reduce((s, a) => s + (Number(a.allocated_amount) || 0), 0));
 
         const pDirectPvs = paymentVouchers
-          .filter((v: any) => (Array.isArray(v.project_ids) && v.project_ids.map(String).includes(pid)) || v.site_ref === pName)
+          .filter(
+            (v: any) =>
+              (Array.isArray(v.project_ids) && v.project_ids.map(String).includes(pid)) || v.site_ref === pName
+          )
           .map((v: any) => ({
             ...v,
             partner_name: partnerMap.get(String(v.partner_id))?.name || '---',
           }));
-        const directPaymentVouchersTotal = round2(pDirectPvs.reduce((s: number, v: any) => s + (Number(v.amount) || 0), 0));
+        const directPaymentVouchersTotal = round2(
+          pDirectPvs.reduce((s: number, v: any) => s + (Number(v.amount) || 0), 0)
+        );
 
         // إجمالي التكلفة الفعلية المحملة على المشروع
         const totalActualCost = round2(claimsTotal + laborTotal + materialsCostEffective + abcExpensesTotal);
         const remainingBudget = round2(estimatedBudget - totalActualCost);
         const netContractMargin = round2(contractValue - totalActualCost);
+        // صافي المتبقي عند العميل بعد خصم خامات العميل وسندات قبض العميل
+        const clientRemaining = round2(contractValue - clientMaterialsDeduction - receiptsTotal);
 
         return {
           id: pid,
@@ -183,10 +230,13 @@ export function useReportsLogic() {
           status: p.status || 'قيد التنفيذ',
           current_stage: p.current_stage || '---',
           contract_value: contractValue,
+          client_materials_deduction: clientMaterialsDeduction,
+          client_remaining: clientRemaining,
           estimated_budget: estimatedBudget,
           est_labor: estLabor,
           est_materials: estMaterials,
           est_expenses: estExpenses,
+          est_subcontractors: estSubcontractors,
           receipts_total: receiptsTotal,
           claims_total: claimsTotal,
           direct_pv_total: directPaymentVouchersTotal,
@@ -200,7 +250,7 @@ export function useReportsLogic() {
           remaining_budget: remainingBudget,
           net_contract_margin: netContractMargin,
           // التفاصيل الفرعية
-          boqs,
+          boqs: boqsToSum,
           jobOrders,
           receipts: pReceipts,
           claims: pClaims,
@@ -220,7 +270,14 @@ export function useReportsLogic() {
 
     laborLogs.forEach((l: any) => {
       const name = (partnerMap.get(String(l.worker_partner_id))?.name || l.worker_name || 'عامل').trim();
-      const cur = workerMap.get(name) || { name, days: 0, earned: 0, paid: 0, remaining: 0, villas: {} as Record<string, number> };
+      const cur = workerMap.get(name) || {
+        name,
+        days: 0,
+        earned: 0,
+        paid: 0,
+        remaining: 0,
+        villas: {} as Record<string, number>,
+      };
       cur.days = round2(cur.days + (Number(l.attendance_value) || 1));
       const wage = Number(l.daily_wage) || 0;
       cur.earned = round2(cur.earned + wage);
@@ -234,7 +291,14 @@ export function useReportsLogic() {
         const pInfo = partnerMap.get(String(pv.partner_id));
         const name = (pInfo?.name || '').trim();
         if (name) {
-          const cur = workerMap.get(name) || { name, days: 0, earned: 0, paid: 0, remaining: 0, villas: {} as Record<string, number> };
+          const cur = workerMap.get(name) || {
+            name,
+            days: 0,
+            earned: 0,
+            paid: 0,
+            remaining: 0,
+            villas: {} as Record<string, number>,
+          };
           cur.paid = round2(cur.paid + (Number(pv.amount) || 0));
           workerMap.set(name, cur);
         }
@@ -329,6 +393,10 @@ export function useReportsLogic() {
 
     // الإجماليات العامة للنظام
     const totalContractValue = round2(projectsMatrix.reduce((s, p) => s + p.contract_value, 0));
+    const totalClientMaterialsDeduction = round2(
+      projectsMatrix.reduce((s, p) => s + p.client_materials_deduction, 0)
+    );
+    const totalClientRemaining = round2(projectsMatrix.reduce((s, p) => s + p.client_remaining, 0));
     const totalEstimatedBudget = round2(projectsMatrix.reduce((s, p) => s + p.estimated_budget, 0));
     const totalActualProjectCosts = round2(projectsMatrix.reduce((s, p) => s + p.total_actual_cost, 0));
     const totalRemainingBudget = round2(totalEstimatedBudget - totalActualProjectCosts);
@@ -358,11 +426,7 @@ export function useReportsLogic() {
     const totalClaimsRemaining = round2(totalClaimsNet - totalClaimsPaid);
 
     const totalExpensesAmount = round2(enrichedExpenses.reduce((s, e) => s + e.net_amount, 0));
-    const totalCustomerMaterials = round2(
-      materialReceipts
-        .filter((m: any) => m.receipt_type === 'توريد عميل')
-        .reduce((s: number, m: any) => s + (Number(m.total_amount) || 0), 0)
-    );
+    const totalCustomerMaterials = totalClientMaterialsDeduction;
 
     return {
       projectsList: rawData.projects,
@@ -375,6 +439,8 @@ export function useReportsLogic() {
       abcAllocations,
       totals: {
         totalContractValue,
+        totalClientMaterialsDeduction,
+        totalClientRemaining,
         totalEstimatedBudget,
         totalActualProjectCosts,
         totalRemainingBudget,
@@ -395,7 +461,7 @@ export function useReportsLogic() {
         totalCustomerMaterials,
       },
     };
-  }, [rawData, dateRange.start, dateRange.end, selectedProjectId]);
+  }, [rawData, dateRange.start, dateRange.end, selectedProjectId, activeCompanyId]);
 
   const handleDateChange = (field: 'start' | 'end', value: string) => {
     setDateRange((prev) => ({ ...prev, [field]: value }));

@@ -288,7 +288,15 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
   }, [boqList, details.invoices]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', direction: 'rtl' }}>
+    <div className="reports-tab-root" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', direction: 'rtl' }}>
+      <style>{`
+        .reports-tab-root [style*="background: white"],
+        .reports-tab-root [style*="background: #f8fafc"],
+        .reports-tab-root [style*="background-color: white"],
+        .reports-tab-root [style*="background-color: #f8fafc"] {
+          color: #0f172a;
+        }
+      `}</style>
       
       {/* 🚀 شريط أزرار التابات الفرعية للتقارير مع زر الطباعة التنفيذية */}
       <div style={{
@@ -298,11 +306,10 @@ export default function ReportsTab({ logic }: ReportsTabProps) {
         justifyContent: 'space-between',
         gap: '0.75rem',
         padding: '0.75rem 1rem',
-        background: 'rgba(255, 255, 255, 0.7)',
+        background: 'var(--surface-card)',
         backdropFilter: 'blur(12px)',
         borderRadius: '16px',
-        border: '1px solid rgba(226, 232, 240, 0.8)',
-        boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)'
+        boxShadow: 'var(--shadow-ambient)'
       }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
           <button

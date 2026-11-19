@@ -29,7 +29,9 @@ export default function AllProjectsReportEmbed() {
       'المساحة (م2)': p.unit_area,
       'العميل': p.client_name,
       'قيمة التعاقد (BOQ)': p.contract_value,
-      'الموازنة التقديرية': p.estimated_budget,
+      'خصم خامات العميل (217)': p.client_materials_deduction,
+      'صافي المتبقي عند العميل': p.client_remaining,
+      'الموازنة التقديرية الشاملة': p.estimated_budget,
       'مستخلصات المقاولين': p.claims_total,
       'يوميات العمالة': p.labor_total,
       'عدد اليوميات': p.labor_days,
@@ -37,7 +39,7 @@ export default function AllProjectsReportEmbed() {
       'المصاريف الموزعة (ABC)': p.abc_expenses_total,
       'إجمالي التكلفة الفعلية': p.total_actual_cost,
       'المتبقي من الموازنة': p.remaining_budget,
-      'صافي هامش العقد (المتبقي من العقد)': p.net_contract_margin,
+      'صافي ربح العقد': p.net_contract_margin,
       'سندات الصرف المباشرة': p.direct_pv_total,
     }));
     projectsSheetData.push({
@@ -46,7 +48,9 @@ export default function AllProjectsReportEmbed() {
       'المساحة (م2)': d.projectsMatrix.reduce((s: number, p: any) => s + p.unit_area, 0),
       'العميل': '---',
       'قيمة التعاقد (BOQ)': t.totalContractValue,
-      'الموازنة التقديرية': t.totalEstimatedBudget,
+      'خصم خامات العميل (217)': t.totalClientMaterialsDeduction,
+      'صافي المتبقي عند العميل': t.totalClientRemaining,
+      'الموازنة التقديرية الشاملة': t.totalEstimatedBudget,
       'مستخلصات المقاولين': t.totalClaimsNet,
       'يوميات العمالة': t.totalLaborEarned,
       'عدد اليوميات': d.projectsMatrix.reduce((s: number, p: any) => s + p.labor_days, 0),
@@ -54,7 +58,7 @@ export default function AllProjectsReportEmbed() {
       'المصاريف الموزعة (ABC)': t.totalExpensesAmount,
       'إجمالي التكلفة الفعلية': t.totalActualProjectCosts,
       'المتبقي من الموازنة': t.totalRemainingBudget,
-      'صافي هامش العقد (المتبقي من العقد)': t.totalNetContractMargin,
+      'صافي ربح العقد': t.totalNetContractMargin,
       'سندات الصرف المباشرة': t.pvClaimsTotal,
     });
     const wsProjects = XLSX.utils.json_to_sheet(projectsSheetData);
@@ -193,21 +197,21 @@ export default function AllProjectsReportEmbed() {
         }
         .embed-rpt-table {
           width: 100%;
-          min-width: 56rem;
+          min-width: 62rem;
           border-collapse: collapse;
           text-align: center;
         }
         .embed-rpt-table th {
           background: var(--table-head-bg);
           color: var(--text-secondary);
-          padding: 0.85rem 0.65rem;
+          padding: 0.85rem 0.6rem;
           font-size: var(--fs-xs);
           font-weight: 900;
           border-bottom: 1px solid var(--table-zebra-bg);
           white-space: nowrap;
         }
         .embed-rpt-table td {
-          padding: 0.8rem 0.65rem;
+          padding: 0.8rem 0.6rem;
           font-size: var(--fs-sm);
           font-weight: 700;
           color: var(--text-primary);
@@ -230,7 +234,7 @@ export default function AllProjectsReportEmbed() {
             التقرير المالي الشامل لجميع المشاريع والحسابات ({d.projectsMatrix.length} فلل)
           </h3>
           <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 700 }}>
-            يشمل العقود، الموازنات، مستخلصات المقاولين، يوميات العمالة، الخامات، المصاريف (ABC)، سندات القبض والصرف، والمتبقي
+            يشمل العقود، خصم خامات العميل، الموازنات، مستخلصات المقاولين، يوميات العمالة، الخامات، المصاريف (ABC)، سندات القبض والصرف، والمتبقي
           </span>
         </div>
         <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap' }}>
@@ -302,12 +306,23 @@ export default function AllProjectsReportEmbed() {
         <div className="embed-rpt-kpi-card">
           <small>إجمالي عقود المشاريع (BOQ)</small>
           <strong style={{ color: 'var(--accent-ink)' }}>{formatCurrency(t.totalContractValue)}</strong>
-          <span>الموازنة التقديرية: {formatCurrency(t.totalEstimatedBudget)}</span>
+          <span>
+            خصم خامات العميل: {formatCurrency(t.totalClientMaterialsDeduction)} • متبقي عند العميل:{' '}
+            {formatCurrency(t.totalClientRemaining)}
+          </span>
+        </div>
+        <div className="embed-rpt-kpi-card">
+          <small>إجمالي الموازنة التقديرية للمشاريع</small>
+          <strong style={{ color: 'var(--text-primary)' }}>{formatCurrency(t.totalEstimatedBudget)}</strong>
+          <span>
+            وفر الموازنة: {t.totalRemainingBudget >= 0 ? '+' : ''}
+            {formatCurrency(t.totalRemainingBudget)}
+          </span>
         </div>
         <div className="embed-rpt-kpi-card">
           <small>إجمالي التكاليف الفعلية للمشاريع</small>
           <strong style={{ color: 'var(--status-warning, #f59e0b)' }}>{formatCurrency(t.totalActualProjectCosts)}</strong>
-          <span>صافي المتبقي من العقود: {formatCurrency(t.totalNetContractMargin)}</span>
+          <span>صافي ربح العقود: {formatCurrency(t.totalNetContractMargin)}</span>
         </div>
         <div className="embed-rpt-kpi-card">
           <small>إجمالي سندات القبض (الوارد للخزينة)</small>
@@ -327,13 +342,6 @@ export default function AllProjectsReportEmbed() {
           <strong style={{ color: t.netCashTreasury >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)' }}>
             {formatCurrency(t.netCashTreasury)}
           </strong>
-          <span>رصيد الخزينة النقدي الفعلي المتاح</span>
-        </div>
-        <div className="embed-rpt-kpi-card">
-          <small>المتبقي المستحق للعمالة والمقاولين</small>
-          <strong style={{ color: 'var(--status-negative, #f43f5e)' }}>
-            {formatCurrency(t.totalLaborRemaining + t.totalClaimsRemaining)}
-          </strong>
           <span>
             متبقي عمالة: {formatCurrency(t.totalLaborRemaining)} • متبقي مقاولين: {formatCurrency(t.totalClaimsRemaining)}
           </span>
@@ -351,15 +359,16 @@ export default function AllProjectsReportEmbed() {
               <th>المشروع / الفيلا</th>
               <th>النموذج والمساحة</th>
               <th>قيمة التعاقد (BOQ)</th>
+              <th>خصم خامات العميل</th>
+              <th>المتبقي عند العميل</th>
               <th>الموازنة التقديرية</th>
               <th>مستخلصات المقاولين</th>
               <th>يوميات العمالة</th>
               <th>الخامات المحملة</th>
               <th>المصاريف (ABC)</th>
               <th>إجمالي التكلفة الفعلية</th>
-              <th>سندات الصرف المباشرة</th>
               <th>المتبقي من الموازنة</th>
-              <th>صافي المتبقي من العقد</th>
+              <th>صافي ربح العقد</th>
             </tr>
           </thead>
           <tbody>
@@ -394,23 +403,26 @@ export default function AllProjectsReportEmbed() {
                       {p.unit_area > 0 ? ` • ${p.unit_area} م²` : ''}
                     </td>
                     <td style={{ fontWeight: 900 }}>{formatCurrency(p.contract_value)}</td>
-                    <td style={{ color: 'var(--text-secondary)' }}>{formatCurrency(p.estimated_budget)}</td>
+                    <td style={{ color: 'var(--status-info, #38bdf8)' }}>{formatCurrency(p.client_materials_deduction)}</td>
+                    <td style={{ fontWeight: 900, color: 'var(--accent-ink)' }}>{formatCurrency(p.client_remaining)}</td>
+                    <td style={{ color: 'var(--text-secondary)', fontWeight: 800 }}>{formatCurrency(p.estimated_budget)}</td>
                     <td>{formatCurrency(p.claims_total)}</td>
                     <td>
-                      {formatCurrency(p.labor_total)} ({p.labor_days} يوم)
+                      {formatCurrency(p.labor_total)}
+                      <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)' }}>({p.labor_days} يوم)</div>
                     </td>
                     <td>{formatCurrency(p.materials_cost_effective)}</td>
                     <td>{formatCurrency(p.abc_expenses_total)}</td>
                     <td style={{ fontWeight: 900, color: 'var(--status-warning, #f59e0b)' }}>
                       {formatCurrency(p.total_actual_cost)}
                     </td>
-                    <td>{formatCurrency(p.direct_pv_total)}</td>
                     <td
                       style={{
                         fontWeight: 900,
                         color: p.remaining_budget >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)',
                       }}
                     >
+                      {p.remaining_budget > 0 ? '+' : ''}
                       {formatCurrency(p.remaining_budget)}
                     </td>
                     <td
@@ -419,41 +431,50 @@ export default function AllProjectsReportEmbed() {
                         color: p.net_contract_margin >= 0 ? 'var(--status-positive, #10b981)' : 'var(--status-negative, #f43f5e)',
                       }}
                     >
+                      {p.net_contract_margin > 0 ? '+' : ''}
                       {formatCurrency(p.net_contract_margin)}
                     </td>
                   </tr>
                   {isExpanded && (
                     <tr>
-                      <td colSpan={12} style={{ background: 'var(--surface-sunken)', padding: '1rem', textAlign: 'right' }}>
+                      <td colSpan={13} style={{ background: 'var(--surface-sunken)', padding: '1rem', textAlign: 'right' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(20rem, 1fr))', gap: '0.9rem' }}>
                           <div style={{ background: 'var(--surface-card)', padding: '0.85rem', borderRadius: '12px' }}>
-                            <strong style={{ color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)' }}>أوامر الشغل والمستخلصات وسندات الصرف</strong>
+                            <strong style={{ color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)' }}>
+                              أوامر الشغل والمستخلصات وسندات الصرف ({p.name})
+                            </strong>
                             {p.jobOrders.map((jo: any) => (
                               <div key={jo.id} style={{ fontSize: 'var(--fs-xs)', marginTop: '0.3rem' }}>
-                                {jo.order_number} ({jo.contractor_name}): {formatCurrency(jo.total_value)}
+                                {jo.order_number} ({jo.contractor_name}): {jo.assigned_qty} × {jo.unit_price} ={' '}
+                                <b>{formatCurrency(jo.total_value)}</b>
                               </div>
                             ))}
                             {p.claims.map((clm: any) => (
                               <div key={clm.id} style={{ fontSize: 'var(--fs-xs)', marginTop: '0.3rem', color: 'var(--status-positive, #10b981)' }}>
-                                مستخلص {clm.claim_number}: {formatCurrency(clm.net_amount)}
+                                مستخلص {clm.claim_number} ({clm.contractor_name}): <b>{formatCurrency(clm.net_amount)}</b>
                               </div>
                             ))}
                             {p.paymentVouchers.map((pv: any) => (
                               <div key={pv.id} style={{ fontSize: 'var(--fs-xs)', marginTop: '0.3rem', color: 'var(--status-warning, #f59e0b)' }}>
-                                سند صرف {pv.voucher_number}: {formatCurrency(pv.amount)}
+                                سند صرف {pv.voucher_number} ({pv.date}): <b>{formatCurrency(pv.amount)}</b>
                               </div>
                             ))}
                           </div>
                           <div style={{ background: 'var(--surface-card)', padding: '0.85rem', borderRadius: '12px' }}>
-                            <strong style={{ color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)' }}>يوميات العمالة والخامات</strong>
+                            <strong style={{ color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)' }}>
+                              يوميات العمالة والخامات ({p.name})
+                            </strong>
+                            {p.laborLogs.length === 0 && p.materialReceipts.length === 0 ? (
+                              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: '0.3rem' }}>لا توجد يوميات أو خامات</div>
+                            ) : null}
                             {p.laborLogs.map((l: any) => (
                               <div key={l.id} style={{ fontSize: 'var(--fs-xs)', marginTop: '0.25rem' }}>
-                                {l.work_date} — {l.worker_name}: {formatCurrency(l.daily_wage)}
+                                {l.work_date} — <b>{l.worker_name}</b>: {formatCurrency(l.daily_wage)}
                               </div>
                             ))}
                             {p.materialReceipts.map((m: any) => (
                               <div key={m.id} style={{ fontSize: 'var(--fs-xs)', marginTop: '0.25rem', color: 'var(--status-info, #38bdf8)' }}>
-                                فاتورة خامات {m.receipt_number}: {formatCurrency(m.total_amount)}
+                                فاتورة خامات {m.receipt_number} ({m.receipt_type}): <b>{formatCurrency(m.total_amount)}</b>
                               </div>
                             ))}
                           </div>
@@ -461,11 +482,16 @@ export default function AllProjectsReportEmbed() {
                             <strong style={{ color: 'var(--accent-ink)', fontSize: 'var(--fs-xs)' }}>
                               نصيب الفيلا من المصاريف ({formatCurrency(p.abc_expenses_total)})
                             </strong>
-                            {p.expenseAllocations.map((a: any) => (
-                              <div key={a.id} style={{ fontSize: 'var(--fs-xs)', marginTop: '0.25rem' }}>
-                                {a['تاريخ المصروف الأصلي']} — {a['البيان / الوصف']}: {formatCurrency(a.allocated_amount)}
-                              </div>
-                            ))}
+                            {p.expenseAllocations.length === 0 ? (
+                              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', marginTop: '0.3rem' }}>لا توجد مصاريف محملة</div>
+                            ) : (
+                              p.expenseAllocations.map((a: any) => (
+                                <div key={a.id} style={{ fontSize: 'var(--fs-xs)', marginTop: '0.25rem' }}>
+                                  {a['تاريخ المصروف الأصلي']} — {a['البيان / الوصف']} ({a['نسبة التحميل (%)']}%):{' '}
+                                  <b>{formatCurrency(a.allocated_amount)}</b>
+                                </div>
+                              ))
+                            )}
                           </div>
                         </div>
                       </td>
@@ -480,15 +506,22 @@ export default function AllProjectsReportEmbed() {
               <td style={{ textAlign: 'right' }}>الإجمالي العام ({d.projectsMatrix.length} فلل)</td>
               <td>{d.projectsMatrix.reduce((s: number, p: any) => s + p.unit_area, 0).toFixed(2)} م²</td>
               <td>{formatCurrency(t.totalContractValue)}</td>
+              <td>{formatCurrency(t.totalClientMaterialsDeduction)}</td>
+              <td>{formatCurrency(t.totalClientRemaining)}</td>
               <td>{formatCurrency(t.totalEstimatedBudget)}</td>
               <td>{formatCurrency(t.totalClaimsNet)}</td>
               <td>{formatCurrency(t.totalLaborEarned)}</td>
               <td>{formatCurrency(t.totalCustomerMaterials)}</td>
               <td>{formatCurrency(t.totalExpensesAmount)}</td>
               <td>{formatCurrency(t.totalActualProjectCosts)}</td>
-              <td>{formatCurrency(t.pvClaimsTotal)}</td>
-              <td>{formatCurrency(t.totalRemainingBudget)}</td>
-              <td>{formatCurrency(t.totalNetContractMargin)}</td>
+              <td>
+                {t.totalRemainingBudget > 0 ? '+' : ''}
+                {formatCurrency(t.totalRemainingBudget)}
+              </td>
+              <td>
+                {t.totalNetContractMargin > 0 ? '+' : ''}
+                {formatCurrency(t.totalNetContractMargin)}
+              </td>
             </tr>
           </tfoot>
         </table>
@@ -541,7 +574,7 @@ export default function AllProjectsReportEmbed() {
           </tbody>
           <tfoot>
             <tr>
-              <td colSpan={4} style={{ textAlign: 'right' }}>الإجمالي الكلي</td>
+              <td colSpan={4} style={{ textAlign: 'right' }}>الإجمالي الكلي للعمالة والمقاولين</td>
               <td>{formatCurrency(t.totalLaborEarned + t.totalClaimsNet)}</td>
               <td>{formatCurrency(t.totalLaborPaid + t.totalClaimsPaid)}</td>
               <td>{formatCurrency(t.totalLaborRemaining + t.totalClaimsRemaining)}</td>
@@ -577,6 +610,12 @@ export default function AllProjectsReportEmbed() {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={4} style={{ textAlign: 'right' }}>إجمالي سندات القبض</td>
+                <td>{formatCurrency(t.totalReceiptVouchers)}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
 
@@ -608,8 +647,52 @@ export default function AllProjectsReportEmbed() {
                 </tr>
               ))}
             </tbody>
+            <tfoot>
+              <tr>
+                <td colSpan={4} style={{ textAlign: 'right' }}>إجمالي سندات الصرف</td>
+                <td>{formatCurrency(t.totalPaymentVouchers)}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
+      </div>
+
+      {/* 5. سجل المصاريف وتوزيعها على الفلل */}
+      <div className="embed-rpt-section">
+        <h4 style={{ margin: '0 0 0.85rem', fontWeight: 900, color: 'var(--text-primary)' }}>
+          5. سجل المصاريف التشغيلية وتوزيعها على الفلل ({d.expenses.length} مصروفاً — {formatCurrency(t.totalExpensesAmount)})
+        </h4>
+        <table className="embed-rpt-table">
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>التصنيف</th>
+              <th style={{ textAlign: 'right' }}>البيان / التفاصيل</th>
+              <th>المبلغ</th>
+              <th style={{ textAlign: 'right' }}>التوزيع الفعلي على الفلل (ABC)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {d.expenses.map((e: any) => (
+              <tr key={e.id}>
+                <td>{e.exp_date}</td>
+                <td>{e.main_category || 'مصروف عام'}</td>
+                <td style={{ textAlign: 'right', fontWeight: 800 }}>{e.display_description}</td>
+                <td style={{ fontWeight: 900, color: 'var(--accent-ink)' }}>{formatCurrency(e.net_amount)}</td>
+                <td style={{ textAlign: 'right', fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)' }}>
+                  {e.distribution_text}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colSpan={3} style={{ textAlign: 'right' }}>إجمالي المصاريف التشغيلية الموزعة</td>
+              <td>{formatCurrency(t.totalExpensesAmount)}</td>
+              <td>---</td>
+            </tr>
+          </tfoot>
+        </table>
       </div>
     </div>
   );

@@ -5,7 +5,20 @@ import RawasiSmartTable from '@/components/rawasismarttable';
 import { BrickWall } from 'lucide-react';
 
 export default function MaterialsTab({ logic }: { logic: any }) {
-  const materials = logic.projectDetails.materials || [];
+  const rawMaterials = logic.projectDetails.materials || [];
+  // 🎯 منع ازدواجية الخامات إذا وُجد سجل توريد (receipt) وسجل صرف (issue) لنفس الخامة في نفس المشروع
+  const materials = useMemo(() => {
+    const hasIssues = rawMaterials.some((m: any) => m.movement_type === 'issue');
+    if (!hasIssues) return rawMaterials;
+    const issuedNames = new Set(
+      rawMaterials
+        .filter((m: any) => m.movement_type === 'issue')
+        .map((m: any) => String(m.item_name || m.material_name || '').trim())
+    );
+    return rawMaterials.filter(
+      (m: any) => m.movement_type === 'issue' || !issuedNames.has(String(m.item_name || m.material_name || '').trim())
+    );
+  }, [rawMaterials]);
   const boqItems = logic.projectDetails.boq || [];
 
   // 1️⃣ حالة التحكم في فلتر البند الإنشائي
