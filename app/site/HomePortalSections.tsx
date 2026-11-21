@@ -113,7 +113,7 @@ export default function HomePortalSections({
               من الأساس، نبني مشروعك.
             </h1>
             <p className="pw-panoramic-sub">
-              تنفيذ وإشراف هندسي للمشروعات السكنية والتجارية، بخطوات واضحة من الفكرة للتسليم.
+              إنشاءات وسباكة وكهرباء، بتنسيق متكامل وإشراف هندسي من الأساس للتسليم.
             </p>
           </div>
           <a className="pw-construction-scroll-cue" href="#portal-station-maintenance">

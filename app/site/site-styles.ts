@@ -814,7 +814,7 @@ body:has(.pw){padding:0!important}
 .pw-panoramic-floating-hero .pw-eyebrow{color:#ffb074;text-shadow:0 2px 14px rgba(0,0,0,.8)}
 .pw-portal-main-h1{font-size:clamp(1.85rem,3.6vw,2.85rem);font-weight:900;line-height:1.28;margin-bottom:10px;color:#fff;text-shadow:0 4px 24px rgba(0,0,0,.85)}
 .pw-panoramic-sub{font-size:clamp(.95rem,1.2vw,1.1rem);color:rgba(255,255,255,.92);text-shadow:0 2px 16px rgba(0,0,0,.85);max-width:54ch;margin:0 auto}
-.pw-panoramic-glass-band{position:relative;z-index:2;background:rgba(7,13,23,.34)!important;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border-top:1px solid rgba(255,255,255,.12)}
+.pw-panoramic-glass-band{position:relative;z-index:2;background:rgba(7,13,23,.34)!important;border-top:1px solid rgba(255,255,255,.12)}
 .pw-panoramic-glass-band .pw-panoramic-band-head .pw-eyebrow{color:#ffb074;text-shadow:0 2px 12px rgba(0,0,0,.8)}
 .pw-panoramic-glass-band .pw-panoramic-band-head h2{color:#ffffff;text-shadow:0 4px 20px rgba(0,0,0,.85)}
 .pw-panoramic-glass-band .pw-offer-card,.pw-panoramic-glass-band .pw-prod-card{background:rgba(255,255,255,.92);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
@@ -866,6 +866,7 @@ body:has(.pw){padding:0!important}
 .pw-construction-finale h2{font-size:clamp(1.5rem,3vw,2.4rem);font-weight:900;color:#fff;margin-bottom:20px}
 @media(max-width:700px){.pw-construction-status{bottom:154px;left:18px;font-size:.65rem}.pw-construction-track{width:42px}.pw-panoramic-floating-hero{margin:10vh auto auto}.pw-construction-scroll-cue{margin-bottom:14px}}
 @media(prefers-reduced-motion:reduce){.pw-split-reveal{transition:none!important;transform:none!important;opacity:1!important}.pw-construction-scroll-cue{scroll-behavior:auto}}
+@media(max-height:500px) and (orientation:landscape){.pw-panoramic-top-overlay{height:auto;min-height:calc(100svh + 150px);padding-top:76px;padding-bottom:90px;gap:20px}.pw-panoramic-floating-hero{margin:28px auto}.pw-construction-scroll-cue{margin:0 auto 16px}.pw-construction-status{display:none}}
 
 /* Service copy scrolls naturally over the architectural scene. */
 .pw-split-stage{position:relative;width:100%;min-height:100vh;background:transparent!important}

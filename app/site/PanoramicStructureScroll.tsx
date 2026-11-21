@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-const STAGES = ['الأساسات', 'أعمدة الدور الأرضي', 'السقف الأول', 'الأدوار العلوية', 'اكتمل الهيكل'];
+const STAGES = ['تجهيز الأساسات', 'التسليح وصب الأعمدة', 'الأسقف وتمديدات الخدمات', 'إنشاءات · سباكة · كهرباء', 'اكتمل الهيكل وتجهيز الخدمات'];
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
 export default function PanoramicStructureScroll() {
@@ -26,16 +26,19 @@ export default function PanoramicStructureScroll() {
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('webgl2', {
         alpha: true,
-        antialias: window.devicePixelRatio < 2,
+        antialias: true,
         powerPreference: 'low-power',
       });
       if (!context) { setFallback(true); return; }
       cleanups.push(() => {
         if (!context.isContextLost()) context.getExtension('WEBGL_lose_context')?.loseContext();
       });
-      const [THREE, { createConcreteStructure }] = await Promise.all([
+      const [THREE, { createConcreteStructure }, { createBuildingServices }, { createConstructionDetails }, { RoomEnvironment }] = await Promise.all([
         import('three'),
         import('./concrete-structure-three'),
+        import('./building-services-three'),
+        import('./construction-details-three'),
+        import('three/examples/jsm/environments/RoomEnvironment.js'),
       ]);
       if (disposed) return;
 
@@ -43,7 +46,7 @@ export default function PanoramicStructureScroll() {
         canvas,
         context,
         alpha: true,
-        antialias: window.devicePixelRatio < 2,
+        antialias: true,
         powerPreference: 'low-power',
       });
       cleanups.push(() => {
@@ -61,17 +64,21 @@ export default function PanoramicStructureScroll() {
       host!.appendChild(renderer.domElement);
 
       const scene = new THREE.Scene();
-      const camera = new THREE.OrthographicCamera(-20, 20, 12, -12, 0.1, 160);
-      const texture = new THREE.TextureLoader().load('/sections/concrete-surface.webp', () => {
-        if (!disposed && !failed) {
-          wake();
-        }
-      }, undefined, () => {
-        if (disposed || failed) return;
-        failed = true;
-        release();
-        setFallback(true);
-      });
+      const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 180);
+      let cameraDistance = 33;
+      const pmrem = new THREE.PMREMGenerator(renderer);
+      const room = new RoomEnvironment();
+      const environment = pmrem.fromScene(room, 0.04);
+      scene.environment = environment.texture;
+      scene.environmentIntensity = 0.22;
+      room.dispose();
+      pmrem.dispose();
+      cleanups.push(() => environment.dispose());
+      const atmosphere = new THREE.Fog(0x252d2f, 43, 143);
+      scene.background = new THREE.Color(0x252d2f);
+      scene.fog = atmosphere;
+      const texture = await new THREE.TextureLoader().loadAsync('/sections/concrete-surface.webp');
+      if (disposed) { texture.dispose(); return; }
       cleanups.push(() => texture.dispose());
       texture.colorSpace = THREE.SRGBColorSpace;
       texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -80,35 +87,37 @@ export default function PanoramicStructureScroll() {
       const structure = createConcreteStructure(THREE, texture);
       cleanups.push(() => structure.dispose());
       scene.add(structure.group);
-      scene.add(new THREE.HemisphereLight(0xd8e4ea, 0x6b6960, 2.5));
+      const services = createBuildingServices(THREE);
+      const construction = createConstructionDetails(THREE);
+      cleanups.push(() => services.dispose(), () => construction.dispose());
+      scene.add(services.group, construction.group);
+      scene.add(new THREE.HemisphereLight(0xd8e4ea, 0x6b6960, 0.95));
 
-      const sun = new THREE.DirectionalLight(0xfff7ed, 3.2);
+      const sun = new THREE.DirectionalLight(0xfff4e6, 3.8);
       sun.position.set(-18, 30, 22);
       sun.castShadow = true;
-      sun.shadow.mapSize.set(1024, 1024);
+      const shadowSize = window.innerWidth < 700 ? 1024 : 2048;
+      sun.shadow.mapSize.set(shadowSize, shadowSize);
       Object.assign(sun.shadow.camera, { left: -19, right: 19, top: 21, bottom: -15, near: 1, far: 90 });
       sun.shadow.bias = -0.0003;
       sun.shadow.normalBias = 0.035;
       cleanups.push(() => sun.shadow.dispose());
       scene.add(sun);
-      const fill = new THREE.DirectionalLight(0xe5e9ed, 1.4);
+      const fill = new THREE.DirectionalLight(0xe5e9ed, 0.55);
       fill.position.set(18, 12, -12);
       scene.add(fill);
 
-      const groundGeometry = new THREE.PlaneGeometry(100, 100);
-      const groundMaterial = new THREE.ShadowMaterial({ color: 0x000000, opacity: 0.34 });
+      const groundTexture = texture.clone();
+      groundTexture.repeat.set(24, 24);
+      cleanups.push(() => groundTexture.dispose());
+      const groundGeometry = new THREE.PlaneGeometry(600, 600);
+      const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x66665e, map: groundTexture });
       const ground = new THREE.Mesh(groundGeometry, groundMaterial);
       ground.rotation.x = -Math.PI / 2;
-      ground.position.y = -0.065;
+      ground.position.y = -0.43;
       ground.receiveShadow = true;
       scene.add(ground);
       cleanups.push(() => { groundGeometry.dispose(); groundMaterial.dispose(); });
-      const grid = new THREE.GridHelper(46, 23, 0x95734d, 0x62615b);
-      grid.position.y = -0.055;
-      grid.material.transparent = true;
-      grid.material.opacity = 0.12;
-      scene.add(grid);
-      cleanups.push(() => { grid.geometry.dispose(); grid.material.dispose(); });
 
       const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
       let target = 0;
@@ -132,7 +141,19 @@ export default function PanoramicStructureScroll() {
 
       function readProgress() {
         const page = host!.closest('.pw') || document.documentElement;
-        target = clamp(-page.getBoundingClientRect().top / Math.max(1, page.scrollHeight - window.innerHeight));
+        const pageTop = page.getBoundingClientRect().top;
+        const traveled = Math.max(0, -pageTop);
+        const total = Math.max(1, page.scrollHeight - window.innerHeight);
+        const story = page.querySelector('#portals');
+        const storyEnd = story
+          ? Math.min(total, Math.max(1, story.getBoundingClientRect().bottom - pageTop - window.innerHeight))
+          : total;
+        // Most assembly happens while the service chapters leave the scene visible.
+        // Keep the completed frame behind the catalog, contact section, and finale.
+        target = clamp(storyEnd >= total
+          ? traveled / total
+          : traveled <= storyEnd ? 0.9 * traveled / storyEnd
+            : 0.9 + 0.1 * (traveled - storyEnd) / (total - storyEnd));
         updateStatus(target);
         if (!motion.matches) wake();
       }
@@ -141,11 +162,11 @@ export default function PanoramicStructureScroll() {
         const width = host!.clientWidth || window.innerWidth;
         const height = host!.clientHeight || window.innerHeight;
         const aspect = width / Math.max(1, height);
-        const halfHeight = Math.max(11.6, 11.6 / aspect);
-        camera.left = -halfHeight * aspect;
-        camera.right = halfHeight * aspect;
-        camera.top = halfHeight;
-        camera.bottom = -halfHeight;
+        camera.aspect = aspect;
+        cameraDistance = Math.max(33, 27 / aspect);
+        atmosphere.near = cameraDistance * 1.3;
+        atmosphere.far = atmosphere.near + 100;
+        camera.far = atmosphere.far + 30;
         camera.updateProjectionMatrix();
         renderer.setSize(width, height);
         readProgress();
@@ -162,12 +183,15 @@ export default function PanoramicStructureScroll() {
         const moving = Math.abs(desired - current) > 0.0003;
         if (!moving) current = desired;
         structure.setProgress(current);
+        services.setProgress(current);
+        construction.setProgress(current);
         const angle = -0.56 + current * 0.12;
-        camera.position.set(Math.sin(angle) * 37, 23, Math.cos(angle) * 37);
+        camera.position.set(Math.sin(angle) * cameraDistance, 6.1 + cameraDistance * 0.32, Math.cos(angle) * cameraDistance);
         camera.lookAt(0, 6.1, 0);
         renderer.render(scene, camera);
         host!.dataset.sceneReady = 'true';
         host!.dataset.renderProgress = current.toFixed(4);
+        host!.dataset.renderSettled = String(!moving);
         if (moving) wake();
       }
 
