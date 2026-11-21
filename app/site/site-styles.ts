@@ -847,10 +847,10 @@ body:has(.pw){padding:0!important}
 .pw-portal-card.is-active .pw-portal-cta,.pw-portal-card:hover .pw-portal-cta{background:var(--portal-accent,var(--o));color:#fff}
 
 /* One architectural scene stays behind the full public homepage. */
-.pw:has(>.pw-construction){isolation:isolate;background:#151b1f}
+.pw:has(>.pw-construction){isolation:isolate;background:#16202a}
 .pw:has(>.pw-construction)>main{position:relative;z-index:1}
-.pw-construction{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:#151b1f;direction:rtl}
-.pw-construction-horizon{position:absolute;inset:0;background:radial-gradient(ellipse at 59% 44%,rgba(190,160,119,.23),transparent 57%),linear-gradient(180deg,#141d23 0%,#293236 57%,#252726 100%)}
+.pw-construction{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:#16202a;direction:rtl}
+.pw-construction-horizon{position:absolute;inset:0;background:radial-gradient(ellipse at 59% 42%,rgba(218,166,108,.24),transparent 58%),linear-gradient(180deg,#121c26 0%,#16202a 56%,#1f262c 100%)}
 .pw-construction-canvas,.pw-construction-canvas canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
 .pw-construction-poster{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
 .pw-construction-shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(9,15,19,.32),transparent 30%,transparent 65%,rgba(9,15,19,.35)),linear-gradient(90deg,rgba(9,15,19,.16),transparent 30%,transparent 75%,rgba(9,15,19,.16))}

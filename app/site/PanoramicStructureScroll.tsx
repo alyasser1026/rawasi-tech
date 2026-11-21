@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-const STAGES = ['تجهيز الأساسات', 'التسليح وصب الأعمدة', 'الأسقف وتمديدات الخدمات', 'إنشاءات · سباكة · كهرباء', 'اكتمل الهيكل وتجهيز الخدمات'];
+const STAGES = [
+  'تجهيز الموقع والأساسات',
+  'التسليح وصب الهيكل الخرساني',
+  'الأسقف وتمديدات السباكة والكهرباء',
+  'الواجهات المعمارية والزجاج والشرفات',
+  'اكتمال العمارة والرووف والتشطيب النهائي',
+];
 const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
 export default function PanoramicStructureScroll() {
@@ -33,11 +39,12 @@ export default function PanoramicStructureScroll() {
       cleanups.push(() => {
         if (!context.isContextLost()) context.getExtension('WEBGL_lose_context')?.loseContext();
       });
-      const [THREE, { createConcreteStructure }, { createBuildingServices }, { createConstructionDetails }, { RoomEnvironment }] = await Promise.all([
+      const [THREE, { createConcreteStructure }, { createBuildingServices }, { createConstructionDetails }, { createArchitecturalBuilding }, { RoomEnvironment }] = await Promise.all([
         import('three'),
         import('./concrete-structure-three'),
         import('./building-services-three'),
         import('./construction-details-three'),
+        import('./architectural-building-three'),
         import('three/examples/jsm/environments/RoomEnvironment.js'),
       ]);
       if (disposed) return;
@@ -56,7 +63,7 @@ export default function PanoramicStructureScroll() {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.25 : 1.6));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.14;
+      renderer.toneMappingExposure = 1.18;
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFShadowMap;
       renderer.setClearColor(0x000000, 0);
@@ -65,17 +72,17 @@ export default function PanoramicStructureScroll() {
 
       const scene = new THREE.Scene();
       const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 180);
-      let cameraDistance = 33;
+      let cameraDistance = 35;
       const pmrem = new THREE.PMREMGenerator(renderer);
       const room = new RoomEnvironment();
       const environment = pmrem.fromScene(room, 0.04);
       scene.environment = environment.texture;
-      scene.environmentIntensity = 0.22;
+      scene.environmentIntensity = 0.34;
       room.dispose();
       pmrem.dispose();
       cleanups.push(() => environment.dispose());
-      const atmosphere = new THREE.Fog(0x252d2f, 43, 143);
-      scene.background = new THREE.Color(0x252d2f);
+      const atmosphere = new THREE.Fog(0x16202a, 46, 152);
+      scene.background = new THREE.Color(0x16202a);
       scene.fog = atmosphere;
       const texture = await new THREE.TextureLoader().loadAsync('/sections/concrete-surface.webp');
       if (disposed) { texture.dispose(); return; }
@@ -89,29 +96,33 @@ export default function PanoramicStructureScroll() {
       scene.add(structure.group);
       const services = createBuildingServices(THREE);
       const construction = createConstructionDetails(THREE);
-      cleanups.push(() => services.dispose(), () => construction.dispose());
-      scene.add(services.group, construction.group);
-      scene.add(new THREE.HemisphereLight(0xd8e4ea, 0x6b6960, 0.95));
+      const architecture = createArchitecturalBuilding(THREE, texture);
+      cleanups.push(() => services.dispose(), () => construction.dispose(), () => architecture.dispose());
+      scene.add(services.group, construction.group, architecture.group);
+      scene.add(new THREE.HemisphereLight(0xcbe0f2, 0x4c473f, 1.05));
 
-      const sun = new THREE.DirectionalLight(0xfff4e6, 3.8);
-      sun.position.set(-18, 30, 22);
+      const sun = new THREE.DirectionalLight(0xffe9cf, 4.1);
+      sun.position.set(-18, 31, 23);
       sun.castShadow = true;
       const shadowSize = window.innerWidth < 700 ? 1024 : 2048;
       sun.shadow.mapSize.set(shadowSize, shadowSize);
-      Object.assign(sun.shadow.camera, { left: -19, right: 19, top: 21, bottom: -15, near: 1, far: 90 });
+      Object.assign(sun.shadow.camera, { left: -21, right: 21, top: 24, bottom: -15, near: 1, far: 95 });
       sun.shadow.bias = -0.0003;
       sun.shadow.normalBias = 0.035;
       cleanups.push(() => sun.shadow.dispose());
       scene.add(sun);
-      const fill = new THREE.DirectionalLight(0xe5e9ed, 0.55);
-      fill.position.set(18, 12, -12);
+      const fill = new THREE.DirectionalLight(0xd9e6f2, 0.65);
+      fill.position.set(18, 13, -12);
       scene.add(fill);
+      const rim = new THREE.DirectionalLight(0xffb574, 0.62);
+      rim.position.set(-14, 9, -18);
+      scene.add(rim);
 
       const groundTexture = texture.clone();
       groundTexture.repeat.set(24, 24);
       cleanups.push(() => groundTexture.dispose());
       const groundGeometry = new THREE.PlaneGeometry(600, 600);
-      const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x66665e, map: groundTexture });
+      const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x3a4046, map: groundTexture });
       const ground = new THREE.Mesh(groundGeometry, groundMaterial);
       ground.rotation.x = -Math.PI / 2;
       ground.position.y = -0.43;
@@ -128,7 +139,7 @@ export default function PanoramicStructureScroll() {
       let lastPercent = -1;
 
       function updateStatus(value: number) {
-        const stage = motion.matches ? 4 : value < 0.12 ? 0 : value < 0.25 ? 1 : value < 0.39 ? 2 : value < 0.9 ? 3 : 4;
+        const stage = motion.matches ? 4 : value < 0.12 ? 0 : value < 0.32 ? 1 : value < 0.56 ? 2 : value < 0.88 ? 3 : 4;
         if (stage !== lastStage && statusRef.current) statusRef.current.textContent = STAGES[stage];
         lastStage = stage;
         const percent = Math.round(value * 100);
@@ -163,7 +174,7 @@ export default function PanoramicStructureScroll() {
         const height = host!.clientHeight || window.innerHeight;
         const aspect = width / Math.max(1, height);
         camera.aspect = aspect;
-        cameraDistance = Math.max(33, 27 / aspect);
+        cameraDistance = Math.max(35, 29 / aspect);
         atmosphere.near = cameraDistance * 1.3;
         atmosphere.far = atmosphere.near + 100;
         camera.far = atmosphere.far + 30;
@@ -185,9 +196,11 @@ export default function PanoramicStructureScroll() {
         structure.setProgress(current);
         services.setProgress(current);
         construction.setProgress(current);
-        const angle = -0.56 + current * 0.12;
-        camera.position.set(Math.sin(angle) * cameraDistance, 6.1 + cameraDistance * 0.32, Math.cos(angle) * cameraDistance);
-        camera.lookAt(0, 6.1, 0);
+        architecture.setProgress(current);
+        const angle = -0.62 + current * 0.26;
+        const focusY = 6.2 + current * 1.15;
+        camera.position.set(Math.sin(angle) * cameraDistance, focusY + cameraDistance * 0.29, Math.cos(angle) * cameraDistance);
+        camera.lookAt(0, focusY, 0);
         renderer.render(scene, camera);
         host!.dataset.sceneReady = 'true';
         host!.dataset.renderProgress = current.toFixed(4);

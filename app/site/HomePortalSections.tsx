@@ -12,7 +12,7 @@ interface HomePortalSectionsProps {
   properties?: WebsiteProperty[];
   newsTicker?: NewsTickerConfig;
   whatsappNumber: string;
-  onAddToCart: (product: WebsiteProduct, qty: number, withInstall: boolean) => void;
+  onAddToCart?: (product: WebsiteProduct, qty: number, withInstall: boolean) => void;
   onAddBundleToCart: (items: { product: WebsiteProduct; qty: number }[], withInstall: boolean) => void;
 }
 
@@ -20,7 +20,6 @@ export default function HomePortalSections({
   products,
   newsTicker = DEFAULT_NEWS_TICKER,
   whatsappNumber,
-  onAddToCart,
   onAddBundleToCart,
 }: HomePortalSectionsProps) {
   const waDigits = (whatsappNumber || '201558888744').replace(/\D/g, '') || '201558888744';
@@ -31,29 +30,6 @@ export default function HomePortalSections({
       'noopener,noreferrer'
     );
   };
-
-  // --- أهم المنتجات (فلتر مبسط على الرئيسية) ---
-  const [featuredTab, setFeaturedTab] = useState<'all' | 'smart' | 'mep' | 'finishing'>('all');
-  const [featuredInstallMap, setFeaturedInstallMap] = useState<Record<string, boolean>>({});
-
-  const featuredProducts = useMemo(() => {
-    const base = products.filter((p) => p.featured);
-    const list = base.length > 0 ? base : products.slice(0, 8);
-    if (featuredTab === 'all') return list.slice(0, 4);
-    if (featuredTab === 'smart') {
-      return products
-        .filter((p) => ['smart_home', 'low_current', 'safety_sensors'].includes(p.category))
-        .slice(0, 4);
-    }
-    if (featuredTab === 'mep') {
-      return products
-        .filter((p) => ['electrical', 'plumbing'].includes(p.category))
-        .slice(0, 4);
-    }
-    return products
-      .filter((p) => ['paint', 'ceramics', 'marble', 'decor'].includes(p.category))
-      .slice(0, 4);
-  }, [products, featuredTab]);
 
   // Track the visible service without taking control of page scrolling.
   const [hoveredSlug, setHoveredSlug] = useState<SectionSlug | null>(null);
@@ -249,89 +225,6 @@ export default function HomePortalSections({
                 </Link>
               </div>
             </article>
-          </div>
-        </div>
-      </section>
-
-      {/* 3. أهم المنتجات الأكثر طلباً */}
-      <section className="pw-section pw-panoramic-glass-band" aria-labelledby="featured-products-heading" style={{ paddingBlock: '56px' }}>
-        <div className="pw-wrap">
-          <div className="pw-head pw-panoramic-band-head" style={{ marginBottom: '26px' }}>
-            <p className="pw-eyebrow">أهم المنتجات</p>
-            <h2 id="featured-products-heading">أكثر المنتجات طلباً في المتجر</h2>
-          </div>
-
-          <div className="pw-chip-bar" style={{ justifyContent: 'center' }}>
-            {[
-              { id: 'all', label: '⭐ الأبرز' },
-              { id: 'smart', label: '📱 سمارت هوم وأمان' },
-              { id: 'mep', label: '⚡ كهرباء وسباكة' },
-              { id: 'finishing', label: '🎨 دهانات وبورسلان وديكور' },
-            ].map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                className={`pw-chip ${featuredTab === t.id ? 'is-on' : ''}`}
-                onClick={() => setFeaturedTab(t.id as typeof featuredTab)}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="pw-prod-grid">
-            {featuredProducts.map((p) => {
-              const withInstall = Boolean(featuredInstallMap[p.id]);
-              return (
-                <article key={p.id} className="pw-prod-card">
-                  <div>
-                    <div className="pw-prod-top">
-                      <span className="pw-prod-code">{p.code}</span>
-                      {p.badge && <span className="pw-prod-badge">{p.badge}</span>}
-                    </div>
-                    <h3>{p.name}</h3>
-                    <p className="pw-prod-desc">{p.description}</p>
-                  </div>
-
-                  <div className="pw-prod-foot">
-                    <label className="pw-prod-install-check">
-                      <input
-                        type="checkbox"
-                        checked={withInstall}
-                        onChange={() =>
-                          setFeaturedInstallMap((prev) => ({ ...prev, [p.id]: !prev[p.id] }))
-                        }
-                      />
-                      <span>توريد + تركيب هندسي</span>
-                    </label>
-                    <div className="pw-prod-actions">
-                      <button
-                        type="button"
-                        className="pw-btn pw-btn-primary"
-                        style={{ flex: 1, minHeight: '38px', padding: '0 12px', fontSize: '0.82rem' }}
-                        onClick={() => onAddToCart(p, 1, withInstall)}
-                      >
-                        🛒 أضف للسلة
-                      </button>
-                      <button
-                        type="button"
-                        className="pw-btn pw-btn-ghost"
-                        style={{ minHeight: '38px', padding: '0 12px', fontSize: '0.82rem' }}
-                        onClick={() => openWhatsApp(`أريد سعر وطلب المنتج: ${p.name} (${p.code})`)}
-                      >
-                        السعر
-                      </button>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
-            <Link href="/store" className="pw-btn pw-btn-primary">
-              🛒 استعرض جميع المنتجات ({products.length} منتج وعرض) ←
-            </Link>
           </div>
         </div>
       </section>

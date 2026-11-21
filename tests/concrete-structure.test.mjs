@@ -11,6 +11,13 @@ async function loadBuilder(file, exportedName) {
   return (await import(`data:text/javascript;base64,${Buffer.from(resolved).toString('base64')}`))[exportedName];
 }
 
+const builders = [
+  ['concrete', await loadBuilder('concrete-structure-three', 'createConcreteStructure')],
+  ['services', await loadBuilder('building-services-three', 'createBuildingServices')],
+  ['site equipment', await loadBuilder('construction-details-three', 'createConstructionDetails')],
+  ['architectural building', await loadBuilder('architectural-building-three', 'createArchitecturalBuilding')],
+];
+
 test('completed service routes clear both stair flights and landings', () => {
   const structure = builders[0][1](THREE);
   const services = builders[1][1](THREE);
@@ -52,11 +59,6 @@ test('completed construction omits temporary equipment and concealed reinforceme
   assert.ok(reinforcement.count < reinforcement.instanceMatrix.count / 10, 'Concealed cages must not waste GPU work');
   model.dispose();
 });
-const builders = [
-  ['concrete', await loadBuilder('concrete-structure-three', 'createConcreteStructure')],
-  ['services', await loadBuilder('building-services-three', 'createBuildingServices')],
-  ['site equipment', await loadBuilder('construction-details-three', 'createConstructionDetails')],
-];
 const matrices = (model) => {
   const values = [];
   model.group.traverse((object) => {

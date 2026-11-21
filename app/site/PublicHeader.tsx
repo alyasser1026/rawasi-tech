@@ -30,6 +30,7 @@ export default function PublicHeader({
   portalHref,
   onOpenLogin,
   onSignOut,
+  onOpenContact,
 }: {
   siteName?: string;
   siteNameEn?: string;
@@ -41,6 +42,7 @@ export default function PublicHeader({
   portalHref?: string | null;
   onOpenLogin: () => void;
   onSignOut?: () => void;
+  onOpenContact?: () => void;
 }) {
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -102,6 +104,22 @@ export default function PublicHeader({
 
             {PUBLIC_NAV_ITEMS.map((item) => {
               const isActive = item.key === activeKey;
+              if (item.key === 'contact' && onOpenContact) {
+                return (
+                  <a
+                    key={item.key}
+                    href="#contact"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setOpen(false);
+                      onOpenContact();
+                    }}
+                  >
+                    <span>{item.label}</span>
+                    <span className="pw-nav-arrow" aria-hidden="true">←</span>
+                  </a>
+                );
+              }
               const href = activeKey === 'home' && item.key === 'contact' ? '#contact' : item.href;
               return (
                 <Link
