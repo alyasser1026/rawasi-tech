@@ -325,13 +325,13 @@ export default function OrderJourneyShowcase({
         <div className="pw-sim-top-head">
           <span className="pw-sim-live-pill">
             <i aria-hidden="true" />
-            <span>المبيعات والسمارت هوم · تجربة موحّدة</span>
+            <span>خطوات الطلب · شرح عملي</span>
           </span>
           <h2 id="order-sim-heading">
-            منصة واحدة للتسوق والتوريد — <em>تزامن لحظي</em> بين الويب وتطبيق الجوال
+            كيف تطلب في <em>4 خطوات</em> بسيطة؟
           </h2>
           <p className="pw-sim-lead">
-            اختر الخامات والأنظمة الذكية، فعّل التركيب الهندسي، وأكّد طلبك من المتصفح أو تطبيق iOS وAndroid برقم طلب موثّق.
+            شاهد كيف تختار المنتج، تفعّل التركيب الهندسي، وتؤكد طلبك من الموقع أو تطبيق الجوال في ثوانٍ.
           </p>
         </div>
 

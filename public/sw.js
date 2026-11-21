@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'phi-shell-v8';
+const CACHE_VERSION = 'phi-shell-v9';
 const SHELL_URLS = [
   '/',
   '/manifest.json',
