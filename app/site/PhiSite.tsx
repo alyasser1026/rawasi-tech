@@ -107,7 +107,7 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
         <div className="pw-wrap">
           <div className="pw-footer-row">
             <div className="pw-footer-brand">
-              <img src="/brand/phitech-mark-light.svg" alt="" />
+              <img src="/brand/phitech-mark-color.svg" alt="" />
               <div><strong>{SITE.legalName}</strong><small>{SITE.offices.join(' · ')}</small></div>
             </div>
             <nav className="pw-footer-nav" aria-label="روابط التذييل">

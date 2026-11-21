@@ -683,11 +683,11 @@ export default function OrderJourneyShowcase({
           <Link href="/sections/materials" className="pw-btn pw-btn-primary">
             ادخل قسم المبيعات والسمارت هوم ←
           </Link>
-          <Link href="/store" className="pw-btn pw-btn-light">
+          <Link href="/store" className="pw-btn pw-btn-ghost">
             تصفح المتجر الكامل
           </Link>
           {onOpenContact && (
-            <button type="button" className="pw-btn pw-btn-light" onClick={onOpenContact}>
+            <button type="button" className="pw-btn pw-btn-ghost" onClick={onOpenContact}>
               تواصل مع مهندس المبيعات
             </button>
           )}

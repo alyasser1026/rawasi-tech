@@ -336,7 +336,7 @@ export default function HomePortalSections({
                         {onOpenContact && (
                           <button
                             type="button"
-                            className="pw-btn pw-btn-light"
+                            className="pw-btn pw-btn-ghost"
                             style={{ minHeight: '36px', padding: '0 14px', fontSize: '0.8rem' }}
                             onClick={() => {
                               setSearchOpen(false);
@@ -577,7 +577,7 @@ export default function HomePortalSections({
               </p>
             </div>
             {onOpenCart && (
-              <button type="button" className="pw-btn pw-btn-light" onClick={onOpenCart}>
+              <button type="button" className="pw-btn pw-btn-ghost" onClick={onOpenCart}>
                 مراجعة السلة
               </button>
             )}
@@ -693,14 +693,14 @@ export default function HomePortalSections({
             {visibleCount > INITIAL_BEST_SELLERS && (
               <button
                 type="button"
-                className="pw-btn pw-btn-light"
+                className="pw-btn pw-btn-ghost"
                 onClick={() => setVisibleCount(INITIAL_BEST_SELLERS)}
               >
                 إظهار أهم {INITIAL_BEST_SELLERS} فقط
               </button>
             )}
 
-            <Link href="/store" className="pw-btn pw-btn-light">
+            <Link href="/store" className="pw-btn pw-btn-ghost">
               تصفح المتجر بالكامل ({products.length} منتج) ←
             </Link>
           </div>
