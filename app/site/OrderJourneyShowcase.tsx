@@ -28,7 +28,7 @@ const SALES_SCENARIOS: SalesScenario[] = [
   {
     id: 'smart-lock',
     code: 'SM-02',
-    categoryLabel: '📱 سمارت هوم والتحكم الذكي',
+    categoryLabel: 'سمارت هوم والتحكم الذكي',
     searchQueryText: 'قفل باب ذكي 6×1',
     urls: [
       'phitech.eg/sections/materials?q=smart-lock',
@@ -55,7 +55,7 @@ const SALES_SCENARIOS: SalesScenario[] = [
     companionCode: 'SM-01',
     specLabel: 'توريد + برمجة وتركيب هندسي معتمد',
     optionBadge: 'ضمان 3 سنوات',
-    ctaLabel: '🛒 أضف للسلة',
+    ctaLabel: 'أضف للسلة',
     unitPriceLabel: 'باقة توريد وتركيب معتمدة',
     orderCode: 'ORD-PHI-842',
     orderSummary: 'تم تأكيد طلب القفل الذكي 6×1 وجاري تنسيق موعد التوصيل والتركيب',
@@ -63,7 +63,7 @@ const SALES_SCENARIOS: SalesScenario[] = [
   {
     id: 'crystal-switches',
     code: 'EL-01',
-    categoryLabel: '⚡ أدوات الكهرباء والإنارة',
+    categoryLabel: 'أدوات الكهرباء والإنارة',
     searchQueryText: 'طقم مفاتيح زجاجي كريستال',
     urls: [
       'phitech.eg/sections/materials?q=switches',
@@ -90,7 +90,7 @@ const SALES_SCENARIOS: SalesScenario[] = [
     companionCode: 'SM-03',
     specLabel: 'توريد معتمد + تركيب وفحص الأحمال',
     optionBadge: 'ضمان 10 سنوات',
-    ctaLabel: '🛒 أضف للسلة',
+    ctaLabel: 'أضف للسلة',
     unitPriceLabel: 'توريد كميات وتشطيب كامل',
     orderCode: 'ORD-PHI-914',
     orderSummary: 'تم تجهيز طقم المفاتيح الكريستال من المخزن وجاري الشحن',
@@ -98,7 +98,7 @@ const SALES_SCENARIOS: SalesScenario[] = [
   {
     id: 'calacatta',
     code: 'CR-01',
-    categoryLabel: '🟫 السيراميك والبورسلان',
+    categoryLabel: 'السيراميك والبورسلان',
     searchQueryText: 'بورسلان كلكتا ذهبي 120×60',
     urls: [
       'phitech.eg/sections/materials?q=calacatta',
@@ -125,7 +125,7 @@ const SALES_SCENARIOS: SalesScenario[] = [
     companionCode: 'PT-01',
     specLabel: 'توريد فرز أول + تركيب بميزان الليزر',
     optionBadge: 'فرز أول إسباني/إيطالي',
-    ctaLabel: '🛒 أضف للسلة',
+    ctaLabel: 'أضف للسلة',
     unitPriceLabel: 'تسعير المتر المربع والمشروع',
     orderCode: 'ORD-PHI-738',
     orderSummary: 'تم اعتماد كمية بورسلان كلكتا وجاري شحن الطلب للموقع',
@@ -139,7 +139,7 @@ const PHONE_NAV_ITEMS = [
   { id: 'orders', label: 'طلباتي' },
 ];
 
-const STEP_DURATION_MS = 3200;
+const STEP_DURATION_MS = 4300;
 
 export default function OrderJourneyShowcase({
   onOpenContact,
@@ -199,13 +199,13 @@ export default function OrderJourneyShowcase({
       setTypedLen(0);
       setInstallChecked(false);
       let count = 0;
-      const charMs = Math.max(38, Math.floor(1100 / Math.max(1, query.length)));
+      const charMs = Math.max(42, Math.floor(1300 / Math.max(1, query.length)));
       const typeTimer = window.setInterval(() => {
         count += 1;
         setTypedLen(count);
         if (count >= query.length) window.clearInterval(typeTimer);
       }, charMs);
-      const tapTimer = window.setTimeout(() => setTapping(true), 2450);
+      const tapTimer = window.setTimeout(() => setTapping(true), 3450);
       return () => {
         window.clearInterval(typeTimer);
         window.clearTimeout(tapTimer);
@@ -215,8 +215,8 @@ export default function OrderJourneyShowcase({
     if (step === 1) {
       setTypedLen(query.length);
       setInstallChecked(false);
-      const checkTimer = window.setTimeout(() => setInstallChecked(true), 950);
-      const tapTimer = window.setTimeout(() => setTapping(true), 2450);
+      const checkTimer = window.setTimeout(() => setInstallChecked(true), 1350);
+      const tapTimer = window.setTimeout(() => setTapping(true), 3450);
       return () => {
         window.clearTimeout(checkTimer);
         window.clearTimeout(tapTimer);
@@ -225,7 +225,7 @@ export default function OrderJourneyShowcase({
 
     if (step === 2) {
       setInstallChecked(true);
-      const tapTimer = window.setTimeout(() => setTapping(true), 2400);
+      const tapTimer = window.setTimeout(() => setTapping(true), 3400);
       return () => window.clearTimeout(tapTimer);
     }
 
@@ -415,8 +415,8 @@ export default function OrderJourneyShowcase({
                           </div>
                           <div className="pw-sim-customer-box">
                             <div>
-                              <strong>👤 م. أحمد · 010•••••482</strong>
-                              <small>📍 القاهرة الجديدة · تأكيد قبل التوريد</small>
+                              <strong>م. أحمد · 010•••••482</strong>
+                              <small>القاهرة الجديدة · تأكيد قبل التوريد</small>
                             </div>
                             <span className="pw-sim-verified-pill">مؤكد ✓</span>
                           </div>
@@ -580,8 +580,8 @@ export default function OrderJourneyShowcase({
                         </div>
                         <div className="pw-sim-customer-box">
                           <div>
-                            <strong>👤 م. أحمد · 010•••••482</strong>
-                            <small>📍 القاهرة الجديدة</small>
+                            <strong>م. أحمد · 010•••••482</strong>
+                            <small>القاهرة الجديدة</small>
                           </div>
                           <span className="pw-sim-verified-pill">✓</span>
                         </div>
@@ -684,11 +684,11 @@ export default function OrderJourneyShowcase({
             ادخل قسم المبيعات والسمارت هوم ←
           </Link>
           <Link href="/store" className="pw-btn pw-btn-light">
-            🛒 تصفح المتجر الكامل
+            تصفح المتجر الكامل
           </Link>
           {onOpenContact && (
             <button type="button" className="pw-btn pw-btn-light" onClick={onOpenContact}>
-              💬 تواصل مع مهندس المبيعات
+              تواصل مع مهندس المبيعات
             </button>
           )}
         </div>

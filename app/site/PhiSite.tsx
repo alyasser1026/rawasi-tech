@@ -131,7 +131,7 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
             <div className="pw-footer-actions">
               <Link href="/verify" className="pw-footer-link is-accent">التحقق من صحة المستندات</Link>
               {(cart.portalHref || !cart.user) && (
-                <Link href={cart.portalHref || '/login?portal=employee'} className="pw-footer-link">🏢 بوابة الموظفين</Link>
+                <Link href={cart.portalHref || '/login?portal=employee'} className="pw-footer-link">بوابة الموظفين</Link>
               )}
               {!cart.user && (
                 <a href="/login" className="pw-footer-link" onClick={handleOpenLogin}>تسجيل الدخول</a>

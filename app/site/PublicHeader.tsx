@@ -9,10 +9,10 @@ export type PublicNavActiveKey = 'home' | SectionSlug | 'store';
 
 export const PUBLIC_NAV_ITEMS: Array<{ key: PublicNavActiveKey | 'contact'; href: string; label: string }> = [
   { key: 'home', href: '/', label: 'الأقسام' },
-  { key: 'contracting', href: '/sections/contracting', label: '🏗️ المقاولات والتنفيذ' },
-  { key: 'materials', href: '/sections/materials', label: '🛍️ المبيعات والسمارت هوم' },
-  { key: 'info', href: '/sections/info', label: '📚 معلومات' },
-  { key: 'store', href: '/store', label: '🛒 المتجر' },
+  { key: 'contracting', href: '/sections/contracting', label: 'المقاولات والتنفيذ' },
+  { key: 'materials', href: '/sections/materials', label: 'المبيعات والسمارت هوم' },
+  { key: 'info', href: '/sections/info', label: 'معلومات' },
+  { key: 'store', href: '/store', label: 'المتجر' },
   { key: 'contact', href: '/#contact', label: 'تواصل' },
 ];
 
@@ -149,7 +149,7 @@ export default function PublicHeader({
                 onClick={() => setOpen(false)}
                 className={`pw-btn pw-nav-portal ${portalHref ? 'is-ready' : 'is-guest'}`}
               >
-                <span>🏢 بوابة الموظفين</span>
+                <span>بوابة الموظفين</span>
                 <span className="pw-nav-arrow" aria-hidden="true">←</span>
               </Link>
             )}
@@ -164,7 +164,7 @@ export default function PublicHeader({
                   className="pw-btn pw-btn-primary pw-nav-cta"
                   title="قائمة الحساب وبوابة الموظفين"
                 >
-                  <span>👤 {userName.split(' ')[0]}</span>
+                  <span>{userName.split(' ')[0]}</span>
                   <span style={{ fontSize: '0.7rem', opacity: 0.9 }} aria-hidden="true">
                     {accountOpen ? '▴' : '▾'}
                   </span>
@@ -283,7 +283,13 @@ export default function PublicHeader({
         </Link>
 
         <Link href="/store" className={`pw-dock-item ${activeKey === 'store' ? 'is-active' : ''}`} onClick={() => setOpen(false)}>
-          <span className="pw-dock-icon">🛒</span>
+          <span className="pw-dock-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <circle cx="9" cy="20" r="1" />
+              <circle cx="17" cy="20" r="1" />
+              <path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h8.8a2 2 0 0 0 2-1.5L22 8H6" />
+            </svg>
+          </span>
           <span className="pw-dock-label">المتجر</span>
         </Link>
 
@@ -306,7 +312,13 @@ export default function PublicHeader({
         </button>
 
         <Link href="/sections/materials" className={`pw-dock-item ${normalizedActiveKey === 'materials' ? 'is-active' : ''}`} onClick={() => setOpen(false)}>
-          <span className="pw-dock-icon">🛍️</span>
+          <span className="pw-dock-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="3" y="4" width="18" height="16" rx="2" />
+              <path d="M8 9h8" />
+              <path d="M8 14h5" />
+            </svg>
+          </span>
           <span className="pw-dock-label">المبيعات</span>
         </Link>
 

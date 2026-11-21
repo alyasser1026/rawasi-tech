@@ -12,9 +12,8 @@ import {
   type WebsiteProduct,
 } from './store-catalog';
 import { PORTAL_SECTIONS, type SectionSlug } from './section-defs';
-import NewsTicker from './NewsTicker';
 import OrderJourneyShowcase from './OrderJourneyShowcase';
-import { DEFAULT_NEWS_TICKER, type NewsTickerConfig } from './site-content';
+import type { NewsTickerConfig } from './site-content';
 
 interface HomePortalSectionsProps {
   products?: WebsiteProduct[];
@@ -74,22 +73,19 @@ const TOOL_SHORTCUTS: EngineeringToolShortcut[] = [
   },
 ];
 
-const BESTSELLER_FILTER_CHIPS: { id: 'all' | ProductCategoryId; label: string; icon: string }[] = [
-  { id: 'all', label: 'الكل (الأكثر مبيعاً)', icon: '🔥' },
-  { id: 'smart_home', label: 'سمارت هوم', icon: '📱' },
-  { id: 'electrical', label: 'كهرباء وإنارة', icon: '⚡' },
-  { id: 'paint', label: 'دهانات وعوازل', icon: '🎨' },
-  { id: 'ceramics', label: 'بورسلان وسيراميك', icon: '🟫' },
-  { id: 'plumbing', label: 'سباكة وصحي', icon: '🚰' },
-  { id: 'marble', label: 'رخام ومطابخ', icon: '🪨' },
-  { id: 'low_current', label: 'كاميرات 4K', icon: '📡' },
-  { id: 'safety_sensors', label: 'حساسات أمان', icon: '🚨' },
+const BESTSELLER_FILTER_CHIPS: { id: 'all' | ProductCategoryId; label: string }[] = [
+  { id: 'all', label: 'الكل' },
+  { id: 'smart_home', label: 'سمارت هوم' },
+  { id: 'electrical', label: 'كهرباء وإنارة' },
+  { id: 'paint', label: 'دهانات وعوازل' },
+  { id: 'ceramics', label: 'بورسلان وسيراميك' },
+  { id: 'plumbing', label: 'سباكة وصحي' },
+  { id: 'safety_sensors', label: 'أمان وحساسات' },
 ];
 
 export default function HomePortalSections({
   products = DEFAULT_PRODUCTS,
   maintenanceServices = DEFAULT_MAINTENANCE_SERVICES,
-  newsTicker = DEFAULT_NEWS_TICKER,
   whatsappNumber = '',
   onAddToCart,
   onOpenCart,
@@ -277,10 +273,6 @@ export default function HomePortalSections({
           ========================================================= */}
       <section className="pw-welcome-band" aria-labelledby="welcome-hero-heading">
         <div className="pw-wrap">
-          <div className="pw-welcome-ticker">
-            <NewsTicker config={newsTicker} />
-          </div>
-
           <div className="pw-welcome-shell">
             <div className="pw-welcome-head">
               <p className="pw-eyebrow">فاي تك للمقاولات والتنفيذ والأنظمة الذكية</p>
@@ -295,7 +287,12 @@ export default function HomePortalSections({
             {/* Unified Omni-Search Bar Connected Across All Sections */}
             <div ref={omniRef} className="pw-omni-wrap">
               <div className={`pw-omni-box ${searchOpen && searchQuery.trim() ? 'is-open' : ''}`}>
-                <span className="pw-omni-icon" aria-hidden="true">🔍</span>
+                <span className="pw-omni-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.35-4.35" />
+                  </svg>
+                </span>
                 <input
                   type="search"
                   className="pw-omni-input"
@@ -346,7 +343,7 @@ export default function HomePortalSections({
                               onOpenContact();
                             }}
                           >
-                            💬 اسأل مهندس المبيعات
+                            اسأل مهندس المبيعات
                           </button>
                         )}
                       </div>
@@ -355,7 +352,7 @@ export default function HomePortalSections({
                     <>
                       {omniResults.matchedProducts.length > 0 && (
                         <div className="pw-omni-group">
-                          <div className="pw-omni-group-title">🛍️ المنتجات والسمارت هوم وخامات التشطيب</div>
+                          <div className="pw-omni-group-title">المنتجات والسمارت هوم وخامات التشطيب</div>
                           {omniResults.matchedProducts.map((p) => {
                             const cat = categoryMap[p.category];
                             const thumb = getProductImageUrl(p);
@@ -365,7 +362,7 @@ export default function HomePortalSections({
                                 <img src={thumb} alt={p.name} className="pw-omni-thumb" width={64} height={48} />
                                 <div className="pw-omni-row-info">
                                   <div className="pw-omni-row-meta">
-                                    <span>{cat?.icon} {cat?.shortTitle}</span>
+                                    <span>{cat?.shortTitle}</span>
                                     <span>{p.code}</span>
                                   </div>
                                   <strong>{p.name}</strong>
@@ -377,7 +374,7 @@ export default function HomePortalSections({
                                       className={`pw-omni-add-btn ${isAdded ? 'is-added' : ''}`}
                                       onClick={() => handleQuickAdd(p)}
                                     >
-                                      {isAdded ? '✓ أُضيف' : '🛒 أضف للسلة'}
+                                      {isAdded ? 'تمت الإضافة ✓' : 'أضف للسلة'}
                                     </button>
                                   )}
                                   <Link href={`/store?cat=${p.category}`} className="pw-omni-go-link" onClick={() => setSearchOpen(false)}>
@@ -392,7 +389,7 @@ export default function HomePortalSections({
 
                       {omniResults.matchedServices.length > 0 && (
                         <div className="pw-omni-group">
-                          <div className="pw-omni-group-title">🛠️ خدمات التنفيذ والصيانة الهندسية</div>
+                          <div className="pw-omni-group-title">خدمات التنفيذ والصيانة الهندسية</div>
                           {omniResults.matchedServices.map((srv) => (
                             <Link
                               key={srv.id}
@@ -416,7 +413,7 @@ export default function HomePortalSections({
 
                       {(omniResults.matchedSections.length > 0 || omniResults.matchedTools.length > 0) && (
                         <div className="pw-omni-group">
-                          <div className="pw-omni-group-title">🧭 الأقسام والأدوات الهندسية</div>
+                          <div className="pw-omni-group-title">الأقسام والأدوات الهندسية</div>
                           {omniResults.matchedSections.map((sec) => (
                             <Link
                               key={sec.slug}
@@ -581,7 +578,7 @@ export default function HomePortalSections({
             </div>
             {onOpenCart && (
               <button type="button" className="pw-btn pw-btn-light" onClick={onOpenCart}>
-                🛍️ مراجعة سلة الطلبات
+                مراجعة السلة
               </button>
             )}
           </div>
@@ -596,7 +593,6 @@ export default function HomePortalSections({
                 className={`pw-bs-filter-btn ${activeCat === chip.id ? 'is-on' : ''}`}
                 onClick={() => handleCategorySwitch(chip.id)}
               >
-                <span aria-hidden="true">{chip.icon}</span>
                 <span>{chip.label}</span>
               </button>
             ))}
@@ -620,21 +616,16 @@ export default function HomePortalSections({
                       decoding="async"
                     />
                     {product.badge && <span className="pw-bs-badge">{product.badge}</span>}
-                    <span className="pw-bs-code">{product.code}</span>
                   </div>
 
                   <div className="pw-bs-body">
-                    <span className="pw-bs-cat">
-                      {cat?.icon} {cat?.shortTitle || product.brand}
-                    </span>
+                    <span className="pw-bs-cat">{cat?.shortTitle || product.brand}</span>
 
                     <h3>{product.name}</h3>
 
-                    <ul className="pw-bs-specs">
-                      {product.specs.slice(0, 2).map((s) => (
-                        <li key={s}>• {s}</li>
-                      ))}
-                    </ul>
+                    {product.specs[0] && (
+                      <p className="pw-bs-spec-one">{product.specs[0]}</p>
+                    )}
 
                     <label className="pw-bs-install">
                       <input
@@ -663,7 +654,7 @@ export default function HomePortalSections({
                         className={`pw-btn pw-btn-primary pw-bs-add-btn ${isAdded ? 'is-added' : ''}`}
                         onClick={() => handleQuickAdd(product, withInstall)}
                       >
-                        {isAdded ? '✓ أُضيف للسلة' : '🛒 أضف للسلة'}
+                        {isAdded ? 'تمت الإضافة ✓' : 'أضف للسلة'}
                       </button>
 
                       {cleanWa ? (
@@ -695,7 +686,7 @@ export default function HomePortalSections({
                 className="pw-btn pw-btn-primary pw-bs-more-btn"
                 onClick={() => setVisibleCount((c) => c + INITIAL_BEST_SELLERS)}
               >
-                عرض المزيد (+{Math.min(INITIAL_BEST_SELLERS, remainingCount)} منتج) ↓
+                عرض المزيد (+{Math.min(INITIAL_BEST_SELLERS, remainingCount)} منتج)
               </button>
             )}
 
@@ -705,7 +696,7 @@ export default function HomePortalSections({
                 className="pw-btn pw-btn-light"
                 onClick={() => setVisibleCount(INITIAL_BEST_SELLERS)}
               >
-                إظهار أهم {INITIAL_BEST_SELLERS} فقط ↑
+                إظهار أهم {INITIAL_BEST_SELLERS} فقط
               </button>
             )}
 
