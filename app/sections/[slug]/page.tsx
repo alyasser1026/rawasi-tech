@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import SectionDetailClient from '../../site/SectionDetailClient';
 import { sanitizeContent } from '../../site/site-content';
-import { PORTAL_SECTIONS, VALID_SECTION_SLUGS, type SectionSlug } from '../../site/section-defs';
+import { getPortalSectionMeta, VALID_SECTION_SLUGS, type SectionSlug } from '../../site/section-defs';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -35,10 +35,10 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const meta = PORTAL_SECTIONS.find((s) => s.slug === slug);
-  if (!meta) {
+  if (!VALID_SECTION_SLUGS.has(slug)) {
     return { title: 'القسم غير موجود | فاي تك' };
   }
+  const meta = getPortalSectionMeta(slug as SectionSlug);
   return {
     title: `${meta.title} | فاي تك للمقاولات والتشطيبات`,
     description: meta.guideHint,

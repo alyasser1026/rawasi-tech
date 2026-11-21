@@ -10,7 +10,11 @@ import {
   type ProductCategoryId,
   type WebsiteProduct,
 } from './store-catalog';
-import { PORTAL_SECTIONS, type SectionSlug } from './section-defs';
+import {
+  getPortalSectionMeta,
+  resolveCanonicalSectionSlug,
+  type SectionSlug,
+} from './section-defs';
 import { CartDrawer, useCustomerCart } from './CartDrawer';
 import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import LoginModal from './LoginModal';
@@ -81,7 +85,8 @@ export default function SectionDetailClient({
   const [loginOpen, setLoginOpen] = useState(false);
   const cart = useCustomerCart(() => setLoginOpen(true));
 
-  const sectionMeta = PORTAL_SECTIONS.find((s) => s.slug === slug) || PORTAL_SECTIONS[0];
+  const canonicalSlug = resolveCanonicalSectionSlug(slug);
+  const sectionMeta = getPortalSectionMeta(slug);
   const waDigits = (SITE.contact.whatsapp || '201558888744').replace(/\D/g, '') || '201558888744';
   const openWhatsApp = (message: string) => {
     window.open(
@@ -90,6 +95,14 @@ export default function SectionDetailClient({
       'noopener,noreferrer'
     );
   };
+
+  // --- Unified section tabs ---
+  const [execTab, setExecTab] = useState<'contracting' | 'maintenance'>(
+    slug === 'maintenance' ? 'maintenance' : 'contracting'
+  );
+  const [salesTab, setSalesTab] = useState<'materials' | 'smart-home' | 'real-estate'>(
+    slug === 'smart-home' ? 'smart-home' : slug === 'real-estate' ? 'real-estate' : 'materials'
+  );
 
   // --- Maintenance state ---
   const [mntCat, setMntCat] = useState<string>('all');
@@ -104,11 +117,30 @@ export default function SectionDetailClient({
   // --- Contracting state ---
   const [contractView, setContractView] = useState<'calc' | 'tower3d' | 'bim'>('calc');
   useEffect(() => {
-    if (typeof window !== 'undefined' && slug === 'contracting') {
-      const v = new URLSearchParams(window.location.search).get('view');
-      if (v === 'tower3d' || v === 'bim') setContractView(v);
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    const v = params.get('view');
+
+    if (canonicalSlug === 'contracting') {
+      if (v === 'tower3d' || v === 'bim') {
+        setExecTab('contracting');
+        setContractView(v);
+      } else if (tab === 'maintenance' || (slug === 'maintenance' && tab !== 'contracting')) {
+        setExecTab('maintenance');
+      } else {
+        setExecTab('contracting');
+      }
+    } else if (canonicalSlug === 'materials') {
+      if (tab === 'smart-home' || tab === 'real-estate' || tab === 'materials') {
+        setSalesTab(tab);
+      } else if (slug === 'smart-home' || slug === 'real-estate') {
+        setSalesTab(slug);
+      } else {
+        setSalesTab('materials');
+      }
     }
-  }, [slug]);
+  }, [slug, canonicalSlug]);
   const [calcType, setCalcType] = useState<'villa' | 'tower' | 'commercial' | 'duplex'>('villa');
   const [calcArea, setCalcArea] = useState<number>(350);
   const [calcFloors, setCalcFloors] = useState<number>(2);
@@ -275,7 +307,7 @@ export default function SectionDetailClient({
       <PublicHeader
         siteName={SITE.name}
         siteNameEn={SITE.nameEn}
-        activeKey={slug}
+        activeKey={canonicalSlug}
         cartCount={cart.totalCount}
         onOpenCart={() => cart.setCartOpen(true)}
         userName={cart.user?.fullName}
@@ -322,8 +354,27 @@ export default function SectionDetailClient({
 
         {/* Dedicated Content Area */}
         <div className="pw-wrap pw-sec-content">
-          {/* 1. قسم الصيانة والتنفيذ */}
-          {slug === 'maintenance' && (
+          {/* 1. قسم المقاولات والتنفيذ والصيانة */}
+          {canonicalSlug === 'contracting' && (
+            <div>
+              <div className="pw-seg" style={{ marginBottom: '22px' }}>
+                <button
+                  type="button"
+                  className={execTab === 'contracting' ? 'is-on' : ''}
+                  onClick={() => setExecTab('contracting')}
+                >
+                  🏗️ المقاولات والإنشاءات والمقايسة 3D
+                </button>
+                <button
+                  type="button"
+                  className={execTab === 'maintenance' ? 'is-on' : ''}
+                  onClick={() => setExecTab('maintenance')}
+                >
+                  🛠️ التنفيذ والصيانة الهندسية ({MAINTENANCE_SERVICES.length})
+                </button>
+              </div>
+
+              {execTab === 'maintenance' && (
             <div>
               <div className="pw-chip-bar">
                 <button
@@ -417,8 +468,8 @@ export default function SectionDetailClient({
             </div>
           )}
 
-          {/* 2. قسم المقاولات */}
-          {slug === 'contracting' && (
+          {/* التبويب الثاني: المقاولات والإنشاءات */}
+          {execTab === 'contracting' && (
             <div>
               <div className="pw-cards" style={{ marginBottom: '26px' }}>
                 {SERVICES.map((s) => (
@@ -621,9 +672,37 @@ export default function SectionDetailClient({
               {contractView === 'bim' && <BimModel />}
             </div>
           )}
+            </div>
+          )}
 
-          {/* 3. قسم العقارات */}
-          {slug === 'real-estate' && (
+          {/* 2. قسم المبيعات والسمارت هوم والعقارات */}
+          {canonicalSlug === 'materials' && (
+            <div>
+              <div className="pw-seg" style={{ marginBottom: '22px' }}>
+                <button
+                  type="button"
+                  className={salesTab === 'materials' ? 'is-on' : ''}
+                  onClick={() => setSalesTab('materials')}
+                >
+                  🧱 بيع وشراء مواد البناء
+                </button>
+                <button
+                  type="button"
+                  className={salesTab === 'smart-home' ? 'is-on' : ''}
+                  onClick={() => setSalesTab('smart-home')}
+                >
+                  📱 التكنولوجيا والسمارت هوم
+                </button>
+                <button
+                  type="button"
+                  className={salesTab === 'real-estate' ? 'is-on' : ''}
+                  onClick={() => setSalesTab('real-estate')}
+                >
+                  🏢 العقارات والوحدات الجاهزة ({PROPERTIES.length})
+                </button>
+              </div>
+
+              {salesTab === 'real-estate' && (
             <div>
               <div className="pw-chip-bar">
                 {[
@@ -745,8 +824,8 @@ export default function SectionDetailClient({
             </div>
           )}
 
-          {/* 4. قسم بيع وشراء مواد البناء */}
-          {slug === 'materials' && (
+          {/* بيع وشراء مواد البناء */}
+          {salesTab === 'materials' && (
             <div>
               <div className="pw-seg" style={{ marginBottom: '18px' }}>
                 <button
@@ -920,8 +999,8 @@ export default function SectionDetailClient({
             </div>
           )}
 
-          {/* 5. قسم التكنولوجيا والسمارت هوم */}
-          {slug === 'smart-home' && (
+          {/* التكنولوجيا والسمارت هوم */}
+          {salesTab === 'smart-home' && (
             <div>
               <div className="pw-calc-box" style={{ marginBottom: '26px', borderColor: 'rgba(5,150,105,0.35)' }}>
                 <div className="pw-calc-head">
@@ -1022,9 +1101,11 @@ export default function SectionDetailClient({
               </div>
             </div>
           )}
+            </div>
+          )}
 
-          {/* 6. قسم معلومات عامة */}
-          {slug === 'info' && (
+          {/* 3. قسم معلومات عامة */}
+          {canonicalSlug === 'info' && (
             <div>
               <div className="pw-seg" style={{ marginBottom: '20px' }}>
                 <button type="button" className={infoTab === 'tips' ? 'is-on' : ''} onClick={() => setInfoTab('tips')}>

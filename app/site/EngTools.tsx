@@ -224,33 +224,21 @@ function QuickEstimator({ propertiesCount = 0 }: { propertiesCount?: number }) {
 
   const quickSummary = useMemo(() => {
     const meta = estimatorSections.find((s) => s.slug === quickGoal) || estimatorSections[0];
-    if (quickGoal === 'maintenance') {
+    if (quickGoal === 'contracting' || quickGoal === 'maintenance') {
       return {
         meta,
-        hint: `معاينة وتنفيذ أو صيانة مضمونة لمساحة ${quickArea} م² خلال 24 ساعة مع توصية هندسية مجانية.`,
+        hint: `مقايسة ${quickArea} م²: ~${Math.round(quickArea * 0.046)} طن حديد · ~${Math.round(quickArea * 0.42)} م³ خرسانة · تكييف ~${Math.max(2, Math.round(quickArea / 18))} طن — مع تنفيذ وصيانة بضمان هندسي.`,
       };
     }
-    if (quickGoal === 'contracting') {
+    if (quickGoal === 'materials' || quickGoal === 'smart-home' || quickGoal === 'real-estate') {
       return {
         meta,
-        hint: `تقدير مبسط لمساحة ${quickArea} م²: ~${Math.round(quickArea * 0.046)} طن حديد · ~${Math.round(quickArea * 0.42)} م³ خرسانة · تكييف ~${Math.max(2, Math.round(quickArea / 18))} طن.`,
-      };
-    }
-    if (quickGoal === 'real-estate') {
-      return {
-        meta,
-        hint: `${propertiesCount} وحدات سكنية وتجارية جاهزة (بمساحات تبدأ من ${quickArea} م²) بأنظمة سداد من 20% مقدم وتقسيط حتى 4 سنوات.`,
-      };
-    }
-    if (quickGoal === 'materials') {
-      return {
-        meta,
-        hint: `توريد مباشر لخامات مساحة ${quickArea} م² بسعر الجملة، أو عرض خاماتك للبيع لدينا فوراً.`,
+        hint: `توريد خامات مساحة ${quickArea} م² بسعر الجملة + ترقية سمارت هوم (${Math.max(3, Math.round(quickArea / 40))} غرف ذكية) + ${propertiesCount} وحدات عقارية بالتقسيط.`,
       };
     }
     return {
       meta,
-      hint: `ترقية وحدة ${quickArea} م² بنظام سمارت هوم كامل (${Math.max(3, Math.round(quickArea / 40))} غرف ذكية + درع أمان الغاز والمياه بدون تكسير).`,
+      hint: `توريد مباشر وخدمات هندسية متكاملة لمساحة ${quickArea} م².`,
     };
   }, [quickGoal, quickArea, propertiesCount, estimatorSections]);
 

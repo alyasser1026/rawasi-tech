@@ -21,8 +21,8 @@ export default function HomePortalSections({
 }: HomePortalSectionsProps) {
   // Track the visible service without taking control of page scrolling.
   const [hoveredSlug, setHoveredSlug] = useState<SectionSlug | null>(null);
-  const [scrolledSlug, setScrolledSlug] = useState<SectionSlug | null>('maintenance');
-  const [visibleSlugs, setVisibleSlugs] = useState<Record<string, boolean>>({ maintenance: true });
+  const [scrolledSlug, setScrolledSlug] = useState<SectionSlug | null>('contracting');
+  const [visibleSlugs, setVisibleSlugs] = useState<Record<string, boolean>>({ contracting: true });
   const rowRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const activeSlug = hoveredSlug ?? scrolledSlug;
@@ -80,12 +80,12 @@ export default function HomePortalSections({
               إنشاءات وسباكة وكهرباء، بتنسيق متكامل وإشراف هندسي من الأساس للتسليم.
             </p>
           </div>
-          <a className="pw-construction-scroll-cue" href="#portal-station-maintenance">
+          <a className="pw-construction-scroll-cue" href="#portal-station-contracting">
             <span>اكتشف خدماتنا</span><span aria-hidden="true">↓</span>
           </a>
         </div>
 
-        {/* الأقسام الستة: تطفو مباشرة فوق المشهد الثلاثي الأبعاد بدون صور خلفية تحجب البناء */}
+        {/* الأقسام الموحدة: تطفو مباشرة فوق المشهد الثلاثي الأبعاد بدون صور خلفية تحجب البناء */}
         <div className={`pw-split-cols ${activeSlug ? 'has-active' : ''}`}>
           {PORTAL_SECTIONS.map((sec, idx) => {
             const isActive = activeSlug === sec.slug;

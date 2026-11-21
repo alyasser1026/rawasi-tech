@@ -3,17 +3,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { CartButton } from './CartDrawer';
-import type { SectionSlug } from './section-defs';
+import { resolveCanonicalSectionSlug, type SectionSlug } from './section-defs';
 
 export type PublicNavActiveKey = 'home' | SectionSlug | 'store';
 
 export const PUBLIC_NAV_ITEMS: Array<{ key: PublicNavActiveKey | 'contact'; href: string; label: string }> = [
   { key: 'home', href: '/', label: 'الأقسام' },
-  { key: 'maintenance', href: '/sections/maintenance', label: '🛠️ الصيانة' },
-  { key: 'contracting', href: '/sections/contracting', label: '🏗️ المقاولات' },
-  { key: 'real-estate', href: '/sections/real-estate', label: '🏢 العقارات' },
-  { key: 'materials', href: '/sections/materials', label: '🧱 مواد البناء' },
-  { key: 'smart-home', href: '/sections/smart-home', label: '📱 السمارت هوم' },
+  { key: 'contracting', href: '/sections/contracting', label: '🏗️ المقاولات والتنفيذ' },
+  { key: 'materials', href: '/sections/materials', label: '🛍️ المبيعات والسمارت والعقارات' },
   { key: 'info', href: '/sections/info', label: '📚 معلومات' },
   { key: 'store', href: '/store', label: '🛒 المتجر' },
   { key: 'contact', href: '/#contact', label: 'تواصل' },
@@ -48,6 +45,10 @@ export default function PublicHeader({
   const [accountOpen, setAccountOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const accountRef = useRef<HTMLDivElement>(null);
+  const normalizedActiveKey =
+    activeKey !== 'home' && activeKey !== 'store'
+      ? resolveCanonicalSectionSlug(activeKey)
+      : activeKey;
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -103,7 +104,7 @@ export default function PublicHeader({
             </div>
 
             {PUBLIC_NAV_ITEMS.map((item) => {
-              const isActive = item.key === activeKey;
+              const isActive = item.key === normalizedActiveKey;
               if (item.key === 'contact' && onOpenContact) {
                 return (
                   <a
@@ -304,9 +305,9 @@ export default function PublicHeader({
           </span>
         </button>
 
-        <Link href="/sections/real-estate" className={`pw-dock-item ${activeKey === 'real-estate' ? 'is-active' : ''}`} onClick={() => setOpen(false)}>
-          <span className="pw-dock-icon">🏢</span>
-          <span className="pw-dock-label">العقارات</span>
+        <Link href="/sections/materials" className={`pw-dock-item ${normalizedActiveKey === 'materials' ? 'is-active' : ''}`} onClick={() => setOpen(false)}>
+          <span className="pw-dock-icon">🛍️</span>
+          <span className="pw-dock-label">المبيعات</span>
         </Link>
 
         <button
