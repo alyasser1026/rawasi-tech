@@ -1147,17 +1147,6 @@ body:has(.pw){padding:0!important}
 .pw-welcome-head .pw-eyebrow{color:#ffb074;margin:0}
 .pw-welcome-head h1{font-size:clamp(1.45rem,2.75vw,2.28rem);font-weight:900;line-height:1.3;color:#fff;text-shadow:0 4px 20px rgba(0,0,0,.75);margin:0}
 .pw-welcome-sub{font-size:clamp(.9rem,1.08vw,1.02rem);color:rgba(255,255,255,.86);line-height:1.65;margin:0}
-.pw-welcome-pill-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-.pw-welcome-pill{background:rgba(16,23,33,.72);border:1px solid rgba(255,255,255,.12);border-top:2px solid var(--pill-accent,#c75517);border-radius:18px;padding:15px 16px;display:flex;flex-direction:column;gap:10px;transition:transform .18s ease,border-color .18s ease,background .18s ease}
-.pw-welcome-pill:hover{transform:translateY(-2px);background:rgba(20,29,42,.86);border-color:color-mix(in srgb,var(--pill-accent,#c75517) 55%,rgba(255,255,255,.2))}
-.pw-welcome-pill-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.pw-welcome-pill-title{display:inline-flex;align-items:center;gap:8px;color:#fff;font-size:.98rem;font-weight:900;text-decoration:none}
-.pw-welcome-pill-title:hover{color:#ffb074}
-.pw-welcome-pill-num{font-size:.76rem;font-weight:900;color:#ffb074;opacity:.85}
-.pw-welcome-pill-desc{font-size:.82rem;color:rgba(255,255,255,.78);line-height:1.55;margin:0}
-.pw-welcome-ex-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
-.pw-welcome-ex-chip{padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);color:#ffd8b5;font-size:.74rem;font-weight:800;cursor:pointer;transition:all .16s ease}
-.pw-welcome-ex-chip:hover{background:var(--pill-accent,#c75517);border-color:var(--pill-accent,#c75517);color:#fff}
 
 /* شريط البحث الشامل المربوط بكل الأقسام */
 .pw-omni-wrap{position:relative;z-index:25;max-width:58rem;width:100%;margin:0 auto}
@@ -1344,7 +1333,6 @@ body:has(.pw){padding:0!important}
   .pw-sim-stage{grid-template-columns:1fr;gap:18px}
 }
 @media(max-width:900px){
-  .pw-welcome-pill-grid{grid-template-columns:1fr}
   .pw-welcome-shell{padding:20px 16px;border-radius:20px}
 }
 @media(max-width:640px){

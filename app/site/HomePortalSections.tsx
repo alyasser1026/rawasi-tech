@@ -30,42 +30,6 @@ interface HomePortalSectionsProps {
 const FLAGSHIP_PRIORITY_IDS = ['sm-02', 'sm-01', 'el-01', 'pt-01', 'cr-01', 'lc-01'];
 const INITIAL_BEST_SELLERS = 6;
 
-interface SectionBriefMeta {
-  slug: SectionSlug;
-  shortDesc: string;
-  examples: { label: string; searchTerm: string; href: string }[];
-}
-
-const SECTION_BRIEFS: SectionBriefMeta[] = [
-  {
-    slug: 'contracting',
-    shortDesc: 'بناء عظم، تشطيب متكامل، تكييف وصيانة هندسية بضمان مكتوب',
-    examples: [
-      { label: 'مقايسة فيلا 3×1', searchTerm: 'مقايسة', href: '/sections/contracting' },
-      { label: 'تكييف مخفي', searchTerm: 'تكييف', href: '/sections/contracting?tab=maintenance' },
-      { label: 'كشف تسريب', searchTerm: 'تسريب', href: '/sections/contracting?tab=maintenance' },
-    ],
-  },
-  {
-    slug: 'materials',
-    shortDesc: 'مواد بناء وتشطيبات فاخرة + سمارت هوم وكاميرات وحساسات بالتركيب',
-    examples: [
-      { label: 'قفل ذكي 6×1', searchTerm: 'قفل ذكي', href: '/store?cat=smart_home' },
-      { label: 'بورسلان كلكتا', searchTerm: 'بورسلان', href: '/store?cat=ceramics' },
-      { label: 'حساس غاز ومياه', searchTerm: 'حساس', href: '/store?cat=safety_sensors' },
-    ],
-  },
-  {
-    slug: 'info',
-    shortDesc: 'حاسبات تكلفة مجانية + مكتبة فحص واستلام وأدلة التأسيس',
-    examples: [
-      { label: 'حاسبة التكلفة', searchTerm: 'حاسبة', href: '/sections/info?tab=tools' },
-      { label: 'توزيع كهرباء', searchTerm: 'مفاتيح', href: '/sections/info' },
-      { label: 'دليل التشطيب', searchTerm: 'دليل', href: '/sections/info' },
-    ],
-  },
-];
-
 interface EngineeringToolShortcut {
   id: string;
   icon: string;
@@ -291,12 +255,6 @@ export default function HomePortalSections({
   const visibleProducts = sortedBestSellers.slice(0, visibleCount);
   const remainingCount = Math.max(0, sortedBestSellers.length - visibleProducts.length);
 
-  const handleSelectExample = (term: string) => {
-    setSearchQuery(term);
-    setSearchOpen(true);
-    omniRef.current?.querySelector('input')?.focus();
-  };
-
   const handleQuickAdd = (product: WebsiteProduct, forceInstall?: boolean) => {
     const withInstall = forceInstall !== undefined ? forceInstall : Boolean(installMap[product.id]);
     onAddToCart?.(product, 1, withInstall);
@@ -332,44 +290,6 @@ export default function HomePortalSections({
               <p className="pw-welcome-sub">
                 تصفّح أقسامنا الثلاثة بوضوح، ابحث عن أي منتج أو خدمة هندسية فوراً، أو أرسل طلبك أونلاين بضمان مكتوب.
               </p>
-            </div>
-
-            {/* 3 Ultra-Brief Section Glass Pills + Clickable Order Examples */}
-            <div className="pw-welcome-pill-grid">
-              {SECTION_BRIEFS.map((brief) => {
-                const sec = sections.find((s) => s.slug === brief.slug) || sections[0];
-                return (
-                  <div
-                    key={sec.slug}
-                    className="pw-welcome-pill"
-                    style={{ '--pill-accent': sec.accent } as React.CSSProperties}
-                  >
-                    <div className="pw-welcome-pill-top">
-                      <Link href={sec.href} className="pw-welcome-pill-title">
-                        <span aria-hidden="true">{sec.icon}</span>
-                        <strong>{sec.title}</strong>
-                      </Link>
-                      <span className="pw-welcome-pill-num">{sec.num}</span>
-                    </div>
-
-                    <p className="pw-welcome-pill-desc">{brief.shortDesc}</p>
-
-                    <div className="pw-welcome-ex-chips" aria-label={`أمثلة طلبات ${sec.title}`}>
-                      {brief.examples.map((ex) => (
-                        <button
-                          key={ex.label}
-                          type="button"
-                          className="pw-welcome-ex-chip"
-                          onClick={() => handleSelectExample(ex.searchTerm)}
-                          title={`جرّب البحث عن: ${ex.label}`}
-                        >
-                          {ex.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
             </div>
 
             {/* Unified Omni-Search Bar Connected Across All Sections */}
