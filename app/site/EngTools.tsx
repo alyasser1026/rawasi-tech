@@ -233,7 +233,7 @@ function QuickEstimator({ propertiesCount = 0 }: { propertiesCount?: number }) {
     if (quickGoal === 'materials' || quickGoal === 'smart-home' || quickGoal === 'real-estate') {
       return {
         meta,
-        hint: `توريد خامات مساحة ${quickArea} م² بسعر الجملة + ترقية سمارت هوم (${Math.max(3, Math.round(quickArea / 40))} غرف ذكية) + ${propertiesCount} وحدات عقارية بالتقسيط.`,
+        hint: `توريد خامات مساحة ${quickArea} م² بسعر الجملة + ترقية سمارت هوم (${Math.max(3, Math.round(quickArea / 40))} غرف ذكية ودرع أمان بدون تكسير).`,
       };
     }
     return {

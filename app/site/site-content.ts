@@ -13,6 +13,7 @@ import {
   DEFAULT_MAINTENANCE_SERVICES,
   DEFAULT_PRODUCTS,
   DEFAULT_PROPERTIES,
+  getProductImageUrl,
   PRODUCT_CATEGORIES,
   type ProductCategoryId,
   type PropertyOfferType,
@@ -165,13 +166,6 @@ export const DEFAULT_NEWS_TICKER: NewsTickerConfig = {
       tag: 'مواد البناء',
       text: 'توريد خامات التشطيب بسعر الجملة مع خدمة بيع وتسويق فائض مواد البناء في مشروعك',
       href: '/sections/materials',
-      active: true,
-    },
-    {
-      id: 'news-re',
-      tag: 'العقارات',
-      text: 'حاسبة المقدم والأقساط العقارية التفاعلية واستشارات معاينة الوحدات السكنية والتجارية',
-      href: '/sections/real-estate',
       active: true,
     },
   ],
@@ -433,7 +427,10 @@ export function mergeContent(o: SiteContentOverride = {}) {
     PROJECTS: o.projects ?? PROJECTS,
     COMMITMENTS: o.commitments ?? COMMITMENTS,
     FAQS: o.faqs ?? FAQS,
-    PRODUCTS: o.products ?? DEFAULT_PRODUCTS,
+    PRODUCTS: (o.products ?? DEFAULT_PRODUCTS).map((p) => ({
+      ...p,
+      imageUrl: p.imageUrl || getProductImageUrl(p),
+    })),
     PROPERTIES: o.properties ?? DEFAULT_PROPERTIES,
     MAINTENANCE_SERVICES: o.maintenanceServices ?? DEFAULT_MAINTENANCE_SERVICES,
     PROMO_BANNER: {

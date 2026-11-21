@@ -19,7 +19,7 @@ import { supabase } from '@/lib/supabase';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 
 export default function StoreClient({ content }: { content?: SiteContentOverride }) {
-  const { SITE, PRODUCTS, PROPERTIES, MAINTENANCE_SERVICES, PROMO_BANNER } = mergeContent(content);
+  const { SITE, PRODUCTS, MAINTENANCE_SERVICES, PROMO_BANNER } = mergeContent(content);
   const [loginOpen, setLoginOpen] = useState(false);
   const [activeStoreTab, setActiveStoreTab] = useState<'products' | 'maintenance'>('products');
   const [selectedCategory, setSelectedCategory] = useState<'all' | ProductCategoryId>('all');
@@ -340,13 +340,6 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             >
               🛠️ التنفيذ والصيانة الشاملة ({MAINTENANCE_SERVICES.filter((s) => s.available).length})
             </button>
-            <Link
-              href="/sections/real-estate"
-              className="pw-btn pw-btn-ghost"
-              style={{ minHeight: '44px', padding: '0 20px', fontSize: '0.9rem' }}
-            >
-              🏢 العقارات ({PROPERTIES.length})
-            </Link>
             {!cart.user ? (
               <button
                 type="button"
@@ -377,13 +370,6 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 </button>
               </>
             )}
-            <Link
-              href="/real-estate"
-              className="pw-btn pw-btn-ghost"
-              style={{ minHeight: '44px', padding: '0 18px', fontSize: '0.88rem' }}
-            >
-              🏢 عروض العقارات والوحدات ←
-            </Link>
           </div>
         </div>
       </section>

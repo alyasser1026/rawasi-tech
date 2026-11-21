@@ -50,7 +50,7 @@ export default function NewsTicker({ config }: { config: NewsTickerConfig }) {
             href:
               typeof it.suggestedHref === 'string' && isSafeTickerHref(it.suggestedHref)
                 ? it.suggestedHref
-                : '/sections/real-estate',
+                : '/sections/materials',
             active: true,
           }));
         if (mapped.length > 0) {

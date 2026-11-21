@@ -100,8 +100,8 @@ export default function SectionDetailClient({
   const [execTab, setExecTab] = useState<'contracting' | 'maintenance'>(
     slug === 'maintenance' ? 'maintenance' : 'contracting'
   );
-  const [salesTab, setSalesTab] = useState<'materials' | 'smart-home' | 'real-estate'>(
-    slug === 'smart-home' ? 'smart-home' : slug === 'real-estate' ? 'real-estate' : 'materials'
+  const [salesTab, setSalesTab] = useState<'materials' | 'smart-home'>(
+    slug === 'smart-home' ? 'smart-home' : 'materials'
   );
 
   // --- Maintenance state ---
@@ -132,10 +132,10 @@ export default function SectionDetailClient({
         setExecTab('contracting');
       }
     } else if (canonicalSlug === 'materials') {
-      if (tab === 'smart-home' || tab === 'real-estate' || tab === 'materials') {
+      if (tab === 'smart-home' || tab === 'materials') {
         setSalesTab(tab);
-      } else if (slug === 'smart-home' || slug === 'real-estate') {
-        setSalesTab(slug);
+      } else if (slug === 'smart-home') {
+        setSalesTab('smart-home');
       } else {
         setSalesTab('materials');
       }
@@ -173,23 +173,6 @@ export default function SectionDetailClient({
     if (allOn) months = Math.max(3, Math.round(months * 0.8));
     return { totalBua, total, concreteCbm, steelTons, paintBuckets, hvacTons, months, allOn };
   }, [calcType, calcArea, calcFloors, calcTier, calcScopes]);
-
-  // --- Real Estate state ---
-  const [propFilter, setPropFilter] = useState<string>('all');
-  const [estUnitPrice, setEstUnitPrice] = useState<number>(4500000);
-  const [estDownPct, setEstDownPct] = useState<number>(25);
-  const [estYears, setEstYears] = useState<number>(3);
-  const filteredProperties = useMemo(() => {
-    if (propFilter === 'all') return PROPERTIES;
-    return PROPERTIES.filter((p) => p.type === propFilter);
-  }, [PROPERTIES, propFilter]);
-  const installmentCalc = useMemo(() => {
-    const downPayment = Math.round((estUnitPrice * estDownPct) / 100);
-    const remaining = Math.max(0, estUnitPrice - downPayment);
-    const monthly = Math.round(remaining / Math.max(12, estYears * 12));
-    const quarterly = Math.round(remaining / Math.max(4, estYears * 4));
-    return { downPayment, remaining, monthly, quarterly };
-  }, [estUnitPrice, estDownPct, estYears]);
 
   // --- Building Materials state ---
   const [materialsMode, setMaterialsMode] = useState<'buy' | 'sell'>('buy');
@@ -675,7 +658,7 @@ export default function SectionDetailClient({
             </div>
           )}
 
-          {/* 2. قسم المبيعات والسمارت هوم والعقارات */}
+          {/* 2. قسم المبيعات والسمارت هوم */}
           {canonicalSlug === 'materials' && (
             <div>
               <div className="pw-seg" style={{ marginBottom: '22px' }}>
@@ -693,136 +676,7 @@ export default function SectionDetailClient({
                 >
                   📱 التكنولوجيا والسمارت هوم
                 </button>
-                <button
-                  type="button"
-                  className={salesTab === 'real-estate' ? 'is-on' : ''}
-                  onClick={() => setSalesTab('real-estate')}
-                >
-                  🏢 العقارات والوحدات الجاهزة ({PROPERTIES.length})
-                </button>
               </div>
-
-              {salesTab === 'real-estate' && (
-            <div>
-              <div className="pw-chip-bar">
-                {[
-                  { id: 'all', label: `كل الوحدات (${PROPERTIES.length})` },
-                  { id: 'apartment', label: 'شقق سكنية واستثمارية' },
-                  { id: 'duplex', label: 'دوبلكس بحديقة' },
-                  { id: 'commercial', label: 'معارض ووحدات تجارية' },
-                ].map((f) => (
-                  <button
-                    key={f.id}
-                    type="button"
-                    className={`pw-chip ${propFilter === f.id ? 'is-on' : ''}`}
-                    onClick={() => setPropFilter(f.id)}
-                  >
-                    {f.label}
-                  </button>
-                ))}
-                <Link
-                  href="/real-estate"
-                  className="pw-chip"
-                  style={{ borderColor: 'var(--o)', color: 'var(--o)', fontWeight: 900 }}
-                >
-                  عرض صفحة الحجز التفصيلية ←
-                </Link>
-              </div>
-
-              {filteredProperties.length === 0 ? (
-                <div className="pw-calc-box" style={{ textAlign: 'center', padding: '32px 24px', marginBottom: '24px' }}>
-                  <p style={{ fontSize: '2rem', marginBottom: '8px' }}>🏢</p>
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 900, marginBottom: '6px' }}>
-                    تُحدَّث قائمة الوحدات العقارية المتاحة دورياً من الإدارة الهندسية
-                  </h3>
-                  <p className="pw-muted" style={{ maxWidth: '34rem', margin: '0 auto 16px', fontSize: '0.9rem' }}>
-                    استخدم حاسبة المقدم والأقساط بالأسفل أو تواصل معنا مباشرة لإرسال أحدث عروض الشقق والدوبلكس والمعارض المتاحة حالياً.
-                  </p>
-                  <button
-                    type="button"
-                    className="pw-btn pw-btn-primary"
-                    onClick={() => openWhatsApp('مرحباً فاي تك، أرجو تزويدي بقائمة الوحدات السكنية والتجارية المتاحة وأنظمة السداد الحالية.')}
-                  >
-                    📲 اطلب أحدث عروض العقارات المتاحة
-                  </button>
-                </div>
-              ) : (
-                <div className="pw-re-grid">
-                  {filteredProperties.map((prop) => (
-                    <article key={prop.id} className="pw-re-card">
-                      <div>
-                        <div className="pw-re-card-top">
-                          <span className="pw-badge">{prop.code} · {prop.typeLabel}</span>
-                          {prop.badge && <span className="pw-re-hot">{prop.badge}</span>}
-                        </div>
-                        <h3>{prop.title}</h3>
-                        <p className="pw-re-sub">{prop.subtitle}</p>
-                        <div className="pw-re-specs">
-                          <div><small>المساحة</small><strong>{prop.areaSqm} م²</strong></div>
-                          <div><small>الغرف / الحمام</small><strong>{prop.bedrooms > 0 ? `${prop.bedrooms} غرف · ${prop.bathrooms} حمام` : 'معرض مفتوح'}</strong></div>
-                          <div><small>الموقع</small><strong>{prop.city}</strong></div>
-                          <div><small>التشطيب</small><strong>{prop.finishingLabel}</strong></div>
-                        </div>
-                        <ul className="pw-re-features">
-                          {prop.features.map((feat) => (
-                            <li key={feat}>✓ {feat}</li>
-                          ))}
-                        </ul>
-                      </div>
-                      <div className="pw-re-foot">
-                        <span className="pw-re-terms">
-                          💳 مقدم {prop.downPaymentPct || 25}% · تقسيط حتى {prop.installmentYears || 3} سنوات ({prop.deliveryLabel})
-                        </span>
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                          <button
-                            type="button"
-                            className="pw-btn pw-btn-primary"
-                            style={{ minHeight: '38px', padding: '0 14px', fontSize: '0.82rem' }}
-                            onClick={() =>
-                              openWhatsApp(
-                                `استفسار عقاري عن (${prop.title} - كود ${prop.code} - مساحة ${prop.areaSqm} م²). أرجو تزويدي بالمسقط المعماري وتفاصيل السعر والسداد.`
-                              )
-                            }
-                          >
-                            📋 طلب عرض السعر والمعاينة
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-
-              <div className="pw-calc-box" style={{ marginTop: '24px' }}>
-                <div className="pw-calc-head">
-                  <div>
-                    <span className="pw-explorer-kicker">أداة التخطيط المالي للعقار</span>
-                    <h3>حاسبة المقدم والأقساط العقارية</h3>
-                  </div>
-                </div>
-                <div className="pw-calc-sliders" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '18px' }}>
-                  <label className="pw-range">
-                    <span>قيمة الوحدة التقديرية: <strong>{estUnitPrice.toLocaleString()}</strong></span>
-                    <input type="range" min={1500000} max={15000000} step={250000} value={estUnitPrice} onChange={(e) => setEstUnitPrice(Number(e.target.value))} />
-                  </label>
-                  <label className="pw-range">
-                    <span>نسبة المقدم: <strong>{estDownPct}%</strong></span>
-                    <input type="range" min={10} max={60} step={5} value={estDownPct} onChange={(e) => setEstDownPct(Number(e.target.value))} />
-                  </label>
-                  <label className="pw-range">
-                    <span>سنوات السداد: <strong>{estYears} سنوات</strong></span>
-                    <input type="range" min={1} max={6} step={1} value={estYears} onChange={(e) => setEstYears(Number(e.target.value))} />
-                  </label>
-                </div>
-                <div className="pw-calc-metrics" style={{ marginTop: '14px', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))' }}>
-                  <div><small>قيمة المقدم ({estDownPct}%)</small><strong>{installmentCalc.downPayment.toLocaleString()}</strong></div>
-                  <div><small>المبلغ المتبقي</small><strong>{installmentCalc.remaining.toLocaleString()}</strong></div>
-                  <div><small>قسط شهري تقديري</small><strong>{installmentCalc.monthly.toLocaleString()}</strong></div>
-                  <div><small>أو قسط ربع سنوي</small><strong>{installmentCalc.quarterly.toLocaleString()}</strong></div>
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* بيع وشراء مواد البناء */}
           {salesTab === 'materials' && (
@@ -893,6 +747,11 @@ export default function SectionDetailClient({
                       return (
                         <article key={p.id} className="pw-prod-card">
                           <div>
+                            {p.imageUrl && (
+                              <div className="pw-prod-thumb">
+                                <img src={p.imageUrl} alt={p.name} loading="lazy" decoding="async" />
+                              </div>
+                            )}
                             <div className="pw-prod-top">
                               <span className="pw-prod-code">{p.code}</span>
                               {p.badge && <span className="pw-prod-badge">{p.badge}</span>}
@@ -1072,6 +931,11 @@ export default function SectionDetailClient({
                 {smartProducts.map((p) => (
                   <article key={p.id} className="pw-prod-card">
                     <div>
+                      {p.imageUrl && (
+                        <div className="pw-prod-thumb">
+                          <img src={p.imageUrl} alt={p.name} loading="lazy" decoding="async" />
+                        </div>
+                      )}
                       <div className="pw-prod-top">
                         <span className="pw-prod-code">{p.code}</span>
                         {p.badge && <span className="pw-prod-badge">{p.badge}</span>}

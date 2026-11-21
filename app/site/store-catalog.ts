@@ -176,7 +176,57 @@ export const PRODUCT_CATEGORIES: ProductCategoryMeta[] = [
   },
 ];
 
-export const DEFAULT_PRODUCTS: WebsiteProduct[] = [
+export const PRODUCT_STUDIO_IMAGES_BY_ID: Record<string, string> = {
+  'el-01': '/products/crystal-switches.webp',
+  'el-02': '/products/crystal-switches.webp',
+  'el-03': '/products/crystal-switches.webp',
+  'pl-01': '/products/concealed-plumbing.webp',
+  'pl-02': '/products/concealed-plumbing.webp',
+  'pl-03': '/products/concealed-plumbing.webp',
+  'pt-01': '/products/paint-bucket.webp',
+  'pt-02': '/products/paint-bucket.webp',
+  'cr-01': '/products/calacatta-porcelain.webp',
+  'cr-02': '/products/calacatta-porcelain.webp',
+  'mr-01': '/products/quartz-marble-slab.webp',
+  'mr-02': '/products/quartz-marble-slab.webp',
+  'dc-01': '/products/quartz-marble-slab.webp',
+  'dc-02': '/products/quartz-marble-slab.webp',
+  'sm-01': '/products/smart-control-panel.webp',
+  'sm-02': '/products/smart-door-lock.webp',
+  'sm-03': '/products/crystal-switches.webp',
+  'sm-04': '/products/smart-control-panel.webp',
+  'lc-01': '/products/security-cameras-4k.webp',
+  'lc-02': '/products/smart-control-panel.webp',
+  'lc-03': '/products/smart-control-panel.webp',
+  'sf-01': '/products/safety-shutoff-valve.webp',
+  'sf-02': '/products/safety-shutoff-valve.webp',
+  'sf-03': '/products/safety-shutoff-valve.webp',
+};
+
+export const PRODUCT_STUDIO_IMAGES_BY_CATEGORY: Record<ProductCategoryId, string> = {
+  electrical: '/products/crystal-switches.webp',
+  plumbing: '/products/concealed-plumbing.webp',
+  paint: '/products/paint-bucket.webp',
+  ceramics: '/products/calacatta-porcelain.webp',
+  marble: '/products/quartz-marble-slab.webp',
+  decor: '/products/quartz-marble-slab.webp',
+  smart_home: '/products/smart-control-panel.webp',
+  low_current: '/products/security-cameras-4k.webp',
+  safety_sensors: '/products/safety-shutoff-valve.webp',
+};
+
+export function getProductImageUrl(
+  product: Pick<WebsiteProduct, 'id' | 'category' | 'imageUrl'>
+): string {
+  return (
+    product.imageUrl ||
+    PRODUCT_STUDIO_IMAGES_BY_ID[product.id] ||
+    PRODUCT_STUDIO_IMAGES_BY_CATEGORY[product.category] ||
+    '/products/smart-control-panel.webp'
+  );
+}
+
+const DEFAULT_PRODUCTS_RAW: WebsiteProduct[] = [
   // 1. كهرباء وإنارة
   {
     id: 'el-01',
@@ -591,6 +641,11 @@ export const DEFAULT_PRODUCTS: WebsiteProduct[] = [
     featured: true,
   },
 ];
+
+export const DEFAULT_PRODUCTS: WebsiteProduct[] = DEFAULT_PRODUCTS_RAW.map((p) => ({
+  ...p,
+  imageUrl: p.imageUrl || getProductImageUrl(p),
+}));
 
 export const SMART_BUNDLES: SmartBundle[] = [
   {

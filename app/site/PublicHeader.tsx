@@ -10,7 +10,7 @@ export type PublicNavActiveKey = 'home' | SectionSlug | 'store';
 export const PUBLIC_NAV_ITEMS: Array<{ key: PublicNavActiveKey | 'contact'; href: string; label: string }> = [
   { key: 'home', href: '/', label: 'الأقسام' },
   { key: 'contracting', href: '/sections/contracting', label: '🏗️ المقاولات والتنفيذ' },
-  { key: 'materials', href: '/sections/materials', label: '🛍️ المبيعات والسمارت والعقارات' },
+  { key: 'materials', href: '/sections/materials', label: '🛍️ المبيعات والسمارت هوم' },
   { key: 'info', href: '/sections/info', label: '📚 معلومات' },
   { key: 'store', href: '/store', label: '🛒 المتجر' },
   { key: 'contact', href: '/#contact', label: 'تواصل' },

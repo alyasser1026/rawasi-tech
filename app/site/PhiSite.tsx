@@ -15,7 +15,7 @@ import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import ContactModal from './ContactModal';
 
 export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
-  const { SITE, PRODUCTS, PROPERTIES, NEWS_TICKER } = mergeContent(content);
+  const { SITE, PRODUCTS, MAINTENANCE_SERVICES, NEWS_TICKER } = mergeContent(content);
   const router = useRouter();
   const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
   const [contactOpen, setContactOpen] = useState(false);
@@ -90,14 +90,16 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
       />
 
       <main id="top">
-        {/* 1. مربعات الأقسام الستة الرئيسية فوق المشهد المعماري ثلاثي الأبعاد */}
+        {/* الترحيب + البحث الشامل + محاكاة الطلبات + الأقسام الثلاثة بالخط المائل + الأكثر مبيعاً */}
         <HomePortalSections
           products={PRODUCTS}
-          properties={PROPERTIES}
+          maintenanceServices={MAINTENANCE_SERVICES}
           newsTicker={NEWS_TICKER}
           whatsappNumber={c.whatsapp}
           onAddToCart={cart.addToCart}
           onAddBundleToCart={cart.addBundleToCart}
+          onOpenCart={() => cart.setCartOpen(true)}
+          onOpenContact={handleOpenContact}
         />
       </main>
 
