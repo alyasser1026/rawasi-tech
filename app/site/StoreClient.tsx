@@ -7,6 +7,7 @@ import { mergeContent, type SiteContentOverride } from './site-content';
 import {
   getProductImageUrl,
   PRODUCT_CATEGORIES,
+  PRODUCT_STUDIO_IMAGES_BY_CATEGORY,
   SMART_BUNDLES,
   type ProductCategoryId,
   type WebsiteMaintenanceService,
@@ -17,8 +18,86 @@ import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import ContactModal from './ContactModal';
-import { supabase } from '@/lib/supabase';
 import { rememberVisitorContact } from '@/lib/client-device-info';
+
+type HeroOfferAction = {
+  tab: 'products' | 'maintenance';
+  category: 'all' | ProductCategoryId;
+};
+
+interface StoreOfferSlide {
+  id: string;
+  image: string;
+  kicker: string;
+  shortLabel: string;
+  headline: string;
+  subtitle: string;
+  perks: string[];
+  primaryLabel: string;
+  primaryAction: HeroOfferAction;
+  secondaryLabel: string;
+  secondaryHref?: string;
+  secondaryAction?: HeroOfferAction | 'contact';
+}
+
+const STORE_OFFER_SLIDES: StoreOfferSlide[] = [
+  {
+    id: 'smart-home-offer',
+    image: '/sections/smart-home.jpg',
+    kicker: 'عرض التجهيز الذكي · الأكثر طلباً',
+    shortLabel: 'سمارت هوم',
+    headline: 'حوّل وحدتك لمنزل ذكي متكامل بالتركيب والبرمجة',
+    subtitle:
+      'شاشات تحكم مركزية، أقفال أبواب ذكية 6×1 بالبصمة والوجه، ومفاتيح لمس تعمل بدون تكسير مع ضمان هندسي مكتوب.',
+    perks: ['تركيب وبرمجة هندسية', 'ضمان مكتوب', 'متابعة من الجوال'],
+    primaryLabel: 'تصفح قسم السمارت هوم',
+    primaryAction: { tab: 'products', category: 'smart_home' },
+    secondaryLabel: 'باقات التوفير',
+    secondaryHref: '#store-bundles',
+  },
+  {
+    id: 'materials-offer',
+    image: '/sections/materials.jpg',
+    kicker: 'توريد مباشر للمشاريع والوحدات',
+    shortLabel: 'خامات وتشطيب',
+    headline: 'بورسلان كلكتا، رخام طبيعي، وخامات تشطيب بأسعار التوريد المباشر',
+    subtitle:
+      'تشكيلة منتقاة من البورسلان قص الليزر، السباكة المدفونة، ودهانات جوتن الأصلية جاهزة للتوريد الفوري لموقعك.',
+    perks: ['توريد مباشر للموقع', 'خامات أصلية مضمونة', 'تسعير فوري للكميات'],
+    primaryLabel: 'تصفح السيراميك والرخام',
+    primaryAction: { tab: 'products', category: 'ceramics' },
+    secondaryLabel: 'اطلب تسعيرة مشروع',
+    secondaryAction: 'contact',
+  },
+  {
+    id: 'safety-offer',
+    image: '/sections/contracting.jpg',
+    kicker: 'حماية متكاملة للشقق والفلل',
+    shortLabel: 'أمان وكاميرات',
+    headline: 'منظومة الأمان الذكي: كاميرات 4K وحساسات غلق الغاز والمياه تلقائياً',
+    subtitle:
+      'احمِ تشطيبك وأسرتك بحساسات تسرب الغاز والمياه المزودة بمحابس فصل أوتوماتيكية وكاميرات رؤية ليلية ملونة.',
+    perks: ['غلق تلقائي عند التسرب', 'تنبيه لحظي للجوال', 'توريد وتركيب معتمد'],
+    primaryLabel: 'تصفح حساسات الأمان',
+    primaryAction: { tab: 'products', category: 'safety_sensors' },
+    secondaryLabel: 'كاميرات 4K',
+    secondaryAction: { tab: 'products', category: 'low_current' },
+  },
+  {
+    id: 'maintenance-offer',
+    image: '/sections/maintenance.jpg',
+    kicker: 'تنفيذ وتأسيس وصيانة بضمان',
+    shortLabel: 'تنفيذ وصيانة',
+    headline: 'تنفيذ هندسي شامل وصيانة متخصصة بدون تكسير وبإشراف مهندسين',
+    subtitle:
+      'تأسيس كهرباء وسباكة وتكييف مخفي مع اختبارات ضغط 10 بار وصيانة دورية وقائية لكل القطاعات.',
+    perks: ['إشراف مهندس مختص', 'اختبارات استلام موثقة', 'ضمان على المصنعية'],
+    primaryLabel: 'استعرض خدمات التنفيذ والصيانة',
+    primaryAction: { tab: 'maintenance', category: 'all' },
+    secondaryLabel: 'احجز معاينة',
+    secondaryAction: 'contact',
+  },
+];
 
 function StoreIcon() {
   return (
@@ -74,31 +153,59 @@ function ShieldIcon() {
   );
 }
 
-function TruckIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2" />
-      <path d="M15 18H9" />
-      <path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14" />
-      <circle cx="17" cy="18" r="2" />
-      <circle cx="7" cy="18" r="2" />
-    </svg>
-  );
-}
-
-function BoltIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z" />
-    </svg>
-  );
-}
-
 function CloseIcon() {
   return (
     <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M18 6 6 18" />
       <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+function FilterIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+    </svg>
+  );
+}
+
+function ChevronRightIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  );
+}
+
+function ChevronLeftIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m15 18-6-6 6-6" />
+    </svg>
+  );
+}
+
+function SlidersIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="4" x2="4" y1="21" y2="14" />
+      <line x1="4" x2="4" y1="10" y2="3" />
+      <line x1="12" x2="12" y1="21" y2="12" />
+      <line x1="12" x2="12" y1="8" y2="3" />
+      <line x1="20" x2="20" y1="21" y2="16" />
+      <line x1="20" x2="20" y1="12" y2="3" />
+      <line x1="2" x2="6" y1="14" y2="14" />
+      <line x1="10" x2="14" y1="8" y2="8" />
+      <line x1="18" x2="22" y1="16" y2="16" />
+    </svg>
+  );
+}
+
+function SparklesIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
     </svg>
   );
 }
@@ -114,6 +221,23 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
   const [installSelections, setInstallSelections] = useState<Record<string, boolean>>({});
   const [addedId, setAddedId] = useState<string | null>(null);
   const addedTimerRef = useRef<number | null>(null);
+
+  // Top full-width rotating promo carousel state
+  const [slideIdx, setSlideIdx] = useState(0);
+  const [sliderPaused, setSliderPaused] = useState(false);
+
+  // Sidebar filter states
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [onlyFeatured, setOnlyFeatured] = useState(false);
+  const [onlyInStock, setOnlyInStock] = useState(false);
+  const [onlyDiscounted, setOnlyDiscounted] = useState(false);
+  const [globalInstallMode, setGlobalInstallMode] = useState(false);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [showAllBrands, setShowAllBrands] = useState(false);
+  const [minPrice, setMinPrice] = useState('');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [sortBy, setSortBy] = useState<'featured' | 'default' | 'name_asc' | 'price_asc' | 'price_desc'>('featured');
+  const [mntFeeFilter, setMntFeeFilter] = useState<'all' | 'fixed' | 'quote'>('all');
 
   // Maintenance Request Modal state
   const [selectedMaintenance, setSelectedMaintenance] = useState<WebsiteMaintenanceService | null>(null);
@@ -158,12 +282,85 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
     };
   }, []);
 
+  useEffect(() => {
+    if (sliderPaused) return;
+    const timer = window.setInterval(() => {
+      setSlideIdx((prev) => (prev + 1) % STORE_OFFER_SLIDES.length);
+    }, 5500);
+    return () => window.clearInterval(timer);
+  }, [sliderPaused]);
+
+  useEffect(() => {
+    if (!mobileFiltersOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMobileFiltersOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [mobileFiltersOpen]);
+
   const flashAdded = (id: string) => {
     setAddedId(id);
     if (addedTimerRef.current) window.clearTimeout(addedTimerRef.current);
     addedTimerRef.current = window.setTimeout(() => {
       setAddedId((prev) => (prev === id ? null : prev));
     }, 1800);
+  };
+
+  const scrollToCatalog = () => {
+    if (typeof document === 'undefined') return;
+    const el = document.getElementById('store-catalog');
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const goToSlide = (nextIdx: number) => {
+    const total = STORE_OFFER_SLIDES.length;
+    setSlideIdx(((nextIdx % total) + total) % total);
+  };
+
+  const handleHeroOfferAction = (action: HeroOfferAction) => {
+    setActiveStoreTab(action.tab);
+    if (action.tab === 'products') {
+      setSelectedCategory(action.category);
+    } else {
+      setMntFilterCategory(action.category);
+    }
+    scrollToCatalog();
+  };
+
+  const handleSelectSectionCard = (tab: 'products' | 'maintenance', catId: string) => {
+    setActiveStoreTab(tab);
+    if (tab === 'products') {
+      setSelectedCategory(catId as 'all' | ProductCategoryId);
+      setSelectedBrands([]);
+    } else {
+      setMntFilterCategory(catId);
+    }
+    scrollToCatalog();
+  };
+
+  const handleToggleBrand = (brand: string) => {
+    setSelectedBrands((prev) =>
+      prev.includes(brand) ? prev.filter((b) => b !== brand) : [...prev, brand]
+    );
+  };
+
+  const resetAllFilters = () => {
+    setSearchQuery('');
+    if (activeStoreTab === 'products') {
+      setSelectedCategory('all');
+      setOnlyFeatured(false);
+      setOnlyInStock(false);
+      setOnlyDiscounted(false);
+      setGlobalInstallMode(false);
+      setSelectedBrands([]);
+      setMinPrice('');
+      setMaxPrice('');
+      setSortBy('featured');
+    } else {
+      setMntFilterCategory('all');
+      setMntFeeFilter('all');
+    }
   };
 
   const availableMaintenance = useMemo(
@@ -175,6 +372,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
     const q = searchQuery.trim().toLowerCase();
     return availableMaintenance.filter((srv) => {
       if (mntFilterCategory !== 'all' && srv.category !== mntFilterCategory) return false;
+      if (mntFeeFilter === 'fixed' && !(srv.visitFee > 0)) return false;
+      if (mntFeeFilter === 'quote' && srv.visitFee > 0) return false;
       if (!q) return true;
       return (
         srv.title.toLowerCase().includes(q) ||
@@ -184,7 +383,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         srv.maintenanceScope.some((x) => x.toLowerCase().includes(q))
       );
     });
-  }, [availableMaintenance, mntFilterCategory, searchQuery]);
+  }, [availableMaintenance, mntFilterCategory, mntFeeFilter, searchQuery]);
 
   const handleOpenMaintenanceModal = (srv: WebsiteMaintenanceService) => {
     setSelectedMaintenance(srv);
@@ -267,10 +466,39 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
     return map;
   }, []);
 
+  const hasPricedProducts = useMemo(() => PRODUCTS.some((p) => p.price > 0), [PRODUCTS]);
+  const hasDiscountedProducts = useMemo(
+    () => PRODUCTS.some((p) => Boolean(p.oldPrice && p.oldPrice > p.price)),
+    [PRODUCTS]
+  );
+
+  const brandOptions = useMemo(() => {
+    const scope =
+      selectedCategory === 'all' ? PRODUCTS : PRODUCTS.filter((p) => p.category === selectedCategory);
+    const counts = new Map<string, number>();
+    for (const p of scope) {
+      const b = p.brand.trim();
+      if (!b) continue;
+      counts.set(b, (counts.get(b) || 0) + 1);
+    }
+    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  }, [PRODUCTS, selectedCategory]);
+
   const filteredProducts = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
-    return PRODUCTS.filter((p) => {
+    const minP = minPrice.trim() ? Number(minPrice) : null;
+    const maxP = maxPrice.trim() ? Number(maxPrice) : null;
+
+    const list = PRODUCTS.filter((p) => {
       if (selectedCategory !== 'all' && p.category !== selectedCategory) return false;
+      if (onlyFeatured && !p.featured) return false;
+      if (onlyInStock && !p.inStock) return false;
+      if (onlyDiscounted && !(p.oldPrice && p.oldPrice > p.price)) return false;
+      if (selectedBrands.length > 0 && !selectedBrands.includes(p.brand.trim())) return false;
+      if (hasPricedProducts) {
+        if (minP !== null && !Number.isNaN(minP) && p.price < minP) return false;
+        if (maxP !== null && !Number.isNaN(maxP) && p.price > maxP) return false;
+      }
       if (!q) return true;
       return (
         p.name.toLowerCase().includes(q) ||
@@ -280,10 +508,70 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         p.specs.some((s) => s.toLowerCase().includes(q))
       );
     });
-  }, [PRODUCTS, selectedCategory, searchQuery]);
+
+    if (sortBy === 'featured') {
+      return [...list].sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
+    }
+    if (sortBy === 'name_asc') {
+      return [...list].sort((a, b) => a.name.localeCompare(b.name, 'ar'));
+    }
+    if (sortBy === 'price_asc') {
+      return [...list].sort((a, b) => a.price - b.price);
+    }
+    if (sortBy === 'price_desc') {
+      return [...list].sort((a, b) => b.price - a.price);
+    }
+    return list;
+  }, [
+    PRODUCTS,
+    selectedCategory,
+    onlyFeatured,
+    onlyInStock,
+    onlyDiscounted,
+    selectedBrands,
+    hasPricedProducts,
+    minPrice,
+    maxPrice,
+    searchQuery,
+    sortBy,
+  ]);
+
+  const activeFilterCount = useMemo(() => {
+    let c = 0;
+    if (searchQuery.trim()) c++;
+    if (activeStoreTab === 'products') {
+      if (selectedCategory !== 'all') c++;
+      if (onlyFeatured) c++;
+      if (onlyInStock) c++;
+      if (onlyDiscounted) c++;
+      if (globalInstallMode) c++;
+      c += selectedBrands.length;
+      if (minPrice.trim() || maxPrice.trim()) c++;
+    } else {
+      if (mntFilterCategory !== 'all') c++;
+      if (mntFeeFilter !== 'all') c++;
+    }
+    return c;
+  }, [
+    searchQuery,
+    activeStoreTab,
+    selectedCategory,
+    onlyFeatured,
+    onlyInStock,
+    onlyDiscounted,
+    globalInstallMode,
+    selectedBrands,
+    minPrice,
+    maxPrice,
+    mntFilterCategory,
+    mntFeeFilter,
+  ]);
 
   const handleToggleCardInstall = (id: string) => {
-    setInstallSelections((prev) => ({ ...prev, [id]: !prev[id] }));
+    setInstallSelections((prev) => {
+      const current = prev[id] ?? globalInstallMode;
+      return { ...prev, [id]: !current };
+    });
   };
 
   const handleProductAdd = (p: WebsiteProduct, withInstall: boolean) => {
@@ -305,41 +593,317 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
     }
   };
 
+  const activeSlide = STORE_OFFER_SLIDES[slideIdx] || STORE_OFFER_SLIDES[0];
+
   return (
     <div className={`pw st-page ${loginOpen || contactOpen || selectedMaintenance ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
       <style>{`
         .pw.st-page {
           background: #fbfaf7;
+          min-height: 100vh;
         }
-        .pw.st-page .pw-unified-hero {
-          background: linear-gradient(180deg, #fffaf4 0%, #fbfaf7 100%);
-          padding: 104px 0 40px;
+        .pw.st-page .pw-header.pw-header-glass {
+          margin-bottom: 0 !important;
+          background: rgba(251, 250, 247, 0.92) !important;
+          backdrop-filter: blur(16px) !important;
+          -webkit-backdrop-filter: blur(16px) !important;
+          border-bottom: 1px solid rgba(20, 24, 27, 0.08) !important;
+          box-shadow: 0 4px 20px rgba(20, 24, 27, 0.05) !important;
+        }
+        .pw.st-page .st-wide-wrap {
+          max-width: clamp(1200px, calc(var(--ui-wrap-max, 1280px) + 80px), 1440px);
+        }
+
+        /* 1. Full-Width Edge-to-Edge Rotating Promotional Hero */
+        .pw.st-page .pw-unified-hero.st-promo-stage {
+          position: relative;
+          width: 100%;
+          min-height: clamp(430px, 56vh, 560px);
+          padding: 36px 0 32px;
+          background: #10161e;
+          color: #ffffff;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          border-bottom: 1px solid #dfd7cc;
+        }
+        .st-promo-bg-stack {
+          position: absolute;
+          inset: 0;
+          z-index: 0;
+          overflow: hidden;
+        }
+        .st-promo-bg-slide {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          opacity: 0;
+          transform: scale(1.04);
+          transition: opacity 0.7s ease, transform 5.6s ease-out;
+          pointer-events: none;
+        }
+        .st-promo-bg-slide.is-active {
+          opacity: 1;
+          transform: scale(1);
+        }
+        .st-promo-scrim {
+          position: absolute;
+          inset: 0;
+          z-index: 1;
+          background:
+            linear-gradient(270deg, rgba(14, 18, 22, 0.9) 0%, rgba(14, 18, 22, 0.66) 50%, rgba(14, 18, 22, 0.28) 100%),
+            linear-gradient(180deg, rgba(14, 18, 22, 0.22) 0%, transparent 45%, rgba(14, 18, 22, 0.56) 100%);
+        }
+        .st-promo-inner {
+          position: relative;
+          z-index: 2;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          gap: 24px;
+          flex: 1;
+        }
+        .st-promo-top-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb {
+          margin: 0;
+          justify-content: flex-start;
+          color: rgba(251, 250, 247, 0.78);
+        }
+        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb a {
+          color: #ffffff;
+        }
+        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb a:hover {
+          color: #ffb074;
+        }
+        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-promo {
+          margin: 0;
+          background: rgba(255, 255, 255, 0.14);
+          border-color: rgba(255, 255, 255, 0.24);
+          color: #ffffff;
+          backdrop-filter: blur(10px);
+        }
+        .st-promo-copy {
+          max-width: 720px;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          align-items: flex-start;
+          text-align: right;
+        }
+        .st-promo-kicker {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 5px 14px;
+          border-radius: var(--r-pill);
+          background: rgba(255, 255, 255, 0.14);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.24);
+          color: #ffcfb0;
+          font-size: 0.82rem;
+          font-weight: 800;
+        }
+        .st-promo-kicker i {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: #fb923c;
+          box-shadow: 0 0 8px rgba(251, 146, 60, 0.8);
+          display: block;
+        }
+        .st-promo-copy h1 {
+          margin: 0;
+          font-size: clamp(1.65rem, 3.2vw, 2.55rem);
+          font-weight: 900;
+          line-height: 1.3;
+          color: #ffffff;
+          text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+        }
+        .st-promo-copy p {
+          margin: 0;
+          max-width: 60ch;
+          font-size: clamp(0.95rem, 1.15vw, 1.06rem);
+          line-height: 1.7;
+          color: rgba(251, 250, 247, 0.9);
+          font-weight: 500;
+        }
+        .st-promo-perks {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .st-promo-perk {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 5px 12px;
+          border-radius: var(--r-pill);
+          background: rgba(16, 22, 30, 0.56);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: #f8fafc;
+          font-size: 0.79rem;
+          font-weight: 700;
+        }
+        .st-promo-perk svg {
+          color: #34d399;
+        }
+        .st-promo-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 12px;
+          margin-top: 4px;
+        }
+        .st-promo-secondary-btn {
+          background: rgba(255, 255, 255, 0.12) !important;
+          border-color: rgba(255, 255, 255, 0.32) !important;
+          color: #ffffff !important;
+          backdrop-filter: blur(8px);
+        }
+        .st-promo-secondary-btn:hover {
+          background: rgba(255, 255, 255, 0.22) !important;
+          border-color: #ffffff !important;
+        }
+
+        /* Carousel Bottom Bar */
+        .st-promo-controls {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 16px;
+          flex-wrap: wrap;
+          padding-top: 16px;
+          border-top: 1px solid rgba(255, 255, 255, 0.16);
+        }
+        .st-promo-arrows {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+        }
+        .st-promo-arrow-btn {
+          width: 44px;
+          height: 44px;
+          border-radius: var(--r-btn);
+          border: 1px solid rgba(255, 255, 255, 0.28);
+          background: rgba(16, 22, 30, 0.62);
+          backdrop-filter: blur(10px);
+          color: #ffffff;
+          display: grid;
+          place-items: center;
+          cursor: pointer;
+          transition: background 0.16s ease, border-color 0.16s ease;
+        }
+        .st-promo-arrow-btn:hover {
+          background: var(--o);
+          border-color: var(--o);
+        }
+        .st-promo-segs {
+          flex: 1;
+          min-width: 240px;
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 10px;
+        }
+        .st-promo-seg {
+          background: rgba(16, 22, 30, 0.45);
+          border: 1px solid rgba(255, 255, 255, 0.16);
+          border-radius: var(--r-btn-sm);
+          padding: 8px 10px;
+          color: rgba(251, 250, 247, 0.78);
+          text-align: right;
+          cursor: pointer;
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+        }
+        .st-promo-seg:hover,
+        .st-promo-seg.is-active {
+          background: rgba(255, 255, 255, 0.16);
+          border-color: rgba(255, 255, 255, 0.36);
+          color: #ffffff;
+        }
+        .st-promo-seg-title {
+          font-size: 0.77rem;
+          font-weight: 800;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .st-promo-bar-track {
+          position: relative;
+          height: 3px;
+          border-radius: var(--r-pill);
+          background: rgba(255, 255, 255, 0.22);
+          overflow: hidden;
+        }
+        .st-promo-bar-fill {
+          position: absolute;
+          inset: 0;
+          background: #fb923c;
+          transform-origin: right center;
+          animation: stPromoBar 5.5s linear forwards;
+        }
+        .st-promo-bar-fill.is-paused {
+          animation-play-state: paused;
+        }
+        @keyframes stPromoBar {
+          from { transform: scaleX(0); }
+          to { transform: scaleX(1); }
+        }
+        .st-promo-counter {
+          font-family: ui-monospace, Consolas, monospace;
+          font-size: 0.82rem;
+          font-weight: 800;
+          color: rgba(255, 255, 255, 0.88);
+          padding: 6px 12px;
+          border-radius: var(--r-pill);
+          background: rgba(16, 22, 30, 0.56);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          white-space: nowrap;
+        }
+
+        /* 2. Store Visual Sections Band */
+        .st-sections-band {
+          padding: 32px 0 28px;
+          background: linear-gradient(180deg, #ffffff 0%, #fbfaf7 100%);
           border-bottom: 1px solid #e7e1d7;
         }
-        .pw.st-page .pw-unified-hero .pw-head {
-          margin-bottom: 24px;
+        .st-sections-head {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: flex-end;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 20px;
         }
-        .pw.st-page .pw-unified-hero .pw-head h1 {
-          font-size: clamp(1.55rem, 2.8vw, 2.25rem);
+        .st-sections-head h2 {
+          margin: 4px 0 0;
+          font-size: clamp(1.25rem, 2.1vw, 1.65rem);
           font-weight: 800;
-          line-height: 1.38;
           color: #14181b;
-          margin-bottom: 12px;
         }
-        .pw.st-page .pw-unified-hero .pw-head h1 em {
-          font-style: normal;
+        .st-sections-kicker {
+          font-size: 0.8rem;
+          font-weight: 800;
           color: var(--o);
         }
         .st-mode-switch {
-          max-width: 560px;
-          margin: 24px auto 0;
           background: #f4efe6;
           border: 1px solid #e7e1d7;
           border-radius: var(--r-card-sm);
           padding: 4px;
-          display: grid;
-          grid-template-columns: 1fr 1fr;
+          display: inline-grid;
+          grid-template-columns: auto auto;
           gap: 4px;
         }
         .st-mode-btn {
@@ -350,12 +914,13 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           background: transparent;
           color: #525e6a;
           font-weight: 800;
-          font-size: 0.9rem;
+          font-size: 0.88rem;
           cursor: pointer;
           display: inline-flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
+          white-space: nowrap;
           transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
         }
         .st-mode-btn:hover {
@@ -375,9 +940,9 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         .st-mode-count {
           padding: 2px 8px;
           border-radius: var(--r-pill);
-          background: #f4efe6;
+          background: #ebe4d8;
           color: #525e6a;
-          font-size: 0.76rem;
+          font-size: 0.75rem;
           font-weight: 800;
         }
         .st-mode-btn.is-active .st-mode-count {
@@ -388,50 +953,319 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           background: #eef2f6;
           color: #1e3a5f;
         }
-        .st-trust-strip {
+
+        .st-sections-grid {
+          display: grid;
+          grid-template-columns: repeat(5, minmax(0, 1fr));
+          gap: 12px;
+        }
+        .st-section-card {
+          position: relative;
           display: flex;
-          flex-wrap: wrap;
-          justify-content: center;
-          gap: 8px 24px;
-          margin-top: 20px;
-          color: #525e6a;
-          font-size: 0.84rem;
-          font-weight: 700;
-        }
-        .st-trust-item {
-          display: inline-flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
+          padding: 10px 12px;
+          border-radius: var(--ui-btn-r, 12px);
+          background: #ffffff;
+          border: 1.5px solid #e7e1d7;
+          color: #14181b;
+          text-align: right;
+          cursor: pointer;
+          transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease, background 0.16s ease;
         }
-        .st-trust-item svg {
-          color: var(--o);
+        .st-section-card:hover {
+          border-color: rgba(199, 85, 23, 0.5);
+          transform: translateY(-2px);
+          box-shadow: 0 12px 24px -18px rgba(20, 24, 27, 0.22);
+        }
+        .st-section-card.is-active {
+          border-color: var(--o);
+          background: #fff8f3;
+          box-shadow: 0 12px 24px -18px rgba(199, 85, 23, 0.38);
+        }
+        .st-section-thumb {
+          width: 48px;
+          height: 48px;
+          border-radius: 10px;
+          object-fit: cover;
+          background: #0f161e;
           flex-shrink: 0;
+          border: 1px solid #e7e1d7;
+        }
+        .st-section-meta {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .st-section-meta strong {
+          font-size: 0.85rem;
+          font-weight: 800;
+          color: #14181b;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .st-section-card.is-active .st-section-meta strong {
+          color: var(--o-dark);
+        }
+        .st-section-meta span {
+          font-size: 0.74rem;
+          font-weight: 700;
+          color: #64748b;
         }
 
+        /* 3. Main Catalog Layout with Sticky Side Filter Menu */
         .st-main {
-          padding-top: 32px;
+          padding-top: 28px;
           padding-bottom: 72px;
         }
-        .st-toolbar {
+        .st-catalog-layout {
+          display: grid;
+          grid-template-columns: 280px minmax(0, 1fr);
+          gap: var(--ui-gap, 24px);
+          align-items: start;
+        }
+        .st-filter-backdrop {
+          display: none;
+        }
+        .st-filter-sidebar {
+          position: sticky;
+          top: 88px;
+          max-height: calc(100vh - 104px);
+          overflow-y: auto;
           background: #ffffff;
           border: 1px solid #e7e1d7;
           border-radius: var(--ui-card-r, 16px);
-          padding: var(--ui-card-pad-sm, 20px) var(--ui-card-pad, 24px);
-          margin-bottom: var(--ui-gap, 24px);
+          padding: var(--ui-card-pad-sm, 18px);
+          box-shadow: 0 14px 32px -24px rgba(20, 24, 27, 0.14);
           display: flex;
           flex-direction: column;
           gap: 16px;
-          box-shadow: 0 12px 30px -24px rgba(20, 24, 27, 0.14);
         }
-        .st-toolbar-top {
+        .st-sidebar-head {
           display: flex;
-          gap: 12px;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding-bottom: 12px;
+          border-bottom: 1px solid #efe9df;
+        }
+        .st-sidebar-title {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.96rem;
+          font-weight: 900;
+          color: #14181b;
+        }
+        .st-sidebar-title svg {
+          color: var(--o);
+        }
+        .st-sidebar-badge {
+          min-width: 22px;
+          height: 22px;
+          padding: 0 7px;
+          border-radius: var(--r-pill);
+          background: var(--o);
+          color: #ffffff;
+          font-size: 0.72rem;
+          font-weight: 900;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .st-sidebar-actions {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .st-sidebar-reset {
+          border: none;
+          background: #fff3ea;
+          color: var(--o-dark);
+          padding: 4px 10px;
+          border-radius: var(--r-pill);
+          font-size: 0.75rem;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .st-sidebar-reset:hover {
+          background: #fed7aa;
+        }
+        .st-sidebar-close {
+          display: none;
+        }
+        .st-filter-group {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          padding-bottom: 14px;
+          border-bottom: 1px solid #f2ede4;
+        }
+        .st-filter-group:last-of-type {
+          border-bottom: none;
+          padding-bottom: 0;
+        }
+        .st-filter-group-title {
+          font-size: 0.82rem;
+          font-weight: 900;
+          color: #14181b;
+        }
+        .st-sidebar-search {
+          width: 100%;
+          min-height: 40px;
+          padding: 8px 12px;
+          border-radius: var(--r-btn-sm);
+          border: 1.5px solid #dfd7cc;
+          background: #fbfaf7;
+          color: #14181b;
+          font-size: 0.85rem;
+          font-weight: 600;
+          outline: none;
+        }
+        .st-sidebar-search:focus {
+          background: #ffffff;
+          border-color: var(--o);
+        }
+        .st-filter-cat-list {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .st-filter-cat-item {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          min-height: 36px;
+          padding: 6px 10px;
+          border-radius: var(--r-btn-sm);
+          border: 1px solid transparent;
+          border-inline-start: 3px solid transparent;
+          background: transparent;
+          color: #47525c;
+          font-size: 0.83rem;
+          font-weight: 700;
+          text-align: right;
+          cursor: pointer;
+          transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+        }
+        .st-filter-cat-item:hover {
+          background: #fbfaf7;
+          color: #14181b;
+        }
+        .st-filter-cat-item.is-active {
+          background: #fff3ea;
+          color: var(--o-dark);
+          border-color: #fed7aa;
+          border-inline-start-color: var(--o);
+          font-weight: 800;
+        }
+        .st-filter-cat-count {
+          font-size: 0.74rem;
+          font-weight: 800;
+          color: #64748b;
+          background: #f4efe6;
+          padding: 1px 7px;
+          border-radius: var(--r-pill);
+        }
+        .st-filter-cat-item.is-active .st-filter-cat-count {
+          background: #ffffff;
+          color: var(--o-dark);
+        }
+        .st-check-list {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+        .st-check-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          font-size: 0.82rem;
+          font-weight: 700;
+          color: #334155;
+          cursor: pointer;
+        }
+        .st-check-row-left {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+        }
+        .st-check-row-left span {
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .st-check-row input {
+          accent-color: var(--o);
+          width: 16px;
+          height: 16px;
+          flex-shrink: 0;
+        }
+        .st-more-brands-btn {
+          align-self: flex-start;
+          border: none;
+          background: transparent;
+          color: var(--o-dark);
+          font-size: 0.78rem;
+          font-weight: 800;
+          cursor: pointer;
+          padding: 2px 0;
+        }
+        .st-price-inputs {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .st-price-input {
+          width: 100%;
+          min-height: 38px;
+          padding: 6px 10px;
+          border-radius: var(--r-btn-sm);
+          border: 1.5px solid #dfd7cc;
+          background: #fbfaf7;
+          color: #14181b;
+          font-size: 0.82rem;
+          font-weight: 700;
+          outline: none;
+        }
+        .st-price-input:focus {
+          background: #ffffff;
+          border-color: var(--o);
+        }
+        .st-sidebar-mobile-foot {
+          display: none;
+        }
+
+        /* Main Catalog Content Column */
+        .st-catalog-content {
+          min-width: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        }
+        .st-results-bar {
+          background: #ffffff;
+          border: 1px solid #e7e1d7;
+          border-radius: var(--ui-card-r, 16px);
+          padding: 14px 18px;
+          display: flex;
           flex-wrap: wrap;
           align-items: center;
           justify-content: space-between;
+          gap: 12px;
+          box-shadow: 0 10px 26px -22px rgba(20, 24, 27, 0.14);
+        }
+        .st-mobile-filter-btn {
+          display: none;
         }
         .st-search-box {
-          flex: 1 1 300px;
+          flex: 1 1 260px;
           position: relative;
           display: flex;
           align-items: center;
@@ -458,10 +1292,10 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           border: none;
           outline: none;
           background: transparent;
-          font-size: 0.95rem;
+          font-size: 0.92rem;
           font-weight: 600;
           color: #14181b;
-          min-height: 40px;
+          min-height: 38px;
         }
         .st-search-clear {
           width: 32px;
@@ -475,15 +1309,27 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           cursor: pointer;
           flex-shrink: 0;
         }
-        .st-search-clear:hover {
-          background: #e7dfd2;
-          color: #14181b;
-        }
         .st-toolbar-actions {
           display: flex;
           align-items: center;
           gap: 8px;
           flex-wrap: wrap;
+        }
+        .st-sort-select {
+          min-height: 38px;
+          padding: 6px 12px;
+          border-radius: var(--ui-btn-r, 10px);
+          border: 1.5px solid #dfd7cc;
+          background: #fbfaf7;
+          color: #14181b;
+          font-size: 0.83rem;
+          font-weight: 700;
+          cursor: pointer;
+          outline: none;
+        }
+        .st-sort-select:focus {
+          border-color: var(--o);
+          background: #ffffff;
         }
         .st-count-pill {
           min-height: 36px;
@@ -491,7 +1337,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           border-radius: var(--r-pill);
           background: #f4efe6;
           color: #47525c;
-          font-size: 0.82rem;
+          font-size: 0.81rem;
           font-weight: 700;
           display: inline-flex;
           align-items: center;
@@ -501,43 +1347,37 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           color: var(--o-dark);
           font-weight: 900;
         }
-        .st-cats-bar {
+        .st-active-filters {
           display: flex;
-          gap: 8px;
           flex-wrap: wrap;
-          margin: 0;
+          align-items: center;
+          gap: 8px;
         }
-        .st-cat-btn {
+        .st-active-chip {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          min-height: 36px;
-          padding: 6px 14px;
+          min-height: 32px;
+          padding: 4px 10px;
           border-radius: var(--r-pill);
-          border: 1px solid #e2dbd0;
-          background: #fbfaf7;
-          color: #47525c;
-          font-weight: 700;
-          font-size: 0.85rem;
-          cursor: pointer;
-          transition: all 0.16s ease;
-          white-space: nowrap;
-        }
-        .st-cat-btn:hover {
-          border-color: var(--o);
-          color: #14181b;
-          background: #ffffff;
-        }
-        .st-cat-btn.is-active {
-          background: #14181b;
-          color: #ffffff;
-          border-color: #14181b;
-          box-shadow: 0 8px 18px -10px rgba(20, 24, 27, 0.35);
-        }
-        .st-cat-count {
-          opacity: 0.72;
+          background: #fff3ea;
+          border: 1px solid #fed7aa;
+          color: var(--o-dark);
           font-size: 0.78rem;
           font-weight: 800;
+          cursor: pointer;
+        }
+        .st-active-chip:hover {
+          background: #fed7aa;
+        }
+        .st-active-clear-all {
+          border: none;
+          background: transparent;
+          color: #47525c;
+          font-size: 0.78rem;
+          font-weight: 800;
+          cursor: pointer;
+          text-decoration: underline;
         }
 
         /* Product Cards Grid */
@@ -628,14 +1468,14 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           color: var(--o);
         }
         .st-prod-body h3 {
-          font-size: 1.04rem;
+          font-size: 1.02rem;
           font-weight: 800;
           line-height: 1.45;
           color: #14181b;
           margin: 0;
         }
         .st-prod-desc {
-          font-size: 0.85rem;
+          font-size: 0.84rem;
           color: #525e6a;
           line-height: 1.6;
           margin: 0;
@@ -649,7 +1489,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           flex-direction: column;
           gap: 4px;
           margin-top: 4px;
-          font-size: 0.8rem;
+          font-size: 0.79rem;
           color: #334155;
           font-weight: 600;
         }
@@ -685,7 +1525,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           background: #ffffff;
           border: 1px solid #dfd7cc;
           color: #47525c;
-          font-size: 0.8rem;
+          font-size: 0.79rem;
           font-weight: 700;
           cursor: pointer;
           transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -719,7 +1559,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           gap: 4px;
         }
         .st-price-main strong {
-          font-size: 1.24rem;
+          font-size: 1.22rem;
           font-weight: 900;
           color: #14181b;
         }
@@ -729,13 +1569,13 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           color: #525e6a;
         }
         .st-price-quote strong {
-          font-size: 0.96rem;
+          font-size: 0.94rem;
           font-weight: 800;
           color: var(--o-dark);
           display: block;
         }
         .st-price-quote span {
-          font-size: 0.75rem;
+          font-size: 0.74rem;
           font-weight: 600;
           color: #64748b;
         }
@@ -758,7 +1598,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           border: 1px solid #dfd7cc;
           background: #ffffff;
           color: #14181b;
-          font-size: 0.85rem;
+          font-size: 0.84rem;
           font-weight: 700;
           display: inline-flex;
           align-items: center;
@@ -774,8 +1614,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
 
         /* Smart Bundles Section */
         .st-bundles-section {
-          margin-top: 56px;
-          padding-top: 48px;
+          margin-top: 52px;
+          padding-top: 44px;
           border-top: 1px solid #e7e1d7;
         }
         .st-section-head {
@@ -889,7 +1729,6 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           border-inline-start: 4px solid var(--o);
           border-radius: var(--ui-card-r, 16px);
           padding: var(--ui-card-pad, 24px);
-          margin-bottom: var(--ui-gap, 24px);
           display: grid;
           gap: 16px;
           box-shadow: 0 12px 28px -24px rgba(20, 24, 27, 0.14);
@@ -902,7 +1741,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           gap: 12px;
         }
         .st-mnt-banner-top h2 {
-          font-size: 1.24rem;
+          font-size: 1.2rem;
           font-weight: 800;
           color: #14181b;
           margin: 4px 0 0;
@@ -933,8 +1772,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           background: #fbfaf7;
           border: 1px solid #e7e1d7;
           border-radius: var(--r-card-sm);
-          padding: 16px;
-          font-size: 0.83rem;
+          padding: 14px;
+          font-size: 0.82rem;
           color: #47525c;
           line-height: 1.6;
         }
@@ -983,7 +1822,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         }
         .st-mnt-card-head h3 {
           margin: 0;
-          font-size: 1.06rem;
+          font-size: 1.04rem;
           font-weight: 800;
           color: #14181b;
           line-height: 1.45;
@@ -1012,7 +1851,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         }
         .st-mnt-scope-box strong {
           display: block;
-          font-size: 0.83rem;
+          font-size: 0.82rem;
           font-weight: 800;
           color: #14181b;
           margin-bottom: 8px;
@@ -1020,7 +1859,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         .st-mnt-scope-box ul {
           display: grid;
           gap: 6px;
-          font-size: 0.8rem;
+          font-size: 0.79rem;
           color: #47525c;
           font-weight: 600;
         }
@@ -1035,7 +1874,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           border-inline-start: 3px solid var(--o);
           border-radius: var(--r-card-sm);
           padding: 12px 16px;
-          font-size: 0.81rem;
+          font-size: 0.8rem;
           line-height: 1.65;
           color: #5c3a21;
           font-weight: 600;
@@ -1057,7 +1896,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           font-weight: 700;
         }
         .st-mnt-fee-val {
-          font-size: 1.12rem;
+          font-size: 1.1rem;
           font-weight: 900;
           color: #14181b;
         }
@@ -1071,7 +1910,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         .st-empty {
           background: #ffffff;
           border: 1px dashed #dfd7cc;
-          border-radius: var(--r-card);
+          border-radius: var(--ui-card-r, 16px);
           padding: 48px 24px;
           text-align: center;
           display: flex;
@@ -1086,7 +1925,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           font-weight: 800;
         }
 
-        /* Maintenance Booking Modal (8pt Grid: 560px medium modal, 16px radius, 24px padding) */
+        /* Maintenance Booking Modal */
         .st-modal-overlay {
           position: fixed;
           inset: 0;
@@ -1190,7 +2029,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           font-weight: 700;
         }
 
-        /* Unified Frosted Light Footer matching Homepage */
+        /* Unified Frosted Light Footer */
         .pw.st-page .pw-footer {
           background: rgba(251, 250, 247, 0.94);
           border-top: 1px solid rgba(20, 24, 27, 0.09);
@@ -1228,10 +2067,80 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           color: #64748b;
         }
 
-        @media (max-width: 1023px) {
+        @media (max-width: 1279px) {
+          .st-sections-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+          }
           .st-products-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 20px;
+          }
+        }
+        @media (max-width: 1023px) {
+          .st-sections-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+          }
+          .st-catalog-layout {
+            grid-template-columns: 1fr;
+          }
+          .st-mobile-filter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 44px;
+            padding: 8px 14px;
+            border-radius: var(--r-btn);
+            border: 1.5px solid #14181b;
+            background: #14181b;
+            color: #ffffff;
+            font-size: 0.85rem;
+            font-weight: 800;
+            cursor: pointer;
+          }
+          .st-filter-backdrop {
+            display: block;
+            position: fixed;
+            inset: 0;
+            z-index: 9990;
+            background: rgba(14, 18, 22, 0.5);
+            backdrop-filter: blur(4px);
+          }
+          .st-filter-sidebar {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            inset-inline-start: 0;
+            width: min(340px, 88vw);
+            max-height: 100dvh;
+            border-radius: 0;
+            z-index: 9995;
+            transform: translateX(100%);
+            transition: transform 0.25s ease;
+            padding: 18px;
+          }
+          .st-filter-sidebar.is-open {
+            transform: translateX(0);
+          }
+          .st-sidebar-close {
+            display: grid;
+            place-items: center;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--r-btn-sm);
+            border: 1px solid #e7e1d7;
+            background: #fbfaf7;
+            color: #14181b;
+            cursor: pointer;
+          }
+          .st-sidebar-mobile-foot {
+            display: block;
+            position: sticky;
+            bottom: 0;
+            padding-top: 12px;
+            background: #ffffff;
+            border-top: 1px solid #efe9df;
+          }
+          .st-sidebar-mobile-foot .pw-btn {
+            width: 100%;
           }
           .st-bundles-grid,
           .st-mnt-grid,
@@ -1241,30 +2150,41 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           }
         }
         @media (max-width: 639px) {
-          .pw.st-page .pw-unified-hero {
-            padding: 80px 0 32px;
+          .pw.st-page .pw-unified-hero.st-promo-stage {
+            min-height: 460px;
+            padding: 24px 0 22px;
+          }
+          .st-promo-segs {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+          .st-promo-actions .pw-btn {
+            width: 100%;
+            min-height: 48px;
           }
           .st-mode-switch {
-            grid-template-columns: 1fr;
+            width: 100%;
+            grid-template-columns: 1fr 1fr;
           }
-          .st-toolbar {
-            padding: 16px;
+          .st-mode-btn {
+            min-height: 44px;
+            padding: 8px 10px;
+            font-size: 0.82rem;
           }
-          .st-cats-bar {
-            flex-wrap: nowrap;
+          .st-sections-grid {
+            display: flex;
             overflow-x: auto;
+            scroll-snap-type: x proximity;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             padding-bottom: 4px;
           }
-          .st-cats-bar::-webkit-scrollbar {
+          .st-sections-grid::-webkit-scrollbar {
             display: none;
           }
-          .st-cat-btn {
+          .st-section-card {
             flex: 0 0 auto;
-            min-height: 44px;
-            padding: 8px 16px;
-            font-size: 0.8125rem;
+            min-width: 184px;
+            scroll-snap-align: start;
           }
           .st-products-grid {
             grid-template-columns: 1fr;
@@ -1289,8 +2209,16 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
             gap: 16px;
           }
           .st-wa-link,
-          .st-mode-btn {
+          .st-promo-arrow-btn {
             min-height: 44px;
+          }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .st-promo-bg-slide,
+          .st-promo-bar-fill,
+          .st-prod-media img {
+            transition: none !important;
+            animation: none !important;
           }
         }
       `}</style>
@@ -1310,368 +2238,828 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         onOpenContact={() => setContactOpen(true)}
       />
 
-      {/* Sunlit Unified Store Hero */}
-      <section className="pw-unified-hero">
-        <div className="pw-wrap">
-          {PROMO_BANNER.enabled && <div className="pw-unified-promo">{PROMO_BANNER.text}</div>}
+      {/* 1. Full-Width Edge-to-Edge Rotating Promotional Hero Banner */}
+      <section
+        className="pw-unified-hero st-promo-stage"
+        aria-label="عروض متجر فاي تك المميزة"
+        onMouseEnter={() => setSliderPaused(true)}
+        onMouseLeave={() => setSliderPaused(false)}
+      >
+        <div className="st-promo-bg-stack" aria-hidden="true">
+          {STORE_OFFER_SLIDES.map((slide, idx) => (
+            <img
+              key={slide.id}
+              src={slide.image}
+              alt=""
+              className={`st-promo-bg-slide ${idx === slideIdx ? 'is-active' : ''}`}
+              loading={idx === 0 ? 'eager' : 'lazy'}
+              decoding="async"
+            />
+          ))}
+          <div className="st-promo-scrim" />
+        </div>
 
-          <nav className="pw-unified-crumb" aria-label="مسار التنقل">
-            <Link href="/">الرئيسية</Link>
-            <span className="sep">/</span>
-            <span>متجر المبيعات والسمارت هوم</span>
-          </nav>
-
-          <div className="pw-head">
-            <p className="pw-eyebrow">متجر فاي تك الهندسي · توريد وتركيب معتمد</p>
-            <h1>
-              تجهيزات متكاملة من <em>خامات التشطيب</em> إلى أنظمة <em>السمارت هوم والأمان</em>
-            </h1>
-            <p>
-              تصفّح المنتجات بالصور الحقيقية، أضف خيار التركيب الهندسي عند الحاجة، وأرسل طلبك للسلة مباشرة بدون تسجيل إلزامي.
-            </p>
+        <div className="pw-wrap st-wide-wrap st-promo-inner">
+          <div className="st-promo-top-meta">
+            <nav className="pw-unified-crumb" aria-label="مسار التنقل">
+              <Link href="/">الرئيسية</Link>
+              <span className="sep">/</span>
+              <span>متجر المبيعات والسمارت هوم</span>
+            </nav>
+            {PROMO_BANNER.enabled && <div className="pw-unified-promo">{PROMO_BANNER.text}</div>}
           </div>
 
-          <div className="st-mode-switch" role="tablist" aria-label="أقسام المتجر">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeStoreTab === 'products'}
-              onClick={() => setActiveStoreTab('products')}
-              className={`st-mode-btn is-products ${activeStoreTab === 'products' ? 'is-active' : ''}`}
-            >
-              <StoreIcon />
-              <span>كتالوج المنتجات</span>
-              <span className="st-mode-count">{PRODUCTS.length}</span>
-            </button>
-
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeStoreTab === 'maintenance'}
-              onClick={() => setActiveStoreTab('maintenance')}
-              className={`st-mode-btn is-mnt ${activeStoreTab === 'maintenance' ? 'is-active' : ''}`}
-            >
-              <WrenchIcon />
-              <span>التنفيذ والصيانة</span>
-              <span className="st-mode-count">{availableMaintenance.length}</span>
-            </button>
+          <div className="st-promo-copy">
+            <span className="st-promo-kicker">
+              <i aria-hidden="true" />
+              <span>{activeSlide.kicker}</span>
+            </span>
+            <h1>{activeSlide.headline}</h1>
+            <p>{activeSlide.subtitle}</p>
+            <div className="st-promo-perks">
+              {activeSlide.perks.map((perk) => (
+                <span key={perk} className="st-promo-perk">
+                  <CheckIcon size={14} />
+                  <span>{perk}</span>
+                </span>
+              ))}
+            </div>
+            <div className="st-promo-actions">
+              <button
+                type="button"
+                className="pw-btn pw-btn-primary pw-btn-lg"
+                onClick={() => handleHeroOfferAction(activeSlide.primaryAction)}
+              >
+                <span>{activeSlide.primaryLabel}</span>
+              </button>
+              {activeSlide.secondaryHref ? (
+                <a href={activeSlide.secondaryHref} className="pw-btn pw-btn-lg st-promo-secondary-btn">
+                  <span>{activeSlide.secondaryLabel}</span>
+                </a>
+              ) : activeSlide.secondaryAction === 'contact' ? (
+                <button
+                  type="button"
+                  onClick={() => setContactOpen(true)}
+                  className="pw-btn pw-btn-lg st-promo-secondary-btn"
+                >
+                  <span>{activeSlide.secondaryLabel}</span>
+                </button>
+              ) : activeSlide.secondaryAction ? (
+                <button
+                  type="button"
+                  onClick={() => handleHeroOfferAction(activeSlide.secondaryAction as HeroOfferAction)}
+                  className="pw-btn pw-btn-lg st-promo-secondary-btn"
+                >
+                  <span>{activeSlide.secondaryLabel}</span>
+                </button>
+              ) : null}
+            </div>
           </div>
 
-          <div className="st-trust-strip" aria-label="مزايا الطلب من متجر فاي تك">
-            <span className="st-trust-item">
-              <TruckIcon />
-              <span>توريد مباشر أو توريد مع تركيب هندسي</span>
-            </span>
-            <span className="st-trust-item">
-              <ShieldIcon />
-              <span>ضمان مكتوب على الأصناف والبرمجة</span>
-            </span>
-            <span className="st-trust-item">
-              <BoltIcon />
-              <span>اعتماد فوري من السلة دون تسجيل إلزامي</span>
-            </span>
+          <div className="st-promo-controls">
+            <div className="st-promo-arrows">
+              <button
+                type="button"
+                className="st-promo-arrow-btn"
+                onClick={() => goToSlide(slideIdx - 1)}
+                aria-label="العرض السابق"
+              >
+                <ChevronRightIcon />
+              </button>
+              <button
+                type="button"
+                className="st-promo-arrow-btn"
+                onClick={() => goToSlide(slideIdx + 1)}
+                aria-label="العرض التالي"
+              >
+                <ChevronLeftIcon />
+              </button>
+            </div>
+
+            <div className="st-promo-segs" role="tablist" aria-label="شرائح العروض">
+              {STORE_OFFER_SLIDES.map((s, idx) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={idx === slideIdx}
+                  onClick={() => goToSlide(idx)}
+                  className={`st-promo-seg ${idx === slideIdx ? 'is-active' : ''}`}
+                >
+                  <span className="st-promo-seg-title">0{idx + 1} · {s.shortLabel}</span>
+                  <span className="st-promo-bar-track">
+                    {idx === slideIdx && (
+                      <span
+                        key={`${s.id}-${slideIdx}`}
+                        className={`st-promo-bar-fill ${sliderPaused ? 'is-paused' : ''}`}
+                      />
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <div className="st-promo-counter" dir="ltr">
+              0{slideIdx + 1} / 0{STORE_OFFER_SLIDES.length}
+            </div>
           </div>
         </div>
       </section>
 
-      <main className="pw-wrap st-main">
-        {activeStoreTab === 'maintenance' ? (
-          <section aria-label="قسم التنفيذ والصيانة الشاملة">
-            {/* Engineering Methodology Banner */}
-            <div className="st-mnt-banner">
-              <div className="st-mnt-banner-top">
-                <div>
-                  <span className="st-mnt-kicker">منهجية فاي تك في التنفيذ والصيانة الموثّقة</span>
-                  <h2>تنفيذ متكامل لجميع البنود وتشخيص أعطال بأحدث الأجهزة</h2>
-                </div>
-                <span className="st-mnt-warranty-pill">
-                  <ShieldIcon />
-                  <span>إشراف مهندس مختص · ضمان موثّق</span>
-                </span>
-              </div>
-
-              <div className="st-mnt-rules">
-                <div className="st-mnt-rule">
-                  <strong>
-                    <span className="st-mnt-rule-num">01</span>قاعدة الكشف المبكر قبل التشطيب
-                  </strong>
-                  <span>اختبار ضغط السباكة 10 بار، والميجر للكهرباء، والنيتروجين للتكييف قبل الإغلاق.</span>
-                </div>
-                <div className="st-mnt-rule">
-                  <strong>
-                    <span className="st-mnt-rule-num">02</span>قاعدة الصيانة بدون تكسير
-                  </strong>
-                  <span>استخدام كواشف تسرب المياه والكاميرا الحرارية وإصلاح الدوائر بأقل تدخل ممكن.</span>
-                </div>
-                <div className="st-mnt-rule">
-                  <strong>
-                    <span className="st-mnt-rule-num">03</span>باقة الصيانة الوقائية الدورية
-                  </strong>
-                  <span>فحص نصف سنوي للكهرباء والحساسات والتكييف والعزل يقلل الأعطال المفاجئة.</span>
-                </div>
-              </div>
+      {/* 2. Store Visual Sections Showcase Below Hero */}
+      <section id="store-sections" className="st-sections-band" aria-label="أقسام المتجر والخدمات الهندسية">
+        <div className="pw-wrap st-wide-wrap">
+          <div className="st-sections-head">
+            <div>
+              <span className="st-sections-kicker">اختر القسم للانتقال مباشرة إلى الأصناف</span>
+              <h2>أقسام المتجر والخدمات الهندسية</h2>
             </div>
 
-            {/* Maintenance Search & Trade Filter */}
-            <div className="st-toolbar">
-              <div className="st-toolbar-top">
-                <div className="st-search-box">
-                  <SearchIcon />
-                  <input
-                    type="search"
-                    className="st-search-input"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="ابحث في خدمات التنفيذ والصيانة (كهرباء، تسريب مياه، تكييف مخفي، سمارت هوم...)"
-                    aria-label="ابحث في خدمات التنفيذ والصيانة"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      className="st-search-clear"
-                      onClick={() => setSearchQuery('')}
-                      aria-label="مسح البحث"
-                    >
-                      <CloseIcon />
-                    </button>
-                  )}
-                </div>
+            <div className="st-mode-switch" role="tablist" aria-label="وضع عرض المتجر">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeStoreTab === 'products'}
+                onClick={() => setActiveStoreTab('products')}
+                className={`st-mode-btn is-products ${activeStoreTab === 'products' ? 'is-active' : ''}`}
+              >
+                <StoreIcon />
+                <span>كتالوج المنتجات</span>
+                <span className="st-mode-count">{PRODUCTS.length}</span>
+              </button>
 
-                <div className="st-toolbar-actions">
-                  <span className="st-count-pill">
-                    الخدمات المتاحة: <strong>{filteredMaintenance.length}</strong>
-                  </span>
-                  <button type="button" onClick={() => cart.setCartOpen(true)} className="pw-btn pw-btn-ghost pw-btn-sm">
-                    <BagIcon />
-                    <span>السلة ({cart.totalCount})</span>
-                  </button>
-                </div>
-              </div>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeStoreTab === 'maintenance'}
+                onClick={() => setActiveStoreTab('maintenance')}
+                className={`st-mode-btn is-mnt ${activeStoreTab === 'maintenance' ? 'is-active' : ''}`}
+              >
+                <WrenchIcon />
+                <span>التنفيذ والصيانة</span>
+                <span className="st-mode-count">{availableMaintenance.length}</span>
+              </button>
+            </div>
+          </div>
 
-              <div className="st-cats-bar" role="tablist" aria-label="أقسام التنفيذ والصيانة">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={mntFilterCategory === 'all'}
-                  onClick={() => setMntFilterCategory('all')}
-                  className={`st-cat-btn ${mntFilterCategory === 'all' ? 'is-active' : ''}`}
-                >
-                  <span>كل البنود الهندسية</span>
-                  <span className="st-cat-count">({availableMaintenance.length})</span>
-                </button>
-                {PRODUCT_CATEGORIES.map((cat) => (
+          {activeStoreTab === 'products' ? (
+            <div className="st-sections-grid">
+              <button
+                type="button"
+                onClick={() => handleSelectSectionCard('products', 'all')}
+                className={`st-section-card ${selectedCategory === 'all' ? 'is-active' : ''}`}
+              >
+                <img src="/sections/materials.jpg" alt="" className="st-section-thumb" />
+                <div className="st-section-meta">
+                  <strong>جميع الأقسام</strong>
+                  <span>{PRODUCTS.length} منتج</span>
+                </div>
+              </button>
+
+              {PRODUCT_CATEGORIES.map((cat) => {
+                const count = PRODUCTS.filter((p) => p.category === cat.id).length;
+                return (
                   <button
                     key={cat.id}
                     type="button"
-                    role="tab"
-                    aria-selected={mntFilterCategory === cat.id}
-                    onClick={() => setMntFilterCategory(cat.id)}
-                    className={`st-cat-btn ${mntFilterCategory === cat.id ? 'is-active' : ''}`}
+                    onClick={() => handleSelectSectionCard('products', cat.id)}
+                    className={`st-section-card ${selectedCategory === cat.id ? 'is-active' : ''}`}
                   >
-                    <span>{cat.shortTitle}</span>
+                    <img
+                      src={PRODUCT_STUDIO_IMAGES_BY_CATEGORY[cat.id]}
+                      alt=""
+                      className="st-section-thumb"
+                    />
+                    <div className="st-section-meta">
+                      <strong>{cat.shortTitle}</strong>
+                      <span>{count} منتج</span>
+                    </div>
                   </button>
-                ))}
+                );
+              })}
+            </div>
+          ) : (
+            <div className="st-sections-grid">
+              <button
+                type="button"
+                onClick={() => handleSelectSectionCard('maintenance', 'all')}
+                className={`st-section-card ${mntFilterCategory === 'all' ? 'is-active' : ''}`}
+              >
+                <img src="/sections/maintenance.jpg" alt="" className="st-section-thumb" />
+                <div className="st-section-meta">
+                  <strong>كل البنود الهندسية</strong>
+                  <span>{availableMaintenance.length} خدمة</span>
+                </div>
+              </button>
+
+              {PRODUCT_CATEGORIES.map((cat) => {
+                const count = availableMaintenance.filter((s) => s.category === cat.id).length;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => handleSelectSectionCard('maintenance', cat.id)}
+                    className={`st-section-card ${mntFilterCategory === cat.id ? 'is-active' : ''}`}
+                  >
+                    <img
+                      src={PRODUCT_STUDIO_IMAGES_BY_CATEGORY[cat.id]}
+                      alt=""
+                      className="st-section-thumb"
+                    />
+                    <div className="st-section-meta">
+                      <strong>{cat.shortTitle}</strong>
+                      <span>{count} خدمة</span>
+                    </div>
+                  </button>
+                );
+              })}
+
+              <button
+                type="button"
+                onClick={() => handleSelectSectionCard('maintenance', 'hvac')}
+                className={`st-section-card ${mntFilterCategory === 'hvac' ? 'is-active' : ''}`}
+              >
+                <img src="/sections/contracting.jpg" alt="" className="st-section-thumb" />
+                <div className="st-section-meta">
+                  <strong>تكييف وتهوية</strong>
+                  <span>{availableMaintenance.filter((s) => s.category === 'hvac').length} خدمة</span>
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 3. Main Catalog Layout with Sticky Side Filter Menu */}
+      <main id="store-catalog" className="pw-wrap st-wide-wrap st-main">
+        {mobileFiltersOpen && (
+          <div className="st-filter-backdrop" onClick={() => setMobileFiltersOpen(false)} aria-hidden="true" />
+        )}
+
+        <div className="st-catalog-layout">
+          {/* Sidebar Filter Menu */}
+          <aside
+            className={`st-filter-sidebar ${mobileFiltersOpen ? 'is-open' : ''}`}
+            aria-label="قائمة الفلترة"
+          >
+            <div className="st-sidebar-head">
+              <span className="st-sidebar-title">
+                <FilterIcon />
+                <span>تصفية النتائج</span>
+                {activeFilterCount > 0 && <span className="st-sidebar-badge">{activeFilterCount}</span>}
+              </span>
+              <div className="st-sidebar-actions">
+                {activeFilterCount > 0 && (
+                  <button type="button" onClick={resetAllFilters} className="st-sidebar-reset">
+                    مسح الكل
+                  </button>
+                )}
                 <button
                   type="button"
-                  role="tab"
-                  aria-selected={mntFilterCategory === 'hvac'}
-                  onClick={() => setMntFilterCategory('hvac')}
-                  className={`st-cat-btn ${mntFilterCategory === 'hvac' ? 'is-active' : ''}`}
+                  className="st-sidebar-close"
+                  onClick={() => setMobileFiltersOpen(false)}
+                  aria-label="إغلاق قائمة الفلترة"
                 >
-                  <span>تكييف وتهوية</span>
+                  <CloseIcon />
                 </button>
               </div>
             </div>
 
-            {filteredMaintenance.length === 0 ? (
-              <div className="st-empty">
-                <h3>لا توجد خدمة مطابقة للبحث الحالي</h3>
-                <p>جرّب مسح نص البحث أو اختيار كل البنود الهندسية لعرض جميع القطاعات.</p>
-                <button
-                  type="button"
-                  className="pw-btn pw-btn-primary pw-btn-sm"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setMntFilterCategory('all');
-                  }}
-                >
-                  إظهار كل خدمات التنفيذ والصيانة
-                </button>
+            <div className="st-filter-group">
+              <span className="st-filter-group-title">بحث سريع</span>
+              <input
+                type="search"
+                className="st-sidebar-search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="اسم الصنف، الكود، أو الماركة..."
+                aria-label="بحث في القائمة الجانبية"
+              />
+            </div>
+
+            <div className="st-filter-group">
+              <span className="st-filter-group-title">الأقسام</span>
+              <div className="st-filter-cat-list">
+                {activeStoreTab === 'products' ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategory('all');
+                        setSelectedBrands([]);
+                      }}
+                      className={`st-filter-cat-item ${selectedCategory === 'all' ? 'is-active' : ''}`}
+                    >
+                      <span>جميع الأقسام</span>
+                      <span className="st-filter-cat-count">{PRODUCTS.length}</span>
+                    </button>
+                    {PRODUCT_CATEGORIES.map((cat) => {
+                      const count = PRODUCTS.filter((p) => p.category === cat.id).length;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCategory(cat.id);
+                            setSelectedBrands([]);
+                          }}
+                          className={`st-filter-cat-item ${selectedCategory === cat.id ? 'is-active' : ''}`}
+                        >
+                          <span>{cat.shortTitle}</span>
+                          <span className="st-filter-cat-count">{count}</span>
+                        </button>
+                      );
+                    })}
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setMntFilterCategory('all')}
+                      className={`st-filter-cat-item ${mntFilterCategory === 'all' ? 'is-active' : ''}`}
+                    >
+                      <span>كل البنود الهندسية</span>
+                      <span className="st-filter-cat-count">{availableMaintenance.length}</span>
+                    </button>
+                    {PRODUCT_CATEGORIES.map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setMntFilterCategory(cat.id)}
+                        className={`st-filter-cat-item ${mntFilterCategory === cat.id ? 'is-active' : ''}`}
+                      >
+                        <span>{cat.shortTitle}</span>
+                        <span className="st-filter-cat-count">
+                          {availableMaintenance.filter((s) => s.category === cat.id).length}
+                        </span>
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setMntFilterCategory('hvac')}
+                      className={`st-filter-cat-item ${mntFilterCategory === 'hvac' ? 'is-active' : ''}`}
+                    >
+                      <span>تكييف وتهوية</span>
+                      <span className="st-filter-cat-count">
+                        {availableMaintenance.filter((s) => s.category === 'hvac').length}
+                      </span>
+                    </button>
+                  </>
+                )}
               </div>
+            </div>
+
+            {activeStoreTab === 'products' ? (
+              <>
+                <div className="st-filter-group">
+                  <span className="st-filter-group-title">خيارات التصفية السريعة</span>
+                  <div className="st-check-list">
+                    <label className="st-check-row">
+                      <span className="st-check-row-left">
+                        <input
+                          type="checkbox"
+                          checked={onlyFeatured}
+                          onChange={(e) => setOnlyFeatured(e.target.checked)}
+                        />
+                        <span>الأكثر طلباً ومميز</span>
+                      </span>
+                    </label>
+                    <label className="st-check-row">
+                      <span className="st-check-row-left">
+                        <input
+                          type="checkbox"
+                          checked={onlyInStock}
+                          onChange={(e) => setOnlyInStock(e.target.checked)}
+                        />
+                        <span>متوفر للتوريد الفوري</span>
+                      </span>
+                    </label>
+                    {hasDiscountedProducts && (
+                      <label className="st-check-row">
+                        <span className="st-check-row-left">
+                          <input
+                            type="checkbox"
+                            checked={onlyDiscounted}
+                            onChange={(e) => setOnlyDiscounted(e.target.checked)}
+                          />
+                          <span>عروض وخصومات فقط</span>
+                        </span>
+                      </label>
+                    )}
+                    <label className="st-check-row">
+                      <span className="st-check-row-left">
+                        <input
+                          type="checkbox"
+                          checked={globalInstallMode}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setGlobalInstallMode(checked);
+                            setInstallSelections({});
+                          }}
+                        />
+                        <span>تفعيل التركيب الهندسي للكل</span>
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {brandOptions.length > 0 && (
+                  <div className="st-filter-group">
+                    <span className="st-filter-group-title">الماركة / المواصفة</span>
+                    <div className="st-check-list">
+                      {(showAllBrands ? brandOptions : brandOptions.slice(0, 6)).map(([brand, count]) => (
+                        <label key={brand} className="st-check-row">
+                          <span className="st-check-row-left">
+                            <input
+                              type="checkbox"
+                              checked={selectedBrands.includes(brand)}
+                              onChange={() => handleToggleBrand(brand)}
+                            />
+                            <span title={brand}>{brand}</span>
+                          </span>
+                          <span className="st-filter-cat-count">{count}</span>
+                        </label>
+                      ))}
+                    </div>
+                    {brandOptions.length > 6 && (
+                      <button
+                        type="button"
+                        onClick={() => setShowAllBrands((v) => !v)}
+                        className="st-more-brands-btn"
+                      >
+                        {showAllBrands ? 'عرض عدد أقل' : `عرض الكل (${brandOptions.length})`}
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {hasPricedProducts && (
+                  <div className="st-filter-group">
+                    <span className="st-filter-group-title">نطاق السعر</span>
+                    <div className="st-price-inputs">
+                      <input
+                        type="number"
+                        min={0}
+                        className="st-price-input"
+                        value={minPrice}
+                        onChange={(e) => setMinPrice(e.target.value)}
+                        placeholder="من"
+                        aria-label="الحد الأدنى للسعر"
+                      />
+                      <input
+                        type="number"
+                        min={0}
+                        className="st-price-input"
+                        value={maxPrice}
+                        onChange={(e) => setMaxPrice(e.target.value)}
+                        placeholder="إلى"
+                        aria-label="الحد الأقصى للسعر"
+                      />
+                    </div>
+                  </div>
+                )}
+              </>
             ) : (
-              <div className="st-mnt-grid">
-                {filteredMaintenance.map((srv) => {
-                  const isAdded = addedId === srv.id;
-                  return (
-                    <article key={srv.id} className="st-mnt-card">
-                      <div>
-                        <div className="st-mnt-card-head">
-                          <div>
-                            <span className="st-mnt-code">
-                              {srv.code} · {srv.warrantyLabel}
-                            </span>
-                            <h3>{srv.title}</h3>
-                          </div>
-                          {srv.badge && <span className="st-bundle-badge">{srv.badge}</span>}
-                        </div>
-
-                        <div className="st-mnt-card-body">
-                          <div className="st-mnt-scopes">
-                            <div className="st-mnt-scope-box is-exec">
-                              <strong>بنود التنفيذ والتأسيس</strong>
-                              <ul>
-                                {srv.executionScope.map((item) => (
-                                  <li key={item}>
-                                    <CheckIcon size={14} />
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                            <div className="st-mnt-scope-box is-fix">
-                              <strong>بنود الصيانة والإصلاح</strong>
-                              <ul>
-                                {srv.maintenanceScope.map((item) => (
-                                  <li key={item}>
-                                    <CheckIcon size={14} />
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-
-                          {srv.recommendation && <div className="st-mnt-rec">{srv.recommendation}</div>}
-                        </div>
-                      </div>
-
-                      <div className="st-mnt-foot">
-                        <div>
-                          {srv.visitFee > 0 ? (
-                            <>
-                              <span className="st-mnt-fee-label">رسوم المعاينة / الفحص</span>
-                              <strong className="st-mnt-fee-val">
-                                {srv.visitFee.toLocaleString('en-US')} {srv.currency}
-                              </strong>
-                            </>
-                          ) : (
-                            <>
-                              <strong className="st-mnt-fee-val" style={{ fontSize: '0.96rem' }}>
-                                المعاينة والتسعير حسب البند
-                              </strong>
-                              <span className="st-mnt-fee-label">{srv.warrantyLabel}</span>
-                            </>
-                          )}
-                        </div>
-
-                        <div className="st-mnt-actions">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenMaintenanceModal(srv)}
-                            className="pw-btn pw-btn-primary pw-btn-sm"
-                          >
-                            طلب تنفيذ / صيانة
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAddMaintenanceToCart(srv)}
-                            className="pw-btn pw-btn-ghost pw-btn-sm"
-                          >
-                            <BagIcon />
-                            <span>{isAdded ? 'تمت الإضافة ✓' : 'أضف للسلة'}</span>
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
+              <div className="st-filter-group">
+                <span className="st-filter-group-title">نظام المعاينة والتسعير</span>
+                <div className="st-filter-cat-list">
+                  <button
+                    type="button"
+                    onClick={() => setMntFeeFilter('all')}
+                    className={`st-filter-cat-item ${mntFeeFilter === 'all' ? 'is-active' : ''}`}
+                  >
+                    <span>كل خدمات الصيانة</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMntFeeFilter('fixed')}
+                    className={`st-filter-cat-item ${mntFeeFilter === 'fixed' ? 'is-active' : ''}`}
+                  >
+                    <span>برسوم معاينة محددة</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMntFeeFilter('quote')}
+                    className={`st-filter-cat-item ${mntFeeFilter === 'quote' ? 'is-active' : ''}`}
+                  >
+                    <span>معاينة وتسعير حسب البند</span>
+                  </button>
+                </div>
               </div>
             )}
-          </section>
-        ) : (
-          <>
-            {/* Search & Category Filter Toolbar */}
-            <div className="st-toolbar">
-              <div className="st-toolbar-top">
-                <div className="st-search-box">
-                  <SearchIcon />
-                  <input
-                    type="search"
-                    className="st-search-input"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="ابحث عن منتج (قفل ذكي، بورسلان كلكتا، خلاط مدفون، جوتن، كاميرات...)"
-                    aria-label="ابحث عن منتج في المتجر"
-                  />
-                  {searchQuery && (
-                    <button
-                      type="button"
-                      className="st-search-clear"
-                      onClick={() => setSearchQuery('')}
-                      aria-label="مسح البحث"
-                    >
-                      <CloseIcon />
-                    </button>
-                  )}
-                </div>
 
-                <div className="st-toolbar-actions">
-                  <span className="st-count-pill">
-                    المعروض: <strong>{filteredProducts.length}</strong> منتج
-                  </span>
-                  <a href="#store-bundles" className="pw-btn pw-btn-ghost pw-btn-sm">
-                    باقات التوفير ↓
-                  </a>
-                  <button type="button" onClick={() => cart.setCartOpen(true)} className="pw-btn pw-btn-ghost pw-btn-sm">
-                    <BagIcon />
-                    <span>السلة ({cart.totalCount})</span>
+            <div className="st-sidebar-mobile-foot">
+              <button
+                type="button"
+                className="pw-btn pw-btn-primary"
+                onClick={() => setMobileFiltersOpen(false)}
+              >
+                عرض النتائج ({activeStoreTab === 'products' ? filteredProducts.length : filteredMaintenance.length})
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Catalog Content */}
+          <div className="st-catalog-content">
+            <div className="st-results-bar">
+              <button
+                type="button"
+                className="st-mobile-filter-btn"
+                onClick={() => setMobileFiltersOpen(true)}
+              >
+                <SlidersIcon />
+                <span>فلترة النتائج</span>
+                {activeFilterCount > 0 && <span className="st-sidebar-badge">{activeFilterCount}</span>}
+              </button>
+
+              <div className="st-search-box">
+                <SearchIcon />
+                <input
+                  type="search"
+                  className="st-search-input"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder={
+                    activeStoreTab === 'products'
+                      ? 'ابحث عن منتج (قفل ذكي، بورسلان كلكتا، خلاط مدفون، جوتن، كاميرات...)'
+                      : 'ابحث في خدمات التنفيذ والصيانة (كهرباء، تسريب مياه، تكييف مخفي، سمارت هوم...)'
+                  }
+                  aria-label="ابحث في المتجر"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="st-search-clear"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="مسح البحث"
+                  >
+                    <CloseIcon />
                   </button>
-                </div>
+                )}
               </div>
 
-              <div className="st-cats-bar" role="tablist" aria-label="أقسام المتجر">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={selectedCategory === 'all'}
-                  onClick={() => setSelectedCategory('all')}
-                  className={`st-cat-btn ${selectedCategory === 'all' ? 'is-active' : ''}`}
-                >
-                  <span>جميع الأقسام</span>
-                  <span className="st-cat-count">({PRODUCTS.length})</span>
+              <div className="st-toolbar-actions">
+                {activeStoreTab === 'products' && (
+                  <select
+                    className="st-sort-select"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
+                    aria-label="ترتيب المنتجات"
+                  >
+                    <option value="featured">الأكثر تميزاً</option>
+                    <option value="default">الترتيب الافتراضي</option>
+                    <option value="name_asc">الاسم (أ - ي)</option>
+                    {hasPricedProducts && (
+                      <>
+                        <option value="price_asc">السعر: من الأقل</option>
+                        <option value="price_desc">السعر: من الأعلى</option>
+                      </>
+                    )}
+                  </select>
+                )}
+
+                <span className="st-count-pill">
+                  المعروض:{' '}
+                  <strong>{activeStoreTab === 'products' ? filteredProducts.length : filteredMaintenance.length}</strong>
+                </span>
+
+                {activeStoreTab === 'products' && (
+                  <a href="#store-bundles" className="pw-btn pw-btn-ghost pw-btn-sm">
+                    <SparklesIcon />
+                    <span>باقات التوفير</span>
+                  </a>
+                )}
+
+                <button type="button" onClick={() => cart.setCartOpen(true)} className="pw-btn pw-btn-ghost pw-btn-sm">
+                  <BagIcon />
+                  <span>السلة ({cart.totalCount})</span>
                 </button>
-                {PRODUCT_CATEGORIES.map((cat) => {
-                  const count = PRODUCTS.filter((p) => p.category === cat.id).length;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={selectedCategory === cat.id}
-                      onClick={() => setSelectedCategory(cat.id)}
-                      className={`st-cat-btn ${selectedCategory === cat.id ? 'is-active' : ''}`}
-                    >
-                      <span>{cat.shortTitle}</span>
-                      <span className="st-cat-count">({count})</span>
-                    </button>
-                  );
-                })}
               </div>
             </div>
 
-            {/* Products Grid */}
-            {filteredProducts.length === 0 ? (
+            {/* Active Filter Chips */}
+            {activeFilterCount > 0 && (
+              <div className="st-active-filters" aria-label="عوامل التصفية النشطة">
+                {searchQuery.trim() && (
+                  <button type="button" className="st-active-chip" onClick={() => setSearchQuery('')}>
+                    <span>بحث: {searchQuery}</span>
+                    <span>×</span>
+                  </button>
+                )}
+                {activeStoreTab === 'products' && selectedCategory !== 'all' && (
+                  <button type="button" className="st-active-chip" onClick={() => setSelectedCategory('all')}>
+                    <span>القسم: {categoryMap[selectedCategory]?.shortTitle || selectedCategory}</span>
+                    <span>×</span>
+                  </button>
+                )}
+                {activeStoreTab === 'maintenance' && mntFilterCategory !== 'all' && (
+                  <button type="button" className="st-active-chip" onClick={() => setMntFilterCategory('all')}>
+                    <span>
+                      التخصص:{' '}
+                      {mntFilterCategory === 'hvac'
+                        ? 'تكييف وتهوية'
+                        : categoryMap[mntFilterCategory]?.shortTitle || mntFilterCategory}
+                    </span>
+                    <span>×</span>
+                  </button>
+                )}
+                {activeStoreTab === 'products' && onlyFeatured && (
+                  <button type="button" className="st-active-chip" onClick={() => setOnlyFeatured(false)}>
+                    <span>الأكثر طلباً ومميز</span>
+                    <span>×</span>
+                  </button>
+                )}
+                {activeStoreTab === 'products' && onlyInStock && (
+                  <button type="button" className="st-active-chip" onClick={() => setOnlyInStock(false)}>
+                    <span>متوفر للتوريد الفوري</span>
+                    <span>×</span>
+                  </button>
+                )}
+                {activeStoreTab === 'products' && onlyDiscounted && (
+                  <button type="button" className="st-active-chip" onClick={() => setOnlyDiscounted(false)}>
+                    <span>عروض وخصومات فقط</span>
+                    <span>×</span>
+                  </button>
+                )}
+                {activeStoreTab === 'products' && globalInstallMode && (
+                  <button type="button" className="st-active-chip" onClick={() => setGlobalInstallMode(false)}>
+                    <span>شامل التركيب الهندسي</span>
+                    <span>×</span>
+                  </button>
+                )}
+                {activeStoreTab === 'products' &&
+                  selectedBrands.map((b) => (
+                    <button key={b} type="button" className="st-active-chip" onClick={() => handleToggleBrand(b)}>
+                      <span>الماركة: {b}</span>
+                      <span>×</span>
+                    </button>
+                  ))}
+                {activeStoreTab === 'products' && (minPrice.trim() || maxPrice.trim()) && (
+                  <button
+                    type="button"
+                    className="st-active-chip"
+                    onClick={() => {
+                      setMinPrice('');
+                      setMaxPrice('');
+                    }}
+                  >
+                    <span>
+                      السعر: {minPrice || '0'} – {maxPrice || 'الكل'}
+                    </span>
+                    <span>×</span>
+                  </button>
+                )}
+                {activeStoreTab === 'maintenance' && mntFeeFilter !== 'all' && (
+                  <button type="button" className="st-active-chip" onClick={() => setMntFeeFilter('all')}>
+                    <span>{mntFeeFilter === 'fixed' ? 'برسوم معاينة محددة' : 'معاينة وتسعير حسب البند'}</span>
+                    <span>×</span>
+                  </button>
+                )}
+                <button type="button" onClick={resetAllFilters} className="st-active-clear-all">
+                  مسح كل الفلاتر
+                </button>
+              </div>
+            )}
+
+            {activeStoreTab === 'maintenance' ? (
+              <section aria-label="قسم التنفيذ والصيانة الشاملة" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div className="st-mnt-banner">
+                  <div className="st-mnt-banner-top">
+                    <div>
+                      <span className="st-mnt-kicker">منهجية فاي تك في التنفيذ والصيانة الموثّقة</span>
+                      <h2>تنفيذ متكامل لجميع البنود وتشخيص أعطال بأحدث الأجهزة</h2>
+                    </div>
+                    <span className="st-mnt-warranty-pill">
+                      <ShieldIcon />
+                      <span>إشراف مهندس مختص · ضمان موثّق</span>
+                    </span>
+                  </div>
+
+                  <div className="st-mnt-rules">
+                    <div className="st-mnt-rule">
+                      <strong>
+                        <span className="st-mnt-rule-num">01</span>قاعدة الكشف المبكر قبل التشطيب
+                      </strong>
+                      <span>اختبار ضغط السباكة 10 بار، والميجر للكهرباء، والنيتروجين للتكييف قبل الإغلاق.</span>
+                    </div>
+                    <div className="st-mnt-rule">
+                      <strong>
+                        <span className="st-mnt-rule-num">02</span>قاعدة الصيانة بدون تكسير
+                      </strong>
+                      <span>استخدام كواشف تسرب المياه والكاميرا الحرارية وإصلاح الدوائر بأقل تدخل ممكن.</span>
+                    </div>
+                    <div className="st-mnt-rule">
+                      <strong>
+                        <span className="st-mnt-rule-num">03</span>باقة الصيانة الوقائية الدورية
+                      </strong>
+                      <span>فحص نصف سنوي للكهرباء والحساسات والتكييف والعزل يقلل الأعطال المفاجئة.</span>
+                    </div>
+                  </div>
+                </div>
+
+                {filteredMaintenance.length === 0 ? (
+                  <div className="st-empty">
+                    <h3>لا توجد خدمة مطابقة للبحث والفلاتر الحالية</h3>
+                    <p>جرّب مسح نص البحث أو إعادة ضبط الفلاتر لعرض جميع خدمات التنفيذ والصيانة.</p>
+                    <button type="button" className="pw-btn pw-btn-primary pw-btn-sm" onClick={resetAllFilters}>
+                      إظهار كل خدمات التنفيذ والصيانة
+                    </button>
+                  </div>
+                ) : (
+                  <div className="st-mnt-grid">
+                    {filteredMaintenance.map((srv) => {
+                      const isAdded = addedId === srv.id;
+                      return (
+                        <article key={srv.id} className="st-mnt-card">
+                          <div>
+                            <div className="st-mnt-card-head">
+                              <div>
+                                <span className="st-mnt-code">
+                                  {srv.code} · {srv.warrantyLabel}
+                                </span>
+                                <h3>{srv.title}</h3>
+                              </div>
+                              {srv.badge && <span className="st-bundle-badge">{srv.badge}</span>}
+                            </div>
+
+                            <div className="st-mnt-card-body">
+                              <div className="st-mnt-scopes">
+                                <div className="st-mnt-scope-box is-exec">
+                                  <strong>بنود التنفيذ والتأسيس</strong>
+                                  <ul>
+                                    {srv.executionScope.map((item) => (
+                                      <li key={item}>
+                                        <CheckIcon size={14} />
+                                        <span>{item}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div className="st-mnt-scope-box is-fix">
+                                  <strong>بنود الصيانة والإصلاح</strong>
+                                  <ul>
+                                    {srv.maintenanceScope.map((item) => (
+                                      <li key={item}>
+                                        <CheckIcon size={14} />
+                                        <span>{item}</span>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
+
+                              {srv.recommendation && <div className="st-mnt-rec">{srv.recommendation}</div>}
+                            </div>
+                          </div>
+
+                          <div className="st-mnt-foot">
+                            <div>
+                              {srv.visitFee > 0 ? (
+                                <>
+                                  <span className="st-mnt-fee-label">رسوم المعاينة / الفحص</span>
+                                  <strong className="st-mnt-fee-val">
+                                    {srv.visitFee.toLocaleString('en-US')} {srv.currency}
+                                  </strong>
+                                </>
+                              ) : (
+                                <>
+                                  <strong className="st-mnt-fee-val" style={{ fontSize: '0.96rem' }}>
+                                    المعاينة والتسعير حسب البند
+                                  </strong>
+                                  <span className="st-mnt-fee-label">{srv.warrantyLabel}</span>
+                                </>
+                              )}
+                            </div>
+
+                            <div className="st-mnt-actions">
+                              <button
+                                type="button"
+                                onClick={() => handleOpenMaintenanceModal(srv)}
+                                className="pw-btn pw-btn-primary pw-btn-sm"
+                              >
+                                طلب تنفيذ / صيانة
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleAddMaintenanceToCart(srv)}
+                                className="pw-btn pw-btn-ghost pw-btn-sm"
+                              >
+                                <BagIcon />
+                                <span>{isAdded ? 'تمت الإضافة ✓' : 'أضف للسلة'}</span>
+                              </button>
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            ) : filteredProducts.length === 0 ? (
               <div className="st-empty">
-                <h3>لا توجد منتجات مطابقة لبحثك</h3>
-                <p>جرّب كلمة بحث أخرى أو استعرض جميع أقسام المتجر.</p>
-                <button
-                  type="button"
-                  className="pw-btn pw-btn-primary pw-btn-sm"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedCategory('all');
-                  }}
-                >
+                <h3>لا توجد منتجات مطابقة لبحثك والفلاتر المحددة</h3>
+                <p>جرّب تعديل عوامل التصفية في القائمة الجانبية أو استعرض جميع أقسام المتجر.</p>
+                <button type="button" className="pw-btn pw-btn-primary pw-btn-sm" onClick={resetAllFilters}>
                   عرض كل المنتجات ({PRODUCTS.length})
                 </button>
               </div>
@@ -1680,7 +3068,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 {filteredProducts.map((p) => {
                   const cat = categoryMap[p.category] || PRODUCT_CATEGORIES[0];
                   const imageUrl = getProductImageUrl(p);
-                  const withInstall = Boolean(installSelections[p.id]);
+                  const withInstall = installSelections[p.id] ?? globalInstallMode;
                   const isAdded = addedId === p.id;
                   const discountPct =
                     p.oldPrice && p.oldPrice > p.price
@@ -1790,74 +3178,76 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 })}
               </div>
             )}
+          </div>
+        </div>
 
-            {/* Smart Bundles Section */}
-            <section id="store-bundles" className="st-bundles-section" aria-labelledby="bundles-heading">
-              <div className="st-section-head">
-                <div>
-                  <p className="pw-eyebrow">باقات التجهيز الكاملة</p>
-                  <h2 id="bundles-heading">باقات السمارت هوم وحساسات الأمان الجاهزة</h2>
-                  <p>تشكيلات متكاملة بالتركيب والبرمجة لحماية الشقق والفلل وتوفير التكلفة مقارنة بالطلب الفردي.</p>
-                </div>
+        {/* Full-Width Smart Bundles Section */}
+        {activeStoreTab === 'products' && (
+          <section id="store-bundles" className="st-bundles-section" aria-labelledby="bundles-heading">
+            <div className="st-section-head">
+              <div>
+                <p className="pw-eyebrow">باقات التجهيز الكاملة</p>
+                <h2 id="bundles-heading">باقات السمارت هوم وحساسات الأمان الجاهزة</h2>
+                <p>تشكيلات متكاملة بالتركيب والبرمجة لحماية الشقق والفلل وتوفير التكلفة مقارنة بالطلب الفردي.</p>
               </div>
+            </div>
 
-              <div className="st-bundles-grid">
-                {SMART_BUNDLES.map((b) => {
-                  const isAdded = addedId === b.id;
-                  return (
-                    <div key={b.id} className="st-bundle-card">
-                      <div>
-                        <div className="st-bundle-top">
-                          <span className="st-bundle-badge">{b.badge}</span>
-                          <span className="st-bundle-note">شامل البرمجة والتطبيق</span>
-                        </div>
-                        <h3>{b.title}</h3>
-                        <p className="st-bundle-sub">{b.subtitle}</p>
-                        <ul className="st-bundle-items">
-                          {b.items.map((it) => (
-                            <li key={it}>
-                              <CheckIcon size={15} />
-                              <span>{it}</span>
-                            </li>
-                          ))}
-                        </ul>
+            <div className="st-bundles-grid">
+              {SMART_BUNDLES.map((b) => {
+                const isAdded = addedId === b.id;
+                return (
+                  <div key={b.id} className="st-bundle-card">
+                    <div>
+                      <div className="st-bundle-top">
+                        <span className="st-bundle-badge">{b.badge}</span>
+                        <span className="st-bundle-note">شامل البرمجة والتطبيق</span>
                       </div>
-
-                      <div className="st-bundle-foot">
-                        <div>
-                          {b.price > 0 ? (
-                            <>
-                              {b.oldPrice && b.oldPrice > b.price ? (
-                                <span className="st-price-old">
-                                  {b.oldPrice.toLocaleString('en-US')} {b.currency}
-                                </span>
-                              ) : null}
-                              <strong className="st-bundle-price">
-                                {b.price.toLocaleString('en-US')} {b.currency}
-                              </strong>
-                            </>
-                          ) : (
-                            <strong className="st-bundle-price" style={{ fontSize: '1.05rem' }}>
-                              عرض سعر فوري
-                            </strong>
-                          )}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => handleBundleAdd(b.id)}
-                          className={`pw-btn pw-btn-primary ${isAdded ? 'is-added' : ''}`}
-                        >
-                          <BagIcon />
-                          <span>{isAdded ? 'تمت إضافة الباقة ✓' : 'أضف الباقة للسلة'}</span>
-                        </button>
-                      </div>
+                      <h3>{b.title}</h3>
+                      <p className="st-bundle-sub">{b.subtitle}</p>
+                      <ul className="st-bundle-items">
+                        {b.items.map((it) => (
+                          <li key={it}>
+                            <CheckIcon size={15} />
+                            <span>{it}</span>
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-                  );
-                })}
-              </div>
-            </section>
-          </>
+
+                    <div className="st-bundle-foot">
+                      <div>
+                        {b.price > 0 ? (
+                          <>
+                            {b.oldPrice && b.oldPrice > b.price ? (
+                              <span className="st-price-old">
+                                {b.oldPrice.toLocaleString('en-US')} {b.currency}
+                              </span>
+                            ) : null}
+                            <strong className="st-bundle-price">
+                              {b.price.toLocaleString('en-US')} {b.currency}
+                            </strong>
+                          </>
+                        ) : (
+                          <strong className="st-bundle-price" style={{ fontSize: '1.05rem' }}>
+                            عرض سعر فوري
+                          </strong>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleBundleAdd(b.id)}
+                        className={`pw-btn pw-btn-primary ${isAdded ? 'is-added' : ''}`}
+                      >
+                        <BagIcon />
+                        <span>{isAdded ? 'تمت إضافة الباقة ✓' : 'أضف الباقة للسلة'}</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
         )}
       </main>
 
