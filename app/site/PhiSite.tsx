@@ -126,13 +126,15 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
                 )
               )}
             </nav>
-            <Link href="/verify" className="pw-footer-link" style={{ color: 'var(--o)', fontWeight: 'bold' }}>التحقق من صحة المستندات</Link>
-            {(cart.portalHref || !cart.user) && (
-              <Link href={cart.portalHref || '/login?portal=employee'} className="pw-footer-link">🏢 بوابة الموظفين</Link>
-            )}
-            {!cart.user && (
-              <a href="/login" className="pw-footer-link" onClick={handleOpenLogin}>تسجيل الدخول</a>
-            )}
+            <div className="pw-footer-actions">
+              <Link href="/verify" className="pw-footer-link is-accent">التحقق من صحة المستندات</Link>
+              {(cart.portalHref || !cart.user) && (
+                <Link href={cart.portalHref || '/login?portal=employee'} className="pw-footer-link">🏢 بوابة الموظفين</Link>
+              )}
+              {!cart.user && (
+                <a href="/login" className="pw-footer-link" onClick={handleOpenLogin}>تسجيل الدخول</a>
+              )}
+            </div>
           </div>
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
         </div>
