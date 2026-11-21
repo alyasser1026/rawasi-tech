@@ -62,7 +62,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var m=localStorage.getItem('phi_theme_mode')||'dark';var a=localStorage.getItem('phi_theme_accent')||'amber';document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-accent',a);var s=parseFloat(localStorage.getItem('phi_ui_scale'));if(s>=0.8&&s<=1.3)document.documentElement.style.setProperty('--ui-scale',String(s));}catch(e){}})();`,
+            __html: `(function(){try{var m=localStorage.getItem('phi_theme_mode')||'dark';var a=localStorage.getItem('phi_theme_accent')||'amber';document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-accent',a);var s=parseFloat(localStorage.getItem('phi_ui_scale'));if(s>=0.8&&s<=1.3)document.documentElement.style.setProperty('--ui-scale',String(s));var z=localStorage.getItem('phi_site_size_v1');document.documentElement.setAttribute('data-site-size',(z==='sm'||z==='md'||z==='lg'||z==='xl')?z:'md');}catch(e){}})();`,
           }}
         />
       </head>

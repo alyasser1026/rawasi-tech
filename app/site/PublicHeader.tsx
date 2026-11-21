@@ -7,6 +7,19 @@ import { resolveCanonicalSectionSlug, type SectionSlug } from './section-defs';
 
 export type PublicNavActiveKey = 'home' | SectionSlug | 'store';
 
+export type SiteUiSize = 'sm' | 'md' | 'lg' | 'xl';
+export const SITE_SIZE_STORAGE_KEY = 'phi_site_size_v1';
+const SITE_SIZE_OPTIONS: Array<{ id: SiteUiSize; label: string; title: string }> = [
+  { id: 'sm', label: 'SM', title: 'حجم مدمج (SM — أزرار 36px)' },
+  { id: 'md', label: 'MD', title: 'الحجم القياسي الافتراضي (MD — أزرار 44px)' },
+  { id: 'lg', label: 'LG', title: 'حجم كبير ومريح (LG — أزرار 48px)' },
+  { id: 'xl', label: 'XL', title: 'حجم ضخم بارز (XL — أزرار 56px)' },
+];
+
+function isSiteUiSize(value: unknown): value is SiteUiSize {
+  return value === 'sm' || value === 'md' || value === 'lg' || value === 'xl';
+}
+
 export const PUBLIC_NAV_ITEMS: Array<{ key: PublicNavActiveKey | 'contact'; href: string; label: string }> = [
   { key: 'home', href: '/', label: 'الأقسام' },
   { key: 'contracting', href: '/sections/contracting', label: 'المقاولات والتنفيذ' },
@@ -44,11 +57,55 @@ export default function PublicHeader({
   const [open, setOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [siteSize, setSiteSize] = useState<SiteUiSize>('md');
   const accountRef = useRef<HTMLDivElement>(null);
   const normalizedActiveKey =
     activeKey !== 'home' && activeKey !== 'store'
       ? resolveCanonicalSectionSlug(activeKey)
       : activeKey;
+
+  useEffect(() => {
+    const syncSize = (candidate?: unknown) => {
+      let resolved: SiteUiSize = 'md';
+      if (isSiteUiSize(candidate)) {
+        resolved = candidate;
+      } else {
+        try {
+          const saved = localStorage.getItem(SITE_SIZE_STORAGE_KEY);
+          if (isSiteUiSize(saved)) resolved = saved;
+        } catch {
+          // Storage unavailable
+        }
+      }
+      setSiteSize(resolved);
+      document.documentElement.setAttribute('data-site-size', resolved);
+    };
+
+    syncSize();
+    const onStorage = (e: StorageEvent) => {
+      if (e.key === SITE_SIZE_STORAGE_KEY) syncSize(e.newValue);
+    };
+    const onCustom = (e: Event) => {
+      syncSize((e as CustomEvent<SiteUiSize>).detail);
+    };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('phi-site-size-change', onCustom as EventListener);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('phi-site-size-change', onCustom as EventListener);
+    };
+  }, []);
+
+  const handleSelectSiteSize = (next: SiteUiSize) => {
+    setSiteSize(next);
+    document.documentElement.setAttribute('data-site-size', next);
+    try {
+      localStorage.setItem(SITE_SIZE_STORAGE_KEY, next);
+    } catch {
+      // Storage unavailable
+    }
+    window.dispatchEvent(new CustomEvent('phi-site-size-change', { detail: next }));
+  };
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -257,16 +314,34 @@ export default function PublicHeader({
             )}
           </nav>
 
-          <button
-            className="pw-burger"
-            aria-label="القائمة"
-            aria-expanded={open}
-            onClick={() => setOpen((v) => !v)}
-          >
-            <span />
-            <span />
-            <span />
-          </button>
+          <div className="pw-header-end">
+            <div className="pw-scale-switch" role="group" aria-label="اختيار حجم العرض" dir="ltr">
+              {SITE_SIZE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  className={`pw-scale-btn ${siteSize === opt.id ? 'is-active' : ''}`}
+                  aria-pressed={siteSize === opt.id}
+                  aria-label={opt.title}
+                  title={opt.title}
+                  onClick={() => handleSelectSiteSize(opt.id)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              className="pw-burger"
+              aria-label="القائمة"
+              aria-expanded={open}
+              onClick={() => setOpen((v) => !v)}
+            >
+              <span />
+              <span />
+              <span />
+            </button>
+          </div>
         </div>
       </header>
 

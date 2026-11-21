@@ -343,10 +343,10 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           gap: 4px;
         }
         .st-mode-btn {
-          min-height: 44px;
+          min-height: var(--ui-btn-h, 44px);
           padding: 8px 16px;
           border: none;
-          border-radius: var(--r-btn-sm);
+          border-radius: var(--ui-btn-r, 10px);
           background: transparent;
           color: #525e6a;
           font-weight: 800;
@@ -415,9 +415,9 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         .st-toolbar {
           background: #ffffff;
           border: 1px solid #e7e1d7;
-          border-radius: var(--r-card);
-          padding: 20px 24px;
-          margin-bottom: 24px;
+          border-radius: var(--ui-card-r, 16px);
+          padding: var(--ui-card-pad-sm, 20px) var(--ui-card-pad, 24px);
+          margin-bottom: var(--ui-gap, 24px);
           display: flex;
           flex-direction: column;
           gap: 16px;
@@ -437,8 +437,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           align-items: center;
           background: #fbfaf7;
           border: 1.5px solid #dfd7cc;
-          border-radius: var(--r-btn);
-          min-height: 44px;
+          border-radius: var(--ui-btn-r, 10px);
+          min-height: var(--ui-input-h, 44px);
           padding: 0 12px;
           gap: 10px;
           transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
@@ -544,12 +544,12 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         .st-products-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 24px;
+          gap: var(--ui-gap, 24px);
         }
         .st-prod-card {
           background: #ffffff;
           border: 1px solid #e7e1d7;
-          border-radius: var(--r-card);
+          border-radius: var(--ui-card-r, 16px);
           overflow: hidden;
           display: flex;
           flex-direction: column;
@@ -616,7 +616,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           font-weight: 800;
         }
         .st-prod-body {
-          padding: 20px 24px;
+          padding: var(--ui-card-pad-sm, 20px) var(--ui-card-pad, 24px);
           display: flex;
           flex-direction: column;
           gap: 8px;
@@ -668,7 +668,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           flex-shrink: 0;
         }
         .st-prod-foot {
-          padding: 16px 24px 20px;
+          padding: calc(var(--ui-card-pad-sm, 20px) * 0.8) var(--ui-card-pad, 24px) var(--ui-card-pad-sm, 20px);
           border-top: 1px solid #efe9df;
           background: #fbfaf7;
           display: flex;
@@ -752,9 +752,9 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           box-shadow: 0 10px 20px -12px rgba(5, 150, 105, 0.7);
         }
         .st-wa-link {
-          min-height: 44px;
+          min-height: var(--ui-btn-h, 44px);
           padding: 10px 14px;
-          border-radius: var(--r-btn);
+          border-radius: var(--ui-btn-r, 10px);
           border: 1px solid #dfd7cc;
           background: #ffffff;
           color: #14181b;
@@ -803,14 +803,14 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         .st-bundles-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 24px;
+          gap: var(--ui-gap, 24px);
         }
         .st-bundle-card {
           background: linear-gradient(155deg, #ffffff 0%, #fcf7f1 100%);
           border: 1px solid #ebd7c4;
           border-top: 3px solid var(--o);
-          border-radius: var(--r-card);
-          padding: 24px;
+          border-radius: var(--ui-card-r, 16px);
+          padding: var(--ui-card-pad, 24px);
           display: flex;
           flex-direction: column;
           justify-content: space-between;
@@ -887,9 +887,9 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           background: #ffffff;
           border: 1px solid #e7e1d7;
           border-inline-start: 4px solid var(--o);
-          border-radius: var(--r-card);
-          padding: 24px;
-          margin-bottom: 24px;
+          border-radius: var(--ui-card-r, 16px);
+          padding: var(--ui-card-pad, 24px);
+          margin-bottom: var(--ui-gap, 24px);
           display: grid;
           gap: 16px;
           box-shadow: 0 12px 28px -24px rgba(20, 24, 27, 0.14);
@@ -952,12 +952,12 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         .st-mnt-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 24px;
+          gap: var(--ui-gap, 24px);
         }
         .st-mnt-card {
           background: #ffffff;
           border: 1px solid #e7e1d7;
-          border-radius: var(--r-card);
+          border-radius: var(--ui-card-r, 16px);
           overflow: hidden;
           display: flex;
           flex-direction: column;
@@ -965,7 +965,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           box-shadow: 0 14px 32px -24px rgba(20, 24, 27, 0.14);
         }
         .st-mnt-card-head {
-          padding: 20px 24px;
+          padding: var(--ui-card-pad-sm, 20px) var(--ui-card-pad, 24px);
           background: linear-gradient(155deg, #fbfaf7 0%, #ffffff 100%);
           border-bottom: 1px solid #efe9df;
           display: flex;
@@ -989,7 +989,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           line-height: 1.45;
         }
         .st-mnt-card-body {
-          padding: 20px 24px;
+          padding: var(--ui-card-pad-sm, 20px) var(--ui-card-pad, 24px);
           display: grid;
           gap: 12px;
         }
@@ -1041,7 +1041,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           font-weight: 600;
         }
         .st-mnt-foot {
-          padding: 16px 24px;
+          padding: calc(var(--ui-card-pad-sm, 20px) * 0.8) var(--ui-card-pad, 24px);
           border-top: 1px solid #efe9df;
           background: #fbfaf7;
           display: flex;
@@ -1287,6 +1287,10 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           .st-bundles-grid,
           .st-mnt-grid {
             gap: 16px;
+          }
+          .st-wa-link,
+          .st-mode-btn {
+            min-height: 44px;
           }
         }
       `}</style>
