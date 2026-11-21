@@ -1177,135 +1177,193 @@ body:has(.pw){padding:0!important}
 .pw-omni-go-link:hover{background:rgba(255,255,255,.1);color:#fff}
 .pw-omni-empty{padding:20px 12px;text-align:center;color:rgba(255,255,255,.82);display:flex;flex-direction:column;gap:10px}
 
-/* ===== المرحلة 2: إطار الجوال الحي لعرض الطلب التلقائي (كأنه فيديو محلي) ===== */
-.pw-sim-section{position:relative;z-index:3;padding:22px 0 46px;color:#fff}
-.pw-sim-layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(300px,360px);gap:34px;align-items:center}
-.pw-sim-info{display:flex;flex-direction:column;gap:18px}
-.pw-sim-live-pill{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:5px 12px;border-radius:999px;background:rgba(199,85,23,.18);border:1px solid rgba(255,176,116,.38);color:#ffb074;font-size:.77rem;font-weight:900;margin-bottom:8px}
+/* ===== المرحلة 2: عرض متزامن لقسم المبيعات (شاشة كمبيوتر + آيفون + متجر iOS و Android) ===== */
+.pw-sim-section{position:relative;z-index:3;padding:24px 0 48px;color:#fff}
+.pw-sim-top-head{text-align:center;max-width:48rem;margin:0 auto 18px;display:flex;flex-direction:column;align-items:center;gap:6px}
+.pw-sim-live-pill{display:inline-flex;align-items:center;gap:8px;padding:5px 14px;border-radius:999px;background:rgba(199,85,23,.18);border:1px solid rgba(255,176,116,.38);color:#ffb074;font-size:.77rem;font-weight:900}
 .pw-sim-live-pill i{display:block;width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 10px #10b981;animation:pwSimLivePulse 1.6s infinite}
 @keyframes pwSimLivePulse{0%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}100%{opacity:1;transform:scale(1)}}
-.pw-sim-head-copy h2{font-size:clamp(1.32rem,2.45vw,1.98rem);font-weight:900;line-height:1.3;color:#fff;text-shadow:0 3px 16px rgba(0,0,0,.85);margin:0 0 8px}
-.pw-sim-lead{font-size:.93rem;line-height:1.65;color:rgba(255,255,255,.82);max-width:40rem;margin:0}
+.pw-sim-top-head h2{font-size:clamp(1.3rem,2.35vw,1.94rem);font-weight:900;line-height:1.3;color:#fff;text-shadow:0 3px 16px rgba(0,0,0,.85);margin:0}
+.pw-sim-lead{font-size:.92rem;line-height:1.6;color:rgba(255,255,255,.82);margin:0}
 
-/* Read-only Live Narrator Caption Card (no buttons) */
-.pw-sim-caption-card{background:rgba(12,18,26,.68);border:1px solid rgba(255,255,255,.14);border-inline-start:3px solid #ffb074;border-radius:18px;padding:16px 18px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;gap:8px}
-.pw-sim-caption-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-.pw-sim-caption-tag{font-size:.78rem;font-weight:900;color:#ffb074}
-.pw-sim-caption-counter{font-size:.73rem;font-weight:800;color:rgba(255,255,255,.65);background:rgba(255,255,255,.07);padding:3px 9px;border-radius:999px}
-.pw-sim-caption-card h3{font-size:1.06rem;font-weight:900;color:#fff;margin:0}
-.pw-sim-caption-card p{font-size:.86rem;line-height:1.6;color:rgba(255,255,255,.82);margin:0}
-.pw-sim-caption-dots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
-.pw-sim-caption-dots span{height:4px;border-radius:999px;background:rgba(255,255,255,.14);transition:background .28s ease}
-.pw-sim-caption-dots span.is-passed{background:rgba(16,185,129,.7)}
-.pw-sim-caption-dots span.is-on{background:linear-gradient(90deg,var(--o),#ffb074)}
-
-.pw-sim-foot-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
-
-/* Centerpiece Realistic Smartphone Hardware Bezel */
-.pw-sim-phone-wrap{display:flex;justify-content:center;align-items:center;position:relative}
-.pw-sim-phone{position:relative;width:100%;max-width:342px;border-radius:46px;padding:11px;background:linear-gradient(155deg,#333c48 0%,#151a21 48%,#29313d 100%);box-shadow:0 36px 72px -22px rgba(0,0,0,.92),0 0 0 1px rgba(255,255,255,.2),inset 0 0 0 2px #090c10}
-.pw-sim-phone::before{content:'';position:absolute;inset:-24px;border-radius:64px;background:radial-gradient(circle at 50% 45%,rgba(199,85,23,.24),transparent 68%);z-index:-1;pointer-events:none}
-.pw-sim-hw-vol-1,.pw-sim-hw-vol-2,.pw-sim-hw-pwr{position:absolute;width:3px;border-radius:3px;background:#3a4350}
-.pw-sim-hw-vol-1{left:-3px;top:112px;height:34px}
-.pw-sim-hw-vol-2{left:-3px;top:156px;height:34px}
-.pw-sim-hw-pwr{right:-3px;top:134px;height:52px}
-
-.pw-sim-phone-inner{position:relative;border-radius:36px;background:linear-gradient(180deg,#0c121a 0%,#080c12 100%);border:1px solid rgba(255,255,255,.1);padding:10px 13px 8px;display:flex;flex-direction:column;gap:9px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
-.pw-sim-status-bar{display:flex;align-items:center;justify-content:space-between;font-size:.69rem;font-weight:900;color:#eef4fa;padding:0 4px}
-.pw-sim-island{width:84px;height:20px;border-radius:999px;background:#040608;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:flex-end;padding-inline-end:7px}
-.pw-sim-island-cam{width:7px;height:7px;border-radius:50%;background:radial-gradient(circle,#1e3a5f 0%,#09121e 65%);box-shadow:0 0 0 1px rgba(255,255,255,.12)}
-.pw-sim-signal{display:flex;align-items:center;gap:5px;font-size:.66rem;font-weight:800}
-.pw-sim-battery{width:19px;height:10px;border-radius:3px;border:1px solid rgba(255,255,255,.72);padding:1.5px;display:inline-flex}
-.pw-sim-battery span{width:82%;height:100%;border-radius:1.5px;background:#34d399}
-
-/* Smooth Continuous Video Timeline Progress Bars */
-.pw-sim-progress-segs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-.pw-sim-seg-track{position:relative;height:3px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
+/* Read-only Live Narrator Strip Above Devices */
+.pw-sim-narrator-bar{background:rgba(11,17,25,.76);border:1px solid rgba(255,255,255,.14);border-inline-start:3px solid #ffb074;border-radius:18px;padding:13px 18px;margin-bottom:22px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.pw-sim-narrator-copy{flex:1;min-width:240px;display:flex;flex-direction:column;gap:3px}
+.pw-sim-caption-tag{font-size:.76rem;font-weight:900;color:#ffb074}
+.pw-sim-narrator-copy strong{font-size:.98rem;font-weight:900;color:#fff}
+.pw-sim-narrator-copy p{font-size:.82rem;color:rgba(255,255,255,.8);margin:0;line-height:1.5}
+.pw-sim-narrator-right{min-width:210px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.pw-sim-caption-counter{font-size:.73rem;font-weight:800;color:rgba(255,255,255,.78);background:rgba(255,255,255,.08);padding:3px 10px;border-radius:999px}
+.pw-sim-progress-segs{width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.pw-sim-seg-track{position:relative;height:4px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
 .pw-sim-seg-track.is-done{background:linear-gradient(90deg,var(--o),#ffb074)}
 .pw-sim-seg-fill{position:absolute;inset:0;background:linear-gradient(90deg,var(--o),#ffb074);transform-origin:right center;transform:scaleX(0)}
 .pw-sim-seg-fill.is-running{animation:pwSimBarFill 3.2s linear forwards}
 @keyframes pwSimBarFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
-.pw-sim-app-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.09)}
+/* Synchronized Dual-Device Grid: Wide Desktop Monitor + Slender iPhone Pro */
+.pw-sim-dual-stage{display:grid;grid-template-columns:minmax(0,1fr) 262px;gap:28px;align-items:end}
+
+/* A. Realistic Desktop Studio Monitor + Browser Website */
+.pw-sim-desktop-col{display:flex;flex-direction:column;align-items:center}
+.pw-sim-monitor{width:100%;border-radius:20px;padding:10px;background:linear-gradient(160deg,#2d3642 0%,#12171e 100%);border:1.5px solid rgba(255,255,255,.22);box-shadow:0 30px 64px -26px rgba(0,0,0,.92),inset 0 0 0 2px #090d12}
+.pw-sim-monitor-screen{border-radius:12px;overflow:hidden;background:#0a1017;border:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column}
+.pw-sim-chrome{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.09)}
+.pw-sim-chrome-dots{display:flex;gap:6px}
+.pw-sim-chrome-dots span{width:9px;height:9px;border-radius:50%}
+.pw-sim-chrome-dots span:nth-child(1){background:#ef4444}
+.pw-sim-chrome-dots span:nth-child(2){background:#f59e0b}
+.pw-sim-chrome-dots span:nth-child(3){background:#10b981}
+.pw-sim-chrome-url{flex:1;max-width:25rem;margin:0 auto;display:flex;align-items:center;gap:6px;padding:3px 12px;border-radius:999px;background:rgba(0,0,0,.48);border:1px solid rgba(255,255,255,.1);font-family:ui-monospace,Consolas,monospace;font-size:.72rem;color:#d6e0ec;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pw-sim-chrome-badge{font-size:.71rem;font-weight:900;color:#ffb074;background:rgba(199,85,23,.2);border:1px solid rgba(255,176,116,.3);padding:3px 10px;border-radius:999px;white-space:nowrap}
+
+.pw-sim-web-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:rgba(255,255,255,.025);border-bottom:1px solid rgba(255,255,255,.07)}
 .pw-sim-app-brand{display:flex;align-items:center;gap:7px;font-size:.82rem}
 .pw-sim-app-brand strong{font-weight:900;color:#fff}
-.pw-sim-dot-logo{width:10px;height:10px;border-radius:50%;background:var(--o);box-shadow:0 0 10px var(--o)}
-.pw-sim-cart-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.09);font-size:.74rem;font-weight:900;color:#fff;transition:all .22s}
+.pw-sim-dot-logo{width:9px;height:9px;border-radius:50%;background:var(--o);box-shadow:0 0 10px var(--o)}
+.pw-sim-web-links{display:flex;align-items:center;gap:12px;font-size:.76rem;font-weight:800;color:rgba(255,255,255,.66)}
+.pw-sim-web-links span.is-active{color:#ffb074}
+.pw-sim-cart-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.09);font-size:.72rem;font-weight:900;color:#fff;transition:all .22s}
 .pw-sim-cart-pill.is-filled{background:#059669;box-shadow:0 0 14px rgba(16,185,129,.45)}
 .pw-sim-cart-pill.is-pop{animation:pwCartPop .42s cubic-bezier(.2,1.25,.4,1)}
 @keyframes pwCartPop{0%{transform:scale(.85)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
 
-.pw-sim-ui{position:relative;min-height:336px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
-.pw-sim-screen{display:flex;flex-direction:column;gap:11px;animation:pwSimSlideIn .34s cubic-bezier(.2,.8,.2,1)}
-@keyframes pwSimSlideIn{from{opacity:.2;transform:translateX(-14px)}to{opacity:1;transform:none}}
-.pw-sim-search-fake{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,176,116,.4);font-size:.79rem;color:#ffe0c2;font-weight:800;min-height:38px}
+.pw-sim-web-body{position:relative;padding:16px;min-height:282px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.pw-sim-web-grid{display:grid;grid-template-columns:1.35fr .95fr;gap:12px;align-items:stretch}
+.pw-sim-web-card{display:flex;gap:11px;padding:10px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,176,116,.5);align-items:center}
+.pw-sim-web-card.is-secondary{border-color:rgba(255,255,255,.1);opacity:.65}
+.pw-sim-web-card img{width:108px;height:82px;border-radius:10px;object-fit:cover;flex-shrink:0;background:#0d131a}
+.pw-sim-web-card-copy{display:flex;flex-direction:column;gap:4px;min-width:0;align-items:flex-start}
+.pw-sim-web-card-copy strong{font-size:.82rem;font-weight:900;color:#fff;line-height:1.35}
+.pw-sim-web-card-copy small{font-size:.71rem;color:rgba(255,255,255,.7);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+.pw-sim-web-detail{display:grid;grid-template-columns:190px 1fr;gap:16px;align-items:center;padding:12px;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12)}
+.pw-sim-web-detail-img{width:100%;height:142px;border-radius:12px;object-fit:cover;background:#0c1118}
+.pw-sim-web-detail-info{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.pw-sim-web-detail-info strong{font-size:.94rem;font-weight:900;color:#fff}
+.pw-sim-web-detail-info small{font-size:.75rem;color:rgba(255,255,255,.72)}
+.pw-sim-web-detail-actions{display:flex;align-items:center;gap:10px;width:100%;margin-top:4px}
+.pw-sim-web-detail-actions .pw-sim-action-btn{flex:1}
+
+.pw-sim-web-checkout{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.pw-sim-web-checkout-cols{display:grid;grid-template-columns:1.15fr .85fr;gap:10px}
+
+.pw-sim-stand{display:flex;flex-direction:column;align-items:center;width:100%}
+.pw-sim-stand-neck{width:76px;height:36px;background:linear-gradient(180deg,#1a212b 0%,#2d3642 100%);border-inline:1px solid rgba(255,255,255,.12)}
+.pw-sim-stand-base{width:190px;height:10px;border-radius:999px;background:linear-gradient(90deg,#1c232d 0%,#3d4756 50%,#1c232d 100%);border:1px solid rgba(255,255,255,.18);box-shadow:0 12px 24px rgba(0,0,0,.6)}
+
+/* Animated Desktop Arrow Cursor */
+.pw-sim-cursor{position:absolute;pointer-events:none;z-index:6;transition:left .44s cubic-bezier(.2,.8,.2,1),top .44s cubic-bezier(.2,.8,.2,1),opacity .25s ease;filter:drop-shadow(0 4px 8px rgba(0,0,0,.65))}
+.pw-sim-cursor.is-clicking svg{transform:scale(.82)}
+.pw-sim-cursor.is-pos-0{left:62%;top:72%}
+.pw-sim-cursor.is-pos-1{left:22%;top:76%}
+.pw-sim-cursor.is-pos-2{left:48%;top:82%}
+.pw-sim-cursor.is-pos-3{left:48%;top:34%;opacity:0}
+
+/* B. Realistic Slender iPhone Pro Frame + Store Badges */
+.pw-sim-iphone-col{display:flex;flex-direction:column;align-items:center;gap:12px}
+.pw-sim-phone{position:relative;width:244px;border-radius:40px;padding:9px;background:linear-gradient(155deg,#3b4553 0%,#171d25 48%,#2d3643 100%);box-shadow:0 34px 68px -20px rgba(0,0,0,.92),0 0 0 1px rgba(255,255,255,.24),inset 0 0 0 2px #080b0f}
+.pw-sim-phone::before{content:'';position:absolute;inset:-22px;border-radius:54px;background:radial-gradient(circle at 50% 45%,rgba(199,85,23,.24),transparent 70%);z-index:-1;pointer-events:none}
+.pw-sim-hw-action,.pw-sim-hw-vol-1,.pw-sim-hw-vol-2,.pw-sim-hw-pwr{position:absolute;width:3px;border-radius:3px;background:#444e5c}
+.pw-sim-hw-action{left:-3px;top:76px;height:18px}
+.pw-sim-hw-vol-1{left:-3px;top:106px;height:30px}
+.pw-sim-hw-vol-2{left:-3px;top:144px;height:30px}
+.pw-sim-hw-pwr{right:-3px;top:124px;height:46px}
+
+.pw-sim-phone-inner{position:relative;border-radius:31px;background:linear-gradient(180deg,#0c121a 0%,#080c12 100%);border:1px solid rgba(255,255,255,.1);padding:8px 10px 7px;display:flex;flex-direction:column;gap:7px;overflow:hidden}
+.pw-sim-status-bar{display:flex;align-items:center;justify-content:space-between;font-size:.63rem;font-weight:900;color:#eef4fa;padding:0 3px}
+.pw-sim-island{width:68px;height:17px;border-radius:999px;background:#030507;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:flex-end;padding-inline-end:6px}
+.pw-sim-island-cam{width:6px;height:6px;border-radius:50%;background:radial-gradient(circle,#1e3a5f 0%,#09121e 65%);box-shadow:0 0 0 1px rgba(255,255,255,.14)}
+.pw-sim-signal{display:flex;align-items:center;gap:4px;font-size:.6rem;font-weight:800}
+.pw-sim-battery{width:17px;height:9px;border-radius:2.5px;border:1px solid rgba(255,255,255,.72);padding:1.5px;display:inline-flex}
+.pw-sim-battery span{width:84%;height:100%;border-radius:1px;background:#34d399}
+
+.pw-sim-app-top{display:flex;align-items:center;justify-content:space-between;gap:6px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.09)}
+.pw-sim-iphone-col .pw-sim-app-brand{font-size:.76rem}
+
+.pw-sim-ui{position:relative;height:278px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.pw-sim-screen{display:flex;flex-direction:column;gap:9px;animation:pwSimSlideIn .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes pwSimSlideIn{from{opacity:.2;transform:translateX(-12px)}to{opacity:1;transform:none}}
+.pw-sim-search-fake{display:flex;align-items:center;gap:7px;padding:8px 11px;border-radius:11px;background:rgba(255,255,255,.07);border:1px solid rgba(255,176,116,.4);font-size:.77rem;color:#ffe0c2;font-weight:800;min-height:36px}
+.pw-sim-search-fake.is-compact{padding:6px 9px;font-size:.71rem;min-height:31px}
 .pw-sim-typed{display:inline-flex;align-items:center;gap:2px;white-space:nowrap;overflow:hidden}
-.pw-sim-caret{display:inline-block;width:2px;height:14px;background:#ffb074;animation:pwCaretBlink .8s step-end infinite}
+.pw-sim-caret{display:inline-block;width:2px;height:13px;background:#ffb074;animation:pwCaretBlink .8s step-end infinite}
 @keyframes pwCaretBlink{0%,100%{opacity:1}50%{opacity:0}}
 
-.pw-sim-phone-card{border-radius:16px;overflow:hidden;background:rgba(255,255,255,.05);border:1px solid rgba(255,176,116,.5)}
-.pw-sim-phone-card-media{position:relative;height:132px;background:#0f161f}
+.pw-sim-phone-card{border-radius:14px;overflow:hidden;background:rgba(255,255,255,.05);border:1px solid rgba(255,176,116,.5)}
+.pw-sim-phone-card-media{position:relative;height:112px;background:#0f161f}
 .pw-sim-phone-card-media img{width:100%;height:100%;object-fit:cover;display:block}
-.pw-sim-tag{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,176,116,.18);color:#ffb074;font-size:.69rem;font-weight:900}
-.pw-sim-tag.is-overlay{position:absolute;top:9px;inset-inline-start:9px;background:rgba(9,13,19,.86);border:1px solid rgba(255,176,116,.4)}
-.pw-sim-phone-card-body{padding:11px 12px;display:flex;flex-direction:column;gap:5px}
-.pw-sim-phone-card-body strong{font-size:.84rem;font-weight:900;color:#fff;line-height:1.35}
-.pw-sim-phone-card-body small{font-size:.73rem;color:rgba(255,255,255,.72)}
-.pw-sim-phone-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
-.pw-sim-mini-badge{font-size:.69rem;font-weight:800;color:#6ee7b7}
-.pw-sim-mini-btn{padding:6px 11px;border-radius:9px;background:var(--o);color:#fff;font-size:.73rem;font-weight:900;white-space:nowrap;transition:transform .16s ease,box-shadow .16s ease}
+.pw-sim-tag{display:inline-block;padding:2px 7px;border-radius:999px;background:rgba(255,176,116,.18);color:#ffb074;font-size:.66rem;font-weight:900}
+.pw-sim-tag.is-dim{background:rgba(255,255,255,.08);color:rgba(255,255,255,.68)}
+.pw-sim-tag.is-overlay{position:absolute;top:7px;inset-inline-start:7px;background:rgba(9,13,19,.86);border:1px solid rgba(255,176,116,.4)}
+.pw-sim-phone-card-body{padding:9px 10px;display:flex;flex-direction:column;gap:5px}
+.pw-sim-phone-card-body strong{font-size:.74rem;font-weight:900;color:#fff;line-height:1.35}
+.pw-sim-phone-card-foot{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-top:2px}
+.pw-sim-mini-badge{font-size:.64rem;font-weight:800;color:#6ee7b7}
+.pw-sim-mini-btn{padding:5px 9px;border-radius:8px;background:var(--o);color:#fff;font-size:.68rem;font-weight:900;white-space:nowrap;transition:transform .16s ease,box-shadow .16s ease}
+.pw-sim-mini-btn.is-dim{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
 .pw-sim-mini-btn.is-pressed,.pw-sim-action-btn.is-pressed{transform:scale(.95);box-shadow:0 0 0 4px rgba(255,176,116,.48)}
 
-.pw-sim-detail-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:9px}
-.pw-sim-detail-img{width:100%;height:112px;border-radius:11px;object-fit:cover;background:#0c1118}
+.pw-sim-detail-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:8px;display:flex;flex-direction:column;gap:7px}
+.pw-sim-detail-img{width:100%;height:96px;border-radius:10px;object-fit:cover;background:#0c1118}
 .pw-sim-detail-meta{display:flex;flex-direction:column;gap:6px}
-.pw-sim-detail-meta strong{font-size:.85rem;font-weight:900;color:#fff;line-height:1.35}
-.pw-sim-spec-check{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:9px;font-size:.73rem;font-weight:800;transition:all .24s ease}
+.pw-sim-detail-meta strong{font-size:.74rem;font-weight:900;color:#fff;line-height:1.35}
+.pw-sim-spec-check{display:inline-flex;align-items:center;gap:5px;padding:4px 8px;border-radius:8px;font-size:.68rem;font-weight:800;transition:all .24s ease}
 .pw-sim-spec-check.is-pending{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.68)}
 .pw-sim-spec-check.is-checked{background:rgba(16,185,129,.16);border:1px solid rgba(16,185,129,.42);color:#6ee7b7}
 .pw-sim-check-on{font-weight:900}
-.pw-sim-qty-row{display:flex;align-items:center;justify-content:space-between;font-size:.75rem;color:rgba(255,255,255,.82);font-weight:800}
-.pw-sim-qty-pill{display:inline-flex;align-items:center;gap:12px;padding:3px 10px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff}
+.pw-sim-qty-pill{display:inline-flex;align-items:center;gap:10px;padding:4px 9px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:.76rem;font-weight:900}
 
-.pw-sim-action-btn{padding:10px 14px;border-radius:11px;background:var(--o);color:#fff;font-size:.81rem;font-weight:900;text-align:center;transition:transform .16s ease,box-shadow .16s ease}
+.pw-sim-action-btn{padding:8px 12px;border-radius:10px;background:var(--o);color:#fff;font-size:.74rem;font-weight:900;text-align:center;transition:transform .16s ease,box-shadow .16s ease}
 .pw-sim-action-btn.is-confirm{background:#059669}
 
-.pw-sim-checkout-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.pw-sim-checkout-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:9px;display:flex;flex-direction:column;gap:8px}
 .pw-sim-checkout-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.pw-sim-checkout-head strong{font-size:.84rem;color:#fff}
-.pw-sim-checkout-row{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:12px;background:rgba(0,0,0,.35)}
-.pw-sim-checkout-row img{width:50px;height:40px;border-radius:8px;object-fit:cover}
-.pw-sim-checkout-row strong{display:block;font-size:.77rem;color:#fff;line-height:1.35}
-.pw-sim-checkout-row small{display:block;font-size:.69rem;color:rgba(255,255,255,.68)}
-.pw-sim-qty{font-size:.8rem;font-weight:900;color:#ffb074}
-.pw-sim-customer-box{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.16)}
-.pw-sim-customer-box strong{display:block;font-size:.74rem;color:#fff}
-.pw-sim-customer-box small{display:block;font-size:.67rem;color:rgba(255,255,255,.7)}
-.pw-sim-verified-pill{padding:3px 8px;border-radius:999px;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:.68rem;font-weight:900;white-space:nowrap}
+.pw-sim-checkout-head strong{font-size:.82rem;color:#fff}
+.pw-sim-checkout-row{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;background:rgba(0,0,0,.35)}
+.pw-sim-checkout-row img{width:46px;height:36px;border-radius:7px;object-fit:cover;flex-shrink:0}
+.pw-sim-checkout-row strong{display:block;font-size:.71rem;color:#fff;line-height:1.3}
+.pw-sim-checkout-row small{display:block;font-size:.64rem;color:rgba(255,255,255,.68)}
+.pw-sim-qty{font-size:.76rem;font-weight:900;color:#ffb074}
+.pw-sim-customer-box{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:7px 8px;border-radius:10px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.16)}
+.pw-sim-customer-box strong{display:block;font-size:.69rem;color:#fff}
+.pw-sim-customer-box small{display:block;font-size:.63rem;color:rgba(255,255,255,.7)}
+.pw-sim-verified-pill{padding:2px 7px;border-radius:999px;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:.64rem;font-weight:900;white-space:nowrap}
 
-.pw-sim-success-card{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.38);border-radius:16px;padding:18px 13px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
-.pw-sim-success-icon{width:46px;height:46px;border-radius:50%;background:#059669;color:#fff;display:grid;place-items:center;font-size:1.35rem;font-weight:900;box-shadow:0 0 24px rgba(16,185,129,.6)}
-.pw-sim-success-card strong{font-size:.94rem;color:#fff}
-.pw-sim-order-code{padding:3px 11px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(110,231,183,.35);font-family:ui-monospace,Consolas,monospace;font-size:.77rem;font-weight:900;color:#6ee7b7}
-.pw-sim-success-card p{font-size:.76rem;line-height:1.55;color:rgba(255,255,255,.86);margin:0}
-.pw-sim-tracker{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:4px}
-.pw-sim-tracker span{padding:3px 8px;border-radius:999px;font-size:.69rem;font-weight:900}
+.pw-sim-success-card{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.38);border-radius:14px;padding:16px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px}
+.pw-sim-success-card.is-desktop{padding:22px 18px}
+.pw-sim-success-card.is-compact{padding:18px 10px}
+.pw-sim-success-icon{width:40px;height:40px;border-radius:50%;background:#059669;color:#fff;display:grid;place-items:center;font-size:1.2rem;font-weight:900;box-shadow:0 0 22px rgba(16,185,129,.6)}
+.pw-sim-success-card strong{font-size:.86rem;color:#fff}
+.pw-sim-order-code{padding:3px 10px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(110,231,183,.35);font-family:ui-monospace,Consolas,monospace;font-size:.72rem;font-weight:900;color:#6ee7b7}
+.pw-sim-success-card p{font-size:.76rem;line-height:1.5;color:rgba(255,255,255,.86);margin:0}
+.pw-sim-tracker{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:3px}
+.pw-sim-tracker span{padding:2px 8px;border-radius:999px;font-size:.65rem;font-weight:900}
 .pw-sim-tracker span.is-done{background:rgba(16,185,129,.22);color:#6ee7b7}
 .pw-sim-tracker span.is-now{background:rgba(255,176,116,.22);color:#ffb074}
 
-/* Animated Touch Tap Indicator Inside Phone Screen */
-.pw-sim-touch{position:absolute;width:28px;height:28px;border-radius:50%;border:2px solid #ffb074;background:rgba(255,176,116,.24);pointer-events:none;z-index:5;transition:left .42s cubic-bezier(.2,.8,.2,1),top .42s cubic-bezier(.2,.8,.2,1),opacity .25s ease;opacity:.85}
+/* Touch Tap Indicator on iPhone Screen */
+.pw-sim-touch{position:absolute;width:24px;height:24px;border-radius:50%;border:2px solid #ffb074;background:rgba(255,176,116,.24);pointer-events:none;z-index:5;transition:left .42s cubic-bezier(.2,.8,.2,1),top .42s cubic-bezier(.2,.8,.2,1),opacity .25s ease;opacity:.85}
 .pw-sim-touch.is-tapping{animation:pwTapBurst .65s ease-out}
-@keyframes pwTapBurst{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,176,116,.7)}70%{transform:scale(.82);box-shadow:0 0 0 14px rgba(255,176,116,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,176,116,0)}}
-.pw-sim-touch.is-pos-0{left:14%;top:79%}
-.pw-sim-touch.is-pos-1{left:46%;top:83%}
-.pw-sim-touch.is-pos-2{left:46%;top:83%}
-.pw-sim-touch.is-pos-3{left:46%;top:34%;opacity:0}
+@keyframes pwTapBurst{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,176,116,.7)}70%{transform:scale(.82);box-shadow:0 0 0 12px rgba(255,176,116,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,176,116,0)}}
+.pw-sim-touch.is-pos-0{left:14%;top:81%}
+.pw-sim-touch.is-pos-1{left:44%;top:85%}
+.pw-sim-touch.is-pos-2{left:44%;top:85%}
+.pw-sim-touch.is-pos-3{left:44%;top:34%;opacity:0}
 
-.pw-sim-bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08);text-align:center}
-.pw-sim-bottom-nav span{font-size:.67rem;font-weight:800;color:rgba(255,255,255,.52);padding:3px 0;border-radius:8px}
+.pw-sim-bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08);text-align:center}
+.pw-sim-bottom-nav span{font-size:.6rem;font-weight:800;color:rgba(255,255,255,.52);padding:3px 0;border-radius:7px}
 .pw-sim-bottom-nav span.is-on{color:#ffb074;background:rgba(255,176,116,.12)}
-.pw-sim-phone-homebar{width:92px;height:4px;border-radius:999px;background:rgba(255,255,255,.32);margin:3px auto 1px}
+.pw-sim-phone-homebar{width:76px;height:3.5px;border-radius:999px;background:rgba(255,255,255,.32);margin:2px auto 1px}
+
+/* iOS & Android Store Badges Next to / Below iPhone */
+.pw-sim-store-badges{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:254px}
+.pw-sim-store-badge{display:flex;align-items:center;justify-content:center;gap:8px;padding:7px 10px;border-radius:12px;background:rgba(12,18,26,.82);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff}
+.pw-sim-store-badge div{display:flex;flex-direction:column;line-height:1.15;text-align:left}
+.pw-sim-store-badge small{font-size:.58rem;font-weight:700;color:rgba(255,255,255,.68)}
+.pw-sim-store-badge strong{font-size:.73rem;font-weight:900;color:#fff}
+
+.pw-sim-foot-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:24px}
 
 /* ===== المرحلة 4: المنتجات الأكثر مبيعاً (أهم 6 + عرض المزيد) ===== */
 .pw-bestsellers-band{position:relative;z-index:4;padding:54px 0 72px;color:#fff}
@@ -1347,10 +1405,13 @@ body:has(.pw){padding:0!important}
 
 @media(max-width:1024px){
   .pw-bs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .pw-sim-layout{grid-template-columns:1fr;gap:24px}
+  .pw-sim-dual-stage{grid-template-columns:1fr;gap:26px}
 }
 @media(max-width:900px){
   .pw-welcome-shell{padding:20px 16px;border-radius:20px}
+  .pw-sim-web-grid,.pw-sim-web-detail,.pw-sim-web-checkout-cols{grid-template-columns:1fr}
+  .pw-sim-web-card.is-secondary{display:none}
+  .pw-sim-narrator-right{width:100%;align-items:stretch}
 }
 @media(max-width:640px){
   .pw-welcome-band{padding:76px 0 26px}
@@ -1359,8 +1420,9 @@ body:has(.pw){padding:0!important}
   .pw-omni-row{flex-wrap:wrap}
   .pw-bs-grid{grid-template-columns:1fr}
   .pw-bs-actions .pw-bs-add-btn{min-height:40px}
+  .pw-sim-web-links{gap:8px;font-size:.7rem}
 }
 @media(prefers-reduced-motion:reduce){
-  .pw-sim-touch,.pw-sim-screen,.pw-sim-seg-fill,.pw-sim-caret,.pw-sim-live-pill i,.pw-sim-cart-pill,.pw-bs-card,.pw-bs-media img{animation:none!important;transition:none!important}
+  .pw-sim-touch,.pw-sim-cursor,.pw-sim-screen,.pw-sim-seg-fill,.pw-sim-caret,.pw-sim-live-pill i,.pw-sim-cart-pill,.pw-bs-card,.pw-bs-media img{animation:none!important;transition:none!important}
 }
 `;
