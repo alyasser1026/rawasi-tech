@@ -1168,15 +1168,15 @@ body:has(.pw){padding:0!important}
 
 /* ===== المرحلة 1: الترحيب + البحث الشامل (تصميم نهاري مريح للعين - 8pt Grid) ===== */
 .pw-welcome-band{position:relative;z-index:4;padding:104px 0 64px;color:#14181b;background:linear-gradient(180deg,rgba(251,250,247,.72) 0%,rgba(251,250,247,.68) 100%)}
-.pw-welcome-shell{background:rgba(255,255,255,.80);border:1px solid rgba(231,225,215,.92);border-radius:var(--r-card);padding:32px;backdrop-filter:blur(14px) saturate(135%);-webkit-backdrop-filter:blur(14px) saturate(135%);box-shadow:0 22px 52px -30px rgba(20,24,27,.14);display:flex;flex-direction:column;gap:24px}
-.pw-welcome-head{text-align:center;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
-.pw-welcome-head .pw-eyebrow{color:#c75517;font-weight:800;margin:0}
-.pw-welcome-head h1{font-size:clamp(1.5rem,2.6vw,2.2rem);font-weight:800;line-height:1.4;color:#14181b;margin:0}
-.pw-welcome-sub{font-size:clamp(.95rem,1.08vw,1.02rem);font-weight:500;color:#525e6a;line-height:1.75;margin:0}
+.pw-welcome-shell{background:transparent;border:none;border-radius:0;padding:0;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;display:flex;flex-direction:column;gap:24px}
+.pw-welcome-head{text-align:center;align-items:center;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+.pw-welcome-head .pw-eyebrow{color:#c75517;font-weight:800;margin:0;text-shadow:0 1px 14px rgba(251,250,247,.95)}
+.pw-welcome-head h1{font-size:clamp(1.5rem,2.6vw,2.2rem);font-weight:800;line-height:1.4;color:#14181b;margin:0;text-shadow:0 1px 14px rgba(251,250,247,.95)}
+.pw-welcome-sub{font-size:clamp(.95rem,1.08vw,1.02rem);font-weight:500;color:#525e6a;line-height:1.75;margin:0;text-shadow:0 1px 14px rgba(251,250,247,.95)}
 
 /* شريط البحث الشامل المربوط بكل الأقسام */
 .pw-omni-wrap{position:relative;z-index:25;max-width:760px;width:100%;margin:0 auto}
-.pw-omni-box{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.94);border:1.5px solid #dfd7cc;border-radius:var(--r-card-sm);padding:8px 16px 8px 8px;box-shadow:0 8px 20px -14px rgba(20,24,27,.12);transition:border-color .18s,box-shadow .18s}
+.pw-omni-box{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.92);border:1.5px solid #dfd7cc;border-radius:var(--r-card-sm);padding:8px 16px 8px 8px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 14px 32px -18px rgba(20,24,27,.18);transition:border-color .18s,box-shadow .18s}
 .pw-omni-box:focus-within,.pw-omni-box.is-open{border-color:#c75517;box-shadow:0 0 0 3px rgba(199,85,23,.14)}
 .pw-omni-icon{color:#525e6a;display:inline-flex;align-items:center;flex-shrink:0}
 .pw-omni-input{flex:1;min-width:0;border:none!important;background:transparent!important;color:#14181b!important;font-size:.95rem;font-weight:600;outline:none!important;padding:8px 4px}
@@ -1430,7 +1430,6 @@ body:has(.pw){padding:0!important}
 @media(max-width:1023px){
   .pw-bs-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
   .pw-sim-dual-stage{grid-template-columns:1fr;gap:24px}
-  .pw-welcome-shell{padding:24px}
 }
 @media(max-width:900px){
   .pw-sim-web-grid,.pw-sim-web-detail,.pw-sim-web-checkout-cols{grid-template-columns:1fr}
@@ -1439,7 +1438,7 @@ body:has(.pw){padding:0!important}
 }
 @media(max-width:639px){
   .pw-welcome-band{padding:80px 0 48px}
-  .pw-welcome-shell{padding:16px;gap:16px}
+  .pw-welcome-shell{padding:0;gap:16px}
   .pw-sim-section{padding:48px 0 64px}
   .pw-sim-narrator-bar{padding:16px}
   .pw-bestsellers-band{padding:56px 0 64px}
