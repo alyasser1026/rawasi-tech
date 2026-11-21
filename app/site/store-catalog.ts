@@ -12,7 +12,12 @@ export type ProductCategoryId =
   | 'decor'
   | 'smart_home'
   | 'low_current'
-  | 'safety_sensors';
+  | 'safety_sensors'
+  | 'hvac'
+  | 'building_materials'
+  | 'doors_windows'
+  | 'appliances'
+  | 'tools_hardware';
 
 export interface ProductCategoryMeta {
   id: ProductCategoryId;
@@ -23,11 +28,28 @@ export interface ProductCategoryMeta {
   accent: string;
 }
 
+export interface StoreProductAttachment {
+  id: string;
+  name: string;
+  mimeType: string;
+  size?: number;
+  kind?: 'image' | 'datasheet' | 'document';
+}
+
+export interface StoreProductVariant {
+  name?: string;
+  price?: number;
+  sku?: string;
+  color?: string;
+  size?: string;
+}
+
 export interface WebsiteProduct {
   id: string;
   code: string;
   name: string;
   category: ProductCategoryId;
+  subCategory?: string;
   brand: string;
   unit: string; // قطعة، م²، طقم، لفة، جالون، إلخ
   price: number;
@@ -38,6 +60,10 @@ export interface WebsiteProduct {
   description: string;
   specs: string[];
   imageUrl?: string;
+  mediaId?: string;
+  attachments?: StoreProductAttachment[];
+  variants?: StoreProductVariant[];
+  cheapestSourceCount?: number;
   inStock: boolean;
   featured?: boolean;
 }
@@ -174,6 +200,46 @@ export const PRODUCT_CATEGORIES: ProductCategoryMeta[] = [
     description: 'حساسات دخان وحريق ذكية، حساسات تسرب غاز بمحبس فصل أوتوماتيكي، وحساسات تسرب مياه بمحبس غلق رئيسي ذكي.',
     accent: '#ef4444',
   },
+  {
+    id: 'hvac',
+    title: 'التكييف والتهوية',
+    shortTitle: 'تكييف وتهوية',
+    icon: '❄️',
+    description: 'تكييفات سبليت وإنفرتر ومخفي (Concealed) ومستلزمات التهوية وخطوط النحاس والعزل.',
+    accent: '#0ea5e9',
+  },
+  {
+    id: 'building_materials',
+    title: 'مواد البناء والإنشاء والكيماويات',
+    shortTitle: 'مواد بناء وعظم',
+    icon: '🧱',
+    description: 'الأسمنت والحديد والطوب وألواح الجبس بورد وكيماويات البناء ولوازم التأسيس والموان.',
+    accent: '#b45309',
+  },
+  {
+    id: 'doors_windows',
+    title: 'الأبواب المصفحة والنوافذ والكوالين',
+    shortTitle: 'أبواب ونوافذ',
+    icon: '🚪',
+    description: 'أبواب مصفحة وخشبية ونوافذ وكوالين أمان ومقابض وإكسسوارات الأبواب.',
+    accent: '#7c3aed',
+  },
+  {
+    id: 'appliances',
+    title: 'الأجهزة المنزلية وتجهيزات المطابخ',
+    shortTitle: 'أجهزة منزلية',
+    icon: '🏠',
+    description: 'سخانات مياه، شفاطات، بوتاجازات وأجهزة بلت إن وتجهيزات المطابخ والمنازل.',
+    accent: '#0f766e',
+  },
+  {
+    id: 'tools_hardware',
+    title: 'العدد والأدوات ومستلزمات التشغيل',
+    shortTitle: 'عدد وأدوات',
+    icon: '🧰',
+    description: 'العدد اليدوية والكهربائية ولوازم التركيب والربط والشريط اللاصق ومعدات الورش.',
+    accent: '#64748b',
+  },
 ];
 
 export const PRODUCT_STUDIO_IMAGES_BY_ID: Record<string, string> = {
@@ -213,6 +279,11 @@ export const PRODUCT_STUDIO_IMAGES_BY_CATEGORY: Record<ProductCategoryId, string
   smart_home: '/products/smart-control-panel.webp',
   low_current: '/products/security-cameras-4k.webp',
   safety_sensors: '/products/safety-shutoff-valve.webp',
+  hvac: '/sections/maintenance.jpg',
+  building_materials: '/sections/contracting.jpg',
+  doors_windows: '/products/smart-door-lock.webp',
+  appliances: '/sections/real-estate.jpg',
+  tools_hardware: '/sections/materials.jpg',
 };
 
 export function getProductImageUrl(

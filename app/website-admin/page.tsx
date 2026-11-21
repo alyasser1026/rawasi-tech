@@ -30,10 +30,11 @@ import {
   type WebsiteProperty,
 } from '../site/store-catalog';
 
-const MAINTENANCE_CATEGORIES = [
-  ...PRODUCT_CATEGORIES.map((c) => ({ id: c.id, icon: c.icon, title: c.title })),
-  { id: 'hvac', icon: '❄️', title: 'التكييف المخفي والاسبليت والتهوية' },
-];
+const MAINTENANCE_CATEGORIES = PRODUCT_CATEGORIES.map((c) => ({
+  id: c.id,
+  icon: c.icon,
+  title: c.title,
+}));
 
 type Content = {
   site: {

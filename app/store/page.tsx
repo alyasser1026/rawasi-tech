@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import StoreClient from '../site/StoreClient';
 import { sanitizeContent } from '../site/site-content';
+import { queryStoreCatalog } from '@/lib/store-catalog-server';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -26,10 +27,14 @@ async function getPublished() {
 export const metadata: Metadata = {
   title: 'متجر المنتجات والأنظمة الذكية | فاي تك للمقاولات والتشطيبات',
   description:
-    'متجر فاي تك لتوريد وتركيب أدوات الكهرباء والسباكة والدهانات والسيراميك والرخام والديكورات وأجهزة السمارت هوم والتيار الخفيف وحساسات الحريق والغاز والمياه.',
+    'متجر فاي تك لتوريد وتركيب أدوات الكهرباء والسباكة والدهانات والسيراميك والرخام والديكورات والتكييف ومواد البناء وأجهزة السمارت هوم والتيار الخفيف بأقل سعر موثق.',
 };
 
 export default async function StorePage() {
   const content = await getPublished();
-  return <StoreClient content={content} />;
+  const initialCatalog = await queryStoreCatalog(
+    { page: 1, pageSize: 24, sort: 'featured' },
+    content.products
+  );
+  return <StoreClient content={content} initialCatalog={initialCatalog} />;
 }

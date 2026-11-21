@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { CSS } from './site-styles';
 import { mergeContent, type SiteContentOverride } from './site-content';
+import type { StoreCatalogQueryResult } from '@/lib/store-catalog-server';
 import {
   getProductImageUrl,
   PRODUCT_CATEGORIES,
@@ -210,7 +211,13 @@ function SparklesIcon() {
   );
 }
 
-export default function StoreClient({ content }: { content?: SiteContentOverride }) {
+export default function StoreClient({
+  content,
+  initialCatalog,
+}: {
+  content?: SiteContentOverride;
+  initialCatalog?: StoreCatalogQueryResult;
+}) {
   const { SITE, PRODUCTS, MAINTENANCE_SERVICES, PROMO_BANNER } = mergeContent(content);
   const [loginOpen, setLoginOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
@@ -238,6 +245,11 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
   const [maxPrice, setMaxPrice] = useState('');
   const [sortBy, setSortBy] = useState<'featured' | 'default' | 'name_asc' | 'price_asc' | 'price_desc'>('featured');
   const [mntFeeFilter, setMntFeeFilter] = useState<'all' | 'fixed' | 'quote'>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Product technical details & attachments modal
+  const [detailProduct, setDetailProduct] = useState<WebsiteProduct | null>(null);
+  const [detailQty, setDetailQty] = useState(1);
 
   // Maintenance Request Modal state
   const [selectedMaintenance, setSelectedMaintenance] = useState<WebsiteMaintenanceService | null>(null);
@@ -251,6 +263,32 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
   const [mntBusy, setMntBusy] = useState(false);
   const [mntRef, setMntRef] = useState<string | null>(null);
   const [mntErr, setMntErr] = useState('');
+
+  const localFallbackCatalog = useMemo<StoreCatalogQueryResult>(() => {
+    const categoryCounts: Record<string, number> = { all: PRODUCTS.length };
+    for (const c of PRODUCT_CATEGORIES) categoryCounts[c.id] = 0;
+    for (const p of PRODUCTS) categoryCounts[p.category] = (categoryCounts[p.category] || 0) + 1;
+    const bMap = new Map<string, number>();
+    for (const p of PRODUCTS) bMap.set(p.brand, (bMap.get(p.brand) || 0) + 1);
+    return {
+      items: PRODUCTS.slice(0, 24),
+      totalMatched: PRODUCTS.length,
+      totalCatalog: PRODUCTS.length,
+      page: 1,
+      pageSize: 24,
+      totalPages: Math.max(1, Math.ceil(PRODUCTS.length / 24)),
+      categoryCounts,
+      brandCounts: Array.from(bMap.entries()).map(([brand, count]) => ({ brand, count })),
+      hasPricedProducts: PRODUCTS.some((p) => p.price > 0),
+      hasDiscountedProducts: PRODUCTS.some((p) => Boolean(p.oldPrice && p.oldPrice > p.price)),
+      priceBounds: { min: 0, max: 0 },
+      meta: {},
+    };
+  }, [PRODUCTS]);
+
+  const [catalog, setCatalog] = useState<StoreCatalogQueryResult>(() => initialCatalog || localFallbackCatalog);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const didSkipInitialFetchRef = useRef(false);
 
   const cart = useCustomerCart(() => setLoginOpen(true));
   const cleanWa = (SITE.contact.whatsapp || '').replace(/[^\d]/g, '');
@@ -268,6 +306,101 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
       }
     }
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    selectedCategory,
+    searchQuery,
+    selectedBrands,
+    onlyFeatured,
+    onlyInStock,
+    onlyDiscounted,
+    minPrice,
+    maxPrice,
+    sortBy,
+  ]);
+
+  useEffect(() => {
+    if (activeStoreTab !== 'products') return;
+    const isInitialDefaultQuery =
+      Boolean(initialCatalog) &&
+      !didSkipInitialFetchRef.current &&
+      selectedCategory === 'all' &&
+      !searchQuery.trim() &&
+      selectedBrands.length === 0 &&
+      !onlyFeatured &&
+      !onlyInStock &&
+      !onlyDiscounted &&
+      !minPrice.trim() &&
+      !maxPrice.trim() &&
+      sortBy === 'featured' &&
+      currentPage === 1;
+
+    if (isInitialDefaultQuery) {
+      didSkipInitialFetchRef.current = true;
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setCatalogLoading(true);
+      try {
+        const sp = new URLSearchParams();
+        if (selectedCategory !== 'all') sp.set('category', selectedCategory);
+        if (searchQuery.trim()) sp.set('q', searchQuery.trim());
+        if (selectedBrands.length > 0) sp.set('brands', selectedBrands.join(','));
+        if (onlyFeatured) sp.set('onlyFeatured', '1');
+        if (onlyInStock) sp.set('onlyInStock', '1');
+        if (onlyDiscounted) sp.set('onlyDiscounted', '1');
+        if (minPrice.trim()) sp.set('minPrice', minPrice.trim());
+        if (maxPrice.trim()) sp.set('maxPrice', maxPrice.trim());
+        sp.set('sort', sortBy);
+        sp.set('page', String(currentPage));
+        sp.set('pageSize', '24');
+
+        const res = await fetch(`/api/store-catalog?${sp.toString()}`, {
+          signal: controller.signal,
+        });
+        if (!res.ok) return;
+        const data: StoreCatalogQueryResult = await res.json();
+        if (data && Array.isArray(data.items)) {
+          setCatalog(data);
+        }
+      } catch {
+        // Ignore aborts / transient fetch failures
+      } finally {
+        if (!controller.signal.aborted) setCatalogLoading(false);
+      }
+    }, 220);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [
+    activeStoreTab,
+    initialCatalog,
+    selectedCategory,
+    searchQuery,
+    selectedBrands,
+    onlyFeatured,
+    onlyInStock,
+    onlyDiscounted,
+    minPrice,
+    maxPrice,
+    sortBy,
+    currentPage,
+  ]);
+
+  useEffect(() => {
+    if (!detailProduct) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDetailProduct(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [detailProduct]);
 
   useEffect(() => {
     if (cart.user) {
@@ -396,7 +529,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
       id: srv.id,
       code: srv.code,
       name: `[تنفيذ وصيانة] ${srv.title}`,
-      category: srv.category === 'hvac' ? 'electrical' : srv.category,
+      category: srv.category,
       brand: 'PhiTech Engineering',
       unit: 'معاينة / خدمة',
       price: srv.visitFee || 0,
@@ -466,75 +599,39 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
     return map;
   }, []);
 
-  const hasPricedProducts = useMemo(() => PRODUCTS.some((p) => p.price > 0), [PRODUCTS]);
-  const hasDiscountedProducts = useMemo(
-    () => PRODUCTS.some((p) => Boolean(p.oldPrice && p.oldPrice > p.price)),
-    [PRODUCTS]
-  );
+  const hasPricedProducts = catalog.hasPricedProducts;
+  const hasDiscountedProducts = catalog.hasDiscountedProducts;
 
-  const brandOptions = useMemo(() => {
-    const scope =
-      selectedCategory === 'all' ? PRODUCTS : PRODUCTS.filter((p) => p.category === selectedCategory);
-    const counts = new Map<string, number>();
-    for (const p of scope) {
-      const b = p.brand.trim();
-      if (!b) continue;
-      counts.set(b, (counts.get(b) || 0) + 1);
-    }
-    return Array.from(counts.entries()).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
-  }, [PRODUCTS, selectedCategory]);
+  const brandOptions = useMemo<[string, number][]>(() => {
+    return catalog.brandCounts.map((b) => [b.brand, b.count]);
+  }, [catalog.brandCounts]);
 
-  const filteredProducts = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    const minP = minPrice.trim() ? Number(minPrice) : null;
-    const maxP = maxPrice.trim() ? Number(maxPrice) : null;
+  const filteredProducts = catalog.items;
 
-    const list = PRODUCTS.filter((p) => {
-      if (selectedCategory !== 'all' && p.category !== selectedCategory) return false;
-      if (onlyFeatured && !p.featured) return false;
-      if (onlyInStock && !p.inStock) return false;
-      if (onlyDiscounted && !(p.oldPrice && p.oldPrice > p.price)) return false;
-      if (selectedBrands.length > 0 && !selectedBrands.includes(p.brand.trim())) return false;
-      if (hasPricedProducts) {
-        if (minP !== null && !Number.isNaN(minP) && p.price < minP) return false;
-        if (maxP !== null && !Number.isNaN(maxP) && p.price > maxP) return false;
-      }
-      if (!q) return true;
-      return (
-        p.name.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.brand.toLowerCase().includes(q) ||
-        p.code.toLowerCase().includes(q) ||
-        p.specs.some((s) => s.toLowerCase().includes(q))
-      );
-    });
+  const paginationPages = useMemo<(number | 'ellipsis')[]>(() => {
+    const total = catalog.totalPages;
+    const cur = catalog.page;
+    if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+    const out: (number | 'ellipsis')[] = [1];
+    if (cur > 3) out.push('ellipsis');
+    const start = Math.max(2, cur - 1);
+    const end = Math.min(total - 1, cur + 1);
+    for (let i = start; i <= end; i++) out.push(i);
+    if (cur < total - 2) out.push('ellipsis');
+    out.push(total);
+    return out;
+  }, [catalog.page, catalog.totalPages]);
 
-    if (sortBy === 'featured') {
-      return [...list].sort((a, b) => Number(Boolean(b.featured)) - Number(Boolean(a.featured)));
-    }
-    if (sortBy === 'name_asc') {
-      return [...list].sort((a, b) => a.name.localeCompare(b.name, 'ar'));
-    }
-    if (sortBy === 'price_asc') {
-      return [...list].sort((a, b) => a.price - b.price);
-    }
-    if (sortBy === 'price_desc') {
-      return [...list].sort((a, b) => b.price - a.price);
-    }
-    return list;
-  }, [
-    PRODUCTS,
-    selectedCategory,
-    onlyFeatured,
-    onlyInStock,
-    onlyDiscounted,
-    selectedBrands,
-    hasPricedProducts,
-    minPrice,
-    maxPrice,
-    searchQuery,
-    sortBy,
-  ]);
+  const handleOpenDetail = (p: WebsiteProduct) => {
+    setDetailQty(1);
+    setDetailProduct(p);
+  };
+
+  const handleGoPage = (nextPage: number) => {
+    const safe = Math.min(catalog.totalPages, Math.max(1, nextPage));
+    setCurrentPage(safe);
+    scrollToCatalog();
+  };
 
   const activeFilterCount = useMemo(() => {
     let c = 0;
@@ -574,8 +671,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
     });
   };
 
-  const handleProductAdd = (p: WebsiteProduct, withInstall: boolean) => {
-    cart.addToCart(p, 1, withInstall);
+  const handleProductAdd = (p: WebsiteProduct, withInstall: boolean, qty = 1) => {
+    cart.addToCart(p, qty, withInstall);
     flashAdded(p.id);
   };
 
@@ -596,7 +693,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
   const activeSlide = STORE_OFFER_SLIDES[slideIdx] || STORE_OFFER_SLIDES[0];
 
   return (
-    <div className={`pw st-page ${loginOpen || contactOpen || selectedMaintenance ? 'has-modal-blur' : ''}`} dir="rtl">
+    <div className={`pw st-page ${loginOpen || contactOpen || selectedMaintenance || detailProduct ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
       <style>{`
         .pw.st-page {
@@ -1906,6 +2003,210 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           flex-wrap: wrap;
         }
 
+        .st-prod-media {
+          cursor: pointer;
+        }
+        .st-prod-body h3 button {
+          border: none;
+          background: transparent;
+          padding: 0;
+          margin: 0;
+          font: inherit;
+          color: inherit;
+          text-align: right;
+          cursor: pointer;
+          transition: color 0.15s ease;
+        }
+        .st-prod-body h3 button:hover {
+          color: var(--o);
+        }
+        .st-detail-trigger {
+          align-self: flex-start;
+          border: none;
+          background: transparent;
+          padding: 2px 0;
+          color: var(--o-dark);
+          font-size: 0.78rem;
+          font-weight: 800;
+          cursor: pointer;
+        }
+        .st-detail-trigger:hover {
+          text-decoration: underline;
+        }
+
+        /* Pagination Bar */
+        .st-pagination {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 16px 20px;
+          background: #ffffff;
+          border: 1px solid #e7e1d7;
+          border-radius: var(--ui-card-r, 16px);
+          margin-top: 8px;
+        }
+        .st-page-info {
+          font-size: 0.84rem;
+          font-weight: 700;
+          color: #525e6a;
+        }
+        .st-page-info strong {
+          color: #14181b;
+        }
+        .st-page-btns {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 6px;
+        }
+        .st-page-btn {
+          min-width: 38px;
+          min-height: 38px;
+          padding: 0 10px;
+          border-radius: var(--r-btn-sm);
+          border: 1px solid #dfd7cc;
+          background: #fbfaf7;
+          color: #14181b;
+          font-size: 0.84rem;
+          font-weight: 800;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.15s ease;
+        }
+        .st-page-btn:hover:not(:disabled) {
+          border-color: var(--o);
+          color: var(--o-dark);
+          background: #fff8f3;
+        }
+        .st-page-btn.is-active {
+          background: var(--o);
+          border-color: var(--o);
+          color: #ffffff;
+        }
+        .st-page-btn:disabled {
+          opacity: 0.45;
+          cursor: not-allowed;
+        }
+        .st-page-ellipsis {
+          padding: 0 4px;
+          color: #64748b;
+          font-weight: 800;
+        }
+
+        /* Product Technical Details & Attachments Modal */
+        .st-modal-card.st-detail-modal {
+          max-width: 820px;
+        }
+        .st-detail-grid {
+          display: grid;
+          grid-template-columns: 300px minmax(0, 1fr);
+          gap: 20px;
+          align-items: start;
+        }
+        .st-detail-media {
+          border-radius: var(--r-card-sm);
+          overflow: hidden;
+          border: 1px solid #e7e1d7;
+          background: #0f161e;
+          aspect-ratio: 4 / 3;
+          position: relative;
+        }
+        .st-detail-media img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .st-detail-specs {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+          padding: 12px 14px;
+          border-radius: var(--r-card-sm);
+          background: #fbfaf7;
+          border: 1px solid #e7e1d7;
+        }
+        .st-detail-specs li {
+          font-size: 0.83rem;
+          color: #1e293b;
+          font-weight: 700;
+          display: flex;
+          align-items: flex-start;
+          gap: 8px;
+        }
+        .st-detail-specs li svg {
+          color: #059669;
+          flex-shrink: 0;
+          margin-top: 3px;
+        }
+        .st-detail-variants {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        .st-detail-variant-pill {
+          padding: 4px 10px;
+          border-radius: var(--r-pill);
+          background: #f4efe6;
+          border: 1px solid #dfd7cc;
+          font-size: 0.76rem;
+          font-weight: 700;
+          color: #14181b;
+        }
+        .st-detail-att-list {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+        .st-detail-att-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          min-height: 36px;
+          padding: 6px 12px;
+          border-radius: var(--r-btn-sm);
+          border: 1px solid #dfd7cc;
+          background: #ffffff;
+          color: var(--o-dark);
+          font-size: 0.8rem;
+          font-weight: 800;
+        }
+        .st-detail-att-link:hover {
+          background: #fff3ea;
+          border-color: var(--o);
+        }
+        .st-qty-box {
+          display: inline-flex;
+          align-items: center;
+          border: 1.5px solid #dfd7cc;
+          border-radius: var(--r-btn);
+          background: #fbfaf7;
+          overflow: hidden;
+        }
+        .st-qty-box button {
+          width: 38px;
+          height: 40px;
+          border: none;
+          background: transparent;
+          font-size: 1.05rem;
+          font-weight: 900;
+          color: #14181b;
+          cursor: pointer;
+        }
+        .st-qty-box button:hover {
+          background: #efe9df;
+        }
+        .st-qty-box span {
+          min-width: 34px;
+          text-align: center;
+          font-size: 0.9rem;
+          font-weight: 800;
+        }
+
         /* Empty Search State */
         .st-empty {
           background: #ffffff;
@@ -2144,7 +2445,8 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           }
           .st-bundles-grid,
           .st-mnt-grid,
-          .st-mnt-rules {
+          .st-mnt-rules,
+          .st-detail-grid {
             grid-template-columns: 1fr;
             gap: 20px;
           }
@@ -2385,7 +2687,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
               >
                 <StoreIcon />
                 <span>كتالوج المنتجات</span>
-                <span className="st-mode-count">{PRODUCTS.length}</span>
+                <span className="st-mode-count">{catalog.totalCatalog.toLocaleString('en-US')}</span>
               </button>
 
               <button
@@ -2412,12 +2714,12 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 <img src="/sections/materials.jpg" alt="" className="st-section-thumb" />
                 <div className="st-section-meta">
                   <strong>جميع الأقسام</strong>
-                  <span>{PRODUCTS.length} منتج</span>
+                  <span>{(catalog.categoryCounts.all ?? catalog.totalCatalog).toLocaleString('en-US')} منتج</span>
                 </div>
               </button>
 
               {PRODUCT_CATEGORIES.map((cat) => {
-                const count = PRODUCTS.filter((p) => p.category === cat.id).length;
+                const count = catalog.categoryCounts[cat.id] ?? 0;
                 return (
                   <button
                     key={cat.id}
@@ -2432,7 +2734,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                     />
                     <div className="st-section-meta">
                       <strong>{cat.shortTitle}</strong>
-                      <span>{count} منتج</span>
+                      <span>{count.toLocaleString('en-US')} منتج</span>
                     </div>
                   </button>
                 );
@@ -2454,6 +2756,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
 
               {PRODUCT_CATEGORIES.map((cat) => {
                 const count = availableMaintenance.filter((s) => s.category === cat.id).length;
+                if (count === 0) return null;
                 return (
                   <button
                     key={cat.id}
@@ -2473,18 +2776,6 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                   </button>
                 );
               })}
-
-              <button
-                type="button"
-                onClick={() => handleSelectSectionCard('maintenance', 'hvac')}
-                className={`st-section-card ${mntFilterCategory === 'hvac' ? 'is-active' : ''}`}
-              >
-                <img src="/sections/contracting.jpg" alt="" className="st-section-thumb" />
-                <div className="st-section-meta">
-                  <strong>تكييف وتهوية</strong>
-                  <span>{availableMaintenance.filter((s) => s.category === 'hvac').length} خدمة</span>
-                </div>
-              </button>
             </div>
           )}
         </div>
@@ -2551,10 +2842,12 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                       className={`st-filter-cat-item ${selectedCategory === 'all' ? 'is-active' : ''}`}
                     >
                       <span>جميع الأقسام</span>
-                      <span className="st-filter-cat-count">{PRODUCTS.length}</span>
+                      <span className="st-filter-cat-count">
+                        {(catalog.categoryCounts.all ?? catalog.totalCatalog).toLocaleString('en-US')}
+                      </span>
                     </button>
                     {PRODUCT_CATEGORIES.map((cat) => {
-                      const count = PRODUCTS.filter((p) => p.category === cat.id).length;
+                      const count = catalog.categoryCounts[cat.id] ?? 0;
                       return (
                         <button
                           key={cat.id}
@@ -2566,7 +2859,7 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                           className={`st-filter-cat-item ${selectedCategory === cat.id ? 'is-active' : ''}`}
                         >
                           <span>{cat.shortTitle}</span>
-                          <span className="st-filter-cat-count">{count}</span>
+                          <span className="st-filter-cat-count">{count.toLocaleString('en-US')}</span>
                         </button>
                       );
                     })}
@@ -2581,29 +2874,21 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                       <span>كل البنود الهندسية</span>
                       <span className="st-filter-cat-count">{availableMaintenance.length}</span>
                     </button>
-                    {PRODUCT_CATEGORIES.map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setMntFilterCategory(cat.id)}
-                        className={`st-filter-cat-item ${mntFilterCategory === cat.id ? 'is-active' : ''}`}
-                      >
-                        <span>{cat.shortTitle}</span>
-                        <span className="st-filter-cat-count">
-                          {availableMaintenance.filter((s) => s.category === cat.id).length}
-                        </span>
-                      </button>
-                    ))}
-                    <button
-                      type="button"
-                      onClick={() => setMntFilterCategory('hvac')}
-                      className={`st-filter-cat-item ${mntFilterCategory === 'hvac' ? 'is-active' : ''}`}
-                    >
-                      <span>تكييف وتهوية</span>
-                      <span className="st-filter-cat-count">
-                        {availableMaintenance.filter((s) => s.category === 'hvac').length}
-                      </span>
-                    </button>
+                    {PRODUCT_CATEGORIES.map((cat) => {
+                      const count = availableMaintenance.filter((s) => s.category === cat.id).length;
+                      if (count === 0) return null;
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => setMntFilterCategory(cat.id)}
+                          className={`st-filter-cat-item ${mntFilterCategory === cat.id ? 'is-active' : ''}`}
+                        >
+                          <span>{cat.shortTitle}</span>
+                          <span className="st-filter-cat-count">{count}</span>
+                        </button>
+                      );
+                    })}
                   </>
                 )}
               </div>
@@ -2754,7 +3039,11 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 className="pw-btn pw-btn-primary"
                 onClick={() => setMobileFiltersOpen(false)}
               >
-                عرض النتائج ({activeStoreTab === 'products' ? filteredProducts.length : filteredMaintenance.length})
+                عرض النتائج (
+                {activeStoreTab === 'products'
+                  ? catalog.totalMatched.toLocaleString('en-US')
+                  : filteredMaintenance.length}
+                )
               </button>
             </div>
           </aside>
@@ -2820,7 +3109,13 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
 
                 <span className="st-count-pill">
                   المعروض:{' '}
-                  <strong>{activeStoreTab === 'products' ? filteredProducts.length : filteredMaintenance.length}</strong>
+                  <strong>
+                    {activeStoreTab === 'products'
+                      ? catalogLoading
+                        ? 'جاري التحديث...'
+                        : catalog.totalMatched.toLocaleString('en-US')
+                      : filteredMaintenance.length}
+                  </strong>
                 </span>
 
                 {activeStoreTab === 'products' && (
@@ -3060,123 +3355,183 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
                 <h3>لا توجد منتجات مطابقة لبحثك والفلاتر المحددة</h3>
                 <p>جرّب تعديل عوامل التصفية في القائمة الجانبية أو استعرض جميع أقسام المتجر.</p>
                 <button type="button" className="pw-btn pw-btn-primary pw-btn-sm" onClick={resetAllFilters}>
-                  عرض كل المنتجات ({PRODUCTS.length})
+                  عرض كل المنتجات ({catalog.totalCatalog.toLocaleString('en-US')})
                 </button>
               </div>
             ) : (
-              <div className="st-products-grid">
-                {filteredProducts.map((p) => {
-                  const cat = categoryMap[p.category] || PRODUCT_CATEGORIES[0];
-                  const imageUrl = getProductImageUrl(p);
-                  const withInstall = installSelections[p.id] ?? globalInstallMode;
-                  const isAdded = addedId === p.id;
-                  const discountPct =
-                    p.oldPrice && p.oldPrice > p.price
-                      ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100)
-                      : 0;
-                  const unitTotal = p.price + (withInstall && p.installPrice ? p.installPrice : 0);
-                  const waMsg = `مرحباً فاي تك، أريد تسعيرة وطلب: ${p.name} (${p.code}) — الوحدة: ${p.unit}${withInstall ? ' (توريد + تركيب)' : ' (توريد فقط)'}`;
+              <>
+                <div
+                  className="st-products-grid"
+                  style={{ opacity: catalogLoading ? 0.6 : 1, transition: 'opacity 0.15s ease' }}
+                >
+                  {filteredProducts.map((p) => {
+                    const cat = categoryMap[p.category] || PRODUCT_CATEGORIES[0];
+                    const imageUrl = getProductImageUrl(p);
+                    const withInstall = installSelections[p.id] ?? globalInstallMode;
+                    const isAdded = addedId === p.id;
+                    const discountPct =
+                      p.oldPrice && p.oldPrice > p.price
+                        ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100)
+                        : 0;
+                    const unitTotal = p.price + (withInstall && p.installPrice ? p.installPrice : 0);
+                    const waMsg = `مرحباً فاي تك، أريد تسعيرة وطلب: ${p.name} (${p.code}) — الوحدة: ${p.unit}${withInstall ? ' (توريد + تركيب)' : ' (توريد فقط)'}`;
 
-                  return (
-                    <article key={p.id} className="st-prod-card">
-                      <div>
-                        <div className="st-prod-media">
-                          <img src={imageUrl} alt={p.name} loading="lazy" decoding="async" />
-                          {p.badge && <span className="st-prod-badge">{p.badge}</span>}
-                          {discountPct > 0 && <span className="st-prod-discount">خصم {discountPct}%</span>}
-                          <span className="st-prod-code-tag" dir="ltr">
-                            {p.code}
-                          </span>
-                        </div>
+                    return (
+                      <article key={p.id} className="st-prod-card">
+                        <div>
+                          <div className="st-prod-media" onClick={() => handleOpenDetail(p)} title="اضغط لعرض المواصفات والمرفقات">
+                            <img src={imageUrl} alt={p.name} loading="lazy" decoding="async" />
+                            {p.badge && <span className="st-prod-badge">{p.badge}</span>}
+                            {discountPct > 0 && <span className="st-prod-discount">خصم {discountPct}%</span>}
+                            <span className="st-prod-code-tag" dir="ltr">
+                              {p.code}
+                            </span>
+                          </div>
 
-                        <div className="st-prod-body">
-                          <span className="st-prod-cat">
-                            {cat.shortTitle} · {p.brand}
-                          </span>
-                          <h3>{p.name}</h3>
-                          <p className="st-prod-desc">{p.description}</p>
-                          {p.specs.length > 0 && (
-                            <ul className="st-prod-specs">
-                              {p.specs.slice(0, 2).map((s) => (
-                                <li key={s}>
-                                  <span>{s}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="st-prod-foot">
-                        <label className={`st-install-toggle ${withInstall ? 'is-checked' : ''}`}>
-                          <input
-                            type="checkbox"
-                            checked={withInstall}
-                            onChange={() => handleToggleCardInstall(p.id)}
-                          />
-                          <span>
-                            {p.installPrice && p.installPrice > 0
-                              ? `إضافة التركيب الهندسي (+${p.installPrice.toLocaleString('en-US')} ${p.currency})`
-                              : 'شامل التركيب والبرمجة الهندسية'}
-                          </span>
-                        </label>
-
-                        <div className="st-price-row">
-                          <div>
-                            {p.price > 0 ? (
-                              <>
-                                {p.oldPrice && p.oldPrice > p.price && (
-                                  <span className="st-price-old">
-                                    {p.oldPrice.toLocaleString('en-US')} {p.currency}
-                                  </span>
-                                )}
-                                <div className="st-price-main">
-                                  <strong>{unitTotal.toLocaleString('en-US')}</strong>
-                                  <span>
-                                    {p.currency} / {p.unit}
-                                  </span>
-                                </div>
-                              </>
-                            ) : (
-                              <div className="st-price-quote">
-                                <strong>تسعير فوري عند الطلب</strong>
-                                <span>الوحدة: {p.unit}</span>
-                              </div>
+                          <div className="st-prod-body">
+                            <span className="st-prod-cat">
+                              {cat.shortTitle} · {p.brand}
+                            </span>
+                            <h3>
+                              <button type="button" onClick={() => handleOpenDetail(p)}>
+                                {p.name}
+                              </button>
+                            </h3>
+                            <p className="st-prod-desc">{p.description}</p>
+                            {p.specs.length > 0 && (
+                              <ul className="st-prod-specs">
+                                {p.specs.slice(0, 2).map((s) => (
+                                  <li key={s}>
+                                    <span>{s}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             )}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenDetail(p)}
+                              className="st-detail-trigger"
+                            >
+                              المواصفات الفنية والتفاصيل ←
+                            </button>
                           </div>
                         </div>
 
-                        <div className="st-prod-actions">
-                          <button
-                            type="button"
-                            disabled={!p.inStock}
-                            onClick={() => handleProductAdd(p, withInstall)}
-                            className={`pw-btn pw-btn-primary ${isAdded ? 'is-added' : ''}`}
-                          >
-                            {!p.inStock ? 'نفد حالياً' : isAdded ? 'تمت الإضافة ✓' : 'أضف للسلة'}
-                          </button>
+                        <div className="st-prod-foot">
+                          <label className={`st-install-toggle ${withInstall ? 'is-checked' : ''}`}>
+                            <input
+                              type="checkbox"
+                              checked={withInstall}
+                              onChange={() => handleToggleCardInstall(p.id)}
+                            />
+                            <span>
+                              {p.installPrice && p.installPrice > 0
+                                ? `إضافة التركيب الهندسي (+${p.installPrice.toLocaleString('en-US')} ${p.currency})`
+                                : 'شامل التركيب والبرمجة الهندسية'}
+                            </span>
+                          </label>
 
-                          {cleanWa ? (
-                            <a
-                              href={`https://wa.me/${cleanWa}?text=${encodeURIComponent(waMsg)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="st-wa-link"
-                              title="استفسار وسرعة تسعير عبر واتساب"
+                          <div className="st-price-row">
+                            <div>
+                              {p.price > 0 ? (
+                                <>
+                                  {p.oldPrice && p.oldPrice > p.price && (
+                                    <span className="st-price-old">
+                                      {p.oldPrice.toLocaleString('en-US')} {p.currency}
+                                    </span>
+                                  )}
+                                  <div className="st-price-main">
+                                    <strong>{unitTotal.toLocaleString('en-US')}</strong>
+                                    <span>
+                                      {p.currency} / {p.unit}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="st-price-quote">
+                                  <strong>تسعير فوري عند الطلب</strong>
+                                  <span>الوحدة: {p.unit}</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="st-prod-actions">
+                            <button
+                              type="button"
+                              disabled={!p.inStock}
+                              onClick={() => handleProductAdd(p, withInstall)}
+                              className={`pw-btn pw-btn-primary ${isAdded ? 'is-added' : ''}`}
                             >
-                              واتساب
-                            </a>
-                          ) : (
-                            <button type="button" className="st-wa-link" onClick={() => setContactOpen(true)}>
-                              استفسار
+                              {!p.inStock ? 'نفد حالياً' : isAdded ? 'تمت الإضافة ✓' : 'أضف للسلة'}
                             </button>
-                          )}
+
+                            {cleanWa ? (
+                              <a
+                                href={`https://wa.me/${cleanWa}?text=${encodeURIComponent(waMsg)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="st-wa-link"
+                                title="استفسار وسرعة تسعير عبر واتساب"
+                              >
+                                واتساب
+                              </a>
+                            ) : (
+                              <button type="button" className="st-wa-link" onClick={() => setContactOpen(true)}>
+                                استفسار
+                              </button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
+                      </article>
+                    );
+                  })}
+                </div>
+
+                {catalog.totalPages > 1 && (
+                  <nav className="st-pagination" aria-label="تصفح صفحات المنتجات">
+                    <span className="st-page-info">
+                      عرض صفحة <strong>{catalog.page}</strong> من <strong>{catalog.totalPages}</strong> · إجمالي{' '}
+                      <strong>{catalog.totalMatched.toLocaleString('en-US')}</strong> منتج
+                    </span>
+
+                    <div className="st-page-btns">
+                      <button
+                        type="button"
+                        className="st-page-btn"
+                        disabled={catalog.page <= 1}
+                        onClick={() => handleGoPage(catalog.page - 1)}
+                      >
+                        السابق
+                      </button>
+                      {paginationPages.map((pg, idx) =>
+                        pg === 'ellipsis' ? (
+                          <span key={`el-${idx}`} className="st-page-ellipsis">
+                            ...
+                          </span>
+                        ) : (
+                          <button
+                            key={pg}
+                            type="button"
+                            className={`st-page-btn ${pg === catalog.page ? 'is-active' : ''}`}
+                            onClick={() => handleGoPage(pg)}
+                          >
+                            {pg}
+                          </button>
+                        )
+                      )}
+                      <button
+                        type="button"
+                        className="st-page-btn"
+                        disabled={catalog.page >= catalog.totalPages}
+                        onClick={() => handleGoPage(catalog.page + 1)}
+                      >
+                        التالي
+                      </button>
+                    </div>
+                  </nav>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -3250,6 +3605,180 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           </section>
         )}
       </main>
+
+      {/* Product Technical Details & Attachments Modal */}
+      {detailProduct && (
+        <div className="st-modal-overlay" onClick={() => setDetailProduct(null)}>
+          <div className="st-modal-card st-detail-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="st-modal-head">
+              <div>
+                <span className="st-prod-cat">
+                  {(categoryMap[detailProduct.category] || PRODUCT_CATEGORIES[0]).shortTitle} · {detailProduct.brand}
+                </span>
+                <h3>{detailProduct.name}</h3>
+              </div>
+              <button type="button" className="st-modal-close" onClick={() => setDetailProduct(null)} aria-label="إغلاق">
+                <CloseIcon />
+              </button>
+            </div>
+
+            <div className="st-detail-grid">
+              <div>
+                <div className="st-detail-media">
+                  <img src={getProductImageUrl(detailProduct)} alt={detailProduct.name} />
+                  {detailProduct.badge && <span className="st-prod-badge">{detailProduct.badge}</span>}
+                  <span className="st-prod-code-tag" dir="ltr">
+                    {detailProduct.code}
+                  </span>
+                </div>
+                {detailProduct.subCategory && (
+                  <p style={{ margin: '10px 0 0', fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>
+                    التصنيف الفرعي: {detailProduct.subCategory}
+                  </p>
+                )}
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <p style={{ margin: 0, fontSize: '0.9rem', color: '#47525c', lineHeight: 1.7 }}>
+                  {detailProduct.description}
+                </p>
+
+                {detailProduct.specs.length > 0 && (
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '0.84rem', marginBottom: '6px', color: '#14181b' }}>
+                      المواصفات الفنية
+                    </strong>
+                    <ul className="st-detail-specs">
+                      {detailProduct.specs.map((spec) => (
+                        <li key={spec}>
+                          <CheckIcon size={15} />
+                          <span>{spec}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {detailProduct.variants && detailProduct.variants.length > 0 && (
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '0.84rem', marginBottom: '6px', color: '#14181b' }}>
+                      المقاسات / المتغيرات المتوفرة
+                    </strong>
+                    <div className="st-detail-variants">
+                      {detailProduct.variants.map((v, idx) => (
+                        <span key={idx} className="st-detail-variant-pill">
+                          {[v.name, v.size, v.color, v.price ? `${v.price.toLocaleString('en-US')} ${detailProduct.currency}` : '']
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {detailProduct.attachments && detailProduct.attachments.length > 0 && (
+                  <div>
+                    <strong style={{ display: 'block', fontSize: '0.84rem', marginBottom: '6px', color: '#14181b' }}>
+                      الصور والمرفقات الفنية
+                    </strong>
+                    <div className="st-detail-att-list">
+                      {detailProduct.attachments.map((att) => (
+                        <a
+                          key={att.id}
+                          href={`/api/store-media/${encodeURIComponent(att.id)}?download=1`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="st-detail-att-link"
+                        >
+                          <span>تحميل: {att.name}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <label className={`st-install-toggle ${(installSelections[detailProduct.id] ?? globalInstallMode) ? 'is-checked' : ''}`}>
+                  <input
+                    type="checkbox"
+                    checked={installSelections[detailProduct.id] ?? globalInstallMode}
+                    onChange={() => handleToggleCardInstall(detailProduct.id)}
+                  />
+                  <span>
+                    {detailProduct.installPrice && detailProduct.installPrice > 0
+                      ? `إضافة التركيب الهندسي (+${detailProduct.installPrice.toLocaleString('en-US')} ${detailProduct.currency})`
+                      : 'شامل التركيب والبرمجة الهندسية عند الطلب'}
+                  </span>
+                </label>
+
+                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '8px', borderTop: '1px solid #efe9df' }}>
+                  <div>
+                    {detailProduct.price > 0 ? (
+                      <>
+                        {detailProduct.oldPrice && detailProduct.oldPrice > detailProduct.price && (
+                          <span className="st-price-old">
+                            {detailProduct.oldPrice.toLocaleString('en-US')} {detailProduct.currency}
+                          </span>
+                        )}
+                        <div className="st-price-main">
+                          <strong>
+                            {(
+                              (detailProduct.price +
+                                ((installSelections[detailProduct.id] ?? globalInstallMode) && detailProduct.installPrice
+                                  ? detailProduct.installPrice
+                                  : 0)) *
+                              detailQty
+                            ).toLocaleString('en-US')}
+                          </strong>
+                          <span>
+                            {detailProduct.currency} ({detailQty} × {detailProduct.unit})
+                          </span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="st-price-quote">
+                        <strong>تسعير فوري عند الطلب</strong>
+                        <span>الوحدة: {detailProduct.unit}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                    <div className="st-qty-box">
+                      <button
+                        type="button"
+                        onClick={() => setDetailQty((q) => Math.max(1, q - 1))}
+                        aria-label="تقليل الكمية"
+                      >
+                        -
+                      </button>
+                      <span>{detailQty}</span>
+                      <button
+                        type="button"
+                        onClick={() => setDetailQty((q) => q + 1)}
+                        aria-label="زيادة الكمية"
+                      >
+                        +
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={!detailProduct.inStock}
+                      onClick={() => {
+                        const withInst = installSelections[detailProduct.id] ?? globalInstallMode;
+                        handleProductAdd(detailProduct, withInst, detailQty);
+                      }}
+                      className={`pw-btn pw-btn-primary ${addedId === detailProduct.id ? 'is-added' : ''}`}
+                    >
+                      {!detailProduct.inStock ? 'نفد حالياً' : addedId === detailProduct.id ? 'تمت الإضافة ✓' : 'أضف للسلة'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Maintenance Booking Modal */}
       {selectedMaintenance && (
