@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 
-type SimScenarioId = 'store' | 'contracting' | 'maintenance';
-
 interface SimScenario {
-  id: SimScenarioId;
-  tabLabel: string;
+  id: 'store' | 'contracting' | 'maintenance';
+  shortTag: string;
   sectionHref: string;
   searchQueryText: string;
   stepTitles: [string, string, string, string];
@@ -27,20 +25,20 @@ interface SimScenario {
 const SIM_SCENARIOS: SimScenario[] = [
   {
     id: 'store',
-    tabLabel: '🛒 منتجات وسمارت هوم',
+    shortTag: '🛒 منتجات وسمارت هوم',
     sectionHref: '/store',
-    searchQueryText: 'قفل باب ذكي 6×1...',
+    searchQueryText: 'قفل باب ذكي 6×1',
     stepTitles: [
-      'ابحث عن المنتج من الجوال',
-      'اختَر المواصفة وخيار التركيب',
-      'أكّد بيانات الطلب وأرسله',
-      'استلم رقم الأوردر ومتابعة الفني',
+      '01 · يبحث العميل عن المنتج',
+      '02 · يفعّل التركيب ويضيف للسلة',
+      '03 · يراجع البيانات ويؤكد الطلب',
+      '04 · يتم تسجيل الأوردر وتوجيه الفني',
     ],
     stepDescs: [
-      'العميل يكتب "قفل ذكي" ويظهر المنتج مع صورة الاستوديو فوراً.',
-      'يفعّل خيار التوريد + التركيب الهندسي المعتمد ويضيفه للسلة.',
-      'يراجع ملخص السلة ورقم الجوال للتأكيد قبل التوريد بضغطة واحدة.',
-      'يتسجل الأوردر في النظام فوراً وتبدأ متابعة التوصيل والتركيب.',
+      'يكتب اسم المنتج في البحث داخل التطبيق لتظهر البطاقة والمواصفات فوراً.',
+      'يختار التوريد مع التركيب الهندسي المعتمد ويضغط أضف للسلة.',
+      'يراجع الملخص ورقم الجوال وتأكيد المعاينة قبل التوريد بضغطة واحدة.',
+      'يصدر رقم الأوردر آلياً وتبدأ متابعة التوصيل والتركيب في الموعد.',
     ],
     itemTitle: 'قفل باب ذكي 6×1 بالكاميرا والبصمة',
     itemSubtitle: 'توريد معتمد + برمجة وتركيب هندسي على الباب',
@@ -55,20 +53,20 @@ const SIM_SCENARIOS: SimScenario[] = [
   },
   {
     id: 'contracting',
-    tabLabel: '🏗️ مقايسة 3×1',
+    shortTag: '🏗️ مقايسة ومقاولات 3×1',
     sectionHref: '/sections/contracting',
-    searchQueryText: 'مقايسة فيلا 350 م²...',
+    searchQueryText: 'مقايسة فيلا 350 م²',
     stepTitles: [
-      'افتح حاسبة المقاولات 3×1',
-      'حدد المساحة ونطاق التنفيذ',
-      'راجع المقايسة وخصم التكامل 7%',
-      'تأكيد موعد الرفع المساحي بالليزر',
+      '01 · يفتح حاسبة المقاولات 3×1',
+      '02 · يضبط المساحة وبنود التنفيذ',
+      '03 · يراجع المقايسة وخصم التكامل 7%',
+      '04 · اعتماد الرفع المساحي بالليزر',
     ],
     stepDescs: [
-      'يدخل العميل على قسم المقاولات والتنفيذ من هاتفه بسهولة.',
-      'يختار المساحة (فيلا 350 م² × دورين) وبنود العظم والتشطيب والتكييف.',
-      'يظهر إجمالي التقدير الهندسي وتفصيل المواد قبل اعتماد الحجز.',
-      'يصل إشعار للمهندس المختص وتصدر تذكرة المعاينة الميدانية.',
+      'يدخل على قسم المقاولات والتنفيذ لحساب مشروع البناء أو التشطيب.',
+      'يفعّل نطاق العظم والتشطيب والتكييف المخفي لفيلا 350 م² في خطوة واحدة.',
+      'يظهر التقدير الموحد للكميات وتوفير 7% قبل اعتماد الطلب.',
+      'تصدر تذكرة المعاينة الهندسية ويصل المهندس بالأجهزة للموقع.',
     ],
     itemTitle: 'مقايسة متكاملة 3×1 — فيلا سكنية',
     itemSubtitle: 'إنشاءات + تشطيب ديلوكس + تكييف مخفي بجهة واحدة',
@@ -83,20 +81,20 @@ const SIM_SCENARIOS: SimScenario[] = [
   },
   {
     id: 'maintenance',
-    tabLabel: '🛠️ صيانة وتنفيذ',
+    shortTag: '🛠️ صيانة وتنفيذ هندسي',
     sectionHref: '/sections/contracting?tab=maintenance',
-    searchQueryText: 'تكييف مخفي وسباكة...',
+    searchQueryText: 'تكييف مخفي وكشف تسريب',
     stepTitles: [
-      'اختر تخصص الصيانة أو التأسيس',
-      'حدد تفاصيل العطل والموعد المناسب',
-      'راجع تكلفة المعاينة وتأكيد العنوان',
-      'إرسال الفريق المجهز بشهادة ضمان',
+      '01 · يحدد تخصص الصيانة المطلوب',
+      '02 · يختار الفحص بالأجهزة والضمان',
+      '03 · يراجع الموعد ويرسل التذكرة',
+      '04 · توجيه الفريق المختص للموقع',
     ],
     stepDescs: [
-      'يختار العميل كشف تسريب بالموجات أو تأسيس وصيانة التكييف المخفي.',
-      'يحدد الوقت المناسب ونوع البند المطلوب بدون مكالمات مطولة.',
-      'يضغط تأكيد وإرسال الأوردر ليصل للفريق التشغيلي في ثوانٍ.',
-      'يتابع حالة الطلب لحظياً حتى التسليم واختبار الجودة بالضمان.',
+      'يبحث عن صيانة التكييف المخفي أو كشف التسريب بدون تكسير.',
+      'يفعّل بند التنفيذ والصيانة المضمونة ويضيفه لسلة المعاينة.',
+      'يؤكد الموعد المناسب وتصل التذكرة لقسم التشغيل خلال ثوانٍ.',
+      'يتابع حالة الفني على الجوال حتى استلام العمل بشهادة ضمان.',
     ],
     itemTitle: 'كشف تسريب بالموجات + صيانة تكييف مخفي',
     itemSubtitle: 'فحص بالأجهزة بدون تكسير وتقرير حالة كامل',
@@ -118,107 +116,168 @@ const PHONE_NAV_ITEMS = [
   { id: 'orders', label: 'طلباتي' },
 ];
 
+const STEP_DURATION_MS = 3200;
+
 export default function OrderJourneyShowcase({
   onOpenContact,
 }: {
   onOpenContact?: () => void;
 }) {
-  const [scenarioId, setScenarioId] = useState<SimScenarioId>('store');
-  const [step, setStep] = useState<number>(0);
-  const [paused, setPaused] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [inView, setInView] = useState(true);
+  const [frameIndex, setFrameIndex] = useState(0); // 0..11 across 3 scenarios × 4 steps
+  const [typedLen, setTypedLen] = useState(0);
+  const [installChecked, setInstallChecked] = useState(false);
+  const [tapping, setTapping] = useState(false);
 
-  const activeScenario = SIM_SCENARIOS.find((s) => s.id === scenarioId) || SIM_SCENARIOS[0];
+  const scenarioIdx = Math.floor(frameIndex / 4) % SIM_SCENARIOS.length;
+  const step = frameIndex % 4;
+  const activeScenario = SIM_SCENARIOS[scenarioIdx];
 
+  // Cache the 3 lightweight local images once in browser memory (zero video streaming)
   useEffect(() => {
-    if (paused) return;
-    const timer = window.setInterval(() => {
-      setStep((prev) => (prev + 1) % 4);
-    }, 3100);
-    return () => window.clearInterval(timer);
-  }, [paused, scenarioId]);
+    if (typeof window === 'undefined') return;
+    for (const sc of SIM_SCENARIOS) {
+      const img = new window.Image();
+      img.src = sc.itemThumb;
+    }
+  }, []);
 
-  const handleSelectScenario = (id: SimScenarioId) => {
-    setScenarioId(id);
-    setStep(0);
-  };
+  // Play only while visible in viewport to save battery/CPU
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]) setInView(entries[0].isIntersecting);
+      },
+      { threshold: 0.15 }
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Automatic video-like frame clock (no buttons needed)
+  useEffect(() => {
+    if (!inView) return;
+    const timer = window.setInterval(() => {
+      setFrameIndex((prev) => (prev + 1) % (SIM_SCENARIOS.length * 4));
+    }, STEP_DURATION_MS);
+    return () => window.clearInterval(timer);
+  }, [inView]);
+
+  // Per-frame realistic in-app motion (typewriter, auto-toggle, finger tap burst)
+  useEffect(() => {
+    if (!inView) return;
+    const query = activeScenario.searchQueryText;
+    setTapping(false);
+
+    if (step === 0) {
+      setTypedLen(0);
+      setInstallChecked(false);
+      let count = 0;
+      const charMs = Math.max(38, Math.floor(1100 / Math.max(1, query.length)));
+      const typeTimer = window.setInterval(() => {
+        count += 1;
+        setTypedLen(count);
+        if (count >= query.length) window.clearInterval(typeTimer);
+      }, charMs);
+      const tapTimer = window.setTimeout(() => setTapping(true), 2450);
+      return () => {
+        window.clearInterval(typeTimer);
+        window.clearTimeout(tapTimer);
+      };
+    }
+
+    if (step === 1) {
+      setTypedLen(query.length);
+      setInstallChecked(false);
+      const checkTimer = window.setTimeout(() => setInstallChecked(true), 950);
+      const tapTimer = window.setTimeout(() => setTapping(true), 2450);
+      return () => {
+        window.clearTimeout(checkTimer);
+        window.clearTimeout(tapTimer);
+      };
+    }
+
+    if (step === 2) {
+      setInstallChecked(true);
+      const tapTimer = window.setTimeout(() => setTapping(true), 2400);
+      return () => window.clearTimeout(tapTimer);
+    }
+
+    setInstallChecked(true);
+    return undefined;
+  }, [frameIndex, inView, step, activeScenario.searchQueryText]);
+
+  const typedQuery =
+    step === 0 ? activeScenario.searchQueryText.slice(0, typedLen) : activeScenario.searchQueryText;
+  const cartCountDisplay = step === 0 ? '0' : step <= 2 ? '1' : '✓';
 
   return (
     <section
+      ref={sectionRef}
       className="pw-sim-section"
       aria-labelledby="order-sim-heading"
-      onPointerEnter={() => setPaused(true)}
-      onPointerLeave={() => setPaused(false)}
-      onFocusCapture={() => setPaused(true)}
-      onBlurCapture={() => setPaused(false)}
     >
       <div className="pw-wrap">
         <div className="pw-sim-layout">
-          {/* Right Column (RTL): Scenario Controls + Interactive 4-Step List */}
+          {/* Right Column (RTL): Live Video Caption & CTA */}
           <div className="pw-sim-info">
             <div className="pw-sim-head-copy">
-              <p className="pw-eyebrow">محاكاة حية لطلب أونلاين</p>
+              <span className="pw-sim-live-pill">
+                <i aria-hidden="true" />
+                <span>عرض تلقائي مباشر · تحميل لمرة واحدة</span>
+              </span>
               <h2 id="order-sim-heading">شاهد كيف يُنفَّذ الطلب من الجوال في ثوانٍ</h2>
               <p className="pw-sim-lead">
-                اختر نوع الطلب وشاهد رحلة العميل كاملة داخل إطار الجوال من البحث حتى استلام رقم الأوردر وتوجيه المهندس.
+                تجربة طلب كاملة تعمل تلقائياً أمامك خطوة بخطوة داخل شاشة الجوال — من البحث حتى تأكيد الأوردر وتوجيه المهندس.
               </p>
             </div>
 
-            <div className="pw-sim-scenario-tabs" role="tablist" aria-label="سيناريوهات الطلب">
-              {SIM_SCENARIOS.map((sc) => (
-                <button
-                  key={sc.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={scenarioId === sc.id}
-                  className={`pw-sim-tab ${scenarioId === sc.id ? 'is-on' : ''}`}
-                  onClick={() => handleSelectScenario(sc.id)}
-                >
-                  {sc.tabLabel}
-                </button>
-              ))}
-            </div>
+            {/* Read-only Live Narrator Card (purely visual, zero buttons) */}
+            <div className="pw-sim-caption-card" aria-live="polite">
+              <div className="pw-sim-caption-meta">
+                <span className="pw-sim-caption-tag">{activeScenario.shortTag}</span>
+                <span className="pw-sim-caption-counter">
+                  نموذج {scenarioIdx + 1} من {SIM_SCENARIOS.length}
+                </span>
+              </div>
 
-            <div className="pw-sim-step-list" role="list" aria-label="خطوات تنفيذ الطلب">
-              {activeScenario.stepTitles.map((title, idx) => (
-                <button
-                  key={title}
-                  type="button"
-                  role="listitem"
-                  className={`pw-sim-step-item ${step === idx ? 'is-on' : step > idx ? 'is-passed' : ''}`}
-                  onClick={() => setStep(idx)}
-                >
-                  <span className="pw-sim-step-num" dir="ltr">
-                    0{idx + 1}
-                  </span>
-                  <div className="pw-sim-step-copy">
-                    <strong>{title}</strong>
-                    <span>{activeScenario.stepDescs[idx]}</span>
-                  </div>
-                </button>
-              ))}
+              <h3>{activeScenario.stepTitles[step]}</h3>
+              <p>{activeScenario.stepDescs[step]}</p>
+
+              <div className="pw-sim-caption-dots" aria-hidden="true">
+                {[0, 1, 2, 3].map((dotIdx) => (
+                  <span
+                    key={dotIdx}
+                    className={step === dotIdx ? 'is-on' : step > dotIdx ? 'is-passed' : ''}
+                  />
+                ))}
+              </div>
             </div>
 
             <div className="pw-sim-foot-actions">
               <Link href={activeScenario.sectionHref} className="pw-btn pw-btn-primary">
-                جرّب تنفيذ هذا الطلب الآن ←
+                ابدأ تنفيذ طلبك الآن ←
               </Link>
               {onOpenContact && (
                 <button type="button" className="pw-btn pw-btn-light" onClick={onOpenContact}>
-                  💬 اطلب مساعدة فورية
+                  💬 تواصل مع مهندس المبيعات
                 </button>
               )}
             </div>
           </div>
 
-          {/* Left Column (RTL): Centerpiece Realistic Smartphone Frame */}
-          <div className="pw-sim-phone-wrap" aria-label="معاينة تنفيذ أوردر حقيقي داخل إطار الجوال">
+          {/* Left Column (RTL): Centerpiece Auto-Playing Smartphone Frame */}
+          <div className="pw-sim-phone-wrap" aria-label="عرض تلقائي لتنفيذ الطلب داخل شاشة الجوال">
             <div className="pw-sim-phone">
               <span className="pw-sim-hw-vol-1" aria-hidden="true" />
               <span className="pw-sim-hw-vol-2" aria-hidden="true" />
               <span className="pw-sim-hw-pwr" aria-hidden="true" />
 
               <div className="pw-sim-phone-inner">
-                {/* Smartphone Top Status Bar + Dynamic Island */}
+                {/* Status Bar + Dynamic Island */}
                 <div className="pw-sim-status-bar" dir="ltr">
                   <span className="pw-sim-time">9:41</span>
                   <div className="pw-sim-island" aria-hidden="true">
@@ -232,31 +291,47 @@ export default function OrderJourneyShowcase({
                   </div>
                 </div>
 
-                {/* Top 4-Step Progress Segments */}
+                {/* Video Reel Timeline Progress Bar */}
                 <div className="pw-sim-progress-segs" aria-hidden="true">
-                  {[0, 1, 2, 3].map((i) => (
-                    <span key={i} className={step >= i ? 'is-active' : ''} />
+                  {[0, 1, 2, 3].map((idx) => (
+                    <div
+                      key={idx}
+                      className={`pw-sim-seg-track ${step > idx ? 'is-done' : ''}`}
+                    >
+                      {step === idx && (
+                        <span
+                          key={`${scenarioIdx}-${step}`}
+                          className={`pw-sim-seg-fill ${inView ? 'is-running' : ''}`}
+                        />
+                      )}
+                    </div>
                   ))}
                 </div>
 
-                {/* Mini PhiTech App Top Header */}
+                {/* App Top Bar */}
                 <div className="pw-sim-app-top">
                   <div className="pw-sim-app-brand">
                     <span className="pw-sim-dot-logo" />
                     <strong>فاي تك</strong>
                   </div>
-                  <span className={`pw-sim-cart-pill ${step >= 1 ? 'is-filled' : ''}`}>
-                    🛒 {step === 0 ? '0' : step <= 2 ? '1' : '✓'}
+                  <span
+                    key={`${scenarioIdx}-${step >= 1 ? 'in' : 'empty'}`}
+                    className={`pw-sim-cart-pill ${step >= 1 ? 'is-filled is-pop' : ''}`}
+                  >
+                    🛒 {cartCountDisplay}
                   </span>
                 </div>
 
-                {/* Interactive Live App Screen Viewport */}
+                {/* Live Animated Phone Screen Viewport */}
                 <div className="pw-sim-ui">
                   {step === 0 && (
-                    <div className="pw-sim-screen is-step-0">
+                    <div key={`s0-${scenarioIdx}`} className="pw-sim-screen is-step-0">
                       <div className="pw-sim-search-fake">
                         <span aria-hidden="true">🔍</span>
-                        <span className="pw-sim-typed">{activeScenario.searchQueryText}</span>
+                        <span className="pw-sim-typed">
+                          {typedQuery}
+                          <span className="pw-sim-caret" aria-hidden="true" />
+                        </span>
                       </div>
 
                       <div className="pw-sim-phone-card is-target">
@@ -269,7 +344,9 @@ export default function OrderJourneyShowcase({
                           <small>{activeScenario.itemSubtitle}</small>
                           <div className="pw-sim-phone-card-foot">
                             <span className="pw-sim-mini-badge">{activeScenario.optionBadge}</span>
-                            <span className="pw-sim-mini-btn is-pulsing">اطلب الآن ←</span>
+                            <span className={`pw-sim-mini-btn ${tapping ? 'is-pressed' : ''}`}>
+                              اطلب الآن ←
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -277,7 +354,7 @@ export default function OrderJourneyShowcase({
                   )}
 
                   {step === 1 && (
-                    <div className="pw-sim-screen is-step-1">
+                    <div key={`s1-${scenarioIdx}`} className="pw-sim-screen is-step-1">
                       <div className="pw-sim-detail-box">
                         <img
                           src={activeScenario.itemThumb}
@@ -289,8 +366,12 @@ export default function OrderJourneyShowcase({
                         <div className="pw-sim-detail-meta">
                           <span className="pw-sim-tag">{activeScenario.optionBadge}</span>
                           <strong>{activeScenario.itemTitle}</strong>
-                          <div className="pw-sim-spec-check">
-                            <span className="pw-sim-check-on">✓</span>
+                          <div
+                            className={`pw-sim-spec-check ${
+                              installChecked ? 'is-checked' : 'is-pending'
+                            }`}
+                          >
+                            <span className="pw-sim-check-on">{installChecked ? '✓' : '○'}</span>
                             <span>{activeScenario.specLabel}</span>
                           </div>
                           <div className="pw-sim-qty-row">
@@ -301,14 +382,16 @@ export default function OrderJourneyShowcase({
                               <span>+</span>
                             </div>
                           </div>
-                          <div className="pw-sim-action-btn is-pulsing">{activeScenario.ctaLabel}</div>
+                          <div className={`pw-sim-action-btn ${tapping ? 'is-pressed' : ''}`}>
+                            {activeScenario.ctaLabel}
+                          </div>
                         </div>
                       </div>
                     </div>
                   )}
 
                   {step === 2 && (
-                    <div className="pw-sim-screen is-step-2">
+                    <div key={`s2-${scenarioIdx}`} className="pw-sim-screen is-step-2">
                       <div className="pw-sim-checkout-card">
                         <div className="pw-sim-checkout-head">
                           <strong>مراجعة الأوردر وتأكيده</strong>
@@ -332,7 +415,9 @@ export default function OrderJourneyShowcase({
                           <span className="pw-sim-verified-pill">جاهز ✓</span>
                         </div>
 
-                        <div className="pw-sim-action-btn is-confirm is-pulsing">
+                        <div
+                          className={`pw-sim-action-btn is-confirm ${tapping ? 'is-pressed' : ''}`}
+                        >
                           ✓ تأكيد وإرسال الأوردر الآن
                         </div>
                       </div>
@@ -340,7 +425,7 @@ export default function OrderJourneyShowcase({
                   )}
 
                   {step === 3 && (
-                    <div className="pw-sim-screen is-step-3">
+                    <div key={`s3-${scenarioIdx}`} className="pw-sim-screen is-step-3">
                       <div className="pw-sim-success-card">
                         <div className="pw-sim-success-icon">✓</div>
                         <strong>تم تسجيل الأوردر بنجاح!</strong>
@@ -357,11 +442,14 @@ export default function OrderJourneyShowcase({
                     </div>
                   )}
 
-                  {/* Animated Touch Ripple Overlay */}
-                  <div className={`pw-sim-touch is-pos-${step}`} aria-hidden="true" />
+                  {/* Simulated Finger Tap Indicator */}
+                  <div
+                    className={`pw-sim-touch is-pos-${step} ${tapping ? 'is-tapping' : ''}`}
+                    aria-hidden="true"
+                  />
                 </div>
 
-                {/* Mini Mobile Bottom App Bar */}
+                {/* Bottom App Bar */}
                 <div className="pw-sim-bottom-nav" aria-hidden="true">
                   {PHONE_NAV_ITEMS.map((nav) => {
                     const active =

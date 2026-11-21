@@ -1177,32 +1177,27 @@ body:has(.pw){padding:0!important}
 .pw-omni-go-link:hover{background:rgba(255,255,255,.1);color:#fff}
 .pw-omni-empty{padding:20px 12px;text-align:center;color:rgba(255,255,255,.82);display:flex;flex-direction:column;gap:10px}
 
-/* ===== المرحلة 2: إطار الجوال الحي لمحاكاة تنفيذ الأوردر ===== */
+/* ===== المرحلة 2: إطار الجوال الحي لعرض الطلب التلقائي (كأنه فيديو محلي) ===== */
 .pw-sim-section{position:relative;z-index:3;padding:22px 0 46px;color:#fff}
 .pw-sim-layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(300px,360px);gap:34px;align-items:center}
 .pw-sim-info{display:flex;flex-direction:column;gap:18px}
-.pw-sim-head-copy .pw-eyebrow{color:#ffb074;margin-bottom:5px}
+.pw-sim-live-pill{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:5px 12px;border-radius:999px;background:rgba(199,85,23,.18);border:1px solid rgba(255,176,116,.38);color:#ffb074;font-size:.77rem;font-weight:900;margin-bottom:8px}
+.pw-sim-live-pill i{display:block;width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 10px #10b981;animation:pwSimLivePulse 1.6s infinite}
+@keyframes pwSimLivePulse{0%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}100%{opacity:1;transform:scale(1)}}
 .pw-sim-head-copy h2{font-size:clamp(1.32rem,2.45vw,1.98rem);font-weight:900;line-height:1.3;color:#fff;text-shadow:0 3px 16px rgba(0,0,0,.85);margin:0 0 8px}
 .pw-sim-lead{font-size:.93rem;line-height:1.65;color:rgba(255,255,255,.82);max-width:40rem;margin:0}
 
-.pw-sim-scenario-tabs{display:flex;flex-wrap:wrap;gap:8px}
-.pw-sim-tab{padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(12,18,26,.65);color:rgba(255,255,255,.86);font-size:.82rem;font-weight:800;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:all .16s}
-.pw-sim-tab:hover{border-color:#ffb074;color:#fff}
-.pw-sim-tab.is-on{background:var(--o);border-color:var(--o);color:#fff;box-shadow:0 10px 24px -12px rgba(199,85,23,.9)}
-
-.pw-sim-step-list{display:flex;flex-direction:column;gap:9px}
-.pw-sim-step-item{display:flex;align-items:flex-start;gap:12px;text-align:start;padding:11px 14px;border-radius:16px;background:rgba(12,18,26,.58);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.82);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:all .18s}
-.pw-sim-step-item:hover{border-color:rgba(255,176,116,.38)}
-.pw-sim-step-num{width:30px;height:30px;border-radius:10px;background:rgba(255,255,255,.08);color:#d6e0ec;font-family:ui-monospace,Consolas,monospace;font-size:.78rem;font-weight:900;display:grid;place-items:center;flex-shrink:0;margin-top:2px;transition:all .18s}
-.pw-sim-step-copy{display:flex;flex-direction:column;gap:2px}
-.pw-sim-step-copy strong{font-size:.86rem;font-weight:900;color:#fff}
-.pw-sim-step-copy span{font-size:.77rem;line-height:1.5;color:rgba(255,255,255,.72)}
-.pw-sim-step-item.is-passed{border-color:rgba(16,185,129,.4);background:rgba(10,24,20,.65)}
-.pw-sim-step-item.is-passed .pw-sim-step-num{background:rgba(16,185,129,.22);color:#6ee7b7}
-.pw-sim-step-item.is-passed .pw-sim-step-copy strong{color:#6ee7b7}
-.pw-sim-step-item.is-on{background:rgba(26,18,14,.84);border-color:#ffb074;box-shadow:0 14px 30px -18px rgba(255,176,116,.65)}
-.pw-sim-step-item.is-on .pw-sim-step-num{background:var(--o);color:#fff}
-.pw-sim-step-item.is-on .pw-sim-step-copy strong{color:#ffb074}
+/* Read-only Live Narrator Caption Card (no buttons) */
+.pw-sim-caption-card{background:rgba(12,18,26,.68);border:1px solid rgba(255,255,255,.14);border-inline-start:3px solid #ffb074;border-radius:18px;padding:16px 18px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;flex-direction:column;gap:8px}
+.pw-sim-caption-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.pw-sim-caption-tag{font-size:.78rem;font-weight:900;color:#ffb074}
+.pw-sim-caption-counter{font-size:.73rem;font-weight:800;color:rgba(255,255,255,.65);background:rgba(255,255,255,.07);padding:3px 9px;border-radius:999px}
+.pw-sim-caption-card h3{font-size:1.06rem;font-weight:900;color:#fff;margin:0}
+.pw-sim-caption-card p{font-size:.86rem;line-height:1.6;color:rgba(255,255,255,.82);margin:0}
+.pw-sim-caption-dots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:4px}
+.pw-sim-caption-dots span{height:4px;border-radius:999px;background:rgba(255,255,255,.14);transition:background .28s ease}
+.pw-sim-caption-dots span.is-passed{background:rgba(16,185,129,.7)}
+.pw-sim-caption-dots span.is-on{background:linear-gradient(90deg,var(--o),#ffb074)}
 
 .pw-sim-foot-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
 
@@ -1223,9 +1218,13 @@ body:has(.pw){padding:0!important}
 .pw-sim-battery{width:19px;height:10px;border-radius:3px;border:1px solid rgba(255,255,255,.72);padding:1.5px;display:inline-flex}
 .pw-sim-battery span{width:82%;height:100%;border-radius:1.5px;background:#34d399}
 
+/* Smooth Continuous Video Timeline Progress Bars */
 .pw-sim-progress-segs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
-.pw-sim-progress-segs span{height:3px;border-radius:999px;background:rgba(255,255,255,.14);transition:background .25s ease}
-.pw-sim-progress-segs span.is-active{background:linear-gradient(90deg,var(--o),#ffb074)}
+.pw-sim-seg-track{position:relative;height:3px;border-radius:999px;background:rgba(255,255,255,.14);overflow:hidden}
+.pw-sim-seg-track.is-done{background:linear-gradient(90deg,var(--o),#ffb074)}
+.pw-sim-seg-fill{position:absolute;inset:0;background:linear-gradient(90deg,var(--o),#ffb074);transform-origin:right center;transform:scaleX(0)}
+.pw-sim-seg-fill.is-running{animation:pwSimBarFill 3.2s linear forwards}
+@keyframes pwSimBarFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
 .pw-sim-app-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.09)}
 .pw-sim-app-brand{display:flex;align-items:center;gap:7px;font-size:.82rem}
@@ -1233,12 +1232,16 @@ body:has(.pw){padding:0!important}
 .pw-sim-dot-logo{width:10px;height:10px;border-radius:50%;background:var(--o);box-shadow:0 0 10px var(--o)}
 .pw-sim-cart-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.09);font-size:.74rem;font-weight:900;color:#fff;transition:all .22s}
 .pw-sim-cart-pill.is-filled{background:#059669;box-shadow:0 0 14px rgba(16,185,129,.45)}
+.pw-sim-cart-pill.is-pop{animation:pwCartPop .42s cubic-bezier(.2,1.25,.4,1)}
+@keyframes pwCartPop{0%{transform:scale(.85)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
 
-.pw-sim-ui{position:relative;min-height:336px;display:flex;flex-direction:column;justify-content:center}
-.pw-sim-screen{display:flex;flex-direction:column;gap:11px;animation:pwSimFade .28s ease}
-@keyframes pwSimFade{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
-.pw-sim-search-fake{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,176,116,.4);font-size:.79rem;color:#ffe0c2;font-weight:800}
-.pw-sim-typed{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pw-sim-ui{position:relative;min-height:336px;display:flex;flex-direction:column;justify-content:center;overflow:hidden}
+.pw-sim-screen{display:flex;flex-direction:column;gap:11px;animation:pwSimSlideIn .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes pwSimSlideIn{from{opacity:.2;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.pw-sim-search-fake{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,176,116,.4);font-size:.79rem;color:#ffe0c2;font-weight:800;min-height:38px}
+.pw-sim-typed{display:inline-flex;align-items:center;gap:2px;white-space:nowrap;overflow:hidden}
+.pw-sim-caret{display:inline-block;width:2px;height:14px;background:#ffb074;animation:pwCaretBlink .8s step-end infinite}
+@keyframes pwCaretBlink{0%,100%{opacity:1}50%{opacity:0}}
 
 .pw-sim-phone-card{border-radius:16px;overflow:hidden;background:rgba(255,255,255,.05);border:1px solid rgba(255,176,116,.5)}
 .pw-sim-phone-card-media{position:relative;height:132px;background:#0f161f}
@@ -1250,20 +1253,22 @@ body:has(.pw){padding:0!important}
 .pw-sim-phone-card-body small{font-size:.73rem;color:rgba(255,255,255,.72)}
 .pw-sim-phone-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
 .pw-sim-mini-badge{font-size:.69rem;font-weight:800;color:#6ee7b7}
-.pw-sim-mini-btn{padding:6px 11px;border-radius:9px;background:var(--o);color:#fff;font-size:.73rem;font-weight:900;white-space:nowrap}
+.pw-sim-mini-btn{padding:6px 11px;border-radius:9px;background:var(--o);color:#fff;font-size:.73rem;font-weight:900;white-space:nowrap;transition:transform .16s ease,box-shadow .16s ease}
+.pw-sim-mini-btn.is-pressed,.pw-sim-action-btn.is-pressed{transform:scale(.95);box-shadow:0 0 0 4px rgba(255,176,116,.48)}
 
 .pw-sim-detail-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:9px}
 .pw-sim-detail-img{width:100%;height:112px;border-radius:11px;object-fit:cover;background:#0c1118}
 .pw-sim-detail-meta{display:flex;flex-direction:column;gap:6px}
 .pw-sim-detail-meta strong{font-size:.85rem;font-weight:900;color:#fff;line-height:1.35}
-.pw-sim-spec-check{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:9px;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.35);font-size:.73rem;font-weight:800;color:#6ee7b7}
+.pw-sim-spec-check{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:9px;font-size:.73rem;font-weight:800;transition:all .24s ease}
+.pw-sim-spec-check.is-pending{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:rgba(255,255,255,.68)}
+.pw-sim-spec-check.is-checked{background:rgba(16,185,129,.16);border:1px solid rgba(16,185,129,.42);color:#6ee7b7}
 .pw-sim-check-on{font-weight:900}
 .pw-sim-qty-row{display:flex;align-items:center;justify-content:space-between;font-size:.75rem;color:rgba(255,255,255,.82);font-weight:800}
 .pw-sim-qty-pill{display:inline-flex;align-items:center;gap:12px;padding:3px 10px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff}
 
-.pw-sim-action-btn{padding:10px 14px;border-radius:11px;background:var(--o);color:#fff;font-size:.81rem;font-weight:900;text-align:center}
+.pw-sim-action-btn{padding:10px 14px;border-radius:11px;background:var(--o);color:#fff;font-size:.81rem;font-weight:900;text-align:center;transition:transform .16s ease,box-shadow .16s ease}
 .pw-sim-action-btn.is-confirm{background:#059669}
-.pw-sim-action-btn.is-pulsing,.pw-sim-mini-btn.is-pulsing{box-shadow:0 0 0 3px rgba(255,176,116,.4)}
 
 .pw-sim-checkout-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .pw-sim-checkout-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
@@ -1288,13 +1293,14 @@ body:has(.pw){padding:0!important}
 .pw-sim-tracker span.is-done{background:rgba(16,185,129,.22);color:#6ee7b7}
 .pw-sim-tracker span.is-now{background:rgba(255,176,116,.22);color:#ffb074}
 
-/* Animated Touch Tap Ripple Inside Phone Screen */
-.pw-sim-touch{position:absolute;width:28px;height:28px;border-radius:50%;border:2px solid #ffb074;background:rgba(255,176,116,.25);pointer-events:none;z-index:5;transition:left .42s cubic-bezier(.2,.8,.2,1),top .42s cubic-bezier(.2,.8,.2,1);animation:pwTouchTap 1.6s infinite}
-@keyframes pwTouchTap{0%{transform:scale(.85);opacity:.95}70%{transform:scale(1.28);opacity:.3}100%{transform:scale(.85);opacity:.95}}
+/* Animated Touch Tap Indicator Inside Phone Screen */
+.pw-sim-touch{position:absolute;width:28px;height:28px;border-radius:50%;border:2px solid #ffb074;background:rgba(255,176,116,.24);pointer-events:none;z-index:5;transition:left .42s cubic-bezier(.2,.8,.2,1),top .42s cubic-bezier(.2,.8,.2,1),opacity .25s ease;opacity:.85}
+.pw-sim-touch.is-tapping{animation:pwTapBurst .65s ease-out}
+@keyframes pwTapBurst{0%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,176,116,.7)}70%{transform:scale(.82);box-shadow:0 0 0 14px rgba(255,176,116,0)}100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,176,116,0)}}
 .pw-sim-touch.is-pos-0{left:14%;top:79%}
 .pw-sim-touch.is-pos-1{left:46%;top:83%}
 .pw-sim-touch.is-pos-2{left:46%;top:83%}
-.pw-sim-touch.is-pos-3{left:46%;top:34%}
+.pw-sim-touch.is-pos-3{left:46%;top:34%;opacity:0}
 
 .pw-sim-bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08);text-align:center}
 .pw-sim-bottom-nav span{font-size:.67rem;font-weight:800;color:rgba(255,255,255,.52);padding:3px 0;border-radius:8px}
@@ -1355,6 +1361,6 @@ body:has(.pw){padding:0!important}
   .pw-bs-actions .pw-bs-add-btn{min-height:40px}
 }
 @media(prefers-reduced-motion:reduce){
-  .pw-sim-touch,.pw-sim-screen,.pw-bs-card,.pw-bs-media img{animation:none!important;transition:none!important}
+  .pw-sim-touch,.pw-sim-screen,.pw-sim-seg-fill,.pw-sim-caret,.pw-sim-live-pill i,.pw-sim-cart-pill,.pw-bs-card,.pw-bs-media img{animation:none!important;transition:none!important}
 }
 `;
