@@ -1,6 +1,5 @@
-const CACHE_VERSION = 'phi-shell-v13';
+const CACHE_VERSION = 'phi-shell-v14';
 const SHELL_URLS = [
-  '/',
   '/manifest.json',
   '/phitech-symbol.svg',
   '/labor_logs',
@@ -45,11 +44,32 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+function isPublicStorefrontPath(p) {
+  return (
+    p === '/' ||
+    p === '/store' ||
+    p.startsWith('/store/') ||
+    p === '/sections' ||
+    p.startsWith('/sections/') ||
+    p === '/real-estate' ||
+    p.startsWith('/real-estate/') ||
+    p === '/website' ||
+    p.startsWith('/website/') ||
+    p === '/verify' ||
+    p.startsWith('/verify/') ||
+    p === '/login' ||
+    p === '/signup' ||
+    p.startsWith('/construct')
+  );
+}
+
 function shouldBypass(url, request) {
   if (request.method !== 'GET') return true;
   if (url.origin !== self.location.origin) return true;
   const p = url.pathname;
   if (
+    p === '/sw.js' ||
+    isPublicStorefrontPath(p) ||
     p.startsWith('/api/') ||
     p.startsWith('/rest/v1/') ||
     p.startsWith('/auth/v1/') ||

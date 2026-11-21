@@ -290,6 +290,36 @@ export default function StoreClient({
   const [catalogLoading, setCatalogLoading] = useState(false);
   const didSkipInitialFetchRef = useRef(false);
 
+  useEffect(() => {
+    if (!initialCatalog) return;
+    const isUnfilteredDefault =
+      selectedCategory === 'all' &&
+      !searchQuery.trim() &&
+      selectedBrands.length === 0 &&
+      !onlyFeatured &&
+      !onlyInStock &&
+      !onlyDiscounted &&
+      !minPrice.trim() &&
+      !maxPrice.trim() &&
+      sortBy === 'featured' &&
+      currentPage === 1;
+    if (isUnfilteredDefault) {
+      setCatalog(initialCatalog);
+    }
+  }, [
+    initialCatalog,
+    selectedCategory,
+    searchQuery,
+    selectedBrands,
+    onlyFeatured,
+    onlyInStock,
+    onlyDiscounted,
+    minPrice,
+    maxPrice,
+    sortBy,
+    currentPage,
+  ]);
+
   const cart = useCustomerCart(() => setLoginOpen(true));
   const cleanWa = (SITE.contact.whatsapp || '').replace(/[^\d]/g, '');
 
@@ -323,8 +353,11 @@ export default function StoreClient({
 
   useEffect(() => {
     if (activeStoreTab !== 'products') return;
-    const isInitialDefaultQuery =
+    const hasFullInitialCatalog =
       Boolean(initialCatalog) &&
+      (Boolean(initialCatalog?.meta?.totalProducts) || (initialCatalog?.totalCatalog ?? 0) > PRODUCTS.length);
+    const isInitialDefaultQuery =
+      hasFullInitialCatalog &&
       !didSkipInitialFetchRef.current &&
       selectedCategory === 'all' &&
       !searchQuery.trim() &&
@@ -361,6 +394,7 @@ export default function StoreClient({
 
         const res = await fetch(`/api/store-catalog?${sp.toString()}`, {
           signal: controller.signal,
+          cache: 'no-store',
         });
         if (!res.ok) return;
         const data: StoreCatalogQueryResult = await res.json();
@@ -381,6 +415,7 @@ export default function StoreClient({
   }, [
     activeStoreTab,
     initialCatalog,
+    PRODUCTS.length,
     selectedCategory,
     searchQuery,
     selectedBrands,

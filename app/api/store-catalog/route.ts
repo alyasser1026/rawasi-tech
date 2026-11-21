@@ -85,7 +85,7 @@ export async function GET(req: Request) {
     return NextResponse.json(result, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, max-age=30, stale-while-revalidate=120',
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
     });
   } catch (err: any) {

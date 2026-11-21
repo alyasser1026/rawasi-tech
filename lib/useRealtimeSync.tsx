@@ -109,9 +109,22 @@ export function RealtimeSyncProvider({ children }: { children: React.ReactNode }
 
   // 1. Register PWA Service Worker & prefetch key field screens (ERP routes only)
   useEffect(() => {
-    if (typeof window === 'undefined' || onPublicSite) return;
+    if (typeof window === 'undefined') return;
+    if (onPublicSite) {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker
+          .getRegistrations()
+          .then((regs) => {
+            regs.forEach((reg) => {
+              void reg.update().catch(() => {});
+            });
+          })
+          .catch(() => {});
+      }
+      return;
+    }
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').catch(() => {
+      navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {
         /* ignore SW registration errors in unsupported contexts */
       });
     }

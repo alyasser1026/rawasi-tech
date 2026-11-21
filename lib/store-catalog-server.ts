@@ -8,7 +8,8 @@ import {
 } from '@/app/site/store-catalog';
 
 const BUCKET_NAME = 'store-catalog';
-const CACHE_TTL_MS = 60_000;
+const META_TTL_MS = 60_000;
+const INDEX_TTL_MS = 10 * 60_000;
 const VALID_CATS = new Set<string>(PRODUCT_CATEGORIES.map((c) => c.id));
 
 export interface StoreMediaEntry {
@@ -63,12 +64,16 @@ export interface StoreCatalogQueryResult {
 
 interface CatalogCacheState {
   loadedAt: number;
+  indexLoadedAt: number;
   products: WebsiteProduct[];
   mediaMap: Record<string, StoreMediaEntry>;
   meta: StoreCatalogMeta;
 }
 
-const g = globalThis as typeof globalThis & { __phiStoreCatalogCache?: CatalogCacheState };
+const g = globalThis as typeof globalThis & {
+  __phiStoreCatalogCache?: CatalogCacheState;
+  __phiStoreCatalogInFlight?: Promise<CatalogCacheState>;
+};
 
 export function normalizeArabicSearch(text: string): string {
   return String(text || '')
@@ -97,15 +102,23 @@ async function downloadJsonObject<T>(
   objectPath: string
 ): Promise<T | null> {
   if (!sb) return null;
-  try {
-    const { data, error } = await sb.storage.from(BUCKET_NAME).download(objectPath);
-    if (error || !data) return null;
-    const text = await data.text();
-    if (!text) return null;
-    return JSON.parse(text) as T;
-  } catch {
-    return null;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const { data, error } = await sb.storage.from(BUCKET_NAME).download(objectPath);
+      if (!error && data) {
+        const text = await data.text();
+        if (text) {
+          return JSON.parse(text) as T;
+        }
+      }
+    } catch {
+      // Retry once after brief backoff
+    }
+    if (attempt === 0) {
+      await new Promise((r) => setTimeout(r, 250));
+    }
   }
+  return null;
 }
 
 function sanitizeStoredProduct(raw: any): WebsiteProduct | null {
@@ -162,15 +175,20 @@ function sanitizeStoredProduct(raw: any): WebsiteProduct | null {
 async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState> {
   const now = Date.now();
   const existing = g.__phiStoreCatalogCache;
-  if (!forceRefresh && existing && now - existing.loadedAt < CACHE_TTL_MS) {
+  if (!forceRefresh && existing && existing.products.length > 0 && now - existing.loadedAt < META_TTL_MS) {
     return existing;
+  }
+
+  if (!forceRefresh && g.__phiStoreCatalogInFlight) {
+    return g.__phiStoreCatalogInFlight;
   }
 
   const sb = getServiceSupabase();
   if (!sb) {
     return (
       existing || {
-        loadedAt: now,
+        loadedAt: 0,
+        indexLoadedAt: 0,
         products: [],
         mediaMap: {},
         meta: {},
@@ -178,24 +196,59 @@ async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState
     );
   }
 
-  const [rawIndex, rawMediaMap, rawMeta] = await Promise.all([
-    downloadJsonObject<any[]>(sb, 'catalog/index.json'),
-    downloadJsonObject<Record<string, StoreMediaEntry>>(sb, 'catalog/media-map.json'),
-    downloadJsonObject<StoreCatalogMeta>(sb, 'catalog/meta.json'),
-  ]);
+  const runFetch = async (): Promise<CatalogCacheState> => {
+    const refreshTs = Date.now();
+    const [rawMeta, rawMediaMap] = await Promise.all([
+      downloadJsonObject<StoreCatalogMeta>(sb, 'catalog/meta.json'),
+      downloadJsonObject<Record<string, StoreMediaEntry>>(sb, 'catalog/media-map.json'),
+    ]);
 
-  const products: WebsiteProduct[] = Array.isArray(rawIndex)
-    ? (rawIndex.map(sanitizeStoredProduct).filter(Boolean) as WebsiteProduct[])
-    : [];
+    const needIndexReload =
+      forceRefresh ||
+      !existing ||
+      existing.products.length === 0 ||
+      Boolean(rawMeta?.generatedAt && rawMeta.generatedAt !== existing.meta?.generatedAt) ||
+      refreshTs - existing.indexLoadedAt >= INDEX_TTL_MS;
 
-  const nextState: CatalogCacheState = {
-    loadedAt: now,
-    products,
-    mediaMap: rawMediaMap && typeof rawMediaMap === 'object' ? rawMediaMap : {},
-    meta: rawMeta && typeof rawMeta === 'object' ? rawMeta : {},
+    let nextProducts = existing?.products ?? [];
+    let nextIndexLoadedAt = existing?.indexLoadedAt ?? 0;
+
+    if (needIndexReload) {
+      const rawIndex = await downloadJsonObject<any[]>(sb, 'catalog/index.json');
+      const parsed = Array.isArray(rawIndex)
+        ? (rawIndex.map(sanitizeStoredProduct).filter(Boolean) as WebsiteProduct[])
+        : [];
+      if (parsed.length > 0) {
+        nextProducts = parsed;
+        nextIndexLoadedAt = refreshTs;
+      } else if (!existing || existing.products.length === 0) {
+        nextProducts = [];
+        nextIndexLoadedAt = 0;
+      }
+    }
+
+    const nextState: CatalogCacheState = {
+      loadedAt: nextProducts.length > 0 ? refreshTs : 0,
+      indexLoadedAt: nextProducts.length > 0 ? nextIndexLoadedAt : 0,
+      products: nextProducts,
+      mediaMap: rawMediaMap && typeof rawMediaMap === 'object' ? rawMediaMap : existing?.mediaMap || {},
+      meta: rawMeta && typeof rawMeta === 'object' ? rawMeta : existing?.meta || {},
+    };
+    g.__phiStoreCatalogCache = nextState;
+    return nextState;
   };
-  g.__phiStoreCatalogCache = nextState;
-  return nextState;
+
+  if (forceRefresh) {
+    return runFetch();
+  }
+
+  const inFlight = runFetch().finally(() => {
+    if (g.__phiStoreCatalogInFlight === inFlight) {
+      g.__phiStoreCatalogInFlight = undefined;
+    }
+  });
+  g.__phiStoreCatalogInFlight = inFlight;
+  return inFlight;
 }
 
 export async function getStoreMediaEntry(mediaId: string): Promise<StoreMediaEntry | null> {
