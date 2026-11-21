@@ -8,10 +8,8 @@ type SimScenarioId = 'store' | 'contracting' | 'maintenance';
 interface SimScenario {
   id: SimScenarioId;
   tabLabel: string;
-  badge: string;
   sectionHref: string;
-  sectionTitle: string;
-  urls: [string, string, string, string];
+  searchQueryText: string;
   stepTitles: [string, string, string, string];
   stepDescs: [string, string, string, string];
   itemTitle: string;
@@ -29,62 +27,48 @@ interface SimScenario {
 const SIM_SCENARIOS: SimScenario[] = [
   {
     id: 'store',
-    tabLabel: '🛒 طلب منتجات وسمارت هوم',
-    badge: 'التوريد والتركيب الذكي',
+    tabLabel: '🛒 منتجات وسمارت هوم',
     sectionHref: '/store',
-    sectionTitle: 'المتجر وقسم المبيعات والسمارت هوم',
-    urls: [
-      'phitech.eg/sections/materials',
-      'phitech.eg/store?item=smart-lock-pro',
-      'phitech.eg/store#cart-checkout',
-      'phitech.eg/orders/PHI-2026-842',
-    ],
+    searchQueryText: 'قفل باب ذكي 6×1...',
     stepTitles: [
-      '01 · ابحث أو ادخل القسم',
-      '02 · اختار المنتج وخيار التركيب',
-      '03 · مراجعة السلة وتأكيد الأوردر',
-      '04 · إتمام الصفقة ومتابعة الضمان',
+      'ابحث عن المنتج من الجوال',
+      'اختَر المواصفة وخيار التركيب',
+      'أكّد بيانات الطلب وأرسله',
+      'استلم رقم الأوردر ومتابعة الفني',
     ],
     stepDescs: [
-      'العميل يكتب "قفل ذكي" أو يدخل قسم المبيعات والسمارت هوم في ثوانٍ.',
-      'يختار القفل الذكي 6×1 ويفعّل خيار "توريد + تركيب هندسي" بالضمان.',
-      'تُفتح السلة الجانبية بالبيانات والكمية ويؤكد إرسال الطلب بضغطة واحدة.',
-      'يصدر رقم الطلب الموثق ويبدأ فريق التركيب والتوريد التنسيق فوراً.',
+      'العميل يكتب "قفل ذكي" ويظهر المنتج مع صورة الاستوديو فوراً.',
+      'يفعّل خيار التوريد + التركيب الهندسي المعتمد ويضيفه للسلة.',
+      'يراجع ملخص السلة ورقم الجوال للتأكيد قبل التوريد بضغطة واحدة.',
+      'يتسجل الأوردر في النظام فوراً وتبدأ متابعة التوصيل والتركيب.',
     ],
     itemTitle: 'قفل باب ذكي 6×1 بالكاميرا والبصمة',
     itemSubtitle: 'توريد معتمد + برمجة وتركيب هندسي على الباب',
     itemThumb: '/products/smart-door-lock.webp',
     itemCode: 'SM-02',
     specLabel: 'توريد + تركيب هندسي معتمد',
-    optionBadge: 'شامل ضمان 3 سنوات',
-    ctaLabel: '🛒 أضف للسلة (1)',
+    optionBadge: 'ضمان 3 سنوات',
+    ctaLabel: '🛒 أضف للسلة',
     cartTotalLabel: 'شامل التوريد والبرمجة',
     orderCode: 'ORD-PHI-842',
-    orderSummary: 'تم استلام طلب القفل الذكي وجاري تحديد موعد الفني للتركيب',
+    orderSummary: 'تم استلام طلب القفل الذكي وجاري تنسيق موعد الفني للتركيب',
   },
   {
     id: 'contracting',
-    tabLabel: '🏗️ طلب مقايسة ومقاولات 3×1',
-    badge: 'عظم · تشطيب · تكييف MEP',
+    tabLabel: '🏗️ مقايسة 3×1',
     sectionHref: '/sections/contracting',
-    sectionTitle: 'قسم المقاولات والتنفيذ 3×1',
-    urls: [
-      'phitech.eg/sections/contracting',
-      'phitech.eg/sections/contracting#calculator',
-      'phitech.eg/sections/contracting#confirm',
-      'phitech.eg/projects/ENG-2026-319',
-    ],
+    searchQueryText: 'مقايسة فيلا 350 م²...',
     stepTitles: [
-      '01 · افتح قسم المقاولات',
-      '02 · اضبط المساحة وبنود التنفيذ',
-      '03 · راجع المقايسة ووفّر 7%',
-      '04 · اعتماد المعاينة والبدء',
+      'افتح حاسبة المقاولات 3×1',
+      'حدد المساحة ونطاق التنفيذ',
+      'راجع المقايسة وخصم التكامل 7%',
+      'تأكيد موعد الرفع المساحي بالليزر',
     ],
     stepDescs: [
-      'العميل يضغط على قسم المقاولات والتنفيذ من الصفحة الرئيسية مباشرة.',
-      'يختار نوع المشروع (فيلا 350 م² × دورين) ويفعّل العظم والتشطيب والـ MEP.',
-      'يحسب النظام كمية الخرسانة والحديد والتكييف والخصم الموحّد تلقائياً.',
-      'يؤكد حجز المعاينة الميدانية ليصل المهندس المختص للموقع بالأجهزة.',
+      'يدخل العميل على قسم المقاولات والتنفيذ من هاتفه بسهولة.',
+      'يختار المساحة (فيلا 350 م² × دورين) وبنود العظم والتشطيب والتكييف.',
+      'يظهر إجمالي التقدير الهندسي وتفصيل المواد قبل اعتماد الحجز.',
+      'يصل إشعار للمهندس المختص وتصدر تذكرة المعاينة الميدانية.',
     ],
     itemTitle: 'مقايسة متكاملة 3×1 — فيلا سكنية',
     itemSubtitle: 'إنشاءات + تشطيب ديلوكس + تكييف مخفي بجهة واحدة',
@@ -92,34 +76,27 @@ const SIM_SCENARIOS: SimScenario[] = [
     itemCode: 'PRJ-3X1',
     specLabel: '700 م² مسطح بنائي · 3 نطاقات',
     optionBadge: 'خصم تكامل 7% مفعّل',
-    ctaLabel: '📐 اعتماد وحجز معاينة',
+    ctaLabel: '📐 اعتماد المقايسة',
     cartTotalLabel: 'مقايسة هندسية معتمدة',
     orderCode: 'ENG-PHI-319',
-    orderSummary: 'تم جدولة الرفع المساحي بالليزر وتسليم خطة التنفيذ',
+    orderSummary: 'تم جدولة الرفع المساحي بالليزر وإعداد خطة التنفيذ',
   },
   {
     id: 'maintenance',
-    tabLabel: '🛠️ حجز صيانة وتنفيذ هندسي',
-    badge: 'استجابة خلال 24 ساعة',
+    tabLabel: '🛠️ صيانة وتنفيذ',
     sectionHref: '/sections/contracting?tab=maintenance',
-    sectionTitle: 'قسم التنفيذ والصيانة المضمونة',
-    urls: [
-      'phitech.eg/sections/contracting?tab=maintenance',
-      'phitech.eg/store?tab=maintenance',
-      'phitech.eg/maintenance#booking',
-      'phitech.eg/tickets/MNT-2026-507',
-    ],
+    searchQueryText: 'تكييف مخفي وسباكة...',
     stepTitles: [
-      '01 · اختر تخصص الصيانة',
-      '02 · حدد الموعد والعنوان',
-      '03 · تأكيد إرسال الفني المختص',
-      '04 · استلام العمل بشهادة ضمان',
+      'اختر تخصص الصيانة أو التأسيس',
+      'حدد تفاصيل العطل والموعد المناسب',
+      'راجع تكلفة المعاينة وتأكيد العنوان',
+      'إرسال الفريق المجهز بشهادة ضمان',
     ],
     stepDescs: [
-      'العميل يدخل على خدمات الصيانة والتنفيذ ويختار تأسيس وصيانة التكييف المخفي.',
-      'يحدد الوقت المناسب ونوع العطل أو التأسيس المطلوب بدون تعقيد.',
-      'يضغط تأكيد الحجز لتسجيل التذكرة وإخطار مهندس التشغيل فوراً.',
-      'يصل الفريق المجهز ويسلّم البند باختبار جودة موثق وضمان حقيقي.',
+      'يختار العميل كشف تسريب بالموجات أو تأسيس وصيانة التكييف المخفي.',
+      'يحدد الوقت المناسب ونوع البند المطلوب بدون مكالمات مطولة.',
+      'يضغط تأكيد وإرسال الأوردر ليصل للفريق التشغيلي في ثوانٍ.',
+      'يتابع حالة الطلب لحظياً حتى التسليم واختبار الجودة بالضمان.',
     ],
     itemTitle: 'كشف تسريب بالموجات + صيانة تكييف مخفي',
     itemSubtitle: 'فحص بالأجهزة بدون تكسير وتقرير حالة كامل',
@@ -127,11 +104,18 @@ const SIM_SCENARIOS: SimScenario[] = [
     itemCode: 'MNT-HVAC',
     specLabel: 'غداً · 11:00 صباحاً',
     optionBadge: 'بدون تكسير · بضمان',
-    ctaLabel: '📅 تأكيد موعد المعاينة',
-    cartTotalLabel: 'تذكرة صيانة عاجلة',
+    ctaLabel: '📅 أضف تذكرة المعاينة',
+    cartTotalLabel: 'تذكرة صيانة سريعة',
     orderCode: 'MNT-PHI-507',
     orderSummary: 'تم تعيين المهندس المختص والتوجه في الموعد المحدد',
   },
+];
+
+const PHONE_NAV_ITEMS = [
+  { id: 'home', label: 'الرئيسية' },
+  { id: 'sections', label: 'الأقسام' },
+  { id: 'cart', label: 'السلة' },
+  { id: 'orders', label: 'طلباتي' },
 ];
 
 export default function OrderJourneyShowcase({
@@ -149,7 +133,7 @@ export default function OrderJourneyShowcase({
     if (paused) return;
     const timer = window.setInterval(() => {
       setStep((prev) => (prev + 1) % 4);
-    }, 3400);
+    }, 3100);
     return () => window.clearInterval(timer);
   }, [paused, scenarioId]);
 
@@ -158,209 +142,245 @@ export default function OrderJourneyShowcase({
     setStep(0);
   };
 
-  const renderDeviceScreen = (isMobile: boolean) => {
-    return (
-      <div className={`pw-sim-ui ${isMobile ? 'is-mobile-ui' : 'is-desktop-ui'}`}>
-        {/* Mini App Top Bar */}
-        <div className="pw-sim-app-top">
-          <div className="pw-sim-app-brand">
-            <span className="pw-sim-dot-logo" />
-            <strong>فاي تك</strong>
-            {!isMobile && <small>{activeScenario.sectionTitle}</small>}
-          </div>
-          <div className="pw-sim-app-actions">
-            <span className={`pw-sim-cart-pill ${step >= 2 ? 'is-filled' : ''}`}>
-              🛒 {step >= 1 && step <= 2 ? '1' : step === 3 ? '✓' : '0'}
-            </span>
-          </div>
-        </div>
-
-        {/* Simulated Step Screens */}
-        {step === 0 && (
-          <div className="pw-sim-screen is-step-0">
-            <div className="pw-sim-search-fake">
-              <span>🔍</span>
-              <span className="pw-sim-typed">
-                {scenarioId === 'store'
-                  ? 'قفل باب ذكي 6×1...'
-                  : scenarioId === 'contracting'
-                  ? 'مقايسة فيلا 350 م²...'
-                  : 'تكييف مخفي وسباكة...'}
-              </span>
-            </div>
-            <div className="pw-sim-mini-grid">
-              <div className="pw-sim-mini-card is-target">
-                <img src={activeScenario.itemThumb} alt="" width={120} height={90} />
-                <div>
-                  <span className="pw-sim-tag">{activeScenario.itemCode}</span>
-                  <strong>{activeScenario.itemTitle}</strong>
-                </div>
-                <span className="pw-sim-mini-btn is-pulsing">دخول ←</span>
-              </div>
-              {!isMobile && (
-                <div className="pw-sim-mini-card is-muted-card">
-                  <div>
-                    <span className="pw-sim-tag">خيار بديل</span>
-                    <strong>حزمة التشطيب والسمارت الشاملة</strong>
-                  </div>
-                  <span className="pw-sim-mini-btn">عرض</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="pw-sim-screen is-step-1">
-            <div className="pw-sim-detail-box">
-              <img src={activeScenario.itemThumb} alt="" width={160} height={120} className="pw-sim-detail-img" />
-              <div className="pw-sim-detail-meta">
-                <span className="pw-sim-tag">{activeScenario.optionBadge}</span>
-                <strong>{activeScenario.itemTitle}</strong>
-                <small>{activeScenario.itemSubtitle}</small>
-                <div className="pw-sim-spec-check">
-                  <span className="pw-sim-check-on">✓</span>
-                  <span>{activeScenario.specLabel}</span>
-                </div>
-                <div className="pw-sim-action-btn is-pulsing">{activeScenario.ctaLabel}</div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="pw-sim-screen is-step-2">
-            <div className="pw-sim-checkout-card">
-              <div className="pw-sim-checkout-head">
-                <strong>ملخص الصفقة الجاهزة</strong>
-                <span className="pw-sim-tag">{activeScenario.cartTotalLabel}</span>
-              </div>
-              <div className="pw-sim-checkout-row">
-                <img src={activeScenario.itemThumb} alt="" width={52} height={40} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <strong>{activeScenario.itemTitle}</strong>
-                  <small>{activeScenario.specLabel}</small>
-                </div>
-                <span className="pw-sim-qty">×1</span>
-              </div>
-              <div className="pw-sim-action-btn is-confirm is-pulsing">
-                ✓ تأكيد وإرسال الطلب الآن
-              </div>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="pw-sim-screen is-step-3">
-            <div className="pw-sim-success-card">
-              <div className="pw-sim-success-icon">✓</div>
-              <strong>تم إتمام الطلب بنجاح!</strong>
-              <span className="pw-sim-order-code" dir="ltr">
-                #{activeScenario.orderCode}
-              </span>
-              <p>{activeScenario.orderSummary}</p>
-              <div className="pw-sim-tracker">
-                <span className="is-done">استلام ✓</span>
-                <span className="is-done">تجهيز ✓</span>
-                <span className="is-now">تسليم وضمان ●</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Animated Interactive Cursor (Desktop) / Touch Ripple (Mobile) */}
-        <div
-          className={`pw-sim-pointer ${isMobile ? 'is-touch' : 'is-cursor'} is-pos-${step}`}
-          aria-hidden="true"
-        />
-      </div>
-    );
-  };
-
   return (
     <section
       className="pw-sim-section"
       aria-labelledby="order-sim-heading"
       onPointerEnter={() => setPaused(true)}
       onPointerLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
     >
       <div className="pw-wrap">
-        <div className="pw-sim-header">
-          <div>
-            <p className="pw-eyebrow">محاكاة حية لخطوات الطلب وإتمام الصفقة</p>
-            <h2 id="order-sim-heading">شاهد كيف ينفّذ العميل طلبه في ثوانٍ من الموبايل والكمبيوتر</h2>
-          </div>
-
-          <div className="pw-sim-scenario-tabs" role="tablist" aria-label="سيناريوهات الطلب">
-            {SIM_SCENARIOS.map((sc) => (
-              <button
-                key={sc.id}
-                type="button"
-                role="tab"
-                aria-selected={scenarioId === sc.id}
-                className={`pw-sim-tab ${scenarioId === sc.id ? 'is-on' : ''}`}
-                onClick={() => handleSelectScenario(sc.id)}
-              >
-                {sc.tabLabel}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* 4 Interactive Step Pills */}
-        <div className="pw-sim-steps-bar">
-          {activeScenario.stepTitles.map((title, idx) => (
-            <button
-              key={title}
-              type="button"
-              className={`pw-sim-step-pill ${step === idx ? 'is-on' : step > idx ? 'is-passed' : ''}`}
-              onClick={() => setStep(idx)}
-            >
-              <strong>{title}</strong>
-              <span>{activeScenario.stepDescs[idx]}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Dual Device Showcase: Live Synchronized Desktop + Mobile Screens */}
-        <div className="pw-sim-stage">
-          {/* 1. Desktop Browser Frame */}
-          <div className="pw-sim-desktop" aria-label="معاينة شاشة الكمبيوتر">
-            <div className="pw-sim-chrome">
-              <div className="pw-sim-chrome-dots" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </div>
-              <div className="pw-sim-chrome-url" dir="ltr">
-                <span>🔒</span>
-                <span>{activeScenario.urls[step]}</span>
-              </div>
-              <span className="pw-sim-chrome-badge">شاشة الكمبيوتر</span>
+        <div className="pw-sim-layout">
+          {/* Right Column (RTL): Scenario Controls + Interactive 4-Step List */}
+          <div className="pw-sim-info">
+            <div className="pw-sim-head-copy">
+              <p className="pw-eyebrow">محاكاة حية لطلب أونلاين</p>
+              <h2 id="order-sim-heading">شاهد كيف يُنفَّذ الطلب من الجوال في ثوانٍ</h2>
+              <p className="pw-sim-lead">
+                اختر نوع الطلب وشاهد رحلة العميل كاملة داخل إطار الجوال من البحث حتى استلام رقم الأوردر وتوجيه المهندس.
+              </p>
             </div>
-            <div className="pw-sim-desktop-body">{renderDeviceScreen(false)}</div>
-          </div>
 
-          {/* 2. Mobile Phone Frame */}
-          <div className="pw-sim-mobile" aria-label="معاينة شاشة الموبايل">
-            <div className="pw-sim-phone-notch" aria-hidden="true">
-              <span />
+            <div className="pw-sim-scenario-tabs" role="tablist" aria-label="سيناريوهات الطلب">
+              {SIM_SCENARIOS.map((sc) => (
+                <button
+                  key={sc.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={scenarioId === sc.id}
+                  className={`pw-sim-tab ${scenarioId === sc.id ? 'is-on' : ''}`}
+                  onClick={() => handleSelectScenario(sc.id)}
+                >
+                  {sc.tabLabel}
+                </button>
+              ))}
             </div>
-            <div className="pw-sim-phone-label">تطبيق الموبايل</div>
-            <div className="pw-sim-mobile-body">{renderDeviceScreen(true)}</div>
-            <div className="pw-sim-phone-homebar" aria-hidden="true" />
-          </div>
-        </div>
 
-        <div className="pw-sim-foot-actions">
-          <Link href={activeScenario.sectionHref} className="pw-btn pw-btn-primary">
-            جرّب تنفيذ هذا الطلب الآن ←
-          </Link>
-          {onOpenContact && (
-            <button type="button" className="pw-btn pw-btn-light" onClick={onOpenContact}>
-              💬 اطلب مساعدة فورية من مهندس المبيعات
-            </button>
-          )}
+            <div className="pw-sim-step-list" role="list" aria-label="خطوات تنفيذ الطلب">
+              {activeScenario.stepTitles.map((title, idx) => (
+                <button
+                  key={title}
+                  type="button"
+                  role="listitem"
+                  className={`pw-sim-step-item ${step === idx ? 'is-on' : step > idx ? 'is-passed' : ''}`}
+                  onClick={() => setStep(idx)}
+                >
+                  <span className="pw-sim-step-num" dir="ltr">
+                    0{idx + 1}
+                  </span>
+                  <div className="pw-sim-step-copy">
+                    <strong>{title}</strong>
+                    <span>{activeScenario.stepDescs[idx]}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            <div className="pw-sim-foot-actions">
+              <Link href={activeScenario.sectionHref} className="pw-btn pw-btn-primary">
+                جرّب تنفيذ هذا الطلب الآن ←
+              </Link>
+              {onOpenContact && (
+                <button type="button" className="pw-btn pw-btn-light" onClick={onOpenContact}>
+                  💬 اطلب مساعدة فورية
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Left Column (RTL): Centerpiece Realistic Smartphone Frame */}
+          <div className="pw-sim-phone-wrap" aria-label="معاينة تنفيذ أوردر حقيقي داخل إطار الجوال">
+            <div className="pw-sim-phone">
+              <span className="pw-sim-hw-vol-1" aria-hidden="true" />
+              <span className="pw-sim-hw-vol-2" aria-hidden="true" />
+              <span className="pw-sim-hw-pwr" aria-hidden="true" />
+
+              <div className="pw-sim-phone-inner">
+                {/* Smartphone Top Status Bar + Dynamic Island */}
+                <div className="pw-sim-status-bar" dir="ltr">
+                  <span className="pw-sim-time">9:41</span>
+                  <div className="pw-sim-island" aria-hidden="true">
+                    <span className="pw-sim-island-cam" />
+                  </div>
+                  <div className="pw-sim-signal">
+                    <span>5G</span>
+                    <span className="pw-sim-battery" aria-hidden="true">
+                      <span />
+                    </span>
+                  </div>
+                </div>
+
+                {/* Top 4-Step Progress Segments */}
+                <div className="pw-sim-progress-segs" aria-hidden="true">
+                  {[0, 1, 2, 3].map((i) => (
+                    <span key={i} className={step >= i ? 'is-active' : ''} />
+                  ))}
+                </div>
+
+                {/* Mini PhiTech App Top Header */}
+                <div className="pw-sim-app-top">
+                  <div className="pw-sim-app-brand">
+                    <span className="pw-sim-dot-logo" />
+                    <strong>فاي تك</strong>
+                  </div>
+                  <span className={`pw-sim-cart-pill ${step >= 1 ? 'is-filled' : ''}`}>
+                    🛒 {step === 0 ? '0' : step <= 2 ? '1' : '✓'}
+                  </span>
+                </div>
+
+                {/* Interactive Live App Screen Viewport */}
+                <div className="pw-sim-ui">
+                  {step === 0 && (
+                    <div className="pw-sim-screen is-step-0">
+                      <div className="pw-sim-search-fake">
+                        <span aria-hidden="true">🔍</span>
+                        <span className="pw-sim-typed">{activeScenario.searchQueryText}</span>
+                      </div>
+
+                      <div className="pw-sim-phone-card is-target">
+                        <div className="pw-sim-phone-card-media">
+                          <img src={activeScenario.itemThumb} alt="" width={260} height={140} />
+                          <span className="pw-sim-tag is-overlay">{activeScenario.itemCode}</span>
+                        </div>
+                        <div className="pw-sim-phone-card-body">
+                          <strong>{activeScenario.itemTitle}</strong>
+                          <small>{activeScenario.itemSubtitle}</small>
+                          <div className="pw-sim-phone-card-foot">
+                            <span className="pw-sim-mini-badge">{activeScenario.optionBadge}</span>
+                            <span className="pw-sim-mini-btn is-pulsing">اطلب الآن ←</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 1 && (
+                    <div className="pw-sim-screen is-step-1">
+                      <div className="pw-sim-detail-box">
+                        <img
+                          src={activeScenario.itemThumb}
+                          alt=""
+                          width={260}
+                          height={130}
+                          className="pw-sim-detail-img"
+                        />
+                        <div className="pw-sim-detail-meta">
+                          <span className="pw-sim-tag">{activeScenario.optionBadge}</span>
+                          <strong>{activeScenario.itemTitle}</strong>
+                          <div className="pw-sim-spec-check">
+                            <span className="pw-sim-check-on">✓</span>
+                            <span>{activeScenario.specLabel}</span>
+                          </div>
+                          <div className="pw-sim-qty-row">
+                            <span>الكمية المطلوبة</span>
+                            <div className="pw-sim-qty-pill" dir="ltr">
+                              <span>−</span>
+                              <strong>1</strong>
+                              <span>+</span>
+                            </div>
+                          </div>
+                          <div className="pw-sim-action-btn is-pulsing">{activeScenario.ctaLabel}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 2 && (
+                    <div className="pw-sim-screen is-step-2">
+                      <div className="pw-sim-checkout-card">
+                        <div className="pw-sim-checkout-head">
+                          <strong>مراجعة الأوردر وتأكيده</strong>
+                          <span className="pw-sim-tag">{activeScenario.cartTotalLabel}</span>
+                        </div>
+
+                        <div className="pw-sim-checkout-row">
+                          <img src={activeScenario.itemThumb} alt="" width={54} height={42} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <strong>{activeScenario.itemTitle}</strong>
+                            <small>{activeScenario.specLabel}</small>
+                          </div>
+                          <span className="pw-sim-qty">×1</span>
+                        </div>
+
+                        <div className="pw-sim-customer-box">
+                          <div>
+                            <strong>👤 م. أحمد · 010•••••482</strong>
+                            <small>📍 القاهرة الجديدة · تأكيد مجاني قبل التوريد</small>
+                          </div>
+                          <span className="pw-sim-verified-pill">جاهز ✓</span>
+                        </div>
+
+                        <div className="pw-sim-action-btn is-confirm is-pulsing">
+                          ✓ تأكيد وإرسال الأوردر الآن
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {step === 3 && (
+                    <div className="pw-sim-screen is-step-3">
+                      <div className="pw-sim-success-card">
+                        <div className="pw-sim-success-icon">✓</div>
+                        <strong>تم تسجيل الأوردر بنجاح!</strong>
+                        <span className="pw-sim-order-code" dir="ltr">
+                          #{activeScenario.orderCode}
+                        </span>
+                        <p>{activeScenario.orderSummary}</p>
+                        <div className="pw-sim-tracker">
+                          <span className="is-done">استلام ✓</span>
+                          <span className="is-done">تجهيز ✓</span>
+                          <span className="is-now">الفني في الطريق ●</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Animated Touch Ripple Overlay */}
+                  <div className={`pw-sim-touch is-pos-${step}`} aria-hidden="true" />
+                </div>
+
+                {/* Mini Mobile Bottom App Bar */}
+                <div className="pw-sim-bottom-nav" aria-hidden="true">
+                  {PHONE_NAV_ITEMS.map((nav) => {
+                    const active =
+                      (step === 0 && nav.id === 'home') ||
+                      (step === 1 && nav.id === 'sections') ||
+                      (step === 2 && nav.id === 'cart') ||
+                      (step === 3 && nav.id === 'orders');
+                    return (
+                      <span key={nav.id} className={active ? 'is-on' : ''}>
+                        {nav.label}
+                      </span>
+                    );
+                  })}
+                </div>
+
+                <div className="pw-sim-phone-homebar" aria-hidden="true" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

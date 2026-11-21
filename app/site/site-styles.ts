@@ -1177,117 +1177,129 @@ body:has(.pw){padding:0!important}
 .pw-omni-go-link:hover{background:rgba(255,255,255,.1);color:#fff}
 .pw-omni-empty{padding:20px 12px;text-align:center;color:rgba(255,255,255,.82);display:flex;flex-direction:column;gap:10px}
 
-/* ===== المرحلة 2: شاشات محاكاة الطلبات الحية (كمبيوتر + موبايل) ===== */
-.pw-sim-section{position:relative;z-index:3;padding:24px 0 44px;color:#fff}
-.pw-sim-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:18px}
-.pw-sim-header .pw-eyebrow{color:#ffb074;margin-bottom:4px}
-.pw-sim-header h2{font-size:clamp(1.25rem,2.3vw,1.82rem);font-weight:900;color:#fff;text-shadow:0 3px 16px rgba(0,0,0,.85);margin:0}
+/* ===== المرحلة 2: إطار الجوال الحي لمحاكاة تنفيذ الأوردر ===== */
+.pw-sim-section{position:relative;z-index:3;padding:22px 0 46px;color:#fff}
+.pw-sim-layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(300px,360px);gap:34px;align-items:center}
+.pw-sim-info{display:flex;flex-direction:column;gap:18px}
+.pw-sim-head-copy .pw-eyebrow{color:#ffb074;margin-bottom:5px}
+.pw-sim-head-copy h2{font-size:clamp(1.32rem,2.45vw,1.98rem);font-weight:900;line-height:1.3;color:#fff;text-shadow:0 3px 16px rgba(0,0,0,.85);margin:0 0 8px}
+.pw-sim-lead{font-size:.93rem;line-height:1.65;color:rgba(255,255,255,.82);max-width:40rem;margin:0}
+
 .pw-sim-scenario-tabs{display:flex;flex-wrap:wrap;gap:8px}
-.pw-sim-tab{padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(12,18,26,.65);color:rgba(255,255,255,.84);font-size:.82rem;font-weight:800;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:all .16s}
+.pw-sim-tab{padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.16);background:rgba(12,18,26,.65);color:rgba(255,255,255,.86);font-size:.82rem;font-weight:800;cursor:pointer;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);transition:all .16s}
 .pw-sim-tab:hover{border-color:#ffb074;color:#fff}
 .pw-sim-tab.is-on{background:var(--o);border-color:var(--o);color:#fff;box-shadow:0 10px 24px -12px rgba(199,85,23,.9)}
 
-.pw-sim-steps-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:20px}
-.pw-sim-step-pill{text-align:start;padding:12px 14px;border-radius:16px;background:rgba(12,18,26,.58);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.82);display:flex;flex-direction:column;gap:4px;cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:all .18s}
-.pw-sim-step-pill strong{font-size:.83rem;font-weight:900;color:#fff}
-.pw-sim-step-pill span{font-size:.75rem;line-height:1.45;color:rgba(255,255,255,.7)}
-.pw-sim-step-pill.is-passed{border-color:rgba(16,185,129,.42);background:rgba(12,24,22,.65)}
-.pw-sim-step-pill.is-passed strong{color:#6ee7b7}
-.pw-sim-step-pill.is-on{background:rgba(26,18,14,.84);border-color:#ffb074;box-shadow:0 14px 32px -18px rgba(255,176,116,.6)}
-.pw-sim-step-pill.is-on strong{color:#ffb074}
+.pw-sim-step-list{display:flex;flex-direction:column;gap:9px}
+.pw-sim-step-item{display:flex;align-items:flex-start;gap:12px;text-align:start;padding:11px 14px;border-radius:16px;background:rgba(12,18,26,.58);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.82);cursor:pointer;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:all .18s}
+.pw-sim-step-item:hover{border-color:rgba(255,176,116,.38)}
+.pw-sim-step-num{width:30px;height:30px;border-radius:10px;background:rgba(255,255,255,.08);color:#d6e0ec;font-family:ui-monospace,Consolas,monospace;font-size:.78rem;font-weight:900;display:grid;place-items:center;flex-shrink:0;margin-top:2px;transition:all .18s}
+.pw-sim-step-copy{display:flex;flex-direction:column;gap:2px}
+.pw-sim-step-copy strong{font-size:.86rem;font-weight:900;color:#fff}
+.pw-sim-step-copy span{font-size:.77rem;line-height:1.5;color:rgba(255,255,255,.72)}
+.pw-sim-step-item.is-passed{border-color:rgba(16,185,129,.4);background:rgba(10,24,20,.65)}
+.pw-sim-step-item.is-passed .pw-sim-step-num{background:rgba(16,185,129,.22);color:#6ee7b7}
+.pw-sim-step-item.is-passed .pw-sim-step-copy strong{color:#6ee7b7}
+.pw-sim-step-item.is-on{background:rgba(26,18,14,.84);border-color:#ffb074;box-shadow:0 14px 30px -18px rgba(255,176,116,.65)}
+.pw-sim-step-item.is-on .pw-sim-step-num{background:var(--o);color:#fff}
+.pw-sim-step-item.is-on .pw-sim-step-copy strong{color:#ffb074}
 
-.pw-sim-stage{display:grid;grid-template-columns:minmax(0,1.46fr) minmax(256px,.64fr);gap:22px;align-items:stretch}
+.pw-sim-foot-actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
 
-/* 1. Desktop Browser Frame */
-.pw-sim-desktop{background:rgba(10,15,22,.82);border:1.5px solid rgba(255,255,255,.18);border-radius:22px;overflow:hidden;box-shadow:0 30px 64px -26px rgba(0,0,0,.85);display:flex;flex-direction:column;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-.pw-sim-chrome{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.1)}
-.pw-sim-chrome-dots{display:flex;gap:6px}
-.pw-sim-chrome-dots span{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.26)}
-.pw-sim-chrome-dots span:nth-child(1){background:#ef4444}
-.pw-sim-chrome-dots span:nth-child(2){background:#f59e0b}
-.pw-sim-chrome-dots span:nth-child(3){background:#10b981}
-.pw-sim-chrome-url{flex:1;max-width:24rem;margin:0 auto;display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.1);font-family:ui-monospace,Consolas,monospace;font-size:.73rem;color:#d6e0ec;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pw-sim-chrome-badge{font-size:.73rem;font-weight:900;color:#ffb074;background:rgba(199,85,23,.2);border:1px solid rgba(255,176,116,.3);padding:3px 10px;border-radius:999px;white-space:nowrap}
-.pw-sim-desktop-body{flex:1;padding:18px;display:flex}
+/* Centerpiece Realistic Smartphone Hardware Bezel */
+.pw-sim-phone-wrap{display:flex;justify-content:center;align-items:center;position:relative}
+.pw-sim-phone{position:relative;width:100%;max-width:342px;border-radius:46px;padding:11px;background:linear-gradient(155deg,#333c48 0%,#151a21 48%,#29313d 100%);box-shadow:0 36px 72px -22px rgba(0,0,0,.92),0 0 0 1px rgba(255,255,255,.2),inset 0 0 0 2px #090c10}
+.pw-sim-phone::before{content:'';position:absolute;inset:-24px;border-radius:64px;background:radial-gradient(circle at 50% 45%,rgba(199,85,23,.24),transparent 68%);z-index:-1;pointer-events:none}
+.pw-sim-hw-vol-1,.pw-sim-hw-vol-2,.pw-sim-hw-pwr{position:absolute;width:3px;border-radius:3px;background:#3a4350}
+.pw-sim-hw-vol-1{left:-3px;top:112px;height:34px}
+.pw-sim-hw-vol-2{left:-3px;top:156px;height:34px}
+.pw-sim-hw-pwr{right:-3px;top:134px;height:52px}
 
-/* 2. Mobile Phone Frame */
-.pw-sim-mobile{background:linear-gradient(160deg,#1a222d 0%,#0b1017 100%);border:2.5px solid rgba(255,255,255,.24);border-radius:34px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:8px;box-shadow:0 30px 60px -22px rgba(0,0,0,.9),inset 0 0 0 2px rgba(0,0,0,.6);max-width:340px;width:100%;justify-self:center}
-.pw-sim-phone-notch{width:84px;height:14px;background:#05070a;border-radius:999px;margin:0 auto;display:flex;align-items:center;justify-content:center}
-.pw-sim-phone-notch span{width:28px;height:4px;border-radius:999px;background:#1f2937}
-.pw-sim-phone-label{text-align:center;font-size:.71rem;font-weight:900;color:#ffb074;letter-spacing:.02em}
-.pw-sim-mobile-body{flex:1;border-radius:20px;background:rgba(10,15,22,.88);border:1px solid rgba(255,255,255,.1);padding:12px;display:flex;overflow:hidden}
-.pw-sim-phone-homebar{width:82px;height:4px;border-radius:999px;background:rgba(255,255,255,.32);margin:2px auto 0}
+.pw-sim-phone-inner{position:relative;border-radius:36px;background:linear-gradient(180deg,#0c121a 0%,#080c12 100%);border:1px solid rgba(255,255,255,.1);padding:10px 13px 8px;display:flex;flex-direction:column;gap:9px;overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.pw-sim-status-bar{display:flex;align-items:center;justify-content:space-between;font-size:.69rem;font-weight:900;color:#eef4fa;padding:0 4px}
+.pw-sim-island{width:84px;height:20px;border-radius:999px;background:#040608;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:flex-end;padding-inline-end:7px}
+.pw-sim-island-cam{width:7px;height:7px;border-radius:50%;background:radial-gradient(circle,#1e3a5f 0%,#09121e 65%);box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+.pw-sim-signal{display:flex;align-items:center;gap:5px;font-size:.66rem;font-weight:800}
+.pw-sim-battery{width:19px;height:10px;border-radius:3px;border:1px solid rgba(255,255,255,.72);padding:1.5px;display:inline-flex}
+.pw-sim-battery span{width:82%;height:100%;border-radius:1.5px;background:#34d399}
 
-/* Simulated App UI Inside Both Screens */
-.pw-sim-ui{position:relative;width:100%;display:flex;flex-direction:column;gap:12px;min-height:290px}
-.pw-sim-ui.is-mobile-ui{min-height:300px;gap:10px}
-.pw-sim-app-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.09)}
+.pw-sim-progress-segs{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.pw-sim-progress-segs span{height:3px;border-radius:999px;background:rgba(255,255,255,.14);transition:background .25s ease}
+.pw-sim-progress-segs span.is-active{background:linear-gradient(90deg,var(--o),#ffb074)}
+
+.pw-sim-app-top{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.09)}
 .pw-sim-app-brand{display:flex;align-items:center;gap:7px;font-size:.82rem}
 .pw-sim-app-brand strong{font-weight:900;color:#fff}
-.pw-sim-app-brand small{font-size:.74rem;color:rgba(255,255,255,.65);padding-inline-start:6px;border-inline-start:1px solid rgba(255,255,255,.14)}
 .pw-sim-dot-logo{width:10px;height:10px;border-radius:50%;background:var(--o);box-shadow:0 0 10px var(--o)}
-.pw-sim-cart-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.09);font-size:.75rem;font-weight:900;color:#fff;transition:all .22s}
+.pw-sim-cart-pill{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.09);font-size:.74rem;font-weight:900;color:#fff;transition:all .22s}
 .pw-sim-cart-pill.is-filled{background:#059669;box-shadow:0 0 14px rgba(16,185,129,.45)}
 
-.pw-sim-screen{flex:1;display:flex;flex-direction:column;justify-content:center;gap:12px;animation:pwSimFade .28s ease}
-@keyframes pwSimFade{from{opacity:.35;transform:translateY(4px)}to{opacity:1;transform:none}}
-.pw-sim-search-fake{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,176,116,.38);font-size:.8rem;color:#ffe0c2;font-weight:800}
+.pw-sim-ui{position:relative;min-height:336px;display:flex;flex-direction:column;justify-content:center}
+.pw-sim-screen{display:flex;flex-direction:column;gap:11px;animation:pwSimFade .28s ease}
+@keyframes pwSimFade{from{opacity:.35;transform:translateY(5px)}to{opacity:1;transform:none}}
+.pw-sim-search-fake{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.07);border:1px solid rgba(255,176,116,.4);font-size:.79rem;color:#ffe0c2;font-weight:800}
 .pw-sim-typed{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.pw-sim-mini-grid{display:grid;grid-template-columns:1fr;gap:10px}
-.pw-sim-ui.is-desktop-ui .pw-sim-mini-grid{grid-template-columns:1.25fr 1fr}
-.pw-sim-mini-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:10px;display:flex;align-items:center;gap:10px;position:relative}
-.pw-sim-mini-card.is-target{border-color:#ffb074;background:rgba(199,85,23,.14)}
-.pw-sim-mini-card.is-muted-card{opacity:.66}
-.pw-sim-mini-card img{width:64px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0}
-.pw-sim-ui.is-mobile-ui .pw-sim-mini-card img{width:52px;height:40px}
-.pw-sim-mini-card strong{display:block;font-size:.79rem;font-weight:900;color:#fff;line-height:1.35}
-.pw-sim-tag{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,176,116,.18);color:#ffb074;font-size:.69rem;font-weight:900;margin-bottom:3px}
-.pw-sim-mini-btn{padding:5px 9px;border-radius:8px;background:var(--o);color:#fff;font-size:.71rem;font-weight:900;white-space:nowrap;margin-inline-start:auto}
 
-.pw-sim-detail-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:12px;display:flex;gap:14px;align-items:center}
-.pw-sim-ui.is-mobile-ui .pw-sim-detail-box{flex-direction:column;text-align:center}
-.pw-sim-detail-img{width:140px;height:105px;border-radius:12px;object-fit:cover;background:#0c1118;flex-shrink:0}
-.pw-sim-ui.is-mobile-ui .pw-sim-detail-img{width:100%;height:112px}
-.pw-sim-detail-meta{flex:1;display:flex;flex-direction:column;gap:5px}
-.pw-sim-detail-meta strong{font-size:.9rem;font-weight:900;color:#fff}
-.pw-sim-detail-meta small{font-size:.76rem;color:rgba(255,255,255,.72)}
-.pw-sim-spec-check{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:9px;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.35);font-size:.74rem;font-weight:800;color:#6ee7b7;align-self:flex-start}
-.pw-sim-ui.is-mobile-ui .pw-sim-spec-check{align-self:center}
+.pw-sim-phone-card{border-radius:16px;overflow:hidden;background:rgba(255,255,255,.05);border:1px solid rgba(255,176,116,.5)}
+.pw-sim-phone-card-media{position:relative;height:132px;background:#0f161f}
+.pw-sim-phone-card-media img{width:100%;height:100%;object-fit:cover;display:block}
+.pw-sim-tag{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(255,176,116,.18);color:#ffb074;font-size:.69rem;font-weight:900}
+.pw-sim-tag.is-overlay{position:absolute;top:9px;inset-inline-start:9px;background:rgba(9,13,19,.86);border:1px solid rgba(255,176,116,.4)}
+.pw-sim-phone-card-body{padding:11px 12px;display:flex;flex-direction:column;gap:5px}
+.pw-sim-phone-card-body strong{font-size:.84rem;font-weight:900;color:#fff;line-height:1.35}
+.pw-sim-phone-card-body small{font-size:.73rem;color:rgba(255,255,255,.72)}
+.pw-sim-phone-card-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
+.pw-sim-mini-badge{font-size:.69rem;font-weight:800;color:#6ee7b7}
+.pw-sim-mini-btn{padding:6px 11px;border-radius:9px;background:var(--o);color:#fff;font-size:.73rem;font-weight:900;white-space:nowrap}
+
+.pw-sim-detail-box{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:9px}
+.pw-sim-detail-img{width:100%;height:112px;border-radius:11px;object-fit:cover;background:#0c1118}
+.pw-sim-detail-meta{display:flex;flex-direction:column;gap:6px}
+.pw-sim-detail-meta strong{font-size:.85rem;font-weight:900;color:#fff;line-height:1.35}
+.pw-sim-spec-check{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:9px;background:rgba(16,185,129,.14);border:1px solid rgba(16,185,129,.35);font-size:.73rem;font-weight:800;color:#6ee7b7}
 .pw-sim-check-on{font-weight:900}
-.pw-sim-action-btn{padding:9px 14px;border-radius:11px;background:var(--o);color:#fff;font-size:.81rem;font-weight:900;text-align:center;margin-top:4px}
+.pw-sim-qty-row{display:flex;align-items:center;justify-content:space-between;font-size:.75rem;color:rgba(255,255,255,.82);font-weight:800}
+.pw-sim-qty-pill{display:inline-flex;align-items:center;gap:12px;padding:3px 10px;border-radius:9px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);color:#fff}
+
+.pw-sim-action-btn{padding:10px 14px;border-radius:11px;background:var(--o);color:#fff;font-size:.81rem;font-weight:900;text-align:center}
 .pw-sim-action-btn.is-confirm{background:#059669}
 .pw-sim-action-btn.is-pulsing,.pw-sim-mini-btn.is-pulsing{box-shadow:0 0 0 3px rgba(255,176,116,.4)}
 
-.pw-sim-checkout-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
-.pw-sim-checkout-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.pw-sim-checkout-head strong{font-size:.88rem;color:#fff}
-.pw-sim-checkout-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:12px;background:rgba(0,0,0,.35)}
-.pw-sim-checkout-row img{width:54px;height:40px;border-radius:8px;object-fit:cover}
-.pw-sim-checkout-row strong{display:block;font-size:.8rem;color:#fff}
-.pw-sim-checkout-row small{display:block;font-size:.72rem;color:rgba(255,255,255,.68)}
-.pw-sim-qty{font-size:.82rem;font-weight:900;color:#ffb074}
+.pw-sim-checkout-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.pw-sim-checkout-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.pw-sim-checkout-head strong{font-size:.84rem;color:#fff}
+.pw-sim-checkout-row{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:12px;background:rgba(0,0,0,.35)}
+.pw-sim-checkout-row img{width:50px;height:40px;border-radius:8px;object-fit:cover}
+.pw-sim-checkout-row strong{display:block;font-size:.77rem;color:#fff;line-height:1.35}
+.pw-sim-checkout-row small{display:block;font-size:.69rem;color:rgba(255,255,255,.68)}
+.pw-sim-qty{font-size:.8rem;font-weight:900;color:#ffb074}
+.pw-sim-customer-box{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:11px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.16)}
+.pw-sim-customer-box strong{display:block;font-size:.74rem;color:#fff}
+.pw-sim-customer-box small{display:block;font-size:.67rem;color:rgba(255,255,255,.7)}
+.pw-sim-verified-pill{padding:3px 8px;border-radius:999px;background:rgba(16,185,129,.2);color:#6ee7b7;font-size:.68rem;font-weight:900;white-space:nowrap}
 
-.pw-sim-success-card{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.38);border-radius:16px;padding:16px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:7px}
-.pw-sim-success-icon{width:42px;height:42px;border-radius:50%;background:#059669;color:#fff;display:grid;place-items:center;font-size:1.25rem;font-weight:900;box-shadow:0 0 22px rgba(16,185,129,.55)}
-.pw-sim-success-card strong{font-size:.96rem;color:#fff}
-.pw-sim-order-code{padding:3px 10px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(110,231,183,.35);font-family:ui-monospace,Consolas,monospace;font-size:.76rem;font-weight:900;color:#6ee7b7}
-.pw-sim-success-card p{font-size:.78rem;color:rgba(255,255,255,.84);margin:0}
-.pw-sim-tracker{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:4px}
-.pw-sim-tracker span{padding:3px 9px;border-radius:999px;font-size:.71rem;font-weight:900}
+.pw-sim-success-card{background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.38);border-radius:16px;padding:18px 13px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.pw-sim-success-icon{width:46px;height:46px;border-radius:50%;background:#059669;color:#fff;display:grid;place-items:center;font-size:1.35rem;font-weight:900;box-shadow:0 0 24px rgba(16,185,129,.6)}
+.pw-sim-success-card strong{font-size:.94rem;color:#fff}
+.pw-sim-order-code{padding:3px 11px;border-radius:999px;background:rgba(0,0,0,.45);border:1px solid rgba(110,231,183,.35);font-family:ui-monospace,Consolas,monospace;font-size:.77rem;font-weight:900;color:#6ee7b7}
+.pw-sim-success-card p{font-size:.76rem;line-height:1.55;color:rgba(255,255,255,.86);margin:0}
+.pw-sim-tracker{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:4px}
+.pw-sim-tracker span{padding:3px 8px;border-radius:999px;font-size:.69rem;font-weight:900}
 .pw-sim-tracker span.is-done{background:rgba(16,185,129,.22);color:#6ee7b7}
 .pw-sim-tracker span.is-now{background:rgba(255,176,116,.22);color:#ffb074}
 
-/* Animated interactive cursor/touch dot */
-.pw-sim-pointer{position:absolute;width:18px;height:18px;border-radius:50%;pointer-events:none;transition:left .45s cubic-bezier(.2,.8,.2,1),top .45s cubic-bezier(.2,.8,.2,1);z-index:5}
-.pw-sim-pointer.is-cursor{background:radial-gradient(circle,#fff 0%,#ffb074 55%,rgba(199,85,23,0) 75%);box-shadow:0 0 12px rgba(255,176,116,.8)}
-.pw-sim-pointer.is-touch{width:26px;height:26px;border:2px solid #ffb074;background:rgba(255,176,116,.24);animation:pwTouchRipple 1.6s infinite}
-@keyframes pwTouchRipple{0%{transform:scale(.85);opacity:.95}70%{transform:scale(1.25);opacity:.35}100%{transform:scale(.85);opacity:.95}}
-.pw-sim-pointer.is-pos-0{left:22%;top:48%}
-.pw-sim-pointer.is-pos-1{left:42%;top:72%}
-.pw-sim-pointer.is-pos-2{left:50%;top:80%}
-.pw-sim-pointer.is-pos-3{left:50%;top:34%}
+/* Animated Touch Tap Ripple Inside Phone Screen */
+.pw-sim-touch{position:absolute;width:28px;height:28px;border-radius:50%;border:2px solid #ffb074;background:rgba(255,176,116,.25);pointer-events:none;z-index:5;transition:left .42s cubic-bezier(.2,.8,.2,1),top .42s cubic-bezier(.2,.8,.2,1);animation:pwTouchTap 1.6s infinite}
+@keyframes pwTouchTap{0%{transform:scale(.85);opacity:.95}70%{transform:scale(1.28);opacity:.3}100%{transform:scale(.85);opacity:.95}}
+.pw-sim-touch.is-pos-0{left:14%;top:79%}
+.pw-sim-touch.is-pos-1{left:46%;top:83%}
+.pw-sim-touch.is-pos-2{left:46%;top:83%}
+.pw-sim-touch.is-pos-3{left:46%;top:34%}
 
-.pw-sim-foot-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:20px}
+.pw-sim-bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08);text-align:center}
+.pw-sim-bottom-nav span{font-size:.67rem;font-weight:800;color:rgba(255,255,255,.52);padding:3px 0;border-radius:8px}
+.pw-sim-bottom-nav span.is-on{color:#ffb074;background:rgba(255,176,116,.12)}
+.pw-sim-phone-homebar{width:92px;height:4px;border-radius:999px;background:rgba(255,255,255,.32);margin:3px auto 1px}
 
 /* ===== المرحلة 4: المنتجات الأكثر مبيعاً (أهم 6 + عرض المزيد) ===== */
 .pw-bestsellers-band{position:relative;z-index:4;padding:54px 0 72px;color:#fff}
@@ -1329,8 +1341,7 @@ body:has(.pw){padding:0!important}
 
 @media(max-width:1024px){
   .pw-bs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .pw-sim-steps-bar{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .pw-sim-stage{grid-template-columns:1fr;gap:18px}
+  .pw-sim-layout{grid-template-columns:1fr;gap:24px}
 }
 @media(max-width:900px){
   .pw-welcome-shell{padding:20px 16px;border-radius:20px}
@@ -1340,10 +1351,10 @@ body:has(.pw){padding:0!important}
   .pw-omni-box{flex-wrap:wrap;padding:8px 10px}
   .pw-omni-store-btn{width:100%;justify-content:center}
   .pw-omni-row{flex-wrap:wrap}
-  .pw-bs-grid,.pw-sim-steps-bar{grid-template-columns:1fr}
+  .pw-bs-grid{grid-template-columns:1fr}
   .pw-bs-actions .pw-bs-add-btn{min-height:40px}
 }
 @media(prefers-reduced-motion:reduce){
-  .pw-sim-pointer,.pw-sim-screen,.pw-bs-card,.pw-bs-media img{animation:none!important;transition:none!important}
+  .pw-sim-touch,.pw-sim-screen,.pw-bs-card,.pw-bs-media img{animation:none!important;transition:none!important}
 }
 `;
