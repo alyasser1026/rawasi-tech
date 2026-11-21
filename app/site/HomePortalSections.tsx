@@ -21,7 +21,6 @@ export default function HomePortalSections({
 }: HomePortalSectionsProps) {
   const [hoveredSlug, setHoveredSlug] = useState<SectionSlug | null>(null);
   const [scrollStageSlug, setScrollStageSlug] = useState<SectionSlug>('contracting');
-  const [hasScrolled, setHasScrolled] = useState(false);
   const runwayRef = useRef<HTMLDivElement>(null);
 
   const sections = PORTAL_SECTIONS.slice(0, 3);
@@ -35,7 +34,6 @@ export default function HomePortalSections({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const onScroll = () => {
-      setHasScrolled(window.scrollY > 90);
       const runway = runwayRef.current;
       if (!runway) return;
       const rect = runway.getBoundingClientRect();
@@ -61,21 +59,11 @@ export default function HomePortalSections({
       }
       onPointerLeave={() => setHoveredSlug(null)}
     >
-      <section id="portals" className="pw-portal-gateway" aria-labelledby="portals-heading">
+      <section id="portals" className="pw-portal-gateway" aria-label="أقسام فاي تك الرئيسية">
         <div ref={runwayRef} className="pw-diag-runway">
           <div className="pw-diag-viewport">
             <div className="pw-wrap pw-diag-top">
               <NewsTicker config={newsTicker} />
-              <div className="pw-diag-hero-bar">
-                <div className="pw-diag-hero-titles">
-                  <span className="pw-eyebrow">فاي تك للمقاولات والتوريدات</span>
-                  <h1 id="portals-heading">من الأساس، نبني مشروعك.</h1>
-                </div>
-                <div className={`pw-diag-scroll-pill ${hasScrolled ? 'is-faded' : ''}`} aria-hidden="true">
-                  <span>مرّر لبناء العمارة ثلاثية الأبعاد</span>
-                  <span>↓</span>
-                </div>
-              </div>
             </div>
 
             <div className={`pw-diag-slices ${hoveredSlug ? 'has-hover' : ''}`}>
