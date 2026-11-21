@@ -14,6 +14,7 @@ import {
   DEFAULT_PRODUCTS,
   DEFAULT_PROPERTIES,
   getProductImageUrl,
+  LEGACY_DUMMY_PRODUCT_IDS,
   PRODUCT_CATEGORIES,
   type ProductCategoryId,
   type PropertyOfferType,
@@ -224,11 +225,13 @@ export function sanitizeContent(raw: any): SiteContentOverride {
     out.products = arr<WebsiteProduct>(
       raw.products,
       (p) => {
+        const id = str(p?.id, 60);
+        if (id && LEGACY_DUMMY_PRODUCT_IDS.has(id)) return null;
         const name = str(p?.name, 160);
         if (!name) return null;
         const cat = VALID_CATS.has(String(p?.category)) ? (p.category as ProductCategoryId) : 'electrical';
         return {
-          id: str(p?.id, 60) || `prod-${Math.random().toString(36).slice(2, 8)}`,
+          id: id || `prod-${Math.random().toString(36).slice(2, 8)}`,
           code: str(p?.code, 40) || 'PHI-ITEM',
           name,
           category: cat,
@@ -427,10 +430,12 @@ export function mergeContent(o: SiteContentOverride = {}) {
     PROJECTS: o.projects ?? PROJECTS,
     COMMITMENTS: o.commitments ?? COMMITMENTS,
     FAQS: o.faqs ?? FAQS,
-    PRODUCTS: (o.products ?? DEFAULT_PRODUCTS).map((p) => ({
-      ...p,
-      imageUrl: p.imageUrl || getProductImageUrl(p),
-    })),
+    PRODUCTS: (o.products ?? DEFAULT_PRODUCTS)
+      .filter((p) => p?.id && !LEGACY_DUMMY_PRODUCT_IDS.has(p.id))
+      .map((p) => ({
+        ...p,
+        imageUrl: p.imageUrl || getProductImageUrl(p),
+      })),
     PROPERTIES: o.properties ?? DEFAULT_PROPERTIES,
     MAINTENANCE_SERVICES: o.maintenanceServices ?? DEFAULT_MAINTENANCE_SERVICES,
     PROMO_BANNER: {

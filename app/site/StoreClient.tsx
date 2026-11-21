@@ -716,13 +716,35 @@ export default function StoreClient({
     if (!bundle) return;
     const list: Array<{ product: WebsiteProduct; qty: number }> = [];
     for (const item of bundle.productIds) {
-      const found = PRODUCTS.find((p) => p.id === item.productId);
+      const found =
+        catalog.items.find((p) => p.id === item.productId) ||
+        PRODUCTS.find((p) => p.id === item.productId);
       if (found) list.push({ product: found, qty: item.qty });
     }
     if (list.length > 0) {
       cart.addBundleToCart(list, true);
-      flashAdded(bundleId);
+    } else {
+      cart.addToCart(
+        {
+          id: bundle.id,
+          code: bundle.id.toUpperCase(),
+          name: bundle.title,
+          category: 'smart_home',
+          brand: 'PhiTech Smart Home',
+          unit: 'باقة متكاملة',
+          price: bundle.price,
+          oldPrice: bundle.oldPrice || undefined,
+          currency: bundle.currency,
+          badge: bundle.badge,
+          description: bundle.subtitle,
+          specs: bundle.items,
+          inStock: true,
+        },
+        1,
+        true
+      );
     }
+    flashAdded(bundleId);
   };
 
   const activeSlide = STORE_OFFER_SLIDES[slideIdx] || STORE_OFFER_SLIDES[0];

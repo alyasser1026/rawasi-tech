@@ -1,6 +1,6 @@
 import {
-  DEFAULT_PRODUCTS,
   getProductImageUrl,
+  LEGACY_DUMMY_PRODUCT_IDS,
   PRODUCT_CATEGORIES,
   type ProductCategoryId,
   type WebsiteProduct,
@@ -326,14 +326,13 @@ export async function queryStoreCatalog(
   const state = await loadCatalogState(false);
   const mediaMap = state.mediaMap;
 
-  const LEGACY_DUMMY_IDS = new Set<string>(DEFAULT_PRODUCTS.map((p) => p.id));
   const seenIds = new Set<string>();
   const seenCodes = new Set<string>();
   const combinedRaw: WebsiteProduct[] = [];
 
   if (state.products.length > 0) {
     const customCmsProducts = Array.isArray(cmsProducts)
-      ? cmsProducts.filter((item) => item?.id && !LEGACY_DUMMY_IDS.has(item.id) && Number(item.price) > 0)
+      ? cmsProducts.filter((item) => item?.id && !LEGACY_DUMMY_PRODUCT_IDS.has(item.id) && Number(item.price) > 0)
       : [];
     for (const item of customCmsProducts) {
       if (seenIds.has(item.id)) continue;
@@ -348,9 +347,11 @@ export async function queryStoreCatalog(
       combinedRaw.push(item);
     }
   } else {
-    const fallbackList = cmsProducts && cmsProducts.length > 0 ? cmsProducts : DEFAULT_PRODUCTS;
+    const fallbackList = (Array.isArray(cmsProducts) ? cmsProducts : []).filter(
+      (item) => item?.id && !LEGACY_DUMMY_PRODUCT_IDS.has(item.id)
+    );
     for (const item of fallbackList) {
-      if (!item?.id || seenIds.has(item.id)) continue;
+      if (seenIds.has(item.id)) continue;
       seenIds.add(item.id);
       if (item.code) seenCodes.add(item.code.toLowerCase());
       combinedRaw.push(item);

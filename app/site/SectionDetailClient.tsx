@@ -236,28 +236,33 @@ export default function SectionDetailClient({
   );
 
   const handleAddConfiguredSmartPackage = () => {
-    const itemsToAdd: { product: WebsiteProduct; qty: number }[] = [];
-    const hub = PRODUCTS.find((p) => p.id === 'sm-01');
-    const smartSwitch = PRODUCTS.find((p) => p.id === 'sm-03');
-    const acIr = PRODUCTS.find((p) => p.id === 'sm-04');
-    const lock = PRODUCTS.find((p) => p.id === 'sm-02');
-    const gas = PRODUCTS.find((p) => p.id === 'sf-01');
-    const water = PRODUCTS.find((p) => p.id === 'sf-02');
-    const smoke = PRODUCTS.find((p) => p.id === 'sf-03');
-    const cam = PRODUCTS.find((p) => p.id === 'lc-01');
-    if (hub) itemsToAdd.push({ product: hub, qty: 1 });
-    if (smartSwitch) itemsToAdd.push({ product: smartSwitch, qty: Math.max(1, shRooms) });
-    if (acIr && shAcs > 0) itemsToAdd.push({ product: acIr, qty: shAcs });
-    if (lock && shIncludeLock) itemsToAdd.push({ product: lock, qty: 1 });
-    if (shIncludeSafety) {
-      if (gas) itemsToAdd.push({ product: gas, qty: 1 });
-      if (water) itemsToAdd.push({ product: water, qty: 1 });
-      if (smoke) itemsToAdd.push({ product: smoke, qty: 2 });
-    }
-    if (cam && shCamerasCount > 0) {
-      itemsToAdd.push({ product: cam, qty: Math.max(1, Math.ceil(shCamerasCount / 4)) });
-    }
-    if (itemsToAdd.length > 0) cart.addBundleToCart(itemsToAdd, true);
+    const specs: string[] = [
+      `شاشة تحكم مركزية 4 بوصة + Zigbee Hub`,
+      `${shRooms} مفاتيح لمس ذكية Wi-Fi/Zigbee`,
+    ];
+    if (shAcs > 0) specs.push(`${shAcs} وحدة تحكم ذكي بالتكييفات`);
+    if (shCamerasCount > 0) specs.push(`${shCamerasCount} كاميرات مراقبة IP 4K`);
+    if (shIncludeLock) specs.push(`قفل باب ذكي بالكاميرا والبصمة`);
+    if (shIncludeSafety) specs.push(`درع الأمان الذكي (محابس غاز ومياه + حساسات دخان)`);
+
+    cart.addToCart(
+      {
+        id: `custom-smart-${shRooms}r-${shAcs}a-${shCamerasCount}c-${shIncludeLock ? 1 : 0}${shIncludeSafety ? 1 : 0}`,
+        code: 'PHI-SMART-CUSTOM',
+        name: `باقة سمارت هوم مخصصة (${shRooms} غرف · ${shCamerasCount} كاميرا)`,
+        category: 'smart_home',
+        brand: 'PhiTech Smart Home',
+        unit: 'باقة مخصصة شاملة البرمجة',
+        price: 0,
+        currency: 'ج.م',
+        badge: 'تجهيز حسب الطلب',
+        description: specs.join(' + '),
+        specs,
+        inStock: true,
+      },
+      1,
+      true
+    );
   };
 
   // --- Info state ---

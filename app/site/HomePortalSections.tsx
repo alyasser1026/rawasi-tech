@@ -27,7 +27,6 @@ interface HomePortalSectionsProps {
   onOpenContact?: () => void;
 }
 
-const FLAGSHIP_PRIORITY_IDS = ['sm-02', 'sm-01', 'el-01', 'pt-01', 'cr-01', 'lc-01'];
 const INITIAL_BEST_SELLERS = 6;
 
 interface EngineeringToolShortcut {
@@ -110,7 +109,7 @@ export default function HomePortalSections({
   const [visibleCount, setVisibleCount] = useState<number>(INITIAL_BEST_SELLERS);
   const [installMap, setInstallMap] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
-    for (const p of DEFAULT_PRODUCTS) {
+    for (const p of products) {
       if (p.category === 'smart_home' || p.category === 'low_current' || p.category === 'safety_sensors') {
         init[p.id] = true;
       }
@@ -231,20 +230,18 @@ export default function HomePortalSections({
     return { matchedSections, matchedTools, matchedProducts, matchedServices, totalCount };
   }, [searchQuery, sections, products, maintenanceServices, categoryMap]);
 
-  // Sorted Best-Sellers list with top 6 flagship items first
+  // Sorted Best-Sellers list: Telegram-hosted product media first, then featured, then priced
   const sortedBestSellers = useMemo(() => {
-    const priorityRank = (id: string) => {
-      const idx = FLAGSHIP_PRIORITY_IDS.indexOf(id);
-      return idx !== -1 ? idx : 99;
-    };
-
     const sorted = [...products].sort((a, b) => {
-      const ra = priorityRank(a.id);
-      const rb = priorityRank(b.id);
-      if (ra !== rb) return ra - rb;
+      const ma = (a.imageUrl || '').startsWith('/api/store-media/') ? 0 : 1;
+      const mb = (b.imageUrl || '').startsWith('/api/store-media/') ? 0 : 1;
+      if (ma !== mb) return ma - mb;
       const fa = a.featured ? 0 : 1;
       const fb = b.featured ? 0 : 1;
       if (fa !== fb) return fa - fb;
+      const pa = a.price > 0 ? 0 : 1;
+      const pb = b.price > 0 ? 0 : 1;
+      if (pa !== pb) return pa - pb;
       return 0;
     });
 
