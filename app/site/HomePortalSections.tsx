@@ -2,35 +2,23 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { SMART_BUNDLES, type WebsiteProduct, type WebsiteProperty } from './store-catalog';
+import type { WebsiteProduct, WebsiteProperty } from './store-catalog';
 import { PORTAL_SECTIONS, type SectionSlug } from './section-defs';
 import NewsTicker from './NewsTicker';
 import { DEFAULT_NEWS_TICKER, type NewsTickerConfig } from './site-content';
 
 interface HomePortalSectionsProps {
-  products: WebsiteProduct[];
+  products?: WebsiteProduct[];
   properties?: WebsiteProperty[];
   newsTicker?: NewsTickerConfig;
-  whatsappNumber: string;
+  whatsappNumber?: string;
   onAddToCart?: (product: WebsiteProduct, qty: number, withInstall: boolean) => void;
-  onAddBundleToCart: (items: { product: WebsiteProduct; qty: number }[], withInstall: boolean) => void;
+  onAddBundleToCart?: (items: { product: WebsiteProduct; qty: number }[], withInstall: boolean) => void;
 }
 
 export default function HomePortalSections({
-  products,
   newsTicker = DEFAULT_NEWS_TICKER,
-  whatsappNumber,
-  onAddBundleToCart,
 }: HomePortalSectionsProps) {
-  const waDigits = (whatsappNumber || '201558888744').replace(/\D/g, '') || '201558888744';
-  const openWhatsApp = (message: string) => {
-    window.open(
-      `https://wa.me/${waDigits}?text=${encodeURIComponent(message)}`,
-      '_blank',
-      'noopener,noreferrer'
-    );
-  };
-
   // Track the visible service without taking control of page scrolling.
   const [hoveredSlug, setHoveredSlug] = useState<SectionSlug | null>(null);
   const [scrolledSlug, setScrolledSlug] = useState<SectionSlug | null>('maintenance');
@@ -156,76 +144,6 @@ export default function HomePortalSections({
               </article>
             );
           })}
-        </div>
-      </section>
-
-      {/* 2. أهم العروض والباقات الحصرية */}
-      <section className="pw-section pw-panoramic-glass-band" aria-labelledby="offers-heading" style={{ paddingBlock: '56px' }}>
-        <div className="pw-wrap">
-          <div className="pw-head pw-panoramic-band-head" style={{ marginBottom: '32px' }}>
-            <p className="pw-eyebrow">أهم العروض التوفيرية</p>
-            <h2 id="offers-heading">أبرز الباقات الذكية والعروض الحالية</h2>
-          </div>
-
-          <div className="pw-offers-grid">
-            {SMART_BUNDLES.map((bundle) => (
-              <article key={bundle.id} className="pw-offer-card">
-                <div>
-                  <span className="pw-re-hot">{bundle.badge}</span>
-                  <h3>{bundle.title}</h3>
-                  <p>{bundle.subtitle}</p>
-                  <ul className="pw-re-features">
-                    {bundle.items.slice(0, 3).map((it) => (
-                      <li key={it}>✓ {it}</li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="pw-offer-actions">
-                  <button
-                    type="button"
-                    className="pw-btn pw-btn-primary"
-                    onClick={() => {
-                      const itemsList: { product: WebsiteProduct; qty: number }[] = [];
-                      for (const ref of bundle.productIds) {
-                        const found = products.find((p) => p.id === ref.productId);
-                        if (found) itemsList.push({ product: found, qty: ref.qty });
-                      }
-                      if (itemsList.length > 0) onAddBundleToCart(itemsList, true);
-                    }}
-                  >
-                    🛒 أضف الباقة للسلة
-                  </button>
-                  <button
-                    type="button"
-                    className="pw-btn pw-btn-ghost"
-                    onClick={() => openWhatsApp(`أريد الاستفسار عن عرض (${bundle.title}).`)}
-                  >
-                    واتساب
-                  </button>
-                </div>
-              </article>
-            ))}
-
-            <article className="pw-offer-card is-highlight">
-              <div>
-                <span className="pw-re-hot">🔥 عرض التعاقد المتكامل 3×1</span>
-                <h3>خصم 7% على التعاقد الهندسي المتكامل + مخططات تنفيذية</h3>
-                <p>
-                  نفّذ الإنشاءات والتشطيبات والكهروميكانيك من جهة واحدة واحصل على خصم مباشر ومنع أي تكسير.
-                </p>
-                <ul className="pw-re-features">
-                  <li>✓ تنسيق التكييف المخفي والسباكة قبل الصب</li>
-                  <li>✓ ضمان موحّد وإشراف هندسي يومي</li>
-                  <li>✓ خصم فوري عند الجمع بين النطاقات الثلاثة</li>
-                </ul>
-              </div>
-              <div className="pw-offer-actions">
-                <Link href="/sections/contracting" className="pw-btn pw-btn-primary">
-                  🏗️ ادخل قسم المقاولات ←
-                </Link>
-              </div>
-            </article>
-          </div>
         </div>
       </section>
     </div>

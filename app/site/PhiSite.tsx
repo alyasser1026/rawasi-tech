@@ -90,7 +90,7 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
       />
 
       <main id="top">
-        {/* 1. مربعات الأقسام الستة الرئيسية + الباقات والعروض فوق المشهد المعماري ثلاثي الأبعاد */}
+        {/* 1. مربعات الأقسام الستة الرئيسية فوق المشهد المعماري ثلاثي الأبعاد */}
         <HomePortalSections
           products={PRODUCTS}
           properties={PROPERTIES}
@@ -99,16 +99,6 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
           onAddToCart={cart.addToCart}
           onAddBundleToCart={cart.addBundleToCart}
         />
-
-        <section className="pw-construction-finale" aria-labelledby="construction-finale-heading">
-          <div className="pw-wrap">
-            <p className="pw-eyebrow">فاي تك · نبني بثقة</p>
-            <h2 id="construction-finale-heading">أساس قوي. لمشروع يدوم.</h2>
-            <button type="button" className="pw-btn pw-btn-primary" onClick={handleOpenContact}>
-              خلّينا نبدأ مشروعك ←
-            </button>
-          </div>
-        </section>
       </main>
 
       <footer className="pw-footer">
