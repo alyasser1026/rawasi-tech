@@ -19,40 +19,36 @@ interface HomePortalSectionsProps {
 export default function HomePortalSections({
   newsTicker = DEFAULT_NEWS_TICKER,
 }: HomePortalSectionsProps) {
-  // Track the visible service without taking control of page scrolling.
   const [hoveredSlug, setHoveredSlug] = useState<SectionSlug | null>(null);
-  const [scrolledSlug, setScrolledSlug] = useState<SectionSlug | null>('contracting');
-  const [visibleSlugs, setVisibleSlugs] = useState<Record<string, boolean>>({ contracting: true });
-  const rowRefs = useRef<Record<string, HTMLElement | null>>({});
+  const [scrollStageSlug, setScrollStageSlug] = useState<SectionSlug>('contracting');
+  const [hasScrolled, setHasScrolled] = useState(false);
+  const runwayRef = useRef<HTMLDivElement>(null);
 
-  const activeSlug = hoveredSlug ?? scrolledSlug;
+  const sections = PORTAL_SECTIONS.slice(0, 3);
+  const activeSlug = hoveredSlug ?? scrollStageSlug;
 
   const activeHoverSection = useMemo(
-    () => (activeSlug ? PORTAL_SECTIONS.find((s) => s.slug === activeSlug) || null : null),
-    [activeSlug]
+    () => sections.find((s) => s.slug === activeSlug) || null,
+    [activeSlug, sections]
   );
 
   useEffect(() => {
-    if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const slug = entry.target.getAttribute('data-section-slug') as SectionSlug | null;
-          if (!slug) continue;
-          if (entry.isIntersecting) {
-            setScrolledSlug(slug);
-            setVisibleSlugs((prev) => (prev[slug] ? prev : { ...prev, [slug]: true }));
-          }
-        }
-      },
-      { rootMargin: '-18% 0px -22% 0px', threshold: 0.18 }
-    );
+    if (typeof window === 'undefined') return;
+    const onScroll = () => {
+      setHasScrolled(window.scrollY > 90);
+      const runway = runwayRef.current;
+      if (!runway) return;
+      const rect = runway.getBoundingClientRect();
+      const scrollable = Math.max(1, rect.height - window.innerHeight);
+      const progress = Math.max(0, Math.min(1, -rect.top / scrollable));
+      const idx = progress < 0.34 ? 0 : progress < 0.68 ? 1 : 2;
+      const targetSec = PORTAL_SECTIONS[idx];
+      if (targetSec) setScrollStageSlug(targetSec.slug);
+    };
 
-    for (const sec of PORTAL_SECTIONS) {
-      const el = rowRefs.current[sec.slug];
-      if (el) observer.observe(el);
-    }
-    return () => observer.disconnect();
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   return (
@@ -66,60 +62,42 @@ export default function HomePortalSections({
       onPointerLeave={() => setHoveredSlug(null)}
     >
       <section id="portals" className="pw-portal-gateway" aria-labelledby="portals-heading">
-        <div className="pw-wrap pw-panoramic-top-overlay">
-          <NewsTicker config={newsTicker} />
-
-          <div className="pw-panoramic-floating-hero">
-            <div className="pw-panoramic-eyebrow-row">
-              <p className="pw-eyebrow" style={{ marginBottom: 0 }}>فاي تك للمقاولات والتوريدات</p>
-            </div>
-            <h1 id="portals-heading" className="pw-portal-main-h1">
-              من الأساس، نبني مشروعك.
-            </h1>
-            <p className="pw-panoramic-sub">
-              إنشاءات وسباكة وكهرباء، بتنسيق متكامل وإشراف هندسي من الأساس للتسليم.
-            </p>
-          </div>
-          <a className="pw-construction-scroll-cue" href="#portal-station-contracting">
-            <span>اكتشف خدماتنا</span><span aria-hidden="true">↓</span>
-          </a>
-        </div>
-
-        {/* الأقسام الموحدة: تطفو مباشرة فوق المشهد الثلاثي الأبعاد بدون صور خلفية تحجب البناء */}
-        <div className={`pw-split-cols ${activeSlug ? 'has-active' : ''}`}>
-          {PORTAL_SECTIONS.map((sec, idx) => {
-            const isActive = activeSlug === sec.slug;
-            const isInView = Boolean(visibleSlugs[sec.slug]);
-            const sideClass = idx % 2 === 0 ? 'is-side-right' : 'is-side-left';
-            return (
-              <article
-                key={sec.slug}
-                id={`portal-station-${sec.slug}`}
-                data-section-slug={sec.slug}
-                ref={(el) => {
-                  rowRefs.current[sec.slug] = el;
-                }}
-                className={`pw-split-station-row ${sideClass} ${isActive ? 'is-row-active' : ''} ${isInView ? 'is-in-view' : ''}`}
-                style={{ '--col-accent': sec.accent } as React.CSSProperties}
-                onPointerEnter={(e) => {
-                  if (e.pointerType !== 'touch') setHoveredSlug(sec.slug);
-                }}
-              >
-                {/* تظليل جانبي خفيف وشفاف فقط لإبراز نص القسم مع إبقاء مشهد الـ 3D واضحاً بالكامل في الخلفية */}
-                <div className="pw-sec-photo-canvas" aria-hidden="true">
-                  <div className={`pw-sec-photo-shade ${sideClass}`} />
+        <div ref={runwayRef} className="pw-diag-runway">
+          <div className="pw-diag-viewport">
+            <div className="pw-wrap pw-diag-top">
+              <NewsTicker config={newsTicker} />
+              <div className="pw-diag-hero-bar">
+                <div className="pw-diag-hero-titles">
+                  <span className="pw-eyebrow">فاي تك للمقاولات والتوريدات</span>
+                  <h1 id="portals-heading">من الأساس، نبني مشروعك.</h1>
                 </div>
+                <div className={`pw-diag-scroll-pill ${hasScrolled ? 'is-faded' : ''}`} aria-hidden="true">
+                  <span>مرّر لبناء العمارة ثلاثية الأبعاد</span>
+                  <span>↓</span>
+                </div>
+              </div>
+            </div>
 
-                {/* النص والهنت العائم مباشرة فوق صورة القسم بدون أي حاوية أو إطار */}
-                <div className="pw-wrap pw-sec-floating-wrap">
+            <div className={`pw-diag-slices ${hoveredSlug ? 'has-hover' : ''}`}>
+              {sections.map((sec, idx) => {
+                const isHovered = hoveredSlug === sec.slug;
+                const isActive = activeSlug === sec.slug;
+                return (
                   <Link
+                    key={sec.slug}
+                    id={`portal-station-${sec.slug}`}
                     href={sec.href}
-                    className={`pw-split-col ${sideClass} ${isActive ? 'is-active' : ''}`}
+                    className={`pw-diag-slice is-slice-${idx} ${isHovered ? 'is-hovered' : ''} ${isActive ? 'is-active' : ''}`}
+                    style={{ '--col-accent': sec.accent } as React.CSSProperties}
+                    onPointerEnter={(e) => {
+                      if (e.pointerType !== 'touch') setHoveredSlug(sec.slug);
+                    }}
                     onFocus={() => setHoveredSlug(sec.slug)}
                     onBlur={() => setHoveredSlug((prev) => (prev === sec.slug ? null : prev))}
                   >
-                    <div className="pw-split-col-inner">
-                      <span className="pw-split-num">
+                    <div className="pw-diag-veil" aria-hidden="true" />
+                    <div className="pw-diag-content">
+                      <span className="pw-diag-num">
                         <span aria-hidden="true">{sec.icon}</span>
                         <span>{sec.num}</span>
                         <span>·</span>
@@ -128,22 +106,49 @@ export default function HomePortalSections({
 
                       <h2>{sec.title}</h2>
 
-                      <div className="pw-split-reveal">
-                        <p className="pw-split-hint">{sec.guideHint}</p>
-                        <p className="pw-split-inline-tags" aria-hidden="true">
+                      <div className="pw-diag-details">
+                        <p className="pw-diag-hint">{sec.guideHint}</p>
+                        <p className="pw-diag-tags" aria-hidden="true">
                           {sec.highlights.join('  ·  ')}
                         </p>
-                        <span className="pw-split-cta">
-                          <span>ادخل {sec.title}</span>
-                          <span aria-hidden="true">←</span>
-                        </span>
                       </div>
+
+                      <span className="pw-diag-cta">
+                        <span>ادخل القسم</span>
+                        <span aria-hidden="true">←</span>
+                      </span>
                     </div>
                   </Link>
-                </div>
-              </article>
-            );
-          })}
+                );
+              })}
+
+              {/* Desktop Diagonal Lines (slant top-right -> bottom-left matching clip-path polygons) */}
+              <svg
+                className="pw-diag-lines pw-diag-lines-desktop"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <line x1="70" y1="0" x2="63" y2="100" vectorEffect="non-scaling-stroke" className="pw-diag-line-glow" />
+                <line x1="37" y1="0" x2="30" y2="100" vectorEffect="non-scaling-stroke" className="pw-diag-line-glow" />
+                <line x1="70" y1="0" x2="63" y2="100" vectorEffect="non-scaling-stroke" className="pw-diag-line-core" />
+                <line x1="37" y1="0" x2="30" y2="100" vectorEffect="non-scaling-stroke" className="pw-diag-line-core" />
+              </svg>
+
+              {/* Mobile Diagonal Lines (slant dividers separating 3 stacked bands) */}
+              <svg
+                className="pw-diag-lines pw-diag-lines-mobile"
+                viewBox="0 0 100 100"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <line x1="0" y1="37" x2="100" y2="30" vectorEffect="non-scaling-stroke" className="pw-diag-line-glow" />
+                <line x1="0" y1="70" x2="100" y2="63" vectorEffect="non-scaling-stroke" className="pw-diag-line-glow" />
+                <line x1="0" y1="37" x2="100" y2="30" vectorEffect="non-scaling-stroke" className="pw-diag-line-core" />
+                <line x1="0" y1="70" x2="100" y2="63" vectorEffect="non-scaling-stroke" className="pw-diag-line-core" />
+              </svg>
+            </div>
+          </div>
         </div>
       </section>
     </div>
