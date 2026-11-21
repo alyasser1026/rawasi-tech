@@ -217,7 +217,7 @@ export function usePayrollLogic() {
 
     const totals = useMemo(() => {
         const sum = (key: string) => Number(decimalSum(...filteredRecords.map(row => row[key] || 0)));
-        return { allowances: sum('allowances'), deductions: sum('deductions'), advances: sum('advances'),
+        return { base: sum('base_rate'), allowances: sum('allowances'), deductions: sum('deductions'), advances: sum('advances'),
             absence_deductions: sum('absence_deduction'),
             extended_advances: sum('extended_advances'), previous_balances: sum('previous_balance'),
             current_net: sum('current_month_net'), net: sum('net_salary'), amount_to_pay: sum('amount_to_pay') };
@@ -241,12 +241,12 @@ export function usePayrollLogic() {
                 "الاسم": r.name || "غير محدد",
                 "التصنيف": r.type || "---",
                 "المهنة": r.job_role || "---", 
-                "الأساسي": Number(r.base_rate) || 0,
+                "الأساسي / المستحق": Number(r.base_rate) || 0,
                 "أيام العمل": Number(r.days_worked) || 0,
                 "البدلات": Number(r.allowances) || 0,
                 "خصم غياب": Number(r.absence_deduction) || 0,
                 "الغرامات": Number(r.deductions) || 0,
-                "المسحوبات": Number(r.extended_advances) || 0,
+                "المدفوع / المسحوبات": Number(r.extended_advances) || 0,
                 "رصيد سابق": Number(r.previous_balance) || 0,
                 "الصافي الإجمالي": 0, // معادلة حية
                 "المبلغ للصرف": Number(r.amount_to_pay) || 0,
@@ -261,7 +261,7 @@ export function usePayrollLogic() {
             "الاسم": "الإجمـــالي الكـــلي",
             "التصنيف": "---",
             "المهنة": "---",
-            "الأساسي": 0, "أيام العمل": "---", "البدلات": 0, "الغرامات": 0, "المسحوبات": 0, "رصيد سابق": 0, "الصافي الإجمالي": 0, "المبلغ للصرف": 0, "المتبقي": 0, "حالة الدفع": "---"
+            "الأساسي / المستحق": 0, "أيام العمل": "---", "البدلات": 0, "خصم غياب": 0, "الغرامات": 0, "المدفوع / المسحوبات": 0, "رصيد سابق": 0, "الصافي الإجمالي": 0, "المبلغ للصرف": 0, "المتبقي": 0, "حالة الدفع": "---"
         });
 
         // 4. تحويل البيانات لشيت (البيانات تبدأ من الصف الثالث A3)
@@ -270,14 +270,16 @@ export function usePayrollLogic() {
 
         // 5. دمج خلايا العنوان الرئيسي (من أول عمود لآخر عمود)
         if (!ws['!merges']) ws['!merges'] = [];
-        ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 13 } });
+        // الأعمدة: A م | B الاسم | C التصنيف | D المهنة | E الأساسي | F أيام | G البدلات | H خصم غياب
+        //          I الغرامات | J المدفوع | K رصيد سابق | L الصافي | M للصرف | N المتبقي | O الحالة
+        ws['!merges'].push({ s: { r: 0, c: 0 }, e: { r: 0, c: 14 } });
 
         // 👑 6. السحر هنا: صياغة عنوان المسير الديناميكي الاحترافي
         const dynamicTitle = `كشف مسير رواتب وأجور الكوادر والموظفين - لشهـر: ${monthNameArabic} / لسنة ${selectedYear}`;
         XLSX.utils.sheet_add_aoa(ws, [[dynamicTitle]], { origin: 'A1' });
 
         // 7. تطبيق التنسيقات والألوان ومعادلات الـ SUBTOTAL
-        const range = XLSX.utils.decode_range(ws['!ref'] || "A1:N1");
+        const range = XLSX.utils.decode_range(ws['!ref'] || "A1:O1");
         
         for (let R = range.s.r; R <= range.e.r; ++R) {
             for (let C = range.s.c; C <= range.e.c; ++C) {
@@ -312,7 +314,7 @@ export function usePayrollLogic() {
                     cellStyle.font = { name: "Arial", sz: 11, bold: true, color: { rgb: "FF0F172A" } };
                     cellStyle.fill = { fgColor: { rgb: "FFFEF08A" } }; // أصفر فخم
 
-                    if ([4, 6, 7, 8, 9, 10, 11, 12].includes(C)) {
+                    if ([4, 6, 7, 8, 9, 10, 11, 12, 13].includes(C)) {
                         const excelEndRow = range.e.r; 
                         const colLetter = String.fromCharCode(65 + C);
                         
@@ -327,14 +329,16 @@ export function usePayrollLogic() {
                         cellStyle.fill = { fgColor: { rgb: "FFF8FAFC" } }; 
                     }
 
-                    if (C === 10) { 
+                    if (C === 11) {
+                        // الصافي = الأساسي + البدلات - خصم الغياب - الغرامات - المدفوع + الرصيد السابق
                         ws[cellRef].t = 'n';
-                        ws[cellRef].f = `E${excelRow}+G${excelRow}-H${excelRow}-I${excelRow}+J${excelRow}`;
+                        ws[cellRef].f = `E${excelRow}+G${excelRow}-H${excelRow}-I${excelRow}-J${excelRow}+K${excelRow}`;
                         delete ws[cellRef].v;
-                    } 
-                    else if (C === 12) { 
+                    }
+                    else if (C === 13) {
+                        // المتبقي = الصافي - المبلغ للصرف
                         ws[cellRef].t = 'n';
-                        ws[cellRef].f = `K${excelRow}-L${excelRow}`;
+                        ws[cellRef].f = `L${excelRow}-M${excelRow}`;
                         delete ws[cellRef].v;
                     }
 
@@ -346,10 +350,13 @@ export function usePayrollLogic() {
                         cellStyle.font = { name: "Arial", sz: 11, color: { rgb: "FFDC2626" }, bold: true }; 
                     }
                     else if (C === 12) {
+                        cellStyle.font = { name: "Arial", sz: 11, color: { rgb: "FF0F172A" }, bold: true };
+                    }
+                    else if (C === 13) {
                         cellStyle.font = { name: "Arial", sz: 11, color: { rgb: "FFEA580C" }, bold: true }; 
                     }
 
-                    if (cellValue === 0 && [4, 6, 7, 8, 9, 11].includes(C)) {
+                    if (cellValue === 0 && [4, 6, 7, 8, 9, 10, 12].includes(C)) {
                         cellStyle.font = { name: "Arial", sz: 11, color: { rgb: "FFCBD5E1" }, bold: false }; 
                     }
                 }
@@ -364,9 +371,9 @@ export function usePayrollLogic() {
 
         // 9. ضبط عرض الأعمدة
         ws['!cols'] = [
-            { wch: 5 }, { wch: 25 }, { wch: 15 }, { wch: 20 }, { wch: 12 }, 
-            { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 12 }, 
-            { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }  
+            { wch: 5 }, { wch: 25 }, { wch: 15 }, { wch: 20 }, { wch: 14 },
+            { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 10 }, { wch: 16 },
+            { wch: 13 }, { wch: 15 }, { wch: 14 }, { wch: 14 }, { wch: 12 }
         ];
         
         // 10. إنشاء وتنزيل الملف باسم ديناميكي واضح يحتوي على نوع التقرير ورقم المسير

@@ -1,6 +1,5 @@
 "use client";
-import {  } from '@/lib/currency';
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { usePayrollLogic } from './payroll_logic';
 import MasterPage from '@/components/MasterPage';
 import RawasiSmartTable from '@/components/rawasismarttable';
@@ -12,6 +11,7 @@ import ReportOfficialHeader from '@/components/ReportOfficialHeader';
 import { DocSignatures, DocWords, PHI_DOC_CSS } from '@/components/PrintDocument';
 import { currencyCode, currencyName } from '@/lib/currency';
 import { printWithDocumentTitle } from '@/lib/printWithTitle';
+import PayrollWorkerDetails from './PayrollWorkerDetails';
 
 const THEME = {
   primary: '#0f172a',    
@@ -21,11 +21,21 @@ const THEME = {
   slate: '#f8fafc',
   border: '#e2e8f0',
   textMain: '#334155',
-  textMuted: '#64748b'
+  textMuted: '#64748b',
+  amber: '#b45309'
 };
+
+/** موجب = الشركة عليها للعامل (له)، سالب = العامل عليه للشركة (عليه)، صفر = خالص. */
+function BalanceTag({ value, size = 'var(--fs-xs)' }: { value: number; size?: string }) {
+  const v = Number(value || 0);
+  const label = Math.abs(v) < 0.005 ? 'خالص' : v > 0 ? 'له' : 'عليه';
+  const color = Math.abs(v) < 0.005 ? THEME.success : v > 0 ? THEME.ruby : THEME.amber;
+  return <span style={{ fontSize: size, fontWeight: 800, color }}>{label}</span>;
+}
 
 export default function PayrollPage() {
   const logic = usePayrollLogic();
+  const [detailsRow, setDetailsRow] = useState<any>(null);
 
   const sidebarActions = useMemo(() => [
     <button 
@@ -89,7 +99,10 @@ export default function PayrollPage() {
         if (!row) return null;
         return (
           <div style={{ textAlign: 'right', minWidth: '9.375rem' }}>
-            <div style={{ fontWeight: '900', color: THEME.primary }}>{row.name}</div>
+            <button type="button" onClick={() => setDetailsRow(row)} title="عرض تفصيل حركات الشهر"
+              style={{ fontWeight: '900', color: THEME.primary, background: 'none', border: 'none', padding: 0, cursor: 'pointer', textDecoration: 'underline dotted', textUnderlineOffset: '4px', font: 'inherit', fontSize: 'inherit' }}>
+              {row.name}
+            </button>
             <div style={{ fontSize: 'var(--fs-xs)', color: THEME.textMuted }}>
                <span style={{ color: row.type === 'عامل يومية' ? THEME.accent : THEME.success, fontWeight: 'bold' }}>{row.type}</span> | {row.job_role || 'بدون مسمى'}
             </div>
@@ -98,7 +111,7 @@ export default function PayrollPage() {
       }
     },
     {
-      header: 'الأساسي',
+      header: 'الأساسي / المستحق',
       accessor: 'base_rate',
       render: (row: any) => {
         if (!row) return null;
@@ -107,6 +120,7 @@ export default function PayrollPage() {
             type="number" 
             value={row.base_rate === 0 ? '' : row.base_rate} 
             disabled={row.type !== 'موظف' || row.is_posted}
+            title={row.type !== 'موظف' ? 'إجمالي اليوميات المرحّلة في الشهر' : 'الراتب الأساسي'}
             onChange={e => logic.updateRecord(row.id, 'base_rate', e.target.value)}
             style={{ width: '4.375rem', textAlign: 'center', border: `1px solid ${THEME.border}`, borderRadius: '6px', padding: '0.25rem', fontWeight: 'bold' }}
           />
@@ -187,14 +201,16 @@ export default function PayrollPage() {
       }
     },
     {
-      header: 'مسحوبات',
+      header: 'المدفوع / المسحوبات',
       accessor: 'extended_advances',
       render: (row: any) => {
         if (!row) return null;
+        const paid = Number(row.extended_advances || 0);
         return (
-          <div style={{ color: row.extended_advances > 0 ? THEME.ruby : THEME.textMuted, fontWeight: '900', background: row.extended_advances > 0 ? '#fff1f2' : 'transparent', padding: '0.25rem', borderRadius: '4px', textAlign: 'center' }}>
-            {formatCurrency(row.extended_advances)}
-          </div>
+          <button type="button" onClick={() => setDetailsRow(row)} title="سندات الصرف المحسوبة من الراتب (من غير سندات العهدة) — اضغط للتفصيل"
+            style={{ color: paid > 0 ? THEME.textMain : THEME.textMuted, fontWeight: '900', background: paid > 0 ? 'var(--surface-sunken, #f8fafc)' : 'transparent', padding: '0.25rem 0.5rem', borderRadius: '6px', textAlign: 'center', border: 'none', cursor: 'pointer', width: '100%', font: 'inherit' }}>
+            {formatCurrency(paid)}
+          </button>
         );
       }
     },
@@ -217,7 +233,7 @@ export default function PayrollPage() {
         if (!row) return null;
         return (
           <div style={{ fontWeight: '900', color: 'var(--text-primary, #1e293b)', fontSize: 'var(--fs-md)', background: 'var(--surface-sunken, #f8fafc)', boxShadow: 'var(--shadow-sunken)', padding: '0.25rem 0.5rem', borderRadius: '8px', textAlign: 'center' }}>
-            {formatCurrency(row.net_salary)}
+            {formatCurrency(Math.abs(Number(row.net_salary || 0)))} <BalanceTag value={row.net_salary} />
           </div>
         );
       }
@@ -245,9 +261,11 @@ export default function PayrollPage() {
       render: (row: any) => {
         if (!row) return null;
         const remaining = Number(row.net_salary || 0) - Number(row.amount_to_pay || 0);
+        const settled = Math.abs(remaining) < 0.005;
         return (
-          <div style={{ fontWeight: '900', color: remaining > 0 ? THEME.ruby : THEME.success, textAlign: 'center' }}>
-            {formatCurrency(remaining)}
+          <div style={{ fontWeight: '900', color: settled ? THEME.success : remaining > 0 ? THEME.ruby : THEME.amber, background: settled ? 'transparent' : remaining > 0 ? '#fff1f2' : '#fffbeb', borderRadius: '6px', padding: '0.25rem 0.375rem', textAlign: 'center', whiteSpace: 'nowrap' }}
+            title={settled ? 'الحساب خالص' : remaining > 0 ? 'لسه ليه فلوس عند الشركة' : 'عليه فلوس للشركة — اضغط على الاسم لمراجعة الحركات'}>
+            {formatCurrency(Math.abs(remaining))} <BalanceTag value={remaining} />
           </div>
         );
       }
@@ -348,12 +366,12 @@ export default function PayrollPage() {
               <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: 'var(--text-primary, #1e293b)' }}>{logic.filteredRecords.length}</div>
             </div>
             <div className="ent-summary-card" style={{ border: 'none', borderRadius: 'var(--phi-radius-card, 18px)', background: 'var(--surface-card, #ffffff)', boxShadow: 'var(--shadow-ambient)' }}>
-              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #64748b)', fontWeight: 'bold' }}>إجمالي الاستحقاقات (الأساسي)</div>
-              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: 'var(--text-primary, #1e293b)' }}>{formatCurrency(logic.totals.current_net + logic.totals.deductions + logic.totals.extended_advances)}</div>
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #64748b)', fontWeight: 'bold' }}>إجمالي الاستحقاقات (الأساسي + البدلات)</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: 'var(--text-primary, #1e293b)' }}>{formatCurrency(logic.totals.base + logic.totals.allowances)}</div>
             </div>
             <div className="ent-summary-card" style={{ border: 'none', borderRadius: 'var(--phi-radius-card, 18px)', background: 'var(--surface-card, #ffffff)', boxShadow: 'var(--shadow-ambient)' }}>
-              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #64748b)', fontWeight: 'bold' }}>إجمالي الخصم والمسحوبات</div>
-              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: 'var(--status-negative, #ef4444)' }}>{formatCurrency(logic.totals.deductions + logic.totals.extended_advances)}</div>
+              <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary, #64748b)', fontWeight: 'bold' }}>إجمالي الخصومات والمدفوع</div>
+              <div style={{ fontSize: 'var(--fs-2xl)', fontWeight: '900', color: 'var(--status-negative, #ef4444)' }}>{formatCurrency(logic.totals.absence_deductions + logic.totals.deductions + logic.totals.extended_advances)}</div>
             </div>
             <div className="ent-summary-card ent-payroll-total" style={{ border: 'none', borderRadius: 'var(--phi-radius-card, 18px)', background: 'var(--surface-card, #ffffff)', boxShadow: 'var(--shadow-ambient)' }}>
               <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--accent-ink, #c2410c)', fontWeight: 'bold' }}>إجمالي المراد صرفه فعلياً</div>
@@ -398,11 +416,11 @@ export default function PayrollPage() {
                <tr>
                   <th style={{width: '1.875rem'}}>م</th>
                   <th style={{width: '20%'}}>اسم الموظف / العامل</th>
-                  <th>الأساسي</th>
+                  <th>الأساسي / المستحق</th>
                   <th>البدلات</th>
                   <th>خصم غياب</th>
                   <th>غرامات</th>
-                  <th>مسحوبات</th>
+                  <th>المدفوع / المسحوبات</th>
                   <th>رصيد سابق</th>
                   <th>الصافي النهائي</th>
                   <th style={{color: THEME.accent}}>المبلغ للصرف</th>
@@ -421,16 +439,17 @@ export default function PayrollPage() {
                      <td style={{fontWeight: 700}}>{formatCurrency(r.deductions)}</td>
                      <td style={{fontWeight: 700, color: r.extended_advances > 0 ? THEME.ruby : 'inherit'}}>{formatCurrency(r.extended_advances)}</td>
                      <td style={{fontWeight: 700}}>{formatCurrency(r.previous_balance)}</td>
-                     <td style={{fontWeight: 900}}>{formatCurrency(r.net_salary)}</td>
+                     <td style={{fontWeight: 900}}>{formatCurrency(Math.abs(Number(r.net_salary || 0)))} <BalanceTag value={r.net_salary} size="8px" /></td>
                      <td style={{fontWeight: 900, fontSize: 'var(--fs-sm)', color: THEME.success}}>{formatCurrency(r.amount_to_pay || 0)}</td>
-                     <td style={{fontWeight: 900, fontSize: 'var(--fs-sm)', color: THEME.ruby}}>{formatCurrency(Number(r.net_salary || 0) - Number(r.amount_to_pay || 0))}</td>
+                     <td style={{fontWeight: 900, fontSize: 'var(--fs-sm)'}}>{formatCurrency(Math.abs(Number(r.net_salary || 0) - Number(r.amount_to_pay || 0)))} <BalanceTag value={Number(r.net_salary || 0) - Number(r.amount_to_pay || 0)} size="8px" /></td>
                      <td></td>
                   </tr>
                ))}
                <tr style={{ background: THEME.primary, color: 'white', fontWeight: 900, fontSize: 'var(--fs-sm)' }}>
                    <td colSpan={2} style={{ textAlign: 'left', paddingLeft: '1.25rem' }}>الإجمـــــالي الكــــلي:</td>
-                   <td>{formatCurrency(logic.totals.current_net + logic.totals.deductions + logic.totals.extended_advances - logic.totals.allowances)}</td>
+                   <td>{formatCurrency(logic.totals.base)}</td>
                    <td>{formatCurrency(logic.totals.allowances)}</td>
+                   <td>{formatCurrency(logic.totals.absence_deductions)}</td>
                    <td>{formatCurrency(logic.totals.deductions)}</td>
                    <td>{formatCurrency(logic.totals.extended_advances)}</td>
                    <td>{formatCurrency(logic.totals.previous_balances)}</td>
@@ -450,6 +469,14 @@ export default function PayrollPage() {
             { title: 'اعتمده', en: 'Finance Manager' },
          ]} />
       </div>
+
+      <PayrollWorkerDetails
+        record={detailsRow}
+        month={logic.selectedMonth}
+        year={logic.selectedYear}
+        cutoffDate={logic.cutoffDate}
+        onClose={() => setDetailsRow(null)}
+      />
     </MasterPage>
   );
 }
