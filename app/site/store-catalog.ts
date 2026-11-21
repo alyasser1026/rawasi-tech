@@ -113,7 +113,7 @@ export const PRODUCT_CATEGORIES: ProductCategoryMeta[] = [
   {
     id: 'plumbing',
     title: 'أدوات وتأسيسات السباكة والأطقم الصحية',
-    shortTitle: 'سباكةوصحي',
+    shortTitle: 'سباكة وصحي',
     icon: '🚰',
     description: 'مواسير تغذية حرارية وصرف صامت، خلاطات وصناديق طرد مدفونة، أطقم صحية معلقة، ومضخات مياه.',
     accent: '#0284c7',
