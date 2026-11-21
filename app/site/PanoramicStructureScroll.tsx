@@ -63,7 +63,7 @@ export default function PanoramicStructureScroll() {
       renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.25 : 1.6));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 1.18;
+      renderer.toneMappingExposure = 1.04;
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFShadowMap;
       renderer.setClearColor(0x000000, 0);
@@ -81,8 +81,8 @@ export default function PanoramicStructureScroll() {
       room.dispose();
       pmrem.dispose();
       cleanups.push(() => environment.dispose());
-      const atmosphere = new THREE.Fog(0x16202a, 46, 152);
-      scene.background = new THREE.Color(0x16202a);
+      const atmosphere = new THREE.Fog(0xefeae1, 52, 165);
+      scene.background = null;
       scene.fog = atmosphere;
       const texture = await new THREE.TextureLoader().loadAsync('/sections/concrete-surface.webp');
       if (disposed) { texture.dispose(); return; }
@@ -99,9 +99,9 @@ export default function PanoramicStructureScroll() {
       const architecture = createArchitecturalBuilding(THREE, texture);
       cleanups.push(() => services.dispose(), () => construction.dispose(), () => architecture.dispose());
       scene.add(services.group, construction.group, architecture.group);
-      scene.add(new THREE.HemisphereLight(0xcbe0f2, 0x4c473f, 1.05));
+      scene.add(new THREE.HemisphereLight(0xf4f8fc, 0xc7bdb0, 1.25));
 
-      const sun = new THREE.DirectionalLight(0xffe9cf, 4.1);
+      const sun = new THREE.DirectionalLight(0xfff1dc, 3.1);
       sun.position.set(-18, 31, 23);
       sun.castShadow = true;
       const shadowSize = window.innerWidth < 700 ? 1024 : 2048;
@@ -111,10 +111,10 @@ export default function PanoramicStructureScroll() {
       sun.shadow.normalBias = 0.035;
       cleanups.push(() => sun.shadow.dispose());
       scene.add(sun);
-      const fill = new THREE.DirectionalLight(0xd9e6f2, 0.65);
+      const fill = new THREE.DirectionalLight(0xdce8f4, 0.72);
       fill.position.set(18, 13, -12);
       scene.add(fill);
-      const rim = new THREE.DirectionalLight(0xffb574, 0.62);
+      const rim = new THREE.DirectionalLight(0xffbe80, 0.52);
       rim.position.set(-14, 9, -18);
       scene.add(rim);
 
@@ -122,7 +122,7 @@ export default function PanoramicStructureScroll() {
       groundTexture.repeat.set(24, 24);
       cleanups.push(() => groundTexture.dispose());
       const groundGeometry = new THREE.PlaneGeometry(600, 600);
-      const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x3a4046, map: groundTexture });
+      const groundMaterial = new THREE.MeshLambertMaterial({ color: 0xd6cfc3, map: groundTexture });
       const ground = new THREE.Mesh(groundGeometry, groundMaterial);
       ground.rotation.x = -Math.PI / 2;
       ground.position.y = -0.43;
