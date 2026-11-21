@@ -330,14 +330,13 @@ export default function HomePortalSections({
                     <div className="pw-omni-empty">
                       <p>لم نعثر على نتيجة مطابقة لـ «{searchQuery}».</p>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
-                        <Link href="/store" className="pw-btn pw-btn-primary" style={{ minHeight: '36px', padding: '0 14px', fontSize: '0.8rem' }}>
+                        <Link href="/store" className="pw-btn pw-btn-primary pw-btn-sm">
                           تصفح كل المنتجات ({products.length})
                         </Link>
                         {onOpenContact && (
                           <button
                             type="button"
-                            className="pw-btn pw-btn-ghost"
-                            style={{ minHeight: '36px', padding: '0 14px', fontSize: '0.8rem' }}
+                            className="pw-btn pw-btn-ghost pw-btn-sm"
                             onClick={() => {
                               setSearchOpen(false);
                               onOpenContact();
@@ -683,7 +682,7 @@ export default function HomePortalSections({
             {remainingCount > 0 && (
               <button
                 type="button"
-                className="pw-btn pw-btn-primary pw-bs-more-btn"
+                className="pw-btn pw-btn-primary pw-btn-lg pw-bs-more-btn"
                 onClick={() => setVisibleCount((c) => c + INITIAL_BEST_SELLERS)}
               >
                 عرض المزيد (+{Math.min(INITIAL_BEST_SELLERS, remainingCount)} منتج)
@@ -693,14 +692,14 @@ export default function HomePortalSections({
             {visibleCount > INITIAL_BEST_SELLERS && (
               <button
                 type="button"
-                className="pw-btn pw-btn-ghost"
+                className="pw-btn pw-btn-ghost pw-btn-lg"
                 onClick={() => setVisibleCount(INITIAL_BEST_SELLERS)}
               >
                 إظهار أهم {INITIAL_BEST_SELLERS} فقط
               </button>
             )}
 
-            <Link href="/store" className="pw-btn pw-btn-ghost">
+            <Link href="/store" className="pw-btn pw-btn-ghost pw-btn-lg">
               تصفح المتجر بالكامل ({products.length} منتج) ←
             </Link>
           </div>

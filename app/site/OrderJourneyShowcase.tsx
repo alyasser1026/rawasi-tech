@@ -680,14 +680,14 @@ export default function OrderJourneyShowcase({
 
         {/* Bottom Actions */}
         <div className="pw-sim-foot-actions">
-          <Link href="/sections/materials" className="pw-btn pw-btn-primary">
+          <Link href="/sections/materials" className="pw-btn pw-btn-primary pw-btn-lg">
             ادخل قسم المبيعات والسمارت هوم ←
           </Link>
-          <Link href="/store" className="pw-btn pw-btn-ghost">
+          <Link href="/store" className="pw-btn pw-btn-ghost pw-btn-lg">
             تصفح المتجر الكامل
           </Link>
           {onOpenContact && (
-            <button type="button" className="pw-btn pw-btn-ghost" onClick={onOpenContact}>
+            <button type="button" className="pw-btn pw-btn-ghost pw-btn-lg" onClick={onOpenContact}>
               تواصل مع مهندس المبيعات
             </button>
           )}

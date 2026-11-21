@@ -132,19 +132,19 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 18px;
+          padding: 16px;
           overflow-y: auto;
         }
 
         .phi-contact-card {
           position: relative;
           width: 100%;
-          max-width: 600px;
+          max-width: 560px;
           background: #ffffff;
           color: #14181b;
           border: 1px solid #e3e6e9;
-          border-radius: 24px;
-          padding: 24px 26px 22px;
+          border-radius: 16px;
+          padding: 24px;
           box-shadow: 0 32px 72px -18px rgba(10, 15, 20, 0.48);
           overflow: hidden;
           animation: phiContactPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -203,9 +203,9 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
         }
 
         .phi-contact-close {
-          width: 36px;
-          height: 36px;
-          border-radius: 11px;
+          width: 40px;
+          height: 40px;
+          border-radius: 10px;
           border: 1px solid #e3e6e9;
           background: #f8fafc;
           color: #47525c;
@@ -230,7 +230,7 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
         }
 
         .phi-contact-head h2 {
-          margin: 0 0 6px;
+          margin: 0 0 8px;
           font-size: 1.38rem;
           font-weight: 900;
           color: #14181b;
@@ -243,7 +243,7 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
         }
 
         .phi-contact-head p {
-          margin: 0 0 14px;
+          margin: 0 0 16px;
           font-size: 0.86rem;
           color: #5b6670;
           line-height: 1.65;
@@ -253,21 +253,21 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
           display: flex;
           flex-wrap: wrap;
           gap: 8px;
-          margin-bottom: 14px;
+          margin-bottom: 16px;
         }
 
         .phi-contact-qbtn {
           flex: 1 1 150px;
-          min-height: 42px;
-          padding: 8px 12px;
-          border-radius: 12px;
-          font-size: 0.82rem;
+          min-height: 44px;
+          padding: 10px 16px;
+          border-radius: 10px;
+          font-size: 0.85rem;
           font-weight: 800;
           text-decoration: none;
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          gap: 7px;
+          gap: 8px;
           transition: transform 0.15s ease, filter 0.15s ease;
           border: 1px solid transparent;
         }
@@ -300,9 +300,9 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
           flex-wrap: wrap;
           align-items: center;
           justify-content: space-between;
-          gap: 8px 14px;
-          padding: 10px 14px;
-          border-radius: 14px;
+          gap: 8px 16px;
+          padding: 12px 16px;
+          border-radius: 12px;
           background: #f8fafc;
           border: 1px solid #e3e6e9;
           margin-bottom: 16px;
@@ -313,11 +313,11 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
         .phi-contact-offices {
           display: flex;
           flex-wrap: wrap;
-          gap: 6px;
+          gap: 8px;
         }
 
         .phi-contact-offices span {
-          padding: 2px 9px;
+          padding: 4px 10px;
           border-radius: 999px;
           background: #ffffff;
           border: 1px solid #e3e6e9;
@@ -335,13 +335,13 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
         .phi-contact-grid2 {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          gap: 12px;
         }
 
         .phi-contact-field {
           display: flex;
           flex-direction: column;
-          gap: 5px;
+          gap: 6px;
         }
 
         .phi-contact-field span {
@@ -354,11 +354,12 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
         .phi-contact-field select,
         .phi-contact-field textarea {
           width: 100%;
+          min-height: 44px;
           border: 1.5px solid #e3e6e9;
           background: #f8fafc;
           color: #14181b;
-          border-radius: 12px;
-          padding: 10px 12px;
+          border-radius: 10px;
+          padding: 10px 16px;
           font: inherit;
           font-size: 0.9rem;
           font-weight: 600;
@@ -367,7 +368,7 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
         }
 
         .phi-contact-field textarea {
-          min-height: 78px;
+          min-height: 80px;
           resize: vertical;
         }
 
@@ -379,13 +380,14 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
         }
 
         .phi-contact-submit {
-          min-height: 46px;
-          border-radius: 12px;
+          min-height: 48px;
+          padding: 12px 24px;
+          border-radius: 10px;
           border: none;
           background: linear-gradient(135deg, #c75517 0%, #f97316 100%);
           color: #ffffff;
           font: inherit;
-          font-size: 0.95rem;
+          font-size: 1rem;
           font-weight: 900;
           cursor: pointer;
           box-shadow: 0 12px 24px -12px rgba(199, 85, 23, 0.8);
@@ -405,10 +407,10 @@ export default function ContactModal({ isOpen, onClose, site }: ContactModalProp
           line-height: 1.55;
         }
 
-        @media (max-width: 560px) {
+        @media (max-width: 639px) {
           .phi-contact-card {
-            padding: 20px 16px 18px;
-            border-radius: 20px;
+            padding: 16px;
+            border-radius: 16px;
           }
           .phi-contact-grid2 {
             grid-template-columns: 1fr;

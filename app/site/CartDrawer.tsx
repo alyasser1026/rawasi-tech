@@ -401,8 +401,8 @@ export function CartButton({
         alignItems: 'center',
         gap: '8px',
         height: '40px',
-        padding: '0 13px',
-        borderRadius: '11px',
+        padding: '0 16px',
+        borderRadius: '10px',
         border: hasItems
           ? '1px solid rgba(249, 115, 22, 0.85)'
           : '1px solid rgba(255, 255, 255, 0.22)',
@@ -413,7 +413,7 @@ export function CartButton({
         WebkitBackdropFilter: 'blur(10px)',
         color: '#ffffff',
         fontWeight: 800,
-        fontSize: '0.84rem',
+        fontSize: '0.875rem',
         cursor: 'pointer',
         boxShadow: hasItems
           ? '0 8px 20px -6px rgba(249, 115, 22, 0.65)'
@@ -584,8 +584,9 @@ export function CartDrawer({
         .phi-cart-panel { animation: phiCartSlide 0.24s cubic-bezier(0.16, 1, 0.3, 1); }
         .phi-cart-input {
           width: 100%;
-          padding: 10px 12px;
-          border-radius: 11px;
+          min-height: 44px;
+          padding: 10px 16px;
+          border-radius: 10px;
           border: 1.5px solid #e2e8f0;
           background: #ffffff;
           font-size: 15px;
@@ -602,7 +603,7 @@ export function CartDrawer({
       <aside
         className="phi-cart-panel"
         style={{
-          width: 'min(100vw, 470px)',
+          width: 'min(100vw, 480px)',
           height: '100%',
           background: '#f8fafc',
           color: '#14181b',
@@ -616,7 +617,7 @@ export function CartDrawer({
         {/* Header */}
         <div
           style={{
-            padding: '18px 20px 14px',
+            padding: '16px 24px',
             background: 'linear-gradient(135deg, #0b1018 0%, #172030 100%)',
             color: '#ffffff',
             borderBottom: '2px solid #ea580c',
@@ -626,8 +627,8 @@ export function CartDrawer({
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div
                 style={{
-                  width: '42px',
-                  height: '42px',
+                  width: '44px',
+                  height: '44px',
                   borderRadius: '12px',
                   background: 'rgba(249, 115, 22, 0.18)',
                   border: '1px solid rgba(249, 115, 22, 0.45)',
@@ -657,8 +658,8 @@ export function CartDrawer({
               onClick={onClose}
               aria-label="إغلاق السلة"
               style={{
-                width: '36px',
-                height: '36px',
+                width: '40px',
+                height: '40px',
                 borderRadius: '10px',
                 background: 'rgba(255,255,255,0.08)',
                 border: '1px solid rgba(255,255,255,0.18)',
@@ -1108,11 +1109,11 @@ export function CartDrawer({
                 style={{
                   background: '#fff3ea',
                   border: '1px solid #fed7aa',
-                  borderRadius: '14px',
-                  padding: '14px 16px',
+                  borderRadius: '16px',
+                  padding: '16px',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '10px',
+                  gap: '12px',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', flexWrap: 'wrap' }}>
@@ -1130,13 +1131,14 @@ export function CartDrawer({
                   disabled={submitting}
                   style={{
                     width: '100%',
-                    padding: '13px 18px',
-                    borderRadius: '12px',
+                    minHeight: '48px',
+                    padding: '12px 24px',
+                    borderRadius: '10px',
                     border: 'none',
                     background: 'linear-gradient(135deg, #f97316, #c75517)',
                     color: '#ffffff',
                     fontWeight: 900,
-                    fontSize: '0.96rem',
+                    fontSize: '1rem',
                     cursor: submitting ? 'wait' : 'pointer',
                     boxShadow: '0 8px 20px -6px rgba(249, 115, 22, 0.55)',
                   }}

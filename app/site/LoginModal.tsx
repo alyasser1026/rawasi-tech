@@ -273,11 +273,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         .phi-auth-card {
           position: relative;
           width: 100%;
-          max-width: 28rem;
+          max-width: 400px;
           background: linear-gradient(180deg, #fffaf5 0%, #ffffff 36%, #ffffff 100%);
           border: 1.5px solid #e3e6e9;
-          border-radius: 24px;
-          padding: 24px 26px 22px;
+          border-radius: 16px;
+          padding: 24px;
           box-shadow: 0 32px 72px -24px rgba(15, 20, 25, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
           color: #14181b;
           overflow: hidden;
@@ -335,8 +335,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
 
         .phi-auth-close {
-          width: 34px;
-          height: 34px;
+          width: 40px;
+          height: 40px;
           border-radius: 10px;
           border: 1px solid #e3e6e9;
           background: #ffffff;
@@ -398,7 +398,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           gap: 4px;
           background: #f6f5f3;
           border: 1px solid #e3e6e9;
-          border-radius: 12px;
+          border-radius: 10px;
           padding: 4px;
           margin-bottom: 16px;
         }
@@ -410,8 +410,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           font-family: inherit;
           font-size: 0.84rem;
           font-weight: 800;
-          padding: 8px 10px;
-          border-radius: 9px;
+          min-height: 36px;
+          padding: 6px 12px;
+          border-radius: 8px;
           cursor: pointer;
           transition: all 0.16s ease;
         }
@@ -430,15 +431,16 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         .phi-auth-grid2 {
           display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 12px;
         }
 
         .phi-auth-field {
           display: flex;
           flex-direction: column;
-          gap: 5px;
+          gap: 6px;
           width: 100%;
+          min-width: 0;
         }
 
         .phi-auth-field > span {
@@ -455,9 +457,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         .phi-auth-input {
           width: 100%;
-          height: 45px;
-          padding: 0 13px;
-          border-radius: 12px;
+          height: 44px;
+          padding: 0 16px;
+          border-radius: 10px;
           border: 1.5px solid #e2e8f0;
           background: #f8fafc;
           color: #14181b;
@@ -474,7 +476,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         }
 
         .phi-auth-input.is-password {
-          padding-inline-end: 42px;
+          padding-inline-end: 44px;
         }
 
         .phi-auth-input::placeholder {
@@ -500,8 +502,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         .phi-auth-eye {
           position: absolute;
           inset-inline-end: 8px;
-          width: 30px;
-          height: 30px;
+          width: 32px;
+          height: 32px;
           border-radius: 8px;
           border: 0;
           background: transparent;
@@ -519,14 +521,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         .phi-auth-submit {
           width: 100%;
-          height: 46px;
+          height: 48px;
+          padding: 0 24px;
           margin-top: 4px;
           border: 0;
-          border-radius: 12px;
+          border-radius: 10px;
           background: linear-gradient(135deg, #c75517 0%, #ea580c 100%);
           color: #ffffff;
           font-family: inherit;
-          font-size: 0.94rem;
+          font-size: 1rem;
           font-weight: 900;
           cursor: pointer;
           box-shadow: 0 12px 24px -12px rgba(199, 85, 23, 0.8);
@@ -565,14 +568,15 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         .phi-auth-dismiss {
           width: 100%;
-          height: 40px;
-          margin-top: 10px;
-          border-radius: 11px;
+          height: 44px;
+          padding: 0 16px;
+          margin-top: 12px;
+          border-radius: 10px;
           border: 1px solid #e3e6e9;
           background: #f8fafc;
           color: #47525c;
           font-family: inherit;
-          font-size: 0.82rem;
+          font-size: 0.84rem;
           font-weight: 800;
           display: flex;
           align-items: center;
@@ -588,10 +592,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           color: #14181b;
         }
 
-        @media (max-width: 540px) {
+        @media (max-width: 639px) {
           .phi-auth-card {
-            padding: 20px 18px 18px;
-            border-radius: 20px;
+            padding: 16px;
+            border-radius: 16px;
             max-height: calc(100dvh - 24px);
             overflow-y: auto;
           }

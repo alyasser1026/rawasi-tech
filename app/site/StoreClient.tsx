@@ -203,19 +203,20 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           display: flex;
           gap: 8px;
           flex-wrap: wrap;
-          margin: 22px 0;
+          margin: 24px 0;
         }
         .st-cat-btn {
           display: inline-flex;
           align-items: center;
-          gap: 7px;
-          padding: 10px 16px;
-          border-radius: 14px;
+          gap: 8px;
+          min-height: 40px;
+          padding: 8px 16px;
+          border-radius: var(--r-btn);
           border: 1.5px solid #e3e6e9;
           background: #ffffff;
           color: #14181b;
           font-weight: 800;
-          font-size: 0.86rem;
+          font-size: 0.875rem;
           cursor: pointer;
           transition: all 0.18s ease;
           white-space: nowrap;
@@ -234,18 +235,18 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
         .st-bundles-grid {
           display: grid;
           grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 20px;
-          margin-bottom: 36px;
+          gap: 24px;
+          margin-bottom: 32px;
         }
         .st-products-grid {
           display: grid;
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 22px;
+          gap: 24px;
         }
         .st-prod-card {
           background: #ffffff;
           border: 1px solid #e3e6e9;
-          border-radius: 20px;
+          border-radius: var(--r-card);
           overflow: hidden;
           display: flex;
           flex-direction: column;
@@ -257,22 +258,23 @@ export default function StoreClient({ content }: { content?: SiteContentOverride
           border-color: rgba(234, 88, 12, 0.45);
           box-shadow: 0 20px 40px -24px rgba(20, 28, 34, 0.22);
         }
-        @media (max-width: 980px) {
-          .st-bundles-grid { grid-template-columns: 1fr; }
-          .st-products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        @media (max-width: 1023px) {
+          .st-bundles-grid { grid-template-columns: 1fr; gap: 20px; }
+          .st-products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
         }
-        @media (max-width: 680px) {
+        @media (max-width: 639px) {
           .st-cats-bar {
             flex-wrap: nowrap;
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: none;
             padding-bottom: 4px;
-            margin: 14px 0;
+            margin: 16px 0;
           }
           .st-cats-bar::-webkit-scrollbar { display: none; }
-          .st-cat-btn { flex: 0 0 auto; padding: 8px 13px; font-size: 0.8rem; }
-          .st-products-grid { grid-template-columns: 1fr; gap: 14px; }
+          .st-cat-btn { flex: 0 0 auto; min-height: 44px; padding: 8px 16px; font-size: 0.8125rem; }
+          .st-bundles-grid { gap: 16px; margin-bottom: 24px; }
+          .st-products-grid { grid-template-columns: 1fr; gap: 16px; }
         }
       `}</style>
 
