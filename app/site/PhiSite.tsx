@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { mergeContent, type SiteContentOverride } from './site-content';
+import type { WebsiteProduct } from './store-catalog';
 import { CSS } from './site-styles';
 import LogoMotionIntro from '@/components/LogoMotionIntro';
 import LoginModal from './LoginModal';
@@ -14,7 +15,17 @@ import PanoramicStructureScroll from './PanoramicStructureScroll';
 import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import ContactModal from './ContactModal';
 
-export default function PhiSite({ content, initialLoginOpen = false }: { content?: SiteContentOverride; initialLoginOpen?: boolean }) {
+export default function PhiSite({
+  content,
+  initialLoginOpen = false,
+  catalogProducts,
+  catalogTotalCount,
+}: {
+  content?: SiteContentOverride;
+  initialLoginOpen?: boolean;
+  catalogProducts?: WebsiteProduct[];
+  catalogTotalCount?: number;
+}) {
   const { SITE, PRODUCTS, MAINTENANCE_SERVICES, NEWS_TICKER } = mergeContent(content);
   const router = useRouter();
   const [loginOpen, setLoginOpen] = useState(initialLoginOpen);
@@ -92,7 +103,8 @@ export default function PhiSite({ content, initialLoginOpen = false }: { content
       <main id="top">
         {/* الترحيب + البحث الشامل + محاكاة الطلبات + الأقسام الثلاثة بالخط المائل + الأكثر مبيعاً */}
         <HomePortalSections
-          products={PRODUCTS}
+          products={catalogProducts && catalogProducts.length > 0 ? catalogProducts : PRODUCTS}
+          totalCatalogCount={catalogTotalCount}
           maintenanceServices={MAINTENANCE_SERVICES}
           newsTicker={NEWS_TICKER}
           whatsappNumber={c.whatsapp}

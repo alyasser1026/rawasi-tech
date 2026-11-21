@@ -17,6 +17,7 @@ import type { NewsTickerConfig } from './site-content';
 
 interface HomePortalSectionsProps {
   products?: WebsiteProduct[];
+  totalCatalogCount?: number;
   maintenanceServices?: WebsiteMaintenanceService[];
   newsTicker?: NewsTickerConfig;
   whatsappNumber?: string;
@@ -85,12 +86,15 @@ const BESTSELLER_FILTER_CHIPS: { id: 'all' | ProductCategoryId; label: string }[
 
 export default function HomePortalSections({
   products = DEFAULT_PRODUCTS,
+  totalCatalogCount,
   maintenanceServices = DEFAULT_MAINTENANCE_SERVICES,
   whatsappNumber = '',
   onAddToCart,
   onOpenCart,
   onOpenContact,
 }: HomePortalSectionsProps) {
+  const displayCatalogTotal =
+    totalCatalogCount && totalCatalogCount > products.length ? totalCatalogCount : products.length;
   // Stage 1: Omni-Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
@@ -331,7 +335,7 @@ export default function HomePortalSections({
                       <p>لم نعثر على نتيجة مطابقة لـ «{searchQuery}».</p>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
                         <Link href="/store" className="pw-btn pw-btn-primary pw-btn-sm">
-                          تصفح كل المنتجات ({products.length})
+                          تصفح كل المنتجات ({displayCatalogTotal.toLocaleString('en-US')})
                         </Link>
                         {onOpenContact && (
                           <button
@@ -376,7 +380,7 @@ export default function HomePortalSections({
                                       {isAdded ? 'تمت الإضافة ✓' : 'أضف للسلة'}
                                     </button>
                                   )}
-                                  <Link href={`/store?cat=${p.category}`} className="pw-omni-go-link" onClick={() => setSearchOpen(false)}>
+                                  <Link href={`/store?category=${p.category}`} className="pw-omni-go-link" onClick={() => setSearchOpen(false)}>
                                     عرض ←
                                   </Link>
                                 </div>
@@ -700,7 +704,7 @@ export default function HomePortalSections({
             )}
 
             <Link href="/store" className="pw-btn pw-btn-ghost pw-btn-lg">
-              تصفح المتجر بالكامل ({products.length} منتج) ←
+              تصفح المتجر بالكامل ({displayCatalogTotal.toLocaleString('en-US')} منتج) ←
             </Link>
           </div>
         </div>

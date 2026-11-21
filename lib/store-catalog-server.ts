@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import {
   DEFAULT_PRODUCTS,
   getProductImageUrl,
@@ -86,34 +85,43 @@ export function normalizeArabicSearch(text: string): string {
     .trim();
 }
 
-function getServiceSupabase() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const key =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    process.env.SUPABASE_SECRET_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
 async function downloadJsonObject<T>(
-  sb: ReturnType<typeof getServiceSupabase>,
+  sbUrl: string,
+  serviceKey: string | undefined,
   objectPath: string
 ): Promise<T | null> {
-  if (!sb) return null;
+  const base = sbUrl.replace(/\/+$/, '');
+  const cleanPath = objectPath.replace(/^\/+/, '');
+  const publicUrl = `${base}/storage/v1/object/public/${BUCKET_NAME}/${cleanPath}`;
+  const authedUrl = `${base}/storage/v1/object/${BUCKET_NAME}/${cleanPath}`;
+
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const { data, error } = await sb.storage.from(BUCKET_NAME).download(objectPath);
-      if (!error && data) {
-        const text = await data.text();
-        if (text) {
-          return JSON.parse(text) as T;
-        }
+      const pubRes = await fetch(publicUrl, { cache: 'no-store' });
+      if (pubRes.ok) {
+        return (await pubRes.json()) as T;
       }
     } catch {
-      // Retry once after brief backoff
+      // Fall through to service-role endpoint or retry
     }
+
+    if (serviceKey) {
+      try {
+        const authRes = await fetch(authedUrl, {
+          headers: {
+            apikey: serviceKey,
+            Authorization: `Bearer ${serviceKey}`,
+          },
+          cache: 'no-store',
+        });
+        if (authRes.ok) {
+          return (await authRes.json()) as T;
+        }
+      } catch {
+        // Retry once after brief backoff
+      }
+    }
+
     if (attempt === 0) {
       await new Promise((r) => setTimeout(r, 250));
     }
@@ -183,8 +191,10 @@ async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState
     return g.__phiStoreCatalogInFlight;
   }
 
-  const sb = getServiceSupabase();
-  if (!sb) {
+  const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').trim();
+  const serviceKey =
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '').trim() || undefined;
+  if (!sbUrl) {
     return (
       existing || {
         loadedAt: 0,
@@ -199,8 +209,8 @@ async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState
   const runFetch = async (): Promise<CatalogCacheState> => {
     const refreshTs = Date.now();
     const [rawMeta, rawMediaMap] = await Promise.all([
-      downloadJsonObject<StoreCatalogMeta>(sb, 'catalog/meta.json'),
-      downloadJsonObject<Record<string, StoreMediaEntry>>(sb, 'catalog/media-map.json'),
+      downloadJsonObject<StoreCatalogMeta>(sbUrl, serviceKey, 'catalog/meta.json'),
+      downloadJsonObject<Record<string, StoreMediaEntry>>(sbUrl, serviceKey, 'catalog/media-map.json'),
     ]);
 
     const needIndexReload =
@@ -214,7 +224,7 @@ async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState
     let nextIndexLoadedAt = existing?.indexLoadedAt ?? 0;
 
     if (needIndexReload) {
-      const rawIndex = await downloadJsonObject<any[]>(sb, 'catalog/index.json');
+      const rawIndex = await downloadJsonObject<any[]>(sbUrl, serviceKey, 'catalog/index.json');
       const parsed = Array.isArray(rawIndex)
         ? (rawIndex.map(sanitizeStoredProduct).filter(Boolean) as WebsiteProduct[])
         : [];
@@ -316,23 +326,35 @@ export async function queryStoreCatalog(
   const state = await loadCatalogState(false);
   const mediaMap = state.mediaMap;
 
-  const baseList = cmsProducts && cmsProducts.length > 0 ? cmsProducts : DEFAULT_PRODUCTS;
+  const LEGACY_DUMMY_IDS = new Set<string>(DEFAULT_PRODUCTS.map((p) => p.id));
   const seenIds = new Set<string>();
   const seenCodes = new Set<string>();
   const combinedRaw: WebsiteProduct[] = [];
 
-  for (const item of baseList) {
-    if (!item?.id) continue;
-    seenIds.add(item.id);
-    if (item.code) seenCodes.add(item.code.toLowerCase());
-    combinedRaw.push(item);
-  }
-  for (const item of state.products) {
-    if (seenIds.has(item.id)) continue;
-    if (item.code && seenCodes.has(item.code.toLowerCase())) continue;
-    seenIds.add(item.id);
-    if (item.code) seenCodes.add(item.code.toLowerCase());
-    combinedRaw.push(item);
+  if (state.products.length > 0) {
+    const customCmsProducts = Array.isArray(cmsProducts)
+      ? cmsProducts.filter((item) => item?.id && !LEGACY_DUMMY_IDS.has(item.id) && Number(item.price) > 0)
+      : [];
+    for (const item of customCmsProducts) {
+      if (seenIds.has(item.id)) continue;
+      seenIds.add(item.id);
+      if (item.code) seenCodes.add(item.code.toLowerCase());
+      combinedRaw.push(item);
+    }
+    for (const item of state.products) {
+      if (seenIds.has(item.id)) continue;
+      if (item.code && seenCodes.has(item.code.toLowerCase())) continue;
+      seenIds.add(item.id);
+      combinedRaw.push(item);
+    }
+  } else {
+    const fallbackList = cmsProducts && cmsProducts.length > 0 ? cmsProducts : DEFAULT_PRODUCTS;
+    for (const item of fallbackList) {
+      if (!item?.id || seenIds.has(item.id)) continue;
+      seenIds.add(item.id);
+      if (item.code) seenCodes.add(item.code.toLowerCase());
+      combinedRaw.push(item);
+    }
   }
 
   const allItems = combinedRaw.map((p, index) => ({
@@ -459,5 +481,36 @@ export async function queryStoreCatalog(
       max: maxPBound > 0 ? Math.ceil(maxPBound) : 0,
     },
     meta: state.meta,
+  };
+}
+
+export async function getStoreCatalogShowcase(
+  limit = 28,
+  cmsProducts?: WebsiteProduct[]
+): Promise<{ items: WebsiteProduct[]; smartItems: WebsiteProduct[]; totalCatalog: number }> {
+  const safeLimit = Math.min(60, Math.max(12, limit));
+  const [mainRes, smartRes, lowCurrentRes, safetyRes] = await Promise.all([
+    queryStoreCatalog({ page: 1, pageSize: safeLimit, sort: 'featured' }, cmsProducts),
+    queryStoreCatalog({ category: 'smart_home', page: 1, pageSize: 6, sort: 'featured' }, cmsProducts),
+    queryStoreCatalog({ category: 'low_current', page: 1, pageSize: 6, sort: 'featured' }, cmsProducts),
+    queryStoreCatalog({ category: 'safety_sensors', page: 1, pageSize: 6, sort: 'featured' }, cmsProducts),
+  ]);
+
+  const seenSmart = new Set<string>();
+  const smartItems: WebsiteProduct[] = [];
+  for (const group of [smartRes.items.slice(0, 6), lowCurrentRes.items.slice(0, 4), safetyRes.items.slice(0, 4)]) {
+    for (const item of group) {
+      if (seenSmart.has(item.id)) continue;
+      seenSmart.add(item.id);
+      smartItems.push(item);
+      if (smartItems.length >= 12) break;
+    }
+    if (smartItems.length >= 12) break;
+  }
+
+  return {
+    items: mainRes.items,
+    smartItems,
+    totalCatalog: mainRes.totalCatalog,
   };
 }

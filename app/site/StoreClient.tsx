@@ -329,7 +329,7 @@ export default function StoreClient({
       if (params.get('tab') === 'maintenance') {
         setActiveStoreTab('maintenance');
       }
-      const cat = params.get('category');
+      const cat = params.get('category') || params.get('cat');
       if (cat && PRODUCT_CATEGORIES.some((c) => c.id === cat)) {
         setSelectedCategory(cat as ProductCategoryId);
         setActiveStoreTab('products');
@@ -355,7 +355,7 @@ export default function StoreClient({
     if (activeStoreTab !== 'products') return;
     const hasFullInitialCatalog =
       Boolean(initialCatalog) &&
-      (Boolean(initialCatalog?.meta?.totalProducts) || (initialCatalog?.totalCatalog ?? 0) > PRODUCTS.length);
+      (Boolean(initialCatalog?.meta?.totalProducts) || (initialCatalog?.totalCatalog ?? 0) > 100);
     const isInitialDefaultQuery =
       hasFullInitialCatalog &&
       !didSkipInitialFetchRef.current &&

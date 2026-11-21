@@ -961,26 +961,39 @@ def telegram_send_document(
 
 
 def ensure_supabase_bucket(sb_url: str, service_key: str) -> None:
+    payload = json.dumps({"id": BUCKET_NAME, "name": BUCKET_NAME, "public": True}).encode("utf-8")
+    headers = {
+        "apikey": service_key,
+        "Authorization": f"Bearer {service_key}",
+        "Content-Type": "application/json",
+    }
     req = urllib.request.Request(
         f"{sb_url.rstrip('/')}/storage/v1/bucket",
-        data=json.dumps({"id": BUCKET_NAME, "name": BUCKET_NAME, "public": False}).encode("utf-8"),
-        headers={
-            "apikey": service_key,
-            "Authorization": f"Bearer {service_key}",
-            "Content-Type": "application/json",
-        },
+        data=payload,
+        headers=headers,
         method="POST",
     )
     try:
         with urllib.request.urlopen(req, timeout=20):
-            print(f"[SUPABASE] Created private storage bucket `{BUCKET_NAME}`")
+            print(f"[SUPABASE] Created public storage bucket `{BUCKET_NAME}`")
+            return
     except urllib.error.HTTPError as he:
-        # 409 / 400 when bucket already exists
-        if he.code in (400, 409):
-            return
+        # 409 / 400 when bucket already exists -> update it to public read-only
         body = he.read().decode("utf-8", errors="replace")
-        if "already exists" in body.lower() or "duplicate" in body.lower():
-            return
+        if he.code in (400, 409) or "already exists" in body.lower() or "duplicate" in body.lower():
+            upd_req = urllib.request.Request(
+                f"{sb_url.rstrip('/')}/storage/v1/bucket/{BUCKET_NAME}",
+                data=payload,
+                headers=headers,
+                method="PUT",
+            )
+            try:
+                with urllib.request.urlopen(upd_req, timeout=20):
+                    print(f"[SUPABASE] Updated storage bucket `{BUCKET_NAME}` to public=True")
+                return
+            except urllib.error.HTTPError as ue:
+                ubody = ue.read().decode("utf-8", errors="replace")
+                raise RuntimeError(f"Failed updating bucket HTTP {ue.code}: {ubody}") from ue
         raise RuntimeError(f"Failed creating bucket HTTP {he.code}: {body}") from he
 
 
@@ -1097,8 +1110,22 @@ def sync_all_to_supabase(
         "pendingTelegramImages": pending_count,
         "categoryBreakdown": stats["categoryBreakdown"],
     }
+    safe_media_fields = (
+        "id",
+        "productId",
+        "fileName",
+        "mimeType",
+        "fileSize",
+        "sha256",
+        "kind",
+        "telegramFileId",
+    )
+    public_media_map = {
+        mid: {k: entry[k] for k in safe_media_fields if k in entry}
+        for mid, entry in state["mediaMap"].items()
+    }
     ensure_supabase_bucket(sb_url, service_key)
-    upload_supabase_json(sb_url, service_key, "catalog/media-map.json", state["mediaMap"])
+    upload_supabase_json(sb_url, service_key, "catalog/media-map.json", public_media_map)
     upload_supabase_json(sb_url, service_key, "catalog/index.json", products)
     upload_supabase_json(sb_url, service_key, "catalog/meta.json", meta)
     return meta

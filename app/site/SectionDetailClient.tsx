@@ -76,9 +76,15 @@ const GENERAL_ENGINEERING_TIPS = [
 export default function SectionDetailClient({
   slug,
   content,
+  catalogProducts,
+  catalogSmartProducts,
+  catalogTotalCount,
 }: {
   slug: SectionSlug;
   content?: SiteContentOverride;
+  catalogProducts?: WebsiteProduct[];
+  catalogSmartProducts?: WebsiteProduct[];
+  catalogTotalCount?: number;
 }) {
   const { SITE, COMMITMENTS, FAQS, PRODUCTS, PROPERTIES, MAINTENANCE_SERVICES } =
     mergeContent(content);
@@ -188,21 +194,31 @@ export default function SectionDetailClient({
   const [sellSubmitted, setSellSubmitted] = useState(false);
 
   const buildingMaterialCategories: ProductCategoryId[] = [
+    'electrical',
+    'plumbing',
     'paint',
     'ceramics',
     'marble',
-    'electrical',
-    'plumbing',
     'decor',
+    'hvac',
+    'building_materials',
+    'doors_windows',
+    'appliances',
+    'tools_hardware',
   ];
+  const activeMaterialSource =
+    catalogProducts && catalogProducts.length > 0 ? catalogProducts : PRODUCTS;
+  const activeSmartSource =
+    catalogSmartProducts && catalogSmartProducts.length > 0 ? catalogSmartProducts : PRODUCTS;
+
   const materialProducts = useMemo(
     () =>
-      PRODUCTS.filter((p) => {
+      activeMaterialSource.filter((p) => {
         if (!buildingMaterialCategories.includes(p.category)) return false;
         if (materialCatFilter !== 'all' && p.category !== materialCatFilter) return false;
         return true;
       }),
-    [PRODUCTS, materialCatFilter]
+    [activeMaterialSource, materialCatFilter]
   );
 
   // --- Smart Tech state ---
@@ -212,8 +228,11 @@ export default function SectionDetailClient({
   const [shIncludeSafety, setShIncludeSafety] = useState<boolean>(true);
   const [shCamerasCount, setShCamerasCount] = useState<number>(4);
   const smartProducts = useMemo(
-    () => PRODUCTS.filter((p) => ['smart_home', 'low_current', 'safety_sensors'].includes(p.category)),
-    [PRODUCTS]
+    () =>
+      activeSmartSource.filter((p) =>
+        ['smart_home', 'low_current', 'safety_sensors'].includes(p.category)
+      ),
+    [activeSmartSource]
   );
 
   const handleAddConfiguredSmartPackage = () => {
@@ -706,7 +725,14 @@ export default function SectionDetailClient({
                       className={`pw-chip ${materialCatFilter === 'all' ? 'is-on' : ''}`}
                       onClick={() => setMaterialCatFilter('all')}
                     >
-                      كل خامات البناء والتشطيب ({materialProducts.length})
+                      كل خامات البناء والتشطيب (
+                      {materialCatFilter === 'all'
+                        ? (catalogTotalCount && catalogTotalCount > activeMaterialSource.length
+                            ? catalogTotalCount
+                            : materialProducts.length
+                          ).toLocaleString('en-US')
+                        : materialProducts.length.toLocaleString('en-US')}
+                      )
                     </button>
                     {PRODUCT_CATEGORIES.filter((c) => buildingMaterialCategories.includes(c.id)).map((c) => (
                       <button
@@ -799,6 +825,19 @@ export default function SectionDetailClient({
                         </article>
                       );
                     })}
+                  </div>
+                  <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+                    <Link
+                      href={materialCatFilter === 'all' ? '/store' : `/store?category=${materialCatFilter}`}
+                      className="pw-btn pw-btn-primary"
+                    >
+                      تصفح المتجر الكامل (
+                      {(catalogTotalCount && catalogTotalCount > activeMaterialSource.length
+                        ? catalogTotalCount
+                        : activeMaterialSource.length
+                      ).toLocaleString('en-US')}{' '}
+                      منتج) ←
+                    </Link>
                   </div>
                 </>
               ) : (
@@ -962,6 +1001,11 @@ export default function SectionDetailClient({
                     </div>
                   </article>
                 ))}
+              </div>
+              <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
+                <Link href="/store?category=smart_home" className="pw-btn pw-btn-primary">
+                  تصفح كل أنظمة السمارت هوم والأمان بالمتجر ←
+                </Link>
               </div>
             </div>
           )}

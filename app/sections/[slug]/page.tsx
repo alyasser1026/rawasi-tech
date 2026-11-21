@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import SectionDetailClient from '../../site/SectionDetailClient';
 import { sanitizeContent } from '../../site/site-content';
-import { getPortalSectionMeta, VALID_SECTION_SLUGS, type SectionSlug } from '../../site/section-defs';
+import { getPortalSectionMeta, resolveCanonicalSectionSlug, VALID_SECTION_SLUGS, type SectionSlug } from '../../site/section-defs';
+import { getStoreCatalogShowcase } from '@/lib/store-catalog-server';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -55,5 +56,15 @@ export default async function SectionPage({
     notFound();
   }
   const content = await getPublished();
-  return <SectionDetailClient slug={slug as SectionSlug} content={content} />;
+  const isMaterials = resolveCanonicalSectionSlug(slug as SectionSlug) === 'materials';
+  const showcase = isMaterials ? await getStoreCatalogShowcase(48, content.products) : null;
+  return (
+    <SectionDetailClient
+      slug={slug as SectionSlug}
+      content={content}
+      catalogProducts={showcase?.items}
+      catalogSmartProducts={showcase?.smartItems}
+      catalogTotalCount={showcase?.totalCatalog}
+    />
+  );
 }

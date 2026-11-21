@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import PhiSite from './site/PhiSite';
 import { sanitizeContent } from './site/site-content';
+import { getStoreCatalogShowcase } from '@/lib/store-catalog-server';
 
 // الموقع العام يقرأ فقط النسخة «المنشورة» من إدارة الموقع (دالة عامة)، ولا يلمس بيانات النظام الداخلية.
 export const dynamic = 'force-dynamic';
@@ -36,5 +37,12 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const content = await getPublished();
-  return <PhiSite content={content} />;
+  const showcase = await getStoreCatalogShowcase(28, content.products);
+  return (
+    <PhiSite
+      content={content}
+      catalogProducts={showcase.items}
+      catalogTotalCount={showcase.totalCatalog}
+    />
+  );
 }
