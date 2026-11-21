@@ -1203,36 +1203,50 @@ body:has(.pw){padding:0!important}
 .pw-omni-go-link:hover{background:#f4efe6;color:#14181b}
 .pw-omni-empty{padding:20px 12px;text-align:center;color:#525e6a;display:flex;flex-direction:column;gap:12px}
 
-/* ===== المرحلة 2: عرض متزامن لقسم المبيعات (شاشة كمبيوتر + آيفون + متجر iOS و Android) ===== */
+/* ===== المرحلة 2: عرض متزامن لقسم المبيعات (شاشة كمبيوتر + تزامن لحظي + آيفون + متجر iOS و Android) ===== */
 .pw-sim-section{position:relative;z-index:3;padding:80px 0 96px;color:#14181b;background:linear-gradient(180deg,rgba(251,250,247,.68) 0%,rgba(250,248,244,.68) 74%,rgba(251,250,247,.56) 100%)}
 .pw-sim-top-head{text-align:center;max-width:720px;margin:0 auto 32px;display:flex;flex-direction:column;align-items:center;gap:8px}
-.pw-sim-live-pill{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid #e7e1d7;color:#47525c;font-size:.8rem;font-weight:700;box-shadow:0 4px 12px -8px rgba(20,24,27,.14)}
+.pw-sim-live-pill{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(199,85,23,.22);color:#14181b;font-size:.8rem;font-weight:800;box-shadow:0 4px 12px -8px rgba(20,24,27,.14)}
 .pw-sim-live-pill i{display:block;width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.55);animation:pwSimLivePulse 2.1s infinite}
 @keyframes pwSimLivePulse{0%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}100%{opacity:1;transform:scale(1)}}
 .pw-sim-top-head h2{font-size:clamp(1.36rem,2.3vw,1.92rem);font-weight:800;line-height:1.4;color:#14181b;text-shadow:0 1px 12px rgba(251,250,247,.95);margin:0}
+.pw-sim-top-head h2 em{font-style:normal;color:var(--o)}
 .pw-sim-lead{font-size:.96rem;font-weight:500;line-height:1.75;color:#525e6a;text-shadow:0 1px 12px rgba(251,250,247,.95);margin:0}
 
-/* Read-only Live Narrator Strip Above Devices */
-.pw-sim-narrator-bar{background:rgba(255,255,255,.82);backdrop-filter:blur(14px) saturate(130%);-webkit-backdrop-filter:blur(14px) saturate(130%);border:1px solid #e7e1d7;border-inline-start:3px solid #c75517;border-radius:var(--r-card);padding:16px 24px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 12px 28px -22px rgba(20,24,27,.16)}
+/* Read-only Editorial 4-Step Auto-Play Timeline (Zero manual buttons) */
+.pw-sim-narrator-bar{background:rgba(255,255,255,.84);backdrop-filter:blur(16px) saturate(135%);-webkit-backdrop-filter:blur(16px) saturate(135%);border:1px solid rgba(231,225,215,.95);border-radius:var(--r-card);padding:20px 24px;margin-bottom:32px;display:flex;flex-direction:column;gap:16px;box-shadow:0 18px 40px -28px rgba(20,24,27,.18)}
+.pw-sim-timeline-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
 .pw-sim-narrator-copy{flex:1;min-width:240px;display:flex;flex-direction:column;gap:4px}
-.pw-sim-caption-tag{font-size:.8rem;font-weight:800;color:#c75517}
-.pw-sim-narrator-copy strong{font-size:1.02rem;font-weight:800;color:#14181b}
+.pw-sim-caption-tag{font-size:.78rem;font-weight:800;color:#c75517}
+.pw-sim-narrator-copy strong{font-size:1.05rem;font-weight:800;color:#14181b}
 .pw-sim-narrator-copy p{font-size:.88rem;font-weight:500;color:#525e6a;margin:0;line-height:1.65}
-.pw-sim-narrator-right{min-width:210px;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
-.pw-sim-caption-counter{font-size:.78rem;font-weight:700;color:#47525c;background:#f4efe6;border:1px solid #e7e1d7;padding:4px 12px;border-radius:var(--r-pill)}
-.pw-sim-progress-segs{width:100%;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.pw-sim-caption-counter{font-family:ui-monospace,Consolas,monospace;font-size:.76rem;font-weight:800;color:#47525c;background:#f4efe6;border:1px solid #e7e1d7;padding:4px 12px;border-radius:var(--r-pill);white-space:nowrap}
+.pw-sim-stepper{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-top:12px;border-top:1px solid rgba(231,225,215,.85)}
+.pw-sim-step-item{display:flex;flex-direction:column;gap:6px;opacity:.58;transition:opacity .25s ease}
+.pw-sim-step-item.is-done{opacity:.85}
+.pw-sim-step-item.is-active{opacity:1}
+.pw-sim-step-label{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:#525e6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pw-sim-step-item.is-active .pw-sim-step-label{color:#14181b;font-weight:800}
+.pw-sim-step-num{font-family:ui-monospace,Consolas,monospace;font-size:.72rem;font-weight:800;color:#c75517;flex-shrink:0}
 .pw-sim-seg-track{position:relative;height:4px;border-radius:var(--r-pill);background:#e7e1d7;overflow:hidden}
 .pw-sim-seg-track.is-done{background:linear-gradient(90deg,var(--o),#e39b66)}
 .pw-sim-seg-fill{position:absolute;inset:0;background:linear-gradient(90deg,var(--o),#e39b66);transform-origin:right center;transform:scaleX(0)}
 .pw-sim-seg-fill.is-running{animation:pwSimBarFill 4.3s linear forwards}
 @keyframes pwSimBarFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
-/* Synchronized Dual-Device Grid: Wide Desktop Monitor + Slender iPhone Pro */
-.pw-sim-dual-stage{display:grid;grid-template-columns:minmax(0,1fr) 264px;gap:32px;align-items:end}
+/* Synchronized Dual-Device Grid: Wide Studio Monitor + Sync Bridge + Slender iPhone Pro */
+.pw-sim-dual-stage{display:grid;grid-template-columns:minmax(0,1fr) 76px 256px;gap:16px;align-items:center}
+.pw-sim-sync-bridge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative}
+.pw-sim-sync-line{position:absolute;inset-inline:-16px;top:50%;height:2px;background:linear-gradient(90deg,rgba(199,85,23,.14),rgba(199,85,23,.65),rgba(199,85,23,.14));z-index:0}
+.pw-sim-sync-node{position:relative;z-index:1;width:40px;height:40px;border-radius:9999px;background:#ffffff;border:1.5px solid rgba(199,85,23,.35);color:#c75517;display:grid;place-items:center;box-shadow:0 10px 24px -10px rgba(199,85,23,.4);transition:transform .25s ease,box-shadow .25s ease}
+.pw-sim-sync-node.is-pulsing{transform:scale(1.08);box-shadow:0 0 0 6px rgba(199,85,23,.15),0 10px 24px -10px rgba(199,85,23,.5)}
+.pw-sim-sync-node svg{transition:transform .5s ease}
+.pw-sim-sync-node.is-pulsing svg{transform:rotate(180deg)}
+.pw-sim-sync-label{position:relative;z-index:1;font-size:.68rem;font-weight:800;color:#a64310;background:rgba(255,255,255,.94);border:1px solid #fed7aa;padding:2px 8px;border-radius:9999px;white-space:nowrap}
 
 /* A. Realistic Desktop Studio Monitor + Clean Bright Browser Website */
 .pw-sim-desktop-col{display:flex;flex-direction:column;align-items:center}
-.pw-sim-monitor{width:100%;border-radius:20px;padding:10px;background:linear-gradient(160deg,#2c3440 0%,#14181e 100%);border:1.5px solid #414b59;box-shadow:0 28px 58px -26px rgba(20,24,27,.35),inset 0 0 0 2px #0c1015}
+.pw-sim-monitor{width:100%;border-radius:18px;padding:9px;background:linear-gradient(155deg,#2b313a 0%,#12161c 55%,#1e242c 100%);border:1px solid rgba(255,255,255,.22);box-shadow:0 32px 64px -26px rgba(20,24,27,.34),inset 0 1px 0 rgba(255,255,255,.16)}
 .pw-sim-monitor-screen{border-radius:12px;overflow:hidden;background:#f8f6f2;border:1px solid #dfd7cc;color:#14181b;display:flex;flex-direction:column}
 .pw-sim-chrome{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;background:#ffffff;border-bottom:1px solid #e7e1d7}
 .pw-sim-chrome-dots{display:flex;gap:6px}
@@ -1241,15 +1255,16 @@ body:has(.pw){padding:0!important}
 .pw-sim-chrome-dots span:nth-child(2){background:#f59e0b}
 .pw-sim-chrome-dots span:nth-child(3){background:#10b981}
 .pw-sim-chrome-url{flex:1;max-width:25rem;margin:0 auto;display:flex;align-items:center;gap:6px;padding:3px 12px;border-radius:999px;background:#f4efe6;border:1px solid #e7e1d7;font-family:ui-monospace,Consolas,monospace;font-size:.72rem;color:#47525c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.pw-sim-chrome-badge{font-size:.71rem;font-weight:800;color:#a64310;background:#fff3ea;border:1px solid #fed7aa;padding:3px 10px;border-radius:999px;white-space:nowrap}
+.pw-sim-chrome-live{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:800;color:#047857;background:#ecfdf5;border:1px solid #a7f3d0;padding:2px 9px;border-radius:9999px;white-space:nowrap}
+.pw-sim-chrome-live i{display:block;width:6px;height:6px;border-radius:50%;background:#10b981}
 
 .pw-sim-web-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;background:#ffffff;border-bottom:1px solid #ede7dd}
 .pw-sim-app-brand{display:flex;align-items:center;gap:7px;font-size:.82rem}
 .pw-sim-app-brand strong{font-weight:900;color:#14181b}
-.pw-sim-dot-logo{width:9px;height:9px;border-radius:50%;background:var(--o)}
+.pw-sim-brand-img{width:18px;height:18px;object-fit:contain;display:block;flex-shrink:0}
 .pw-sim-web-links{display:flex;align-items:center;gap:12px;font-size:.76rem;font-weight:700;color:#525e6a}
 .pw-sim-web-links span.is-active{color:#c75517}
-.pw-sim-cart-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;background:#f4efe6;border:1px solid #e7e1d7;font-size:.72rem;font-weight:800;color:#14181b;transition:all .22s}
+.pw-sim-cart-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:#f4efe6;border:1px solid #e7e1d7;font-size:.72rem;font-weight:800;color:#14181b;transition:all .22s}
 .pw-sim-cart-pill.is-filled{background:#059669;border-color:#059669;color:#fff;box-shadow:0 4px 12px rgba(16,185,129,.28)}
 .pw-sim-cart-pill.is-pop{animation:pwCartPop .42s cubic-bezier(.2,1.25,.4,1)}
 @keyframes pwCartPop{0%{transform:scale(.85)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
@@ -1288,7 +1303,7 @@ body:has(.pw){padding:0!important}
 
 /* B. Realistic Slender iPhone Pro Frame + Bright Daylight App Screen + Store Badges */
 .pw-sim-iphone-col{display:flex;flex-direction:column;align-items:center;gap:12px}
-.pw-sim-phone{position:relative;width:244px;border-radius:40px;padding:9px;background:linear-gradient(155deg,#38414e 0%,#161c24 48%,#2b333f 100%);box-shadow:0 28px 54px -22px rgba(20,24,27,.38),0 0 0 1px rgba(255,255,255,.22),inset 0 0 0 2px #090c10}
+.pw-sim-phone{position:relative;width:248px;border-radius:40px;padding:9px;background:linear-gradient(155deg,#4b525c 0%,#1f242b 48%,#3c434d 100%);box-shadow:0 32px 60px -24px rgba(20,24,27,.38),0 0 0 1px rgba(255,255,255,.28),inset 0 0 0 2px #0b0e12}
 .pw-sim-hw-action,.pw-sim-hw-vol-1,.pw-sim-hw-vol-2,.pw-sim-hw-pwr{position:absolute;width:3px;border-radius:3px;background:#444e5c}
 .pw-sim-hw-action{left:-3px;top:76px;height:18px}
 .pw-sim-hw-vol-1{left:-3px;top:106px;height:30px}
@@ -1376,14 +1391,15 @@ body:has(.pw){padding:0!important}
 .pw-sim-touch.is-pos-2{left:44%;top:85%}
 .pw-sim-touch.is-pos-3{left:44%;top:34%;opacity:0}
 
-.pw-sim-bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;padding-top:6px;border-top:1px solid #e7e1d7;text-align:center}
-.pw-sim-bottom-nav span{font-size:.6rem;font-weight:700;color:#64748b;padding:3px 0;border-radius:7px}
-.pw-sim-bottom-nav span.is-on{color:#c75517;background:#fff3ea}
+.pw-sim-bottom-nav{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding-top:6px;border-top:1px solid #e7e1d7;text-align:center}
+.pw-sim-tab-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px;border-radius:8px;color:#64748b;transition:color .2s,background .2s}
+.pw-sim-tab-item span{font-size:.58rem;font-weight:700;line-height:1.1}
+.pw-sim-tab-item.is-on{color:#c75517;background:#fff3ea}
 .pw-sim-phone-homebar{width:76px;height:3.5px;border-radius:999px;background:rgba(20,24,27,.24);margin:2px auto 1px}
 
 /* iOS & Android Store Badges Next to / Below iPhone */
 .pw-sim-store-badges{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;max-width:256px}
-.pw-sim-store-badge{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 12px;border-radius:var(--r-btn);background:#14181b;border:1px solid rgba(20,24,27,.16);color:#fff;box-shadow:0 10px 20px -12px rgba(20,24,27,.4)}
+.pw-sim-store-badge{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:8px 12px;border-radius:var(--r-btn);background:linear-gradient(180deg,#1c2228 0%,#111519 100%);border:1px solid rgba(255,255,255,.12);color:#fff;box-shadow:0 10px 20px -12px rgba(20,24,27,.4)}
 .pw-sim-store-badge div{display:flex;flex-direction:column;line-height:1.15;text-align:left}
 .pw-sim-store-badge small{font-size:.58rem;font-weight:700;color:rgba(255,255,255,.72)}
 .pw-sim-store-badge strong{font-size:.73rem;font-weight:900;color:#fff}
@@ -1430,17 +1446,19 @@ body:has(.pw){padding:0!important}
 @media(max-width:1023px){
   .pw-bs-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
   .pw-sim-dual-stage{grid-template-columns:1fr;gap:24px}
+  .pw-sim-sync-bridge{flex-direction:row;padding:4px 0}
+  .pw-sim-sync-line{display:none}
 }
 @media(max-width:900px){
   .pw-sim-web-grid,.pw-sim-web-detail,.pw-sim-web-checkout-cols{grid-template-columns:1fr}
   .pw-sim-web-card.is-secondary{display:none}
-  .pw-sim-narrator-right{width:100%;align-items:stretch}
 }
 @media(max-width:639px){
   .pw-welcome-band{padding:80px 0 48px}
   .pw-welcome-shell{padding:0;gap:16px}
   .pw-sim-section{padding:48px 0 64px}
   .pw-sim-narrator-bar{padding:16px}
+  .pw-sim-stepper{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .pw-bestsellers-band{padding:56px 0 64px}
   .pw-omni-box{flex-wrap:wrap;padding:8px}
   .pw-omni-store-btn{width:100%;min-height:48px;justify-content:center}
@@ -1453,6 +1471,6 @@ body:has(.pw){padding:0!important}
   .pw-sim-web-links{gap:8px;font-size:.7rem}
 }
 @media(prefers-reduced-motion:reduce){
-  .pw-sim-touch,.pw-sim-cursor,.pw-sim-screen,.pw-sim-seg-fill,.pw-sim-caret,.pw-sim-live-pill i,.pw-sim-cart-pill,.pw-bs-card,.pw-bs-media img{animation:none!important;transition:none!important}
+  .pw-sim-touch,.pw-sim-cursor,.pw-sim-screen,.pw-sim-seg-fill,.pw-sim-caret,.pw-sim-live-pill i,.pw-sim-cart-pill,.pw-sim-sync-node,.pw-sim-sync-node svg,.pw-bs-card,.pw-bs-media img{animation:none!important;transition:none!important}
 }
 `;

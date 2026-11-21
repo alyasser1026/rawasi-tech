@@ -137,9 +137,86 @@ const PHONE_NAV_ITEMS = [
   { id: 'sections', label: 'المواصفات' },
   { id: 'cart', label: 'السلة' },
   { id: 'orders', label: 'طلباتي' },
-];
+] as const;
+
+type PhoneTabId = (typeof PHONE_NAV_ITEMS)[number]['id'];
+
+const TIMELINE_LABELS = ['البحث والاختيار', 'التوريد والتركيب', 'مراجعة السلة', 'تأكيد فوري'] as const;
 
 const STEP_DURATION_MS = 4300;
+
+function LockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="8" />
+      <path d="m21 21-4.3-4.3" />
+    </svg>
+  );
+}
+
+function BagIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+      <path d="M3 6h18" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+  );
+}
+
+function SyncIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-15 6.7L3 16" />
+      <path d="M8 16H3v5" />
+    </svg>
+  );
+}
+
+function PhoneTabIcon({ id }: { id: PhoneTabId }) {
+  if (id === 'home') {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      </svg>
+    );
+  }
+  if (id === 'sections') {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="7" height="7" rx="1.5" />
+        <rect x="14" y="3" width="7" height="7" rx="1.5" />
+        <rect x="3" y="14" width="7" height="7" rx="1.5" />
+        <rect x="14" y="14" width="7" height="7" rx="1.5" />
+      </svg>
+    );
+  }
+  if (id === 'cart') {
+    return (
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+        <path d="M3 6h18" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 11l3 3L22 4" />
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+    </svg>
+  );
+}
 
 export default function OrderJourneyShowcase({
   onOpenContact,
@@ -244,48 +321,61 @@ export default function OrderJourneyShowcase({
       aria-labelledby="order-sim-heading"
     >
       <div className="pw-wrap">
-        {/* Compact Header + Live Narrator Strip */}
+        {/* Compact Executive Header + Editorial 4-Step Auto-Play Timeline */}
         <div className="pw-sim-top-head">
           <span className="pw-sim-live-pill">
             <i aria-hidden="true" />
-            <span>عرض متزامن لقسم المبيعات والسمارت هوم · الكمبيوتر والآيفون</span>
+            <span>المبيعات والسمارت هوم · تجربة موحّدة</span>
           </span>
-          <h2 id="order-sim-heading">كل طلب في قسم المبيعات يتم باللحظة نفسها على الموقع وتطبيق الآيفون</h2>
+          <h2 id="order-sim-heading">
+            منصة واحدة للتسوق والتوريد — <em>تزامن لحظي</em> بين الويب وتطبيق الجوال
+          </h2>
           <p className="pw-sim-lead">
-            ما يُنفَّذ داخل المتجر الإلكتروني على الكمبيوتر ينعكس فوراً داخل تطبيق الجوال لنظامَي iOS وAndroid دون انتظار.
+            اختر الخامات والأنظمة الذكية، فعّل التركيب الهندسي، وأكّد طلبك من المتصفح أو تطبيق iOS وAndroid برقم طلب موثّق.
           </p>
         </div>
 
-        {/* Read-only Live Narrator Bar (No manual buttons) */}
+        {/* Read-only Editorial 4-Step Auto-Play Timeline (Zero manual buttons) */}
         <div className="pw-sim-narrator-bar" aria-live="polite">
-          <div className="pw-sim-narrator-copy">
-            <span className="pw-sim-caption-tag">{activeScenario.categoryLabel}</span>
-            <strong>{activeScenario.stepTitles[step]}</strong>
-            <p>{activeScenario.stepDescs[step]}</p>
-          </div>
-          <div className="pw-sim-narrator-right">
-            <span className="pw-sim-caption-counter">
-              منتج {scenarioIdx + 1} من {SALES_SCENARIOS.length} · {activeScenario.code}
-            </span>
-            <div className="pw-sim-progress-segs" aria-hidden="true">
-              {[0, 1, 2, 3].map((idx) => (
-                <div
-                  key={idx}
-                  className={`pw-sim-seg-track ${step > idx ? 'is-done' : ''}`}
-                >
-                  {step === idx && (
-                    <span
-                      key={`${scenarioIdx}-${step}`}
-                      className={`pw-sim-seg-fill ${inView ? 'is-running' : ''}`}
-                    />
-                  )}
-                </div>
-              ))}
+          <div className="pw-sim-timeline-top">
+            <div className="pw-sim-narrator-copy">
+              <span className="pw-sim-caption-tag">{activeScenario.categoryLabel}</span>
+              <strong>{activeScenario.stepTitles[step]}</strong>
+              <p>{activeScenario.stepDescs[step]}</p>
             </div>
+            <span className="pw-sim-caption-counter" dir="ltr">
+              {activeScenario.code} · {scenarioIdx + 1}/{SALES_SCENARIOS.length}
+            </span>
+          </div>
+
+          <div className="pw-sim-stepper" aria-hidden="true">
+            {TIMELINE_LABELS.map((label, idx) => {
+              const isDone = step > idx;
+              const isActive = step === idx;
+              return (
+                <div
+                  key={label}
+                  className={`pw-sim-step-item ${isDone ? 'is-done' : ''} ${isActive ? 'is-active' : ''}`}
+                >
+                  <div className="pw-sim-step-label">
+                    <span className="pw-sim-step-num">0{idx + 1}</span>
+                    <span>{label}</span>
+                  </div>
+                  <div className={`pw-sim-seg-track ${isDone ? 'is-done' : ''}`}>
+                    {isActive && (
+                      <span
+                        key={`${scenarioIdx}-${step}`}
+                        className={`pw-sim-seg-fill ${inView ? 'is-running' : ''}`}
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Synchronized Dual-Device Stage: Desktop Monitor + Website + iPhone Pro + iOS/Android Badges */}
+        {/* Synchronized Dual-Device Stage: Desktop Monitor + Live Sync Bridge + iPhone Pro */}
         <div className="pw-sim-dual-stage">
           {/* A. Desktop Monitor Showing Live Sales Website */}
           <div className="pw-sim-desktop-col" aria-label="عرض متزامن لموقع المبيعات على شاشة الكمبيوتر">
@@ -299,16 +389,19 @@ export default function OrderJourneyShowcase({
                     <span />
                   </div>
                   <div className="pw-sim-chrome-url" dir="ltr">
-                    <span>🔒</span>
+                    <LockIcon />
                     <span>{activeScenario.urls[step]}</span>
                   </div>
-                  <span className="pw-sim-chrome-badge">الويب سايت</span>
+                  <span className="pw-sim-chrome-live">
+                    <i aria-hidden="true" />
+                    <span>متصل</span>
+                  </span>
                 </div>
 
                 {/* Live PhiTech Website Navigation */}
                 <div className="pw-sim-web-nav">
                   <div className="pw-sim-app-brand">
-                    <span className="pw-sim-dot-logo" />
+                    <img src="/brand/phitech-mark-color.svg" alt="" width={18} height={18} className="pw-sim-brand-img" />
                     <strong>فاي تك · المبيعات والسمارت هوم</strong>
                   </div>
                   <div className="pw-sim-web-links" aria-hidden="true">
@@ -318,7 +411,8 @@ export default function OrderJourneyShowcase({
                       key={`desk-cart-${scenarioIdx}-${step >= 1 ? '1' : '0'}`}
                       className={`pw-sim-cart-pill ${step >= 1 ? 'is-filled is-pop' : ''}`}
                     >
-                      🛒 السلة ({cartCountDisplay})
+                      <BagIcon />
+                      <span>السلة ({cartCountDisplay})</span>
                     </span>
                   </div>
                 </div>
@@ -328,7 +422,7 @@ export default function OrderJourneyShowcase({
                   {step === 0 && (
                     <div key={`dw0-${scenarioIdx}`} className="pw-sim-screen is-web">
                       <div className="pw-sim-search-fake">
-                        <span aria-hidden="true">🔍</span>
+                        <SearchIcon />
                         <span className="pw-sim-typed">
                           {typedQuery}
                           <span className="pw-sim-caret" aria-hidden="true" />
@@ -472,6 +566,15 @@ export default function OrderJourneyShowcase({
             </div>
           </div>
 
+          {/* Live Sync Bridge Between Desktop Monitor & iPhone Pro */}
+          <div className="pw-sim-sync-bridge" aria-hidden="true">
+            <span className="pw-sim-sync-line" />
+            <div className={`pw-sim-sync-node ${tapping || step === 3 ? 'is-pulsing' : ''}`}>
+              <SyncIcon />
+            </div>
+            <span className="pw-sim-sync-label">تزامن لحظي</span>
+          </div>
+
           {/* B. Slender Realistic iPhone Pro + iOS & Android Store Badges */}
           <div className="pw-sim-iphone-col" aria-label="عرض متزامن لتطبيق المبيعات على الآيفون">
             <div className="pw-sim-phone">
@@ -488,7 +591,17 @@ export default function OrderJourneyShowcase({
                     <span className="pw-sim-island-cam" />
                   </div>
                   <div className="pw-sim-signal">
-                    <span>5G</span>
+                    <svg viewBox="0 0 16 12" width="12" height="9" fill="currentColor" aria-hidden="true">
+                      <rect x="0" y="7" width="2.5" height="4" rx="0.8" />
+                      <rect x="4" y="5" width="2.5" height="6" rx="0.8" />
+                      <rect x="8" y="3" width="2.5" height="8" rx="0.8" />
+                      <rect x="12" y="1" width="2.5" height="10" rx="0.8" />
+                    </svg>
+                    <svg viewBox="0 0 16 12" width="12" height="9" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true">
+                      <path d="M1.5 4.2a9.5 9.5 0 0 1 13 0" />
+                      <path d="M4.2 7a5.6 5.6 0 0 1 7.6 0" />
+                      <circle cx="8" cy="10" r="1" fill="currentColor" stroke="none" />
+                    </svg>
                     <span className="pw-sim-battery" aria-hidden="true">
                       <span />
                     </span>
@@ -498,14 +611,15 @@ export default function OrderJourneyShowcase({
                 {/* Synced App Bar */}
                 <div className="pw-sim-app-top">
                   <div className="pw-sim-app-brand">
-                    <span className="pw-sim-dot-logo" />
+                    <img src="/brand/phitech-mark-color.svg" alt="" width={18} height={18} className="pw-sim-brand-img" />
                     <strong>فاي تك</strong>
                   </div>
                   <span
                     key={`mob-cart-${scenarioIdx}-${step >= 1 ? '1' : '0'}`}
                     className={`pw-sim-cart-pill ${step >= 1 ? 'is-filled is-pop' : ''}`}
                   >
-                    🛒 {cartCountDisplay}
+                    <BagIcon />
+                    <span>{cartCountDisplay}</span>
                   </span>
                 </div>
 
@@ -514,7 +628,7 @@ export default function OrderJourneyShowcase({
                   {step === 0 && (
                     <div key={`m0-${scenarioIdx}`} className="pw-sim-screen">
                       <div className="pw-sim-search-fake is-compact">
-                        <span aria-hidden="true">🔍</span>
+                        <SearchIcon />
                         <span className="pw-sim-typed">
                           {typedQuery}
                           <span className="pw-sim-caret" aria-hidden="true" />
@@ -624,9 +738,10 @@ export default function OrderJourneyShowcase({
                       (step === 2 && nav.id === 'cart') ||
                       (step === 3 && nav.id === 'orders');
                     return (
-                      <span key={nav.id} className={active ? 'is-on' : ''}>
-                        {nav.label}
-                      </span>
+                      <div key={nav.id} className={`pw-sim-tab-item ${active ? 'is-on' : ''}`}>
+                        <PhoneTabIcon id={nav.id} />
+                        <span>{nav.label}</span>
+                      </div>
                     );
                   })}
                 </div>
