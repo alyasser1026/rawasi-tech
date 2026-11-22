@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import {
   DEFAULT_MAINTENANCE_SERVICES,
   DEFAULT_PRODUCTS,
@@ -83,98 +82,32 @@ const BESTSELLER_FILTER_CHIPS: { id: 'all' | ProductCategoryId; label: string }[
   { id: 'safety_sensors', label: 'أمان وحساسات' },
 ];
 
-interface PortalShortcut {
-  title: string;
-  subtitle: string;
-  href: string;
-}
-
 interface DualPortalDef {
   slug: CanonicalSectionSlug;
-  badgeLabel: string;
   title: string;
-  benefit: string;
+  href: string;
   accent: string;
   image: string;
   imageAlt: string;
-  tags: [string, string, string];
-  primaryCta: { label: string; href: string };
-  secondaryCta: { label: string; href: string };
-  getKpi: (catalogCount: number) => string;
-  getShortcuts: (catalogCount: number) => [PortalShortcut, PortalShortcut, PortalShortcut];
-}
-
-function PortalSectionIcon({ slug, size = 18 }: { slug: CanonicalSectionSlug; size?: number }) {
-  if (slug === 'info') {
-    return (
-      <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <rect x="3" y="3" width="18" height="18" rx="2" />
-        <path d="M7 8h10M7 12h4M7 16h4M15 12v4" />
-      </svg>
-    );
-  }
-  if (slug === 'contracting') {
-    return (
-      <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M3 21h18" />
-        <path d="M5 21V7l7-4v18" />
-        <path d="M12 11h7v10" />
-        <path d="M8 11h1M8 15h1M15 15h1" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" />
-      <path d="M12 12 3 7M12 12l9-5M12 12v10" />
-    </svg>
-  );
 }
 
 const DUAL_PORTAL_CONTAINERS: DualPortalDef[] = [
   {
     slug: 'materials',
-    badgeLabel: '01 · المبيعات',
-    title: 'المبيعات ومواد البناء والسمارت هوم',
-    benefit: 'توريد خامات البناء والتشطيبات وأنظمة المنزل الذكي والأمان بأقل سعر مباشر وتركيب معتمد.',
+    title: 'المبيعات والسمارت هوم',
+    href: '/store',
     accent: '#059669',
     image: '/sections/materials.jpg',
-    imageAlt: 'منظومة متكاملة لمواد البناء والتشطيبات والسمارت هوم من فاي تك',
-    tags: ['مواد بناء وتشطيب', 'سمارت هوم', 'كاميرات وأمان'],
-    primaryCta: { label: 'تصفح المتجر الآن ←', href: '/store' },
-    secondaryCta: { label: 'قسم المبيعات', href: '/sections/materials' },
-    getKpi: (n) => `+${n.toLocaleString('en-US')} منتج متاح للتوريد`,
-    getShortcuts: (n) => [
-      { title: 'تصفح المتجر المباشر', subtitle: `${n.toLocaleString('en-US')}+ منتج بأقل سعر محدث`, href: '/store' },
-      { title: 'باقات السمارت هوم والأمان', subtitle: 'شاشات تحكم، أقفال ذكية، وكاميرات 4K', href: '/sections/materials?tab=smart-home' },
-      { title: 'مواد البناء والتشطيب', subtitle: 'بيع وشراء وتوريد خامات معتمدة للموقع', href: '/sections/materials?tab=materials' },
-    ],
+    imageAlt: 'المبيعات ومواد البناء والسمارت هوم',
   },
   {
     slug: 'contracting',
-    badgeLabel: '02 · التركيبات والصيانة والتنفيذ',
     title: 'التركيبات والصيانة والتنفيذ',
-    benefit: 'أعمال البناء والتشطيب المتكامل، والتركيبات والصيانة الهندسية للكهرباء والسباكة والتكييف بضمان مكتوب.',
+    href: '/sections/contracting',
     accent: '#c75517',
     image: '/sections/contracting.jpg',
-    imageAlt: 'مبنى معماري حديث من الخرسانة والزجاج يعبر عن مشاريع المقاولات والإنشاءات والتنفيذ الهندسي',
-    tags: ['تركيبات وتشطيب', 'صيانة بضمان', 'مقايسة 3×1 و 3D'],
-    primaryCta: { label: 'ادخل قسم التنفيذ والصيانة ←', href: '/sections/contracting' },
-    secondaryCta: { label: 'اطلب تركيب أو صيانة', href: '/sections/contracting?tab=maintenance' },
-    getKpi: () => 'تنفيذ وصيانة بضمان هندسي',
-    getShortcuts: () => [
-      { title: 'خدمات التركيب والصيانة', subtitle: 'كهرباء، سباكة، تكييف، وأنظمة ذكية بإشراف هندسي', href: '/sections/contracting?tab=maintenance' },
-      { title: 'حاسبة المقايسة والتشطيب 3×1', subtitle: 'تقدير فوري لتكلفة العظم والتشطيب والتكييف', href: '/sections/contracting?view=calc' },
-      { title: 'المجسم الهندسي التفاعلي 3D', subtitle: 'استعراض معماري وBIM للمباني والمشاريع', href: '/sections/contracting?view=tower3d' },
-    ],
+    imageAlt: 'التركيبات والصيانة والتنفيذ الهندسي',
   },
-];
-
-const PORTAL_UTILITY_LINKS: { label: string; href: string }[] = [
-  { label: 'حاسبات الكميات المجانية', href: '/sections/info?tab=tools' },
-  { label: 'دليل التنفيذ والفحص', href: '/sections/info?tab=checklist' },
-  { label: 'نصائح قبل التشطيب', href: '/sections/info?tab=tips' },
-  { label: 'التحقق من صحة المستندات', href: '/verify' },
 ];
 
 export default function HomePortalSections({
@@ -186,7 +119,6 @@ export default function HomePortalSections({
   onOpenCart,
   onOpenContact,
 }: HomePortalSectionsProps) {
-  const router = useRouter();
   const displayCatalogTotal =
     totalCatalogCount && totalCatalogCount > products.length ? totalCatalogCount : products.length;
   // Stage 1: Omni-Search state
@@ -566,98 +498,33 @@ export default function HomePortalSections({
         <section id="portals" className="pw-portal-studio" aria-labelledby="portals-studio-heading">
           <div className="pw-wrap">
             <div className="pw-portal-studio-head">
-              <p className="pw-eyebrow">الأقسام الرئيسية لفاي تك</p>
-              <h2 id="portals-studio-heading">اختر المسار المناسب لمشروعك</h2>
-              <p className="pw-portal-studio-sub">
-                مساران رئيسيان يغطّيان كل احتياجاتك: توريد المبيعات والسمارت هوم، أو التركيبات والصيانة والتنفيذ الهندسي.
-              </p>
+              <h2 id="portals-studio-heading">اختر القسم</h2>
             </div>
 
             <div className="pw-dual-portals">
-              {DUAL_PORTAL_CONTAINERS.map((item) => {
-                const shortcuts = item.getShortcuts(displayCatalogTotal);
-                return (
-                  <article
-                    key={item.slug}
-                    id={`portal-station-${item.slug}`}
-                    className="pw-dual-card"
-                    style={{ '--dual-accent': item.accent } as React.CSSProperties}
-                    onClick={(e) => {
-                      if (!isInteractiveClick(e.target)) router.push(item.primaryCta.href);
-                    }}
-                  >
-                    <div className="pw-dual-media">
-                      <img
-                        src={item.image}
-                        alt={item.imageAlt}
-                        loading="lazy"
-                        decoding="async"
-                      />
-                      <div className="pw-dual-media-scrim" aria-hidden="true" />
-                      <div className="pw-dual-media-top">
-                        <span className="pw-dual-badge">
-                          <PortalSectionIcon slug={item.slug} size={16} />
-                          <span>{item.badgeLabel}</span>
-                        </span>
-                        <span className="pw-dual-kpi">{item.getKpi(displayCatalogTotal)}</span>
-                      </div>
-                      <div className="pw-dual-tags">
-                        {item.tags.map((t) => (
-                          <span key={t}>{t}</span>
-                        ))}
-                      </div>
+              {DUAL_PORTAL_CONTAINERS.map((item) => (
+                <Link
+                  key={item.slug}
+                  id={`portal-station-${item.slug}`}
+                  href={item.href}
+                  className="pw-dual-card"
+                  style={{ '--dual-accent': item.accent } as React.CSSProperties}
+                >
+                  <div className="pw-dual-media">
+                    <img
+                      src={item.image}
+                      alt={item.imageAlt}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="pw-dual-media-scrim" aria-hidden="true" />
+                    <div className="pw-dual-caption">
+                      <h3>{item.title}</h3>
+                      <span className="pw-dual-go" aria-hidden="true">←</span>
                     </div>
-
-                    <div className="pw-dual-body">
-                      <div className="pw-dual-title-row">
-                        <span className="pw-dual-icon" aria-hidden="true">
-                          <PortalSectionIcon slug={item.slug} size={22} />
-                        </span>
-                        <h3>{item.title}</h3>
-                      </div>
-
-                      <p className="pw-dual-benefit">{item.benefit}</p>
-
-                      <div className="pw-dual-shortcuts">
-                        {shortcuts.map((sc) => (
-                          <Link key={sc.href + sc.title} href={sc.href} className="pw-dual-shortcut">
-                            <span className="pw-dual-shortcut-copy">
-                              <strong>{sc.title}</strong>
-                              <small>{sc.subtitle}</small>
-                            </span>
-                            <span className="pw-dual-shortcut-arrow" aria-hidden="true">
-                              ←
-                            </span>
-                          </Link>
-                        ))}
-                      </div>
-
-                      <div className="pw-dual-actions">
-                        <Link href={item.primaryCta.href} className="pw-btn pw-dual-primary-btn">
-                          {item.primaryCta.label}
-                        </Link>
-                        <Link href={item.secondaryCta.href} className="pw-btn pw-btn-ghost">
-                          {item.secondaryCta.label}
-                        </Link>
-                      </div>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-
-            <div id="portal-station-info" className="pw-portal-utility-bar">
-              <span className="pw-utility-label">
-                <PortalSectionIcon slug="info" size={16} />
-                <span>أدوات هندسية مجانية:</span>
-              </span>
-              <div className="pw-utility-links">
-                {PORTAL_UTILITY_LINKS.map((u) => (
-                  <Link key={u.href} href={u.href} className="pw-utility-link">
-                    {u.label}
-                  </Link>
-                ))}
-              </div>
+                  </div>
+                </Link>
+              ))}
             </div>
           </div>
         </section>
