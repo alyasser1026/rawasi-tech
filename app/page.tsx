@@ -37,7 +37,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const content = await getPublished();
-  const showcase = await getStoreCatalogShowcase(28, content.products);
+  const showcase = await getStoreCatalogShowcase(36, content.products);
   return (
     <PhiSite
       content={content}

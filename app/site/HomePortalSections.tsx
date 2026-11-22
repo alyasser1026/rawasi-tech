@@ -27,8 +27,6 @@ interface HomePortalSectionsProps {
   onOpenContact?: () => void;
 }
 
-const INITIAL_BEST_SELLERS = 6;
-
 interface EngineeringToolShortcut {
   id: string;
   icon: string;
@@ -193,9 +191,14 @@ export default function HomePortalSections({
   const [searchOpen, setSearchOpen] = useState(false);
   const omniRef = useRef<HTMLDivElement>(null);
 
-  // Stage 4: Best-Sellers filter & load-more state (starts strictly at 6)
+  // Stage 4: Best-Sellers filter & dynamic row-aligned load-more state
   const [activeCat, setActiveCat] = useState<'all' | ProductCategoryId>('all');
-  const [visibleCount, setVisibleCount] = useState<number>(INITIAL_BEST_SELLERS);
+  const bsGridRef = useRef<HTMLDivElement>(null);
+  const [gridCols, setGridCols] = useState<number>(4);
+  const [extraRows, setExtraRows] = useState<number>(0);
+  const baseCount = gridCols <= 2 ? 6 : gridCols * 2;
+  const stepCount = gridCols === 1 ? 6 : gridCols * 2;
+  const visibleCount = baseCount + extraRows * stepCount;
   const [installMap, setInstallMap] = useState<Record<string, boolean>>(() => {
     const init: Record<string, boolean> = {};
     for (const p of products) {
@@ -214,6 +217,31 @@ export default function HomePortalSections({
     const m: Record<string, (typeof PRODUCT_CATEGORIES)[number]> = {};
     for (const c of PRODUCT_CATEGORIES) m[c.id] = c;
     return m;
+  }, []);
+
+  // Measure live grid column count so rows always fill evenly across breakpoints and SM/MD/LG/XL scale
+  useEffect(() => {
+    const el = bsGridRef.current;
+    if (!el || typeof window === 'undefined') return;
+    const measureCols = () => {
+      const tpl = window.getComputedStyle(el).gridTemplateColumns;
+      const cols = tpl && tpl !== 'none' ? tpl.trim().split(/\s+/).filter(Boolean).length : 0;
+      if (cols >= 1 && cols <= 10) {
+        setGridCols((prev) => (prev === cols ? prev : cols));
+      }
+    };
+    measureCols();
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measureCols) : null;
+    ro?.observe(el);
+    const mo =
+      typeof MutationObserver !== 'undefined'
+        ? new MutationObserver(() => window.requestAnimationFrame(measureCols))
+        : null;
+    mo?.observe(document.documentElement, { attributes: true, attributeFilter: ['data-site-size'] });
+    return () => {
+      ro?.disconnect();
+      mo?.disconnect();
+    };
   }, []);
 
   // Close Omni-Search dropdown on Escape or outside click
@@ -326,7 +354,7 @@ export default function HomePortalSections({
 
   const handleCategorySwitch = (cat: 'all' | ProductCategoryId) => {
     setActiveCat(cat);
-    setVisibleCount(INITIAL_BEST_SELLERS);
+    setExtraRows(0);
   };
 
   const cleanWa = (whatsappNumber || '').replace(/[^\d]/g, '');
@@ -660,7 +688,7 @@ export default function HomePortalSections({
             ))}
           </div>
 
-          <div className="pw-bs-grid">
+          <div ref={bsGridRef} className="pw-bs-grid">
             {visibleProducts.map((product) => {
               const cat = categoryMap[product.category];
               const imageUrl = getProductImageUrl(product);
@@ -746,19 +774,19 @@ export default function HomePortalSections({
               <button
                 type="button"
                 className="pw-btn pw-btn-primary pw-btn-lg pw-bs-more-btn"
-                onClick={() => setVisibleCount((c) => c + INITIAL_BEST_SELLERS)}
+                onClick={() => setExtraRows((r) => r + 1)}
               >
-                عرض المزيد (+{Math.min(INITIAL_BEST_SELLERS, remainingCount)} منتج)
+                عرض المزيد (+{Math.min(stepCount, remainingCount)} منتج)
               </button>
             )}
 
-            {visibleCount > INITIAL_BEST_SELLERS && (
+            {extraRows > 0 && (
               <button
                 type="button"
                 className="pw-btn pw-btn-ghost pw-btn-lg"
-                onClick={() => setVisibleCount(INITIAL_BEST_SELLERS)}
+                onClick={() => setExtraRows(0)}
               >
-                إظهار أهم {INITIAL_BEST_SELLERS} فقط
+                إظهار أهم {baseCount} فقط
               </button>
             )}
 

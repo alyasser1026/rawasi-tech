@@ -768,7 +768,9 @@ export default function StoreClient({
           box-shadow: 0 4px 20px rgba(20, 24, 27, 0.05) !important;
         }
         .pw.st-page .st-wide-wrap {
-          max-width: clamp(1200px, calc(var(--ui-wrap-max, 1280px) + 80px), 1440px);
+          max-width: none;
+          width: 100%;
+          padding-inline: clamp(16px, 2.2vw, 36px);
         }
 
         /* 1. Full-Width Edge-to-Edge Rotating Promotional Hero */
@@ -1112,7 +1114,7 @@ export default function StoreClient({
 
         .st-sections-grid {
           display: grid;
-          grid-template-columns: repeat(5, minmax(0, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(min(100%, 185px), 1fr));
           gap: 12px;
         }
         .st-section-card {
@@ -1541,7 +1543,7 @@ export default function StoreClient({
         /* Product Cards Grid */
         .st-products-grid {
           display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
+          grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ui-prod-min, 260px)), 1fr));
           gap: var(--ui-gap, 24px);
         }
         .st-prod-card {
@@ -1565,13 +1567,15 @@ export default function StoreClient({
         .st-prod-media {
           position: relative;
           aspect-ratio: 4 / 3;
-          background: #0f161e;
+          background: #ffffff;
+          border-bottom: 1px solid #f0ebe2;
           overflow: hidden;
         }
         .st-prod-media img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
+          padding: 8px;
           display: block;
           transition: transform 0.35s ease;
         }
@@ -1741,6 +1745,7 @@ export default function StoreClient({
         }
         .st-prod-actions {
           display: flex;
+          flex-wrap: wrap;
           gap: 8px;
           align-items: center;
         }
@@ -2435,18 +2440,7 @@ export default function StoreClient({
           color: #64748b;
         }
 
-        @media (max-width: 1279px) {
-          .st-sections-grid {
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-          }
-          .st-products-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-        }
         @media (max-width: 1023px) {
-          .st-sections-grid {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-          }
           .st-catalog-layout {
             grid-template-columns: 1fr;
           }
@@ -2556,7 +2550,6 @@ export default function StoreClient({
             scroll-snap-align: start;
           }
           .st-products-grid {
-            grid-template-columns: 1fr;
             gap: 16px;
           }
           .st-prod-body,
