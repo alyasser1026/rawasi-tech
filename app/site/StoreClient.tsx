@@ -21,86 +21,6 @@ import FloatingContactChat from './FloatingContactChat';
 import ContactModal from './ContactModal';
 import Product4DSpinViewer from './Product4DSpinViewer';
 import { rememberVisitorContact } from '@/lib/client-device-info';
-import { usePerformancePreferences } from '@/components/PerformancePreferences';
-
-type HeroOfferAction = {
-  tab: 'products' | 'maintenance';
-  category: 'all' | ProductCategoryId;
-};
-
-interface StoreOfferSlide {
-  id: string;
-  image: string;
-  kicker: string;
-  shortLabel: string;
-  headline: string;
-  subtitle: string;
-  perks: string[];
-  primaryLabel: string;
-  primaryAction: HeroOfferAction;
-  secondaryLabel: string;
-  secondaryHref?: string;
-  secondaryAction?: HeroOfferAction | 'contact';
-}
-
-const STORE_OFFER_SLIDES: StoreOfferSlide[] = [
-  {
-    id: 'smart-home-offer',
-    image: '/sections/smart-home.jpg',
-    kicker: 'عرض التجهيز الذكي · الأكثر طلباً',
-    shortLabel: 'سمارت هوم',
-    headline: 'حوّل وحدتك لمنزل ذكي متكامل بالتركيب',
-    subtitle:
-      'شاشات تحكم مركزية، أقفال أبواب ذكية 6×1 بالبصمة والوجه، ومفاتيح لمس تعمل بدون تكسير مع ضمان هندسي مكتوب.',
-    perks: ['شامل التركيب', 'ضمان مكتوب', 'متابعة من الجوال'],
-    primaryLabel: 'تصفح قسم السمارت هوم',
-    primaryAction: { tab: 'products', category: 'smart_home' },
-    secondaryLabel: 'باقات التوفير',
-    secondaryHref: '#store-bundles',
-  },
-  {
-    id: 'materials-offer',
-    image: '/sections/materials.jpg',
-    kicker: 'توريد مباشر للمشاريع والوحدات',
-    shortLabel: 'خامات وتشطيب',
-    headline: 'بورسلان كلكتا، رخام طبيعي، وخامات تشطيب بأسعار التوريد المباشر',
-    subtitle:
-      'تشكيلة منتقاة من البورسلان قص الليزر، السباكة المدفونة، ودهانات جوتن الأصلية جاهزة للتوريد الفوري لموقعك.',
-    perks: ['توريد مباشر للموقع', 'خامات أصلية مضمونة', 'تسعير فوري للكميات'],
-    primaryLabel: 'تصفح السيراميك والرخام',
-    primaryAction: { tab: 'products', category: 'ceramics' },
-    secondaryLabel: 'اطلب تسعيرة مشروع',
-    secondaryAction: 'contact',
-  },
-  {
-    id: 'safety-offer',
-    image: '/sections/contracting.jpg',
-    kicker: 'حماية متكاملة للشقق والفلل',
-    shortLabel: 'أمان وكاميرات',
-    headline: 'منظومة الأمان الذكي: كاميرات 4K وحساسات غلق الغاز والمياه تلقائياً',
-    subtitle:
-      'احمِ تشطيبك وأسرتك بحساسات تسرب الغاز والمياه المزودة بمحابس فصل أوتوماتيكية وكاميرات رؤية ليلية ملونة.',
-    perks: ['غلق تلقائي عند التسرب', 'تنبيه لحظي للجوال', 'توريد وتركيب معتمد'],
-    primaryLabel: 'تصفح حساسات الأمان',
-    primaryAction: { tab: 'products', category: 'safety_sensors' },
-    secondaryLabel: 'كاميرات 4K',
-    secondaryAction: { tab: 'products', category: 'low_current' },
-  },
-  {
-    id: 'maintenance-offer',
-    image: '/sections/maintenance.jpg',
-    kicker: 'تنفيذ وتأسيس وصيانة بضمان',
-    shortLabel: 'تنفيذ وصيانة',
-    headline: 'تنفيذ هندسي شامل وصيانة متخصصة بدون تكسير وبإشراف مهندسين',
-    subtitle:
-      'تأسيس كهرباء وسباكة وتكييف مخفي مع اختبارات ضغط 10 بار وصيانة دورية وقائية لكل القطاعات.',
-    perks: ['إشراف مهندس مختص', 'اختبارات استلام موثقة', 'ضمان على المصنعية'],
-    primaryLabel: 'استعرض خدمات التنفيذ والصيانة',
-    primaryAction: { tab: 'maintenance', category: 'all' },
-    secondaryLabel: 'احجز معاينة',
-    secondaryAction: 'contact',
-  },
-];
 
 function StoreIcon() {
   return (
@@ -216,12 +136,15 @@ function SparklesIcon() {
 export default function StoreClient({
   content,
   initialCatalog,
+  initialOffers,
+  totalDiscountedCount,
 }: {
   content?: SiteContentOverride;
   initialCatalog?: StoreCatalogQueryResult;
+  initialOffers?: WebsiteProduct[];
+  totalDiscountedCount?: number;
 }) {
   const { SITE, PRODUCTS, MAINTENANCE_SERVICES, PROMO_BANNER } = mergeContent(content);
-  const { fastMode } = usePerformancePreferences();
   const [loginOpen, setLoginOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [activeStoreTab, setActiveStoreTab] = useState<'products' | 'maintenance'>('products');
@@ -231,10 +154,7 @@ export default function StoreClient({
   const [installSelections, setInstallSelections] = useState<Record<string, boolean>>({});
   const [addedId, setAddedId] = useState<string | null>(null);
   const addedTimerRef = useRef<number | null>(null);
-
-  // Top full-width rotating promo carousel state
-  const [slideIdx, setSlideIdx] = useState(0);
-  const [sliderPaused, setSliderPaused] = useState(false);
+  const dealsTrackRef = useRef<HTMLDivElement>(null);
 
   // Sidebar filter states
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -454,14 +374,6 @@ export default function StoreClient({
   }, []);
 
   useEffect(() => {
-    if (sliderPaused || fastMode) return;
-    const timer = window.setInterval(() => {
-      setSlideIdx((prev) => (prev + 1) % STORE_OFFER_SLIDES.length);
-    }, 8500);
-    return () => window.clearInterval(timer);
-  }, [sliderPaused, fastMode]);
-
-  useEffect(() => {
     if (!mobileFiltersOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setMobileFiltersOpen(false);
@@ -484,18 +396,20 @@ export default function StoreClient({
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const goToSlide = (nextIdx: number) => {
-    const total = STORE_OFFER_SLIDES.length;
-    setSlideIdx(((nextIdx % total) + total) % total);
+  const scrollDealsBy = (dir: 1 | -1) => {
+    dealsTrackRef.current?.scrollBy({ left: dir * 320, behavior: 'smooth' });
   };
 
-  const handleHeroOfferAction = (action: HeroOfferAction) => {
-    setActiveStoreTab(action.tab);
-    if (action.tab === 'products') {
-      setSelectedCategory(action.category);
-    } else {
-      setMntFilterCategory(action.category);
-    }
+  const handleShowAllDeals = () => {
+    setActiveStoreTab('products');
+    setSelectedCategory('all');
+    setSearchQuery('');
+    setSelectedBrands([]);
+    setOnlyFeatured(false);
+    setMinPrice('');
+    setMaxPrice('');
+    setOnlyDiscounted(Boolean((totalDiscountedCount && totalDiscountedCount > 0) || catalog.hasDiscountedProducts));
+    setCurrentPage(1);
     scrollToCatalog();
   };
 
@@ -750,7 +664,23 @@ export default function StoreClient({
     flashAdded(bundleId);
   };
 
-  const activeSlide = STORE_OFFER_SLIDES[slideIdx] || STORE_OFFER_SLIDES[0];
+  const offerProducts = useMemo(() => {
+    if (Array.isArray(initialOffers) && initialOffers.length > 0) {
+      return initialOffers.slice(0, 12);
+    }
+    const seen = new Set<string>();
+    const combined = [...catalog.items, ...PRODUCTS];
+    const discounted = combined.filter((p) => Boolean(p.oldPrice && p.oldPrice > p.price));
+    const featured = combined.filter((p) => Boolean(p.featured || p.badge));
+    const ordered: WebsiteProduct[] = [];
+    for (const p of [...discounted, ...featured, ...combined]) {
+      if (seen.has(p.id)) continue;
+      seen.add(p.id);
+      ordered.push(p);
+      if (ordered.length >= 12) break;
+    }
+    return ordered;
+  }, [initialOffers, catalog.items, PRODUCTS]);
 
   return (
     <div className={`pw st-page ${loginOpen || contactOpen || selectedMaintenance || detailProduct ? 'has-modal-blur' : ''}`} dir="rtl">
@@ -778,41 +708,41 @@ export default function StoreClient({
           padding-inline: clamp(16px, 2.2vw, 36px);
         }
 
-        /* 1. Calm Warm-Pearl Editorial Split Promotional Hero */
-        .pw.st-page .pw-unified-hero.st-promo-stage {
+        /* 1. Live Goods Offers & Deals Showcase */
+        .pw.st-page .pw-unified-hero.st-deals-stage {
           position: relative;
           width: 100%;
-          padding: 20px 0 24px;
+          padding: 16px 0 22px;
           background: linear-gradient(180deg, #faf8f4 0%, #f5f1e9 100%);
           color: #14181b;
           overflow: hidden;
           border-bottom: 1px solid #e7e1d7;
         }
-        .st-promo-inner {
+        .st-deals-inner {
           display: flex;
           flex-direction: column;
-          gap: 14px;
+          gap: 12px;
         }
-        .st-promo-top-meta {
+        .st-deals-top-meta {
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 8px 16px;
           flex-wrap: wrap;
         }
-        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb {
+        .pw.st-page .pw-unified-hero.st-deals-stage .pw-unified-crumb {
           margin: 0;
           justify-content: flex-start;
           color: #64748b;
           font-size: 0.78rem;
         }
-        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb a {
+        .pw.st-page .pw-unified-hero.st-deals-stage .pw-unified-crumb a {
           color: #47525c;
         }
-        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb a:hover {
+        .pw.st-page .pw-unified-hero.st-deals-stage .pw-unified-crumb a:hover {
           color: var(--o);
         }
-        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-promo {
+        .pw.st-page .pw-unified-hero.st-deals-stage .pw-unified-promo {
           margin: 0;
           padding: 5px 12px;
           border-radius: var(--r-pill);
@@ -825,207 +755,231 @@ export default function StoreClient({
           line-height: 1.5;
           text-align: right;
         }
-        .st-promo-card {
-          background: #ffffff;
-          border: 1px solid #e7e1d7;
-          border-radius: var(--ui-card-r, 16px);
-          box-shadow: 0 12px 30px -24px rgba(20, 24, 27, 0.14);
-          padding: clamp(18px, 2.2vw, 28px);
+        .st-deals-head {
           display: flex;
-          flex-direction: column;
-          gap: 18px;
-        }
-        .st-promo-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.92fr);
-          gap: clamp(18px, 2.6vw, 34px);
-          align-items: center;
-        }
-        .st-promo-copy {
-          display: flex;
-          flex-direction: column;
-          gap: 11px;
-          align-items: flex-start;
-          text-align: right;
-          min-width: 0;
-        }
-        .st-promo-kicker {
-          display: inline-flex;
-          align-items: center;
-          gap: 7px;
-          color: var(--o);
-          font-size: 0.78rem;
-          font-weight: 800;
-        }
-        .st-promo-kicker i {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: var(--o);
-          display: block;
-          flex-shrink: 0;
-        }
-        .st-promo-copy h1 {
-          margin: 0;
-          font-size: clamp(1.38rem, 2.2vw, 1.92rem);
-          font-weight: 900;
-          line-height: 1.35;
-          color: #14181b;
-        }
-        .st-promo-copy p {
-          margin: 0;
-          max-width: 54ch;
-          font-size: 0.9rem;
-          line-height: 1.68;
-          color: #525e6a;
-          font-weight: 500;
-        }
-        .st-promo-perks {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px 16px;
-          padding-top: 2px;
-        }
-        .st-promo-perk {
-          display: inline-flex;
-          align-items: center;
-          gap: 5px;
-          color: #334155;
-          font-size: 0.8rem;
-          font-weight: 700;
-        }
-        .st-promo-perk svg {
-          color: #059669;
-          flex-shrink: 0;
-        }
-        .st-promo-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-top: 4px;
-        }
-        .st-promo-actions .pw-btn {
-          min-height: 40px;
-          padding: 8px 18px;
-          font-size: 0.86rem;
-        }
-        .st-promo-secondary-btn {
-          background: #fbfaf7 !important;
-          border: 1px solid #dfd7cc !important;
-          color: #14181b !important;
-        }
-        .st-promo-secondary-btn:hover {
-          background: #f4efe6 !important;
-          border-color: #c75517 !important;
-          color: #a64310 !important;
-        }
-        .st-promo-media-frame {
-          position: relative;
-          aspect-ratio: 16 / 10;
-          border-radius: 14px;
-          overflow: hidden;
-          background: #f2ede4;
-          border: 1px solid #ece5da;
-        }
-        .st-promo-bg-slide {
-          position: absolute;
-          inset: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          opacity: 0;
-          transition: opacity 0.45s ease;
-          pointer-events: none;
-        }
-        .st-promo-bg-slide.is-active {
-          opacity: 1;
-        }
-
-        /* Carousel Bottom Bar */
-        .st-promo-controls {
-          display: flex;
-          align-items: center;
+          align-items: flex-end;
           justify-content: space-between;
           gap: 12px;
           flex-wrap: wrap;
-          padding-top: 14px;
-          border-top: 1px solid #f0ebe2;
         }
-        .st-promo-segs {
-          display: inline-flex;
+        .st-deals-title-wrap {
+          display: flex;
+          flex-direction: column;
+          gap: 3px;
+        }
+        .st-deals-eyebrow {
+          color: var(--o);
+          font-size: 0.76rem;
+          font-weight: 800;
+        }
+        .st-deals-title-row {
+          display: flex;
+          align-items: center;
+          gap: 8px;
           flex-wrap: wrap;
-          align-items: center;
-          gap: 4px;
-          padding: 4px;
-          border-radius: 12px;
-          background: #f5f1e9;
-          border: 1px solid #ebe4d8;
         }
-        .st-promo-seg {
-          border: none;
-          background: transparent;
-          border-radius: 8px;
-          padding: 6px 13px;
-          color: #525e6a;
-          font-size: 0.8rem;
-          font-weight: 700;
-          cursor: pointer;
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
-        }
-        .st-promo-seg:hover {
+        .st-deals-title-row h1 {
+          margin: 0;
+          font-size: clamp(1.25rem, 1.9vw, 1.58rem);
+          font-weight: 900;
+          line-height: 1.3;
           color: #14181b;
         }
-        .st-promo-seg.is-active {
-          background: #ffffff;
-          color: #c75517;
-          box-shadow: 0 4px 12px -6px rgba(20, 24, 27, 0.2);
-        }
-        .st-promo-seg-num {
-          font-family: ui-monospace, Consolas, monospace;
+        .st-deals-count-pill {
+          padding: 2px 9px;
+          border-radius: var(--r-pill);
+          background: #ecfdf5;
+          border: 1px solid #a7f3d0;
+          color: #065f46;
           font-size: 0.72rem;
-          opacity: 0.65;
+          font-weight: 800;
         }
-        .st-promo-seg.is-active .st-promo-seg-num {
-          opacity: 1;
-          color: #c75517;
+        .st-deals-sub {
+          margin: 0;
+          font-size: 0.84rem;
+          color: #525e6a;
+          font-weight: 500;
         }
-        .st-promo-nav-end {
+        .st-deals-head-actions {
           display: inline-flex;
           align-items: center;
           gap: 8px;
+          flex-wrap: wrap;
         }
-        .st-promo-counter {
-          font-family: ui-monospace, Consolas, monospace;
-          font-size: 0.76rem;
+        .st-deals-all-btn {
+          height: 34px;
+          padding: 0 13px;
+          border-radius: var(--r-pill);
+          border: 1px solid #dfd7cc;
+          background: #ffffff;
+          color: #14181b;
+          font-size: 0.78rem;
           font-weight: 800;
-          color: #64748b;
-          padding-inline: 4px;
-          white-space: nowrap;
+          cursor: pointer;
+          transition: border-color 0.16s ease, color 0.16s ease, background 0.16s ease;
         }
-        .st-promo-arrows {
+        .st-deals-all-btn:hover {
+          border-color: var(--o);
+          color: var(--o);
+          background: #fffaf5;
+        }
+        .st-deals-arrows {
           display: inline-flex;
           align-items: center;
           gap: 6px;
         }
-        .st-promo-arrow-btn {
+        .st-deals-arrow-btn {
           width: 34px;
           height: 34px;
-          border-radius: 9px;
-          border: 1px solid #e2dbd0;
-          background: #fbfaf7;
+          border-radius: 9999px;
+          border: 1px solid #dfd7cc;
+          background: #ffffff;
           color: #334155;
           display: grid;
           place-items: center;
           cursor: pointer;
           transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
         }
-        .st-promo-arrow-btn:hover {
-          background: #ffffff;
+        .st-deals-arrow-btn:hover {
           border-color: var(--o);
           color: var(--o);
+          background: #fffaf5;
+        }
+        .st-deals-track {
+          display: grid;
+          grid-auto-flow: column;
+          grid-auto-columns: clamp(204px, 18.2vw, 238px);
+          gap: 12px;
+          overflow-x: auto;
+          scroll-snap-type: x proximity;
+          padding: 2px 2px 6px;
+          scrollbar-width: thin;
+          scrollbar-color: #dfd7cc transparent;
+        }
+        .st-deal-card {
+          background: #ffffff;
+          border: 1px solid #e7e1d7;
+          border-radius: 14px;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          scroll-snap-align: start;
+          cursor: pointer;
+          box-shadow: 0 10px 24px -20px rgba(20, 24, 27, 0.16);
+          transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+        }
+        .st-deal-card:hover {
+          transform: translateY(-2px);
+          border-color: rgba(199, 85, 23, 0.45);
+          box-shadow: 0 16px 30px -20px rgba(20, 24, 27, 0.22);
+        }
+        .st-deal-media {
+          position: relative;
+          aspect-ratio: 5 / 4;
+          background: #f8f6f2;
+          border-bottom: 1px solid #f0ebe2;
+          overflow: hidden;
+        }
+        .st-deal-media img {
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+          padding: 4px;
+          mix-blend-mode: multiply;
+          display: block;
+          transition: transform 0.3s ease;
+        }
+        .st-deal-card:hover .st-deal-media img {
+          transform: scale(1.03);
+        }
+        .st-deal-badge {
+          position: absolute;
+          top: 8px;
+          inset-inline-start: 8px;
+          padding: 2px 8px;
+          border-radius: var(--r-pill);
+          background: rgba(255, 255, 255, 0.94);
+          border: 1px solid #e7e1d7;
+          color: #14181b;
+          font-size: 0.66rem;
+          font-weight: 800;
+          box-shadow: 0 4px 12px rgba(20, 24, 27, 0.1);
+        }
+        .st-deal-badge.is-discount {
+          background: #059669;
+          border-color: #059669;
+          color: #ffffff;
+        }
+        .st-deal-body {
+          padding: 9px 11px 11px;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          flex: 1;
+        }
+        .st-deal-meta {
+          font-size: 0.67rem;
+          font-weight: 800;
+          color: var(--o);
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .st-deal-body h3 {
+          margin: 0;
+          font-size: 0.82rem;
+          font-weight: 800;
+          line-height: 1.38;
+          color: #14181b;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .st-deal-price-box {
+          margin-top: auto;
+          padding-top: 6px;
+          border-top: 1px solid #f2ede4;
+          display: flex;
+          align-items: baseline;
+          justify-content: space-between;
+          gap: 6px;
+          flex-wrap: wrap;
+        }
+        .st-deal-price {
+          font-size: 0.72rem;
+          color: #525e6a;
+          font-weight: 600;
+        }
+        .st-deal-price strong {
+          font-size: 0.94rem;
+          font-weight: 900;
+          color: #14181b;
+        }
+        .st-deal-old {
+          font-size: 0.69rem;
+          color: #94a3b8;
+          text-decoration: line-through;
+          margin-inline-end: 4px;
+        }
+        .st-deal-save {
+          font-size: 0.66rem;
+          font-weight: 800;
+          color: #059669;
+          background: #ecfdf5;
+          padding: 1px 6px;
+          border-radius: var(--r-pill);
+        }
+        .st-deal-add-btn {
+          width: 100%;
+          min-height: 32px !important;
+          padding: 4px 10px !important;
+          font-size: 0.76rem !important;
+          border-radius: var(--r-btn-sm) !important;
+          margin-top: 4px;
+        }
+        .st-deal-add-btn.is-added {
+          background: #059669 !important;
         }
 
         /* 2. Store Visual Sections Band */
@@ -2537,40 +2491,15 @@ export default function StoreClient({
             gap: 20px;
           }
         }
-        @media (max-width: 960px) {
-          .st-promo-grid {
-            grid-template-columns: 1fr;
-            gap: 16px;
-          }
-          .st-promo-media-frame {
-            aspect-ratio: 16 / 9;
-            max-height: 260px;
-          }
-        }
         @media (max-width: 639px) {
-          .pw.st-page .pw-unified-hero.st-promo-stage {
-            padding: 14px 0 18px;
+          .pw.st-page .pw-unified-hero.st-deals-stage {
+            padding: 12px 0 18px;
           }
-          .st-promo-card {
-            padding: 16px;
-            gap: 14px;
+          .st-deals-track {
+            grid-auto-columns: min(74vw, 224px);
           }
-          .st-promo-segs {
-            width: 100%;
-            display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-          }
-          .st-promo-seg {
-            justify-content: center;
-            padding: 8px 10px;
-          }
-          .st-promo-nav-end {
-            width: 100%;
-            justify-content: space-between;
-          }
-          .st-promo-actions .pw-btn {
-            width: 100%;
-            min-height: 44px;
+          .st-deal-add-btn {
+            min-height: 36px !important;
           }
           .st-mode-switch {
             width: 100%;
@@ -2624,13 +2553,9 @@ export default function StoreClient({
           .st-wa-link {
             min-height: 38px !important;
           }
-          .st-promo-arrow-btn {
-            width: 40px;
-            height: 40px;
-          }
         }
         @media (prefers-reduced-motion: reduce) {
-          .st-promo-bg-slide,
+          .st-deal-media img,
           .st-prod-media img {
             transition: none !important;
             animation: none !important;
@@ -2652,8 +2577,8 @@ export default function StoreClient({
         html.low-graphics-mode .pw.st-page .st-modal-overlay {
           background: rgba(15, 22, 30, 0.72) !important;
         }
-        html.low-graphics-mode .pw.st-page .st-promo-bg-slide,
-        html.low-graphics-mode .pw.st-page .st-promo-bg-slide.is-active,
+        html.low-graphics-mode .pw.st-page .st-deal-card:hover,
+        html.low-graphics-mode .pw.st-page .st-deal-card:hover .st-deal-media img,
         html.low-graphics-mode .pw.st-page .st-prod-card:hover,
         html.low-graphics-mode .pw.st-page .st-prod-card:hover .st-prod-media img,
         html.low-graphics-mode .pw.st-page .st-section-card:hover {
@@ -2677,15 +2602,10 @@ export default function StoreClient({
         onOpenContact={() => setContactOpen(true)}
       />
 
-      {/* 1. Calm Warm-Pearl Editorial Split Promotional Hero */}
-      <section
-        className="pw-unified-hero st-promo-stage"
-        aria-label="عروض متجر فاي تك المميزة"
-        onMouseEnter={() => setSliderPaused(true)}
-        onMouseLeave={() => setSliderPaused(false)}
-      >
-        <div className="pw-wrap st-wide-wrap st-promo-inner">
-          <div className="st-promo-top-meta">
+      {/* 1. Live Goods Offers & Deals Showcase */}
+      <section className="pw-unified-hero st-deals-stage" aria-label="عروض البضاعة والخصومات">
+        <div className="pw-wrap st-wide-wrap st-deals-inner">
+          <div className="st-deals-top-meta">
             <nav className="pw-unified-crumb" aria-label="مسار التنقل">
               <Link href="/">الرئيسية</Link>
               <span className="sep">/</span>
@@ -2694,110 +2614,123 @@ export default function StoreClient({
             {PROMO_BANNER.enabled && <div className="pw-unified-promo">{PROMO_BANNER.text}</div>}
           </div>
 
-          <div className="st-promo-card">
-            <div className="st-promo-grid">
-              <div className="st-promo-copy">
-                <span className="st-promo-kicker">
-                  <i aria-hidden="true" />
-                  <span>{activeSlide.kicker}</span>
-                </span>
-                <h1>{activeSlide.headline}</h1>
-                <p>{activeSlide.subtitle}</p>
-                <div className="st-promo-perks">
-                  {activeSlide.perks.map((perk) => (
-                    <span key={perk} className="st-promo-perk">
-                      <CheckIcon size={14} />
-                      <span>{perk}</span>
+          <div className="st-deals-head">
+            <div className="st-deals-title-wrap">
+              <span className="st-deals-eyebrow">خصومات وتخفيضات مباشرة على البضاعة</span>
+              <div className="st-deals-title-row">
+                <h1>عروض البضاعة</h1>
+                {(totalDiscountedCount ?? 0) > 0 && (
+                  <span className="st-deals-count-pill">
+                    {totalDiscountedCount!.toLocaleString('en-US')} عرض متاح
+                  </span>
+                )}
+              </div>
+              <p className="st-deals-sub">
+                تصفح أقوى عروض التوريد المباشر وأقل الأسعار المحدثة — اضغط على أي منتج لعرض المواصفات أو أضفه مباشرة للسلة.
+              </p>
+            </div>
+
+            <div className="st-deals-head-actions">
+              <button
+                type="button"
+                className="st-deals-all-btn"
+                onClick={handleShowAllDeals}
+              >
+                عرض كل العروض ←
+              </button>
+              <div className="st-deals-arrows">
+                <button
+                  type="button"
+                  className="st-deals-arrow-btn"
+                  onClick={() => scrollDealsBy(1)}
+                  aria-label="التمرير لليمين"
+                >
+                  <ChevronRightIcon />
+                </button>
+                <button
+                  type="button"
+                  className="st-deals-arrow-btn"
+                  onClick={() => scrollDealsBy(-1)}
+                  aria-label="التمرير لليسار"
+                >
+                  <ChevronLeftIcon />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div ref={dealsTrackRef} className="st-deals-track">
+            {offerProducts.map((p) => {
+              const cat = categoryMap[p.category] || PRODUCT_CATEGORIES[0];
+              const imageUrl = getProductImageUrl(p);
+              const isAdded = addedId === p.id;
+              const discountPct =
+                p.oldPrice && p.oldPrice > p.price && p.price > 0
+                  ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100)
+                  : 0;
+              const savedAmount =
+                p.oldPrice && p.oldPrice > p.price && p.price > 0 ? p.oldPrice - p.price : 0;
+
+              return (
+                <article
+                  key={`offer-${p.id}`}
+                  className="st-deal-card"
+                  title="اضغط لعرض التفاصيل والمواصفات"
+                  onClick={() => handleOpenDetail(p)}
+                >
+                  <div className="st-deal-media">
+                    <img src={imageUrl} alt={p.name} loading="lazy" decoding="async" />
+                    {discountPct > 0 ? (
+                      <span className="st-deal-badge is-discount">خصم {discountPct}%</span>
+                    ) : p.badge ? (
+                      <span className="st-deal-badge">{p.badge}</span>
+                    ) : null}
+                  </div>
+
+                  <div className="st-deal-body">
+                    <span className="st-deal-meta">
+                      {cat.shortTitle} · {p.brand}
                     </span>
-                  ))}
-                </div>
-                <div className="st-promo-actions">
-                  <button
-                    type="button"
-                    className="pw-btn pw-btn-primary"
-                    onClick={() => handleHeroOfferAction(activeSlide.primaryAction)}
-                  >
-                    <span>{activeSlide.primaryLabel}</span>
-                  </button>
-                  {activeSlide.secondaryHref ? (
-                    <a href={activeSlide.secondaryHref} className="pw-btn st-promo-secondary-btn">
-                      <span>{activeSlide.secondaryLabel}</span>
-                    </a>
-                  ) : activeSlide.secondaryAction === 'contact' ? (
+                    <h3>{p.name}</h3>
+
+                    <div className="st-deal-price-box">
+                      <div className="st-deal-price">
+                        {p.price > 0 ? (
+                          <>
+                            {p.oldPrice && p.oldPrice > p.price && (
+                              <span className="st-deal-old">
+                                {p.oldPrice.toLocaleString('en-US')}
+                              </span>
+                            )}
+                            <strong>{p.price.toLocaleString('en-US')}</strong>{' '}
+                            <span>{p.currency} / {p.unit}</span>
+                          </>
+                        ) : (
+                          <span>تسعير فوري · {p.unit}</span>
+                        )}
+                      </div>
+                      {savedAmount > 0 && (
+                        <span className="st-deal-save">
+                          وفر {savedAmount.toLocaleString('en-US')} {p.currency}
+                        </span>
+                      )}
+                    </div>
+
                     <button
                       type="button"
-                      onClick={() => setContactOpen(true)}
-                      className="pw-btn st-promo-secondary-btn"
+                      disabled={!p.inStock}
+                      className={`pw-btn pw-btn-primary st-deal-add-btn ${isAdded ? 'is-added' : ''}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleProductAdd(p, false);
+                      }}
                     >
-                      <span>{activeSlide.secondaryLabel}</span>
+                      {!p.inStock ? 'نفد حالياً' : isAdded ? 'تمت الإضافة ✓' : 'أضف للسلة'}
                     </button>
-                  ) : activeSlide.secondaryAction ? (
-                    <button
-                      type="button"
-                      onClick={() => handleHeroOfferAction(activeSlide.secondaryAction as HeroOfferAction)}
-                      className="pw-btn st-promo-secondary-btn"
-                    >
-                      <span>{activeSlide.secondaryLabel}</span>
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="st-promo-media-frame" aria-hidden="true">
-                {STORE_OFFER_SLIDES.map((slide, idx) => (
-                  <img
-                    key={slide.id}
-                    src={slide.image}
-                    alt=""
-                    className={`st-promo-bg-slide ${idx === slideIdx ? 'is-active' : ''}`}
-                    loading={idx === 0 ? 'eager' : 'lazy'}
-                    decoding="async"
-                  />
-                ))}
-              </div>
-            </div>
-
-            <div className="st-promo-controls">
-              <div className="st-promo-segs" role="tablist" aria-label="شرائح العروض">
-                {STORE_OFFER_SLIDES.map((s, idx) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={idx === slideIdx}
-                    onClick={() => goToSlide(idx)}
-                    className={`st-promo-seg ${idx === slideIdx ? 'is-active' : ''}`}
-                  >
-                    <span className="st-promo-seg-num">0{idx + 1}</span>
-                    <span>{s.shortLabel}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="st-promo-nav-end">
-                <div className="st-promo-counter" dir="ltr">
-                  0{slideIdx + 1} / 0{STORE_OFFER_SLIDES.length}
-                </div>
-                <div className="st-promo-arrows">
-                  <button
-                    type="button"
-                    className="st-promo-arrow-btn"
-                    onClick={() => goToSlide(slideIdx - 1)}
-                    aria-label="العرض السابق"
-                  >
-                    <ChevronRightIcon />
-                  </button>
-                  <button
-                    type="button"
-                    className="st-promo-arrow-btn"
-                    onClick={() => goToSlide(slideIdx + 1)}
-                    aria-label="العرض التالي"
-                  >
-                    <ChevronLeftIcon />
-                  </button>
-                </div>
-              </div>
-            </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>

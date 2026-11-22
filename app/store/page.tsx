@@ -32,9 +32,24 @@ export const metadata: Metadata = {
 
 export default async function StorePage() {
   const content = await getPublished();
-  const initialCatalog = await queryStoreCatalog(
-    { page: 1, pageSize: 24, sort: 'featured' },
-    content.products
+  const [initialCatalog, discountedCatalog] = await Promise.all([
+    queryStoreCatalog({ page: 1, pageSize: 24, sort: 'featured' }, content.products),
+    queryStoreCatalog({ page: 1, pageSize: 12, onlyDiscounted: true, sort: 'featured' }, content.products),
+  ]);
+  const seenOfferIds = new Set<string>();
+  const initialOffers = [...discountedCatalog.items, ...initialCatalog.items]
+    .filter((item) => {
+      if (seenOfferIds.has(item.id)) return false;
+      seenOfferIds.add(item.id);
+      return true;
+    })
+    .slice(0, 12);
+  return (
+    <StoreClient
+      content={content}
+      initialCatalog={initialCatalog}
+      initialOffers={initialOffers}
+      totalDiscountedCount={discountedCatalog.totalMatched}
+    />
   );
-  return <StoreClient content={content} initialCatalog={initialCatalog} />;
 }

@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'phi-shell-v30';
+const CACHE_VERSION = 'phi-shell-v31';
 const SHELL_URLS = [
   '/manifest.json',
   '/phitech-symbol.svg',
