@@ -110,6 +110,17 @@ const DUAL_PORTAL_CONTAINERS: DualPortalDef[] = [
   },
 ];
 
+function normalizeArabicQuery(text: string): string {
+  return String(text || '')
+    .toLowerCase()
+    .replace(/[\u064b-\u065f\u0670\u0640]/g, '')
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export default function HomePortalSections({
   products = DEFAULT_PRODUCTS,
   totalCatalogCount,
@@ -124,6 +135,12 @@ export default function HomePortalSections({
   // Stage 1: Omni-Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [remoteSearch, setRemoteSearch] = useState<{
+    query: string;
+    items: WebsiteProduct[];
+    totalMatched: number;
+  } | null>(null);
+  const [remoteSearching, setRemoteSearching] = useState(false);
   const omniRef = useRef<HTMLDivElement>(null);
 
   // Stage 4: Best-Sellers filter & dynamic row-aligned load-more state
@@ -205,9 +222,54 @@ export default function HomePortalSections({
     };
   }, []);
 
+  // Query full store catalog API when typing in Omni-Search
+  useEffect(() => {
+    const trimmed = searchQuery.trim();
+    if (!trimmed) {
+      setRemoteSearch(null);
+      setRemoteSearching(false);
+      return;
+    }
+    if (!searchOpen) return;
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setRemoteSearching(true);
+      try {
+        const sp = new URLSearchParams({
+          q: trimmed,
+          pageSize: '8',
+          sort: 'featured',
+        });
+        const res = await fetch(`/api/store-catalog?${sp.toString()}`, {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!controller.signal.aborted && Array.isArray(data?.items)) {
+          setRemoteSearch({
+            query: trimmed,
+            items: data.items,
+            totalMatched: typeof data.totalMatched === 'number' ? data.totalMatched : data.items.length,
+          });
+        }
+      } catch {
+        // Ignore abort/network glitches; local matches remain visible
+      } finally {
+        if (!controller.signal.aborted) setRemoteSearching(false);
+      }
+    }, 180);
+
+    return () => {
+      window.clearTimeout(timer);
+      controller.abort();
+    };
+  }, [searchQuery, searchOpen]);
+
   // Omni-Search live filtering across ALL sections
   const omniResults = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const q = normalizeArabicQuery(searchQuery);
     if (!q) {
       return {
         matchedSections: [] as typeof sections,
@@ -220,8 +282,8 @@ export default function HomePortalSections({
 
     const tokens = q.split(/\s+/).filter(Boolean);
     const matchesAll = (haystack: string) => {
-      const lower = haystack.toLowerCase();
-      return tokens.every((tok) => lower.includes(tok));
+      const normalized = normalizeArabicQuery(haystack);
+      return tokens.every((tok) => normalized.includes(tok));
     };
 
     const matchedSections = sections.filter((s) =>
@@ -257,6 +319,18 @@ export default function HomePortalSections({
 
     return { matchedSections, matchedTools, matchedProducts, matchedServices, totalCount };
   }, [searchQuery, sections, products, maintenanceServices, categoryMap]);
+
+  const trimmedQuery = searchQuery.trim();
+  const hasFreshRemote = Boolean(remoteSearch && remoteSearch.query === trimmedQuery);
+  const displaySearchProducts = hasFreshRemote ? remoteSearch!.items : omniResults.matchedProducts;
+  const displaySearchProductsTotal = hasFreshRemote
+    ? remoteSearch!.totalMatched
+    : omniResults.matchedProducts.length;
+  const displayOmniTotal =
+    displaySearchProducts.length +
+    omniResults.matchedServices.length +
+    omniResults.matchedSections.length +
+    omniResults.matchedTools.length;
 
   // Sorted Best-Sellers list: Telegram-hosted product media first, then featured, then priced
   const sortedBestSellers = useMemo(() => {
@@ -350,15 +424,20 @@ export default function HomePortalSections({
                     ✕
                   </button>
                 )}
-                <Link href="/store" className="pw-omni-store-btn">
-                  المتجر الكامل ←
+                <Link
+                  href={trimmedQuery ? `/store?q=${encodeURIComponent(trimmedQuery)}` : '/store'}
+                  className="pw-omni-store-btn"
+                >
+                  {trimmedQuery ? 'كل النتائج ←' : 'المتجر الكامل ←'}
                 </Link>
               </div>
 
               {/* Live Omni-Search Dropdown */}
-              {searchOpen && searchQuery.trim().length > 0 && (
+              {searchOpen && trimmedQuery.length > 0 && (
                 <div className="pw-omni-dropdown" role="region" aria-label="نتائج البحث الفورية">
-                  {omniResults.totalCount === 0 ? (
+                  {remoteSearching && displayOmniTotal === 0 ? (
+                    <div className="pw-omni-loading">جاري البحث في المتجر...</div>
+                  ) : displayOmniTotal === 0 ? (
                     <div className="pw-omni-empty">
                       <p>لم نعثر على نتيجة مطابقة لـ «{searchQuery}».</p>
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -381,22 +460,57 @@ export default function HomePortalSections({
                     </div>
                   ) : (
                     <>
-                      {omniResults.matchedProducts.length > 0 && (
+                      {displaySearchProducts.length > 0 && (
                         <div className="pw-omni-group">
-                          <div className="pw-omni-group-title">المنتجات والسمارت هوم وخامات التشطيب</div>
-                          {omniResults.matchedProducts.map((p) => {
+                          <div className="pw-omni-group-title">
+                            <span>المنتجات والسمارت هوم وخامات التشطيب</span>
+                            <span className="pw-omni-group-count">
+                              {displaySearchProductsTotal.toLocaleString('en-US')} منتج
+                            </span>
+                          </div>
+                          {displaySearchProducts.map((p) => {
                             const cat = categoryMap[p.category];
                             const thumb = getProductImageUrl(p);
                             const isAdded = addedId === p.id;
+                            const catShort = cat?.shortTitle || '';
+                            const showBrand = Boolean(p.brand && p.brand !== catShort);
+                            const currency = p.currency || 'ج.م';
                             return (
-                              <div key={p.id} className="pw-omni-row">
-                                <img src={thumb} alt={p.name} className="pw-omni-thumb" width={64} height={48} />
+                              <div
+                                key={p.id}
+                                className="pw-omni-row"
+                                onClick={(e) => {
+                                  if (!isInteractiveClick(e.target)) {
+                                    setDetailProduct(p);
+                                    setSearchOpen(false);
+                                  }
+                                }}
+                              >
+                                <img src={thumb} alt={p.name} className="pw-omni-thumb" width={58} height={52} />
                                 <div className="pw-omni-row-info">
                                   <div className="pw-omni-row-meta">
-                                    <span>{cat?.shortTitle}</span>
+                                    {catShort && <span>{catShort}</span>}
+                                    {showBrand && <span>{p.brand}</span>}
                                     <span>{p.code}</span>
                                   </div>
                                   <strong>{p.name}</strong>
+                                  <div className="pw-omni-price-row">
+                                    {p.price > 0 ? (
+                                      <>
+                                        <span className="pw-omni-price">
+                                          {p.price.toLocaleString('en-US')} {currency}
+                                        </span>
+                                        <span className="pw-omni-unit">/ {p.unit}</span>
+                                        {p.oldPrice && p.oldPrice > p.price && (
+                                          <s className="pw-omni-old-price">
+                                            {p.oldPrice.toLocaleString('en-US')} {currency}
+                                          </s>
+                                        )}
+                                      </>
+                                    ) : (
+                                      <span className="pw-omni-price-quote">تسعير عند الطلب · {p.unit}</span>
+                                    )}
+                                  </div>
                                 </div>
                                 <div className="pw-omni-row-actions">
                                   {onAddToCart && (
@@ -408,13 +522,29 @@ export default function HomePortalSections({
                                       {isAdded ? 'تمت الإضافة ✓' : 'أضف للسلة'}
                                     </button>
                                   )}
-                                  <Link href={`/store?category=${p.category}`} className="pw-omni-go-link" onClick={() => setSearchOpen(false)}>
-                                    عرض ←
-                                  </Link>
+                                  <button
+                                    type="button"
+                                    className="pw-omni-go-link"
+                                    onClick={() => {
+                                      setDetailProduct(p);
+                                      setSearchOpen(false);
+                                    }}
+                                  >
+                                    التفاصيل
+                                  </button>
                                 </div>
                               </div>
                             );
                           })}
+                          {displaySearchProductsTotal > displaySearchProducts.length && (
+                            <Link
+                              href={`/store?q=${encodeURIComponent(trimmedQuery)}`}
+                              className="pw-omni-see-all"
+                              onClick={() => setSearchOpen(false)}
+                            >
+                              عرض جميع النتائج ({displaySearchProductsTotal.toLocaleString('en-US')} منتج) في المتجر ←
+                            </Link>
+                          )}
                         </div>
                       )}
 

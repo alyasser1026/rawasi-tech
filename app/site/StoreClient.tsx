@@ -254,6 +254,11 @@ export default function StoreClient({
         setOnlyDiscounted(true);
         setActiveStoreTab('products');
       }
+      const qParam = params.get('q');
+      if (qParam && qParam.trim()) {
+        setSearchQuery(qParam.trim());
+        setActiveStoreTab('products');
+      }
       const cat = params.get('category') || params.get('cat');
       if (cat && PRODUCT_CATEGORIES.some((c) => c.id === cat)) {
         setSelectedCategory(cat as ProductCategoryId);
