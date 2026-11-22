@@ -174,8 +174,11 @@ export function useReportsLogic() {
         const estSubcontractors = round2(
           boqsToSum.reduce((s: number, b: any) => s + (Number(b.estimated_subcontractor_cost) || 0), 0)
         );
-        const estimatedBudget =
-          round2(estLabor + estMaterials + estExpenses + estSubcontractors) || round2(Number(p.estimated_budget) || 0);
+        const projectEstimatedBudget = round2(Number(p.estimated_budget) || 0);
+        const boqEstimatedBudget = round2(estLabor + estMaterials + estExpenses + estSubcontractors);
+        const budgetSource: 'project' | 'boq' | 'none' =
+          projectEstimatedBudget > 0 ? 'project' : boqEstimatedBudget > 0 ? 'boq' : 'none';
+        const estimatedBudget = projectEstimatedBudget > 0 ? projectEstimatedBudget : boqEstimatedBudget;
 
         const jobOrders = rawData.job_orders
           .filter((j: any) => String(j.project_id) === pid)
@@ -237,10 +240,12 @@ export function useReportsLogic() {
         const materialsCostEffective = materialsIssuedTotal > 0 ? materialsIssuedTotal : materialsReceivedTotal;
         // خامات على حساب الشركة فقط (بعد استبعاد خامات العميل المخصومة أصلاً في حساب 217)
         const companyMaterialsCost = round2(Math.max(0, materialsCostEffective - clientMaterialsDeduction));
-        // موازنة التنفيذ المقدرة للشركة (بعد استبعاد جزء الخامات التقديري الذي وردّه العميل)
-        const estimatedExecutionBudget = round2(
+        // صافي الموازنة بعد استبعاد جزء الخامات التقديري الذي وردّه العميل (للمعلومية فقط)
+        const netExecutionBudgetExClientMaterials = round2(
           Math.max(0, estimatedBudget - Math.min(estMaterials, clientMaterialsDeduction))
         );
+        // الموازنة المعتمدة للمشروع بدون تقليص تلقائي بخامات العميل
+        const estimatedExecutionBudget = estimatedBudget;
 
         const pAbcAllocs = abcAllocations.filter((a) => String(a.project_id) === pid);
         const abcExpensesTotal = round2(pAbcAllocs.reduce((s, a) => s + (Number(a.allocated_amount) || 0), 0));
@@ -377,6 +382,10 @@ export function useReportsLogic() {
           client_net_ex_retention: clientNetExRetention,
           estimated_budget: estimatedBudget,
           estimated_execution_budget: estimatedExecutionBudget,
+          project_estimated_budget: projectEstimatedBudget,
+          boq_estimated_budget: boqEstimatedBudget,
+          budget_source: budgetSource,
+          net_execution_budget_ex_client_materials: netExecutionBudgetExClientMaterials,
           est_labor: estLabor,
           est_materials: estMaterials,
           est_expenses: estExpenses,
@@ -572,6 +581,18 @@ export function useReportsLogic() {
     const totalEstimatedExecutionBudget = round2(
       projectsMatrix.reduce((s, p) => s + p.estimated_execution_budget, 0)
     );
+    const totalProjectEstimatedBudget = round2(
+      projectsMatrix.reduce((s, p) => s + (Number(p.project_estimated_budget) || 0), 0)
+    );
+    const totalBoqEstimatedBudget = round2(
+      projectsMatrix.reduce((s, p) => s + (Number(p.boq_estimated_budget) || 0), 0)
+    );
+    const totalNetExecutionBudgetExClientMaterials = round2(
+      projectsMatrix.reduce((s, p) => s + (Number(p.net_execution_budget_ex_client_materials) || 0), 0)
+    );
+    const totalProjectReceipts = round2(
+      projectsMatrix.reduce((s, p) => s + (Number(p.receipts_total) || 0), 0)
+    );
     const totalCompanyMaterials = round2(projectsMatrix.reduce((s, p) => s + p.company_materials_cost, 0));
     const totalActualProjectCosts = round2(projectsMatrix.reduce((s, p) => s + p.total_actual_cost, 0));
     const totalForecastedCostEac = round2(projectsMatrix.reduce((s, p) => s + p.forecasted_cost_eac, 0));
@@ -712,6 +733,10 @@ export function useReportsLogic() {
         totalClientNetExRetention,
         totalEstimatedBudget,
         totalEstimatedExecutionBudget,
+        totalProjectEstimatedBudget,
+        totalBoqEstimatedBudget,
+        totalNetExecutionBudgetExClientMaterials,
+        totalProjectReceipts,
         totalCompanyMaterials,
         totalActualProjectCosts,
         totalForecastedCostEac,

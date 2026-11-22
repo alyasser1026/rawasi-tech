@@ -258,12 +258,12 @@ export function ContractWaterfallChart({ reportData, variant = 'web' }: Executiv
       kind: 'محتجز ضمان الأعمال',
     },
     {
-      label: '4. المبلغ المستلم',
+      label: '4. صافي المستحق التعاقدي',
       val: netReceived,
       start: 0,
       end: netReceived,
       color: '#059669',
-      kind: 'صافي بدون ضمان الأعمال',
+      kind: 'صافي العقد بعد الخامات والضمان',
     },
     {
       label: '5. (-) التكلفة الفعلية',
@@ -325,7 +325,7 @@ export function ContractWaterfallChart({ reportData, variant = 'web' }: Executiv
             شلال العقد والربحية (من قيمة التعاقد إلى صافي الربح الفعلي)
           </div>
           <div style={{ fontSize: th.subSize, color: th.muted, fontWeight: 700 }}>
-            التسلسل المحاسبي المعتمد: العقود ← خصم خامات العميل ← خصم ضمان الأعمال ← المبلغ المستلم ← التكلفة الفعلية ← الربح
+            التسلسل المحاسبي المعتمد: العقود ← خصم خامات العميل ← خصم ضمان الأعمال ← صافي المستحق التعاقدي ← التكلفة الفعلية ← الربح
           </div>
         </div>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
@@ -500,17 +500,20 @@ export function ProjectsPerformanceCharts({ reportData, variant = 'web' }: Execu
   const profTotalSpan = Math.max(1, profMax - profMin);
 
   const W = 470;
-  const H = 205;
+  const H = 208;
   const padL = 44;
   const padR = 14;
-  const padT = 18;
+  const padT = 22;
   const padB = 34;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
   const groupStep = plotW / projects.length;
-  const barW = Math.min(18, Math.max(6, (groupStep - 10) / 3));
-  const gap = Math.min(4, Math.max(1.5, barW * 0.2));
+  const barW =
+    projects.length <= 3
+      ? Math.min(30, Math.max(6, (groupStep - 18) / 3))
+      : Math.min(18, Math.max(6, (groupStep - 10) / 3));
+  const gap = Math.min(6, Math.max(2, barW * 0.22));
 
   const toCostY = (v: number) => padT + ((costMax * 1.12 - v) / (costMax * 1.12)) * plotH;
   const costZeroY = padT + plotH;
@@ -528,22 +531,22 @@ export function ProjectsPerformanceCharts({ reportData, variant = 'web' }: Execu
         gap: th.isPrint ? '10px' : '1rem',
       }}
     >
-      {/* 1أ: الإيراد المستلم vs الموازنة vs التكلفة الفعلية */}
+      {/* 1أ: صافي العقد vs الموازنة المعتمدة vs التكلفة الفعلية */}
       <div style={th.subCardStyle}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '6px', marginBottom: '6px' }}>
           <div>
             <div style={{ fontWeight: 900, fontSize: th.titleSize, color: th.ink }}>
-              أداء الفلل: المستلم vs موازنة التنفيذ vs الصرف الفعلي
+              أداء المشاريع: صافي العقد (بدون ضمان) vs الموازنة المعتمدة vs الصرف الفعلي
             </div>
             <div style={{ fontSize: th.subSize, color: th.muted, fontWeight: 700 }}>
               {hoveredCostProj && !th.isPrint
-                ? `${hoveredCostProj.name}: مستلم ${formatCurrency(hoveredCostProj.client_net_ex_retention)} • موازنة ${formatCurrency(hoveredCostProj.estimated_execution_budget)} • فعلي ${formatCurrency(hoveredCostProj.total_actual_cost)}`
-                : 'الأعمدة الحمراء تشير إلى المشاريع التي تجاوز صرفها الفعلي حدود الموازنة'}
+                ? `${hoveredCostProj.name}: صافي العقد ${formatCurrency(hoveredCostProj.client_net_ex_retention)} • الموازنة المعتمدة ${formatCurrency(hoveredCostProj.estimated_budget)} • فعلي ${formatCurrency(hoveredCostProj.total_actual_cost)} • محصّل بسندات قبض ${formatCurrency(hoveredCostProj.receipts_total)}`
+                : 'الأعمدة الحمراء تشير إلى المشاريع التي تجاوز صرفها الفعلي حدود الموازنة المعتمدة'}
             </div>
           </div>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', fontSize: th.isPrint ? '7.6px' : '0.72rem', fontWeight: 800, color: th.sub }}>
-            <span>● <span style={{ color: '#10b981' }}>المستلم</span></span>
-            <span>● <span style={{ color: '#3b82f6' }}>الموازنة</span></span>
+            <span>● <span style={{ color: '#10b981' }}>صافي العقد</span></span>
+            <span>● <span style={{ color: '#3b82f6' }}>الموازنة المعتمدة</span></span>
             <span>● <span style={{ color: '#f59e0b' }}>فعلي</span> / <span style={{ color: '#dc2626' }}>تجاوز</span></span>
           </div>
         </div>
@@ -584,20 +587,29 @@ export function ProjectsPerformanceCharts({ reportData, variant = 'web' }: Execu
                   const bx = xStart + (barW + gap) * (2 - bIdx);
                   const by = toCostY(item.v);
                   const bh = Math.max(2, costZeroY - by);
-                  return <rect key={bIdx} x={bx} y={by} width={barW} height={bh} rx={3} fill={item.c} />;
+                  return (
+                    <g key={bIdx}>
+                      <rect x={bx} y={by} width={barW} height={bh} rx={3} fill={item.c} />
+                      {projects.length <= 4 && item.v > 0 && (
+                        <text
+                          x={bx + barW / 2}
+                          y={Math.max(10, by - 4)}
+                          textAnchor="middle"
+                          style={{
+                            fill: item.c,
+                            fontSize: th.isPrint ? '7.2px' : '7.8px',
+                            fontWeight: 900,
+                            fontFamily: th.svgFont,
+                          }}
+                        >
+                          {fmtShort(item.v)}
+                        </text>
+                      )}
+                    </g>
+                  );
                 })}
-                {projects.length <= 3 && (
-                  <text
-                    x={cx}
-                    y={toCostY(Math.max(...vals.map((x) => x.v))) - 5}
-                    textAnchor="middle"
-                    style={{ fill: th.ink, fontSize: '8.5px', fontWeight: 800, fontFamily: th.svgFont }}
-                  >
-                    {fmtShort(vals[0].v)}
-                  </text>
-                )}
-                {isOverrun && (
-                  <circle cx={xStart} cy={toCostY(vals[2].v) - 6} r={3.5} fill="#dc2626" />
+                {isOverrun && projects.length > 4 && (
+                  <circle cx={xStart + barW / 2} cy={toCostY(vals[2].v) - 6} r={3.5} fill="#dc2626" />
                 )}
                 <text
                   x={cx}

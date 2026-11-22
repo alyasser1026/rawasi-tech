@@ -27,7 +27,7 @@ export default function MasterDashboard() {
                 const [lines, headers, projects, labor, invoices, expenses, receipts] = await runWithConcurrency([
                     () => fetchAllSupabaseData(supabase, 'journal_lines', 'id, account_id, debit, credit', 'id', true),
                     () => fetchAllSupabaseData(supabase, 'journal_headers', 'id, reference_id', 'id', true),
-                    () => fetchAllSupabaseData(supabase, 'projects', 'id, total_budget, estimated_hours', 'id', true),
+                    () => fetchAllSupabaseData(supabase, 'projects', 'id, estimated_budget, estimated_hours', 'id', true),
                     () => fetchAllSupabaseData(supabase, 'labor_daily_logs', 'id, daily_wage, work_date, hours_worked', 'id', true),
                     () => fetchAllSupabaseData(supabase, 'invoices', 'id, status, total_amount', 'id', true),
                     () => fetchAllSupabaseData(supabase, 'expenses', 'id, amount, total_price', 'id', true),
@@ -40,7 +40,7 @@ export default function MasterDashboard() {
                 const pendingInvoices = invoices?.filter(i => i.status !== 'مدفوع').reduce((a, c) => a + Number(c.total_amount), 0);
 
                 // --- 2. إدارة المشاريع (الميزانية vs التنفيذ) ---
-                const budget = projects?.reduce((a, c) => a + Number(c.total_budget), 0) || 1;
+                const budget = projects?.reduce((a, c) => a + Number(c.estimated_budget || 0), 0) || 0;
                 const laborCosts = labor?.reduce((a, c) => a + Number(c.daily_wage), 0);
                 const totalActual = totalExp + laborCosts;
 
@@ -56,7 +56,7 @@ export default function MasterDashboard() {
 
                 setSummary({
                     finance: { liquidity: cash, receivables: pendingInvoices, expenses: totalExp },
-                    projects: { totalBudget: budget, actualSpend: totalActual, progress: (totalActual / budget) * 100 },
+                    projects: { totalBudget: budget, actualSpend: totalActual, progress: budget > 0 ? (totalActual / budget) * 100 : 0 },
                     labor: { count: activeNow, monthlyCost: laborCosts, efficiency: (estHours / actualHours) * 100 },
                     audit: { orphans: orphans, unbalanced: 0 }
                 });

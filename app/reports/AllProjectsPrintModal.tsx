@@ -662,8 +662,8 @@ export default function AllProjectsPrintModal({
               {
                 label:
                   t.totalRetentionAmount > 0
-                    ? `المبلغ المستلم (بعد الخامات وضمان ${t.overallRetentionPercentage}%: ${formatCurrency(t.totalRetentionAmount)})`
-                    : 'المبلغ المستلم (بعد الخامات • بدون ضمان 0%)',
+                    ? `صافي المستحق التعاقدي (بعد الخامات وضمان ${t.overallRetentionPercentage}%: ${formatCurrency(t.totalRetentionAmount)} • محصّل فعلياً: ${formatCurrency(t.totalProjectReceipts)})`
+                    : `صافي المستحق التعاقدي (بعد الخامات • بدون ضمان 0% • محصّل فعلياً: ${formatCurrency(t.totalProjectReceipts)})`,
                 value: formatCurrency(t.totalClientNetExRetention),
                 tone: 'tax',
               },
@@ -696,7 +696,7 @@ export default function AllProjectsPrintModal({
         {sections.projectsMatrix && (
           <div>
             <DocSection
-              title="1. مصفوفة المشاريع (الفلل): المبلغ المستلم، التكاليف، الربح المتوقع (EAC)، الربح الفعلي، ومعامل الانحراف"
+              title="1. مصفوفة المشاريع (الفلل): صافي المستحق التعاقدي، الموازنة المعتمدة، التكاليف، والأرباح ومعامل الانحراف"
               en="Projects Profit & Variance Matrix"
             />
             <table className="phi-master-table is-projects-matrix">
@@ -722,8 +722,8 @@ export default function AllProjectsPrintModal({
                   <th>قيمة التعاقد (BOQ)</th>
                   <th>خصم خامات (217)</th>
                   <th>ضمان الأعمال</th>
-                  <th>المبلغ المستلم (بدون ضمان)</th>
-                  <th>موازنة التنفيذ</th>
+                  <th>صافي العقد (بدون ضمان)</th>
+                  <th>الموازنة المعتمدة</th>
                   <th>عمالة ومقاولين</th>
                   <th>خامات شركة و ABC</th>
                   <th>تكلفة التنفيذ الفعلية</th>
@@ -759,17 +759,28 @@ export default function AllProjectsPrintModal({
                     <td style={{ color: '#15803d', fontWeight: 900 }}>
                       <div className="phi-amt">{formatCurrency(p.client_net_ex_retention)}</div>
                       <div style={{ fontSize: '7.2px', color: '#64748b' }}>
-                        قبل الضمان: {formatCurrency(p.contract_after_materials)}
+                        قبل الضمان: {formatCurrency(p.contract_after_materials)} • محصّل: {formatCurrency(p.receipts_total)}
                         {p.receipts_total > 0 ? ` • متبقي: ${formatCurrency(p.client_remaining)}` : ''}
                       </div>
                     </td>
                     <td style={{ fontWeight: 800 }}>
-                      <div className="phi-amt">{formatCurrency(p.estimated_execution_budget)}</div>
-                      {p.estimated_execution_budget !== p.estimated_budget && (
-                        <div style={{ fontSize: '7.2px', color: '#64748b' }}>
-                          كلية: {formatCurrency(p.estimated_budget)}
-                        </div>
+                      <div className="phi-amt">{formatCurrency(p.estimated_budget)}</div>
+                      {p.budget_source === 'project' &&
+                        p.boq_estimated_budget > 0 &&
+                        Math.abs(p.boq_estimated_budget - p.estimated_budget) >= 0.01 && (
+                          <div style={{ fontSize: '7.2px', color: '#64748b' }}>
+                            BOQ: {formatCurrency(p.boq_estimated_budget)}
+                          </div>
+                        )}
+                      {p.budget_source === 'boq' && (
+                        <div style={{ fontSize: '7.2px', color: '#64748b' }}>(من المقايسة)</div>
                       )}
+                      {p.client_materials_deduction > 0 &&
+                        Math.abs(p.net_execution_budget_ex_client_materials - p.estimated_budget) >= 0.01 && (
+                          <div style={{ fontSize: '7.2px', color: '#64748b' }}>
+                            بعد الخامات: {formatCurrency(p.net_execution_budget_ex_client_materials)}
+                          </div>
+                        )}
                     </td>
                     <td>
                       <div style={{ fontWeight: 800 }}>
@@ -850,14 +861,20 @@ export default function AllProjectsPrintModal({
                   <td style={{ color: '#15803d' }}>
                     <div className="phi-amt">{formatCurrency(t.totalClientNetExRetention)}</div>
                     <div style={{ fontSize: '7.2px', color: '#475569' }}>
-                      قبل الضمان: {formatCurrency(t.totalContractAfterMaterials)}
+                      قبل الضمان: {formatCurrency(t.totalContractAfterMaterials)} • محصّل: {formatCurrency(t.totalProjectReceipts)}
                       {t.totalClientRemaining !== t.totalContractAfterMaterials
                         ? ` • متبقي: ${formatCurrency(t.totalClientRemaining)}`
                         : ''}
                     </div>
                   </td>
                   <td>
-                    <span className="phi-amt">{formatCurrency(t.totalEstimatedExecutionBudget)}</span>
+                    <span className="phi-amt">{formatCurrency(t.totalEstimatedBudget)}</span>
+                    {t.totalBoqEstimatedBudget > 0 &&
+                      Math.abs(t.totalBoqEstimatedBudget - t.totalEstimatedBudget) >= 0.01 && (
+                        <div style={{ fontSize: '7.2px', color: '#64748b' }}>
+                          BOQ: {formatCurrency(t.totalBoqEstimatedBudget)}
+                        </div>
+                      )}
                   </td>
                   <td>
                     <div>
@@ -1356,7 +1373,7 @@ export default function AllProjectsPrintModal({
         <div className="phi-doc-summary" style={{ marginTop: '8px' }}>
           <div className="phi-doc-stack">
             <DocNote title="إقرار المطابقة المالية والمحاسبية الشاملة">
-              تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة. تم احتساب صافي المشاريع بالترتيب المحاسبي: قيمة العقد ({formatCurrency(t.totalContractValue)}) ← خصم خامات توريد العميل حساب 217 ({formatCurrency(t.totalClientMaterialsDeduction)}) لمرة واحدة فقط دون تكرار في التكاليف أو العمالة ← صافي العقد بعد الخامات ({formatCurrency(t.totalContractAfterMaterials)}) ← خصم محتجز ضمان الأعمال حسب نسب البنود الفعلية ({t.overallRetentionPercentage}% بإجمالي {formatCurrency(t.totalRetentionAmount)}) ← المبلغ المستلم غير شامل الضمان ({formatCurrency(t.totalClientNetExRetention)}).
+              تم إعداد هذا التقرير آلياً من واقع السجلات المحاسبية وميزانيات المشاريع المعتمدة والمقايسات التعاقدية (BOQ) ومستخلصات مقاولي الباطن ويوميات العمالة وفواتير الخامات وسندات الخزينة المعتمدة. تم احتساب صافي المستحق التعاقدي للمشاريع بالترتيب المحاسبي: قيمة العقد ({formatCurrency(t.totalContractValue)}) ← خصم خامات توريد العميل حساب 217 ({formatCurrency(t.totalClientMaterialsDeduction)}) لمرة واحدة فقط دون تكرار في التكاليف أو العمالة ← صافي العقد بعد الخامات ({formatCurrency(t.totalContractAfterMaterials)}) ← خصم محتجز ضمان الأعمال حسب نسب البنود الفعلية ({t.overallRetentionPercentage}% بإجمالي {formatCurrency(t.totalRetentionAmount)}) ← صافي المستحق التعاقدي بدون الضمان ({formatCurrency(t.totalClientNetExRetention)})، والمحصّل فعلياً بسندات القبض للمشاريع ({formatCurrency(t.totalProjectReceipts)}).
             </DocNote>
             {sections.signatures && (
               <DocSignatures
@@ -1378,7 +1395,8 @@ export default function AllProjectsPrintModal({
                 value: formatCurrency(t.totalRetentionAmount),
                 tone: t.totalRetentionAmount > 0 ? 'warn' : 'muted',
               },
-              { label: '(=) المبلغ المستلم للمشاريع (غير شامل ضمان الأعمال)', value: formatCurrency(t.totalClientNetExRetention), tone: 'tax' },
+              { label: '(=) صافي المستحق التعاقدي (بدون ضمان الأعمال)', value: formatCurrency(t.totalClientNetExRetention), tone: 'tax' },
+              { label: 'المحصّل فعلياً بسندات القبض للمشاريع', value: formatCurrency(t.totalProjectReceipts), tone: 'positive' },
               {
                 label: `الربح المستهدف ضمن الموازنة غير شامل الضمان (شامل: ${formatCurrency(t.totalTargetProfitBudget)} • ${t.totalTargetMarginPct}%)`,
                 value: `${t.totalTargetProfitBudgetExRetention > 0 ? '+' : ''}${formatCurrency(t.totalTargetProfitBudgetExRetention)}`,

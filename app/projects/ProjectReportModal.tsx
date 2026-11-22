@@ -41,6 +41,17 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
   const clientRecord = { ...fromList, ...fromJoin };
   const expenses = logic.projectDetails?.expenses || []; 
   const laborStats = logic.projectDetails?.laborStats || {};
+  const receiptVouchers: any[] = logic.projectDetails?.receiptVouchers || [];
+  const actualReceiptsTotal = receiptVouchers
+    .filter((r: any) => {
+      const ids: any[] = Array.isArray(r.project_ids) ? r.project_ids : [];
+      if (project.id && ids.map(String).includes(String(project.id))) return true;
+      return ids.length === 0 && project.client_id && String(r.partner_id) === String(project.client_id);
+    })
+    .reduce((sum: number, r: any) => sum + (Number(r.amount) || 0), 0);
+  const projectBudget = Number(project?.raw_project_estimated_budget ?? project?.estimated_budget ?? 0);
+  const boqBudget = Number(boqStats?.totalEstimatedCosts || 0);
+  const approvedBudget = projectBudget > 0 ? projectBudget : boqBudget;
   const today = new Date().toISOString().split('T')[0];
 
   // حساب إجمالي المصروفات الفعلية لتذييل الجدول
@@ -247,24 +258,29 @@ export default function ProjectReportModal({ isOpen, onClose, logic, boqStats, f
           </div>
 
           {/* ملخص التحليل المالي الكلي */}
-          <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '0.625rem', color: THEME.coffeeDark, fontWeight: 900 }}>الملخص المالي والتكاليف الموزعة والمبلغ المستلم (غير شامل ضمان الأعمال)</h3>
+          <h3 style={{ borderBottom: '2px solid #e2e8f0', paddingBottom: '0.625rem', color: THEME.coffeeDark, fontWeight: 900 }}>الملخص المالي والتكاليف الموزعة وصافي المستحق التعاقدي (بدون ضمان الأعمال)</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, minmax(0, 1fr))', gap: '0.75rem', marginBottom: '2.5rem' }}>
             <div style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>إجمالي قيمة التعاقد</div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: THEME.coffeeDark }}>{formatCurrency(boqStats.totalContractValue)}</div>
             </div>
             <div style={{ padding: '0.85rem', border: '1px solid #bbf7d0', backgroundColor: '#f0fdf4', borderRadius: '8px', textAlign: 'center' }}>
-              <div style={{ fontSize: 'var(--fs-xs)', color: '#166534', fontWeight: 800 }}>المبلغ المستلم (غير شامل ضمان الأعمال)</div>
+              <div style={{ fontSize: 'var(--fs-xs)', color: '#166534', fontWeight: 800 }}>صافي المستحق التعاقدي (بدون ضمان الأعمال)</div>
               <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: '#15803d' }}>
                 {formatCurrency(Math.max(0, Number(boqStats.totalContractValue || 0) - Number(boqStats.totalRetentionValue || 0)))}
               </div>
               <div style={{ fontSize: '10px', color: '#b45309', fontWeight: 800, marginTop: '2px' }}>
-                محتجز ضمان الأعمال: {formatCurrency(boqStats.totalRetentionValue || 0)}
+                محتجز الضمان: {formatCurrency(boqStats.totalRetentionValue || 0)} • محصّل بسندات قبض: {formatCurrency(actualReceiptsTotal)}
               </div>
             </div>
             <div style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center' }}>
               <div style={{ fontSize: 'var(--fs-xs)', color: '#64748b', fontWeight: 800 }}>إجمالي الميزانية المعتمدة</div>
-              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: THEME.danger }}>{formatCurrency(boqStats.totalEstimatedCosts)}</div>
+              <div style={{ fontSize: 'var(--fs-lg)', fontWeight: 900, color: THEME.danger }}>{formatCurrency(approvedBudget)}</div>
+              {projectBudget > 0 && boqBudget > 0 && Math.abs(boqBudget - approvedBudget) >= 0.01 && (
+                <div style={{ fontSize: '10px', color: '#64748b', fontWeight: 700, marginTop: '2px' }}>
+                  مقايسة BOQ: {formatCurrency(boqBudget)}
+                </div>
+              )}
             </div>
             {/* 🚀 إجمالي التوزيعات ABC */}
             <div style={{ padding: '0.85rem', border: '1px solid #e2e8f0', borderRadius: '8px', textAlign: 'center', backgroundColor: '#F3E8FF' }}>

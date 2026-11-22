@@ -642,13 +642,17 @@ export default function ReportsTab({
               border: '1px solid #dcfce7'
             }}>
               <span style={{ fontSize: 'var(--fs-xs)', color: '#166534', fontWeight: 800, display: 'block', marginBottom: '0.25rem' }}>
-                المبلغ المستلم (غير شامل ضمان الأعمال)
+                المبلغ المحصّل فعلياً (سندات القبض)
               </span>
               <div style={{ fontSize: 'var(--fs-xl)', fontWeight: 900, color: '#16a34a' }}>
-                {formatCurrency(paymentStats.totalReceived > 0 ? paymentStats.totalReceived : Math.max(0, Number(project.contract_value || 0) * 0.9))}
+                {formatCurrency(paymentStats.totalReceived)}
               </div>
               <span style={{ fontSize: '11px', color: '#15803d', fontWeight: 700 }}>
-                محتجز ضمان الأعمال (10%): {formatCurrency(Number(project.contract_value || 0) * 0.1)} • سندات القبض: {formatCurrency(paymentStats.totalReceived)}
+                نسبة التحصيل من العقد:{' '}
+                {paymentStats.contractVal > 0
+                  ? ((paymentStats.totalReceived / paymentStats.contractVal) * 100).toFixed(1)
+                  : '0.0'}%
+                {' '}• من واقع سندات القبض المرتبطة بالمشروع
               </span>
             </div>
 
@@ -1555,6 +1559,9 @@ export default function ReportsTab({
               </div>
               <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 700 }}>
                 مقابل التعاقد: {formatCurrency(evmData.totalContractAmount)}
+                {evmData.boqBac > 0 && Math.abs(evmData.boqBac - evmData.bac) >= 0.01
+                  ? ` • مقايسة BOQ: ${formatCurrency(evmData.boqBac)}`
+                  : ''}
               </span>
             </div>
 
@@ -3356,11 +3363,14 @@ export default function ReportsTab({
                       </div>
                     </div>
                     <div style={{ padding: '6px 10px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', textAlign: 'center' }}>
-                      <div style={{ fontSize: '10px', color: '#166534', fontWeight: 800 }}>المبلغ المستلم (غير شامل ضمان الأعمال)</div>
+                      <div style={{ fontSize: '10px', color: '#166534', fontWeight: 800 }}>المبلغ المحصّل فعلياً (سندات القبض)</div>
                       <div style={{ fontSize: '13px', fontWeight: 900, color: '#15803d' }}>
-                        {formatCurrency(paymentStats.totalReceived > 0 ? paymentStats.totalReceived : Math.max(0, Number(project.contract_value || 0) * 0.9))}{' '}
-                        <span style={{ fontSize: '9.5px', display: 'block', color: '#b45309' }}>
-                          (ضمان الأعمال 10%: {formatCurrency(Number(project.contract_value || 0) * 0.1)})
+                        {formatCurrency(paymentStats.totalReceived)}{' '}
+                        <span style={{ fontSize: '9.5px', display: 'block', color: '#166534' }}>
+                          (نسبة التحصيل:{' '}
+                          {paymentStats.contractVal > 0
+                            ? ((paymentStats.totalReceived / paymentStats.contractVal) * 100).toFixed(1)
+                            : '0.0'}%)
                         </span>
                       </div>
                     </div>
@@ -3626,6 +3636,11 @@ export default function ReportsTab({
                     <div style={{ padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
                       <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>الميزانية الكلية (BAC)</div>
                       <div style={{ fontSize: '12px', fontWeight: 900 }}>{formatCurrency(evmData.bac)}</div>
+                      {evmData.boqBac > 0 && Math.abs(evmData.boqBac - evmData.bac) >= 0.01 && (
+                        <div style={{ fontSize: '8.5px', color: '#64748b', fontWeight: 700 }}>
+                          BOQ: {formatCurrency(evmData.boqBac)}
+                        </div>
+                      )}
                     </div>
                     <div style={{ padding: '6px', border: '1px solid #e2e8f0', borderRadius: '6px', textAlign: 'center' }}>
                       <div style={{ fontSize: '9px', color: '#64748b', fontWeight: 700 }}>المخطط حتى اليوم (PV)</div>

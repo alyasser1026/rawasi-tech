@@ -38,22 +38,34 @@ export async function fetchProjectsProfitabilityFallback(params: ProfitabilityPa
     accountMap.set(acc.id, acc.code);
   });
 
-  // 3. Fetch BOQ Budget data for projects
+  // 3. Fetch BOQ Budget data for projects (excluding parent phase rows to match live reports)
   const boqData = await fetchPaginatedData(
     () =>
       supabase
         .from('boq_budget')
-        .select('id, project_id, contract_quantity, unit_contract_price, estimated_labor_cost, estimated_material_cost, estimated_expenses_cost')
+        .select('id, project_id, parent_id, item_type, contract_quantity, unit_contract_price, total_contract_amount, estimated_labor_cost, estimated_material_cost, estimated_expenses_cost, estimated_subcontractor_cost')
         .order('id', { ascending: true }),
     'id'
   );
 
+  const parentIdsWithChildren = new Set<string>();
+  (boqData || []).forEach(item => {
+    if (item.parent_id) parentIdsWithChildren.add(String(item.parent_id));
+  });
+
   const boqMap = new Map<string, { contract_value: number; estimated_cost: number }>();
   (boqData || []).forEach(item => {
     if (!item.project_id) return;
+    if (parentIdsWithChildren.has(String(item.id)) || item.item_type === 'رئيسي') return;
     const current = boqMap.get(item.project_id) || { contract_value: 0, estimated_cost: 0 };
-    const cv = (Number(item.contract_quantity) || 0) * (Number(item.unit_contract_price) || 0);
-    const ec = (Number(item.estimated_labor_cost) || 0) + (Number(item.estimated_material_cost) || 0) + (Number(item.estimated_expenses_cost) || 0);
+    const cv =
+      Number(item.total_contract_amount) ||
+      (Number(item.contract_quantity) || 0) * (Number(item.unit_contract_price) || 0);
+    const ec =
+      (Number(item.estimated_labor_cost) || 0) +
+      (Number(item.estimated_material_cost) || 0) +
+      (Number(item.estimated_expenses_cost) || 0) +
+      (Number(item.estimated_subcontractor_cost) || 0);
     boqMap.set(item.project_id, {
       contract_value: current.contract_value + cv,
       estimated_cost: current.estimated_cost + ec
@@ -122,6 +134,8 @@ export async function fetchProjectsProfitabilityFallback(params: ProfitabilityPa
     boq_comparison: {
       contract_value: number;
       estimated_cost: number;
+      boq_estimated_cost?: number;
+      project_estimated_budget?: number;
       actual_cost: number;
       cost_burn_pct: number;
       variance: number;
@@ -216,7 +230,9 @@ export async function fetchProjectsProfitabilityFallback(params: ProfitabilityPa
 
       const boqInfo = boqMap.get(pId);
       const contract_value = round2(boqInfo?.contract_value || Number(project.contract_value) || 0);
-      const estimated_cost = round2(boqInfo?.estimated_cost || Number(project.estimated_budget) || 0);
+      const project_estimated_budget = round2(Number(project.estimated_budget) || 0);
+      const boq_estimated_cost = round2(boqInfo?.estimated_cost || 0);
+      const estimated_cost = project_estimated_budget > 0 ? project_estimated_budget : boq_estimated_cost;
       const actual_cost = costs.total;
       const cost_burn_pct = estimated_cost > 0 ? round2((actual_cost / estimated_cost) * 100) : 0;
       const variance = round2(actual_cost - estimated_cost);
@@ -234,6 +250,8 @@ export async function fetchProjectsProfitabilityFallback(params: ProfitabilityPa
         boq_comparison: {
           contract_value,
           estimated_cost,
+          boq_estimated_cost,
+          project_estimated_budget,
           actual_cost,
           cost_burn_pct,
           variance

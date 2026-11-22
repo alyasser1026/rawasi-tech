@@ -76,6 +76,8 @@ export interface EvmAnalysisSummary {
   rows: EvmLeafRow[];
   totalContractAmount: number;
   bac: number;
+  boqBac: number;
+  projectEstimatedBudget: number;
   plannedValue: number;
   earnedValue: number;
   actualCost: number;
@@ -333,8 +335,11 @@ export function buildEvmAnalysis(
     };
   });
 
-  const totalContractAmount = round2(rows.reduce((s, r) => s + r.contractAmount, 0));
-  const bac = round2(rows.reduce((s, r) => s + r.budgetCost, 0));
+  const boqContractAmount = round2(rows.reduce((s, r) => s + r.contractAmount, 0));
+  const totalContractAmount = boqContractAmount > 0 ? boqContractAmount : round2(toNum(project?.contract_value));
+  const boqBac = round2(rows.reduce((s, r) => s + r.budgetCost, 0));
+  const projectEstimatedBudget = round2(toNum(project?.raw_project_estimated_budget ?? project?.estimated_budget));
+  const bac = projectEstimatedBudget > 0 ? projectEstimatedBudget : boqBac;
   const plannedValue = round2(rows.reduce((s, r) => s + r.plannedValueToDate, 0));
   const earnedValue = round2(rows.reduce((s, r) => s + r.earnedValue, 0));
   const directActualCost = round2(rows.reduce((s, r) => s + r.directActual, 0));
@@ -354,14 +359,17 @@ export function buildEvmAnalysis(
   const eac = cpiRaw !== null && cpiRaw > 0 && earnedValue > 0 ? round2(bac / cpiRaw) : null;
   const vac = eac !== null ? round2(bac - eac) : null;
 
-  const progressPct = bac > 0 ? round2((earnedValue / bac) * 100) : 0;
-  const plannedProgressPct = bac > 0 ? round2((plannedValue / bac) * 100) : 0;
+  const progressDenominator = boqBac > 0 ? boqBac : bac;
+  const progressPct = progressDenominator > 0 ? round2((earnedValue / progressDenominator) * 100) : 0;
+  const plannedProgressPct = progressDenominator > 0 ? round2((plannedValue / progressDenominator) * 100) : 0;
 
   return {
     asOfDate,
     rows,
     totalContractAmount,
     bac,
+    boqBac,
+    projectEstimatedBudget,
     plannedValue,
     earnedValue,
     actualCost,

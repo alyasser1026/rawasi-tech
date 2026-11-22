@@ -65,7 +65,18 @@ export default function AdvancedProjectsPage() {
         {logic.selectedProject && (
             <>
                 <SecureAction module="projects" action="edit">
-                <button onClick={() => { logic.setCurrentProjectRecord({ ...logic.selectedProject }); logic.setIsAddProjectModalOpen(true); }} className="btn-main-glass blue">
+                <button
+                    onClick={() => {
+                        logic.setCurrentProjectRecord({
+                            ...logic.selectedProject,
+                            estimated_budget:
+                                logic.selectedProject.raw_project_estimated_budget ??
+                                logic.selectedProject.estimated_budget,
+                        });
+                        logic.setIsAddProjectModalOpen(true);
+                    }}
+                    className="btn-main-glass blue"
+                >
                     تعديل بيانات المشروع
                 </button>
             </SecureAction>
@@ -252,7 +263,7 @@ export default function AdvancedProjectsPage() {
                    {logic.projects.map(proj => {
                        // 1. القيم المالية المحسوبة
                        const contractAmount = Number(proj.contract_value || 0);
-                       const budgetAmount = Number(proj.estimated_budget || (contractAmount > 0 ? contractAmount : 0));
+                       const budgetAmount = Number(proj.estimated_budget || 0);
                        const totalActualCost = Number(proj.total_cost || 0);
                        const variance = budgetAmount - totalActualCost;
                        const budgetUsagePercent = budgetAmount > 0 ? (totalActualCost / budgetAmount) * 100 : 0;

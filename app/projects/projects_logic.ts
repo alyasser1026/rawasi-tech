@@ -80,7 +80,14 @@ export function useProjectsLogic() {
           fetchData(); 
           
           if (updatedPayload && selectedProject?.id === updatedPayload.id) {
-              setSelectedProject({ ...selectedProject, ...updatedPayload });
+              const newRawBudget = Number(updatedPayload.estimated_budget) || 0;
+              const fallbackBoqBudget = Number(selectedProject.boq_estimated_budget) || 0;
+              setSelectedProject({
+                  ...selectedProject,
+                  ...updatedPayload,
+                  raw_project_estimated_budget: newRawBudget,
+                  estimated_budget: newRawBudget > 0 ? newRawBudget : fallbackBoqBudget,
+              });
           }
       },
       onError: (err: any) => showToast(`خطأ في الحفظ: ${err.message}`, "error")
@@ -347,9 +354,16 @@ export function useProjectsLogic() {
          const updatedTotalCost =
            Math.round((baseDirectAndLaborCost + allocatedFromGeneral + Number.EPSILON) * 100) / 100;
 
+         const rawProjectBudget = Number(p.estimated_budget) || 0;
+         const boqDashboardBudget = Number(dStats.estimated_budget) || 0;
+         const effectiveBudget = rawProjectBudget > 0 ? rawProjectBudget : boqDashboardBudget;
+
          return {
            ...p,
            ...dStats,
+           raw_project_estimated_budget: rawProjectBudget,
+           boq_estimated_budget: boqDashboardBudget,
+           estimated_budget: effectiveBudget,
            allocated_labor_cost: Math.round((totalAllocatedAbc + Number.EPSILON) * 100) / 100,
            allocated_expenses_cost: Math.round((totalAllocatedAbc + Number.EPSILON) * 100) / 100,
            total_cost: updatedTotalCost,

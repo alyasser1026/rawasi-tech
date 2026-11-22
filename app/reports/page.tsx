@@ -65,10 +65,12 @@ export default function ReportsPage() {
       'صافي العقد بعد الخامات': p.contract_after_materials,
       'نسبة ضمان الأعمال %': p.retention_percentage,
       'محتجز ضمان الأعمال': p.retention_amount,
-      'المبلغ المستلم (غير شامل ضمان الأعمال)': p.client_net_ex_retention,
+      'صافي المستحق التعاقدي (بدون ضمان الأعمال)': p.client_net_ex_retention,
+      'المحصّل فعلياً (سندات القبض)': p.receipts_total,
       'المتبقي عند العميل (شامل الضمان)': p.client_remaining,
-      'الموازنة التقديرية الشاملة': p.estimated_budget,
-      'موازنة التنفيذ (بدون خامات العميل)': p.estimated_execution_budget,
+      'الموازنة المعتمدة (ميزانية المشروع)': p.estimated_budget,
+      'موازنة بنود المقايسة (BOQ)': p.boq_estimated_budget,
+      'صافي موازنة التنفيذ (بعد خامات العميل)': p.net_execution_budget_ex_client_materials,
       'يوميات العمالة': p.labor_total,
       'عدد اليوميات': p.labor_days,
       'مستخلصات المقاولين': p.claims_total,
@@ -98,10 +100,12 @@ export default function ReportsPage() {
       'صافي العقد بعد الخامات': t.totalContractAfterMaterials,
       'نسبة ضمان الأعمال %': t.overallRetentionPercentage,
       'محتجز ضمان الأعمال': t.totalRetentionAmount,
-      'المبلغ المستلم (غير شامل ضمان الأعمال)': t.totalClientNetExRetention,
+      'صافي المستحق التعاقدي (بدون ضمان الأعمال)': t.totalClientNetExRetention,
+      'المحصّل فعلياً (سندات القبض)': t.totalProjectReceipts,
       'المتبقي عند العميل (شامل الضمان)': t.totalClientRemaining,
-      'الموازنة التقديرية الشاملة': t.totalEstimatedBudget,
-      'موازنة التنفيذ (بدون خامات العميل)': t.totalEstimatedExecutionBudget,
+      'الموازنة المعتمدة (ميزانية المشروع)': t.totalEstimatedBudget,
+      'موازنة بنود المقايسة (BOQ)': t.totalBoqEstimatedBudget,
+      'صافي موازنة التنفيذ (بعد خامات العميل)': t.totalNetExecutionBudgetExClientMaterials,
       'يوميات العمالة': t.totalLaborEarned,
       'عدد اليوميات': d.projectsMatrix.reduce((s: number, p: any) => s + p.labor_days, 0),
       'مستخلصات المقاولين': t.totalClaimsNet,
@@ -534,11 +538,11 @@ export default function ReportsPage() {
                 </span>
               </div>
               <div className="rpt-kpi-card">
-                <small>المبلغ المستلم للمشاريع (غير شامل ضمان الأعمال)</small>
+                <small>صافي المستحق التعاقدي للمشاريع (بدون ضمان الأعمال)</small>
                 <strong style={{ color: 'var(--status-positive, #10b981)' }}>{formatCurrency(t.totalClientNetExRetention)}</strong>
                 <span>
-                  بعد خصم الخامات ({formatCurrency(t.totalClientMaterialsDeduction)}) ثم خصم ضمان الأعمال ({t.overallRetentionPercentage}%:{' '}
-                  {formatCurrency(t.totalRetentionAmount)})
+                  بعد خصم الخامات ({formatCurrency(t.totalClientMaterialsDeduction)}) ثم الضمان ({t.overallRetentionPercentage}%:{' '}
+                  {formatCurrency(t.totalRetentionAmount)}) • المحصّل فعلياً: {formatCurrency(t.totalProjectReceipts)}
                 </span>
               </div>
               <div className="rpt-kpi-card">
@@ -567,7 +571,7 @@ export default function ReportsPage() {
                 </span>
               </div>
               <div className="rpt-kpi-card">
-                <small>سندات القبض المستلمة (غير شامل ضمان الأعمال)</small>
+                <small>المحصّل فعلياً (سندات القبض)</small>
                 <strong style={{ color: 'var(--status-positive, #10b981)' }}>{formatCurrency(t.totalReceiptVouchers)}</strong>
                 <span>صرف: {formatCurrency(t.totalPaymentVouchers)} • سيولة الخزينة: {formatCurrency(t.netCashTreasury)}</span>
               </div>
@@ -610,7 +614,7 @@ export default function ReportsPage() {
             {(logic.activeTab === 'all' || logic.activeTab === 'projects') && (
               <div className="rpt-section-card">
                 <div className="rpt-section-title">
-                  <h3>1. مصفوفة حسابات المشاريع (الفلل) والتكاليف والمبلغ المستلم غير شامل ضمان الأعمال</h3>
+                  <h3>1. مصفوفة حسابات المشاريع (الفلل): صافي المستحق التعاقدي والموازنة المعتمدة والتكاليف</h3>
                   <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 700 }}>
                     اضغط على أي فيلا لعرض تفاصيل البنود وأوامر الشغل واليوميات والخامات والمصاريف والسندات
                   </span>
@@ -624,8 +628,8 @@ export default function ReportsPage() {
                       <th>قيمة التعاقد (BOQ)</th>
                       <th>خصم خامات العميل</th>
                       <th>ضمان الأعمال</th>
-                      <th>المبلغ المستلم (غير شامل ضمان الأعمال)</th>
-                      <th>موازنة التنفيذ</th>
+                      <th>صافي المستحق التعاقدي (بدون ضمان)</th>
+                      <th>الموازنة المعتمدة</th>
                       <th>يوميات العمالة</th>
                       <th>مستخلصات المقاولين</th>
                       <th>خامات الشركة</th>
@@ -679,17 +683,30 @@ export default function ReportsPage() {
                             <td style={{ fontWeight: 900, color: 'var(--status-positive, #10b981)' }}>
                               {formatCurrency(p.client_net_ex_retention)}
                               <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                قبل الضمان: {formatCurrency(p.contract_after_materials)}
+                                قبل الضمان: {formatCurrency(p.contract_after_materials)} • محصّل بسندات قبض: {formatCurrency(p.receipts_total)}
                                 {p.receipts_total > 0 ? ` • متبقي: ${formatCurrency(p.client_remaining)}` : ''}
                               </div>
                             </td>
-                            <td style={{ color: 'var(--text-secondary)' }}>
-                              {formatCurrency(p.estimated_execution_budget)}
-                              {p.estimated_execution_budget !== p.estimated_budget && (
+                            <td style={{ color: 'var(--text-secondary)', fontWeight: 800 }}>
+                              {formatCurrency(p.estimated_budget)}
+                              {p.budget_source === 'project' &&
+                                p.boq_estimated_budget > 0 &&
+                                Math.abs(p.boq_estimated_budget - p.estimated_budget) >= 0.01 && (
+                                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                    مقايسة BOQ: {formatCurrency(p.boq_estimated_budget)}
+                                  </div>
+                                )}
+                              {p.budget_source === 'boq' && (
                                 <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                                  كلية: {formatCurrency(p.estimated_budget)}
+                                  (من بنود المقايسة BOQ)
                                 </div>
                               )}
+                              {p.client_materials_deduction > 0 &&
+                                Math.abs(p.net_execution_budget_ex_client_materials - p.estimated_budget) >= 0.01 && (
+                                  <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                    بعد خامات العميل: {formatCurrency(p.net_execution_budget_ex_client_materials)}
+                                  </div>
+                                )}
                             </td>
                             <td>
                               {formatCurrency(p.labor_total)}
@@ -891,13 +908,21 @@ export default function ReportsPage() {
                       <td>
                         {formatCurrency(t.totalClientNetExRetention)}
                         <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
-                          قبل الضمان: {formatCurrency(t.totalContractAfterMaterials)}
+                          قبل الضمان: {formatCurrency(t.totalContractAfterMaterials)} • محصّل بسندات قبض: {formatCurrency(t.totalProjectReceipts)}
                           {t.totalClientRemaining !== t.totalContractAfterMaterials
                             ? ` • متبقي: ${formatCurrency(t.totalClientRemaining)}`
                             : ''}
                         </div>
                       </td>
-                      <td>{formatCurrency(t.totalEstimatedExecutionBudget)}</td>
+                      <td>
+                        {formatCurrency(t.totalEstimatedBudget)}
+                        {t.totalBoqEstimatedBudget > 0 &&
+                          Math.abs(t.totalBoqEstimatedBudget - t.totalEstimatedBudget) >= 0.01 && (
+                            <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                              مقايسة BOQ: {formatCurrency(t.totalBoqEstimatedBudget)}
+                            </div>
+                          )}
+                      </td>
                       <td>{formatCurrency(t.totalLaborEarned)}</td>
                       <td>{formatCurrency(t.totalClaimsNet)}</td>
                       <td>{formatCurrency(t.totalCompanyMaterials)}</td>

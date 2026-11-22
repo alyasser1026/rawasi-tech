@@ -2633,6 +2633,9 @@ function DailyReportPrintModal({
           background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
           font-weight: 900;
         }
+        #printable-daily-report .phi-doc-stats {
+          margin-bottom: 6px;
+        }
         @media print {
           @page { size: A4 landscape; margin: 8mm 10mm; }
           html, body {

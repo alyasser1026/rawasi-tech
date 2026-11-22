@@ -128,13 +128,11 @@ function getDailyChartTheme(variant: 'web' | 'print') {
     trackBg: isPrint ? '#e2e8f0' : 'rgba(148, 163, 184, 0.16)',
     cardStyle: (isPrint
       ? {
-          background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          background: 'transparent',
           border: 'none',
-          borderRadius: '10px',
-          padding: '10px 12px',
-          marginBottom: '10px',
-          breakInside: 'avoid',
-          pageBreakInside: 'avoid',
+          borderRadius: 0,
+          padding: 0,
+          marginBottom: '8px',
           color: '#0f172a',
         }
       : {
@@ -146,12 +144,24 @@ function getDailyChartTheme(variant: 'web' | 'print') {
           boxShadow: 'var(--shadow-ambient)',
           color: 'var(--text-primary)',
         }) as React.CSSProperties,
+    rowCardStyle: (isPrint
+      ? {
+          background: 'linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)',
+          border: 'none',
+          borderRadius: '10px',
+          padding: '8px 10px',
+          marginBottom: '8px',
+          breakInside: 'avoid',
+          pageBreakInside: 'avoid',
+          color: '#0f172a',
+        }
+      : {}) as React.CSSProperties,
     subCardStyle: (isPrint
       ? {
           background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
           border: 'none',
           borderRadius: '8px',
-          padding: '9px 11px',
+          padding: '7px 9px',
           minWidth: 0,
         }
       : {
@@ -231,11 +241,11 @@ export function DailyExecutiveCharts({
   const barSpan = Math.max(1, barMax - barMin);
 
   const svgW = 580;
-  const svgH = isPrint ? 190 : 215;
+  const svgH = isPrint ? 172 : 215;
   const padL = 16;
   const padR = 16;
-  const padT = 26;
-  const padB = 44;
+  const padT = isPrint ? 22 : 26;
+  const padB = isPrint ? 38 : 44;
   const plotH = svgH - padT - padB;
   const zeroY = padT + (barMax / barSpan) * plotH;
   const colW = (svgW - padL - padR) / flowBars.length;
@@ -243,11 +253,11 @@ export function DailyExecutiveCharts({
   // 2) بيانات الرسم الثاني: مسار آخر 7 أيام (الداخل vs المنصرف والمصروفات + منحنى العمالة)
   const trend = data.trend7Days || [];
   const tSvgW = 540;
-  const tSvgH = isPrint ? 190 : 215;
+  const tSvgH = isPrint ? 172 : 215;
   const tPadL = 22;
   const tPadR = 22;
-  const tPadT = 32;
-  const tPadB = 34;
+  const tPadT = isPrint ? 24 : 32;
+  const tPadB = isPrint ? 30 : 34;
   const tPlotW = tSvgW - tPadL - tPadR;
   const tPlotH = tSvgH - tPadT - tPadB;
   const tMaxMoney = Math.max(
@@ -291,16 +301,18 @@ export function DailyExecutiveCharts({
 
   return (
     <div style={th.cardStyle}>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '0.5rem',
-          marginBottom: isPrint ? '8px' : '0.95rem',
-        }}
-      >
+      {/* الصف الأول من الرسوم (يبقى مع الترويسة ليملأ النصف السفلي من الصفحة الأولى عند الطباعة) */}
+      <div style={th.rowCardStyle}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
+            marginBottom: isPrint ? '6px' : '0.95rem',
+          }}
+        >
         <div>
           <h3
             style={{
@@ -385,7 +397,7 @@ export function DailyExecutiveCharts({
           gridTemplateColumns: isPrint
             ? 'repeat(2, minmax(0, 1fr))'
             : 'repeat(auto-fit, minmax(26rem, 1fr))',
-          gap: isPrint ? '9px' : '0.95rem',
+          gap: isPrint ? '8px' : '0.95rem',
         }}
       >
         {/* 1️⃣ ميزان الفلوس وصرف العمالة والخامات لليوم */}
@@ -418,7 +430,7 @@ export function DailyExecutiveCharts({
               const bw = Math.min(40, colW * 0.56);
               const hVal = (Math.abs(b.value) / barSpan) * plotH;
               const y = b.value >= 0 ? zeroY - hVal : zeroY;
-              const textY = b.value >= 0 ? Math.max(12, y - 6) : Math.min(svgH - 22, y + hVal + 12);
+              const textY = b.value >= 0 ? Math.max(12, y - 5) : Math.min(svgH - (isPrint ? 25 : 22), y + hVal + 11);
 
               return (
                 <g key={b.label}>
@@ -574,7 +586,7 @@ export function DailyExecutiveCharts({
                   />
                   <text
                     x={cx}
-                    y={tSvgH - 16}
+                    y={tSvgH - (isPrint ? 15 : 16)}
                     textAnchor="middle"
                     fill={pt.isSelected ? '#ea580c' : th.ink}
                     fontSize="9.5"
@@ -584,7 +596,7 @@ export function DailyExecutiveCharts({
                   </text>
                   <text
                     x={cx}
-                    y={tSvgH - 4}
+                    y={tSvgH - (isPrint ? 3 : 4)}
                     textAnchor="middle"
                     fill={th.muted}
                     fontSize="8"
@@ -629,7 +641,20 @@ export function DailyExecutiveCharts({
             })}
           </svg>
         </div>
+      </div>
+      </div>
 
+      {/* الصف الثاني من الرسوم (الفلل النشطة + هيكل المصروفات — مستقل لضمان عدم التقطيع عند الطباعة) */}
+      <div style={isPrint ? { ...th.rowCardStyle, marginBottom: 0 } : { marginTop: '0.95rem' }}>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: isPrint
+              ? 'repeat(2, minmax(0, 1fr))'
+              : 'repeat(auto-fit, minmax(26rem, 1fr))',
+            gap: isPrint ? '8px' : '0.95rem',
+          }}
+        >
         {/* 3️⃣ توزيع التشغيل والعمالة على الفلل النشطة اليوم */}
         <div style={th.subCardStyle}>
           <div
@@ -767,14 +792,14 @@ export function DailyExecutiveCharts({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: '155px 1fr',
+                gridTemplateColumns: isPrint ? '134px 1fr' : '155px 1fr',
                 gap: '0.75rem',
                 alignItems: 'center',
               }}
             >
               <svg
                 viewBox="0 0 180 180"
-                style={{ width: '150px', height: '150px', margin: '0 auto', fontFamily: th.svgFont }}
+                style={{ width: isPrint ? '128px' : '150px', height: isPrint ? '128px' : '150px', margin: '0 auto', fontFamily: th.svgFont }}
                 role="img"
                 aria-label="رسم دائري لتوزيع مصروفات وتكاليف اليوم"
               >
@@ -836,6 +861,7 @@ export function DailyExecutiveCharts({
               </div>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

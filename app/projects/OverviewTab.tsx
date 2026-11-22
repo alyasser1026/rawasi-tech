@@ -50,27 +50,48 @@ export default function OverviewTab({ logic }: { logic: any }) {
     const financialProgress = effectiveContract > 0 ? (effectiveRevenue / effectiveContract) * 100 : 0;
     const profitMargin = effectiveContract > 0 ? ((totalNetProfit / effectiveContract) * 100).toFixed(1) : "0.0";
 
+    const projectBudget = Number(
+      logic.selectedProject?.raw_project_estimated_budget ??
+      logic.selectedProject?.estimated_budget ??
+      kpis?.totalEstimatedBudget ??
+      0
+    );
+    const approvedBudget = projectBudget > 0 ? projectBudget : totalBudget;
+    const effectiveActualCost = totalActualCost || Number(kpis?.actualCost || 0);
+    const effectiveVariance = approvedBudget > 0 ? (approvedBudget - effectiveActualCost) : totalVariance;
+
     return {
       totalContract: effectiveContract,
-      totalBudget: totalBudget || Number(kpis?.totalEstimatedBudget || 0),
-      totalActualCost: totalActualCost || Number(kpis?.actualCost || 0),
+      totalBudget: approvedBudget,
+      boqBudget: totalBudget,
+      totalActualCost: effectiveActualCost,
       totalAllocatedABC,
       totalVillaRevenue: effectiveRevenue,
       financialProgress,
       profitMargin,
       totalRetention,
       totalNetProfit,
-      totalVariance,
+      totalVariance: effectiveVariance,
       isLoss: totalNetProfit < 0,
-      isOverrun: totalVariance < 0
+      isOverrun: effectiveVariance < 0
     };
-  }, [boqList, kpis]);
+  }, [boqList, kpis, logic.selectedProject]);
 
   return (
     <div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13.75rem, 1fr))', gap: '1.25rem', marginBottom: '1.5625rem' }}>
         <KpiCard title="قيمة التعاقد الكلية" value={projectFinancials.totalContract} color={THEME.coffeeDark} />
-        <KpiCard title="الميزانية المعتمدة" value={projectFinancials.totalBudget} color={THEME.coffeeMain} />
+        <KpiCard
+          title="الميزانية المعتمدة"
+          value={projectFinancials.totalBudget}
+          color={THEME.coffeeMain}
+          alert={
+            projectFinancials.boqBudget > 0 &&
+            Math.abs(projectFinancials.boqBudget - projectFinancials.totalBudget) >= 0.01
+              ? `مقايسة BOQ: ${formatCurrency(projectFinancials.boqBudget)}`
+              : undefined
+          }
+        />
         
         <KpiCard 
           title="إجمالي الصرف الفعلي (مباشر وموزع)" 

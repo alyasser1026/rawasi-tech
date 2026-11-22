@@ -33,7 +33,7 @@ export default function ProjectProfitabilityPage() {
     try {
       const { data, error } = await supabase
         .from('projects')
-        .select('id, project_name, "Property", project_code')
+        .select('id, project_name, "Property", project_code, estimated_budget')
         .order('project_name', { ascending: true });
 
       if (error) {
@@ -46,18 +46,53 @@ export default function ProjectProfitabilityPage() {
     }
   }, []);
 
+  const normalizeProfitabilityBudget = (rpcData: any, projRows: any[] | null) => {
+    if (!rpcData || !Array.isArray(rpcData.projects)) return rpcData;
+    const budgetMap = new Map<string, number>();
+    (projRows || []).forEach((pr: any) => {
+      budgetMap.set(String(pr.id), Number(pr.estimated_budget) || 0);
+    });
+    const round2 = (n: number) => Math.round((Number(n || 0) + Number.EPSILON) * 100) / 100;
+    return {
+      ...rpcData,
+      projects: rpcData.projects.map((p: any) => {
+        const cmp = p.boq_comparison || {};
+        const projEst = budgetMap.get(String(p.project_id)) ?? Number(cmp.project_estimated_budget || 0);
+        const boqEst = round2(Number(cmp.boq_estimated_cost ?? cmp.estimated_cost ?? 0));
+        const approvedBudget = projEst > 0 ? round2(projEst) : boqEst;
+        const actualCost = round2(Number(cmp.actual_cost ?? p.costs?.total ?? 0));
+        const costBurnPct = approvedBudget > 0 ? round2((actualCost / approvedBudget) * 100) : 0;
+        const variance = round2(actualCost - approvedBudget);
+        return {
+          ...p,
+          boq_comparison: {
+            ...cmp,
+            estimated_cost: approvedBudget,
+            boq_estimated_cost: boqEst,
+            project_estimated_budget: round2(projEst),
+            cost_burn_pct: costBurnPct,
+            variance,
+          },
+        };
+      }),
+    };
+  };
+
   // 2. Fetch profitability summary from RPC with resilient client fallback
   const fetchProfitability = useCallback(async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase.rpc('get_projects_profitability_summary', {
-        p_start_date: startDate,
-        p_end_date: endDate,
-        p_project_id: selectedProjectId === 'all' ? null : selectedProjectId
-      });
+      const [rpcRes, projBudgetRes] = await Promise.all([
+        supabase.rpc('get_projects_profitability_summary', {
+          p_start_date: startDate,
+          p_end_date: endDate,
+          p_project_id: selectedProjectId === 'all' ? null : selectedProjectId
+        }),
+        supabase.from('projects').select('id, estimated_budget'),
+      ]);
 
-      if (error) {
-        console.warn('Profitability RPC not available in schema cache, using resilient client calculation fallback:', error.message || error);
+      if (rpcRes.error) {
+        console.warn('Profitability RPC not available in schema cache, using resilient client calculation fallback:', rpcRes.error.message || rpcRes.error);
         const fallbackData = await fetchProjectsProfitabilityFallback({
           startDate,
           endDate,
@@ -65,7 +100,7 @@ export default function ProjectProfitabilityPage() {
         });
         setProfitabilityData(fallbackData);
       } else {
-        setProfitabilityData(data);
+        setProfitabilityData(normalizeProfitabilityBudget(rpcRes.data, projBudgetRes.data));
       }
     } catch (err: any) {
       console.warn('Attempting client fallback after unexpected error:', err);
@@ -130,12 +165,12 @@ export default function ProjectProfitabilityPage() {
     if (!profitabilityData) return;
     let csvContent = '\uFEFF'; // UTF-8 BOM
     csvContent += `تقرير ربحية المشاريع ومطابقة الأستاذ العام عن الفترة من,${startDate},إلى,${endDate}\n`;
-    csvContent += 'كود المشروع,اسم المشروع,العميل,الحالة,الإيرادات (4),الخامات (511),العمالة (512),مقاولو الباطن (513),المعدات والإهلاك (514/516),مصاريف الموقع والأخرى (515/517),إجمالي التكاليف,صافي الربح,هامش الربح %,قيمة العقد,موازنة المقايسة (BOQ),نسبة الاستهلاك %\n';
+    csvContent += 'كود المشروع,اسم المشروع,العميل,الحالة,الإيرادات (4),الخامات (511),العمالة (512),مقاولو الباطن (513),المعدات والإهلاك (514/516),مصاريف الموقع والأخرى (515/517),إجمالي التكاليف,صافي الربح,هامش الربح %,قيمة العقد,الموازنة المعتمدة,موازنة المقايسة (BOQ),نسبة الاستهلاك %\n';
 
     (profitabilityData.projects || []).forEach((p: any) => {
       const equipDeprec = (p.costs?.equipment || 0) + (p.costs?.depreciation || 0);
       const siteOther = (p.costs?.site_expenses || 0) + (p.costs?.other_direct || 0);
-      csvContent += `"${p.project_code || ''}","${p.project_name || ''}","${p.client_name || ''}","${p.project_status || ''}",${p.revenue},${p.costs?.materials || 0},${p.costs?.labor || 0},${p.costs?.subcontractors || 0},${equipDeprec},${siteOther},${p.costs?.total || 0},${p.net_profit},${p.margin_pct}%,${p.boq_comparison?.contract_value || 0},${p.boq_comparison?.estimated_cost || 0},${p.boq_comparison?.cost_burn_pct || 0}%\n`;
+      csvContent += `"${p.project_code || ''}","${p.project_name || ''}","${p.client_name || ''}","${p.project_status || ''}",${p.revenue},${p.costs?.materials || 0},${p.costs?.labor || 0},${p.costs?.subcontractors || 0},${equipDeprec},${siteOther},${p.costs?.total || 0},${p.net_profit},${p.margin_pct}%,${p.boq_comparison?.contract_value || 0},${p.boq_comparison?.estimated_cost || 0},${p.boq_comparison?.boq_estimated_cost ?? p.boq_comparison?.estimated_cost ?? 0},${p.boq_comparison?.cost_burn_pct || 0}%\n`;
     });
 
     if (profitabilityData.unallocated) {
@@ -174,7 +209,7 @@ export default function ProjectProfitabilityPage() {
     <div className="clean-page enterprise-page">
       <MasterPage
         title="ربحية المشاريع ومطابقة الأستاذ العام"
-        subtitle="تحليل تكاليف وإيرادات كل مشروع بمقارنة موازنة المقايسة (BOQ) مع مطابقة 100% للقيود"
+        subtitle="تحليل تكاليف وإيرادات كل مشروع ومقارنتها بالميزانية المعتمدة ومقايسة (BOQ) مع مطابقة 100% للقيود"
       >
         <div className={styles.container}>
           {/* Filter Card */}
@@ -364,7 +399,7 @@ export default function ProjectProfitabilityPage() {
                     <th style={{ textAlign: 'left' }}>إجمالي التكلفة</th>
                     <th style={{ textAlign: 'left' }}>صافي الربح</th>
                     <th>الهامش %</th>
-                    <th style={{ textAlign: 'left' }}>موازنة BOQ</th>
+                    <th style={{ textAlign: 'left' }}>الموازنة المعتمدة</th>
                     <th>استهلاك الموازنة</th>
                   </tr>
                 </thead>
@@ -406,7 +441,13 @@ export default function ProjectProfitabilityPage() {
                           {p.margin_pct}%
                         </td>
                         <td className={styles.amountCell} style={{ color: 'var(--text-secondary)' }}>
-                          {formatCurrency(p.boq_comparison?.estimated_cost || 0)}
+                          <div>{formatCurrency(p.boq_comparison?.estimated_cost || 0)}</div>
+                          {Number(p.boq_comparison?.boq_estimated_cost || 0) > 0 &&
+                            Math.abs(Number(p.boq_comparison?.boq_estimated_cost || 0) - Number(p.boq_comparison?.estimated_cost || 0)) >= 0.01 && (
+                              <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                                BOQ: {formatCurrency(p.boq_comparison.boq_estimated_cost)}
+                              </div>
+                            )}
                         </td>
                         <td>
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
