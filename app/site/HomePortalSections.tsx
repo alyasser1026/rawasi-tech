@@ -312,7 +312,7 @@ export default function HomePortalSections({
                 أهلاً بك في فاي تك — منصتك الهندسية الشاملة من التأسيس حتى السمارت هوم
               </h1>
               <p className="pw-welcome-sub">
-                تصفّح أقسامنا الثلاثة بوضوح، ابحث عن أي منتج أو خدمة هندسية فوراً، أو أرسل طلبك أونلاين بضمان مكتوب.
+                ابحث عن أي منتج أو خدمة هندسية فوراً، أو اختر القسم المناسب مباشرة بضمان مكتوب.
               </p>
             </div>
 
@@ -487,12 +487,7 @@ export default function HomePortalSections({
       </section>
 
       {/* =========================================================
-          STAGE 2: محاكاة تفاعلية حية لخطوات الطلب (كمبيوتر + موبايل)
-          ========================================================= */}
-      <OrderJourneyShowcase onOpenContact={onOpenContact} />
-
-      {/* =========================================================
-          STAGE 3: الحاويتان الرئيسيتان — المبيعات + التركيبات والصيانة والتنفيذ
+          STAGE 2: الحاويتان الرئيسيتان — المبيعات + التركيبات والصيانة والتنفيذ
           ========================================================= */}
       <div className="pw-split-stage">
         <section id="portals" className="pw-portal-studio" aria-labelledby="portals-studio-heading">
@@ -514,7 +509,7 @@ export default function HomePortalSections({
                     <img
                       src={item.image}
                       alt={item.imageAlt}
-                      loading="lazy"
+                      loading="eager"
                       decoding="async"
                     />
                     <div className="pw-dual-media-scrim" aria-hidden="true" />
@@ -529,6 +524,11 @@ export default function HomePortalSections({
           </div>
         </section>
       </div>
+
+      {/* =========================================================
+          STAGE 3: محاكاة تفاعلية حية لخطوات الطلب (كمبيوتر + موبايل)
+          ========================================================= */}
+      <OrderJourneyShowcase onOpenContact={onOpenContact} />
 
       {/* =========================================================
           STAGE 4: المنتجات الأكثر مبيعاً (أهم 6 أولاً + عرض المزيد)

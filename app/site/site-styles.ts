@@ -943,15 +943,16 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 @media(max-height:500px) and (orientation:landscape){.pw-panoramic-top-overlay{height:auto;min-height:calc(100svh + 150px);padding-top:76px;padding-bottom:90px;gap:20px}.pw-panoramic-floating-hero{margin:28px auto}.pw-construction-scroll-cue{margin:0 auto 16px}.pw-construction-status{display:none}}
 
 /* Dual Photo Portal Cards — المبيعات والسمارت هوم + التركيبات والصيانة والتنفيذ */
-.pw-split-stage{position:relative;width:100%;min-height:auto;padding:clamp(36px,4.5vw,56px) 0;background:linear-gradient(180deg,#fbfaf7 0%,#f5f0e7 52%,#fbfaf7 100%)!important;border-top:1px solid rgba(20,24,27,.06);border-bottom:1px solid rgba(20,24,27,.06)}
-.pw-portal-studio-head{text-align:center;margin:0 auto 22px}
-.pw-portal-studio-head h2{font-size:clamp(1.3rem,2.1vw,1.75rem);font-weight:900;line-height:1.3;color:#14181b;margin:0}
+.pw-split-stage{position:relative;width:100%;min-height:auto;padding:0 0 clamp(24px,2.6vw,36px);background:#fbfaf7!important;border-top:none;border-bottom:1px solid rgba(20,24,27,.06)}
+.pw-split-stage > .pw-wrap{max-width:none;width:100%;padding-inline:clamp(16px,2.4vw,40px)}
+.pw-portal-studio-head{display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:start;margin:0 0 12px}
+.pw-portal-studio-head h2{font-size:clamp(1rem,1.35vw,1.22rem);font-weight:900;line-height:1.3;color:#14181b;margin:0}
 
-.pw-dual-portals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,1.8vw,24px);align-items:stretch}
+.pw-dual-portals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(14px,1.5vw,22px);align-items:stretch}
 .pw-dual-card{display:block;border:1.5px solid #e7e1d7;border-radius:var(--ui-card-r);overflow:hidden;cursor:pointer;text-decoration:none;box-shadow:0 18px 40px -28px rgba(20,24,27,.22);transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
 .pw-dual-card:hover{border-color:var(--dual-accent,var(--o));box-shadow:0 24px 48px -26px rgba(20,24,27,.30);transform:translateY(-3px)}
 
-.pw-dual-media{position:relative;aspect-ratio:16/10;background:#14181b;overflow:hidden;display:flex;align-items:flex-end;padding:clamp(16px,2vw,24px)}
+.pw-dual-media{position:relative;aspect-ratio:16/8.2;min-height:230px;max-height:385px;background:#14181b;overflow:hidden;display:flex;align-items:flex-end;padding:clamp(16px,2vw,24px)}
 .pw-dual-media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;transition:transform .38s ease}
 .pw-dual-card:hover .pw-dual-media img{transform:scale(1.04)}
 .pw-dual-media-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(12,17,24,0) 48%,rgba(12,17,24,.78) 100%);pointer-events:none}
@@ -1162,15 +1163,16 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 }
 
 /* ===== المرحلة 1: الترحيب + البحث الشامل (تصميم نهاري مريح للعين - 8pt Grid) ===== */
-.pw-welcome-band{position:relative;z-index:4;padding:calc(var(--ui-section-py) + 16px) 0 calc(var(--ui-section-py) * 0.72);color:#14181b;background:linear-gradient(180deg,#fffaf4 0%,#fbfaf7 100%)}
-.pw-welcome-shell{background:transparent;border:none;border-radius:0;padding:0;backdrop-filter:none;-webkit-backdrop-filter:none;box-shadow:none;display:flex;flex-direction:column;gap:24px}
-.pw-welcome-head{text-align:center;align-items:center;max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
-.pw-welcome-head .pw-eyebrow{color:#c75517;font-weight:800;margin:0;text-shadow:0 1px 14px rgba(251,250,247,.95)}
-.pw-welcome-head h1{font-size:clamp(1.5rem,2.6vw,2.2rem);font-weight:800;line-height:1.4;color:#14181b;margin:0;text-shadow:0 1px 14px rgba(251,250,247,.95)}
-.pw-welcome-sub{font-size:clamp(.95rem,1.08vw,1.02rem);font-weight:500;color:#525e6a;line-height:1.75;margin:0;text-shadow:0 1px 14px rgba(251,250,247,.95)}
+.pw-welcome-band{position:relative;z-index:4;padding:76px 0 clamp(14px,1.5vw,20px);color:#14181b;background:linear-gradient(180deg,#fffaf4 0%,#fbfaf7 100%)}
+.pw-welcome-band > .pw-wrap{max-width:none;width:100%;padding-inline:clamp(16px,2.4vw,40px)}
+.pw-welcome-shell{background:linear-gradient(135deg,#ffffff 0%,#fdf7ef 100%);border:1px solid #e7dfd3;border-radius:var(--ui-card-r);padding:clamp(16px,1.8vw,24px) clamp(18px,2.4vw,32px);box-shadow:0 14px 34px -26px rgba(20,24,27,.14);display:grid;grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr);align-items:center;gap:clamp(16px,2.2vw,32px)}
+.pw-welcome-head{text-align:start;align-items:flex-start;max-width:none;margin:0;display:flex;flex-direction:column;gap:6px}
+.pw-welcome-head .pw-eyebrow{color:#c75517;font-weight:800;margin:0;text-shadow:none}
+.pw-welcome-head h1{font-size:clamp(1.26rem,1.9vw,1.72rem);font-weight:800;line-height:1.35;color:#14181b;margin:0;text-shadow:none}
+.pw-welcome-sub{font-size:clamp(.88rem,1vw,.96rem);font-weight:500;color:#525e6a;line-height:1.6;margin:0;text-shadow:none}
 
 /* شريط البحث الشامل المربوط بكل الأقسام */
-.pw-omni-wrap{position:relative;z-index:25;max-width:760px;width:100%;margin:0 auto}
+.pw-omni-wrap{position:relative;z-index:25;max-width:none;width:100%;margin:0}
 .pw-omni-box{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.92);border:1.5px solid #dfd7cc;border-radius:var(--ui-card-r);padding:8px 16px 8px 8px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:0 14px 32px -18px rgba(20,24,27,.18);transition:border-color .18s,box-shadow .18s}
 .pw-omni-box:focus-within,.pw-omni-box.is-open{border-color:#c75517;box-shadow:0 0 0 3px rgba(199,85,23,.14)}
 .pw-omni-icon{color:#525e6a;display:inline-flex;align-items:center;flex-shrink:0}
@@ -1198,26 +1200,28 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 .pw-omni-go-link:hover{background:#f4efe6;color:#14181b}
 .pw-omni-empty{padding:20px 12px;text-align:center;color:#525e6a;display:flex;flex-direction:column;gap:12px}
 
-/* ===== المرحلة 2: عرض متزامن لقسم المبيعات (شاشة كمبيوتر + تزامن لحظي + آيفون + متجر iOS و Android) ===== */
-.pw-sim-section{position:relative;z-index:3;padding:var(--ui-section-py) 0;color:#14181b;background:linear-gradient(180deg,#fbfaf7 0%,#f6f2ea 100%)}
-.pw-sim-top-head{text-align:center;max-width:720px;margin:0 auto 32px;display:flex;flex-direction:column;align-items:center;gap:8px}
-.pw-sim-live-pill{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(199,85,23,.22);color:#14181b;font-size:.8rem;font-weight:800;box-shadow:0 4px 12px -8px rgba(20,24,27,.14)}
+/* ===== المرحلة 3: عرض متزامن لقسم المبيعات (شاشة كمبيوتر + تزامن لحظي + آيفون + متجر iOS و Android) ===== */
+.pw-sim-section{position:relative;z-index:3;padding:clamp(28px,3vw,44px) 0;color:#14181b;background:linear-gradient(180deg,#fbfaf7 0%,#f5f0e7 100%);border-bottom:1px solid rgba(20,24,27,.06)}
+.pw-sim-section > .pw-wrap{max-width:none;width:100%;padding-inline:clamp(16px,2.4vw,40px)}
+.pw-sim-top-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 18px;text-align:start;max-width:none;margin:0 0 18px}
+.pw-sim-head-copy{display:flex;flex-direction:column;gap:4px;min-width:0}
+.pw-sim-live-pill{display:inline-flex;align-items:center;gap:8px;padding:4px 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.86);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(199,85,23,.22);color:#14181b;font-size:.8rem;font-weight:800;box-shadow:0 4px 12px -8px rgba(20,24,27,.14);flex-shrink:0}
 .pw-sim-live-pill i{display:block;width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 8px rgba(16,185,129,.55);animation:pwSimLivePulse 2.1s infinite}
 @keyframes pwSimLivePulse{0%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.82)}100%{opacity:1;transform:scale(1)}}
-.pw-sim-top-head h2{font-size:clamp(1.36rem,2.3vw,1.92rem);font-weight:800;line-height:1.4;color:#14181b;text-shadow:0 1px 12px rgba(251,250,247,.95);margin:0}
+.pw-sim-top-head h2{font-size:clamp(1.36rem,2.1vw,1.82rem);font-weight:800;line-height:1.35;color:#14181b;text-shadow:none;margin:0}
 .pw-sim-top-head h2 em{font-style:normal;color:var(--o)}
-.pw-sim-lead{font-size:.96rem;font-weight:500;line-height:1.75;color:#525e6a;text-shadow:0 1px 12px rgba(251,250,247,.95);margin:0}
+.pw-sim-lead{font-size:.92rem;font-weight:500;line-height:1.65;color:#525e6a;text-shadow:none;margin:0}
 
 /* Read-only Editorial 4-Step Auto-Play Timeline (Zero manual buttons) */
-.pw-sim-narrator-bar{background:rgba(255,255,255,.84);backdrop-filter:blur(16px) saturate(135%);-webkit-backdrop-filter:blur(16px) saturate(135%);border:1px solid rgba(231,225,215,.95);border-radius:var(--ui-card-r);padding:var(--ui-card-pad-sm) var(--ui-card-pad);margin-bottom:32px;display:flex;flex-direction:column;gap:16px;box-shadow:0 18px 40px -28px rgba(20,24,27,.18)}
-.pw-sim-timeline-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.pw-sim-narrator-copy{flex:1;min-width:240px;display:flex;flex-direction:column;gap:4px}
+.pw-sim-narrator-bar{background:rgba(255,255,255,.88);backdrop-filter:blur(16px) saturate(135%);-webkit-backdrop-filter:blur(16px) saturate(135%);border:1px solid rgba(231,225,215,.95);border-radius:var(--ui-card-r);padding:18px;margin:0;height:100%;display:flex;flex-direction:column;gap:14px;box-shadow:0 18px 40px -28px rgba(20,24,27,.18)}
+.pw-sim-timeline-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.pw-sim-narrator-copy{flex:1;min-width:180px;display:flex;flex-direction:column;gap:4px}
 .pw-sim-caption-tag{font-size:.78rem;font-weight:800;color:#c75517}
-.pw-sim-narrator-copy strong{font-size:1.05rem;font-weight:800;color:#14181b}
-.pw-sim-narrator-copy p{font-size:.88rem;font-weight:500;color:#525e6a;margin:0;line-height:1.65}
-.pw-sim-caption-counter{font-family:ui-monospace,Consolas,monospace;font-size:.76rem;font-weight:800;color:#47525c;background:#f4efe6;border:1px solid #e7e1d7;padding:4px 12px;border-radius:var(--r-pill);white-space:nowrap}
-.pw-sim-stepper{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding-top:12px;border-top:1px solid rgba(231,225,215,.85)}
-.pw-sim-step-item{display:flex;flex-direction:column;gap:6px;opacity:.58;transition:opacity .25s ease}
+.pw-sim-narrator-copy strong{font-size:1rem;font-weight:800;color:#14181b;line-height:1.35}
+.pw-sim-narrator-copy p{font-size:.85rem;font-weight:500;color:#525e6a;margin:0;line-height:1.6}
+.pw-sim-caption-counter{font-family:ui-monospace,Consolas,monospace;font-size:.74rem;font-weight:800;color:#47525c;background:#f4efe6;border:1px solid #e7e1d7;padding:3px 10px;border-radius:var(--r-pill);white-space:nowrap}
+.pw-sim-stepper{display:grid;grid-template-columns:1fr;gap:10px;padding-top:12px;border-top:1px solid rgba(231,225,215,.85)}
+.pw-sim-step-item{display:flex;flex-direction:column;gap:5px;opacity:.58;transition:opacity .25s ease}
 .pw-sim-step-item.is-done{opacity:.85}
 .pw-sim-step-item.is-active{opacity:1}
 .pw-sim-step-label{display:flex;align-items:center;gap:6px;font-size:.78rem;font-weight:700;color:#525e6a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1229,9 +1233,9 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 .pw-sim-seg-fill.is-running{animation:pwSimBarFill 4.3s linear forwards}
 @keyframes pwSimBarFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 
-/* Synchronized Dual-Device Grid: Wide Studio Monitor + Sync Bridge + Slender iPhone Pro */
-.pw-sim-dual-stage{display:grid;grid-template-columns:minmax(0,1fr) 76px 256px;gap:16px;align-items:center}
-.pw-sim-sync-bridge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative}
+/* Synchronized Multi-Column Stage: Side Timeline + Wide Studio Monitor + Sync Bridge + Slender iPhone Pro */
+.pw-sim-dual-stage{display:grid;grid-template-columns:minmax(310px,25%) minmax(0,1fr) 60px 256px;gap:clamp(14px,1.5vw,22px);align-items:stretch}
+.pw-sim-sync-bridge{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;position:relative;align-self:center}
 .pw-sim-sync-line{position:absolute;inset-inline:-16px;top:50%;height:2px;background:linear-gradient(90deg,rgba(199,85,23,.14),rgba(199,85,23,.65),rgba(199,85,23,.14));z-index:0}
 .pw-sim-sync-node{position:relative;z-index:1;width:40px;height:40px;border-radius:9999px;background:#ffffff;border:1.5px solid rgba(199,85,23,.35);color:#c75517;display:grid;place-items:center;box-shadow:0 10px 24px -10px rgba(199,85,23,.4);transition:transform .25s ease,box-shadow .25s ease}
 .pw-sim-sync-node.is-pulsing{transform:scale(1.08);box-shadow:0 0 0 6px rgba(199,85,23,.15),0 10px 24px -10px rgba(199,85,23,.5)}
@@ -1240,7 +1244,7 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 .pw-sim-sync-label{position:relative;z-index:1;font-size:.68rem;font-weight:800;color:#a64310;background:rgba(255,255,255,.94);border:1px solid #fed7aa;padding:2px 8px;border-radius:9999px;white-space:nowrap}
 
 /* A. Realistic Desktop Studio Monitor + Clean Bright Browser Website */
-.pw-sim-desktop-col{display:flex;flex-direction:column;align-items:center}
+.pw-sim-desktop-col{display:flex;flex-direction:column;align-items:center;justify-content:center}
 .pw-sim-monitor{width:100%;border-radius:18px;padding:9px;background:linear-gradient(155deg,#2b313a 0%,#12161c 55%,#1e242c 100%);border:1px solid rgba(255,255,255,.22);box-shadow:0 32px 64px -26px rgba(20,24,27,.34),inset 0 1px 0 rgba(255,255,255,.16)}
 .pw-sim-monitor-screen{border-radius:12px;overflow:hidden;background:#f8f6f2;border:1px solid #dfd7cc;color:#14181b;display:flex;flex-direction:column}
 .pw-sim-chrome{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 14px;background:#ffffff;border-bottom:1px solid #e7e1d7}
@@ -1264,7 +1268,7 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 .pw-sim-cart-pill.is-pop{animation:pwCartPop .42s cubic-bezier(.2,1.25,.4,1)}
 @keyframes pwCartPop{0%{transform:scale(.85)}55%{transform:scale(1.18)}100%{transform:scale(1)}}
 
-.pw-sim-web-body{position:relative;padding:16px;min-height:282px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;background:#f8f6f2}
+.pw-sim-web-body{position:relative;padding:16px;min-height:300px;display:flex;flex-direction:column;justify-content:center;overflow:hidden;background:#f8f6f2}
 .pw-sim-web-grid{display:grid;grid-template-columns:1.35fr .95fr;gap:12px;align-items:stretch}
 .pw-sim-web-card{display:flex;gap:11px;padding:10px;border-radius:14px;background:#ffffff;border:1.5px solid rgba(199,85,23,.55);align-items:center;box-shadow:0 8px 20px -14px rgba(20,24,27,.18)}
 .pw-sim-web-card.is-secondary{border:1px solid #e7e1d7;opacity:.76;box-shadow:none}
@@ -1297,8 +1301,8 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 .pw-sim-cursor.is-pos-3{left:48%;top:34%;opacity:0}
 
 /* B. Realistic Slender iPhone Pro Frame + Bright Daylight App Screen + Store Badges */
-.pw-sim-iphone-col{display:flex;flex-direction:column;align-items:center;gap:12px}
-.pw-sim-phone{position:relative;width:248px;border-radius:40px;padding:9px;background:linear-gradient(155deg,#4b525c 0%,#1f242b 48%,#3c434d 100%);box-shadow:0 32px 60px -24px rgba(20,24,27,.38),0 0 0 1px rgba(255,255,255,.28),inset 0 0 0 2px #0b0e12}
+.pw-sim-iphone-col{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px}
+.pw-sim-phone{position:relative;width:252px;border-radius:40px;padding:9px;background:linear-gradient(155deg,#4b525c 0%,#1f242b 48%,#3c434d 100%);box-shadow:0 32px 60px -24px rgba(20,24,27,.38),0 0 0 1px rgba(255,255,255,.28),inset 0 0 0 2px #0b0e12}
 .pw-sim-hw-action,.pw-sim-hw-vol-1,.pw-sim-hw-vol-2,.pw-sim-hw-pwr{position:absolute;width:3px;border-radius:3px;background:#444e5c}
 .pw-sim-hw-action{left:-3px;top:76px;height:18px}
 .pw-sim-hw-vol-1{left:-3px;top:106px;height:30px}
@@ -1399,16 +1403,19 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 .pw-sim-store-badge small{font-size:.58rem;font-weight:700;color:rgba(255,255,255,.72)}
 .pw-sim-store-badge strong{font-size:.73rem;font-weight:900;color:#fff}
 
-.pw-sim-foot-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:32px}
+.pw-sim-foot-actions{display:flex;flex-direction:column;gap:8px;margin-top:auto;padding-top:12px;border-top:1px solid rgba(231,225,215,.85)}
+.pw-sim-cta-main{width:100%;min-height:42px;padding:8px 14px;font-size:.86rem}
+.pw-sim-cta-sub{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;width:100%}
+.pw-sim-cta-sub .pw-btn{width:100%;min-height:36px;padding:6px 10px;font-size:.8rem}
 
 /* ===== المرحلة 4: المنتجات الأكثر مبيعاً (صالة عرض مضيئة ومريحة للعين - 8pt Grid) ===== */
-.pw-bestsellers-band{position:relative;z-index:4;padding:var(--ui-section-py) 0;color:#14181b;background:#fbfaf7}
-.pw-bestsellers-band > .pw-wrap{max-width:none;width:100%;padding-inline:clamp(16px,2.4vw,40px)}
-.pw-bs-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:32px}
+.pw-bestsellers-band{position:relative;z-index:4;padding:clamp(32px,3.4vw,48px) 0;color:#14181b;background:#fbfaf7}
+.pw-bestsellers-band > .pw-wrap,.pw.pw-home-light .pw-footer > .pw-wrap{max-width:none;width:100%;padding-inline:clamp(16px,2.4vw,40px)}
+.pw-bs-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
 .pw-bs-head .pw-eyebrow{color:#c75517;font-weight:800;margin-bottom:4px}
 .pw-bs-head h2{font-size:clamp(1.42rem,2.45vw,2.05rem);font-weight:800;line-height:1.4;color:#14181b;text-shadow:0 1px 12px rgba(251,250,247,.95);margin:0 0 8px}
 .pw-bs-sub{font-size:.96rem;font-weight:500;line-height:1.75;color:#525e6a;text-shadow:0 1px 12px rgba(251,250,247,.95);max-width:42rem;margin:0}
-.pw-bs-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
+.pw-bs-filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
 .pw-bs-filter-btn{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:8px 16px;border-radius:var(--r-pill);background:rgba(255,255,255,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid #e2dbd0;color:#47525c;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .16s}
 .pw-bs-filter-btn:hover{border-color:#c75517;color:#14181b}
 .pw-bs-filter-btn.is-on{background:#14181b;border-color:#14181b;color:#fff;font-weight:700;box-shadow:0 8px 18px -10px rgba(20,24,27,.35)}
@@ -1438,7 +1445,7 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 .pw-bs-add-btn.is-added{background:#059669!important}
 .pw-bs-wa-btn{min-height:max(32px,calc(var(--ui-btn-h) - 12px));padding:4px 9px;border-radius:var(--r-btn-sm);border:1px solid #dfd7cc;background:rgba(255,255,255,.92);color:#14181b;font-size:calc(var(--ui-btn-fs) * .78);font-weight:600;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;transition:background .16s}
 .pw-bs-wa-btn:hover{background:#f4efe6}
-.pw-bs-footer{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:32px}
+.pw-bs-footer{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:24px}
 .pw-bs-more-btn{min-width:210px}
 
 /* صورة مصغرة للمنتجات داخل صفحة تفاصيل القسم */
@@ -1505,23 +1512,36 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
   .pw-pd-actions .pw-btn{flex:1;min-width:140px}
 }
 
+@media(max-width:1180px){
+  .pw-sim-dual-stage{grid-template-columns:minmax(0,1fr) 64px 252px;align-items:center}
+  .pw-sim-narrator-bar{grid-column:1 / -1;height:auto}
+  .pw-sim-stepper{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .pw-sim-foot-actions{flex-direction:row;flex-wrap:wrap;align-items:center}
+  .pw-sim-cta-main{width:auto;flex:1 1 220px}
+  .pw-sim-cta-sub{flex:1 1 260px}
+}
 @media(max-width:1023px){
   .pw-bs-grid{gap:14px}
-  .pw-sim-dual-stage{grid-template-columns:1fr;gap:24px}
-  .pw-sim-sync-bridge{flex-direction:row;padding:4px 0}
-  .pw-sim-sync-line{display:none}
+}
+@media(max-width:960px){
+  .pw-welcome-shell{grid-template-columns:1fr;padding:16px;gap:14px}
 }
 @media(max-width:900px){
+  .pw-sim-dual-stage{grid-template-columns:1fr;gap:18px}
+  .pw-sim-sync-bridge{flex-direction:row;padding:4px 0}
+  .pw-sim-sync-line{display:none}
   .pw-sim-web-grid,.pw-sim-web-detail,.pw-sim-web-checkout-cols{grid-template-columns:1fr}
   .pw-sim-web-card.is-secondary{display:none}
 }
 @media(max-width:639px){
-  .pw-welcome-band{padding:80px 0 48px}
-  .pw-welcome-shell{padding:0;gap:16px}
-  .pw-sim-section{padding:48px 0 64px}
-  .pw-sim-narrator-bar{padding:16px}
+  .pw-welcome-band{padding:72px 0 14px}
+  .pw-welcome-shell{padding:14px;gap:12px}
+  .pw-split-stage{padding:0 0 24px}
+  .pw-dual-media{aspect-ratio:16/9.5;min-height:190px;max-height:260px}
+  .pw-sim-section{padding:28px 0 36px}
+  .pw-sim-narrator-bar{padding:14px}
   .pw-sim-stepper{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .pw-bestsellers-band{padding:56px 0 64px}
+  .pw-bestsellers-band{padding:32px 0 40px}
   .pw-omni-box{flex-wrap:wrap;padding:8px}
   .pw-omni-store-btn{width:100%;min-height:48px;justify-content:center}
   .pw-omni-row{flex-wrap:wrap}
@@ -1529,7 +1549,8 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
   .pw-bs-body{padding:10px 12px 12px}
   .pw-bs-filter-btn{min-height:44px;padding:10px 16px}
   .pw-bs-actions .pw-bs-add-btn,.pw-bs-actions .pw-bs-wa-btn{min-height:38px!important}
-  .pw-bs-footer .pw-btn,.pw-sim-foot-actions .pw-btn{width:100%;min-height:48px}
+  .pw-bs-footer .pw-btn,.pw-sim-foot-actions .pw-btn{width:100%;min-height:44px}
+  .pw-sim-cta-sub{grid-template-columns:1fr}
   .pw-sim-web-links{gap:8px;font-size:.7rem}
 }
 @media(prefers-reduced-motion:reduce){

@@ -321,62 +321,79 @@ export default function OrderJourneyShowcase({
       aria-labelledby="order-sim-heading"
     >
       <div className="pw-wrap">
-        {/* Compact Executive Header + Editorial 4-Step Auto-Play Timeline */}
+        {/* Compact Executive Header Row */}
         <div className="pw-sim-top-head">
+          <div className="pw-sim-head-copy">
+            <h2 id="order-sim-heading">
+              كيف تطلب في <em>4 خطوات</em> بسيطة؟
+            </h2>
+            <p className="pw-sim-lead">
+              شاهد كيف تختار المنتج، تفعّل التركيب، وتؤكد طلبك من الموقع أو تطبيق الجوال في ثوانٍ.
+            </p>
+          </div>
           <span className="pw-sim-live-pill">
             <i aria-hidden="true" />
             <span>خطوات الطلب · شرح عملي</span>
           </span>
-          <h2 id="order-sim-heading">
-            كيف تطلب في <em>4 خطوات</em> بسيطة؟
-          </h2>
-          <p className="pw-sim-lead">
-            شاهد كيف تختار المنتج، تفعّل التركيب، وتؤكد طلبك من الموقع أو تطبيق الجوال في ثوانٍ.
-          </p>
         </div>
 
-        {/* Read-only Editorial 4-Step Auto-Play Timeline (Zero manual buttons) */}
-        <div className="pw-sim-narrator-bar" aria-live="polite">
-          <div className="pw-sim-timeline-top">
-            <div className="pw-sim-narrator-copy">
-              <span className="pw-sim-caption-tag">{activeScenario.categoryLabel}</span>
-              <strong>{activeScenario.stepTitles[step]}</strong>
-              <p>{activeScenario.stepDescs[step]}</p>
-            </div>
-            <span className="pw-sim-caption-counter" dir="ltr">
-              {activeScenario.code} · {scenarioIdx + 1}/{SALES_SCENARIOS.length}
-            </span>
-          </div>
-
-          <div className="pw-sim-stepper" aria-hidden="true">
-            {TIMELINE_LABELS.map((label, idx) => {
-              const isDone = step > idx;
-              const isActive = step === idx;
-              return (
-                <div
-                  key={label}
-                  className={`pw-sim-step-item ${isDone ? 'is-done' : ''} ${isActive ? 'is-active' : ''}`}
-                >
-                  <div className="pw-sim-step-label">
-                    <span className="pw-sim-step-num">0{idx + 1}</span>
-                    <span>{label}</span>
-                  </div>
-                  <div className={`pw-sim-seg-track ${isDone ? 'is-done' : ''}`}>
-                    {isActive && (
-                      <span
-                        key={`${scenarioIdx}-${step}`}
-                        className={`pw-sim-seg-fill ${inView ? 'is-running' : ''}`}
-                      />
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Synchronized Dual-Device Stage: Desktop Monitor + Live Sync Bridge + iPhone Pro */}
+        {/* Synchronized Multi-Column Stage: Side Timeline Panel + Desktop Monitor + Live Sync Bridge + iPhone Pro */}
         <div className="pw-sim-dual-stage">
+          {/* Read-only Editorial 4-Step Auto-Play Timeline & Direct CTAs */}
+          <div className="pw-sim-narrator-bar" aria-live="polite">
+            <div className="pw-sim-timeline-top">
+              <div className="pw-sim-narrator-copy">
+                <span className="pw-sim-caption-tag">{activeScenario.categoryLabel}</span>
+                <strong>{activeScenario.stepTitles[step]}</strong>
+                <p>{activeScenario.stepDescs[step]}</p>
+              </div>
+              <span className="pw-sim-caption-counter" dir="ltr">
+                {activeScenario.code} · {scenarioIdx + 1}/{SALES_SCENARIOS.length}
+              </span>
+            </div>
+
+            <div className="pw-sim-stepper" aria-hidden="true">
+              {TIMELINE_LABELS.map((label, idx) => {
+                const isDone = step > idx;
+                const isActive = step === idx;
+                return (
+                  <div
+                    key={label}
+                    className={`pw-sim-step-item ${isDone ? 'is-done' : ''} ${isActive ? 'is-active' : ''}`}
+                  >
+                    <div className="pw-sim-step-label">
+                      <span className="pw-sim-step-num">0{idx + 1}</span>
+                      <span>{label}</span>
+                    </div>
+                    <div className={`pw-sim-seg-track ${isDone ? 'is-done' : ''}`}>
+                      {isActive && (
+                        <span
+                          key={`${scenarioIdx}-${step}`}
+                          className={`pw-sim-seg-fill ${inView ? 'is-running' : ''}`}
+                        />
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pw-sim-foot-actions">
+              <Link href="/sections/materials" className="pw-btn pw-btn-primary pw-sim-cta-main">
+                ادخل قسم المبيعات والسمارت هوم ←
+              </Link>
+              <div className="pw-sim-cta-sub">
+                <Link href="/store" className="pw-btn pw-btn-ghost pw-btn-sm">
+                  تصفح المتجر الكامل
+                </Link>
+                {onOpenContact && (
+                  <button type="button" className="pw-btn pw-btn-ghost pw-btn-sm" onClick={onOpenContact}>
+                    تواصل مع مهندس المبيعات
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
           {/* A. Desktop Monitor Showing Live Sales Website */}
           <div className="pw-sim-desktop-col" aria-label="عرض متزامن لموقع المبيعات على شاشة الكمبيوتر">
             <div className="pw-sim-monitor">
@@ -791,21 +808,6 @@ export default function OrderJourneyShowcase({
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Bottom Actions */}
-        <div className="pw-sim-foot-actions">
-          <Link href="/sections/materials" className="pw-btn pw-btn-primary pw-btn-lg">
-            ادخل قسم المبيعات والسمارت هوم ←
-          </Link>
-          <Link href="/store" className="pw-btn pw-btn-ghost pw-btn-lg">
-            تصفح المتجر الكامل
-          </Link>
-          {onOpenContact && (
-            <button type="button" className="pw-btn pw-btn-ghost pw-btn-lg" onClick={onOpenContact}>
-              تواصل مع مهندس المبيعات
-            </button>
-          )}
         </div>
       </div>
     </section>
