@@ -381,9 +381,9 @@ export default function HomePortalSections({
         <div className="pw-wrap">
           <div className="pw-welcome-shell">
             <div className="pw-welcome-head">
-              <p className="pw-eyebrow">فاي تك للمقاولات والتنفيذ والأنظمة الذكية</p>
+              <p className="pw-eyebrow">فاي تك للمبيعات والمقاولات والصيانة والأنظمة الذكية</p>
               <h1 id="welcome-hero-heading">
-                أهلاً بك في فاي تك — منصتك الهندسية الشاملة من التأسيس حتى السمارت هوم
+                أهلاً بك في فاي تك — مبيعات وتنفيذ وصيانة من الأساسات والتشطيبات حتى الأنظمة الذكية
               </h1>
               <p className="pw-welcome-sub">
                 ابحث عن أي منتج أو خدمة هندسية فوراً، أو اختر القسم المناسب مباشرة بضمان مكتوب.
