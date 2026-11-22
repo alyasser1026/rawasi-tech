@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   DEFAULT_MAINTENANCE_SERVICES,
   DEFAULT_PRODUCTS,
@@ -13,6 +14,7 @@ import {
 } from './store-catalog';
 import { PORTAL_SECTIONS, type CanonicalSectionSlug } from './section-defs';
 import OrderJourneyShowcase from './OrderJourneyShowcase';
+import ProductDetailModal from './ProductDetailModal';
 import type { NewsTickerConfig } from './site-content';
 
 interface HomePortalSectionsProps {
@@ -184,6 +186,7 @@ export default function HomePortalSections({
   onOpenCart,
   onOpenContact,
 }: HomePortalSectionsProps) {
+  const router = useRouter();
   const displayCatalogTotal =
     totalCatalogCount && totalCatalogCount > products.length ? totalCatalogCount : products.length;
   // Stage 1: Omni-Search state
@@ -193,6 +196,7 @@ export default function HomePortalSections({
 
   // Stage 4: Best-Sellers filter & dynamic row-aligned load-more state
   const [activeCat, setActiveCat] = useState<'all' | ProductCategoryId>('all');
+  const [detailProduct, setDetailProduct] = useState<WebsiteProduct | null>(null);
   const bsGridRef = useRef<HTMLDivElement>(null);
   const [gridCols, setGridCols] = useState<number>(4);
   const [extraRows, setExtraRows] = useState<number>(0);
@@ -356,6 +360,9 @@ export default function HomePortalSections({
     setActiveCat(cat);
     setExtraRows(0);
   };
+
+  const isInteractiveClick = (target: EventTarget | null) =>
+    target instanceof HTMLElement && Boolean(target.closest('a,button,input,label,select,textarea'));
 
   const cleanWa = (whatsappNumber || '').replace(/[^\d]/g, '');
 
@@ -575,6 +582,9 @@ export default function HomePortalSections({
                     id={`portal-station-${item.slug}`}
                     className="pw-dual-card"
                     style={{ '--dual-accent': item.accent } as React.CSSProperties}
+                    onClick={(e) => {
+                      if (!isInteractiveClick(e.target)) router.push(item.primaryCta.href);
+                    }}
                   >
                     <div className="pw-dual-media">
                       <img
@@ -697,7 +707,14 @@ export default function HomePortalSections({
               const waMsg = `مرحباً فاي تك، أريد تسعيرة وطلب: ${product.name} (${product.code}) — الوحدة: ${product.unit}${withInstall ? ' (توريد + تركيب)' : ' (توريد فقط)'}`;
 
               return (
-                <article key={product.id} className="pw-bs-card">
+                <article
+                  key={product.id}
+                  className="pw-bs-card"
+                  title="اضغط لعرض التفاصيل والمواصفات"
+                  onClick={(e) => {
+                    if (!isInteractiveClick(e.target)) setDetailProduct(product);
+                  }}
+                >
                   <div className="pw-bs-media">
                     <img
                       src={imageUrl}
@@ -796,6 +813,19 @@ export default function HomePortalSections({
           </div>
         </div>
       </section>
+
+      <ProductDetailModal
+        product={detailProduct}
+        withInstall={detailProduct ? Boolean(installMap[detailProduct.id]) : false}
+        onToggleInstall={() => {
+          if (!detailProduct) return;
+          setInstallMap((prev) => ({ ...prev, [detailProduct.id]: !prev[detailProduct.id] }));
+        }}
+        onAddToCart={onAddToCart}
+        onClose={() => setDetailProduct(null)}
+        whatsappNumber={whatsappNumber}
+        onOpenContact={onOpenContact}
+      />
     </>
   );
 }

@@ -21,6 +21,7 @@ import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import EngTools from './EngTools';
 import ChecklistExplorer from './ChecklistExplorer';
+import ProductDetailModal from './ProductDetailModal';
 
 const CapitalTower3D = dynamic(() => import('./CapitalTower3D'), {
   ssr: false,
@@ -184,6 +185,8 @@ export default function SectionDetailClient({
   const [materialsMode, setMaterialsMode] = useState<'buy' | 'sell'>('buy');
   const [materialCatFilter, setMaterialCatFilter] = useState<'all' | ProductCategoryId>('all');
   const [materialInstallMap, setMaterialInstallMap] = useState<Record<string, boolean>>({});
+  const [detailProduct, setDetailProduct] = useState<WebsiteProduct | null>(null);
+  const [detailDefaultInstall, setDetailDefaultInstall] = useState(false);
   const [sellMaterialName, setSellMaterialName] = useState('');
   const [sellQty, setSellQty] = useState('');
   const [sellUnit, setSellUnit] = useState('بستلة / كيس / طن');
@@ -776,7 +779,16 @@ export default function SectionDetailClient({
                     {materialProducts.map((p) => {
                       const withInstall = Boolean(materialInstallMap[p.id]);
                       return (
-                        <article key={p.id} className="pw-prod-card">
+                        <article
+                          key={p.id}
+                          className="pw-prod-card"
+                          title="اضغط لعرض التفاصيل والمواصفات"
+                          onClick={(e) => {
+                            if (e.target instanceof HTMLElement && e.target.closest('a,button,input,label,select,textarea')) return;
+                            setDetailDefaultInstall(false);
+                            setDetailProduct(p);
+                          }}
+                        >
                           <div>
                             {p.imageUrl && (
                               <div className="pw-prod-thumb">
@@ -973,7 +985,16 @@ export default function SectionDetailClient({
 
               <div className="pw-prod-grid">
                 {smartProducts.map((p) => (
-                  <article key={p.id} className="pw-prod-card">
+                  <article
+                    key={p.id}
+                    className="pw-prod-card"
+                    title="اضغط لعرض التفاصيل والمواصفات"
+                    onClick={(e) => {
+                      if (e.target instanceof HTMLElement && e.target.closest('a,button,input,label,select,textarea')) return;
+                      setDetailDefaultInstall(true);
+                      setDetailProduct(p);
+                    }}
+                  >
                     <div>
                       {p.imageUrl && (
                         <div className="pw-prod-thumb">
@@ -1147,6 +1168,25 @@ export default function SectionDetailClient({
       />
 
       <LoginModal isOpen={loginOpen} onClose={() => setLoginOpen(false)} />
+
+      <ProductDetailModal
+        product={detailProduct}
+        withInstall={
+          detailProduct
+            ? materialInstallMap[detailProduct.id] ?? detailDefaultInstall
+            : false
+        }
+        onToggleInstall={() => {
+          if (!detailProduct) return;
+          setMaterialInstallMap((prev) => {
+            const current = prev[detailProduct.id] ?? detailDefaultInstall;
+            return { ...prev, [detailProduct.id]: !current };
+          });
+        }}
+        onAddToCart={cart.addToCart}
+        onClose={() => setDetailProduct(null)}
+        whatsappNumber={SITE.contact.whatsapp || waDigits}
+      />
     </div>
   );
 }

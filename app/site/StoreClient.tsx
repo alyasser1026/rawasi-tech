@@ -1554,6 +1554,7 @@ export default function StoreClient({
           display: flex;
           flex-direction: column;
           justify-content: space-between;
+          cursor: pointer;
           box-shadow: 0 14px 32px -24px rgba(20, 24, 27, 0.15);
           transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
           content-visibility: auto;
@@ -1570,6 +1571,7 @@ export default function StoreClient({
           background: #ffffff;
           border-bottom: 1px solid #f0ebe2;
           overflow: hidden;
+          cursor: pointer;
         }
         .st-prod-media img {
           width: 100%;
@@ -2187,14 +2189,15 @@ export default function StoreClient({
           border-radius: var(--r-card-sm);
           overflow: hidden;
           border: 1px solid #e7e1d7;
-          background: #0f161e;
+          background: #ffffff;
           aspect-ratio: 4 / 3;
           position: relative;
         }
         .st-detail-media img {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          object-fit: contain;
+          padding: 10px;
           display: block;
         }
         .st-detail-specs {
@@ -3476,7 +3479,14 @@ export default function StoreClient({
                     const waMsg = `مرحباً فاي تك، أريد تسعيرة وطلب: ${p.name} (${p.code}) — الوحدة: ${p.unit}${withInstall ? ' (توريد + تركيب)' : ' (توريد فقط)'}`;
 
                     return (
-                      <article key={p.id} className="st-prod-card">
+                      <article
+                        key={p.id}
+                        className="st-prod-card"
+                        onClick={(e) => {
+                          if (e.target instanceof HTMLElement && e.target.closest('a,button,input,label,select,textarea')) return;
+                          handleOpenDetail(p);
+                        }}
+                      >
                         <div>
                           <div className="st-prod-media" onClick={() => handleOpenDetail(p)} title="اضغط لعرض المواصفات والمرفقات">
                             <img src={imageUrl} alt={p.name} loading="lazy" decoding="async" />
