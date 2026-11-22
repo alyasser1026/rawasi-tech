@@ -156,7 +156,7 @@ async function sendStoreTelegramNotification(order: {
       lines.push(`📍 <b>العنوان / المدينة:</b> ${escapeHtml([order.city, order.address].filter(Boolean).join(' — '))}`);
     }
     lines.push(
-      `🛠️ <b>خدمة التركيب الهندسي:</b> ${order.withInstallation ? '✅ مطلوب توريد + تركيب بإشراف فاي تك' : '📦 توريد فقط'}`
+      `🛠️ <b>خدمة التركيب:</b> ${order.withInstallation ? '✅ مطلوب توريد + تركيب بإشراف فاي تك' : '📦 توريد فقط'}`
     );
     lines.push('━━━━━━━━━━━━━━━━━━━━');
     lines.push('📦 <b>الأصناف المطلوبة في السلة:</b>');

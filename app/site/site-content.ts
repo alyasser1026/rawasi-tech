@@ -125,7 +125,7 @@ export const FAQS: Faq[] = [
 
 export const DEFAULT_PROMO_BANNER: PromoBannerConfig = {
   enabled: true,
-  text: '✨ متجر فاي تك للتشطيبات والسمارت هوم وحساسات الأمان — اطلب التوريد والتركيب الهندسي المعتمد مباشرة لمشروعك',
+  text: '✨ متجر فاي تك للتشطيبات والسمارت هوم وحساسات الأمان — اطلب التوريد والتركيب المعتمد مباشرة لمشروعك',
 };
 
 export const DEFAULT_NEWS_TICKER: NewsTickerConfig = {

@@ -992,8 +992,8 @@ export function CartDrawer({
                         />
                         <span>
                           {item.installPrice > 0
-                            ? `شامل التركيب الهندسي (+${item.installPrice.toLocaleString('en-US')} ${item.currency} / ${item.unit})`
-                            : 'مطلوب مع التركيب الهندسي المعتمد'}
+                            ? `شامل التركيب (+${item.installPrice.toLocaleString('en-US')} ${item.currency} / ${item.unit})`
+                            : 'شامل التركيب'}
                         </span>
                       </label>
 

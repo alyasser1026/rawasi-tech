@@ -226,7 +226,7 @@ const RECOMMENDATIONS: {
   {
     p: 'عالية',
     title: 'كتالوج منتجات التشطيب والسمارت هوم',
-    why: 'عرض المنتجات بالأسعار وخيار التركيب الهندسي يضاعف مبيعات التوريد والمقاولات.',
+    why: 'عرض المنتجات بالأسعار وخيار التركيب يضاعف مبيعات التوريد والمقاولات.',
     done: (c) => c.products.length >= 9,
   },
   {
@@ -1170,7 +1170,7 @@ export default function WebsiteAdminPage() {
                       dir="ltr"
                     />
                     <F
-                      label="تكلفة التركيب الهندسي للوحدة (اختياري)"
+                      label="تكلفة التركيب للوحدة (اختياري)"
                       v={p.installPrice ? String(p.installPrice) : ''}
                       on={(v) => upd((d) => { d.products[idx].installPrice = Number(v) || 0; })}
                       dir="ltr"
@@ -1872,7 +1872,7 @@ export default function WebsiteAdminPage() {
                           {ord.items.map((it: any, i: number) => (
                             <li key={i}>
                               {it.name} — الكمية: <strong>{it.qty}</strong> ({it.unit}){' '}
-                              {it.withInstall ? '✅ شامل التركيب الهندسي' : ''}
+                              {it.withInstall ? '✅ شامل التركيب' : ''}
                             </li>
                           ))}
                         </ul>

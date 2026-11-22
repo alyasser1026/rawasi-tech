@@ -673,7 +673,7 @@ export default function HomePortalSections({
               <p className="pw-eyebrow">صور استوديو حقيقية · جاهزة للتوريد والتركيب</p>
               <h2 id="best-sellers-heading">المنتجات الأكثر مبيعاً وطلباً</h2>
               <p className="pw-bs-sub">
-                تشكيلة منتقاة من الأكثر طلباً في التشطيبات والسمارت هوم وحساسات الأمان — اطلب التوريد أو توريد + تركيب هندسي.
+                تشكيلة منتقاة من الأكثر طلباً في التشطيبات والسمارت هوم وحساسات الأمان — اطلب التوريد أو توريد + تركيب.
               </p>
             </div>
             {onOpenCart && (
@@ -745,7 +745,7 @@ export default function HomePortalSections({
                           setInstallMap((prev) => ({ ...prev, [product.id]: !prev[product.id] }))
                         }
                       />
-                      <span>شامل التركيب والبرمجة الهندسية</span>
+                      <span>شامل التركيب</span>
                     </label>
 
                     <div className="pw-bs-price">

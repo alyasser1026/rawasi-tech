@@ -819,7 +819,7 @@ export default function SectionDetailClient({
                                   setMaterialInstallMap((prev) => ({ ...prev, [p.id]: !prev[p.id] }))
                                 }
                               />
-                              <span>شامل التركيب / التنفيذ الهندسي</span>
+                              <span>شامل التركيب</span>
                             </label>
                             <div className="pw-prod-actions">
                               <button
@@ -1027,7 +1027,7 @@ export default function SectionDetailClient({
                           style={{ flex: 1, minHeight: '38px', padding: '0 12px', fontSize: '0.82rem' }}
                           onClick={() => cart.addToCart(p, 1, true)}
                         >
-                          🛒 أضف مع البرمجة والتركيب
+                          🛒 أضف مع التركيب
                         </button>
                       </div>
                     </div>

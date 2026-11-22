@@ -49,10 +49,10 @@ const STORE_OFFER_SLIDES: StoreOfferSlide[] = [
     image: '/sections/smart-home.jpg',
     kicker: 'عرض التجهيز الذكي · الأكثر طلباً',
     shortLabel: 'سمارت هوم',
-    headline: 'حوّل وحدتك لمنزل ذكي متكامل بالتركيب والبرمجة',
+    headline: 'حوّل وحدتك لمنزل ذكي متكامل بالتركيب',
     subtitle:
       'شاشات تحكم مركزية، أقفال أبواب ذكية 6×1 بالبصمة والوجه، ومفاتيح لمس تعمل بدون تكسير مع ضمان هندسي مكتوب.',
-    perks: ['تركيب وبرمجة هندسية', 'ضمان مكتوب', 'متابعة من الجوال'],
+    perks: ['شامل التركيب', 'ضمان مكتوب', 'متابعة من الجوال'],
     primaryLabel: 'تصفح قسم السمارت هوم',
     primaryAction: { tab: 'products', category: 'smart_home' },
     secondaryLabel: 'باقات التوفير',
@@ -3045,7 +3045,7 @@ export default function StoreClient({
                             setInstallSelections({});
                           }}
                         />
-                        <span>تفعيل التركيب الهندسي للكل</span>
+                        <span>تفعيل التركيب للكل</span>
                       </span>
                     </label>
                   </div>
@@ -3281,7 +3281,7 @@ export default function StoreClient({
                 )}
                 {activeStoreTab === 'products' && globalInstallMode && (
                   <button type="button" className="st-active-chip" onClick={() => setGlobalInstallMode(false)}>
-                    <span>شامل التركيب الهندسي</span>
+                    <span>شامل التركيب</span>
                     <span>×</span>
                   </button>
                 )}
@@ -3539,8 +3539,8 @@ export default function StoreClient({
                             />
                             <span>
                               {p.installPrice && p.installPrice > 0
-                                ? `إضافة التركيب الهندسي (+${p.installPrice.toLocaleString('en-US')} ${p.currency})`
-                                : 'شامل التركيب والبرمجة الهندسية'}
+                                ? `إضافة التركيب (+${p.installPrice.toLocaleString('en-US')} ${p.currency})`
+                                : 'شامل التركيب'}
                             </span>
                           </label>
 
@@ -3656,7 +3656,7 @@ export default function StoreClient({
               <div>
                 <p className="pw-eyebrow">باقات التجهيز الكاملة</p>
                 <h2 id="bundles-heading">باقات السمارت هوم وحساسات الأمان الجاهزة</h2>
-                <p>تشكيلات متكاملة بالتركيب والبرمجة لحماية الشقق والفلل وتوفير التكلفة مقارنة بالطلب الفردي.</p>
+                <p>تشكيلات متكاملة بالتركيب لحماية الشقق والفلل وتوفير التكلفة مقارنة بالطلب الفردي.</p>
               </div>
             </div>
 
@@ -3818,8 +3818,8 @@ export default function StoreClient({
                   />
                   <span>
                     {detailProduct.installPrice && detailProduct.installPrice > 0
-                      ? `إضافة التركيب الهندسي (+${detailProduct.installPrice.toLocaleString('en-US')} ${detailProduct.currency})`
-                      : 'شامل التركيب والبرمجة الهندسية عند الطلب'}
+                      ? `إضافة التركيب (+${detailProduct.installPrice.toLocaleString('en-US')} ${detailProduct.currency})`
+                      : 'شامل التركيب عند الطلب'}
                   </span>
                 </label>
 

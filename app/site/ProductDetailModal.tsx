@@ -159,8 +159,8 @@ export default function ProductDetailModal({
               <input type="checkbox" checked={withInstall} onChange={onToggleInstall} />
               <span>
                 {product.installPrice && product.installPrice > 0
-                  ? `شامل التركيب والبرمجة الهندسية (+${product.installPrice.toLocaleString('en-US')} ${product.currency})`
-                  : 'شامل التركيب والبرمجة الهندسية'}
+                  ? `شامل التركيب (+${product.installPrice.toLocaleString('en-US')} ${product.currency})`
+                  : 'شامل التركيب'}
               </span>
             </label>
 
