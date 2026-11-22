@@ -89,19 +89,16 @@ interface PortalShortcut {
   href: string;
 }
 
-interface PortalStudioDef {
+interface DualPortalDef {
   slug: CanonicalSectionSlug;
-  stepNum: string;
-  journeyTitle: string;
-  journeySub: string;
-  intentLabel: string;
+  badgeLabel: string;
   title: string;
   benefit: string;
   accent: string;
-  href: string;
   image: string;
   imageAlt: string;
   tags: [string, string, string];
+  primaryCta: { label: string; href: string };
   secondaryCta: { label: string; href: string };
   getKpi: (catalogCount: number) => string;
   getShortcuts: (catalogCount: number) => [PortalShortcut, PortalShortcut, PortalShortcut];
@@ -134,70 +131,50 @@ function PortalSectionIcon({ slug, size = 18 }: { slug: CanonicalSectionSlug; si
   );
 }
 
-const PORTAL_STUDIO_ITEMS: PortalStudioDef[] = [
+const DUAL_PORTAL_CONTAINERS: DualPortalDef[] = [
   {
-    slug: 'info',
-    stepNum: '01',
-    journeyTitle: 'خطّط واحسب',
-    journeySub: 'حاسبات الكميات ودليل الاستلام',
-    intentLabel: 'أريد معرفة التكلفة والكميات أولاً',
-    title: 'معلومات وحاسبات هندسية',
-    benefit: 'احسب كميات التشطيب بدقة وراجع دليل الفحص الهندسي قبل التعاقد أو الشراء.',
-    accent: '#4f46e5',
-    href: '/sections/info',
-    image: '/sections/info.jpg',
-    imageAlt: 'مكتب هندسي يضم مخططات معمارية وحاسوب لوحي لرسومات التصميم الهندسي',
-    tags: ['حاسبات مجانية', 'دليل الفحص', 'نصائح التشطيب'],
-    secondaryCta: { label: 'التحقق من المستندات', href: '/verify' },
-    getKpi: () => '4 أدوات وحاسبات مجانية',
-    getShortcuts: () => [
-      { title: 'حاسبات الكميات المجانية', subtitle: 'تقدير الدهانات والسيراميك والتشطيب', href: '/sections/info?tab=tools' },
-      { title: 'دليل التنفيذ والفحص', subtitle: 'قائمة استلام هندسية لكل بند', href: '/sections/info?tab=checklist' },
-      { title: 'نصائح قبل التشطيب', subtitle: 'تجنّب الأخطاء المكلفة والتزاماتنا', href: '/sections/info?tab=tips' },
+    slug: 'materials',
+    badgeLabel: '01 · المبيعات',
+    title: 'المبيعات ومواد البناء والسمارت هوم',
+    benefit: 'توريد خامات البناء والتشطيبات وأنظمة المنزل الذكي والأمان بأقل سعر مباشر وتركيب معتمد.',
+    accent: '#059669',
+    image: '/sections/materials.jpg',
+    imageAlt: 'منظومة متكاملة لمواد البناء والتشطيبات والسمارت هوم من فاي تك',
+    tags: ['مواد بناء وتشطيب', 'سمارت هوم', 'كاميرات وأمان'],
+    primaryCta: { label: 'تصفح المتجر الآن ←', href: '/store' },
+    secondaryCta: { label: 'قسم المبيعات', href: '/sections/materials' },
+    getKpi: (n) => `+${n.toLocaleString('en-US')} منتج متاح للتوريد`,
+    getShortcuts: (n) => [
+      { title: 'تصفح المتجر المباشر', subtitle: `${n.toLocaleString('en-US')}+ منتج بأقل سعر محدث`, href: '/store' },
+      { title: 'باقات السمارت هوم والأمان', subtitle: 'شاشات تحكم، أقفال ذكية، وكاميرات 4K', href: '/sections/materials?tab=smart-home' },
+      { title: 'مواد البناء والتشطيب', subtitle: 'بيع وشراء وتوريد خامات معتمدة للموقع', href: '/sections/materials?tab=materials' },
     ],
   },
   {
     slug: 'contracting',
-    stepNum: '02',
-    journeyTitle: 'ابنِ وشطّب',
-    journeySub: 'المقاولات والتنفيذ والصيانة',
-    intentLabel: 'أريد تشطيب أو بناء أو صيانة',
-    title: 'المقاولات والتنفيذ والصيانة',
-    benefit: 'تنفيذ متكامل من العظم حتى التسليم مع صيانة الكهرباء والسباكة والتكييف بضمان هندسي.',
+    badgeLabel: '02 · التركيبات والصيانة والتنفيذ',
+    title: 'التركيبات والصيانة والتنفيذ',
+    benefit: 'أعمال البناء والتشطيب المتكامل، والتركيبات والصيانة الهندسية للكهرباء والسباكة والتكييف بضمان مكتوب.',
     accent: '#c75517',
-    href: '/sections/contracting',
     image: '/sections/contracting.jpg',
     imageAlt: 'مبنى معماري حديث من الخرسانة والزجاج يعبر عن مشاريع المقاولات والإنشاءات والتنفيذ الهندسي',
-    tags: ['عظم وتشطيب', 'صيانة بضمان', 'مقايسة 3×1'],
-    secondaryCta: { label: 'احسب المقايسة الآن', href: '/sections/contracting?view=calc' },
-    getKpi: () => 'حاسبة 3×1 + ضمان + 3D',
+    tags: ['تركيبات وتشطيب', 'صيانة بضمان', 'مقايسة 3×1 و 3D'],
+    primaryCta: { label: 'ادخل قسم التنفيذ والصيانة ←', href: '/sections/contracting' },
+    secondaryCta: { label: 'اطلب تركيب أو صيانة', href: '/sections/contracting?tab=maintenance' },
+    getKpi: () => 'تنفيذ وصيانة بضمان هندسي',
     getShortcuts: () => [
-      { title: 'حاسبة المقايسة 3×1', subtitle: 'تقدير فوري للعظم والتشطيب والتكييف', href: '/sections/contracting?view=calc' },
-      { title: 'خدمات الصيانة الهندسية', subtitle: 'كهرباء، سباكة، وتكييف بإشراف هندسي', href: '/sections/contracting?tab=maintenance' },
-      { title: 'المجسم الهندسي التفاعلي 3D', subtitle: 'استعراض معماري وBIM للمباني', href: '/sections/contracting?view=tower3d' },
+      { title: 'خدمات التركيب والصيانة', subtitle: 'كهرباء، سباكة، تكييف، وأنظمة ذكية بإشراف هندسي', href: '/sections/contracting?tab=maintenance' },
+      { title: 'حاسبة المقايسة والتشطيب 3×1', subtitle: 'تقدير فوري لتكلفة العظم والتشطيب والتكييف', href: '/sections/contracting?view=calc' },
+      { title: 'المجسم الهندسي التفاعلي 3D', subtitle: 'استعراض معماري وBIM للمباني والمشاريع', href: '/sections/contracting?view=tower3d' },
     ],
   },
-  {
-    slug: 'materials',
-    stepNum: '03',
-    journeyTitle: 'جهّز وذكيّ بيتك',
-    journeySub: 'المتجر ومواد البناء والسمارت هوم',
-    intentLabel: 'أريد شراء خامات أو سمارت هوم',
-    title: 'المبيعات والسمارت هوم',
-    benefit: 'توريد خامات البناء والتشطيب وأنظمة المنزل الذكي والأمان بأقل سعر مباشر وتركيب معتمد.',
-    accent: '#059669',
-    href: '/sections/materials',
-    image: '/sections/materials.jpg',
-    imageAlt: 'منظومة متكاملة لمواد البناء والتشطيبات والسمارت هوم من فاي تك',
-    tags: ['مواد بناء وتشطيب', 'سمارت هوم', 'كاميرات وأمان'],
-    secondaryCta: { label: 'تصفح المتجر بالكامل', href: '/store' },
-    getKpi: (n) => `+${n.toLocaleString('en-US')} منتج متاح للتوريد`,
-    getShortcuts: (n) => [
-      { title: 'تصفح المتجر المباشر', subtitle: `${n.toLocaleString('en-US')}+ منتج بأقل سعر محدث`, href: '/store' },
-      { title: 'باقات السمارت هوم', subtitle: 'شاشات تحكم، أقفال ذكية، وكاميرات 4K', href: '/sections/materials?tab=smart-home' },
-      { title: 'مواد البناء والتشطيب', subtitle: 'توريد وبيع خامات معتمدة للموقع', href: '/sections/materials?tab=materials' },
-    ],
-  },
+];
+
+const PORTAL_UTILITY_LINKS: { label: string; href: string }[] = [
+  { label: 'حاسبات الكميات المجانية', href: '/sections/info?tab=tools' },
+  { label: 'دليل التنفيذ والفحص', href: '/sections/info?tab=checklist' },
+  { label: 'نصائح قبل التشطيب', href: '/sections/info?tab=tips' },
+  { label: 'التحقق من صحة المستندات', href: '/verify' },
 ];
 
 export default function HomePortalSections({
@@ -216,9 +193,6 @@ export default function HomePortalSections({
   const [searchOpen, setSearchOpen] = useState(false);
   const omniRef = useRef<HTMLDivElement>(null);
 
-  // Stage 3: Unified Architectural Portal Studio state (no scroll listener needed)
-  const [activeStudioSlug, setActiveStudioSlug] = useState<CanonicalSectionSlug>('contracting');
-
   // Stage 4: Best-Sellers filter & load-more state (starts strictly at 6)
   const [activeCat, setActiveCat] = useState<'all' | ProductCategoryId>('all');
   const [visibleCount, setVisibleCount] = useState<number>(INITIAL_BEST_SELLERS);
@@ -235,14 +209,6 @@ export default function HomePortalSections({
   const addedTimerRef = useRef<number | null>(null);
 
   const sections = PORTAL_SECTIONS.slice(0, 3);
-  const activeStudio = useMemo(
-    () => PORTAL_STUDIO_ITEMS.find((item) => item.slug === activeStudioSlug) || PORTAL_STUDIO_ITEMS[1],
-    [activeStudioSlug]
-  );
-  const activeStudioShortcuts = useMemo(
-    () => activeStudio.getShortcuts(displayCatalogTotal),
-    [activeStudio, displayCatalogTotal]
-  );
 
   const categoryMap = useMemo(() => {
     const m: Record<string, (typeof PRODUCT_CATEGORIES)[number]> = {};
@@ -559,195 +525,101 @@ export default function HomePortalSections({
       <OrderJourneyShowcase onOpenContact={onOpenContact} />
 
       {/* =========================================================
-          STAGE 3: بوابة الأقسام الموحدة (5 في 1) — مرسّخ سريع + رحلة المشروع + معاينة + Bento أكورديون
+          STAGE 3: الحاويتان الرئيسيتان — المبيعات + التركيبات والصيانة والتنفيذ
           ========================================================= */}
-      <div
-        className="pw-split-stage"
-        style={{ '--stage-accent': activeStudio.accent } as React.CSSProperties}
-      >
+      <div className="pw-split-stage">
         <section id="portals" className="pw-portal-studio" aria-labelledby="portals-studio-heading">
           <div className="pw-wrap">
             <div className="pw-portal-studio-head">
-              <p className="pw-eyebrow">الأقسام الهندسية والتجارية الرئيسية</p>
-              <h2 id="portals-studio-heading">اختر القسم المناسب لمشروعك</h2>
+              <p className="pw-eyebrow">الأقسام الرئيسية لفاي تك</p>
+              <h2 id="portals-studio-heading">اختر المسار المناسب لمشروعك</h2>
               <p className="pw-portal-studio-sub">
-                مسار متكامل يربط بين الحساب والتخطيط والتنفيذ وتوريد الخامات والسمارت هوم.
+                مساران رئيسيان يغطّيان كل احتياجاتك: توريد المبيعات والسمارت هوم، أو التركيبات والصيانة والتنفيذ الهندسي.
               </p>
             </div>
 
-            {/* 5. Quick Intent Bar */}
-            <div className="pw-intent-bar" role="region" aria-label="اختيار سريع حسب احتياجك">
-              <span className="pw-intent-label">ما الذي تبحث عنه الآن؟</span>
-              <div className="pw-intent-pills">
-                {PORTAL_STUDIO_ITEMS.map((item) => {
-                  const isSelected = activeStudioSlug === item.slug;
-                  return (
-                    <button
-                      key={`intent-${item.slug}`}
-                      type="button"
-                      className={`pw-intent-pill ${isSelected ? 'is-active' : ''}`}
-                      style={{ '--pill-accent': item.accent } as React.CSSProperties}
-                      onClick={() => setActiveStudioSlug(item.slug)}
-                    >
-                      <PortalSectionIcon slug={item.slug} size={16} />
-                      <span>{item.intentLabel}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 4. Step-by-Step Project Journey Rail */}
-            <div className="pw-journey-rail" role="tablist" aria-label="رحلة المشروع عبر أقسام فاي تك">
-              {PORTAL_STUDIO_ITEMS.map((item) => {
-                const isSelected = activeStudioSlug === item.slug;
-                return (
-                  <button
-                    key={`step-${item.slug}`}
-                    type="button"
-                    role="tab"
-                    aria-selected={isSelected}
-                    className={`pw-journey-step ${isSelected ? 'is-active' : ''}`}
-                    style={{ '--step-accent': item.accent } as React.CSSProperties}
-                    onClick={() => setActiveStudioSlug(item.slug)}
-                  >
-                    <span className="pw-journey-num">{item.stepNum}</span>
-                    <span className="pw-journey-icon" aria-hidden="true">
-                      <PortalSectionIcon slug={item.slug} size={18} />
-                    </span>
-                    <span className="pw-journey-copy">
-                      <strong>{item.journeyTitle}</strong>
-                      <small>{item.journeySub}</small>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* 1 & 3. Split Preview & Bento Focus Panel */}
-            <div
-              className="pw-portal-preview"
-              role="tabpanel"
-              style={{ '--col-accent': activeStudio.accent } as React.CSSProperties}
-            >
-              <div className="pw-preview-info">
-                <div className="pw-preview-meta">
-                  <span className="pw-preview-step-pill">
-                    الخطوة {activeStudio.stepNum} · {activeStudio.journeyTitle}
-                  </span>
-                  <span className="pw-preview-kpi">{activeStudio.getKpi(displayCatalogTotal)}</span>
-                </div>
-
-                <div className="pw-preview-title-row">
-                  <span className="pw-preview-icon" aria-hidden="true">
-                    <PortalSectionIcon slug={activeStudio.slug} size={22} />
-                  </span>
-                  <h3>{activeStudio.title}</h3>
-                </div>
-
-                <p className="pw-preview-benefit">{activeStudio.benefit}</p>
-
-                <div className="pw-preview-shortcuts">
-                  {activeStudioShortcuts.map((sc) => (
-                    <Link key={sc.href + sc.title} href={sc.href} className="pw-preview-shortcut">
-                      <strong>{sc.title}</strong>
-                      <small>{sc.subtitle}</small>
-                      <span className="pw-preview-shortcut-go">افتح الآن ←</span>
-                    </Link>
-                  ))}
-                </div>
-
-                <div className="pw-preview-actions">
-                  <Link href={activeStudio.href} className="pw-btn pw-btn-primary">
-                    ادخل القسم بالكامل ←
-                  </Link>
-                  <Link href={activeStudio.secondaryCta.href} className="pw-btn pw-btn-ghost">
-                    {activeStudio.secondaryCta.label}
-                  </Link>
-                </div>
-              </div>
-
-              <div className="pw-preview-media">
-                <img
-                  src={activeStudio.image}
-                  alt={activeStudio.imageAlt}
-                  loading="lazy"
-                  decoding="async"
-                />
-                <span className="pw-preview-media-badge">
-                  {activeStudio.stepNum} · {activeStudio.journeyTitle}
-                </span>
-                <div className="pw-preview-tags">
-                  {activeStudio.tags.map((tag) => (
-                    <span key={tag}>{tag}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* 1 & 2. Interactive Horizontal Accordion / Bento Strip */}
-            <div className="pw-bento-accordion">
-              {PORTAL_STUDIO_ITEMS.map((item) => {
-                const isSelected = activeStudioSlug === item.slug;
+            <div className="pw-dual-portals">
+              {DUAL_PORTAL_CONTAINERS.map((item) => {
+                const shortcuts = item.getShortcuts(displayCatalogTotal);
                 return (
                   <article
                     key={item.slug}
                     id={`portal-station-${item.slug}`}
-                    className={`pw-bento-card ${isSelected ? 'is-active' : ''}`}
-                    style={{ '--col-accent': item.accent } as React.CSSProperties}
-                    onPointerEnter={(e) => {
-                      if (e.pointerType !== 'touch') setActiveStudioSlug(item.slug);
-                    }}
-                    onClick={() => setActiveStudioSlug(item.slug)}
+                    className="pw-dual-card"
+                    style={{ '--dual-accent': item.accent } as React.CSSProperties}
                   >
-                    <img
-                      src={item.image}
-                      alt={item.imageAlt}
-                      className="pw-bento-bg"
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <div className="pw-bento-scrim" aria-hidden="true" />
-                    <div className="pw-bento-inner">
-                      <div className="pw-bento-top">
-                        <span className="pw-bento-step">
+                    <div className="pw-dual-media">
+                      <img
+                        src={item.image}
+                        alt={item.imageAlt}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                      <div className="pw-dual-media-scrim" aria-hidden="true" />
+                      <div className="pw-dual-media-top">
+                        <span className="pw-dual-badge">
                           <PortalSectionIcon slug={item.slug} size={16} />
-                          <span>
-                            {item.stepNum} · {item.journeyTitle}
-                          </span>
+                          <span>{item.badgeLabel}</span>
                         </span>
-                        <span className="pw-bento-kpi">{item.getKpi(displayCatalogTotal)}</span>
+                        <span className="pw-dual-kpi">{item.getKpi(displayCatalogTotal)}</span>
+                      </div>
+                      <div className="pw-dual-tags">
+                        {item.tags.map((t) => (
+                          <span key={t}>{t}</span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="pw-dual-body">
+                      <div className="pw-dual-title-row">
+                        <span className="pw-dual-icon" aria-hidden="true">
+                          <PortalSectionIcon slug={item.slug} size={22} />
+                        </span>
+                        <h3>{item.title}</h3>
                       </div>
 
-                      <div className="pw-bento-bottom">
-                        <h3>{item.title}</h3>
-                        <p className="pw-bento-desc">{item.benefit}</p>
-                        <div className="pw-bento-tags">
-                          {item.tags.map((t) => (
-                            <span key={t}>{t}</span>
-                          ))}
-                        </div>
-                        <div className="pw-bento-foot">
-                          <Link
-                            href={item.href}
-                            className="pw-bento-link"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            ادخل القسم ←
+                      <p className="pw-dual-benefit">{item.benefit}</p>
+
+                      <div className="pw-dual-shortcuts">
+                        {shortcuts.map((sc) => (
+                          <Link key={sc.href + sc.title} href={sc.href} className="pw-dual-shortcut">
+                            <span className="pw-dual-shortcut-copy">
+                              <strong>{sc.title}</strong>
+                              <small>{sc.subtitle}</small>
+                            </span>
+                            <span className="pw-dual-shortcut-arrow" aria-hidden="true">
+                              ←
+                            </span>
                           </Link>
-                          <Link
-                            href={item.secondaryCta.href}
-                            className="pw-bento-sublink"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {item.secondaryCta.label}
-                          </Link>
-                        </div>
+                        ))}
+                      </div>
+
+                      <div className="pw-dual-actions">
+                        <Link href={item.primaryCta.href} className="pw-btn pw-dual-primary-btn">
+                          {item.primaryCta.label}
+                        </Link>
+                        <Link href={item.secondaryCta.href} className="pw-btn pw-btn-ghost">
+                          {item.secondaryCta.label}
+                        </Link>
                       </div>
                     </div>
                   </article>
                 );
               })}
+            </div>
+
+            <div id="portal-station-info" className="pw-portal-utility-bar">
+              <span className="pw-utility-label">
+                <PortalSectionIcon slug="info" size={16} />
+                <span>أدوات هندسية مجانية:</span>
+              </span>
+              <div className="pw-utility-links">
+                {PORTAL_UTILITY_LINKS.map((u) => (
+                  <Link key={u.href} href={u.href} className="pw-utility-link">
+                    {u.label}
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
         </section>
