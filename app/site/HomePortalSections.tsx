@@ -667,10 +667,10 @@ export default function HomePortalSections({
         <div className="pw-wrap">
           <div className="pw-bs-head">
             <div>
-              <p className="pw-eyebrow">صور استوديو حقيقية · جاهزة للتوريد والتركيب</p>
-              <h2 id="best-sellers-heading">المنتجات الأكثر مبيعاً وطلباً</h2>
+              <p className="pw-eyebrow">متجر فاي تك المباشر</p>
+              <h2 id="best-sellers-heading">الأكثر مبيعاً</h2>
               <p className="pw-bs-sub">
-                تشكيلة منتقاة من الأكثر طلباً في التشطيبات والسمارت هوم وحساسات الأمان — اطلب التوريد أو توريد + تركيب.
+                مواد بناء وتشطيبات وأنظمة ذكية بأفضل سعر — جاهزة للتوصيل أو شامل التركيب.
               </p>
             </div>
             {onOpenCart && (
