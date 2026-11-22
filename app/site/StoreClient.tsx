@@ -140,7 +140,7 @@ export default function StoreClient({
   content?: SiteContentOverride;
   initialCatalog?: StoreCatalogQueryResult;
 }) {
-  const { SITE, PRODUCTS, MAINTENANCE_SERVICES, PROMO_BANNER, STORE_OFFER_BANNERS } = mergeContent(content);
+  const { SITE, PRODUCTS, MAINTENANCE_SERVICES, STORE_OFFER_BANNERS } = mergeContent(content);
   const [loginOpen, setLoginOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [activeStoreTab, setActiveStoreTab] = useState<'products' | 'maintenance'>('products');
@@ -775,19 +775,6 @@ export default function StoreClient({
         }
         .pw.st-page .pw-unified-hero.st-banner-stage .pw-unified-crumb a:hover {
           color: var(--o);
-        }
-        .pw.st-page .pw-unified-hero.st-banner-stage .pw-unified-promo {
-          margin: 0;
-          padding: 5px 12px;
-          border-radius: var(--r-pill);
-          background: #fff7ed;
-          border: 1px solid #fed7aa;
-          color: #9a3412;
-          font-size: 0.76rem;
-          font-weight: 700;
-          max-width: 100%;
-          line-height: 1.5;
-          text-align: right;
         }
         .st-banner-viewport {
           position: relative;
@@ -2484,7 +2471,6 @@ export default function StoreClient({
           }
         }
         html.low-graphics-mode .pw.st-page .pw-header.pw-header-glass,
-        html.low-graphics-mode .pw.st-page .pw-unified-promo,
         html.low-graphics-mode .pw.st-page .st-banner-dots,
         html.low-graphics-mode .pw.st-page .st-filter-sidebar,
         html.low-graphics-mode .pw.st-page .st-modal-overlay,
@@ -2536,7 +2522,6 @@ export default function StoreClient({
               <span className="sep">/</span>
               <span>متجر المبيعات والسمارت هوم</span>
             </nav>
-            {PROMO_BANNER.enabled && <div className="pw-unified-promo">{PROMO_BANNER.text}</div>}
           </div>
 
           {STORE_OFFER_BANNERS.enabled && bannerSlides.length > 0 && (

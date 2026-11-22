@@ -12,7 +12,7 @@ import FloatingContactChat from './FloatingContactChat';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 
 export default function RealEstateClient({ content }: { content?: SiteContentOverride }) {
-  const { SITE, PROPERTIES, PROMO_BANNER } = mergeContent(content);
+  const { SITE, PROPERTIES } = mergeContent(content);
   const [loginOpen, setLoginOpen] = useState(false);
   const [filterType, setFilterType] = useState<string>('all');
   const [selectedProperty, setSelectedProperty] = useState<WebsiteProperty | null>(null);
@@ -140,10 +140,6 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
       {/* Unified Light Hero (matches Homepage Standard) */}
       <section className="pw-unified-hero">
         <div className="pw-wrap">
-          {PROMO_BANNER.enabled && (
-            <div className="pw-unified-promo">{PROMO_BANNER.text}</div>
-          )}
-
           <nav className="pw-unified-crumb" aria-label="مسار التنقل">
             <Link href="/">الرئيسية</Link>
             <span className="sep">/</span>
