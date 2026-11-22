@@ -1453,9 +1453,9 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 .pw-bs-price{font-size:.78rem;font-weight:600;color:#47525c}
 .pw-bs-price strong{font-size:.94rem;font-weight:800;color:#14181b}
 .pw-bs-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding-top:4px}
-.pw-bs-add-btn{flex:1;min-height:max(36px,calc(var(--ui-btn-h) - 6px))!important;padding:6px 12px!important;font-size:calc(var(--ui-btn-fs) * .88)!important;border-radius:var(--ui-btn-r)!important}
+.pw-bs-add-btn{flex:1;min-height:max(32px,calc(var(--ui-btn-h) - 12px))!important;padding:4px 10px!important;font-size:calc(var(--ui-btn-fs) * .8)!important;border-radius:var(--r-btn-sm)!important}
 .pw-bs-add-btn.is-added{background:#059669!important}
-.pw-bs-wa-btn{min-height:max(36px,calc(var(--ui-btn-h) - 6px));padding:6px 10px;border-radius:var(--ui-btn-r);border:1px solid #dfd7cc;background:rgba(255,255,255,.92);color:#14181b;font-size:calc(var(--ui-btn-fs) * .85);font-weight:600;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;transition:background .16s}
+.pw-bs-wa-btn{min-height:max(32px,calc(var(--ui-btn-h) - 12px));padding:4px 9px;border-radius:var(--r-btn-sm);border:1px solid #dfd7cc;background:rgba(255,255,255,.92);color:#14181b;font-size:calc(var(--ui-btn-fs) * .78);font-weight:600;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;cursor:pointer;transition:background .16s}
 .pw-bs-wa-btn:hover{background:#f4efe6}
 .pw-bs-footer{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin-top:32px}
 .pw-bs-more-btn{min-width:210px}
@@ -1487,7 +1487,7 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
   .pw-bs-grid{gap:16px}
   .pw-bs-body{padding:16px}
   .pw-bs-filter-btn{min-height:44px;padding:10px 16px}
-  .pw-bs-actions .pw-bs-add-btn,.pw-bs-actions .pw-bs-wa-btn{min-height:44px!important}
+  .pw-bs-actions .pw-bs-add-btn,.pw-bs-actions .pw-bs-wa-btn{min-height:38px!important}
   .pw-bs-footer .pw-btn,.pw-sim-foot-actions .pw-btn{width:100%;min-height:48px}
   .pw-sim-web-links{gap:8px;font-size:.7rem}
 }

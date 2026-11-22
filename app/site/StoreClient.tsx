@@ -1751,22 +1751,23 @@ export default function StoreClient({
         }
         .st-prod-actions .pw-btn {
           flex: 1;
-          min-height: max(36px, calc(var(--ui-btn-h, 44px) - 6px));
-          padding: 6px 12px;
-          font-size: calc(var(--ui-btn-fs, 0.9375rem) * 0.88);
+          min-height: max(32px, calc(var(--ui-btn-h, 44px) - 12px)) !important;
+          padding: 4px 10px !important;
+          font-size: calc(var(--ui-btn-fs, 0.9375rem) * 0.8) !important;
+          border-radius: var(--r-btn-sm) !important;
         }
         .st-prod-actions .pw-btn.is-added {
           background: #059669;
           box-shadow: 0 10px 20px -12px rgba(5, 150, 105, 0.7);
         }
         .st-wa-link {
-          min-height: max(36px, calc(var(--ui-btn-h, 44px) - 6px));
-          padding: 6px 10px;
-          border-radius: var(--ui-btn-r, 10px);
+          min-height: max(32px, calc(var(--ui-btn-h, 44px) - 12px));
+          padding: 4px 9px;
+          border-radius: var(--r-btn-sm);
           border: 1px solid #dfd7cc;
           background: #ffffff;
           color: #14181b;
-          font-size: calc(var(--ui-btn-fs, 0.9375rem) * 0.85);
+          font-size: calc(var(--ui-btn-fs, 0.9375rem) * 0.78);
           font-weight: 700;
           display: inline-flex;
           align-items: center;
@@ -2574,7 +2575,9 @@ export default function StoreClient({
             gap: 16px;
           }
           .st-prod-actions .pw-btn,
-          .st-wa-link,
+          .st-wa-link {
+            min-height: 38px !important;
+          }
           .st-promo-arrow-btn {
             min-height: 44px;
           }
