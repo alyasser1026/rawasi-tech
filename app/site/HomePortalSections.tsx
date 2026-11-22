@@ -11,7 +11,7 @@ import {
   type WebsiteMaintenanceService,
   type WebsiteProduct,
 } from './store-catalog';
-import { PORTAL_SECTIONS, type SectionSlug } from './section-defs';
+import { PORTAL_SECTIONS, type CanonicalSectionSlug } from './section-defs';
 import OrderJourneyShowcase from './OrderJourneyShowcase';
 import type { NewsTickerConfig } from './site-content';
 
@@ -83,6 +83,123 @@ const BESTSELLER_FILTER_CHIPS: { id: 'all' | ProductCategoryId; label: string }[
   { id: 'safety_sensors', label: 'أمان وحساسات' },
 ];
 
+interface PortalShortcut {
+  title: string;
+  subtitle: string;
+  href: string;
+}
+
+interface PortalStudioDef {
+  slug: CanonicalSectionSlug;
+  stepNum: string;
+  journeyTitle: string;
+  journeySub: string;
+  intentLabel: string;
+  title: string;
+  benefit: string;
+  accent: string;
+  href: string;
+  image: string;
+  imageAlt: string;
+  tags: [string, string, string];
+  secondaryCta: { label: string; href: string };
+  getKpi: (catalogCount: number) => string;
+  getShortcuts: (catalogCount: number) => [PortalShortcut, PortalShortcut, PortalShortcut];
+}
+
+function PortalSectionIcon({ slug, size = 18 }: { slug: CanonicalSectionSlug; size?: number }) {
+  if (slug === 'info') {
+    return (
+      <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <path d="M7 8h10M7 12h4M7 16h4M15 12v4" />
+      </svg>
+    );
+  }
+  if (slug === 'contracting') {
+    return (
+      <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M3 21h18" />
+        <path d="M5 21V7l7-4v18" />
+        <path d="M12 11h7v10" />
+        <path d="M8 11h1M8 15h1M15 15h1" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" />
+      <path d="M12 12 3 7M12 12l9-5M12 12v10" />
+    </svg>
+  );
+}
+
+const PORTAL_STUDIO_ITEMS: PortalStudioDef[] = [
+  {
+    slug: 'info',
+    stepNum: '01',
+    journeyTitle: 'خطّط واحسب',
+    journeySub: 'حاسبات الكميات ودليل الاستلام',
+    intentLabel: 'أريد معرفة التكلفة والكميات أولاً',
+    title: 'معلومات وحاسبات هندسية',
+    benefit: 'احسب كميات التشطيب بدقة وراجع دليل الفحص الهندسي قبل التعاقد أو الشراء.',
+    accent: '#4f46e5',
+    href: '/sections/info',
+    image: '/sections/info.jpg',
+    imageAlt: 'مكتب هندسي يضم مخططات معمارية وحاسوب لوحي لرسومات التصميم الهندسي',
+    tags: ['حاسبات مجانية', 'دليل الفحص', 'نصائح التشطيب'],
+    secondaryCta: { label: 'التحقق من المستندات', href: '/verify' },
+    getKpi: () => '4 أدوات وحاسبات مجانية',
+    getShortcuts: () => [
+      { title: 'حاسبات الكميات المجانية', subtitle: 'تقدير الدهانات والسيراميك والتشطيب', href: '/sections/info?tab=tools' },
+      { title: 'دليل التنفيذ والفحص', subtitle: 'قائمة استلام هندسية لكل بند', href: '/sections/info?tab=checklist' },
+      { title: 'نصائح قبل التشطيب', subtitle: 'تجنّب الأخطاء المكلفة والتزاماتنا', href: '/sections/info?tab=tips' },
+    ],
+  },
+  {
+    slug: 'contracting',
+    stepNum: '02',
+    journeyTitle: 'ابنِ وشطّب',
+    journeySub: 'المقاولات والتنفيذ والصيانة',
+    intentLabel: 'أريد تشطيب أو بناء أو صيانة',
+    title: 'المقاولات والتنفيذ والصيانة',
+    benefit: 'تنفيذ متكامل من العظم حتى التسليم مع صيانة الكهرباء والسباكة والتكييف بضمان هندسي.',
+    accent: '#c75517',
+    href: '/sections/contracting',
+    image: '/sections/contracting.jpg',
+    imageAlt: 'مبنى معماري حديث من الخرسانة والزجاج يعبر عن مشاريع المقاولات والإنشاءات والتنفيذ الهندسي',
+    tags: ['عظم وتشطيب', 'صيانة بضمان', 'مقايسة 3×1'],
+    secondaryCta: { label: 'احسب المقايسة الآن', href: '/sections/contracting?view=calc' },
+    getKpi: () => 'حاسبة 3×1 + ضمان + 3D',
+    getShortcuts: () => [
+      { title: 'حاسبة المقايسة 3×1', subtitle: 'تقدير فوري للعظم والتشطيب والتكييف', href: '/sections/contracting?view=calc' },
+      { title: 'خدمات الصيانة الهندسية', subtitle: 'كهرباء، سباكة، وتكييف بإشراف هندسي', href: '/sections/contracting?tab=maintenance' },
+      { title: 'المجسم الهندسي التفاعلي 3D', subtitle: 'استعراض معماري وBIM للمباني', href: '/sections/contracting?view=tower3d' },
+    ],
+  },
+  {
+    slug: 'materials',
+    stepNum: '03',
+    journeyTitle: 'جهّز وذكيّ بيتك',
+    journeySub: 'المتجر ومواد البناء والسمارت هوم',
+    intentLabel: 'أريد شراء خامات أو سمارت هوم',
+    title: 'المبيعات والسمارت هوم',
+    benefit: 'توريد خامات البناء والتشطيب وأنظمة المنزل الذكي والأمان بأقل سعر مباشر وتركيب معتمد.',
+    accent: '#059669',
+    href: '/sections/materials',
+    image: '/sections/materials.jpg',
+    imageAlt: 'منظومة متكاملة لمواد البناء والتشطيبات والسمارت هوم من فاي تك',
+    tags: ['مواد بناء وتشطيب', 'سمارت هوم', 'كاميرات وأمان'],
+    secondaryCta: { label: 'تصفح المتجر بالكامل', href: '/store' },
+    getKpi: (n) => `+${n.toLocaleString('en-US')} منتج متاح للتوريد`,
+    getShortcuts: (n) => [
+      { title: 'تصفح المتجر المباشر', subtitle: `${n.toLocaleString('en-US')}+ منتج بأقل سعر محدث`, href: '/store' },
+      { title: 'باقات السمارت هوم', subtitle: 'شاشات تحكم، أقفال ذكية، وكاميرات 4K', href: '/sections/materials?tab=smart-home' },
+      { title: 'مواد البناء والتشطيب', subtitle: 'توريد وبيع خامات معتمدة للموقع', href: '/sections/materials?tab=materials' },
+    ],
+  },
+];
+
 export default function HomePortalSections({
   products = DEFAULT_PRODUCTS,
   totalCatalogCount,
@@ -99,10 +216,8 @@ export default function HomePortalSections({
   const [searchOpen, setSearchOpen] = useState(false);
   const omniRef = useRef<HTMLDivElement>(null);
 
-  // Stage 3: Diagonal 3-part slice highlight state
-  const [hoveredSlug, setHoveredSlug] = useState<SectionSlug | null>(null);
-  const [scrollStageSlug, setScrollStageSlug] = useState<SectionSlug>('contracting');
-  const runwayRef = useRef<HTMLDivElement>(null);
+  // Stage 3: Unified Architectural Portal Studio state (no scroll listener needed)
+  const [activeStudioSlug, setActiveStudioSlug] = useState<CanonicalSectionSlug>('contracting');
 
   // Stage 4: Best-Sellers filter & load-more state (starts strictly at 6)
   const [activeCat, setActiveCat] = useState<'all' | ProductCategoryId>('all');
@@ -120,36 +235,19 @@ export default function HomePortalSections({
   const addedTimerRef = useRef<number | null>(null);
 
   const sections = PORTAL_SECTIONS.slice(0, 3);
-  const activeSlug = hoveredSlug ?? scrollStageSlug;
-
-  const activeHoverSection = useMemo(
-    () => sections.find((s) => s.slug === activeSlug) || null,
-    [activeSlug, sections]
+  const activeStudio = useMemo(
+    () => PORTAL_STUDIO_ITEMS.find((item) => item.slug === activeStudioSlug) || PORTAL_STUDIO_ITEMS[1],
+    [activeStudioSlug]
+  );
+  const activeStudioShortcuts = useMemo(
+    () => activeStudio.getShortcuts(displayCatalogTotal),
+    [activeStudio, displayCatalogTotal]
   );
 
   const categoryMap = useMemo(() => {
     const m: Record<string, (typeof PRODUCT_CATEGORIES)[number]> = {};
     for (const c of PRODUCT_CATEGORIES) m[c.id] = c;
     return m;
-  }, []);
-
-  // Scroll tracking for Stage 3 diagonal split
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const onScroll = () => {
-      const runway = runwayRef.current;
-      if (!runway) return;
-      const rect = runway.getBoundingClientRect();
-      const scrollable = Math.max(1, rect.height - window.innerHeight);
-      const progress = Math.max(0, Math.min(1, -rect.top / scrollable));
-      const idx = progress < 0.34 ? 0 : progress < 0.68 ? 1 : 2;
-      const targetSec = PORTAL_SECTIONS[idx];
-      if (targetSec) setScrollStageSlug(targetSec.slug);
-    };
-
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   // Close Omni-Search dropdown on Escape or outside click
@@ -461,103 +559,195 @@ export default function HomePortalSections({
       <OrderJourneyShowcase onOpenContact={onOpenContact} />
 
       {/* =========================================================
-          STAGE 3: الأقسام الثلاثة بالخطوط المائلة فوق المبنى ثلاثي الأبعاد
+          STAGE 3: بوابة الأقسام الموحدة (5 في 1) — مرسّخ سريع + رحلة المشروع + معاينة + Bento أكورديون
           ========================================================= */}
       <div
-        className={`pw-split-stage ${activeSlug ? 'has-active' : ''}`}
-        style={
-          activeHoverSection
-            ? ({ '--stage-accent': activeHoverSection.accent } as React.CSSProperties)
-            : undefined
-        }
-        onPointerLeave={() => setHoveredSlug(null)}
+        className="pw-split-stage"
+        style={{ '--stage-accent': activeStudio.accent } as React.CSSProperties}
       >
-        <section id="portals" className="pw-portal-gateway" aria-label="أقسام فاي تك الرئيسية الثلاثة">
-          <div ref={runwayRef} className="pw-diag-runway">
-            <div className="pw-diag-viewport">
-              <div className="pw-wrap pw-diag-top">
-                <div className="pw-diag-hero-bar">
-                  <div className="pw-diag-hero-titles">
-                    <p className="pw-eyebrow">الأقسام الهندسية والتجارية الرئيسية</p>
-                    <h2>اختر القسم المناسب لمشروعك</h2>
-                  </div>
-                  <span className={`pw-diag-scroll-pill ${hoveredSlug ? 'is-faded' : ''}`}>
-                    <span>مرّر لاختيار القسم</span>
-                    <span aria-hidden="true">↓</span>
+        <section id="portals" className="pw-portal-studio" aria-labelledby="portals-studio-heading">
+          <div className="pw-wrap">
+            <div className="pw-portal-studio-head">
+              <p className="pw-eyebrow">الأقسام الهندسية والتجارية الرئيسية</p>
+              <h2 id="portals-studio-heading">اختر القسم المناسب لمشروعك</h2>
+              <p className="pw-portal-studio-sub">
+                مسار متكامل يربط بين الحساب والتخطيط والتنفيذ وتوريد الخامات والسمارت هوم.
+              </p>
+            </div>
+
+            {/* 5. Quick Intent Bar */}
+            <div className="pw-intent-bar" role="region" aria-label="اختيار سريع حسب احتياجك">
+              <span className="pw-intent-label">ما الذي تبحث عنه الآن؟</span>
+              <div className="pw-intent-pills">
+                {PORTAL_STUDIO_ITEMS.map((item) => {
+                  const isSelected = activeStudioSlug === item.slug;
+                  return (
+                    <button
+                      key={`intent-${item.slug}`}
+                      type="button"
+                      className={`pw-intent-pill ${isSelected ? 'is-active' : ''}`}
+                      style={{ '--pill-accent': item.accent } as React.CSSProperties}
+                      onClick={() => setActiveStudioSlug(item.slug)}
+                    >
+                      <PortalSectionIcon slug={item.slug} size={16} />
+                      <span>{item.intentLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 4. Step-by-Step Project Journey Rail */}
+            <div className="pw-journey-rail" role="tablist" aria-label="رحلة المشروع عبر أقسام فاي تك">
+              {PORTAL_STUDIO_ITEMS.map((item) => {
+                const isSelected = activeStudioSlug === item.slug;
+                return (
+                  <button
+                    key={`step-${item.slug}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={isSelected}
+                    className={`pw-journey-step ${isSelected ? 'is-active' : ''}`}
+                    style={{ '--step-accent': item.accent } as React.CSSProperties}
+                    onClick={() => setActiveStudioSlug(item.slug)}
+                  >
+                    <span className="pw-journey-num">{item.stepNum}</span>
+                    <span className="pw-journey-icon" aria-hidden="true">
+                      <PortalSectionIcon slug={item.slug} size={18} />
+                    </span>
+                    <span className="pw-journey-copy">
+                      <strong>{item.journeyTitle}</strong>
+                      <small>{item.journeySub}</small>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 1 & 3. Split Preview & Bento Focus Panel */}
+            <div
+              className="pw-portal-preview"
+              role="tabpanel"
+              style={{ '--col-accent': activeStudio.accent } as React.CSSProperties}
+            >
+              <div className="pw-preview-info">
+                <div className="pw-preview-meta">
+                  <span className="pw-preview-step-pill">
+                    الخطوة {activeStudio.stepNum} · {activeStudio.journeyTitle}
                   </span>
+                  <span className="pw-preview-kpi">{activeStudio.getKpi(displayCatalogTotal)}</span>
+                </div>
+
+                <div className="pw-preview-title-row">
+                  <span className="pw-preview-icon" aria-hidden="true">
+                    <PortalSectionIcon slug={activeStudio.slug} size={22} />
+                  </span>
+                  <h3>{activeStudio.title}</h3>
+                </div>
+
+                <p className="pw-preview-benefit">{activeStudio.benefit}</p>
+
+                <div className="pw-preview-shortcuts">
+                  {activeStudioShortcuts.map((sc) => (
+                    <Link key={sc.href + sc.title} href={sc.href} className="pw-preview-shortcut">
+                      <strong>{sc.title}</strong>
+                      <small>{sc.subtitle}</small>
+                      <span className="pw-preview-shortcut-go">افتح الآن ←</span>
+                    </Link>
+                  ))}
+                </div>
+
+                <div className="pw-preview-actions">
+                  <Link href={activeStudio.href} className="pw-btn pw-btn-primary">
+                    ادخل القسم بالكامل ←
+                  </Link>
+                  <Link href={activeStudio.secondaryCta.href} className="pw-btn pw-btn-ghost">
+                    {activeStudio.secondaryCta.label}
+                  </Link>
                 </div>
               </div>
 
-              <div className={`pw-diag-slices ${hoveredSlug ? 'has-hover' : ''}`}>
-                {sections.map((sec, idx) => {
-                  const isHovered = hoveredSlug === sec.slug;
-                  const isActive = activeSlug === sec.slug;
-                  return (
-                    <Link
-                      key={sec.slug}
-                      id={`portal-station-${sec.slug}`}
-                      href={sec.href}
-                      className={`pw-diag-slice is-slice-${idx} ${isHovered ? 'is-hovered' : ''} ${isActive ? 'is-active' : ''}`}
-                      style={{ '--col-accent': sec.accent } as React.CSSProperties}
-                      onPointerEnter={(e) => {
-                        if (e.pointerType !== 'touch') setHoveredSlug(sec.slug);
-                      }}
-                      onFocus={() => setHoveredSlug(sec.slug)}
-                      onBlur={() => setHoveredSlug((prev) => (prev === sec.slug ? null : prev))}
-                    >
-                      <div className="pw-diag-veil" aria-hidden="true" />
-                      <div className="pw-diag-content">
-                        <span className="pw-diag-num">
-                          <span aria-hidden="true">{sec.icon}</span>
-                          <span>{sec.num}</span>
-                          <span>·</span>
-                          <span>{sec.flowNote}</span>
-                        </span>
-
-                        <h2>{sec.title}</h2>
-
-                        <div className="pw-diag-details">
-                          <p className="pw-diag-hint">{sec.guideHint}</p>
-                          <p className="pw-diag-tags" aria-hidden="true">
-                            {sec.highlights.join('  ·  ')}
-                          </p>
-                        </div>
-
-                        <span className="pw-diag-cta">
-                          <span>ادخل القسم</span>
-                          <span aria-hidden="true">←</span>
-                        </span>
-                      </div>
-                    </Link>
-                  );
-                })}
-
-                {/* Desktop Diagonal Lines */}
-                <svg
-                  className="pw-diag-lines pw-diag-lines-desktop"
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
-                >
-                  <line x1="70" y1="0" x2="63" y2="100" vectorEffect="non-scaling-stroke" className="pw-diag-line-glow" />
-                  <line x1="37" y1="0" x2="30" y2="100" vectorEffect="non-scaling-stroke" className="pw-diag-line-glow" />
-                  <line x1="70" y1="0" x2="63" y2="100" vectorEffect="non-scaling-stroke" className="pw-diag-line-core" />
-                  <line x1="37" y1="0" x2="30" y2="100" vectorEffect="non-scaling-stroke" className="pw-diag-line-core" />
-                </svg>
-
-                {/* Mobile Diagonal Lines */}
-                <svg
-                  className="pw-diag-lines pw-diag-lines-mobile"
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                  aria-hidden="true"
-                >
-                  <line x1="0" y1="37" x2="100" y2="30" vectorEffect="non-scaling-stroke" className="pw-diag-line-glow" />
-                  <line x1="0" y1="70" x2="100" y2="63" vectorEffect="non-scaling-stroke" className="pw-diag-line-glow" />
-                  <line x1="0" y1="37" x2="100" y2="30" vectorEffect="non-scaling-stroke" className="pw-diag-line-core" />
-                  <line x1="0" y1="70" x2="100" y2="63" vectorEffect="non-scaling-stroke" className="pw-diag-line-core" />
-                </svg>
+              <div className="pw-preview-media">
+                <img
+                  src={activeStudio.image}
+                  alt={activeStudio.imageAlt}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span className="pw-preview-media-badge">
+                  {activeStudio.stepNum} · {activeStudio.journeyTitle}
+                </span>
+                <div className="pw-preview-tags">
+                  {activeStudio.tags.map((tag) => (
+                    <span key={tag}>{tag}</span>
+                  ))}
+                </div>
               </div>
+            </div>
+
+            {/* 1 & 2. Interactive Horizontal Accordion / Bento Strip */}
+            <div className="pw-bento-accordion">
+              {PORTAL_STUDIO_ITEMS.map((item) => {
+                const isSelected = activeStudioSlug === item.slug;
+                return (
+                  <article
+                    key={item.slug}
+                    id={`portal-station-${item.slug}`}
+                    className={`pw-bento-card ${isSelected ? 'is-active' : ''}`}
+                    style={{ '--col-accent': item.accent } as React.CSSProperties}
+                    onPointerEnter={(e) => {
+                      if (e.pointerType !== 'touch') setActiveStudioSlug(item.slug);
+                    }}
+                    onClick={() => setActiveStudioSlug(item.slug)}
+                  >
+                    <img
+                      src={item.image}
+                      alt={item.imageAlt}
+                      className="pw-bento-bg"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <div className="pw-bento-scrim" aria-hidden="true" />
+                    <div className="pw-bento-inner">
+                      <div className="pw-bento-top">
+                        <span className="pw-bento-step">
+                          <PortalSectionIcon slug={item.slug} size={16} />
+                          <span>
+                            {item.stepNum} · {item.journeyTitle}
+                          </span>
+                        </span>
+                        <span className="pw-bento-kpi">{item.getKpi(displayCatalogTotal)}</span>
+                      </div>
+
+                      <div className="pw-bento-bottom">
+                        <h3>{item.title}</h3>
+                        <p className="pw-bento-desc">{item.benefit}</p>
+                        <div className="pw-bento-tags">
+                          {item.tags.map((t) => (
+                            <span key={t}>{t}</span>
+                          ))}
+                        </div>
+                        <div className="pw-bento-foot">
+                          <Link
+                            href={item.href}
+                            className="pw-bento-link"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            ادخل القسم ←
+                          </Link>
+                          <Link
+                            href={item.secondaryCta.href}
+                            className="pw-bento-sublink"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {item.secondaryCta.label}
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           </div>
         </section>
