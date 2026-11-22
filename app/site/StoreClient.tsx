@@ -457,7 +457,7 @@ export default function StoreClient({
     if (sliderPaused || fastMode) return;
     const timer = window.setInterval(() => {
       setSlideIdx((prev) => (prev + 1) % STORE_OFFER_SLIDES.length);
-    }, 5500);
+    }, 8500);
     return () => window.clearInterval(timer);
   }, [sliderPaused, fastMode]);
 
@@ -774,25 +774,154 @@ export default function StoreClient({
           padding-inline: clamp(16px, 2.2vw, 36px);
         }
 
-        /* 1. Full-Width Edge-to-Edge Rotating Promotional Hero */
+        /* 1. Calm Warm-Pearl Editorial Split Promotional Hero */
         .pw.st-page .pw-unified-hero.st-promo-stage {
           position: relative;
           width: 100%;
-          min-height: clamp(430px, 56vh, 560px);
-          padding: 36px 0 32px;
-          background: #10161e;
-          color: #ffffff;
+          padding: 20px 0 24px;
+          background: linear-gradient(180deg, #faf8f4 0%, #f5f1e9 100%);
+          color: #14181b;
           overflow: hidden;
+          border-bottom: 1px solid #e7e1d7;
+        }
+        .st-promo-inner {
           display: flex;
           flex-direction: column;
-          justify-content: space-between;
-          border-bottom: 1px solid #dfd7cc;
+          gap: 14px;
         }
-        .st-promo-bg-stack {
-          position: absolute;
-          inset: 0;
-          z-index: 0;
+        .st-promo-top-meta {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px 16px;
+          flex-wrap: wrap;
+        }
+        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb {
+          margin: 0;
+          justify-content: flex-start;
+          color: #64748b;
+          font-size: 0.78rem;
+        }
+        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb a {
+          color: #47525c;
+        }
+        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb a:hover {
+          color: var(--o);
+        }
+        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-promo {
+          margin: 0;
+          padding: 5px 12px;
+          border-radius: var(--r-pill);
+          background: #fff7ed;
+          border: 1px solid #fed7aa;
+          color: #9a3412;
+          font-size: 0.76rem;
+          font-weight: 700;
+          max-width: 100%;
+          line-height: 1.5;
+          text-align: right;
+        }
+        .st-promo-card {
+          background: #ffffff;
+          border: 1px solid #e7e1d7;
+          border-radius: var(--ui-card-r, 16px);
+          box-shadow: 0 12px 30px -24px rgba(20, 24, 27, 0.14);
+          padding: clamp(18px, 2.2vw, 28px);
+          display: flex;
+          flex-direction: column;
+          gap: 18px;
+        }
+        .st-promo-grid {
+          display: grid;
+          grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.92fr);
+          gap: clamp(18px, 2.6vw, 34px);
+          align-items: center;
+        }
+        .st-promo-copy {
+          display: flex;
+          flex-direction: column;
+          gap: 11px;
+          align-items: flex-start;
+          text-align: right;
+          min-width: 0;
+        }
+        .st-promo-kicker {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          color: var(--o);
+          font-size: 0.78rem;
+          font-weight: 800;
+        }
+        .st-promo-kicker i {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--o);
+          display: block;
+          flex-shrink: 0;
+        }
+        .st-promo-copy h1 {
+          margin: 0;
+          font-size: clamp(1.38rem, 2.2vw, 1.92rem);
+          font-weight: 900;
+          line-height: 1.35;
+          color: #14181b;
+        }
+        .st-promo-copy p {
+          margin: 0;
+          max-width: 54ch;
+          font-size: 0.9rem;
+          line-height: 1.68;
+          color: #525e6a;
+          font-weight: 500;
+        }
+        .st-promo-perks {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px 16px;
+          padding-top: 2px;
+        }
+        .st-promo-perk {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          color: #334155;
+          font-size: 0.8rem;
+          font-weight: 700;
+        }
+        .st-promo-perk svg {
+          color: #059669;
+          flex-shrink: 0;
+        }
+        .st-promo-actions {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 4px;
+        }
+        .st-promo-actions .pw-btn {
+          min-height: 40px;
+          padding: 8px 18px;
+          font-size: 0.86rem;
+        }
+        .st-promo-secondary-btn {
+          background: #fbfaf7 !important;
+          border: 1px solid #dfd7cc !important;
+          color: #14181b !important;
+        }
+        .st-promo-secondary-btn:hover {
+          background: #f4efe6 !important;
+          border-color: #c75517 !important;
+          color: #a64310 !important;
+        }
+        .st-promo-media-frame {
+          position: relative;
+          aspect-ratio: 16 / 10;
+          border-radius: 14px;
           overflow: hidden;
+          background: #f2ede4;
+          border: 1px solid #ece5da;
         }
         .st-promo-bg-slide {
           position: absolute;
@@ -801,136 +930,11 @@ export default function StoreClient({
           height: 100%;
           object-fit: cover;
           opacity: 0;
-          transform: scale(1.04);
-          transition: opacity 0.7s ease, transform 5.6s ease-out;
+          transition: opacity 0.45s ease;
           pointer-events: none;
         }
         .st-promo-bg-slide.is-active {
           opacity: 1;
-          transform: scale(1);
-        }
-        .st-promo-scrim {
-          position: absolute;
-          inset: 0;
-          z-index: 1;
-          background:
-            linear-gradient(270deg, rgba(14, 18, 22, 0.9) 0%, rgba(14, 18, 22, 0.66) 50%, rgba(14, 18, 22, 0.28) 100%),
-            linear-gradient(180deg, rgba(14, 18, 22, 0.22) 0%, transparent 45%, rgba(14, 18, 22, 0.56) 100%);
-        }
-        .st-promo-inner {
-          position: relative;
-          z-index: 2;
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          gap: 24px;
-          flex: 1;
-        }
-        .st-promo-top-meta {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          gap: 12px;
-          flex-wrap: wrap;
-        }
-        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb {
-          margin: 0;
-          justify-content: flex-start;
-          color: rgba(251, 250, 247, 0.78);
-        }
-        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb a {
-          color: #ffffff;
-        }
-        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-crumb a:hover {
-          color: #ffb074;
-        }
-        .pw.st-page .pw-unified-hero.st-promo-stage .pw-unified-promo {
-          margin: 0;
-          background: rgba(255, 255, 255, 0.14);
-          border-color: rgba(255, 255, 255, 0.24);
-          color: #ffffff;
-          backdrop-filter: blur(10px);
-        }
-        .st-promo-copy {
-          max-width: 720px;
-          display: flex;
-          flex-direction: column;
-          gap: 14px;
-          align-items: flex-start;
-          text-align: right;
-        }
-        .st-promo-kicker {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 5px 14px;
-          border-radius: var(--r-pill);
-          background: rgba(255, 255, 255, 0.14);
-          backdrop-filter: blur(10px);
-          border: 1px solid rgba(255, 255, 255, 0.24);
-          color: #ffcfb0;
-          font-size: 0.82rem;
-          font-weight: 800;
-        }
-        .st-promo-kicker i {
-          width: 7px;
-          height: 7px;
-          border-radius: 50%;
-          background: #fb923c;
-          box-shadow: 0 0 8px rgba(251, 146, 60, 0.8);
-          display: block;
-        }
-        .st-promo-copy h1 {
-          margin: 0;
-          font-size: clamp(1.65rem, 3.2vw, 2.55rem);
-          font-weight: 900;
-          line-height: 1.3;
-          color: #ffffff;
-          text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
-        }
-        .st-promo-copy p {
-          margin: 0;
-          max-width: 60ch;
-          font-size: clamp(0.95rem, 1.15vw, 1.06rem);
-          line-height: 1.7;
-          color: rgba(251, 250, 247, 0.9);
-          font-weight: 500;
-        }
-        .st-promo-perks {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-        }
-        .st-promo-perk {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 5px 12px;
-          border-radius: var(--r-pill);
-          background: rgba(16, 22, 30, 0.56);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          color: #f8fafc;
-          font-size: 0.79rem;
-          font-weight: 700;
-        }
-        .st-promo-perk svg {
-          color: #34d399;
-        }
-        .st-promo-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          margin-top: 4px;
-        }
-        .st-promo-secondary-btn {
-          background: rgba(255, 255, 255, 0.12) !important;
-          border-color: rgba(255, 255, 255, 0.32) !important;
-          color: #ffffff !important;
-          backdrop-filter: blur(8px);
-        }
-        .st-promo-secondary-btn:hover {
-          background: rgba(255, 255, 255, 0.22) !important;
-          border-color: #ffffff !important;
         }
 
         /* Carousel Bottom Bar */
@@ -938,97 +942,86 @@ export default function StoreClient({
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 16px;
+          gap: 12px;
           flex-wrap: wrap;
-          padding-top: 16px;
-          border-top: 1px solid rgba(255, 255, 255, 0.16);
+          padding-top: 14px;
+          border-top: 1px solid #f0ebe2;
         }
-        .st-promo-arrows {
+        .st-promo-segs {
+          display: inline-flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 4px;
+          padding: 4px;
+          border-radius: 12px;
+          background: #f5f1e9;
+          border: 1px solid #ebe4d8;
+        }
+        .st-promo-seg {
+          border: none;
+          background: transparent;
+          border-radius: 8px;
+          padding: 6px 13px;
+          color: #525e6a;
+          font-size: 0.8rem;
+          font-weight: 700;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          transition: background 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
+        }
+        .st-promo-seg:hover {
+          color: #14181b;
+        }
+        .st-promo-seg.is-active {
+          background: #ffffff;
+          color: #c75517;
+          box-shadow: 0 4px 12px -6px rgba(20, 24, 27, 0.2);
+        }
+        .st-promo-seg-num {
+          font-family: ui-monospace, Consolas, monospace;
+          font-size: 0.72rem;
+          opacity: 0.65;
+        }
+        .st-promo-seg.is-active .st-promo-seg-num {
+          opacity: 1;
+          color: #c75517;
+        }
+        .st-promo-nav-end {
           display: inline-flex;
           align-items: center;
           gap: 8px;
         }
+        .st-promo-counter {
+          font-family: ui-monospace, Consolas, monospace;
+          font-size: 0.76rem;
+          font-weight: 800;
+          color: #64748b;
+          padding-inline: 4px;
+          white-space: nowrap;
+        }
+        .st-promo-arrows {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+        }
         .st-promo-arrow-btn {
-          width: 44px;
-          height: 44px;
-          border-radius: var(--r-btn);
-          border: 1px solid rgba(255, 255, 255, 0.28);
-          background: rgba(16, 22, 30, 0.62);
-          backdrop-filter: blur(10px);
-          color: #ffffff;
+          width: 34px;
+          height: 34px;
+          border-radius: 9px;
+          border: 1px solid #e2dbd0;
+          background: #fbfaf7;
+          color: #334155;
           display: grid;
           place-items: center;
           cursor: pointer;
-          transition: background 0.16s ease, border-color 0.16s ease;
-        }
-        .st-promo-arrow-btn:hover {
-          background: var(--o);
-          border-color: var(--o);
-        }
-        .st-promo-segs {
-          flex: 1;
-          min-width: 240px;
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 10px;
-        }
-        .st-promo-seg {
-          background: rgba(16, 22, 30, 0.45);
-          border: 1px solid rgba(255, 255, 255, 0.16);
-          border-radius: var(--r-btn-sm);
-          padding: 8px 10px;
-          color: rgba(251, 250, 247, 0.78);
-          text-align: right;
-          cursor: pointer;
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
           transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
         }
-        .st-promo-seg:hover,
-        .st-promo-seg.is-active {
-          background: rgba(255, 255, 255, 0.16);
-          border-color: rgba(255, 255, 255, 0.36);
-          color: #ffffff;
-        }
-        .st-promo-seg-title {
-          font-size: 0.77rem;
-          font-weight: 800;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .st-promo-bar-track {
-          position: relative;
-          height: 3px;
-          border-radius: var(--r-pill);
-          background: rgba(255, 255, 255, 0.22);
-          overflow: hidden;
-        }
-        .st-promo-bar-fill {
-          position: absolute;
-          inset: 0;
-          background: #fb923c;
-          transform-origin: right center;
-          animation: stPromoBar 5.5s linear forwards;
-        }
-        .st-promo-bar-fill.is-paused {
-          animation-play-state: paused;
-        }
-        @keyframes stPromoBar {
-          from { transform: scaleX(0); }
-          to { transform: scaleX(1); }
-        }
-        .st-promo-counter {
-          font-family: ui-monospace, Consolas, monospace;
-          font-size: 0.82rem;
-          font-weight: 800;
-          color: rgba(255, 255, 255, 0.88);
-          padding: 6px 12px;
-          border-radius: var(--r-pill);
-          background: rgba(16, 22, 30, 0.56);
-          border: 1px solid rgba(255, 255, 255, 0.2);
-          white-space: nowrap;
+        .st-promo-arrow-btn:hover {
+          background: #ffffff;
+          border-color: var(--o);
+          color: var(--o);
         }
 
         /* 2. Store Visual Sections Band */
@@ -2540,17 +2533,40 @@ export default function StoreClient({
             gap: 20px;
           }
         }
+        @media (max-width: 960px) {
+          .st-promo-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          .st-promo-media-frame {
+            aspect-ratio: 16 / 9;
+            max-height: 260px;
+          }
+        }
         @media (max-width: 639px) {
           .pw.st-page .pw-unified-hero.st-promo-stage {
-            min-height: 460px;
-            padding: 24px 0 22px;
+            padding: 14px 0 18px;
+          }
+          .st-promo-card {
+            padding: 16px;
+            gap: 14px;
           }
           .st-promo-segs {
+            width: 100%;
+            display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
+          }
+          .st-promo-seg {
+            justify-content: center;
+            padding: 8px 10px;
+          }
+          .st-promo-nav-end {
+            width: 100%;
+            justify-content: space-between;
           }
           .st-promo-actions .pw-btn {
             width: 100%;
-            min-height: 48px;
+            min-height: 44px;
           }
           .st-mode-switch {
             width: 100%;
@@ -2605,12 +2621,12 @@ export default function StoreClient({
             min-height: 38px !important;
           }
           .st-promo-arrow-btn {
-            min-height: 44px;
+            width: 40px;
+            height: 40px;
           }
         }
         @media (prefers-reduced-motion: reduce) {
           .st-promo-bg-slide,
-          .st-promo-bar-fill,
           .st-prod-media img {
             transition: none !important;
             animation: none !important;
@@ -2618,11 +2634,6 @@ export default function StoreClient({
         }
         html.low-graphics-mode .pw.st-page .pw-header.pw-header-glass,
         html.low-graphics-mode .pw.st-page .pw-unified-promo,
-        html.low-graphics-mode .pw.st-page .st-promo-kicker,
-        html.low-graphics-mode .pw.st-page .st-promo-perk,
-        html.low-graphics-mode .pw.st-page .st-promo-secondary-btn,
-        html.low-graphics-mode .pw.st-page .st-promo-controls,
-        html.low-graphics-mode .pw.st-page .st-promo-arrow-btn,
         html.low-graphics-mode .pw.st-page .st-filter-sidebar,
         html.low-graphics-mode .pw.st-page .st-modal-overlay,
         html.low-graphics-mode .pw.st-page .st-prod-code-tag,
@@ -2633,9 +2644,6 @@ export default function StoreClient({
         }
         html.low-graphics-mode .pw.st-page .pw-header.pw-header-glass {
           background: #fbfaf7 !important;
-        }
-        html.low-graphics-mode .pw.st-page .st-promo-controls {
-          background: rgba(14, 18, 22, 0.88) !important;
         }
         html.low-graphics-mode .pw.st-page .st-modal-overlay {
           background: rgba(15, 22, 30, 0.72) !important;
@@ -2665,27 +2673,13 @@ export default function StoreClient({
         onOpenContact={() => setContactOpen(true)}
       />
 
-      {/* 1. Full-Width Edge-to-Edge Rotating Promotional Hero Banner */}
+      {/* 1. Calm Warm-Pearl Editorial Split Promotional Hero */}
       <section
         className="pw-unified-hero st-promo-stage"
         aria-label="عروض متجر فاي تك المميزة"
         onMouseEnter={() => setSliderPaused(true)}
         onMouseLeave={() => setSliderPaused(false)}
       >
-        <div className="st-promo-bg-stack" aria-hidden="true">
-          {STORE_OFFER_SLIDES.map((slide, idx) => (
-            <img
-              key={slide.id}
-              src={slide.image}
-              alt=""
-              className={`st-promo-bg-slide ${idx === slideIdx ? 'is-active' : ''}`}
-              loading={idx === 0 ? 'eager' : 'lazy'}
-              decoding="async"
-            />
-          ))}
-          <div className="st-promo-scrim" />
-        </div>
-
         <div className="pw-wrap st-wide-wrap st-promo-inner">
           <div className="st-promo-top-meta">
             <nav className="pw-unified-crumb" aria-label="مسار التنقل">
@@ -2696,98 +2690,109 @@ export default function StoreClient({
             {PROMO_BANNER.enabled && <div className="pw-unified-promo">{PROMO_BANNER.text}</div>}
           </div>
 
-          <div className="st-promo-copy">
-            <span className="st-promo-kicker">
-              <i aria-hidden="true" />
-              <span>{activeSlide.kicker}</span>
-            </span>
-            <h1>{activeSlide.headline}</h1>
-            <p>{activeSlide.subtitle}</p>
-            <div className="st-promo-perks">
-              {activeSlide.perks.map((perk) => (
-                <span key={perk} className="st-promo-perk">
-                  <CheckIcon size={14} />
-                  <span>{perk}</span>
+          <div className="st-promo-card">
+            <div className="st-promo-grid">
+              <div className="st-promo-copy">
+                <span className="st-promo-kicker">
+                  <i aria-hidden="true" />
+                  <span>{activeSlide.kicker}</span>
                 </span>
-              ))}
-            </div>
-            <div className="st-promo-actions">
-              <button
-                type="button"
-                className="pw-btn pw-btn-primary pw-btn-lg"
-                onClick={() => handleHeroOfferAction(activeSlide.primaryAction)}
-              >
-                <span>{activeSlide.primaryLabel}</span>
-              </button>
-              {activeSlide.secondaryHref ? (
-                <a href={activeSlide.secondaryHref} className="pw-btn pw-btn-lg st-promo-secondary-btn">
-                  <span>{activeSlide.secondaryLabel}</span>
-                </a>
-              ) : activeSlide.secondaryAction === 'contact' ? (
-                <button
-                  type="button"
-                  onClick={() => setContactOpen(true)}
-                  className="pw-btn pw-btn-lg st-promo-secondary-btn"
-                >
-                  <span>{activeSlide.secondaryLabel}</span>
-                </button>
-              ) : activeSlide.secondaryAction ? (
-                <button
-                  type="button"
-                  onClick={() => handleHeroOfferAction(activeSlide.secondaryAction as HeroOfferAction)}
-                  className="pw-btn pw-btn-lg st-promo-secondary-btn"
-                >
-                  <span>{activeSlide.secondaryLabel}</span>
-                </button>
-              ) : null}
-            </div>
-          </div>
+                <h1>{activeSlide.headline}</h1>
+                <p>{activeSlide.subtitle}</p>
+                <div className="st-promo-perks">
+                  {activeSlide.perks.map((perk) => (
+                    <span key={perk} className="st-promo-perk">
+                      <CheckIcon size={14} />
+                      <span>{perk}</span>
+                    </span>
+                  ))}
+                </div>
+                <div className="st-promo-actions">
+                  <button
+                    type="button"
+                    className="pw-btn pw-btn-primary"
+                    onClick={() => handleHeroOfferAction(activeSlide.primaryAction)}
+                  >
+                    <span>{activeSlide.primaryLabel}</span>
+                  </button>
+                  {activeSlide.secondaryHref ? (
+                    <a href={activeSlide.secondaryHref} className="pw-btn st-promo-secondary-btn">
+                      <span>{activeSlide.secondaryLabel}</span>
+                    </a>
+                  ) : activeSlide.secondaryAction === 'contact' ? (
+                    <button
+                      type="button"
+                      onClick={() => setContactOpen(true)}
+                      className="pw-btn st-promo-secondary-btn"
+                    >
+                      <span>{activeSlide.secondaryLabel}</span>
+                    </button>
+                  ) : activeSlide.secondaryAction ? (
+                    <button
+                      type="button"
+                      onClick={() => handleHeroOfferAction(activeSlide.secondaryAction as HeroOfferAction)}
+                      className="pw-btn st-promo-secondary-btn"
+                    >
+                      <span>{activeSlide.secondaryLabel}</span>
+                    </button>
+                  ) : null}
+                </div>
+              </div>
 
-          <div className="st-promo-controls">
-            <div className="st-promo-arrows">
-              <button
-                type="button"
-                className="st-promo-arrow-btn"
-                onClick={() => goToSlide(slideIdx - 1)}
-                aria-label="العرض السابق"
-              >
-                <ChevronRightIcon />
-              </button>
-              <button
-                type="button"
-                className="st-promo-arrow-btn"
-                onClick={() => goToSlide(slideIdx + 1)}
-                aria-label="العرض التالي"
-              >
-                <ChevronLeftIcon />
-              </button>
-            </div>
-
-            <div className="st-promo-segs" role="tablist" aria-label="شرائح العروض">
-              {STORE_OFFER_SLIDES.map((s, idx) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={idx === slideIdx}
-                  onClick={() => goToSlide(idx)}
-                  className={`st-promo-seg ${idx === slideIdx ? 'is-active' : ''}`}
-                >
-                  <span className="st-promo-seg-title">0{idx + 1} · {s.shortLabel}</span>
-                  <span className="st-promo-bar-track">
-                    {idx === slideIdx && (
-                      <span
-                        key={`${s.id}-${slideIdx}`}
-                        className={`st-promo-bar-fill ${sliderPaused ? 'is-paused' : ''}`}
-                      />
-                    )}
-                  </span>
-                </button>
-              ))}
+              <div className="st-promo-media-frame" aria-hidden="true">
+                {STORE_OFFER_SLIDES.map((slide, idx) => (
+                  <img
+                    key={slide.id}
+                    src={slide.image}
+                    alt=""
+                    className={`st-promo-bg-slide ${idx === slideIdx ? 'is-active' : ''}`}
+                    loading={idx === 0 ? 'eager' : 'lazy'}
+                    decoding="async"
+                  />
+                ))}
+              </div>
             </div>
 
-            <div className="st-promo-counter" dir="ltr">
-              0{slideIdx + 1} / 0{STORE_OFFER_SLIDES.length}
+            <div className="st-promo-controls">
+              <div className="st-promo-segs" role="tablist" aria-label="شرائح العروض">
+                {STORE_OFFER_SLIDES.map((s, idx) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={idx === slideIdx}
+                    onClick={() => goToSlide(idx)}
+                    className={`st-promo-seg ${idx === slideIdx ? 'is-active' : ''}`}
+                  >
+                    <span className="st-promo-seg-num">0{idx + 1}</span>
+                    <span>{s.shortLabel}</span>
+                  </button>
+                ))}
+              </div>
+
+              <div className="st-promo-nav-end">
+                <div className="st-promo-counter" dir="ltr">
+                  0{slideIdx + 1} / 0{STORE_OFFER_SLIDES.length}
+                </div>
+                <div className="st-promo-arrows">
+                  <button
+                    type="button"
+                    className="st-promo-arrow-btn"
+                    onClick={() => goToSlide(slideIdx - 1)}
+                    aria-label="العرض السابق"
+                  >
+                    <ChevronRightIcon />
+                  </button>
+                  <button
+                    type="button"
+                    className="st-promo-arrow-btn"
+                    onClick={() => goToSlide(slideIdx + 1)}
+                    aria-label="العرض التالي"
+                  >
+                    <ChevronLeftIcon />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
