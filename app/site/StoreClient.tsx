@@ -1586,12 +1586,12 @@ export default function StoreClient({
           position: absolute;
           top: 12px;
           inset-inline-start: 12px;
-          padding: 4px 12px;
+          padding: 3px 9px;
           border-radius: var(--r-pill);
           background: rgba(255, 255, 255, 0.94);
           border: 1px solid #e7e1d7;
           color: #14181b;
-          font-size: 0.75rem;
+          font-size: 0.68rem;
           font-weight: 800;
           box-shadow: 0 4px 12px rgba(20, 24, 27, 0.14);
         }
@@ -1599,11 +1599,11 @@ export default function StoreClient({
           position: absolute;
           top: 12px;
           inset-inline-end: 12px;
-          padding: 4px 10px;
+          padding: 3px 8px;
           border-radius: var(--r-pill);
           background: #059669;
           color: #ffffff;
-          font-size: 0.74rem;
+          font-size: 0.68rem;
           font-weight: 800;
         }
         .st-prod-code-tag {
@@ -1616,32 +1616,32 @@ export default function StoreClient({
           backdrop-filter: blur(6px);
           color: #f8fafc;
           font-family: ui-monospace, Consolas, monospace;
-          font-size: 0.72rem;
+          font-size: 0.66rem;
           font-weight: 800;
         }
         .st-prod-body {
-          padding: var(--ui-card-pad-sm, 20px) var(--ui-card-pad, 24px);
+          padding: 14px 16px;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
           flex: 1;
         }
         .st-prod-cat {
-          font-size: 0.78rem;
+          font-size: 0.7rem;
           font-weight: 800;
           color: var(--o);
         }
         .st-prod-body h3 {
-          font-size: 1.02rem;
+          font-size: 0.88rem;
           font-weight: 800;
-          line-height: 1.45;
+          line-height: 1.42;
           color: #14181b;
           margin: 0;
         }
         .st-prod-desc {
-          font-size: 0.84rem;
+          font-size: 0.76rem;
           color: #525e6a;
-          line-height: 1.6;
+          line-height: 1.5;
           margin: 0;
           display: -webkit-box;
           -webkit-line-clamp: 2;
@@ -1653,7 +1653,7 @@ export default function StoreClient({
           flex-direction: column;
           gap: 4px;
           margin-top: 4px;
-          font-size: 0.79rem;
+          font-size: 0.73rem;
           color: #334155;
           font-weight: 600;
         }
@@ -1672,24 +1672,24 @@ export default function StoreClient({
           flex-shrink: 0;
         }
         .st-prod-foot {
-          padding: calc(var(--ui-card-pad-sm, 20px) * 0.8) var(--ui-card-pad, 24px) var(--ui-card-pad-sm, 20px);
+          padding: 12px 16px 14px;
           border-top: 1px solid #efe9df;
           background: #fbfaf7;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 8px;
         }
         .st-install-toggle {
           display: flex;
           align-items: center;
           gap: 8px;
-          min-height: 40px;
-          padding: 8px 12px;
+          min-height: 34px;
+          padding: 6px 10px;
           border-radius: var(--r-btn);
           background: #ffffff;
           border: 1px solid #dfd7cc;
           color: #47525c;
-          font-size: 0.79rem;
+          font-size: 0.73rem;
           font-weight: 700;
           cursor: pointer;
           transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
@@ -1701,8 +1701,8 @@ export default function StoreClient({
         }
         .st-install-toggle input {
           accent-color: #059669;
-          width: 16px;
-          height: 16px;
+          width: 15px;
+          height: 15px;
           flex-shrink: 0;
         }
         .st-price-row {
@@ -1712,7 +1712,7 @@ export default function StoreClient({
           gap: 12px;
         }
         .st-price-old {
-          font-size: 0.78rem;
+          font-size: 0.7rem;
           color: #94a3b8;
           text-decoration: line-through;
           display: block;
@@ -1723,47 +1723,50 @@ export default function StoreClient({
           gap: 4px;
         }
         .st-price-main strong {
-          font-size: 1.22rem;
+          font-size: 1.02rem;
           font-weight: 900;
           color: #14181b;
         }
         .st-price-main span {
-          font-size: 0.8rem;
+          font-size: 0.72rem;
           font-weight: 700;
           color: #525e6a;
         }
         .st-price-quote strong {
-          font-size: 0.94rem;
+          font-size: 0.84rem;
           font-weight: 800;
           color: var(--o-dark);
           display: block;
         }
         .st-price-quote span {
-          font-size: 0.74rem;
+          font-size: 0.7rem;
           font-weight: 600;
           color: #64748b;
         }
         .st-prod-actions {
           display: flex;
           flex-wrap: wrap;
-          gap: 8px;
+          gap: 6px;
           align-items: center;
         }
         .st-prod-actions .pw-btn {
           flex: 1;
+          min-height: max(36px, calc(var(--ui-btn-h, 44px) - 6px));
+          padding: 6px 12px;
+          font-size: calc(var(--ui-btn-fs, 0.9375rem) * 0.88);
         }
         .st-prod-actions .pw-btn.is-added {
           background: #059669;
           box-shadow: 0 10px 20px -12px rgba(5, 150, 105, 0.7);
         }
         .st-wa-link {
-          min-height: var(--ui-btn-h, 44px);
-          padding: 10px 14px;
+          min-height: max(36px, calc(var(--ui-btn-h, 44px) - 6px));
+          padding: 6px 10px;
           border-radius: var(--ui-btn-r, 10px);
           border: 1px solid #dfd7cc;
           background: #ffffff;
           color: #14181b;
-          font-size: 0.84rem;
+          font-size: calc(var(--ui-btn-fs, 0.9375rem) * 0.85);
           font-weight: 700;
           display: inline-flex;
           align-items: center;
@@ -2570,6 +2573,7 @@ export default function StoreClient({
           .st-mnt-grid {
             gap: 16px;
           }
+          .st-prod-actions .pw-btn,
           .st-wa-link,
           .st-promo-arrow-btn {
             min-height: 44px;
