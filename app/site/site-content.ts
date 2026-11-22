@@ -36,6 +36,18 @@ export type Project = { name: string; kind: string; area: string; status: string
 export type Commitment = { title: string; text: string };
 export type Faq = { q: string; a: string };
 export type PromoBannerConfig = { enabled: boolean; text: string };
+export type StoreOfferBannerItem = {
+  id: string;
+  imageUrl: string;
+  alt?: string;
+  href?: string;
+  active?: boolean;
+};
+export type StoreOfferBannersConfig = {
+  enabled: boolean;
+  intervalSeconds: number;
+  items: StoreOfferBannerItem[];
+};
 export type NewsTickerItem = { id: string; tag?: string; text: string; href?: string; active?: boolean };
 export type NewsTickerConfig = { enabled: boolean; autoFeedEnabled?: boolean; label: string; speedSeconds: number; items: NewsTickerItem[] };
 
@@ -128,6 +140,12 @@ export const DEFAULT_PROMO_BANNER: PromoBannerConfig = {
   text: '✨ متجر فاي تك للتشطيبات والسمارت هوم وحساسات الأمان — اطلب التوريد والتركيب المعتمد مباشرة لمشروعك',
 };
 
+export const DEFAULT_STORE_OFFER_BANNERS: StoreOfferBannersConfig = {
+  enabled: true,
+  intervalSeconds: 4.5,
+  items: [],
+};
+
 export const DEFAULT_NEWS_TICKER: NewsTickerConfig = {
   enabled: true,
   autoFeedEnabled: true,
@@ -183,6 +201,7 @@ export type SiteContentOverride = {
   properties?: WebsiteProperty[];
   maintenanceServices?: WebsiteMaintenanceService[];
   promoBanner?: Partial<PromoBannerConfig>;
+  storeOfferBanners?: Partial<StoreOfferBannersConfig>;
   newsTicker?: Partial<NewsTickerConfig>;
   chatBotConfig?: Partial<ChatBotConfig>;
 };
@@ -346,6 +365,49 @@ export function sanitizeContent(raw: any): SiteContentOverride {
     };
   }
 
+  if (raw.storeOfferBanners && typeof raw.storeOfferBanners === 'object') {
+    const sb = raw.storeOfferBanners;
+    const rawInterval = Number(sb.intervalSeconds);
+    out.storeOfferBanners = {
+      enabled: sb.enabled !== false,
+      intervalSeconds: Number.isFinite(rawInterval)
+        ? Math.round(Math.min(15, Math.max(2, rawInterval)) * 10) / 10
+        : DEFAULT_STORE_OFFER_BANNERS.intervalSeconds,
+      ...(Array.isArray(sb.items) && {
+        items: arr<StoreOfferBannerItem>(
+          sb.items,
+          (it) => {
+            const rawImg = str(it?.imageUrl, 120000);
+            const safeImg =
+              rawImg &&
+              (rawImg.startsWith('/') ||
+                /^https?:\/\//i.test(rawImg) ||
+                /^data:image\//i.test(rawImg))
+                ? rawImg
+                : '';
+            if (!safeImg) return null;
+            const rawHref = str(it?.href, 220);
+            const safeHref =
+              rawHref &&
+              (rawHref.startsWith('/') ||
+                rawHref.startsWith('#') ||
+                /^https?:\/\//i.test(rawHref))
+                ? rawHref
+                : undefined;
+            return {
+              id: str(it?.id, 60) || `banner-${Math.random().toString(36).slice(2, 8)}`,
+              imageUrl: safeImg,
+              alt: str(it?.alt, 160) || undefined,
+              href: safeHref,
+              active: it?.active !== false,
+            };
+          },
+          20
+        ),
+      }),
+    };
+  }
+
   if (raw.newsTicker && typeof raw.newsTicker === 'object') {
     const nt = raw.newsTicker;
     const rawSpeed = Number(nt.speedSeconds);
@@ -446,6 +508,11 @@ export function mergeContent(o: SiteContentOverride = {}) {
     PROMO_BANNER: {
       enabled: o.promoBanner?.enabled ?? DEFAULT_PROMO_BANNER.enabled,
       text: o.promoBanner?.text ?? DEFAULT_PROMO_BANNER.text,
+    },
+    STORE_OFFER_BANNERS: {
+      enabled: o.storeOfferBanners?.enabled ?? DEFAULT_STORE_OFFER_BANNERS.enabled,
+      intervalSeconds: o.storeOfferBanners?.intervalSeconds ?? DEFAULT_STORE_OFFER_BANNERS.intervalSeconds,
+      items: o.storeOfferBanners?.items ?? DEFAULT_STORE_OFFER_BANNERS.items,
     },
     NEWS_TICKER: {
       enabled: o.newsTicker?.enabled ?? DEFAULT_NEWS_TICKER.enabled,

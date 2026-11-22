@@ -9,12 +9,15 @@ import {
   COMMITMENTS,
   FAQS,
   DEFAULT_PROMO_BANNER,
+  DEFAULT_STORE_OFFER_BANNERS,
   DEFAULT_NEWS_TICKER,
   DEFAULT_CHAT_BOT_CONFIG,
   sanitizeContent,
   type ChatBotConfig,
   type NewsTickerConfig,
   type PromoBannerConfig,
+  type StoreOfferBannerItem,
+  type StoreOfferBannersConfig,
 } from '../site/site-content';
 import type { ParsedNewsFeedItem } from '@/lib/rssNewsParser';
 import {
@@ -57,6 +60,7 @@ type Content = {
   properties: WebsiteProperty[];
   maintenanceServices: WebsiteMaintenanceService[];
   promoBanner: PromoBannerConfig;
+  storeOfferBanners: StoreOfferBannersConfig;
   newsTicker: NewsTickerConfig;
   chatBotConfig: ChatBotConfig;
 };
@@ -99,6 +103,10 @@ function defaults(): Content {
       maintenanceScope: [...m.maintenanceScope],
     })),
     promoBanner: { ...DEFAULT_PROMO_BANNER },
+    storeOfferBanners: {
+      ...DEFAULT_STORE_OFFER_BANNERS,
+      items: DEFAULT_STORE_OFFER_BANNERS.items.map((item) => ({ ...item })),
+    },
     newsTicker: {
       ...DEFAULT_NEWS_TICKER,
       items: DEFAULT_NEWS_TICKER.items.map((item) => ({ ...item })),
@@ -133,6 +141,11 @@ function fromStored(raw: any): Content {
     promoBanner: {
       enabled: s.promoBanner?.enabled ?? d.promoBanner.enabled,
       text: s.promoBanner?.text ?? d.promoBanner.text,
+    },
+    storeOfferBanners: {
+      enabled: s.storeOfferBanners?.enabled ?? d.storeOfferBanners.enabled,
+      intervalSeconds: s.storeOfferBanners?.intervalSeconds ?? d.storeOfferBanners.intervalSeconds,
+      items: s.storeOfferBanners?.items ?? d.storeOfferBanners.items,
     },
     newsTicker: {
       enabled: s.newsTicker?.enabled ?? d.newsTicker.enabled,
@@ -259,6 +272,7 @@ export default function WebsiteAdminPage() {
   const [catalogSearchResults, setCatalogSearchResults] = useState<WebsiteProduct[]>([]);
   const [spinUploadStatus, setSpinUploadStatus] = useState<Record<string, string>>({});
   const [spinPreviewId, setSpinPreviewId] = useState<string | null>(null);
+  const [offerBannerUploadStatus, setOfferBannerUploadStatus] = useState('');
 
   // Orders & LiveChat states
   const [orders, setOrders] = useState<any[]>([]);
@@ -509,6 +523,95 @@ export default function WebsiteAdminPage() {
     }
   };
 
+  const handleOfferBannerUpload = async (files: FileList | null, replaceIdx?: number) => {
+    if (!files || files.length === 0) return;
+    const queue = Array.from(files);
+    const existingCount = c.storeOfferBanners.items.length;
+    const remainingSlots = replaceIdx !== undefined ? 1 : Math.max(0, 20 - existingCount);
+    const selected = queue.slice(0, remainingSlots);
+    if (selected.length === 0) {
+      alert('تم الوصول للحد الأقصى (20 صورة عروض) حالياً.');
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    const uploaded: { imageUrl: string; alt: string }[] = [];
+    for (let i = 0; i < selected.length; i++) {
+      const file = selected[i];
+      setOfferBannerUploadStatus(
+        `جاري رفع صورة العرض ${i + 1} من ${selected.length}...`
+      );
+      let resolvedUrl = '';
+      if (token) {
+        try {
+          const blob = await compressImageToBlob(file, 1600, 0.88);
+          const fd = new FormData();
+          fd.append(
+            'file',
+            new File([blob], file.name || `offer-${i + 1}.webp`, { type: blob.type || 'image/webp' })
+          );
+          fd.append('productId', 'store_offer_banner');
+          fd.append('caption', `Store Offer Banner · ${file.name || i + 1}`);
+          const res = await fetch('/api/store-media/upload', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: fd,
+          });
+          const json = await res.json().catch(() => null);
+          if (res.ok && json?.ok && typeof json.url === 'string') {
+            resolvedUrl = json.url;
+          }
+        } catch {
+          // Fall back to compressed local WebP below
+        }
+      }
+      if (!resolvedUrl) {
+        try {
+          resolvedUrl = await compressImageToDataUrl(file, 1280, 0.82);
+        } catch {
+          // Skip unreadable image
+        }
+      }
+      if (resolvedUrl) {
+        const cleanAlt = file.name.replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim();
+        uploaded.push({ imageUrl: resolvedUrl, alt: cleanAlt || 'عرض متجر فاي تك' });
+      }
+      if (i < selected.length - 1 && token) {
+        await new Promise((r) => setTimeout(r, 150));
+      }
+    }
+
+    if (uploaded.length > 0) {
+      upd((d) => {
+        if (replaceIdx !== undefined && d.storeOfferBanners.items[replaceIdx]) {
+          d.storeOfferBanners.items[replaceIdx].imageUrl = uploaded[0].imageUrl;
+          if (!d.storeOfferBanners.items[replaceIdx].alt) {
+            d.storeOfferBanners.items[replaceIdx].alt = uploaded[0].alt;
+          }
+        } else {
+          const nextItems: StoreOfferBannerItem[] = uploaded.map((item, idx) => ({
+            id: `banner-${Date.now().toString(36)}-${idx}`,
+            imageUrl: item.imageUrl,
+            alt: item.alt,
+            href: '',
+            active: true,
+          }));
+          d.storeOfferBanners.items = [...d.storeOfferBanners.items, ...nextItems].slice(0, 20);
+        }
+        d.storeOfferBanners.enabled = true;
+      });
+      setOfferBannerUploadStatus(
+        `✓ تم رفع ${uploaded.length} صورة عرض بنجاح. اضغط «نشر على الموقع» بالأعلى لظهورها فوراً في المتجر.`
+      );
+    } else {
+      setOfferBannerUploadStatus('');
+    }
+  };
+
   const saveDraft = async () => {
     setBusy(true);
     setErr('');
@@ -694,6 +797,238 @@ export default function WebsiteAdminPage() {
           {/* 1. إدارة المنتجات والعروض */}
           {tab === 'products' && (
             <>
+              <div className="wa-card wa-form">
+                <div className="wa-wide" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+                  <div>
+                    <h3 style={{ margin: 0 }}>
+                      🖼️ صور عروض البضاعة الكبيرة (سلايدر يقلب تلقائياً أعلى المتجر)
+                    </h3>
+                    <p className="wa-muted" style={{ margin: '4px 0 0', fontSize: '12.5px' }}>
+                      ارفع صور البنرات والتصميمات الخاصة بعروضك (المقاس المثالي: 1600×600 أو 1920×720) — الصور بتتعرض كاملة وبحجم كبير وبتقلب لوحدها للعملاء في المتجر.
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <label className="wa-btn wa-primary" style={{ cursor: 'pointer', margin: 0 }}>
+                      <span>+ رفع صور عروض من جهازك</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          void handleOfferBannerUpload(e.target.files);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="wa-btn"
+                      onClick={() =>
+                        upd((d) => {
+                          d.storeOfferBanners.enabled = true;
+                          d.storeOfferBanners.items.push({
+                            id: `banner-${Date.now().toString(36)}`,
+                            imageUrl: '/sections/materials.jpg',
+                            alt: 'عرض جديد من فاي تك',
+                            href: '/store?offers=1',
+                            active: true,
+                          });
+                        })
+                      }
+                    >
+                      + إضافة برابط صورة
+                    </button>
+                  </div>
+                </div>
+
+                {offerBannerUploadStatus && (
+                  <div
+                    className="wa-wide"
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '8px',
+                      background: offerBannerUploadStatus.startsWith('✓') ? '#ecfdf5' : '#fff7ed',
+                      border: offerBannerUploadStatus.startsWith('✓') ? '1px solid #86efac' : '1px solid #fed7aa',
+                      color: offerBannerUploadStatus.startsWith('✓') ? '#065f46' : '#9a3412',
+                      fontSize: '12.5px',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {offerBannerUploadStatus}
+                  </div>
+                )}
+
+                <label className="wa-f" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <input
+                    type="checkbox"
+                    checked={c.storeOfferBanners.enabled}
+                    onChange={(e) => upd((d) => { d.storeOfferBanners.enabled = e.target.checked; })}
+                    style={{ width: '18px', height: '18px' }}
+                  />
+                  <strong>تفعيل سلايدر صور العروض</strong>
+                </label>
+
+                <label className="wa-f">
+                  <span>سرعة التقليب التلقائي (بالثانية)</span>
+                  <select
+                    value={String(c.storeOfferBanners.intervalSeconds)}
+                    onChange={(e) =>
+                      upd((d) => {
+                        d.storeOfferBanners.intervalSeconds = Number(e.target.value) || 4.5;
+                      })
+                    }
+                  >
+                    <option value="3">كل 3 ثواني (سريع)</option>
+                    <option value="4.5">كل 4.5 ثانية (متوازن)</option>
+                    <option value="6">كل 6 ثواني (مريح)</option>
+                    <option value="8">كل 8 ثواني</option>
+                    <option value="10">كل 10 ثواني (بطيء)</option>
+                  </select>
+                </label>
+
+                {c.storeOfferBanners.items.length === 0 ? (
+                  <div className="wa-wide" style={{ padding: '12px 14px', borderRadius: '10px', background: '#fbfaf7', border: '1px dashed #cbd5e1', fontSize: '13px', color: '#475569' }}>
+                    لم يتم رفع صور عروض مخصصة بعد — يظهر حالياً في المتجر البنر الافتراضي. اضغط <strong>«+ رفع صور عروض من جهازك»</strong> لرفع تصميماتك الخاصة فوراً.
+                  </div>
+                ) : (
+                  <div className="wa-wide" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 340px), 1fr))', gap: '12px', marginTop: '4px' }}>
+                    {c.storeOfferBanners.items.map((banner, idx) => (
+                      <div
+                        key={banner.id}
+                        style={{
+                          border: '1px solid var(--line)',
+                          borderRadius: '12px',
+                          background: '#fff',
+                          overflow: 'hidden',
+                          opacity: banner.active !== false ? 1 : 0.58,
+                          display: 'flex',
+                          flexDirection: 'column',
+                        }}
+                      >
+                        <div style={{ position: 'relative', aspectRatio: '21 / 8', background: '#f4efe6', borderBottom: '1px solid var(--line)' }}>
+                          <img
+                            src={banner.imageUrl}
+                            alt={banner.alt || `عرض ${idx + 1}`}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
+                          />
+                          <span style={{ position: 'absolute', top: '8px', insetInlineStart: '8px', padding: '2px 8px', borderRadius: '999px', background: '#14181b', color: '#fff', fontSize: '11px', fontWeight: 800 }}>
+                            بنر #{idx + 1}
+                          </span>
+                        </div>
+                        <div style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <F
+                            label="وصف الصورة (اختياري)"
+                            v={banner.alt || ''}
+                            on={(v) => upd((d) => { d.storeOfferBanners.items[idx].alt = v || undefined; })}
+                          />
+                          <label className="wa-f">
+                            <span>عند الضغط على الصورة يفتح (اختياري)</span>
+                            <select
+                              value={
+                                ['', '/store?offers=1', '/store?category=smart_home', '/store?category=paints', '/store?category=plumbing', '/store?category=electrical', '/store?category=ceramics', '/store?category=building_materials'].includes(banner.href || '')
+                                  ? (banner.href || '')
+                                  : '__custom__'
+                              }
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                if (val !== '__custom__') {
+                                  upd((d) => { d.storeOfferBanners.items[idx].href = val || undefined; });
+                                }
+                              }}
+                            >
+                              <option value="">بدون رابط (صورة عرض فقط)</option>
+                              <option value="/store?offers=1">كل العروض والخصومات</option>
+                              <option value="/store?category=smart_home">قسم السمارت هوم</option>
+                              <option value="/store?category=paints">قسم الدهانات والعوازل</option>
+                              <option value="/store?category=plumbing">قسم السباكة والصحي</option>
+                              <option value="/store?category=electrical">قسم الكهرباء والإنارة</option>
+                              <option value="/store?category=ceramics">قسم السيراميك والرخام</option>
+                              <option value="/store?category=building_materials">قسم مواد البناء</option>
+                              <option value="__custom__">رابط مخصص...</option>
+                            </select>
+                          </label>
+                          <F
+                            label="أو رابط مباشر / رابط الصورة"
+                            v={banner.href || ''}
+                            on={(v) => upd((d) => { d.storeOfferBanners.items[idx].href = v || undefined; })}
+                            dir="ltr"
+                          />
+                          <F
+                            label="رابط ملف الصورة"
+                            v={banner.imageUrl}
+                            on={(v) => upd((d) => { d.storeOfferBanners.items[idx].imageUrl = v; })}
+                            dir="ltr"
+                          />
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px' }}>
+                            <button
+                              type="button"
+                              className="wa-btn"
+                              disabled={idx === 0}
+                              onClick={() =>
+                                upd((d) => {
+                                  const arrItems = d.storeOfferBanners.items;
+                                  [arrItems[idx - 1], arrItems[idx]] = [arrItems[idx], arrItems[idx - 1]];
+                                })
+                              }
+                            >
+                              ↑
+                            </button>
+                            <button
+                              type="button"
+                              className="wa-btn"
+                              disabled={idx === c.storeOfferBanners.items.length - 1}
+                              onClick={() =>
+                                upd((d) => {
+                                  const arrItems = d.storeOfferBanners.items;
+                                  [arrItems[idx + 1], arrItems[idx]] = [arrItems[idx], arrItems[idx + 1]];
+                                })
+                              }
+                            >
+                              ↓
+                            </button>
+                            <label className="wa-btn" style={{ cursor: 'pointer', margin: 0 }}>
+                              <span>تغيير الصورة</span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                                onChange={(e) => {
+                                  void handleOfferBannerUpload(e.target.files, idx);
+                                  e.target.value = '';
+                                }}
+                              />
+                            </label>
+                            <button
+                              type="button"
+                              className="wa-btn"
+                              onClick={() =>
+                                upd((d) => {
+                                  d.storeOfferBanners.items[idx].active = !(banner.active !== false);
+                                })
+                              }
+                            >
+                              {banner.active !== false ? 'إخفاء' : 'إظهار'}
+                            </button>
+                            <button
+                              type="button"
+                              className="wa-btn wa-danger"
+                              onClick={() =>
+                                upd((d) => {
+                                  d.storeOfferBanners.items.splice(idx, 1);
+                                })
+                              }
+                            >
+                              🗑️ حذف
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div className="wa-card wa-form">
                 <h3 className="wa-wide" style={{ marginTop: 0 }}>
                   🔥 شريط العروض الترويجي في أعلى المتجر والعقارات
