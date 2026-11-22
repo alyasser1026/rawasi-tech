@@ -395,36 +395,36 @@ export function CartButton({
       type="button"
       onClick={onClick}
       aria-label={`سلة المشتريات (${count})`}
-      className="phi-cart-btn"
+      className={`phi-cart-btn ${hasItems ? 'has-items' : ''}`}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: '8px',
-        height: '40px',
-        padding: '0 16px',
-        borderRadius: '10px',
+        gap: '6px',
+        height: '34px',
+        padding: '0 11px',
+        borderRadius: '9999px',
         border: hasItems
           ? '1px solid rgba(249, 115, 22, 0.85)'
-          : '1px solid rgba(255, 255, 255, 0.22)',
+          : '1px solid rgba(20, 24, 27, 0.11)',
         background: hasItems
           ? 'linear-gradient(135deg, rgba(249, 115, 22, 0.95) 0%, rgba(199, 85, 23, 0.95) 100%)'
-          : 'rgba(255, 255, 255, 0.08)',
+          : 'rgba(255, 255, 255, 0.46)',
         backdropFilter: 'blur(10px)',
         WebkitBackdropFilter: 'blur(10px)',
-        color: '#ffffff',
-        fontWeight: 800,
-        fontSize: '0.875rem',
+        color: hasItems ? '#ffffff' : '#14181b',
+        fontWeight: 700,
+        fontSize: '0.8rem',
         cursor: 'pointer',
         boxShadow: hasItems
-          ? '0 8px 20px -6px rgba(249, 115, 22, 0.65)'
-          : '0 4px 12px rgba(0, 0, 0, 0.18)',
-        transition: 'transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease',
+          ? '0 6px 14px -8px rgba(199, 85, 23, 0.55)'
+          : 'none',
+        transition: 'transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease, border-color 0.18s ease',
         whiteSpace: 'nowrap',
       }}
     >
       <svg
-        width="18"
-        height="18"
+        width="15"
+        height="15"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -440,16 +440,16 @@ export function CartButton({
       <span>السلة</span>
       <span
         style={{
-          minWidth: '22px',
-          height: '22px',
-          padding: '0 6px',
+          minWidth: '18px',
+          height: '18px',
+          padding: '0 5px',
           borderRadius: '999px',
-          background: hasItems ? '#ffffff' : 'rgba(249, 115, 22, 0.28)',
-          color: hasItems ? '#c75517' : '#fde68a',
+          background: hasItems ? '#ffffff' : 'rgba(20, 24, 27, 0.08)',
+          color: hasItems ? '#c75517' : '#334155',
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '0.75rem',
+          fontSize: '0.7rem',
           fontWeight: 900,
           lineHeight: 1,
         }}

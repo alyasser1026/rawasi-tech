@@ -762,11 +762,15 @@ export default function StoreClient({
         }
         .pw.st-page .pw-header.pw-header-glass {
           margin-bottom: 0 !important;
-          background: rgba(251, 250, 247, 0.92) !important;
-          backdrop-filter: blur(16px) !important;
-          -webkit-backdrop-filter: blur(16px) !important;
-          border-bottom: 1px solid rgba(20, 24, 27, 0.08) !important;
-          box-shadow: 0 4px 20px rgba(20, 24, 27, 0.05) !important;
+          background: rgba(251, 250, 247, 0.52) !important;
+          backdrop-filter: blur(18px) saturate(165%) !important;
+          -webkit-backdrop-filter: blur(18px) saturate(165%) !important;
+          border-bottom: 1px solid rgba(20, 24, 27, 0.06) !important;
+          box-shadow: none !important;
+        }
+        .pw.st-page .pw-header.pw-header-glass.is-scrolled {
+          background: rgba(251, 250, 247, 0.72) !important;
+          box-shadow: 0 8px 24px -18px rgba(20, 24, 27, 0.14) !important;
         }
         .pw.st-page .st-wide-wrap {
           max-width: none;

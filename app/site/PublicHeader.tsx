@@ -162,158 +162,162 @@ export default function PublicHeader({
               </button>
             </div>
 
-            {PUBLIC_NAV_ITEMS.map((item) => {
-              const isActive = item.key === normalizedActiveKey;
-              if (item.key === 'contact' && onOpenContact) {
+            <div className="pw-nav-links">
+              {PUBLIC_NAV_ITEMS.map((item) => {
+                const isActive = item.key === normalizedActiveKey;
+                if (item.key === 'contact' && onOpenContact) {
+                  return (
+                    <a
+                      key={item.key}
+                      href="#contact"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setOpen(false);
+                        onOpenContact();
+                      }}
+                    >
+                      <span>{item.label}</span>
+                      <span className="pw-nav-arrow" aria-hidden="true">←</span>
+                    </a>
+                  );
+                }
+                const href = activeKey === 'home' && item.key === 'contact' ? '#contact' : item.href;
                 return (
-                  <a
+                  <Link
                     key={item.key}
-                    href="#contact"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setOpen(false);
-                      onOpenContact();
-                    }}
+                    href={href}
+                    onClick={() => setOpen(false)}
+                    className={isActive ? 'is-nav-active' : undefined}
                   >
                     <span>{item.label}</span>
                     <span className="pw-nav-arrow" aria-hidden="true">←</span>
-                  </a>
+                  </Link>
                 );
-              }
-              const href = activeKey === 'home' && item.key === 'contact' ? '#contact' : item.href;
-              return (
+              })}
+            </div>
+
+            <div className="pw-nav-actions">
+              <CartButton
+                count={cartCount}
+                onClick={() => {
+                  setOpen(false);
+                  onOpenCart();
+                }}
+              />
+
+              {(portalHref || !userName) && (
                 <Link
-                  key={item.key}
-                  href={href}
+                  href={portalHref || '/login?portal=employee'}
                   onClick={() => setOpen(false)}
-                  className={isActive ? 'is-nav-active' : undefined}
+                  className={`pw-btn pw-nav-portal ${portalHref ? 'is-ready' : 'is-guest'}`}
                 >
-                  <span>{item.label}</span>
+                  <span>بوابة الموظفين</span>
                   <span className="pw-nav-arrow" aria-hidden="true">←</span>
                 </Link>
-              );
-            })}
+              )}
 
-            <CartButton
-              count={cartCount}
-              onClick={() => {
-                setOpen(false);
-                onOpenCart();
-              }}
-            />
+              {userName ? (
+                <div className="pw-user-wrap" ref={accountRef}>
+                  <button
+                    type="button"
+                    onClick={() => setAccountOpen((v) => !v)}
+                    aria-expanded={accountOpen}
+                    aria-haspopup="menu"
+                    className="pw-btn pw-btn-primary pw-nav-cta"
+                    title="قائمة الحساب وبوابة الموظفين"
+                  >
+                    <span>{userName.split(' ')[0]}</span>
+                    <span style={{ fontSize: '0.7rem', opacity: 0.9 }} aria-hidden="true">
+                      {accountOpen ? '▴' : '▾'}
+                    </span>
+                  </button>
 
-            {(portalHref || !userName) && (
-              <Link
-                href={portalHref || '/login?portal=employee'}
-                onClick={() => setOpen(false)}
-                className={`pw-btn pw-nav-portal ${portalHref ? 'is-ready' : 'is-guest'}`}
-              >
-                <span>بوابة الموظفين</span>
-                <span className="pw-nav-arrow" aria-hidden="true">←</span>
-              </Link>
-            )}
+                  {accountOpen && (
+                    <div className="pw-user-menu" role="menu" aria-label="قائمة الحساب">
+                      <div className="pw-user-menu-head">
+                        <strong>{userName}</strong>
+                        {userEmail && <small dir="ltr">{userEmail}</small>}
+                        <span className={`pw-user-role-tag ${portalHref ? 'is-staff' : ''}`}>
+                          {portalHref ? 'حساب موظف / صلاحية نظام' : 'حساب عميل فاي تك'}
+                        </span>
+                      </div>
 
-            {userName ? (
-              <div className="pw-user-wrap" ref={accountRef}>
-                <button
-                  type="button"
-                  onClick={() => setAccountOpen((v) => !v)}
-                  aria-expanded={accountOpen}
-                  aria-haspopup="menu"
-                  className="pw-btn pw-btn-primary pw-nav-cta"
-                  title="قائمة الحساب وبوابة الموظفين"
-                >
-                  <span>{userName.split(' ')[0]}</span>
-                  <span style={{ fontSize: '0.7rem', opacity: 0.9 }} aria-hidden="true">
-                    {accountOpen ? '▴' : '▾'}
-                  </span>
-                </button>
+                      {portalHref && (
+                        <Link
+                          href={portalHref}
+                          role="menuitem"
+                          className="pw-user-menu-item is-portal"
+                          onClick={() => {
+                            setAccountOpen(false);
+                            setOpen(false);
+                          }}
+                        >
+                          <span>🏢 دخول بوابة الموظفين</span>
+                          <span aria-hidden="true">←</span>
+                        </Link>
+                      )}
 
-                {accountOpen && (
-                  <div className="pw-user-menu" role="menu" aria-label="قائمة الحساب">
-                    <div className="pw-user-menu-head">
-                      <strong>{userName}</strong>
-                      {userEmail && <small dir="ltr">{userEmail}</small>}
-                      <span className={`pw-user-role-tag ${portalHref ? 'is-staff' : ''}`}>
-                        {portalHref ? 'حساب موظف / صلاحية نظام' : 'حساب عميل فاي تك'}
-                      </span>
-                    </div>
-
-                    {portalHref && (
                       <Link
-                        href={portalHref}
+                        href="/profile"
                         role="menuitem"
-                        className="pw-user-menu-item is-portal"
+                        className="pw-user-menu-item"
                         onClick={() => {
                           setAccountOpen(false);
                           setOpen(false);
                         }}
                       >
-                        <span>🏢 دخول بوابة الموظفين</span>
+                        <span>👤 الملف الشخصي</span>
                         <span aria-hidden="true">←</span>
                       </Link>
-                    )}
 
-                    <Link
-                      href="/profile"
-                      role="menuitem"
-                      className="pw-user-menu-item"
-                      onClick={() => {
-                        setAccountOpen(false);
-                        setOpen(false);
-                      }}
-                    >
-                      <span>👤 الملف الشخصي</span>
-                      <span aria-hidden="true">←</span>
-                    </Link>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="pw-user-menu-item"
+                        onClick={() => {
+                          setAccountOpen(false);
+                          setOpen(false);
+                          onOpenCart();
+                        }}
+                      >
+                        <span>🛒 سلة المشتريات ({cartCount})</span>
+                        <span aria-hidden="true">←</span>
+                      </button>
 
-                    <button
-                      type="button"
-                      role="menuitem"
-                      className="pw-user-menu-item"
-                      onClick={() => {
-                        setAccountOpen(false);
-                        setOpen(false);
-                        onOpenCart();
-                      }}
-                    >
-                      <span>🛒 سلة المشتريات ({cartCount})</span>
-                      <span aria-hidden="true">←</span>
-                    </button>
-
-                    {onSignOut && (
-                      <>
-                        <div className="pw-user-menu-sep" />
-                        <button
-                          type="button"
-                          role="menuitem"
-                          className="pw-user-menu-item is-danger"
-                          onClick={() => {
-                            setAccountOpen(false);
-                            setOpen(false);
-                            onSignOut();
-                          }}
-                        >
-                          <span>🚪 تسجيل الخروج</span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  onOpenLogin();
-                }}
-                className="pw-btn pw-btn-primary pw-nav-cta"
-                title="تسجيل الدخول (اختياري)"
-              >
-                تسجيل الدخول
-              </button>
-            )}
+                      {onSignOut && (
+                        <>
+                          <div className="pw-user-menu-sep" />
+                          <button
+                            type="button"
+                            role="menuitem"
+                            className="pw-user-menu-item is-danger"
+                            onClick={() => {
+                              setAccountOpen(false);
+                              setOpen(false);
+                              onSignOut();
+                            }}
+                          >
+                            <span>🚪 تسجيل الخروج</span>
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    onOpenLogin();
+                  }}
+                  className="pw-btn pw-btn-primary pw-nav-cta"
+                  title="تسجيل الدخول (اختياري)"
+                >
+                  تسجيل الدخول
+                </button>
+              )}
+            </div>
           </nav>
 
           <div className="pw-header-end">
