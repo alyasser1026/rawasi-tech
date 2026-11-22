@@ -246,7 +246,12 @@ export function sanitizeContent(raw: any): SiteContentOverride {
           specs: Array.isArray(p?.specs)
             ? p.specs.map((s: any) => str(s, 140)).filter(Boolean).slice(0, 8)
             : [],
+          subCategory: str(p?.subCategory, 100) || undefined,
+          mediaId: str(p?.mediaId, 80) || undefined,
           imageUrl: str(p?.imageUrl, 60000) || undefined,
+          spinImages: Array.isArray(p?.spinImages)
+            ? p.spinImages.map((u: any) => str(u, 120000)).filter(Boolean).slice(0, 36)
+            : undefined,
           inStock: p?.inStock !== false,
           featured: Boolean(p?.featured),
         };

@@ -793,6 +793,9 @@ export default function SectionDetailClient({
                             {p.imageUrl && (
                               <div className="pw-prod-thumb">
                                 <img src={p.imageUrl} alt={p.name} loading="lazy" decoding="async" />
+                                {p.spinImages && p.spinImages.length >= 2 && (
+                                  <span className="pw-card-4d-badge">4D · 360°</span>
+                                )}
                               </div>
                             )}
                             <div className="pw-prod-top">
@@ -999,6 +1002,9 @@ export default function SectionDetailClient({
                       {p.imageUrl && (
                         <div className="pw-prod-thumb">
                           <img src={p.imageUrl} alt={p.name} loading="lazy" decoding="async" />
+                          {p.spinImages && p.spinImages.length >= 2 && (
+                            <span className="pw-card-4d-badge">4D · 360°</span>
+                          )}
                         </div>
                       )}
                       <div className="pw-prod-top">

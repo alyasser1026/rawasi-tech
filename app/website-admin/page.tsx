@@ -21,6 +21,7 @@ import {
   DEFAULT_MAINTENANCE_SERVICES,
   DEFAULT_PRODUCTS,
   DEFAULT_PROPERTIES,
+  getProductImageUrl,
   PRODUCT_CATEGORIES,
   type ProductCategoryId,
   type PropertyOfferType,
@@ -29,6 +30,7 @@ import {
   type WebsiteProduct,
   type WebsiteProperty,
 } from '../site/store-catalog';
+import Product4DSpinViewer from '../site/Product4DSpinViewer';
 
 const MAINTENANCE_CATEGORIES = PRODUCT_CATEGORIES.map((c) => ({
   id: c.id,
@@ -176,6 +178,39 @@ async function compressImageToDataUrl(file: File, maxWidth = 720, quality = 0.78
   });
 }
 
+async function compressImageToBlob(file: File, maxWidth = 1000, quality = 0.82): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('تعذر قراءة ملف الصورة'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('ملف الصورة غير صالح'));
+      img.onload = () => {
+        const scale = img.width > maxWidth ? maxWidth / img.width : 1;
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(file);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else resolve(file);
+          },
+          'image/webp',
+          quality
+        );
+      };
+      img.src = String(reader.result);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 const RECOMMENDATIONS: {
   p: 'عالية' | 'متوسطة' | 'تحسين';
   title: string;
@@ -219,6 +254,11 @@ export default function WebsiteAdminPage() {
   const [published, setPublished] = useState<any>(null);
   const [history, setHistory] = useState<any[]>([]);
   const [prodFilterCat, setProdFilterCat] = useState<'all' | ProductCategoryId>('all');
+  const [catalogSearchQ, setCatalogSearchQ] = useState('');
+  const [catalogSearchBusy, setCatalogSearchBusy] = useState(false);
+  const [catalogSearchResults, setCatalogSearchResults] = useState<WebsiteProduct[]>([]);
+  const [spinUploadStatus, setSpinUploadStatus] = useState<Record<string, string>>({});
+  const [spinPreviewId, setSpinPreviewId] = useState<string | null>(null);
 
   // Orders & LiveChat states
   const [orders, setOrders] = useState<any[]>([]);
@@ -340,6 +380,133 @@ export default function WebsiteAdminPage() {
     });
     setDirty(true);
     setMsg('');
+  };
+
+  const searchStoreCatalog = async () => {
+    const q = catalogSearchQ.trim();
+    if (!q) {
+      setCatalogSearchResults([]);
+      return;
+    }
+    setCatalogSearchBusy(true);
+    try {
+      const res = await fetch(`/api/store-catalog?q=${encodeURIComponent(q)}&pageSize=8`, {
+        cache: 'no-store',
+      });
+      const json = await res.json().catch(() => null);
+      setCatalogSearchResults(Array.isArray(json?.items) ? json.items : []);
+    } catch {
+      setCatalogSearchResults([]);
+    } finally {
+      setCatalogSearchBusy(false);
+    }
+  };
+
+  const attachCatalogProductFor4D = (item: WebsiteProduct) => {
+    upd((d) => {
+      const existingIdx = d.products.findIndex(
+        (x) => x.id === item.id || (x.code && item.code && x.code.toLowerCase() === item.code.toLowerCase())
+      );
+      if (existingIdx >= 0) {
+        const [moved] = d.products.splice(existingIdx, 1);
+        d.products.unshift(moved);
+      } else {
+        d.products.unshift({
+          ...item,
+          specs: Array.isArray(item.specs) ? [...item.specs] : [],
+          spinImages: Array.isArray(item.spinImages) ? [...item.spinImages] : [],
+        });
+      }
+    });
+    setProdFilterCat('all');
+    setSpinPreviewId(item.id);
+    setMsg(`✓ تم تجهيز «${item.name}» بأعلى القائمة لرفع صور 4D / 360°.`);
+  };
+
+  const uploadSpinFilesToProduct = async (productId: string, files: FileList) => {
+    const sorted = Array.from(files).sort((a, b) =>
+      a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+    );
+    const currentProduct = c.products.find((item) => item.id === productId);
+    const existingCount = Array.isArray(currentProduct?.spinImages) ? currentProduct.spinImages.length : 0;
+    const remainingSlots = Math.max(0, 36 - existingCount);
+    const queue = sorted.slice(0, remainingSlots);
+    if (queue.length === 0) {
+      alert('تم الوصول للحد الأقصى (36 زاوية 4D) لهذا المنتج.');
+      return;
+    }
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
+    const uploadedUrls: string[] = [];
+    for (let i = 0; i < queue.length; i++) {
+      const file = queue[i];
+      setSpinUploadStatus((prev) => ({
+        ...prev,
+        [productId]: `جاري رفع الزاوية ${i + 1} من ${queue.length} على تيليجرام...`,
+      }));
+      let resolvedUrl = '';
+      if (token) {
+        try {
+          const blob = await compressImageToBlob(file, 1000, 0.82);
+          const fd = new FormData();
+          fd.append('file', new File([blob], file.name || `angle-${i + 1}.webp`, { type: blob.type || 'image/webp' }));
+          fd.append('productId', productId);
+          fd.append('caption', `4D Spin (${i + 1}/${queue.length}) · ${currentProduct?.code || productId}`);
+          const res = await fetch('/api/store-media/upload', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: fd,
+          });
+          const json = await res.json().catch(() => null);
+          if (res.ok && json?.ok && typeof json.url === 'string') {
+            resolvedUrl = json.url;
+          }
+        } catch {
+          // Fall back to compressed local WebP below
+        }
+      }
+      if (!resolvedUrl) {
+        try {
+          resolvedUrl = await compressImageToDataUrl(file, 640, 0.72);
+        } catch {
+          // Skip unreadable image
+        }
+      }
+      if (resolvedUrl) {
+        uploadedUrls.push(resolvedUrl);
+      }
+      if (i < queue.length - 1 && token) {
+        await new Promise((r) => setTimeout(r, 180));
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      upd((d) => {
+        const targetIdx = d.products.findIndex((item) => item.id === productId);
+        if (targetIdx < 0) return;
+        const target = d.products[targetIdx];
+        const nextSpin = [...(target.spinImages || []), ...uploadedUrls].slice(0, 36);
+        target.spinImages = nextSpin;
+        if (!target.imageUrl) {
+          target.imageUrl = uploadedUrls[0];
+        }
+      });
+      setSpinPreviewId(productId);
+      setSpinUploadStatus((prev) => ({
+        ...prev,
+        [productId]: `✓ تم رفع وإضافة ${uploadedUrls.length} صورة زاوية 4D بنجاح. تذكّر الضغط على «نشر على الموقع».`,
+      }));
+    } else {
+      setSpinUploadStatus((prev) => {
+        const copy = { ...prev };
+        delete copy[productId];
+        return copy;
+      });
+    }
   };
 
   const saveDraft = async () => {
@@ -833,6 +1000,70 @@ export default function WebsiteAdminPage() {
                 </div>
               </div>
 
+              <div className="wa-card" style={{ display: 'grid', gap: '10px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <strong style={{ fontSize: '14px' }}>🔄 إضافة صور 4D / 360° لمنتج موجود بالمتجر (11,361+ منتج)</strong>
+                    <p style={{ margin: '2px 0 0', fontSize: '12.5px', color: 'var(--mut)' }}>
+                      ابحث باسم أو كود أي قطاع أو منتج لفتحه وإرفاق صور 4D التفاعلية الخاصة به على تيليجرام.
+                    </p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <input
+                    className="wa-4d-search-input"
+                    value={catalogSearchQ}
+                    onChange={(e) => setCatalogSearchQ(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        void searchStoreCatalog();
+                      }
+                    }}
+                    placeholder="اكتب اسم المنتج أو الكود (مثال: سيكا، جوتن، كلكتا، قفل ذكي)..."
+                  />
+                  <button
+                    type="button"
+                    className="wa-btn wa-primary"
+                    disabled={catalogSearchBusy}
+                    onClick={() => void searchStoreCatalog()}
+                  >
+                    {catalogSearchBusy ? 'جاري البحث...' : 'بحث في الكتالوج (11,361+ منتج)'}
+                  </button>
+                </div>
+                {catalogSearchResults.length > 0 && (
+                  <div className="wa-4d-search-list">
+                    {catalogSearchResults.map((item) => (
+                      <div key={item.id} className="wa-4d-search-row">
+                        <img
+                          src={getProductImageUrl(item)}
+                          alt={item.name}
+                          width={48}
+                          height={40}
+                          style={{ objectFit: 'contain', borderRadius: '8px', background: '#fff', border: '1px solid var(--line)' }}
+                        />
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <strong style={{ display: 'block', fontSize: '13px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {item.name}
+                          </strong>
+                          <small style={{ color: 'var(--mut)', fontSize: '12px' }}>
+                            {item.code} · {item.price > 0 ? `${item.price.toLocaleString('en-US')} ${item.currency}` : 'تسعير عند الطلب'}
+                            {item.spinImages && item.spinImages.length >= 2 ? ` · ${item.spinImages.length} صورة 4D` : ''}
+                          </small>
+                        </div>
+                        <button
+                          type="button"
+                          className="wa-btn"
+                          onClick={() => attachCatalogProductFor4D(item)}
+                        >
+                          + تعديل / رفع صور 4D
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', margin: '8px 0' }}>
                 <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                   <button
@@ -1014,6 +1245,137 @@ export default function WebsiteAdminPage() {
                       >
                         🗑️ حذف المنتج
                       </button>
+                    </div>
+
+                    <div className="wa-wide wa-4d-box">
+                      <div className="wa-4d-head">
+                        <div>
+                          <strong>
+                            🔄 صور العرض التفاعلي 4D / 360° (للفّ القطاع ورؤية كل زاوية — {p.spinImages?.length || 0} / 36 صورة)
+                          </strong>
+                          <small>
+                            ارفع عدة صور للقطاع من جميع الزوايا (يُفضّل 8 إلى 24 صورة مرتّبة بالتسلسل). تُرفع تلقائياً على تيليجرام ويمكن للعميل لفّ القطاع والتكبير.
+                          </small>
+                        </div>
+                        <div className="wa-4d-head-actions">
+                          <label className="wa-btn wa-primary" style={{ cursor: 'pointer' }}>
+                            📷 رفع صور 4D متعددة
+                            <input
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              style={{ display: 'none' }}
+                              onChange={(e) => {
+                                if (e.target.files && e.target.files.length > 0) {
+                                  void uploadSpinFilesToProduct(p.id, e.target.files);
+                                }
+                                e.target.value = '';
+                              }}
+                            />
+                          </label>
+                          {(p.spinImages?.length || 0) >= 2 && (
+                            <button
+                              type="button"
+                              className="wa-btn"
+                              onClick={() =>
+                                setSpinPreviewId((prev) => (prev === p.id ? null : p.id))
+                              }
+                            >
+                              {spinPreviewId === p.id ? 'إخفاء المعاينة' : 'معاينة 4D حية'}
+                            </button>
+                          )}
+                          {(p.spinImages?.length || 0) > 0 && (
+                            <button
+                              type="button"
+                              className="wa-btn wa-danger"
+                              onClick={() =>
+                                upd((d) => {
+                                  d.products[idx].spinImages = [];
+                                })
+                              }
+                            >
+                              مسح صور 4D
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {spinUploadStatus[p.id] && (
+                        <div className="wa-alert" style={{ margin: '6px 0' }}>
+                          {spinUploadStatus[p.id]}
+                        </div>
+                      )}
+
+                      {spinPreviewId === p.id && (p.spinImages?.length || 0) >= 2 && (
+                        <div style={{ maxWidth: '420px', marginTop: '8px' }}>
+                          <Product4DSpinViewer
+                            compact
+                            images={p.spinImages}
+                            fallbackImage={getProductImageUrl(p)}
+                            alt={p.name}
+                            code={p.code}
+                          />
+                        </div>
+                      )}
+
+                      {p.spinImages && p.spinImages.length > 0 && (
+                        <div className="wa-4d-grid">
+                          {p.spinImages.map((imgSrc, frameIndex) => (
+                            <div key={`${p.id}-spin-${frameIndex}`} className="wa-4d-thumb-card">
+                              <img src={imgSrc} alt={`${p.name} - زاوية ${frameIndex + 1}`} loading="lazy" />
+                              <span className="wa-4d-num">#{frameIndex + 1}</span>
+                              <div className="wa-4d-thumb-bar">
+                                <button
+                                  type="button"
+                                  disabled={frameIndex === 0}
+                                  title="تقديم الزاوية"
+                                  onClick={() =>
+                                    upd((d) => {
+                                      const arr = d.products[idx].spinImages || [];
+                                      if (frameIndex <= 0 || frameIndex >= arr.length) return;
+                                      const [moved] = arr.splice(frameIndex, 1);
+                                      arr.splice(frameIndex - 1, 0, moved);
+                                      d.products[idx].spinImages = arr;
+                                    })
+                                  }
+                                >
+                                  →
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={frameIndex >= (p.spinImages?.length || 0) - 1}
+                                  title="تأخير الزاوية"
+                                  onClick={() =>
+                                    upd((d) => {
+                                      const arr = d.products[idx].spinImages || [];
+                                      if (frameIndex < 0 || frameIndex >= arr.length - 1) return;
+                                      const [moved] = arr.splice(frameIndex, 1);
+                                      arr.splice(frameIndex + 1, 0, moved);
+                                      d.products[idx].spinImages = arr;
+                                    })
+                                  }
+                                >
+                                  ←
+                                </button>
+                                <button
+                                  type="button"
+                                  className="is-del"
+                                  title="حذف الزاوية"
+                                  onClick={() =>
+                                    upd((d) => {
+                                      const arr = d.products[idx].spinImages || [];
+                                      arr.splice(frameIndex, 1);
+                                      d.products[idx].spinImages = arr;
+                                    })
+                                  }
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -2093,5 +2455,37 @@ html[data-mode="dark"] .wa{
 .wa-f input:focus,.wa-f textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(249,115,22,.14)}
 .wa h3{margin:10px 0 0;font-size:15px}
 .wa-serp{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:3px}.wa-serp strong{color:#1a0dab;font-weight:500;font-size:18px}.wa-serp span{color:var(--mut);font-size:13px}
+.wa-4d-search-input{flex:1;min-width:220px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 12px;font:inherit;font-size:13.5px;font-weight:600}
+.wa-4d-search-list{display:grid;gap:8px;margin-top:4px}
+.wa-4d-search-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:10px;background:var(--bg);border:1px solid var(--line)}
+.wa-4d-box{padding:12px 14px;border-radius:12px;border:1.5px dashed rgba(199,85,23,.4);background:rgba(249,115,22,.04);display:grid;gap:10px}
+.wa-4d-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.wa-4d-head strong{display:block;font-size:13.5px;color:var(--ink)}
+.wa-4d-head small{display:block;font-size:12px;color:var(--mut);margin-top:2px}
+.wa-4d-head-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.wa-4d-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.wa-4d-thumb-card{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#fff;display:flex;flex-direction:column}
+.wa-4d-thumb-card img{width:100%;aspect-ratio:4/3;object-fit:contain;padding:4px;display:block}
+.wa-4d-num{position:absolute;top:4px;inset-inline-start:4px;padding:1px 6px;border-radius:99px;background:rgba(15,23,42,.8);color:#fff;font-size:11px;font-weight:800}
+.wa-4d-thumb-bar{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid #e2e8f0;background:#f8fafc}
+.wa-4d-thumb-bar button{border:0;background:transparent;color:#1e293b;padding:4px 0;font-size:12px;font-weight:800;cursor:pointer}
+.wa-4d-thumb-bar button:hover:not(:disabled){background:#e2e8f0}
+.wa-4d-thumb-bar button:disabled{opacity:.35;cursor:not-allowed}
+.wa-4d-thumb-bar button.is-del{color:#dc2626}
+.pw-pd-code{position:absolute;bottom:10px;inset-inline-start:10px;padding:3px 8px;border-radius:6px;background:rgba(15,22,30,.78);color:#f8fafc;font-family:ui-monospace,Consolas,monospace;font-size:11px;font-weight:800}
+.pw-4d-wrap{display:flex;flex-direction:column;gap:8px}
+.pw-4d-stage{position:relative;aspect-ratio:4/3;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;background:#fff;user-select:none;-webkit-user-select:none;touch-action:pan-y}
+.pw-4d-stage.is-4d{cursor:grab}.pw-4d-stage.is-4d.is-dragging{cursor:grabbing}.pw-4d-stage.is-zoomed{cursor:move;touch-action:none}
+.pw-4d-img{width:100%;height:100%;object-fit:contain;padding:8px;display:block;pointer-events:none}
+.pw-4d-top-badges{position:absolute;top:8px;inset-inline:8px;z-index:2;display:flex;justify-content:space-between;gap:6px;pointer-events:none}
+.pw-4d-pill{padding:2px 8px;border-radius:99px;background:rgba(255,255,255,.94);color:#14181b;font-size:11px;font-weight:800}
+.pw-4d-pill.is-4d-tag{background:#059669;color:#fff}
+.pw-4d-angle{padding:2px 8px;border-radius:99px;background:rgba(15,23,42,.8);color:#fff;font-size:11px;font-weight:800}
+.pw-4d-hint{position:absolute;bottom:8px;inset-inline-end:8px;padding:3px 8px;border-radius:99px;background:rgba(15,23,42,.82);color:#fff;font-size:11px;font-weight:700}
+.pw-4d-loading{position:absolute;top:36px;left:50%;transform:translateX(-50%);padding:2px 8px;border-radius:99px;background:#fff;color:#14181b;font-size:11px;font-weight:800;white-space:nowrap}
+.pw-4d-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.pw-4d-btn{min-height:32px;padding:4px 10px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:12px;font-weight:800;cursor:pointer}
+.pw-4d-btn.is-active{background:var(--acc);border-color:var(--acc);color:#fff}
+.pw-4d-slider{flex:1;min-width:80px;accent-color:var(--acc)}
 @media(max-width:760px){.wa{padding:14px}}
 `;

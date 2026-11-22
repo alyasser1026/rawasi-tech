@@ -19,6 +19,7 @@ import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import ContactModal from './ContactModal';
+import Product4DSpinViewer from './Product4DSpinViewer';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 import { usePerformancePreferences } from '@/components/PerformancePreferences';
 
@@ -2181,7 +2182,7 @@ export default function StoreClient({
         }
         .st-detail-grid {
           display: grid;
-          grid-template-columns: 300px minmax(0, 1fr);
+          grid-template-columns: 360px minmax(0, 1fr);
           gap: 20px;
           align-items: start;
         }
@@ -3492,6 +3493,9 @@ export default function StoreClient({
                             <img src={imageUrl} alt={p.name} loading="lazy" decoding="async" />
                             {p.badge && <span className="st-prod-badge">{p.badge}</span>}
                             {discountPct > 0 && <span className="st-prod-discount">خصم {discountPct}%</span>}
+                            {p.spinImages && p.spinImages.length >= 2 && (
+                              <span className="pw-card-4d-badge">4D · 360°</span>
+                            )}
                             <span className="st-prod-code-tag" dir="ltr">
                               {p.code}
                             </span>
@@ -3733,13 +3737,13 @@ export default function StoreClient({
 
             <div className="st-detail-grid">
               <div>
-                <div className="st-detail-media">
-                  <img src={getProductImageUrl(detailProduct)} alt={detailProduct.name} />
-                  {detailProduct.badge && <span className="st-prod-badge">{detailProduct.badge}</span>}
-                  <span className="st-prod-code-tag" dir="ltr">
-                    {detailProduct.code}
-                  </span>
-                </div>
+                <Product4DSpinViewer
+                  images={detailProduct.spinImages}
+                  fallbackImage={getProductImageUrl(detailProduct)}
+                  alt={detailProduct.name}
+                  badge={detailProduct.badge}
+                  code={detailProduct.code}
+                />
                 {detailProduct.subCategory && (
                   <p style={{ margin: '10px 0 0', fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>
                     التصنيف الفرعي: {detailProduct.subCategory}

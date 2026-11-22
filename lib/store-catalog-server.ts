@@ -159,6 +159,12 @@ function sanitizeStoredProduct(raw: any): WebsiteProduct | null {
       : [],
     imageUrl: typeof raw?.imageUrl === 'string' ? raw.imageUrl.trim() : undefined,
     mediaId: typeof raw?.mediaId === 'string' && raw.mediaId.trim() ? raw.mediaId.trim() : undefined,
+    spinImages: Array.isArray(raw?.spinImages)
+      ? raw.spinImages
+          .map((u: unknown) => (typeof u === 'string' ? u.trim() : ''))
+          .filter(Boolean)
+          .slice(0, 36)
+      : undefined,
     attachments: Array.isArray(raw?.attachments)
       ? raw.attachments
           .filter((a: any) => a && typeof a.id === 'string' && a.id.trim())
@@ -288,6 +294,11 @@ function isSafeLocalAsset(url: string | undefined): boolean {
   );
 }
 
+function isSafeProductImageUrl(url: string | undefined): boolean {
+  if (!url) return false;
+  return isSafeLocalAsset(url) || /^https?:\/\//i.test(url);
+}
+
 function resolveProductForPublic(
   p: WebsiteProduct,
   mediaMap: Record<string, StoreMediaEntry>
@@ -302,6 +313,10 @@ function resolveProductForPublic(
     resolvedImage = getProductImageUrl({ id: p.id, category: p.category });
   }
 
+  const resolvedSpinImages = Array.isArray(p.spinImages)
+    ? p.spinImages.map((u) => String(u || '').trim()).filter(isSafeProductImageUrl).slice(0, 36)
+    : undefined;
+
   const validAttachments = Array.isArray(p.attachments)
     ? p.attachments.filter((att) => Boolean(mediaMap[att.id]?.telegramFileId))
     : undefined;
@@ -313,8 +328,11 @@ function resolveProductForPublic(
   return {
     ...p,
     imageUrl: resolvedImage,
+    spinImages: resolvedSpinImages && resolvedSpinImages.length > 0 ? resolvedSpinImages : undefined,
     attachments: validAttachments && validAttachments.length > 0 ? validAttachments : undefined,
-    _hasTelegramMedia: Boolean(mediaEntry?.telegramFileId),
+    _hasTelegramMedia: Boolean(
+      mediaEntry?.telegramFileId || (resolvedSpinImages && resolvedSpinImages.length >= 2)
+    ),
     _searchBlob: searchBlob,
   };
 }
@@ -331,14 +349,38 @@ export async function queryStoreCatalog(
   const combinedRaw: WebsiteProduct[] = [];
 
   if (state.products.length > 0) {
+    const baseById = new Map<string, WebsiteProduct>();
+    const baseByCode = new Map<string, WebsiteProduct>();
+    for (const item of state.products) {
+      if (item.id) baseById.set(item.id, item);
+      if (item.code) baseByCode.set(item.code.toLowerCase(), item);
+    }
+
     const customCmsProducts = Array.isArray(cmsProducts)
-      ? cmsProducts.filter((item) => item?.id && !LEGACY_DUMMY_PRODUCT_IDS.has(item.id) && Number(item.price) > 0)
+      ? cmsProducts.filter(
+          (item) =>
+            item?.id &&
+            !LEGACY_DUMMY_PRODUCT_IDS.has(item.id) &&
+            (Number(item.price) > 0 || (Array.isArray(item.spinImages) && item.spinImages.length > 0))
+        )
       : [];
     for (const item of customCmsProducts) {
       if (seenIds.has(item.id)) continue;
-      seenIds.add(item.id);
-      if (item.code) seenCodes.add(item.code.toLowerCase());
-      combinedRaw.push(item);
+      const baseMatch =
+        baseById.get(item.id) || (item.code ? baseByCode.get(item.code.toLowerCase()) : undefined);
+      const mergedItem: WebsiteProduct = baseMatch
+        ? {
+            ...baseMatch,
+            ...item,
+            mediaId: item.mediaId || baseMatch.mediaId,
+            attachments: item.attachments || baseMatch.attachments,
+            subCategory: item.subCategory || baseMatch.subCategory,
+            cheapestSourceCount: item.cheapestSourceCount ?? baseMatch.cheapestSourceCount,
+          }
+        : item;
+      seenIds.add(mergedItem.id);
+      if (mergedItem.code) seenCodes.add(mergedItem.code.toLowerCase());
+      combinedRaw.push(mergedItem);
     }
     for (const item of state.products) {
       if (seenIds.has(item.id)) continue;
@@ -514,4 +556,69 @@ export async function getStoreCatalogShowcase(
     smartItems,
     totalCatalog: mainRes.totalCatalog,
   };
+}
+
+export async function registerStoreMediaEntry(
+  entry: StoreMediaEntry
+): Promise<{ ok: boolean; error?: string }> {
+  const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').trim();
+  const serviceKey =
+    (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '').trim() || undefined;
+
+  if (!sbUrl || !serviceKey) {
+    return { ok: false, error: 'missing_service_key' };
+  }
+
+  const base = sbUrl.replace(/\/+$/, '');
+  const currentMap =
+    (await downloadJsonObject<Record<string, StoreMediaEntry>>(sbUrl, serviceKey, 'catalog/media-map.json')) || {};
+
+  // Strip sensitive Telegram routing metadata before writing to public bucket
+  const sanitizedMap: Record<string, StoreMediaEntry> = {};
+  for (const [k, v] of Object.entries(currentMap)) {
+    if (!v || !v.telegramFileId) continue;
+    sanitizedMap[k] = {
+      id: v.id || k,
+      productId: v.productId,
+      fileName: v.fileName,
+      mimeType: v.mimeType,
+      fileSize: v.fileSize,
+      sha256: v.sha256,
+      kind: v.kind,
+      telegramFileId: v.telegramFileId,
+    };
+  }
+
+  const sanitizedEntry: StoreMediaEntry = {
+    id: entry.id,
+    productId: entry.productId,
+    fileName: entry.fileName,
+    mimeType: entry.mimeType,
+    fileSize: entry.fileSize,
+    sha256: entry.sha256,
+    kind: entry.kind || 'image',
+    telegramFileId: entry.telegramFileId,
+  };
+  sanitizedMap[entry.id] = sanitizedEntry;
+
+  const uploadRes = await fetch(`${base}/storage/v1/object/${BUCKET_NAME}/catalog/media-map.json`, {
+    method: 'POST',
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      'Content-Type': 'application/json',
+      'x-upsert': 'true',
+    },
+    body: JSON.stringify(sanitizedMap),
+  });
+
+  if (!uploadRes.ok) {
+    return { ok: false, error: `storage_${uploadRes.status}` };
+  }
+
+  if (g.__phiStoreCatalogCache) {
+    g.__phiStoreCatalogCache.mediaMap[entry.id] = sanitizedEntry;
+    g.__phiStoreCatalogCache.loadedAt = Date.now();
+  }
+  return { ok: true };
 }

@@ -7,6 +7,7 @@ import {
   PRODUCT_CATEGORIES,
   type WebsiteProduct,
 } from './store-catalog';
+import Product4DSpinViewer from './Product4DSpinViewer';
 
 interface ProductDetailModalProps {
   product: WebsiteProduct | null;
@@ -90,15 +91,13 @@ export default function ProductDetailModal({
 
         <div className="pw-pd-grid">
           <div>
-            <div className="pw-pd-media">
-              <img src={imageUrl} alt={product.name} />
-              {product.badge && <span className="pw-bs-badge">{product.badge}</span>}
-              {product.code && (
-                <span className="pw-pd-code" dir="ltr">
-                  {product.code}
-                </span>
-              )}
-            </div>
+            <Product4DSpinViewer
+              images={product.spinImages}
+              fallbackImage={imageUrl}
+              alt={product.name}
+              badge={product.badge}
+              code={product.code}
+            />
             {product.subCategory && (
               <p style={{ margin: '10px 0 0', fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>
                 التصنيف الفرعي: {product.subCategory}

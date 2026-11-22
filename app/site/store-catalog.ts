@@ -61,6 +61,7 @@ export interface WebsiteProduct {
   specs: string[];
   imageUrl?: string;
   mediaId?: string;
+  spinImages?: string[]; // صور العرض التفاعلي 4D / 360° لتدوير القطاع
   attachments?: StoreProductAttachment[];
   variants?: StoreProductVariant[];
   cheapestSourceCount?: number;

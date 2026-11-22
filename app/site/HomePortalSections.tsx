@@ -723,6 +723,9 @@ export default function HomePortalSections({
                       decoding="async"
                     />
                     {product.badge && <span className="pw-bs-badge">{product.badge}</span>}
+                    {product.spinImages && product.spinImages.length >= 2 && (
+                      <span className="pw-card-4d-badge">4D · 360°</span>
+                    )}
                   </div>
 
                   <div className="pw-bs-body">
