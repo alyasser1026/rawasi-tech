@@ -705,6 +705,12 @@ export default function HomePortalSections({
               const withInstall = Boolean(installMap[product.id]);
               const isAdded = addedId === product.id;
               const waMsg = `مرحباً فاي تك، أريد تسعيرة وطلب: ${product.name} (${product.code}) — الوحدة: ${product.unit}${withInstall ? ' (توريد + تركيب)' : ' (توريد فقط)'}`;
+              const catLabel = cat?.shortTitle || product.brand;
+              const firstSpec = (product.specs[0] || '').trim();
+              const isBrandSpec = /^الماركة\s*[:：]/.test(firstSpec);
+              const extractedBrand = isBrandSpec ? firstSpec.replace(/^الماركة\s*[:：]\s*/, '').trim() : '';
+              const brandLabel = extractedBrand || (product.brand && product.brand !== catLabel ? product.brand : '');
+              const extraSpec = !isBrandSpec ? firstSpec : '';
 
               return (
                 <article
@@ -729,33 +735,41 @@ export default function HomePortalSections({
                   </div>
 
                   <div className="pw-bs-body">
-                    <span className="pw-bs-cat">{cat?.shortTitle || product.brand}</span>
+                    <div className="pw-bs-top-meta">
+                      <span className="pw-bs-cat">{catLabel}</span>
+                      {brandLabel && brandLabel !== catLabel && (
+                        <span className="pw-bs-brand">{brandLabel}</span>
+                      )}
+                    </div>
 
                     <h3>{product.name}</h3>
 
-                    {product.specs[0] && (
-                      <p className="pw-bs-spec-one">{product.specs[0]}</p>
-                    )}
+                    {extraSpec && <p className="pw-bs-spec-one">{extraSpec}</p>}
 
-                    <label className="pw-bs-install">
-                      <input
-                        type="checkbox"
-                        checked={withInstall}
-                        onChange={() =>
-                          setInstallMap((prev) => ({ ...prev, [product.id]: !prev[product.id] }))
-                        }
-                      />
-                      <span>شامل التركيب</span>
-                    </label>
+                    <div className="pw-bs-buy-row">
+                      <div className="pw-bs-price">
+                        {product.price > 0 ? (
+                          <>
+                            <strong>
+                              {product.price.toLocaleString('en-US')} {product.currency}
+                            </strong>{' '}
+                            <span>/ {product.unit}</span>
+                          </>
+                        ) : (
+                          <span>تسعير عند الطلب · {product.unit}</span>
+                        )}
+                      </div>
 
-                    <div className="pw-bs-price">
-                      {product.price > 0 ? (
-                        <strong>
-                          {product.price.toLocaleString('en-US')} {product.currency} / {product.unit}
-                        </strong>
-                      ) : (
-                        <span>تسعير فوري ومعتمد عند الطلب · {product.unit}</span>
-                      )}
+                      <label className={`pw-bs-install ${withInstall ? 'is-checked' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={withInstall}
+                          onChange={() =>
+                            setInstallMap((prev) => ({ ...prev, [product.id]: !prev[product.id] }))
+                          }
+                        />
+                        <span>شامل التركيب</span>
+                      </label>
                     </div>
 
                     <div className="pw-bs-actions">

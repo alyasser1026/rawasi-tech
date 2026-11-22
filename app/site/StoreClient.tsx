@@ -1544,8 +1544,8 @@ export default function StoreClient({
         /* Product Cards Grid */
         .st-products-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ui-prod-min, 260px)), 1fr));
-          gap: var(--ui-gap, 24px);
+          grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--ui-prod-min, 228px)), 1fr));
+          gap: clamp(12px, 1.15vw, 18px);
         }
         .st-prod-card {
           background: #ffffff;
@@ -1559,7 +1559,7 @@ export default function StoreClient({
           box-shadow: 0 14px 32px -24px rgba(20, 24, 27, 0.15);
           transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
           content-visibility: auto;
-          contain-intrinsic-size: auto 440px;
+          contain-intrinsic-size: auto 370px;
         }
         .st-prod-card:hover {
           transform: translateY(-3px);
@@ -1568,8 +1568,8 @@ export default function StoreClient({
         }
         .st-prod-media {
           position: relative;
-          aspect-ratio: 4 / 3;
-          background: #ffffff;
+          aspect-ratio: 5 / 4;
+          background: #f8f6f2;
           border-bottom: 1px solid #f0ebe2;
           overflow: hidden;
           cursor: pointer;
@@ -1578,7 +1578,8 @@ export default function StoreClient({
           width: 100%;
           height: 100%;
           object-fit: contain;
-          padding: 8px;
+          padding: 4px;
+          mix-blend-mode: multiply;
           display: block;
           transition: transform 0.35s ease;
         }
@@ -1587,76 +1588,80 @@ export default function StoreClient({
         }
         .st-prod-badge {
           position: absolute;
-          top: 12px;
-          inset-inline-start: 12px;
-          padding: 3px 9px;
+          top: 8px;
+          inset-inline-start: 8px;
+          padding: 2px 8px;
           border-radius: var(--r-pill);
           background: rgba(255, 255, 255, 0.94);
           border: 1px solid #e7e1d7;
           color: #14181b;
-          font-size: 0.68rem;
+          font-size: 0.66rem;
           font-weight: 800;
-          box-shadow: 0 4px 12px rgba(20, 24, 27, 0.14);
+          box-shadow: 0 4px 12px rgba(20, 24, 27, 0.12);
         }
         .st-prod-discount {
           position: absolute;
-          top: 12px;
-          inset-inline-end: 12px;
-          padding: 3px 8px;
+          top: 8px;
+          inset-inline-end: 8px;
+          padding: 2px 7px;
           border-radius: var(--r-pill);
           background: #059669;
           color: #ffffff;
-          font-size: 0.68rem;
+          font-size: 0.66rem;
           font-weight: 800;
         }
         .st-prod-code-tag {
           position: absolute;
-          bottom: 12px;
-          inset-inline-start: 12px;
-          padding: 3px 8px;
+          bottom: 8px;
+          inset-inline-start: 8px;
+          padding: 2px 7px;
           border-radius: 6px;
           background: rgba(15, 22, 30, 0.78);
           backdrop-filter: blur(6px);
           color: #f8fafc;
           font-family: ui-monospace, Consolas, monospace;
-          font-size: 0.66rem;
+          font-size: 0.64rem;
           font-weight: 800;
         }
         .st-prod-body {
-          padding: 14px 16px;
+          padding: 10px 12px;
           display: flex;
           flex-direction: column;
-          gap: 6px;
+          gap: 5px;
           flex: 1;
         }
         .st-prod-cat {
-          font-size: 0.7rem;
+          font-size: 0.68rem;
           font-weight: 800;
           color: var(--o);
         }
         .st-prod-body h3 {
-          font-size: 0.88rem;
+          font-size: 0.85rem;
           font-weight: 800;
-          line-height: 1.42;
+          line-height: 1.38;
           color: #14181b;
-          margin: 0;
-        }
-        .st-prod-desc {
-          font-size: 0.76rem;
-          color: #525e6a;
-          line-height: 1.5;
           margin: 0;
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+        .st-prod-desc {
+          font-size: 0.74rem;
+          color: #525e6a;
+          line-height: 1.45;
+          margin: 0;
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
         .st-prod-specs {
           display: flex;
           flex-direction: column;
-          gap: 4px;
-          margin-top: 4px;
-          font-size: 0.73rem;
+          gap: 3px;
+          margin-top: 2px;
+          font-size: 0.71rem;
           color: #334155;
           font-weight: 600;
         }
@@ -1664,6 +1669,12 @@ export default function StoreClient({
           display: flex;
           align-items: flex-start;
           gap: 6px;
+          min-width: 0;
+        }
+        .st-prod-specs li span {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
         .st-prod-specs li::before {
           content: '';
@@ -1671,31 +1682,38 @@ export default function StoreClient({
           height: 5px;
           border-radius: 50%;
           background: var(--o);
-          margin-top: 8px;
+          margin-top: 7px;
           flex-shrink: 0;
         }
         .st-prod-foot {
-          padding: 12px 16px 14px;
+          padding: 9px 12px 11px;
           border-top: 1px solid #efe9df;
           background: #fbfaf7;
           display: flex;
           flex-direction: column;
-          gap: 8px;
+          gap: 6px;
         }
         .st-install-toggle {
-          display: flex;
+          display: inline-flex;
           align-items: center;
-          gap: 8px;
-          min-height: 34px;
-          padding: 6px 10px;
-          border-radius: var(--r-btn);
+          gap: 5px;
+          min-height: 26px;
+          padding: 3px 8px;
+          border-radius: var(--r-pill);
           background: #ffffff;
           border: 1px solid #dfd7cc;
           color: #47525c;
-          font-size: 0.73rem;
+          font-size: 0.71rem;
           font-weight: 700;
+          white-space: nowrap;
           cursor: pointer;
           transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+        }
+        .st-modal-card .st-install-toggle {
+          min-height: 36px;
+          padding: 6px 12px;
+          font-size: 0.78rem;
+          align-self: flex-start;
         }
         .st-install-toggle.is-checked {
           background: #ecfdf5;
@@ -1704,15 +1722,17 @@ export default function StoreClient({
         }
         .st-install-toggle input {
           accent-color: #059669;
-          width: 15px;
-          height: 15px;
+          width: 13px;
+          height: 13px;
+          margin: 0;
           flex-shrink: 0;
         }
         .st-price-row {
           display: flex;
           justify-content: space-between;
-          align-items: flex-end;
-          gap: 12px;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 6px;
         }
         .st-price-old {
           font-size: 0.7rem;
@@ -2558,10 +2578,12 @@ export default function StoreClient({
             scroll-snap-align: start;
           }
           .st-products-grid {
-            gap: 16px;
+            gap: 12px;
           }
           .st-prod-body,
-          .st-prod-foot,
+          .st-prod-foot {
+            padding: 10px 12px;
+          }
           .st-bundle-card,
           .st-mnt-banner,
           .st-mnt-card-head,
@@ -3531,19 +3553,6 @@ export default function StoreClient({
                         </div>
 
                         <div className="st-prod-foot">
-                          <label className={`st-install-toggle ${withInstall ? 'is-checked' : ''}`}>
-                            <input
-                              type="checkbox"
-                              checked={withInstall}
-                              onChange={() => handleToggleCardInstall(p.id)}
-                            />
-                            <span>
-                              {p.installPrice && p.installPrice > 0
-                                ? `إضافة التركيب (+${p.installPrice.toLocaleString('en-US')} ${p.currency})`
-                                : 'شامل التركيب'}
-                            </span>
-                          </label>
-
                           <div className="st-price-row">
                             <div>
                               {p.price > 0 ? (
@@ -3567,6 +3576,19 @@ export default function StoreClient({
                                 </div>
                               )}
                             </div>
+
+                            <label className={`st-install-toggle ${withInstall ? 'is-checked' : ''}`}>
+                              <input
+                                type="checkbox"
+                                checked={withInstall}
+                                onChange={() => handleToggleCardInstall(p.id)}
+                              />
+                              <span>
+                                {p.installPrice && p.installPrice > 0
+                                  ? `إضافة التركيب (+${p.installPrice.toLocaleString('en-US')} ${p.currency})`
+                                  : 'شامل التركيب'}
+                              </span>
+                            </label>
                           </div>
 
                           <div className="st-prod-actions">

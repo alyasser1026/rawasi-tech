@@ -155,7 +155,7 @@ export default function ProductDetailModal({
               </div>
             )}
 
-            <label className="pw-bs-install" style={{ marginTop: 0, paddingTop: 4 }}>
+            <label className={`pw-bs-install ${withInstall ? 'is-checked' : ''}`}>
               <input type="checkbox" checked={withInstall} onChange={onToggleInstall} />
               <span>
                 {product.installPrice && product.installPrice > 0
