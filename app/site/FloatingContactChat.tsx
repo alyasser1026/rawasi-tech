@@ -371,15 +371,16 @@ export default function FloatingContactChat({
         .phi-chat-window {
           color-scheme: light !important;
           position: fixed;
-          bottom: 84px;
+          bottom: 78px;
           left: 20px;
-          width: min(calc(100vw - 24px), 415px);
-          max-height: min(640px, calc(100dvh - 110px));
+          width: min(calc(100vw - 32px), 430px);
+          height: min(760px, calc(100dvh - 104px));
+          max-height: calc(100dvh - 104px);
           background: #ffffff !important;
           color: #0f172a !important;
-          border-radius: 20px;
+          border-radius: 26px;
           border: 1.5px solid #cbd5e1 !important;
-          box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.35);
+          box-shadow: 0 28px 70px -14px rgba(15, 23, 42, 0.32), 0 0 0 1px rgba(255, 255, 255, 0.6) inset;
           z-index: 99970;
           display: flex;
           flex-direction: column;
@@ -418,11 +419,13 @@ export default function FloatingContactChat({
         }
         @media (max-width: 980px) {
           .phi-chat-window {
-            bottom: calc(134px + env(safe-area-inset-bottom, 0px));
+            bottom: calc(126px + env(safe-area-inset-bottom, 0px));
             left: 10px;
             right: 10px;
             width: auto;
-            max-height: calc(100dvh - 145px);
+            height: min(74dvh, calc(100dvh - 140px));
+            max-height: calc(100dvh - 140px);
+            border-radius: 22px;
           }
           .phi-float-btn {
             padding: 9px 13px;
@@ -471,6 +474,7 @@ export default function FloatingContactChat({
               alignItems: 'center',
               justifyContent: 'space-between',
               borderBottom: '1px solid rgba(255,255,255,0.2)',
+              flexShrink: 0,
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -549,6 +553,7 @@ export default function FloatingContactChat({
                 flexWrap: 'wrap',
                 gap: '6px',
                 fontSize: '0.72rem',
+                flexShrink: 0,
               }}
             >
               <span
@@ -621,13 +626,14 @@ export default function FloatingContactChat({
             ref={listRef}
             style={{
               flex: 1,
-              padding: '14px',
+              minHeight: 0,
+              padding: '16px',
               overflowY: 'auto',
+              overscrollBehavior: 'contain',
               background: '#f8fafc',
               display: 'flex',
               flexDirection: 'column',
-              gap: '10px',
-              minHeight: '250px',
+              gap: '12px',
             }}
           >
             {displayedMessages.map((m) => {
@@ -638,7 +644,7 @@ export default function FloatingContactChat({
                   key={m.id}
                   style={{
                     alignSelf: isVisitor ? 'flex-start' : 'flex-end',
-                    maxWidth: '88%',
+                    maxWidth: '90%',
                     background: isVisitor ? '#ea580c' : isHumanAdmin ? '#f0fdf4' : '#ffffff',
                     color: isVisitor ? '#ffffff' : '#0f172a',
                     border: isVisitor
@@ -647,7 +653,7 @@ export default function FloatingContactChat({
                         ? '1.5px solid #86efac'
                         : '1px solid #e2e8f0',
                     borderRadius: isVisitor ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
-                    padding: '10px 13px',
+                    padding: '11px 14px',
                     boxShadow: '0 2px 6px rgba(0,0,0,0.05)',
                   }}
                 >
@@ -686,7 +692,7 @@ export default function FloatingContactChat({
                       </span>
                     )}
                   </div>
-                  <div style={{ fontSize: '0.85rem', lineHeight: 1.65, whiteSpace: 'pre-wrap' }}>
+                  <div style={{ fontSize: '0.88rem', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                     {m.text}
                   </div>
                   {Array.isArray(m.actions) && m.actions.length > 0 && (
@@ -981,6 +987,7 @@ export default function FloatingContactChat({
                 fontSize: '0.76rem',
                 color: '#dc2626',
                 fontWeight: 700,
+                flexShrink: 0,
               }}
             >
               ⚠️ {errorMsg}
@@ -997,6 +1004,7 @@ export default function FloatingContactChat({
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
+              flexShrink: 0,
             }}
           >
             <input
