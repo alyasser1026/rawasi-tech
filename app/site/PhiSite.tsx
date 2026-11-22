@@ -11,7 +11,6 @@ import LoginModal from './LoginModal';
 import { CartDrawer, useCustomerCart } from './CartDrawer';
 import FloatingContactChat from './FloatingContactChat';
 import HomePortalSections from './HomePortalSections';
-import PanoramicStructureScroll from './PanoramicStructureScroll';
 import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import ContactModal from './ContactModal';
 
@@ -81,9 +80,8 @@ export default function PhiSite({
   const c = SITE.contact;
 
   return (
-    <div className={`pw ${loginOpen || contactOpen ? 'has-modal-blur' : ''}`} dir="rtl">
+    <div className={`pw pw-home-light ${loginOpen || contactOpen ? 'has-modal-blur' : ''}`} dir="rtl">
       <style>{CSS}</style>
-      <PanoramicStructureScroll />
       <LogoMotionIntro replayCount={0} />
 
       <PublicHeader
