@@ -20,6 +20,7 @@ import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import ContactModal from './ContactModal';
 import { rememberVisitorContact } from '@/lib/client-device-info';
+import { usePerformancePreferences } from '@/components/PerformancePreferences';
 
 type HeroOfferAction = {
   tab: 'products' | 'maintenance';
@@ -219,6 +220,7 @@ export default function StoreClient({
   initialCatalog?: StoreCatalogQueryResult;
 }) {
   const { SITE, PRODUCTS, MAINTENANCE_SERVICES, PROMO_BANNER } = mergeContent(content);
+  const { fastMode } = usePerformancePreferences();
   const [loginOpen, setLoginOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
   const [activeStoreTab, setActiveStoreTab] = useState<'products' | 'maintenance'>('products');
@@ -451,12 +453,12 @@ export default function StoreClient({
   }, []);
 
   useEffect(() => {
-    if (sliderPaused) return;
+    if (sliderPaused || fastMode) return;
     const timer = window.setInterval(() => {
       setSlideIdx((prev) => (prev + 1) % STORE_OFFER_SLIDES.length);
     }, 5500);
     return () => window.clearInterval(timer);
-  }, [sliderPaused]);
+  }, [sliderPaused, fastMode]);
 
   useEffect(() => {
     if (!mobileFiltersOpen) return;
@@ -1126,6 +1128,8 @@ export default function StoreClient({
           text-align: right;
           cursor: pointer;
           transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease, background 0.16s ease;
+          content-visibility: auto;
+          contain-intrinsic-size: auto 72px;
         }
         .st-section-card:hover {
           border-color: rgba(199, 85, 23, 0.5);
@@ -1550,6 +1554,8 @@ export default function StoreClient({
           justify-content: space-between;
           box-shadow: 0 14px 32px -24px rgba(20, 24, 27, 0.15);
           transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+          content-visibility: auto;
+          contain-intrinsic-size: auto 440px;
         }
         .st-prod-card:hover {
           transform: translateY(-3px);
@@ -1810,6 +1816,8 @@ export default function StoreClient({
           justify-content: space-between;
           gap: 16px;
           box-shadow: 0 14px 32px -24px rgba(199, 85, 23, 0.25);
+          content-visibility: auto;
+          contain-intrinsic-size: auto 440px;
         }
         .st-bundle-top {
           display: flex;
@@ -1956,6 +1964,8 @@ export default function StoreClient({
           flex-direction: column;
           justify-content: space-between;
           box-shadow: 0 14px 32px -24px rgba(20, 24, 27, 0.14);
+          content-visibility: auto;
+          contain-intrinsic-size: auto 440px;
         }
         .st-mnt-card-head {
           padding: var(--ui-card-pad-sm, 20px) var(--ui-card-pad, 24px);
@@ -2579,6 +2589,38 @@ export default function StoreClient({
             transition: none !important;
             animation: none !important;
           }
+        }
+        html.low-graphics-mode .pw.st-page .pw-header.pw-header-glass,
+        html.low-graphics-mode .pw.st-page .pw-unified-promo,
+        html.low-graphics-mode .pw.st-page .st-promo-kicker,
+        html.low-graphics-mode .pw.st-page .st-promo-perk,
+        html.low-graphics-mode .pw.st-page .st-promo-secondary-btn,
+        html.low-graphics-mode .pw.st-page .st-promo-controls,
+        html.low-graphics-mode .pw.st-page .st-promo-arrow-btn,
+        html.low-graphics-mode .pw.st-page .st-filter-sidebar,
+        html.low-graphics-mode .pw.st-page .st-modal-overlay,
+        html.low-graphics-mode .pw.st-page .st-prod-code-tag,
+        html.low-graphics-mode .pw.st-page .st-prod-badge,
+        html.low-graphics-mode .pw.st-page .st-sidebar-mobile-foot {
+          backdrop-filter: none !important;
+          -webkit-backdrop-filter: none !important;
+        }
+        html.low-graphics-mode .pw.st-page .pw-header.pw-header-glass {
+          background: #fbfaf7 !important;
+        }
+        html.low-graphics-mode .pw.st-page .st-promo-controls {
+          background: rgba(14, 18, 22, 0.88) !important;
+        }
+        html.low-graphics-mode .pw.st-page .st-modal-overlay {
+          background: rgba(15, 22, 30, 0.72) !important;
+        }
+        html.low-graphics-mode .pw.st-page .st-promo-bg-slide,
+        html.low-graphics-mode .pw.st-page .st-promo-bg-slide.is-active,
+        html.low-graphics-mode .pw.st-page .st-prod-card:hover,
+        html.low-graphics-mode .pw.st-page .st-prod-card:hover .st-prod-media img,
+        html.low-graphics-mode .pw.st-page .st-section-card:hover {
+          transform: none !important;
+          transition: none !important;
         }
       `}</style>
 

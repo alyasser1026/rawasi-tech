@@ -99,9 +99,13 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
 }
 
 function getWebGlGpuRenderer(): string | undefined {
+  if (typeof document !== 'undefined' && document.documentElement.classList.contains('low-graphics-mode')) {
+    return undefined;
+  }
+  let gl: WebGLRenderingContext | null = null;
   try {
     const canvas = document.createElement('canvas');
-    const gl =
+    gl =
       (canvas.getContext('webgl') as WebGLRenderingContext | null) ||
       (canvas.getContext('experimental-webgl') as WebGLRenderingContext | null);
     if (!gl) return undefined;
@@ -119,6 +123,12 @@ function getWebGlGpuRenderer(): string | undefined {
     }
   } catch {
     // Ignore headless / blocked WebGL environments
+  } finally {
+    try {
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    } catch {
+      // Ignore cleanup failure
+    }
   }
   return undefined;
 }

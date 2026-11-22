@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { usePerformancePreferences } from '@/components/PerformancePreferences';
 import { CartButton } from './CartDrawer';
 import { resolveCanonicalSectionSlug, type SectionSlug } from './section-defs';
 
@@ -58,6 +59,7 @@ export default function PublicHeader({
   const [accountOpen, setAccountOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [siteSize, setSiteSize] = useState<SiteUiSize>('md');
+  const { fastMode, toggle: toggleFastMode } = usePerformancePreferences();
   const accountRef = useRef<HTMLDivElement>(null);
   const normalizedActiveKey =
     activeKey !== 'home' && activeKey !== 'store'
@@ -315,6 +317,19 @@ export default function PublicHeader({
           </nav>
 
           <div className="pw-header-end">
+            <button
+              type="button"
+              className={`pw-lite-btn ${fastMode ? 'is-active' : ''}`}
+              aria-pressed={fastMode}
+              onClick={toggleFastMode}
+              title={fastMode ? 'الوضع الخفيف مفعّل (اضغط للعودة للعرض القياسي)' : 'تفعيل الوضع الخفيف للأجهزة القديمة وتوفير الباقة'}
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+              <span>خفيف</span>
+            </button>
+
             <div className="pw-scale-switch" role="group" aria-label="اختيار حجم العرض" dir="ltr">
               {SITE_SIZE_OPTIONS.map((opt) => (
                 <button

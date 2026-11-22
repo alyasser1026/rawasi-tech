@@ -83,7 +83,22 @@ export default function VisitorTracker() {
       }
     };
 
-    void trackVisit();
+    let idleHandle: number | undefined;
+    let delayTimer: number | undefined;
+    const ric = (window as any).requestIdleCallback as
+      | ((cb: () => void, opts?: { timeout: number }) => number)
+      | undefined;
+    const cic = (window as any).cancelIdleCallback as ((id: number) => void) | undefined;
+
+    if (typeof ric === 'function') {
+      idleHandle = ric(() => {
+        if (!cancelled) void trackVisit();
+      }, { timeout: 3500 });
+    } else {
+      delayTimer = window.setTimeout(() => {
+        if (!cancelled) void trackVisit();
+      }, 2500);
+    }
 
     // 2. Click tracking for conversion actions (WhatsApp & Phone calls)
     const handleGlobalClick = async (e: MouseEvent) => {
@@ -172,6 +187,8 @@ export default function VisitorTracker() {
 
     return () => {
       cancelled = true;
+      if (idleHandle !== undefined && typeof cic === 'function') cic(idleHandle);
+      if (delayTimer !== undefined) window.clearTimeout(delayTimer);
       document.removeEventListener('click', handleGlobalClick);
       document.removeEventListener('change', handlePhoneInput);
       document.removeEventListener('blur', handlePhoneInput, true);

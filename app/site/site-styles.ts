@@ -78,6 +78,9 @@ body:has(.pw){padding:0!important}
 .pw-nav-head{display:none}
 .pw-nav-arrow{display:none}
 .pw-header-end{display:inline-flex;align-items:center;gap:8px;flex-shrink:0}
+.pw-lite-btn{height:34px;padding:0 12px;border-radius:var(--r-pill);background:rgba(255,255,255,.78);border:1px solid rgba(20,24,27,.14);color:#47525c;font-family:inherit;font-size:12px;font-weight:800;line-height:1;cursor:pointer;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0;transition:background .16s ease,color .16s ease,border-color .16s ease}
+.pw-lite-btn:hover{color:#14181b;border-color:rgba(199,85,23,.45);background:#ffffff}
+.pw-lite-btn.is-active{background:#c75517;border-color:#c75517;color:#ffffff;box-shadow:0 4px 10px -4px rgba(199,85,23,.5)}
 .pw-scale-switch{display:inline-flex;align-items:center;gap:2px;padding:3px;border-radius:var(--r-pill);background:rgba(255,255,255,.72);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(20,24,27,.14);box-shadow:0 4px 12px -8px rgba(20,24,27,.18);direction:ltr;flex-shrink:0}
 .pw-scale-btn{min-width:28px;height:28px;padding:0 6px;border:0;border-radius:var(--r-pill);background:transparent;color:#525e6a;font-family:inherit;font-size:11px;font-weight:800;letter-spacing:.03em;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .16s ease,color .16s ease,box-shadow .16s ease}
 .pw-scale-btn:hover{color:#14181b;background:rgba(20,24,27,.06)}
@@ -209,7 +212,7 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 
 /* services */
 .pw-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--ui-gap)}
-.pw-card{background:#fff;border:1px solid var(--line);border-radius:var(--ui-card-r);padding:var(--ui-card-pad);display:flex;flex-direction:column;gap:16px;transition:border-color .2s,box-shadow .2s,transform .2s}
+.pw-card{background:#fff;border:1px solid var(--line);border-radius:var(--ui-card-r);padding:var(--ui-card-pad);display:flex;flex-direction:column;gap:16px;transition:border-color .2s,box-shadow .2s,transform .2s;content-visibility:auto;contain-intrinsic-size:auto 420px}
 .pw-card:hover{border-color:rgba(199,85,23,.5);box-shadow:0 22px 44px -26px rgba(199,85,23,.45);transform:translateY(-3px)}
 .pw-icon{width:48px;height:48px;border-radius:var(--r-card-sm);background:var(--o-soft);color:var(--o);display:flex;align-items:center;justify-content:center}
 .pw-card h3{font-size:1.25rem;font-weight:800}
@@ -1444,7 +1447,7 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 .pw-bs-filter-btn.is-on{background:#14181b;border-color:#14181b;color:#fff;font-weight:700;box-shadow:0 8px 18px -10px rgba(20,24,27,.35)}
 
 .pw-bs-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--ui-gap)}
-.pw-bs-card{background:rgba(255,255,255,.86);backdrop-filter:blur(12px) saturate(125%);-webkit-backdrop-filter:blur(12px) saturate(125%);border:1px solid #e7e1d7;border-radius:var(--ui-card-r);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 14px 34px -24px rgba(20,24,27,.16);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.pw-bs-card{background:rgba(255,255,255,.86);backdrop-filter:blur(12px) saturate(125%);-webkit-backdrop-filter:blur(12px) saturate(125%);border:1px solid #e7e1d7;border-radius:var(--ui-card-r);overflow:hidden;display:flex;flex-direction:column;box-shadow:0 14px 34px -24px rgba(20,24,27,.16);transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;content-visibility:auto;contain-intrinsic-size:auto 420px}
 .pw-bs-card:hover{transform:translateY(-3px);border-color:rgba(199,85,23,.45);box-shadow:0 22px 44px -24px rgba(20,24,27,.22)}
 .pw-bs-media{position:relative;aspect-ratio:4/3;background:#0d131a;overflow:hidden}
 .pw-bs-media img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .35s ease}
@@ -1498,5 +1501,69 @@ html[data-site-size="xl"] .pw .pw-btn-lg{min-height:56px;padding:16px 32px;font-
 }
 @media(prefers-reduced-motion:reduce){
   .pw-sim-touch,.pw-sim-cursor,.pw-sim-screen,.pw-sim-seg-fill,.pw-sim-caret,.pw-sim-live-pill i,.pw-sim-cart-pill,.pw-sim-sync-node,.pw-sim-sync-node svg,.pw-bs-card,.pw-bs-media img{animation:none!important;transition:none!important}
+}
+html.low-graphics-mode .pw *{
+  scroll-behavior:auto!important;
+}
+html.low-graphics-mode .pw .pw-header,
+html.low-graphics-mode .pw .pw-header.is-scrolled,
+html.low-graphics-mode .pw .pw-header.pw-header-glass,
+html.low-graphics-mode .pw .pw-header.pw-header-glass.is-scrolled,
+html.low-graphics-mode .pw:has(.pw-split-stage) .pw-header.pw-header-glass,
+html.low-graphics-mode .pw .pw-header.pw-header-glass .pw-burger,
+html.low-graphics-mode .pw .pw-header.pw-header-glass .phi-cart-btn,
+html.low-graphics-mode .pw .pw-scale-switch,
+html.low-graphics-mode .pw .pw-nav,
+html.low-graphics-mode .pw .pw-mobile-dock,
+html.low-graphics-mode .pw .pw-user-menu,
+html.low-graphics-mode .pw .pw-omni-box,
+html.low-graphics-mode .pw .pw-omni-dropdown,
+html.low-graphics-mode .pw .pw-bs-card,
+html.low-graphics-mode .pw .pw-bs-filter-btn,
+html.low-graphics-mode .pw .pw-card,
+html.low-graphics-mode .pw .pw-footer,
+html.low-graphics-mode .pw:has(>.pw-construction) .pw-footer,
+html.low-graphics-mode .pw .pw-sim-live-pill,
+html.low-graphics-mode .pw .pw-sim-narrator-bar,
+html.low-graphics-mode .pw .pw-stats,
+html.low-graphics-mode .pw .pw-hero.pw-hero-pearl,
+html.low-graphics-mode .pw .pw-hero.pw-hero-pearl .pw-contact-card,
+html.low-graphics-mode .pw .pw-mobile-scroll-cue,
+html.low-graphics-mode .pw .pw-sec-hero-badge,
+html.low-graphics-mode .pw .pw-construction-status{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+html.low-graphics-mode .pw .pw-header.pw-header-glass.is-scrolled,
+html.low-graphics-mode .pw:has(.pw-split-stage) .pw-header.pw-header-glass,
+html.low-graphics-mode .pw .pw-nav,
+html.low-graphics-mode .pw .pw-mobile-dock,
+html.low-graphics-mode .pw:has(>.pw-construction) .pw-footer{
+  background:#fbfaf7!important;
+}
+html.low-graphics-mode .pw .pw-omni-box,
+html.low-graphics-mode .pw .pw-omni-dropdown,
+html.low-graphics-mode .pw .pw-bs-card,
+html.low-graphics-mode .pw .pw-bs-filter-btn,
+html.low-graphics-mode .pw .pw-card,
+html.low-graphics-mode .pw .pw-sim-narrator-bar,
+html.low-graphics-mode .pw .pw-hero.pw-hero-pearl .pw-contact-card{
+  background:#ffffff!important;
+  box-shadow:0 2px 8px rgba(20,24,27,.06)!important;
+}
+html.low-graphics-mode .pw .pw-bs-card:hover,
+html.low-graphics-mode .pw .pw-card:hover,
+html.low-graphics-mode .pw .pw-bs-card:hover .pw-bs-media img,
+html.low-graphics-mode .pw .pw-diag-slice.is-hovered .pw-diag-details{
+  transform:none!important;
+}
+html.low-graphics-mode .pw .pw-sim-touch,
+html.low-graphics-mode .pw .pw-sim-cursor,
+html.low-graphics-mode .pw .pw-sim-screen,
+html.low-graphics-mode .pw .pw-sim-caret,
+html.low-graphics-mode .pw .pw-sim-live-pill i,
+html.low-graphics-mode .pw .pw-sim-cart-pill{
+  animation:none!important;
+  transition:none!important;
 }
 `;

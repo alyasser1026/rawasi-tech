@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { detectLowEndDevice } from './PerformancePreferences';
 
 let introPlayedThisPageLoad = false;
 
@@ -393,8 +394,10 @@ export default function LogoMotionIntro({
   useEffect(() => {
     if (
       typeof window !== 'undefined' &&
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches &&
-      replayCount === 0
+      replayCount === 0 &&
+      (document.documentElement.classList.contains('low-graphics-mode') ||
+        detectLowEndDevice() ||
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)
     ) {
       introPlayedThisPageLoad = true;
       setPhase('done');

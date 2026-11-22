@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { usePerformancePreferences } from '@/components/PerformancePreferences';
 
 const STAGES = [
   'تجهيز الموقع والأساسات',
@@ -15,24 +16,35 @@ export default function PanoramicStructureScroll() {
   const hostRef = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
   const progressRef = useRef<HTMLDivElement>(null);
+  const { fastMode, ready } = usePerformancePreferences();
   const [fallback, setFallback] = useState(false);
 
   useEffect(() => {
+    if (!ready) return;
+    if (fastMode) {
+      setFallback(true);
+      return;
+    }
+
     const host = hostRef.current;
     if (!host) return;
 
+    setFallback(false);
     let disposed = false;
     let failed = false;
+    let initTimer: number | undefined;
+    let initIdle: number | undefined;
     const cleanups: (() => void)[] = [];
     const release = () => {
       while (cleanups.length) cleanups.pop()?.();
     };
 
     async function initialize() {
+      const useAntialias = window.innerWidth >= 900;
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('webgl2', {
         alpha: true,
-        antialias: true,
+        antialias: useAntialias,
         powerPreference: 'low-power',
       });
       if (!context) { setFallback(true); return; }
@@ -53,14 +65,14 @@ export default function PanoramicStructureScroll() {
         canvas,
         context,
         alpha: true,
-        antialias: true,
+        antialias: useAntialias,
         powerPreference: 'low-power',
       });
       cleanups.push(() => {
         renderer.dispose();
         renderer.domElement.remove();
       });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1.25 : 1.6));
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, window.innerWidth < 700 ? 1 : 1.25));
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.04;
@@ -104,7 +116,7 @@ export default function PanoramicStructureScroll() {
       const sun = new THREE.DirectionalLight(0xfff1dc, 3.1);
       sun.position.set(-18, 31, 23);
       sun.castShadow = true;
-      const shadowSize = window.innerWidth < 700 ? 1024 : 2048;
+      const shadowSize = window.innerWidth < 700 ? 512 : 1024;
       sun.shadow.mapSize.set(shadowSize, shadowSize);
       Object.assign(sun.shadow.camera, { left: -21, right: 21, top: 24, bottom: -15, near: 1, far: 95 });
       sun.shadow.bias = -0.0003;
@@ -135,6 +147,7 @@ export default function PanoramicStructureScroll() {
       let current = 0;
       let frameId = 0;
       let previousTime = 0;
+      let slowFrameStreak = 0;
       let lastStage = -1;
       let lastPercent = -1;
 
@@ -187,8 +200,20 @@ export default function PanoramicStructureScroll() {
       function render(time: number) {
         frameId = 0;
         if (disposed || failed || document.hidden) return;
-        const delta = previousTime ? Math.min((time - previousTime) / 1000, 0.064) : 1 / 60;
-        previousTime = time;
+        const rawElapsed = previousTime > 0 ? time - previousTime : 16;
+        if (previousTime > 0 && rawElapsed > 75) {
+          slowFrameStreak += 1;
+          if (slowFrameStreak >= 12) {
+            failed = true;
+            cancelAnimationFrame(frameId);
+            release();
+            if (!disposed) setFallback(true);
+            return;
+          }
+        } else {
+          slowFrameStreak = 0;
+        }
+        const delta = previousTime ? Math.min(rawElapsed / 1000, 0.064) : 1 / 60;
         const desired = motion.matches ? 1 : target;
         current += (desired - current) * (1 - Math.exp(-delta * 14));
         const moving = Math.abs(desired - current) > 0.0003;
@@ -205,7 +230,13 @@ export default function PanoramicStructureScroll() {
         host!.dataset.sceneReady = 'true';
         host!.dataset.renderProgress = current.toFixed(4);
         host!.dataset.renderSettled = String(!moving);
-        if (moving) wake();
+        if (moving) {
+          previousTime = time;
+          wake();
+        } else {
+          previousTime = 0;
+          slowFrameStreak = 0;
+        }
       }
 
       function wake() {
@@ -253,13 +284,33 @@ export default function PanoramicStructureScroll() {
       resize();
     }
 
-    initialize().catch(() => {
-      failed = true;
+    const boot = () => {
+      if (disposed) return;
+      initialize().catch(() => {
+        failed = true;
+        release();
+        if (!disposed) setFallback(true);
+      });
+    };
+
+    const ric = (window as any).requestIdleCallback as
+      | ((cb: () => void, opts?: { timeout: number }) => number)
+      | undefined;
+    const cic = (window as any).cancelIdleCallback as ((id: number) => void) | undefined;
+
+    if (typeof ric === 'function') {
+      initIdle = ric(boot, { timeout: 600 });
+    } else {
+      initTimer = window.setTimeout(boot, 300);
+    }
+
+    return () => {
+      disposed = true;
+      if (initIdle !== undefined && typeof cic === 'function') cic(initIdle);
+      if (initTimer !== undefined) window.clearTimeout(initTimer);
       release();
-      if (!disposed) setFallback(true);
-    });
-    return () => { disposed = true; release(); };
-  }, []);
+    };
+  }, [fastMode, ready]);
 
   return (
     <div className="pw-construction" data-fallback={fallback ? 'true' : 'false'} aria-hidden="true">

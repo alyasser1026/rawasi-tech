@@ -1,37 +1,10 @@
-import LayoutClient from '../components/layout/LayoutClient';
 import "./phi-fonts.css";
 import "./globals.css";
 import "./phi-scale.css";
-import "./workspace.css";
-import "./brand.css";
-import "./enterprise.css";
-import "./enterprise-content.css";
-import "./enterprise-dialogs.css";
-import "./enterprise-layout.css";
-import AutoLogoutWrapper from '../components/AutoLogoutWrapper';
-import Providers from './providers';
 import NextTopLoader from 'nextjs-toploader';
 import GlobalErrorBoundary from '../components/globalerrorboundary';
-import GlobalErrorReporter from '../components/GlobalErrorReporter';
-import VisitorTracker from '../components/VisitorTracker';
-import { THEME } from '@/lib/theme'; 
-import { SidebarProvider } from '@/lib/SidebarContext'; 
-import AuthGuard from "../components/authGuard"; 
-import { ToastProvider } from '@/lib/toast-context'; 
-import { PermissionsProvider } from '@/lib/PermissionsContext';
-import { CompanyProvider } from '@/lib/CompanyContext';
-import { ThemeProvider } from '@/lib/ThemeContext';
-
-// 🚀 1. استدعاء محرك الأوفلاين والكاش الجديد (V9)
-import QueryProvider from '../components/QueryProvider';
-
-// 🚀 2. استدعاء خدمة رسائل التأكيد المخصصة (V11)
-import { ConfirmProvider } from '../components/ConfirmContext'; 
-
-// 🚀 3. اختصارات التنقل العامة
-import GlobalNavigationShortcuts from '../components/GlobalNavigationShortcuts';
-import { PerformancePreferences } from '@/components/PerformancePreferences';
-import { RealtimeSyncProvider } from '@/lib/useRealtimeSync';
+import AppShellSwitch from '../components/AppShellSwitch';
+import { THEME } from '@/lib/theme';
 
 // Cairo is self-hosted in app/phi-fonts.css (app/fonts), so builds never download fonts.
 
@@ -62,7 +35,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var m=localStorage.getItem('phi_theme_mode')||'dark';var a=localStorage.getItem('phi_theme_accent')||'amber';document.documentElement.setAttribute('data-mode',m);document.documentElement.setAttribute('data-accent',a);var s=parseFloat(localStorage.getItem('phi_ui_scale'));if(s>=0.8&&s<=1.3)document.documentElement.style.setProperty('--ui-scale',String(s));var z=localStorage.getItem('phi_site_size_v1');document.documentElement.setAttribute('data-site-size',(z==='sm'||z==='md'||z==='lg'||z==='xl')?z:'md');}catch(e){}})();`,
+            __html: `(function(){try{var d=document.documentElement;var m=localStorage.getItem('phi_theme_mode')||'dark';var a=localStorage.getItem('phi_theme_accent')||'amber';d.setAttribute('data-mode',m);d.setAttribute('data-accent',a);var s=parseFloat(localStorage.getItem('phi_ui_scale'));if(s>=0.8&&s<=1.3)d.style.setProperty('--ui-scale',String(s));var z=localStorage.getItem('phi_site_size_v1');d.setAttribute('data-site-size',(z==='sm'||z==='md'||z==='lg'||z==='xl')?z:'md');var p=localStorage.getItem('fai-tech:performance-mode');var rm=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;var cn=navigator.connection;var lowConn=Boolean(cn&&(cn.saveData||/2g/.test(cn.effectiveType||'')));var dm=navigator.deviceMemory;var hc=navigator.hardwareConcurrency;var lowHw=Boolean((typeof dm==='number'&&dm<=4)||(typeof hc==='number'&&hc<=4));if(p==='fast'||(p!=='standard'&&(rm||lowConn||lowHw)))d.classList.add('low-graphics-mode');}catch(e){}})();`,
           }}
         />
       </head>
@@ -76,36 +49,7 @@ export default function RootLayout({
         }}
       >
         
-        {/* 🎨 ستايل الهوية البصرية السيادية (تحسين الأداء) */}
         <style dangerouslySetInnerHTML={{__html: `
-          .bg-master-container {
-            position: fixed; inset: 0; z-index: -4; 
-            background-color: var(--bg-canvas, #07080b); 
-            overflow: hidden;
-            pointer-events: none;
-          }
-          .bg-image-base {
-            position: absolute; inset: 0;
-            background-image: url('/ryc_login.jpeg'); 
-            background-size: cover;
-            background-position: center;
-            filter: blur(80px); 
-            transform: scale(1.1); 
-            opacity: 0.08; 
-          }
-          .bg-glass-tint {
-            position: absolute; inset: 0; z-index: -3;
-            background: 
-              radial-gradient(circle at 15% 10%, var(--ambient-orb-1, rgba(249, 115, 22, 0.13)), transparent 38%),
-              radial-gradient(circle at 85% 85%, var(--ambient-orb-2, rgba(245, 158, 11, 0.08)), transparent 40%),
-              linear-gradient(180deg, var(--bg-canvas, #07080b) 0%, var(--bg-canvas-secondary, #0b0d12) 100%);
-            backdrop-filter: blur(15px);
-          }
-          .watermark-bg {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 50vw; max-width: 600px; opacity: 0.035; z-index: -2;
-            pointer-events: none; user-select: none;
-          }
           @media print { .no-print { display: none !important; } }
         `}} />
 
@@ -118,40 +62,7 @@ export default function RootLayout({
         />
 
         <GlobalErrorBoundary>
-            <GlobalErrorReporter />
-            <VisitorTracker />
-            <QueryProvider>
-                <Providers>
-                    <ThemeProvider>
-                        <ToastProvider>
-                            {/* 🚀 تغليف السيستم بخدمة التأكيد الذكية */}
-                            <PerformancePreferences>
-                            <ConfirmProvider>
-                                <AutoLogoutWrapper>
-                                    <AuthGuard> 
-                                        <PermissionsProvider>
-                                            <CompanyProvider>
-                                                <RealtimeSyncProvider>
-                                                    <SidebarProvider>
-                                                        {/* LayoutClient هو المتحكم في حركة السايد بار والصفحة */}
-                                                        <LayoutClient>
-                                                            <GlobalNavigationShortcuts />
-                                                            <div style={{ position: 'relative', zIndex: 1 }}>
-                                                                {children}
-                                                            </div>
-                                                        </LayoutClient>
-                                                    </SidebarProvider>
-                                                </RealtimeSyncProvider>
-                                            </CompanyProvider>
-                                        </PermissionsProvider>
-                                    </AuthGuard>
-                                </AutoLogoutWrapper>
-                            </ConfirmProvider>
-                            </PerformancePreferences>
-                        </ToastProvider>
-                    </ThemeProvider>
-                </Providers>
-            </QueryProvider>
+            <AppShellSwitch>{children}</AppShellSwitch>
         </GlobalErrorBoundary>
         
       </body>
