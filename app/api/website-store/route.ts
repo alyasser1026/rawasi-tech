@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { normalizePhoneForWhatsApp } from '@/lib/telegram-notifier';
+import { sendStoreTelegramNotification } from '@/lib/store-order-telegram';
 
 export const runtime = 'nodejs';
 
@@ -14,14 +14,6 @@ function getServiceSupabase() {
   return createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
-}
-
-function escapeHtml(text: unknown): string {
-  return String(text ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 async function verifyAdminAuth(req: Request): Promise<boolean> {
@@ -48,166 +40,6 @@ async function verifyAdminAuth(req: Request): Promise<boolean> {
     return Boolean(prof.is_admin || prof.role === 'admin' || prof.role === 'super_admin');
   } catch {
     return false;
-  }
-}
-
-async function sendStoreTelegramNotification(order: {
-  refCode: string;
-  orderType: 'store_order' | 'property_inquiry' | 'maintenance_request';
-  customerName: string;
-  customerPhone: string;
-  customerEmail?: string;
-  city?: string;
-  address?: string;
-  notes?: string;
-  withInstallation?: boolean;
-  items?: Array<{
-    code?: string;
-    name: string;
-    qty: number;
-    unit?: string;
-    price: number;
-    installPrice?: number;
-    withInstall?: boolean;
-  }>;
-  property?: {
-    code?: string;
-    title: string;
-    areaSqm?: number;
-    price?: number;
-    currency?: string;
-  };
-  maintenanceService?: {
-    code?: string;
-    title: string;
-    mode?: string;
-    preferredDate?: string;
-  };
-  totalAmount?: number;
-  currency?: string;
-}) {
-  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
-  const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
-  if (!token || !chatId) return;
-
-  const waPhone = normalizePhoneForWhatsApp(order.customerPhone);
-  const nowStr = new Intl.DateTimeFormat('ar-EG', {
-    timeZone: 'Africa/Cairo',
-    dateStyle: 'medium',
-    timeStyle: 'medium',
-  }).format(new Date());
-
-  const lines: string[] = [];
-  if (order.orderType === 'maintenance_request') {
-    lines.push('🛠️ <b>طلب تنفيذ / صيانة هندسية جديد — فاي تك</b>');
-    lines.push('━━━━━━━━━━━━━━━━━━━━');
-    lines.push(`🔖 <b>رقم الطلب:</b> <code>${escapeHtml(order.refCode)}</code>`);
-    lines.push(`👤 <b>العميل:</b> ${escapeHtml(order.customerName)}`);
-    lines.push(`📱 <b>رقم الجوال:</b> <code>${escapeHtml(order.customerPhone)}</code>`);
-    if (order.customerEmail) lines.push(`📧 <b>البريد:</b> <code>${escapeHtml(order.customerEmail)}</code>`);
-    if (order.city || order.address) {
-      lines.push(`📍 <b>الموقع:</b> ${escapeHtml([order.city, order.address].filter(Boolean).join(' — '))}`);
-    }
-    if (order.maintenanceService) {
-      lines.push('━━━━━━━━━━━━━━━━━━━━');
-      lines.push(`🔧 <b>البند المطلوب:</b> <b>${escapeHtml(order.maintenanceService.title)}</b>`);
-      if (order.maintenanceService.code) {
-        lines.push(`🔢 <b>كود الخدمة:</b> <code>${escapeHtml(order.maintenanceService.code)}</code>`);
-      }
-      if (order.maintenanceService.mode) {
-        lines.push(`⚙️ <b>نوع الطلب:</b> <b>${escapeHtml(order.maintenanceService.mode)}</b>`);
-      }
-      if (order.maintenanceService.preferredDate) {
-        lines.push(`🗓️ <b>الموعد المفضل:</b> ${escapeHtml(order.maintenanceService.preferredDate)}`);
-      }
-    }
-    if (order.notes) {
-      lines.push(`📝 <b>وصف المشكلة / المطلوب:</b>\n<i>${escapeHtml(order.notes)}</i>`);
-    }
-  } else if (order.orderType === 'property_inquiry') {
-    lines.push('🏢 <b>طلب حجز / معاينة عقار جديد — فاي تك</b>');
-    lines.push('━━━━━━━━━━━━━━━━━━━━');
-    lines.push(`🔖 <b>رقم الطلب:</b> <code>${escapeHtml(order.refCode)}</code>`);
-    lines.push(`👤 <b>العميل:</b> ${escapeHtml(order.customerName)}`);
-    lines.push(`📱 <b>رقم الجوال:</b> <code>${escapeHtml(order.customerPhone)}</code>`);
-    if (order.customerEmail) lines.push(`📧 <b>البريد:</b> <code>${escapeHtml(order.customerEmail)}</code>`);
-    if (order.property) {
-      lines.push('━━━━━━━━━━━━━━━━━━━━');
-      lines.push(`🏠 <b>الوحدة العقارية:</b> <b>${escapeHtml(order.property.title)}</b>`);
-      if (order.property.code) lines.push(`🔢 <b>كود الوحدة:</b> <code>${escapeHtml(order.property.code)}</code>`);
-      if (order.property.areaSqm) lines.push(`📐 <b>المساحة:</b> ${escapeHtml(order.property.areaSqm)} م²`);
-      if (order.property.price) {
-        lines.push(
-          `💰 <b>السعر المعروض:</b> ${Number(order.property.price).toLocaleString('en-US')} ${escapeHtml(order.property.currency || 'ج.م')}`
-        );
-      }
-    }
-    if (order.notes) {
-      lines.push(`📝 <b>ملاحظات العميل:</b>\n<i>${escapeHtml(order.notes)}</i>`);
-    }
-  } else {
-    lines.push('🛒 <b>طلب سلة مشتريات جديد — متجر فاي تك</b>');
-    lines.push('━━━━━━━━━━━━━━━━━━━━');
-    lines.push(`🔖 <b>رقم الطلب:</b> <code>${escapeHtml(order.refCode)}</code>`);
-    lines.push(`👤 <b>العميل:</b> ${escapeHtml(order.customerName)}`);
-    lines.push(`📱 <b>رقم الجوال:</b> <code>${escapeHtml(order.customerPhone)}</code>`);
-    if (order.customerEmail) lines.push(`📧 <b>البريد:</b> <code>${escapeHtml(order.customerEmail)}</code>`);
-    if (order.city || order.address) {
-      lines.push(`📍 <b>العنوان / المدينة:</b> ${escapeHtml([order.city, order.address].filter(Boolean).join(' — '))}`);
-    }
-    lines.push(
-      `🛠️ <b>خدمة التركيب:</b> ${order.withInstallation ? '✅ مطلوب توريد + تركيب بإشراف فاي تك' : '📦 توريد فقط'}`
-    );
-    lines.push('━━━━━━━━━━━━━━━━━━━━');
-    lines.push('📦 <b>الأصناف المطلوبة في السلة:</b>');
-    for (const [idx, item] of (order.items || []).entries()) {
-      const unitTotal =
-        (Number(item.price) + (item.withInstall && item.installPrice ? Number(item.installPrice) : 0)) *
-        Number(item.qty || 1);
-      const priceLabel =
-        Number(item.price) > 0
-          ? `${unitTotal.toLocaleString('en-US')} ${escapeHtml(order.currency || 'ج.م')}`
-          : 'تسعير عند الطلب';
-      lines.push(
-        `${idx + 1}. <b>${escapeHtml(item.name)}</b>\n   • الكمية: <code>${item.qty}</code> ${escapeHtml(item.unit || '')}${item.withInstall ? ' (+تركيب)' : ''} — الإجمالي: <b>${priceLabel}</b>`
-      );
-    }
-    lines.push('━━━━━━━━━━━━━━━━━━━━');
-    const grandTotalLabel =
-      Number(order.totalAmount || 0) > 0
-        ? `${Number(order.totalAmount || 0).toLocaleString('en-US')} ${escapeHtml(order.currency || 'ج.م')}`
-        : 'طلب عرض سعر وتوريد';
-    lines.push(
-      `💰 <b>الإجمالي الكلي للطلب:</b> <b>${grandTotalLabel}</b>`
-    );
-    if (order.notes) {
-      lines.push(`📝 <b>ملاحظات التوريد/التركيب:</b>\n<i>${escapeHtml(order.notes)}</i>`);
-    }
-  }
-  lines.push(`⏰ <b>التوقيت:</b> ${escapeHtml(nowStr)}`);
-
-  const buttons: Array<Array<{ text: string; url: string }>> = [];
-  if (waPhone) {
-    const waText = encodeURIComponent(
-      `مرحباً أستاذ ${order.customerName}، معك قسم المبيعات والهندسة من شركة فاي تك بخصوص طلبكم رقم ${order.refCode}`
-    );
-    buttons.push([{ text: `💬 تواصل واتساب (${order.customerPhone})`, url: `https://wa.me/${waPhone}?text=${waText}` }]);
-  }
-
-  try {
-    await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: lines.join('\n'),
-        parse_mode: 'HTML',
-        disable_web_page_preview: true,
-        ...(buttons.length > 0 ? { reply_markup: { inline_keyboard: buttons } } : {}),
-      }),
-    });
-  } catch (err) {
-    console.warn('Telegram store order notification error:', err);
   }
 }
 

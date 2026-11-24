@@ -3098,6 +3098,7 @@ function DailyReportPrintModal({
               { label: '(+) الفلوس الداخلة اليوم (قبض)', value: formatCurrency(data.cashIn), tone: 'positive' },
               { label: '(-) الفلوس المصروفة اليوم (صرف)', value: formatCurrency(data.cashOut), tone: 'warn' },
               { label: 'المصروف للعمالة اليوم (سندات)', value: formatCurrency(data.workersPaidToday) },
+              { label: `أجور العمالة الميدانية المستحقة اليوم (${data.distinctWorkersCount} عامل)`, value: formatCurrency(data.laborTotal), tone: 'tax' },
               { label: 'إجمالي المستحقات المسددة اليوم', value: formatCurrency(data.settledDuesToday) },
               { label: 'مصروفات اليوم المسجلة', value: formatCurrency(data.expensesTotal) },
               { label: 'الخامات الموردة اليوم', value: formatCurrency(data.materialReceiptsTotal) },

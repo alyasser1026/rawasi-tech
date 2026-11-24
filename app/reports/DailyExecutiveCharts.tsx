@@ -220,11 +220,12 @@ export function DailyExecutiveCharts({
   const th = getDailyChartTheme(variant);
   const isPrint = th.isPrint;
 
-  // 1) بيانات الرسم الأول: ميزان الفلوس والخزينة والعمالة والخامات لليوم (7 أعمدة)
+  // 1) بيانات الرسم الأول: ميزان الفلوس والخزينة وأجور العمالة والخامات لليوم (8 أعمدة)
   const flowBars = [
     { label: 'الداخل (قبض)', sub: `${data.receipts.length} سند`, value: data.cashIn, color: '#10b981' },
     { label: 'الصرف (خارج)', sub: `${data.payments.length} سند`, value: data.cashOut, color: '#f43f5e' },
     { label: 'صرف العمالة', sub: `${data.workersPaidCount} سند`, value: data.workersPaidToday, color: '#0ea5e9' },
+    { label: 'أجور العمالة', sub: `${data.distinctWorkersCount} عامل`, value: data.laborTotal, color: '#3b82f6' },
     { label: 'مصروفات اليوم', sub: `${data.expenses.length} مصروف`, value: data.expensesTotal, color: '#f59e0b' },
     { label: 'خامات موردة', sub: `${data.materialReceiptsCount} إذن`, value: data.materialReceiptsTotal, color: '#0284c7' },
     { label: 'خامات منصرفة', sub: `${data.materialIssuesCount} إذن`, value: data.materialIssuesTotal, color: '#8b5cf6' },
@@ -241,11 +242,11 @@ export function DailyExecutiveCharts({
   const barSpan = Math.max(1, barMax - barMin);
 
   const svgW = 580;
-  const svgH = isPrint ? 172 : 215;
-  const padL = 16;
-  const padR = 16;
-  const padT = isPrint ? 22 : 26;
-  const padB = isPrint ? 38 : 44;
+  const svgH = isPrint ? 176 : 218;
+  const padL = 12;
+  const padR = 12;
+  const padT = isPrint ? 20 : 24;
+  const padB = isPrint ? 46 : 52;
   const plotH = svgH - padT - padB;
   const zeroY = padT + (barMax / barSpan) * plotH;
   const colW = (svgW - padL - padR) / flowBars.length;
@@ -400,14 +401,14 @@ export function DailyExecutiveCharts({
           gap: isPrint ? '8px' : '0.95rem',
         }}
       >
-        {/* 1️⃣ ميزان الفلوس وصرف العمالة والخامات لليوم */}
+        {/* 1️⃣ ميزان الفلوس وأجور العمالة والخامات لليوم */}
         <div style={th.subCardStyle}>
           <div style={{ marginBottom: '6px' }}>
             <div style={{ fontSize: th.titleSize, fontWeight: 900, color: th.ink }}>
-              1. ميزان الخزينة وصرف العمالة والخامات لليوم
+              1. ميزان الخزينة وأجور العمالة والخامات لليوم
             </div>
             <div style={{ fontSize: th.subSize, color: th.muted, fontWeight: 700 }}>
-              الداخل، الصرف، المصروف للعمالة، المصروفات، الخامات الموردة والمنصرفة، وصافي اليوم
+              الداخل، الصرف، صرف وأجور العمالة الميدانية، المصروفات، الخامات الموردة والمنصرفة، وصافي اليوم
             </div>
           </div>
           <svg
@@ -427,10 +428,10 @@ export function DailyExecutiveCharts({
             />
             {flowBars.map((b, i) => {
               const cx = padL + i * colW + colW / 2;
-              const bw = Math.min(40, colW * 0.56);
+              const bw = Math.min(34, colW * 0.56);
               const hVal = (Math.abs(b.value) / barSpan) * plotH;
               const y = b.value >= 0 ? zeroY - hVal : zeroY;
-              const textY = b.value >= 0 ? Math.max(12, y - 5) : Math.min(svgH - (isPrint ? 25 : 22), y + hVal + 11);
+              const textY = b.value >= 0 ? Math.max(11, y - 5) : Math.min(svgH - 34, y + hVal + 11);
 
               return (
                 <g key={b.label}>
@@ -448,27 +449,29 @@ export function DailyExecutiveCharts({
                     y={textY}
                     textAnchor="middle"
                     fill={th.ink}
-                    fontSize="9.5"
+                    fontSize="9.2"
                     fontWeight="900"
+                    direction="ltr"
+                    style={{ direction: 'ltr', unicodeBidi: 'isolate' }}
                   >
                     {fmtShort(b.value)}
                   </text>
                   <text
                     x={cx}
-                    y={svgH - 20}
+                    y={svgH - 19}
                     textAnchor="middle"
                     fill={th.ink}
-                    fontSize="8.8"
+                    fontSize="8.3"
                     fontWeight="800"
                   >
                     {b.label}
                   </text>
                   <text
                     x={cx}
-                    y={svgH - 7}
+                    y={svgH - 6}
                     textAnchor="middle"
                     fill={th.muted}
-                    fontSize="8"
+                    fontSize="7.8"
                     fontWeight="700"
                   >
                     {b.sub}

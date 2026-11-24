@@ -34,6 +34,7 @@ import {
   type WebsiteProperty,
 } from '../site/store-catalog';
 import Product4DSpinViewer from '../site/Product4DSpinViewer';
+import StoreCopilotAdminTab from './StoreCopilotAdminTab';
 
 const MAINTENANCE_CATEGORIES = PRODUCT_CATEGORIES.map((c) => ({
   id: c.id,
@@ -71,6 +72,7 @@ const TABS = [
   { id: 'maintenance', label: '🛠️ التنفيذ والصيانة' },
   { id: 'orders', label: '🛍️ طلبات السلة والعقارات' },
   { id: 'livechat', label: '💬 الشات الحي مع الزوار' },
+  { id: 'copilot', label: '🤖 كوبايلوت المتجر والمرادفات' },
   { id: 'identity', label: '🎨 الهوية والتواصل' },
   { id: 'projects', label: '🏗️ الأعمال' },
   { id: 'texts', label: '📋 الالتزامات والأسئلة' },
@@ -2511,6 +2513,8 @@ export default function WebsiteAdminPage() {
               </div>
             </>
           )}
+
+          {tab === 'copilot' && <StoreCopilotAdminTab />}
 
           {tab === 'ready' && (
             <>

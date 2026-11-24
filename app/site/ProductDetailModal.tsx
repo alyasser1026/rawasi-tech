@@ -8,6 +8,7 @@ import {
   type WebsiteProduct,
 } from './store-catalog';
 import Product4DSpinViewer from './Product4DSpinViewer';
+import { dispatchOpenCopilotEvent } from './copilot-events';
 
 interface ProductDetailModalProps {
   product: WebsiteProduct | null;
@@ -212,6 +213,25 @@ export default function ProductDetailModal({
                   : added
                   ? 'تمت الإضافة للسلة ✓'
                   : 'أضف للسلة'}
+              </button>
+
+              <button
+                type="button"
+                className="pw-btn pw-btn-ghost"
+                onClick={() => {
+                  const target = product;
+                  onClose();
+                  dispatchOpenCopilotEvent({
+                    productId: target.id,
+                    productCode: target.code,
+                    productName: target.name,
+                    prompt: `عايز أعرف تفاصيل ومواصفات وخيارات التركيب والبدائل للمنتج: ${target.name} (كود ${target.code})`,
+                    autoSend: true,
+                  });
+                }}
+                style={{ borderColor: '#fed7aa', background: '#fff7ed', color: '#c2410c', fontWeight: 800 }}
+              >
+                🤖 اسأل الكوبايلوت عن المنتج
               </button>
 
               {cleanWa ? (

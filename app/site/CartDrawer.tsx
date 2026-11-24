@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 import { getDestinationForUser } from '@/lib/roleRouter';
 import type { WebsiteProduct } from './store-catalog';
+import {
+  PHI_CART_ADD_EVENT,
+  PHI_CART_OPEN_EVENT,
+  type PhiCartAddEventDetail,
+} from './copilot-events';
 
 export interface CartItem {
   productId: string;
@@ -67,8 +72,14 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
   const [cartOpen, setCartOpen] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
 
+  const itemsRef = useRef<CartItem[]>(items);
+  const userRef = useRef<CustomerSessionUser | null>(user);
+  itemsRef.current = items;
+  userRef.current = user;
+
   // Persist cart to localStorage (guest or user) + Supabase Auth metadata when signed in
   const persistCart = (nextItems: CartItem[], currentUser: CustomerSessionUser | null) => {
+    itemsRef.current = nextItems;
     setItems(nextItems);
     if (typeof window === 'undefined') return;
     if (!currentUser) {
@@ -263,6 +274,59 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
     return () => {
       mounted = false;
       sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleCopilotCartAdd = (ev: Event) => {
+      const detail = (ev as CustomEvent<PhiCartAddEventDetail>).detail;
+      const incoming = Array.isArray(detail?.items) ? detail.items : [];
+      if (incoming.length === 0) return;
+
+      const next = [...itemsRef.current];
+      for (const entry of incoming) {
+        const productId = String(entry?.productId || '').trim();
+        if (!productId) continue;
+        const addQty = Math.max(1, Number(entry.qty || 1));
+        const withInstall = Boolean(entry.withInstall);
+        const idx = next.findIndex((x) => x.productId === productId);
+        if (idx >= 0) {
+          next[idx] = {
+            ...next[idx],
+            qty: next[idx].qty + addQty,
+            withInstall: withInstall || next[idx].withInstall,
+          };
+        } else {
+          next.push({
+            productId,
+            code: String(entry.code || 'PHI-ITEM'),
+            name: String(entry.name || 'منتج متجر فاي تك'),
+            unit: String(entry.unit || 'قطعة'),
+            price: Number(entry.price || 0),
+            installPrice: Number(entry.installPrice || 0),
+            currency: entry.currency === 'ر.س' ? 'ر.س' : 'ج.م',
+            qty: addQty,
+            withInstall,
+          });
+        }
+      }
+      persistCart(next, userRef.current);
+      if (detail?.openCart === true) {
+        setCartOpen(true);
+      }
+    };
+
+    const handleCopilotCartOpen = () => {
+      setCartOpen(true);
+    };
+
+    window.addEventListener(PHI_CART_ADD_EVENT, handleCopilotCartAdd);
+    window.addEventListener(PHI_CART_OPEN_EVENT, handleCopilotCartOpen);
+    return () => {
+      window.removeEventListener(PHI_CART_ADD_EVENT, handleCopilotCartAdd);
+      window.removeEventListener(PHI_CART_OPEN_EVENT, handleCopilotCartOpen);
     };
   }, []);
 

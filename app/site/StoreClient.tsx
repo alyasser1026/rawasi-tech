@@ -20,6 +20,7 @@ import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import ContactModal from './ContactModal';
 import Product4DSpinViewer from './Product4DSpinViewer';
+import { dispatchOpenCopilotEvent } from './copilot-events';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 
 function StoreIcon() {
@@ -3750,6 +3751,25 @@ export default function StoreClient({
                       className={`pw-btn pw-btn-primary ${addedId === detailProduct.id ? 'is-added' : ''}`}
                     >
                       {!detailProduct.inStock ? 'نفد حالياً' : addedId === detailProduct.id ? 'تمت الإضافة ✓' : 'أضف للسلة'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const target = detailProduct;
+                        setDetailProduct(null);
+                        dispatchOpenCopilotEvent({
+                          productId: target.id,
+                          productCode: target.code,
+                          productName: target.name,
+                          prompt: `عايز أعرف تفاصيل ومواصفات وخيارات التركيب والبدائل للمنتج: ${target.name} (كود ${target.code})`,
+                          autoSend: true,
+                        });
+                      }}
+                      className="pw-btn pw-btn-ghost"
+                      style={{ borderColor: '#fed7aa', background: '#fff7ed', color: '#c2410c', fontWeight: 800 }}
+                    >
+                      🤖 اسأل الكوبايلوت
                     </button>
                   </div>
                 </div>
