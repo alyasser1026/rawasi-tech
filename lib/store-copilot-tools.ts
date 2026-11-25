@@ -6,7 +6,11 @@
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-import { searchSiteKnowledge } from '@/app/site/chat-knowledge';
+import { searchSiteKnowledge } from '@/lib/copilot/chat-knowledge';
+import {
+  getCachedCopilotTraining,
+  matchCopilotKnowledge,
+} from '@/lib/copilot/training-store';
 import {
   DEFAULT_MAINTENANCE_SERVICES,
   getProductImageUrl,
@@ -16,6 +20,9 @@ import {
   type WebsiteProduct,
 } from '@/app/site/store-catalog';
 import { normalizeArabicSearch, queryStoreCatalog } from '@/lib/store-catalog-server';
+import { filterRelevantCatalogProducts, inferCatalogIntent, scoreCatalogProduct } from '@/lib/copilot/catalog-relevance';
+import type { ApprovedPolicyKnowledge } from '@/lib/copilot/response-policy';
+import { getVerifiedActionContact } from '@/lib/copilot/handoff';
 import {
   sendCopilotEscalationTelegram,
   sendStoreTelegramNotification,
@@ -189,17 +196,22 @@ export interface CatalogOverviewData {
 }
 
 export interface CopilotToolExecutionContext {
+  verifiedPolicies?: ApprovedPolicyKnowledge[];
   sessionId: string;
   pageUrl?: string;
   customerName?: string;
   customerPhone?: string;
   customerEmail?: string;
   userId?: string | null;
+  customerMessages?: string[];
   products: CopilotProductCard[];
   estimate: CopilotOrderEstimate | null;
   cartAction: CopilotCartAction | null;
   submittedOrder: CopilotSubmittedOrder | null;
   escalated: boolean;
+  /** Derived by the server from an explicit customer request, never from model tool arguments. */
+  handoffRequested?: boolean;
+  submissionRequested?: boolean;
   actions: CopilotActionLink[];
   toolsUsed: string[];
 }
@@ -415,6 +427,16 @@ function pushUniqueProducts(ctx: CopilotToolExecutionContext, cards: CopilotProd
   }
 }
 
+function recordProductWarranty(ctx: CopilotToolExecutionContext, product: CopilotProductCard): void {
+  const facts = product.specs.filter(spec => /ضمان|warranty/i.test(spec));
+  if (!facts.length) return;
+  const id = `catalog-warranty:${product.id}`;
+  ctx.verifiedPolicies = [
+    ...(ctx.verifiedPolicies || []).filter(item => item.id !== id),
+    { id, title: `ضمان المنتج ${product.name} (${product.code})`, category: 'warranty', keywords: ['ضمان', 'warranty'], answer: facts.join('؛ '), is_active: true },
+  ];
+}
+
 function pushUniqueAction(ctx: CopilotToolExecutionContext, action: CopilotActionLink): void {
   if (!action.href || !action.label) return;
   if (ctx.actions.some((a) => a.href === action.href && a.label === action.label)) return;
@@ -596,12 +618,13 @@ export async function execSearchProducts(
   const brand = typeof args.brand === 'string' && args.brand.trim() ? args.brand.trim() : null;
   const minPrice = Number.isFinite(Number(args.min_price)) ? Number(args.min_price) : null;
   const maxPrice = Number.isFinite(Number(args.max_price)) ? Number(args.max_price) : null;
-  const inStockOnly = Boolean(args.in_stock_only);
+  const inStockOnly = args.in_stock_only !== false;
   const sortRaw = String(args.sort || 'relevance');
   const sort = sortRaw === 'price_asc' || sortRaw === 'price_desc' ? sortRaw : 'relevance';
   const limit = Math.min(8, Math.max(1, Number(args.limit) || 6));
 
   const normQ = normalizeForWordCheck(query);
+  const intent = inferCatalogIntent(query);
   const hasWord = (tok: string) => matchesWholeWordToken(normQ, tok);
 
   let cards: CopilotProductCard[] = [];
@@ -611,7 +634,19 @@ export async function execSearchProducts(
   if (sb) {
     const commonOpts = { inStockOnly, brand, minPrice, maxPrice, limit };
     try {
-      if (/^(?:.* )?(?:دور لوك|دورلوك|door lock)(?: .*)?$/.test(normQ)) {
+      if (intent.family === 'gas_heater') {
+        const res = await queryCatalogPrecisionRows(sb,
+          'name.ilike.%سخان%غاز%,name.ilike.%غاز%سخان%,name.ilike.%gas%heater%',
+          commonOpts);
+        cards = res.cards;
+        rpcFailed = res.failed;
+      } else if (intent.family === 'smart_lock') {
+        const res = await queryCatalogPrecisionRows(sb,
+          'name.ilike.%كالون%سمارت%,name.ilike.%كالون%تاتش%,name.ilike.%قفل%ذكي%,name.ilike.%smart%lock%,code.ilike.KDL-%',
+          commonOpts);
+        cards = res.cards;
+        rpcFailed = res.failed;
+      } else if (/^(?:.* )?(?:دور لوك|دورلوك|door lock)(?: .*)?$/.test(normQ)) {
         const res = await queryCatalogPrecisionRows(
           sb,
           'code.ilike.KDL-%,name.ilike.%كالون تاتش%,name.ilike.%كالون سمارت%,name.ilike.%قفل ذكي%',
@@ -775,6 +810,8 @@ export async function execSearchProducts(
     };
   }
 
+  cards = filterRelevantCatalogProducts(cards, query);
+  if (sort === 'relevance') cards.sort((a, b) => scoreCatalogProduct(b, query) - scoreCatalogProduct(a, query));
   pushUniqueProducts(ctx, cards, 6);
 
   if (category) {
@@ -825,11 +862,13 @@ export async function execGetProductDetails(
           return { found: false, message: 'المنتج غير موجود في الكتالوج' };
         }
         const mainCard = mapRpcRowToCard(data.product);
-        const alts = Array.isArray(data.alternatives)
+        recordProductWarranty(ctx, mainCard);
+        const rawAlts: CopilotProductCard[] = Array.isArray(data.alternatives)
           ? data.alternatives.map((a: any) =>
               mapRpcRowToCard({ ...a, category: mainCard.category })
             )
           : [];
+        const alts = filterRelevantCatalogProducts(rawAlts, mainCard.name);
         pushUniqueProducts(ctx, [mainCard, ...alts], 6);
 
         return {
@@ -856,6 +895,7 @@ export async function execGetProductDetails(
     );
     if (!found) return { found: false, message: 'المنتج غير موجود في الكتالوج' };
     const card = mapWebsiteProductToCard(found);
+    recordProductWarranty(ctx, card);
     pushUniqueProducts(ctx, [card], 6);
     return { found: true, product: compactCardForLlm(card), alternatives: [] };
   } catch {
@@ -962,7 +1002,8 @@ export async function execCalculateOrderWithInstall(
 /**
  * 4) البحث في خدمات التنفيذ والتركيبات والصيانة والباقات الذكية ودليل التنفيذ الهندسي.
  */
-export function execSearchExecutionAndMaintenance(
+export async function execSearchExecutionAndMaintenance(
+  sb: SupabaseClient | null,
   args: Record<string, unknown>,
   ctx: CopilotToolExecutionContext
 ) {
@@ -971,7 +1012,11 @@ export function execSearchExecutionAndMaintenance(
   const nq = normalizeArabicSearch(query);
   const toks = nq.split(' ').filter((w) => w.length >= 2);
 
-  const knowledgeHit = searchSiteKnowledge(query);
+  const [knowledgeHit, training] = [
+    searchSiteKnowledge(query),
+    await getCachedCopilotTraining(sb),
+  ];
+  const trainedMatches = matchCopilotKnowledge(query, training.knowledge, 3);
   if (knowledgeHit?.actions?.length) {
     for (const act of knowledgeHit.actions) pushUniqueAction(ctx, act);
   }
@@ -1021,6 +1066,11 @@ export function execSearchExecutionAndMaintenance(
   }
 
   return {
+    trainedKnowledge: trainedMatches.map((k) => ({
+      title: k.title,
+      category: k.category,
+      answer: k.answer,
+    })),
     knowledgeSummary: knowledgeHit?.replyText || null,
     maintenanceServices: matchedServices,
     smartBundles: matchedBundles,
@@ -1036,6 +1086,8 @@ export async function execPrepareCartAction(
   ctx: CopilotToolExecutionContext
 ) {
   ctx.toolsUsed.push('prepare_cart_action');
+  const availability = await checkRequestedProductsAvailable(sb, args.items);
+  if (!availability.ok) return { ok: false, error: availability.error || 'تعذّر تأكيد توفر الأصناف لإضافتها للسلة.' };
   const estResult = await execCalculateOrderWithInstall(sb, { items: args.items }, ctx);
   // لا نكرر اسم الأداة لأن execCalculateOrderWithInstall أضافها تلقائياً عند الحساب
   if (!estResult.ok || !ctx.estimate || ctx.estimate.items.length === 0) {
@@ -1061,15 +1113,57 @@ export async function execPrepareCartAction(
   };
 }
 
+/** Re-read authoritative availability before a cart/order mutation; cached cards are display-only. */
+export async function checkRequestedProductsAvailable(sb: SupabaseClient | null, rawItems: unknown): Promise<{ ok: boolean; error?: string }> {
+  const items = normalizeItemsInput(rawItems);
+  if (!sb || items.length === 0) return { ok: false, error: 'تعذر التحقق من المنتجات المطلوبة قبل تنفيذ الطلب.' };
+  const ids = [...new Set(items.flatMap(item => item.product_id ? [item.product_id] : []))];
+  const codes = [...new Set(items.flatMap(item => !item.product_id && item.code ? [item.code] : []))];
+  try {
+    const queries = [];
+    if (ids.length) queries.push(sb.from('store_catalog_products').select('id,code,in_stock').in('id', ids));
+    if (codes.length) queries.push(sb.from('store_catalog_products').select('id,code,in_stock').in('code', codes));
+    const results = await Promise.all(queries);
+    if (results.some(result => result.error || !Array.isArray(result.data))) return { ok: false, error: 'تعذر التحقق من توفر المنتجات. لم يتم إرسال الطلب.' };
+    const rows = results.flatMap(result => result.data || []) as Array<{ id: string; code: string; in_stock: boolean }>;
+    const byId = new Map(rows.map(row => [String(row.id), row]));
+    const byCode = new Map(rows.map(row => [String(row.code).toLowerCase(), row]));
+    for (const item of items) {
+      const row = item.product_id ? byId.get(item.product_id) : byCode.get(String(item.code).toLowerCase());
+      if (!row || (item.code && String(row.code).toLowerCase() !== item.code.toLowerCase())) return { ok: false, error: 'أحد المنتجات المطلوبة غير موجود أو تغيّرت بياناته. راجع المنتجات قبل إرسال الطلب.' };
+      if (row.in_stock !== true) return { ok: false, error: 'أحد المنتجات المطلوبة غير متوفر حاليًا؛ لا يمكن تأكيد توريده أو تركيبه.' };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: false, error: 'تعذر التحقق من توفر المنتجات. لم يتم إرسال الطلب.' };
+  }
+}
+
+const submissionTasks = new WeakMap<CopilotToolExecutionContext, ReturnType<typeof execSubmitOrderOrServiceOnce>>();
+const escalationTasks = new WeakMap<CopilotToolExecutionContext, ReturnType<typeof execEscalateToEngineerOnce>>();
+
+/** A repeated/parallel model tool call shares the first server-side mutation result. */
+export function execSubmitOrderOrService(sb: SupabaseClient | null, args: Record<string, unknown>, ctx: CopilotToolExecutionContext) {
+  const pending = submissionTasks.get(ctx);
+  if (pending) return pending;
+  const task = execSubmitOrderOrServiceOnce(sb, args, ctx);
+  submissionTasks.set(ctx, task);
+  return task;
+}
+
 /**
  * 6) إتمام الطلب أو حجز خدمة تركيب/صيانة وتثبيتها رسمياً في user_requests مع إشعار تليجرام فوري.
  */
-export async function execSubmitOrderOrService(
+async function execSubmitOrderOrServiceOnce(
   sb: SupabaseClient | null,
   args: Record<string, unknown>,
   ctx: CopilotToolExecutionContext
 ) {
   ctx.toolsUsed.push('submit_order_or_service');
+  if (ctx.submittedOrder) return { ok: true, refCode: ctx.submittedOrder.refCode, order: ctx.submittedOrder };
+  if (ctx.submissionRequested !== true) {
+    return { ok: false, error: 'لم يؤكد العميل إرسال طلب أو حجز. اعرض التفاصيل واطلب تأكيد الإجراء قبل تنفيذه.' };
+  }
   const orderTypeRaw = String(args.orderType || args.order_type || 'store_order');
   const orderType: 'store_order' | 'maintenance_request' | 'property_inquiry' =
     orderTypeRaw === 'maintenance_request'
@@ -1078,20 +1172,19 @@ export async function execSubmitOrderOrService(
         ? 'property_inquiry'
         : 'store_order';
 
-  const customerName = String(args.customerName ?? args.customer_name ?? ctx.customerName ?? '').trim();
-  const customerPhone = String(args.customerPhone ?? args.customer_phone ?? ctx.customerPhone ?? '').trim();
   const customerEmail = String(args.customerEmail ?? args.customer_email ?? ctx.customerEmail ?? '').trim();
   const city = String(args.city ?? '').trim();
   const address = String(args.address ?? '').trim();
   const notes = String(args.notes ?? '').trim();
-  const phoneDigits = customerPhone.replace(/\D/g, '');
-
-  if (!customerName || phoneDigits.length < 8) {
+  const contact = getVerifiedActionContact(args, ctx);
+  if (!contact.ready) {
     return {
       ok: false,
-      error: 'يرجى إدخال الاسم الكامل ورقم الجوال الصحيح (8 أرقام على الأقل) قبل تثبيت الطلب.',
+      error: contact.prompt,
+      missingFields: contact.missingFields,
     };
   }
+  const { name: customerName, phone: customerPhone } = contact;
 
   const normalizedItems = normalizeItemsInput(args.items);
   if (orderType === 'store_order' && normalizedItems.length === 0) {
@@ -1118,6 +1211,10 @@ export async function execSubmitOrderOrService(
   if (!sb) {
     return { ok: false, error: 'اتصال قاعدة البيانات غير متاح حالياً' };
   }
+  if (orderType === 'store_order') {
+    const availability = await checkRequestedProductsAvailable(sb, normalizedItems);
+    if (!availability.ok) return availability;
+  }
 
   const rpcPayload = {
     orderType,
@@ -1139,7 +1236,7 @@ export async function execSubmitOrderOrService(
     p_payload: rpcPayload,
   });
 
-  if (error || !data || data.ok !== true) {
+  if (error || !data || data.ok !== true || !data.id || !data.refCode) {
     return {
       ok: false,
       error: data?.error || error?.message || 'تعذر حفظ الطلب في قاعدة البيانات',
@@ -1195,14 +1292,29 @@ export async function execSubmitOrderOrService(
 /**
  * 7) تصعيد المحادثة للمهندس المختص مع التحقق الفعلي من الحفظ والإرسال قبل تأكيد التحويل.
  */
-export async function execEscalateToEngineer(
+export function execEscalateToEngineer(sb: SupabaseClient | null, args: Record<string, unknown>, ctx: CopilotToolExecutionContext) {
+  const pending = escalationTasks.get(ctx);
+  if (pending) return pending;
+  const task = execEscalateToEngineerOnce(sb, args, ctx);
+  escalationTasks.set(ctx, task);
+  return task;
+}
+
+async function execEscalateToEngineerOnce(
   sb: SupabaseClient | null,
   args: Record<string, unknown>,
   ctx: CopilotToolExecutionContext
 ) {
   ctx.toolsUsed.push('escalate_to_engineer');
-  const customerName = String(args.customerName ?? args.customer_name ?? ctx.customerName ?? 'عميل المتجر').trim();
-  const customerPhone = String(args.customerPhone ?? args.customer_phone ?? ctx.customerPhone ?? '').trim();
+  if (ctx.escalated) return { ok: true, escalated: true, message: 'تم بالفعل تسجيل طلب المتابعة في هذه المحاولة.' };
+  const contact = getVerifiedActionContact(args, ctx);
+  if (!contact.ready) {
+    return { ok: false, escalated: false, missingFields: contact.missingFields, error: contact.prompt };
+  }
+  if (ctx.handoffRequested !== true) {
+    return { ok: false, escalated: false, error: 'لم يطلب العميل التحويل بعد. اعرض عليه التواصل مع الفريق واطلب موافقته؛ لا تقل تم التحويل.' };
+  }
+  const { name: customerName, phone: customerPhone } = contact;
   const reason = String(args.reason ?? 'طلب استشارة هندسية / تسعير خاص').trim().slice(0, 180);
   const summary = String(args.summary ?? reason).trim().slice(0, 600);
   const nowIso = new Date().toISOString();
@@ -1242,8 +1354,8 @@ export async function execEscalateToEngineer(
         details: JSON.stringify(sessionPayload),
         status: '🚨 يطلب تدخل المهندس',
         admin_note: `[تحويل كوبايلوت] ${reason}`.slice(0, 160),
-      });
-      dbSaved = !insRes.error;
+      }).select('id').single();
+      dbSaved = !insRes.error && Boolean(insRes.data?.id);
     } catch {
       dbSaved = false;
     }
@@ -1320,6 +1432,10 @@ export async function execGetActiveOffers(
           }));
 
         if (promoBannerText || offerBanners.length > 0) {
+          ctx.verifiedPolicies = [
+            ...(ctx.verifiedPolicies || []).filter(item => item.id !== 'cms-active-offers'),
+            { id: 'cms-active-offers', title: 'العروض السارية المنشورة', category: 'sales_policy', keywords: ['خصم', 'خصومات', 'عروض'], answer: [promoBannerText, ...offerBanners.map(banner => `${banner.title}${banner.subtitle ? `: ${banner.subtitle}` : ''}`)].filter(Boolean).join('\n'), is_active: true },
+          ];
           pushUniqueAction(ctx, { label: '🔥 تصفح المتجر', href: '/store' });
           return {
             ok: true,
@@ -1365,7 +1481,7 @@ export async function executeCopilotToolCall(
     case 'calculate_order_with_install':
       return execCalculateOrderWithInstall(sb, args, ctx);
     case 'search_execution_and_maintenance':
-      return execSearchExecutionAndMaintenance(args, ctx);
+      return execSearchExecutionAndMaintenance(sb, args, ctx);
     case 'prepare_cart_action':
       return execPrepareCartAction(sb, args, ctx);
     case 'submit_order_or_service':

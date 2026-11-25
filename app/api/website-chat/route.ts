@@ -6,8 +6,9 @@ import {
   generateEgyptianColloquialAiReply,
   type ChatBotActionLink,
   type ChatConversationStage,
-} from '@/app/site/chat-auto-responder';
-import { buildSiteKnowledgeDigest, searchSiteKnowledge } from '@/app/site/chat-knowledge';
+} from '@/lib/copilot/chat-auto-responder';
+import { buildSiteKnowledgeDigest, searchSiteKnowledge } from '@/lib/copilot/chat-knowledge';
+import { enforceActionClaims, getHandoffContact, hasActionRefusal, resolveHandoffConsent, resolveSubmissionConsent } from '@/lib/copilot/handoff';
 
 /** معرفة كل أقسام الموقع العام (المتجر، العقارات، الصيانة، الدليل، قائمة التفقد...) للرد الآلي. */
 const SITE_KNOWLEDGE = { search: searchSiteKnowledge, digest: buildSiteKnowledgeDigest };
@@ -37,6 +38,7 @@ export interface ChatSessionPayload {
   pendingQuestion?: string;
   escalatedToHuman?: boolean;
   escalationReason?: string;
+  handoffRequested?: boolean;
   escalatedAt?: string;
   botPaused?: boolean;
   lastIntent?: string;
@@ -192,6 +194,7 @@ export async function POST(req: Request) {
     }
 
     const sb = getServiceSupabase();
+    if (!sb) return NextResponse.json({ error: 'تعذر حفظ المحادثة حاليًا. لم يتم إرسال طلب متابعة؛ حاول مرة أخرى.' }, { status: 503 });
     const siteContent = await loadMergedSiteContent(sb);
     const nowIso = new Date().toISOString();
 
@@ -200,12 +203,13 @@ export async function POST(req: Request) {
     let isFirstMessage = true;
 
     if (sb) {
-      const { data: existing } = await sb
+      const { data: existing, error: existingError } = await sb
         .from('user_requests')
         .select('id, details')
         .eq('type', 'live_chat')
         .eq('category', sessionId)
         .maybeSingle();
+      if (existingError) return NextResponse.json({ error: 'تعذر قراءة المحادثة الحالية. حاول مرة أخرى قبل إرسال طلب متابعة.' }, { status: 503 });
 
       if (existing) {
         isFirstMessage = false;
@@ -232,6 +236,10 @@ export async function POST(req: Request) {
         ? existingParsed.visitorName
         : '');
     const knownPhone = inputVisitorPhone || existingParsed?.visitorPhone || '';
+    const userMessages = [...prevMessages.filter(message => message.sender === 'visitor').map(message => String(message.text || '')), messageText];
+    const handoffRequested = !hasActionRefusal(messageText) && (
+      requestHuman || resolveHandoffConsent(userMessages) || resolveSubmissionConsent(userMessages) || existingParsed?.handoffRequested === true
+    );
     const clientStage = body.stage as ChatConversationStage | undefined;
     const currentStage: ChatConversationStage =
       existingParsed?.stage ||
@@ -264,7 +272,21 @@ export async function POST(req: Request) {
 
     const resolvedName = autoReply?.extractedName || knownName || '';
     const resolvedPhone = autoReply?.extractedPhone || knownPhone || '';
+    const contact = getHandoffContact(resolvedName, resolvedPhone);
+    const wasEscalated = Boolean(existingParsed?.escalatedToHuman && contact.ready && !hasActionRefusal(messageText));
+    const newEscalation = Boolean((autoReply?.needsHuman || requestHuman) && handoffRequested && contact.ready);
+    const escalatedToHuman = wasEscalated || newEscalation;
+    const guardedReply = handoffRequested && !contact.ready
+      ? contact.prompt
+      : enforceActionClaims(autoReply?.replyText || '', {
+          customerName: resolvedName,
+          customerPhone: resolvedPhone,
+          handoffConfirmed: escalatedToHuman,
+          // This endpoint stores conversations; it never confirms an order or inspection booking.
+          submissionConfirmed: false,
+        });
     const nextStage: ChatConversationStage =
+      (handoffRequested && !contact.ready ? (contact.missingFields.includes('name') ? 'awaiting_name' : 'awaiting_phone') : undefined) ||
       autoReply?.nextStage ||
       (resolvedName && resolvedPhone
         ? 'active'
@@ -290,7 +312,9 @@ export async function POST(req: Request) {
             id: `bot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
             sender: 'admin',
             senderName: autoReply.senderName,
-            text: autoReply.replyText,
+            text: newEscalation
+              ? `${guardedReply}\nتم تسجيل طلب المتابعة للفريق. لم يتم تحديد موعد اتصال أو حجز معاينة بعد.`.trim()
+              : guardedReply,
             createdAt: new Date(Date.now() + 5).toISOString(),
             isAutoReply: true,
             intent: autoReply.intent,
@@ -322,11 +346,10 @@ export async function POST(req: Request) {
       ? [welcomeMsg, newMsg, ...(botMsg ? [botMsg] : [])]
       : [...normalizedPrevMessages.slice(-60), newMsg, ...(botMsg ? [botMsg] : [])];
 
-    const escalatedToHuman = Boolean(existingParsed?.escalatedToHuman || autoReply?.needsHuman);
-    const escalationReason = autoReply?.needsHuman
-      ? autoReply.escalationReason
-      : existingParsed?.escalationReason;
-    const escalatedAt = autoReply?.needsHuman ? nowIso : existingParsed?.escalatedAt;
+    const escalationReason = newEscalation
+      ? autoReply?.escalationReason
+      : wasEscalated ? existingParsed?.escalationReason : undefined;
+    const escalatedAt = newEscalation ? nowIso : wasEscalated ? existingParsed?.escalatedAt : undefined;
 
     const sessionData: ChatSessionPayload = {
       sessionId,
@@ -339,6 +362,7 @@ export async function POST(req: Request) {
       pendingQuestion: nextPendingQuestion,
       escalatedToHuman,
       escalationReason,
+      handoffRequested,
       escalatedAt,
       botPaused: Boolean(existingParsed?.botPaused),
       lastIntent: autoReply?.intent || existingParsed?.lastIntent,
@@ -350,7 +374,7 @@ export async function POST(req: Request) {
 
     if (sb) {
       if (existingRowId) {
-        await sb
+        const { data: saved, error: saveError } = await sb
           .from('user_requests')
           .update({
             subject: rowSubject,
@@ -358,27 +382,30 @@ export async function POST(req: Request) {
             status: rowStatus,
             admin_note: (escalatedToHuman && escalationReason ? `[تحويل] ${escalationReason}` : messageText).slice(0, 160),
           })
-          .eq('id', existingRowId);
+          .eq('id', existingRowId)
+          .select('id').single();
+        if (saveError || !saved?.id) return NextResponse.json({ error: 'تعذر حفظ الرسالة أو طلب المتابعة. لم يتم تأكيد التحويل؛ حاول مرة أخرى.' }, { status: 503 });
       } else {
-        await sb.from('user_requests').insert({
+        const { data: saved, error: saveError } = await sb.from('user_requests').insert({
           type: 'live_chat',
           category: sessionId,
           subject: rowSubject,
           details: JSON.stringify(sessionData),
           status: rowStatus,
           admin_note: (escalatedToHuman && escalationReason ? `[تحويل] ${escalationReason}` : messageText).slice(0, 160),
-        });
+        }).select('id').single();
+        if (saveError || !saved?.id) return NextResponse.json({ error: 'تعذر حفظ الرسالة أو طلب المتابعة. لم يتم تأكيد التحويل؛ حاول مرة أخرى.' }, { status: 503 });
       }
     }
 
-    await sendLiveChatTelegramNotification({
+    if (contact.ready && (newEscalation || wasEscalated || existingParsed?.botPaused)) await sendLiveChatTelegramNotification({
       sessionId,
       visitorName: resolvedName || 'زائر جديد (جاري التعرف)',
       visitorPhone: resolvedPhone || 'لم يُكتب بعد',
       messageText,
       pageUrl,
       isFirstMessage,
-      needsHuman: Boolean(autoReply?.needsHuman),
+      needsHuman: newEscalation,
       escalationReason: autoReply?.escalationReason,
       autoReplyPreview: botMsg?.text,
     });

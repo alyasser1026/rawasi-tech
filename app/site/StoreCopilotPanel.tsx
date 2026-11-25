@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { rememberVisitorContact } from '@/lib/client-device-info';
+import { filterRelevantCatalogProducts, inferCatalogIntent, isProductOrderable, toCustomerDisplayText } from '@/lib/copilot/catalog-relevance';
 import {
   type ClientCopilotActionLink,
   type ClientCopilotCartActionItem,
@@ -114,10 +115,10 @@ function readCurrentCartSnapshot(): Array<{
 }
 
 /**
- * يحوّل **bold** و `code` إلى عناصر React آمنة بدون استخدام HTML خام.
+ * يعرض التنسيق البسيط بدون علامات تقنية أو استخدام HTML خام.
  */
 function renderFormattedText(text: string): React.ReactNode {
-  const tokens = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g);
+  const tokens = toCustomerDisplayText(text).split(/(\*\*[^*]+\*\*)/g);
   return tokens.map((tok, idx) => {
     if (tok.startsWith('**') && tok.endsWith('**') && tok.length > 4) {
       return (
@@ -126,25 +127,7 @@ function renderFormattedText(text: string): React.ReactNode {
         </strong>
       );
     }
-    if (tok.startsWith('`') && tok.endsWith('`') && tok.length > 2) {
-      return (
-        <code
-          key={idx}
-          style={{
-            fontFamily: 'ui-monospace, monospace',
-            fontSize: '0.78em',
-            background: '#f1f5f9',
-            color: '#0f172a',
-            padding: '1px 5px',
-            borderRadius: '5px',
-            border: '1px solid #cbd5e1',
-          }}
-        >
-          {tok.slice(1, -1)}
-        </code>
-      );
-    }
-    return <React.Fragment key={idx}>{tok}</React.Fragment>;
+    return <React.Fragment key={idx}>{tok.replace(/\*\*/g, '')}</React.Fragment>;
   });
 }
 
@@ -194,6 +177,8 @@ function ProductCardItem({
   onAskDetails: (card: ClientCopilotProductCard) => void;
 }) {
   const [imgSrc, setImgSrc] = useState(card.imageUrl || '/products/smart-control-panel.webp');
+  const orderable = isProductOrderable(card);
+  const purchaseDisabled = !orderable || disabled;
 
   useEffect(() => {
     setImgSrc(card.imageUrl || '/products/smart-control-panel.webp');
@@ -215,7 +200,7 @@ function ProductCardItem({
       <div style={{ display: 'flex', gap: '9px', alignItems: 'flex-start' }}>
         <img
           src={imgSrc}
-          alt={card.name}
+          alt={toCustomerDisplayText(card.name)}
           loading="lazy"
           onError={() => setImgSrc('/products/smart-control-panel.webp')}
           style={{
@@ -240,7 +225,7 @@ function ProductCardItem({
                 borderRadius: '999px',
               }}
             >
-              {card.brand} • {card.code}
+              {toCustomerDisplayText(card.brand)} • {card.code}
             </span>
             <span
               style={{
@@ -248,11 +233,11 @@ function ProductCardItem({
                 fontWeight: 800,
                 padding: '1px 6px',
                 borderRadius: '999px',
-                background: card.inStock ? '#dcfce7' : '#fee2e2',
-                color: card.inStock ? '#15803d' : '#b91c1c',
+                background: orderable ? '#dcfce7' : '#fee2e2',
+                color: orderable ? '#15803d' : '#b91c1c',
               }}
             >
-              {card.inStock ? 'متوفر' : 'غير متوفر'}
+              {orderable ? 'متوفر' : 'غير متوفر'}
             </span>
           </div>
 
@@ -265,7 +250,7 @@ function ProductCardItem({
               wordBreak: 'break-word',
             }}
           >
-            {card.name}
+            {toCustomerDisplayText(card.name)}
           </div>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'baseline', gap: '6px', marginTop: '3px' }}>
@@ -289,7 +274,7 @@ function ProductCardItem({
           </div>
 
           <div style={{ marginTop: '2px', fontSize: '0.66rem', fontWeight: 700, color: '#0369a1' }}>
-            {card.installPrice && card.installPrice > 0
+            {!orderable ? 'غير متاح للطلب أو التركيب حاليًا' : card.installPrice && card.installPrice > 0
               ? `🛠️ تركيب +${card.installPrice.toLocaleString('en-US')} ${card.currency}`
               : '🛠️ متاح بالتركيب والمعاينة'}
           </div>
@@ -310,7 +295,7 @@ function ProductCardItem({
                 padding: '1px 6px',
               }}
             >
-              {sp}
+              {toCustomerDisplayText(sp)}
             </span>
           ))}
         </div>
@@ -319,8 +304,8 @@ function ProductCardItem({
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', paddingTop: '2px' }}>
         <button
           type="button"
-          disabled={!card.inStock}
-          onClick={() => onAddSupply(card)}
+          disabled={purchaseDisabled}
+          onClick={() => { if (!purchaseDisabled) onAddSupply(card); }}
           style={{
             flex: '1 1 auto',
             fontSize: '0.69rem',
@@ -330,7 +315,8 @@ function ProductCardItem({
             border: '1px solid #fed7aa',
             background: feedback === 'supply' ? '#dcfce7' : '#fff7ed',
             color: feedback === 'supply' ? '#15803d' : '#c2410c',
-            cursor: card.inStock ? 'pointer' : 'not-allowed',
+            cursor: purchaseDisabled ? 'not-allowed' : 'pointer',
+            opacity: purchaseDisabled ? 0.55 : 1,
           }}
         >
           {feedback === 'supply' ? '✓ أُضيف للسلة' : '🛒 توريد'}
@@ -338,8 +324,8 @@ function ProductCardItem({
 
         <button
           type="button"
-          disabled={!card.inStock}
-          onClick={() => onAddInstall(card)}
+          disabled={purchaseDisabled}
+          onClick={() => { if (!purchaseDisabled) onAddInstall(card); }}
           style={{
             flex: '1 1 auto',
             fontSize: '0.69rem',
@@ -349,7 +335,8 @@ function ProductCardItem({
             border: '1px solid #bae6fd',
             background: feedback === 'install' ? '#dcfce7' : '#f0f9ff',
             color: feedback === 'install' ? '#15803d' : '#0369a1',
-            cursor: card.inStock ? 'pointer' : 'not-allowed',
+            cursor: purchaseDisabled ? 'not-allowed' : 'pointer',
+            opacity: purchaseDisabled ? 0.55 : 1,
           }}
         >
           {feedback === 'install' ? '✓ بالتركيب' : '🛠️ بالتركيب'}
@@ -357,20 +344,21 @@ function ProductCardItem({
 
         <button
           type="button"
-          disabled={!card.inStock || disabled}
-          onClick={() => onQuickOrder(card)}
+          disabled={purchaseDisabled}
+          onClick={() => { if (!purchaseDisabled) onQuickOrder(card); }}
           style={{
             fontSize: '0.69rem',
             fontWeight: 900,
             padding: '5px 9px',
             borderRadius: '8px',
             border: 'none',
-            background: card.inStock ? 'linear-gradient(135deg, #16a34a, #15803d)' : '#94a3b8',
+            background: orderable ? 'linear-gradient(135deg, #16a34a, #15803d)' : '#94a3b8',
             color: '#ffffff',
-            cursor: card.inStock && !disabled ? 'pointer' : 'not-allowed',
+            cursor: purchaseDisabled ? 'not-allowed' : 'pointer',
+            opacity: purchaseDisabled ? 0.55 : 1,
           }}
         >
-          ✅ اطلب الآن
+          {orderable ? '✅ اطلب الآن' : 'غير متوفر للطلب'}
         </button>
 
         <button
@@ -447,7 +435,8 @@ export default function StoreCopilotPanel({
         if (parsed?.customerPhone) setCustomerPhone(String(parsed.customerPhone));
         if (parsed?.city) setCity(String(parsed.city));
         if (parsed?.address) setAddress(String(parsed.address));
-        if (parsed?.escalated) setEscalated(true);
+        // Older versions persisted a model-generated flag before an actual handoff.
+        if (parsed?.escalated && parsed?.handoffConfirmed === true) setEscalated(true);
       }
     } catch {
       // ignore malformed saved session
@@ -474,6 +463,7 @@ export default function StoreCopilotPanel({
             city,
             address,
             escalated: overrides?.escalated ?? escalated,
+            handoffConfirmed: overrides?.escalated ?? escalated,
           })
         );
       } catch {
@@ -569,10 +559,14 @@ export default function StoreCopilotPanel({
         const botMsg: CopilotUiMessage = {
           id: `bot-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           role: 'assistant',
-          text: data.reply,
+          text: toCustomerDisplayText(data.reply),
           createdAt: new Date().toISOString(),
           provider: data.provider,
-          products: Array.isArray(data.products) ? data.products : [],
+          products: filterRelevantCatalogProducts(Array.isArray(data.products) ? data.products : [], cleanText, {
+            activeProductId: options?.productId || activeProduct?.id,
+            includeUnavailable: Boolean(options?.productId || activeProduct?.id),
+            contextQuery: [...messages].reverse().find(message => message.role === 'user' && inferCatalogIntent(message.text).kind === 'product')?.text,
+          }),
           estimate: data.estimate || null,
           addedToCartItems,
           submittedOrder: data.submittedOrder || null,
@@ -633,6 +627,7 @@ export default function StoreCopilotPanel({
   };
 
   const handleAddCardToCart = (card: ClientCopilotProductCard, withInstall: boolean) => {
+    if (!isProductOrderable(card) || sendingRef.current || checkoutBusy) return;
     const item = cardToCartItem(card, 1, withInstall);
     dispatchAddToCartEvent([item], false);
     flashCardFeedback(card.id, withInstall ? 'install' : 'supply');
@@ -670,6 +665,7 @@ export default function StoreCopilotPanel({
   };
 
   const openCheckoutForProduct = async (card: ClientCopilotProductCard) => {
+    if (!isProductOrderable(card) || sendingRef.current || checkoutBusy) return;
     const localEst: ClientCopilotOrderEstimate = {
       items: [cardToCartItem(card, 1, false)],
       missingItems: [],
@@ -862,7 +858,7 @@ export default function StoreCopilotPanel({
             </strong>
             <span style={{ fontSize: '0.7rem', color: '#ffedd5', fontWeight: 700 }}>
               {escalated
-                ? '🔔 تم تحويل استفسارك للمهندس المختص'
+                ? '🔔 تم إرسال طلب التواصل للفريق المختص'
                 : customerName
                   ? `مرحباً أستاذ ${customerName} • متصل بالكتالوج الحي`
                   : '11,361 منتج + تركيبات + إتمام طلب فوري'}
@@ -941,7 +937,7 @@ export default function StoreCopilotPanel({
         }}
       >
         <span style={{ fontWeight: 800, color: escalated ? '#b45309' : '#334155' }}>
-          {escalated ? '🔔 في انتظار تواصل المهندس' : '⚡ بحث ذكي بدون تسجيل مسبق'}
+          {escalated ? 'طلب التواصل مُرسل — يمكنك متابعة سؤال المساعد' : '⚡ بحث ذكي بدون تسجيل مسبق'}
         </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {cleanWa && (
@@ -1108,7 +1104,7 @@ export default function StoreCopilotPanel({
                       onAddInstall={(c) => handleAddCardToCart(c, true)}
                       onQuickOrder={(c) => void openCheckoutForProduct(c)}
                       onAskDetails={(c) =>
-                        void sendMessage(`اعرض لي المواصفات الكاملة والبدائل للمنتج كود ${c.code}`)
+                        void sendMessage(`اعرض لي المواصفات الكاملة والبدائل للمنتج كود ${c.code}`, { productId: c.id })
                       }
                     />
                   ))}
@@ -1624,6 +1620,7 @@ export default function StoreCopilotPanel({
 
       {errorMsg && (
         <div
+          role="alert"
           style={{
             padding: '6px 12px',
             background: '#fef2f2',

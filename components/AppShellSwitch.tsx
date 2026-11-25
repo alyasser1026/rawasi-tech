@@ -53,13 +53,11 @@ export default function AppShellSwitch({ children }: { children: React.ReactNode
       <ToastProvider>
         <PerformancePreferences>
           <VisitorTracker />
-          {(pathname === '/login' || pathname === '/signup') && (
-            <AuthToaster
-              position="top-center"
-              gutter={10}
-              containerStyle={{ top: 20, zIndex: 2147483600 }}
-            />
-          )}
+          <AuthToaster
+            position="top-center"
+            gutter={10}
+            containerStyle={{ top: 20, zIndex: 2147483600 }}
+          />
           <div style={{ position: 'relative', zIndex: 1 }}>{children}</div>
         </PerformancePreferences>
       </ToastProvider>

@@ -44,12 +44,26 @@ interface TestSearchHit {
   relevance_score: number;
 }
 
+interface KnowledgeItemRow {
+  id: number;
+  title: string;
+  category: string;
+  keywords: string[];
+  answer: string;
+  priority: number;
+  is_active: boolean;
+  created_at?: string;
+  updated_at?: string;
+}
+
 interface AdminStats {
   totalSynonyms: number;
   activeSynonyms: number;
   byType: Record<string, number>;
   totalMisses: number;
   openMisses: number;
+  totalKnowledge?: number;
+  activeKnowledge?: number;
 }
 
 interface OverviewStats {
@@ -66,11 +80,27 @@ const TYPE_LABELS: Record<SynonymRow['synonym_type'], { label: string; color: st
   category: { label: 'قسم رئيسي', color: '#7c3aed' },
 };
 
+const KNOWLEDGE_CATEGORY_OPTIONS: Array<{ id: string; label: string }> = [
+  { id: 'general', label: 'عام' },
+  { id: 'sales_policy', label: 'سياسة المبيعات والأسعار' },
+  { id: 'shipping', label: 'الشحن والتوصيل' },
+  { id: 'warranty', label: 'الضمان وخدمة ما بعد البيع' },
+  { id: 'installation', label: 'التركيبات والمعاينة' },
+  { id: 'maintenance', label: 'الصيانة والتنفيذ' },
+  { id: 'smart_home', label: 'السمارت هوم والحساسات' },
+  { id: 'finishing', label: 'التشطيبات والمقاولات' },
+];
+
+const KNOWLEDGE_CAT_MAP = new Map<string, string>(
+  KNOWLEDGE_CATEGORY_OPTIONS.map((c) => [c.id, c.label])
+);
+
 const CAT_NAME_MAP = new Map<string, string>(
   PRODUCT_CATEGORIES.map((c) => [c.id, `${c.icon} ${c.shortTitle || c.title}`])
 );
 
 export default function StoreCopilotAdminTab() {
+  const [subTab, setSubTab] = useState<'synonyms' | 'behavior' | 'knowledge'>('synonyms');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -79,12 +109,16 @@ export default function StoreCopilotAdminTab() {
   const [synonyms, setSynonyms] = useState<SynonymRow[]>([]);
   const [misses, setMisses] = useState<SearchMissRow[]>([]);
   const [overview, setOverview] = useState<OverviewStats | null>(null);
+  const [trainingReady, setTrainingReady] = useState(false);
+  const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeItemRow[]>([]);
   const [stats, setStats] = useState<AdminStats>({
     totalSynonyms: 0,
     activeSynonyms: 0,
     byType: { slang: 0, brand: 0, product: 0, category: 0 },
     totalMisses: 0,
     openMisses: 0,
+    totalKnowledge: 0,
+    activeKnowledge: 0,
   });
 
   // نموذج إضافة / تعديل المرادف
@@ -96,6 +130,22 @@ export default function StoreCopilotAdminTab() {
   const [targetCats, setTargetCats] = useState<string[]>([]);
   const [notes, setNotes] = useState('');
   const [isActive, setIsActive] = useState(true);
+
+  // إعدادات السلوك والبرومبت المخصصة
+  const [personaName, setPersonaName] = useState('كوبايلوت متجر فاي تك الذكي');
+  const [toneGuidelines, setToneGuidelines] = useState('');
+  const [salesHandoffPrompt, setSalesHandoffPrompt] = useState('');
+  const [extraSystemRules, setExtraSystemRules] = useState('');
+  const [forbiddenClaims, setForbiddenClaims] = useState('');
+
+  // نموذج قاعدة معرفة الشركة المدربة
+  const [editingKnowId, setEditingKnowId] = useState<number | null>(null);
+  const [knowTitle, setKnowTitle] = useState('');
+  const [knowCategory, setKnowCategory] = useState('general');
+  const [knowKeywords, setKnowKeywords] = useState('');
+  const [knowAnswer, setKnowAnswer] = useState('');
+  const [knowPriority, setKnowPriority] = useState(10);
+  const [knowActive, setKnowActive] = useState(true);
 
   // فلاتر جدول المرادفات وسجل البحث
   const [typeFilter, setTypeFilter] = useState<'all' | SynonymRow['synonym_type']>('all');
@@ -110,6 +160,7 @@ export default function StoreCopilotAdminTab() {
 
   const formCardRef = useRef<HTMLDivElement | null>(null);
   const testerCardRef = useRef<HTMLDivElement | null>(null);
+  const knowFormRef = useRef<HTMLDivElement | null>(null);
 
   const authedRequest = useCallback(async (url: string, init?: RequestInit) => {
     const {
@@ -141,6 +192,15 @@ export default function StoreCopilotAdminTab() {
       setSynonyms(Array.isArray(data.synonyms) ? data.synonyms : []);
       setMisses(Array.isArray(data.misses) ? data.misses : []);
       setOverview(data.overview || null);
+      setTrainingReady(Boolean(data.trainingReady));
+      setKnowledgeItems(Array.isArray(data.knowledgeItems) ? data.knowledgeItems : []);
+      if (data.trainingConfig && typeof data.trainingConfig === 'object') {
+        setPersonaName(String(data.trainingConfig.persona_name || 'كوبايلوت متجر فاي تك الذكي'));
+        setToneGuidelines(String(data.trainingConfig.tone_guidelines || ''));
+        setSalesHandoffPrompt(String(data.trainingConfig.sales_handoff_prompt || ''));
+        setExtraSystemRules(String(data.trainingConfig.extra_system_rules || ''));
+        setForbiddenClaims(String(data.trainingConfig.forbidden_claims || ''));
+      }
       if (data.stats) setStats(data.stats);
     } catch (e: any) {
       setErr(e?.message || 'تعذر تحميل بيانات الكوبايلوت');
@@ -162,6 +222,16 @@ export default function StoreCopilotAdminTab() {
     setTargetCats([]);
     setNotes('');
     setIsActive(true);
+  };
+
+  const resetKnowledgeForm = () => {
+    setEditingKnowId(null);
+    setKnowTitle('');
+    setKnowCategory('general');
+    setKnowKeywords('');
+    setKnowAnswer('');
+    setKnowPriority(10);
+    setKnowActive(true);
   };
 
   const toggleTargetCat = (catId: string) => {
@@ -260,7 +330,127 @@ export default function StoreCopilotAdminTab() {
     }
   };
 
-  const handleDeleteRow = async (kind: 'synonym' | 'miss', id: number, label: string) => {
+  const handleSaveTrainingConfig = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (busy) return;
+    setBusy(true);
+    setErr('');
+    setMsg('');
+    try {
+      await authedRequest('/api/store-copilot/admin', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'save_training_config',
+          persona_name: personaName.trim(),
+          tone_guidelines: toneGuidelines.trim(),
+          sales_handoff_prompt: salesHandoffPrompt.trim(),
+          extra_system_rules: extraSystemRules.trim(),
+          forbidden_claims: forbiddenClaims.trim(),
+        }),
+      });
+      setMsg('تم حفظ إعدادات السلوك واللهجة في الباك اند وتفعيلها فوراً ✅');
+      await loadData();
+    } catch (e: any) {
+      setErr(e?.message || 'تعذر حفظ إعدادات التدريب');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleSaveKnowledge = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!knowTitle.trim() || !knowAnswer.trim() || busy) return;
+    setBusy(true);
+    setErr('');
+    setMsg('');
+    try {
+      const keywords = knowKeywords
+        .split(/[،,\n]+/)
+        .map((k) => k.trim())
+        .filter(Boolean);
+
+      if (editingKnowId !== null) {
+        await authedRequest('/api/store-copilot/admin', {
+          method: 'PATCH',
+          body: JSON.stringify({
+            action: 'update_knowledge',
+            id: editingKnowId,
+            title: knowTitle.trim(),
+            category: knowCategory,
+            keywords,
+            answer: knowAnswer.trim(),
+            priority: knowPriority,
+            is_active: knowActive,
+          }),
+        });
+        setMsg(`تم تحديث مقال المعرفة "${knowTitle.trim()}" بنجاح ✅`);
+      } else {
+        await authedRequest('/api/store-copilot/admin', {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'create_knowledge',
+            title: knowTitle.trim(),
+            category: knowCategory,
+            keywords,
+            answer: knowAnswer.trim(),
+            priority: knowPriority,
+            is_active: knowActive,
+          }),
+        });
+        setMsg(`تمت إضافة "${knowTitle.trim()}" إلى قاعدة معرفة الكوبايلوت ✅`);
+      }
+      resetKnowledgeForm();
+      await loadData();
+    } catch (e: any) {
+      setErr(e?.message || 'تعذر حفظ مقال المعرفة');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleEditKnowledge = (item: KnowledgeItemRow) => {
+    setEditingKnowId(item.id);
+    setKnowTitle(item.title);
+    setKnowCategory(item.category || 'general');
+    setKnowKeywords((item.keywords || []).join('، '));
+    setKnowAnswer(item.answer);
+    setKnowPriority(Number(item.priority || 10));
+    setKnowActive(Boolean(item.is_active));
+    setSubTab('knowledge');
+    setErr('');
+    setMsg('');
+    knowFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleToggleKnowledgeActive = async (item: KnowledgeItemRow) => {
+    if (busy) return;
+    setBusy(true);
+    setErr('');
+    try {
+      await authedRequest('/api/store-copilot/admin', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          action: 'update_knowledge',
+          id: item.id,
+          is_active: !item.is_active,
+        }),
+      });
+      setKnowledgeItems((prev) =>
+        prev.map((k) => (k.id === item.id ? { ...k, is_active: !item.is_active } : k))
+      );
+      setMsg(`تم ${!item.is_active ? 'تفعيل' : 'تعطيل'} "${item.title}".`);
+    } catch (e: any) {
+      setErr(e?.message || 'تعذر تغيير حالة المقال');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDeleteRow = async (
+    kind: 'synonym' | 'miss' | 'knowledge',
+    id: number,
+    label: string
+  ) => {
     if (busy || !window.confirm(`هل تريد حذف "${label}"؟`)) return;
     setBusy(true);
     setErr('');
@@ -269,6 +459,7 @@ export default function StoreCopilotAdminTab() {
         method: 'DELETE',
       });
       if (editingId === id && kind === 'synonym') resetForm();
+      if (editingKnowId === id && kind === 'knowledge') resetKnowledgeForm();
       setMsg(`تم حذف "${label}" بنجاح.`);
       await loadData();
     } catch (e: any) {
@@ -418,9 +609,58 @@ export default function StoreCopilotAdminTab() {
             إجمالي المسجل: {stats.totalMisses} (تُضاف تلقائياً عند 0 نتائج)
           </small>
         </div>
+
+        <div className="wa-card">
+          <div style={{ fontSize: '12.5px', color: 'var(--mut)', fontWeight: 700 }}>
+            📚 مقالات المعرفة المدربة
+          </div>
+          <strong style={{ display: 'block', fontSize: '24px', marginTop: '4px', color: 'var(--ink)' }}>
+            {stats.activeKnowledge ?? 0} / {stats.totalKnowledge ?? 0}
+          </strong>
+          <small style={{ color: trainingReady ? 'var(--ok)' : '#d97706', fontWeight: 700 }}>
+            {trainingReady
+              ? 'مربوطة بقاعدة البيانات وتعمل بالباك اند'
+              : 'تحتاج تشغيل هجرة الجداول أولاً'}
+          </small>
+        </div>
       </div>
 
-      {/* أداة اختبار البحث الحي بالعامية */}
+      {/* تبويبات التدريب الفرعية */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+        {(
+          [
+            ['synonyms', '🧠 المرادفات والبحث'],
+            ['behavior', '🎯 سلوك المساعد والبرومبت'],
+            ['knowledge', '📚 قاعدة معرفة الشركة'],
+          ] as const
+        ).map(([tabKey, tabLabel]) => {
+          const active = subTab === tabKey;
+          return (
+            <button
+              key={tabKey}
+              type="button"
+              className="wa-btn"
+              onClick={() => {
+                setSubTab(tabKey);
+                setErr('');
+                setMsg('');
+              }}
+              style={{
+                borderColor: active ? 'var(--acc)' : 'var(--line)',
+                color: active ? 'var(--acc)' : 'var(--ink)',
+                background: active ? 'rgba(249,115,22,0.12)' : 'var(--card)',
+                fontWeight: 800,
+              }}
+            >
+              {tabLabel}
+            </button>
+          );
+        })}
+      </div>
+
+      {subTab === 'synonyms' && (
+        <>
+          {/* أداة اختبار البحث الحي بالعامية */}
       <div className="wa-card" ref={testerCardRef}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
           <div>
@@ -937,6 +1177,374 @@ export default function StoreCopilotAdminTab() {
           </div>
         )}
       </div>
+        </>
+      )}
+
+      {subTab === 'behavior' && (
+        <div style={{ display: 'grid', gap: '16px' }}>
+          {!trainingReady && (
+            <div
+              className="wa-alert"
+              style={{
+                margin: 0,
+                borderColor: '#d97706',
+                background: 'rgba(217, 119, 6, 0.08)',
+                color: 'var(--ink)',
+              }}
+            >
+              ⚠️ جداول تدريب الباك اند غير منشأة في قاعدة البيانات بعد. نفّذ ملف الهجرة{' '}
+              <code>supabase/migrations/20261124100000_store_copilot_training.sql</code> في Supabase SQL
+              Editor ثم اضغط «🔄 تحديث البيانات» لتفعيل الحفظ المباشر.
+            </div>
+          )}
+
+          <div className="wa-card">
+            <div style={{ marginBottom: '12px' }}>
+              <h3 style={{ margin: 0 }}>🎯 إعدادات السلوك واللهجة والتعليمات الإضافية</h3>
+              <small className="wa-muted">
+                تُقرأ هذه الإعدادات في الباك اند فقط (`app/api/store-copilot`) ولا تدخل حزمة المتصفح، مع الإبقاء على
+                قواعد الصدق وحماية الأسعار ثابتة دائماً.
+              </small>
+            </div>
+
+            <form onSubmit={handleSaveTrainingConfig} className="wa-form">
+              <label className="wa-f">
+                اسم الشخصية (persona_name)
+                <input
+                  type="text"
+                  maxLength={120}
+                  value={personaName}
+                  onChange={(e) => setPersonaName(e.target.value)}
+                  placeholder="مثال: كوبايلوت متجر فاي تك الذكي"
+                />
+              </label>
+
+              <label className="wa-f">
+                عبارة سؤال التحويل للمبيعات (sales_handoff_prompt)
+                <input
+                  type="text"
+                  maxLength={300}
+                  value={salesHandoffPrompt}
+                  onChange={(e) => setSalesHandoffPrompt(e.target.value)}
+                  placeholder="مثال: عايز تتكلم مع المبيعات مباشرة ولا نبدأ هنا بالمنتج اللي بتدور عليه؟"
+                />
+              </label>
+
+              <label className="wa-f wa-wide">
+                إرشادات اللهجة والأسلوب (tone_guidelines)
+                <textarea
+                  rows={2}
+                  maxLength={600}
+                  value={toneGuidelines}
+                  onChange={(e) => setToneGuidelines(e.target.value)}
+                  placeholder="مثال: تحدّث بالعامية المصرية الودودة والمهذبة والمباشرة..."
+                />
+              </label>
+
+              <label className="wa-f wa-wide">
+                تعليمات وقواعد تدريب إضافية (extra_system_rules)
+                <textarea
+                  rows={5}
+                  maxLength={3000}
+                  value={extraSystemRules}
+                  onChange={(e) => setExtraSystemRules(e.target.value)}
+                  placeholder="أضف هنا أي قواعد مبيعات أو أمثلة ردود تريد أن يلتزم بها الكوبايلوت..."
+                />
+              </label>
+
+              <label className="wa-f wa-wide">
+                ممنوعات وعبارات محظور ادعاؤها (forbidden_claims)
+                <textarea
+                  rows={3}
+                  maxLength={1500}
+                  value={forbiddenClaims}
+                  onChange={(e) => setForbiddenClaims(e.target.value)}
+                  placeholder="مثال: ممنوع الوعد بتركيب مجاني أو خصم إضافي غير مسجل أو توافق كاميرات طرف ثالث بدون معاينة."
+                />
+              </label>
+
+              <div className="wa-wide" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  className="wa-btn"
+                  disabled={busy}
+                  onClick={() => void loadData()}
+                >
+                  🔄 إعادة تحميل من السيرفر
+                </button>
+                <button
+                  type="submit"
+                  className="wa-btn wa-primary"
+                  disabled={busy || !trainingReady}
+                >
+                  {busy ? 'جارٍ الحفظ...' : '💾 حفظ وتفعيل إعدادات السلوك'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {subTab === 'knowledge' && (
+        <div style={{ display: 'grid', gap: '16px' }}>
+          {!trainingReady && (
+            <div
+              className="wa-alert"
+              style={{
+                margin: 0,
+                borderColor: '#d97706',
+                background: 'rgba(217, 119, 6, 0.08)',
+                color: 'var(--ink)',
+              }}
+            >
+              ⚠️ جداول قاعدة المعرفة غير منشأة في قاعدة البيانات بعد. نفّذ ملف الهجرة{' '}
+              <code>supabase/migrations/20261124100000_store_copilot_training.sql</code> في Supabase SQL
+              Editor لتتمكن من إضافة وتعديل مقالات المعرفة هنا.
+            </div>
+          )}
+
+          <div className="wa-card" ref={knowFormRef}>
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '10px',
+              }}
+            >
+              <h3 style={{ margin: 0 }}>
+                {editingKnowId !== null
+                  ? `✏️ تعديل مقال المعرفة (#${editingKnowId})`
+                  : '➕ إضافة مقال معرفة أو سياسة شركة'}
+              </h3>
+              {editingKnowId !== null && (
+                <button type="button" className="wa-btn" onClick={resetKnowledgeForm}>
+                  ✕ إلغاء التعديل
+                </button>
+              )}
+            </div>
+
+            <form onSubmit={handleSaveKnowledge} className="wa-form">
+              <label className="wa-f">
+                العنوان *
+                <input
+                  type="text"
+                  required
+                  maxLength={160}
+                  value={knowTitle}
+                  onChange={(e) => setKnowTitle(e.target.value)}
+                  placeholder="مثال: سياسة الشحن والتوصيل للمحافظات"
+                />
+              </label>
+
+              <label className="wa-f">
+                التصنيف
+                <select
+                  value={knowCategory}
+                  onChange={(e) => setKnowCategory(e.target.value)}
+                  style={{
+                    background: 'var(--bg)',
+                    color: 'var(--ink)',
+                    border: '1px solid var(--line)',
+                    borderRadius: '10px',
+                    padding: '10px 12px',
+                    font: 'inherit',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {KNOWLEDGE_CATEGORY_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label} ({opt.id})
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <label className="wa-f wa-wide">
+                كلمات البحث المفتاحية (افصل بفاصلة , أو ،)
+                <input
+                  type="text"
+                  value={knowKeywords}
+                  onChange={(e) => setKnowKeywords(e.target.value)}
+                  placeholder="مثال: شحن، توصيل، محافظات، مصاريف الشحن، الدلتا"
+                />
+              </label>
+
+              <label className="wa-f wa-wide">
+                نص الإجابة المعتمدة التي يسترشد بها المساعد *
+                <textarea
+                  rows={4}
+                  required
+                  maxLength={2000}
+                  value={knowAnswer}
+                  onChange={(e) => setKnowAnswer(e.target.value)}
+                  placeholder="اكتب الإجابة الواضحة والدقيقة التي يجب أن يعتمدها الكوبايلوت..."
+                />
+              </label>
+
+              <label className="wa-f">
+                الأولوية (0 - 100)
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={knowPriority}
+                  onChange={(e) => setKnowPriority(Number(e.target.value) || 0)}
+                />
+              </label>
+
+              <label
+                className="wa-f"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  alignSelf: 'end',
+                  paddingBottom: '8px',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={knowActive}
+                  onChange={(e) => setKnowActive(e.target.checked)}
+                  style={{ width: '18px', height: '18px' }}
+                />
+                <span style={{ color: 'var(--ink)', fontWeight: 800 }}>مفعّل في الباك اند</span>
+              </label>
+
+              <div className="wa-wide" style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                <button
+                  type="submit"
+                  className="wa-btn wa-primary"
+                  disabled={busy || !trainingReady || !knowTitle.trim() || !knowAnswer.trim()}
+                >
+                  {busy
+                    ? 'جارٍ الحفظ...'
+                    : editingKnowId !== null
+                      ? '💾 حفظ تعديلات المقال'
+                      : '➕ إضافة وحفظ في المعرفة'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="wa-card">
+            <div style={{ marginBottom: '12px' }}>
+              <h3 style={{ margin: 0 }}>📚 مقالات قاعدة المعرفة ({knowledgeItems.length})</h3>
+              <small className="wa-muted">
+                يتم مطابقة أعلى 3 مقالات صلةً بسؤال العميل في الباك اند وإرسالها للنموذج أو في أداة خدمات الشركة.
+              </small>
+            </div>
+
+            {knowledgeItems.length === 0 ? (
+              <p className="wa-muted" style={{ margin: 0 }}>
+                {trainingReady
+                  ? 'لا توجد مقالات معرفة مسجلة بعد — أضف أول مقال من النموذج أعلاه.'
+                  : 'بانتظار تنفيذ هجرة جداول التدريب لعرض المقالات المخزنة.'}
+              </p>
+            ) : (
+              <div style={{ display: 'grid', gap: '8px' }}>
+                {knowledgeItems.map((item) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: '12px',
+                      border: '1px solid var(--line)',
+                      background: 'var(--bg)',
+                      opacity: item.is_active ? 1 : 0.6,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'flex-start',
+                      flexWrap: 'wrap',
+                      gap: '10px',
+                    }}
+                  >
+                    <div style={{ flex: '1 1 340px', minWidth: 0 }}>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
+                        <strong style={{ fontSize: '14.5px', color: 'var(--ink)' }}>{item.title}</strong>
+                        <span className="wa-pill">
+                          {KNOWLEDGE_CAT_MAP.get(item.category) || item.category}
+                        </span>
+                        <span style={{ fontSize: '11.5px', color: 'var(--mut)' }}>
+                          أولوية: {item.priority}
+                        </span>
+                        {!item.is_active && (
+                          <span className="wa-pill" style={{ color: 'var(--bad)', borderColor: 'var(--bad)' }}>
+                            معطّل
+                          </span>
+                        )}
+                      </div>
+
+                      <p style={{ margin: '0 0 6px 0', fontSize: '13px', color: 'var(--ink)', lineHeight: 1.55 }}>
+                        {item.answer}
+                      </p>
+
+                      {Array.isArray(item.keywords) && item.keywords.length > 0 && (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {item.keywords.map((kw) => (
+                            <span
+                              key={kw}
+                              style={{
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                padding: '2px 7px',
+                                borderRadius: '6px',
+                                background: 'var(--card)',
+                                border: '1px solid var(--line)',
+                                color: 'var(--mut)',
+                              }}
+                            >
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                      <button
+                        type="button"
+                        className="wa-btn"
+                        style={{ padding: '5px 10px', fontSize: '12px' }}
+                        onClick={() => handleEditKnowledge(item)}
+                      >
+                        ✏️ تعديل
+                      </button>
+                      <button
+                        type="button"
+                        className="wa-btn"
+                        disabled={busy}
+                        style={{
+                          padding: '5px 10px',
+                          fontSize: '12px',
+                          color: item.is_active ? 'var(--mut)' : 'var(--ok)',
+                        }}
+                        onClick={() => void handleToggleKnowledgeActive(item)}
+                      >
+                        {item.is_active ? '⏸ تعطيل' : '▶ تفعيل'}
+                      </button>
+                      <button
+                        type="button"
+                        className="wa-btn wa-danger"
+                        disabled={busy}
+                        style={{ padding: '5px 10px', fontSize: '12px' }}
+                        onClick={() => void handleDeleteRow('knowledge', item.id, item.title)}
+                      >
+                        🗑️ حذف
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

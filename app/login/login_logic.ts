@@ -1,9 +1,10 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/toast-context'; 
 import { getDestinationForUser } from '@/lib/roleRouter';
+import { getAuthEmailRedirectTo, getAuthErrorFeedback, getSafeAuthRedirect } from '@/lib/auth-feedback';
 import {
   collectClientDeviceDetails,
   rememberVisitorContact,
@@ -47,11 +48,30 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmailValue] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [confirmationEmail, setConfirmationEmail] = useState('');
+  const [isResendingConfirmation, setIsResendingConfirmation] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [confirmationFeedback, setConfirmationFeedback] = useState<{ message: string; tone: 'success' | 'warning' | 'error' } | null>(null);
+  const resendPending = useRef(false);
+  const submitPending = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const redirectParam = searchParams?.get('redirect');
+  const setEmail = (value: string) => {
+    setEmailValue(value);
+    setConfirmationEmail('');
+    setConfirmationFeedback(null);
+  };
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = window.setTimeout(() => setResendCooldown(value => Math.max(0, value - 1)), 1000);
+    return () => window.clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const redirectParam = getSafeAuthRedirect(searchParams?.get('redirect'));
   const portalParam = searchParams?.get('portal');
   const shouldRedirectToPortal = Boolean(
     (redirectParam && redirectParam !== '/' && redirectParam !== '/website') ||
@@ -97,8 +117,8 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
   // 2. مزامنة قيم المتصفح (Autofill)
   useEffect(() => {
     const syncFields = () => {
-      const emailField = document.querySelector('input[type="text"], input[type="email"]') as HTMLInputElement;
-      const passField = document.querySelector('input[type="password"]') as HTMLInputElement;
+      const emailField = formRef.current?.querySelector<HTMLInputElement>('input[autocomplete="username"]');
+      const passField = formRef.current?.querySelector<HTMLInputElement>('input[autocomplete="current-password"], input[autocomplete="new-password"]');
       if (emailField?.value && !email) setEmail(emailField.value);
       if (passField?.value && !password) setPassword(passField.value);
     };
@@ -110,8 +130,8 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
   const handleAutoFill = (e: React.AnimationEvent<HTMLInputElement>) => {
     if (e.animationName === 'onAutoFillStart') {
       const target = e.target as HTMLInputElement;
-      if (target.type === 'text' || target.type === 'email') setEmail(target.value);
-      if (target.type === 'password') setPassword(target.value);
+      if (target.autocomplete === 'username') setEmail(target.value);
+      if (target.autocomplete === 'current-password' || target.autocomplete === 'new-password') setPassword(target.value);
     }
   };
 
@@ -120,26 +140,64 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
     setFullName('');
     setPhone('');
     setPassword('');
+    setConfirmationEmail('');
+    setConfirmationFeedback(null);
+  };
+
+  const emailRedirectTo = () => getAuthEmailRedirectTo(
+    window.location.origin,
+    redirectParam || (window.location.pathname !== '/login' ? window.location.pathname : null),
+    portalParam
+  );
+
+  const handleResendConfirmation = async () => {
+    if (!confirmationEmail || isLoading || resendPending.current || resendCooldown > 0) return;
+    resendPending.current = true;
+    setIsResendingConfirmation(true);
+    setConfirmationFeedback(null);
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: confirmationEmail,
+        options: { emailRedirectTo: emailRedirectTo() },
+      });
+      if (error) throw error;
+      setResendCooldown(60);
+      setConfirmationFeedback({ message: 'تم طلب إعادة إرسال رابط التفعيل. راجع بريدك ومجلد الرسائل غير المرغوب فيها، ثم سجّل الدخول بعد التفعيل.', tone: 'success' });
+    } catch (error: unknown) {
+      const feedback = getAuthErrorFeedback(error);
+      setConfirmationFeedback({ message: feedback.message, tone: feedback.tone });
+      if (feedback.tone === 'warning') setResendCooldown(60);
+      showToast(feedback.message, feedback.tone);
+    } finally {
+      resendPending.current = false;
+      setIsResendingConfirmation(false);
+    }
   };
 
   // 🚀 3. دالة التنفيذ والتوجيه حسب الصلاحيات
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitPending.current || resendPending.current) return;
     
-    if (!email || !password) {
+    if (!email.trim() || !password) {
       return showToast('الرجاء إدخال اسم المستخدم / البريد الإلكتروني وكلمة المرور', 'warning');
     }
     
+    if (isSignUp) {
+      if (!fullName.trim()) return showToast('يرجى إدخال الاسم الكامل', 'warning');
+      if (!phone.trim() || phone.replace(/\D/g, '').length < 8) return showToast('يرجى إدخال رقم الجوال بشكل صحيح', 'warning');
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return showToast('يرجى إدخال بريد إلكتروني صحيح لإنشاء الحساب', 'warning');
+      if (password.length < 6) return showToast('كلمة المرور يجب أن تكون 6 أحرف على الأقل', 'warning');
+    }
+
+    submitPending.current = true;
     setIsLoading(true);
+    setConfirmationFeedback(null);
+    let attemptedEmail = email.trim();
 
     try {
       if (isSignUp) {
-        if (!fullName.trim()) throw new Error('يرجى إدخال الاسم الكامل');
-        if (!phone.trim() || phone.replace(/\D/g, '').length < 8) {
-          throw new Error('يرجى إدخال رقم الجوال بشكل صحيح');
-        }
-        if (password.length < 6) throw new Error('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-
         const cleanPhone = phone.trim();
         const cleanName = fullName.trim();
         const cleanEmail = email.trim();
@@ -148,6 +206,7 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
           email: cleanEmail,
           password,
           options: {
+            emailRedirectTo: emailRedirectTo(),
             data: {
               full_name: cleanName,
               phone: cleanPhone,
@@ -176,6 +235,8 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
 
         // في حال تفعيل تأكيد البريد في Supabase وعدم وجود جلسة فورية
         if (data?.user && !data.session) {
+          setConfirmationEmail(cleanEmail);
+          setResendCooldown(60);
           showToast('تم إنشاء الحساب بنجاح! يرجى مراجعة بريدك الإلكتروني (ومجلد Spam) والضغط على رابط التفعيل لتسجيل الدخول.', 'info');
           setIsSignUp(false); setPhone(''); setPassword(''); setIsLoading(false);
           return;
@@ -222,19 +283,13 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
             console.warn('Username lookup error:', lookupErr);
           }
         }
+        attemptedEmail = loginEmail;
 
         // 🔑 تسجيل الدخول في Supabase
         const { error, data } = await supabase.auth.signInWithPassword({ email: loginEmail, password });
-        if (error) {
-          const msg = (error.message || '').toLowerCase();
-          if (msg.includes('email not confirmed') || (error as any).code === 'email_not_confirmed') {
-            throw new Error('لم يتم تأكيد البريد الإلكتروني بعد! يرجى فتح بريدك الإلكتروني (ومراجعة مجلد Spam / غير المرغوب فيها) والضغط على رابط التفعيل.');
-          }
-          if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
-            throw new Error('بيانات الدخول غير صحيحة، يرجى التأكد من كتابة البريد الإلكتروني وكلمة المرور بدقة.');
-          }
-          throw new Error(error.message || 'بيانات الدخول غير صحيحة، يرجى مراجعة البريد الإلكتروني وكلمة المرور.');
-        }
+        if (error) throw error;
+        if (!data.user || !data.session) throw new Error('لم تُنشأ جلسة تسجيل الدخول. يرجى المحاولة مرة أخرى.');
+        setConfirmationEmail('');
         
         // تسجيل حركة الدخول في سجل المراقبة
         if (data.session) {
@@ -305,14 +360,19 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
           }
         }
       }
-    } catch (error: any) {
-      showToast(error.message, 'error'); 
-      setIsLoading(false); 
-    } 
+    } catch (error: unknown) {
+      const feedback = getAuthErrorFeedback(error);
+      if (feedback.requiresConfirmation) setConfirmationEmail(attemptedEmail);
+      showToast(feedback.message, feedback.tone);
+    } finally {
+      submitPending.current = false;
+      setIsLoading(false);
+    }
   };
 
   return {
     isSignUp, toggleSignUp, fullName, setFullName, phone, setPhone, email, setEmail, password, setPassword,
-    isLoading, handleAutoFill, handleSubmit
+    isLoading, handleAutoFill, handleSubmit, formRef,
+    confirmationEmail, confirmationFeedback, isResendingConfirmation, resendCooldown, handleResendConfirmation
   };
 }

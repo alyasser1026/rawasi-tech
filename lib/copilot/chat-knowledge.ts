@@ -8,9 +8,10 @@
  * محتوى عام فقط — مفيش أي بيانات من السيستم الداخلي.
  */
 
-import { CHECKLIST } from './checklist-data';
-import { EXECUTION_GUIDE_ITEMS, type ExecutionItemGuide } from './execution-guide-data';
-import { PORTAL_SECTIONS } from './section-defs';
+import { CHECKLIST } from '@/app/site/checklist-data';
+import { EXECUTION_GUIDE_ITEMS, type ExecutionItemGuide } from '@/app/site/execution-guide-data';
+import { PORTAL_SECTIONS } from '@/app/site/section-defs';
+import { replaceInternalCategoryLabels } from './response-policy';
 import {
   DEFAULT_MAINTENANCE_SERVICES,
   DEFAULT_PRODUCTS,
@@ -20,7 +21,7 @@ import {
   type WebsiteMaintenanceService,
   type WebsiteProduct,
   type WebsiteProperty,
-} from './store-catalog';
+} from '@/app/site/store-catalog';
 
 export interface KnowledgeSiteContent {
   SITE?: { name?: string; legalName?: string; intro?: string; offices?: string[]; contact?: Record<string, string | undefined> };
@@ -418,13 +419,11 @@ export function searchSiteKnowledge(question: string, site?: KnowledgeSiteConten
 
 /* ───────── ملخص الموقع للرد الذكي (Gemini) ───────── */
 
-let digestCache: { key: string; text: string } | null = null;
-
 /** ملخص نصي لكل محتوى الموقع (~10 آلاف حرف) — مرجع الرد الذكي لما مفيش تطابق مباشر. */
 export function buildSiteKnowledgeDigest(site?: KnowledgeSiteContent): string {
   const c = content(site);
-  const key = JSON.stringify([c.products.length, c.properties.length, c.maintenance.length, c.faqs.length, c.projects.length, site?.SITE?.contact?.phone]);
-  if (digestCache?.key === key) return digestCache.text;
+  // A count-only cache kept old prices and policy answers after edits with the same item count.
+  // Read the supplied published snapshot on every call rather than recycling unrelated content.
   const ct = site?.SITE?.contact || {};
   const L: string[] = [];
   L.push(`# الشركة\n${site?.SITE?.legalName || 'فاي تك'} — ${site?.SITE?.intro || ''}\nالمكاتب: ${(site?.SITE?.offices || []).join('، ')}\nالتليفون/واتساب: ${ct.phone || ''} • الإيميل: ${ct.email || ''} • المواعيد: ${ct.hours || ''}`);
@@ -433,13 +432,11 @@ export function buildSiteKnowledgeDigest(site?: KnowledgeSiteContent): string {
   if (c.steps.length) L.push(`# خطوات التعامل\n${c.steps.map((s) => `${s.n}. ${s.title}: ${s.text}`).join('\n')}`);
   if (c.commitments.length) L.push(`# الالتزامات\n${c.commitments.map((s) => `- ${s.title}: ${s.text}`).join('\n')}`);
   if (c.faqs.length) L.push(`# أسئلة شائعة\n${c.faqs.map((f) => `- س: ${f.q}\n  ج: ${f.a}`).join('\n')}`);
-  L.push(`# المتجر (${c.products.length} منتج)\n${c.products.map((p) => `- ${p.name} | ${catMeta(p.category)?.shortTitle || p.category} | ${p.brand} | ${p.unit} | ${money(p.price, p.currency) || 'السعر حسب الكمية'}${money(p.installPrice, p.currency) ? ` | تركيب ${money(p.installPrice, p.currency)}` : ''} | ${p.inStock === false ? 'غير متوفر' : 'متوفر'} | ${clip(p.description, 110)}`).join('\n')}`);
+  L.push(`# المتجر (${c.products.length} منتج)\n${c.products.map((p) => `- ${p.name} | ${catMeta(p.category)?.shortTitle || 'المنتجات'} | ${p.brand} | ${p.unit} | ${money(p.price, p.currency) || 'السعر حسب الكمية'}${money(p.installPrice, p.currency) ? ` | تركيب ${money(p.installPrice, p.currency)}` : ''} | ${p.inStock === false ? 'غير متوفر' : 'متوفر'} | ${clip(p.description, 110)}`).join('\n')}`);
   L.push(`# باقات السمارت هوم\n${SMART_BUNDLES.map((b) => `- ${b.title}: ${b.items.join('، ')}`).join('\n')}`);
   L.push(`# العقارات\n${c.properties.map((p) => `- ${p.title} | ${p.typeLabel} | ${p.city} | ${p.areaSqm} م² | ${p.bedrooms} غرف | ${p.finishingLabel} | ${p.deliveryLabel} | ${money(p.price, p.currency) || 'السعر عند الاستفسار'}${p.downPaymentPct ? ` | مقدم ${p.downPaymentPct}%` : ''}${p.installmentYears ? ` | تقسيط ${p.installmentYears} سنين` : ''} | ${STATUS[p.status] || p.status}`).join('\n')}`);
   L.push(`# الصيانة والتنفيذ\n${c.maintenance.map((m) => `- ${m.title} | الضمان: ${m.warrantyLabel} | ${money(m.visitFee, m.currency) ? `رسوم الزيارة ${money(m.visitFee, m.currency)}` : 'التسعير بعد المعاينة'} | ${clip(m.executionScope.join('، '), 160)}`).join('\n')}`);
   L.push(`# دليل التنفيذ\n${EXECUTION_GUIDE_ITEMS.map((g) => `- ${g.itemTitle} (${g.unit}): ${(g.executionSequence?.steps || []).map((s) => s.title).join(' ← ')}${g.approximatePricing?.totalRate ? ` | سعر استرشادي ${g.approximatePricing.totalRate}` : ''}`).join('\n')}`);
   L.push(`# قائمة التفقد\n${CHECKLIST.map((p) => `- ${p.title}: ${p.sections.map((s) => s.title).join('، ')}`).join('\n')}`);
-  const text = L.join('\n\n');
-  digestCache = { key, text };
-  return text;
+  return replaceInternalCategoryLabels(L.join('\n\n'));
 }

@@ -24,6 +24,12 @@ function LoginForm({ onClose }: { onClose: () => void }) {
     isLoading,
     handleAutoFill,
     handleSubmit,
+    formRef,
+    confirmationEmail,
+    confirmationFeedback,
+    isResendingConfirmation,
+    resendCooldown,
+    handleResendConfirmation,
   } = useLoginLogic({ stayOnPage: true, onSuccess: onClose });
 
   const [showPassword, setShowPassword] = useState(false);
@@ -82,6 +88,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
           type="button"
           role="tab"
           aria-selected={!isSignUp}
+          disabled={isLoading || isResendingConfirmation}
           className={!isSignUp ? 'is-on' : ''}
           onClick={() => {
             if (isSignUp) toggleSignUp();
@@ -93,6 +100,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
           type="button"
           role="tab"
           aria-selected={isSignUp}
+          disabled={isLoading || isResendingConfirmation}
           className={isSignUp ? 'is-on' : ''}
           onClick={() => {
             if (!isSignUp) toggleSignUp();
@@ -102,8 +110,19 @@ function LoginForm({ onClose }: { onClose: () => void }) {
         </button>
       </div>
 
+      {confirmationEmail && <section className="phi-auth-confirmation" aria-label="تفعيل البريد الإلكتروني">
+        <div role="status">
+          <strong>فعّل بريدك لإكمال تسجيل الدخول</strong>
+          <p>افتح رابط التفعيل المرسل إلى <bdi>{confirmationEmail}</bdi>، وراجع مجلد الرسائل غير المرغوب فيها.</p>
+        </div>
+        <button type="button" className="phi-auth-resend" onClick={handleResendConfirmation} disabled={isLoading || isResendingConfirmation || resendCooldown > 0}>
+          {isResendingConfirmation ? 'جاري إرسال الرابط...' : resendCooldown > 0 ? `إعادة الإرسال بعد ${resendCooldown} ثانية` : 'إعادة إرسال رابط التفعيل'}
+        </button>
+        {confirmationFeedback && <p className={`phi-auth-confirmation-feedback is-${confirmationFeedback.tone}`} role={confirmationFeedback.tone === 'error' ? 'alert' : 'status'}>{confirmationFeedback.message}</p>}
+      </section>}
+
       {/* Form */}
-      <form onSubmit={handleSubmit} className="phi-auth-form">
+      <form ref={formRef} onSubmit={handleSubmit} className="phi-auth-form" aria-busy={isLoading}>
         {isSignUp && (
           <div className="phi-auth-grid2">
             <label className="phi-auth-field">
@@ -116,6 +135,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
                 onChange={(e) => setFullName(e.target.value)}
                 required={isSignUp}
                 autoComplete="name"
+                disabled={isLoading || isResendingConfirmation}
               />
             </label>
 
@@ -130,6 +150,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
                 onChange={(e) => setPhone(e.target.value)}
                 required={isSignUp}
                 autoComplete="tel"
+                disabled={isLoading || isResendingConfirmation}
               />
             </label>
           </div>
@@ -147,6 +168,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
             onChange={(e) => setEmail(e.target.value)}
             required
             autoComplete="username"
+            disabled={isLoading || isResendingConfirmation}
           />
         </label>
 
@@ -163,6 +185,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete={isSignUp ? 'new-password' : 'current-password'}
+              disabled={isLoading || isResendingConfirmation}
             />
             <button
               type="button"
@@ -186,7 +209,7 @@ function LoginForm({ onClose }: { onClose: () => void }) {
           </div>
         </label>
 
-        <button type="submit" className="phi-auth-submit" disabled={isLoading}>
+        <button type="submit" className="phi-auth-submit" disabled={isLoading || isResendingConfirmation}>
           {isLoading ? (
             <span className="phi-auth-loading">
               <span className="phi-auth-spinner" />
@@ -428,6 +451,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           flex-direction: column;
           gap: 12px;
         }
+
+        .phi-auth-confirmation { margin-bottom:16px; padding:14px; border-radius:10px; background:#fff7ed; color:#7c3514; border:1px solid #fed7aa; }
+        .phi-auth-confirmation strong { font-size:0.84rem; }
+        .phi-auth-confirmation p { margin:7px 0 0; font-size:0.78rem; line-height:1.8; overflow-wrap:anywhere; }
+        .phi-auth-resend { margin-top:10px; width:100%; min-height:40px; padding:8px 12px; border:1px solid #e7b68f; border-radius:8px; background:white; color:#9a3412; font:inherit; font-size:0.78rem; font-weight:700; cursor:pointer; }
+        .phi-auth-resend:disabled { opacity:0.65; cursor:not-allowed; }
+        .phi-auth-confirmation-feedback.is-success { color:#166534; }
+        .phi-auth-confirmation-feedback.is-error { color:#be123c; }
 
         .phi-auth-grid2 {
           display: grid;

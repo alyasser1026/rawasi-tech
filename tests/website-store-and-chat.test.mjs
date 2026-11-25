@@ -141,9 +141,10 @@ test('execution & maintenance services tab covers all trades with recommendation
 });
 
 test('interactive live-chat auto-responder covers expected scenarios, human escalation, and CMS controls', () => {
-  const responder = read('app/site/chat-auto-responder.ts');
+  const responder = read('lib/copilot/chat-auto-responder.ts');
+  const botConfig = read('app/site/chat-bot-config.ts');
   assert.match(responder, /export function generateSmartAutoReply/);
-  assert.match(responder, /export const DEFAULT_CHAT_BOT_CONFIG/);
+  assert.match(botConfig, /export const DEFAULT_CHAT_BOT_CONFIG/);
   for (const intentName of [
     'human_handoff',
     'lead_qualified',

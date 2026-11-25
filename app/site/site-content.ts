@@ -27,7 +27,7 @@ import {
   DEFAULT_CHAT_BOT_CONFIG,
   type ChatBotConfig,
   type ChatBotCustomRule,
-} from './chat-auto-responder';
+} from './chat-bot-config';
 
 export { DEFAULT_CHAT_BOT_CONFIG, type ChatBotConfig, type ChatBotCustomRule };
 

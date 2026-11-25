@@ -7,11 +7,20 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { PRODUCT_CATEGORIES } from '@/app/site/store-catalog';
 import { getCachedCatalogOverview, getServiceSupabase } from '@/lib/store-copilot-tools';
+import {
+  DEFAULT_COPILOT_TRAINING_CONFIG,
+  getCachedCopilotTraining,
+  invalidateCopilotTrainingCache,
+  isMissingTrainingTableError,
+  VALID_KNOWLEDGE_CATEGORY_SET,
+} from '@/lib/copilot/training-store';
 
 export const runtime = 'nodejs';
 
 const VALID_SYNONYM_TYPES = new Set(['slang', 'brand', 'product', 'category']);
 const VALID_CATEGORIES = new Set<string>(PRODUCT_CATEGORIES.map((c) => c.id));
+const TRAINING_MIGRATION_MISSING_MSG =
+  'جداول تدريب الكوبايلوت غير منشأة في قاعدة البيانات بعد — نفّذ ملف الهجرة 20261124100000_store_copilot_training.sql في Supabase أولاً.';
 
 async function verifyAdminAuth(req: Request): Promise<boolean> {
   const authHeader = req.headers.get('authorization') || '';
@@ -68,7 +77,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const [synRes, missRes, overview] = await Promise.all([
+    const [synRes, missRes, overview, training] = await Promise.all([
       sb.from('store_search_synonyms').select('*').order('synonym_type').order('id'),
       sb
         .from('copilot_search_misses')
@@ -78,6 +87,7 @@ export async function GET(req: Request) {
         .order('last_seen_at', { ascending: false })
         .limit(150),
       getCachedCatalogOverview(sb),
+      getCachedCopilotTraining(sb, { bypassCache: true }),
     ]);
 
     if (synRes.error) {
@@ -100,17 +110,24 @@ export async function GET(req: Request) {
 
     const openMisses = misses.filter((m) => !m.resolved).length;
 
+    const activeKnowledge = training.knowledge.filter((k) => k.is_active).length;
+
     return NextResponse.json({
       ok: true,
       synonyms,
       misses,
       overview,
+      trainingReady: training.ready,
+      trainingConfig: training.config,
+      knowledgeItems: training.knowledge,
       stats: {
         totalSynonyms: synonyms.length,
         activeSynonyms,
         byType,
         totalMisses: misses.length,
         openMisses,
+        totalKnowledge: training.knowledge.length,
+        activeKnowledge,
       },
     });
   } catch (err: any) {
@@ -148,6 +165,94 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
       }
       return NextResponse.json({ ok: true, results: Array.isArray(data) ? data : [], ms });
+    }
+
+    if (body?.action === 'save_training_config') {
+      const personaName =
+        String(body?.persona_name || '').trim().slice(0, 120) ||
+        DEFAULT_COPILOT_TRAINING_CONFIG.persona_name;
+      const toneGuidelines =
+        String(body?.tone_guidelines || '').trim().slice(0, 600) ||
+        DEFAULT_COPILOT_TRAINING_CONFIG.tone_guidelines;
+      const salesHandoffPrompt =
+        String(body?.sales_handoff_prompt || '').trim().slice(0, 300) ||
+        DEFAULT_COPILOT_TRAINING_CONFIG.sales_handoff_prompt;
+      const extraSystemRules = String(body?.extra_system_rules || '').trim().slice(0, 3000);
+      const forbiddenClaims = String(body?.forbidden_claims || '').trim().slice(0, 1500);
+
+      const { data, error } = await sb
+        .from('store_copilot_training_config')
+        .upsert(
+          {
+            id: 'default',
+            persona_name: personaName,
+            tone_guidelines: toneGuidelines,
+            sales_handoff_prompt: salesHandoffPrompt,
+            extra_system_rules: extraSystemRules,
+            forbidden_claims: forbiddenClaims,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: 'id' }
+        )
+        .select('*')
+        .single();
+
+      if (error) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: isMissingTrainingTableError(error) ? TRAINING_MIGRATION_MISSING_MSG : error.message,
+          },
+          { status: isMissingTrainingTableError(error) ? 503 : 500 }
+        );
+      }
+
+      invalidateCopilotTrainingCache();
+      return NextResponse.json({ ok: true, trainingConfig: data });
+    }
+
+    if (body?.action === 'create_knowledge') {
+      const title = String(body?.title || '').trim().slice(0, 160);
+      const answer = String(body?.answer || '').trim().slice(0, 2000);
+      const rawCat = String(body?.category || 'general').trim();
+      const category = VALID_KNOWLEDGE_CATEGORY_SET.has(rawCat) ? rawCat : 'general';
+      const keywords = sanitizeTextArray(body?.keywords);
+      const rawPrio = Number(body?.priority);
+      const priority = Number.isFinite(rawPrio) ? Math.min(100, Math.max(0, Math.round(rawPrio))) : 10;
+      const isActiveKnow = body?.is_active !== false;
+
+      if (!title || !answer) {
+        return NextResponse.json(
+          { ok: false, error: 'العنوان ونص الإجابة المعتمدة مطلوبان' },
+          { status: 400 }
+        );
+      }
+
+      const { data, error } = await sb
+        .from('store_copilot_knowledge')
+        .insert({
+          title,
+          category,
+          keywords,
+          answer,
+          priority,
+          is_active: isActiveKnow,
+        })
+        .select('*')
+        .single();
+
+      if (error) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: isMissingTrainingTableError(error) ? TRAINING_MIGRATION_MISSING_MSG : error.message,
+          },
+          { status: isMissingTrainingTableError(error) ? 503 : 500 }
+        );
+      }
+
+      invalidateCopilotTrainingCache();
+      return NextResponse.json({ ok: true, knowledgeItem: data });
     }
 
     const term = String(body?.term || '').trim();
@@ -237,6 +342,60 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ ok: true, miss: data });
     }
 
+    if (body?.action === 'update_knowledge') {
+      const knowUpdate: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (typeof body?.title === 'string') {
+        const cleanTitle = body.title.trim().slice(0, 160);
+        if (!cleanTitle) {
+          return NextResponse.json({ ok: false, error: 'عنوان المقال لا يمكن أن يكون فارغاً' }, { status: 400 });
+        }
+        knowUpdate.title = cleanTitle;
+      }
+      if (typeof body?.category === 'string') {
+        if (!VALID_KNOWLEDGE_CATEGORY_SET.has(body.category)) {
+          return NextResponse.json({ ok: false, error: 'تصنيف المعرفة غير صالح' }, { status: 400 });
+        }
+        knowUpdate.category = body.category;
+      }
+      if (body?.keywords !== undefined) {
+        knowUpdate.keywords = sanitizeTextArray(body.keywords);
+      }
+      if (typeof body?.answer === 'string') {
+        const cleanAnswer = body.answer.trim().slice(0, 2000);
+        if (!cleanAnswer) {
+          return NextResponse.json({ ok: false, error: 'نص الإجابة لا يمكن أن يكون فارغاً' }, { status: 400 });
+        }
+        knowUpdate.answer = cleanAnswer;
+      }
+      if (body?.priority !== undefined) {
+        const p = Number(body.priority);
+        knowUpdate.priority = Number.isFinite(p) ? Math.min(100, Math.max(0, Math.round(p))) : 10;
+      }
+      if (typeof body?.is_active === 'boolean') {
+        knowUpdate.is_active = body.is_active;
+      }
+
+      const { data, error } = await sb
+        .from('store_copilot_knowledge')
+        .update(knowUpdate)
+        .eq('id', id)
+        .select('*')
+        .single();
+
+      if (error) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: isMissingTrainingTableError(error) ? TRAINING_MIGRATION_MISSING_MSG : error.message,
+          },
+          { status: isMissingTrainingTableError(error) ? 503 : 500 }
+        );
+      }
+
+      invalidateCopilotTrainingCache();
+      return NextResponse.json({ ok: true, knowledgeItem: data });
+    }
+
     const updatePayload: Record<string, unknown> = {};
     if (typeof body?.term === 'string') {
       const cleanTerm = body.term.trim();
@@ -312,14 +471,36 @@ export async function DELETE(req: Request) {
     const kind = url.searchParams.get('kind');
     const id = Number(url.searchParams.get('id'));
 
-    if ((kind !== 'synonym' && kind !== 'miss') || !Number.isInteger(id) || id <= 0) {
+    if (
+      (kind !== 'synonym' && kind !== 'miss' && kind !== 'knowledge') ||
+      !Number.isInteger(id) ||
+      id <= 0
+    ) {
       return NextResponse.json({ ok: false, error: 'معاملات الحذف غير صالحة' }, { status: 400 });
     }
 
-    const table = kind === 'miss' ? 'copilot_search_misses' : 'store_search_synonyms';
+    const table =
+      kind === 'miss'
+        ? 'copilot_search_misses'
+        : kind === 'knowledge'
+          ? 'store_copilot_knowledge'
+          : 'store_search_synonyms';
     const { error } = await sb.from(table).delete().eq('id', id);
     if (error) {
-      return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            kind === 'knowledge' && isMissingTrainingTableError(error)
+              ? TRAINING_MIGRATION_MISSING_MSG
+              : error.message,
+        },
+        { status: kind === 'knowledge' && isMissingTrainingTableError(error) ? 503 : 500 }
+      );
+    }
+
+    if (kind === 'knowledge') {
+      invalidateCopilotTrainingCache();
     }
 
     return NextResponse.json({ ok: true });
