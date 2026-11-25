@@ -507,18 +507,19 @@ export const fetchAllSupabaseData = async (
     const { data, error } = await query;
 
     if (error) {
-      if (
-        currentOffset === 0 &&
-        !orderFallbackUsed &&
+      const errMsg = String(error.message || '');
+      const missingOrderCol = Boolean(
         activeOrderBy &&
-        (error.code === '42703' || /column .* does not exist/i.test(String(error.message || '')))
-      ) {
+        (error.code === '42703' || /column .* does not exist/i.test(errMsg)) &&
+        errMsg.toLowerCase().includes(activeOrderBy.toLowerCase())
+      );
+      if (currentOffset === 0 && !orderFallbackUsed && missingOrderCol) {
         orderFallbackUsed = true;
         activeOrderBy = pk && pk !== activeOrderBy ? pk : undefined;
         loopGuard--;
         continue;
       }
-      if (currentOffset === 0 && useTieBreaker) {
+      if (currentOffset === 0 && useTieBreaker && pk && activeOrderBy !== pk) {
         useTieBreaker = false;
         loopGuard--;
         continue;

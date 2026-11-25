@@ -14,7 +14,7 @@ export default function DetailedAuditPage() {
             // جلب الرؤوس والأطراف بنظام 1000 بـ 1000 بدون تكرار وتجميعها بكفاءة O(N+M)
             const [headers, lines] = await Promise.all([
                 fetchAllSupabaseData(supabase, 'journal_headers', 'id, entry_date, description', 'id', true),
-                fetchAllSupabaseData(supabase, 'journal_lines', 'id, header_id, account_id, description, debit, credit', 'id', true),
+                fetchAllSupabaseData(supabase, 'journal_lines', 'id, header_id, account_id, item_name, notes, debit, credit', 'id', true),
             ]);
 
             const linesByHeader = new Map<string, any[]>();
@@ -84,7 +84,7 @@ export default function DetailedAuditPage() {
                                         <td style={{ padding: '0.625rem' }}>
                                             <code style={{ color: '#0369a1', fontWeight: 'bold' }}>{line.account_id}</code>
                                         </td>
-                                        <td>{line.item_name}</td>
+                                        <td>{line.item_name || line.notes || '---'}</td>
                                         <td style={{ color: 'green' }}>{line.debit}</td>
                                         <td style={{ color: 'red' }}>{line.credit}</td>
                                     </tr>
