@@ -245,7 +245,13 @@ export default function DailyExecutiveReport({
     (rawData?.projects || []).forEach((p: any) => bump(p.created_at, p, true));
     (rawData?.boq_budget || []).forEach((b: any) => bump(b.created_at, b));
     (rawData?.job_orders || []).forEach((j: any) => bump(j.created_at || j.start_date, j));
-    (rawData?.contractor_assignments || []).forEach((a: any) => bump(a.created_at, a));
+    (rawData?.contractor_assignments || []).forEach((a: any) => {
+      const jo = a.job_order_id ? maps.jobOrderMap.get(String(a.job_order_id)) : null;
+      bump(a.created_at || jo?.created_at || jo?.start_date, {
+        project_id: a.project_id || jo?.project_id,
+        job_order_id: a.job_order_id,
+      });
+    });
     (rawData?.project_site_visits || []).forEach((v: any) => bump(v.visit_date || v.created_at, v));
 
     return Array.from(counts.entries())
@@ -634,7 +640,7 @@ export default function DailyExecutiveReport({
         const jo = a.job_order_id ? maps.jobOrderMap.get(String(a.job_order_id)) : null;
         const fakeRec = { project_id: a.project_id || jo?.project_id, job_order_id: a.job_order_id };
         if (!maps.matchesSelectedProject(fakeRec)) return false;
-        return extractDateOnly(a.created_at) === selectedDate;
+        return extractDateOnly(a.created_at || jo?.created_at || jo?.start_date) === selectedDate;
       })
       .map((a: any) => {
         const jo = a.job_order_id ? maps.jobOrderMap.get(String(a.job_order_id)) : null;

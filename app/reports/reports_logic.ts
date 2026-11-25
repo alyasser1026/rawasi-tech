@@ -60,7 +60,7 @@ export function useReportsLogic() {
         () => fetchAllSupabaseData(supabase, 'material_issue_lines', '*', 'id', true),
         () => fetchAllSupabaseData(supabase, 'expenses', '*', 'exp_date', false),
         () => fetchAllSupabaseData(supabase, 'partners', 'id,name,partner_type,company_id', 'created_at', false),
-        () => fetchAllSupabaseData(supabase, 'contractor_assignments', '*', 'created_at', false),
+        () => fetchAllSupabaseData(supabase, 'contractor_assignments', '*', 'id', false),
         () => fetchAllSupabaseData(supabase, 'project_site_visits', '*', 'visit_date', false),
       ], 4);
 

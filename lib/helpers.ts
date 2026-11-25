@@ -479,6 +479,8 @@ export const fetchAllSupabaseData = async (
   const allData: any[] = [];
   const seenIds = new Set<string>(); // 🛡️ حماية من التكرار
   const pk = getRelationPrimaryKey(tableName);
+  let activeOrderBy: string | undefined = orderByColumn;
+  let orderFallbackUsed = false;
   let useTieBreaker = true;
   let currentOffset = 0;
   let loopGuard = 0;
@@ -495,16 +497,27 @@ export const fetchAllSupabaseData = async (
       .select(selectFields)
       .range(currentOffset, currentOffset + chunkLimit - 1);
 
-    if (orderByColumn) {
-      query = query.order(orderByColumn, { ascending });
+    if (activeOrderBy) {
+      query = query.order(activeOrderBy, { ascending });
     }
-    if (useTieBreaker && pk && orderByColumn !== pk) {
+    if (useTieBreaker && pk && activeOrderBy !== pk) {
       query = query.order(pk, { ascending: true });
     }
 
     const { data, error } = await query;
 
     if (error) {
+      if (
+        currentOffset === 0 &&
+        !orderFallbackUsed &&
+        activeOrderBy &&
+        (error.code === '42703' || /column .* does not exist/i.test(String(error.message || '')))
+      ) {
+        orderFallbackUsed = true;
+        activeOrderBy = pk && pk !== activeOrderBy ? pk : undefined;
+        loopGuard--;
+        continue;
+      }
       if (currentOffset === 0 && useTieBreaker) {
         useTieBreaker = false;
         loopGuard--;
