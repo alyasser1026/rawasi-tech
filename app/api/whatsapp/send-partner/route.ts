@@ -76,11 +76,11 @@ export async function POST(req: NextRequest) {
     if (!membership) {
       const { data: profile } = await supabaseAdmin
         .from('profiles')
-        .select('company_id, is_active')
+        .select('is_admin, is_active')
         .eq('id', userData.user.id)
         .maybeSingle();
 
-      if (!profile || profile.is_active === false || String(profile.company_id) !== companyId) {
+      if (!profile || profile.is_active === false || !profile.is_admin) {
         return NextResponse.json(
           { ok: false, error: 'ليست لديك صلاحية الوصول لهذه الشركة' },
           { status: 403 },

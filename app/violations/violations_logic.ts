@@ -114,8 +114,8 @@ export function useViolationsLogic() {
     const deleteMutation = useMutation({
         mutationFn: async (ids: string[]) => {
             for (const vId of ids) {
-                const { data: existing } = await supabase.from('violations').select('is_posted, status').eq('id', vId).single();
-                if (existing && (existing.is_posted || existing.status === 'مرحل' || existing.status === 'معتمد')) {
+                const { data: existing } = await supabase.from('violations').select('is_posted').eq('id', vId).single();
+                if (existing?.is_posted) {
                     throw new Error("لا يمكن حذف مخالفة مرحلة. يرجى فك الترحيل أولاً.");
                 }
             }
@@ -140,8 +140,8 @@ export function useViolationsLogic() {
     const saveMutation = useMutation({
         mutationFn: async (payload: any) => {
             if (payload.id) {
-                const { data: existing } = await supabase.from('violations').select('is_posted, status').eq('id', payload.id).single();
-                if (existing && (existing.is_posted || existing.status === 'مرحل' || existing.status === 'معتمد')) {
+                const { data: existing } = await supabase.from('violations').select('is_posted').eq('id', payload.id).single();
+                if (existing?.is_posted) {
                     throw new Error("لا يمكن تعديل مخالفة مرحلة. يرجى فك الترحيل أولاً.");
                 }
             }

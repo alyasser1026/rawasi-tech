@@ -80,7 +80,7 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('receipt_vouchers')
-                .select('id, receipt_number, date, amount, invoice_id, notes, description, status')
+                .select('id, receipt_number, date, amount, invoice_id, notes, status')
                 .eq('partner_id', record.partner_id)
                 .order('date', { ascending: false });
             if (error) return [];

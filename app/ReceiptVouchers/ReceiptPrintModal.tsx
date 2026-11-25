@@ -34,8 +34,8 @@ export default function ReceiptPrintModal({ isOpen, onClose, record }: { isOpen:
                 const { data: { session } } = await supabase.auth.getSession();
                 const uid = record.created_by || session?.user?.id;
                 if (uid) {
-                    const { data: profile } = await supabase.from('profiles').select('full_name, name, nickname').eq('id', uid).maybeSingle();
-                    next.creator = profile?.full_name || profile?.name || profile?.nickname || '';
+                    const { data: profile } = await supabase.from('profiles').select('full_name, nickname, username').eq('id', uid).maybeSingle();
+                    next.creator = profile?.full_name || profile?.nickname || profile?.username || '';
                 }
                 if (!next.creator && session?.user) next.creator = session.user.user_metadata?.full_name || session.user.user_metadata?.name || '';
 
