@@ -1,0 +1,44 @@
+services:
+  - type: worker
+    name: phitech-telegram-copilot
+    runtime: docker
+    dockerfilePath: ./Dockerfile.telegram-bot
+    dockerContext: .
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TZ
+        value: Africa/Cairo
+      - key: PUPPETEER_SKIP_DOWNLOAD
+        value: "true"
+      - key: PUPPETEER_EXECUTABLE_PATH
+        value: /usr/bin/chromium
+      - key: PDF_CHROME_NO_SANDBOX
+        value: "true"
+      - key: COPILOT_TOOLS_ENABLED
+        value: "true"
+      - key: COPILOT_ENABLE_LIVE_READS
+        value: "true"
+      - key: COPILOT_LIVE_FIELD_OPS_ENABLED
+        value: "true"
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_URL
+        sync: false
+      - key: NEXT_PUBLIC_SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: COPILOT_COMPANY_ID
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false

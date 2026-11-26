@@ -1,0 +1,56 @@
+# Environment & secrets (NEVER include in Docker build context)
+.env
+.env.*
+!.env.telegram-bot.example
+
+# VCS & build outputs
+.git
+.gitignore
+.next
+out
+dist
+build
+coverage
+.vercel
+.turbo
+
+# Dependencies (reinstalled cleanly inside container via npm ci --omit=dev)
+node_modules
+
+# Heavy local folders & unrelated sub-projects
+pgsql17
+pgsql17-2
+mobile-app
+starter-for-nextjs
+scratch
+work
+Claude outputs
+data0
+tests
+public
+
+# Logs, OS files & Windows helper scripts
+*.log
+*.bat
+*.ps1
+*.tmp
+.DS_Store
+Thumbs.db
+
+# Root one-off maintenance / dump scripts & SQL dumps
+/*.sql
+/fix_*.js
+/fix_*.mjs
+/check_*.js
+/check_*.mjs
+/inject_*.js
+/wrap_*.js
+/revert_*.js
+/replace_*.js
+/test_*.js
+/test_*.mjs
+/patch_*.js
+/scratch_*.js
+/clone_app.*
+/dump_old_db.*
+/upload_dump.*

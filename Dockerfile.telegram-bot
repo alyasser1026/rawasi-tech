@@ -1,0 +1,37 @@
+FROM node:24-bookworm-slim
+
+WORKDIR /app
+
+# Install Chromium (for Puppeteer PDF reports), ffmpeg (for Telegram audio/voice),
+# CA certificates, and fallback system fonts (Cairo font CSS is also embedded in pdf-generator.mjs)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    chromium \
+    ffmpeg \
+    fonts-liberation \
+    fonts-noto-core \
+  && rm -rf /var/lib/apt/lists/*
+
+ENV NODE_ENV=production \
+    PUPPETEER_SKIP_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
+    PDF_CHROME_NO_SANDBOX=true \
+    TZ=Africa/Cairo
+
+# Install runtime dependencies only (omits devDependencies; skips Chromium download)
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+
+# Copy bot runtime scripts, shared TypeScript helpers/catalogs, and copilot knowledge/config
+COPY scripts ./scripts
+COPY lib ./lib
+COPY app/site ./app/site
+COPY config ./config
+COPY knowledge_docs ./knowledge_docs
+
+# Ensure runtime working directories exist and are writable by the non-root node user
+RUN mkdir -p /app/work /app/config && chown -R node:node /app/work /app/config
+
+USER node
+
+CMD ["node", "scripts/telegram-copilot.mjs"]

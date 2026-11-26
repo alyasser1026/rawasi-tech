@@ -96,7 +96,12 @@ async function getBrowser() {
   }
   if (!browserLaunch) {
     // One launch at a time, even when several PDFs are requested together.
-    browserLaunch = puppeteer.launch({ headless: true, args: chromeArgs() })
+    const executablePath = process.env.PUPPETEER_EXECUTABLE_PATH?.trim() || undefined;
+    browserLaunch = puppeteer.launch({
+      headless: true,
+      ...(executablePath ? { executablePath } : {}),
+      args: chromeArgs(),
+    })
       .then(browser => {
         sharedBrowser = browser;
         browser.once('disconnected', () => {
