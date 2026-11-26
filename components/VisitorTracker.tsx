@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import {
   collectClientDeviceDetails,
@@ -8,32 +8,113 @@ import {
 } from '@/lib/client-device-info';
 
 const PHONE_REGEX = /^(?:(?:\+?20|0)?1[0125]\d{8}|(?:\+?966|0)?5\d{8}|\+\d{10,14})$/;
+const SESSION_STORAGE_KEY = 'phi_visitor_session_id_v1';
+const HEARTBEAT_INTERVAL_MS = 45_000;
+
+function getOrCreateVisitorSessionId(): string {
+  try {
+    const existing = sessionStorage.getItem(SESSION_STORAGE_KEY);
+    if (existing && /^[a-zA-Z0-9_-]{8,64}$/.test(existing)) return existing;
+    const created = `vis_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+    sessionStorage.setItem(SESSION_STORAGE_KEY, created);
+    return created;
+  } catch {
+    return `vis_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+}
+
+function getCurrentFullPath(pathname: string | null): string {
+  if (typeof window === 'undefined') return pathname || '/';
+  const p = pathname || window.location.pathname || '/';
+  const search = window.location.search || '';
+  return `${p}${search}`.slice(0, 240);
+}
+
+function sendVisitorBeacon(payload: Record<string, unknown>, preferBeacon = false): void {
+  try {
+    const json = JSON.stringify(payload);
+    if (preferBeacon && typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+      const blob = new Blob([json], { type: 'application/json' });
+      const sent = navigator.sendBeacon('/api/website-visitors', blob);
+      if (sent) return;
+    }
+    fetch('/api/website-visitors', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: json,
+      keepalive: true,
+    }).catch(() => {});
+  } catch {
+    // Fail silently
+  }
+}
 
 export default function VisitorTracker() {
   const pathname = usePathname();
+  const currentPathRef = useRef<string>('/');
+  const leaveSentRef = useRef<boolean>(false);
 
+  const isPublic =
+    pathname === '/' ||
+    pathname === '/website' ||
+    pathname?.startsWith('/website/') ||
+    pathname === '/sections' ||
+    pathname?.startsWith('/sections/') ||
+    pathname === '/login' ||
+    pathname === '/store' ||
+    pathname?.startsWith('/store/') ||
+    pathname === '/real-estate' ||
+    pathname?.startsWith('/real-estate/') ||
+    pathname?.startsWith('/verify');
+
+  // Effect 1: Per-pageview live visitor log + Telegram first-visit alert + click/phone capture
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (navigator.webdriver) return;
-
-    const isPublic =
-      pathname === '/' ||
-      pathname === '/website' ||
-      pathname?.startsWith('/website/') ||
-      pathname === '/sections' ||
-      pathname?.startsWith('/sections/') ||
-      pathname === '/login' ||
-      pathname === '/store' ||
-      pathname?.startsWith('/store/') ||
-      pathname === '/real-estate' ||
-      pathname?.startsWith('/real-estate/') ||
-      pathname?.startsWith('/verify');
-
     if (!isPublic) return;
 
     let cancelled = false;
+    leaveSentRef.current = false;
+    const sessionId = getOrCreateVisitorSessionId();
+    const fullPath = getCurrentFullPath(pathname);
+    currentPathRef.current = fullPath;
 
-    // 1. Track unique visitor session with rich hardware & identity telemetry
+    // 1A. Record every pageview for live admin visitor tracker
+    const recordPageview = async () => {
+      try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const utmSource =
+          urlParams.get('utm_source') || urlParams.get('source') || undefined;
+        const utmCampaign =
+          urlParams.get('utm_campaign') || urlParams.get('campaign') || undefined;
+
+        const deviceDetails = await collectClientDeviceDetails(false).catch(
+          () => ({} as Record<string, any>)
+        );
+        if (cancelled) return;
+
+        sendVisitorBeacon({
+          event: 'pageview',
+          sessionId,
+          path: getCurrentFullPath(pathname),
+          title: document.title || undefined,
+          referrer: document.referrer || '',
+          screen: deviceDetails.screen || `${window.innerWidth}×${window.innerHeight}`,
+          utmSource,
+          utmCampaign,
+          deviceDetails,
+        });
+      } catch {
+        // Fail silently
+      }
+    };
+
+    // Short delay so Next.js updates document.title on client transitions
+    const pvTimer = window.setTimeout(() => {
+      if (!cancelled) void recordPageview();
+    }, 350);
+
+    // 1B. Telegram first-visit notification once per session
     const trackVisit = async () => {
       let isNewSession = false;
       try {
@@ -111,8 +192,17 @@ export default function VisitorTracker() {
         const isPhone = href.startsWith('tel:');
 
         if (isWhatsApp || isPhone) {
+          const actionType = isWhatsApp ? 'whatsapp_click' : 'phone_call';
           const actionLabel = isWhatsApp ? 'تواصل معنا عبر واتساب' : 'اتصال هاتفي مباشر';
           const sessionLeadKey = `lead_click_${isWhatsApp ? 'wa' : 'tel'}`;
+
+          sendVisitorBeacon({
+            event: 'action',
+            sessionId,
+            action: actionType,
+            label: actionLabel,
+            path: currentPathRef.current,
+          });
 
           try {
             if (sessionStorage.getItem(sessionLeadKey)) return;
@@ -126,7 +216,7 @@ export default function VisitorTracker() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               type: 'lead_action',
-              action: isWhatsApp ? 'whatsapp_click' : 'phone_call',
+              action: actionType,
               label: actionLabel,
               deviceDetails,
             }),
@@ -166,6 +256,16 @@ export default function VisitorTracker() {
         rememberVisitorContact({ phone: raw });
         const deviceDetails = await collectClientDeviceDetails(false).catch(() => ({}));
 
+        sendVisitorBeacon({
+          event: 'action',
+          sessionId,
+          action: 'phone_captured',
+          label: 'كتب رقم جواله في الموقع',
+          phone: raw,
+          path: currentPathRef.current,
+          deviceDetails,
+        });
+
         fetch('/api/notify/visit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -187,13 +287,78 @@ export default function VisitorTracker() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(pvTimer);
       if (idleHandle !== undefined && typeof cic === 'function') cic(idleHandle);
       if (delayTimer !== undefined) window.clearTimeout(delayTimer);
       document.removeEventListener('click', handleGlobalClick);
       document.removeEventListener('change', handlePhoneInput);
       document.removeEventListener('blur', handlePhoneInput, true);
     };
-  }, [pathname]);
+  }, [pathname, isPublic]);
+
+  // Effect 2: Presence heartbeat (while visible) & reliable leave beacon on tab close
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (navigator.webdriver) return;
+    if (!isPublic) return;
+
+    const sessionId = getOrCreateVisitorSessionId();
+
+    const heartbeatTimer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      sendVisitorBeacon({
+        event: 'heartbeat',
+        sessionId,
+        path: currentPathRef.current,
+        title: document.title || undefined,
+      });
+    }, HEARTBEAT_INTERVAL_MS);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        leaveSentRef.current = false;
+        sendVisitorBeacon({
+          event: 'heartbeat',
+          sessionId,
+          path: currentPathRef.current,
+          title: document.title || undefined,
+        });
+      } else {
+        sendVisitorBeacon(
+          {
+            event: 'blur',
+            sessionId,
+            path: currentPathRef.current,
+          },
+          true
+        );
+      }
+    };
+
+    const handleLeave = () => {
+      if (leaveSentRef.current) return;
+      leaveSentRef.current = true;
+      sendVisitorBeacon(
+        {
+          event: 'leave',
+          sessionId,
+          path: currentPathRef.current,
+        },
+        true
+      );
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('pagehide', handleLeave);
+    window.addEventListener('beforeunload', handleLeave);
+
+    return () => {
+      window.clearInterval(heartbeatTimer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('pagehide', handleLeave);
+      window.removeEventListener('beforeunload', handleLeave);
+    };
+  }, [isPublic]);
 
   return null;
 }

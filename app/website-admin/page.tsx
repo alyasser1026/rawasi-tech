@@ -35,6 +35,7 @@ import {
 } from '../site/store-catalog';
 import Product4DSpinViewer from '../site/Product4DSpinViewer';
 import StoreCopilotAdminTab from './StoreCopilotAdminTab';
+import WebsiteVisitorsTab from './WebsiteVisitorsTab';
 
 const MAINTENANCE_CATEGORIES = PRODUCT_CATEGORIES.map((c) => ({
   id: c.id,
@@ -72,6 +73,7 @@ const TABS = [
   { id: 'maintenance', label: '🛠️ التنفيذ والصيانة' },
   { id: 'orders', label: '🛍️ طلبات السلة والعقارات' },
   { id: 'livechat', label: '💬 الشات الحي مع الزوار' },
+  { id: 'visitors', label: '👥 الزوار المباشرون' },
   { id: 'copilot', label: '🤖 كوبايلوت المتجر والمرادفات' },
   { id: 'identity', label: '🎨 الهوية والتواصل' },
   { id: 'projects', label: '🏗️ الأعمال' },
@@ -260,6 +262,7 @@ const RECOMMENDATIONS: {
 
 export default function WebsiteAdminPage() {
   const [tab, setTab] = useState<(typeof TABS)[number]['id']>('products');
+  const [onlineVisitorsCount, setOnlineVisitorsCount] = useState(0);
   const [c, setC] = useState<Content>(defaults());
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
@@ -378,6 +381,33 @@ export default function WebsiteAdminPage() {
       // ignore
     }
   }, [activeChatSessionId]);
+
+  useEffect(() => {
+    let alive = true;
+    const checkOnlineBadge = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!session?.access_token) return;
+        const res = await fetch('/api/website-visitors', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+          cache: 'no-store',
+        });
+        if (!res.ok || !alive) return;
+        const json = await res.json().catch(() => null);
+        if (alive && typeof json?.stats?.onlineNow === 'number') {
+          setOnlineVisitorsCount(json.stats.onlineNow);
+        }
+      } catch {
+        // ignore
+      }
+    };
+    void checkOnlineBadge();
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (tab === 'orders') void loadOrders();
@@ -788,6 +818,7 @@ export default function WebsiteAdminPage() {
           >
             {t.label}
             {t.id === 'livechat' && totalUnreadChats > 0 ? ` (${totalUnreadChats})` : ''}
+            {t.id === 'visitors' && onlineVisitorsCount > 0 ? ` (🟢 ${onlineVisitorsCount})` : ''}
           </button>
         ))}
       </nav>
@@ -2528,6 +2559,8 @@ export default function WebsiteAdminPage() {
               </div>
             </>
           )}
+
+          {tab === 'visitors' && <WebsiteVisitorsTab onOnlineCountChange={setOnlineVisitorsCount} />}
 
           {tab === 'copilot' && <StoreCopilotAdminTab />}
 
