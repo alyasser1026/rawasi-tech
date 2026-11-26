@@ -56,6 +56,36 @@ interface KnowledgeItemRow {
   updated_at?: string;
 }
 
+interface ProposalSecurityFlag {
+  code: string;
+  severity: 'warning' | 'critical';
+  title: string;
+  detail: string;
+  field: string;
+  excerpt: string;
+}
+
+interface TrainerProposalRow {
+  id: number;
+  agent_name: string;
+  proposal_type: 'synonym' | 'knowledge' | 'training_config' | 'blocked_attempt';
+  title: string;
+  reason: string;
+  requested_scope: string;
+  payload: Record<string, unknown>;
+  risk_level: 'safe' | 'warning' | 'critical';
+  security_flags: ProposalSecurityFlag[];
+  status: 'pending' | 'approved' | 'rejected' | 'blocked';
+  review_note: string;
+  reviewed_at?: string | null;
+  created_at: string;
+}
+
+interface TrainerPermissionsManifest {
+  allowed: string[];
+  denied: string[];
+}
+
 interface AdminStats {
   totalSynonyms: number;
   activeSynonyms: number;
@@ -64,6 +94,8 @@ interface AdminStats {
   openMisses: number;
   totalKnowledge?: number;
   activeKnowledge?: number;
+  pendingProposals?: number;
+  criticalSecurityAlerts?: number;
 }
 
 interface OverviewStats {
@@ -100,7 +132,9 @@ const CAT_NAME_MAP = new Map<string, string>(
 );
 
 export default function StoreCopilotAdminTab() {
-  const [subTab, setSubTab] = useState<'synonyms' | 'behavior' | 'knowledge'>('synonyms');
+  const [subTab, setSubTab] = useState<'synonyms' | 'behavior' | 'knowledge' | 'proposals'>(
+    'synonyms'
+  );
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -111,6 +145,16 @@ export default function StoreCopilotAdminTab() {
   const [overview, setOverview] = useState<OverviewStats | null>(null);
   const [trainingReady, setTrainingReady] = useState(false);
   const [knowledgeItems, setKnowledgeItems] = useState<KnowledgeItemRow[]>([]);
+  const [proposalsReady, setProposalsReady] = useState(false);
+  const [proposals, setProposals] = useState<TrainerProposalRow[]>([]);
+  const [trainerKeyConfigured, setTrainerKeyConfigured] = useState(false);
+  const [trainerPermissions, setTrainerPermissions] = useState<TrainerPermissionsManifest | null>(
+    null
+  );
+  const [propFilter, setPropFilter] = useState<'pending' | 'alerts' | 'all'>('pending');
+  const [criticalOverrideConfirm, setCriticalOverrideConfirm] = useState<Record<number, boolean>>(
+    {}
+  );
   const [stats, setStats] = useState<AdminStats>({
     totalSynonyms: 0,
     activeSynonyms: 0,
@@ -119,6 +163,8 @@ export default function StoreCopilotAdminTab() {
     openMisses: 0,
     totalKnowledge: 0,
     activeKnowledge: 0,
+    pendingProposals: 0,
+    criticalSecurityAlerts: 0,
   });
 
   // نموذج إضافة / تعديل المرادف
@@ -194,6 +240,14 @@ export default function StoreCopilotAdminTab() {
       setOverview(data.overview || null);
       setTrainingReady(Boolean(data.trainingReady));
       setKnowledgeItems(Array.isArray(data.knowledgeItems) ? data.knowledgeItems : []);
+      setProposalsReady(Boolean(data.proposalsReady));
+      setProposals(Array.isArray(data.proposals) ? data.proposals : []);
+      setTrainerKeyConfigured(Boolean(data.trainerKeyConfigured));
+      setTrainerPermissions(
+        data.trainerPermissions && typeof data.trainerPermissions === 'object'
+          ? (data.trainerPermissions as TrainerPermissionsManifest)
+          : null
+      );
       if (data.trainingConfig && typeof data.trainingConfig === 'object') {
         setPersonaName(String(data.trainingConfig.persona_name || 'كوبايلوت متجر فاي تك الذكي'));
         setToneGuidelines(String(data.trainingConfig.tone_guidelines || ''));
@@ -446,8 +500,57 @@ export default function StoreCopilotAdminTab() {
     }
   };
 
+  const handleApproveProposal = async (prop: TrainerProposalRow) => {
+    if (busy) return;
+    if (prop.risk_level === 'critical' && !criticalOverrideConfirm[prop.id]) {
+      setErr('فعّل خيار «تأكيد المراجعة الأمنية اليدوية» أولاً قبل اعتماد مقترح عالي الخطورة.');
+      return;
+    }
+    setBusy(true);
+    setErr('');
+    setMsg('');
+    try {
+      await authedRequest('/api/store-copilot/admin', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'approve_proposal',
+          id: prop.id,
+          confirmCriticalOverride: Boolean(criticalOverrideConfirm[prop.id]),
+        }),
+      });
+      setMsg(`تم اعتماد وتفعيل المقترح "${prop.title}" بنجاح ✅`);
+      await loadData();
+    } catch (e: any) {
+      setErr(e?.message || 'تعذر اعتماد المقترح');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleRejectProposal = async (prop: TrainerProposalRow) => {
+    if (busy) return;
+    setBusy(true);
+    setErr('');
+    setMsg('');
+    try {
+      await authedRequest('/api/store-copilot/admin', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'reject_proposal',
+          id: prop.id,
+        }),
+      });
+      setMsg(`تم رفض المقترح "${prop.title}".`);
+      await loadData();
+    } catch (e: any) {
+      setErr(e?.message || 'تعذر رفض المقترح');
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const handleDeleteRow = async (
-    kind: 'synonym' | 'miss' | 'knowledge',
+    kind: 'synonym' | 'miss' | 'knowledge' | 'proposal',
     id: number,
     label: string
   ) => {
@@ -545,6 +648,16 @@ export default function StoreCopilotAdminTab() {
     return misses.filter((m) => (missFilter === 'open' ? !m.resolved : true));
   }, [misses, missFilter]);
 
+  const filteredProposals = useMemo(() => {
+    return proposals.filter((p) => {
+      if (propFilter === 'pending') return p.status === 'pending';
+      if (propFilter === 'alerts') {
+        return p.status === 'blocked' || p.risk_level === 'critical' || p.risk_level === 'warning';
+      }
+      return true;
+    });
+  }, [proposals, propFilter]);
+
   if (loading) {
     return (
       <div className="wa-card">
@@ -623,6 +736,39 @@ export default function StoreCopilotAdminTab() {
               : 'تحتاج تشغيل هجرة الجداول أولاً'}
           </small>
         </div>
+
+        <div className="wa-card">
+          <div style={{ fontSize: '12.5px', color: 'var(--mut)', fontWeight: 700 }}>
+            🛡️ مقترحات وتنبيهات الإيجنت
+          </div>
+          <strong
+            style={{
+              display: 'block',
+              fontSize: '24px',
+              marginTop: '4px',
+              color:
+                (stats.criticalSecurityAlerts ?? 0) > 0
+                  ? 'var(--bad)'
+                  : (stats.pendingProposals ?? 0) > 0
+                    ? 'var(--acc)'
+                    : 'var(--ok)',
+            }}
+          >
+            {stats.pendingProposals ?? 0} معلّق
+          </strong>
+          <small
+            style={{
+              color: (stats.criticalSecurityAlerts ?? 0) > 0 ? 'var(--bad)' : 'var(--mut)',
+              fontWeight: 700,
+            }}
+          >
+            {(stats.criticalSecurityAlerts ?? 0) > 0
+              ? `🚨 ${stats.criticalSecurityAlerts} إنذار أمني/حظر`
+              : trainerKeyConfigured
+                ? 'المفتاح مضبوط ولا توجد إنذارات'
+                : 'المفتاح الخارجي غير مضبوط بعد'}
+          </small>
+        </div>
       </div>
 
       {/* تبويبات التدريب الفرعية */}
@@ -632,6 +778,18 @@ export default function StoreCopilotAdminTab() {
             ['synonyms', '🧠 المرادفات والبحث'],
             ['behavior', '🎯 سلوك المساعد والبرومبت'],
             ['knowledge', '📚 قاعدة معرفة الشركة'],
+            [
+              'proposals',
+              `🛡️ مقترحات الإيجنت والأمان${
+                (stats.pendingProposals ?? 0) + (stats.criticalSecurityAlerts ?? 0) > 0
+                  ? ` (${stats.pendingProposals ?? 0}${
+                      (stats.criticalSecurityAlerts ?? 0) > 0
+                        ? ` | 🚨 ${stats.criticalSecurityAlerts}`
+                        : ''
+                    })`
+                  : ''
+              }`,
+            ],
           ] as const
         ).map(([tabKey, tabLabel]) => {
           const active = subTab === tabKey;
@@ -1540,6 +1698,410 @@ export default function StoreCopilotAdminTab() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {subTab === 'proposals' && (
+        <div style={{ display: 'grid', gap: '16px' }}>
+          {/* بطاقة حدود الصلاحيات والأمان للإيجنت الخارجي */}
+          <div className="wa-card">
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '10px',
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0 }}>🛡️ حدود وصلاحيات الإيجنت الخارجي (/api/store-copilot/trainer)</h3>
+                <small className="wa-muted">
+                  الإيجنت يعمل عبر هذه النقطة المقيدة فقط — لا يرى ملفات الكود ولا `.env` ولا GitHub ولا يقدر
+                  ينفذ أوامر شيل أو يعدّل قاعدة الإنتاج بدون موافقتك هنا.
+                </small>
+              </div>
+              <span
+                className={`wa-pill ${trainerKeyConfigured ? 'p-ok' : ''}`}
+                style={
+                  trainerKeyConfigured
+                    ? undefined
+                    : { color: '#d97706', borderColor: '#d97706' }
+                }
+              >
+                {trainerKeyConfigured
+                  ? '🔐 STORE_COPILOT_TRAINER_KEY مفعّل'
+                  : '⚠️ STORE_COPILOT_TRAINER_KEY غير مضبوط في السيرفر'}
+              </span>
+            </div>
+
+            {trainerPermissions && (
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                  gap: '12px',
+                  marginTop: '10px',
+                }}
+              >
+                <div
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(22,163,74,0.35)',
+                    background: 'rgba(22,163,74,0.06)',
+                  }}
+                >
+                  <strong style={{ color: '#15803d', fontSize: '13px', display: 'block', marginBottom: '6px' }}>
+                    ✅ مسموح للإيجنت فقط:
+                  </strong>
+                  <ul style={{ margin: 0, paddingInlineStart: '18px', fontSize: '12.5px', color: 'var(--ink)', lineHeight: 1.65 }}>
+                    {trainerPermissions.allowed.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div
+                  style={{
+                    padding: '10px 12px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(220,38,38,0.35)',
+                    background: 'rgba(220,38,38,0.06)',
+                  }}
+                >
+                  <strong style={{ color: '#b91c1c', fontSize: '13px', display: 'block', marginBottom: '6px' }}>
+                    ⛔ محظور نهائياً على الإيجنت:
+                  </strong>
+                  <ul style={{ margin: 0, paddingInlineStart: '18px', fontSize: '12.5px', color: 'var(--ink)', lineHeight: 1.65 }}>
+                    {trainerPermissions.denied.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {!proposalsReady && (
+            <div
+              className="wa-alert"
+              style={{
+                margin: 0,
+                borderColor: '#d97706',
+                background: 'rgba(217, 119, 6, 0.08)',
+                color: 'var(--ink)',
+              }}
+            >
+              ⚠️ جدول مسودات التدريب وسجل الإنذارات غير منشأ في قاعدة البيانات بعد. نفّذ ملف الهجرة{' '}
+              <code>supabase/migrations/20261126020000_store_copilot_trainer_proposals.sql</code> في Supabase
+              SQL Editor ثم اضغط «🔄 تحديث البيانات».
+            </div>
+          )}
+
+          {/* قائمة المقترحات ومحاولات الخطر المحظورة */}
+          <div className="wa-card">
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '12px',
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0 }}>
+                  📬 طابور المراجعة والتنبيهات الأمنية ({filteredProposals.length} من {proposals.length})
+                </h3>
+                <small className="wa-muted">
+                  أي كود مفخخ أو أمر شيل أو محاولة تصعيد صلاحية تُحظر تلقائياً (403) وتُعرض هنا باللون الأحمر
+                  مع إرسال تنبيه تيليجرام فوري.
+                </small>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {(
+                  [
+                    ['pending', `المعلقة (${stats.pendingProposals ?? 0})`],
+                    ['alerts', `🚨 التنبيهات والخطر (${stats.criticalSecurityAlerts ?? 0})`],
+                    ['all', `الكل (${proposals.length})`],
+                  ] as const
+                ).map(([fKey, fLabel]) => (
+                  <button
+                    key={fKey}
+                    type="button"
+                    className="wa-btn"
+                    onClick={() => setPropFilter(fKey)}
+                    style={{
+                      padding: '6px 11px',
+                      fontSize: '12.5px',
+                      borderColor: propFilter === fKey ? 'var(--acc)' : 'var(--line)',
+                      color: propFilter === fKey ? 'var(--acc)' : 'var(--ink)',
+                      background: propFilter === fKey ? 'rgba(249,115,22,0.1)' : 'var(--card)',
+                    }}
+                  >
+                    {fLabel}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {filteredProposals.length === 0 ? (
+              <p className="wa-muted" style={{ margin: 0 }}>
+                {proposalsReady
+                  ? 'لا توجد عناصر مطابقة للفلتر الحالي.'
+                  : 'بانتظار تنفيذ هجرة جدول مسودات الإيجنت لعرض المقترحات والتنبيهات هنا.'}
+              </p>
+            ) : (
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {filteredProposals.map((prop) => {
+                  const isBlocked = prop.status === 'blocked' || prop.proposal_type === 'blocked_attempt';
+                  const isCritical = prop.risk_level === 'critical';
+                  const isWarning = prop.risk_level === 'warning';
+                  const flags = Array.isArray(prop.security_flags) ? prop.security_flags : [];
+
+                  const borderColor =
+                    isBlocked || isCritical
+                      ? '#dc2626'
+                      : isWarning
+                        ? '#d97706'
+                        : 'var(--line)';
+
+                  const statusLabel =
+                    prop.status === 'blocked'
+                      ? '⛔ محظور تلقائياً'
+                      : prop.status === 'approved'
+                        ? '✅ معتمد ومفعّل'
+                        : prop.status === 'rejected'
+                          ? '❌ مرفوض'
+                          : '⏳ بانتظار موافقتك';
+
+                  const riskBadgeStyle = isCritical
+                    ? { color: '#b91c1c', borderColor: '#dc2626', background: 'rgba(220,38,38,0.1)' }
+                    : isWarning
+                      ? { color: '#b45309', borderColor: '#d97706', background: 'rgba(217,119,6,0.1)' }
+                      : { color: '#15803d', borderColor: '#16a34a', background: 'rgba(22,163,74,0.08)' };
+
+                  return (
+                    <div
+                      key={prop.id}
+                      style={{
+                        padding: '12px 14px',
+                        borderRadius: '12px',
+                        border: `1.5px solid ${borderColor}`,
+                        background:
+                          isBlocked || isCritical
+                            ? 'rgba(220,38,38,0.03)'
+                            : 'var(--bg)',
+                        display: 'grid',
+                        gap: '10px',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'flex-start',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                        }}
+                      >
+                        <div>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+                            <strong style={{ fontSize: '15px', color: 'var(--ink)' }}>
+                              #{prop.id} — {prop.title}
+                            </strong>
+                            <span className="wa-pill" style={riskBadgeStyle}>
+                              {isCritical
+                                ? '🚨 خطورة عالية'
+                                : isWarning
+                                  ? '⚠️ تحذير أمان'
+                                  : '✅ آمن'}
+                            </span>
+                            <span className="wa-pill">{statusLabel}</span>
+                            <span className="wa-pill">النوع: {prop.proposal_type}</span>
+                          </div>
+                          <div style={{ fontSize: '12px', color: 'var(--mut)', marginTop: '4px' }}>
+                            الإيجنت: <code>{prop.agent_name}</code> • التوقيت:{' '}
+                            {new Date(prop.created_at).toLocaleString('ar-EG')}
+                          </div>
+                        </div>
+
+                        {prop.requested_scope && (
+                          <span
+                            className="wa-pill"
+                            style={{
+                              maxWidth: '100%',
+                              whiteSpace: 'normal',
+                              textAlign: 'start',
+                              borderColor: isBlocked ? '#dc2626' : '#0284c7',
+                              color: isBlocked ? '#b91c1c' : '#0369a1',
+                            }}
+                          >
+                            🔒 الصلاحية المطلوبة: {prop.requested_scope}
+                          </span>
+                        )}
+                      </div>
+
+                      {prop.reason && (
+                        <div style={{ fontSize: '13px', color: 'var(--ink)' }}>
+                          <strong>السبب:</strong> {prop.reason}
+                        </div>
+                      )}
+
+                      {flags.length > 0 && (
+                        <div
+                          style={{
+                            padding: '10px 12px',
+                            borderRadius: '10px',
+                            border: '1px solid #dc2626',
+                            background: 'rgba(220,38,38,0.08)',
+                            display: 'grid',
+                            gap: '6px',
+                          }}
+                        >
+                          <strong style={{ color: '#b91c1c', fontSize: '13px' }}>
+                            🚨 الفحص الأمني رصد {flags.length} علامة خطر/صلاحية غير معتادة:
+                          </strong>
+                          {flags.map((flag, fIdx) => (
+                            <div
+                              key={`${flag.code}-${fIdx}`}
+                              style={{
+                                fontSize: '12.5px',
+                                padding: '6px 8px',
+                                borderRadius: '8px',
+                                background: 'var(--card)',
+                                border: '1px solid rgba(220,38,38,0.28)',
+                              }}
+                            >
+                              <div style={{ fontWeight: 800, color: flag.severity === 'critical' ? '#b91c1c' : '#b45309' }}>
+                                • [{flag.code}] {flag.title} — الحقل: <code>{flag.field}</code>
+                              </div>
+                              <div style={{ color: 'var(--mut)', marginTop: '2px' }}>{flag.detail}</div>
+                              {flag.excerpt && (
+                                <pre
+                                  style={{
+                                    margin: '4px 0 0 0',
+                                    padding: '4px 6px',
+                                    borderRadius: '6px',
+                                    background: 'var(--bg)',
+                                    fontSize: '11.5px',
+                                    whiteSpace: 'pre-wrap',
+                                    wordBreak: 'break-word',
+                                    direction: 'ltr',
+                                  }}
+                                >
+                                  {flag.excerpt}
+                                </pre>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <details>
+                        <summary style={{ cursor: 'pointer', fontSize: '12.5px', fontWeight: 800, color: 'var(--acc)' }}>
+                          👁️ معاينة البيانات المقترحة (Payload) قبل القرار
+                        </summary>
+                        <pre
+                          style={{
+                            marginTop: '6px',
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            border: '1px solid var(--line)',
+                            background: 'var(--card)',
+                            fontSize: '12px',
+                            whiteSpace: 'pre-wrap',
+                            wordBreak: 'break-word',
+                            direction: 'ltr',
+                            maxHeight: '220px',
+                            overflowY: 'auto',
+                          }}
+                        >
+                          {JSON.stringify(prop.payload, null, 2)}
+                        </pre>
+                      </details>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '8px',
+                        }}
+                      >
+                        <div>
+                          {prop.status === 'pending' && !isBlocked && isCritical && (
+                            <label
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                fontSize: '12.5px',
+                                fontWeight: 800,
+                                color: '#b91c1c',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={Boolean(criticalOverrideConfirm[prop.id])}
+                                onChange={(e) =>
+                                  setCriticalOverrideConfirm((prev) => ({
+                                    ...prev,
+                                    [prop.id]: e.target.checked,
+                                  }))
+                                }
+                              />
+                              <span>أؤكد أنني راجعت التحذيرات الحرجة يدوياً وأوافق على تطبيقه</span>
+                            </label>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                          {prop.status === 'pending' && !isBlocked && (
+                            <>
+                              <button
+                                type="button"
+                                className="wa-btn wa-primary"
+                                disabled={busy || (isCritical && !criticalOverrideConfirm[prop.id])}
+                                style={{ padding: '6px 12px', fontSize: '12.5px' }}
+                                onClick={() => void handleApproveProposal(prop)}
+                              >
+                                ✅ موافقة وتفعيل
+                              </button>
+                              <button
+                                type="button"
+                                className="wa-btn"
+                                disabled={busy}
+                                style={{ padding: '6px 12px', fontSize: '12.5px' }}
+                                onClick={() => void handleRejectProposal(prop)}
+                              >
+                                ❌ رفض
+                              </button>
+                            </>
+                          )}
+                          <button
+                            type="button"
+                            className="wa-btn wa-danger"
+                            disabled={busy}
+                            style={{ padding: '6px 12px', fontSize: '12.5px' }}
+                            onClick={() => void handleDeleteRow('proposal', prop.id, prop.title)}
+                          >
+                            🗑️ حذف
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

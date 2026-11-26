@@ -14,6 +14,10 @@ import {
   isMissingTrainingTableError,
   VALID_KNOWLEDGE_CATEGORY_SET,
 } from '@/lib/copilot/training-store';
+import {
+  auditTrainerProposal,
+  TRAINER_AGENT_PERMISSION_MANIFEST,
+} from '@/lib/copilot/proposal-security';
 
 export const runtime = 'nodejs';
 
@@ -21,6 +25,22 @@ const VALID_SYNONYM_TYPES = new Set(['slang', 'brand', 'product', 'category']);
 const VALID_CATEGORIES = new Set<string>(PRODUCT_CATEGORIES.map((c) => c.id));
 const TRAINING_MIGRATION_MISSING_MSG =
   'جداول تدريب الكوبايلوت غير منشأة في قاعدة البيانات بعد — نفّذ ملف الهجرة 20261124100000_store_copilot_training.sql في Supabase أولاً.';
+const PROPOSALS_MIGRATION_MISSING_MSG =
+  'جدول مسودات التدريب غير منشأ في قاعدة البيانات بعد — نفّذ ملف الهجرة 20261126020000_store_copilot_trainer_proposals.sql في Supabase أولاً.';
+
+function normalizeSqlSynonymKey(input: string): string {
+  const digits = '٠١٢٣٤٥٦٧٨٩';
+  return String(input || '')
+    .replace(/[٠-٩]/g, (d) => String(digits.indexOf(d)))
+    .toLowerCase()
+    .replace(/[\u064B-\u065F\u0670\u0640]/g, '')
+    .replace(/[أإآٱ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/ى/g, 'ي')
+    .replace(/بورسلين/g, 'بورسلان')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 async function verifyAdminAuth(req: Request): Promise<boolean> {
   const authHeader = req.headers.get('authorization') || '';
@@ -77,7 +97,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const [synRes, missRes, overview, training] = await Promise.all([
+    const [synRes, missRes, overview, training, propRes] = await Promise.all([
       sb.from('store_search_synonyms').select('*').order('synonym_type').order('id'),
       sb
         .from('copilot_search_misses')
@@ -88,6 +108,11 @@ export async function GET(req: Request) {
         .limit(150),
       getCachedCatalogOverview(sb),
       getCachedCopilotTraining(sb, { bypassCache: true }),
+      sb
+        .from('store_copilot_training_proposals')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100),
     ]);
 
     if (synRes.error) {
@@ -99,6 +124,8 @@ export async function GET(req: Request) {
 
     const synonyms = synRes.data || [];
     const misses = missRes.data || [];
+    const proposalsReady = !isMissingTrainingTableError(propRes.error);
+    const proposals = proposalsReady && Array.isArray(propRes.data) ? propRes.data : [];
     const byType: Record<string, number> = { slang: 0, brand: 0, product: 0, category: 0 };
     let activeSynonyms = 0;
 
@@ -109,8 +136,15 @@ export async function GET(req: Request) {
     }
 
     const openMisses = misses.filter((m) => !m.resolved).length;
-
     const activeKnowledge = training.knowledge.filter((k) => k.is_active).length;
+    const pendingProposals = proposals.filter((p: any) => p.status === 'pending').length;
+    const criticalSecurityAlerts = proposals.filter(
+      (p: any) =>
+        p.status === 'blocked' ||
+        p.risk_level === 'critical' ||
+        (p.status === 'pending' && p.risk_level === 'warning')
+    ).length;
+    const trainerKeyConfigured = (process.env.STORE_COPILOT_TRAINER_KEY || '').trim().length >= 24;
 
     return NextResponse.json({
       ok: true,
@@ -120,6 +154,10 @@ export async function GET(req: Request) {
       trainingReady: training.ready,
       trainingConfig: training.config,
       knowledgeItems: training.knowledge,
+      proposalsReady,
+      proposals,
+      trainerKeyConfigured,
+      trainerPermissions: TRAINER_AGENT_PERMISSION_MANIFEST,
       stats: {
         totalSynonyms: synonyms.length,
         activeSynonyms,
@@ -128,6 +166,8 @@ export async function GET(req: Request) {
         openMisses,
         totalKnowledge: training.knowledge.length,
         activeKnowledge,
+        pendingProposals,
+        criticalSecurityAlerts,
       },
     });
   } catch (err: any) {
@@ -253,6 +293,239 @@ export async function POST(req: Request) {
 
       invalidateCopilotTrainingCache();
       return NextResponse.json({ ok: true, knowledgeItem: data });
+    }
+
+    if (body?.action === 'approve_proposal') {
+      const proposalId = Number(body?.id);
+      if (!Number.isInteger(proposalId) || proposalId <= 0) {
+        return NextResponse.json({ ok: false, error: 'معرّف المقترح غير صالح' }, { status: 400 });
+      }
+
+      const { data: prop, error: propErr } = await sb
+        .from('store_copilot_training_proposals')
+        .select('*')
+        .eq('id', proposalId)
+        .maybeSingle();
+
+      if (propErr) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: isMissingTrainingTableError(propErr)
+              ? PROPOSALS_MIGRATION_MISSING_MSG
+              : propErr.message,
+          },
+          { status: isMissingTrainingTableError(propErr) ? 503 : 500 }
+        );
+      }
+
+      if (!prop) {
+        return NextResponse.json({ ok: false, error: 'المقترح غير موجود' }, { status: 404 });
+      }
+      if (prop.status !== 'pending' || prop.proposal_type === 'blocked_attempt') {
+        return NextResponse.json(
+          { ok: false, error: 'لا يمكن اعتماد هذا العنصر — تم حظره أو مراجعته مسبقاً.' },
+          { status: 400 }
+        );
+      }
+
+      const payloadObj =
+        prop.payload && typeof prop.payload === 'object' && !Array.isArray(prop.payload)
+          ? (prop.payload as Record<string, unknown>)
+          : {};
+
+      const freshAudit = auditTrainerProposal({
+        proposalType: String(prop.proposal_type || ''),
+        title: String(prop.title || ''),
+        reason: String(prop.reason || ''),
+        payload: payloadObj,
+      });
+
+      if (freshAudit.hasCritical && body?.confirmCriticalOverride !== true) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error:
+              'هذا المقترح يحتوي على تحذيرات أمنية حرجة — فعّل خيار تأكيد المراجعة اليدوية قبل الاعتماد.',
+            flags: freshAudit.flags,
+          },
+          { status: 400 }
+        );
+      }
+
+      if (prop.proposal_type === 'synonym') {
+        const synTerm = String(payloadObj.term || '').trim().slice(0, 100);
+        const synType = VALID_SYNONYM_TYPES.has(String(payloadObj.synonym_type || ''))
+          ? String(payloadObj.synonym_type)
+          : 'slang';
+        const expandTerms = sanitizeTextArray(payloadObj.expand_terms);
+        const targetCats = sanitizeTextArray(payloadObj.target_categories).filter((c) =>
+          VALID_CATEGORIES.has(c)
+        );
+        const notesText = String(payloadObj.notes || prop.reason || '').trim().slice(0, 240);
+
+        if (!synTerm) {
+          return NextResponse.json({ ok: false, error: 'بيانات المرادف غير مكتملة' }, { status: 400 });
+        }
+
+        const normKey = normalizeSqlSynonymKey(synTerm);
+        const { error: synUpErr } = await sb
+          .from('store_search_synonyms')
+          .upsert(
+            {
+              term: synTerm,
+              term_normalized: normKey,
+              synonym_type: synType,
+              expand_terms: expandTerms.length > 0 ? expandTerms : [synTerm],
+              target_categories: targetCats,
+              notes: notesText,
+              is_active: true,
+            },
+            { onConflict: 'term_normalized' }
+          );
+
+        if (synUpErr) {
+          return NextResponse.json({ ok: false, error: synUpErr.message }, { status: 500 });
+        }
+
+        const missId = Number(payloadObj.missId);
+        if (Number.isInteger(missId) && missId > 0) {
+          await sb
+            .from('copilot_search_misses')
+            .update({ resolved: true, resolved_synonym: synTerm })
+            .eq('id', missId);
+        }
+      } else if (prop.proposal_type === 'knowledge') {
+        const kTitle = String(payloadObj.title || prop.title || '').trim().slice(0, 160);
+        const kAnswer = String(payloadObj.answer || '').trim().slice(0, 2000);
+        const rawCat = String(payloadObj.category || 'general').trim();
+        const kCategory = VALID_KNOWLEDGE_CATEGORY_SET.has(rawCat) ? rawCat : 'general';
+        const kKeywords = sanitizeTextArray(payloadObj.keywords);
+        const rawPrio = Number(payloadObj.priority);
+        const kPriority = Number.isFinite(rawPrio)
+          ? Math.min(100, Math.max(0, Math.round(rawPrio)))
+          : 10;
+
+        if (!kTitle || !kAnswer) {
+          return NextResponse.json({ ok: false, error: 'بيانات مقال المعرفة غير مكتملة' }, { status: 400 });
+        }
+
+        const { error: kErr } = await sb.from('store_copilot_knowledge').insert({
+          title: kTitle,
+          category: kCategory,
+          keywords: kKeywords,
+          answer: kAnswer,
+          priority: kPriority,
+          is_active: true,
+        });
+
+        if (kErr) {
+          return NextResponse.json(
+            {
+              ok: false,
+              error: isMissingTrainingTableError(kErr) ? TRAINING_MIGRATION_MISSING_MSG : kErr.message,
+            },
+            { status: isMissingTrainingTableError(kErr) ? 503 : 500 }
+          );
+        }
+        invalidateCopilotTrainingCache();
+      } else if (prop.proposal_type === 'training_config') {
+        const current = await getCachedCopilotTraining(sb, { bypassCache: true });
+        if (!current.ready) {
+          return NextResponse.json({ ok: false, error: TRAINING_MIGRATION_MISSING_MSG }, { status: 503 });
+        }
+
+        const strVal = (v: unknown, max: number) =>
+          typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : '';
+
+        const merged = {
+          id: 'default',
+          persona_name: strVal(payloadObj.persona_name, 120) || current.config.persona_name,
+          tone_guidelines:
+            strVal(payloadObj.tone_guidelines, 600) || current.config.tone_guidelines,
+          sales_handoff_prompt:
+            strVal(payloadObj.sales_handoff_prompt, 300) || current.config.sales_handoff_prompt,
+          extra_system_rules:
+            typeof payloadObj.extra_system_rules === 'string' && payloadObj.extra_system_rules.trim()
+              ? payloadObj.extra_system_rules.trim().slice(0, 3000)
+              : current.config.extra_system_rules,
+          forbidden_claims:
+            typeof payloadObj.forbidden_claims === 'string' && payloadObj.forbidden_claims.trim()
+              ? payloadObj.forbidden_claims.trim().slice(0, 1500)
+              : current.config.forbidden_claims,
+          updated_at: new Date().toISOString(),
+        };
+
+        const { error: cfgErr } = await sb
+          .from('store_copilot_training_config')
+          .upsert(merged, { onConflict: 'id' });
+
+        if (cfgErr) {
+          return NextResponse.json(
+            {
+              ok: false,
+              error: isMissingTrainingTableError(cfgErr) ? TRAINING_MIGRATION_MISSING_MSG : cfgErr.message,
+            },
+            { status: isMissingTrainingTableError(cfgErr) ? 503 : 500 }
+          );
+        }
+        invalidateCopilotTrainingCache();
+      } else {
+        return NextResponse.json({ ok: false, error: 'نوع مقترح غير مدعوم للاعتماد' }, { status: 400 });
+      }
+
+      const reviewNote = String(body?.review_note || '').trim().slice(0, 400);
+      const { data: updated, error: updErr } = await sb
+        .from('store_copilot_training_proposals')
+        .update({
+          status: 'approved',
+          review_note: reviewNote,
+          reviewed_at: new Date().toISOString(),
+          risk_level: freshAudit.riskLevel,
+          security_flags: freshAudit.flags,
+        })
+        .eq('id', proposalId)
+        .select('*')
+        .single();
+
+      if (updErr) {
+        return NextResponse.json({ ok: false, error: updErr.message }, { status: 500 });
+      }
+
+      return NextResponse.json({ ok: true, proposal: updated });
+    }
+
+    if (body?.action === 'reject_proposal') {
+      const proposalId = Number(body?.id);
+      if (!Number.isInteger(proposalId) || proposalId <= 0) {
+        return NextResponse.json({ ok: false, error: 'معرّف المقترح غير صالح' }, { status: 400 });
+      }
+
+      const reviewNote = String(body?.review_note || '').trim().slice(0, 400);
+      const { data: updated, error: updErr } = await sb
+        .from('store_copilot_training_proposals')
+        .update({
+          status: 'rejected',
+          review_note: reviewNote,
+          reviewed_at: new Date().toISOString(),
+        })
+        .eq('id', proposalId)
+        .select('*')
+        .single();
+
+      if (updErr) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: isMissingTrainingTableError(updErr)
+              ? PROPOSALS_MIGRATION_MISSING_MSG
+              : updErr.message,
+          },
+          { status: isMissingTrainingTableError(updErr) ? 503 : 500 }
+        );
+      }
+
+      return NextResponse.json({ ok: true, proposal: updated });
     }
 
     const term = String(body?.term || '').trim();
@@ -472,7 +745,7 @@ export async function DELETE(req: Request) {
     const id = Number(url.searchParams.get('id'));
 
     if (
-      (kind !== 'synonym' && kind !== 'miss' && kind !== 'knowledge') ||
+      (kind !== 'synonym' && kind !== 'miss' && kind !== 'knowledge' && kind !== 'proposal') ||
       !Number.isInteger(id) ||
       id <= 0
     ) {
@@ -484,18 +757,25 @@ export async function DELETE(req: Request) {
         ? 'copilot_search_misses'
         : kind === 'knowledge'
           ? 'store_copilot_knowledge'
-          : 'store_search_synonyms';
+          : kind === 'proposal'
+            ? 'store_copilot_training_proposals'
+            : 'store_search_synonyms';
     const { error } = await sb.from(table).delete().eq('id', id);
     if (error) {
+      const missingTableMsg =
+        kind === 'knowledge'
+          ? TRAINING_MIGRATION_MISSING_MSG
+          : kind === 'proposal'
+            ? PROPOSALS_MIGRATION_MISSING_MSG
+            : error.message;
+      const isMissing =
+        (kind === 'knowledge' || kind === 'proposal') && isMissingTrainingTableError(error);
       return NextResponse.json(
         {
           ok: false,
-          error:
-            kind === 'knowledge' && isMissingTrainingTableError(error)
-              ? TRAINING_MIGRATION_MISSING_MSG
-              : error.message,
+          error: isMissing ? missingTableMsg : error.message,
         },
-        { status: kind === 'knowledge' && isMissingTrainingTableError(error) ? 503 : 500 }
+        { status: isMissing ? 503 : 500 }
       );
     }
 

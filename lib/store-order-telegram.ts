@@ -233,3 +233,42 @@ export async function sendCopilotEscalationTelegram(params: {
 
   return await postTelegramHtmlMessage(lines.join('\n'), buttons);
 }
+
+/**
+ * يرسل تنبيه أمان فوري للإدارة عند حظر محاولة مريبة أو استلام مقترح عالي الخطورة من الإيجنت الخارجي.
+ */
+export async function sendTrainerSecurityAlertTelegram(params: {
+  agentName: string;
+  proposalType: string;
+  title: string;
+  blocked: boolean;
+  riskLevel: 'safe' | 'warning' | 'critical';
+  flags: Array<{ title: string; field: string; excerpt: string }>;
+}): Promise<boolean> {
+  const nowStr = formatCairoTimestamp();
+  const header = params.blocked
+    ? '🚨 <b>محاولة محظورة من الإيجنت الخارجي — تدريب الكوبايلوت</b>'
+    : '⚠️ <b>مقترح عالي الخطورة بانتظار المراجعة — إيجنت التدريب</b>';
+
+  const lines = [
+    header,
+    '━━━━━━━━━━━━━━━━━━━━',
+    `🤖 <b>الإيجنت:</b> <code>${escapeHtml(params.agentName || 'external-trainer')}</code>`,
+    `📂 <b>النوع:</b> <code>${escapeHtml(params.proposalType)}</code> | <b>الخطورة:</b> <code>${escapeHtml(params.riskLevel)}</code>`,
+    `📌 <b>العنوان:</b> ${escapeHtml(params.title || 'بدون عنوان')}`,
+    `⏰ <b>التوقيت:</b> ${escapeHtml(nowStr)}`,
+  ];
+
+  const topFlags = Array.isArray(params.flags) ? params.flags.slice(0, 5) : [];
+  if (topFlags.length > 0) {
+    lines.push('<b>🔍 تفاصيل الإنذارات المرصودة:</b>');
+    for (const flag of topFlags) {
+      lines.push(
+        `• <b>${escapeHtml(flag.title)}</b> (${escapeHtml(flag.field)})\n  <code>${escapeHtml(String(flag.excerpt || '').slice(0, 100))}</code>`
+      );
+    }
+  }
+
+  lines.push('🛡️ <i>راجع تبويب «مقترحات الإيجنت والأمان» في /website-admin — لن يُنفَّذ أي شيء تلقائياً.</i>');
+  return await postTelegramHtmlMessage(lines.join('\n'));
+}
