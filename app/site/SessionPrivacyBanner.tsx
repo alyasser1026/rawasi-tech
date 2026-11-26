@@ -31,8 +31,8 @@ export default function SessionPrivacyBanner() {
           position: fixed;
           bottom: 22px;
           right: 20px;
-          z-index: 88;
-          max-width: 390px;
+          z-index: 95;
+          max-width: min(370px, calc(100vw - 240px));
           background: rgba(255, 255, 255, 0.96);
           backdrop-filter: blur(12px);
           color: #0f172a;
@@ -48,10 +48,12 @@ export default function SessionPrivacyBanner() {
         }
         @media (max-width: 980px) {
           .phi-privacy-banner {
-            bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+            bottom: calc(130px + env(safe-area-inset-bottom, 0px));
             right: 12px;
             left: 12px;
             max-width: none;
+            padding: 10px 12px;
+            gap: 8px;
           }
         }
       `}</style>

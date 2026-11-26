@@ -171,7 +171,7 @@ export default function FloatingContactChat({
         }
       `}</style>
 
-      <SessionPrivacyBanner />
+      {!chatOpen && <SessionPrivacyBanner />}
 
       <div className="phi-float-stack">
         <button
