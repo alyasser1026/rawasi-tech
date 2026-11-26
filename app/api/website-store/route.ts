@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { sanitizeDeliveryLocation } from '@/app/site/delivery-location';
 import { sendStoreTelegramNotification } from '@/lib/store-order-telegram';
 
 export const runtime = 'nodejs';
@@ -72,14 +73,21 @@ export async function POST(req: Request) {
           : 'ORD';
     const refCode = `${prefix}-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
+    const deliveryLocation = sanitizeDeliveryLocation(body.deliveryLocation);
+    const browserSessionId =
+      typeof body.browserSessionId === 'string' ? body.browserSessionId.trim().slice(0, 64) : '';
+
     const payloadDetails = {
       refCode,
       orderType,
+      source: 'website_store' as const,
+      ...(browserSessionId ? { browserSessionId } : {}),
       customerName,
       customerPhone,
       customerEmail,
       city: String(body.city || '').trim(),
       address: String(body.address || '').trim(),
+      ...(deliveryLocation ? { deliveryLocation } : {}),
       notes: String(body.notes || '').trim(),
       withInstallation: Boolean(body.withInstallation),
       items: Array.isArray(body.items) ? body.items : [],

@@ -4,6 +4,7 @@
  */
 
 import { normalizePhoneForWhatsApp } from '@/lib/telegram-notifier';
+import type { DeliveryLocation } from '@/app/site/delivery-location';
 
 export interface StoreTelegramOrderItem {
   code?: string;
@@ -19,11 +20,13 @@ export interface StoreTelegramOrderPayload {
   refCode: string;
   orderType: 'store_order' | 'property_inquiry' | 'maintenance_request';
   source?: 'store_copilot_ai' | 'website_store';
+  browserSessionId?: string;
   customerName: string;
   customerPhone: string;
   customerEmail?: string;
   city?: string;
   address?: string;
+  deliveryLocation?: DeliveryLocation | null;
   notes?: string;
   withInstallation?: boolean;
   items?: StoreTelegramOrderItem[];
@@ -121,6 +124,18 @@ export async function sendStoreTelegramNotification(
   if (order.city || order.address) {
     lines.push(`📍 <b>الموقع / العنوان:</b> ${escapeHtml([order.city, order.address].filter(Boolean).join(' — '))}`);
   }
+  if (order.deliveryLocation?.mapUrl) {
+    const accNote =
+      typeof order.deliveryLocation.accuracyMeters === 'number'
+        ? ` (±${order.deliveryLocation.accuracyMeters}م)`
+        : '';
+    lines.push(
+      `🗺️ <b>الموقع الدقيق:</b> <a href="${escapeHtml(order.deliveryLocation.mapUrl)}">فتح على Google Maps</a> (<code>${order.deliveryLocation.lat}, ${order.deliveryLocation.lng}</code>${escapeHtml(accNote)})`
+    );
+  }
+  if (order.browserSessionId) {
+    lines.push(`🆔 <b>معرّف الجلسة:</b> <code>${escapeHtml(order.browserSessionId)}</code>`);
+  }
 
   if (order.orderType === 'maintenance_request') {
     if (order.maintenanceService) {
@@ -191,6 +206,14 @@ export async function sendStoreTelegramNotification(
       `مرحباً أستاذ ${order.customerName}، معك قسم المبيعات والهندسة من شركة فاي تك بخصوص طلبكم رقم ${order.refCode}`
     );
     buttons.push([{ text: `💬 تواصل واتساب (${order.customerPhone})`, url: `https://wa.me/${waPhone}?text=${waText}` }]);
+  }
+  if (order.deliveryLocation?.mapUrl) {
+    buttons.push([
+      {
+        text: '📍 فتح موقع العميل على الخريطة',
+        url: order.deliveryLocation.mapUrl,
+      },
+    ]);
   }
 
   return await postTelegramHtmlMessage(lines.join('\n'), buttons);

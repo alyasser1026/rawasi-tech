@@ -23,6 +23,7 @@ import { normalizeArabicSearch, queryStoreCatalog } from '@/lib/store-catalog-se
 import { filterRelevantCatalogProducts, inferCatalogIntent, scoreCatalogProduct } from '@/lib/copilot/catalog-relevance';
 import type { ApprovedPolicyKnowledge } from '@/lib/copilot/response-policy';
 import { getVerifiedActionContact } from '@/lib/copilot/handoff';
+import { sanitizeDeliveryLocation } from '@/app/site/delivery-location';
 import {
   sendCopilotEscalationTelegram,
   sendStoreTelegramNotification,
@@ -1175,6 +1176,7 @@ async function execSubmitOrderOrServiceOnce(
   const customerEmail = String(args.customerEmail ?? args.customer_email ?? ctx.customerEmail ?? '').trim();
   const city = String(args.city ?? '').trim();
   const address = String(args.address ?? '').trim();
+  const deliveryLocation = sanitizeDeliveryLocation(args.deliveryLocation ?? args.location);
   const notes = String(args.notes ?? '').trim();
   const contact = getVerifiedActionContact(args, ctx);
   if (!contact.ready) {
@@ -1223,6 +1225,7 @@ async function execSubmitOrderOrServiceOnce(
     customerEmail,
     city,
     address,
+    ...(deliveryLocation ? { deliveryLocation } : {}),
     notes,
     withInstallation,
     sessionId: ctx.sessionId,
@@ -1244,6 +1247,18 @@ async function execSubmitOrderOrServiceOnce(
   }
 
   const orderData = data.order || {};
+  if (deliveryLocation) {
+    const mergedDetails = {
+      ...(orderData && typeof orderData === 'object' ? orderData : rpcPayload),
+      deliveryLocation,
+      browserSessionId: ctx.sessionId,
+    };
+    await sb
+      .from('user_requests')
+      .update({ details: JSON.stringify(mergedDetails) })
+      .eq('id', String(data.id));
+  }
+
   const submitted: CopilotSubmittedOrder = {
     id: String(data.id || data.refCode),
     refCode: String(data.refCode),
@@ -1268,11 +1283,13 @@ async function execSubmitOrderOrServiceOnce(
     refCode: submitted.refCode,
     orderType,
     source: 'store_copilot_ai',
+    browserSessionId: ctx.sessionId || undefined,
     customerName,
     customerPhone,
     customerEmail: customerEmail || undefined,
     city: city || undefined,
     address: address || undefined,
+    deliveryLocation: deliveryLocation || undefined,
     notes: notes || undefined,
     withInstallation: submitted.withInstallation,
     items: Array.isArray(orderData.items) ? orderData.items : [],

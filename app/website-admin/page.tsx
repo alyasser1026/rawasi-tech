@@ -2219,10 +2219,25 @@ export default function WebsiteAdminPage() {
                       </div>
                     ) : null}
 
-                    {(ord.city || ord.address || ord.notes) && (
-                      <div style={{ fontSize: '13px', color: 'var(--mut)' }}>
-                        {ord.city || ord.address ? `📍 العنوان: ${[ord.city, ord.address].filter(Boolean).join(' — ')} | ` : ''}
-                        {ord.notes ? `📝 ملاحظات: ${ord.notes}` : ''}
+                    {(ord.city || ord.address || ord.notes || ord.deliveryLocation?.mapUrl || ord.browserSessionId || ord.sessionId) && (
+                      <div style={{ fontSize: '13px', color: 'var(--mut)', display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                        {ord.city || ord.address ? <span>📍 العنوان: {[ord.city, ord.address].filter(Boolean).join(' — ')}</span> : null}
+                        {ord.deliveryLocation?.mapUrl ? (
+                          <a
+                            href={ord.deliveryLocation.mapUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ color: '#0369a1', fontWeight: 800, textDecoration: 'underline' }}
+                          >
+                            🗺️ فتح الموقع الدقيق على خرائط جوجل ↗ ({Number(ord.deliveryLocation.lat).toFixed(5)}, {Number(ord.deliveryLocation.lng).toFixed(5)})
+                          </a>
+                        ) : null}
+                        {ord.notes ? <span>📝 ملاحظات: {ord.notes}</span> : null}
+                        {(ord.browserSessionId || ord.sessionId) ? (
+                          <span style={{ fontSize: '11.5px', opacity: 0.8 }}>
+                            🆔 جلسة: {ord.browserSessionId || ord.sessionId}
+                          </span>
+                        ) : null}
                       </div>
                     )}
                   </div>

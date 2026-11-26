@@ -2,7 +2,14 @@
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { CSS } from './site-styles';
+import { getOrCreateBrowserSessionId } from './browser-session';
+import type { DeliveryLocation } from './delivery-location';
+
+const DeliveryLocationPicker = dynamic(() => import('./DeliveryLocationPicker'), {
+  ssr: false,
+});
 import { mergeContent, type SiteContentOverride, type StoreOfferBannerItem } from './site-content';
 import type { StoreCatalogQueryResult } from '@/lib/store-catalog-server';
 import {
@@ -180,6 +187,7 @@ export default function StoreClient({
   const [mntPhone, setMntPhone] = useState('');
   const [mntCity, setMntCity] = useState('');
   const [mntAddress, setMntAddress] = useState('');
+  const [mntLocation, setMntLocation] = useState<DeliveryLocation | null>(null);
   const [mntDate, setMntDate] = useState('');
   const [mntNotes, setMntNotes] = useState('');
   const [mntBusy, setMntBusy] = useState(false);
@@ -532,6 +540,7 @@ export default function StoreClient({
     setSelectedMaintenance(srv);
     setMntRef(null);
     setMntErr('');
+    setMntLocation(null);
   };
 
   const handleAddMaintenanceToCart = (srv: WebsiteMaintenanceService) => {
@@ -569,17 +578,20 @@ export default function StoreClient({
         phone: mntPhone.trim(),
         email: cart.user?.email,
       });
+      const browserSessionId = getOrCreateBrowserSessionId();
       const res = await fetch('/api/website-store', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           orderType: 'maintenance_request',
           userId: cart.user?.id || null,
+          browserSessionId: browserSessionId || undefined,
           customerName: mntName.trim(),
           customerPhone: mntPhone.trim(),
           customerEmail: cart.user?.email || '',
           city: mntCity.trim(),
           address: mntAddress.trim(),
+          deliveryLocation: mntLocation,
           notes: mntNotes.trim(),
           maintenanceService: {
             code: selectedMaintenance.code,
@@ -596,6 +608,7 @@ export default function StoreClient({
         throw new Error(data?.error || 'تعذر تسجيل الطلب حالياً');
       }
       setMntRef(data.refCode || 'MNT-2026');
+      setMntLocation(null);
     } catch (err: any) {
       setMntErr(err?.message || 'حدث خطأ أثناء إرسال الطلب');
     } finally {
@@ -3875,6 +3888,8 @@ export default function StoreClient({
                   onChange={(e) => setMntAddress(e.target.value)}
                   placeholder="العنوان التفصيلي للموقع"
                 />
+
+                <DeliveryLocationPicker value={mntLocation} onChange={setMntLocation} />
 
                 <textarea
                   className="st-modal-input"

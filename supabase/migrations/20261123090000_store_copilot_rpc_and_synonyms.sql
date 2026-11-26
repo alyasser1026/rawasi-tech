@@ -948,6 +948,7 @@ BEGIN
     'customerEmail', v_email,
     'city', v_city,
     'address', v_address,
+    'deliveryLocation', coalesce(p_payload->'deliveryLocation', 'null'::jsonb),
     'notes', v_notes,
     'withInstallation', v_with_installation,
     'items', coalesce(v_estimate->'items', '[]'::jsonb),

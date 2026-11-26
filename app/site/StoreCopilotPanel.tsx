@@ -2,8 +2,15 @@
 
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 import { filterRelevantCatalogProducts, inferCatalogIntent, isProductOrderable, toCustomerDisplayText } from '@/lib/copilot/catalog-relevance';
+import { getOrCreateBrowserSessionId, syncBrowserSessionId } from './browser-session';
+import type { DeliveryLocation } from './delivery-location';
+
+const DeliveryLocationPicker = dynamic(() => import('./DeliveryLocationPicker'), {
+  ssr: false,
+});
 import {
   type ClientCopilotActionLink,
   type ClientCopilotCartActionItem,
@@ -406,6 +413,7 @@ export default function StoreCopilotPanel({
   const [customerPhone, setCustomerPhone] = useState(defaultPhone || '');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
+  const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocation | null>(null);
   const [orderNotes, setOrderNotes] = useState('');
 
   const [checkoutOpen, setCheckoutOpen] = useState(false);
@@ -419,7 +427,7 @@ export default function StoreCopilotPanel({
   const sendingRef = useRef(false);
   const lastConsumedKeyRef = useRef('');
 
-  // استعادة الجلسة من localStorage
+  // استعادة الجلسة من localStorage ومزامنتها مع Cookie الجلسة الموحّد
   useEffect(() => {
     if (typeof window === 'undefined' || restoredRef.current) return;
     restoredRef.current = true;
@@ -427,7 +435,14 @@ export default function StoreCopilotPanel({
       const raw = window.localStorage.getItem(SESSION_STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (parsed?.sessionId) setSessionId(String(parsed.sessionId));
+        if (parsed?.sessionId) {
+          const restoredId = String(parsed.sessionId);
+          setSessionId(restoredId);
+          syncBrowserSessionId(restoredId);
+        } else {
+          const browserSid = getOrCreateBrowserSessionId();
+          if (browserSid) setSessionId(browserSid);
+        }
         if (Array.isArray(parsed?.messages) && parsed.messages.length > 0) {
           setMessages(parsed.messages.slice(-30));
         }
@@ -437,9 +452,13 @@ export default function StoreCopilotPanel({
         if (parsed?.address) setAddress(String(parsed.address));
         // Older versions persisted a model-generated flag before an actual handoff.
         if (parsed?.escalated && parsed?.handoffConfirmed === true) setEscalated(true);
+      } else {
+        const browserSid = getOrCreateBrowserSessionId();
+        if (browserSid) setSessionId(browserSid);
       }
     } catch {
-      // ignore malformed saved session
+      const browserSid = getOrCreateBrowserSessionId();
+      if (browserSid) setSessionId(browserSid);
     }
   }, []);
 
@@ -736,6 +755,7 @@ export default function StoreCopilotPanel({
           customerPhone: cleanPhone,
           city: city.trim(),
           address: address.trim(),
+          deliveryLocation,
           notes: orderNotes.trim(),
           withInstallation: checkoutEstimate.hasInstallation,
           items: checkoutEstimate.items.map((it) => ({
@@ -752,6 +772,7 @@ export default function StoreCopilotPanel({
       }
 
       rememberVisitorContact({ name: cleanName, phone: cleanPhone });
+      syncBrowserSessionId(sessionId);
 
       const ord = data.submittedOrder;
       const confirmMsg: CopilotUiMessage = {
@@ -771,6 +792,7 @@ export default function StoreCopilotPanel({
       setMessages((prev) => [...prev, confirmMsg].slice(-30));
       setCheckoutOpen(false);
       setCheckoutEstimate(null);
+      setDeliveryLocation(null);
       setOrderNotes('');
     } catch (err: any) {
       setCheckoutError(err?.message || 'حدث خطأ أثناء تأكيد الطلب');
@@ -1535,6 +1557,11 @@ export default function StoreCopilotPanel({
                 }}
               />
             </div>
+            <DeliveryLocationPicker
+              value={deliveryLocation}
+              onChange={setDeliveryLocation}
+              compact
+            />
             <input
               type="text"
               placeholder="ملاحظات إضافية أو موعد مفضل (اختياري)"

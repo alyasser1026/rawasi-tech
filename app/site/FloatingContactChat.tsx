@@ -6,6 +6,7 @@ import {
   PHI_COPILOT_OPEN_EVENT,
   type CopilotOpenPayload,
 } from './copilot-events';
+import SessionPrivacyBanner from './SessionPrivacyBanner';
 
 const StoreCopilotPanel = dynamic(() => import('./StoreCopilotPanel'), {
   ssr: false,
@@ -169,6 +170,8 @@ export default function FloatingContactChat({
           }
         }
       `}</style>
+
+      <SessionPrivacyBanner />
 
       <div className="phi-float-stack">
         <button

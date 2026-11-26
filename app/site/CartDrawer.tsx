@@ -2,10 +2,17 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabase';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 import { getDestinationForUser } from '@/lib/roleRouter';
+import { getOrCreateBrowserSessionId } from './browser-session';
+import type { DeliveryLocation } from './delivery-location';
 import type { WebsiteProduct } from './store-catalog';
+
+const DeliveryLocationPicker = dynamic(() => import('./DeliveryLocationPicker'), {
+  ssr: false,
+});
 import {
   PHI_CART_ADD_EVENT,
   PHI_CART_OPEN_EVENT,
@@ -557,10 +564,15 @@ export function CartDrawer({
   const [customerPhone, setCustomerPhone] = useState(user?.phone || '');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
+  const [deliveryLocation, setDeliveryLocation] = useState<DeliveryLocation | null>(null);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [orderSuccessRef, setOrderSuccessRef] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    getOrCreateBrowserSessionId();
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -591,6 +603,7 @@ export function CartDrawer({
         phone: customerPhone.trim(),
         email: user?.email || '',
       });
+      const browserSessionId = getOrCreateBrowserSessionId();
 
       const res = await fetch('/api/website-store', {
         method: 'POST',
@@ -598,11 +611,13 @@ export function CartDrawer({
         body: JSON.stringify({
           orderType: 'store_order',
           userId: user?.id || null,
+          browserSessionId: browserSessionId || undefined,
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
           customerEmail: user?.email || '',
           city: city.trim(),
           address: address.trim(),
+          deliveryLocation,
           notes: notes.trim(),
           withInstallation: hasAnyInstall,
           items,
@@ -617,6 +632,7 @@ export function CartDrawer({
       }
 
       setOrderSuccessRef(data.refCode || 'ORD-2026');
+      setDeliveryLocation(null);
       onClearCart();
     } catch (err: any) {
       setErrorMsg(err?.message || 'حدث خطأ أثناء إرسال الطلب');
@@ -1142,6 +1158,7 @@ export function CartDrawer({
                     placeholder="عنوان الموقع / الشقة"
                   />
                 </div>
+                <DeliveryLocationPicker value={deliveryLocation} onChange={setDeliveryLocation} />
                 <textarea
                   className="phi-cart-input"
                   value={notes}
