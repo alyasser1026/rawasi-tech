@@ -97,12 +97,23 @@ function sanitizeDraftPayload(
     if (!term) return { ok: false, error: 'حقل term مطلوب لمقترح المرادف.' };
     const rawType = String(p.synonym_type || 'slang').trim();
     const synonymType = VALID_SYNONYM_TYPES.has(rawType) ? rawType : 'slang';
+    const linkedProduct = String(
+      p.linked_product ?? p.product_name ?? p.product ?? ''
+    )
+      .trim()
+      .slice(0, 140);
+    const orderScenario = String(p.order_scenario ?? p.scenario ?? '')
+      .trim()
+      .slice(0, 360);
     const expandTerms = sanitizeTextArray(p.expand_terms, 15, 80);
+    if (linkedProduct && linkedProduct !== term && !expandTerms.includes(linkedProduct)) {
+      expandTerms.push(linkedProduct);
+    }
     const targetCategories = sanitizeTextArray(p.target_categories, 14, 40).filter((c) =>
       VALID_CAT_SET.has(c)
     );
     const notes = String(p.notes || '').trim().slice(0, 240);
-    const missIdNum = Number(p.missId);
+    const missIdNum = Number(p.missId ?? p.resolve_miss_id);
     const clean: Record<string, unknown> = {
       term,
       synonym_type: synonymType,
@@ -110,6 +121,12 @@ function sanitizeDraftPayload(
       target_categories: targetCategories,
       notes,
     };
+    if (linkedProduct) {
+      clean.linked_product = linkedProduct;
+    }
+    if (orderScenario) {
+      clean.order_scenario = orderScenario;
+    }
     if (Number.isInteger(missIdNum) && missIdNum > 0) {
       clean.missId = missIdNum;
     }

@@ -155,6 +155,8 @@ export default function StoreCopilotAdminTab() {
   const [criticalOverrideConfirm, setCriticalOverrideConfirm] = useState<Record<number, boolean>>(
     {}
   );
+  const [selectedProposalIds, setSelectedProposalIds] = useState<number[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [stats, setStats] = useState<AdminStats>({
     totalSynonyms: 0,
     activeSynonyms: 0,
@@ -241,7 +243,16 @@ export default function StoreCopilotAdminTab() {
       setTrainingReady(Boolean(data.trainingReady));
       setKnowledgeItems(Array.isArray(data.knowledgeItems) ? data.knowledgeItems : []);
       setProposalsReady(Boolean(data.proposalsReady));
-      setProposals(Array.isArray(data.proposals) ? data.proposals : []);
+      const nextProposals: TrainerProposalRow[] = Array.isArray(data.proposals)
+        ? data.proposals
+        : [];
+      setProposals(nextProposals);
+      const pendingIdSet = new Set(
+        nextProposals
+          .filter((p) => p.status === 'pending' && p.proposal_type !== 'blocked_attempt')
+          .map((p) => p.id)
+      );
+      setSelectedProposalIds((prev) => prev.filter((id) => pendingIdSet.has(id)));
       setTrainerKeyConfigured(Boolean(data.trainerKeyConfigured));
       setTrainerPermissions(
         data.trainerPermissions && typeof data.trainerPermissions === 'object'
@@ -500,8 +511,164 @@ export default function StoreCopilotAdminTab() {
     }
   };
 
+  const toggleProposalSelection = (id: number) => {
+    setSelectedProposalIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAllProposals = (candidateIds: number[]) => {
+    if (candidateIds.length === 0) return;
+    const allSelected = candidateIds.every((id) => selectedProposalIds.includes(id));
+    if (allSelected) {
+      const candidateSet = new Set(candidateIds);
+      setSelectedProposalIds((prev) => prev.filter((id) => !candidateSet.has(id)));
+    } else {
+      setSelectedProposalIds((prev) => Array.from(new Set([...prev, ...candidateIds])));
+    }
+  };
+
+  const handleBulkApproveProposals = async (idsToApprove?: number[]) => {
+    if (busy || bulkBusy) return;
+    const rawIds =
+      idsToApprove && idsToApprove.length > 0 ? idsToApprove : selectedProposalIds;
+    const ids = Array.from(new Set(rawIds)).filter((id) => {
+      const p = proposals.find((row) => row.id === id);
+      return Boolean(p && p.status === 'pending' && p.proposal_type !== 'blocked_attempt');
+    });
+    if (ids.length === 0) {
+      setErr('اختر مقترحاً واحداً على الأقل من علامة التحديد قبل الإضافة.');
+      return;
+    }
+    const unconfirmedCritical = ids.filter((id) => {
+      const p = proposals.find((row) => row.id === id);
+      return p?.risk_level === 'critical' && !criticalOverrideConfirm[id];
+    });
+    if (unconfirmedCritical.length > 0) {
+      setErr(
+        `المقترحات المحددة تحتوي عناصر عالية الخطورة (${unconfirmedCritical.map((id) => `#${id}`).join('، ')}) — فعّل تأكيد المراجعة اليدوية لها أولاً أو أزل تحديدها.`
+      );
+      return;
+    }
+
+    setBulkBusy(true);
+    setErr('');
+    setMsg('');
+    try {
+      const res = await authedRequest('/api/store-copilot/admin', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'bulk_approve_proposals',
+          ids,
+          confirmCriticalOverride: true,
+        }),
+      });
+      const approvedIds: number[] = Array.isArray(res.approvedIds) ? res.approvedIds : ids;
+      const approvedSet = new Set(approvedIds);
+      setSelectedProposalIds((prev) => prev.filter((id) => !approvedSet.has(id)));
+      setMsg(`تمت إضافة وتفعيل ${res.approvedCount ?? approvedIds.length} مقترح بنجاح ✅`);
+      await loadData();
+    } catch (e: any) {
+      setErr(e?.message || 'تعذر تنفيذ الإضافة الجماعية');
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleBulkRejectProposals = async (idsToReject?: number[]) => {
+    if (busy || bulkBusy) return;
+    const rawIds =
+      idsToReject && idsToReject.length > 0 ? idsToReject : selectedProposalIds;
+    const ids = Array.from(new Set(rawIds)).filter((id) => {
+      const p = proposals.find((row) => row.id === id);
+      return Boolean(p && p.status === 'pending' && p.proposal_type !== 'blocked_attempt');
+    });
+    if (ids.length === 0) {
+      setErr('اختر مقترحاً واحداً على الأقل لرفضه.');
+      return;
+    }
+
+    setBulkBusy(true);
+    setErr('');
+    setMsg('');
+    try {
+      const res = await authedRequest('/api/store-copilot/admin', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'bulk_reject_proposals',
+          ids,
+        }),
+      });
+      const rejectedSet = new Set(ids);
+      setSelectedProposalIds((prev) => prev.filter((id) => !rejectedSet.has(id)));
+      setMsg(`تم رفض ${res.rejectedCount ?? ids.length} مقترح.`);
+      await loadData();
+    } catch (e: any) {
+      setErr(e?.message || 'تعذر تنفيذ الرفض الجماعي');
+    } finally {
+      setBulkBusy(false);
+    }
+  };
+
+  const handleEditProposalInForm = (prop: TrainerProposalRow) => {
+    const payloadObj =
+      prop.payload && typeof prop.payload === 'object' && !Array.isArray(prop.payload)
+        ? (prop.payload as Record<string, unknown>)
+        : {};
+    const synTerm = String(payloadObj.term || prop.title || '').trim();
+    const rawSynType = String(payloadObj.synonym_type || 'slang').trim();
+    const validSynType: SynonymRow['synonym_type'] =
+      rawSynType === 'slang' ||
+      rawSynType === 'brand' ||
+      rawSynType === 'product' ||
+      rawSynType === 'category'
+        ? rawSynType
+        : 'slang';
+    const linkedProduct = String(
+      payloadObj.linked_product ?? payloadObj.product_name ?? payloadObj.product ?? ''
+    ).trim();
+    const orderScenario = String(payloadObj.order_scenario ?? payloadObj.scenario ?? '').trim();
+    const expandList = Array.isArray(payloadObj.expand_terms)
+      ? payloadObj.expand_terms.map((x) => String(x || '').trim()).filter(Boolean)
+      : [];
+    if (linkedProduct && linkedProduct !== synTerm && !expandList.includes(linkedProduct)) {
+      expandList.unshift(linkedProduct);
+    }
+    const cats = Array.isArray(payloadObj.target_categories)
+      ? payloadObj.target_categories
+          .map((c) => String(c || '').trim())
+          .filter((c) => CAT_NAME_MAP.has(c))
+      : [];
+    const baseNote = String(payloadObj.notes || prop.reason || '').trim();
+    const mergedNote =
+      orderScenario && !baseNote.includes(orderScenario)
+        ? [baseNote, `سيناريو الطلب: ${orderScenario}`].filter(Boolean).join(' | ')
+        : baseNote;
+
+    const missIdNum = Number(payloadObj.missId ?? payloadObj.resolve_miss_id);
+    const linkedMiss =
+      Number.isInteger(missIdNum) && missIdNum > 0
+        ? misses.find((m) => m.id === missIdNum) || null
+        : null;
+
+    setEditingId(null);
+    setTrainingMiss(linkedMiss);
+    setTerm(synTerm);
+    setSynType(validSynType);
+    setExpandText(expandList.join('، '));
+    setTargetCats(cats);
+    setNotes(mergedNote.slice(0, 240));
+    setIsActive(true);
+    setSubTab('synonyms');
+    setErr('');
+    setMsg(`تم تحميل مقترح الإيجنت "#${prop.id} — ${prop.title}" في النموذج — راجعه ثم اضغط «إضافة وحفظ المرادف».`);
+    setTimeout(() => {
+      formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 60);
+  };
+
   const handleApproveProposal = async (prop: TrainerProposalRow) => {
-    if (busy) return;
+    if (busy || bulkBusy) return;
     if (prop.risk_level === 'critical' && !criticalOverrideConfirm[prop.id]) {
       setErr('فعّل خيار «تأكيد المراجعة الأمنية اليدوية» أولاً قبل اعتماد مقترح عالي الخطورة.');
       return;
@@ -518,7 +685,8 @@ export default function StoreCopilotAdminTab() {
           confirmCriticalOverride: Boolean(criticalOverrideConfirm[prop.id]),
         }),
       });
-      setMsg(`تم اعتماد وتفعيل المقترح "${prop.title}" بنجاح ✅`);
+      setSelectedProposalIds((prev) => prev.filter((id) => id !== prop.id));
+      setMsg(`تمت إضافة وتفعيل المقترح "${prop.title}" على طول ✅`);
       await loadData();
     } catch (e: any) {
       setErr(e?.message || 'تعذر اعتماد المقترح');
@@ -528,7 +696,7 @@ export default function StoreCopilotAdminTab() {
   };
 
   const handleRejectProposal = async (prop: TrainerProposalRow) => {
-    if (busy) return;
+    if (busy || bulkBusy) return;
     setBusy(true);
     setErr('');
     setMsg('');
@@ -540,6 +708,7 @@ export default function StoreCopilotAdminTab() {
           id: prop.id,
         }),
       });
+      setSelectedProposalIds((prev) => prev.filter((id) => id !== prop.id));
       setMsg(`تم رفض المقترح "${prop.title}".`);
       await loadData();
     } catch (e: any) {
@@ -554,7 +723,7 @@ export default function StoreCopilotAdminTab() {
     id: number,
     label: string
   ) => {
-    if (busy || !window.confirm(`هل تريد حذف "${label}"؟`)) return;
+    if (busy || bulkBusy || !window.confirm(`هل تريد حذف "${label}"؟`)) return;
     setBusy(true);
     setErr('');
     try {
@@ -648,6 +817,10 @@ export default function StoreCopilotAdminTab() {
     return misses.filter((m) => (missFilter === 'open' ? !m.resolved : true));
   }, [misses, missFilter]);
 
+  const pendingSynonymProposals = useMemo(() => {
+    return proposals.filter((p) => p.status === 'pending' && p.proposal_type === 'synonym');
+  }, [proposals]);
+
   const filteredProposals = useMemo(() => {
     return proposals.filter((p) => {
       if (propFilter === 'pending') return p.status === 'pending';
@@ -657,6 +830,623 @@ export default function StoreCopilotAdminTab() {
       return true;
     });
   }, [proposals, propFilter]);
+
+  const renderProposalBulkBar = (list: TrainerProposalRow[]) => {
+    const selectableIds = list
+      .filter((p) => p.status === 'pending' && p.proposal_type !== 'blocked_attempt')
+      .map((p) => p.id);
+    if (selectableIds.length === 0) return null;
+
+    const selectedInList = selectableIds.filter((id) => selectedProposalIds.includes(id));
+    const allChecked =
+      selectableIds.length > 0 && selectedInList.length === selectableIds.length;
+
+    return (
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '10px',
+          padding: '10px 12px',
+          borderRadius: '10px',
+          border: '1px solid rgba(249,115,22,0.35)',
+          background: 'rgba(249,115,22,0.06)',
+          marginBottom: '10px',
+        }}
+      >
+        <label
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '13px',
+            fontWeight: 800,
+            color: 'var(--ink)',
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={allChecked}
+            onChange={() => toggleSelectAllProposals(selectableIds)}
+            style={{ width: '18px', height: '18px', accentColor: 'var(--acc)', cursor: 'pointer' }}
+          />
+          <span>
+            ☑️ تحديد الكل ({selectedInList.length} / {selectableIds.length})
+          </span>
+        </label>
+
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+          <button
+            type="button"
+            className="wa-btn"
+            disabled={busy || bulkBusy || selectedInList.length === 0}
+            onClick={() => void handleBulkApproveProposals(selectedInList)}
+            style={{
+              padding: '7px 14px',
+              fontSize: '13px',
+              fontWeight: 800,
+              background: selectedInList.length > 0 ? '#16a34a' : 'var(--card)',
+              borderColor: selectedInList.length > 0 ? '#15803d' : 'var(--line)',
+              color: selectedInList.length > 0 ? '#ffffff' : 'var(--mut)',
+              opacity: selectedInList.length > 0 ? 1 : 0.7,
+            }}
+          >
+            {bulkBusy
+              ? 'جارٍ الإضافة...'
+              : `➕ إضافة المحدد على طول (${selectedInList.length})`}
+          </button>
+          <button
+            type="button"
+            className="wa-btn"
+            disabled={busy || bulkBusy || selectedInList.length === 0}
+            onClick={() => void handleBulkRejectProposals(selectedInList)}
+            style={{
+              padding: '7px 12px',
+              fontSize: '12.5px',
+              opacity: selectedInList.length > 0 ? 1 : 0.7,
+            }}
+          >
+            ❌ رفض المحدد ({selectedInList.length})
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderProposalCard = (prop: TrainerProposalRow, compact = false) => {
+    const isBlocked = prop.status === 'blocked' || prop.proposal_type === 'blocked_attempt';
+    const isCritical = prop.risk_level === 'critical';
+    const isWarning = prop.risk_level === 'warning';
+    const flags = Array.isArray(prop.security_flags) ? prop.security_flags : [];
+    const canSelect = prop.status === 'pending' && !isBlocked;
+    const isSelected = selectedProposalIds.includes(prop.id);
+
+    const payloadObj =
+      prop.payload && typeof prop.payload === 'object' && !Array.isArray(prop.payload)
+        ? (prop.payload as Record<string, unknown>)
+        : {};
+
+    const synTerm = String(payloadObj.term || prop.title || '').trim();
+    const synTypeRaw = String(payloadObj.synonym_type || 'slang').trim() as SynonymRow['synonym_type'];
+    const synTypeMeta = TYPE_LABELS[synTypeRaw] || TYPE_LABELS.slang;
+    const linkedProduct = String(
+      payloadObj.linked_product ?? payloadObj.product_name ?? payloadObj.product ?? ''
+    ).trim();
+    const expandTerms = Array.isArray(payloadObj.expand_terms)
+      ? payloadObj.expand_terms.map((t) => String(t || '').trim()).filter(Boolean)
+      : [];
+    const targetCategories = Array.isArray(payloadObj.target_categories)
+      ? payloadObj.target_categories.map((c) => String(c || '').trim()).filter(Boolean)
+      : [];
+    const orderScenario = String(payloadObj.order_scenario ?? payloadObj.scenario ?? '').trim();
+    const reasonText = String(prop.reason || '').trim();
+    const notesText = String(payloadObj.notes || '').trim();
+
+    const borderColor =
+      isBlocked || isCritical
+        ? '#dc2626'
+        : isSelected
+          ? 'var(--acc)'
+          : prop.status === 'approved'
+            ? '#16a34a'
+            : isWarning
+              ? '#d97706'
+              : 'var(--line)';
+
+    const statusLabel =
+      prop.status === 'blocked'
+        ? '⛔ محظور تلقائياً'
+        : prop.status === 'approved'
+          ? '✅ مضاف ومفعّل'
+          : prop.status === 'rejected'
+            ? '❌ مرفوض'
+            : '⏳ جاهز للإضافة';
+
+    const riskBadgeStyle = isCritical
+      ? { color: '#b91c1c', borderColor: '#dc2626', background: 'rgba(220,38,38,0.1)' }
+      : isWarning
+        ? { color: '#b45309', borderColor: '#d97706', background: 'rgba(217,119,6,0.1)' }
+        : { color: '#15803d', borderColor: '#16a34a', background: 'rgba(22,163,74,0.08)' };
+
+    return (
+      <div
+        key={prop.id}
+        style={{
+          padding: '12px 14px',
+          borderRadius: '12px',
+          border: `1.5px solid ${borderColor}`,
+          background:
+            isBlocked || isCritical
+              ? 'rgba(220,38,38,0.03)'
+              : isSelected
+                ? 'rgba(249,115,22,0.05)'
+                : prop.status === 'approved'
+                  ? 'rgba(22,163,74,0.04)'
+                  : 'var(--bg)',
+          display: 'grid',
+          gap: '10px',
+        }}
+      >
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
+          <div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '8px' }}>
+              {canSelect ? (
+                <label
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    aria-label={`تحديد المقترح #${prop.id}`}
+                    onChange={() => toggleProposalSelection(prop.id)}
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      accentColor: 'var(--acc)',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <strong style={{ fontSize: '15px', color: 'var(--ink)' }}>
+                    #{prop.id} — {prop.title}
+                  </strong>
+                </label>
+              ) : (
+                <strong style={{ fontSize: '15px', color: 'var(--ink)' }}>
+                  {prop.status === 'approved' ? '✅ ' : ''}#{prop.id} — {prop.title}
+                </strong>
+              )}
+
+              <span className="wa-pill" style={riskBadgeStyle}>
+                {isCritical
+                  ? '🚨 خطورة عالية'
+                  : isWarning
+                    ? '⚠️ تحذير أمان'
+                    : '✅ آمن'}
+              </span>
+              <span
+                className={`wa-pill ${prop.status === 'approved' ? 'p-ok' : ''}`}
+              >
+                {statusLabel}
+              </span>
+              <span className="wa-pill">النوع: {prop.proposal_type}</span>
+            </div>
+            <div style={{ fontSize: '12px', color: 'var(--mut)', marginTop: '4px' }}>
+              الإيجنت: <code>{prop.agent_name}</code> • التوقيت:{' '}
+              {new Date(prop.created_at).toLocaleString('ar-EG')}
+            </div>
+          </div>
+
+          {prop.requested_scope && (
+            <span
+              className="wa-pill"
+              style={{
+                maxWidth: '100%',
+                whiteSpace: 'normal',
+                textAlign: 'start',
+                borderColor: isBlocked ? '#dc2626' : '#0284c7',
+                color: isBlocked ? '#b91c1c' : '#0369a1',
+              }}
+            >
+              🔒 الصلاحية المطلوبة: {prop.requested_scope}
+            </span>
+          )}
+        </div>
+
+        {/* العرض المنظم للاسم والمنتج والقسم وسيناريو الطلب */}
+        {prop.proposal_type === 'synonym' && (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(205px, 1fr))',
+              gap: '8px',
+            }}
+          >
+            <div
+              style={{
+                padding: '8px 10px',
+                borderRadius: '8px',
+                border: '1px solid var(--line)',
+                background: 'var(--card)',
+              }}
+            >
+              <div style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--mut)', marginBottom: '4px' }}>
+                🏷️ الاسم / المصطلح المقترح
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
+                <strong style={{ fontSize: '14.5px', color: 'var(--ink)' }}>{synTerm || '—'}</strong>
+                <span
+                  style={{
+                    fontSize: '11px',
+                    fontWeight: 800,
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    background: `${synTypeMeta.color}18`,
+                    color: synTypeMeta.color,
+                  }}
+                >
+                  {synTypeMeta.label}
+                </span>
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: '8px 10px',
+                borderRadius: '8px',
+                border: '1px solid var(--line)',
+                background: 'var(--card)',
+              }}
+            >
+              <div style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--mut)', marginBottom: '4px' }}>
+                📦 المنتج والمرادفات المربوطة
+              </div>
+              {linkedProduct && (
+                <div
+                  style={{
+                    fontSize: '12px',
+                    fontWeight: 800,
+                    color: '#0369a1',
+                    background: 'rgba(2,132,199,0.08)',
+                    border: '1px solid rgba(2,132,199,0.28)',
+                    borderRadius: '6px',
+                    padding: '2px 7px',
+                    marginBottom: '5px',
+                    display: 'inline-block',
+                  }}
+                >
+                  🎯 {linkedProduct}
+                </div>
+              )}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                {expandTerms.length > 0 ? (
+                  expandTerms.map((t) => (
+                    <span
+                      key={t}
+                      style={{
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        padding: '2px 7px',
+                        borderRadius: '6px',
+                        background: 'var(--bg)',
+                        border: '1px solid var(--line)',
+                        color: 'var(--ink)',
+                      }}
+                    >
+                      {t}
+                    </span>
+                  ))
+                ) : (
+                  <span style={{ fontSize: '12px', color: 'var(--mut)' }}>
+                    {linkedProduct ? 'مربوط بالمنتج المحدد' : synTerm}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: '8px 10px',
+                borderRadius: '8px',
+                border: '1px solid var(--line)',
+                background: 'var(--card)',
+              }}
+            >
+              <div style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--mut)', marginBottom: '4px' }}>
+                🗂️ القسم المرتبط
+              </div>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                {targetCategories.length > 0 ? (
+                  targetCategories.map((cat) => (
+                    <span
+                      key={cat}
+                      style={{
+                        fontSize: '12px',
+                        fontWeight: 800,
+                        padding: '2px 8px',
+                        borderRadius: '999px',
+                        background: 'rgba(249,115,22,0.12)',
+                        color: 'var(--acc)',
+                      }}
+                    >
+                      {CAT_NAME_MAP.get(cat) || cat}
+                    </span>
+                  ))
+                ) : (
+                  <span style={{ fontSize: '12px', color: 'var(--mut)', fontWeight: 700 }}>
+                    🌐 كل الأقسام
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <div
+              style={{
+                padding: '8px 10px',
+                borderRadius: '8px',
+                border: '1px solid var(--line)',
+                background: 'var(--card)',
+              }}
+            >
+              <div style={{ fontSize: '11.5px', fontWeight: 800, color: 'var(--mut)', marginBottom: '4px' }}>
+                🛒 سيناريو الطلب / السبب
+              </div>
+              <div style={{ fontSize: '12.5px', color: 'var(--ink)', lineHeight: 1.5 }}>
+                {orderScenario && (
+                  <div style={{ fontWeight: 800, color: '#15803d', marginBottom: reasonText ? '3px' : 0 }}>
+                    {orderScenario}
+                  </div>
+                )}
+                {reasonText && <div>{reasonText}</div>}
+                {notesText && notesText !== reasonText && notesText !== orderScenario && (
+                  <div style={{ fontSize: '11.5px', color: 'var(--mut)', marginTop: '3px' }}>
+                    {notesText}
+                  </div>
+                )}
+                {!orderScenario && !reasonText && !notesText && (
+                  <span style={{ color: 'var(--mut)' }}>اقتراح عامي من الإيجنت</span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {prop.proposal_type === 'knowledge' && (
+          <div
+            style={{
+              padding: '10px 12px',
+              borderRadius: '8px',
+              border: '1px solid var(--line)',
+              background: 'var(--card)',
+              display: 'grid',
+              gap: '6px',
+              fontSize: '12.5px',
+            }}
+          >
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+              <strong>📚 {String(payloadObj.title || prop.title)}</strong>
+              <span className="wa-pill">
+                🗂️ {KNOWLEDGE_CAT_MAP.get(String(payloadObj.category || 'general')) || 'عام'}
+              </span>
+            </div>
+            {Array.isArray(payloadObj.keywords) && payloadObj.keywords.length > 0 && (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                {payloadObj.keywords.map((kw, kIdx) => (
+                  <span
+                    key={`${String(kw)}-${kIdx}`}
+                    style={{
+                      fontSize: '11.5px',
+                      padding: '2px 7px',
+                      borderRadius: '6px',
+                      background: 'var(--bg)',
+                      border: '1px solid var(--line)',
+                    }}
+                  >
+                    {String(kw)}
+                  </span>
+                ))}
+              </div>
+            )}
+            <div style={{ color: 'var(--ink)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>
+              {String(payloadObj.answer || '')}
+            </div>
+            {reasonText && (
+              <div style={{ color: 'var(--mut)' }}>
+                <strong>السبب:</strong> {reasonText}
+              </div>
+            )}
+          </div>
+        )}
+
+        {prop.proposal_type !== 'synonym' && prop.proposal_type !== 'knowledge' && reasonText && (
+          <div style={{ fontSize: '13px', color: 'var(--ink)' }}>
+            <strong>السبب:</strong> {reasonText}
+          </div>
+        )}
+
+        {flags.length > 0 && (
+          <div
+            style={{
+              padding: '10px 12px',
+              borderRadius: '10px',
+              border: '1px solid #dc2626',
+              background: 'rgba(220,38,38,0.08)',
+              display: 'grid',
+              gap: '6px',
+            }}
+          >
+            <strong style={{ color: '#b91c1c', fontSize: '13px' }}>
+              🚨 الفحص الأمني رصد {flags.length} علامة خطر/صلاحية غير معتادة:
+            </strong>
+            {flags.map((flag, fIdx) => (
+              <div
+                key={`${flag.code}-${fIdx}`}
+                style={{
+                  fontSize: '12.5px',
+                  padding: '6px 8px',
+                  borderRadius: '8px',
+                  background: 'var(--card)',
+                  border: '1px solid rgba(220,38,38,0.28)',
+                }}
+              >
+                <div style={{ fontWeight: 800, color: flag.severity === 'critical' ? '#b91c1c' : '#b45309' }}>
+                  • [{flag.code}] {flag.title} — الحقل: <code>{flag.field}</code>
+                </div>
+                <div style={{ color: 'var(--mut)', marginTop: '2px' }}>{flag.detail}</div>
+                {flag.excerpt && (
+                  <pre
+                    style={{
+                      margin: '4px 0 0 0',
+                      padding: '4px 6px',
+                      borderRadius: '6px',
+                      background: 'var(--bg)',
+                      fontSize: '11.5px',
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      direction: 'ltr',
+                    }}
+                  >
+                    {flag.excerpt}
+                  </pre>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!compact && (
+          <details>
+            <summary style={{ cursor: 'pointer', fontSize: '12.5px', fontWeight: 800, color: 'var(--acc)' }}>
+              👁️ معاينة البيانات الخام (JSON Payload)
+            </summary>
+            <pre
+              style={{
+                marginTop: '6px',
+                padding: '8px 10px',
+                borderRadius: '8px',
+                border: '1px solid var(--line)',
+                background: 'var(--card)',
+                fontSize: '12px',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                direction: 'ltr',
+                maxHeight: '220px',
+                overflowY: 'auto',
+              }}
+            >
+              {JSON.stringify(prop.payload, null, 2)}
+            </pre>
+          </details>
+        )}
+
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '8px',
+          }}
+        >
+          <div>
+            {canSelect && isCritical && (
+              <label
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '12.5px',
+                  fontWeight: 800,
+                  color: '#b91c1c',
+                  cursor: 'pointer',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={Boolean(criticalOverrideConfirm[prop.id])}
+                  onChange={(e) =>
+                    setCriticalOverrideConfirm((prev) => ({
+                      ...prev,
+                      [prop.id]: e.target.checked,
+                    }))
+                  }
+                />
+                <span>أؤكد أنني راجعت التحذيرات الحرجة يدوياً وأوافق على تطبيقه</span>
+              </label>
+            )}
+          </div>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+            {canSelect && (
+              <>
+                <button
+                  type="button"
+                  className="wa-btn"
+                  disabled={busy || bulkBusy || (isCritical && !criticalOverrideConfirm[prop.id])}
+                  style={{
+                    padding: '7px 14px',
+                    fontSize: '13px',
+                    fontWeight: 800,
+                    background: '#16a34a',
+                    borderColor: '#15803d',
+                    color: '#ffffff',
+                  }}
+                  onClick={() => void handleApproveProposal(prop)}
+                >
+                  ➕ إضافة على طول
+                </button>
+                {prop.proposal_type === 'synonym' && (
+                  <button
+                    type="button"
+                    className="wa-btn"
+                    disabled={busy || bulkBusy}
+                    style={{ padding: '7px 12px', fontSize: '12.5px' }}
+                    onClick={() => handleEditProposalInForm(prop)}
+                  >
+                    ✏️ تعديل في النموذج
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="wa-btn"
+                  disabled={busy || bulkBusy}
+                  style={{ padding: '7px 12px', fontSize: '12.5px' }}
+                  onClick={() => void handleRejectProposal(prop)}
+                >
+                  ❌ رفض
+                </button>
+              </>
+            )}
+            <button
+              type="button"
+              className="wa-btn wa-danger"
+              disabled={busy || bulkBusy}
+              style={{ padding: '7px 12px', fontSize: '12.5px' }}
+              onClick={() => void handleDeleteRow('proposal', prop.id, prop.title)}
+            >
+              🗑️ حذف
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   if (loading) {
     return (
@@ -905,6 +1695,50 @@ export default function StoreCopilotAdminTab() {
           </div>
         )}
       </div>
+
+      {pendingSynonymProposals.length > 0 && (
+        <div
+          className="wa-card"
+          style={{
+            borderColor: 'rgba(22,163,74,0.4)',
+            background: 'linear-gradient(180deg, rgba(22,163,74,0.04) 0%, var(--card) 100%)',
+          }}
+        >
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              flexWrap: 'wrap',
+              gap: '8px',
+              marginBottom: '10px',
+            }}
+          >
+            <div>
+              <h3 style={{ margin: 0 }}>
+                🤖 اقتراحات الإيجنت الجاهزة للإضافة الفورية ({pendingSynonymProposals.length})
+              </h3>
+              <small className="wa-muted">
+                كل مقترح يعرض الاسم والمنتج والقسم وسيناريو الطلب مع علامة تحديد وزر «إضافة على طول».
+              </small>
+            </div>
+            <button
+              type="button"
+              className="wa-btn"
+              onClick={() => setSubTab('proposals')}
+              style={{ padding: '6px 11px', fontSize: '12.5px' }}
+            >
+              🛡️ فتح سجل المقترحات والأمان الكامل
+            </button>
+          </div>
+
+          {renderProposalBulkBar(pendingSynonymProposals)}
+
+          <div style={{ display: 'grid', gap: '10px' }}>
+            {pendingSynonymProposals.map((prop) => renderProposalCard(prop, true))}
+          </div>
+        </div>
+      )}
 
       {/* نموذج إضافة أو تعديل مرادف */}
       <div className="wa-card" ref={formCardRef}>
@@ -1859,250 +2693,12 @@ export default function StoreCopilotAdminTab() {
                   : 'بانتظار تنفيذ هجرة جدول مسودات الإيجنت لعرض المقترحات والتنبيهات هنا.'}
               </p>
             ) : (
-              <div style={{ display: 'grid', gap: '12px' }}>
-                {filteredProposals.map((prop) => {
-                  const isBlocked = prop.status === 'blocked' || prop.proposal_type === 'blocked_attempt';
-                  const isCritical = prop.risk_level === 'critical';
-                  const isWarning = prop.risk_level === 'warning';
-                  const flags = Array.isArray(prop.security_flags) ? prop.security_flags : [];
-
-                  const borderColor =
-                    isBlocked || isCritical
-                      ? '#dc2626'
-                      : isWarning
-                        ? '#d97706'
-                        : 'var(--line)';
-
-                  const statusLabel =
-                    prop.status === 'blocked'
-                      ? '⛔ محظور تلقائياً'
-                      : prop.status === 'approved'
-                        ? '✅ معتمد ومفعّل'
-                        : prop.status === 'rejected'
-                          ? '❌ مرفوض'
-                          : '⏳ بانتظار موافقتك';
-
-                  const riskBadgeStyle = isCritical
-                    ? { color: '#b91c1c', borderColor: '#dc2626', background: 'rgba(220,38,38,0.1)' }
-                    : isWarning
-                      ? { color: '#b45309', borderColor: '#d97706', background: 'rgba(217,119,6,0.1)' }
-                      : { color: '#15803d', borderColor: '#16a34a', background: 'rgba(22,163,74,0.08)' };
-
-                  return (
-                    <div
-                      key={prop.id}
-                      style={{
-                        padding: '12px 14px',
-                        borderRadius: '12px',
-                        border: `1.5px solid ${borderColor}`,
-                        background:
-                          isBlocked || isCritical
-                            ? 'rgba(220,38,38,0.03)'
-                            : 'var(--bg)',
-                        display: 'grid',
-                        gap: '10px',
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          flexWrap: 'wrap',
-                          gap: '8px',
-                        }}
-                      >
-                        <div>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '6px' }}>
-                            <strong style={{ fontSize: '15px', color: 'var(--ink)' }}>
-                              #{prop.id} — {prop.title}
-                            </strong>
-                            <span className="wa-pill" style={riskBadgeStyle}>
-                              {isCritical
-                                ? '🚨 خطورة عالية'
-                                : isWarning
-                                  ? '⚠️ تحذير أمان'
-                                  : '✅ آمن'}
-                            </span>
-                            <span className="wa-pill">{statusLabel}</span>
-                            <span className="wa-pill">النوع: {prop.proposal_type}</span>
-                          </div>
-                          <div style={{ fontSize: '12px', color: 'var(--mut)', marginTop: '4px' }}>
-                            الإيجنت: <code>{prop.agent_name}</code> • التوقيت:{' '}
-                            {new Date(prop.created_at).toLocaleString('ar-EG')}
-                          </div>
-                        </div>
-
-                        {prop.requested_scope && (
-                          <span
-                            className="wa-pill"
-                            style={{
-                              maxWidth: '100%',
-                              whiteSpace: 'normal',
-                              textAlign: 'start',
-                              borderColor: isBlocked ? '#dc2626' : '#0284c7',
-                              color: isBlocked ? '#b91c1c' : '#0369a1',
-                            }}
-                          >
-                            🔒 الصلاحية المطلوبة: {prop.requested_scope}
-                          </span>
-                        )}
-                      </div>
-
-                      {prop.reason && (
-                        <div style={{ fontSize: '13px', color: 'var(--ink)' }}>
-                          <strong>السبب:</strong> {prop.reason}
-                        </div>
-                      )}
-
-                      {flags.length > 0 && (
-                        <div
-                          style={{
-                            padding: '10px 12px',
-                            borderRadius: '10px',
-                            border: '1px solid #dc2626',
-                            background: 'rgba(220,38,38,0.08)',
-                            display: 'grid',
-                            gap: '6px',
-                          }}
-                        >
-                          <strong style={{ color: '#b91c1c', fontSize: '13px' }}>
-                            🚨 الفحص الأمني رصد {flags.length} علامة خطر/صلاحية غير معتادة:
-                          </strong>
-                          {flags.map((flag, fIdx) => (
-                            <div
-                              key={`${flag.code}-${fIdx}`}
-                              style={{
-                                fontSize: '12.5px',
-                                padding: '6px 8px',
-                                borderRadius: '8px',
-                                background: 'var(--card)',
-                                border: '1px solid rgba(220,38,38,0.28)',
-                              }}
-                            >
-                              <div style={{ fontWeight: 800, color: flag.severity === 'critical' ? '#b91c1c' : '#b45309' }}>
-                                • [{flag.code}] {flag.title} — الحقل: <code>{flag.field}</code>
-                              </div>
-                              <div style={{ color: 'var(--mut)', marginTop: '2px' }}>{flag.detail}</div>
-                              {flag.excerpt && (
-                                <pre
-                                  style={{
-                                    margin: '4px 0 0 0',
-                                    padding: '4px 6px',
-                                    borderRadius: '6px',
-                                    background: 'var(--bg)',
-                                    fontSize: '11.5px',
-                                    whiteSpace: 'pre-wrap',
-                                    wordBreak: 'break-word',
-                                    direction: 'ltr',
-                                  }}
-                                >
-                                  {flag.excerpt}
-                                </pre>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      <details>
-                        <summary style={{ cursor: 'pointer', fontSize: '12.5px', fontWeight: 800, color: 'var(--acc)' }}>
-                          👁️ معاينة البيانات المقترحة (Payload) قبل القرار
-                        </summary>
-                        <pre
-                          style={{
-                            marginTop: '6px',
-                            padding: '8px 10px',
-                            borderRadius: '8px',
-                            border: '1px solid var(--line)',
-                            background: 'var(--card)',
-                            fontSize: '12px',
-                            whiteSpace: 'pre-wrap',
-                            wordBreak: 'break-word',
-                            direction: 'ltr',
-                            maxHeight: '220px',
-                            overflowY: 'auto',
-                          }}
-                        >
-                          {JSON.stringify(prop.payload, null, 2)}
-                        </pre>
-                      </details>
-
-                      <div
-                        style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          flexWrap: 'wrap',
-                          gap: '8px',
-                        }}
-                      >
-                        <div>
-                          {prop.status === 'pending' && !isBlocked && isCritical && (
-                            <label
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '6px',
-                                fontSize: '12.5px',
-                                fontWeight: 800,
-                                color: '#b91c1c',
-                                cursor: 'pointer',
-                              }}
-                            >
-                              <input
-                                type="checkbox"
-                                checked={Boolean(criticalOverrideConfirm[prop.id])}
-                                onChange={(e) =>
-                                  setCriticalOverrideConfirm((prev) => ({
-                                    ...prev,
-                                    [prop.id]: e.target.checked,
-                                  }))
-                                }
-                              />
-                              <span>أؤكد أنني راجعت التحذيرات الحرجة يدوياً وأوافق على تطبيقه</span>
-                            </label>
-                          )}
-                        </div>
-
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-                          {prop.status === 'pending' && !isBlocked && (
-                            <>
-                              <button
-                                type="button"
-                                className="wa-btn wa-primary"
-                                disabled={busy || (isCritical && !criticalOverrideConfirm[prop.id])}
-                                style={{ padding: '6px 12px', fontSize: '12.5px' }}
-                                onClick={() => void handleApproveProposal(prop)}
-                              >
-                                ✅ موافقة وتفعيل
-                              </button>
-                              <button
-                                type="button"
-                                className="wa-btn"
-                                disabled={busy}
-                                style={{ padding: '6px 12px', fontSize: '12.5px' }}
-                                onClick={() => void handleRejectProposal(prop)}
-                              >
-                                ❌ رفض
-                              </button>
-                            </>
-                          )}
-                          <button
-                            type="button"
-                            className="wa-btn wa-danger"
-                            disabled={busy}
-                            style={{ padding: '6px 12px', fontSize: '12.5px' }}
-                            onClick={() => void handleDeleteRow('proposal', prop.id, prop.title)}
-                          >
-                            🗑️ حذف
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+              <>
+                {renderProposalBulkBar(filteredProposals)}
+                <div style={{ display: 'grid', gap: '12px' }}>
+                  {filteredProposals.map((prop) => renderProposalCard(prop, false))}
+                </div>
+              </>
             )}
           </div>
         </div>
