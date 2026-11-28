@@ -14,6 +14,8 @@ export default function PerformancePage() {
     const performanceRate = monthlyKPIs?.performanceRate || 0;
     const totalProd = monthlyKPIs?.totalProduction || 0;
     const attendanceRate = monthlyKPIs?.attendanceRate || 0;
+    const totalTargetTareeha = (monthlyKPIs?.itemBreakdown || []).reduce((sum: number, b: any) => sum + (Number(b.totalTareeha) || 0), 0);
+    const hasKpiData = totalProd > 0 || totalTargetTareeha > 0;
 
     if (isLoading) return <LoadingScreen message="جاري تحميل ملف الأداء..." fullScreen={true} />;
 
@@ -27,12 +29,12 @@ export default function PerformancePage() {
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(17.5rem, 1fr))', gap: '1.5625rem' }}>
                         
                         {/* 🌟 كفاءة الأداء */}
-                        <div style={{ background: `rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.05)`, padding: '1.875rem', borderRadius: '14px', textAlign: 'center', border: `2px solid rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.3)` }}>
-                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem' }}>{performanceRate >= 100 ? <Trophy size={40} aria-hidden="true" /> : performanceRate >= 80 ? <Zap size={40} aria-hidden="true" /> : <TriangleAlert size={40} aria-hidden="true" />}</div>
-                            <p style={{ margin: 0, fontSize: 'var(--fs-xl)', color: performanceRate >= 100 ? THEME.success : performanceRate >= 80 ? '#f59e0b' : THEME.danger, fontWeight: 900 }}>تقييم كفاءة الإنتاج</p>
-                            <h3 style={{ margin: '0.9375rem 0 0 0', fontWeight: 900, fontSize: 'var(--fs-display)', color: THEME.brand.coffee }}>{performanceRate}%</h3>
-                            <p style={{ margin: '0.9375rem 0 0 0', fontSize: 'var(--fs-md)', color: '#64748b', fontWeight: 700, lineHeight: 1.6 }}>
-                                {performanceRate >= 100 ? 'أداء ممتاز! يحقق أو يتجاوز التريحة المطلوبة' : performanceRate >= 80 ? 'أداء جيد جداً. قريب جداً من الهدف' : 'أداء ضعيف. يحتاج إلى تحسين لتغطية التريحة'}
+                        <div style={{ background: !hasKpiData ? 'var(--surface-subcard)' : `rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.05)`, padding: '1.875rem', borderRadius: '14px', textAlign: 'center', border: !hasKpiData ? '2px solid var(--control-edge)' : `2px solid rgba(${performanceRate >= 100 ? '16, 185, 129' : performanceRate >= 80 ? '245, 158, 11' : '239, 68, 68'}, 0.3)` }}>
+                            <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem', color: !hasKpiData ? 'var(--text-secondary)' : undefined }}>{!hasKpiData ? <Building2 size={40} aria-hidden="true" /> : performanceRate >= 100 ? <Trophy size={40} aria-hidden="true" /> : performanceRate >= 80 ? <Zap size={40} aria-hidden="true" /> : <TriangleAlert size={40} aria-hidden="true" />}</div>
+                            <p style={{ margin: 0, fontSize: 'var(--fs-xl)', color: !hasKpiData ? 'var(--text-secondary)' : performanceRate >= 100 ? THEME.success : performanceRate >= 80 ? '#f59e0b' : THEME.danger, fontWeight: 900 }}>تقييم كفاءة الإنتاج</p>
+                            <h3 style={{ margin: '0.9375rem 0 0 0', fontWeight: 900, fontSize: 'var(--fs-display)', color: 'var(--text-primary)' }}>{!hasKpiData ? '---' : `${performanceRate}%`}</h3>
+                            <p style={{ margin: '0.9375rem 0 0 0', fontSize: 'var(--fs-md)', color: 'var(--text-secondary)', fontWeight: 700, lineHeight: 1.6 }}>
+                                {!hasKpiData ? 'لا توجد بيانات إنتاجية مسجلة للتقييم بعد' : performanceRate >= 100 ? 'أداء ممتاز! يحقق أو يتجاوز التريحة المطلوبة' : performanceRate >= 80 ? 'أداء جيد جداً. قريب جداً من الهدف' : 'أداء ضعيف. يحتاج إلى تحسين لتغطية التريحة'}
                             </p>
                         </div>
 

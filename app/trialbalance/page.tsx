@@ -252,9 +252,20 @@ export default function TrialBalancePage() {
               </div>
 
               {/* مؤشر اتزان الميزان */}
-              <div className={`tb-balance-status ${isBalanced ? '' : 'unbalanced'}`}>
+              <div
+                className={`tb-balance-status ${(logic.records.length > 0 && (logic.totals.op_debit > 0 || logic.totals.op_credit > 0 || logic.totals.per_debit > 0 || logic.totals.per_credit > 0 || logic.totals.end_debit > 0 || logic.totals.end_credit > 0)) ? (isBalanced ? '' : 'unbalanced') : ''}`}
+                style={!(logic.records.length > 0 && (logic.totals.op_debit > 0 || logic.totals.op_credit > 0 || logic.totals.per_debit > 0 || logic.totals.per_credit > 0 || logic.totals.end_debit > 0 || logic.totals.end_credit > 0)) ? { background: 'var(--surface-subcard)', color: 'var(--text-secondary)', borderColor: 'var(--control-edge)' } : undefined}
+              >
                 <span>
-                  {isBalanced ? 'الميزان متزن تماماً (لا توجد فروق)' : 'يوجد فرق في الميزان! يرجى مراجعة قيود اليومية.'}
+                  {(() => {
+                    const hasFinancialActivity = logic.records.length > 0 && (
+                      logic.totals.op_debit > 0 || logic.totals.op_credit > 0 ||
+                      logic.totals.per_debit > 0 || logic.totals.per_credit > 0 ||
+                      logic.totals.end_debit > 0 || logic.totals.end_credit > 0
+                    );
+                    if (!hasFinancialActivity) return 'لا توجد حركات مالية مرحّلة في هذه الفترة (أرصدة صفرية)';
+                    return isBalanced ? 'الميزان متزن تماماً (لا توجد فروق)' : 'يوجد فرق في الميزان! يرجى مراجعة قيود اليومية.';
+                  })()}
                 </span>
                 {!isBalanced && (
                   <span style={{ fontSize: 'var(--fs-lg)' }}>قيمة الفرق: {formatCurrency(Math.abs(logic.totals.end_debit - logic.totals.end_credit))}</span>

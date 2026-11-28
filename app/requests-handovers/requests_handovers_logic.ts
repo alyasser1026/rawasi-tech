@@ -382,7 +382,7 @@ export function useRequestsHandoversLogic(lockedProjectId?: string) {
     const pendingCount = filteredRecords.filter((r) => r.approvalCode === 'تحت الفحص').length;
     const decidedCount = approvedACount + approvedBCount + rejectedCCount;
     const firstTimeApprovalRate =
-      decidedCount > 0 ? Math.round(((approvedACount + approvedBCount) / decidedCount) * 100) : 100;
+      decidedCount > 0 ? Math.round(((approvedACount + approvedBCount) / decidedCount) * 100) : 0;
 
     // إحصائيات لكل مشروع
     const projectStats = rawData.projects.map((p: any) => {

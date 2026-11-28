@@ -498,7 +498,7 @@ export default function RequestsHandoversView({
           <strong style={{ color: s.rejectedCCount > 0 ? 'var(--status-negative, #f43f5e)' : '#38bdf8' }}>
             {s.pendingCount} فحص / {s.rejectedCCount} مرفوض
           </strong>
-          <span>نسبة الاعتماد الهندسي: {s.firstTimeApprovalRate}%</span>
+          <span>{(s.totalCount || 0) === 0 ? 'لا توجد طلبات مقيّمة بعد' : `نسبة الاعتماد الهندسي: ${s.firstTimeApprovalRate}%`}</span>
         </div>
       </div>
 
@@ -1842,7 +1842,7 @@ export default function RequestsHandoversView({
                   { label: 'إجمالي المستندات', value: `${s.totalCount} مستند`, accent: true },
                   { label: 'ركوستات استلام', value: `${s.requestsCount} ركوست` },
                   { label: 'محاضر تسليم', value: `${s.handoversCount} محضر` },
-                  { label: 'نسبة الاعتماد الهندسي', value: `${s.firstTimeApprovalRate}%`, accent: true },
+                  { label: 'نسبة الاعتماد الهندسي', value: (s.totalCount || 0) === 0 ? 'لا توجد طلبات مقيّمة بعد' : `${s.firstTimeApprovalRate}%`, accent: true },
                 ]}
               />
 

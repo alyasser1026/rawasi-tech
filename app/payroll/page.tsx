@@ -293,7 +293,7 @@ export default function PayrollPage() {
   if (logic.isLoading) {
     return (
       <MasterPage title="مسير الرواتب والأجور">
-        <LoadingScreen message="جاري تهيئة مسير الرواتب وحساب الأرصدة المتأخرة..." fullScreen={false} />
+        <LoadingScreen message="جاري تهيئة مسير الرواتب وحساب الأرصدة المتأخرة..." subMessage={logic.loadingStage || 'جاري مطابقة الأرصدة التراكمية وسجلات الحضور...'} fullScreen={false} />
       </MasterPage>
     );
   }

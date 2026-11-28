@@ -1494,7 +1494,7 @@ export default function DocumentVerificationView({
       {!embedded && (
         <footer className="phi-sys-footer">
           <div className="phi-sys-footer-inner">
-            <p>© 2026 شركة فاي تك للتطوير العقاري والمقاولات العامة (PHI CONSTRUCT) — جميع الحقوق محفوظة.</p>
+            <p>© 2026 شركة فاي تك للتطوير العقاري والمقاولات العامة (PHI TECH) — جميع الحقوق محفوظة.</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <span>هاتف: {PHI_COMPANY_CONTACTS.phone1}</span>
               <span>•</span>

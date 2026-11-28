@@ -23,7 +23,7 @@ async function sendTelegramAlert(quote: any) {
   if (!token || !chatId) return;
 
   const msg = [
-    `🏗️ <b>طلب مقايسة جديد — PHI CONSTRUCT</b>`,
+    `🏗️ <b>طلب مقايسة جديد — فاي تك | PHI TECH</b>`,
     `━━━━━━━━━━━━━━━━━━━━`,
     `👤 <b>العميل:</b> ${quote.name}`,
     `📱 <b>الهاتف:</b> <code>${quote.phone}</code>`,

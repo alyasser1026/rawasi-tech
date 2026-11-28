@@ -56,11 +56,13 @@ export default function ArAgingPage() {
   };
 
   const [migrationPending, setMigrationPending] = useState(false);
+  const [loadingStage, setLoadingStage] = useState('جاري جلب الفواتير المرحّلة وسندات القبض وحساب فترات التعمير...');
   const { data: report, isLoading, isError, error, refetch, isFetching } = useQuery<AgingReport | null>({
     queryKey: ['ar-aging', activeCompany?.id, partyType, asOfDate],
     retry: false,
     queryFn: async () => {
       setMigrationPending(false);
+      setLoadingStage('جاري استدعاء تقرير أعمار الذمم ومطابقة قيود الأستاذ العام...');
       const { data, error } = await supabase.rpc('get_aging_report', {
         p_party_type: partyType,
         p_as_of_date: asOfDate,
@@ -106,7 +108,7 @@ export default function ArAgingPage() {
   };
 
   if (isLoading && !report) {
-    return <LoadingScreen message="جاري إعداد تقرير أعمار الذمم ومطابقة الأستاذ..." />;
+    return <LoadingScreen message="جاري إعداد تقرير أعمار الذمم ومطابقة الأستاذ..." subMessage={loadingStage} />;
   }
 
   const kpis = report?.kpis;

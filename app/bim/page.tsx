@@ -57,7 +57,7 @@ export default function StandaloneBimPage() {
       </div>
       <div style={styles.sideStat}>
         <span>تكلفة التراخيص</span>
-        <strong style={{ color: 'var(--status-positive)' }}>0.00 ريال (مجاني)</strong>
+        <strong style={{ color: 'var(--status-positive)' }}>{formatCurrency(0)} (مجاني)</strong>
       </div>
       <div style={{ marginTop: '1.25rem', padding: '0.75rem', background: 'var(--surface-subcard)', borderRadius: '10px', border: 'none', boxShadow: 'var(--shadow-sunken)', fontSize: 'var(--fs-xs, 12px)', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
         💡 <strong style={{ color: 'var(--accent-ink)' }}>بديل Autodesk المجاني:</strong> يدعم استعراض الموديلات دون اشتراكات Forge، مع فحص التسليح، القطاعات الرأسية، وحصر كميات الخرسانات.

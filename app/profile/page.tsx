@@ -39,6 +39,8 @@ export default function EmployeeProfilePage() {
     const nBal = rangeKPIs?.netBalance || 0;
     const attendanceRate = monthlyKPIs?.attendanceRate || 0;
     const performanceRate = monthlyKPIs?.performanceRate || 0;
+    const totalTargetTareeha = (monthlyKPIs?.itemBreakdown || []).reduce((sum: number, b: any) => sum + (Number(b.totalTareeha) || 0), 0);
+    const hasKpiData = totalProd > 0 || totalTargetTareeha > 0;
     const totalEarnings = monthlyKPIs?.totalEarnings || 0;
     const workDays = rangeKPIs?.workDays || 0;
     const totalWages = rangeKPIs?.totalWages || 0;
@@ -125,9 +127,9 @@ export default function EmployeeProfilePage() {
                 summary = (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
                         {/* 🌟 تقييم الأداء (كفاءة الإنتاجية) */}
-                        <div style={{ background: `color-mix(in srgb, ${performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)'} 10%, var(--surface-flat))`, padding: '0.9375rem', borderRadius: '15px', textAlign: 'center', ...getBorderStyles(`color-mix(in srgb, ${performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)'} 30%, transparent)`) }}>
-                            <p style={{ margin: 0, fontSize: 'var(--fs-xs)', color: performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)', fontWeight: 900 }}>تقييم الأداء وكفاءة الإنتاج</p>
-                            <h3 style={{ margin: '0.3125rem 0 0 0', fontWeight: 900, fontSize: 'var(--fs-2xl)', color: 'var(--text-primary)' }}>{performanceRate}%</h3>
+                        <div style={{ background: !hasKpiData ? 'var(--surface-subcard)' : `color-mix(in srgb, ${performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)'} 10%, var(--surface-flat))`, padding: '0.9375rem', borderRadius: '15px', textAlign: 'center', ...getBorderStyles(!hasKpiData ? 'var(--control-edge)' : `color-mix(in srgb, ${performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)'} 30%, transparent)`) }}>
+                            <p style={{ margin: 0, fontSize: 'var(--fs-xs)', color: !hasKpiData ? 'var(--text-secondary)' : performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)', fontWeight: 900 }}>تقييم الأداء وكفاءة الإنتاج</p>
+                            <h3 style={{ margin: '0.3125rem 0 0 0', fontWeight: 900, fontSize: 'var(--fs-2xl)', color: 'var(--text-primary)' }}>{!hasKpiData ? '---' : `${performanceRate}%`}</h3>
                         </div>
                         {/* الإنتاجية */}
                         <div style={{ background: 'color-mix(in srgb, var(--accent-ink) 10%, var(--surface-flat))', padding: '0.9375rem', borderRadius: '15px', textAlign: 'center', ...getBorderStyles('color-mix(in srgb, var(--accent-ink) 30%, transparent)') }}>
@@ -637,12 +639,12 @@ export default function EmployeeProfilePage() {
                                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(17.5rem, 1fr))', gap: '1.5625rem' }}>
                                     
                                     {/* 🌟 كفاءة الأداء */}
-                                    <div style={{ background: `color-mix(in srgb, ${performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)'} 5%, var(--surface-flat))`, padding: '1.875rem', borderRadius: '14px', textAlign: 'center', border: `2px solid color-mix(in srgb, ${performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)'} 30%, transparent)` }}>
-                                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem' }}>{performanceRate >= 100 ? <Trophy size={40} aria-hidden="true" /> : performanceRate >= 80 ? <Zap size={40} aria-hidden="true" /> : <TriangleAlert size={40} aria-hidden="true" />}</div>
-                                        <p style={{ margin: 0, fontSize: 'var(--fs-xl)', color: performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)', fontWeight: 900 }}>تقييم كفاءة الإنتاج</p>
-                                        <h3 style={{ margin: '0.9375rem 0 0 0', fontWeight: 900, fontSize: 'var(--fs-display)', color: 'var(--text-primary)' }}>{performanceRate}%</h3>
+                                    <div style={{ background: !hasKpiData ? 'var(--surface-subcard)' : `color-mix(in srgb, ${performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)'} 5%, var(--surface-flat))`, padding: '1.875rem', borderRadius: '14px', textAlign: 'center', border: !hasKpiData ? '2px solid var(--control-edge)' : `2px solid color-mix(in srgb, ${performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)'} 30%, transparent)` }}>
+                                        <div style={{ fontSize: 'var(--fs-display)', marginBottom: '0.9375rem', color: !hasKpiData ? 'var(--text-secondary)' : undefined }}>{!hasKpiData ? <Building2 size={40} aria-hidden="true" /> : performanceRate >= 100 ? <Trophy size={40} aria-hidden="true" /> : performanceRate >= 80 ? <Zap size={40} aria-hidden="true" /> : <TriangleAlert size={40} aria-hidden="true" />}</div>
+                                        <p style={{ margin: 0, fontSize: 'var(--fs-xl)', color: !hasKpiData ? 'var(--text-secondary)' : performanceRate >= 100 ? 'var(--status-positive)' : performanceRate >= 80 ? 'var(--status-warning)' : 'var(--status-negative)', fontWeight: 900 }}>تقييم كفاءة الإنتاج</p>
+                                        <h3 style={{ margin: '0.9375rem 0 0 0', fontWeight: 900, fontSize: 'var(--fs-display)', color: 'var(--text-primary)' }}>{!hasKpiData ? '---' : `${performanceRate}%`}</h3>
                                         <p style={{ margin: '0.9375rem 0 0 0', fontSize: 'var(--fs-md)', color: 'var(--text-secondary)', fontWeight: 700, lineHeight: 1.6 }}>
-                                            {performanceRate >= 100 ? 'أداء ممتاز! يحقق أو يتجاوز التريحة المطلوبة' : performanceRate >= 80 ? 'أداء جيد جداً. قريب جداً من الهدف' : 'أداء ضعيف. يحتاج إلى تحسين لتغطية التريحة'}
+                                            {!hasKpiData ? 'لا توجد بيانات إنتاجية مسجلة للتقييم بعد' : performanceRate >= 100 ? 'أداء ممتاز! يحقق أو يتجاوز التريحة المطلوبة' : performanceRate >= 80 ? 'أداء جيد جداً. قريب جداً من الهدف' : 'أداء ضعيف. يحتاج إلى تحسين لتغطية التريحة'}
                                         </p>
                                     </div>
 

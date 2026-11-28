@@ -11,6 +11,7 @@ export function usePayrollLogic() {
     const [employees, setEmployees] = useState<any[]>([]);
     const [payrollRecords, setPayrollRecords] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingStage, setLoadingStage] = useState('جاري تهيئة مسير الرواتب...');
     const [isSaving, setIsSaving] = useState(false);
     
     // فلاتر الشهر والسنة وتاريخ القطع
@@ -38,37 +39,37 @@ export function usePayrollLogic() {
         
         const targetMonthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
         try {
-            const empData = await fetchPaginatedData(() => supabase.from('partners').select('id, name, partner_type, job_role, identity_number').order('name').order('id'));
-            // We need to filter empData in memory since fetchAllSupabaseData currently doesn't accept complex filters
-            const filteredEmpData = empData.filter((p: any) => ['موظف', 'عامل', 'عامل يومية'].includes(p.partner_type));
-
-            const { data: balData, error: balError } = await supabase.rpc('get_payroll_balances_with_cutoff', {
-                p_month: selectedMonth, p_year: selectedYear, p_cutoff_date: cutoffDate
-            });
-            if (balError) throw balError;
-
-            const { data: syncData, error: syncError } = await supabase.rpc('pull_payroll_module_data', {
-                p_month: selectedMonth, p_year: selectedYear, p_cutoff_date: cutoffDate
-            });
-            if (syncError) throw syncError;
-
-            const savedSlips = await fetchPaginatedData(() => supabase.from('payroll_slips').select('*').eq('month', targetMonthStr).order('id'));
+            setLoadingStage('جاري جلب الموظفين والأرصدة التراكمية والمسير والحضور بالتوازي...');
+            const [empData, balRes, syncRes, savedSlips, attRes] = await Promise.all([
+                fetchPaginatedData(() => supabase.from('partners').select('id, name, partner_type, job_role, identity_number').order('name').order('id')),
+                supabase.rpc('get_payroll_balances_with_cutoff', {
+                    p_month: selectedMonth, p_year: selectedYear, p_cutoff_date: cutoffDate
+                }),
+                supabase.rpc('pull_payroll_module_data', {
+                    p_month: selectedMonth, p_year: selectedYear, p_cutoff_date: cutoffDate
+                }),
+                fetchPaginatedData(() => supabase.from('payroll_slips').select('*').eq('month', targetMonthStr).order('id')),
+                Promise.resolve(
+                    supabase.rpc('get_company_monthly_attendance', {
+                        p_month: targetMonthStr,
+                        p_cutoff_date: cutoffDate
+                    })
+                ).catch((attErr: any) => {
+                    console.warn('Attendance summary not loaded for payroll:', attErr);
+                    return { data: null, error: null };
+                }),
+            ]);
             if (requestVersion !== fetchVersionRef.current) return;
-            const targetMonthSlips = savedSlips.filter((s: any) => s.month === targetMonthStr);
 
-            // جلب ملخص الحضور والغياب للموظفين لحساب خصم الغياب آلياً
-            let attendanceEmployees: any[] = [];
-            try {
-                const { data: attData } = await supabase.rpc('get_company_monthly_attendance', {
-                    p_month: targetMonthStr,
-                    p_cutoff_date: cutoffDate
-                });
-                if (attData && Array.isArray((attData as any).employees)) {
-                    attendanceEmployees = (attData as any).employees;
-                }
-            } catch (attErr) {
-                console.warn('Attendance summary not loaded for payroll:', attErr);
-            }
+            const filteredEmpData = empData.filter((p: any) => ['موظف', 'عامل', 'عامل يومية'].includes(p.partner_type));
+            if (balRes.error) throw balRes.error;
+            const balData = balRes.data;
+            if (syncRes.error) throw syncRes.error;
+            const syncData = syncRes.data;
+            const targetMonthSlips = savedSlips.filter((s: any) => s.month === targetMonthStr);
+            const attData = attRes?.data;
+            const attendanceEmployees: any[] = attData && Array.isArray((attData as any).employees) ? (attData as any).employees : [];
+            setLoadingStage('جاري مطابقة الأرصدة وحساب صافي الرواتب...');
 
             setEmployees(filteredEmpData || []);
 
@@ -462,7 +463,7 @@ export function usePayrollLogic() {
     }
 
     return {
-        isLoading, filteredRecords, globalSearch, setGlobalSearch,
+        isLoading, loadingStage, filteredRecords, globalSearch, setGlobalSearch,
         selectedMonth, setSelectedMonth, selectedYear, setSelectedYear,
         cutoffDate, setCutoffDate, 
         employees, selectedEmployeeIds, setSelectedEmployeeIds,

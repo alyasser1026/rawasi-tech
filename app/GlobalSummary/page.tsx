@@ -1,9 +1,10 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { useToast } from '@/lib/toast-context';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import LoadingScreen from '@/components/LoadingScreen';
 import { supabase } from '@/lib/supabase';
 import { useCompany } from '@/lib/CompanyContext';
+import { isLegacyDashboardFetchEnabled } from '@/lib/dashboard-flags';
 import { fetchAllSupabaseData, formatCurrency } from '@/lib/helpers';
 import { runWithConcurrency } from '@/lib/supabase-pagination';
 import GlassContainer from '@/components/GlassContainer';
@@ -11,94 +12,95 @@ import { THEME } from '@/lib/theme';
 import MasterPage from '@/components/MasterPage';
 import PhiIcon from '@/components/PhiIcon';
 
+const DEFAULT_GLOBAL_SUMMARY = {
+    finance: { liquidity: 0, receivables: 0, expenses: 0 },
+    projects: { totalBudget: 0, actualSpend: 0, progress: 0 },
+    labor: { count: 0, monthlyCost: 0, efficiency: 0 },
+    audit: { orphans: 0, unbalanced: 0 }
+};
+
 export default function MasterDashboard() {
     const { activeCompanyId } = useCompany();
-    const [loading, setLoading] = useState(true);
-    const [summary, setSummary] = useState({
-        finance: { liquidity: 0, receivables: 0, expenses: 0 },
-        projects: { totalBudget: 0, actualSpend: 0, progress: 0 },
-        labor: { count: 0, monthlyCost: 0, efficiency: 0 },
-        audit: { orphans: 0, unbalanced: 0 }
+    const legacyMode = isLegacyDashboardFetchEnabled();
+
+    const query = useQuery({
+        queryKey: ['global_summary_stats', activeCompanyId || 'default'],
+        staleTime: legacyMode ? 0 : 1000 * 60 * 3,
+        refetchOnWindowFocus: false,
+        queryFn: async () => {
+            // 🚀 سحب البيانات من كافة موديولات النظام بتزامن مضبوط وأعمدة موثقة (مع مفتاح التراجع الفوري)
+            const [lines, headers, accounts, projects, boq, labor, invoices, expenses, receipts] = await runWithConcurrency([
+                () => fetchAllSupabaseData(supabase, 'journal_lines', 'id, header_id, account_id, debit, credit', 'id', true),
+                () => fetchAllSupabaseData(supabase, 'journal_headers', 'id, reference_id, v_type', 'id', true),
+                () => fetchAllSupabaseData(supabase, 'accounts', 'id, code', 'id', true),
+                () => fetchAllSupabaseData(supabase, 'projects', 'id, estimated_budget, contract_value', 'id', true),
+                () => fetchAllSupabaseData(supabase, 'boq_budget', 'id, completed_percentage', 'id', true),
+                () => fetchAllSupabaseData(supabase, 'labor_daily_logs', 'id, daily_wage, attendance_value, work_date', 'id', true),
+                () => fetchAllSupabaseData(supabase, 'invoices', 'id, status, total_amount, paid_amount', 'id', true),
+                () => fetchAllSupabaseData(supabase, 'expenses', 'id, total_price, paid_amount, is_deleted', 'id', true),
+                () => fetchAllSupabaseData(supabase, 'receipt_vouchers', 'id', 'id', true)
+            ], legacyMode ? 4 : 6);
+
+            // --- 1. التحليل المالي (السيولة والمصروفات) ---
+            const cashAccountIds = new Set(
+                (accounts || [])
+                    .filter((a: any) => String(a.code || '').startsWith('11'))
+                    .map((a: any) => String(a.id))
+            );
+            const cash = (lines || [])
+                .filter((l: any) => cashAccountIds.has(String(l.account_id)))
+                .reduce((a: number, c: any) => a + (Number(c.debit || 0) - Number(c.credit || 0)), 0);
+            const totalExp = (expenses || [])
+                .filter((e: any) => !e.is_deleted)
+                .reduce((a: number, c: any) => a + Number(c.total_price ?? c.paid_amount ?? 0), 0);
+            const pendingInvoices = (invoices || [])
+                .filter((i: any) => i.status !== 'مدفوع')
+                .reduce((a: number, c: any) => a + Math.max(0, Number(c.total_amount || 0) - Number(c.paid_amount || 0)), 0);
+
+            // --- 2. إدارة المشاريع (الميزانية vs التنفيذ) ---
+            const budget = (projects || []).reduce((a: number, c: any) => a + Number(c.estimated_budget || c.contract_value || 0), 0);
+            const laborCosts = (labor || []).reduce(
+                (a: number, c: any) => a + (Number(c.attendance_value ?? 1) * Number(c.daily_wage || 0)),
+                0
+            );
+            const totalActual = totalExp + laborCosts;
+
+            // --- 3. إدارة العمالة والإنتاجية ---
+            const today = new Date().toISOString().split('T')[0];
+            const activeNow = (labor || []).filter((l: any) => l.work_date === today).length;
+            const efficiency =
+                boq && boq.length > 0
+                    ? boq.reduce((s: number, b: any) => s + Number(b.completed_percentage || 0), 0) / boq.length
+                    : 0;
+
+            // --- 4. الرقابة والتدقيق (الرادار) ---
+            const validIds = new Set((receipts || []).map((r: any) => String(r.id)));
+            const orphans = (headers || []).filter(
+                (h: any) => h.v_type === 'سند قبض' && h.reference_id && !validIds.has(String(h.reference_id))
+            ).length;
+
+            const balanceByHeader = new Map<string, number>();
+            (lines || []).forEach((l: any) => {
+                const hid = String(l.header_id || '');
+                if (!hid) return;
+                balanceByHeader.set(hid, (balanceByHeader.get(hid) || 0) + (Number(l.debit || 0) - Number(l.credit || 0)));
+            });
+            let unbalanced = 0;
+            balanceByHeader.forEach((diff) => {
+                if (Math.abs(diff) > 0.01) unbalanced++;
+            });
+
+            return {
+                finance: { liquidity: cash, receivables: pendingInvoices, expenses: totalExp },
+                projects: { totalBudget: budget, actualSpend: totalActual, progress: budget > 0 ? (totalActual / budget) * 100 : 0 },
+                labor: { count: activeNow, monthlyCost: laborCosts, efficiency },
+                audit: { orphans, unbalanced }
+            };
+        }
     });
 
-    useEffect(() => {
-        const loadMasterData = async () => {
-            setLoading(true);
-            try {
-                // 🚀 سحب البيانات من كافة موديولات النظام بتزامن مضبوط وأعمدة موثقة لمنع الحمل الثقيل
-                const [lines, headers, accounts, projects, boq, labor, invoices, expenses, receipts] = await runWithConcurrency([
-                    () => fetchAllSupabaseData(supabase, 'journal_lines', 'id, header_id, account_id, debit, credit', 'id', true),
-                    () => fetchAllSupabaseData(supabase, 'journal_headers', 'id, reference_id, v_type', 'id', true),
-                    () => fetchAllSupabaseData(supabase, 'accounts', 'id, code', 'id', true),
-                    () => fetchAllSupabaseData(supabase, 'projects', 'id, estimated_budget, contract_value', 'id', true),
-                    () => fetchAllSupabaseData(supabase, 'boq_budget', 'id, completed_percentage', 'id', true),
-                    () => fetchAllSupabaseData(supabase, 'labor_daily_logs', 'id, daily_wage, attendance_value, work_date', 'id', true),
-                    () => fetchAllSupabaseData(supabase, 'invoices', 'id, status, total_amount, paid_amount', 'id', true),
-                    () => fetchAllSupabaseData(supabase, 'expenses', 'id, total_price, paid_amount, is_deleted', 'id', true),
-                    () => fetchAllSupabaseData(supabase, 'receipt_vouchers', 'id', 'id', true)
-                ], 4);
-
-                // --- 1. التحليل المالي (السيولة والمصروفات) ---
-                const cashAccountIds = new Set(
-                    (accounts || [])
-                        .filter((a: any) => String(a.code || '').startsWith('11'))
-                        .map((a: any) => String(a.id))
-                );
-                const cash = (lines || [])
-                    .filter((l: any) => cashAccountIds.has(String(l.account_id)))
-                    .reduce((a: number, c: any) => a + (Number(c.debit || 0) - Number(c.credit || 0)), 0);
-                const totalExp = (expenses || [])
-                    .filter((e: any) => !e.is_deleted)
-                    .reduce((a: number, c: any) => a + Number(c.total_price ?? c.paid_amount ?? 0), 0);
-                const pendingInvoices = (invoices || [])
-                    .filter((i: any) => i.status !== 'مدفوع')
-                    .reduce((a: number, c: any) => a + Math.max(0, Number(c.total_amount || 0) - Number(c.paid_amount || 0)), 0);
-
-                // --- 2. إدارة المشاريع (الميزانية vs التنفيذ) ---
-                const budget = (projects || []).reduce((a: number, c: any) => a + Number(c.estimated_budget || c.contract_value || 0), 0);
-                const laborCosts = (labor || []).reduce(
-                    (a: number, c: any) => a + (Number(c.attendance_value ?? 1) * Number(c.daily_wage || 0)),
-                    0
-                );
-                const totalActual = totalExp + laborCosts;
-
-                // --- 3. إدارة العمالة والإنتاجية ---
-                const today = new Date().toISOString().split('T')[0];
-                const activeNow = (labor || []).filter((l: any) => l.work_date === today).length;
-                const efficiency =
-                    boq && boq.length > 0
-                        ? boq.reduce((s: number, b: any) => s + Number(b.completed_percentage || 0), 0) / boq.length
-                        : 0;
-
-                // --- 4. الرقابة والتدقيق (الرادار) ---
-                const validIds = new Set((receipts || []).map((r: any) => String(r.id)));
-                const orphans = (headers || []).filter(
-                    (h: any) => h.v_type === 'سند قبض' && h.reference_id && !validIds.has(String(h.reference_id))
-                ).length;
-
-                const balanceByHeader = new Map<string, number>();
-                (lines || []).forEach((l: any) => {
-                    const hid = String(l.header_id || '');
-                    if (!hid) return;
-                    balanceByHeader.set(hid, (balanceByHeader.get(hid) || 0) + (Number(l.debit || 0) - Number(l.credit || 0)));
-                });
-                let unbalanced = 0;
-                balanceByHeader.forEach((diff) => {
-                    if (Math.abs(diff) > 0.01) unbalanced++;
-                });
-
-                setSummary({
-                    finance: { liquidity: cash, receivables: pendingInvoices, expenses: totalExp },
-                    projects: { totalBudget: budget, actualSpend: totalActual, progress: budget > 0 ? (totalActual / budget) * 100 : 0 },
-                    labor: { count: activeNow, monthlyCost: laborCosts, efficiency },
-                    audit: { orphans, unbalanced }
-                });
-            } finally {
-                setLoading(false);
-            }
-        };
-        loadMasterData();
-    }, [activeCompanyId]);
+    const summary = query.data || DEFAULT_GLOBAL_SUMMARY;
+    const loading = query.isLoading;
 
     if (loading) return <LoadingScreen message="جاري استدعاء الإحصائيات المركزية..." subMessage="نقوم بتجميع بيانات الأقسام بدقة لحظية" />;
 

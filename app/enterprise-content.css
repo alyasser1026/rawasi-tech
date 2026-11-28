@@ -224,11 +224,11 @@
   .enterprise-page.enterprise-page :is(.smart-table, .tree-table, .child-table, .modern-table, .ledger-table, .nested-table, .tb-table, .bulk-table) { font-variant-numeric: tabular-nums; }
   .enterprise-page.enterprise-page :is(.smart-table, .tree-table, .child-table, .modern-table, .ledger-table, .nested-table, .tb-table, .bulk-table) th {
     background: var(--table-head-bg) !important;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     border-bottom: 1px solid var(--table-zebra-bg) !important;
     border-top: none; border-left: none; border-right: none;
     font-size: var(--fs-xs);
-    font-weight: 700;
+    font-weight: 800;
     padding: 0.8125rem 0.9375rem;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;

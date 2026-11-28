@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import DocumentVerificationView from '@/components/DocumentVerificationView';
 
 export const metadata: Metadata = {
-  title: 'التحقق من صحة المستندات | PHI CONSTRUCT — فاي تك',
+  title: 'التحقق من صحة المستندات | فاي تك — PHI TECH',
   description: 'بوابة التحقق الفوري من صحة الفواتير وسندات الصرف والقبض والمستخلصات الصادرة من شركة فاي تك للتطوير العقاري والمقاولات.',
 };
 

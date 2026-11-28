@@ -112,7 +112,12 @@ export default function DashboardPage() {
             <div className="premium-card">
               <h3 className="section-title"><ChartColumn size={18}/> التدفق النقدي والسيولة</h3>
               <div className="dash-chart">
-                <ResponsiveContainer width="100%" height="100%">
+                {((logic.stats?.totals?.totalInvoices || 0) + (logic.stats?.totals?.totalExpenses || 0) + (logic.stats?.totals?.totalWages || 0)) === 0 ? (
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted, #94a3b8)', fontWeight: 900 }}>
+                    لا توجد حركات تدفق نقدي مسجلة بعد
+                  </div>
+                ) : (
+                <ResponsiveContainer width="100%" height="100%" minWidth={120} minHeight={180}>
                   <BarChart data={logic.stats?.cashFlowData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <defs>
                       <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
@@ -133,6 +138,7 @@ export default function DashboardPage() {
                     <Bar dataKey="expense" name="إجمالي التكاليف" fill="url(#colorExpense)" radius={[8, 8, 0, 0]} barSize={40} />
                   </BarChart>
                 </ResponsiveContainer>
+                )}
               </div>
             </div>
 
@@ -143,24 +149,25 @@ export default function DashboardPage() {
                 {!logic.stats?.expensesByCategory || logic.stats.expensesByCategory.length === 0 ? (
                     <div style={{width:'100%', textAlign:'center', color:'#94a3b8', fontWeight:900}}>لا توجد تكاليف مسجلة بعد</div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={120} minHeight={180}>
                     <PieChart>
                         <Pie
                           data={logic.stats.expensesByCategory}
-                          cx="50%" cy="50%"
-                          innerRadius={85} outerRadius={120}
+                          cx="50%" cy="46%"
+                          innerRadius={52} outerRadius={78}
                           paddingAngle={6}
                           dataKey="value"
                           stroke="none"
-                          label={({ name, percent = 0 }) => percent > 0.05 ? `${name} ${(percent * 100).toFixed(0)}%` : ''}
+                          label={({ percent = 0 }) => percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : ''}
                           labelLine={false}
-                          style={{ fontWeight: 900, fontSize: 'var(--fs-sm)', fill: THEME.coffeeDark }}
+                          style={{ fontWeight: 800, fontSize: 'var(--fs-xs)', fill: 'var(--text-primary)' }}
                         >
                         {logic.stats.expensesByCategory.map((entry: any, index: number) => (
                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} style={{ filter: 'drop-shadow(0px 4px 6px rgba(0,0,0,0.1))' }} />
                         ))}
                         </Pie>
                         <Tooltip contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', fontWeight: 900, direction: 'rtl', padding: '15px' }} formatter={(value: any) => [logic.formatCurrency(value), '']} />
+                        <Legend verticalAlign="bottom" height={28} wrapperStyle={{ fontSize: '12px', fontWeight: 800 }} />
                     </PieChart>
                     </ResponsiveContainer>
                 )}
@@ -177,7 +184,7 @@ export default function DashboardPage() {
                 {!logic.stats?.jobOrdersPerformance || logic.stats.jobOrdersPerformance.length === 0 ? (
                     <div style={{width:'100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color:'#94a3b8', fontWeight:900}}>لا توجد بيانات لأوامر الشغل أو لم يتم تسجيل تكاليف عليها بعد</div>
                 ) : (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={120} minHeight={180}>
                       <BarChart data={logic.stats.jobOrdersPerformance} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                         <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 12, fontWeight: 700 }} axisLine={false} tickLine={false} />
@@ -242,23 +249,23 @@ export default function DashboardPage() {
 
                 return (
                   <div key={key} className={`health-ring-card ${isWarning ? 'warning-glow' : ''}`}>
-                    <div style={{ position: 'relative', width: '5rem', height: '5rem' }}>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                          <Pie
-                            data={total === 0 ? [{value: 1}] : chartData}
-                            innerRadius={28} outerRadius={38}
-                            dataKey="value" stroke="none" startAngle={90} endAngle={-270}
-                          >
-                            {total === 0 ? <Cell fill="#f1f5f9" /> : (
-                              <>
-                                <Cell fill={THEME.success} /> 
-                                <Cell fill="#f1f5f9" />
-                              </>
-                            )}
-                          </Pie>
-                        </PieChart>
-                      </ResponsiveContainer>
+                    <div style={{ position: 'relative', width: '4rem', height: '4rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <PieChart width={64} height={64}>
+                        <Pie
+                          data={total === 0 ? [{value: 1}] : chartData}
+                          cx={32} cy={32}
+                          innerRadius={21} outerRadius={29}
+                          dataKey="value" stroke="none" startAngle={90} endAngle={-270}
+                          isAnimationActive={false}
+                        >
+                          {total === 0 ? <Cell fill="var(--surface-sunken, #e2e8f0)" /> : (
+                            <>
+                              <Cell fill={THEME.success} />
+                              <Cell fill="var(--surface-sunken, #e2e8f0)" />
+                            </>
+                          )}
+                        </Pie>
+                      </PieChart>
                       <div className="ring-center-text">
                         {total === 0 ? '-' : `${percent}%`}
                       </div>
@@ -274,9 +281,9 @@ export default function DashboardPage() {
           </div>
 
           {/* 🚨 القسم الخامس: المهام العاجلة */}
-          <div className="premium-card alerts-container" style={{ border: '1px solid #fecaca' }}>
+          <div className="premium-card alerts-container">
             <div className="alerts-header">
-              <h3 className="section-title" style={{ margin: 0, color: '#b91c1c' }}><CircleAlert size={18}/> مستندات تحتاج اعتمادًا</h3>
+              <h3 className="section-title" style={{ margin: 0, color: 'var(--status-negative, #be123c)' }}><CircleAlert size={18}/> مستندات تحتاج اعتمادًا</h3>
               <span className="alerts-badge">
                 {logic.stats?.alerts?.length || 0} مهام
               </span>
@@ -366,7 +373,7 @@ export default function DashboardPage() {
         .phi-dashboard .alert-content { display: flex; align-items: center; gap: 0.9375rem; font-size: var(--fs-md); font-weight: 900; color: #1e293b; }
         .phi-dashboard .action-btn { background: var(--surface-card); border: none; box-shadow: var(--shadow-elevation); padding: 0.625rem 1.25rem; border-radius: 12px; font-size: var(--fs-sm); font-weight: 800; color: var(--text-secondary); cursor: pointer; transition: 0.2s; }
         .phi-dashboard .action-btn:hover { background: #ef4444; color: white; border-color: #ef4444; }
-        .phi-dashboard .empty-alerts { padding: 1.875rem; text-align: center; background: #f0fdf4; border-radius: 14px; color: #166534; font-weight: 900; border: 2px dashed #bbf7d0; font-size: var(--fs-lg); }
+        .phi-dashboard .empty-alerts { padding: 1.875rem; text-align: center; background: color-mix(in srgb, var(--status-positive, #16a34a) 10%, var(--surface-sunken, #f0fdf4)); border-radius: 14px; color: var(--status-positive, #15803d); font-weight: 900; border: 2px dashed color-mix(in srgb, var(--status-positive, #16a34a) 35%, transparent); font-size: var(--fs-lg); }
 
         /* Pulse Animation */
         .phi-dashboard .pulse-dot { width: 0.75rem; height: 0.75rem; border-radius: 50%; }

@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
+import { useCompany } from '@/lib/CompanyContext';
+import { isLegacyDashboardFetchEnabled } from '@/lib/dashboard-flags';
 import { formatCurrency } from '@/lib/helpers';
 import { fetchPaginatedData, runWithConcurrency } from '@/lib/supabase-pagination';
 
@@ -28,10 +30,13 @@ const fetchAllForDashboard = async (
 };
 
 export const useDashboardLogic = () => {
+  const { activeCompanyId } = useCompany();
+  const legacyMode = isLegacyDashboardFetchEnabled();
+
   const query = useQuery({
-    queryKey: ['dashboard_stats_comprehensive'],
+    queryKey: ['dashboard_stats_comprehensive', activeCompanyId || 'default'],
     queryFn: async () => {
-      // 1. 📡 سحب كافة البيانات بتزامن مضبوط (4 جداول كحد أقصى في نفس اللحظة) لمنع الحمل الثقيل
+      // 1. 📡 سحب كافة البيانات بتزامن مضبوط (مع دعم مفتاح التراجع الفوري legacyMode)
       const [
         expenses, invoices, labor, payments, receipts, projects,
         journalLines, accounts, subClaims, materialReceipts, jobOrders, materialIssueLines
@@ -48,7 +53,7 @@ export const useDashboardLogic = () => {
         () => fetchAllForDashboard('material_receipts', 'total_amount, is_posted, status'),
         () => fetchAllForDashboard('job_orders', 'id, order_number, assigned_qty, unit_price'),
         () => fetchAllForDashboard('material_issue_lines', 'total_price, job_order_id')
-      ], 4);
+      ], legacyMode ? 4 : 6);
 
       // --- 🏗️ تحليل حالات المشاريع والفلل ---
       const projectStatusMap: Record<string, number> = {};
@@ -202,7 +207,7 @@ export const useDashboardLogic = () => {
         ]
       };
     },
-    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    staleTime: legacyMode ? 0 : 1000 * 60 * 5, // Cache for 5 minutes unless legacy fallback enabled
     refetchOnWindowFocus: false,
   });
 
