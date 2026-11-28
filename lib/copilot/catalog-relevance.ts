@@ -21,6 +21,8 @@ export interface CatalogRelevanceOptions {
   includeUnavailable?: boolean;
   activeProductId?: string;
   contextQuery?: string;
+  /** Expanded tokens resolved from the unified store_search_synonyms dictionary on the server. */
+  synonymTokens?: readonly string[];
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -134,7 +136,24 @@ export function isProductOrderable(product: Pick<CatalogProductLike, 'inStock'>)
   return product.inStock === true;
 }
 
-export function isRelevantCatalogProduct(product: CatalogProductLike, query: string): boolean {
+function matchesUnifiedSynonymTokens(product: CatalogProductLike, synonymTokens?: readonly string[]): boolean {
+  if (!Array.isArray(synonymTokens) || synonymTokens.length === 0) return false;
+  const identity = normalize(`${product.name || ''} ${product.subCategory || ''} ${product.code || ''} ${product.brand || ''}`);
+  if (!identity) return false;
+  const words = new Set(identity.split(' ').filter(Boolean));
+  return synonymTokens.some((rawTok) => {
+    const clean = normalize(rawTok);
+    if (!clean || clean.length < 2 || STOP.has(clean)) return false;
+    if (clean.includes(' ')) return identity.includes(clean);
+    return words.has(clean) || words.has(clean.replace(/^ال/, ''));
+  });
+}
+
+export function isRelevantCatalogProduct(
+  product: CatalogProductLike,
+  query: string,
+  options: Pick<CatalogRelevanceOptions, 'synonymTokens'> = {}
+): boolean {
   const intent = inferCatalogIntent(query);
   if (intent.kind === 'policy' || intent.kind === 'contextual') return false;
   if (intent.kind === 'browse') return true;
@@ -143,6 +162,7 @@ export function isRelevantCatalogProduct(product: CatalogProductLike, query: str
   const code = normalize(product.code);
   const normalizedQuery = normalize(query);
   if (code && (code === normalizedQuery || normalizedQuery.split(' ').filter(Boolean).join('').includes(code.replace(/\s/g, '')))) return true;
+  if (matchesUnifiedSynonymTokens(product, options.synonymTokens)) return true;
   const tokens = meaningfulTokens(query);
   if (tokens.length === 0) return false;
   const identity = normalize(`${product.name || ''} ${product.code || ''} ${product.brand || ''}`);
@@ -150,12 +170,23 @@ export function isRelevantCatalogProduct(product: CatalogProductLike, query: str
   return tokens.some(token => words.includes(token) || words.includes(token.replace(/^ال/, '')));
 }
 
-export function scoreCatalogProduct(product: CatalogProductLike, query: string): number {
-  if (!isRelevantCatalogProduct(product, query)) return 0;
-  const identity = normalize(`${product.name || ''} ${product.code || ''} ${product.brand || ''}`);
+export function scoreCatalogProduct(
+  product: CatalogProductLike,
+  query: string,
+  options: Pick<CatalogRelevanceOptions, 'synonymTokens'> = {}
+): number {
+  if (!isRelevantCatalogProduct(product, query, options)) return 0;
+  const identity = normalize(`${product.name || ''} ${product.subCategory || ''} ${product.code || ''} ${product.brand || ''}`);
   const words = new Set(identity.split(' '));
-  const matched = meaningfulTokens(query).filter(token => words.has(token) || words.has(token.replace(/^ال/, ''))).length;
-  return 10 + matched * 3 + (normalize(product.code) === normalize(query) ? 100 : 0);
+  const literalMatched = meaningfulTokens(query).filter(token => words.has(token) || words.has(token.replace(/^ال/, ''))).length;
+  const synMatched = Array.isArray(options.synonymTokens)
+    ? options.synonymTokens.filter((rawTok) => {
+        const clean = normalize(rawTok);
+        if (!clean || clean.length < 2 || STOP.has(clean)) return false;
+        return clean.includes(' ') ? identity.includes(clean) : (words.has(clean) || words.has(clean.replace(/^ال/, '')));
+      }).length
+    : 0;
+  return 10 + literalMatched * 3 + Math.min(3, synMatched) * 2 + (normalize(product.code) === normalize(query) ? 100 : 0);
 }
 
 export function filterRelevantCatalogProducts<T extends CatalogProductLike>(
@@ -172,7 +203,7 @@ export function filterRelevantCatalogProducts<T extends CatalogProductLike>(
     if (product.id && seen.has(product.id)) return false;
     const relevant = intent.kind === 'contextual' && Boolean(options.activeProductId) && product.id === options.activeProductId
       ? true
-      : isRelevantCatalogProduct(product, effectiveQuery);
+      : isRelevantCatalogProduct(product, effectiveQuery, { synonymTokens: options.synonymTokens });
     if (relevant && product.id) seen.add(product.id);
     return relevant;
   });

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useMemo, useCallback, useEffect, useDeferredValue } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getActiveCompanyId, supabase } from '@/lib/supabase';
+import { useOptionalCompany } from '@/lib/CompanyContext';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/lib/toast-context';
@@ -44,9 +45,11 @@ function useJournalLogic() {
         setCurrentPage(1);
     }, [globalSearch, dateFrom, dateTo, filterAccountId, filterPartnerId, filterProjectId, filterVType, filterStatus, rowsPerPage]);
 
+    const companyScope = useOptionalCompany()?.activeCompanyId ?? getActiveCompanyId() ?? 'default';
+
     // 🟢 السحب من السيرفر (بيسحب الداتا 1000 بـ 1000 بدون تكرار عبر المحرك الموحد)
     const { data: journalMaster = [], isLoading, isError } = useQuery({
-        queryKey: ['journal_master_view', dateFrom, dateTo, filterAccountId, filterPartnerId, filterProjectId, filterVType, filterStatus], 
+        queryKey: ['journal_master_view', companyScope, dateFrom, dateTo, filterAccountId, filterPartnerId, filterProjectId, filterVType, filterStatus], 
         queryFn: async () => {
             const buildQuery = () => {
                 let query = supabase

@@ -96,6 +96,29 @@ interface AgentDialogueMessageItem {
   created_at: string;
 }
 
+interface CopilotConversionMetrics {
+  enabled: boolean;
+  startedAt: string;
+  totalSearches: number;
+  synonymMatchedSearches: number;
+  foundSearches: number;
+  zeroMatchSearches: number;
+  cartActionsCount: number;
+  cartItemsAddedTotal: number;
+  synonymAssistedCartActions: number;
+  submittedOrdersCount: number;
+  synonymAssistedSubmissions: number;
+  escalationsCount: number;
+  synonymAssistedEscalations: number;
+  topSynonymTerms: Array<{
+    key: string;
+    searches: number;
+    carts: number;
+    orders: number;
+    escalations: number;
+  }>;
+}
+
 interface AdminStats {
   totalSynonyms: number;
   activeSynonyms: number;
@@ -106,6 +129,7 @@ interface AdminStats {
   activeKnowledge?: number;
   pendingProposals?: number;
   criticalSecurityAlerts?: number;
+  conversionMetrics?: CopilotConversionMetrics;
 }
 
 interface OverviewStats {
@@ -1606,6 +1630,31 @@ export default function StoreCopilotAdminTab() {
               : trainerKeyConfigured
                 ? 'المفتاح مضبوط ولا توجد إنذارات'
                 : 'المفتاح الخارجي غير مضبوط بعد'}
+          </small>
+        </div>
+
+        <div className="wa-card">
+          <div style={{ fontSize: '12.5px', color: 'var(--mut)', fontWeight: 700 }}>
+            🛒 قمع المرادفات والسلة والتحويل
+          </div>
+          <strong
+            style={{
+              display: 'block',
+              fontSize: '22px',
+              marginTop: '4px',
+              color: 'var(--ok)',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {stats.conversionMetrics?.cartActionsCount ?? 0} سلة •{' '}
+            {(stats.conversionMetrics?.submittedOrdersCount ?? 0) +
+              (stats.conversionMetrics?.escalationsCount ?? 0)}{' '}
+            تحويل
+          </strong>
+          <small style={{ color: 'var(--mut)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+            بحث: {stats.conversionMetrics?.totalSearches ?? 0} (مرادف:{' '}
+            {stats.conversionMetrics?.synonymMatchedSearches ?? 0}) • سلة بمرادف:{' '}
+            {stats.conversionMetrics?.synonymAssistedCartActions ?? 0}
           </small>
         </div>
       </div>

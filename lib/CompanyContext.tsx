@@ -4,6 +4,8 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import { ACTIVE_COMPANY_STORAGE_KEY, getActiveCompanyId, setActiveCompanyId as sendCompanyWithRequests, supabase } from './supabase';
 import type { Company } from '@/types/company';
 import { currencyCode, setActiveCurrency } from './currency';
+import { sharedQueryClient } from '@/components/QueryProvider';
+import { COMPANY_CHANGED_EVENT, clearCompanyScopedClientCaches } from './company-cache';
 
 interface CompanyContextType {
   /** Companies the signed-in user belongs to (from get_user_accessible_companies). */
@@ -21,7 +23,7 @@ interface CompanyContextType {
 
 const CompanyContext = createContext<CompanyContextType | null>(null);
 
-export const COMPANY_CHANGED_EVENT = 'phi:company-changed';
+export { COMPANY_CHANGED_EVENT };
 
 const companiesCacheKey = (uid: string) => `phi_cached_companies_${uid}`;
 
@@ -81,6 +83,8 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       } catch {}
       if (!session) {
         if (current !== requestId.current) return;
+        sendCompanyWithRequests(null);
+        storeId(null);
         setCompanies([]);
         setActiveCompanyId(null);
         setError(null);
@@ -122,7 +126,14 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
         sendCompanyWithRequests(next?.id ?? null);
         storeId(next?.id ?? null);
         const fallbackWasSame = sentId === null && (list.length <= 1 || !!next?.is_user_default);
-        if (next && !fallbackWasSame) { reloadApp(); return; }
+        if (next && !fallbackWasSame) {
+          await clearCompanyScopedClientCaches({
+            keepCompanyId: next.id,
+            queryClient: sharedQueryClient,
+          });
+          reloadApp();
+          return;
+        }
       }
     } catch (err) {
       if (current !== requestId.current) return;
@@ -152,7 +163,19 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void refreshCompanies();
     const { data: listener } = supabase.auth.onAuthStateChange(event => {
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'USER_UPDATED') {
+      if (event === 'SIGNED_OUT') {
+        sendCompanyWithRequests(null);
+        storeId(null);
+        void clearCompanyScopedClientCaches({
+          keepCompanyId: null,
+          clearAuthCompanySelection: true,
+          queryClient: sharedQueryClient,
+        }).finally(() => {
+          void refreshCompanies();
+        });
+        return;
+      }
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
         setTimeout(() => { void refreshCompanies(); }, 0);
       }
     });
@@ -177,6 +200,10 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
     storeId(companyId);
     setActiveCurrency(target.currency);
     setActiveCompanyId(companyId);
+    await clearCompanyScopedClientCaches({
+      keepCompanyId: companyId,
+      queryClient: sharedQueryClient,
+    });
     window.dispatchEvent(new CustomEvent(COMPANY_CHANGED_EVENT, { detail: { company: target, companyId } }));
     if (typeof navigator === 'undefined' || navigator.onLine) {
       const { error: saveError } = await supabase.rpc('set_my_default_company', { p_company_id: companyId });

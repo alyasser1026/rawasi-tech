@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getActiveCompanyId, supabase } from '@/lib/supabase';
+import { useOptionalCompany } from '@/lib/CompanyContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { useRouter, useSearchParams } from 'next/navigation'; // 🛡️ استدعاء التوجيه للحماية
@@ -12,6 +13,7 @@ export function useProfileLogic() {
     const searchParams = useSearchParams();
     const partnerId = searchParams ? searchParams.get('partner_id') : null;
     const isKpiOnly = searchParams ? searchParams.get('view') === 'kpi_only' : false;
+    const companyScope = useOptionalCompany()?.activeCompanyId ?? getActiveCompanyId() ?? 'default';
 
     // 🎛️ 1. حالات الواجهة والفلاتر (UI States & Filters)
     const [activeTab, setActiveTab] = useState(isKpiOnly ? 'kpi' : 'tasks');
@@ -25,7 +27,7 @@ export function useProfileLogic() {
 
     // 🧠 2. المحرك الأساسي: جلب البيانات الذكي المربوط (Joined Query)
     const { data, isLoading } = useQuery({
-        queryKey: ['employeeProfileData', partnerId],
+        queryKey: ['employeeProfileData', partnerId, companyScope],
         queryFn: async () => {
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             

@@ -1,9 +1,16 @@
 "use client";
+import { useEffect, useMemo, useState } from 'react';
 import { QueryClient, MutationCache, QueryCache } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { get, set, del } from 'idb-keyval';
-import { getActiveCompanyId } from '@/lib/supabase';
+import { ACTIVE_COMPANY_STORAGE_KEY, getActiveCompanyId } from '@/lib/supabase';
+import {
+  COMPANY_CHANGED_EVENT,
+  clearCompanyScopedClientCaches,
+  getCompanyCacheKey,
+  isCompanyCacheIsolationDisabled,
+} from '@/lib/company-cache';
 import { reportTechnicalError } from '@/lib/telegram-alerts';
 
 export const sharedQueryClient = new QueryClient({
@@ -76,26 +83,62 @@ export const sharedQueryClient = new QueryClient({
   },
 });
 
-// 🛡️ عزل كاش الاستعلامات المحفوظ في IndexedDB بمفتاح مستقل لكل شركة
-const getCompanyCacheKey = () => `phi_rq_cache_v2_${getActiveCompanyId() || 'default'}`;
-
-const persister = createAsyncStoragePersister({
-  key: getCompanyCacheKey(),
-  storage: {
-    getItem: async (key) => await get(key),
-    setItem: async (key, value) => await set(key, value),
-    removeItem: async (key) => await del(key),
-  },
-});
-
 export default function QueryProvider({ children }: { children: React.ReactNode }) {
-  const companyBuster = getActiveCompanyId() ?? 'default';
+  const [companyBuster, setCompanyBuster] = useState<string>(() => getActiveCompanyId() ?? 'default');
+
+  useEffect(() => {
+    const syncCompanyCache = (nextId?: string | null) => {
+      const resolved = nextId ?? getActiveCompanyId() ?? 'default';
+      setCompanyBuster((prev) => {
+        if (prev === resolved) return prev;
+        if (!isCompanyCacheIsolationDisabled()) {
+          void clearCompanyScopedClientCaches({
+            keepCompanyId: resolved === 'default' ? null : resolved,
+            queryClient: sharedQueryClient,
+          });
+        }
+        return resolved;
+      });
+    };
+
+    const handleCompanyChanged = (ev: Event) => {
+      const detail = (ev as CustomEvent<{ companyId?: string | null }>)?.detail;
+      syncCompanyCache(detail?.companyId ?? getActiveCompanyId() ?? 'default');
+    };
+
+    const handleStorage = (ev: StorageEvent) => {
+      if (ev.key === ACTIVE_COMPANY_STORAGE_KEY) {
+        syncCompanyCache(ev.newValue || 'default');
+      }
+    };
+
+    window.addEventListener(COMPANY_CHANGED_EVENT, handleCompanyChanged);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener(COMPANY_CHANGED_EVENT, handleCompanyChanged);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  const companyPersister = useMemo(
+    () =>
+      createAsyncStoragePersister({
+        key: getCompanyCacheKey(companyBuster === 'default' ? null : companyBuster),
+        storage: {
+          getItem: async (key) => await get(key),
+          setItem: async (key, value) => await set(key, value),
+          removeItem: async (key) => await del(key),
+        },
+      }),
+    [companyBuster]
+  );
 
   return (
     <PersistQueryClientProvider
+      key={companyBuster}
       client={sharedQueryClient}
       persistOptions={{
-        persister,
+        persister: companyPersister,
         buster: companyBuster,
         maxAge: 1000 * 60 * 60 * 24,
       }}

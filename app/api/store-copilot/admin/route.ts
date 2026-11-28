@@ -9,8 +9,10 @@ import { PRODUCT_CATEGORIES } from '@/app/site/store-catalog';
 import {
   cleanCopilotSearchQuery,
   getCachedCatalogOverview,
+  getCopilotConversionMetrics,
   getServiceSupabase,
 } from '@/lib/store-copilot-tools';
+import { invalidateStoreCatalogSynonymsCache } from '@/lib/store-catalog-server';
 import {
   DEFAULT_COPILOT_TRAINING_CONFIG,
   getCachedCopilotTraining,
@@ -187,12 +189,13 @@ async function approveSingleProposalRow(
     }
 
     const missId = Number(payloadObj.missId ?? payloadObj.resolve_miss_id);
-    if (Number.isInteger(missId) && missId > 0) {
+    if (missId && Number.isInteger(missId) && missId > 0) {
       await sb
         .from('copilot_search_misses')
         .update({ resolved: true, resolved_synonym: synTerm })
         .eq('id', missId);
     }
+    invalidateStoreCatalogSynonymsCache();
   } else if (prop.proposal_type === 'knowledge') {
     const kTitle = String(payloadObj.title || prop.title || '').trim().slice(0, 160);
     const kAnswer = String(payloadObj.answer || '').trim().slice(0, 2000);
@@ -372,6 +375,7 @@ export async function GET(req: Request) {
         activeKnowledge,
         pendingProposals,
         criticalSecurityAlerts,
+        conversionMetrics: getCopilotConversionMetrics(),
       },
     });
   } catch (err: any) {
@@ -763,6 +767,7 @@ export async function POST(req: Request) {
         .eq('id', missId);
     }
 
+    invalidateStoreCatalogSynonymsCache();
     return NextResponse.json({ ok: true, synonym: data });
   } catch (err: any) {
     return NextResponse.json(
@@ -909,6 +914,7 @@ export async function PATCH(req: Request) {
       );
     }
 
+    invalidateStoreCatalogSynonymsCache();
     return NextResponse.json({ ok: true, synonym: data });
   } catch (err: any) {
     return NextResponse.json(
@@ -970,6 +976,8 @@ export async function DELETE(req: Request) {
 
     if (kind === 'knowledge') {
       invalidateCopilotTrainingCache();
+    } else if (kind === 'synonym') {
+      invalidateStoreCatalogSynonymsCache();
     }
 
     return NextResponse.json({ ok: true });

@@ -19,7 +19,13 @@ import {
   type ProductCategoryId,
   type WebsiteProduct,
 } from '@/app/site/store-catalog';
-import { normalizeArabicSearch, queryStoreCatalog } from '@/lib/store-catalog-server';
+import {
+  ensureStoreSynonymsLoaded,
+  isUnifiedSynonymFunnelDisabled,
+  normalizeArabicSearch,
+  queryStoreCatalog,
+  resolveUnifiedSynonymsForQuery,
+} from '@/lib/store-catalog-server';
 import { filterRelevantCatalogProducts, inferCatalogIntent, scoreCatalogProduct } from '@/lib/copilot/catalog-relevance';
 import type { ApprovedPolicyKnowledge } from '@/lib/copilot/response-policy';
 import { getVerifiedActionContact } from '@/lib/copilot/handoff';
@@ -215,9 +221,57 @@ export interface CopilotToolExecutionContext {
   submissionRequested?: boolean;
   actions: CopilotActionLink[];
   toolsUsed: string[];
+  synonymTokens?: string[];
+  matchedSynonymKeys?: string[];
+}
+
+export interface CopilotConversionMetrics {
+  enabled: boolean;
+  startedAt: string;
+  totalSearches: number;
+  synonymMatchedSearches: number;
+  foundSearches: number;
+  zeroMatchSearches: number;
+  cartActionsCount: number;
+  cartItemsAddedTotal: number;
+  synonymAssistedCartActions: number;
+  submittedOrdersCount: number;
+  synonymAssistedSubmissions: number;
+  escalationsCount: number;
+  synonymAssistedEscalations: number;
+  topSynonymTerms: Array<{
+    key: string;
+    searches: number;
+    carts: number;
+    orders: number;
+    escalations: number;
+  }>;
+}
+
+interface TelemetrySessionEntry {
+  matchedKeys: string[];
+  updatedAt: number;
+}
+
+interface CopilotConversionTelemetryState {
+  startedAt: string;
+  totalSearches: number;
+  synonymMatchedSearches: number;
+  foundSearches: number;
+  zeroMatchSearches: number;
+  cartActionsCount: number;
+  cartItemsAddedTotal: number;
+  synonymAssistedCartActions: number;
+  submittedOrdersCount: number;
+  synonymAssistedSubmissions: number;
+  escalationsCount: number;
+  synonymAssistedEscalations: number;
+  sessions: Map<string, TelemetrySessionEntry>;
+  termStats: Map<string, { searches: number; carts: number; orders: number; escalations: number }>;
 }
 
 const OVERVIEW_TTL_MS = 5 * 60_000;
+const TELEMETRY_MAX_SESSIONS = 500;
 const VALID_CAT_SET = new Set<string>(PRODUCT_CATEGORIES.map((c) => c.id));
 const CAT_TITLE_MAP = new Map<string, string>(
   PRODUCT_CATEGORIES.map((c) => [c.id, c.shortTitle || c.title])
@@ -225,7 +279,151 @@ const CAT_TITLE_MAP = new Map<string, string>(
 
 const g = globalThis as typeof globalThis & {
   __phiCopilotOverviewCache?: { loadedAt: number; data: CatalogOverviewData };
+  __phiCopilotConversionTelemetry?: CopilotConversionTelemetryState;
 };
+
+function isTelemetryDisabled(): boolean {
+  return typeof isUnifiedSynonymFunnelDisabled === 'function'
+    ? isUnifiedSynonymFunnelDisabled()
+    : process.env.NEXT_PUBLIC_DISABLE_UNIFIED_SYNONYM_FUNNEL === 'true';
+}
+
+function createEmptyTelemetryState(): CopilotConversionTelemetryState {
+  return {
+    startedAt: new Date().toISOString(),
+    totalSearches: 0,
+    synonymMatchedSearches: 0,
+    foundSearches: 0,
+    zeroMatchSearches: 0,
+    cartActionsCount: 0,
+    cartItemsAddedTotal: 0,
+    synonymAssistedCartActions: 0,
+    submittedOrdersCount: 0,
+    synonymAssistedSubmissions: 0,
+    escalationsCount: 0,
+    synonymAssistedEscalations: 0,
+    sessions: new Map(),
+    termStats: new Map(),
+  };
+}
+
+function getTelemetryState(): CopilotConversionTelemetryState {
+  if (!g.__phiCopilotConversionTelemetry) {
+    g.__phiCopilotConversionTelemetry = createEmptyTelemetryState();
+  }
+  return g.__phiCopilotConversionTelemetry;
+}
+
+function anonymizeSessionHash(sessionId: string): string {
+  const input = `phi-funnel:${String(sessionId || 'anon')}`;
+  let h1 = 0x811c9dc5;
+  let h2 = 0x9e3779b9;
+  for (let i = 0; i < input.length; i++) {
+    const c = input.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 0x01000193);
+    h2 = Math.imul(h2 ^ (c + i), 0x85ebca6b);
+  }
+  return `${(h1 >>> 0).toString(16).padStart(8, '0')}${(h2 >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+function pruneBoundedSessionMap(sessions: Map<string, TelemetrySessionEntry>) {
+  if (sessions.size < TELEMETRY_MAX_SESSIONS) return;
+  const oldest = sessions.keys().next().value;
+  if (oldest) sessions.delete(oldest);
+}
+
+function getOrCreateTermStat(state: CopilotConversionTelemetryState, key: string) {
+  let entry = state.termStats.get(key);
+  if (!entry) {
+    if (state.termStats.size >= 250) {
+      const oldest = state.termStats.keys().next().value;
+      if (oldest) state.termStats.delete(oldest);
+    }
+    entry = { searches: 0, carts: 0, orders: 0, escalations: 0 };
+    state.termStats.set(key, entry);
+  }
+  return entry;
+}
+
+function recordCopilotSearchTelemetry(sessionId: string, matchedKeys: string[], found: boolean): void {
+  if (isTelemetryDisabled()) return;
+  const state = getTelemetryState();
+  state.totalSearches++;
+  if (found) state.foundSearches++;
+  else state.zeroMatchSearches++;
+
+  const cleanKeys = Array.from(new Set(matchedKeys.map((k) => k.trim()).filter(Boolean))).slice(0, 5);
+  if (cleanKeys.length > 0) {
+    state.synonymMatchedSearches++;
+    const hash = anonymizeSessionHash(sessionId);
+    state.sessions.delete(hash);
+    pruneBoundedSessionMap(state.sessions);
+    state.sessions.set(hash, { matchedKeys: cleanKeys, updatedAt: Date.now() });
+    for (const k of cleanKeys) {
+      getOrCreateTermStat(state, k).searches++;
+    }
+  }
+}
+
+function recordCopilotOutcomeTelemetry(
+  sessionId: string,
+  outcome: 'cart' | 'order' | 'escalation',
+  itemsCount = 0
+): void {
+  if (isTelemetryDisabled()) return;
+  const state = getTelemetryState();
+  const hash = anonymizeSessionHash(sessionId);
+  const sess = state.sessions.get(hash);
+  const synKeys = sess?.matchedKeys || [];
+
+  if (outcome === 'cart') {
+    state.cartActionsCount++;
+    state.cartItemsAddedTotal += Math.max(1, itemsCount);
+    if (synKeys.length > 0) state.synonymAssistedCartActions++;
+  } else if (outcome === 'order') {
+    state.submittedOrdersCount++;
+    if (synKeys.length > 0) state.synonymAssistedSubmissions++;
+  } else {
+    state.escalationsCount++;
+    if (synKeys.length > 0) state.synonymAssistedEscalations++;
+  }
+
+  for (const k of synKeys) {
+    const stat = getOrCreateTermStat(state, k);
+    if (outcome === 'cart') stat.carts++;
+    else if (outcome === 'order') stat.orders++;
+    else stat.escalations++;
+  }
+}
+
+export function getCopilotConversionMetrics(): CopilotConversionMetrics {
+  const state = getTelemetryState();
+  const topSynonymTerms = Array.from(state.termStats.entries())
+    .map(([key, counts]) => ({ key, ...counts }))
+    .sort((a, b) => (b.carts + b.orders + b.escalations + b.searches) - (a.carts + a.orders + a.escalations + a.searches))
+    .slice(0, 12);
+
+  return {
+    enabled: !isTelemetryDisabled(),
+    startedAt: state.startedAt,
+    totalSearches: state.totalSearches,
+    synonymMatchedSearches: state.synonymMatchedSearches,
+    foundSearches: state.foundSearches,
+    zeroMatchSearches: state.zeroMatchSearches,
+    cartActionsCount: state.cartActionsCount,
+    cartItemsAddedTotal: state.cartItemsAddedTotal,
+    synonymAssistedCartActions: state.synonymAssistedCartActions,
+    submittedOrdersCount: state.submittedOrdersCount,
+    synonymAssistedSubmissions: state.synonymAssistedSubmissions,
+    escalationsCount: state.escalationsCount,
+    synonymAssistedEscalations: state.synonymAssistedEscalations,
+    topSynonymTerms,
+  };
+}
+
+export function resetCopilotConversionMetricsForTest(): void {
+  g.__phiCopilotConversionTelemetry = createEmptyTelemetryState();
+}
 
 /**
  * ينشئ عميل Supabase بصلاحيات السيرفر (service_role) لتنفيذ دوال الـ RPC الآمنة.
@@ -704,6 +902,20 @@ export async function execSearchProducts(
   const intent = inferCatalogIntent(query);
   const hasWord = (tok: string) => matchesWholeWordToken(normQ, tok);
 
+  if (!isTelemetryDisabled() && typeof ensureStoreSynonymsLoaded === 'function') {
+    await ensureStoreSynonymsLoaded().catch(() => undefined);
+  }
+  const unifiedSyn =
+    !isTelemetryDisabled() && typeof resolveUnifiedSynonymsForQuery === 'function'
+      ? resolveUnifiedSynonymsForQuery(effectiveQuery)
+      : { expandedTokens: [] as string[], matchedSynonymTerms: [] as string[], matchedKeys: [] as string[] };
+  if (unifiedSyn.expandedTokens.length > 0) {
+    ctx.synonymTokens = Array.from(new Set([...(ctx.synonymTokens || []), ...unifiedSyn.expandedTokens]));
+  }
+  if (unifiedSyn.matchedKeys.length > 0) {
+    ctx.matchedSynonymKeys = Array.from(new Set([...(ctx.matchedSynonymKeys || []), ...unifiedSyn.matchedKeys]));
+  }
+
   let cards: CopilotProductCard[] = [];
   let rpcFailed = false;
   let fallbackFailed = false;
@@ -901,7 +1113,9 @@ export async function execSearchProducts(
     };
   }
 
-  const filteredCards = filterRelevantCatalogProducts(cards, effectiveQuery);
+  const filteredCards = filterRelevantCatalogProducts(cards, effectiveQuery, {
+    synonymTokens: unifiedSyn.expandedTokens,
+  });
   if (
     filteredCards.length > 0 ||
     intent.kind === 'policy' ||
@@ -913,8 +1127,15 @@ export async function execSearchProducts(
   } else {
     cards = inStockOnly ? cards.filter((c) => c.inStock) : cards;
   }
-  if (sort === 'relevance') cards.sort((a, b) => scoreCatalogProduct(b, effectiveQuery) - scoreCatalogProduct(a, effectiveQuery));
+  if (sort === 'relevance') {
+    cards.sort(
+      (a, b) =>
+        scoreCatalogProduct(b, effectiveQuery, { synonymTokens: unifiedSyn.expandedTokens }) -
+        scoreCatalogProduct(a, effectiveQuery, { synonymTokens: unifiedSyn.expandedTokens })
+    );
+  }
   pushUniqueProducts(ctx, cards, 6);
+  recordCopilotSearchTelemetry(ctx.sessionId, unifiedSyn.matchedKeys, cards.length > 0);
 
   if (category) {
     pushUniqueAction(ctx, {
@@ -1206,6 +1427,8 @@ export async function execPrepareCartAction(
 
   ctx.cartAction = { action: 'add', items: cartItems };
   pushUniqueAction(ctx, { label: '🛒 عرض المتجر والسلة', href: '/store' });
+  const totalCartQty = cartItems.reduce((sum, item) => sum + Math.max(1, Number(item.qty) || 1), 0);
+  recordCopilotOutcomeTelemetry(ctx.sessionId, 'cart', totalCartQty);
 
   return {
     ok: true,
@@ -1378,6 +1601,7 @@ async function execSubmitOrderOrServiceOnce(
   };
 
   ctx.submittedOrder = submitted;
+  recordCopilotOutcomeTelemetry(ctx.sessionId, 'order', submitted.itemsCount);
 
   // إشعار فوري على تليجرام لفريق المبيعات والهندسة (لا يُفشل تأكيد الطلب عند تعذر الشبكة)
   await sendStoreTelegramNotification({
@@ -1501,6 +1725,7 @@ async function execEscalateToEngineerOnce(
   }
 
   ctx.escalated = true;
+  recordCopilotOutcomeTelemetry(ctx.sessionId, 'escalation');
   return {
     ok: true,
     escalated: true,

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo, useCallback, useDeferredValue } from 'react';
-import { supabase } from '@/lib/supabase';
+import { getActiveCompanyId, supabase } from '@/lib/supabase';
+import { useOptionalCompany } from '@/lib/CompanyContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/lib/toast-context';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
@@ -29,9 +30,11 @@ export function useJournalLogic() {
     const [filterStatus, setFilterStatus] = useState('الكل'); 
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+    const companyScope = useOptionalCompany()?.activeCompanyId ?? getActiveCompanyId() ?? 'default';
+
     // 📥 2. محرك جلب البيانات - سحب على مراحل (React Query)
     const { data: journalMaster = [], isLoading, isError } = useQuery({
-        queryKey: ['journal_master_view', dateFrom, dateTo, filterAccountId, filterPartnerId, filterStatus], 
+        queryKey: ['journal_master_view', companyScope, dateFrom, dateTo, filterAccountId, filterPartnerId, filterStatus], 
         queryFn: async () => {
             const buildQuery = () => {
                 let query = supabase

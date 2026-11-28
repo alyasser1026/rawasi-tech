@@ -80,6 +80,17 @@ export function isLegacyCatalogStorageOnly(): boolean {
   return process.env.NEXT_PUBLIC_USE_LEGACY_CATALOG_STORAGE === 'true';
 }
 
+export function isUnifiedSynonymFunnelDisabled(): boolean {
+  return process.env.NEXT_PUBLIC_DISABLE_UNIFIED_SYNONYM_FUNNEL === 'true';
+}
+
+export function invalidateStoreCatalogSynonymsCache(): void {
+  g.__phiStoreSynonymsCache = undefined;
+  if (g.__phiStoreCatalogCache) {
+    g.__phiStoreCatalogCache.loadedAt = 0;
+  }
+}
+
 export function normalizeArabicSearch(text: string): string {
   return String(text || '')
     .toLowerCase()
@@ -129,6 +140,72 @@ function resolveSynonymsForNormalizedToken(
   const dyn = dynamicMap?.get(cleanTok);
   if (dyn && dyn.length > 0) return dyn;
   return undefined;
+}
+
+export function resolveUnifiedSynonymsForQuery(
+  query: string,
+  dynamicMap?: Map<string, string[]>
+): { expandedTokens: string[]; matchedSynonymTerms: string[]; matchedKeys: string[] } {
+  const qNorm = normalizeArabicSearch(query);
+  if (!qNorm) {
+    return { expandedTokens: [], matchedSynonymTerms: [], matchedKeys: [] };
+  }
+  const activeDynMap = isUnifiedSynonymFunnelDisabled()
+    ? undefined
+    : dynamicMap ?? g.__phiStoreSynonymsCache?.map;
+  const words = qNorm.split(' ').filter(Boolean);
+  const expandedSet = new Set<string>();
+  const matchedTermsSet = new Set<string>();
+  const matchedKeysSet = new Set<string>();
+
+  if (!isUnifiedSynonymFunnelDisabled() && activeDynMap && words.length >= 2) {
+    const candidates = [qNorm];
+    for (let i = 0; i < words.length - 1; i++) {
+      candidates.push(`${words[i]} ${words[i + 1]}`);
+    }
+    for (const phrase of candidates) {
+      const phraseSyns = activeDynMap.get(phrase);
+      if (phraseSyns && phraseSyns.length > 0) {
+        matchedKeysSet.add(phrase);
+        for (const s of phraseSyns) {
+          expandedSet.add(s);
+          if (s !== phrase) matchedTermsSet.add(s);
+        }
+      }
+    }
+  }
+
+  for (const tok of words) {
+    const bare = tok.startsWith('ال') && tok.length >= 4 ? tok.slice(2) : tok;
+    const baseGroup = expandQueryToken(tok, activeDynMap);
+    const dynDirect = activeDynMap?.get(tok);
+    const dynBare = bare !== tok ? activeDynMap?.get(bare) : undefined;
+    const combined = Array.from(
+      new Set([...baseGroup, ...(dynDirect || []), ...(dynBare || [])])
+    );
+    const dictHit =
+      resolveSynonymsForNormalizedToken(tok, activeDynMap) ||
+      (bare !== tok ? resolveSynonymsForNormalizedToken(bare, activeDynMap) : undefined) ||
+      dynDirect ||
+      dynBare;
+    if (dictHit && dictHit.length > 0) {
+      matchedKeysSet.add(
+        resolveSynonymsForNormalizedToken(tok, activeDynMap) || dynDirect ? tok : bare
+      );
+      for (const s of combined) {
+        expandedSet.add(s);
+        if (s !== tok && s !== bare) matchedTermsSet.add(s);
+      }
+    } else {
+      for (const s of combined) expandedSet.add(s);
+    }
+  }
+
+  return {
+    expandedTokens: Array.from(expandedSet),
+    matchedSynonymTerms: Array.from(matchedTermsSet),
+    matchedKeys: Array.from(matchedKeysSet),
+  };
 }
 
 function expandQueryToken(tok: string, dynamicMap?: Map<string, string[]>): string[] {
@@ -368,13 +445,15 @@ async function loadDbSynonymsMap(
     if (!res.ok) return cached?.map || map;
     const rows = (await res.json()) as any[];
     if (Array.isArray(rows)) {
+      const legacyMode = isUnifiedSynonymFunnelDisabled();
       for (const row of rows) {
         const keyNorm = normalizeArabicSearch(row?.term_normalized || row?.term || '');
-        if (!keyNorm || STORE_SEARCH_SYNONYM_MAP.has(keyNorm)) continue;
+        if (!keyNorm || (legacyMode && STORE_SEARCH_SYNONYM_MAP.has(keyNorm))) continue;
         const terms = Array.isArray(row?.expand_terms)
           ? row.expand_terms.map((t: unknown) => normalizeArabicSearch(String(t || ''))).filter(Boolean)
           : [];
-        const unique = Array.from(new Set([keyNorm, ...terms]));
+        const existing = map.get(keyNorm) || [];
+        const unique = Array.from(new Set([...existing, keyNorm, ...terms]));
         if (unique.length > 0) map.set(keyNorm, unique);
       }
     }
@@ -383,6 +462,24 @@ async function loadDbSynonymsMap(
   } catch {
     return cached?.map || map;
   }
+}
+
+export async function ensureStoreSynonymsLoaded(
+  sbUrl?: string,
+  apiKey?: string
+): Promise<Map<string, string[]>> {
+  const url = (sbUrl || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').trim();
+  const key = (
+    apiKey ||
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.SUPABASE_SECRET_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    ''
+  ).trim() || undefined;
+  if (!url || !key) {
+    return g.__phiStoreSynonymsCache?.map || new Map<string, string[]>();
+  }
+  return loadDbSynonymsMap(url, key);
 }
 
 function mapDbRowToProductInput(row: any): any {

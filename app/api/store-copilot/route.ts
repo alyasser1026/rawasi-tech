@@ -674,7 +674,11 @@ export async function POST(req: Request) {
       provider = 'rpc_fallback';
     }
 
-    ctx.products = filterRelevantCatalogProducts(ctx.products, message, { contextQuery, activeProductId: body.activeProductId });
+    ctx.products = filterRelevantCatalogProducts(ctx.products, message, {
+      contextQuery,
+      activeProductId: body.activeProductId,
+      synonymTokens: ctx.synonymTokens,
+    });
     replyText = enforceActionClaims(replyText, {
       customerName: ctx.customerName,
       customerPhone: ctx.customerPhone,
