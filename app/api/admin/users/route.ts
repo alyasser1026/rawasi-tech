@@ -35,6 +35,98 @@ function toE164(phone: string | null | undefined): string | null {
     return /^[1-9]\d{9,14}$/.test(digits) ? `+${digits}` : null;
 }
 
+interface CompanyAssignmentInput {
+    company_id: string;
+    role: 'admin' | 'member';
+    is_default: boolean;
+}
+
+async function syncUserCompanyAssignments(
+    supabaseAdmin: ReturnType<typeof getSupabaseAdmin>,
+    userId: string,
+    assignments: unknown
+) {
+    if (!Array.isArray(assignments)) return;
+
+    const deduped = new Map<string, CompanyAssignmentInput>();
+    for (const raw of assignments) {
+        const companyId = typeof (raw as any)?.company_id === 'string' ? (raw as any).company_id.trim() : '';
+        if (!companyId || deduped.has(companyId)) continue;
+        deduped.set(companyId, {
+            company_id: companyId,
+            role: (raw as any)?.role === 'admin' ? 'admin' : 'member',
+            is_default: Boolean((raw as any)?.is_default),
+        });
+    }
+
+    const valid = Array.from(deduped.values());
+    if (valid.length > 0) {
+        const firstDefaultIdx = valid.findIndex((item) => item.is_default);
+        const defaultIdx = firstDefaultIdx >= 0 ? firstDefaultIdx : 0;
+        valid.forEach((item, idx) => {
+            item.is_default = idx === defaultIdx;
+        });
+    }
+
+    const { error: deleteErr } = await supabaseAdmin
+        .from('user_companies')
+        .delete()
+        .eq('user_id', userId);
+    if (deleteErr) {
+        throw new Error(`تعذر تحديث ربط الشركات: ${deleteErr.message}`);
+    }
+
+    if (valid.length > 0) {
+        const rows = valid.map((item) => ({
+            user_id: userId,
+            company_id: item.company_id,
+            role: item.role,
+            is_active: true,
+            is_default: item.is_default,
+        }));
+        const { error: insertErr } = await supabaseAdmin.from('user_companies').insert(rows);
+        if (insertErr) {
+            throw new Error(`تعذر حفظ الشركات المرتبطة: ${insertErr.message}`);
+        }
+    }
+}
+
+// 0. جلب قائمة الشركات النشطة وعضويات المستخدمين (GET)
+export async function GET(req: Request) {
+    try {
+        const access = await authorizeAdminRequest(req, getSupabaseAdmin);
+        if (access.error) return access.error;
+        const supabaseAdmin = access.client;
+
+        const [companiesRes, membershipsRes] = await Promise.all([
+            supabaseAdmin
+                .from('companies')
+                .select('id, code, name, currency, is_default, is_active')
+                .eq('is_active', true)
+                .order('is_default', { ascending: false })
+                .order('name'),
+            supabaseAdmin
+                .from('user_companies')
+                .select('user_id, company_id, role, is_default, is_active')
+                .eq('is_active', true),
+        ]);
+
+        if (companiesRes.error) {
+            return NextResponse.json({ error: companiesRes.error.message }, { status: 400 });
+        }
+        if (membershipsRes.error) {
+            return NextResponse.json({ error: membershipsRes.error.message }, { status: 400 });
+        }
+
+        return NextResponse.json({
+            companies: companiesRes.data || [],
+            memberships: membershipsRes.data || [],
+        });
+    } catch (err: any) {
+        return NextResponse.json({ error: err.message || 'حدث خطأ غير متوقع' }, { status: 500 });
+    }
+}
+
 // 1. إضافة مستخدم جديد (POST)
 export async function POST(req: Request) {
     try {
@@ -42,7 +134,7 @@ export async function POST(req: Request) {
         if (access.error) return access.error;
         const supabaseAdmin = access.client;
         const body = await req.json();
-        const { email, password, phone, full_name, role, linked_partner_id, permissions, is_active } = body;
+        const { email, password, phone, full_name, role, linked_partner_id, permissions, is_active, company_assignments } = body;
 
         // 1️⃣ إنشاء الحساب في المصادقة (Auth)
         const e164 = toE164(phone);
@@ -97,6 +189,8 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: profileError.message }, { status: 400 });
         }
 
+        await syncUserCompanyAssignments(supabaseAdmin, userId, company_assignments);
+
         return NextResponse.json({ success: true, message: 'تم إنشاء المستخدم بنجاح', userId });
 
     } catch (err: any) {
@@ -111,7 +205,7 @@ export async function PUT(req: Request) {
         if (access.error) return access.error;
         const supabaseAdmin = access.client;
         const body = await req.json();
-        const { userId, email, password, phone, full_name, role, linked_partner_id, permissions, is_active } = body;
+        const { userId, email, password, phone, full_name, role, linked_partner_id, permissions, is_active, company_assignments } = body;
 
         if (!userId) return NextResponse.json({ error: 'معرف المستخدم مفقود' }, { status: 400 });
 
@@ -166,6 +260,8 @@ export async function PUT(req: Request) {
             .eq('id', userId);
 
         if (profileError) return NextResponse.json({ error: profileError.message }, { status: 400 });
+
+        await syncUserCompanyAssignments(supabaseAdmin, userId, company_assignments);
 
         return NextResponse.json({ success: true, message: 'تم تحديث بيانات المستخدم بنجاح' });
 

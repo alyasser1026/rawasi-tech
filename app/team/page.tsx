@@ -5,10 +5,15 @@ import { adminUsersRequest } from '@/lib/admin-api';
 import { THEME } from '@/lib/theme';
 import { useSidebar } from '@/lib/SidebarContext'; 
 import MasterPage from '@/components/MasterPage'; 
-import ProfileEditorModal from './profileeditormodal';
+import ProfileEditorModal, { type CompanyOption, type UserCompanyAssignment } from './profileeditormodal';
 import { useRouter } from 'next/navigation'; // 👈 استدعاء الراوتر للطرد
-import { Hourglass, Sparkles } from 'lucide-react';
+import { Hourglass, Sparkles, Building2 } from 'lucide-react';
 import { notify } from '@/lib/notify';
+
+interface UserCompanyBadge extends UserCompanyAssignment {
+    name: string;
+    code: string;
+}
 
 export default function TeamPage() {
     // ==========================================
@@ -17,6 +22,8 @@ export default function TeamPage() {
     const router = useRouter(); // 👈 تفعيل الراوتر
     const { setSidebarContent } = useSidebar();
     const [profiles, setProfiles] = useState<any[]>([]);
+    const [companies, setCompanies] = useState<CompanyOption[]>([]);
+    const [membershipsByUser, setMembershipsByUser] = useState<Record<string, UserCompanyBadge[]>>({});
     const [isLoading, setIsLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProfile, setSelectedProfile] = useState<any>(null);
@@ -57,14 +64,37 @@ export default function TeamPage() {
     const fetchProfiles = async () => {
         setIsLoading(true);
         try {
-            // المحاولة الأولى: جلب البيانات مع اسم الشريك
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*, partners(name)')
-                .order('created_at', { ascending: false });
-            
-            if (error) throw error;
-            setProfiles(data || []);
+            const [profilesRes, companiesRes] = await Promise.all([
+                supabase
+                    .from('profiles')
+                    .select('*, partners(name)')
+                    .order('created_at', { ascending: false }),
+                adminUsersRequest('GET').then(async (res) => (res.ok ? res.json() : null)).catch(() => null),
+            ]);
+
+            if (profilesRes.error) throw profilesRes.error;
+            setProfiles(profilesRes.data || []);
+
+            if (companiesRes && Array.isArray(companiesRes.companies)) {
+                setCompanies(companiesRes.companies);
+                const compById = new Map<string, CompanyOption>(
+                    companiesRes.companies.map((c: CompanyOption) => [c.id, c])
+                );
+                const grouped: Record<string, UserCompanyBadge[]> = {};
+                for (const m of companiesRes.memberships || []) {
+                    const comp = compById.get(m.company_id);
+                    if (!comp) continue;
+                    if (!grouped[m.user_id]) grouped[m.user_id] = [];
+                    grouped[m.user_id].push({
+                        company_id: m.company_id,
+                        role: m.role === 'admin' ? 'admin' : 'member',
+                        is_default: Boolean(m.is_default),
+                        name: comp.name,
+                        code: comp.code,
+                    });
+                }
+                setMembershipsByUser(grouped);
+            }
 
         } catch (err: any) {
             console.warn("⚠️ فشل جلب العلاقات، جاري المحاولة بدون الشركاء...", err);
@@ -281,10 +311,42 @@ export default function TeamPage() {
                             <div style={{ position: 'absolute', top: '0.9375rem', right: '0.9375rem', width: '0.75rem', height: '0.75rem', borderRadius: '50%', background: user.is_active === false ? '#ef4444' : '#22c55e', boxShadow: `0 0 10px ${user.is_active === false ? '#ef4444' : '#22c55e'}`, border: '2px solid white' }} title={user.is_active === false ? 'حساب موقوف' : 'حساب نشط'} />
 
                             {user.partners?.name && (
-                                <div style={{ marginTop: '1.125rem', fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.brand.gold, background: `${THEME.brand.gold}15`, padding: '0.5rem 0.75rem', borderRadius: '10px' }}>
+                                <div style={{ marginTop: '0.75rem', fontSize: 'var(--fs-xs)', fontWeight: 900, color: THEME.brand.gold, background: `${THEME.brand.gold}15`, padding: '0.45rem 0.75rem', borderRadius: '10px' }}>
                                     شريك: {user.partners.name}
                                 </div>
                             )}
+
+                            <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '0.35rem' }}>
+                                {user.is_admin || user.role === 'super_admin' || user.role === 'admin' ? (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: 'var(--fs-xs)', fontWeight: 800, background: '#fef3c7', color: '#b45309', padding: '0.3rem 0.65rem', borderRadius: '999px' }}>
+                                        <Building2 size={12} aria-hidden="true" /> جميع الشركات (إدارة)
+                                    </span>
+                                ) : (membershipsByUser[user.id] || []).length > 0 ? (
+                                    (membershipsByUser[user.id] || []).map((c) => (
+                                        <span
+                                            key={c.company_id}
+                                            style={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                gap: '0.25rem',
+                                                fontSize: 'var(--fs-xs)',
+                                                fontWeight: 800,
+                                                background: '#eff6ff',
+                                                color: '#1d4ed8',
+                                                padding: '0.3rem 0.65rem',
+                                                borderRadius: '999px',
+                                            }}
+                                        >
+                                            <Building2 size={12} aria-hidden="true" />
+                                            {c.name} ({c.code})
+                                        </span>
+                                    ))
+                                ) : (
+                                    <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 700, color: '#94a3b8' }}>
+                                        بدون شركة مربوطة
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     )) : (
                         <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '3.125rem', color: '#94a3b8', fontWeight: 800 }}>
@@ -300,6 +362,8 @@ export default function TeamPage() {
                     isOpen={isModalOpen} 
                     onClose={() => setIsModalOpen(false)} 
                     record={selectedProfile}
+                    companies={companies}
+                    initialCompanyAssignments={selectedProfile ? membershipsByUser[selectedProfile.id] || [] : []}
                     onSave={() => { setIsModalOpen(false); fetchProfiles(); }}
                 />
             )}
