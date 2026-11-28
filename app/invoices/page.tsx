@@ -285,39 +285,54 @@ export default function InvoicesPage() {
         </button>
       </SecureAction>
 
-      {logic.selectedIds.length === 0 && (
-        <p style={{ fontSize: 'var(--fs-xs)', textAlign: 'center', color: 'var(--text-secondary)', background: 'var(--surface-subcard)', padding: '0.625rem 0.75rem', borderRadius: '10px', fontWeight: 800, margin: 0, lineHeight: 1.6 }}>
-          حدد فاتورة من الجدول (☑) لإظهار أزرار «اعتماد وترحيل» أو «تعليق الفاتورة» أو «تعديل البيانات».
+      {logic.selectedIds.length === 0 ? (
+        <p style={{ fontSize: 'var(--fs-xs)', textAlign: 'center', color: 'var(--status-warning, #d97706)', background: 'var(--surface-subcard)', padding: '0.625rem 0.75rem', borderRadius: '10px', fontWeight: 800, margin: 0, lineHeight: 1.6 }}>
+          حدد فاتورة من الجدول (☑) أولاً لتفعيل أزرار «اعتماد وترحيل» و«تعليق الفاتورة».
+        </p>
+      ) : (
+        <p style={{ fontSize: 'var(--fs-xs)', textAlign: 'center', color: '#94a3b8', fontWeight: 900, marginBottom: '-0.3125rem' }}>
+          الإجراءات على ({logic.selectedIds.length})
         </p>
       )}
 
-      {logic.selectedIds.length > 0 && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.3125rem', paddingTop: '0.9375rem', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
-          <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-0.3125rem'}}>الإجراءات على ({logic.selectedIds.length})</p>
-          <SecureAction module="invoices" action="post">
-            <button className="btn-main-glass blue" onClick={logic.handlePostSelected} disabled={logic.isSaving}>
-              {logic.isSaving ? 'جاري الترحيل...' : 'اعتماد وترحيل'}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.3125rem', paddingTop: '0.9375rem', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
+        <SecureAction module="invoices" action="post">
+          <button
+            className="btn-main-glass blue"
+            onClick={logic.handlePostSelected}
+            disabled={logic.isSaving || logic.selectedIds.length === 0}
+            title={logic.selectedIds.length === 0 ? 'حدد فاتورة من الجدول أولاً' : 'اعتماد وترحيل الفواتير المحددة'}
+            style={logic.selectedIds.length === 0 ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
+          >
+            {logic.isSaving ? 'جاري الترحيل...' : 'اعتماد وترحيل'}
+          </button>
+        </SecureAction>
+        <SecureAction module="invoices" action="post">
+          <button
+            className="btn-main-glass yellow"
+            onClick={logic.handleUnpostSelected}
+            disabled={logic.isSaving || logic.selectedIds.length === 0}
+            title={logic.selectedIds.length === 0 ? 'حدد فاتورة من الجدول أولاً' : 'فك ترحيل الفواتير المحددة'}
+            style={logic.selectedIds.length === 0 ? { opacity: 0.55, cursor: 'not-allowed' } : undefined}
+          >
+            تعليق الفاتورة
+          </button>
+        </SecureAction>
+        {logic.selectedIds.length === 1 && (
+          <SecureAction module="invoices" action="edit">
+            <button className="btn-main-glass white" onClick={() => logic.handleEdit(logic.allFiltered.find((i:any) => String(i.id) === logic.selectedIds[0]))}>
+              تعديل البيانات
             </button>
           </SecureAction>
-          <SecureAction module="invoices" action="post">
-            <button className="btn-main-glass yellow" onClick={logic.handleUnpostSelected} disabled={logic.isSaving}>
-              تعليق الفاتورة
-            </button>
-          </SecureAction>
-          {logic.selectedIds.length === 1 && (
-            <SecureAction module="invoices" action="edit">
-              <button className="btn-main-glass white" onClick={() => logic.handleEdit(logic.allFiltered.find((i:any) => String(i.id) === logic.selectedIds[0]))}>
-                تعديل البيانات
-              </button>
-            </SecureAction>
-          )}
+        )}
+        {logic.selectedIds.length > 0 && (
           <SecureAction module="invoices" action="delete">
             <button className="btn-main-glass red" onClick={logic.handleDeleteSelected} disabled={logic.isSaving}>
               حذف نهائي
             </button>
           </SecureAction>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   ), [logic.selectedIds, logic]);
 

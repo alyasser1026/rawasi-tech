@@ -418,7 +418,9 @@ export function useInvoicesLogic() {
 
     const postMutation = useMutation({
         mutationFn: async () => {
-            if (!selectedIds.length) return;
+            if (!selectedIds.length) {
+                throw new Error('حدد فاتورة من الجدول أولاً');
+            }
             const { error } = await supabase.rpc('post_invoices_bulk', { p_ids: selectedIds });
             if (error) throw error;
         },
@@ -432,7 +434,9 @@ export function useInvoicesLogic() {
 
     const unpostMutation = useMutation({
         mutationFn: async () => {
-            if (!selectedIds.length) return;
+            if (!selectedIds.length) {
+                throw new Error('حدد فاتورة من الجدول أولاً');
+            }
             const { error } = await supabase.rpc('unpost_invoices_bulk', { p_ids: selectedIds });
             if (error) throw error;
         },
@@ -526,8 +530,20 @@ export function useInvoicesLogic() {
         currentRecord, setCurrentRecord,
         handleAddNew, handleEdit,
         handleSave: (record: any) => saveMutation.mutate(record),
-        handlePostSelected: () => postMutation.mutate(),
-        handleUnpostSelected: () => unpostMutation.mutate(),
+        handlePostSelected: () => {
+            if (!selectedIds.length) {
+                showToast('حدد فاتورة من الجدول أولاً', 'error');
+                return;
+            }
+            postMutation.mutate();
+        },
+        handleUnpostSelected: () => {
+            if (!selectedIds.length) {
+                showToast('حدد فاتورة من الجدول أولاً', 'error');
+                return;
+            }
+            unpostMutation.mutate();
+        },
         handleDeleteSelected: () => {
             const posted = invoices.filter((inv: any) =>
                 selectedIds.includes(String(inv.id)) && ['posted', 'مرحل', 'معتمد', 'معتمدة'].includes(inv.status)

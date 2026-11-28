@@ -31,6 +31,7 @@ export default function EmployeeProfilePage() {
     const [showRequestForm, setShowRequestForm] = useState(false);
     const [newRequest, setNewRequest] = useState({ type: 'objection', category: 'wage', subject: '', details: '' });
     const [tempPassword, setTempPassword] = useState("");
+    const [customerTab, setCustomerTab] = useState<'requests' | 'account'>('requests');
 
     // 🚀 المتغيرات الآمنة لحساب الملخصات
     const totalProd = monthlyKPIs?.totalProduction || 0;
@@ -237,9 +238,52 @@ export default function EmployeeProfilePage() {
         const customerName = userProfile?.full_name || userProfile?.nickname || 'عميل فاي تك';
         const customerPhone = userProfile?.phone_number || userProfile?.username || '---';
         const customerEmail = userProfile?.email || '';
+        const isRequestsTabDisabled =
+            process.env.NEXT_PUBLIC_DISABLE_CUSTOMER_REQUESTS_TAB === 'true' ||
+            (typeof window !== 'undefined' && (() => {
+                try { return window.localStorage.getItem('phi_disable_customer_requests_tab') === 'true'; } catch { return false; }
+            })());
+        const customerVisibleRequests = (userRequests || []).filter(
+            (r: any) => !['agent_dialogue', 'site_visitor'].includes(String(r?.type || ''))
+        );
+        const activeCustomerView = isRequestsTabDisabled ? 'account' : customerTab;
+
+        const getCustomerRequestTypeLabel = (type: string) => {
+            switch (type) {
+                case 'store_order': return 'طلب متجر ذكي';
+                case 'maintenance_request': return 'صيانة وتنفيذ';
+                case 'website_quote': return 'طلب مقايسة هندسية';
+                case 'property_inquiry': return 'استفسار عقاري';
+                default: return 'طلب عام';
+            }
+        };
+
+        const parseCustomerRequestSummary = (rawDetails: unknown) => {
+            if (!rawDetails || typeof rawDetails !== 'string') return { text: '', meta: '' };
+            try {
+                const obj = JSON.parse(rawDetails);
+                const parts: string[] = [];
+                if (obj.package) parts.push(`الباقة: ${obj.package}`);
+                if (obj.location) parts.push(`الموقع: ${obj.location}`);
+                if (Array.isArray(obj.items) && obj.items.length > 0) {
+                    parts.push(`عدد الأصناف: ${obj.items.length}`);
+                }
+                if (Number(obj.totalAmount) > 0) {
+                    parts.push(`الإجمالي: ${formatCurrency(Number(obj.totalAmount))}`);
+                } else if (Number(obj.totalBudget) > 0) {
+                    parts.push(`التقدير المبدئي: ${formatCurrency(Number(obj.totalBudget))}`);
+                }
+                if (obj.maintenanceService?.title) parts.push(`الخدمة: ${obj.maintenanceService.title}`);
+                if (obj.property?.title) parts.push(`الوحدة: ${obj.property.title}`);
+                return { text: String(obj.notes || ''), meta: parts.join(' • ') };
+            } catch {
+                return { text: rawDetails, meta: '' };
+            }
+        };
+
         return (
             <div dir="rtl" style={{ minHeight: '100vh', background: 'var(--bg-canvas)', color: 'var(--text-primary)', padding: 'clamp(1.25rem, 4vw, 3rem) 1rem' }}>
-                <div style={{ maxWidth: '44rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                <div style={{ maxWidth: '48rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                     <div style={{ background: 'var(--surface-card)', borderRadius: '18px', padding: '1.75rem', boxShadow: 'var(--shadow-ambient)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                             <div style={{ width: '4.25rem', height: '4.25rem', borderRadius: '14px', background: 'var(--surface-subcard)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-ink)' }}>
@@ -251,7 +295,7 @@ export default function EmployeeProfilePage() {
                                 </span>
                                 <h1 style={{ margin: 0, fontSize: 'var(--fs-2xl)', fontWeight: 900, color: 'var(--text-primary)' }}>مرحباً، {customerName}</h1>
                                 <p style={{ margin: '0.25rem 0 0', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 700 }}>
-                                    الملف الشخصي للعميل وإعدادات الحساب
+                                    الملف الشخصي للعميل ومتابعة الطلبات
                                 </p>
                             </div>
                         </div>
@@ -265,6 +309,130 @@ export default function EmployeeProfilePage() {
                         </div>
                     </div>
 
+                    {!isRequestsTabDisabled && (
+                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }} role="tablist" aria-label="أقسام حساب العميل">
+                            <button
+                                type="button"
+                                role="tab"
+                                aria-selected={activeCustomerView === 'requests'}
+                                onClick={() => setCustomerTab('requests')}
+                                style={{
+                                    padding: '0.7rem 1.25rem',
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontWeight: 900,
+                                    fontSize: 'var(--fs-sm)',
+                                    background: activeCustomerView === 'requests' ? 'var(--action-fill)' : 'var(--surface-card)',
+                                    color: activeCustomerView === 'requests' ? 'var(--action-ink)' : 'var(--text-primary)',
+                                    boxShadow: 'var(--shadow-ambient)',
+                                }}
+                            >
+                                طلباتي ومتابعة الحالة ({customerVisibleRequests.length})
+                            </button>
+                            <button
+                                type="button"
+                                role="tab"
+                                aria-selected={activeCustomerView === 'account'}
+                                onClick={() => setCustomerTab('account')}
+                                style={{
+                                    padding: '0.7rem 1.25rem',
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    fontWeight: 900,
+                                    fontSize: 'var(--fs-sm)',
+                                    background: activeCustomerView === 'account' ? 'var(--action-fill)' : 'var(--surface-card)',
+                                    color: activeCustomerView === 'account' ? 'var(--action-ink)' : 'var(--text-primary)',
+                                    boxShadow: 'var(--shadow-ambient)',
+                                }}
+                            >
+                                بيانات الحساب والأمان
+                            </button>
+                        </div>
+                    )}
+
+                    {activeCustomerView === 'requests' ? (
+                        <div style={{ background: 'var(--surface-card)', borderRadius: '18px', padding: '1.75rem', boxShadow: 'var(--shadow-ambient)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                <h2 style={{ margin: 0, fontSize: 'var(--fs-lg)', fontWeight: 900, color: 'var(--text-primary)' }}>
+                                    سجل طلباتي (المتجر، المقايسات، الصيانة)
+                                </h2>
+                                <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 700 }}>
+                                    يعرض الطلبات المرتبطة بحسابك فقط
+                                </span>
+                            </div>
+
+                            {customerVisibleRequests.length === 0 ? (
+                                <div style={{ background: 'var(--surface-subcard)', borderRadius: '14px', padding: '2rem 1rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                                    <Files size={32} color="var(--text-secondary)" aria-hidden="true" />
+                                    <p style={{ margin: 0, fontSize: 'var(--fs-md)', fontWeight: 800, color: 'var(--text-primary)' }}>
+                                        لا توجد طلبات مسجلة لحسابك حتى الآن
+                                    </p>
+                                    <p style={{ margin: 0, fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 600 }}>
+                                        عند إرسال طلب شراء أو حجز صيانة أو مقايسة وأنت مسجل الدخول سيظهر هنا بجميع حالاته.
+                                    </p>
+                                    <Link href="/store" style={{ marginTop: '0.25rem', background: 'var(--action-fill)', color: 'var(--action-ink)', padding: '0.6rem 1.2rem', borderRadius: '10px', fontWeight: 900, textDecoration: 'none', fontSize: 'var(--fs-xs)' }}>
+                                        ابدأ من المتجر الذكي
+                                    </Link>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                                    {customerVisibleRequests.map((req: any) => {
+                                        const st = String(req.status || 'جديد');
+                                        const isPositive = ['approved', 'معتمد', 'مكتمل', 'تم الرد'].includes(st);
+                                        const isNegative = ['rejected', 'مرفوض', 'ملغي'].includes(st);
+                                        const badgeColor = isPositive
+                                            ? 'var(--status-positive)'
+                                            : isNegative
+                                                ? 'var(--status-negative)'
+                                                : 'var(--status-warning)';
+                                        const parsed = parseCustomerRequestSummary(req.details);
+                                        return (
+                                            <div key={req.id} style={{ background: 'var(--surface-subcard)', borderRadius: '14px', padding: '1.1rem 1.25rem', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                        <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--accent-ink)', background: 'color-mix(in srgb, var(--accent-ink) 12%, transparent)', padding: '0.2rem 0.55rem', borderRadius: '8px' }}>
+                                                            {getCustomerRequestTypeLabel(String(req.type || ''))}
+                                                        </span>
+                                                        {req.category && (
+                                                            <span dir="ltr" style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary)', fontFamily: 'ui-monospace, Consolas, monospace' }}>
+                                                                {req.category}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 900, padding: '0.25rem 0.7rem', borderRadius: '999px', color: badgeColor, background: `color-mix(in srgb, ${badgeColor} 12%, transparent)` }}>
+                                                        {st === 'pending' ? 'قيد المراجعة' : st === 'approved' ? 'معتمد' : st === 'rejected' ? 'مرفوض' : st}
+                                                    </span>
+                                                </div>
+                                                <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: 'var(--text-primary)' }}>
+                                                    {req.subject || 'طلب مسجل'}
+                                                </div>
+                                                {parsed.meta && (
+                                                    <div style={{ fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--text-secondary)' }}>
+                                                        {parsed.meta}
+                                                    </div>
+                                                )}
+                                                {parsed.text && (
+                                                    <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                                                        {parsed.text}
+                                                    </div>
+                                                )}
+                                                {req.admin_note && (
+                                                    <div style={{ marginTop: '0.25rem', padding: '0.6rem 0.85rem', borderRadius: '10px', background: 'var(--surface-card)', fontSize: 'var(--fs-xs)', color: 'var(--text-primary)', fontWeight: 700 }}>
+                                                        <strong>ملاحظة الإدارة:</strong> {req.admin_note}
+                                                    </div>
+                                                )}
+                                                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
+                                                    بتاريخ: {formatDate(req.created_at)}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
+                    ) : (
                     <div style={{ background: 'var(--surface-card)', borderRadius: '18px', padding: '1.75rem', boxShadow: 'var(--shadow-ambient)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                         <h2 style={{ margin: 0, fontSize: 'var(--fs-lg)', fontWeight: 900, color: 'var(--text-primary)' }}>بيانات الحساب</h2>
                         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))', gap: '1rem' }}>
@@ -331,6 +499,7 @@ export default function EmployeeProfilePage() {
                             </button>
                         </div>
                     </div>
+                    )}
                 </div>
             </div>
         );

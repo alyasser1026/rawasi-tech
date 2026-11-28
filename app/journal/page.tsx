@@ -15,6 +15,7 @@ import RawasiSmartTable from '@/components/rawasismarttable';
 import LoadingScreen from '@/components/LoadingScreen';
 import KpiStrip from '@/components/KpiStrip';
 import { ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, Scale, Trash2 } from 'lucide-react';
+import { JOURNAL_DRAFT_STATUSES, JOURNAL_POSTED_STATUSES, isPostedJournalStatus } from './journal_logic';
 
 // ==========================================
 // 🧠 العقل المدبر (Logic) - متوافق مع قوانين Supabase
@@ -60,8 +61,8 @@ function useJournalLogic() {
                 if (filterAccountId) query = query.eq('account_id', filterAccountId);
                 if (filterPartnerId) query = query.eq('partner_id', filterPartnerId);
 
-                if (filterStatus === 'معتمد') query = query.eq('header_status', 'معتمد');
-                if (filterStatus === 'مسودة') query = query.eq('header_status', 'draft');
+                if (filterStatus === 'معتمد') query = query.in('header_status', JOURNAL_POSTED_STATUSES);
+                if (filterStatus === 'مسودة') query = query.in('header_status', JOURNAL_DRAFT_STATUSES);
                 if (filterProjectId) query = query.eq('project_id', filterProjectId);
                 if (filterVType && filterVType !== 'الكل') query = query.eq('v_type', filterVType);
 
@@ -114,7 +115,7 @@ function useJournalLogic() {
     const deleteHeadersMutation = useMutation({
         mutationFn: async () => {
             const selectedLines = journalMaster.filter(l => selectedIds.includes(String(l.line_id)));
-            const invalidStatusLines = selectedLines.filter(l => l.header_status !== 'مسودة');
+            const invalidStatusLines = selectedLines.filter(l => isPostedJournalStatus(l.header_status));
             if (invalidStatusLines.length > 0) {
                  throw new Error('مرفوض: لا يمكن مسح قيد حالته "مرحل" أو "معتمد". يجب فك الترحيل أولاً.');
             }
@@ -234,7 +235,7 @@ export default function JournalPage() {
       accessor: 'header_status',
       render: (row: any) => {
         if (!row) return null;
-        return row.header_status === 'معتمد' ? 
+        return isPostedJournalStatus(row.header_status) ? 
           <span className="badge-glass green">معتمد</span> : 
           <span className="badge-glass yellow">مسودة</span>;
       }

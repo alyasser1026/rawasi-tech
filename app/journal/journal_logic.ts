@@ -5,6 +5,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/lib/toast-context';
 import { fetchPaginatedData } from '@/lib/supabase-pagination';
 
+export const JOURNAL_POSTED_STATUSES = ['معتمد', 'posted', 'مرحل', 'معتمدة'];
+export const JOURNAL_DRAFT_STATUSES = ['draft', 'مسودة', 'معلق'];
+export const isPostedJournalStatus = (status: unknown): boolean =>
+    JOURNAL_POSTED_STATUSES.includes(String(status || '').trim());
+
 /**
  * العقل المدبر لدفتر اليومية الشامل - فاي تك V12
  * 🟢 سحب على مراحل (1000 × 1000) مع حماية من التكرار
@@ -41,8 +46,8 @@ export function useJournalLogic() {
                 if (filterAccountId) query = query.eq('account_id', filterAccountId);
                 if (filterPartnerId) query = query.eq('partner_id', filterPartnerId);
                 
-                if (filterStatus === 'معتمد') query = query.eq('header_status', 'معتمد');
-                if (filterStatus === 'مسودة') query = query.eq('header_status', 'draft');
+                if (filterStatus === 'معتمد') query = query.in('header_status', JOURNAL_POSTED_STATUSES);
+                if (filterStatus === 'مسودة') query = query.in('header_status', JOURNAL_DRAFT_STATUSES);
 
                 return query;
             };
@@ -58,8 +63,11 @@ export function useJournalLogic() {
         let result = journalMaster;
 
         if (filterStatus !== 'الكل') {
-            const targetStatus = filterStatus === 'معتمد' ? 'معتمد' : 'draft';
-            result = result.filter(r => r.header_status === targetStatus);
+            result = result.filter(r =>
+                filterStatus === 'معتمد'
+                    ? isPostedJournalStatus(r.header_status)
+                    : !isPostedJournalStatus(r.header_status)
+            );
         }
 
         if (deferredSearch) {
@@ -108,7 +116,7 @@ export function useJournalLogic() {
             const { data: profile } = await supabase.from('profiles').select('role').eq('id', session?.user?.id).single();
             const isAdmin = profile?.role === 'super_admin' || profile?.role === 'admin';
             
-            const hasApproved = selectedLines.some((l:any) => l.header_status === 'معتمد' || l.header_status === 'مرحل');
+            const hasApproved = selectedLines.some((l: any) => isPostedJournalStatus(l.header_status));
             if (hasApproved) {
                 throw new Error('عفواً، لا يمكن حذف القيود المعتمدة والمرحلة. يرجى فك الترحيل أولاً.');
             }
