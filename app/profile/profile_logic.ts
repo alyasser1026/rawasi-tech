@@ -6,6 +6,21 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'react-hot-toast';
 import { useRouter, useSearchParams } from 'next/navigation'; // 🛡️ استدعاء التوجيه للحماية
 import { parseDbError } from '@/lib/helpers'; // 🛡️ مترجم الأخطاء الذكي
+import {
+    CUSTOMER_DELETED_STATUS,
+    CUSTOMER_DELETABLE_STATUSES,
+    canCustomerSoftDeleteRequest,
+    filterCustomerVisibleRequests,
+    isCustomerRequestSoftDeleteDisabled,
+} from './customer-request-rules';
+
+export {
+    CUSTOMER_DELETED_STATUS,
+    CUSTOMER_DELETABLE_STATUSES,
+    canCustomerSoftDeleteRequest,
+    filterCustomerVisibleRequests,
+    isCustomerRequestSoftDeleteDisabled,
+};
 
 export function useProfileLogic() {
     const queryClient = useQueryClient();
@@ -329,6 +344,31 @@ export function useProfileLogic() {
         onError: (error) => toast.error(parseDbError(error)) // 🛡️ استخدام المترجم
     });
 
+    const softDeleteRequestMutation = useMutation({
+        mutationFn: async (requestId: string) => {
+            if (isCustomerRequestSoftDeleteDisabled()) {
+                throw new Error('ميزة حذف الطلب معطلة مؤقتاً من الإعدادات');
+            }
+            const { data: updated, error } = await supabase
+                .from('user_requests')
+                .update({ status: CUSTOMER_DELETED_STATUS })
+                .eq('id', requestId)
+                .in('status', [...CUSTOMER_DELETABLE_STATUSES])
+                .select('id, status')
+                .maybeSingle();
+            if (error) throw error;
+            if (!updated) {
+                throw new Error('تعذر حذف الطلب لأن حالته تغيّرت أو لم يعد قيد الحالة الجديدة');
+            }
+            return updated;
+        },
+        onSuccess: () => {
+            toast.success('تم حذف الطلب بنجاح');
+            invalidateAndRefresh();
+        },
+        onError: (error) => toast.error(parseDbError(error))
+    });
+
     const taskMutation = useMutation({
         mutationFn: async ({ taskId, status, note }: any) => {
             const { error } = await supabase.from('user_tasks').update({ status, completion_note: note || null, updated_at: new Date() }).eq('id', taskId);
@@ -359,6 +399,7 @@ export function useProfileLogic() {
 
     // 🔄 تصدير الدوال
     const createRequest = async (data: any) => requestMutation.mutateAsync(data);
+    const softDeleteCustomerRequest = async (requestId: string) => softDeleteRequestMutation.mutateAsync(requestId);
     const submitTaskUpdate = async (taskId: string, status: string, note?: string) => taskMutation.mutateAsync({ taskId, status, note });
     const updateProfileInfo = async (data: any) => profileMutation.mutateAsync(data);
     const markAllNotificationsAsRead = async () => notificationMutation.mutateAsync();
@@ -393,15 +434,16 @@ export function useProfileLogic() {
     };
 
     const isSaving = requestMutation.isPending || taskMutation.isPending || profileMutation.isPending || notificationMutation.isPending;
+    const isSoftDeletingRequest = softDeleteRequestMutation.isPending;
 
     // 📦 إرجاع كل البيانات كما كانت تماماً لضمان عدم تلف صفحة UI
     return {
-        isLoading, isSaving, userProfile, partnerData, financials,
+        isLoading, isSaving, isSoftDeletingRequest, userProfile, partnerData, financials,
         recentLogs, recentAdvances, recentDeductions, filteredLogs: filteredData.logs,
         tasks, notifications, activeTab, searchFilters,
         filteredData, rangeKPIs, taskGroups, monthlyKPIs, userRequests,
         setSearchFilters, setActiveTab, refreshProfile,
         updateProfileInfo, uploadAvatar, markAllNotificationsAsRead,
-        submitTaskUpdate, createRequest, updatePassword, isKpiOnly
+        submitTaskUpdate, createRequest, softDeleteCustomerRequest, updatePassword, isKpiOnly
     };
 }

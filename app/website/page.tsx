@@ -544,9 +544,25 @@ export default function WebsitePage() {
 
     setIsSubmitting(true);
     try {
+      let authHeaders: Record<string, string> = {};
+      let sessionUserId: string | null = null;
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          authHeaders = { Authorization: `Bearer ${session.access_token}` };
+        }
+        if (session?.user?.id) {
+          sessionUserId = session.user.id;
+        }
+      } catch {
+        // Keep anonymous quote submission working without requiring login
+      }
+
       const res = await fetch('/api/website-quotes', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           name: leadName,
           phone: leadPhone,
@@ -556,6 +572,7 @@ export default function WebsitePage() {
           bua: boqCalculation.totalBUA,
           totalBudget: boqCalculation.grandTotal.toLocaleString(),
           currency: currencySymbol,
+          userId: sessionUserId,
         }),
       });
 

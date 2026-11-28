@@ -2,6 +2,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useProfileLogic } from './profile_logic';
+import {
+    canCustomerSoftDeleteRequest,
+    filterCustomerVisibleRequests,
+    isCustomerRequestSoftDeleteDisabled,
+} from './customer-request-rules';
 import { isErpStaffOrPartnerProfile } from '@/components/authGuard';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/helpers';
@@ -12,16 +17,16 @@ import RawasiSidebarManager from '@/components/RawasiSidebarManager';
 import MasterPage from '@/components/MasterPage';
 import LoadingScreen from '@/components/LoadingScreen'; // 🖼️ استدعاء الغلاف الموحد
 import SmartCombo from '@/components/SmartCombo'; // 🧠 استدعاء السمارت كومبو
-import { Bell, Hourglass, Printer, Mail, Plus, ClipboardList, ChartColumn, Building2, Files, User, Trophy, Zap, TriangleAlert, CalendarDays } from 'lucide-react';
+import { Bell, Hourglass, Printer, Mail, Plus, ClipboardList, ChartColumn, Building2, Files, User, Trophy, Zap, TriangleAlert, CalendarDays, Trash2 } from 'lucide-react';
 
 export default function EmployeeProfilePage() {
     const { 
-        isLoading, isSaving, userProfile, financials, 
+        isLoading, isSaving, isSoftDeletingRequest, userProfile, financials, 
         recentAdvances, recentDeductions, filteredLogs,
         tasks, notifications, monthlyKPIs, userRequests,
         filteredData, rangeKPIs, 
         activeTab, setActiveTab, refreshProfile, searchFilters, setSearchFilters,
-        updateProfileInfo, uploadAvatar, submitTaskUpdate, createRequest, markAllNotificationsAsRead,
+        updateProfileInfo, uploadAvatar, submitTaskUpdate, createRequest, softDeleteCustomerRequest, markAllNotificationsAsRead,
         updatePassword, isKpiOnly
     } = useProfileLogic();
 
@@ -32,6 +37,7 @@ export default function EmployeeProfilePage() {
     const [newRequest, setNewRequest] = useState({ type: 'objection', category: 'wage', subject: '', details: '' });
     const [tempPassword, setTempPassword] = useState("");
     const [customerTab, setCustomerTab] = useState<'requests' | 'account'>('requests');
+    const [confirmDeleteRequestId, setConfirmDeleteRequestId] = useState<string | null>(null);
 
     // 🚀 المتغيرات الآمنة لحساب الملخصات
     const totalProd = monthlyKPIs?.totalProduction || 0;
@@ -243,9 +249,8 @@ export default function EmployeeProfilePage() {
             (typeof window !== 'undefined' && (() => {
                 try { return window.localStorage.getItem('phi_disable_customer_requests_tab') === 'true'; } catch { return false; }
             })());
-        const customerVisibleRequests = (userRequests || []).filter(
-            (r: any) => !['agent_dialogue', 'site_visitor'].includes(String(r?.type || ''))
-        );
+        const isSoftDeleteDisabled = isCustomerRequestSoftDeleteDisabled();
+        const customerVisibleRequests = filterCustomerVisibleRequests(userRequests);
         const activeCustomerView = isRequestsTabDisabled ? 'account' : customerTab;
 
         const getCustomerRequestTypeLabel = (type: string) => {
@@ -423,9 +428,97 @@ export default function EmployeeProfilePage() {
                                                         <strong>ملاحظة الإدارة:</strong> {req.admin_note}
                                                     </div>
                                                 )}
-                                                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700 }}>
-                                                    بتاريخ: {formatDate(req.created_at)}
+                                                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-muted)', fontWeight: 700, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                                                    <span>بتاريخ: {formatDate(req.created_at)}</span>
+                                                    {canCustomerSoftDeleteRequest(req, isSoftDeleteDisabled) && confirmDeleteRequestId !== req.id && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setConfirmDeleteRequestId(req.id)}
+                                                            style={{
+                                                                display: 'inline-flex',
+                                                                alignItems: 'center',
+                                                                gap: '0.35rem',
+                                                                minHeight: '2.75rem',
+                                                                padding: '0.45rem 0.9rem',
+                                                                borderRadius: '10px',
+                                                                border: 'none',
+                                                                cursor: 'pointer',
+                                                                fontWeight: 900,
+                                                                fontSize: 'var(--fs-xs)',
+                                                                color: 'var(--status-negative)',
+                                                                background: 'color-mix(in srgb, var(--status-negative) 12%, transparent)',
+                                                            }}
+                                                        >
+                                                            <Trash2 size={14} aria-hidden="true" />
+                                                            حذف الطلب
+                                                        </button>
+                                                    )}
                                                 </div>
+                                                {canCustomerSoftDeleteRequest(req, isSoftDeleteDisabled) && confirmDeleteRequestId === req.id && (
+                                                    <div
+                                                        role="alertdialog"
+                                                        aria-label="تأكيد حذف الطلب"
+                                                        style={{
+                                                            marginTop: '0.35rem',
+                                                            padding: '0.85rem 1rem',
+                                                            borderRadius: '12px',
+                                                            background: 'color-mix(in srgb, var(--status-negative) 10%, var(--surface-card))',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            gap: '0.65rem',
+                                                        }}
+                                                    >
+                                                        <p style={{ margin: 0, fontSize: 'var(--fs-xs)', fontWeight: 900, color: 'var(--text-primary)' }}>
+                                                            متأكد إنك عايز تحذف الطلب؟ مش هتقدر ترجعه
+                                                        </p>
+                                                        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                                                            <button
+                                                                type="button"
+                                                                disabled={isSoftDeletingRequest}
+                                                                onClick={async () => {
+                                                                    try {
+                                                                        await softDeleteCustomerRequest(req.id);
+                                                                        setConfirmDeleteRequestId(null);
+                                                                    } catch {
+                                                                        setConfirmDeleteRequestId(null);
+                                                                    }
+                                                                }}
+                                                                style={{
+                                                                    minHeight: '2.75rem',
+                                                                    padding: '0.45rem 1rem',
+                                                                    borderRadius: '10px',
+                                                                    border: 'none',
+                                                                    cursor: isSoftDeletingRequest ? 'wait' : 'pointer',
+                                                                    fontWeight: 900,
+                                                                    fontSize: 'var(--fs-xs)',
+                                                                    color: '#ffffff',
+                                                                    background: 'var(--status-negative)',
+                                                                    opacity: isSoftDeletingRequest ? 0.7 : 1,
+                                                                }}
+                                                            >
+                                                                {isSoftDeletingRequest ? 'جاري الحذف...' : 'تأكيد الحذف'}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                disabled={isSoftDeletingRequest}
+                                                                onClick={() => setConfirmDeleteRequestId(null)}
+                                                                style={{
+                                                                    minHeight: '2.75rem',
+                                                                    padding: '0.45rem 1rem',
+                                                                    borderRadius: '10px',
+                                                                    border: 'none',
+                                                                    cursor: 'pointer',
+                                                                    fontWeight: 800,
+                                                                    fontSize: 'var(--fs-xs)',
+                                                                    color: 'var(--text-primary)',
+                                                                    background: 'var(--surface-subcard)',
+                                                                }}
+                                                            >
+                                                                تراجع
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     })}

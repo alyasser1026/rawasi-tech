@@ -2211,6 +2211,7 @@ export default function WebsiteAdminPage() {
                           <option value="تم التوريد">🚚 تم التوريد</option>
                           <option value="مكتمل">✅ مكتمل</option>
                           <option value="ملغي">❌ ملغي</option>
+                          <option value="محذوف بواسطة العميل">🗑️ محذوف بواسطة العميل</option>
                         </select>
                         {ord.customerPhone && (
                           <a

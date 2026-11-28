@@ -86,6 +86,19 @@ function createSessionId(): string {
   return `COP-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 }
 
+async function readOptionalCopilotAuth(): Promise<{ token: string | null; userId: string | null }> {
+  try {
+    const { supabase } = await import('@/lib/supabase');
+    const { data } = await supabase.auth.getSession();
+    return {
+      token: data?.session?.access_token ?? null,
+      userId: data?.session?.user?.id ?? null,
+    };
+  } catch {
+    return { token: null, userId: null };
+  }
+}
+
 function readCurrentCartSnapshot(): Array<{
   productId: string;
   code?: string;
@@ -534,9 +547,13 @@ export default function StoreCopilotPanel({
       setMessages(nextWithUser);
 
       try {
+        const auth = await readOptionalCopilotAuth();
         const res = await fetch('/api/store-copilot', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
+          },
           body: JSON.stringify({
             sessionId,
             message: cleanText,
@@ -544,6 +561,7 @@ export default function StoreCopilotPanel({
             activeProductId: options?.productId || activeProduct?.id || undefined,
             customerName: customerName.trim() || undefined,
             customerPhone: customerPhone.trim() || undefined,
+            userId: auth.userId,
             cartItems: readCurrentCartSnapshot(),
             history: historyPayload,
           }),
@@ -744,13 +762,18 @@ export default function StoreCopilotPanel({
     setCheckoutBusy(true);
     setCheckoutError('');
     try {
+      const auth = await readOptionalCopilotAuth();
       const res = await fetch('/api/store-copilot', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(auth.token ? { Authorization: `Bearer ${auth.token}` } : {}),
+        },
         body: JSON.stringify({
           action: 'submit_order',
           orderType: 'store_order',
           sessionId,
+          userId: auth.userId,
           customerName: cleanName,
           customerPhone: cleanPhone,
           city: city.trim(),

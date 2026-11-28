@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { authorizeAdminRequest } from '@/lib/admin-authorization';
+import { authorizeAdminRequest, resolveOptionalRequestUserId } from '@/lib/admin-authorization';
 import { checkIpRateLimit } from '@/lib/api-rate-limit';
 
 export const runtime = 'nodejs';
@@ -69,6 +69,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'الاسم ورقم الهاتف الصحيح مطلوبان' }, { status: 400 });
     }
 
+    const adminSb = getAdminClient();
+    const verifiedUserId = await resolveOptionalRequestUserId(adminSb, req, body?.userId);
+
     const refId = `PHI-Q-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const newQuote = {
       id: refId,
@@ -81,18 +84,17 @@ export async function POST(req: Request) {
       totalBudget: totalBudget || null,
       currency: currency || 'ج.م',
       createdAt: new Date().toISOString(),
-      status: 'new'
+      status: 'جديد'
     };
 
     // 1. Save persistently in Supabase user_requests table
-    const adminSb = getAdminClient();
     const { error: insertErr } = await adminSb.from('user_requests').insert({
-      user_id: null,
+      user_id: verifiedUserId,
       type: 'website_quote',
       category: refId,
       subject: `${newQuote.name} — ${newQuote.phone}`,
       details: JSON.stringify(newQuote),
-      status: 'new',
+      status: 'جديد',
     });
     if (insertErr) {
       throw new Error(insertErr.message);

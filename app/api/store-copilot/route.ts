@@ -489,13 +489,28 @@ export async function POST(req: Request) {
     }
 
     const sb = getServiceSupabase();
+    let resolvedUserId =
+      typeof body.userId === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.userId.trim())
+        ? body.userId.trim()
+        : null;
+    const authToken = req.headers.get('authorization')?.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+    if (authToken && sb?.auth?.getUser) {
+      try {
+        const { data: userRes } = await sb.auth.getUser(authToken);
+        if (userRes?.user?.id) resolvedUserId = userRes.user.id;
+      } catch {
+        // Anonymous visitor fallback
+      }
+    }
+
     const ctx: CopilotToolExecutionContext = {
       sessionId,
       pageUrl: body.pageUrl ? String(body.pageUrl).slice(0, 120) : undefined,
       customerName: body.customerName ? String(body.customerName).trim().slice(0, 80) : undefined,
       customerPhone: body.customerPhone ? String(body.customerPhone).trim().slice(0, 30) : undefined,
       customerEmail: body.customerEmail ? String(body.customerEmail).trim().slice(0, 100) : undefined,
-      userId: typeof body.userId === 'string' && body.userId.length > 10 ? body.userId : null,
+      userId: resolvedUserId,
       products: [],
       estimate: null,
       cartAction: null,

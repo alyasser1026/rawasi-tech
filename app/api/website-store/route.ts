@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { sanitizeDeliveryLocation } from '@/app/site/delivery-location';
 import { sendStoreTelegramNotification } from '@/lib/store-order-telegram';
 import { checkIpRateLimit } from '@/lib/api-rate-limit';
+import { resolveOptionalRequestUserId } from '@/lib/admin-authorization';
 
 export const runtime = 'nodejs';
 
@@ -65,7 +66,8 @@ export async function POST(req: Request) {
     const customerName = String(body.customerName || '').trim();
     const customerPhone = String(body.customerPhone || '').trim();
     const customerEmail = String(body.customerEmail || '').trim();
-    const userId = typeof body.userId === 'string' && body.userId.length > 10 ? body.userId : null;
+    const sb = getServiceSupabase();
+    const userId = await resolveOptionalRequestUserId(sb, req, body.userId);
 
     if (!customerName || customerPhone.replace(/\D/g, '').length < 8) {
       return NextResponse.json(
@@ -107,7 +109,6 @@ export async function POST(req: Request) {
       createdAt: new Date().toISOString(),
     };
 
-    const sb = getServiceSupabase();
     let savedId = refCode;
     if (sb) {
       const { data, error } = await sb
