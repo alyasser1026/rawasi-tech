@@ -7,7 +7,10 @@ import { CSS } from './site-styles';
 import { getOrCreateBrowserSessionId } from './browser-session';
 import type { DeliveryLocation } from './delivery-location';
 
-const DeliveryLocationPicker = dynamic(() => import('./DeliveryLocationPicker'), {
+const StoreProductDetailModal = dynamic(() => import('./StoreProductDetailModal'), {
+  ssr: false,
+});
+const StoreMaintenanceModal = dynamic(() => import('./StoreMaintenanceModal'), {
   ssr: false,
 });
 import { mergeContent, type SiteContentOverride, type StoreOfferBannerItem } from './site-content';
@@ -26,120 +29,21 @@ import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import ContactModal from './ContactModal';
-import Product4DSpinViewer from './Product4DSpinViewer';
-import { dispatchOpenCopilotEvent } from './copilot-events';
 import { rememberVisitorContact } from '@/lib/client-device-info';
-
-function StoreIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-      <path d="M3 6h18" />
-      <path d="M16 10a4 4 0 0 1-8 0" />
-    </svg>
-  );
-}
-
-function WrenchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76Z" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.35-4.35" />
-    </svg>
-  );
-}
-
-function BagIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
-      <path d="M3 6h18" />
-      <path d="M16 10a4 4 0 0 1-8 0" />
-    </svg>
-  );
-}
-
-function CheckIcon({ size = 16 }: { size?: number }) {
-  return (
-    <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
-}
-
-function ShieldIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
-      <path d="m9 12 2 2 4-4" />
-    </svg>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
-}
-
-function FilterIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-    </svg>
-  );
-}
-
-function ChevronRightIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
-
-function ChevronLeftIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  );
-}
-
-function SlidersIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <line x1="4" x2="4" y1="21" y2="14" />
-      <line x1="4" x2="4" y1="10" y2="3" />
-      <line x1="12" x2="12" y1="21" y2="12" />
-      <line x1="12" x2="12" y1="8" y2="3" />
-      <line x1="20" x2="20" y1="21" y2="16" />
-      <line x1="20" x2="20" y1="12" y2="3" />
-      <line x1="2" x2="6" y1="14" y2="14" />
-      <line x1="10" x2="14" y1="8" y2="8" />
-      <line x1="18" x2="22" y1="16" y2="16" />
-    </svg>
-  );
-}
-
-function SparklesIcon() {
-  return (
-    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-    </svg>
-  );
-}
+import {
+  BagIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  CloseIcon,
+  FilterIcon,
+  SearchIcon,
+  ShieldIcon,
+  SlidersIcon,
+  SparklesIcon,
+  StoreIcon,
+  WrenchIcon,
+} from './StoreIcons';
 
 export default function StoreClient({
   content,
@@ -3601,314 +3505,46 @@ export default function StoreClient({
 
       {/* Product Technical Details & Attachments Modal */}
       {detailProduct && (
-        <div className="st-modal-overlay" onClick={() => setDetailProduct(null)}>
-          <div className="st-modal-card st-detail-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="st-modal-head">
-              <div>
-                <span className="st-prod-cat">
-                  {(categoryMap[detailProduct.category] || PRODUCT_CATEGORIES[0]).shortTitle} · {detailProduct.brand}
-                </span>
-                <h3>{detailProduct.name}</h3>
-              </div>
-              <button type="button" className="st-modal-close" onClick={() => setDetailProduct(null)} aria-label="إغلاق">
-                <CloseIcon />
-              </button>
-            </div>
-
-            <div className="st-detail-grid">
-              <div>
-                <Product4DSpinViewer
-                  images={detailProduct.spinImages}
-                  fallbackImage={getProductImageUrl(detailProduct)}
-                  alt={detailProduct.name}
-                  badge={detailProduct.badge}
-                  code={detailProduct.code}
-                />
-                {detailProduct.subCategory && (
-                  <p style={{ margin: '10px 0 0', fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>
-                    التصنيف الفرعي: {detailProduct.subCategory}
-                  </p>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#47525c', lineHeight: 1.7 }}>
-                  {detailProduct.description}
-                </p>
-
-                {detailProduct.specs.length > 0 && (
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '0.84rem', marginBottom: '6px', color: '#14181b' }}>
-                      المواصفات الفنية
-                    </strong>
-                    <ul className="st-detail-specs">
-                      {detailProduct.specs.map((spec) => (
-                        <li key={spec}>
-                          <CheckIcon size={15} />
-                          <span>{spec}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {detailProduct.variants && detailProduct.variants.length > 0 && (
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '0.84rem', marginBottom: '6px', color: '#14181b' }}>
-                      المقاسات / المتغيرات المتوفرة
-                    </strong>
-                    <div className="st-detail-variants">
-                      {detailProduct.variants.map((v, idx) => (
-                        <span key={idx} className="st-detail-variant-pill">
-                          {[v.name, v.size, v.color, v.price ? `${v.price.toLocaleString('en-US')} ${detailProduct.currency}` : '']
-                            .filter(Boolean)
-                            .join(' · ')}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {detailProduct.attachments && detailProduct.attachments.length > 0 && (
-                  <div>
-                    <strong style={{ display: 'block', fontSize: '0.84rem', marginBottom: '6px', color: '#14181b' }}>
-                      الصور والمرفقات الفنية
-                    </strong>
-                    <div className="st-detail-att-list">
-                      {detailProduct.attachments.map((att) => (
-                        <a
-                          key={att.id}
-                          href={`/api/store-media/${encodeURIComponent(att.id)}?download=1`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="st-detail-att-link"
-                        >
-                          <span>تحميل: {att.name}</span>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <label className={`st-install-toggle ${(installSelections[detailProduct.id] ?? globalInstallMode) ? 'is-checked' : ''}`}>
-                  <input
-                    type="checkbox"
-                    checked={installSelections[detailProduct.id] ?? globalInstallMode}
-                    onChange={() => handleToggleCardInstall(detailProduct.id)}
-                  />
-                  <span>
-                    {detailProduct.installPrice && detailProduct.installPrice > 0
-                      ? `إضافة التركيب (+${detailProduct.installPrice.toLocaleString('en-US')} ${detailProduct.currency})`
-                      : 'شامل التركيب عند الطلب'}
-                  </span>
-                </label>
-
-                <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingTop: '8px', borderTop: '1px solid #efe9df' }}>
-                  <div>
-                    {detailProduct.price > 0 ? (
-                      <>
-                        {detailProduct.oldPrice && detailProduct.oldPrice > detailProduct.price && (
-                          <span className="st-price-old">
-                            {detailProduct.oldPrice.toLocaleString('en-US')} {detailProduct.currency}
-                          </span>
-                        )}
-                        <div className="st-price-main">
-                          <strong>
-                            {(
-                              (detailProduct.price +
-                                ((installSelections[detailProduct.id] ?? globalInstallMode) && detailProduct.installPrice
-                                  ? detailProduct.installPrice
-                                  : 0)) *
-                              detailQty
-                            ).toLocaleString('en-US')}
-                          </strong>
-                          <span>
-                            {detailProduct.currency} ({detailQty} × {detailProduct.unit})
-                          </span>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="st-price-quote">
-                        <strong>تسعير فوري عند الطلب</strong>
-                        <span>الوحدة: {detailProduct.unit}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                    <div className="st-qty-box">
-                      <button
-                        type="button"
-                        onClick={() => setDetailQty((q) => Math.max(1, q - 1))}
-                        aria-label="تقليل الكمية"
-                      >
-                        -
-                      </button>
-                      <span>{detailQty}</span>
-                      <button
-                        type="button"
-                        onClick={() => setDetailQty((q) => q + 1)}
-                        aria-label="زيادة الكمية"
-                      >
-                        +
-                      </button>
-                    </div>
-
-                    <button
-                      type="button"
-                      disabled={!detailProduct.inStock}
-                      onClick={() => {
-                        const withInst = installSelections[detailProduct.id] ?? globalInstallMode;
-                        handleProductAdd(detailProduct, withInst, detailQty);
-                      }}
-                      className={`pw-btn pw-btn-primary ${addedId === detailProduct.id ? 'is-added' : ''}`}
-                    >
-                      {!detailProduct.inStock ? 'نفد حالياً' : addedId === detailProduct.id ? 'تمت الإضافة ✓' : 'أضف للسلة'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const target = detailProduct;
-                        setDetailProduct(null);
-                        dispatchOpenCopilotEvent({
-                          productId: target.id,
-                          productCode: target.code,
-                          productName: target.name,
-                          prompt: `عايز أعرف تفاصيل ومواصفات وخيارات التركيب والبدائل للمنتج: ${target.name} (كود ${target.code})`,
-                          autoSend: true,
-                        });
-                      }}
-                      className="pw-btn pw-btn-ghost"
-                      style={{ borderColor: '#fed7aa', background: '#fff7ed', color: '#c2410c', fontWeight: 800 }}
-                    >
-                      🤖 اسأل الكوبايلوت
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <StoreProductDetailModal
+          detailProduct={detailProduct}
+          categoryMap={categoryMap}
+          installSelections={installSelections}
+          globalInstallMode={globalInstallMode}
+          detailQty={detailQty}
+          setDetailQty={setDetailQty}
+          addedId={addedId}
+          onClose={() => setDetailProduct(null)}
+          onToggleInstall={handleToggleCardInstall}
+          onAddProduct={handleProductAdd}
+        />
       )}
 
       {/* Maintenance Booking Modal */}
       {selectedMaintenance && (
-        <div className="st-modal-overlay" onClick={() => setSelectedMaintenance(null)}>
-          <div className="st-modal-card" onClick={(e) => e.stopPropagation()}>
-            {mntRef ? (
-              <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '16px', padding: '8px 0' }}>
-                <div
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '9999px',
-                    background: '#dcfce7',
-                    color: '#059669',
-                    display: 'grid',
-                    placeItems: 'center',
-                    marginInline: 'auto',
-                  }}
-                >
-                  <CheckIcon size={22} />
-                </div>
-                <h3 style={{ margin: 0, fontSize: '1.16rem', fontWeight: 800, color: '#14181b' }}>
-                  تم تسجيل طلب التنفيذ والصيانة بنجاح
-                </h3>
-                <p style={{ margin: 0, fontSize: '0.9rem', color: '#525e6a', lineHeight: 1.7 }}>
-                  رقم المرجع: <strong style={{ fontFamily: 'ui-monospace, Consolas, monospace', color: '#14181b' }}>{mntRef}</strong>
-                  <br />
-                  سيتواصل معك المهندس المختص على الرقم <strong dir="ltr">{mntPhone}</strong> لتحديد موعد المعاينة.
-                </p>
-                <button type="button" onClick={() => setSelectedMaintenance(null)} className="pw-btn pw-btn-primary pw-btn-lg">
-                  إغلاق
-                </button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitMaintenanceRequest} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div className="st-modal-head">
-                  <h3>حجز خدمة تنفيذ أو صيانة هندسية</h3>
-                  <button type="button" className="st-modal-close" onClick={() => setSelectedMaintenance(null)} aria-label="إغلاق">
-                    <CloseIcon />
-                  </button>
-                </div>
-
-                <div className="st-modal-service-box">
-                  <strong>{selectedMaintenance.title}</strong>
-                  <span>
-                    الكود: {selectedMaintenance.code} · {selectedMaintenance.warrantyLabel}
-                  </span>
-                </div>
-
-                <select className="st-modal-input" value={mntMode} onChange={(e) => setMntMode(e.target.value)}>
-                  <option value="تنفيذ وتأسيس جديد">تنفيذ وتأسيس جديد</option>
-                  <option value="صيانة وإصلاح عطل">صيانة وإصلاح عطل</option>
-                  <option value="صيانة دورية / فحص وقائي">صيانة دورية / فحص وقائي</option>
-                  <option value="طوارئ سريعة">طوارئ سريعة</option>
-                </select>
-
-                <div className="st-modal-grid2">
-                  <input
-                    className="st-modal-input"
-                    value={mntName}
-                    onChange={(e) => setMntName(e.target.value)}
-                    placeholder="الاسم الكامل *"
-                    required
-                  />
-                  <input
-                    className="st-modal-input"
-                    value={mntPhone}
-                    onChange={(e) => setMntPhone(e.target.value)}
-                    placeholder="رقم الجوال *"
-                    dir="ltr"
-                    inputMode="tel"
-                    required
-                    style={{ textAlign: 'right' }}
-                  />
-                </div>
-
-                <div className="st-modal-grid2">
-                  <input
-                    className="st-modal-input"
-                    value={mntCity}
-                    onChange={(e) => setMntCity(e.target.value)}
-                    placeholder="المدينة والمنطقة"
-                  />
-                  <input
-                    className="st-modal-input"
-                    value={mntDate}
-                    onChange={(e) => setMntDate(e.target.value)}
-                    placeholder="الموعد المفضل (مثال: غداً 4 عصراً)"
-                  />
-                </div>
-
-                <input
-                  className="st-modal-input"
-                  value={mntAddress}
-                  onChange={(e) => setMntAddress(e.target.value)}
-                  placeholder="العنوان التفصيلي للموقع"
-                />
-
-                <DeliveryLocationPicker value={mntLocation} onChange={setMntLocation} />
-
-                <textarea
-                  className="st-modal-input"
-                  value={mntNotes}
-                  onChange={(e) => setMntNotes(e.target.value)}
-                  placeholder="وصف العطل أو الأعمال المطلوب تنفيذها (مساحة تقريبية / تفاصيل)"
-                  rows={3}
-                  style={{ resize: 'vertical' }}
-                />
-
-                {mntErr && <div className="st-modal-err">{mntErr}</div>}
-
-                <button type="submit" disabled={mntBusy} className="pw-btn pw-btn-primary pw-btn-lg">
-                  {mntBusy ? 'جاري إرسال الطلب...' : 'اعتماد وإرسال طلب التنفيذ والصيانة'}
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
+        <StoreMaintenanceModal
+          selectedMaintenance={selectedMaintenance}
+          onClose={() => setSelectedMaintenance(null)}
+          onSubmit={handleSubmitMaintenanceRequest}
+          mntRef={mntRef}
+          mntMode={mntMode}
+          setMntMode={setMntMode}
+          mntName={mntName}
+          setMntName={setMntName}
+          mntPhone={mntPhone}
+          setMntPhone={setMntPhone}
+          mntCity={mntCity}
+          setMntCity={setMntCity}
+          mntAddress={mntAddress}
+          setMntAddress={setMntAddress}
+          mntLocation={mntLocation}
+          setMntLocation={setMntLocation}
+          mntDate={mntDate}
+          setMntDate={setMntDate}
+          mntNotes={mntNotes}
+          setMntNotes={setMntNotes}
+          mntBusy={mntBusy}
+          mntErr={mntErr}
+        />
       )}
 
       {/* Unified Light Footer */}

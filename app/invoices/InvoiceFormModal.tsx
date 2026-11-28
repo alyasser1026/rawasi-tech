@@ -375,10 +375,10 @@ export default function InvoiceFormModal({ isOpen, onClose, record, setRecord, o
             size="xl"
             busy={isSaving}
             title={record.id ? 'تعديل الفاتورة' : 'فاتورة جديدة'}
-            subtitle={record.invoice_number ? `رقم الفاتورة: ${record.invoice_number}` : 'أدخل بيانات العميل والبنود ثم احفظ لترحيل القيود'}
+            subtitle={record.invoice_number ? `رقم الفاتورة: ${record.invoice_number}` : 'أدخل بيانات العميل والبنود ثم احفظ الفاتورة كمسودة معلقة تمهيداً لاعتمادها وترحيلها'}
             icon={<ReceiptText size={22} />}
             total={<><small>{paidAmount > 0 ? 'المتبقي المستحق' : 'الصافي المطلوب'}</small><strong>{formatCurrency(paidAmount > 0 ? remainingBalance : previewNetTotal)}</strong></>}
-            footer={<button type="button" className="ent-button ent-primary" onClick={handleValidateAndSave} disabled={isSaving}><Save size={16} aria-hidden="true" />{isSaving ? 'جاري الحفظ والترحيل…' : 'حفظ الفاتورة وترحيل القيود'}</button>}
+            footer={<button type="button" className="ent-button ent-primary" onClick={handleValidateAndSave} disabled={isSaving}><Save size={16} aria-hidden="true" />{isSaving ? 'جاري الحفظ…' : 'حفظ الفاتورة'}</button>}
         >
             <section className="ent-form-section">
                 <h3><FileText size={17} aria-hidden="true" />بيانات الفاتورة

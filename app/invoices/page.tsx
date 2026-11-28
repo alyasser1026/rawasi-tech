@@ -285,6 +285,12 @@ export default function InvoicesPage() {
         </button>
       </SecureAction>
 
+      {logic.selectedIds.length === 0 && (
+        <p style={{ fontSize: 'var(--fs-xs)', textAlign: 'center', color: 'var(--text-secondary)', background: 'var(--surface-subcard)', padding: '0.625rem 0.75rem', borderRadius: '10px', fontWeight: 800, margin: 0, lineHeight: 1.6 }}>
+          حدد فاتورة من الجدول (☑) لإظهار أزرار «اعتماد وترحيل» أو «تعليق الفاتورة» أو «تعديل البيانات».
+        </p>
+      )}
+
       {logic.selectedIds.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '0.3125rem', paddingTop: '0.9375rem', borderTop: '1px dashed rgba(255,255,255,0.2)' }}>
           <p style={{fontSize:'var(--fs-xs)', textAlign:'center', color:'#94a3b8', fontWeight:900, marginBottom:'-0.3125rem'}}>الإجراءات على ({logic.selectedIds.length})</p>

@@ -268,16 +268,42 @@ export default function ProfileEditorModal({
         );
     };
 
-    const applyPermissionPreset = (mode: 'operational' | 'all' | 'none') => {
+    const ACCOUNTANT_POST_MODULES = new Set([
+        'manual_journals',
+        'journal',
+        'custodies',
+        'cash_closing',
+        'fixed_assets',
+        'financialplan',
+        'payments',
+        'receipts',
+        'revenue',
+        'expenses',
+        'invoices',
+        'subclaims',
+        'materials',
+        'material_issues',
+        'payroll',
+    ]);
+
+    const applyPermissionPreset = (mode: 'operational' | 'accountant' | 'all' | 'none') => {
         setForm((prev) => {
             const nextPerms: Record<string, any> = { ...prev.permissions };
             Object.keys(nextPerms).forEach((moduleKey) => {
                 if (moduleKey === 'default_page' || typeof nextPerms[moduleKey] !== 'object') return;
-                const shouldEnable =
-                    mode === 'all' || (mode === 'operational' && !SOVEREIGN_MODULES.has(moduleKey));
+                const isSovereign = SOVEREIGN_MODULES.has(moduleKey);
                 const updatedModule: Record<string, boolean> = {};
                 Object.keys(nextPerms[moduleKey]).forEach((act) => {
-                    updatedModule[act] = shouldEnable;
+                    if (mode === 'all') {
+                        updatedModule[act] = true;
+                    } else if (mode === 'none') {
+                        updatedModule[act] = false;
+                    } else if (mode === 'accountant') {
+                        updatedModule[act] = !isSovereign && (act !== 'post' || ACCOUNTANT_POST_MODULES.has(moduleKey));
+                    } else {
+                        // Least privilege: regular operational staff do NOT receive financial posting/approval rights by default.
+                        updatedModule[act] = !isSovereign && act !== 'post' && act !== 'financial';
+                    }
                 });
                 nextPerms[moduleKey] = updatedModule;
             });
@@ -506,7 +532,7 @@ export default function ProfileEditorModal({
                                     <option value="admin">أدمن (إدارة المستخدمين)</option>
                                 </optgroup>
                                 <optgroup label="التشغيل">
-                                    <option value="manager">مدير نظام (عمليات مالية وإدارية)</option>
+                                    <option value="manager">مدير مالي / مدير نظام (اعتماد وترحيل المستندات)</option>
                                     <option value="staff">موظف (لوحة تحكم خاصة)</option>
                                 </optgroup>
                                 <optgroup label="الخارج">
@@ -661,7 +687,10 @@ export default function ProfileEditorModal({
                         </div>
                         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                             <button type="button" className="btn-all" onClick={() => applyPermissionPreset('operational')}>
-                                تفعيل كل شاشات التشغيل (بدون الإعدادات السيادية)
+                                قالب موظف تشغيل (بدون ترحيل قيود أو إعدادات سيادية)
+                            </button>
+                            <button type="button" className="btn-all" onClick={() => applyPermissionPreset('accountant')}>
+                                قالب محاسب / مدير مالي (اعتماد وترحيل المستندات)
                             </button>
                             <button type="button" className="btn-all" onClick={() => applyPermissionPreset('all')}>
                                 تفعيل الكل

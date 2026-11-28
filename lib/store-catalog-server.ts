@@ -67,12 +67,18 @@ interface CatalogCacheState {
   products: WebsiteProduct[];
   mediaMap: Record<string, StoreMediaEntry>;
   meta: StoreCatalogMeta;
+  synonymsMap: Map<string, string[]>;
 }
 
 const g = globalThis as typeof globalThis & {
   __phiStoreCatalogCache?: CatalogCacheState;
   __phiStoreCatalogInFlight?: Promise<CatalogCacheState>;
+  __phiStoreSynonymsCache?: { loadedAt: number; map: Map<string, string[]> };
 };
+
+export function isLegacyCatalogStorageOnly(): boolean {
+  return process.env.NEXT_PUBLIC_USE_LEGACY_CATALOG_STORAGE === 'true';
+}
 
 export function normalizeArabicSearch(text: string): string {
   return String(text || '')
@@ -114,10 +120,32 @@ const STORE_SEARCH_SYNONYM_MAP: Map<string, string[]> = (() => {
   return map;
 })();
 
-function expandQueryToken(tok: string): string[] {
-  const syns = STORE_SEARCH_SYNONYM_MAP.get(tok);
-  if (!syns || syns.length === 0) return [tok];
-  return [tok, ...syns.filter((s) => s !== tok)];
+function resolveSynonymsForNormalizedToken(
+  cleanTok: string,
+  dynamicMap?: Map<string, string[]>
+): string[] | undefined {
+  const core = STORE_SEARCH_SYNONYM_MAP.get(cleanTok);
+  if (core && core.length > 0) return core;
+  const dyn = dynamicMap?.get(cleanTok);
+  if (dyn && dyn.length > 0) return dyn;
+  return undefined;
+}
+
+function expandQueryToken(tok: string, dynamicMap?: Map<string, string[]>): string[] {
+  const direct = resolveSynonymsForNormalizedToken(tok, dynamicMap);
+  if (direct) return [tok, ...direct.filter((s) => s !== tok)];
+
+  // Arabic definite article prefix (الـ): promote bare root word alongside prefixed form so "الخلاط" ranks like "خلاط"
+  if (tok.startsWith('ال') && tok.length >= 4) {
+    const bare = tok.slice(2);
+    const bareSyns = resolveSynonymsForNormalizedToken(bare, dynamicMap);
+    if (bareSyns) {
+      return [bare, tok, ...bareSyns.filter((s) => s !== bare && s !== tok)];
+    }
+    return [bare, tok];
+  }
+
+  return [tok];
 }
 
 type IndexedPublicProduct = WebsiteProduct & {
@@ -312,6 +340,146 @@ function sanitizeStoredProduct(raw: any): WebsiteProduct | null {
   };
 }
 
+async function loadDbSynonymsMap(
+  sbUrl: string,
+  apiKey: string | undefined
+): Promise<Map<string, string[]>> {
+  const now = Date.now();
+  const cached = g.__phiStoreSynonymsCache;
+  if (cached && now - cached.loadedAt < 5 * 60_000) {
+    return cached.map;
+  }
+  const map = new Map<string, string[]>();
+  if (!apiKey || isLegacyCatalogStorageOnly()) {
+    return cached?.map || map;
+  }
+  try {
+    const base = sbUrl.replace(/\/+$/, '');
+    const res = await fetch(
+      `${base}/rest/v1/store_search_synonyms?select=term,term_normalized,expand_terms,is_active&is_active=eq.true&limit=1000`,
+      {
+        headers: {
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+        },
+        cache: 'no-store',
+      }
+    );
+    if (!res.ok) return cached?.map || map;
+    const rows = (await res.json()) as any[];
+    if (Array.isArray(rows)) {
+      for (const row of rows) {
+        const keyNorm = normalizeArabicSearch(row?.term_normalized || row?.term || '');
+        if (!keyNorm || STORE_SEARCH_SYNONYM_MAP.has(keyNorm)) continue;
+        const terms = Array.isArray(row?.expand_terms)
+          ? row.expand_terms.map((t: unknown) => normalizeArabicSearch(String(t || ''))).filter(Boolean)
+          : [];
+        const unique = Array.from(new Set([keyNorm, ...terms]));
+        if (unique.length > 0) map.set(keyNorm, unique);
+      }
+    }
+    g.__phiStoreSynonymsCache = { loadedAt: now, map };
+    return map;
+  } catch {
+    return cached?.map || map;
+  }
+}
+
+function mapDbRowToProductInput(row: any): any {
+  const rawCheapest = Number(row?.cheapest_source_count);
+  return {
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    category: row.category,
+    subCategory: row.sub_category || undefined,
+    brand: row.brand,
+    unit: row.unit,
+    price: row.price,
+    oldPrice: row.old_price,
+    installPrice: row.install_price,
+    currency: row.currency,
+    badge: row.badge,
+    description: row.description,
+    specs: row.specs,
+    variants: Array.isArray(row.variants) && row.variants.length > 0 ? row.variants : undefined,
+    imageUrl: row.image_url,
+    mediaId: row.media_id,
+    attachments: Array.isArray(row.attachments) && row.attachments.length > 0 ? row.attachments : undefined,
+    cheapestSourceCount: Number.isFinite(rawCheapest) && rawCheapest > 1 ? rawCheapest : undefined,
+    inStock: row.in_stock,
+    featured: row.featured,
+  };
+}
+
+async function loadDbCatalogProductsOverlay(
+  sbUrl: string,
+  apiKey: string | undefined
+): Promise<Map<string, WebsiteProduct> | null> {
+  if (!apiKey || isLegacyCatalogStorageOnly()) return null;
+  const base = sbUrl.replace(/\/+$/, '');
+  const cols =
+    'id,code,name,category,sub_category,brand,unit,price,old_price,install_price,currency,badge,description,specs,variants,media_id,image_url,attachments,cheapest_source_count,in_stock,featured';
+
+  try {
+    const pageSize = 1000;
+    const allRows: any[] = [];
+    // Fetch first page with count header so remaining pages can be fetched concurrently
+    const firstRes = await fetch(
+      `${base}/rest/v1/store_catalog_products?select=${cols}&order=id.asc&limit=${pageSize}&offset=0`,
+      {
+        headers: {
+          apikey: apiKey,
+          Authorization: `Bearer ${apiKey}`,
+          Prefer: 'count=exact',
+        },
+        cache: 'no-store',
+      }
+    );
+    if (!firstRes.ok) return null;
+    const firstData = (await firstRes.json()) as any[];
+    if (!Array.isArray(firstData) || firstData.length === 0) return null;
+    allRows.push(...firstData);
+
+    const contentRange = firstRes.headers.get('content-range') || '';
+    const totalMatch = contentRange.match(/\/(\d+)$/);
+    const total = totalMatch ? Number(totalMatch[1]) : firstData.length;
+
+    const offsets: number[] = [];
+    for (let off = pageSize; off < total; off += pageSize) {
+      offsets.push(off);
+    }
+
+    for (let i = 0; i < offsets.length; i += 4) {
+      const batch = offsets.slice(i, i + 4);
+      const batchResults = await Promise.all(
+        batch.map(async (off) => {
+          const r = await fetch(
+            `${base}/rest/v1/store_catalog_products?select=${cols}&order=id.asc&limit=${pageSize}&offset=${off}`,
+            {
+              headers: { apikey: apiKey, Authorization: `Bearer ${apiKey}` },
+              cache: 'no-store',
+            }
+          );
+          if (!r.ok) return [];
+          const d = await r.json();
+          return Array.isArray(d) ? d : [];
+        })
+      );
+      batchResults.forEach((rows) => allRows.push(...rows));
+    }
+
+    const byId = new Map<string, WebsiteProduct>();
+    for (const r of allRows) {
+      const sanitized = sanitizeStoredProduct(mapDbRowToProductInput(r));
+      if (sanitized) byId.set(sanitized.id, sanitized);
+    }
+    return byId.size > 0 ? byId : null;
+  } catch {
+    return null;
+  }
+}
+
 async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState> {
   const now = Date.now();
   const existing = g.__phiStoreCatalogCache;
@@ -326,6 +494,8 @@ async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState
   const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').trim();
   const serviceKey =
     (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '').trim() || undefined;
+  const anonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim() || undefined;
+  const apiKey = serviceKey || anonKey;
   if (!sbUrl) {
     return (
       existing || {
@@ -334,15 +504,17 @@ async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState
         products: [],
         mediaMap: {},
         meta: {},
+        synonymsMap: new Map<string, string[]>(),
       }
     );
   }
 
   const runFetch = async (): Promise<CatalogCacheState> => {
     const refreshTs = Date.now();
-    const [rawMeta, rawMediaMap] = await Promise.all([
+    const [rawMeta, rawMediaMap, synonymsMap] = await Promise.all([
       downloadJsonObject<StoreCatalogMeta>(sbUrl, serviceKey, 'catalog/meta.json'),
       downloadJsonObject<Record<string, StoreMediaEntry>>(sbUrl, serviceKey, 'catalog/media-map.json'),
+      loadDbSynonymsMap(sbUrl, apiKey),
     ]);
 
     const needIndexReload =
@@ -356,12 +528,42 @@ async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState
     let nextIndexLoadedAt = existing?.indexLoadedAt ?? 0;
 
     if (needIndexReload) {
-      const rawIndex = await downloadJsonObject<any[]>(sbUrl, serviceKey, 'catalog/index.json');
-      const parsed = Array.isArray(rawIndex)
+      const [rawIndex, dbById] = await Promise.all([
+        downloadJsonObject<any[]>(sbUrl, serviceKey, 'catalog/index.json'),
+        loadDbCatalogProductsOverlay(sbUrl, apiKey),
+      ]);
+      const storageParsed = Array.isArray(rawIndex)
         ? (rawIndex.map(sanitizeStoredProduct).filter(Boolean) as WebsiteProduct[])
         : [];
-      if (parsed.length > 0) {
-        nextProducts = parsed;
+
+      if (storageParsed.length > 0) {
+        if (dbById && dbById.size > 0) {
+          // Overlay authoritative SQL DB rows onto canonical Storage ordering, keeping _idx order 100% preserved
+          const seenDbIds = new Set<string>();
+          const merged = storageParsed.map((baseItem) => {
+            const dbItem = dbById.get(baseItem.id);
+            if (!dbItem) return baseItem;
+            seenDbIds.add(baseItem.id);
+            return {
+              ...baseItem,
+              ...dbItem,
+              spinImages: dbItem.spinImages || baseItem.spinImages,
+              subCategory: dbItem.subCategory || baseItem.subCategory,
+              cheapestSourceCount: dbItem.cheapestSourceCount ?? baseItem.cheapestSourceCount,
+            };
+          });
+          for (const [id, dbItem] of dbById.entries()) {
+            if (!seenDbIds.has(id)) {
+              merged.push(dbItem);
+            }
+          }
+          nextProducts = merged;
+        } else {
+          nextProducts = storageParsed;
+        }
+        nextIndexLoadedAt = refreshTs;
+      } else if (dbById && dbById.size > 0) {
+        nextProducts = Array.from(dbById.values());
         nextIndexLoadedAt = refreshTs;
       } else if (!existing || existing.products.length === 0) {
         nextProducts = [];
@@ -375,6 +577,7 @@ async function loadCatalogState(forceRefresh = false): Promise<CatalogCacheState
       products: nextProducts,
       mediaMap: rawMediaMap && typeof rawMediaMap === 'object' ? rawMediaMap : existing?.mediaMap || {},
       meta: rawMeta && typeof rawMeta === 'object' ? rawMeta : existing?.meta || {},
+      synonymsMap,
     };
     g.__phiStoreCatalogCache = nextState;
     return nextState;
@@ -577,7 +780,7 @@ export async function queryStoreCatalog(
 
   const qNorm = normalizeArabicSearch(params.q || '');
   const tokens = qNorm ? qNorm.split(' ').filter(Boolean) : [];
-  const tokenGroups = tokens.map(expandQueryToken);
+  const tokenGroups = tokens.map((tok) => expandQueryToken(tok, state.synonymsMap));
   const scoreById = new Map<string, number>();
   const brandSet = new Set((params.brands || []).map((b) => b.trim()).filter(Boolean));
   const minPrice =
