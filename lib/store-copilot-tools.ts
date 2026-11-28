@@ -459,6 +459,81 @@ function matchesWholeWordToken(text: string, token: string): boolean {
   return new RegExp(`(?:^|\\s)(?:و|ب|ل|ال|وال|بال)?${esc}(?:ه)?(?:\\s|$)`, 'i').test(normText);
 }
 
+const SEARCH_FILLER_TOKENS = new Set(
+  [
+    'للشقة',
+    'للشقه',
+    'لشقة',
+    'لشقه',
+    'للبيت',
+    'لبيت',
+    'للفيلا',
+    'لفيلا',
+    'للمنزل',
+    'لمنزل',
+    'للعمارة',
+    'للعماره',
+    'لعمارة',
+    'لعماره',
+    'للمكتب',
+    'لمكتب',
+    'للمحل',
+    'لمحل',
+    'ضروري',
+    'دلوقتي',
+    'متوفر',
+    'متوفره',
+    'متوفرة',
+    'عندكم',
+    'عندكو',
+    'عندك',
+    'ممكن',
+    'تشوفلي',
+    'بكام',
+    'بكم',
+    'اسعار',
+    'أسعار',
+    'ايه',
+    'إيه',
+    'كام',
+    'ولا',
+    'خلص',
+    'خالص',
+    'لو',
+    'سمحت',
+    'عايز',
+    'عاوز',
+    'محتاج',
+    'اريد',
+    'أريد',
+    'ابعتلي',
+    'هاتلي',
+    'وريني',
+  ].map((t) => normalizeArabicSearch(t))
+);
+
+/**
+ * ينظف استعلام البحث من حشو المحادثة وكلمات المكان (مثل: للشقة، للبيت، ضروري، دلوقتي)
+ * حتى تتطابق المرادفات المفردة والثنائية في `copilot_search_products` بدقة.
+ */
+export function cleanCopilotSearchQuery(rawQuery: string): string {
+  const raw = String(rawQuery || '').trim();
+  if (!raw) return '';
+  const tokens = raw
+    .replace(/[؟?!.،,;:"'`()[\]{}]+/g, ' ')
+    .split(/\s+/)
+    .map((t) => t.trim())
+    .filter(Boolean);
+
+  const kept = tokens.filter((tok) => {
+    const normTok = normalizeArabicSearch(tok);
+    return Boolean(normTok) && !SEARCH_FILLER_TOKENS.has(normTok);
+  });
+
+  const cleaned = kept.join(' ').trim();
+  return cleaned || raw;
+}
+
 function isSuspiciousPrice(c: CopilotProductCard): boolean {
   if (c.price <= 0) return true;
   if (c.oldPrice !== null && c.price > 0 && c.oldPrice / c.price > 3.0) return true;
@@ -614,6 +689,7 @@ export async function execSearchProducts(
 ) {
   ctx.toolsUsed.push('search_products');
   const query = String(args.query ?? '').trim();
+  const effectiveQuery = cleanCopilotSearchQuery(query);
   const categoryRaw = typeof args.category === 'string' ? args.category.trim() : '';
   const category = categoryRaw && VALID_CAT_SET.has(categoryRaw) ? categoryRaw : null;
   const brand = typeof args.brand === 'string' && args.brand.trim() ? args.brand.trim() : null;
@@ -624,7 +700,7 @@ export async function execSearchProducts(
   const sort = sortRaw === 'price_asc' || sortRaw === 'price_desc' ? sortRaw : 'relevance';
   const limit = Math.min(8, Math.max(1, Number(args.limit) || 6));
 
-  const normQ = normalizeForWordCheck(query);
+  const normQ = normalizeForWordCheck(effectiveQuery);
   const intent = inferCatalogIntent(query);
   const hasWord = (tok: string) => matchesWholeWordToken(normQ, tok);
 
@@ -679,7 +755,7 @@ export async function execSearchProducts(
             commonOpts
           ),
           sb.rpc('copilot_search_products', {
-            p_query: query,
+            p_query: effectiveQuery,
             p_category: null,
             p_brand: brand,
             p_min_price: minPrice,
@@ -710,7 +786,7 @@ export async function execSearchProducts(
         rpcFailed = elecRes.failed && Boolean(rpcRes.error);
       } else if ((hasWord('فيش') || hasWord('فيشه')) && !hasWord('فيشر')) {
         const { data, error } = await sb.rpc('copilot_search_products', {
-          p_query: normQ === 'فيش' ? 'فيشة' : query,
+          p_query: normQ === 'فيش' ? 'فيشة' : effectiveQuery,
           p_category: null,
           p_brand: brand,
           p_min_price: minPrice,
@@ -735,8 +811,8 @@ export async function execSearchProducts(
           rpcFailed = true;
         }
       } else {
-        const { data, error } = await sb.rpc('copilot_search_products', {
-          p_query: query,
+        let rpcRes = await sb.rpc('copilot_search_products', {
+          p_query: effectiveQuery,
           p_category: category,
           p_brand: brand,
           p_min_price: minPrice,
@@ -746,24 +822,38 @@ export async function execSearchProducts(
           p_limit: limit,
         });
 
-        if (!error && Array.isArray(data)) {
-          let mapped = data.map(mapRpcRowToCard);
+        // إذا لم يُعثر على نتائج ضمن القسم المختار، أعِد المحاولة عبر كل الأقسام قبل تسجيل البحث كـ 0 نتائج
+        if (!rpcRes.error && Array.isArray(rpcRes.data) && rpcRes.data.length === 0 && category !== null) {
+          rpcRes = await sb.rpc('copilot_search_products', {
+            p_query: effectiveQuery,
+            p_category: null,
+            p_brand: brand,
+            p_min_price: minPrice,
+            p_max_price: maxPrice,
+            p_in_stock_only: inStockOnly,
+            p_sort: sort,
+            p_limit: limit,
+          });
+        }
+
+        if (!rpcRes.error && Array.isArray(rpcRes.data)) {
+          let mapped = rpcRes.data.map(mapRpcRowToCard);
           const toks = normQ.split(' ').filter(Boolean);
           if (toks.length === 1 && toks[0].length <= 4) {
             const wholeOnly = mapped.filter(
               (c) =>
                 matchesWholeWordToken(`${c.name} ${c.code} ${c.brand}`, toks[0]) ||
-                c.code.toLowerCase() === query.toLowerCase()
+                c.code.toLowerCase() === effectiveQuery.toLowerCase()
             );
             if (wholeOnly.length > 0) mapped = wholeOnly;
           }
           cards = mapped.slice(0, limit);
 
           // تسجيل الاستعلام الفارغ في الخلفية لتدريب المرادفات فقط عندما ينجح الاتصال وتكون النتيجة 0
-          if (cards.length === 0 && query.length >= 2) {
+          if (cards.length === 0 && effectiveQuery.length >= 2) {
             void sb
               .rpc('copilot_log_search_miss', {
-                p_query: query,
+                p_query: effectiveQuery,
                 p_category: category,
                 p_brand: brand,
                 p_page_url: ctx.pageUrl || ctx.sessionId,
@@ -784,7 +874,7 @@ export async function execSearchProducts(
   if (rpcFailed) {
     try {
       const res = await queryStoreCatalog({
-        q: query || undefined,
+        q: effectiveQuery || undefined,
         category: category || undefined,
         brands: brand ? [brand] : undefined,
         onlyInStock: inStockOnly,
@@ -811,8 +901,19 @@ export async function execSearchProducts(
     };
   }
 
-  cards = filterRelevantCatalogProducts(cards, query);
-  if (sort === 'relevance') cards.sort((a, b) => scoreCatalogProduct(b, query) - scoreCatalogProduct(a, query));
+  const filteredCards = filterRelevantCatalogProducts(cards, effectiveQuery);
+  if (
+    filteredCards.length > 0 ||
+    intent.kind === 'policy' ||
+    intent.kind === 'contextual' ||
+    Boolean(intent.family) ||
+    Boolean(intent.category)
+  ) {
+    cards = filteredCards;
+  } else {
+    cards = inStockOnly ? cards.filter((c) => c.inStock) : cards;
+  }
+  if (sort === 'relevance') cards.sort((a, b) => scoreCatalogProduct(b, effectiveQuery) - scoreCatalogProduct(a, effectiveQuery));
   pushUniqueProducts(ctx, cards, 6);
 
   if (category) {

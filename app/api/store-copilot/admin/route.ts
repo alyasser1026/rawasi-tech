@@ -6,7 +6,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { PRODUCT_CATEGORIES } from '@/app/site/store-catalog';
-import { getCachedCatalogOverview, getServiceSupabase } from '@/lib/store-copilot-tools';
+import {
+  cleanCopilotSearchQuery,
+  getCachedCatalogOverview,
+  getServiceSupabase,
+} from '@/lib/store-copilot-tools';
 import {
   DEFAULT_COPILOT_TRAINING_CONFIG,
   getCachedCopilotTraining,
@@ -392,10 +396,11 @@ export async function POST(req: Request) {
     const body = await req.json();
 
     if (body?.action === 'test_search') {
-      const query = String(body.query || '').trim();
+      const rawQuery = String(body.query || '').trim();
+      const effectiveQuery = cleanCopilotSearchQuery(rawQuery);
       const t0 = performance.now();
       const { data, error } = await sb.rpc('copilot_search_products', {
-        p_query: query,
+        p_query: effectiveQuery,
         p_category: null,
         p_brand: null,
         p_limit: 5,
@@ -404,7 +409,12 @@ export async function POST(req: Request) {
       if (error) {
         return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
       }
-      return NextResponse.json({ ok: true, results: Array.isArray(data) ? data : [], ms });
+      return NextResponse.json({
+        ok: true,
+        effectiveQuery,
+        results: Array.isArray(data) ? data : [],
+        ms,
+      });
     }
 
     if (body?.action === 'save_training_config') {
