@@ -4,7 +4,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/lib/toast-context'; 
 import { getDestinationForUser } from '@/lib/roleRouter';
-import { getAuthEmailRedirectTo, getAuthErrorFeedback, getSafeAuthRedirect } from '@/lib/auth-feedback';
+import {
+  getAuthEmailRedirectTo,
+  getAuthErrorFeedback,
+  getSafeAuthRedirect,
+  resolvePublicAuthOrigin,
+} from '@/lib/auth-feedback';
 import {
   collectClientDeviceDetails,
   rememberVisitorContact,
@@ -144,11 +149,17 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
     setConfirmationFeedback(null);
   };
 
-  const emailRedirectTo = () => getAuthEmailRedirectTo(
-    window.location.origin,
-    redirectParam || (window.location.pathname !== '/login' ? window.location.pathname : null),
-    portalParam
-  );
+  const emailRedirectTo = () => {
+    const authOrigin = resolvePublicAuthOrigin(
+      window.location.origin,
+      typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SITE_URL : undefined
+    );
+    return getAuthEmailRedirectTo(
+      authOrigin,
+      redirectParam || (window.location.pathname !== '/login' ? window.location.pathname : null),
+      portalParam
+    );
+  };
 
   const handleResendConfirmation = async () => {
     if (!confirmationEmail || isLoading || resendPending.current || resendCooldown > 0) return;

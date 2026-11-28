@@ -31,10 +31,10 @@ const SALES_SCENARIOS: SalesScenario[] = [
     categoryLabel: 'سمارت هوم والتحكم الذكي',
     searchQueryText: 'قفل باب ذكي 6×1',
     urls: [
-      'phitech.eg/sections/materials?q=smart-lock',
-      'phitech.eg/store/SM-02',
-      'phitech.eg/store#checkout',
-      'phitech.eg/orders/ORD-PHI-842',
+      'phi-tech.org/sections/materials?q=smart-lock',
+      'phi-tech.org/store/SM-02',
+      'phi-tech.org/store#checkout',
+      'phi-tech.org/orders/ORD-PHI-842',
     ],
     stepTitles: [
       '01 · يبحث العميل في قسم المبيعات',
@@ -66,10 +66,10 @@ const SALES_SCENARIOS: SalesScenario[] = [
     categoryLabel: 'أدوات الكهرباء والإنارة',
     searchQueryText: 'طقم مفاتيح زجاجي كريستال',
     urls: [
-      'phitech.eg/sections/materials?q=switches',
-      'phitech.eg/store/EL-01',
-      'phitech.eg/store#checkout',
-      'phitech.eg/orders/ORD-PHI-914',
+      'phi-tech.org/sections/materials?q=switches',
+      'phi-tech.org/store/EL-01',
+      'phi-tech.org/store#checkout',
+      'phi-tech.org/orders/ORD-PHI-914',
     ],
     stepTitles: [
       '01 · يستعرض تشطيبات الكهرباء بالمتجر',
@@ -101,10 +101,10 @@ const SALES_SCENARIOS: SalesScenario[] = [
     categoryLabel: 'السيراميك والبورسلان',
     searchQueryText: 'بورسلان كلكتا ذهبي 120×60',
     urls: [
-      'phitech.eg/sections/materials?q=calacatta',
-      'phitech.eg/store/CR-01',
-      'phitech.eg/store#checkout',
-      'phitech.eg/orders/ORD-PHI-738',
+      'phi-tech.org/sections/materials?q=calacatta',
+      'phi-tech.org/store/CR-01',
+      'phi-tech.org/store#checkout',
+      'phi-tech.org/orders/ORD-PHI-738',
     ],
     stepTitles: [
       '01 · يبحث عن خامات الأرضيات بالمتجر',

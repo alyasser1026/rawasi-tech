@@ -113,7 +113,7 @@ export default function PhiSite({
         />
       </main>
 
-      <footer className="pw-footer">
+      <footer id="contact" className="pw-footer">
         <div className="pw-wrap">
           <div className="pw-footer-row">
             <div className="pw-footer-brand">
@@ -148,6 +148,20 @@ export default function PhiSite({
               )}
             </div>
           </div>
+          {(c.phone || c.email) && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 14px', marginTop: '10px' }}>
+              {c.phone && (
+                <a href={`tel:${c.phone}`} dir="ltr" className="pw-footer-link">
+                  {c.phone}
+                </a>
+              )}
+              {c.email && (
+                <a href={`mailto:${c.email}`} dir="ltr" className="pw-footer-link">
+                  {c.email}
+                </a>
+              )}
+            </div>
+          )}
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
         </div>
       </footer>

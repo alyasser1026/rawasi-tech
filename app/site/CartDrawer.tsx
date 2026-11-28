@@ -41,6 +41,55 @@ export interface CustomerSessionUser {
 const LOCAL_CART_PREFIX = 'phi_customer_cart_v1_';
 const GUEST_CART_KEY = 'phi_guest_cart_v1';
 const PENDING_CART_KEY = 'phi_pending_cart_add_v1';
+const LAST_SESSION_USER_KEY = 'phi_last_customer_session_v1';
+
+function resolveCustomerPortalFromProfile(prof: any, meta: Record<string, any>): string | null {
+  const resolvedPortal = prof
+    ? getDestinationForUser(prof)
+    : meta?.role === 'admin'
+      ? '/Dashboard'
+      : null;
+  const isEmployeeOrPartner = Boolean(
+    (prof &&
+      (prof.is_admin ||
+        (prof.role && prof.role !== 'client') ||
+        prof.linked_partner_id ||
+        (resolvedPortal && resolvedPortal !== '/profile'))) ||
+      (meta?.role && meta.role !== 'client')
+  );
+  return isEmployeeOrPartner ? resolvedPortal || '/Dashboard' : null;
+}
+
+function readLastCustomerSessionCache(): { user: CustomerSessionUser; portalHref: string | null } | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = window.localStorage.getItem(LAST_SESSION_USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.user?.id && parsed?.user?.fullName) {
+      return {
+        user: parsed.user as CustomerSessionUser,
+        portalHref: typeof parsed.portalHref === 'string' ? parsed.portalHref : null,
+      };
+    }
+  } catch {
+    // ignore storage errors
+  }
+  return null;
+}
+
+function writeLastCustomerSessionCache(user: CustomerSessionUser | null, portalHref: string | null) {
+  if (typeof window === 'undefined') return;
+  try {
+    if (!user) {
+      window.localStorage.removeItem(LAST_SESSION_USER_KEY);
+    } else {
+      window.localStorage.setItem(LAST_SESSION_USER_KEY, JSON.stringify({ user, portalHref }));
+    }
+  } catch {
+    // ignore storage errors
+  }
+}
 
 export function queuePendingCartProduct(product: WebsiteProduct, qty = 1, withInstall = false) {
   if (typeof window === 'undefined') return;
@@ -112,6 +161,12 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
   useEffect(() => {
     let mounted = true;
 
+    const cachedSnapshot = readLastCustomerSessionCache();
+    if (cachedSnapshot) {
+      setUser(cachedSnapshot.user);
+      setPortalHref(cachedSnapshot.portalHref);
+    }
+
     const loadUserAndCart = async () => {
       try {
         const {
@@ -136,7 +191,28 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
           const u = session.user;
           const meta = u.user_metadata || {};
 
-          let prof: any = null;
+          let cachedProf: any = null;
+          if (typeof window !== 'undefined') {
+            try {
+              const cached = window.localStorage.getItem(`phi_cached_profile_${u.id}`);
+              if (cached) cachedProf = JSON.parse(cached);
+            } catch {
+              cachedProf = null;
+            }
+          }
+
+          // Hydrate header user immediately from local session/metadata before waiting on profile query
+          const quickUser: CustomerSessionUser = {
+            id: u.id,
+            email: u.email || '',
+            fullName:
+              cachedProf?.full_name || meta.full_name || meta.name || u.email?.split('@')[0] || 'مستخدم فاي تك',
+            phone: meta.phone_number || meta.phone || '',
+          };
+          setPortalHref(resolveCustomerPortalFromProfile(cachedProf, meta));
+          setUser(quickUser);
+
+          let prof: any = cachedProf;
           try {
             const { data: profData, error: profErr } = await supabase
               .from('profiles')
@@ -147,32 +223,12 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
               prof = profData;
             }
           } catch {
-            prof = null;
-          }
-          if (!prof && typeof window !== 'undefined') {
-            try {
-              const cached = window.localStorage.getItem(`phi_cached_profile_${u.id}`);
-              if (cached) prof = JSON.parse(cached);
-            } catch {
-              prof = null;
-            }
+            prof = cachedProf;
           }
           if (!mounted) return;
 
-          const resolvedPortal = prof
-            ? getDestinationForUser(prof)
-            : meta.role === 'admin'
-              ? '/Dashboard'
-              : null;
-          const isEmployeeOrPartner = Boolean(
-            (prof &&
-              (prof.is_admin ||
-                (prof.role && prof.role !== 'client') ||
-                prof.linked_partner_id ||
-                (resolvedPortal && resolvedPortal !== '/profile'))) ||
-              (meta.role && meta.role !== 'client')
-          );
-          setPortalHref(isEmployeeOrPartner ? resolvedPortal || '/Dashboard' : null);
+          const resolvedPortalHref = resolveCustomerPortalFromProfile(prof, meta);
+          setPortalHref(resolvedPortalHref);
 
           const customer: CustomerSessionUser = {
             id: u.id,
@@ -182,6 +238,7 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
             phone: meta.phone_number || meta.phone || '',
           };
           setUser(customer);
+          writeLastCustomerSessionCache(customer, resolvedPortalHref);
 
           // Load cart from localStorage or user_metadata and merge any guest cart items
           let loadedCart: CartItem[] = [];
@@ -250,6 +307,7 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
         } else {
           setUser(null);
           setPortalHref(null);
+          writeLastCustomerSessionCache(null, null);
           setItems(guestItems);
         }
       } finally {
@@ -265,6 +323,7 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
       } else {
         setUser(null);
         setPortalHref(null);
+        writeLastCustomerSessionCache(null, null);
         if (typeof window !== 'undefined') {
           try {
             const rawGuest = window.localStorage.getItem(GUEST_CART_KEY);
@@ -427,6 +486,9 @@ export function useCustomerCart(_onRequireLogin?: () => void) {
   );
 
   const signOut = async () => {
+    writeLastCustomerSessionCache(null, null);
+    setUser(null);
+    setPortalHref(null);
     try {
       await supabase.auth.signOut();
     } catch {

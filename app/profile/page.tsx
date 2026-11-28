@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import { useProfileLogic } from './profile_logic';
+import { isErpStaffOrPartnerProfile } from '@/components/authGuard';
+import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/helpers';
 import { printWithDocumentTitle } from '@/lib/printWithTitle';
 import SignaturePad from '@/components/signaturepad';
@@ -225,6 +228,111 @@ export default function EmployeeProfilePage() {
     }, [filteredData]);
 
     if (isLoading) return <LoadingScreen message="جاري تحميل الملف الشخصي..." fullScreen={true} />;
+
+    const isErpStaff = isErpStaffOrPartnerProfile(userProfile);
+
+    if (!isErpStaff) {
+        const customerName = userProfile?.full_name || userProfile?.nickname || 'عميل فاي تك';
+        const customerPhone = userProfile?.phone_number || userProfile?.username || '---';
+        const customerEmail = userProfile?.email || '';
+        return (
+            <div dir="rtl" style={{ minHeight: '100vh', background: 'var(--bg-canvas)', color: 'var(--text-primary)', padding: 'clamp(1.25rem, 4vw, 3rem) 1rem' }}>
+                <div style={{ maxWidth: '44rem', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <div style={{ background: 'var(--surface-card)', borderRadius: '18px', padding: '1.75rem', boxShadow: 'var(--shadow-ambient)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                            <div style={{ width: '4.25rem', height: '4.25rem', borderRadius: '14px', background: 'var(--surface-subcard)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--accent-ink)' }}>
+                                <User size={28} aria-hidden="true" />
+                            </div>
+                            <div>
+                                <span style={{ display: 'inline-block', fontSize: 'var(--fs-xs)', fontWeight: 800, color: 'var(--accent-ink)', background: 'color-mix(in srgb, var(--accent-ink) 14%, transparent)', padding: '0.2rem 0.65rem', borderRadius: '999px', marginBottom: '0.4rem' }}>
+                                    حساب عميل — المتجر الذكي
+                                </span>
+                                <h1 style={{ margin: 0, fontSize: 'var(--fs-2xl)', fontWeight: 900, color: 'var(--text-primary)' }}>مرحباً، {customerName}</h1>
+                                <p style={{ margin: '0.25rem 0 0', fontSize: 'var(--fs-sm)', color: 'var(--text-secondary)', fontWeight: 700 }}>
+                                    الملف الشخصي للعميل وإعدادات الحساب
+                                </p>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', gap: '0.625rem', flexWrap: 'wrap' }}>
+                            <Link href="/store" style={{ background: 'var(--action-fill)', color: 'var(--action-ink)', padding: '0.65rem 1.25rem', borderRadius: '12px', fontWeight: 900, textDecoration: 'none', fontSize: 'var(--fs-sm)' }}>
+                                تصفح المتجر الذكي
+                            </Link>
+                            <Link href="/" style={{ background: 'var(--surface-subcard)', color: 'var(--text-primary)', padding: '0.65rem 1.15rem', borderRadius: '12px', fontWeight: 800, textDecoration: 'none', fontSize: 'var(--fs-sm)' }}>
+                                الرئيسية
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div style={{ background: 'var(--surface-card)', borderRadius: '18px', padding: '1.75rem', boxShadow: 'var(--shadow-ambient)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        <h2 style={{ margin: 0, fontSize: 'var(--fs-lg)', fontWeight: 900, color: 'var(--text-primary)' }}>بيانات الحساب</h2>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(13rem, 1fr))', gap: '1rem' }}>
+                            <div style={{ background: 'var(--surface-subcard)', borderRadius: '12px', padding: '1rem' }}>
+                                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '0.3rem' }}>الاسم</div>
+                                <div style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: 'var(--text-primary)' }}>{customerName}</div>
+                            </div>
+                            <div style={{ background: 'var(--surface-subcard)', borderRadius: '12px', padding: '1rem' }}>
+                                <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '0.3rem' }}>الجوال / اسم المستخدم</div>
+                                <div dir="ltr" style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: 'var(--text-primary)', textAlign: 'right' }}>{customerPhone}</div>
+                            </div>
+                            {customerEmail && (
+                                <div style={{ background: 'var(--surface-subcard)', borderRadius: '12px', padding: '1rem' }}>
+                                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--text-secondary)', fontWeight: 700, marginBottom: '0.3rem' }}>البريد الإلكتروني</div>
+                                    <div dir="ltr" style={{ fontSize: 'var(--fs-md)', fontWeight: 900, color: 'var(--text-primary)', textAlign: 'right', overflowWrap: 'anywhere' }}>{customerEmail}</div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                            <label htmlFor="customer-password-input" style={{ fontSize: 'var(--fs-sm)', fontWeight: 900, color: 'var(--text-primary)' }}>تغيير كلمة المرور</label>
+                            <input
+                                id="customer-password-input"
+                                type="password"
+                                placeholder="اكتب كلمة المرور الجديدة (6 أحرف على الأقل)..."
+                                value={tempPassword}
+                                onChange={(e) => setTempPassword(e.target.value)}
+                                style={{ width: '100%', padding: '0.85rem 1rem', borderRadius: '12px', border: 'none', boxShadow: 'var(--shadow-sunken)', background: 'var(--surface-sunken)', color: 'var(--text-primary)', fontSize: 'var(--fs-sm)', fontWeight: 700 }}
+                            />
+                            {tempPassword && (
+                                <div style={{ display: 'flex', gap: '0.75rem' }}>
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            if (updatePassword && (await updatePassword(tempPassword))) {
+                                                setTempPassword('');
+                                            }
+                                        }}
+                                        style={{ flex: 2, padding: '0.75rem', background: 'var(--action-fill)', color: 'var(--action-ink)', border: 'none', borderRadius: '12px', fontWeight: 900, cursor: 'pointer' }}
+                                    >
+                                        حفظ كلمة المرور
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setTempPassword('')}
+                                        style={{ flex: 1, padding: '0.75rem', background: 'var(--surface-subcard)', color: 'var(--text-secondary)', border: 'none', borderRadius: '12px', fontWeight: 800, cursor: 'pointer' }}
+                                    >
+                                        إلغاء
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    await supabase.auth.signOut();
+                                    window.location.href = '/login';
+                                }}
+                                style={{ padding: '0.7rem 1.35rem', borderRadius: '12px', border: 'none', background: 'color-mix(in srgb, var(--status-negative) 14%, var(--surface-subcard))', color: 'var(--status-negative)', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-sm)' }}
+                            >
+                                تسجيل الخروج
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const displayName = userProfile?.display_name || userProfile?.full_name || userProfile?.nickname || 'موظف فاي تك';
     const profession = userProfile?.profession || 'المسمى الوظيفي غير محدد';

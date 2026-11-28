@@ -11,7 +11,7 @@ const { outputText } = ts.transpileModule(source, {
 const moduleExports = {};
 const evaluate = vm.runInThisContext(`(function (exports, require) { ${outputText} })`);
 evaluate(moduleExports, name => { throw new Error(`Unexpected dependency: ${name}`); });
-const { getAuthErrorFeedback, getAuthEmailRedirectTo, getSafeAuthRedirect } = moduleExports;
+const { getAuthErrorFeedback, getAuthEmailRedirectTo, getSafeAuthRedirect, resolvePublicAuthOrigin } = moduleExports;
 
 test('unconfirmed email is an actionable warning rather than a technical error', () => {
   for (const error of [
@@ -175,4 +175,27 @@ test('query-looking local destinations cannot inject callback credentials, porta
   assert.equal(result.searchParams.get('portal'), 'partner');
   assert.equal(result.searchParams.get('username'), null);
   assert.equal([...result.searchParams.getAll('redirect')].length, 1);
+});
+
+test('resolvePublicAuthOrigin replaces localhost when configured production URL is provided', () => {
+  assert.equal(
+    resolvePublicAuthOrigin('http://localhost:3000', 'https://www.phi-tech.org/login'),
+    'https://www.phi-tech.org'
+  );
+  assert.equal(
+    resolvePublicAuthOrigin('http://127.0.0.1:3000', 'https://www.phi-tech.org'),
+    'https://www.phi-tech.org'
+  );
+  assert.equal(
+    resolvePublicAuthOrigin('https://preview.phi-tech.org', 'https://www.phi-tech.org'),
+    'https://preview.phi-tech.org'
+  );
+  assert.equal(
+    resolvePublicAuthOrigin('http://localhost:3000', undefined),
+    'http://localhost:3000'
+  );
+  assert.equal(
+    resolvePublicAuthOrigin('http://localhost:3000', 'http://localhost:3001'),
+    'http://localhost:3000'
+  );
 });

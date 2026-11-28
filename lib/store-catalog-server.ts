@@ -85,6 +85,122 @@ export function normalizeArabicSearch(text: string): string {
     .trim();
 }
 
+const STORE_SEARCH_SYNONYM_GROUPS_RAW: readonly (readonly string[])[] = [
+  ['قفل', 'أقفال', 'كالون', 'كوالين', 'هاف سلندر', 'سلندر', 'ترباس', 'lock'],
+  ['ذكي', 'ذكية', 'سمارت', 'تاتش', 'بصمة', 'ديجيتال', 'واي فاي', 'smart'],
+  ['خلاط', 'خلاطات', 'حنفية', 'محبس', 'صنبور'],
+  ['فيشة', 'فيش', 'بريزة', 'برايز', 'مقبس', 'سوكيت'],
+  ['مفتاح', 'مفاتيح', 'لقمة', 'سويتش'],
+  ['كشاف', 'سبوت', 'داون لايت', 'لمبة', 'إضاءة', 'إنارة'],
+  ['بلاعة', 'بالوعة', 'بيبة', 'صرف', 'جرجوري'],
+  ['سيراميك', 'بورسلان', 'بورسلين', 'بلاط', 'زليج', 'موزاييك'],
+  ['انتركم', 'إنتركم', 'انتركوم', 'جرس'],
+  ['تكييف', 'مكيف', 'سبليت'],
+  ['بتشينو', 'بيتشينو', 'bticino'],
+];
+
+const STORE_SEARCH_SYNONYM_MAP: Map<string, string[]> = (() => {
+  const map = new Map<string, string[]>();
+  for (const rawGroup of STORE_SEARCH_SYNONYM_GROUPS_RAW) {
+    const normalizedGroup = Array.from(
+      new Set(rawGroup.map((term) => normalizeArabicSearch(term)).filter(Boolean))
+    );
+    for (const term of normalizedGroup) {
+      const existing = map.get(term) || [];
+      const merged = Array.from(new Set([...existing, ...normalizedGroup]));
+      map.set(term, merged);
+    }
+  }
+  return map;
+})();
+
+function expandQueryToken(tok: string): string[] {
+  const syns = STORE_SEARCH_SYNONYM_MAP.get(tok);
+  if (!syns || syns.length === 0) return [tok];
+  return [tok, ...syns.filter((s) => s !== tok)];
+}
+
+type IndexedPublicProduct = WebsiteProduct & {
+  _hasTelegramMedia: boolean;
+  _searchBlob: string;
+  _nameNorm: string;
+  _codeNorm: string;
+  _brandNorm: string;
+  _subCatNorm: string;
+};
+
+function scoreCatalogItemMatch(
+  item: IndexedPublicProduct,
+  rawQueryNorm: string,
+  tokenGroups: string[][]
+): number | null {
+  for (const group of tokenGroups) {
+    if (!group.some((alt) => item._searchBlob.includes(alt))) {
+      return null;
+    }
+  }
+
+  let score = 0;
+  if (item._codeNorm && item._codeNorm === rawQueryNorm) {
+    score += 250;
+  } else if (item._codeNorm && item._codeNorm.includes(rawQueryNorm)) {
+    score += 110;
+  }
+  if (item._nameNorm && item._nameNorm.includes(rawQueryNorm)) {
+    score += 120;
+  }
+
+  const nameWords = item._nameNorm ? item._nameNorm.split(' ').filter(Boolean) : [];
+  let nameMatchedGroups = 0;
+  let metaMatchedGroups = 0;
+
+  for (const group of tokenGroups) {
+    const primary = group[0];
+    if (nameWords[0] && nameWords[0] === primary) {
+      score += 70;
+      nameMatchedGroups++;
+    } else if (nameWords.some((w) => w === primary || w.startsWith(primary))) {
+      score += 55;
+      nameMatchedGroups++;
+    } else if (item._nameNorm.includes(primary)) {
+      score += 40;
+      nameMatchedGroups++;
+    } else if (
+      group
+        .slice(1)
+        .some(
+          (alt) =>
+            nameWords.some((w) => w === alt || w.startsWith(alt)) ||
+            item._nameNorm.includes(alt)
+        )
+    ) {
+      score += 35;
+      nameMatchedGroups++;
+    } else if (
+      group.some(
+        (alt) =>
+          item._codeNorm.includes(alt) ||
+          item._brandNorm.includes(alt) ||
+          item._subCatNorm.includes(alt)
+      )
+    ) {
+      score += 18;
+      metaMatchedGroups++;
+    } else {
+      score += 2;
+    }
+  }
+
+  if (tokenGroups.length > 0 && nameMatchedGroups === tokenGroups.length) {
+    score += 80;
+  } else if (nameMatchedGroups === 0 && metaMatchedGroups === 0) {
+    // Description/specs-only matches rank behind direct title/brand/code matches.
+    score -= 35;
+  }
+
+  return score;
+}
+
 async function downloadJsonObject<T>(
   sbUrl: string,
   serviceKey: string | undefined,
@@ -153,9 +269,19 @@ function sanitizeStoredProduct(raw: any): WebsiteProduct | null {
     installPrice: installPrice !== undefined && Number.isFinite(installPrice) && installPrice >= 0 ? installPrice : undefined,
     currency: raw?.currency === 'ر.س' ? 'ر.س' : 'ج.م',
     badge: typeof raw?.badge === 'string' && raw.badge.trim() ? raw.badge.trim() : undefined,
-    description: typeof raw?.description === 'string' ? raw.description.trim() : '',
+    description:
+      typeof raw?.description === 'string'
+        ? raw.description.trim().replace(/الماركة\s+بيتشينو/g, 'الماركة بتشينو')
+        : '',
     specs: Array.isArray(raw?.specs)
-      ? raw.specs.map((s: unknown) => String(s ?? '').trim()).filter(Boolean).slice(0, 8)
+      ? raw.specs
+          .map((s: unknown) =>
+            String(s ?? '')
+              .trim()
+              .replace(/الماركة\s+بيتشينو/g, 'الماركة بتشينو')
+          )
+          .filter(Boolean)
+          .slice(0, 8)
       : [],
     imageUrl: typeof raw?.imageUrl === 'string' ? raw.imageUrl.trim() : undefined,
     mediaId: typeof raw?.mediaId === 'string' && raw.mediaId.trim() ? raw.mediaId.trim() : undefined,
@@ -302,7 +428,7 @@ function isSafeProductImageUrl(url: string | undefined): boolean {
 function resolveProductForPublic(
   p: WebsiteProduct,
   mediaMap: Record<string, StoreMediaEntry>
-): WebsiteProduct & { _hasTelegramMedia: boolean; _searchBlob: string } {
+): IndexedPublicProduct {
   const mediaEntry = p.mediaId ? mediaMap[p.mediaId] : undefined;
   let resolvedImage = '';
   if (mediaEntry?.telegramFileId) {
@@ -321,12 +447,18 @@ function resolveProductForPublic(
     ? p.attachments.filter((att) => Boolean(mediaMap[att.id]?.telegramFileId))
     : undefined;
 
+  const cleanDescription =
+    typeof p.description === 'string'
+      ? p.description.replace(/الماركة\s+بيتشينو/g, 'الماركة بتشينو')
+      : '';
+
   const searchBlob = normalizeArabicSearch(
-    [p.name, p.code, p.brand, p.subCategory || '', p.description, ...(p.specs || [])].join(' ')
+    [p.name, p.code, p.brand, p.subCategory || '', cleanDescription, ...(p.specs || [])].join(' ')
   );
 
   return {
     ...p,
+    description: cleanDescription,
     imageUrl: resolvedImage,
     spinImages: resolvedSpinImages && resolvedSpinImages.length > 0 ? resolvedSpinImages : undefined,
     attachments: validAttachments && validAttachments.length > 0 ? validAttachments : undefined,
@@ -334,6 +466,10 @@ function resolveProductForPublic(
       mediaEntry?.telegramFileId || (resolvedSpinImages && resolvedSpinImages.length >= 2)
     ),
     _searchBlob: searchBlob,
+    _nameNorm: normalizeArabicSearch(p.name),
+    _codeNorm: normalizeArabicSearch(p.code),
+    _brandNorm: normalizeArabicSearch(p.brand),
+    _subCatNorm: normalizeArabicSearch(p.subCategory || ''),
   };
 }
 
@@ -441,6 +577,8 @@ export async function queryStoreCatalog(
 
   const qNorm = normalizeArabicSearch(params.q || '');
   const tokens = qNorm ? qNorm.split(' ').filter(Boolean) : [];
+  const tokenGroups = tokens.map(expandQueryToken);
+  const scoreById = new Map<string, number>();
   const brandSet = new Set((params.brands || []).map((b) => b.trim()).filter(Boolean));
   const minPrice =
     params.minPrice !== undefined && params.minPrice !== null && Number.isFinite(params.minPrice)
@@ -461,28 +599,34 @@ export async function queryStoreCatalog(
       if (minPrice !== null && item.price < minPrice) return false;
       if (maxPrice !== null && item.price > maxPrice) return false;
     }
-    if (tokens.length > 0) {
-      for (const tok of tokens) {
-        if (!item._searchBlob.includes(tok)) return false;
-      }
+    if (tokenGroups.length > 0) {
+      const matchScore = scoreCatalogItemMatch(item, qNorm, tokenGroups);
+      if (matchScore === null) return false;
+      scoreById.set(item.id, matchScore);
     }
     return true;
   });
 
   const sortMode = params.sort || 'featured';
-  if (sortMode === 'featured') {
+  if (sortMode === 'featured' || sortMode === 'default') {
     matched.sort((a, b) => {
-      if (a._hasTelegramMedia !== b._hasTelegramMedia) return a._hasTelegramMedia ? -1 : 1;
-      if (Boolean(a.featured) !== Boolean(b.featured)) return a.featured ? -1 : 1;
-      const aMulti = (a.cheapestSourceCount || 1) > 1;
-      const bMulti = (b.cheapestSourceCount || 1) > 1;
-      if (aMulti !== bMulti) return aMulti ? -1 : 1;
-      const aDisc = Boolean(a.oldPrice && a.oldPrice > a.price);
-      const bDisc = Boolean(b.oldPrice && b.oldPrice > b.price);
-      if (aDisc !== bDisc) return aDisc ? -1 : 1;
-      const aHasPrice = a.price > 0;
-      const bHasPrice = b.price > 0;
-      if (aHasPrice !== bHasPrice) return aHasPrice ? -1 : 1;
+      if (tokenGroups.length > 0) {
+        const diff = (scoreById.get(b.id) ?? 0) - (scoreById.get(a.id) ?? 0);
+        if (diff !== 0) return diff;
+      }
+      if (sortMode === 'featured') {
+        if (a._hasTelegramMedia !== b._hasTelegramMedia) return a._hasTelegramMedia ? -1 : 1;
+        if (Boolean(a.featured) !== Boolean(b.featured)) return a.featured ? -1 : 1;
+        const aMulti = (a.cheapestSourceCount || 1) > 1;
+        const bMulti = (b.cheapestSourceCount || 1) > 1;
+        if (aMulti !== bMulti) return aMulti ? -1 : 1;
+        const aDisc = Boolean(a.oldPrice && a.oldPrice > a.price);
+        const bDisc = Boolean(b.oldPrice && b.oldPrice > b.price);
+        if (aDisc !== bDisc) return aDisc ? -1 : 1;
+        const aHasPrice = a.price > 0;
+        const bHasPrice = b.price > 0;
+        if (aHasPrice !== bHasPrice) return aHasPrice ? -1 : 1;
+      }
       return a._idx - b._idx;
     });
   } else if (sortMode === 'name_asc') {
@@ -504,7 +648,16 @@ export async function queryStoreCatalog(
   const start = (page - 1) * pageSize;
 
   const items: WebsiteProduct[] = matched.slice(start, start + pageSize).map((it) => {
-    const { _hasTelegramMedia: _m, _searchBlob: _s, _idx: _i, ...pub } = it;
+    const {
+      _hasTelegramMedia: _m,
+      _searchBlob: _s,
+      _nameNorm: _n,
+      _codeNorm: _c,
+      _brandNorm: _b,
+      _subCatNorm: _sc,
+      _idx: _i,
+      ...pub
+    } = it;
     return pub;
   });
 

@@ -638,7 +638,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
       )}
 
       {/* Unified Footer (matches Homepage Standard) */}
-      <footer className="pw-footer">
+      <footer id="contact" className="pw-footer">
         <div className="pw-wrap">
           <div className="pw-footer-row">
             <div className="pw-footer-brand">
@@ -662,6 +662,20 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
               </Link>
             )}
           </div>
+          {(SITE.contact.phone || SITE.contact.email) && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 14px', marginTop: '10px' }}>
+              {SITE.contact.phone && (
+                <a href={`tel:${SITE.contact.phone}`} dir="ltr" className="pw-footer-link">
+                  {SITE.contact.phone}
+                </a>
+              )}
+              {SITE.contact.email && (
+                <a href={`mailto:${SITE.contact.email}`} dir="ltr" className="pw-footer-link">
+                  {SITE.contact.email}
+                </a>
+              )}
+            </div>
+          )}
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
         </div>
       </footer>

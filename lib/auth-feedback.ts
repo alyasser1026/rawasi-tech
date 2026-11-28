@@ -50,6 +50,34 @@ export function getSafeAuthRedirect(redirect?: string | null): string | null {
   }
 }
 
+const LOCAL_AUTH_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]']);
+
+function parseHttpOrigin(raw?: string | null): { origin: string; isLocal: boolean } | null {
+  const value = String(raw || '').trim();
+  if (!value) return null;
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+    const host = parsed.hostname.toLowerCase();
+    return {
+      origin: parsed.origin,
+      isLocal: LOCAL_AUTH_HOSTS.has(host) || host.endsWith('.localhost'),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** Avoid sending localhost confirmation links when a public production URL is configured. */
+export function resolvePublicAuthOrigin(windowOrigin: string, configuredSiteUrl?: string | null): string {
+  const current = parseHttpOrigin(windowOrigin);
+  const configured = parseHttpOrigin(configuredSiteUrl);
+  if ((!current || current.isLocal) && configured && !configured.isLocal) {
+    return configured.origin;
+  }
+  return current?.origin || 'https://www.phi-tech.org';
+}
+
 /** Both signup and resend return to this site's login, preserving a local destination. */
 export function getAuthEmailRedirectTo(origin: string, redirect?: string | null, portal?: string | null): string {
   const target = new URL('/login', new URL(origin).origin);

@@ -1127,7 +1127,7 @@ export default function SectionDetailClient({
         </div>
       </main>
 
-      <footer className="pw-footer">
+      <footer id="contact" className="pw-footer">
         <div className="pw-wrap">
           <div className="pw-footer-row">
             <div className="pw-footer-brand">
@@ -1144,6 +1144,20 @@ export default function SectionDetailClient({
               <Link href={cart.portalHref || '/login?portal=employee'} className="pw-footer-link">🏢 بوابة الموظفين</Link>
             )}
           </div>
+          {(SITE.contact.phone || SITE.contact.email) && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 14px', marginTop: '10px' }}>
+              {SITE.contact.phone && (
+                <a href={`tel:${SITE.contact.phone}`} dir="ltr" className="pw-footer-link">
+                  {SITE.contact.phone}
+                </a>
+              )}
+              {SITE.contact.email && (
+                <a href={`mailto:${SITE.contact.email}`} dir="ltr" className="pw-footer-link">
+                  {SITE.contact.email}
+                </a>
+              )}
+            </div>
+          )}
           <p className="pw-footer-bottom">© {new Date().getFullYear()} {SITE.name} — جميع الحقوق محفوظة</p>
         </div>
       </footer>

@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { THEME } from '@/lib/theme'; 
+import { getAuthEmailRedirectTo, resolvePublicAuthOrigin } from '@/lib/auth-feedback';
 import Image from 'next/image';
 import SmartCombo from '@/components/SmartCombo'; 
 
@@ -69,10 +70,22 @@ export default function SignUpPage() {
 
         try {
             // 1️⃣ إنشاء الحساب في Supabase Auth
+            const authOrigin = resolvePublicAuthOrigin(
+                window.location.origin,
+                typeof process !== 'undefined' ? process.env.NEXT_PUBLIC_SITE_URL : undefined
+            );
+            const emailRedirectTo = getAuthEmailRedirectTo(
+                authOrigin,
+                null,
+                form.role === 'client' ? null : 'employee'
+            );
             const { data, error } = await supabase.auth.signUp({
                 email: form.email,
                 password: form.password,
-                options: { data: { full_name: form.fullName, role: form.role } }
+                options: {
+                    emailRedirectTo,
+                    data: { full_name: form.fullName, role: form.role },
+                },
             });
 
             if (error) throw error;

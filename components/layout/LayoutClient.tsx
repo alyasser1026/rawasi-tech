@@ -5,14 +5,14 @@ import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { isNetworkError } from '@/lib/offline/offlineExecutor';
 import { usePermissions } from '@/lib/PermissionsContext';
-import { isPublicRoute } from '@/components/authGuard';
+import { isPublicRoute, isErpStaffOrPartnerProfile } from '@/components/authGuard';
 import LoadingScreen from '@/components/LoadingScreen';
 import EnterpriseShell from '@/components/EnterpriseShell';
 
 export default function LayoutClient({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { loading } = usePermissions();
+  const { loading, profile } = usePermissions();
   const [isInitialized, setIsInitialized] = useState(false);
   const isPublicPage = isPublicRoute(pathname);
 
@@ -73,6 +73,10 @@ export default function LayoutClient({ children }: { children: React.ReactNode }
   }, [isPublicPage, pathname, router]);
 
   if (isPublicPage) return <>{children}</>;
+  const isCustomerProfile =
+    pathname?.toLowerCase() === '/profile' && !loading && !isErpStaffOrPartnerProfile(profile);
   if (loading && !isInitialized) return <LoadingScreen message="جاري تهيئة النظام..." subMessage="يتم الآن تجميع صلاحياتك الخاصة وتأمين الواجهة" fullScreen />;
+  if (pathname?.toLowerCase() === '/profile' && loading) return <LoadingScreen message="جاري تهيئة النظام..." subMessage="يتم الآن تجميع صلاحياتك الخاصة وتأمين الواجهة" fullScreen />;
+  if (isCustomerProfile) return <>{children}</>;
   return <EnterpriseShell>{children}</EnterpriseShell>;
 }

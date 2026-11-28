@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { PanelRightClose, PanelRightOpen, X, FileText, LogOut } from 'lucide-react';
 import { menuGroups } from '@/lib/menuData';
 import { usePermissions } from '@/lib/PermissionsContext';
+import { isErpStaffOrPartnerProfile } from '@/components/authGuard';
 import { useDialogFocus } from '@/hooks/useDialogFocus';
 import { navigationIcons } from './NavigationIcon';
 import { supabase } from '@/lib/supabase';
@@ -17,7 +18,8 @@ import ThemeSwitcher from './ThemeSwitcher';
 export default function EnterpriseShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { can, role } = usePermissions();
+  const { can, role, profile } = usePermissions();
+  const hasInternalErpAccess = ['admin', 'super_admin'].includes(role) || isErpStaffOrPartnerProfile(profile);
   const { unread_messages, unread_notifications } = useUnreadCounts();
   const displayName = useDisplayName();
   const [signingOut, setSigningOut] = useState(false);
@@ -28,7 +30,7 @@ export default function EnterpriseShell({ children }: { children: React.ReactNod
   useDialogFocus(mobilePanel, mobileOpen, closeMobile);
   useEffect(() => { try { setCollapsed(localStorage.getItem('phi:nav-collapsed') === 'true'); } catch {} }, []);
   useEffect(() => { setMobileOpen(false); }, [pathname]);
-  const groups = menuGroups.map((group, index) => ({ ...group, index, items: group.items.filter(item => ['admin', 'super_admin'].includes(role) || ['home', 'profile', 'messages', 'notifications'].includes(item.id) || can(item.id, 'view')) })).filter(group => group.items.length);
+  const groups = menuGroups.map((group, index) => ({ ...group, index, items: group.items.filter(item => ['admin', 'super_admin'].includes(role) || (hasInternalErpAccess && ['home', 'profile', 'messages', 'notifications'].includes(item.id)) || can(item.id, 'view')) })).filter(group => group.items.length);
   const navigation = (compact = false) => <nav aria-label="شاشات البرنامج">{groups.map(group => <div className="ent-nav-group" key={group.group}>
     {!compact && <p>{group.group}</p>}
     {group.items.map(item => { const Icon = navigationIcons[item.id] || FileText; const isCurrent = pathname === item.path || (item.path !== '/' && pathname.startsWith(`${item.path}/`) && !groups.some(group => group.items.some(other => other.path !== item.path && other.path.length > item.path.length && (pathname === other.path || pathname.startsWith(`${other.path}/`))))); const unread = item.id === 'messages' ? unread_messages : item.id === 'notifications' ? unread_notifications : 0; return <Link href={item.path} key={item.id} className={`ent-nav-link ${isCurrent ? 'is-current' : ''}`} aria-current={isCurrent ? 'page' : undefined} aria-label={compact ? item.title : undefined} title={compact ? item.title : undefined} onClick={closeMobile}>
