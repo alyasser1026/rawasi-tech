@@ -8,11 +8,9 @@
  */
 
 import { NextResponse } from 'next/server';
-import type { SupabaseClient } from '@supabase/supabase-js';
 import { PRODUCT_CATEGORIES } from '@/app/site/store-catalog';
 import {
   auditTrainerProposal,
-  containsOrRedactsSecrets,
   describeRequestedScope,
   detectUnauthorizedRequestKeys,
   type ProposalSecurityFlag,
@@ -188,172 +186,6 @@ function sanitizeDraftPayload(
     };
   }
   return { ok: true, payload: cleanCfg };
-}
-
-async function generateInstantAntigravityReply(
-  sb: SupabaseClient,
-  agentName: string,
-  incomingMessage: string,
-  recentMessages: AgentDialogueMessage[]
-): Promise<string> {
-  const [missesRes, synRes, propRes, training] = await Promise.all([
-    sb
-      .from('copilot_search_misses')
-      .select('id, raw_query, category_filter, hit_count')
-      .eq('resolved', false)
-      .order('hit_count', { ascending: false })
-      .limit(12),
-    sb.from('store_search_synonyms').select('id', { count: 'exact', head: true }).eq('is_active', true),
-    sb
-      .from('store_copilot_training_proposals')
-      .select('id', { count: 'exact', head: true })
-      .eq('status', 'pending'),
-    getCachedCopilotTraining(sb, { bypassCache: true }),
-  ]);
-
-  const openMisses = missesRes.error ? [] : missesRes.data || [];
-  const activeSynonymsCount = synRes.count ?? 0;
-  const pendingProposalsCount = propRes.count ?? 0;
-
-  const missesSummary =
-    openMisses.length > 0
-      ? openMisses
-          .map(
-            (m: any) =>
-              `#${m.id}: "${String(m.raw_query || '')}" (${Number(m.hit_count || 1)}x${m.category_filter ? `, ${m.category_filter}` : ''})`
-          )
-          .join(' | ')
-      : 'لا توجد كلمات مفتوحة غير محلولة حالياً.';
-
-  const systemPrompt = [
-    'أنت "Antigravity AI" — المساعد الهندسي المشرف على كود وموقع متجر فاي تك (PhiTech)، وتتحاور الآن مباشرة داخل غرفة التنسيق عبر /api/store-copilot/trainer مع الإيجنت التدريبي الخارجي.',
-    '',
-    '### قواعد أمنية غير قابلة للكسر (Zero-Secrets Rule):',
-    '1. ممنوع منعاً باتاً ذكر أو تسريب أو تخمين أي كلمة سر، أو مفتاح API، أو توكن، أو متغيرات .env، أو بيانات عملاء شخصية (أسماء حقيقية، أرقام هواتف، عناوين، IP).',
-    '2. وضّح بصراحة الفرق بين ما هو مؤكد في بنية النظام الموصوفة هنا وبين أي شيء غير ظاهر لك أو استنتاجي، ولا تخترع ملفات أو أسطر غير موجودة.',
-    '3. التزم بدورك كشريك تنسيق هندسي وتدريبي بالعربية الواضحة والمختصرة، ووجّه الإيجنت للعمل على المرادفات (مع دعم الحقلين linked_product و order_scenario) ومقالات المعرفة وجودة البحث.',
-    '',
-    '### الحالة الحية غير الحساسة للنظام الآن:',
-    `- اسم الإيجنت المحاور: ${agentName}`,
-    `- عدد المرادفات النشطة في store_search_synonyms: ${activeSynonymsCount}`,
-    `- عدد المقترحات المعلقة في store_copilot_training_proposals: ${pendingProposalsCount}`,
-    `- عدد كلمات البحث المفتوحة في copilot_search_misses (أولوية عليا): ${openMisses.length}`,
-    `- قائمة الكلمات المفتوحة الحالية: ${missesSummary}`,
-    `- إعدادات التدريب الحالية: persona_name="${training.config.persona_name}", knowledge_items=${training.knowledge.length}`,
-    '',
-    '### مرجع معماري مؤكد في المستودع (للاستشهاد عند السؤال عن النظام):',
-    '- الدستور وسياسة الرد: lib/copilot/response-policy.ts (getDeterministicPolicyReply, sanitizeCustomerReply للسياسات: الشحن، الدفع، الاستلام، الإرجاع، الضمان، الخصومات، مقارنة الماركات؛ منع الاختراع؛ أسماء الأقسام بالعربية)، lib/copilot/handoff.ts (getHandoffContact, resolveHandoffConsent, enforceActionClaims — التحويل يتطلب موافقة صريحة واسم حقيقي ورقم من 8-15 رقم)، lib/copilot/catalog-relevance.ts (تصفية ملاءمة المنتجات وتجاهل الغير متوفر inStock=false).',
-    '- البرومبتات والبحث: app/api/store-copilot/route.ts (buildSystemInstruction بـ 14 قاعدة صارمة + حقن سياسة الشركة وإعدادات التدريب + مقالات المعرفة)، lib/store-copilot-tools.ts (cleanCopilotSearchQuery لتنظيف كلمات المكان/الحشو مثل للشقة/للبيت و execSearchProducts مع إعادة المحاولة عبر كل الأقسام قبل تسجيل miss)، و lib/copilot/chat-auto-responder.ts + app/api/website-chat/route.ts للشات الحي.',
-    '- الصفحات والمسارات: واجهات الزوار (/ و /store و /sections/[slug] و /real-estate و /verify و /website)، ولوحة الإدارة (/website-admin للمديرين عبر verifyAdminAuth)، ومسارات الـ API (/api/store-copilot، /api/store-copilot/trainer، /api/store-copilot/admin، /api/website-chat، /api/website-store، /api/website-visitors).',
-    '- حوكمة التدريب: الجداول store_search_synonyms، store_copilot_knowledge، store_copilot_training_config، store_copilot_training_proposals، copilot_search_misses؛ وكل المدخلات تمر عبر lib/copilot/proposal-security.ts والاعتماد يتم فقط بيد المدير من /website-admin.',
-  ].join('\n');
-
-  const historyLines = recentMessages
-    .slice(-8)
-    .map((m) => `${m.sender_name} (${m.sender}): ${m.message.slice(0, 500)}`)
-    .join('\n');
-
-  const userPrompt = [
-    historyLines ? `سجل آخر الرسائل في الغرفة:\n${historyLines}\n` : '',
-    `رسالة ${agentName} الجديدة الآن:\n${incomingMessage}`,
-  ]
-    .filter(Boolean)
-    .join('\n');
-
-  const geminiKey = (process.env.GEMINI_API_KEY || '').trim();
-  const groqKey = (process.env.GROQ_API_KEY || '').trim();
-  const geminiModels = [
-    ...(process.env.STORE_COPILOT_GEMINI_MODEL ? [process.env.STORE_COPILOT_GEMINI_MODEL.trim()] : []),
-    'gemini-2.5-flash',
-    'gemini-3.5-flash-lite',
-  ].filter(Boolean);
-  const groqModels = [
-    ...(process.env.STORE_COPILOT_GROQ_MODEL ? [process.env.STORE_COPILOT_GROQ_MODEL.trim()] : []),
-    'llama-3.3-70b-versatile',
-    'openai/gpt-oss-20b',
-  ].filter(Boolean);
-
-  let rawReply = '';
-
-  if (geminiKey) {
-    for (const model of geminiModels) {
-      try {
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiKey)}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              systemInstruction: { parts: [{ text: systemPrompt }] },
-              contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
-              generationConfig: { temperature: 0.25, maxOutputTokens: 900 },
-            }),
-            signal: AbortSignal.timeout(12_000),
-          }
-        );
-        if (!res.ok) continue;
-        const data = (await res.json()) as any;
-        const text = Array.isArray(data?.candidates?.[0]?.content?.parts)
-          ? data.candidates[0].content.parts
-              .map((p: any) => (typeof p?.text === 'string' ? p.text : ''))
-              .join('\n')
-              .trim()
-          : '';
-        if (text) {
-          rawReply = text;
-          break;
-        }
-      } catch {
-        // try next model or fallback
-      }
-    }
-  }
-
-  if (!rawReply && groqKey) {
-    for (const model of groqModels) {
-      try {
-        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${groqKey}`,
-          },
-          body: JSON.stringify({
-            model,
-            temperature: 0.25,
-            max_tokens: 900,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt },
-            ],
-          }),
-          signal: AbortSignal.timeout(12_000),
-        });
-        if (!res.ok) continue;
-        const data = (await res.json()) as any;
-        const text = String(data?.choices?.[0]?.message?.content || '').trim();
-        if (text) {
-          rawReply = text;
-          break;
-        }
-      } catch {
-        // try next model or deterministic fallback
-      }
-    }
-  }
-
-  if (!rawReply) {
-    rawReply = [
-      `تم استلام رسالتك بنجاح يا ${agentName} ✅`,
-      `- الحالة الحية الآن: ${activeSynonymsCount} مرادفاً نشطاً، ${pendingProposalsCount} مقترحاً معلقاً، و${openMisses.length} كلمة مفتوحة في copilot_search_misses.`,
-      openMisses.length > 0 ? `- أولوية المراجعة حالياً: ${missesSummary}` : '',
-      '- أرسل مقترحاتك المنظمة إلى /api/store-copilot/trainer (مع حقلي linked_product و order_scenario عند اقتراح مرادف)، وستظل بانتظار موافقة المدير في /website-admin.',
-    ]
-      .filter(Boolean)
-      .join('\n');
-  }
-
-  return containsOrRedactsSecrets(rawReply).sanitized.slice(0, 2900);
 }
 
 export async function GET(req: Request) {
@@ -650,39 +482,36 @@ export async function POST(req: Request) {
 
     let antigravityReplyEntry: AgentDialogueMessage | null = null;
     let latestState = saved.state;
-    try {
-      const instantReplyText = await generateInstantAntigravityReply(
-        sb,
-        agentName,
-        msgText,
-        saved.state.messages
-      );
-      if (instantReplyText) {
-        const agySaved = await appendAgentDialogueMessage(sb, {
-          sender: 'antigravity',
-          sender_name: 'Antigravity AI',
-          message: instantReplyText,
-          reply_to_id: saved.entry?.id ?? null,
-        });
-        if (agySaved.ok) {
-          antigravityReplyEntry = agySaved.entry ?? null;
-          latestState = agySaved.state;
-        }
+    const savedId = saved.entry?.id ?? null;
+    const savedCreatedAtMs = Date.parse(saved.entry?.created_at || '');
+
+    for (let attempt = 0; attempt < 7; attempt++) {
+      await new Promise((r) => setTimeout(r, 2000));
+      const polled = await loadAgentDialogue(sb);
+      latestState = polled;
+      const matched = [...polled.messages].reverse().find((m) => {
+        if (m.sender !== 'antigravity' && m.sender !== 'admin') return false;
+        if (savedId && m.reply_to_id === savedId) return true;
+        const mMs = Date.parse(m.created_at || '');
+        return Number.isFinite(savedCreatedAtMs) && Number.isFinite(mMs) && mMs > savedCreatedAtMs;
+      });
+      if (matched) {
+        antigravityReplyEntry = matched;
+        break;
       }
-    } catch {
-      // keep saved external agent message even if instant AI generation fails
     }
 
     return NextResponse.json(
       {
         ok: true,
+        status: antigravityReplyEntry ? 'replied' : 'pending_antigravity',
         entry: saved.entry,
         antigravityReply: antigravityReplyEntry,
         messagesForAgent: latestState.unreadForAgent,
         recentMessages: latestState.messages.slice(-30),
         message: antigravityReplyEntry
-          ? 'تم تسليم رسالتك والرد عليها فوراً من Antigravity AI.'
-          : 'تم تسليم رسالتك إلى Antigravity بنجاح.',
+          ? 'تم تسليم رسالتك والرد عليك مباشرة من Antigravity.'
+          : 'تم تسليم رسالتك إلى جلسة Antigravity الحية وهي قيد القراءة والرد — راجع antigravityDialogue في GET /api/store-copilot/trainer بعد لحظات.',
       },
       { status: 201 }
     );
