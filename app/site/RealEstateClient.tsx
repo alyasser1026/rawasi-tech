@@ -10,6 +10,10 @@ import PublicHeader, { PUBLIC_NAV_ITEMS } from './PublicHeader';
 import LoginModal from './LoginModal';
 import FloatingContactChat from './FloatingContactChat';
 import { rememberVisitorContact } from '@/lib/client-device-info';
+import {
+  invalidateProfileRequestsCache,
+  readOptionalClientAuthHeaders,
+} from '@/components/QueryProvider';
 
 export default function RealEstateClient({ content }: { content?: SiteContentOverride }) {
   const { SITE, PROPERTIES } = mergeContent(content);
@@ -52,12 +56,13 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
     setSubmitting(true);
     try {
       rememberVisitorContact({ name: leadName.trim(), phone: leadPhone.trim() });
+      const { headers: authHeaders, userId: resolvedUserId } = await readOptionalClientAuthHeaders(cart.user?.id);
       const res = await fetch('/api/website-store', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           orderType: 'property_inquiry',
-          userId: cart.user?.id || null,
+          userId: resolvedUserId,
           customerName: leadName.trim(),
           customerPhone: leadPhone.trim(),
           customerEmail: cart.user?.email || '',
@@ -75,6 +80,7 @@ export default function RealEstateClient({ content }: { content?: SiteContentOve
       if (!res.ok || !data?.ok) {
         throw new Error(data?.error || 'تعذر تسجيل الطلب حالياً');
       }
+      invalidateProfileRequestsCache();
       setSubmittedRef(data.refCode || 'PRP-2026');
     } catch (err: any) {
       setErrMsg(err?.message || 'حدث خطأ أثناء إرسال الطلب');

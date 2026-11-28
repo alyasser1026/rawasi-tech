@@ -10,6 +10,7 @@ import {
   clearCompanyScopedClientCaches,
   getCompanyCacheKey,
   isCompanyCacheIsolationDisabled,
+  shouldDehydratePersistedQuery,
 } from '@/lib/company-cache';
 import { reportTechnicalError } from '@/lib/telegram-alerts';
 
@@ -83,6 +84,37 @@ export const sharedQueryClient = new QueryClient({
   },
 });
 
+export { shouldDehydratePersistedQuery };
+
+/**
+ * Resolves optional Bearer auth header and user ID from the active Supabase session
+ * without blocking anonymous visitors when signed out.
+ */
+export async function readOptionalClientAuthHeaders(fallbackUserId?: string | null): Promise<{
+  headers: Record<string, string>;
+  userId: string | null;
+}> {
+  let token: string | null = null;
+  let sessionUserId: string | null = null;
+  try {
+    const { supabase } = await import('@/lib/supabase');
+    const { data } = await supabase.auth.getSession();
+    token = data?.session?.access_token ?? null;
+    sessionUserId = data?.session?.user?.id ?? null;
+  } catch {
+    // Keep anonymous quote/order submission working without requiring login
+  }
+  return {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    userId: sessionUserId || fallbackUserId || null,
+  };
+}
+
+/** Invalidates cached `/profile` requests data after submitting a new order/request. */
+export function invalidateProfileRequestsCache(): void {
+  void sharedQueryClient.invalidateQueries({ queryKey: ['employeeProfileData'] });
+}
+
 export default function QueryProvider({ children }: { children: React.ReactNode }) {
   const [companyBuster, setCompanyBuster] = useState<string>(() => getActiveCompanyId() ?? 'default');
 
@@ -139,8 +171,11 @@ export default function QueryProvider({ children }: { children: React.ReactNode 
       client={sharedQueryClient}
       persistOptions={{
         persister: companyPersister,
-        buster: companyBuster,
+        buster: `${companyBuster}:v3`,
         maxAge: 1000 * 60 * 60 * 24,
+        dehydrateOptions: {
+          shouldDehydrateQuery: shouldDehydratePersistedQuery,
+        },
       }}
     >
       {children}

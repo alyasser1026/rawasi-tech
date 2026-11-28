@@ -121,3 +121,37 @@ test('6.3 resolveOptionalRequestUserId binds verified JWT user and preserves ano
   const expiredUid = await authMod.resolveOptionalRequestUserId(clientMock, reqExpired, 'not-a-uuid');
   assert.equal(expiredUid, null);
 });
+
+test('6.4 shouldDehydratePersistedQuery excludes employeeProfileData from IndexedDB persistence', () => {
+  const cacheMod = loadTsModule('../lib/company-cache.ts', {
+    'idb-keyval': { keys: async () => [], del: async () => {} },
+    './supabase': { ACTIVE_COMPANY_STORAGE_KEY: 'phi_active_company_id', getActiveCompanyId: () => null },
+  });
+
+  // Never persist profile/requests cache across reloads
+  assert.equal(
+    cacheMod.shouldDehydratePersistedQuery({
+      queryKey: ['employeeProfileData', null, 'default'],
+      state: { status: 'success' },
+    }),
+    false
+  );
+
+  // Normal successful queries still persist in IndexedDB
+  assert.equal(
+    cacheMod.shouldDehydratePersistedQuery({
+      queryKey: ['journalEntries', 'comp-1'],
+      state: { status: 'success' },
+    }),
+    true
+  );
+
+  // Failed / loading queries are never persisted
+  assert.equal(
+    cacheMod.shouldDehydratePersistedQuery({
+      queryKey: ['journalEntries', 'comp-1'],
+      state: { status: 'error' },
+    }),
+    false
+  );
+});

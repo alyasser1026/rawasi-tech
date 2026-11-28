@@ -31,6 +31,10 @@ import FloatingContactChat from './FloatingContactChat';
 import ContactModal from './ContactModal';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 import {
+  invalidateProfileRequestsCache,
+  readOptionalClientAuthHeaders,
+} from '@/components/QueryProvider';
+import {
   BagIcon,
   CheckIcon,
   ChevronLeftIcon,
@@ -483,12 +487,13 @@ export default function StoreClient({
         email: cart.user?.email,
       });
       const browserSessionId = getOrCreateBrowserSessionId();
+      const { headers: authHeaders, userId: resolvedUserId } = await readOptionalClientAuthHeaders(cart.user?.id);
       const res = await fetch('/api/website-store', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           orderType: 'maintenance_request',
-          userId: cart.user?.id || null,
+          userId: resolvedUserId,
           browserSessionId: browserSessionId || undefined,
           customerName: mntName.trim(),
           customerPhone: mntPhone.trim(),
@@ -511,6 +516,7 @@ export default function StoreClient({
       if (!res.ok || !data?.ok) {
         throw new Error(data?.error || 'تعذر تسجيل الطلب حالياً');
       }
+      invalidateProfileRequestsCache();
       setMntRef(data.refCode || 'MNT-2026');
       setMntLocation(null);
     } catch (err: any) {

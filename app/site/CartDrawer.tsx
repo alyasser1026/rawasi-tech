@@ -4,6 +4,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { supabase } from '@/lib/supabase';
+import {
+  invalidateProfileRequestsCache,
+  readOptionalClientAuthHeaders,
+} from '@/components/QueryProvider';
 import { rememberVisitorContact } from '@/lib/client-device-info';
 import { getDestinationForUser } from '@/lib/roleRouter';
 import { getOrCreateBrowserSessionId } from './browser-session';
@@ -666,13 +670,14 @@ export function CartDrawer({
         email: user?.email || '',
       });
       const browserSessionId = getOrCreateBrowserSessionId();
+      const { headers: authHeaders, userId: resolvedUserId } = await readOptionalClientAuthHeaders(user?.id);
 
       const res = await fetch('/api/website-store', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           orderType: 'store_order',
-          userId: user?.id || null,
+          userId: resolvedUserId,
           browserSessionId: browserSessionId || undefined,
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
@@ -693,6 +698,7 @@ export function CartDrawer({
         throw new Error(data?.error || 'تعذر إرسال الطلب حالياً');
       }
 
+      invalidateProfileRequestsCache();
       setOrderSuccessRef(data.refCode || 'ORD-2026');
       setDeliveryLocation(null);
       onClearCart();

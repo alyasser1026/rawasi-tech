@@ -43,6 +43,9 @@ export function useProfileLogic() {
     // 🧠 2. المحرك الأساسي: جلب البيانات الذكي المربوط (Joined Query)
     const { data, isLoading } = useQuery({
         queryKey: ['employeeProfileData', partnerId, companyScope],
+        staleTime: 0,
+        refetchOnMount: 'always',
+        refetchOnWindowFocus: true,
         queryFn: async () => {
             const { data: { session }, error: sessionError } = await supabase.auth.getSession();
             
@@ -321,6 +324,9 @@ export function useProfileLogic() {
         if (!userProfile?.id) return;
         const channel = supabase.channel('profile-realtime-updates')
             .on('postgres_changes', { event: '*', schema: 'public', table: 'user_tasks', filter: `user_id=eq.${userProfile.id}` }, () => {
+                queryClient.invalidateQueries({ queryKey: ['employeeProfileData'] });
+            })
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'user_requests', filter: `user_id=eq.${userProfile.id}` }, () => {
                 queryClient.invalidateQueries({ queryKey: ['employeeProfileData'] });
             })
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${userProfile.id}` }, () => {

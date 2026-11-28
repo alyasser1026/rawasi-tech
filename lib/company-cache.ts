@@ -36,6 +36,22 @@ export function isCompanyCacheIsolationDisabled(
   }
 }
 
+/** Queries that must never be persisted to IndexedDB across page reloads. */
+export const NON_PERSISTED_QUERY_ROOTS = new Set(['employeeProfileData']);
+
+/**
+ * Determines whether a React Query entry should be dehydrated into persistent IndexedDB storage.
+ * Only successful non-profile queries are persisted so `/profile` always reads fresh server state.
+ */
+export function shouldDehydratePersistedQuery(query: {
+  queryKey?: readonly unknown[];
+  state?: { status?: string };
+}): boolean {
+  if (query?.state?.status !== 'success') return false;
+  const rootKey = Array.isArray(query?.queryKey) ? String(query.queryKey[0] ?? '') : '';
+  return !NON_PERSISTED_QUERY_ROOTS.has(rootKey);
+}
+
 /** Builds a deterministic IndexedDB/React Query cache key scoped to the given company. */
 export function getCompanyCacheKey(companyId?: string | null): string {
   const resolved = companyId !== undefined ? companyId : getActiveCompanyId();

@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { rememberVisitorContact } from '@/lib/client-device-info';
+import { invalidateProfileRequestsCache } from '@/components/QueryProvider';
 import { filterRelevantCatalogProducts, inferCatalogIntent, isProductOrderable, toCustomerDisplayText } from '@/lib/copilot/catalog-relevance';
 import { getOrCreateBrowserSessionId, syncBrowserSessionId } from './browser-session';
 import type { DeliveryLocation } from './delivery-location';
@@ -591,6 +592,7 @@ export default function StoreCopilotPanel({
             name: data.submittedOrder.customerName,
             phone: data.submittedOrder.customerPhone,
           });
+          invalidateProfileRequestsCache();
         }
 
         const botMsg: CopilotUiMessage = {
@@ -796,6 +798,7 @@ export default function StoreCopilotPanel({
 
       rememberVisitorContact({ name: cleanName, phone: cleanPhone });
       syncBrowserSessionId(sessionId);
+      invalidateProfileRequestsCache();
 
       const ord = data.submittedOrder;
       const confirmMsg: CopilotUiMessage = {

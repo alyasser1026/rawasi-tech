@@ -7,6 +7,10 @@ import { supabase } from '@/lib/supabase';
 import { PHITECH_RINGS_PATH, PHITECH_PILLARS_PATH, PHITECH_TIGHT_VIEWBOX } from '@/lib/brand-logo-paths';
 import HeroVideoBackdrop from '@/components/HeroVideoBackdrop';
 import { printWithDocumentTitle } from '@/lib/printWithTitle';
+import {
+  invalidateProfileRequestsCache,
+  readOptionalClientAuthHeaders,
+} from '@/components/QueryProvider';
 
 const CapitalTower3D = dynamic(() => import('../site/CapitalTower3D'), {
   ssr: false,
@@ -544,21 +548,7 @@ export default function WebsitePage() {
 
     setIsSubmitting(true);
     try {
-      let authHeaders: Record<string, string> = {};
-      let sessionUserId: string | null = null;
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (session?.access_token) {
-          authHeaders = { Authorization: `Bearer ${session.access_token}` };
-        }
-        if (session?.user?.id) {
-          sessionUserId = session.user.id;
-        }
-      } catch {
-        // Keep anonymous quote submission working without requiring login
-      }
+      const { headers: authHeaders, userId: sessionUserId } = await readOptionalClientAuthHeaders();
 
       const res = await fetch('/api/website-quotes', {
         method: 'POST',
@@ -578,6 +568,7 @@ export default function WebsitePage() {
 
       const data = await res.json();
       if (res.ok && data.success) {
+        invalidateProfileRequestsCache();
         setSubmittedRef(data.refId);
         setIsModalOpen(true);
         setLeadName('');
