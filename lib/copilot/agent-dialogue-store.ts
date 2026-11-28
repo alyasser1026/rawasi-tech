@@ -5,6 +5,7 @@
  */
 
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { containsOrRedactsSecrets } from '@/lib/copilot/proposal-security';
 
 export const AGENT_DIALOGUE_TYPE = 'agent_dialogue';
 export const AGENT_DIALOGUE_ROOM = 'antigravity-trainer-room';
@@ -45,7 +46,7 @@ function sanitizeStoredMessages(raw: unknown): AgentDialogueMessage[] {
       id: String(m.id || `msg-${out.length + 1}`),
       sender,
       sender_name: String(m.sender_name || sender).slice(0, 80),
-      message: text.slice(0, 3000),
+      message: containsOrRedactsSecrets(text).sanitized.slice(0, 3000),
       reply_to_id: typeof m.reply_to_id === 'string' ? m.reply_to_id : null,
       status,
       created_at: String(m.created_at || new Date().toISOString()),
@@ -116,6 +117,19 @@ export async function appendAgentDialogueMessage(
   if (!cleanMessage) {
     const cur = await loadAgentDialogue(sb);
     return { ok: false, error: 'نص الرسالة مطلوب.', state: cur };
+  }
+
+  if (input.sender === 'antigravity' || input.sender === 'admin') {
+    const secretCheck = containsOrRedactsSecrets(cleanMessage);
+    if (secretCheck.hasSecret) {
+      const cur = await loadAgentDialogue(sb);
+      return {
+        ok: false,
+        error:
+          'تم منع إرسال الرسالة لأنها تحتوي على نمط مفتاح سري أو كلمة سر — يُمنع مشاركة أي أسرار مع الإيجنت الخارجي.',
+        state: cur,
+      };
+    }
   }
 
   const nowIso = new Date().toISOString();

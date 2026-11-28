@@ -222,10 +222,11 @@ const SECURITY_RULES: SecurityRule[] = [
   {
     code: 'PRIVILEGE_OR_PERMISSION_REQUEST',
     severity: 'critical',
-    title: 'طلب صلاحية مرفوضة أو الإشارة لمفاتيح النظام',
-    detail: 'تم رصد محاولة لطلب صلاحية مدير/قاعدة/ملفات أو قراءة متغيرات البيئة والأسرار.',
+    title: 'طلب صلاحية مرفوضة أو الإشارة لمفاتيح النظام وكلمات السر',
+    detail:
+      'تم رصد محاولة للسؤال عن كلمات السر أو المفاتيح السرية أو التوكنات أو طلب صلاحية مدير/قاعدة/ملفات.',
     pattern:
-      /(?:\bservice_role\b|\bis_admin\b|\bsuper_admin\b|\bGRANT\s+ALL\b|\bDISABLE\s+ROW\s+LEVEL\s+SECURITY\b|\bALTER\s+POLICY\b|SUPABASE_SERVICE_ROLE_KEY|GEMINI_API_KEY|GROQ_API_KEY|TELEGRAM_BOT_TOKEN|STORE_COPILOT_TRAINER_KEY|GITHUB_TOKEN|\.env\.local|\bprocess\.env\b|Authorization\s*:\s*Bearer|(?:اعطني|افتح|امنح(?:ني)?|ارفع|تجاوز)\s+صلاحية|صلاحية\s+(?:مدير|ادمن|أدمن|تنفيذ|امر|أمر|شيل|ملفات|كود|نشر مباشر|قاعدة|سيرفر))/i,
+      /(?:\bservice_role\b|\bis_admin\b|\bsuper_admin\b|\bGRANT\s+ALL\b|\bDISABLE\s+ROW\s+LEVEL\s+SECURITY\b|\bALTER\s+POLICY\b|SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|NEXT_PUBLIC_SUPABASE_ANON_KEY|GEMINI_API_KEY|GROQ_API_KEY|TELEGRAM_BOT_TOKEN|WHATSAPP_API_TOKEN|WHATSAPP_WEBHOOK_VERIFY_TOKEN|STORE_COPILOT_TRAINER_KEY|EXTERNAL_TRAINER_AGENT_API_KEY|GITHUB_TOKEN|DATABASE_URL|POSTGRES_URL|\.env\.local|\bprocess\.env\b|Authorization\s*:\s*Bearer|كلمة\s*السر|كلمات\s*السر|كلمة\s*المرور|باسورد|الباسورد|باسوورد|\bpasswords?\b|\bpasswd\b|\bapi[_-\s]?keys?\b|\bsecret[_-\s]?keys?\b|\bprivate[_-\s]?keys?\b|\baccess[_-\s]?tokens?\b|\bcredentials?\b|مفتاح\s*(?:الـ?\s*)?(?:api|سري|خاص|دخول|تشفير|التوقيع|الموقع|السيرفر)|مفاتيح\s*(?:الـ?\s*)?(?:api|سرية|النظام|الدخول|الموقع)|بيانات\s*الدخول|(?:اعطني|افتح|امنح(?:ني)?|ارفع|تجاوز)\s+صلاحية|صلاحية\s+(?:مدير|ادمن|أدمن|تنفيذ|امر|أمر|شيل|ملفات|كود|نشر مباشر|قاعدة|سيرفر))/i,
   },
   {
     code: 'PROMPT_INJECTION_OR_GUARD_BYPASS',
@@ -321,4 +322,63 @@ export function auditTrainerProposal(input: {
       : 'safe';
 
   return { riskLevel, flags, hasCritical };
+}
+
+const RUNTIME_SECRET_ENV_NAMES = [
+  'SUPABASE_SERVICE_ROLE_KEY',
+  'SUPABASE_SECRET_KEY',
+  'GEMINI_API_KEY',
+  'GROQ_API_KEY',
+  'TELEGRAM_BOT_TOKEN',
+  'WHATSAPP_API_TOKEN',
+  'WHATSAPP_WEBHOOK_VERIFY_TOKEN',
+  'STORE_COPILOT_TRAINER_KEY',
+  'EXTERNAL_TRAINER_AGENT_API_KEY',
+  'JWT_SECRET',
+  'DATABASE_URL',
+  'POSTGRES_URL',
+] as const;
+
+const OUTBOUND_SECRET_PATTERNS: RegExp[] = [
+  /AIza[0-9A-Za-z_-]{20,}/g,
+  /gsk_[0-9A-Za-z_-]{20,}/g,
+  /\bsk-[0-9A-Za-z_-]{20,}/g,
+  /eyJhbGci[0-9A-Za-z_.-]{20,}/g,
+  /\b\d{8,11}:[A-Za-z0-9_-]{30,}/g,
+  /postgres(?:ql)?:\/\/[^\s"'<>]+/gi,
+  /Bearer\s+[A-Za-z0-9._-]{12,}/gi,
+  /(?:SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY|NEXT_PUBLIC_SUPABASE_ANON_KEY|GEMINI_API_KEY|GROQ_API_KEY|TELEGRAM_BOT_TOKEN|WHATSAPP_API_TOKEN|WHATSAPP_WEBHOOK_VERIFY_TOKEN|STORE_COPILOT_TRAINER_KEY|EXTERNAL_TRAINER_AGENT_API_KEY|GITHUB_TOKEN|DATABASE_URL|POSTGRES_URL)\s*[:=]\s*\S+/gi,
+  /(?:password|passwd|api[_-]?key|secret[_-]?key|private[_-]?key|access[_-]?token)\s*[:=]\s*\S+/gi,
+  /(?:كلمة\s*السر|كلمة\s*المرور|الباسورد|باسورد|مفتاح\s*(?:الـ?\s*)?(?:API|سري|الدخول))\s*[:：=]\s*\S+/gi,
+];
+
+export function containsOrRedactsSecrets(text: string): {
+  hasSecret: boolean;
+  sanitized: string;
+  matchedReason?: string;
+} {
+  let sanitized = String(text || '');
+  let hasSecret = false;
+  let matchedReason: string | undefined;
+
+  for (const envName of RUNTIME_SECRET_ENV_NAMES) {
+    const val = (process.env[envName] || '').trim();
+    if (val.length >= 8 && sanitized.includes(val)) {
+      hasSecret = true;
+      matchedReason = matchedReason || `runtime_env:${envName}`;
+      sanitized = sanitized.split(val).join('[محجوب أمنياً]');
+    }
+  }
+
+  for (const pattern of OUTBOUND_SECRET_PATTERNS) {
+    const rx = new RegExp(pattern.source, pattern.flags);
+    if (rx.test(sanitized)) {
+      hasSecret = true;
+      matchedReason = matchedReason || 'secret_pattern';
+      const replaceRx = new RegExp(pattern.source, pattern.flags);
+      sanitized = sanitized.replace(replaceRx, '[محجوب أمنياً]');
+    }
+  }
+
+  return { hasSecret, sanitized, matchedReason };
 }
