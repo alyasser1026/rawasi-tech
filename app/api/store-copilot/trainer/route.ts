@@ -24,6 +24,10 @@ import {
 } from '@/lib/copilot/training-store';
 import { getCachedCatalogOverview, getServiceSupabase } from '@/lib/store-copilot-tools';
 import { sendTrainerSecurityAlertTelegram } from '@/lib/store-order-telegram';
+import {
+  appendAgentDialogueMessage,
+  loadAgentDialogue,
+} from '@/lib/copilot/agent-dialogue-store';
 
 export const runtime = 'nodejs';
 
@@ -202,7 +206,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const [overview, missesRes, synonymsRes, training, proposalsRes] = await Promise.all([
+    const [overview, missesRes, synonymsRes, training, proposalsRes, dialogue] = await Promise.all([
       getCachedCatalogOverview(sb),
       sb
         .from('copilot_search_misses')
@@ -222,6 +226,7 @@ export async function GET(req: Request) {
         .select('id, agent_name, proposal_type, title, risk_level, status, created_at')
         .order('created_at', { ascending: false })
         .limit(20),
+      loadAgentDialogue(sb),
     ]);
 
     const proposalsReady = !isMissingTrainingTableError(proposalsRes.error);
@@ -243,6 +248,12 @@ export async function GET(req: Request) {
       })),
       proposalsReady,
       recentProposals: proposalsReady && Array.isArray(proposalsRes.data) ? proposalsRes.data : [],
+      antigravityDialogue: {
+        messagesForAgent: dialogue.unreadForAgent,
+        recentMessages: dialogue.messages.slice(-30),
+        instructions:
+          'للتحدث مع Antigravity أو الرد على رسائله عبر الموقع، أرسل POST إلى نفس الرابط مع {"action":"agent_message","agent_name":"اسم-الإيجنت","message":"رسالتك أو سؤالك"}. ولإرسال مقترح مرادف/معرفة، استخدم proposal_type.',
+      },
     });
   } catch (err: any) {
     return NextResponse.json(
@@ -309,8 +320,12 @@ export async function POST(req: Request) {
     proposalType === 'synonym' ||
     proposalType === 'knowledge' ||
     proposalType === 'training_config';
+  const isDialogueMessage =
+    bodyObj.action === 'agent_message' ||
+    proposalType === 'agent_message' ||
+    (typeof bodyObj.message === 'string' && !proposalType);
 
-  if (unauthorizedKeys.length > 0 || !validType) {
+  if (unauthorizedKeys.length > 0 || (!validType && !isDialogueMessage)) {
     const flags: ProposalSecurityFlag[] = [];
     if (unauthorizedKeys.length > 0) {
       flags.push({
@@ -322,12 +337,13 @@ export async function POST(req: Request) {
         excerpt: unauthorizedKeys.slice(0, 8).join(', ').slice(0, 140),
       });
     }
-    if (!validType) {
+    if (!validType && !isDialogueMessage) {
       flags.push({
         code: 'UNAUTHORIZED_COMMAND_OR_PERMISSION',
         severity: 'critical',
         title: 'نوع مقترح غير مسموح به',
-        detail: 'الأنواع المسموحة للإيجنت الخارجي هي فقط: synonym, knowledge, training_config.',
+        detail:
+          'الأنواع المسموحة للإيجنت الخارجي هي فقط: synonym, knowledge, training_config أو agent_message.',
         field: 'proposal_type',
         excerpt: (proposalType || 'empty').slice(0, 140),
       });
@@ -391,6 +407,87 @@ export async function POST(req: Request) {
         flags,
       },
       { status: 403 }
+    );
+  }
+
+  if (isDialogueMessage) {
+    const msgText = String(bodyObj.message || reason || '').trim().slice(0, 3000);
+    if (!msgText) {
+      return NextResponse.json(
+        { ok: false, error: 'حقل message مطلوب لإرسال رسالة إلى Antigravity.' },
+        { status: 400 }
+      );
+    }
+
+    const msgAudit = auditTrainerProposal({
+      proposalType: 'agent_message',
+      title: title || 'رسالة حوار من الإيجنت الخارجي',
+      reason: msgText,
+      payload: { message: msgText },
+    });
+
+    if (msgAudit.hasCritical) {
+      try {
+        await sb.from('store_copilot_training_proposals').insert({
+          agent_name: agentName,
+          proposal_type: 'blocked_attempt',
+          title: 'رسالة حوار محظورة من الإيجنت الخارجي',
+          reason: msgText.slice(0, 300),
+          requested_scope: 'محظور تلقائياً: محتوى حرج في رسالة الحوار',
+          payload: { rawSnippet: msgText.slice(0, 500) },
+          risk_level: 'critical',
+          security_flags: msgAudit.flags,
+          status: 'blocked',
+        });
+      } catch {
+        // ignore logging failure
+      }
+      try {
+        await sendTrainerSecurityAlertTelegram({
+          agentName,
+          proposalType: 'blocked_attempt',
+          title: 'رسالة حوار محظورة من الإيجنت الخارجي',
+          blocked: true,
+          riskLevel: 'critical',
+          flags: msgAudit.flags,
+        });
+      } catch {
+        // non-blocking
+      }
+      return NextResponse.json(
+        {
+          ok: false,
+          blocked: true,
+          error: 'تم حظر الرسالة أمنياً لاحتوائها على مؤشرات حقن كود أو أسرار أو أوامر غير مصرح بها.',
+          flags: msgAudit.flags,
+        },
+        { status: 403 }
+      );
+    }
+
+    const saved = await appendAgentDialogueMessage(sb, {
+      sender: 'external_agent',
+      sender_name: agentName,
+      message: msgText,
+      reply_to_id: typeof bodyObj.reply_to_id === 'string' ? bodyObj.reply_to_id : null,
+    });
+
+    if (!saved.ok) {
+      return NextResponse.json(
+        { ok: false, error: saved.error || 'تعذر حفظ الرسالة في غرفة الحوار.' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json(
+      {
+        ok: true,
+        entry: saved.entry,
+        messagesForAgent: saved.state.unreadForAgent,
+        recentMessages: saved.state.messages.slice(-30),
+        message: 'تم تسليم رسالتك إلى Antigravity بنجاح.',
+      },
+      { status: 201 }
     );
   }
 

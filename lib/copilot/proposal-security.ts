@@ -50,6 +50,9 @@ const ALLOWED_TOP_LEVEL_KEYS = new Set([
   'title',
   'reason',
   'payload',
+  'action',
+  'message',
+  'reply_to_id',
 ]);
 
 const FORBIDDEN_KEY_NAMES = new Set([

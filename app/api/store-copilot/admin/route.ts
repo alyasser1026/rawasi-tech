@@ -18,6 +18,10 @@ import {
   auditTrainerProposal,
   TRAINER_AGENT_PERMISSION_MANIFEST,
 } from '@/lib/copilot/proposal-security';
+import {
+  appendAgentDialogueMessage,
+  loadAgentDialogue,
+} from '@/lib/copilot/agent-dialogue-store';
 
 export const runtime = 'nodejs';
 
@@ -291,7 +295,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const [synRes, missRes, overview, training, propRes] = await Promise.all([
+    const [synRes, missRes, overview, training, propRes, agentDialogue] = await Promise.all([
       sb.from('store_search_synonyms').select('*').order('synonym_type').order('id'),
       sb
         .from('copilot_search_misses')
@@ -307,6 +311,7 @@ export async function GET(req: Request) {
         .select('*')
         .order('created_at', { ascending: false })
         .limit(100),
+      loadAgentDialogue(sb),
     ]);
 
     if (synRes.error) {
@@ -350,6 +355,7 @@ export async function GET(req: Request) {
       knowledgeItems: training.knowledge,
       proposalsReady,
       proposals,
+      agentDialogue,
       trainerKeyConfigured,
       trainerPermissions: TRAINER_AGENT_PERMISSION_MANIFEST,
       stats: {
@@ -672,6 +678,32 @@ export async function POST(req: Request) {
         ok: true,
         rejectedCount: rejectedIds.length,
         rejectedIds,
+      });
+    }
+
+    if (body?.action === 'send_agent_dialogue_message') {
+      const msgText = String(body?.message || '').trim().slice(0, 3000);
+      if (!msgText) {
+        return NextResponse.json({ ok: false, error: 'نص الرسالة مطلوب' }, { status: 400 });
+      }
+      const sender: 'admin' | 'antigravity' =
+        body?.sender === 'admin' ? 'admin' : 'antigravity';
+      const senderName = sender === 'admin' ? 'مدير الموقع' : 'Antigravity AI';
+      const res = await appendAgentDialogueMessage(sb, {
+        sender,
+        sender_name: senderName,
+        message: msgText,
+      });
+      if (!res.ok) {
+        return NextResponse.json(
+          { ok: false, error: res.error || 'تعذر حفظ الرسالة' },
+          { status: 500 }
+        );
+      }
+      return NextResponse.json({
+        ok: true,
+        entry: res.entry,
+        agentDialogue: res.state,
       });
     }
 

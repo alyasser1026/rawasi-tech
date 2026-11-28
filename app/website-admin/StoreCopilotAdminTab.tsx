@@ -86,6 +86,16 @@ interface TrainerPermissionsManifest {
   denied: string[];
 }
 
+interface AgentDialogueMessageItem {
+  id: string;
+  sender: 'external_agent' | 'antigravity' | 'admin';
+  sender_name: string;
+  message: string;
+  reply_to_id?: string | null;
+  status: 'unread' | 'read' | 'replied';
+  created_at: string;
+}
+
 interface AdminStats {
   totalSynonyms: number;
   activeSynonyms: number;
@@ -157,6 +167,14 @@ export default function StoreCopilotAdminTab() {
   );
   const [selectedProposalIds, setSelectedProposalIds] = useState<number[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
+  const [agentDialogueMessages, setAgentDialogueMessages] = useState<AgentDialogueMessageItem[]>(
+    []
+  );
+  const [dialogueDraft, setDialogueDraft] = useState('');
+  const [dialogueSenderMode, setDialogueSenderMode] = useState<'antigravity' | 'admin'>(
+    'antigravity'
+  );
+  const [dialogueBusy, setDialogueBusy] = useState(false);
   const [stats, setStats] = useState<AdminStats>({
     totalSynonyms: 0,
     activeSynonyms: 0,
@@ -254,6 +272,9 @@ export default function StoreCopilotAdminTab() {
       );
       setSelectedProposalIds((prev) => prev.filter((id) => pendingIdSet.has(id)));
       setTrainerKeyConfigured(Boolean(data.trainerKeyConfigured));
+      setAgentDialogueMessages(
+        Array.isArray(data.agentDialogue?.messages) ? data.agentDialogue.messages : []
+      );
       setTrainerPermissions(
         data.trainerPermissions && typeof data.trainerPermissions === 'object'
           ? (data.trainerPermissions as TrainerPermissionsManifest)
@@ -715,6 +736,34 @@ export default function StoreCopilotAdminTab() {
       setErr(e?.message || 'تعذر رفض المقترح');
     } finally {
       setBusy(false);
+    }
+  };
+
+  const handleSendDialogueMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const clean = dialogueDraft.trim();
+    if (!clean || dialogueBusy) return;
+    setDialogueBusy(true);
+    setErr('');
+    setMsg('');
+    try {
+      const res = await authedRequest('/api/store-copilot/admin', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: 'send_agent_dialogue_message',
+          message: clean,
+          sender: dialogueSenderMode,
+        }),
+      });
+      if (Array.isArray(res.agentDialogue?.messages)) {
+        setAgentDialogueMessages(res.agentDialogue.messages);
+      }
+      setDialogueDraft('');
+      setMsg('تم إرسال الرسالة إلى غرفة التواصل مع الإيجنت الخارجي ✅');
+    } catch (e: any) {
+      setErr(e?.message || 'تعذر إرسال الرسالة');
+    } finally {
+      setDialogueBusy(false);
     }
   };
 
@@ -2540,6 +2589,158 @@ export default function StoreCopilotAdminTab() {
 
       {subTab === 'proposals' && (
         <div style={{ display: 'grid', gap: '16px' }}>
+          {/* غرفة التواصل المباشر بين الإيجنت الخارجي و Antigravity */}
+          <div
+            className="wa-card"
+            style={{
+              borderColor: 'rgba(2,132,199,0.4)',
+              background: 'linear-gradient(180deg, rgba(2,132,199,0.05) 0%, var(--card) 100%)',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '8px',
+                marginBottom: '10px',
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0 }}>
+                  💬 غرفة التواصل المباشر بين الإيجنت الخارجي و Antigravity ({agentDialogueMessages.length})
+                </h3>
+                <small className="wa-muted">
+                  الإيجنت يتواصل معي عبر <code>POST /api/store-copilot/trainer</code> (حقل{' '}
+                  <code>action: &quot;agent_message&quot;</code>)، ويقرأ ردود Antigravity تلقائياً في{' '}
+                  <code>GET /api/store-copilot/trainer</code> ضمن <code>antigravityDialogue</code>.
+                </small>
+              </div>
+              <button
+                type="button"
+                className="wa-btn"
+                disabled={loading || dialogueBusy}
+                onClick={() => void loadData()}
+                style={{ padding: '6px 11px', fontSize: '12.5px' }}
+              >
+                🔄 تحديث المحادثة
+              </button>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gap: '8px',
+                maxHeight: '280px',
+                overflowY: 'auto',
+                padding: '8px',
+                borderRadius: '10px',
+                border: '1px solid var(--line)',
+                background: 'var(--bg)',
+                marginBottom: '10px',
+              }}
+            >
+              {agentDialogueMessages.length === 0 ? (
+                <p className="wa-muted" style={{ margin: 0, fontSize: '13px' }}>
+                  لا توجد رسائل متبادلة بعد — أرسل أول رسالة للإيجنت أدناه أو اطلب من Antigravity مراسلته.
+                </p>
+              ) : (
+                agentDialogueMessages.map((dm) => {
+                  const isExt = dm.sender === 'external_agent';
+                  const isAgy = dm.sender === 'antigravity';
+                  return (
+                    <div
+                      key={dm.id}
+                      style={{
+                        padding: '8px 11px',
+                        borderRadius: '10px',
+                        border: `1px solid ${
+                          isExt ? 'rgba(249,115,22,0.4)' : isAgy ? 'rgba(2,132,199,0.4)' : 'rgba(22,163,74,0.4)'
+                        }`,
+                        background: isExt
+                          ? 'rgba(249,115,22,0.06)'
+                          : isAgy
+                            ? 'rgba(2,132,199,0.06)'
+                            : 'rgba(22,163,74,0.06)',
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          flexWrap: 'wrap',
+                          gap: '6px',
+                          fontSize: '12px',
+                          marginBottom: '4px',
+                        }}
+                      >
+                        <strong style={{ color: 'var(--ink)' }}>
+                          {isExt ? '🤖' : isAgy ? '⚡' : '👤'} {dm.sender_name}
+                        </strong>
+                        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                          <span className="wa-pill">
+                            {dm.status === 'replied'
+                              ? 'تم الرد'
+                              : dm.status === 'read'
+                                ? 'مقروءة'
+                                : 'جديدة'}
+                          </span>
+                          <span style={{ color: 'var(--mut)' }}>
+                            {new Date(dm.created_at).toLocaleString('ar-EG')}
+                          </span>
+                        </div>
+                      </div>
+                      <div style={{ fontSize: '13px', color: 'var(--ink)', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>
+                        {dm.message}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <form
+              onSubmit={handleSendDialogueMessage}
+              style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}
+            >
+              <select
+                value={dialogueSenderMode}
+                onChange={(e) =>
+                  setDialogueSenderMode(e.target.value === 'admin' ? 'admin' : 'antigravity')
+                }
+                style={{
+                  background: 'var(--bg)',
+                  color: 'var(--ink)',
+                  border: '1px solid var(--line)',
+                  borderRadius: '10px',
+                  padding: '9px 10px',
+                  font: 'inherit',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                }}
+              >
+                <option value="antigravity">⚡ باسم Antigravity AI</option>
+                <option value="admin">👤 باسم مدير الموقع</option>
+              </select>
+              <input
+                type="text"
+                className="wa-4d-search-input"
+                value={dialogueDraft}
+                onChange={(e) => setDialogueDraft(e.target.value)}
+                placeholder="اكتب رسالة أو توجيه ليقرأه الإيجنت الخارجي على الموقع..."
+              />
+              <button
+                type="submit"
+                className="wa-btn wa-primary"
+                disabled={dialogueBusy || !dialogueDraft.trim()}
+              >
+                {dialogueBusy ? 'جارٍ الإرسال...' : '📨 إرسال للإيجنت'}
+              </button>
+            </form>
+          </div>
+
           {/* بطاقة حدود الصلاحيات والأمان للإيجنت الخارجي */}
           <div className="wa-card">
             <div
