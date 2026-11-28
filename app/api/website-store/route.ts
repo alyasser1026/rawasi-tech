@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { sanitizeDeliveryLocation } from '@/app/site/delivery-location';
 import { sendStoreTelegramNotification } from '@/lib/store-order-telegram';
+import { checkIpRateLimit } from '@/lib/api-rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -46,6 +47,14 @@ async function verifyAdminAuth(req: Request): Promise<boolean> {
 
 export async function POST(req: Request) {
   try {
+    const rate = checkIpRateLimit(req, 'website-store-order', 15, 60_000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'تم استلام عدة طلبات متتالية؛ يرجى الانتظار دقيقة قبل إرسال طلب جديد.' },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const orderType: 'store_order' | 'property_inquiry' | 'maintenance_request' =
       body.orderType === 'property_inquiry'
@@ -90,7 +99,7 @@ export async function POST(req: Request) {
       ...(deliveryLocation ? { deliveryLocation } : {}),
       notes: String(body.notes || '').trim(),
       withInstallation: Boolean(body.withInstallation),
-      items: Array.isArray(body.items) ? body.items : [],
+      items: Array.isArray(body.items) ? body.items.slice(0, 100) : [],
       property: body.property || null,
       maintenanceService: body.maintenanceService || null,
       totalAmount: Number(body.totalAmount || 0),

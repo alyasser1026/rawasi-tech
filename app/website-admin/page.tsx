@@ -672,7 +672,11 @@ export default function WebsiteAdminPage() {
       setErr(error.message);
       return;
     }
-    await fetch('/api/website-revalidate', { method: 'POST' }).catch(() => {});
+    const { data: { session: revSession } } = await supabase.auth.getSession();
+    await fetch('/api/website-revalidate', {
+      method: 'POST',
+      headers: revSession?.access_token ? { Authorization: `Bearer ${revSession.access_token}` } : undefined,
+    }).catch(() => {});
     await load();
     setBusy(false);
     setMsg('✅ تم النشر وتحديث الموقع الخارجي (phi-tech.org) فوراً!');
@@ -687,7 +691,11 @@ export default function WebsiteAdminPage() {
       setErr(error.message);
       return;
     }
-    await fetch('/api/website-revalidate', { method: 'POST' }).catch(() => {});
+    const { data: { session: revSession } } = await supabase.auth.getSession();
+    await fetch('/api/website-revalidate', {
+      method: 'POST',
+      headers: revSession?.access_token ? { Authorization: `Bearer ${revSession.access_token}` } : undefined,
+    }).catch(() => {});
     await load();
     setBusy(false);
     setMsg('تم الاسترجاع وتحديث الموقع.');

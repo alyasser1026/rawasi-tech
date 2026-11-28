@@ -295,7 +295,7 @@ export function useRequestsHandoversLogic(lockedProjectId?: string) {
           project_name: proj.Property || proj.project_name || 'مشروع غير محدد',
           project_code: proj.project_code || '---',
           unit_type: proj.unit_type || '---',
-          client_name: clientObj?.name || proj.client_name || 'شركة المواطن الدولية',
+          client_name: clientObj?.name || proj.client_name || 'بدون عميل محدد',
           drawing_id: v.drawing_id ? String(v.drawing_id) : null,
           drawing_title: drw ? `${drw.title} (${drw.version || 'Rev-01'})` : '---',
           boq_id: v.boq_id ? String(v.boq_id) : null,

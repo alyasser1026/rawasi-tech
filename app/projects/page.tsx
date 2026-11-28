@@ -301,7 +301,7 @@ export default function AdvancedProjectsPage() {
 
                        // كود أو إشارة المشروع
                        const projectRef = proj.project_code || (proj.Property ? `PRJ-${String(proj.Property).replace(/[^0-9]/g, '') || proj.id.slice(0, 4)}` : `#${proj.id.slice(0, 4)}`);
-                       const clientName = proj.client?.name || proj.client_name || 'شركة المواطن الدولية';
+                       const clientName = proj.client?.name || proj.client_name || 'بدون عميل محدد';
                        const subList = Array.isArray(proj.subcontractors) ? proj.subcontractors : [];
 
                        return (

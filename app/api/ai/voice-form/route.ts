@@ -1,6 +1,24 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { checkIpRateLimit } from '@/lib/api-rate-limit';
 
 export const runtime = 'nodejs';
+
+const MAX_AUDIO_BYTES = 10 * 1024 * 1024;
+
+function isAllowedVoiceProfile(profile: any): boolean {
+  if (!profile || profile.is_active === false) return false;
+  if (profile.is_admin === true || profile.role === 'admin' || profile.role === 'super_admin') return true;
+  if (profile.linked_partner_id && profile.role !== 'client') return true;
+  const perms = profile.permissions || {};
+  return Object.keys(perms).some((key) => {
+    if (key === 'profile' || key === 'default_page') return false;
+    const entry = perms[key];
+    return Array.isArray(entry)
+      ? entry.includes('view')
+      : Boolean(entry && typeof entry === 'object' && entry.view === true);
+  });
+}
 
 const MODAL_SCHEMAS: Record<string, string> = {
   labor_log: `
@@ -68,6 +86,60 @@ const MODAL_SCHEMAS: Record<string, string> = {
 
 export async function POST(req: Request) {
   try {
+    const rate = checkIpRateLimit(req, 'voice-form', 15, 60_000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { ok: false, error: 'تم تجاوز الحد المسموح من الطلبات الصوتية، انتظر دقيقة.' },
+        { status: 429 }
+      );
+    }
+
+    const authHeader = req.headers.get('authorization')?.trim() || '';
+    const token = authHeader.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+    if (!token) {
+      return NextResponse.json(
+        { ok: false, error: 'يلزم تسجيل الدخول لاستخدام الإدخال الصوتي.' },
+        { status: 401 }
+      );
+    }
+
+    const sbUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '').trim();
+    const sbAnon = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '').trim();
+    if (!sbUrl || !sbAnon) {
+      return NextResponse.json(
+        { ok: false, error: 'خدمة التحقق من الجلسة غير مهيأة.' },
+        { status: 503 }
+      );
+    }
+
+    const sb = createClient(sbUrl, sbAnon, {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: `Bearer ${token}` } },
+    });
+    const {
+      data: { user },
+      error: authErr,
+    } = await sb.auth.getUser(token);
+    if (authErr || !user) {
+      return NextResponse.json(
+        { ok: false, error: 'جلسة الدخول غير صالحة أو منتهية.' },
+        { status: 401 }
+      );
+    }
+
+    const { data: profile, error: profErr } = await sb
+      .from('profiles')
+      .select('role, is_admin, is_active, linked_partner_id, permissions')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (profErr || !isAllowedVoiceProfile(profile)) {
+      return NextResponse.json(
+        { ok: false, error: 'غير مصرح لك باستخدام خدمة الإدخال الصوتي.' },
+        { status: 403 }
+      );
+    }
+
     const groqKey = process.env.GROQ_API_KEY?.trim();
     const geminiKey = process.env.GEMINI_API_KEY?.trim();
 
@@ -84,6 +156,9 @@ export async function POST(req: Request) {
 
     if (!audioFile) {
       return NextResponse.json({ ok: false, error: 'لم يتم استلام أي ملف صوتي' }, { status: 400 });
+    }
+    if (audioFile.size > MAX_AUDIO_BYTES) {
+      return NextResponse.json({ ok: false, error: 'حجم الملف الصوتي يتجاوز 10 ميجابايت.' }, { status: 413 });
     }
 
     // Step 1: Transcribe Audio using Groq Whisper Large V3 Turbo (Ultra Fast ~200ms)

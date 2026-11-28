@@ -9,6 +9,7 @@ import {
 } from '@/lib/copilot/chat-auto-responder';
 import { buildSiteKnowledgeDigest, searchSiteKnowledge } from '@/lib/copilot/chat-knowledge';
 import { enforceActionClaims, getHandoffContact, hasActionRefusal, resolveHandoffConsent, resolveSubmissionConsent } from '@/lib/copilot/handoff';
+import { checkIpRateLimit } from '@/lib/api-rate-limit';
 
 /** معرفة كل أقسام الموقع العام (المتجر، العقارات، الصيانة، الدليل، قائمة التفقد...) للرد الآلي. */
 const SITE_KNOWLEDGE = { search: searchSiteKnowledge, digest: buildSiteKnowledgeDigest };
@@ -177,6 +178,14 @@ async function sendLiveChatTelegramNotification(params: {
 
 export async function POST(req: Request) {
   try {
+    const rate = checkIpRateLimit(req, 'website-chat', 30, 60_000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { error: 'تم إرسال رسائل كثيرة في وقت قصير، يرجى الانتظار لحظة.' },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const inputVisitorName = String(body.visitorName || '').trim().slice(0, 80);
     const inputVisitorPhone = String(body.visitorPhone || '').trim().slice(0, 30);

@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { formatTelegramErrorDetails, telegramHtml } from '@/lib/telegram-error-guidance';
+import { checkIpRateLimit } from '@/lib/api-rate-limit';
 
 export const runtime = 'nodejs';
+
+const MAX_ALERT_BODY_BYTES = 32_000;
 
 // In-memory rate limiting & deduplication cache (60 seconds per page + error signature, with occurrence counter)
 const recentAlertsCache = new Map<string, { timestamp: number; count: number }>();
@@ -52,6 +55,14 @@ export interface TechnicalAlertPayload {
 
 export async function POST(req: Request) {
   try {
+    const rate = checkIpRateLimit(req, 'telegram-alerts', 12, 60_000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { ok: false, throttled: true, error: 'تم تجاوز حد تنبيهات الخطأ لكل دقيقة.' },
+        { status: 429 }
+      );
+    }
+
     const botToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
     const chatId = process.env.TELEGRAM_CHAT_ID?.trim();
 
@@ -67,6 +78,9 @@ export async function POST(req: Request) {
       const rawText = await req.text();
       if (!rawText || !rawText.trim()) {
         return NextResponse.json({ ok: false, error: 'Empty request body' }, { status: 400 });
+      }
+      if (rawText.length > MAX_ALERT_BODY_BYTES) {
+        return NextResponse.json({ ok: false, error: 'Payload too large' }, { status: 413 });
       }
       payload = JSON.parse(rawText) as TechnicalAlertPayload;
     } catch {

@@ -5,11 +5,20 @@ import {
   LoginAlertInput,
 } from '@/lib/telegram-notifier';
 import { createClient } from '@supabase/supabase-js';
+import { checkIpRateLimit } from '@/lib/api-rate-limit';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   try {
+    const rate = checkIpRateLimit(req, 'notify-login', 10, 60_000);
+    if (!rate.allowed) {
+      return NextResponse.json(
+        { ok: false, error: 'تم تجاوز الحد المسموح لطلبات التنبيه، حاول بعد دقيقة.' },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json().catch(() => ({}));
     const email = typeof body.email === 'string' ? body.email.trim() : '';
 
@@ -25,6 +34,46 @@ export async function POST(req: NextRequest) {
     let phone = typeof body.phone === 'string' ? body.phone.trim() : '';
     const userId = typeof body.userId === 'string' ? body.userId.trim() : '';
     const isSignUp = body.type === 'signup';
+
+    const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const authHeader = req.headers.get('authorization')?.trim() || '';
+    const bearerToken = authHeader.match(/^Bearer\s+(.+)$/i)?.[1]?.trim() || '';
+
+    let verifiedCaller = false;
+    if (sbUrl && (serviceKey || anonKey)) {
+      const verifier = createClient(sbUrl, serviceKey || anonKey!, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+
+      if (bearerToken) {
+        const { data: userData, error: userErr } = await verifier.auth.getUser(bearerToken);
+        if (!userErr && userData?.user) {
+          const authEmail = (userData.user.email || '').toLowerCase();
+          if (
+            (!userId || userData.user.id === userId) &&
+            (!authEmail || authEmail === email.toLowerCase())
+          ) {
+            verifiedCaller = true;
+          }
+        }
+      } else if (isSignUp && userId && serviceKey) {
+        // Pending email-confirmation signup returns a user ID without a session token yet
+        const { data: authData } = await verifier.auth.admin.getUserById(userId);
+        const createdUser = authData?.user;
+        if (createdUser && (createdUser.email || '').toLowerCase() === email.toLowerCase()) {
+          const createdMs = new Date(createdUser.created_at).getTime();
+          if (Number.isFinite(createdMs) && Date.now() - createdMs < 5 * 60_000) {
+            verifiedCaller = true;
+          }
+        }
+      }
+    }
+
+    if (!verifiedCaller) {
+      return NextResponse.json({ ok: false, error: 'طلب إشعار غير مصرح' }, { status: 401 });
+    }
 
     try {
       const sbUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;

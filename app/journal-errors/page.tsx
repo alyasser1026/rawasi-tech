@@ -38,7 +38,7 @@ export default function JournalMaintenancePage() {
     // =========================================================
     const SidebarActions = (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', width: '100%' }}>
-            <SecureAction module="journal_audit" action="view">
+            <SecureAction module="journal_errors" action="view">
                 <button 
                     onClick={logic.scanForErrors} 
                     disabled={logic.isLoading} 
@@ -53,7 +53,7 @@ export default function JournalMaintenancePage() {
             </button>
 
             {logic.selectedIds.length > 0 && (
-                <SecureAction module="journal_audit" action="delete">
+                <SecureAction module="journal_errors" action="edit">
                     <button onClick={logic.deleteSelected} className="sidebar-action-btn danger">
                         مسح المحددة ({logic.selectedIds.length})
                     </button>
@@ -64,7 +64,7 @@ export default function JournalMaintenancePage() {
 
     return (
         <MasterPage title="رادار الأخطاء والتنبيهات" subtitle="مراقبة وتصحيح المشاكل المحاسبية والقيود المفقودة">
-        <AuthGuard requiredRoles={['super_admin', 'admin', 'auditor']}>
+        <AuthGuard>
             
             {/* 🚀 1. استخدام مدير السايد بار لنقل الزراير أوتوماتيكياً */}
             <RawasiSidebarManager 
@@ -206,7 +206,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                 return (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3125rem' }}>
                         {/* 🛡️ الأمان المجهري: فحص الصلاحية بـ SecureAction[cite: 22] */}
-                        <SecureAction module="journal_audit" action="edit">
+                        <SecureAction module="journal_errors" action="edit">
                             <button 
                                 onClick={() => onAction(String(item.id), item)} 
                                 style={{ padding: '0.375rem 0.75rem', background: color, color: 'white', border: 'none', borderRadius: '6px', fontWeight: 900, cursor: 'pointer', fontSize: 'var(--fs-xs)' }}
@@ -215,7 +215,7 @@ function AuditSection({ logic, data, title, color, icon, actionText, onAction, s
                             </button>
                         </SecureAction>
                         {secondaryAction && (
-                            <SecureAction module="journal_audit" action="delete">
+                            <SecureAction module="journal_errors" action="edit">
                                 <button 
                                     onClick={() => secondaryAction(String(item.id))} 
                                     style={{ background: 'none', border: 'none', color: '#e11d48', fontSize: 'var(--fs-xs)', cursor: 'pointer', textDecoration: 'underline' }}

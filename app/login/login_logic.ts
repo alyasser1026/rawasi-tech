@@ -26,12 +26,17 @@ function notifyTelegramAuth(payload: {
   destination?: string;
   status?: string;
   deviceDetails?: ClientDeviceDetails;
+  accessToken?: string;
 }) {
   try {
+    const { accessToken, ...body } = payload;
     fetch('/api/notify/login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+        ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+      },
+      body: JSON.stringify(body),
       keepalive: true,
     }).catch(() => {});
   } catch {
@@ -242,6 +247,7 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
           role: 'client',
           status: data?.session ? 'مفعّل ومسجّل فورياً' : 'في انتظار تأكيد البريد الإلكتروني',
           deviceDetails,
+          accessToken: data?.session?.access_token,
         });
 
         // في حال تفعيل تأكيد البريد في Supabase وعدم وجود جلسة فورية
@@ -354,6 +360,7 @@ export function useLoginLogic(options: UseLoginLogicOptions = {}) {
           phone: metaPhone || undefined,
           destination: shouldRedirectToPortal ? destination : 'تصفح الموقع العام',
           deviceDetails,
+          accessToken: data.session.access_token,
         });
         
         if (shouldRedirectToPortal) {

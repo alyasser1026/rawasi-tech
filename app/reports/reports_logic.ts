@@ -148,7 +148,7 @@ export function useReportsLogic() {
       .map((p: any) => {
         const pid = String(p.id);
         const pName = p.Property || p.project_name || 'مشروع بدون اسم';
-        const clientName = partnerMap.get(String(p.client_id))?.name || p.client_name || 'شركة المواطن الدولية';
+        const clientName = partnerMap.get(String(p.client_id))?.name || p.client_name || 'بدون عميل محدد';
 
         const allBoqs = rawData.boq_budget.filter((b: any) => String(b.project_id) === pid);
         // 🎯 احتساب البنود الفرعية (التنفيذية) فقط لمنع ازدواجية البنود الرئيسية الأب

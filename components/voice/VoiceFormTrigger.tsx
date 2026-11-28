@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mic, Square, Loader2, Sparkles } from 'lucide-react';
 import { notify } from '@/lib/notify';
+import { supabase } from '@/lib/supabase';
 
 export interface VoiceFormTriggerProps {
   modalType:
@@ -106,8 +107,15 @@ export default function VoiceFormTrigger({
       formData.append('audio', blob, 'recording.webm');
       formData.append('modal_type', modalType);
 
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       const res = await fetch('/api/ai/voice-form', {
         method: 'POST',
+        headers: session?.access_token
+          ? { Authorization: `Bearer ${session.access_token}` }
+          : undefined,
         body: formData,
       });
 
